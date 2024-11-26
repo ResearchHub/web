@@ -76,7 +76,7 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => (
               <div className="flex">
                 <button className="inline-flex items-center justify-center space-x-2 px-6 py-2 bg-orange-100 text-orange-600 rounded-lg text-sm font-medium hover:bg-orange-200">
                   <Coins className="h-4 w-4" />
-                  <span>Contributors</span>
+                  <span>Contribute</span>
                 </button>
               </div>
             </>
@@ -114,7 +114,7 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => (
                 </button>
                 <button className="inline-flex items-center justify-center space-x-2 px-6 py-2 bg-orange-100 text-orange-600 rounded-lg text-sm font-medium hover:bg-orange-200">
                   <Coins className="h-4 w-4" />
-                  <span>Contribute RSC</span>
+                  <span>Contribute</span>
                 </button>
               </div>
             </>
