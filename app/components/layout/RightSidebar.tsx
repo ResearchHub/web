@@ -1,13 +1,6 @@
 'use client'
 
 import { BookOpen, X, Check } from 'lucide-react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faXTwitter, 
-  faDiscord, 
-  faGithub, 
-  faLinkedin 
-} from '@fortawesome/free-brands-svg-icons';
 
 // InfoBanner Component
 const InfoBanner: React.FC = () => (
