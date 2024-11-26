@@ -8,7 +8,7 @@ import {
   Settings, LogOut, ChevronDown, Eye, EyeOff,
   GraduationCap, UserPlus, Beaker, BadgeCheck,
   Building2, ArrowUpCircle, ArrowDownCircle, BookCopy,
-  Notebook, X, Check, Filter, Trophy, Users2, Info, Wallet
+  Notebook, X, Check, Filter, Trophy, Users2, Info, Store
 } from 'lucide-react';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -39,7 +39,7 @@ const Navigation: React.FC = () => (
       Learn
     </button>
     <button className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg group">
-      <Wallet className="h-5 w-5 mr-3 text-gray-600 group-hover:text-indigo-600" />
+      <Store className="h-5 w-5 mr-3 text-gray-600 group-hover:text-indigo-600" />
       Marketplace
     </button>
     <button className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg group">
@@ -79,7 +79,7 @@ const FeedItem: React.FC<{ item: any }> = ({ item }) => (
             <span>
               {item.type === 'funding_request' ? 'Created a funding request' :
                item.type === 'grant' ? 'Created a grant' :
-               item.type === 'review' ? 'Reviewed a paper' : 'Published a paper'}
+               item.type === 'review' ? 'Reviewed a paper' : 'Published a preprint'}
             </span>
             <span>·</span>
             <span>{item.timestamp}</span>
@@ -96,14 +96,19 @@ const FeedItem: React.FC<{ item: any }> = ({ item }) => (
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-2">
-                  <Coins className="h-4 w-4 text-green-500" />
-                  <span className="text-sm font-medium text-gray-900">{item.amount} RSC raised</span>
+                  <Coins className="h-4 w-4 text-orange-500" />
+                  <span className="text-sm font-medium text-orange-500">{item.amount} RSC raised</span>
                   <span className="text-sm text-gray-500">of {item.goal} RSC goal</span>
                 </div>
-                <span className="text-sm text-green-500 font-medium">Fundraise Completed</span>
+                {item.progress === 100 && (
+                  <span className="text-sm text-green-500 font-medium">Fundraise Completed</span>
+                )}
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full w-full"></div>
+                <div 
+                  className={`h-2 rounded-full ${item.progress === 100 ? 'bg-green-500' : 'bg-orange-500'}`}
+                  style={{ width: `${item.progress}%` }}
+                ></div>
               </div>
             </div>
 
@@ -113,50 +118,52 @@ const FeedItem: React.FC<{ item: any }> = ({ item }) => (
                   <div key={i} className="h-6 w-6 rounded-full bg-gray-200 ring-2 ring-white" />
                 ))}
                 <div className="h-6 px-2 rounded-full bg-gray-100 text-gray-600 text-xs font-medium flex items-center ml-1">
-                  +6 others
+                  +{item.contributors} others
                 </div>
               </div>
-              <span className="text-sm text-gray-600">contributed RSC</span>
+              <span className="text-sm text-gray-600">contributors</span>
             </div>
 
-            <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-green-50 text-green-600 rounded-lg text-sm font-medium hover:bg-green-100">
-              <Coins className="h-4 w-4" />
-              <span>Contribute RSC</span>
-            </button>
+            <div className="flex">
+              <button className="inline-flex items-center justify-center space-x-2 px-6 py-2 bg-orange-100 text-orange-600 rounded-lg text-sm font-medium hover:bg-orange-200">
+                <Coins className="h-4 w-4" />
+                <span>Contributors</span>
+              </button>
+            </div>
           </>
         )}
 
         {item.type === 'grant' && (
           <>
-            <div className="flex items-center space-x-2 mb-4">
-              <Coins className="h-4 w-4 text-green-500" />
-              <span className="text-sm font-medium text-gray-900">{item.amount} RSC grant</span>
-            </div>
-
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="flex -space-x-2">
-                {[1, 2, 3].map((_, i) => (
-                  <div key={i} className="h-6 w-6 rounded-full bg-gray-200 ring-2 ring-white" />
-                ))}
-                <div className="h-6 px-2 rounded-full bg-gray-100 text-gray-600 text-xs font-medium flex items-center ml-1">
-                  +12 others
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="flex items-center space-x-2">
+                <Coins className="h-4 w-4 text-orange-500" />
+                <span className="text-sm font-medium text-orange-500">{item.amount} RSC grant</span>
+              </div>
+              <span className="text-gray-300">|</span>
+              <div className="flex items-center space-x-2">
+                <Users2 className="h-4 w-4 text-gray-600" />
+                <span className="text-sm text-gray-600">{item.applicants} applicants</span>
+              </div>
+              <span className="text-gray-300">|</span>
+              <div className="flex items-center space-x-2">
+                <div className="flex -space-x-2">
+                  {[1, 2, 3].map((_, i) => (
+                    <div key={i} className="h-6 w-6 rounded-full bg-gray-200 ring-2 ring-white" />
+                  ))}
+                  <div className="h-6 px-2 rounded-full bg-gray-100 text-gray-600 text-xs font-medium flex items-center ml-1">
+                    +12 others
+                  </div>
                 </div>
-              </div>
-              <span className="text-sm text-gray-600">contributed RSC</span>
-            </div>
-
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <Users2 className="h-4 w-4" />
-                <span>{item.applicants} applicants</span>
+                <span className="text-sm text-gray-600">contributed RSC</span>
               </div>
             </div>
 
-            <div className="flex space-x-2">
-              <button className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
+            <div className="flex space-x-3">
+              <button className="px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
                 Apply Now
               </button>
-              <button className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-green-50 text-green-600 rounded-lg text-sm font-medium hover:bg-green-100">
+              <button className="inline-flex items-center justify-center space-x-2 px-6 py-2 bg-orange-100 text-orange-600 rounded-lg text-sm font-medium hover:bg-orange-200">
                 <Coins className="h-4 w-4" />
                 <span>Contribute RSC</span>
               </button>
@@ -187,34 +194,70 @@ const FeedItem: React.FC<{ item: any }> = ({ item }) => (
   </div>
 );
 
-const WhoToFollow: React.FC = () => (
-  <div className="bg-white rounded-xl border p-4">
-    <h2 className="font-semibold text-gray-900 mb-4">Who to Follow</h2>
-    <div className="space-y-4">
-      {[
-        { name: 'Nature', logo: '🌿', followers: '1.2M followers' },
-        { name: 'Science', logo: '🔬', followers: '980K followers' },
-        { name: 'MIT', logo: '🎓', followers: '750K followers' },
-        { name: 'Stanford Medicine', logo: '🏥', followers: '420K followers' }
-      ].map((org, i) => (
-        <div key={i} className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-lg">
-              {org.logo}
-            </div>
-            <div>
-              <div className="font-medium text-gray-900">{org.name}</div>
-              <div className="text-sm text-gray-500">{org.followers}</div>
-            </div>
-          </div>
-          <button className="px-3 py-1 border border-indigo-600 text-indigo-600 rounded-full text-sm font-medium hover:bg-indigo-50">
-            Follow
-          </button>
+const WhoToFollow: React.FC = () => {
+  const organizations = [
+    { name: 'Nature', logo: '🌿', followers: '1.2M followers', type: 'Journal' },
+    { name: 'Science', logo: '🔬', followers: '980K followers', type: 'Journal' },
+    { name: 'MIT', logo: '🎓', followers: '750K followers', type: 'Institution' },
+    { name: 'Stanford Medicine', logo: '🏥', followers: '420K followers', type: 'Institution' }
+  ];
+
+  const people = [
+    { name: 'Dr. Sarah Chen', logo: '👩‍⚕️', followers: '89K followers', type: 'Neuroscientist', org: 'Stanford Medicine' },
+    { name: 'Dr. James Wilson', logo: '👨‍⚕️', followers: '156K followers', type: 'Oncologist', org: 'Mayo Clinic' },
+    { name: 'Dr. Elena Rodriguez', logo: '👩‍🔬', followers: '45K followers', type: 'AI Researcher', org: 'DeepMind' },
+    { name: 'Prof. David Zhang', logo: '👨‍🏫', followers: '92K followers', type: 'Immunologist', org: 'Harvard Medical' }
+  ];
+
+  const ProfileCard = ({ profile }: { profile: any }) => (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center space-x-3">
+        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-lg">
+          {profile.logo}
         </div>
-      ))}
+        <div>
+          <div className="font-medium text-gray-900">{profile.name}</div>
+          <div className="text-sm text-gray-500">
+            {profile.type === 'Journal' || profile.type === 'Institution' ? (
+              profile.followers
+            ) : (
+              <div className="flex flex-col">
+                <span>{profile.type}</span>
+                <span className="text-xs text-gray-400">{profile.org}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      <button className="px-3 py-1 border border-indigo-600 text-indigo-600 rounded-full text-sm font-medium hover:bg-indigo-50">
+        Follow
+      </button>
     </div>
-  </div>
-);
+  );
+
+  return (
+    <div className="bg-white rounded-xl border p-4">
+      <h2 className="font-semibold text-gray-900 mb-4">Who to Follow</h2>
+      
+      {/* Organizations Section */}
+      <div className="space-y-4 mb-6">
+        {organizations.map((org, i) => (
+          <ProfileCard key={`org-${i}`} profile={org} />
+        ))}
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-gray-200 my-4"></div>
+
+      {/* People Section */}
+      <div className="space-y-4">
+        {people.map((person, i) => (
+          <ProfileCard key={`person-${i}`} profile={person} />
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const FeedTabs: React.FC = () => (
   <div className="border-b mb-6">
@@ -335,9 +378,10 @@ const ResearchFeed: React.FC = () => {
       verified: true,
       timestamp: 'Oct 9, 2024',
       title: 'Incentivized vs Non-Incentivized Open Peer Reviews: Dynamics, Economics, and Quality',
-      description: 'Research project exploring the impact of incentive structures on peer review quality and participation',
+      description: 'Research project exploring the impact of incentive structures on peer review quality and participation.',
       amount: '122,131',
       goal: '36,389',
+      progress: 100,
       votes: 45,
       comments: 21,
       contributors: 6
@@ -380,6 +424,20 @@ const ResearchFeed: React.FC = () => {
       comments: 7,
       rsc: 300,
       tags: ['Medical Devices', 'Flexible Printed Heaters', 'Patient Care']
+    },
+    {
+      type: 'funding_request',
+      user: 'Sarah Chen',
+      verified: true,
+      timestamp: '3h ago',
+      title: 'Machine Learning Approaches to Early Detection of Neurodegenerative Diseases',
+      description: 'Developing AI models to identify early biomarkers of neurodegeneration using multi-modal medical imaging data.',
+      amount: '45,000',
+      goal: '75,000',
+      progress: 60,
+      votes: 28,
+      comments: 15,
+      contributors: 4
     }
   ];
 
