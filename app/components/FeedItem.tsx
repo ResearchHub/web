@@ -2,11 +2,59 @@
 
 import { 
   ArrowUp, MessageSquare, Bookmark, Share2, CircleUser,
-  Coins, BadgeCheck, DollarSign, FileText, Star, Users2
+  Coins, BadgeCheck, DollarSign, FileText, Star, Users2, X 
 } from 'lucide-react';
 
+export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
+  const renderActionSection = () => {
+    if (item.type === 'reward') {
+      return (
+        <div className="mt-4 flex items-center justify-between border-t pt-4">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-1.5">
+              <Coins className="h-5 w-5 text-orange-500" />
+              <span className="font-medium text-orange-500">
+                {item.amount} RSC
+              </span>
+            </div>
+            <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <span>•</span>
+              <span>Due in {item.deadline}</span>
+              <span>•</span>
+              <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">
+                {item.difficulty}
+              </span>
+            </div>
+          </div>
+        </div>
+      );
+    }
 
-export const FeedItem: React.FC<{ item: any }> = ({ item }) => (
+    if (item.type === 'funding_request' || item.type === 'grant') {
+      return (
+        <div className="mt-4 flex items-center justify-between border-t pt-4">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-1.5">
+              <Coins className="h-5 w-5 text-orange-500" />
+              <span className="font-medium text-orange-500">
+                {item.amount} RSC
+              </span>
+            </div>
+            <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <span>•</span>
+              <span>Due in {item.deadline}</span>
+              <span>•</span>
+              <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">
+                {item.difficulty}
+              </span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  };
+
+  return (
     <div className="p-6">
       <div className="flex flex-col">
         <div className="flex items-start mb-3">
@@ -40,6 +88,25 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => (
           <h3 className="font-medium text-gray-900 mb-3">{item.title}</h3>
           <p className="text-sm text-gray-600 mb-3">{item.description}</p>
           
+          {item.type === 'reward' && (
+            <div className="flex items-center space-x-4 mb-3">
+              <div className="flex items-center space-x-1.5">
+                <Coins className="h-5 w-5 text-orange-500" />
+                <span className="font-medium text-orange-500">
+                  {item.amount} RSC
+                </span>
+              </div>
+              <div className="flex items-center space-x-2 text-sm text-gray-500">
+                <span>•</span>
+                <span>Due in {item.deadline}</span>
+                <span>•</span>
+                <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">
+                  {item.difficulty}
+                </span>
+              </div>
+            </div>
+          )}
+  
           {item.type === 'funding_request' && (
             <>
               <div className="mb-4">
@@ -142,3 +209,4 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => (
       </div>
     </div>
   );
+};
