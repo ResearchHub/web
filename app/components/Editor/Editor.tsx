@@ -108,9 +108,6 @@ export default function Editor(): JSX.Element {
           <SharedHistoryContext>
             <TableContext>
               <ToolbarContext>
-                <header>
-                  logo
-                </header>
                 <div className="editor-shell">
                   <PlaygroundEditor />
                 </div>

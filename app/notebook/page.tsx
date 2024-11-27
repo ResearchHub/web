@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import NotebookLayout from './layout/NotebookLayout';
 
 // Dynamically import the Editor component to avoid SSR issues
 const Editor = dynamic(() => import('../components/Editor/Editor'), {
@@ -14,13 +15,14 @@ const Editor = dynamic(() => import('../components/Editor/Editor'), {
 
 export default function NotebookPage() {
   return (
-    <div className="max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">My Notebook</h1>
-      <div className="bg-white rounded-lg shadow p-4">
-        <div className="editor-wrapper">
-          <Editor />
+    <NotebookLayout>
+      <div>
+        <div>
+          <div className="editor-wrapper">
+            <Editor />
+          </div>
         </div>
       </div>
-    </div>
+    </NotebookLayout>
   );
 }

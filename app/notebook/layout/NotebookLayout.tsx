@@ -1,5 +1,5 @@
-import { LeftSidebar } from '../components/layout/LeftSidebar';
-import { TopBar } from '../components/layout/TopBar';
+import LeftSidebar from './LeftSidebar';
+import { TopBar } from '../../components/layout/TopBar';
 
 export default function NotebookLayout({
   children,
@@ -9,9 +9,9 @@ export default function NotebookLayout({
   return (
     <div className="flex min-h-screen">
       <LeftSidebar />
-      <div className="flex-1 ml-64">
+      <div className="flex-1">
         <TopBar />
-        <main className="p-4">{children}</main>
+        <main>{children}</main>
       </div>
     </div>
   );
