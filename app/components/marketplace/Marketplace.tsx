@@ -6,12 +6,14 @@ import { PageLayout } from '../layout/PageLayout';
 import { FeedItem } from '../FeedItem';
 import { MarketplaceTabs } from './MarketplaceTabs';
 import { MarketplaceSort } from './MarketplaceSort';
-import { MarketplaceBanner } from './MarketplaceBanner';
+import { MarketplaceFundingBanner } from './MarketplaceFundingBanner';
+import { MarketplaceRewardsBanner } from './MarketplaceRewardsBanner';
 
 const Marketplace = () => {
   const [activeTab, setActiveTab] = useState('fund');
   const [selectedSort, setSelectedSort] = useState({ id: 'newest', name: 'Newest' });
-  const [showBanner, setShowBanner] = useState(true);
+  const [showFundingBanner, setShowFundingBanner] = useState(true);
+  const [showRewardsBanner, setShowRewardsBanner] = useState(true);
 
   const marketplaceItems = {
     fund: [
@@ -151,9 +153,15 @@ const Marketplace = () => {
 
       <MarketplaceTabs activeTab={activeTab} setActiveTab={setActiveTab} />
       
-      {showBanner && (
+      {showFundingBanner && activeTab === 'fund' && (
         <div className="mt-6">
-          <MarketplaceBanner onDismiss={() => setShowBanner(false)} />
+          <MarketplaceFundingBanner onDismiss={() => setShowFundingBanner(false)} />
+        </div>
+      )}
+
+      {showRewardsBanner && activeTab === 'rewards' && (
+        <div className="mt-6">
+          <MarketplaceRewardsBanner onDismiss={() => setShowRewardsBanner(false)} />
         </div>
       )}
 

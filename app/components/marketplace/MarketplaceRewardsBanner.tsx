@@ -1,15 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Transition } from '@headlessui/react'
-import { X, Coins, Users2, ArrowRight } from 'lucide-react'
-import Link from 'next/link'
+import { X, Award, FileCheck } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faSeedling } from '@fortawesome/free-solid-svg-icons'
 
-interface MarketplaceBannerProps {
+interface MarketplaceRewardsBannerProps {
   onDismiss: () => void;
 }
 
-export const MarketplaceBanner: React.FC<MarketplaceBannerProps> = ({ onDismiss }) => {
+export const MarketplaceRewardsBanner: React.FC<MarketplaceRewardsBannerProps> = ({ onDismiss }) => {
   const [isVisible, setIsVisible] = useState(true)
 
   const dismissBanner = () => {
@@ -27,7 +28,7 @@ export const MarketplaceBanner: React.FC<MarketplaceBannerProps> = ({ onDismiss 
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
     >
-      <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl p-5 mb-6 relative overflow-hidden">
+      <div className="bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 rounded-xl p-5 mb-6 relative overflow-hidden animate-gradient">
         <button
           onClick={dismissBanner}
           className="absolute top-3 right-3 text-white/80 hover:text-white z-10"
@@ -37,38 +38,35 @@ export const MarketplaceBanner: React.FC<MarketplaceBannerProps> = ({ onDismiss 
         </button>
 
         <div className="relative z-[1]">
-          <h2 className="text-lg font-semibold text-white mb-3">
-            How Funding Works
+          <h2 className="text-lg font-semibold text-white mb-3 flex items-center">
+            <FontAwesomeIcon 
+              icon={faSeedling} 
+              className="h-5 w-5 mr-2"
+            />
+            Earn ResearchCoin Rewards
           </h2>
 
           <div className="grid md:grid-cols-2 gap-6">
             <div className="flex items-start space-x-4">
               <div className="flex-shrink-0 bg-white/10 rounded-lg p-2">
-                <Users2 className="h-5 w-5 text-white" />
+                <FileCheck className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="font-medium text-white text-sm mb-0.5">Open Participation</h3>
+                <h3 className="font-bold text-white text-sm mb-0.5">Peer Review</h3>
                 <p className="text-white/90 text-sm leading-relaxed">
-                  Anyone who cares about scientific progress can contribute RSC to fund research
+                  Earn RSC by reviewing research papers and contributing to scientific validation
                 </p>
               </div>
             </div>
 
             <div className="flex items-start space-x-4">
               <div className="flex-shrink-0 bg-white/10 rounded-lg p-2">
-                <Coins className="h-5 w-5 text-white" />
+                <Award className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="font-medium text-white text-sm mb-0.5">Quadratic Funding</h3>
+                <h3 className="font-bold text-white text-sm mb-0.5">Science Actions</h3>
                 <p className="text-white/90 text-sm leading-relaxed">
-                  Contributions are matched to maximize impact, giving greater weight to broad community support.
-                  <Link 
-                    href="/learn/quadratic-funding" 
-                    className="inline-flex items-center text-white hover:text-white/90 font-medium ml-1 underline decoration-white/50 hover:decoration-white"
-                  >
-                    Learn more
-                    <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                  </Link>
+                  Get rewarded for various scientific contributions and community participation
                 </p>
               </div>
             </div>
