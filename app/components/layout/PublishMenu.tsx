@@ -29,7 +29,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
       ]
     },
     {
-      section: 'ResearchCoin',
+      section: 'ResearchCoin Marketplace',
       items: [
         { icon: <Coins className="w-5 h-5" />, title: 'Create ResearchCoin Reward', description: 'Incentivize research contributions' },
         { icon: <Gift className="w-5 h-5" />, title: 'Create grant', description: 'Fund promising research projects' },
@@ -56,7 +56,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
           />
           
           <div 
-            className="fixed left-64 top-0 w-72 bg-white/95 backdrop-blur-sm border-r border-l shadow-xl p-6 h-screen z-30 animate-in"
+            className="fixed left-64 top-0 w-96 bg-white/95 backdrop-blur-sm border-r border-l shadow-xl p-6 h-screen z-30 animate-in"
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
           >

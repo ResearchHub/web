@@ -17,14 +17,26 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath }) => {
 
   const getButtonStyles = (path: string) => {
     const isActive = currentPath === path;
-    return isActive
-      ? "flex items-center w-full px-4 py-3 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg group"
-      : "flex items-center w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg group";
+    const isNewButton = path === '';
+    const isNewButtonActive = isNewButton && isPublishMenuOpen;
+
+    if (isActive) {
+      return "flex items-center w-full px-4 py-3 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg group";
+    }
+    
+    if (isNewButtonActive) {
+      return "flex items-center w-full px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg group";
+    }
+
+    return "flex items-center w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg group";
   };
 
   const getIconStyles = (path: string) => {
     const isActive = currentPath === path;
-    return `h-5 w-5 mr-3 ${isActive ? 'text-indigo-600' : 'text-gray-600 group-hover:text-indigo-600'}`;
+    const isNewButton = path === '';
+    const isNewButtonActive = isNewButton && isPublishMenuOpen;
+
+    return `h-5 w-5 mr-3 ${isActive || isNewButtonActive ? 'text-indigo-600' : 'text-gray-600 group-hover:text-indigo-600'}`;
   };
 
   return (
