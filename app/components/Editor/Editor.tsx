@@ -108,7 +108,7 @@ export default function Editor(): JSX.Element {
           <SharedHistoryContext>
             <TableContext>
               <ToolbarContext>
-                <div className="editor-shell">
+                <div className="editor-shell h-full flex flex-col">
                   <PlaygroundEditor />
                 </div>
               </ToolbarContext>

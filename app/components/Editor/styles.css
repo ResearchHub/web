@@ -57,6 +57,10 @@ header h1 {
   font-weight: 400;
 }
 
+.editor-container {
+  height: 100%;
+}
+
 .editor-shell .editor-container {
   background: #fff;
   position: relative;
