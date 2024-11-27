@@ -2,16 +2,19 @@
 
 import { 
   Home, Coins, GraduationCap, Store, 
-  BookOpen, Star, BadgeCheck 
+  BookOpen, Star, BadgeCheck, Plus, ChevronRight 
 } from 'lucide-react';
 import Link from 'next/link';
 import { PublishMenu } from './PublishMenu';
+import { useState } from 'react';
 
 interface NavigationProps {
   currentPath: string;
 }
 
 export const Navigation: React.FC<NavigationProps> = ({ currentPath }) => {
+  const [isPublishMenuOpen, setIsPublishMenuOpen] = useState(false);
+
   const getButtonStyles = (path: string) => {
     const isActive = currentPath === path;
     return isActive
@@ -25,15 +28,43 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath }) => {
   };
 
   return (
-    <div className="space-y-1">
-      <div className="px-2">
-        <PublishMenu />
+    <div 
+      className="space-y-1"
+      onMouseLeave={() => setIsPublishMenuOpen(false)}
+    >
+      <div 
+        onMouseEnter={() => setIsPublishMenuOpen(true)}
+        className="relative"
+      >
+        <PublishMenu 
+          isOpen={isPublishMenuOpen}
+          onMouseEnter={() => setIsPublishMenuOpen(true)}
+          onMouseLeave={() => setIsPublishMenuOpen(false)}
+        >
+          <div className="absolute -right-4 w-4 h-full" />
+          <button 
+            className={getButtonStyles('')}
+            onMouseEnter={() => setIsPublishMenuOpen(true)}
+          >
+            <Plus className={getIconStyles('')} />
+            New
+            <ChevronRight className="h-4 w-4 ml-auto" />
+          </button>
+        </PublishMenu>
       </div>
-      <Link href="/" className={getButtonStyles('/')}>
+      <Link 
+        href="/" 
+        className={getButtonStyles('/')}
+        onMouseEnter={() => setIsPublishMenuOpen(false)}
+      >
         <Home className={getIconStyles('/')} />
         Home
       </Link>
-      <Link href="/researchcoin" className={`${getButtonStyles('/researchcoin')} justify-between`}>
+      <Link 
+        href="/researchcoin" 
+        className={`${getButtonStyles('/researchcoin')} justify-between`}
+        onMouseEnter={() => setIsPublishMenuOpen(false)}
+      >
         <div className="flex items-center">
           <Coins className={getIconStyles('/researchcoin')} />
           My ResearchCoin
@@ -42,23 +73,43 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath }) => {
           +10
         </span>
       </Link>
-      <Link href="/marketplace" className={getButtonStyles('/marketplace')}>
+      <Link 
+        href="/marketplace" 
+        className={getButtonStyles('/marketplace')}
+        onMouseEnter={() => setIsPublishMenuOpen(false)}
+      >
         <Store className={getIconStyles('/marketplace')} />
         Marketplace
       </Link>
-      <Link href="/rhjournal" className={getButtonStyles('/rhjournal')}>
+      <Link 
+        href="/rhjournal" 
+        className={getButtonStyles('/rhjournal')}
+        onMouseEnter={() => setIsPublishMenuOpen(false)}
+      >
         <BookOpen className={getIconStyles('/rhjournal')} />
         RH Journal
       </Link>
-      <Link href="/peerreviews" className={getButtonStyles('/peerreviews')}>
+      <Link 
+        href="/peerreviews" 
+        className={getButtonStyles('/peerreviews')}
+        onMouseEnter={() => setIsPublishMenuOpen(false)}
+      >
         <Star className={getIconStyles('/peerreviews')} />
         Peer Reviews
       </Link>
-      <Link href="/learn" className={getButtonStyles('/learn')}>
+      <Link 
+        href="/learn" 
+        className={getButtonStyles('/learn')}
+        onMouseEnter={() => setIsPublishMenuOpen(false)}
+      >
         <GraduationCap className={getIconStyles('/learn')} />
         Learn
       </Link>
-      <Link href="/verifyidentity" className={getButtonStyles('/verifyidentity')}>
+      <Link 
+        href="/verifyidentity" 
+        className={getButtonStyles('/verifyidentity')}
+        onMouseEnter={() => setIsPublishMenuOpen(false)}
+      >
         <BadgeCheck className={getIconStyles('/verifyidentity')} />
         Verify Identity
       </Link>

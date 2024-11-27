@@ -6,9 +6,19 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-export const PublishMenu = () => {
-  const [isHovered, setIsHovered] = useState(false);
+interface PublishMenuProps {
+  isOpen: boolean;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+  children: React.ReactNode;
+}
 
+export const PublishMenu: React.FC<PublishMenuProps> = ({ 
+  isOpen, 
+  onMouseEnter, 
+  onMouseLeave,
+  children
+}) => {
   const menuItems = [
     {
       section: 'Publish',
@@ -35,28 +45,20 @@ export const PublishMenu = () => {
   ];
 
   return (
-    <div 
-      className="relative w-full"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <button className="flex items-center w-full px-2 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg group">
-        <Plus className="h-5 w-5 mr-3 text-gray-600 group-hover:text-indigo-600" />
-        New
-        <ChevronRight className="h-4 w-4 ml-auto" />
-      </button>
+    <div className="relative w-full">
+      {children}
 
-      {isHovered && (
+      {isOpen && (
         <>
           <div 
             className="fixed left-[256px] top-0 w-4 h-screen z-30"
-            onMouseEnter={() => setIsHovered(true)}
+            onMouseEnter={onMouseEnter}
           />
           
           <div 
-            className="fixed left-64 top-0 w-72 bg-white/95 backdrop-blur-sm border-r border-l shadow-xl p-6 h-screen z-30"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            className="fixed left-64 top-0 w-72 bg-white/95 backdrop-blur-sm border-r border-l shadow-xl p-6 h-screen z-30 animate-in"
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
           >
             {menuItems.map((section, idx) => (
               <div key={idx} className="mb-8 last:mb-0">
