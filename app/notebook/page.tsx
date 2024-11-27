@@ -16,8 +16,8 @@ const Editor = dynamic(() => import('../components/Editor/Editor'), {
 export default function NotebookPage() {
   return (
     <NotebookLayout>
-      <div>
-        <div>
+      <div className="w-full bg-white">
+        <div className="max-w-[1200px] w-full mx-auto p-6">
           <div className="editor-wrapper">
             <Editor />
           </div>
