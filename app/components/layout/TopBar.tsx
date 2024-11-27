@@ -1,6 +1,7 @@
 'use client'
 
 import { Search, FileText, Notebook, Bell, CircleUser, ChevronDown } from 'lucide-react';
+import Link from 'next/link';
 
 export const TopBar: React.FC = () => (
   <div className="sticky top-0 backdrop-blur-md bg-white/80 border-b border-gray-100 z-40 h-16">
@@ -20,9 +21,11 @@ export const TopBar: React.FC = () => (
             <span>Publish</span>
             <ChevronDown className="h-4 w-4" />
           </button>
-          <button className="relative">
-            <Notebook className="h-6 w-6 text-gray-600 hover:text-indigo-600" />
-          </button>
+          <Link href="/notebook">
+            <button className="relative">
+              <Notebook className="h-6 w-6 text-gray-600 hover:text-indigo-600" />
+            </button>
+          </Link>
           <button className="relative">
             <Bell className="h-6 w-6 text-gray-600 hover:text-indigo-600" />
             <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
