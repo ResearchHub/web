@@ -5,6 +5,7 @@ import {
   BookOpen, Star, BadgeCheck 
 } from 'lucide-react';
 import Link from 'next/link';
+import { PublishMenu } from './PublishMenu';
 
 interface NavigationProps {
   currentPath: string;
@@ -25,6 +26,9 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath }) => {
 
   return (
     <div className="space-y-1">
+      <div className="px-2">
+        <PublishMenu />
+      </div>
       <Link href="/" className={getButtonStyles('/')}>
         <Home className={getIconStyles('/')} />
         Home

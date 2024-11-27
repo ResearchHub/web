@@ -4,7 +4,7 @@ import { Search, FileText, Notebook, Bell, CircleUser, ChevronDown, ArrowLeft } 
 import Link from 'next/link';
 
 export const TopBar: React.FC = () => (
-  <div className="sticky top-0 backdrop-blur-md bg-white/80 border-b border-gray-100 z-40 h-16">
+  <div className="sticky top-0 backdrop-blur-md bg-white/80 border-b border-gray-100 z-20 h-16">
     <div className="h-full flex items-center">
       <div className="px-6 h-full flex items-center">
         <Link href="/">
@@ -26,11 +26,6 @@ export const TopBar: React.FC = () => (
             />
           </div>
           <div className="flex items-center space-x-4">
-            <button className="flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700">
-              <FileText className="h-4 w-4" />
-              <span>Publish</span>
-              <ChevronDown className="h-4 w-4" />
-            </button>
             <Link href="/notebook">
               <button className="relative">
                 <Notebook className="h-6 w-6 text-gray-600 hover:text-indigo-600" />
