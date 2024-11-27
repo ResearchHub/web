@@ -89,22 +89,28 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
           <p className="text-sm text-gray-600 mb-3">{item.description}</p>
           
           {item.type === 'reward' && (
-            <div className="flex items-center space-x-4 mb-3">
-              <div className="flex items-center space-x-1.5">
-                <Coins className="h-5 w-5 text-orange-500" />
-                <span className="font-medium text-orange-500">
-                  {item.amount} RSC
-                </span>
-              </div>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <span>•</span>
-                <span>Due in {item.deadline}</span>
-                <span>•</span>
+            <>
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="flex items-center space-x-2">
+                  <Coins className="h-4 w-4 text-orange-500" />
+                  <span className="text-sm font-medium text-orange-500">{item.amount} RSC reward</span>
+                </div>
+                <span className="text-gray-500">•</span>
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <span>Due in {item.deadline}</span>
+                </div>
+                <span className="text-gray-500">•</span>
                 <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">
                   {item.difficulty}
                 </span>
               </div>
-            </div>
+
+              <div className="flex space-x-3">
+                <button className="px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
+                  Do task
+                </button>
+              </div>
+            </>
           )}
   
           {item.type === 'funding_request' && (
@@ -156,22 +162,10 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
                   <Coins className="h-4 w-4 text-orange-500" />
                   <span className="text-sm font-medium text-orange-500">{item.amount} RSC grant</span>
                 </div>
-                <span className="text-gray-300">|</span>
+                <span className="text-gray-500">•</span>
                 <div className="flex items-center space-x-2">
                   <Users2 className="h-4 w-4 text-gray-600" />
                   <span className="text-sm text-gray-600">{item.applicants} applicants</span>
-                </div>
-                <span className="text-gray-300">|</span>
-                <div className="flex items-center space-x-2">
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3].map((_, i) => (
-                      <div key={i} className="h-6 w-6 rounded-full bg-gray-200 ring-2 ring-white" />
-                    ))}
-                    <div className="h-6 px-2 rounded-full bg-gray-100 text-gray-600 text-xs font-medium flex items-center ml-1">
-                      +12 others
-                    </div>
-                  </div>
-                  <span className="text-sm text-gray-600">contributed RSC</span>
                 </div>
               </div>
   
