@@ -2,21 +2,19 @@
 
 import { useState, useEffect } from 'react'
 import { Transition } from '@headlessui/react'
-import { X, Coins, Users2 } from 'lucide-react'
+import { X, Coins, Users2, ArrowRight } from 'lucide-react'
+import Link from 'next/link'
 
-export const MarketplaceBanner = () => {
-  const [isVisible, setIsVisible] = useState(false)
+interface MarketplaceBannerProps {
+  onDismiss: () => void;
+}
 
-  useEffect(() => {
-    const bannerDismissed = localStorage.getItem('marketplaceBannerDismissed')
-    if (!bannerDismissed) {
-      setIsVisible(true)
-    }
-  }, [])
+export const MarketplaceBanner: React.FC<MarketplaceBannerProps> = ({ onDismiss }) => {
+  const [isVisible, setIsVisible] = useState(true)
 
   const dismissBanner = () => {
-    localStorage.setItem('marketplaceBannerDismissed', 'true')
     setIsVisible(false)
+    onDismiss()
   }
 
   return (
@@ -29,40 +27,50 @@ export const MarketplaceBanner = () => {
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
     >
-      <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl p-6 mb-6 relative overflow-hidden">
+      <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl p-5 mb-6 relative overflow-hidden">
         <button
           onClick={dismissBanner}
-          className="absolute top-3 right-3 text-white/80 hover:text-white"
+          className="absolute top-3 right-3 text-white/80 hover:text-white z-10"
+          aria-label="Dismiss banner"
         >
           <X className="h-5 w-5" />
         </button>
 
-        <h2 className="text-lg font-semibold text-white mb-4 text-center">
-          How Funding Works
-        </h2>
+        <div className="relative z-[1]">
+          <h2 className="text-lg font-semibold text-white mb-3">
+            How Funding Works
+          </h2>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="flex items-start space-x-4">
-            <div className="flex-shrink-0 bg-white/10 rounded-lg p-2.5">
-              <Users2 className="h-6 w-6 text-white" />
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0 bg-white/10 rounded-lg p-2">
+                <Users2 className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-medium text-white text-sm mb-0.5">Open Participation</h3>
+                <p className="text-white/90 text-sm leading-relaxed">
+                  Anyone who cares about scientific progress can contribute RSC to fund research
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-medium text-white text-base mb-1">Open Participation</h3>
-              <p className="text-white/90 text-sm leading-relaxed">
-                Anyone who cares about scientific progress can contribute RSC to fund research
-              </p>
-            </div>
-          </div>
 
-          <div className="flex items-start space-x-4">
-            <div className="flex-shrink-0 bg-white/10 rounded-lg p-2.5">
-              <Coins className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h3 className="font-medium text-white text-base mb-1">Quadratic Funding</h3>
-              <p className="text-white/90 text-sm leading-relaxed">
-                Contributions are matched to maximize impact, giving greater weight to broad community support
-              </p>
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0 bg-white/10 rounded-lg p-2">
+                <Coins className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-medium text-white text-sm mb-0.5">Quadratic Funding</h3>
+                <p className="text-white/90 text-sm leading-relaxed">
+                  Contributions are matched to maximize impact, giving greater weight to broad community support.
+                  <Link 
+                    href="/learn/quadratic-funding" 
+                    className="inline-flex items-center text-white hover:text-white/90 font-medium ml-1 underline decoration-white/50 hover:decoration-white"
+                  >
+                    Learn more
+                    <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                  </Link>
+                </p>
+              </div>
             </div>
           </div>
         </div>

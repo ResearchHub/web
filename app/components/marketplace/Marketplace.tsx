@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react';
+import { Store } from 'lucide-react';
 import { PageLayout } from '../layout/PageLayout';
 import { FeedItem } from '../FeedItem';
 import { MarketplaceTabs } from './MarketplaceTabs';
@@ -10,6 +11,7 @@ import { MarketplaceBanner } from './MarketplaceBanner';
 const Marketplace = () => {
   const [activeTab, setActiveTab] = useState('fund');
   const [selectedSort, setSelectedSort] = useState({ id: 'newest', name: 'Newest' });
+  const [showBanner, setShowBanner] = useState(true);
 
   const marketplaceItems = {
     fund: [
@@ -140,14 +142,21 @@ const Marketplace = () => {
   return (
     <PageLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Research Marketplace</h1>
-        <p className="text-gray-600 mt-1">Find funding opportunities and earn RSC through contributions</p>
+        <div className="flex items-center space-x-2">
+          <Store className="h-7 w-7 text-gray-900" />
+          <h1 className="text-2xl font-bold text-gray-900">ResearchCoin Marketplace</h1>
+        </div>
+        <p className="text-gray-600 mt-1">Fund science, apply for grants, or earn RSC through contributions</p>
       </div>
-
-      <MarketplaceBanner />
 
       <MarketplaceTabs activeTab={activeTab} setActiveTab={setActiveTab} />
       
+      {showBanner && (
+        <div className="mt-6">
+          <MarketplaceBanner onDismiss={() => setShowBanner(false)} />
+        </div>
+      )}
+
       <div className="flex justify-end mt-4 mb-6">
         <MarketplaceSort
           activeTab={activeTab}
