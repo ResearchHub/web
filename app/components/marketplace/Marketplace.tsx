@@ -1,19 +1,23 @@
 'use client'
 
 import { useState } from 'react';
-import { Store } from 'lucide-react';
+import { Store, Plus } from 'lucide-react';
 import { PageLayout } from '../layout/PageLayout';
 import { FeedItem } from '../FeedItem';
 import { MarketplaceTabs } from './MarketplaceTabs';
 import { MarketplaceSort } from './MarketplaceSort';
 import { MarketplaceFundingBanner } from './MarketplaceFundingBanner';
 import { MarketplaceRewardsBanner } from './MarketplaceRewardsBanner';
+import { CreateGrantModal } from './CreateGrantModal';
+import { RequestFundingModal } from './RequestFundingModal';
 
 const Marketplace = () => {
   const [activeTab, setActiveTab] = useState('fund');
   const [selectedSort, setSelectedSort] = useState({ id: 'newest', name: 'Newest' });
   const [showFundingBanner, setShowFundingBanner] = useState(true);
   const [showRewardsBanner, setShowRewardsBanner] = useState(true);
+  const [isCreateGrantOpen, setIsCreateGrantOpen] = useState(false);
+  const [isRequestFundingOpen, setIsRequestFundingOpen] = useState(false);
 
   const marketplaceItems = {
     fund: [
@@ -227,12 +231,44 @@ const Marketplace = () => {
     }
   };
 
+  const getActionButton = () => {
+    switch (activeTab) {
+      case 'fund':
+        return (
+          <button 
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            onClick={() => setIsRequestFundingOpen(true)}
+          >
+            <Plus className="h-4 w-4" /> Request Funding
+          </button>
+        );
+      case 'rewards':
+        return (
+          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+            <Plus className="h-4 w-4" /> Create Reward
+          </button>
+        );
+      case 'grants':
+        return (
+          <button 
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            onClick={() => setIsCreateGrantOpen(true)}
+          >
+            <Plus className="h-4 w-4" /> Create Grant
+          </button>
+        );
+    }
+  };
+
   return (
     <PageLayout>
       <div className="mb-6">
-        <div className="flex items-center space-x-2">
-          <Store className="h-7 w-7 text-gray-900" />
-          <h1 className="text-2xl font-bold text-gray-900">ResearchCoin Marketplace</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Store className="h-7 w-7 text-gray-900" />
+            <h1 className="text-2xl font-bold text-gray-900">ResearchCoin Marketplace</h1>
+          </div>
+          {getActionButton()}
         </div>
         <p className="text-gray-600 mt-1">Fund science, apply for grants, or earn RSC through contributions</p>
       </div>
@@ -266,6 +302,16 @@ const Marketplace = () => {
           </div>
         ))}
       </div>
+
+      <CreateGrantModal 
+        open={isCreateGrantOpen}
+        onClose={() => setIsCreateGrantOpen(false)}
+      />
+
+      <RequestFundingModal 
+        open={isRequestFundingOpen}
+        onClose={() => setIsRequestFundingOpen(false)}
+      />
     </PageLayout>
   );
 }
