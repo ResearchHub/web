@@ -10,6 +10,7 @@ import { Navigation } from './Navigation';
 import { useState } from 'react';
 import NotebookSidebar from '../../notebook/layout/LeftSidebar';
 import { NotebookTransition } from '../transitions/NotebookTransition';
+import { NotebookToggle } from '@/app/components/shared/NotebookToggle';
 
 export const LeftSidebar: React.FC = () => {
   const pathname = usePathname();
@@ -59,23 +60,8 @@ export const LeftSidebar: React.FC = () => {
           </div>
         </div>
 
-        <div className="border-t">
-          <button
-            onClick={handleToggleView}
-            className="w-full p-4 flex items-center justify-between hover:bg-gray-50"
-          >
-            <div className="flex items-center gap-3">
-              <Notebook className="h-5 w-5 text-gray-600" />
-              <span className="text-sm font-medium text-gray-900">Lab Notebook</span>
-            </div>
-            <div className={`w-11 h-6 flex items-center rounded-full p-1 duration-300 ease-in-out ${
-              isNotebookView ? 'bg-indigo-600' : 'bg-gray-200'
-            }`}>
-              <div className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ease-in-out ${
-                isNotebookView ? 'translate-x-5' : 'translate-x-0'
-              }`} />
-            </div>
-          </button>
+        <div className="mt-auto">
+          <NotebookToggle isNotebookView={false} />
         </div>
 
         <FooterLinks />

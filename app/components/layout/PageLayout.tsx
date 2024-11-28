@@ -14,7 +14,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({ children }) => (
     
     <div className="flex-1 ml-64 mr-80">
       <TopBar />
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto py-6">
         {children}
       </div>
     </div>

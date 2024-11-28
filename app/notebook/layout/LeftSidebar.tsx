@@ -1,6 +1,7 @@
 'use client';
 
 import { Plus, ChevronDown, File, Folder, Settings, BookOpen, Star } from 'lucide-react';
+import { NotebookToggle } from '@/app/components/shared/NotebookToggle';
 
 const sampleDocuments = [
   {
@@ -44,7 +45,7 @@ const privateDocuments = [
 ];
 
 const LeftSidebar: React.FC = () => (
-  <div className="w-64 bg-white border-r border-gray-200 h-screen overflow-y-auto">
+  <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col">
     {/* Organization Header */}
     <div className="p-4 border-b border-gray-200">
       <button className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
@@ -65,46 +66,54 @@ const LeftSidebar: React.FC = () => (
       </div>
     </div>
 
-    {/* Workspace Section */}
-    <div className="p-4">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-semibold text-gray-500">WORKSPACE</span>
-        <button className="w-6 h-6 hover:bg-gray-100 rounded flex items-center justify-center">
-          <Plus className="h-4 w-4 text-gray-500" />
-        </button>
-      </div>
-      <div className="space-y-1">
-        {sampleDocuments.map((doc, index) => (
-          <button
-            key={index}
-            className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-md group"
-          >
-            <doc.icon className="h-4 w-4 text-gray-400 group-hover:text-indigo-500" />
-            <span className="truncate">{doc.name}</span>
+    {/* Scrollable content area */}
+    <div className="flex-1 overflow-y-auto">
+      {/* Workspace Section */}
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold text-gray-500">WORKSPACE</span>
+          <button className="w-6 h-6 hover:bg-gray-100 rounded flex items-center justify-center">
+            <Plus className="h-4 w-4 text-gray-500" />
           </button>
-        ))}
+        </div>
+        <div className="space-y-1">
+          {sampleDocuments.map((doc, index) => (
+            <button
+              key={index}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-md group"
+            >
+              <doc.icon className="h-4 w-4 text-gray-400 group-hover:text-indigo-500" />
+              <span className="truncate">{doc.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Private Section */}
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold text-gray-500">PRIVATE</span>
+          <button className="w-6 h-6 hover:bg-gray-100 rounded flex items-center justify-center">
+            <Plus className="h-4 w-4 text-gray-500" />
+          </button>
+        </div>
+        <div className="space-y-1">
+          {privateDocuments.map((doc, index) => (
+            <button
+              key={index}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-md group"
+            >
+              <doc.icon className="h-4 w-4 text-gray-400 group-hover:text-indigo-500" />
+              <span className="truncate">{doc.name}</span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
 
-    {/* Private Section */}
-    <div className="p-4">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-semibold text-gray-500">PRIVATE</span>
-        <button className="w-6 h-6 hover:bg-gray-100 rounded flex items-center justify-center">
-          <Plus className="h-4 w-4 text-gray-500" />
-        </button>
-      </div>
-      <div className="space-y-1">
-        {privateDocuments.map((doc, index) => (
-          <button
-            key={index}
-            className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-md group"
-          >
-            <doc.icon className="h-4 w-4 text-gray-400 group-hover:text-indigo-500" />
-            <span className="truncate">{doc.name}</span>
-          </button>
-        ))}
-      </div>
+    {/* Fixed bottom section */}
+    <div className="border-t mt-auto">
+      <NotebookToggle isNotebookView={true} />
     </div>
   </div>
 );
