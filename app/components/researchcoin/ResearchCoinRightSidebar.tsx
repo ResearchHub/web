@@ -1,56 +1,107 @@
 'use client'
 
-import { LineChart, ArrowUpRight, History } from 'lucide-react'
+import { 
+  Coins, 
+  GraduationCap,
+  Gift,
+  Rocket,
+  HandCoins,
+  ClipboardCheck,
+  MessageSquare,
+  Microscope,
+  ThumbsUp,
+  ChevronRight
+} from 'lucide-react'
+import Link from 'next/link'
 
 export const ResearchCoinRightSidebar = () => {
   return (
-    <div className="w-80 fixed right-0 h-screen border-l overflow-y-auto p-4">
-      {/* Price Chart Section */}
-      <div className="mb-6">
-        <h3 className="text-sm font-semibold text-gray-600 mb-2">RSC PRICE</h3>
-        <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-bold">$2.00</span>
-          <span className="text-sm text-green-600">+5.2%</span>
+    <div className="w-80 fixed right-0 h-screen border-l overflow-y-auto bg-white">
+      {/* About Section */}
+      <div className="p-6 border-b">
+        <div className="flex items-center gap-2 mb-4">
+          <Coins className="h-5 w-5 text-indigo-600" />
+          <h3 className="font-semibold">About ResearchCoin</h3>
         </div>
-        <div className="h-40 mt-4 bg-gray-50 rounded-lg flex items-center justify-center">
-          <LineChart className="h-6 w-6 text-gray-400" />
+        <p className="text-sm text-gray-600">
+          ResearchCoin (RSC) incentivizes good science by allowing users to create grants, 
+          reward quality contributions, and fund open science.
+        </p>
+      </div>
+
+      {/* RSC Utility Section */}
+      <div className="p-6 border-b">
+        <div className="flex items-center gap-2 mb-4">
+          <Rocket className="h-5 w-5 text-indigo-600" />
+          <h3 className="font-semibold">RSC Utility</h3>
+        </div>
+        <div className="space-y-3">
+          <Link href="/marketplace/create-reward" 
+            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg text-sm">
+            <div className="flex items-center gap-2">
+              <Gift className="h-4 w-4 text-indigo-600" />
+              <span>Create reward</span>
+            </div>
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+          </Link>
+          <Link href="/marketplace/fund" 
+            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg text-sm">
+            <div className="flex items-center gap-2">
+              <Rocket className="h-4 w-4 text-indigo-600" />
+              <span>Fund open science</span>
+            </div>
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+          </Link>
+          <Link href="/marketplace/tip" 
+            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg text-sm">
+            <div className="flex items-center gap-2">
+              <HandCoins className="h-4 w-4 text-indigo-600" />
+              <span>Tip authors</span>
+            </div>
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+          </Link>
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="space-y-4">
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-sm font-semibold text-gray-600 mb-2">24h Volume</h3>
-          <p className="text-lg font-semibold">$1,234,567</p>
+      {/* Earning Section */}
+      <div className="p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <GraduationCap className="h-5 w-5 text-indigo-600" />
+          <h3 className="font-semibold">Earning ResearchCoin</h3>
         </div>
-        
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-sm font-semibold text-gray-600 mb-2">Market Cap</h3>
-          <p className="text-lg font-semibold">$50,000,000</p>
-        </div>
-
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-sm font-semibold text-gray-600 mb-2">Circulating Supply</h3>
-          <p className="text-lg font-semibold">25,000,000 RSC</p>
-        </div>
-      </div>
-
-      {/* Quick Links */}
-      <div className="mt-6">
-        <h3 className="text-sm font-semibold text-gray-600 mb-2">QUICK LINKS</h3>
-        <div className="space-y-2">
-          <button className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+        <div className="space-y-3">
+          <Link href="/marketplace" 
+            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg text-sm">
             <div className="flex items-center gap-2">
-              <ArrowUpRight className="h-4 w-4 text-gray-600" />
-              <span>Trade History</span>
+              <ClipboardCheck className="h-4 w-4 text-indigo-600" />
+              <span>Share a peer review</span>
             </div>
-          </button>
-          <button className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+          </Link>
+          <Link href="/marketplace" 
+            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg text-sm">
             <div className="flex items-center gap-2">
-              <History className="h-4 w-4 text-gray-600" />
-              <span>Price History</span>
+              <MessageSquare className="h-4 w-4 text-indigo-600" />
+              <span>Answer a grant</span>
             </div>
-          </button>
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+          </Link>
+          <Link href="/marketplace" 
+            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg text-sm">
+            <div className="flex items-center gap-2">
+              <Microscope className="h-4 w-4 text-indigo-600" />
+              <span>Do reproducible research</span>
+            </div>
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+          </Link>
+          <Link href="/marketplace" 
+            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg text-sm">
+            <div className="flex items-center gap-2">
+              <ThumbsUp className="h-4 w-4 text-indigo-600" />
+              <span>Get upvotes on your content</span>
+            </div>
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+          </Link>
         </div>
       </div>
     </div>

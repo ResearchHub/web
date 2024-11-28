@@ -8,7 +8,7 @@ const sampleTransactions = [
     id: 1,
     type: 'Bought RSC',
     date: '2024-03-15T14:30:00Z',
-    amount: '+500 RSC',
+    amount: '+500',
     value: '$1,000.00',
     details: {
       txHash: '0x1234...5678',
@@ -19,7 +19,7 @@ const sampleTransactions = [
     id: 2,
     type: 'Withdrew RSC',
     date: '2024-03-14T09:15:00Z',
-    amount: '-1000 RSC',
+    amount: '-1,000',
     value: '$2,000.00',
     details: {
       txHash: '0x9876543210abcdef9876543210abcdef9876543210abcdef9876543210abcdef',
@@ -57,7 +57,7 @@ const sampleTransactions = [
     id: 5,
     type: 'RSC Deposited',
     date: '2024-03-10T13:00:00Z',
-    amount: '+2500 RSC',
+    amount: '+2,500 RSC',
     value: '$5,000.00',
     details: {
       txHash: '0x5678...9012',
@@ -80,7 +80,7 @@ const sampleTransactions = [
     id: 7,
     type: 'RSC Staked',
     date: '2024-03-05T10:00:00Z',
-    amount: '-1000 RSC',
+    amount: '-1,000 RSC',
     value: '$2,000.00',
     details: {
       stakingPool: 'Research Validator Pool',
@@ -104,101 +104,99 @@ export default function ResearchCoinPage() {
   const [balance] = useState('1,234.56');
   
   return (
-    <>
-      {/* Balance Card */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Coins className="h-8 w-8 text-indigo-600" />
-          <h1 className="text-2xl font-bold">My ResearchCoin</h1>
-        </div>
-        
-        <div className="mt-4">
-          <p className="text-sm text-gray-600">Available Balance</p>
-          <div className="flex items-baseline gap-2">
-            <h2 className="text-4xl font-bold">{balance}</h2>
-            <span className="text-lg">RSC</span>
+    <div className="flex">
+      <div className="flex-1">
+        {/* Balance Card */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <Coins className="h-8 w-8 text-indigo-600" />
+            <h1 className="text-2xl font-bold">My ResearchCoin</h1>
           </div>
-          <p className="text-sm text-gray-600">≈ $2,469.12 USD</p>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="grid grid-cols-3 gap-4 mt-6">
-          <button className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
-            <ArrowUpRight className="h-4 w-4" />
-            Buy
-          </button>
-          <button className="flex items-center justify-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50">
-            <ArrowDownRight className="h-4 w-4" />
-            Withdraw
-          </button>
-          <button className="flex items-center justify-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50">
-            <Gauge className="h-4 w-4" />
-            <span>Stake</span>
-            <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded-full">
-              5% APY
-            </span>
-          </button>
-        </div>
-      </div>
-
-      {/* Transactions */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h2 className="text-xl font-semibold mb-4">Recent Transactions</h2>
-        <div className="divide-y">
-          {sampleTransactions.map((transaction) => (
-            <div key={transaction.id} className="py-4 flex items-center justify-between">
-              <div>
-                <p className="font-medium">{transaction.type}</p>
-                <p className="text-sm text-gray-600">
-                  {new Date(transaction.date).toLocaleDateString()}
-                </p>
-                
-                {/* Conditional rendering based on transaction type */}
-                {transaction.type === 'Withdrew RSC' && transaction.details.txHash && (
-                  <div className="mt-1">
-                    <p className="text-xs text-gray-500">
-                      Tx: {transaction.details.txHash.slice(0, 6)}...{transaction.details.txHash.slice(-4)}
-                    </p>
-                    <a 
-                      href={transaction.details.etherscanUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1 mt-0.5"
-                    >
-                      View on Etherscan
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </div>
-                )}
-                
-                {transaction.type === 'Peer Review Reward' && (
-                  <a 
-                    href={transaction.details.paperUrl}
-                    className="text-xs text-indigo-600 hover:text-indigo-800 block mt-1"
-                  >
-                    {transaction.details.paperTitle}
-                  </a>
-                )}
-                
-                {transaction.type === 'Fundraise Contribution' && (
-                  <a 
-                    href={transaction.details.projectUrl}
-                    className="text-xs text-indigo-600 hover:text-indigo-800 block mt-1"
-                  >
-                    {transaction.details.projectTitle}
-                  </a>
-                )}
-              </div>
-              <div className="text-right">
-                <p className={`font-medium ${transaction.amount.startsWith('+') ? 'text-green-600' : 'text-gray-900'}`}>
-                  {transaction.amount}
-                </p>
-                <p className="text-sm text-gray-600">{transaction.value}</p>
-              </div>
+          
+          <div className="mt-4">
+            <p className="text-sm text-gray-600">Available Balance</p>
+            <div className="flex items-baseline gap-2">
+              <h2 className="text-4xl font-bold">{balance}</h2>
+              <span className="text-lg">RSC</span>
             </div>
-          ))}
+            <p className="text-sm text-gray-600">≈ $2,469.12 USD</p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="grid grid-cols-3 gap-4 mt-6">
+            <button className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+              <ArrowUpRight className="h-4 w-4" />
+              Buy
+            </button>
+            <button className="flex items-center justify-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50">
+              <ArrowDownRight className="h-4 w-4" />
+              Withdraw
+            </button>
+            <button className="flex items-center justify-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50">
+              <Gauge className="h-4 w-4" />
+              <span>Stake</span>
+              <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                5% APY
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* Transactions */}
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-xl font-semibold mb-4">Recent Transactions</h2>
+          <div className="divide-y">
+            {sampleTransactions.map((transaction) => (
+              <div key={transaction.id} className="py-4 flex items-center justify-between">
+                <div>
+                  <p className="font-medium">{transaction.type}</p>
+                  <p className="text-sm text-gray-600">
+                    {new Date(transaction.date).toLocaleDateString()}
+                  </p>
+                  {transaction.type === 'Withdrew RSC' && transaction.details.txHash && (
+                    <div className="mt-1">
+                      <p className="text-xs text-gray-500">
+                        Tx: {transaction.details.txHash.slice(0, 6)}...{transaction.details.txHash.slice(-4)}
+                      </p>
+                      <a 
+                        href={transaction.details.etherscanUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1 mt-0.5"
+                      >
+                        View on Etherscan
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  )}
+                  {transaction.type === 'Peer Review Reward' && (
+                    <a 
+                      href={transaction.details.paperUrl}
+                      className="text-xs text-indigo-600 hover:text-indigo-800 block mt-1"
+                    >
+                      {transaction.details.paperTitle}
+                    </a>
+                  )}
+                  {transaction.type === 'Fundraise Contribution' && (
+                    <a 
+                      href={transaction.details.projectUrl}
+                      className="text-xs text-indigo-600 hover:text-indigo-800 block mt-1"
+                    >
+                      {transaction.details.projectTitle}
+                    </a>
+                  )}
+                </div>
+                <div className="text-right">
+                  <p className={`font-medium ${transaction.amount.startsWith('+') ? 'text-green-600' : 'text-gray-900'}`}>
+                    {transaction.amount} RSC
+                  </p>
+                  <p className="text-sm text-gray-600">{transaction.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 } 

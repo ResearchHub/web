@@ -12,7 +12,7 @@ export default function Layout({
       <LeftSidebar />
       <div className="flex-1 ml-64 mr-80">
         <TopBar />
-        <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="max-w-4xl mx-auto py-6">
           <main>{children}</main>
         </div>
       </div>
