@@ -23,7 +23,11 @@ const navigationItems = [
     label: 'My ResearchCoin',
     href: '/researchcoin',
     icon: Coins,
-    description: 'Manage your ResearchCoin balance and transactions'
+    description: 'Manage your ResearchCoin balance and transactions',
+    badge: {
+      text: '+10 RSC',
+      color: 'green'
+    }
   },
   {
     label: 'Marketplace',
@@ -117,7 +121,14 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath }) => {
           onMouseEnter={() => setIsPublishMenuOpen(false)}
         >
           <item.icon className={getIconStyles(item.href)} />
-          {item.label}
+          <div className="flex items-center justify-between w-full min-w-0">
+            <span className="truncate">{item.label}</span>
+            {item.badge && (
+              <span className="flex-shrink-0 bg-green-50 text-green-700 text-[10px] font-medium px-1 py-0.5 rounded-full ml-2 whitespace-nowrap">
+                +10 RSC
+              </span>
+            )}
+          </div>
         </Link>
       ))}
     </div>
