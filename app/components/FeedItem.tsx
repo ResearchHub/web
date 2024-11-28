@@ -4,6 +4,7 @@ import {
   ArrowUp, MessageSquare, Bookmark, Share2, CircleUser,
   Coins, BadgeCheck, DollarSign, FileText, Star, Users2, X 
 } from 'lucide-react';
+import Link from 'next/link'
 
 export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
   const renderActionSection = () => {
@@ -59,9 +60,17 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
       <div className="flex flex-col">
         <div className="flex items-start mb-3">
           <div className="flex-shrink-0 mr-4">
-            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-              <CircleUser className="h-6 w-6 text-gray-400" />
-            </div>
+            {item.avatar ? (
+              <img 
+                src={item.avatar} 
+                alt={item.user} 
+                className="h-10 w-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                <CircleUser className="h-6 w-6 text-gray-400" />
+              </div>
+            )}
           </div>
           <div className="flex-1">
             <div className="flex items-center mb-1">
@@ -69,15 +78,27 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
               {item.verified && <BadgeCheck className="h-4 w-4 text-blue-500 ml-1" />}
             </div>
             <div className="flex items-center space-x-2 text-sm text-gray-500">
-              {item.type === 'funding_request' && <DollarSign className="h-4 w-4 text-green-500" />}
-              {item.type === 'grant' && <DollarSign className="h-4 w-4 text-green-500" />}
-              {item.type === 'review' && <Star className="h-4 w-4 text-yellow-400" />}
-              {item.type === 'publish' && <FileText className="h-4 w-4 text-blue-500" />}
-              <span>
-                {item.type === 'funding_request' ? 'Created a funding request' :
-                 item.type === 'grant' ? 'Created a grant' :
-                 item.type === 'review' ? 'Reviewed a paper' : 'Published a preprint'}
-              </span>
+              {item.type === 'journal_publish' ? (
+                <>
+                  <FileText className="h-4 w-4 text-blue-500" />
+                  <span>Published a preprint</span>
+                </>
+              ) : item.type === 'funding_request' ? (
+                <>
+                  <DollarSign className="h-4 w-4 text-green-500" />
+                  <span>Created a funding request</span>
+                </>
+              ) : item.type === 'grant' ? (
+                <>
+                  <DollarSign className="h-4 w-4 text-green-500" />
+                  <span>Created a grant</span>
+                </>
+              ) : item.type === 'review' ? (
+                <>
+                  <Star className="h-4 w-4 text-yellow-400" />
+                  <span>Reviewed a paper</span>
+                </>
+              ) : null}
               <span>·</span>
               <span>{item.timestamp}</span>
             </div>
@@ -85,36 +106,50 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
         </div>
   
         <div className="p-4 rounded-lg border bg-gray-50">
-          <h3 className="font-medium text-gray-900 mb-3">{item.title}</h3>
-          <p className="text-sm text-gray-600 mb-3">{item.description}</p>
-          
-          {item.type === 'reward' && (
+          {item.type === 'journal_publish' && (
+            <Link href="/paper/1234/test-slug" className="block">
+              <h3 className="font-medium text-gray-900 mb-2 hover:text-indigo-600 transition-colors">
+                {item.title}
+              </h3>
+              <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+              
+              <div className="flex items-center text-sm">
+                <div className="flex-1">
+                  {item.authors.map((author, i) => (
+                    <span key={i} className="inline-flex items-center">
+                      <span className="text-gray-900">{author.name}</span>
+                      {author.verified && (
+                        <BadgeCheck className="h-4 w-4 text-blue-500 ml-1" />
+                      )}
+                      {i < item.authors.length - 1 && (
+                        <span className="mx-2 text-gray-400">•</span>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </Link>
+          )}
+  
+          {item.type === 'review' && (
             <>
-              <div className="flex items-center space-x-4 mb-4">
-                <div className="flex items-center space-x-2">
-                  <Coins className="h-4 w-4 text-orange-500" />
-                  <span className="text-sm font-medium text-orange-500">{item.amount} RSC reward</span>
-                </div>
-                <span className="text-gray-500">•</span>
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <span>Due in {item.deadline}</span>
-                </div>
-                <span className="text-gray-500">•</span>
-                <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">
-                  {item.difficulty}
-                </span>
-              </div>
-
-              <div className="flex space-x-3">
-                <button className="px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
-                  Do task
-                </button>
-              </div>
+              <h3 className="font-medium text-gray-900 mb-2">{item.title}</h3>
+              <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+            </>
+          )}
+  
+          {item.type === 'publish' && (
+            <>
+              <h3 className="font-medium text-gray-900 mb-2">{item.title}</h3>
+              <p className="text-sm text-gray-600 mb-3">{item.description}</p>
             </>
           )}
   
           {item.type === 'funding_request' && (
             <>
+              <h3 className="font-medium text-gray-900 mb-2">{item.title}</h3>
+              <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+              
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
@@ -157,6 +192,9 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
   
           {item.type === 'grant' && (
             <>
+              <h3 className="font-medium text-gray-900 mb-2">{item.title}</h3>
+              <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+
               <div className="flex items-center space-x-4 mb-4">
                 <div className="flex items-center space-x-2">
                   <Coins className="h-4 w-4 text-orange-500" />
@@ -168,7 +206,7 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
                   <span className="text-sm text-gray-600">{item.applicants} applicants</span>
                 </div>
               </div>
-  
+
               <div className="flex space-x-3">
                 <button className="px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
                   Apply Now

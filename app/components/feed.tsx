@@ -10,6 +10,25 @@ const ResearchFeed: React.FC = () => {
 
   const feedItems = [
     {
+      type: 'journal_publish',
+      user: 'bioRxiv (Cold Spring Harbor Laboratory)',
+      avatar: null,
+      verified: true,
+      timestamp: 'Oct 18, 2024',
+      title: "Deoxysphingolipids Activate CGAS-STING In Colon Cancer Cells And Enhance Tumor Immunity",
+      description: "Sample abstract text describing the research...",
+      authors: [
+        { name: "Suchandrima Saha", verified: true, affiliation: "Department of Pathology, Renaissance School of Medicine" },
+        { name: "Fabiola Velázquez", verified: false, affiliation: "Stony Brook University" },
+        { name: "David Montrose", verified: true, affiliation: "Stony Brook Cancer Center" }
+      ],
+      votes: 8,
+      comments: 12,
+      rsc: 500,
+      doi: "10.1101/2024.10.16.618749",
+      journal: "bioRxiv (Cold Spring Harbor Laboratory)",
+    },
+    {
       type: 'funding_request',
       user: 'Dominikus Brian',
       verified: true,
