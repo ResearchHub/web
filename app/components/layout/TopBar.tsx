@@ -1,11 +1,8 @@
 'use client'
 
-import { Search, Bell, CircleUser, ChevronDown, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Search, Bell, CircleUser} from 'lucide-react';
 
 export const TopBar: React.FC = () => {
-  const pathname = usePathname();
   
   return (
     <div className="sticky top-0 backdrop-blur-md bg-white/80 border-b z-50 h-16">
@@ -19,14 +16,6 @@ export const TopBar: React.FC = () => {
             className="pl-10 pr-4 py-2.5 bg-gray-50 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 border border-gray-200"
           />
         </div>        
-        {pathname === '/notebook' ? (
-          <Link href="/">
-            <button className="flex items-center space-x-2 text-gray-600 hover:text-indigo-600">
-              <ArrowLeft className="h-6 w-6" />
-              <span className="text-lg font-semibold">Lab Notebook</span>
-            </button>
-          </Link>
-        ) : <div />}
         
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-4 px-4">
