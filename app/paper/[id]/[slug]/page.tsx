@@ -29,7 +29,7 @@ export default function PaperPage({ params }: { params: { id: string, slug: stri
   }
 
   return (
-    <PaperLayout>
+    <PaperLayout paper={paperData}>
       <PaperDocument paper={paperData} />
     </PaperLayout>
   )

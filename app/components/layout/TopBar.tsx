@@ -8,7 +8,7 @@ export const TopBar: React.FC = () => {
   const pathname = usePathname();
   
   return (
-    <div className="sticky top-0 backdrop-blur-md bg-white/80 border-b border-gray-100 z-20 h-16">
+    <div className="sticky top-0 backdrop-blur-md bg-white/80 border-b border-gray-100 z-50 h-16">
       <div className="h-full flex items-center">
         <div className="px-6 h-full flex items-center">
           {pathname === '/notebook' && (

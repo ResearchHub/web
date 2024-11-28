@@ -15,9 +15,9 @@ export const PaperDocument = ({ paper }) => {
   const [activeTab, setActiveTab] = useState('paper')
   
   return (
-    <div className="py-8">
+    <div>
       {/* Rewards Banner */}
-      <div className="mb-8 bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl border border-orange-200 p-6">
+      <div className="mb-6 bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl border border-orange-200 p-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold text-orange-800 mb-2">
@@ -34,8 +34,8 @@ export const PaperDocument = ({ paper }) => {
       </div>
 
       {/* Title & Actions */}
-      <div className="mb-8">
-        <div className="flex items-start justify-between mb-6">
+      <div className="mb-6">
+        <div className="flex items-start justify-between mb-4">
           <h1 className="text-2xl font-bold text-gray-900 leading-tight">
             {paper.title}
           </h1>
@@ -103,46 +103,10 @@ export const PaperDocument = ({ paper }) => {
               </Menu.Items>
             </Menu>
           </div>
-
-          <div className="flex-1" />
-
-          {/* Metrics */}
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2">
-              <span className="text-gray-600">Review Score</span>
-              <span className="font-medium">{paper.metrics.reviewScore}</span>
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star 
-                    key={i}
-                    className={`h-4 w-4 ${
-                      i < Math.floor(paper.metrics.reviewScore) 
-                        ? 'text-yellow-400 fill-current' 
-                        : 'text-gray-300'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-1">
-                <Eye className="h-4 w-4 text-gray-400" />
-                <span>{paper.metrics.views}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Quote className="h-4 w-4 text-gray-400" />
-                <span>{paper.metrics.citations}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <MessageSquare className="h-4 w-4 text-gray-400" />
-                <span>{paper.metrics.comments}</span>
-              </div>
-            </div>
-          </div>
         </div>
 
-        {/* Metadata */}
-        <div className="space-y-4 text-sm text-gray-600">
+        {/* Metadata with tighter spacing */}
+        <div className="space-y-2 text-sm text-gray-600">
           <div>
             <div className="flex items-start">
               <span className="font-medium text-gray-900 w-24">Authors</span>
