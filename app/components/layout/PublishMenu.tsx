@@ -5,6 +5,7 @@ import {
   Coins, Gift, PiggyBank, Share, ChevronRight, Plus 
 } from 'lucide-react';
 import { useState } from 'react';
+import { CreateRewardModal } from '../modals/CreateRewardModal';
 
 interface PublishMenuProps {
   isOpen: boolean;
@@ -19,6 +20,8 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
   onMouseLeave,
   children
 }) => {
+  const [showRewardModal, setShowRewardModal] = useState(false);
+
   const menuItems = [
     {
       section: 'Publish',
@@ -48,6 +51,11 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
     <div className="relative w-full">
       {children}
 
+      <CreateRewardModal 
+        isOpen={showRewardModal} 
+        onClose={() => setShowRewardModal(false)} 
+      />
+
       {isOpen && (
         <>
           <div 
@@ -67,6 +75,11 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
                   <button
                     key={itemIdx}
                     className="w-full text-left p-3 hover:bg-indigo-50 rounded-lg mb-2 last:mb-0 transition-colors duration-150"
+                    onClick={() => {
+                      if (item.title === 'Create ResearchCoin Reward') {
+                        setShowRewardModal(true);
+                      }
+                    }}
                   >
                     <div className="flex items-center mb-1">
                       <div className="text-indigo-600">
