@@ -8,7 +8,7 @@ export const TopBar: React.FC = () => {
   const pathname = usePathname();
   
   return (
-    <div className="sticky top-0 backdrop-blur-md bg-white/80 border-b border-gray-100 z-50 h-16">
+    <div className="sticky top-0 backdrop-blur-md bg-white/80 border-b z-50 h-16">
       
       <div className="h-full max-w-4xl mx-auto flex items-center justify-between">
         <div className="relative w-[400px]">

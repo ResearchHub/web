@@ -51,12 +51,12 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
       {isOpen && (
         <>
           <div 
-            className="fixed left-[256px] top-0 w-4 h-screen z-30"
+            className="fixed left-[256px] top-0 w-4 h-screen z-[60]"
             onMouseEnter={onMouseEnter}
           />
           
           <div 
-            className="fixed left-64 top-0 w-96 bg-white/95 backdrop-blur-sm border-r border-l shadow-xl p-6 h-screen z-30 animate-in"
+            className="fixed left-64 bottom-0 w-96 bg-white/95 backdrop-blur-sm border-r  p-6 h-[calc(100vh-4rem)] z-[60] animate-in"
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
           >
