@@ -12,6 +12,51 @@ interface NavigationProps {
   currentPath: string;
 }
 
+const navigationItems = [
+  {
+    label: 'Home',
+    href: '/',
+    icon: Home,
+    description: 'Navigate to the home page'
+  },
+  {
+    label: 'My ResearchCoin',
+    href: '/researchcoin',
+    icon: Coins,
+    description: 'Manage your ResearchCoin balance and transactions'
+  },
+  {
+    label: 'Marketplace',
+    href: '/marketplace',
+    icon: Store,
+    description: 'Browse and buy research papers'
+  },
+  {
+    label: 'RH Journal',
+    href: '/rhjournal',
+    icon: BookOpen,
+    description: 'Read and publish research papers'
+  },
+  {
+    label: 'Peer Reviews',
+    href: '/peerreviews',
+    icon: Star,
+    description: 'Review and rate research papers'
+  },
+  {
+    label: 'Learn',
+    href: '/learn',
+    icon: GraduationCap,
+    description: 'Learn about research and academia'
+  },
+  {
+    label: 'Verify Identity',
+    href: '/verifyidentity',
+    icon: BadgeCheck,
+    description: 'Verify your identity for secure transactions'
+  },
+];
+
 export const Navigation: React.FC<NavigationProps> = ({ currentPath }) => {
   const [isPublishMenuOpen, setIsPublishMenuOpen] = useState(false);
 
@@ -64,67 +109,17 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath }) => {
           </button>
         </PublishMenu>
       </div>
-      <Link 
-        href="/" 
-        className={getButtonStyles('/')}
-        onMouseEnter={() => setIsPublishMenuOpen(false)}
-      >
-        <Home className={getIconStyles('/')} />
-        Home
-      </Link>
-      <Link 
-        href="/researchcoin" 
-        className={`${getButtonStyles('/researchcoin')} justify-between`}
-        onMouseEnter={() => setIsPublishMenuOpen(false)}
-      >
-        <div className="flex items-center">
-          <Coins className={getIconStyles('/researchcoin')} />
-          My ResearchCoin
-        </div>
-        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
-          +10
-        </span>
-      </Link>
-      <Link 
-        href="/marketplace" 
-        className={getButtonStyles('/marketplace')}
-        onMouseEnter={() => setIsPublishMenuOpen(false)}
-      >
-        <Store className={getIconStyles('/marketplace')} />
-        Marketplace
-      </Link>
-      <Link 
-        href="/rhjournal" 
-        className={getButtonStyles('/rhjournal')}
-        onMouseEnter={() => setIsPublishMenuOpen(false)}
-      >
-        <BookOpen className={getIconStyles('/rhjournal')} />
-        RH Journal
-      </Link>
-      <Link 
-        href="/peerreviews" 
-        className={getButtonStyles('/peerreviews')}
-        onMouseEnter={() => setIsPublishMenuOpen(false)}
-      >
-        <Star className={getIconStyles('/peerreviews')} />
-        Peer Reviews
-      </Link>
-      <Link 
-        href="/learn" 
-        className={getButtonStyles('/learn')}
-        onMouseEnter={() => setIsPublishMenuOpen(false)}
-      >
-        <GraduationCap className={getIconStyles('/learn')} />
-        Learn
-      </Link>
-      <Link 
-        href="/verifyidentity" 
-        className={getButtonStyles('/verifyidentity')}
-        onMouseEnter={() => setIsPublishMenuOpen(false)}
-      >
-        <BadgeCheck className={getIconStyles('/verifyidentity')} />
-        Verify Identity
-      </Link>
+      {navigationItems.map(item => (
+        <Link 
+          key={item.href}
+          href={item.href} 
+          className={getButtonStyles(item.href)}
+          onMouseEnter={() => setIsPublishMenuOpen(false)}
+        >
+          <item.icon className={getIconStyles(item.href)} />
+          {item.label}
+        </Link>
+      ))}
     </div>
   );
 };
