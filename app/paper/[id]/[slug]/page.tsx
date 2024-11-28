@@ -1,3 +1,4 @@
+import PaperLayout from '../../layout/PaperLayout'
 import { PaperDocument } from "@/app/components/paper/PaperDocument"
 
 export default function PaperPage({ params }: { params: { id: string, slug: string } }) {
@@ -6,9 +7,9 @@ export default function PaperPage({ params }: { params: { id: string, slug: stri
     id: params.id,
     title: "Deoxysphingolipids Activate CGAS-STING In Colon Cancer Cells And Enhance Tumor Immunity",
     authors: [
-      { name: "Suchandrima Saha", verified: true },
-      { name: "Fabiola Velázquez", verified: false },
-      { name: "David Montrose", verified: true }
+      { name: "Suchandrima Saha", verified: true, affiliation: "Department of Pathology, Renaissance School of Medicine" },
+      { name: "Fabiola Velázquez", verified: false, affiliation: "Stony Brook University" },
+      { name: "David Montrose", verified: true, affiliation: "Stony Brook Cancer Center" }
     ],
     journal: "bioRxiv (Cold Spring Harbor Laboratory)",
     publishDate: "Oct 18, 2024",
@@ -16,14 +17,20 @@ export default function PaperPage({ params }: { params: { id: string, slug: stri
     license: "cc-by-nc-nd",
     abstract: "Sample abstract text describing the research...",
     keywords: ["Biology", "Engineering", "Immunology"],
-    pdfUrl: "https://storage.prod.researchhub.com/uploads/papers/2024/11/19/2024.10.16.618749.full.pdf",
+    pdfUrl: "storage.prod.researchhub.com/uploads/papers/2024/11/19/2024.10.16.618749.full.pdf",
     metrics: {
       votes: 8,
       comments: 12,
       citations: 3,
-      views: 245
+      views: 245,
+      reviewScore: 4.5,
+      totalReviews: 6
     }
   }
 
-  return <PaperDocument paper={paperData} />
+  return (
+    <PaperLayout>
+      <PaperDocument paper={paperData} />
+    </PaperLayout>
+  )
 } 
