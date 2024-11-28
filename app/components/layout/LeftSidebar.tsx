@@ -12,7 +12,7 @@ export const LeftSidebar: React.FC = () => {
   const pathname = usePathname();
 
   return (
-    <div className="w-64 fixed h-screen border-r bg-white overflow-y-auto flex flex-col z-30">
+    <div className="w-64 fixed h-screen border-r overflow-y-auto flex flex-col z-30">
       <div className="flex-1">
         <div className="p-4">
           <div className="flex items-center space-x-2">
