@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, FileText, Notebook, Bell, CircleUser, ChevronDown, ArrowLeft } from 'lucide-react';
+import { Search, Bell, CircleUser, ChevronDown, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -30,11 +30,6 @@ export const TopBar: React.FC = () => {
         
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-4 px-4">
-            <Link href="/notebook">
-              <button className="relative">
-                <Notebook className="h-6 w-6 text-gray-600 hover:text-indigo-600" />
-              </button>
-            </Link>
             <button className="relative">
               <Bell className="h-6 w-6 text-gray-600 hover:text-indigo-600" />
               <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">

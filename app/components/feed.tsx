@@ -82,7 +82,7 @@ const ResearchFeed: React.FC = () => {
     <PageLayout>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Today in Science</h1>
-        <p className="text-gray-600 mt-1">Discover the latest research, grants, and funding opportunities</p>
+        <p className="text-gray-600 mt-1">Discover the latest research, grants, earning, and funding opportunities</p>
       </div>
 
       <FeedTabs />
