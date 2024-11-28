@@ -94,12 +94,6 @@ export function CreateRewardModal({ isOpen, onClose }: CreateRewardModalProps) {
                   </button>
                 </div>
 
-                <div className="bg-indigo-50 rounded-lg p-4 mb-6">
-                  <p className="text-sm text-indigo-700">
-                    Your Balance: <span className="font-bold">{userBalance.toLocaleString()} RSC</span>
-                  </p>
-                </div>
-
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-4">
                     <div>
