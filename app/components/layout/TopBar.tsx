@@ -5,11 +5,8 @@ import { Search, Bell, CircleUser} from 'lucide-react';
 export const TopBar: React.FC = () => {
   return (
     <>
-      {/* Spacer div to push content down */}
-      <div className="h-16" />
-      
       {/* Actual TopBar */}
-      <div className="fixed top-0 left-64 right-80 backdrop-blur-md bg-white/80 border-b z-50 h-16">
+      <div className="sticky top-0 left-64 right-80 backdrop-blur-md bg-white/80 border-b z-50 h-16">
         <div className="h-full max-w-4xl mx-auto flex items-center justify-between">
           <div className="relative w-[400px]">
             <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />

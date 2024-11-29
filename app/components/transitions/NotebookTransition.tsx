@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Beaker } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 interface NotebookTransitionProps {
   isActive: boolean;
@@ -15,6 +16,12 @@ export const NotebookTransition: React.FC<NotebookTransitionProps> = ({
   isExit = false 
 }) => {
   const [opacity, setOpacity] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   useEffect(() => {
     if (isActive) {
@@ -27,20 +34,13 @@ export const NotebookTransition: React.FC<NotebookTransitionProps> = ({
     }
   }, [isActive, onComplete]);
 
-  if (!isActive) return null;
+  if (!isActive || !mounted) return null;
 
-  return (
+  const transitionContent = (
     <div 
-      className="fixed z-[9999] flex items-center justify-center bg-indigo-600
-        transition-opacity duration-500 ease-in-out isolate"
-      style={{ 
-        opacity,
-        position: 'fixed',
-        top: '4rem',
-        left: '16rem',
-        right: '16rem',
-        bottom: 0
-      }}
+      className="fixed inset-0 flex items-center justify-center bg-indigo-600
+        transition-opacity duration-500 ease-in-out z-[99999]"
+      style={{ opacity }}
     >
       <div className={`transform transition-transform duration-700 ease-in-out ${
         opacity === 1 ? 'scale-100' : 'scale-50'
@@ -50,13 +50,13 @@ export const NotebookTransition: React.FC<NotebookTransitionProps> = ({
           <div className="w-32 h-1 bg-white/20 rounded-full overflow-hidden">
             <div 
               className="h-full bg-white transition-all duration-1000 ease-in-out"
-              style={{ 
-                width: opacity === 1 ? '100%' : '0%',
-              }}
+              style={{ width: opacity === 1 ? '100%' : '0%' }}
             />
           </div>
         </div>
       </div>
     </div>
   );
+
+  return createPortal(transitionContent, document.body);
 }; 
