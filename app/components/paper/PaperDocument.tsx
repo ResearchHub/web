@@ -13,6 +13,7 @@ import { PaperRewards } from './PaperRewards'
 import { PaperComments } from './PaperComments'
 import { ReviewRewardModal } from './ReviewRewardModal'
 import { Dialog } from '@headlessui/react'
+import Link from 'next/link'
 
 export const PaperDocument = ({ paper }) => {
   const [activeTab, setActiveTab] = useState('paper')
@@ -67,10 +68,16 @@ export const PaperDocument = ({ paper }) => {
         </div>
       </div>
 
+      <div className="flex items-center space-x-2 text-sm text-gray-500 mb-4">
+        <Link href={`/hub/${paper.hub.slug}`} className="text-indigo-600 hover:text-indigo-700">
+          {paper.hub.name}
+        </Link>
+      </div>
+
       {/* Title & Actions */}
       <div className="mb-6">
         <div className="flex items-start justify-between mb-4">
-          <h1 className="text-2xl font-bold text-gray-900 leading-tight">
+          <h1 className="text-3xl font-bold text-gray-900 leading-tight">
             {paper.title}
           </h1>
         </div>
