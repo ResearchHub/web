@@ -7,54 +7,6 @@ import {
 import Link from 'next/link'
 
 export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
-  const renderActionSection = () => {
-    if (item.type === 'reward') {
-      return (
-        <div className="mt-4 flex items-center justify-between border-t pt-4">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-1.5">
-              <Coins className="h-5 w-5 text-orange-500" />
-              <span className="font-medium text-orange-500">
-                {item.amount} RSC
-              </span>
-            </div>
-            <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <span>•</span>
-              <span>Due in {item.deadline}</span>
-              <span>•</span>
-              <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">
-                {item.difficulty}
-              </span>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    if (item.type === 'funding_request' || item.type === 'grant') {
-      return (
-        <div className="mt-4 flex items-center justify-between border-t pt-4">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-1.5">
-              <Coins className="h-5 w-5 text-orange-500" />
-              <span className="font-medium text-orange-500">
-                {item.amount} RSC
-              </span>
-            </div>
-            <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <span>•</span>
-              <span>Due in {item.deadline}</span>
-              <span>•</span>
-              <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">
-                {item.difficulty}
-              </span>
-            </div>
-          </div>
-        </div>
-      );
-    }
-  };
-
   return (
     <div className="p-6">
       <div className="flex flex-col">
@@ -78,7 +30,17 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
               {item.verified && <BadgeCheck className="h-4 w-4 text-blue-500 ml-1" />}
             </div>
             <div className="flex items-center space-x-2 text-sm text-gray-500">
+              {item.type === 'review' && <span>Reviewed a paper</span>}
+              {item.type === 'journal_publish' && <span>Published a preprint</span>}
+              {item.type === 'publish' && <span>Published a paper</span>}
+              {item.type === 'funding_request' && <span>Started a fundraise</span>}
+              {item.type === 'grant' && <span>Posted a grant</span>}
+              <span>•</span>
               <span>{item.timestamp}</span>
+              <span>•</span>
+              <Link href={`/hub/${item.hub.slug}`} className="text-indigo-600 hover:text-indigo-700">
+                {item.hub.name}
+              </Link>
             </div>
           </div>
         </div>
@@ -89,9 +51,7 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
               <h3 className="font-medium text-gray-900 mb-2 hover:text-indigo-600 transition-colors">
                 {item.title}
               </h3>
-              <p className="text-sm text-gray-600 mb-3">{item.description}</p>
-              
-              <div className="flex items-center text-sm">
+              <div className="flex items-center text-sm mb-3">
                 <div className="flex-1">
                   {item.authors.map((author, i) => (
                     <span key={i} className="inline-flex items-center">
@@ -106,6 +66,9 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
                   ))}
                 </div>
               </div>
+              <p className="text-sm text-gray-600">
+                Deoxysphingolipids (doxSLs) are atypical sphingolipids that accumulate in HSAN1 and diabetic neuropathy. Here, we demonstrate that doxSLs activate the cGAS-STING pathway in colon cancer cells, leading to enhanced tumor immunity...
+              </p>
             </Link>
           )}
   
@@ -123,8 +86,8 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
                 </div>
                 {item.rsc && (
                   <div className="flex items-center space-x-1.5">
-                    <Coins className="h-4 w-4 text-orange-500" />
-                    <span className="font-medium text-orange-500">
+                    <Coins className="h-3.5 w-3.5 text-orange-500" />
+                    <span className="text-xs font-medium text-orange-500">
                       Earned {item.rsc} RSC
                     </span>
                   </div>
@@ -224,14 +187,6 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
           <button className="flex items-center space-x-1 text-gray-500 hover:text-gray-700">
             <MessageSquare className="h-4 w-4" />
             <span className="text-sm">{item.comments}</span>
-          </button>
-          <button className="flex items-center space-x-1 text-gray-500 hover:text-gray-700">
-            <Coins className="h-4 w-4" />
-            <span className="text-sm">Tip</span>
-          </button>
-          <button className="flex items-center space-x-1 text-gray-500 hover:text-gray-700">
-            <Bookmark className="h-4 w-4" />
-            <span className="text-sm">Save</span>
           </button>
         </div>
       </div>
