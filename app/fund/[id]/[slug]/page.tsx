@@ -6,6 +6,7 @@ import { ProfileTooltip } from '@/app/components/tooltips/ProfileTooltip'
 import { PageLayout } from '@/app/components/layout/PageLayout'
 import Link from 'next/link'
 import { BadgeCheck } from 'lucide-react'
+import { FundraiseLayout } from '@/app/components/layout/FundraiseLayout'
 
 export default function FundingPage({ params }: { params: { id: string; slug: string } }) {
   const [activeTab, setActiveTab] = useState('content')
@@ -66,13 +67,11 @@ Research Deliverables
   }
 
   return (
-    <PageLayout>
-      <div className="max-w-3xl mx-auto">
+    <FundraiseLayout fundraise={funding}>
+      <div className="max-w-4xl">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center space-x-2 text-sm text-gray-500 mb-4">
-            <span>{funding.timestamp}</span>
-            <span>•</span>
             <Link href={`/hub/${funding.hub.slug}`} className="text-indigo-600 hover:text-indigo-700">
               {funding.hub.name}
             </Link>
@@ -261,6 +260,6 @@ Research Deliverables
           </button>
         </div>
       </div>
-    </PageLayout>
+    </FundraiseLayout>
   )
 } 
