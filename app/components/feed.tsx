@@ -12,7 +12,7 @@ const ResearchFeed: React.FC = () => {
     {
       type: 'journal_publish',
       user: 'bioRxiv (Cold Spring Harbor Laboratory)',
-      avatar: null,
+      organization: true,
       verified: true,
       timestamp: 'Oct 18, 2024',
       hub: { name: 'Molecular Biology', slug: 'molecular-biology' },

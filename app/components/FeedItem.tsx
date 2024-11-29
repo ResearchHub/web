@@ -5,8 +5,12 @@ import {
   Coins, BadgeCheck, DollarSign, FileText, Star, Users2, X 
 } from 'lucide-react';
 import Link from 'next/link'
+import { ProfileTooltip } from './tooltips/ProfileTooltip'
 
 export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
+  // Helper to determine if it's an organization
+  const isOrganization = item.type === 'journal_publish' || Boolean(item.organization)
+
   return (
     <div className="p-6">
       <div className="flex flex-col">
@@ -26,8 +30,19 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
           </div>
           <div className="flex-1">
             <div className="flex items-center mb-1">
-              <span className="font-medium text-gray-900">{item.user}</span>
-              {item.verified && <BadgeCheck className="h-4 w-4 text-blue-500 ml-1" />}
+              <ProfileTooltip
+                type={isOrganization ? 'organization' : 'user'}
+                name={item.user}
+                headline={isOrganization && item.type === 'journal_publish' 
+                  ? 'The preprint server for biology'
+                  : item.headline || 'Researcher at Stanford University'
+                }
+                verified={item.verified}
+              >
+                <span className="font-medium text-gray-900 hover:text-indigo-600 cursor-pointer">
+                  {item.user}
+                </span>
+              </ProfileTooltip>
             </div>
             <div className="flex items-center space-x-2 text-sm text-gray-500">
               {item.type === 'review' && <span>Reviewed a paper</span>}
