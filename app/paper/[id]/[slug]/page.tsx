@@ -12,6 +12,7 @@ export default function PaperPage({ params }: { params: { id: string, slug: stri
       { name: "David Montrose", verified: true, affiliation: "Stony Brook Cancer Center" }
     ],
     journal: "bioRxiv (Cold Spring Harbor Laboratory)",
+    isUnclaimed: true,
     publishDate: "Oct 18, 2024",
     doi: "10.1101/2024.10.16.618749",
     license: "cc-by-nc-nd",

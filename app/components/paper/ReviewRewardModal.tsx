@@ -3,7 +3,7 @@
 import { Dialog } from '@headlessui/react'
 import { Coins, X } from 'lucide-react'
 
-export const ReviewRewardModal = ({ open, onClose, rewards }) => {
+export const ReviewRewardModal = ({ open, onClose, rewards = [] }) => {
   const startReviewWithReward = (rewardId) => {
     // Would integrate with your review form/system
     console.log('Starting review for reward:', rewardId)
@@ -26,32 +26,38 @@ export const ReviewRewardModal = ({ open, onClose, rewards }) => {
           </div>
 
           <div className="space-y-4">
-            {rewards.map(reward => (
-              <div key={reward.id} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-2">
-                    <Coins className="h-5 w-5 text-orange-500" />
-                    <span className="font-medium text-orange-500">
-                      {reward.amount} RSC
+            {rewards?.length > 0 ? (
+              rewards.map(reward => (
+                <div key={reward.id} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <Coins className="h-5 w-5 text-orange-500" />
+                      <span className="font-medium text-orange-500">
+                        {reward.amount} RSC
+                      </span>
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      Due in {reward.deadline}
                     </span>
                   </div>
-                  <span className="text-sm text-gray-500">
-                    Due in {reward.deadline}
-                  </span>
+
+                  <p className="text-sm text-gray-600 mb-4">
+                    {reward.requirements}
+                  </p>
+
+                  <button
+                    onClick={() => startReviewWithReward(reward.id)}
+                    className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                  >
+                    Start Review
+                  </button>
                 </div>
-
-                <p className="text-sm text-gray-600 mb-4">
-                  {reward.requirements}
-                </p>
-
-                <button
-                  onClick={() => startReviewWithReward(reward.id)}
-                  className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-                >
-                  Start Review
-                </button>
+              ))
+            ) : (
+              <div className="text-center py-6 text-gray-500">
+                No rewards are currently available for this paper
               </div>
-            ))}
+            )}
           </div>
         </Dialog.Panel>
       </div>
