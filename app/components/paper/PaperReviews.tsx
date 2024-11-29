@@ -66,9 +66,6 @@ export const PaperReviews = ({ paperId }) => {
               <span>Review to Earn {openRewards.reduce((sum, r) => sum + r.amount, 0)} RSC</span>
             </button>
           )}
-          <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-            Start
-          </button>
         </div>
       </div>
 

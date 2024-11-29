@@ -36,12 +36,28 @@ const ResearchFeed: React.FC = () => {
       hub: { name: 'Research Methods', slug: 'research-methods' },
       title: 'Incentivized vs Non-Incentivized Open Peer Reviews: Dynamics, Economics, and Quality',
       description: 'Research project exploring the impact of incentive structures on peer review quality and participation.',
-      amount: '122,131',
+      amount: '30,131',
       goal: '36,389',
-      progress: 100,
+      progress: 85,
       votes: 45,
       comments: 21,
       contributors: 6
+    },
+    {
+      type: 'reward',
+      user: 'ResearchHub Foundation',
+      organization: true,
+      verified: true,
+      timestamp: '1h ago',
+      hub: { name: 'Neuroscience', slug: 'neuroscience' },
+      title: 'Peer Review: Neural Mechanisms of Memory Formation',
+      description: 'Review this manuscript investigating novel pathways in hippocampal memory consolidation using optogenetics and calcium imaging.',
+      amount: '500',
+      deadline: '3 days',
+      difficulty: 'Advanced',
+      votes: 15,
+      comments: 4,
+      action: 'Start'
     },
     {
       type: 'grant',
@@ -60,7 +76,6 @@ const ResearchFeed: React.FC = () => {
     {
       type: 'review',
       user: 'Dr. Elena Rodriguez',
-      organization: 'MIT',
       verified: true,
       timestamp: '2h ago',
       hub: { name: 'Medical Devices', slug: 'medical-devices' },
@@ -75,7 +90,6 @@ const ResearchFeed: React.FC = () => {
     {
       type: 'publish',
       user: 'Hundessa Nemomssa',
-      organization: 'Stanford University',
       verified: true,
       timestamp: '4h ago',
       hub: { name: 'Medical Devices', slug: 'medical-devices' },
@@ -100,7 +114,7 @@ const ResearchFeed: React.FC = () => {
       votes: 28,
       comments: 15,
       contributors: 4
-    }
+    },
   ];
 
   return (

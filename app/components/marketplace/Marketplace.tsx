@@ -96,8 +96,10 @@ const Marketplace = () => {
       {
         type: 'reward',
         user: 'ResearchHub Foundation',
+        organization: true,
         verified: true,
         timestamp: '1d ago',
+        hub: { name: 'Quantum Computing', slug: 'quantum-computing' },
         title: 'Peer Review: Quantum Computing Applications in Drug Discovery',
         description: 'Review this manuscript discussing novel quantum computing approaches for drug discovery and molecular modeling.',
         amount: '500',
@@ -105,13 +107,15 @@ const Marketplace = () => {
         difficulty: 'Advanced',
         votes: 12,
         comments: 3,
-        action: 'Review Paper'
+        action: 'Start'
       },
       {
         type: 'reward',
         user: 'ResearchHub Foundation',
+        organization: true,
         verified: true,
         timestamp: '2d ago',
+        hub: { name: 'Genetics', slug: 'genetics' },
         title: 'Peer Review: CRISPR-Based Gene Therapy Methods',
         description: 'Evaluate methodology and results of a new CRISPR-based therapeutic approach for genetic disorders.',
         amount: '500',
@@ -119,27 +123,15 @@ const Marketplace = () => {
         difficulty: 'Advanced',
         votes: 8,
         comments: 2,
-        action: 'Review Paper'
-      },
-      {
-        type: 'reward',
-        user: 'ResearchHub Foundation',
-        verified: true,
-        timestamp: '3d ago',
-        title: 'Peer Review: Machine Learning in Climate Modeling',
-        description: 'Review a paper on implementing deep learning algorithms for improved climate prediction models.',
-        amount: '500',
-        deadline: '10 days',
-        difficulty: 'Advanced',
-        votes: 15,
-        comments: 4,
-        action: 'Review Paper'
+        action: 'Start'
       },
       {
         type: 'reward',
         user: 'Stanford AI Lab',
+        organization: true,
         verified: true,
         timestamp: '1d ago',
+        hub: { name: 'Artificial Intelligence', slug: 'artificial-intelligence' },
         title: 'Dataset Annotation: Medical Imaging',
         description: 'Help annotate MRI scans for machine learning model training. Medical background required.',
         amount: '300',
@@ -147,13 +139,15 @@ const Marketplace = () => {
         difficulty: 'Intermediate',
         votes: 24,
         comments: 7,
-        action: 'Start Annotating'
+        action: 'Start'
       },
       {
         type: 'reward',
         user: 'Climate Research Institute',
+        organization: true,
         verified: true,
         timestamp: '4d ago',
+        hub: { name: 'Climate Science', slug: 'climate-science' },
         title: 'Data Analysis: Weather Station Readings',
         description: 'Analyze and clean historical weather station data from remote locations.',
         amount: '250',
@@ -161,13 +155,15 @@ const Marketplace = () => {
         difficulty: 'Intermediate',
         votes: 18,
         comments: 5,
-        action: 'Analyze Data'
+        action: 'Start'
       },
       {
         type: 'reward',
         user: 'Open Biology Initiative',
+        organization: true,
         verified: true,
         timestamp: '2d ago',
+        hub: { name: 'Biology', slug: 'biology' },
         title: 'Protocol Translation',
         description: 'Translate detailed laboratory protocols from English to Spanish. Biology expertise required.',
         amount: '200',
@@ -175,21 +171,7 @@ const Marketplace = () => {
         difficulty: 'Beginner',
         votes: 9,
         comments: 2,
-        action: 'Start Translation'
-      },
-      {
-        type: 'reward',
-        user: 'Quantum Computing Group',
-        verified: true,
-        timestamp: '5d ago',
-        title: 'Code Review: Quantum Algorithm Implementation',
-        description: 'Review Python implementation of a new quantum computing algorithm for optimization problems.',
-        amount: '400',
-        deadline: '10 days',
-        difficulty: 'Advanced',
-        votes: 31,
-        comments: 8,
-        action: 'Review Code'
+        action: 'Start'
       }
     ],
     grants: [

@@ -70,7 +70,6 @@ export default function AuthorProfile({ params }: { params: { id: string } }) {
         { name: 'Wellcome Trust', amount: '150,000', verified: true, organization: true },
       ]
     },
-    // Regular publish items
     {
       type: 'publish',
       user: profile.name,
@@ -84,9 +83,11 @@ export default function AuthorProfile({ params }: { params: { id: string } }) {
         { name: "Sarah Chen", verified: true },
         { name: "David Wang", verified: true },
         { name: "Maria Garcia", verified: false }
-      ]
+      ],
+      votes: 156,
+      comments: 23
     },
-    // ... more publish items ...
+    // Add more feed items as needed...
   ]
 
   return (
