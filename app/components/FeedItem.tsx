@@ -78,28 +78,6 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
               {item.verified && <BadgeCheck className="h-4 w-4 text-blue-500 ml-1" />}
             </div>
             <div className="flex items-center space-x-2 text-sm text-gray-500">
-              {item.type === 'journal_publish' ? (
-                <>
-                  <FileText className="h-4 w-4 text-blue-500" />
-                  <span>Published a preprint</span>
-                </>
-              ) : item.type === 'funding_request' ? (
-                <>
-                  <DollarSign className="h-4 w-4 text-green-500" />
-                  <span>Created a funding request</span>
-                </>
-              ) : item.type === 'grant' ? (
-                <>
-                  <DollarSign className="h-4 w-4 text-green-500" />
-                  <span>Created a grant</span>
-                </>
-              ) : item.type === 'review' ? (
-                <>
-                  <Star className="h-4 w-4 text-yellow-400" />
-                  <span>Reviewed a paper</span>
-                </>
-              ) : null}
-              <span>·</span>
               <span>{item.timestamp}</span>
             </div>
           </div>
@@ -134,7 +112,25 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
           {item.type === 'review' && (
             <>
               <h3 className="font-medium text-gray-900 mb-2">{item.title}</h3>
-              <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+              <div className="flex items-center space-x-4 mb-3">
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => (
+                    <Star 
+                      key={i}
+                      className={`h-4 w-4 ${i < item.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+                    />
+                  ))}
+                </div>
+                {item.rsc && (
+                  <div className="flex items-center space-x-1.5">
+                    <Coins className="h-4 w-4 text-orange-500" />
+                    <span className="font-medium text-orange-500">
+                      Earned {item.rsc} RSC
+                    </span>
+                  </div>
+                )}
+              </div>
+              <p className="text-sm text-gray-600">{item.description}</p>
             </>
           )}
   
