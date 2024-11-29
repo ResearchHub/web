@@ -126,8 +126,12 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
   
           {item.type === 'funding_request' && (
             <>
-              <h3 className="text-base font-semibold text-gray-900 mb-2">{item.title}</h3>
-              <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+              <Link href={`/fund/1234/test`}>
+                <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+              </Link>
               
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
