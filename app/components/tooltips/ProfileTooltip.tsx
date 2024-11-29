@@ -3,16 +3,26 @@
 import { BadgeCheck } from 'lucide-react'
 import { Popover } from '@headlessui/react'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface ProfileTooltipProps {
   type: 'user' | 'organization'
   name: string
   headline: string
   verified?: boolean
+  id?: string
   children: React.ReactNode
 }
 
-export const ProfileTooltip = ({ type, name, headline, verified = false, children }: ProfileTooltipProps) => {
+export const ProfileTooltip = ({ 
+  type, 
+  name, 
+  headline, 
+  verified = false, 
+  id = '12345',
+  children 
+}: ProfileTooltipProps) => {
+  const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   let hoverTimeout: NodeJS.Timeout
 
@@ -25,6 +35,11 @@ export const ProfileTooltip = ({ type, name, headline, verified = false, childre
     hoverTimeout = setTimeout(() => {
       setIsOpen(false)
     }, 300)
+  }
+
+  const handleViewProfile = () => {
+    router.push(`/author/${id}`)
+    setIsOpen(false)
   }
 
   const badgeElement = verified && (
@@ -65,7 +80,10 @@ export const ProfileTooltip = ({ type, name, headline, verified = false, childre
                   <button className="flex-1 px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700">
                     Follow
                   </button>
-                  <button className="flex-1 px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200">
+                  <button 
+                    onClick={handleViewProfile}
+                    className="flex-1 px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200"
+                  >
                     View Profile
                   </button>
                 </div>

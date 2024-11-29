@@ -33,6 +33,7 @@
     "@react-pdf-viewer/scroll-mode": "^3.12.0",
     "@react-pdf-viewer/toolbar": "^3.12.0",
     "@react-pdf-viewer/zoom": "^3.12.0",
+    "chart.js": "^4.4.6",
     "katex": "^0.16.11",
     "lexical": "^0.20.0",
     "lodash-es": "^4.17.21",
@@ -41,6 +42,7 @@
     "pdfjs-dist": "^3.4.120",
     "prettier": "^3.4.1",
     "react": "^18.3.1",
+    "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.3.1",
     "y-websocket": "^2.0.4",
     "yjs": "^13.6.20"
