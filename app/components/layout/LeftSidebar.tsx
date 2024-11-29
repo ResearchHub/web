@@ -2,7 +2,7 @@
 
 import { 
   Home, Coins, GraduationCap, Store, BookOpen, 
-  Star, BadgeCheck, Beaker, Notebook, ChevronDown 
+  Star, BadgeCheck, FlaskConical, Notebook, ChevronDown 
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { FooterLinks } from '../FooterLinks';
@@ -47,7 +47,7 @@ export const LeftSidebar: React.FC = () => {
       <div className="w-64 fixed h-screen border-r overflow-y-auto flex flex-col z-30">
         <div className="p-4">
           <div className="flex items-center space-x-2">
-            <Beaker className="h-5 w-5 text-indigo-600" />
+            <FlaskConical className="h-5 w-5 text-indigo-600" />
             <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text">
               ResearchHub
             </h1>

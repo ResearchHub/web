@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import { Beaker } from 'lucide-react';
+import { FlaskConical } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
 interface NotebookTransitionProps {
@@ -46,7 +46,7 @@ export const NotebookTransition: React.FC<NotebookTransitionProps> = ({
         opacity === 1 ? 'scale-100' : 'scale-50'
       }`}>
         <div className="flex flex-col items-center space-y-4">
-          <Beaker className="h-16 w-16 text-white" />
+          <FlaskConical className="h-16 w-16 text-white" />
           <div className="w-32 h-1 bg-white/20 rounded-full overflow-hidden">
             <div 
               className="h-full bg-white transition-all duration-1000 ease-in-out"
