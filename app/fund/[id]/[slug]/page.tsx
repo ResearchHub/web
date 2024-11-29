@@ -38,6 +38,8 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
       { name: 'ResearchHub Foundation', amount: '15,000', verified: true, organization: true },
       { name: 'Open Science Foundation', amount: '10,000', verified: true, organization: true },
       { name: 'Dr. Sarah Chen', amount: '2,500', verified: true },
+      { name: 'John Smith', amount: '1,500', verified: false },
+      { name: 'Blockchain Research Lab', amount: '1,000', verified: true, organization: true },
     ],
     contributorAvatars: [
       'https://i.pravatar.cc/150?img=1',
@@ -101,7 +103,6 @@ Research Deliverables
                     {author.verified && (
                       <BadgeCheck className="h-4 w-4 text-blue-500 ml-1" />
                     )}
-                    <span className="text-gray-500 ml-1">{author.affiliation}</span>
                     {i < funding.authors.length - 1 && (
                       <span className="mx-2 text-gray-400">•</span>
                     )}
@@ -154,7 +155,7 @@ Research Deliverables
             </div>
           </div>
 
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="flex -space-x-2">
                 {funding.contributorAvatars.map((avatar, i) => (
@@ -176,27 +177,6 @@ Research Deliverables
               Contribute
             </button>
           </div>
-
-          {/* Top Contributors */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-900 mb-3">Top Contributors</h3>
-            <div className="space-y-3">
-              {funding.topContributors.map((contributor, i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <ProfileTooltip
-                    type={contributor.organization ? 'organization' : 'user'}
-                    name={contributor.name}
-                    verified={contributor.verified}
-                  >
-                    <span className="text-sm text-gray-900 hover:text-indigo-600 cursor-pointer">
-                      {contributor.name}
-                    </span>
-                  </ProfileTooltip>
-                  <span className="text-sm text-orange-500 font-medium">{contributor.amount} RSC</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Navigation */}
@@ -211,6 +191,16 @@ Research Deliverables
               onClick={() => setActiveTab('content')}
             >
               Content
+            </button>
+            <button 
+              className={`px-1 py-4 text-sm font-medium border-b-2 ${
+                activeTab === 'reviews' 
+                  ? 'text-indigo-600 border-indigo-600'
+                  : 'text-gray-500 border-transparent hover:text-gray-700'
+              }`}
+              onClick={() => setActiveTab('reviews')}
+            >
+              Reviews
             </button>
             <button 
               className={`px-1 py-4 text-sm font-medium ${
@@ -238,9 +228,16 @@ Research Deliverables
             </div>
           )}
           
+          {activeTab === 'reviews' && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="text-gray-500 text-center py-8">
+                No reviews yet
+              </div>
+            </div>
+          )}
+          
           {activeTab === 'comments' && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              {/* Comments section - can be implemented later */}
               <div className="text-gray-500 text-center py-8">
                 No comments yet
               </div>
