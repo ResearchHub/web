@@ -35,8 +35,9 @@ export const PaperRewards = ({ paperId }) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Open Rewards</h2>
-        <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-          Create Reward
+        <button className="flex items-center space-x-2 px-4 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100">
+          <Coins className="h-4 w-4" />
+          <span>Create Reward</span>
         </button>
       </div>
 
@@ -63,7 +64,7 @@ export const PaperRewards = ({ paperId }) => {
               </div>
               <div className="flex items-center space-x-4">
                 <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-                  Apply
+                  Start
                 </button>
               </div>
             </div>

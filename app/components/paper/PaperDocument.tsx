@@ -23,10 +23,17 @@ export const PaperDocument = ({ paper }) => {
   const openRewards = [
     {
       id: 1,
+      title: 'Comprehensive Methodology Review',
+      description: 'Looking for an expert review focusing on the methodology and statistical analysis.',
       amount: 500,
-      deadline: "7 days",
-      requirements: "Detailed methodology review",
-      claimed: false
+      deadline: '7 days'
+    },
+    {
+      id: 2,
+      title: 'Replication Study',
+      description: 'Seeking researchers to replicate key findings from Figure 3.',
+      amount: 1500,
+      deadline: '30 days'
     }
   ]
   
