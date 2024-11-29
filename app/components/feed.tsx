@@ -69,6 +69,7 @@ const ResearchFeed: React.FC = () => {
       votes: 12,
       comments: 3,
       rsc: 150,
+      rating: 4,
       tags: ['Medical Science', 'Thermal Management', 'Patient Care']
     },
     {

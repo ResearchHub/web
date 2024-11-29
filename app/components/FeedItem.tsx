@@ -48,14 +48,14 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
         <div className="p-4 rounded-lg border bg-gray-50">
           {item.type === 'journal_publish' && (
             <Link href="/paper/1234/test-slug" className="block">
-              <h3 className="font-medium text-gray-900 mb-2 hover:text-indigo-600 transition-colors">
+              <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600 transition-colors">
                 {item.title}
               </h3>
               <div className="flex items-center text-sm mb-3">
-                <div className="flex-1">
+                <div className="flex-1 text-gray-600">
                   {item.authors.map((author, i) => (
                     <span key={i} className="inline-flex items-center">
-                      <span className="text-gray-900">{author.name}</span>
+                      <span>{author.name}</span>
                       {author.verified && (
                         <BadgeCheck className="h-4 w-4 text-blue-500 ml-1" />
                       )}
@@ -74,7 +74,7 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
   
           {item.type === 'review' && (
             <>
-              <h3 className="font-medium text-gray-900 mb-2">{item.title}</h3>
+              <h3 className="text-base font-semibold text-gray-900 mb-2">{item.title}</h3>
               <div className="flex items-center space-x-4 mb-3">
                 <div className="flex">
                   {[...Array(5)].map((_, i) => (
@@ -85,9 +85,9 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
                   ))}
                 </div>
                 {item.rsc && (
-                  <div className="flex items-center space-x-1.5">
-                    <Coins className="h-3.5 w-3.5 text-orange-500" />
-                    <span className="text-xs font-medium text-orange-500">
+                  <div className="flex items-center space-x-2">
+                    <Coins className="h-4 w-4 text-orange-500" />
+                    <span className="text-sm font-medium text-orange-500">
                       Earned {item.rsc} RSC
                     </span>
                   </div>
@@ -99,14 +99,14 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
   
           {item.type === 'publish' && (
             <>
-              <h3 className="font-medium text-gray-900 mb-2">{item.title}</h3>
+              <h3 className="text-base font-semibold text-gray-900 mb-2">{item.title}</h3>
               <p className="text-sm text-gray-600 mb-3">{item.description}</p>
             </>
           )}
   
           {item.type === 'funding_request' && (
             <>
-              <h3 className="font-medium text-gray-900 mb-2">{item.title}</h3>
+              <h3 className="text-base font-semibold text-gray-900 mb-2">{item.title}</h3>
               <p className="text-sm text-gray-600 mb-3">{item.description}</p>
               
               <div className="mb-4">
@@ -151,7 +151,7 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
   
           {item.type === 'grant' && (
             <>
-              <h3 className="font-medium text-gray-900 mb-2">{item.title}</h3>
+              <h3 className="text-base font-semibold text-gray-900 mb-2">{item.title}</h3>
               <p className="text-sm text-gray-600 mb-3">{item.description}</p>
 
               <div className="flex items-center space-x-4 mb-4">
