@@ -15,62 +15,27 @@ interface Interest {
 
 interface InterestSelectorProps {
   mode: 'onboarding' | 'preferences';
+  activeTab: 'journal' | 'person' | 'topic';
   onComplete: (selectedInterests: Interest[]) => void;
 }
 
-export function InterestSelector({ mode, onComplete }: InterestSelectorProps) {
+export function InterestSelector({ mode, activeTab, onComplete }: InterestSelectorProps) {
   const [selectedInterests, setSelectedInterests] = useState<Interest[]>([]);
-  const [activeTab, setActiveTab] = useState<'journal' | 'person' | 'topic'>('journal');
   
-  const tabs = [
-    { 
-      type: 'journal' as const,
-      title: 'Journals',
-      description: 'Select journals to stay updated with the latest research in your field'
-    },
-    { 
-      type: 'person' as const,
-      title: 'People',
-      description: 'Follow leading researchers and stay updated with their work'
-    },
-    { 
-      type: 'topic' as const,
-      title: 'Topics',
-      description: 'Choose topics you\'re interested in to get personalized recommendations'
-    }
-  ];
-
-  const currentTab = tabs.find(tab => tab.type === activeTab)!;
+  const descriptions = {
+    journal: 'Select journals to stay updated with the latest research in your field',
+    person: 'Follow leading researchers and stay updated with their work',
+    topic: 'Choose topics you\'re interested in to get personalized recommendations'
+  };
 
   return (
-    <div className="max-w-4xl mx-auto px-4">
-      {/* Tabs */}
-      <div className="flex space-x-8 border-b mb-8">
-        {tabs.map((tab) => (
-          <button
-            key={tab.type}
-            onClick={() => setActiveTab(tab.type)}
-            className={`px-1 py-4 text-sm font-medium border-b-2 ${
-              activeTab === tab.type 
-                ? 'text-indigo-600 border-indigo-600' 
-                : 'text-gray-500 border-transparent hover:text-gray-700'
-            }`}
-          >
-            {tab.title}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab header */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-2">{currentTab.title}</h2>
-        <p className="text-gray-600">{currentTab.description}</p>
-      </div>
+    <div className="max-w-4xl mx-auto">
+      <p className="text-gray-600 mb-8">{descriptions[activeTab]}</p>
 
       {/* Interest grid */}
       <div className="mb-8">
         <InterestGrid
-          type={currentTab.type}
+          type={activeTab}
           selectedInterests={selectedInterests}
           onSelect={(interest) => {
             setSelectedInterests(prev => {
@@ -86,9 +51,7 @@ export function InterestSelector({ mode, onComplete }: InterestSelectorProps) {
 
       {/* Action buttons */}
       <div className="flex justify-end">
-        <Button
-          onClick={() => onComplete(selectedInterests)}
-        >
+        <Button onClick={() => onComplete(selectedInterests)}>
           Save Changes
         </Button>
       </div>

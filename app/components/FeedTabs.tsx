@@ -5,37 +5,98 @@ import { Settings } from "lucide-react";
 interface FeedTabsProps {
   showingInterests: boolean;
   onInterestsClick: () => void;
+  activeInterestTab?: 'journal' | 'person' | 'topic';
+  onInterestTabChange?: (tab: 'journal' | 'person' | 'topic') => void;
 }
 
-export const FeedTabs: React.FC<FeedTabsProps> = ({ showingInterests, onInterestsClick }) => (
-  <div className="border-b mb-6 w-full">
-    <div className="flex justify-between">
-      <div className="flex space-x-8">
-        <button 
-          className={`px-1 py-4 text-sm font-medium ${
-            !showingInterests && 'text-indigo-600 border-b-2 border-indigo-600'
-          } ${showingInterests && 'text-gray-500 hover:text-gray-700'}`}
-        >
-          For You
-        </button>
-        <button className="px-1 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
-          Following
-        </button>
-        <button className="px-1 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
-          Popular
-        </button>
-        <button className="px-1 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
-          Latest
-        </button>
+export const FeedTabs: React.FC<FeedTabsProps> = ({ 
+  showingInterests, 
+  onInterestsClick, 
+  activeInterestTab,
+  onInterestTabChange 
+}) => {
+  if (showingInterests) {
+    return (
+      <div className="transition-colors duration-200 -mx-4 px-4">
+        <div className="border-b mb-6 w-full">
+          <div className="flex justify-between items-center h-[52px]">
+            <div className="flex items-center text-purple-600">
+              <Settings className="w-5 h-5 mr-2" />
+              <span className="font-medium">Customize Your Feed</span>
+            </div>
+            <button 
+              onClick={onInterestsClick}
+              className="text-gray-500 hover:text-gray-700 flex items-center gap-2"
+            >
+              <span className="text-sm">Back to Feed</span>
+            </button>
+          </div>
+          <div className="flex space-x-8">
+            <button 
+              onClick={() => onInterestTabChange?.('journal')}
+              className={`px-1 py-4 text-sm font-medium border-b-2 transition-colors duration-200 ${
+                activeInterestTab === 'journal' 
+                  ? 'text-purple-600 border-purple-600' 
+                  : 'text-gray-500 border-transparent hover:text-gray-700'
+              }`}
+            >
+              Journals
+            </button>
+            <button 
+              onClick={() => onInterestTabChange?.('person')}
+              className={`px-1 py-4 text-sm font-medium border-b-2 transition-colors duration-200 ${
+                activeInterestTab === 'person' 
+                  ? 'text-purple-600 border-purple-600' 
+                  : 'text-gray-500 border-transparent hover:text-gray-700'
+              }`}
+            >
+              People
+            </button>
+            <button 
+              onClick={() => onInterestTabChange?.('topic')}
+              className={`px-1 py-4 text-sm font-medium border-b-2 transition-colors duration-200 ${
+                activeInterestTab === 'topic' 
+                  ? 'text-purple-600 border-purple-600' 
+                  : 'text-gray-500 border-transparent hover:text-gray-700'
+              }`}
+            >
+              Topics
+            </button>
+          </div>
+        </div>
       </div>
-      <button 
-        onClick={onInterestsClick}
-        className={`px-1 py-4 text-sm font-medium ${
-          showingInterests ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700'
-        }`}
-      >
-        <Settings className="w-4 h-4" />
-      </button>
+    );
+  }
+
+  return (
+    <div className="transition-colors duration-200 -mx-4 px-4">
+      <div className="border-b mb-6 w-full">
+        <div className="flex justify-between">
+          <div className="flex space-x-8">
+            <button className="px-1 py-4 text-sm font-medium text-indigo-600 border-b-2 border-indigo-600">
+              For You
+            </button>
+            <button className="px-1 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+              Following
+            </button>
+            <button className="px-1 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+              Popular
+            </button>
+            <button className="px-1 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+              Latest
+            </button>
+          </div>
+          <button 
+            onClick={onInterestsClick}
+            className="group flex items-center gap-2 px-2 py-4 text-gray-500 hover:text-gray-700"
+          >
+            <span className="text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+              Customize Feed
+            </span>
+            <Settings className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
-);
+  );
+}

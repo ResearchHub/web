@@ -11,6 +11,7 @@ import { Settings } from 'lucide-react';
 const ResearchFeed: React.FC = () => {
   const [publishOpen, setPublishOpen] = useState(false);
   const [showInterests, setShowInterests] = useState(false);
+  const [activeInterestTab, setActiveInterestTab] = useState<'journal' | 'person' | 'topic'>('journal');
 
   const handleInterestSelection = async (interests: any[]) => {
     console.log('Selected interests:', interests);
@@ -135,12 +136,15 @@ const ResearchFeed: React.FC = () => {
 
       <FeedTabs 
         showingInterests={showInterests} 
-        onInterestsClick={() => setShowInterests(!showInterests)} 
+        onInterestsClick={() => setShowInterests(!showInterests)}
+        activeInterestTab={activeInterestTab}
+        onInterestTabChange={setActiveInterestTab}
       />
 
       {showInterests ? (
         <InterestSelector
           mode="preferences"
+          activeTab={activeInterestTab}
           onComplete={handleInterestSelection}
         />
       ) : (
