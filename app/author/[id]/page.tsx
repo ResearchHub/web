@@ -3,7 +3,13 @@
 import { FeedItem } from '@/app/components/FeedItem'
 import { Pin, BadgeCheck } from 'lucide-react'
 
-export default function AuthorProfile({ params }: { params: { id: string } }) {
+type AuthorProfileProps = {
+  params: {
+    id: string
+  }
+}
+
+export default function AuthorProfile({ params }: AuthorProfileProps) {
   // Mock data for bioRxiv profile
   const profile = {
     id: 'biorxiv',
