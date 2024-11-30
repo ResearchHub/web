@@ -4,9 +4,18 @@ import { useState } from 'react';
 import { PageLayout } from './layout/PageLayout';
 import { FeedItem } from './FeedItem';
 import { FeedTabs } from './FeedTabs';
+import { InterestSelector } from './InterestSelector/InterestSelector';
+import { InterestTrigger } from './InterestSelector/InterestTrigger';
+import { Settings } from 'lucide-react';
 
 const ResearchFeed: React.FC = () => {
   const [publishOpen, setPublishOpen] = useState(false);
+  const [showInterests, setShowInterests] = useState(false);
+
+  const handleInterestSelection = async (interests: any[]) => {
+    console.log('Selected interests:', interests);
+    setShowInterests(false);
+  };
 
   const feedItems = [
     {
@@ -124,14 +133,25 @@ const ResearchFeed: React.FC = () => {
         <p className="text-gray-600 mt-1">Discover the latest research, grants, earning, and funding opportunities</p>
       </div>
 
-      <FeedTabs />
-      <div className="space-y-4">
-        {feedItems.map((item, index) => (
-          <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
-            <FeedItem item={item} />
-          </div>
-        ))}
-      </div>
+      <FeedTabs 
+        showingInterests={showInterests} 
+        onInterestsClick={() => setShowInterests(!showInterests)} 
+      />
+
+      {showInterests ? (
+        <InterestSelector
+          mode="preferences"
+          onComplete={handleInterestSelection}
+        />
+      ) : (
+        <div className="space-y-4">
+          {feedItems.map((item, index) => (
+            <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+              <FeedItem item={item} />
+            </div>
+          ))}
+        </div>
+      )}
     </PageLayout>
   );
 }
