@@ -130,28 +130,49 @@ interface InterestCardProps {
 }
 
 function InterestCard({ interest, selected, onSelect }: InterestCardProps) {
+  const getInitialBgColor = (type: string) => {
+    switch (type) {
+      case 'journal':
+        return 'bg-blue-100';
+      case 'person':
+        return 'bg-green-100';
+      case 'topic':
+        return 'bg-purple-100';
+      default:
+        return 'bg-gray-100';
+    }
+  };
+
+  const getInitialTextColor = (type: string) => {
+    switch (type) {
+      case 'journal':
+        return 'text-blue-700';
+      case 'person':
+        return 'text-green-700';
+      case 'topic':
+        return 'text-purple-700';
+      default:
+        return 'text-gray-700';
+    }
+  };
+
   return (
     <button
       onClick={onSelect}
       className={`p-4 rounded-lg border transition-all duration-200 text-left w-full relative
         ${selected 
-          ? 'border-purple-600 bg-purple-50 ring-1 ring-purple-600' 
+          ? 'border-primary-600 bg-primary-50 ring-1 ring-primary-600' 
           : 'border-gray-200 hover:border-gray-300'}`}
     >
       <div className="flex items-center gap-3">
-        {interest.imageUrl ? (
-          <img 
-            src={interest.imageUrl} 
-            alt="" 
-            className="w-12 h-12 rounded-full object-cover"
-          />
-        ) : (
-          <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-            <span className="text-xl text-gray-500">
-              {interest.name.charAt(0)}
-            </span>
-          </div>
-        )}
+        <div 
+          className={`w-12 h-12 rounded-full flex items-center justify-center
+            ${getInitialBgColor(interest.type)}`}
+        >
+          <span className={`text-xl font-medium ${getInitialTextColor(interest.type)}`}>
+            {interest.name.charAt(0)}
+          </span>
+        </div>
         
         <div className="flex-1">
           <div className="flex items-center gap-1">
@@ -175,7 +196,7 @@ function InterestCard({ interest, selected, onSelect }: InterestCardProps) {
         {/* Selection indicator */}
         {selected && (
           <div className="absolute top-2 right-2">
-            <div className="bg-purple-600 text-white rounded-full p-1">
+            <div className="bg-primary-600 text-white rounded-full p-1">
               <Check className="w-4 h-4" />
             </div>
           </div>
