@@ -111,6 +111,25 @@ const ResearchFeed: React.FC = () => {
       tags: ['Medical Devices', 'Flexible Printed Heaters', 'Patient Care']
     },
     {
+      type: 'rsc_contribution',
+      user: 'Alex Thompson',
+      verified: true,
+      timestamp: '15m ago',
+      hub: { name: 'Neuroscience', slug: 'neuroscience' },
+      amount: 500,
+      votes: 12,
+      comments: 3,
+      relatedItem: {
+        type: 'funding_request',
+        title: 'Machine Learning Approaches to Early Detection of Neurodegenerative Diseases',
+        user: 'Sarah Chen',
+        amount: '45,000',
+        goal: '75,000',
+        progress: 60,
+        contributors: 4,
+      }
+    },    
+    {
       type: 'funding_request',
       user: 'Sarah Chen',
       verified: true,
@@ -125,6 +144,26 @@ const ResearchFeed: React.FC = () => {
       comments: 15,
       contributors: 4
     },
+    {
+      type: 'rsc_contribution',
+      user: 'Maria Garcia',
+      verified: true,
+      timestamp: '45m ago',
+      hub: { name: 'Data Science', slug: 'data-science' },
+      amount: 750,
+      votes: 8,
+      comments: 5,
+      relatedItem: {
+        type: 'reward',
+        title: 'Statistical Analysis of COVID-19 Vaccination Efficacy Data',
+        user: 'ResearchHub Foundation',
+        amount: '2,000',
+        deadline: '5 days',
+        difficulty: 'Intermediate',
+        progress: 40,
+        contributors: 3
+      }
+    },    
   ];
 
   return (

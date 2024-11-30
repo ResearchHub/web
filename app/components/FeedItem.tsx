@@ -50,6 +50,12 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
               )}
             </div>
             <div className="flex items-center space-x-2 text-sm text-gray-500">
+              {item.type === 'rsc_contribution' && (
+                <>
+                  <span>Contributed ResearchCoin</span>
+                  <span>•</span>
+                </>
+              )}
               {item.type === 'review' && <span>Reviewed a paper</span>}
               {item.type === 'journal_publish' && <span>Published a preprint</span>}
               {item.type === 'publish' && <span>Published a paper</span>}
@@ -252,6 +258,103 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                   {item.status}
                 </span>
+              </div>
+            </>
+          )}
+  
+          {item.type === 'rsc_contribution' && (
+            <>
+              <div className="flex items-center space-x-2 mb-3">
+                <Coins className="h-5 w-5 text-orange-500" />
+                <span className="text-base font-medium text-gray-900">
+                  Contributed {item.amount} RSC
+                </span>
+              </div>
+
+              <div className="border-l-4 border-orange-200 pl-4">
+                {item.relatedItem.type === 'funding_request' && (
+                  <>
+                    <Link href={`/fund/1234/test`}>
+                      <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
+                        {item.relatedItem.title}
+                      </h3>
+                    </Link>
+                    
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          <Coins className="h-4 w-4 text-orange-500" />
+                          <span className="text-sm font-medium text-orange-500">
+                            {item.relatedItem.amount} RSC raised
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            of {item.relatedItem.goal} RSC goal
+                          </span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="h-2 rounded-full bg-orange-500"
+                          style={{ width: `${item.relatedItem.progress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="flex -space-x-2">
+                        {[1, 2, 3].map((_, i) => (
+                          <div key={i} className="h-6 w-6 rounded-full bg-gray-200 ring-2 ring-white" />
+                        ))}
+                        <div className="h-6 px-2 rounded-full bg-gray-100 text-gray-600 text-xs font-medium flex items-center ml-1">
+                          +{item.relatedItem.contributors} others
+                        </div>
+                      </div>
+                      <span className="text-sm text-gray-600">contributors</span>
+                    </div>
+
+                    <button className="inline-flex items-center justify-center space-x-2 px-6 py-2 bg-orange-100 text-orange-600 rounded-lg text-sm font-medium hover:bg-orange-200">
+                      <Coins className="h-4 w-4" />
+                      <span>Contribute</span>
+                    </button>
+                  </>
+                )}
+
+                {item.relatedItem.type === 'reward' && (
+                  <>
+                    <h3 className="text-base font-semibold text-gray-900 mb-2">
+                      {item.relatedItem.title}
+                    </h3>
+                    
+                    <div className="flex items-center space-x-4 mb-3">
+                      <div className="flex items-center space-x-2">
+                        <Coins className="h-4 w-4 text-orange-500" />
+                        <span className="text-sm font-medium text-orange-500">
+                          {item.relatedItem.amount} RSC reward
+                        </span>
+                      </div>
+                      <span className="text-gray-500">•</span>
+                      <div className="flex items-center space-x-2">
+                        <Clock className="h-4 w-4 text-gray-600" />
+                        <span className="text-sm text-gray-600">
+                          Due in {item.relatedItem.deadline}
+                        </span>
+                      </div>
+                      <span className="text-gray-500">•</span>
+                      <div className="flex items-center space-x-2">
+                        <GraduationCap className="h-4 w-4 text-gray-600" />
+                        <span className="text-sm text-gray-600">
+                          {item.relatedItem.difficulty}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <button className="inline-flex items-center justify-center space-x-2 px-6 py-2 bg-orange-100 text-orange-600 rounded-lg text-sm font-medium hover:bg-orange-200">
+                        <Coins className="h-4 w-4" />
+                        <span>Contribute</span>
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </>
           )}
