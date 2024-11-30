@@ -6,9 +6,55 @@ import { ProfileTooltip } from '@/app/components/tooltips/ProfileTooltip'
 import Link from 'next/link'
 import { BadgeCheck } from 'lucide-react'
 import { GrantLayout } from '@/app/components/layout/GrantLayout'
+import { FeedItem } from '@/app/components/FeedItem'
 
 export default function GrantPage({ params }: { params: { id: string; slug: string } }) {
   const [activeTab, setActiveTab] = useState('details')
+
+  const applications = [
+    {
+      type: 'application',
+      user: 'Dr. Sarah Chen',
+      organization: 'Stanford University',
+      verified: true,
+      timestamp: '2d ago',
+      title: 'Application: Urban Water Quality Assessment Project',
+      description: `Our research team proposes a comprehensive approach to analyzing water quality across major urban centers. 
+        We will employ advanced spectroscopic techniques and machine learning algorithms to identify contaminants 
+        and predict water quality trends. Our lab has extensive experience in environmental monitoring and data analysis.`,
+      votes: 15,
+      comments: 4,
+      status: 'Under Review'
+    },
+    {
+      type: 'application',
+      user: 'Prof. James Martinez',
+      organization: 'UC Berkeley',
+      verified: true,
+      timestamp: '3d ago',
+      title: 'Application: Urban Water Quality Assessment Project',
+      description: `We propose to study water quality variations in urban areas using a novel combination of real-time 
+        monitoring systems and citizen science initiatives. Our approach emphasizes community engagement while 
+        maintaining rigorous scientific standards. Previous success in similar projects positions us well for this study.`,
+      votes: 12,
+      comments: 3,
+      status: 'Under Review'
+    },
+    {
+      type: 'application',
+      user: 'Dr. Emily Thompson',
+      organization: 'MIT',
+      verified: true,
+      timestamp: '4d ago',
+      title: 'Application: Urban Water Quality Assessment Project',
+      description: `Our proposal focuses on developing new methodologies for rapid water quality assessment in urban 
+        environments. We will integrate IoT sensors with traditional analytical methods to create a comprehensive 
+        monitoring system. Our team brings expertise in both environmental science and data analytics.`,
+      votes: 8,
+      comments: 2,
+      status: 'Under Review'
+    }
+  ]
 
   const grant = {
     id: params.id,
@@ -208,10 +254,15 @@ Research Areas:
             )}
             
             {activeTab === 'applications' && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="text-gray-500 text-center py-8">
-                  No applications yet
-                </div>
+              <div className="space-y-4">
+                {applications.map((application, index) => (
+                  <div 
+                    key={index} 
+                    className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200"
+                  >
+                    <FeedItem item={application} />
+                  </div>
+                ))}
               </div>
             )}
           </div>
