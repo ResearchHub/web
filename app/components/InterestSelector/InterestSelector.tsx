@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/app/components/ui/Button';
-import { BadgeCheck } from 'lucide-react';
+import { BadgeCheck, Check } from 'lucide-react';
 import { fetchInterests } from './mockData';
 
 interface Interest {
@@ -29,31 +29,49 @@ export function InterestSelector({ mode, activeTab, onComplete }: InterestSelect
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <p className="text-gray-600 mb-8">{descriptions[activeTab]}</p>
+    <div className="relative pb-24">
+      <div className="max-w-4xl mx-auto">
+        <p className="text-gray-600 mb-8">{descriptions[activeTab]}</p>
 
-      {/* Interest grid */}
-      <div className="mb-8">
-        <InterestGrid
-          type={activeTab}
-          selectedInterests={selectedInterests}
-          onSelect={(interest) => {
-            setSelectedInterests(prev => {
-              const exists = prev.find(i => i.id === interest.id);
-              if (exists) {
-                return prev.filter(i => i.id !== interest.id);
-              }
-              return [...prev, interest];
-            });
-          }}
-        />
+        {/* Interest grid */}
+        <div className="mb-8">
+          <InterestGrid
+            type={activeTab}
+            selectedInterests={selectedInterests}
+            onSelect={(interest) => {
+              setSelectedInterests(prev => {
+                const exists = prev.find(i => i.id === interest.id);
+                if (exists) {
+                  return prev.filter(i => i.id !== interest.id);
+                }
+                return [...prev, interest];
+              });
+            }}
+          />
+        </div>
       </div>
 
-      {/* Action buttons */}
-      <div className="flex justify-end">
-        <Button onClick={() => onComplete(selectedInterests)}>
-          Save Changes
-        </Button>
+      {/* Sticky footer with primary CTA */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-lg">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="text-sm text-gray-600">
+            {selectedInterests.length} {selectedInterests.length === 1 ? 'item' : 'items'} selected
+          </div>
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="secondary"
+              onClick={() => onComplete([])}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => onComplete(selectedInterests)}
+              disabled={selectedInterests.length === 0}
+            >
+              Update Feed
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -70,7 +88,6 @@ function InterestGrid({ type, selectedInterests, onSelect }: InterestGridProps) 
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    // Fetch interests based on type
     fetchInterests(type).then(setInterests);
   }, [type]);
 
@@ -116,8 +133,10 @@ function InterestCard({ interest, selected, onSelect }: InterestCardProps) {
   return (
     <button
       onClick={onSelect}
-      className={`p-4 rounded-lg border transition-all duration-200 text-left w-full
-        ${selected ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300'}`}
+      className={`p-4 rounded-lg border transition-all duration-200 text-left w-full relative
+        ${selected 
+          ? 'border-purple-600 bg-purple-50 ring-1 ring-purple-600' 
+          : 'border-gray-200 hover:border-gray-300'}`}
     >
       <div className="flex items-center gap-3">
         {interest.imageUrl ? (
@@ -134,19 +153,33 @@ function InterestCard({ interest, selected, onSelect }: InterestCardProps) {
           </div>
         )}
         
-        <div>
+        <div className="flex-1">
           <div className="flex items-center gap-1">
             <h3 className="font-medium">{interest.name}</h3>
             {interest.verified && (
               <BadgeCheck className="w-4 h-4 text-blue-500" />
             )}
           </div>
+          {interest.description && (
+            <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+              {interest.description}
+            </p>
+          )}
           {interest.followers && (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 mt-1">
               {interest.followers.toLocaleString()} followers
             </p>
           )}
         </div>
+
+        {/* Selection indicator */}
+        {selected && (
+          <div className="absolute top-2 right-2">
+            <div className="bg-purple-600 text-white rounded-full p-1">
+              <Check className="w-4 h-4" />
+            </div>
+          </div>
+        )}
       </div>
     </button>
   );
