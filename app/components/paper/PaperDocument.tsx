@@ -7,7 +7,6 @@ import {
   Coins, MessageSquare, Star, Eye, Quote,
   BadgeCheck, UserPlus, X, Gift
 } from 'lucide-react'
-import { PDFViewer } from './PDFViewer'
 import { PaperReviews } from './PaperReviews'
 import { PaperRewards } from './PaperRewards'
 import { PaperComments } from './PaperComments'
@@ -262,8 +261,8 @@ export const PaperDocument = ({ paper }) => {
               <p className="text-gray-700">{paper.abstract}</p>
             </div>
             
-            <div className="bg-white rounded-xl shadow-sm border">
-              <PDFViewer url={paper.pdfUrl} />
+            <div className="bg-white rounded-xl shadow-sm border min-h-[500px]">
+              
             </div>
           </>
         )}
