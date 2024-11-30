@@ -79,7 +79,7 @@ const WhoToFollow: React.FC = () => {
   );
 
   return (
-    <div className="bg-white rounded-xl border p-4">
+    <div className="p-4">
       <h2 className="font-semibold text-gray-900 mb-4">Who to Follow</h2>
       
       {/* Organizations Section */}
