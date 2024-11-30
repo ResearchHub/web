@@ -8,8 +8,8 @@ import Link from 'next/link'
 import { ProfileTooltip } from './tooltips/ProfileTooltip'
 
 export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
-  // Helper to determine if it's an organization
   const isOrganization = item.type === 'journal_publish' || Boolean(item.organization)
+  const isBioRxiv = item.user.toLowerCase().includes('biorxiv')
 
   return (
     <div className="p-6">
@@ -34,16 +34,16 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
                 type={isOrganization ? 'organization' : 'user'}
                 name={item.user}
                 headline={item.organization || 'Researcher'}
-                verified={item.verified}
+                verified={false}
               >
                 <span className="font-medium text-gray-900 hover:text-indigo-600 cursor-pointer">
                   {item.user}
                 </span>
               </ProfileTooltip>
               {item.verified && (
-                <BadgeCheck className="h-4 w-4 text-blue-500 ml-1" />
+                <BadgeCheck className={`h-4 w-4 ml-1 ${isBioRxiv ? 'text-yellow-500' : 'text-blue-500'}`} />
               )}
-              {item.organization && (
+              {item.organization && !isOrganization && (
                 <span className="text-gray-500 text-sm ml-2">
                   • {item.organization}
                 </span>
@@ -57,7 +57,6 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
               {item.type === 'grant' && <span>Posted a grant</span>}
               {item.type === 'reward' && <span>Posted a reward</span>}
               {item.type === 'application' && <span>Applied for grant</span>}
-              <span>•</span>
               <span>{item.timestamp}</span>
               {item.hub && (
                 <>
@@ -181,8 +180,12 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
   
           {item.type === 'grant' && (
             <>
-              <h3 className="text-base font-semibold text-gray-900 mb-2">{item.title}</h3>
-              <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+              <Link href={`/grant/${item.id || '1234'}/test`}>
+                <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+              </Link>
 
               <div className="flex items-center space-x-4 mb-4">
                 <div className="flex items-center space-x-2">
@@ -197,9 +200,12 @@ export const FeedItem: React.FC<{ item: any }> = ({ item }) => {
               </div>
 
               <div className="flex space-x-3">
-                <button className="px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
+                <Link 
+                  href={`/grant/${item.id || '1234'}/test`}
+                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700"
+                >
                   Apply Now
-                </button>
+                </Link>
                 <button className="inline-flex items-center justify-center space-x-2 px-6 py-2 bg-orange-100 text-orange-600 rounded-lg text-sm font-medium hover:bg-orange-200">
                   <Coins className="h-4 w-4" />
                   <span>Contribute</span>

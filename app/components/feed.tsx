@@ -65,7 +65,7 @@ const ResearchFeed: React.FC = () => {
       verified: true,
       timestamp: '1h ago',
       hub: { name: 'Environmental Science', slug: 'environmental-science' },
-      title: 'Water Quality Research Grant',
+      title: 'Urban Water Quality Assessment: A Multi-City Analysis of Municipal Water Systems Across America',
       description: 'Seeking researchers to conduct comprehensive water quality analysis in developing regions.',
       amount: '500,000',
       votes: 32,
