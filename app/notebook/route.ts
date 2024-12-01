@@ -13,7 +13,7 @@ export async function GET(): Promise<Response> {
   return new Response(null, {
     status: 307, // Use 308 for a permanent redirect, 307 for a temporary redirect
     headers: {
-      Location: `/${getNanoId()}`,
+      Location: `/notebook/${getNanoId()}`,
       'Cache-Control': 'no-store, max-age=0',
     },
   })
