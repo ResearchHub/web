@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import NotebookLayout from './layout/NotebookLayout';
 
+
 // Dynamically import the Editor component to avoid SSR issues
 // const Editor = dynamic(() => import('../components/Editor/Editor'), {
 //   ssr: false, // Disable server-side rendering
