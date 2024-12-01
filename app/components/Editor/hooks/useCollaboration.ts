@@ -33,7 +33,7 @@ export const useCollaboration = ({ docId, enabled = true }: { docId: string; ena
         )
 
         // Get the collaboration token from the backend
-        const response = await fetch('/api/collaboration', {
+        const response = await fetch('/notebook/api/collaboration', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

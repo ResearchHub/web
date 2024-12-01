@@ -11,12 +11,12 @@ export const initialContent = {
         {
           type: 'emoji',
           attrs: {
-            name: 'fire',
+            name: 'microscope',
           },
         },
         {
           type: 'text',
-          text: ' Next.js + Tiptap Block Editor Template',
+          text: ' Digital Lab Notebook',
         },
       ],
     },
@@ -29,73 +29,32 @@ export const initialContent = {
       content: [
         {
           type: 'text',
-          text: 'Welcome to our React Block Editor Template built on top of ',
+          text: 'Welcome to your intelligent lab notebook. This modern research environment combines the structure of traditional lab documentation with AI-assisted features and real-time collaboration capabilities.',
         },
+      ],
+    },
+    {
+      type: 'heading',
+      attrs: {
+        textAlign: 'left',
+        level: 2,
+      },
+      content: [
         {
           type: 'text',
-          marks: [
-            {
-              type: 'link',
-              attrs: {
-                href: 'https://tiptap.dev/',
-                target: '_blank',
-                class: null,
-              },
-            },
-          ],
-          text: 'Tiptap',
-        },
-        {
-          type: 'text',
-          text: ', ',
-        },
-        {
-          type: 'text',
-          marks: [
-            {
-              type: 'link',
-              attrs: {
-                href: 'https://nextjs.org/',
-                target: '_blank',
-                class: null,
-              },
-            },
-          ],
-          text: 'Next.js',
-        },
-        {
-          type: 'text',
-          text: ' and ',
-        },
-        {
-          type: 'text',
-          marks: [
-            {
-              type: 'link',
-              attrs: {
-                href: 'https://tailwindcss.com/',
-                target: '_blank',
-                class: null,
-              },
-            },
-          ],
-          text: 'Tailwind',
-        },
-        {
-          type: 'text',
-          text: '. This project can be a good starting point for your own implementation of a block editor.',
+          text: 'Experiment: PCR Amplification',
         },
       ],
     },
     {
       type: 'codeBlock',
       attrs: {
-        language: null,
+        language: 'python'
       },
       content: [
         {
           type: 'text',
-          text: "import { useEditor, EditorContent } from '@tiptap/react'\n\nfunction App() {\n  const editor = useEditor()\n\n  return <EditorContent editor={editor} />\n}",
+          text: 'def calculate_pcr_temp(primer_sequence):\n    # Calculate melting temperature\n    gc_content = (primer_sequence.count("G") + primer_sequence.count("C")) / len(primer_sequence)\n    tm = 64.9 + 41 * (gc_content - 0.41)\n    return tm\n\n# Example primer\nprimer = "ATCGGGCTAT"\nprint(f"Annealing temperature: {calculate_pcr_temp(primer)}°C")',
         },
       ],
     },
@@ -108,15 +67,18 @@ export const initialContent = {
       content: [
         {
           type: 'text',
-          text: 'This editor includes features like:',
+          text: 'Protocol steps:',
         },
       ],
     },
     {
-      type: 'bulletList',
+      type: 'taskList',
       content: [
         {
-          type: 'listItem',
+          type: 'taskItem',
+          attrs: {
+            checked: true,
+          },
           content: [
             {
               type: 'paragraph',
@@ -127,14 +89,17 @@ export const initialContent = {
               content: [
                 {
                   type: 'text',
-                  text: 'A DragHandle including a DragHandle menu',
+                  text: 'Prepare master mix',
                 },
               ],
             },
           ],
         },
         {
-          type: 'listItem',
+          type: 'taskItem',
+          attrs: {
+            checked: true,
+          },
           content: [
             {
               type: 'paragraph',
@@ -145,51 +110,7 @@ export const initialContent = {
               content: [
                 {
                   type: 'text',
-                  text: 'A Slash menu that can be triggered via typing a ',
-                },
-                {
-                  type: 'text',
-                  marks: [
-                    {
-                      type: 'code',
-                    },
-                  ],
-                  text: '/',
-                },
-                {
-                  type: 'text',
-                  text: ' into an empty paragraph or by using the ',
-                },
-                {
-                  type: 'text',
-                  marks: [
-                    {
-                      type: 'bold',
-                    },
-                  ],
-                  text: '+ Button',
-                },
-                {
-                  type: 'text',
-                  text: ' next to the drag handle',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: 'A TextFormatting menu that allows you to change the ',
+                  text: 'Add primers (',
                 },
                 {
                   type: 'text',
@@ -197,89 +118,25 @@ export const initialContent = {
                     {
                       type: 'textStyle',
                       attrs: {
-                        fontSize: '18px',
-                        fontFamily: null,
-                        color: null,
-                      },
-                    },
-                  ],
-                  text: 'font size',
-                },
-                {
-                  type: 'text',
-                  text: ', ',
-                },
-                {
-                  type: 'text',
-                  marks: [
-                    {
-                      type: 'bold',
-                    },
-                  ],
-                  text: 'font weight',
-                },
-                {
-                  type: 'text',
-                  text: ', ',
-                },
-                {
-                  type: 'text',
-                  marks: [
-                    {
-                      type: 'textStyle',
-                      attrs: {
-                        fontSize: null,
-                        fontFamily: 'Georgia',
-                        color: null,
-                      },
-                    },
-                  ],
-                  text: 'font family',
-                },
-                {
-                  type: 'text',
-                  text: ', ',
-                },
-                {
-                  type: 'text',
-                  marks: [
-                    {
-                      type: 'textStyle',
-                      attrs: {
-                        fontSize: null,
-                        fontFamily: null,
                         color: '#b91c1c',
                       },
                     },
                   ],
-                  text: 'color',
+                  text: '10µM',
                 },
                 {
                   type: 'text',
-                  text: ', ',
-                },
-                {
-                  type: 'text',
-                  marks: [
-                    {
-                      type: 'highlight',
-                      attrs: {
-                        color: '#7e7922',
-                      },
-                    },
-                  ],
-                  text: 'highlight',
-                },
-                {
-                  type: 'text',
-                  text: ' and more',
+                  text: ' final concentration)',
                 },
               ],
             },
           ],
         },
         {
-          type: 'listItem',
+          type: 'taskItem',
+          attrs: {
+            checked: false,
+          },
           content: [
             {
               type: 'paragraph',
@@ -290,60 +147,69 @@ export const initialContent = {
               content: [
                 {
                   type: 'text',
-                  text: 'A Table of Contents that can be viewed via clicking on the button on the top left corner',
+                  text: 'Run thermal cycler',
                 },
               ],
             },
           ],
         },
+      ],
+    },
+    {
+      type: 'table',
+      content: [
         {
-          type: 'listItem',
+          type: 'tableRow',
           content: [
             {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: 'Live collaboration including content synchronization and collaborative cursors',
-                },
-              ],
+              type: 'tableHeader',
+              attrs: { colspan: 1, rowspan: 1, colwidth: null },
+              content: [{ type: 'text', text: 'Step' }],
+            },
+            {
+              type: 'tableHeader',
+              attrs: { colspan: 1, rowspan: 1, colwidth: null },
+              content: [{ type: 'text', text: 'Temperature' }],
+            },
+            {
+              type: 'tableHeader',
+              attrs: { colspan: 1, rowspan: 1, colwidth: null },
+              content: [{ type: 'text', text: 'Time' }],
             },
           ],
         },
         {
-          type: 'listItem',
+          type: 'tableRow',
           content: [
             {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: 'AI implementation with text and image generation and auto completion via the ',
-                },
-                {
-                  type: 'text',
-                  marks: [
-                    {
-                      type: 'code',
-                    },
-                  ],
-                  text: 'TAB',
-                },
-                {
-                  type: 'text',
-                  text: ' key.',
-                },
-              ],
+              type: 'tableCell',
+              attrs: { colspan: 1, rowspan: 1, colwidth: null },
+              content: [{ type: 'text', text: 'Initial Denaturation' }],
+            },
+            {
+              type: 'tableCell',
+              attrs: { colspan: 1, rowspan: 1, colwidth: null },
+              content: [{ type: 'text', text: '95°C' }],
+            },
+            {
+              type: 'tableCell',
+              attrs: { colspan: 1, rowspan: 1, colwidth: null },
+              content: [{ type: 'text', text: '3 min' }],
             },
           ],
+        },
+      ],
+    },
+    {
+      type: 'heading',
+      attrs: {
+        textAlign: 'left',
+        level: 2,
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Results',
         },
       ],
     },
@@ -353,20 +219,8 @@ export const initialContent = {
         src: '/placeholder-image.jpg',
         width: '100%',
         align: 'center',
+        caption: 'Gel electrophoresis results',
       },
-    },
-    {
-      type: 'heading',
-      attrs: {
-        textAlign: 'left',
-        level: 2,
-      },
-      content: [
-        {
-          type: 'text',
-          text: 'Get started',
-        },
-      ],
     },
     {
       type: 'paragraph',
@@ -375,810 +229,23 @@ export const initialContent = {
         textAlign: 'left',
       },
       content: [
-        {
-          type: 'text',
-          text: 'To access our block editor template, simply head over to your ',
-        },
         {
           type: 'text',
           marks: [
             {
-              type: 'link',
+              type: 'highlight',
               attrs: {
-                href: 'https://cloud.tiptap.dev/react-templates',
-                target: '_blank',
-                class: null,
+                color: '#7e7922',
               },
             },
           ],
-          text: 'Tiptap Account',
+          text: 'Key observation:',
         },
         {
           type: 'text',
-          text: ' If you are not already a member, sign up for an account and complete the 2-minute React Template survey. Once finished, we will send you an invite to the private GitHub repository.',
+          text: ' Band intensity suggests successful amplification of target sequence.',
         },
       ],
-    },
-    {
-      type: 'heading',
-      attrs: {
-        textAlign: 'left',
-        level: 2,
-      },
-      content: [
-        {
-          type: 'text',
-          text: 'Installed extensions',
-        },
-      ],
-    },
-    {
-      type: 'bulletList',
-      content: [
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap-pro/extension-ai',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap-pro/extension-details',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap-pro/extension-details-content',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap-pro/extension-details-summary',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap-pro/extension-drag-handle',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap-pro/extension-drag-handle-react',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap-pro/extension-emoji',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap-pro/extension-file-handler',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap-pro/extension-mathematics',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap-pro/extension-node-range',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap-pro/extension-table-of-contents',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap-pro/extension-unique-id',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-bullet-list',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-character-count',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-code-block',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-code-block-lowlight',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-collaboration',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-collaboration-cursor',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-color',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-document',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-dropcursor',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-focus',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-font-family',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-heading',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-highlight',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-horizontal-rule',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-image',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-link',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-ordered-list',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-paragraph',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-placeholder',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-subscript',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-superscript',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-table',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-table-header',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-table-row',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-task-item',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-task-list',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-text-align',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-text-style',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-typography',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'listItem',
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: '@tiptap/extension-underline',
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      type: 'paragraph',
-      attrs: {
-        class: null,
-        textAlign: 'left',
-      },
     },
   ],
 }

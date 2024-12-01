@@ -1,5 +1,5 @@
 .ProseMirror {
-  @apply caret-black dark:caret-white outline-0 pr-8 pl-20 py-16 z-0 lg:pl-8 lg:pr-8 mx-auto max-w-2xl;
+  @apply caret-black dark:caret-white outline-0 pr-8 pl-20 py-16 z-0 lg:pl-8 lg:pr-8 mx-auto max-w-4xl;
 
   .selection {
     @apply inline;

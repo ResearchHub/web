@@ -12,6 +12,7 @@ import { Surface } from '@/app/components/Editor/components/ui/Surface'
 import { Toolbar } from '@/app/components/Editor/components/ui/Toolbar'
 import { Icon } from '@/app/components/Editor/components/ui/Icon'
 import { useCollaboration } from '@/app/components/Editor/hooks/useCollaboration'
+import NotebookLayout from '../layout/NotebookLayout'
 
 const useDarkmode = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(
@@ -54,13 +55,13 @@ export default function Document({ params }: { params: { room: string } }) {
     // fetch data
     const dataFetch = async () => {
       try {
-        const response = await fetch('/api/ai', {
+        const response = await fetch('/notebook/api/ai', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
         })
-
+console.log('response', response)
         if (!response.ok) {
           throw new Error('No AI token provided, please set TIPTAP_AI_SECRET in your environment')
         }
@@ -97,9 +98,9 @@ export default function Document({ params }: { params: { room: string } }) {
   )
 
   return (
-    <>
+    <NotebookLayout>
       {DarkModeSwitcher}
       <BlockEditor aiToken={aiToken ?? undefined} ydoc={providerState.yDoc} provider={providerState.provider} />
-    </>
+    </NotebookLayout>
   )
 }
