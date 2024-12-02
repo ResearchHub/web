@@ -6,7 +6,12 @@ import {
 } from 'lucide-react';
 import Link from 'next/link'
 import { ProfileTooltip } from './tooltips/ProfileTooltip'
-import { FeedEntry } from '@/types/feed'
+import { FeedEntry, FundingRequestItem, GrantItem, Item, RewardItem } from '@/types/feed'
+
+// Type guard to check if an item has contributors
+const hasContributors = (item: Item): item is FundingRequestItem | GrantItem | RewardItem => {
+  return item.type === 'funding_request' || item.type === 'grant';
+};
 
 export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
   if (!entry) {
@@ -26,10 +31,10 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
               <img 
                 src={actor.profileImage} 
                 alt={actor.fullName} 
-                className="h-10 w-10 rounded-full object-cover"
+                className="h-10 w-10 rounded-full object-cover ring-2 ring-gray-200"
               />
             ) : (
-              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center ring-2 ring-gray-200">
                 <CircleUser className="h-6 w-6 text-gray-400" />
               </div>
             )}
@@ -129,25 +134,48 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                 </div>
               </div>
   
-              {item.metrics.contributors && (
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3].map((_, i) => (
-                      <div key={i} className="h-6 w-6 rounded-full bg-gray-200 ring-2 ring-white" />
-                    ))}
-                    <div className="h-6 px-2 rounded-full bg-gray-100 text-gray-600 text-xs font-medium flex items-center ml-1">
-                      +{item.metrics.contributors} others
-                    </div>
-                  </div>
-                  <span className="text-sm text-gray-600">contributors</span>
-                </div>
-              )}
   
-              <div className="flex">
+              <div className="flex justify-between">
                 <button className="inline-flex items-center justify-center space-x-2 px-6 py-2 bg-orange-100 text-orange-600 rounded-lg text-sm font-medium hover:bg-orange-200">
                   <Coins className="h-4 w-4" />
                   <span>Contribute</span>
                 </button>
+                {hasContributors(item) && item.contributors && (
+                  <div className="flex items-center ml-4">
+                    <div className="flex items-center">
+                      <div className="flex -space-x-2">
+                        {item.contributors.slice(0, 3).map((contributor) => (
+                          <div key={contributor.id} className="relative">
+                            {contributor.profileImage ? (
+                              <img 
+                                src={contributor.profileImage}
+                                alt={contributor.fullName}
+                                className="h-8 w-8 rounded-full ring-2 ring-white object-cover border border-gray-200"
+                              />
+                            ) : (
+                              <div className="h-8 w-8 rounded-full bg-gray-200 ring-2 ring-white flex items-center justify-center border border-gray-200">
+                                <CircleUser className="h-4 w-4 text-gray-400" />
+                              </div>
+                            )}
+                            <ProfileTooltip
+                              type={contributor.isOrganization ? 'organization' : 'user'}
+                              name={contributor.fullName}
+                              headline={contributor.isOrganization ? 'Organization' : 'Researcher'}
+                              verified={false}
+                            >
+                              <span className="sr-only">{contributor.fullName}</span>
+                            </ProfileTooltip>
+                          </div>
+                        ))}
+                        {item.contributors.length > 3 && (
+                          <div className="relative h-8 px-2 rounded-full bg-gray-100 text-gray-600 text-xs font-medium flex items-center ml-1">
+                            +{item.contributors.length - 3} Others
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </>
           )}

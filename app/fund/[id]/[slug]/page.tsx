@@ -6,6 +6,9 @@ import { ProfileTooltip } from '@/app/components/tooltips/ProfileTooltip'
 import { PageLayout } from '@/app/layouts/PageLayout'
 import Link from 'next/link'
 import { BadgeCheck } from 'lucide-react'
+import { FundraiseRightSidebar } from '@/components/Fund/FundraiseRightSidebar'
+
+
 
 export default function FundingPage({ params }: { params: { id: string; slug: string } }) {
   const [activeTab, setActiveTab] = useState('content')
@@ -69,7 +72,7 @@ Research Deliverables
 
   return (
     <PageLayout
-      rightSidebar={<FundraiseLayout fundraise={funding} />}
+      rightSidebar={<FundraiseRightSidebar votes={funding.votes} comments={funding.comments} />}
     >
       <div>
         {/* Header */}
@@ -156,27 +159,25 @@ Research Deliverables
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
+            <button className="inline-flex items-center justify-center px-4 py-2 bg-orange-100 text-orange-600 rounded-lg text-sm font-medium hover:bg-orange-200">
+              <Coins className="h-4 w-4 mr-2" />
+              Contribute
+            </button>
+
+            <div className="flex items-center space-x-2">
               <div className="flex -space-x-2">
                 {funding.contributorAvatars.map((avatar, i) => (
                   <img 
                     key={i}
                     src={avatar}
-                    className="h-8 w-8 rounded-full ring-2 ring-white"
+                    className="h-6 w-6 rounded-full ring-2 ring-white"
                   />
                 ))}
-                <div className="h-8 px-2 rounded-full bg-gray-100 text-gray-600 text-sm font-medium flex items-center ml-1">
-                  +{funding.contributors} others
-                </div>
               </div>
+              <span className="text-sm text-gray-600">+2 others</span>
               <span className="text-sm text-gray-600">contributors</span>
             </div>
-
-            <button className="inline-flex items-center justify-center px-4 py-2 bg-orange-100 text-orange-600 rounded-lg text-sm font-medium hover:bg-orange-200">
-              <Coins className="h-4 w-4 mr-2" />
-              Contribute
-            </button>
           </div>
         </div>
 
@@ -244,18 +245,6 @@ Research Deliverables
               </div>
             </div>
           )}
-        </div>
-
-        {/* Engagement */}
-        <div className="flex items-center space-x-4 text-gray-500">
-          <button className="flex items-center space-x-1 hover:text-gray-700">
-            <ArrowUp className="h-5 w-5" />
-            <span>{funding.votes}</span>
-          </button>
-          <button className="flex items-center space-x-1 hover:text-gray-700">
-            <MessageSquare className="h-5 w-5" />
-            <span>{funding.comments}</span>
-          </button>
         </div>
       </div>
     </PageLayout>

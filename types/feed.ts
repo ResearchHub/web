@@ -20,7 +20,6 @@ export type Author = {
 export type Metrics = {
   votes: number;
   comments: number;
-  contributors?: number;
   applicants?: number;
   reviewScore?: number;
 };
@@ -57,12 +56,14 @@ export type FundingRequestItem = BaseItem & {
   amount: number;
   goalAmount: number;
   progress: number;
+  contributors?: User[];
 };
 
 export type GrantItem = BaseItem & {
   type: 'grant';
-  amount: string;
+  amount: number;
   deadline?: string;
+  contributors?: User[];
 };
 
 export type PaperItem = BaseItem & {
@@ -79,9 +80,10 @@ export type ReviewItem = BaseItem & {
 
 export type RewardItem = BaseItem & {
   type: 'reward';
-  amount: string;
+  amount: number;
   deadline: string;
   difficulty: 'Advanced' | 'Intermediate' | 'Beginner';
+  contributors?: User[];
 };
 
 export type ContributionItem = BaseItem & {

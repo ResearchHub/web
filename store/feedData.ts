@@ -223,11 +223,18 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 45,
         comments: 21,
-        contributors: 6
       },
       amount: 30131,
       goalAmount: 36389,
-      progress: 85
+      progress: 85,
+      contributors: [
+        users.elenaRodriguez,
+        users.mariaPatel,
+        users.openBiologyInitiative,
+        users.bioRxiv,
+        users.davidKumar
+        
+      ]
     }
   },
   {
@@ -247,7 +254,7 @@ export const feedEntries: FeedEntry[] = [
         votes: 15,
         comments: 4
       },
-      amount: '500',
+      amount: 500,
       deadline: '3 days',
       difficulty: 'Advanced'
     }
@@ -268,10 +275,9 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 32,
         comments: 12,
-        contributors: 15,
         applicants: 8
       },
-      amount: '500,000'
+      amount: 500000,
     }
   },
   {
@@ -350,11 +356,15 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 28,
         comments: 15,
-        contributors: 4
       },
       amount: 45000,
       goalAmount: 75000,
-      progress: 60
+      progress: 60,
+      contributors: [
+        users.adamDraper,
+        users.elenaRodriguez,
+        users.dominikus
+      ]
     }
   },
   {
@@ -387,11 +397,14 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 20,
         comments: 10,
-        contributors: 3
       },
-      amount: '2,000',
+      amount: 2000,
       deadline: '5 days',
-      difficulty: 'Intermediate'
+      difficulty: 'Intermediate',
+      contributors: [
+        users.mariaGarcia,
+        users.alexThompson
+      ]
     }
   },
   {
@@ -401,7 +414,7 @@ export const feedEntries: FeedEntry[] = [
     timestamp: '3h ago',
     item: {
       id: 'item-11',
-      type: 'funding_request',
+      type: 'funding_request' as const,
       title: 'ML for Early Detection of Neurodegenerative Diseases',
       description: 'Developing AI models to identify early biomarkers of neurodegeneration.',
       user: users.sarahChen,
@@ -410,11 +423,17 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 28,
         comments: 15,
-        contributors: 4
       },
       amount: 45000,
       goalAmount: 75000,
-      progress: 60
+      progress: 60,
+      contributors: [
+        users.adamDraper,
+        users.elenaRodriguez,
+        users.dominikus,
+        users.mariaGarcia,
+        users.davidKumar
+      ]
     }
   },
   {
@@ -424,7 +443,7 @@ export const feedEntries: FeedEntry[] = [
     timestamp: '1d ago',
     item: {
       id: 'item-12',
-      type: 'funding_request',
+      type: 'funding_request' as const,
       title: 'Sustainable Battery Materials Research',
       description: 'Investigating novel eco-friendly materials for next-generation battery technology with improved efficiency.',
       user: users.davidKumar,
@@ -433,11 +452,15 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 45,
         comments: 23,
-        contributors: 8
       },
       amount: 12000,
       goalAmount: 50000,
-      progress: 24
+      progress: 24,
+      contributors: [
+        users.elenaRodriguez,
+        users.mariaPatel,
+        users.openBiologyInitiative
+      ]
     }
   },
   {
@@ -447,7 +470,7 @@ export const feedEntries: FeedEntry[] = [
     timestamp: '2d ago',
     item: {
       id: 'item-13',
-      type: 'funding_request',
+      type: 'funding_request' as const,
       title: 'CRISPR Gene Therapy for Rare Diseases',
       description: 'Developing targeted gene therapy approaches for treating rare genetic disorders using CRISPR-Cas9.',
       user: users.elenaRodriguez,
@@ -456,11 +479,17 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 156,
         comments: 42,
-        contributors: 23
       },
       amount: 95000,
       goalAmount: 100000,
-      progress: 95
+      progress: 95,
+      contributors: [
+        users.stanfordAILab,
+        users.openBiologyInitiative,
+        users.bioRxiv,
+        users.elenaRodriguez,
+        users.nationalScienceFoundation
+      ]
     }
   },
   {
@@ -479,8 +508,12 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 12,
         comments: 8,
-        contributors: 5
       },
+      contributors: [
+        users.elenaRodriguez,
+        users.dominikus,
+        users.bioRxiv
+      ],      
       amount: 3500,
       goalAmount: 15000,
       progress: 23
@@ -502,7 +535,6 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 89,
         comments: 31,
-        contributors: 15
       },
       amount: 68000,
       goalAmount: 70000,
@@ -526,7 +558,7 @@ export const feedEntries: FeedEntry[] = [
         votes: 24,
         comments: 7
       },
-      amount: '300',
+      amount: 300,
       deadline: '14 days',
       difficulty: 'Intermediate'
     }
@@ -548,7 +580,7 @@ export const feedEntries: FeedEntry[] = [
         votes: 18,
         comments: 5
       },
-      amount: '250',
+      amount: 250,
       deadline: '30 days',
       difficulty: 'Intermediate'
     }
@@ -570,7 +602,7 @@ export const feedEntries: FeedEntry[] = [
         votes: 9,
         comments: 2
       },
-      amount: '200',
+      amount: 200,
       deadline: '20 days',
       difficulty: 'Beginner'
     }
@@ -590,10 +622,17 @@ export const feedEntries: FeedEntry[] = [
       hub: hubs.climateScience,
       metrics: {
         votes: 45,
-        comments: 8,
-        applicants: 12
+        comments: 8
       },
-      amount: '750,000'
+      amount: 750000,
+      deadline: '30 days',
+      contributors: [
+        users.mariaPatel,
+        users.jamesWilson,
+        users.climateResearchInstitute,
+        users.openBiologyInitiative,
+        users.bioRxiv
+      ]
     }
   }
 ];
