@@ -15,7 +15,6 @@ export const PageLayout: React.FC<PageLayoutProps> = ({ children, rightSidebar }
   const [isPublishMenuOpen, setIsPublishMenuOpen] = useState(false);
 
   const handlePublishMenuChange = useCallback((isOpen: boolean) => {
-    console.log('PageLayout changing publish menu to:', isOpen);
     setIsPublishMenuOpen(isOpen);
   }, []);
 
@@ -39,8 +38,8 @@ export const PageLayout: React.FC<PageLayoutProps> = ({ children, rightSidebar }
 
       {/* Left Sidebar */}
       <div className={`
-        fixed top-0 left-0 h-full bg-white z-50 w-64 transform transition-transform duration-200 ease-in-out
-        lg:relative lg:translate-x-0
+        fixed lg:sticky top-0 left-0 h-full bg-white z-50 w-64 transform transition-transform duration-200 ease-in-out
+        lg:translate-x-0
         ${isLeftSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <LeftSidebar 
@@ -62,7 +61,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({ children, rightSidebar }
       </div>
 
       {/* Right Sidebar - Hidden below 1200px */}
-      <div className="hidden wide:block right-0 top-0 h-full bg-white w-80 border-l">
+      <div className="hidden wide:sticky wide:block right-0 top-0 h-full bg-white w-80 border-l">
         {rightSidebar || <RightSidebar />}
       </div>
     </div>
