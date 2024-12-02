@@ -2,11 +2,12 @@
 
 import { 
   ArrowUp, MessageSquare, Bookmark, Share2, CircleUser,
-  Coins, BadgeCheck, DollarSign, FileText, Star, Users2, X, Clock, GraduationCap 
+  Coins, BadgeCheck, Repeat2, Clock 
 } from 'lucide-react';
 import Link from 'next/link'
 import { ProfileTooltip } from './tooltips/ProfileTooltip'
 import { FeedEntry, FundingRequestItem, GrantItem, Item, RewardItem } from '@/types/feed'
+import { Button } from '@/app/components/ui/Button';
 
 // Type guard to check if an item has contributors
 const hasContributors = (item: Item): item is FundingRequestItem | GrantItem | RewardItem => {
@@ -61,6 +62,7 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
               {entry.action === 'publish' && (
                 <span>{item.type === 'paper' ? 'Published a paper' : 'Published content'}</span>
               )}
+              {entry.action === 'share' && <span>Shared a {item.type}</span>}
               {entry.action === 'post' && (
                 <span>
                   {item.type === 'funding_request' && 'Started a fundraise'}
@@ -88,7 +90,7 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                 {item.title}
               </h3>
               <div className="flex items-center text-sm mb-3">
-                <div className="flex-1 text-gray-600">
+                <div className="flex-1 text-xs text-gray-600">
                   {item.authors.map((author, i) => (
                     <span key={i} className="inline-flex items-center">
                       <span>{author.name}</span>
@@ -102,7 +104,11 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                   ))}
                 </div>
               </div>
-              <p className="text-sm text-gray-600">{item.description}</p>
+              <p className="text-sm text-gray-600">
+                {item.description.length > 200 
+                  ? `${item.description.slice(0, 200)}...` 
+                  : item.description}
+              </p>
             </Link>
           )}
   
@@ -112,7 +118,11 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                 <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
                   {item.title}
                 </h3>
-                <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+                <p className="text-sm text-gray-600 mb-3">
+                  {item.description.length > 200 
+                    ? `${item.description.slice(0, 200)}...` 
+                    : item.description}
+                </p>
               </Link>
               
               <div className="mb-4">
@@ -136,10 +146,10 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
   
   
               <div className="flex justify-between">
-                <button className="inline-flex items-center justify-center space-x-2 px-6 py-2 bg-orange-100 text-orange-600 rounded-lg text-sm font-medium hover:bg-orange-200">
+                <Button variant="researchcoin" className="w-30 space-x-2">
                   <Coins className="h-4 w-4" />
                   <span>Contribute</span>
-                </button>
+                </Button>
                 {hasContributors(item) && item.contributors && (
                   <div className="flex items-center ml-4">
                     <div className="flex items-center">
@@ -186,7 +196,11 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                 <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
                   {item.title}
                 </h3>
-                <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+                <p className="text-sm text-gray-600 mb-3">
+                  {item.description.length > 200 
+                    ? `${item.description.slice(0, 200)}...` 
+                    : item.description}
+                </p>
               </Link>
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm text-gray-500">Amount: {item.amount}</span>
@@ -201,12 +215,29 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                 <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
                   {item.title}
                 </h3>
-                <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+                <p className="text-sm text-gray-600 mb-3">
+                  {item.description.length > 200 
+                    ? `${item.description.slice(0, 200)}...` 
+                    : item.description}
+                </p>
               </Link>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-gray-500">Amount: {item.amount}</span>
-                <span className="text-sm text-gray-500">Deadline: {item.deadline}</span>
-                <span className="text-sm text-gray-500">Difficulty: {item.difficulty}</span>
+              <div className="flex flex-col space-y-3">
+                <div className="flex items-center space-x-4 text-sm">
+                  <div className="flex items-center space-x-1">
+                    <Coins className="h-4 w-4 text-orange-500" />
+                    <span className="text-orange-500 font-medium">{item.amount} RSC reward</span>
+                  </div>
+                  <span className="text-gray-500">•</span>
+                  <div className="flex items-center space-x-1">
+                    <Clock className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-500">Due in {item.deadline}</span>
+                  </div>
+                </div>
+                <div>
+                  <Button variant="default" className="w-24">
+                    Start
+                  </Button>
+                </div>
               </div>
             </>
           )}
@@ -214,7 +245,11 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
           {item.type === 'review' && (
             <>
               <h3 className="text-base font-semibold text-gray-900 mb-2">{item.title}</h3>
-              <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+              <p className="text-sm text-gray-600 mb-3">
+                {item.description.length > 200 
+                  ? `${item.description.slice(0, 200)}...` 
+                  : item.description}
+              </p>
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm text-gray-500">Amount: {item.amount}</span>
                 <span className="text-sm text-gray-500">Review Score: {item.metrics.reviewScore}</span>
@@ -225,7 +260,11 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
           {item.type === 'contribution' && (
             <>
               <h3 className="text-base font-semibold text-gray-900 mb-2">{item.title}</h3>
-              <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+              <p className="text-sm text-gray-600 mb-3">
+                {item.description.length > 200 
+                  ? `${item.description.slice(0, 200)}...` 
+                  : item.description}
+              </p>
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm text-gray-500">Amount: {item.amount}</span>
               </div>
@@ -234,14 +273,18 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
         </div>
   
         <div className="mt-3 flex items-center space-x-4">
-          <button className="flex items-center space-x-1 text-gray-500 hover:text-gray-700">
+          <Button variant="ghost" size="icon">
             <ArrowUp className="h-4 w-4" />
             <span className="text-sm">{item.metrics.votes}</span>
-          </button>
-          <button className="flex items-center space-x-1 text-gray-500 hover:text-gray-700">
+          </Button>
+          <Button variant="ghost" size="icon">
             <MessageSquare className="h-4 w-4" />
             <span className="text-sm">{item.metrics.comments}</span>
-          </button>
+          </Button>
+          <Button variant="ghost" size="icon">
+            <Repeat2 className="h-4 w-4" />
+            <span className="text-sm">{item.metrics.reposts || 0}</span>
+          </Button>
         </div>
       </div>
     </div>

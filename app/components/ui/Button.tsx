@@ -12,6 +12,7 @@ const buttonVariants = cva(
         ghost: 'hover:bg-gray-100 text-gray-700',
         link: 'text-primary-600 underline-offset-4 hover:underline',
         destructive: 'bg-red-600 text-white hover:bg-red-700',
+        researchcoin: 'bg-orange-100 text-orange-600 hover:bg-orange-200',
       },
       size: {
         default: 'h-10 px-4 py-2',
