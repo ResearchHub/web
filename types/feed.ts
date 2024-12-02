@@ -20,6 +20,8 @@ export type Author = {
 export type Metrics = {
   votes: number;
   comments: number;
+  reposts: number;
+  saves?: number;
   applicants?: number;
   reviewScore?: number;
 };

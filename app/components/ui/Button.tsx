@@ -1,6 +1,7 @@
-import { ButtonHTMLAttributes, forwardRef } from 'react';
+import { ButtonHTMLAttributes, forwardRef, useState } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/app/lib/utils';
+import { Popover } from '@headlessui/react';
 
 const buttonVariants = cva(
   'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
@@ -19,6 +20,7 @@ const buttonVariants = cva(
         sm: 'h-8 px-3 text-xs',
         lg: 'h-12 px-8',
         icon: 'h-10 w-10',
+        metric: 'h-9 px-3',
       },
     },
     defaultVariants: {
@@ -32,10 +34,38 @@ export interface ButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  tooltip?: string;
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => {
+  ({ className, variant, size, tooltip, ...props }, ref) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    if (tooltip) {
+      return (
+        <Popover className="relative">
+          <div
+            onMouseEnter={() => setIsOpen(true)}
+            onMouseLeave={() => setIsOpen(false)}
+          >
+            <Popover.Button as="div" className="cursor-default">
+              <button
+                className={cn(buttonVariants({ variant, size, className }))}
+                ref={ref}
+                {...props}
+              />
+            </Popover.Button>
+
+            {isOpen && (
+              <Popover.Panel static className="absolute z-10 -top-8 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-gray-900 rounded shadow-lg whitespace-nowrap">
+                {tooltip}
+              </Popover.Panel>
+            )}
+          </div>
+        </Popover>
+      );
+    }
+
     return (
       <button
         className={cn(buttonVariants({ variant, size, className }))}

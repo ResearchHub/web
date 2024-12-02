@@ -272,18 +272,41 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
           )}
         </div>
   
-        <div className="mt-3 flex items-center space-x-4">
-          <Button variant="ghost" size="icon">
-            <ArrowUp className="h-4 w-4" />
+        <div className="mt-3 flex items-center space-x-1">
+          <Button 
+            variant="ghost" 
+            size="metric" 
+            tooltip="Vote"
+          >
+            <ArrowUp className="h-5 w-5" />
             <span className="text-sm">{item.metrics.votes}</span>
           </Button>
-          <Button variant="ghost" size="icon">
-            <MessageSquare className="h-4 w-4" />
+          <Button 
+            variant="ghost" 
+            size="metric" 
+            tooltip="Repost"
+            className="space-x-1"
+          >
+            <Repeat2 className="h-5 w-5" />
+            <span className="text-sm">{item.metrics.reposts}</span>
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="metric" 
+            tooltip="Comment"
+            className="space-x-1"
+          >
+            <MessageSquare className="h-5 w-5" />
             <span className="text-sm">{item.metrics.comments}</span>
           </Button>
-          <Button variant="ghost" size="icon">
-            <Repeat2 className="h-4 w-4" />
-            <span className="text-sm">{item.metrics.reposts || 0}</span>
+          <Button 
+            variant="ghost" 
+            size="metric" 
+            tooltip="Save"
+            className="space-x-1"
+          >
+            <Bookmark className="h-5 w-5" />
+            <span className="text-sm">{item.metrics.saves}</span>
           </Button>
         </div>
       </div>

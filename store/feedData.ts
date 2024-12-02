@@ -196,7 +196,9 @@ export const feedEntries: FeedEntry[] = [
       hub: hubs.molecularBiology,
       metrics: {
         votes: 8,
-        comments: 12
+        comments: 12,
+        reposts: 3,
+        saves: 5
       },
       authors: [
         { name: "Suchandrima Saha", verified: true },
@@ -223,6 +225,8 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 45,
         comments: 21,
+        reposts: 12,
+        saves: 18
       },
       amount: 30131,
       goalAmount: 36389,
@@ -252,7 +256,9 @@ export const feedEntries: FeedEntry[] = [
       hub: hubs.neuroscience,
       metrics: {
         votes: 15,
-        comments: 4
+        comments: 4,
+        reposts: 2,
+        saves: 3
       },
       amount: 500,
       deadline: '3 days',
@@ -275,7 +281,9 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 32,
         comments: 12,
-        applicants: 8
+        applicants: 8,
+        reposts: 3,
+        saves: 5
       },
       amount: 500000,
     }
@@ -296,7 +304,9 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 12,
         comments: 3,
-        reviewScore: 4
+        reviewScore: 4,
+        reposts: 2,
+        saves: 3
       },
       amount: 150
     }
@@ -316,7 +326,9 @@ export const feedEntries: FeedEntry[] = [
       hub: hubs.medicalDevices,
       metrics: {
         votes: 24,
-        comments: 7
+        comments: 7,
+        reposts: 2,
+        saves: 3
       },
       authors: [
         { name: "John Doe", verified: true },
@@ -341,7 +353,9 @@ export const feedEntries: FeedEntry[] = [
       hub: hubs.neuroscience,
       metrics: {
         votes: 12,
-        comments: 3
+        comments: 3,
+        reposts: 2,
+        saves: 3
       },
       amount: 500
     },
@@ -356,6 +370,8 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 28,
         comments: 15,
+        reposts: 3,
+        saves: 5
       },
       amount: 45000,
       goalAmount: 75000,
@@ -382,7 +398,9 @@ export const feedEntries: FeedEntry[] = [
       hub: hubs.dataScience,
       metrics: {
         votes: 8,
-        comments: 5
+        comments: 5,
+        reposts: 2,
+        saves: 3
       },
       amount: 750
     },
@@ -397,6 +415,8 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 20,
         comments: 10,
+        reposts: 3,
+        saves: 5
       },
       amount: 2000,
       deadline: '5 days',
@@ -423,6 +443,8 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 28,
         comments: 15,
+        reposts: 3,
+        saves: 5
       },
       amount: 45000,
       goalAmount: 75000,
@@ -452,6 +474,8 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 45,
         comments: 23,
+        reposts: 3,
+        saves: 5
       },
       amount: 12000,
       goalAmount: 50000,
@@ -479,6 +503,8 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 156,
         comments: 42,
+        reposts: 3,
+        saves: 5
       },
       amount: 95000,
       goalAmount: 100000,
@@ -508,6 +534,8 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 12,
         comments: 8,
+        reposts: 3,
+        saves: 5
       },
       contributors: [
         users.elenaRodriguez,
@@ -535,6 +563,8 @@ export const feedEntries: FeedEntry[] = [
       metrics: {
         votes: 89,
         comments: 31,
+        reposts: 3,
+        saves: 5
       },
       amount: 68000,
       goalAmount: 70000,
@@ -556,7 +586,9 @@ export const feedEntries: FeedEntry[] = [
       hub: hubs.artificialIntelligence,
       metrics: {
         votes: 24,
-        comments: 7
+        comments: 7,
+        reposts: 3,
+        saves: 5
       },
       amount: 300,
       deadline: '14 days',
@@ -578,7 +610,9 @@ export const feedEntries: FeedEntry[] = [
       hub: hubs.climateScience,
       metrics: {
         votes: 18,
-        comments: 5
+        comments: 5,
+        reposts: 3,
+        saves: 5
       },
       amount: 250,
       deadline: '30 days',
@@ -600,7 +634,9 @@ export const feedEntries: FeedEntry[] = [
       hub: hubs.biology,
       metrics: {
         votes: 9,
-        comments: 2
+        comments: 2,
+        reposts: 3,
+        saves: 5
       },
       amount: 200,
       deadline: '20 days',
@@ -622,7 +658,9 @@ export const feedEntries: FeedEntry[] = [
       hub: hubs.climateScience,
       metrics: {
         votes: 45,
-        comments: 8
+        comments: 8,
+        reposts: 3,
+        saves: 5
       },
       amount: 750000,
       deadline: '30 days',
