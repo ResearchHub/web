@@ -14,6 +14,11 @@ const hasContributors = (item: Item): item is FundingRequestItem | GrantItem | R
   return item.type === 'funding_request' || item.type === 'grant';
 };
 
+// Helper function to format numbers with commas
+const formatNumber = (num: number): string => {
+  return num.toLocaleString();
+};
+
 export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
   if (!entry) {
     return null; // Or return a placeholder/skeleton component
@@ -52,9 +57,6 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                   {actor.fullName}
                 </span>
               </ProfileTooltip>
-              {actor.isVerified && (
-                <BadgeCheck className={`h-4 w-4 ml-1 ${isBioRxiv ? 'text-yellow-500' : 'text-blue-500'}`} />
-              )}
             </div>
             <div className="flex items-center space-x-2 text-sm text-gray-500">
               {entry.action === 'contribute' && <span>Contributed ResearchCoin</span>}
@@ -70,6 +72,7 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                   {item.type === 'reward' && 'Posted a reward'}
                 </span>
               )}
+              <span>•</span>
               <span>{entry.timestamp}</span>
               {item.hub && (
                 <>
@@ -129,8 +132,8 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <Coins className="h-4 w-4 text-orange-500" />
-                    <span className="text-sm font-medium text-orange-500">{item.amount} RSC raised</span>
-                    <span className="text-sm text-gray-500">of {item.goalAmount} RSC goal</span>
+                    <span className="text-sm font-medium text-orange-500">{formatNumber(item.amount)} RSC raised</span>
+                    <span className="text-sm text-gray-500">of {formatNumber(item.goalAmount)} RSC goal</span>
                   </div>
                   {item.progress === 100 && (
                     <span className="text-sm text-green-500 font-medium">Fundraise Completed</span>
@@ -146,7 +149,7 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
   
   
               <div className="flex justify-between">
-                <Button variant="researchcoin" className="w-30 space-x-2">
+                <Button variant="researchcoin" size={"sm"} className="w-30 space-x-2">
                   <Coins className="h-4 w-4" />
                   <span>Contribute</span>
                 </Button>
@@ -178,7 +181,7 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                           </div>
                         ))}
                         {item.contributors.length > 3 && (
-                          <div className="relative h-8 px-2 rounded-full bg-gray-100 text-gray-600 text-xs font-medium flex items-center ml-1">
+                          <div className="relative h-8 px-2 rounded-full bg-gray-100 text-gray-600 text-xs font-medium flex items-center ml-1 border border-gray-200 ring-2 ring-white">
                             +{item.contributors.length - 3} Others
                           </div>
                         )}
@@ -203,7 +206,7 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                 </p>
               </Link>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-gray-500">Amount: {item.amount}</span>
+                <span className="text-sm text-gray-500">Amount: {formatNumber(item.amount)} RSC</span>
                 {item.deadline && <span className="text-sm text-gray-500">Deadline: {item.deadline}</span>}
               </div>
             </>
@@ -225,7 +228,7 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                 <div className="flex items-center space-x-4 text-sm">
                   <div className="flex items-center space-x-1">
                     <Coins className="h-4 w-4 text-orange-500" />
-                    <span className="text-orange-500 font-medium">{item.amount} RSC reward</span>
+                    <span className="text-orange-500 font-medium">{formatNumber(item.amount)} RSC reward</span>
                   </div>
                   <span className="text-gray-500">•</span>
                   <div className="flex items-center space-x-1">
@@ -234,7 +237,7 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                   </div>
                 </div>
                 <div>
-                  <Button variant="default" className="w-24">
+                  <Button size="sm" variant="default" className="w-24">
                     Start
                   </Button>
                 </div>
@@ -251,7 +254,7 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                   : item.description}
               </p>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-gray-500">Amount: {item.amount}</span>
+                <span className="text-sm text-gray-500">Amount: {formatNumber(item.amount)} RSC</span>
                 <span className="text-sm text-gray-500">Review Score: {item.metrics.reviewScore}</span>
               </div>
             </>
@@ -266,7 +269,7 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                   : item.description}
               </p>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-gray-500">Amount: {item.amount}</span>
+                <span className="text-sm text-gray-500">Amount: {formatNumber(item.amount)} RSC</span>
               </div>
             </>
           )}
