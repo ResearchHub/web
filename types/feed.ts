@@ -9,6 +9,7 @@ export type User = {
   verified: boolean;
   isOrganization: boolean;
   isVerified: boolean;
+  profileImage?: string;
 };
 
 export type Author = {

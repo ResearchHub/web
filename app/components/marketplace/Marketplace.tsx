@@ -1,215 +1,81 @@
 'use client'
 
 import { useState } from 'react';
-import { Store, Plus } from 'lucide-react';
+import { Plus, Store } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { FeedItem } from '../FeedItem';
 import { MarketplaceTabs } from './MarketplaceTabs';
 import { MarketplaceSort } from './MarketplaceSort';
 import { MarketplaceFundingBanner } from './MarketplaceFundingBanner';
 import { MarketplaceRewardsBanner } from './MarketplaceRewardsBanner';
-import { CreateGrantModal } from './CreateGrantModal';
-import { RequestFundingModal } from './RequestFundingModal';
+import { FeedItem } from '../FeedItem';
+import { feedEntries } from '@/store/feedData';
+import { FeedEntry } from '@/types/feed';
 
-const Marketplace = () => {
-  const [activeTab, setActiveTab] = useState('fund');
-  const [selectedSort, setSelectedSort] = useState({ id: 'newest', name: 'Newest' });
+export const Marketplace = () => {
+  const [activeTab, setActiveTab] = useState<'fund' | 'rewards' | 'grants'>('fund');
   const [showFundingBanner, setShowFundingBanner] = useState(true);
   const [showRewardsBanner, setShowRewardsBanner] = useState(true);
-  const [isCreateGrantOpen, setIsCreateGrantOpen] = useState(false);
   const [isRequestFundingOpen, setIsRequestFundingOpen] = useState(false);
+  const [isCreateGrantOpen, setIsCreateGrantOpen] = useState(false);
+  const [selectedSort, setSelectedSort] = useState({ id: 'newest', name: 'Newest' });
 
-  const marketplaceItems = {
-    fund: [
-      {
-        type: 'funding_request',
-        user: 'Sarah Chen',
-        verified: true,
-        timestamp: '3h ago',
-        title: 'ML for Early Detection of Neurodegenerative Diseases',
-        description: 'Developing AI models to identify early biomarkers of neurodegeneration.',
-        amount: '45,000',
-        goal: '75,000',
-        progress: 60,
-        votes: 28,
-        comments: 15,
-        contributors: 4
-      },
-      {
-        type: 'funding_request',
-        user: 'David Kumar',
-        verified: true,
-        timestamp: '1d ago',
-        title: 'Sustainable Battery Materials Research',
-        description: 'Investigating novel eco-friendly materials for next-generation battery technology with improved efficiency.',
-        amount: '12,000',
-        goal: '50,000',
-        progress: 24,
-        votes: 45,
-        comments: 23,
-        contributors: 8
-      },
-      {
-        type: 'funding_request',
-        user: 'Elena Rodriguez',
-        verified: true,
-        timestamp: '2d ago',
-        title: 'CRISPR Gene Therapy for Rare Diseases',
-        description: 'Developing targeted gene therapy approaches for treating rare genetic disorders using CRISPR-Cas9.',
-        amount: '95,000',
-        goal: '100,000',
-        progress: 95,
-        votes: 156,
-        comments: 42,
-        contributors: 23
-      },
-      {
-        type: 'funding_request',
-        user: 'James Wilson',
-        verified: false,
-        timestamp: '4d ago',
-        title: 'Urban Air Quality Monitoring Network',
-        description: 'Creating a network of low-cost air quality sensors for real-time urban pollution monitoring and analysis.',
-        amount: '3,500',
-        goal: '15,000',
-        progress: 23,
-        votes: 12,
-        comments: 8,
-        contributors: 5
-      },
-      {
-        type: 'funding_request',
-        user: 'Maria Patel',
-        verified: true,
-        timestamp: '5d ago',
-        title: 'Quantum Computing Algorithm Development',
-        description: 'Research into novel quantum algorithms for optimization problems in computational chemistry.',
-        amount: '68,000',
-        goal: '70,000',
-        progress: 97,
-        votes: 89,
-        comments: 31,
-        contributors: 15
-      }
-    ],
-    rewards: [
-      {
-        type: 'reward',
-        user: 'ResearchHub Foundation',
-        organization: true,
-        verified: true,
-        timestamp: '1d ago',
-        hub: { name: 'Quantum Computing', slug: 'quantum-computing' },
-        title: 'Peer Review: Quantum Computing Applications in Drug Discovery',
-        description: 'Review this manuscript discussing novel quantum computing approaches for drug discovery and molecular modeling.',
-        amount: '500',
-        deadline: '7 days',
-        difficulty: 'Advanced',
-        votes: 12,
-        comments: 3,
-        action: 'Start'
-      },
-      {
-        type: 'reward',
-        user: 'ResearchHub Foundation',
-        organization: true,
-        verified: true,
-        timestamp: '2d ago',
-        hub: { name: 'Genetics', slug: 'genetics' },
-        title: 'Peer Review: CRISPR-Based Gene Therapy Methods',
-        description: 'Evaluate methodology and results of a new CRISPR-based therapeutic approach for genetic disorders.',
-        amount: '500',
-        deadline: '5 days',
-        difficulty: 'Advanced',
-        votes: 8,
-        comments: 2,
-        action: 'Start'
-      },
-      {
-        type: 'reward',
-        user: 'Stanford AI Lab',
-        organization: true,
-        verified: true,
-        timestamp: '1d ago',
-        hub: { name: 'Artificial Intelligence', slug: 'artificial-intelligence' },
-        title: 'Dataset Annotation: Medical Imaging',
-        description: 'Help annotate MRI scans for machine learning model training. Medical background required.',
-        amount: '300',
-        deadline: '14 days',
-        difficulty: 'Intermediate',
-        votes: 24,
-        comments: 7,
-        action: 'Start'
-      },
-      {
-        type: 'reward',
-        user: 'Climate Research Institute',
-        organization: true,
-        verified: true,
-        timestamp: '4d ago',
-        hub: { name: 'Climate Science', slug: 'climate-science' },
-        title: 'Data Analysis: Weather Station Readings',
-        description: 'Analyze and clean historical weather station data from remote locations.',
-        amount: '250',
-        deadline: '30 days',
-        difficulty: 'Intermediate',
-        votes: 18,
-        comments: 5,
-        action: 'Start'
-      },
-      {
-        type: 'reward',
-        user: 'Open Biology Initiative',
-        organization: true,
-        verified: true,
-        timestamp: '2d ago',
-        hub: { name: 'Biology', slug: 'biology' },
-        title: 'Protocol Translation',
-        description: 'Translate detailed laboratory protocols from English to Spanish. Biology expertise required.',
-        amount: '200',
-        deadline: '20 days',
-        difficulty: 'Beginner',
-        votes: 9,
-        comments: 2,
-        action: 'Start'
-      }
-    ],
-    grants: [
-      {
-        type: 'grant',
-        user: 'National Science Foundation',
-        verified: true,
-        timestamp: '2d ago',
-        title: 'Climate Change Impact Assessment Grant',
-        description: 'Research grant for studying climate change effects on coastal ecosystems.',
-        amount: '750,000',
-        applicants: 12,
-        votes: 45,
-        comments: 8
-      }
-    ]
+  // Filter entries based on active tab and only get marketplace posts
+  const getMarketplaceItems = (): FeedEntry[] => {
+    const marketplaceEntries = feedEntries.filter(entry => 
+      entry.action === 'post' && entry.id.startsWith('marketplace-')
+    );
+
+    switch (activeTab) {
+      case 'fund':
+        return marketplaceEntries.filter(entry => entry.item.type === 'funding_request');
+      case 'rewards':
+        return marketplaceEntries.filter(entry => entry.item.type === 'reward');
+      case 'grants':
+        return marketplaceEntries.filter(entry => entry.item.type === 'grant');
+      default:
+        return [];
+    }
   };
 
-  const getSortedItems = (items: any[]) => {
+  const getSortedItems = (items: FeedEntry[]) => {
     switch (selectedSort.id) {
       case 'amount':
-        return [...items].sort((a, b) => parseInt(b.amount.replace(',', '')) - parseInt(a.amount.replace(',', '')));
+        return [...items].sort((a, b) => {
+          const aAmount = typeof a.item.amount === 'string' ? parseInt(a.item.amount.replace(/,/g, '')) : a.item.amount;
+          const bAmount = typeof b.item.amount === 'string' ? parseInt(b.item.amount.replace(/,/g, '')) : b.item.amount;
+          return bAmount - aAmount;
+        });
       case 'progress':
-        return [...items].sort((a, b) => b.progress - a.progress);
-      case 'reward':
-        return [...items].sort((a, b) => parseInt(b.reward) - parseInt(a.reward));
+        return [...items].sort((a, b) => {
+          if ('progress' in a.item && 'progress' in b.item) {
+            return b.item.progress - a.item.progress;
+          }
+          return 0;
+        });
       case 'deadline':
-        return [...items].sort((a, b) => parseInt(a.deadline) - parseInt(b.deadline));
+        return [...items].sort((a, b) => {
+          if ('deadline' in a.item && 'deadline' in b.item) {
+            return parseInt(a.item.deadline) - parseInt(b.item.deadline);
+          }
+          return 0;
+        });
       case 'popular':
-        return [...items].sort((a, b) => b.votes - a.votes);
+        return [...items].sort((a, b) => b.item.metrics.votes - a.item.metrics.votes);
       case 'applicants':
-        return [...items].sort((a, b) => b.applicants - a.applicants);
+        return [...items].sort((a, b) => 
+          (b.item.metrics.applicants || 0) - (a.item.metrics.applicants || 0)
+        );
       case 'difficulty':
         const difficultyOrder = { 'Beginner': 0, 'Intermediate': 1, 'Advanced': 2 };
-        return [...items].sort((a, b) => difficultyOrder[b.difficulty] - difficultyOrder[a.difficulty]);
+        return [...items].sort((a, b) => {
+          if ('difficulty' in a.item && 'difficulty' in b.item) {
+            return difficultyOrder[b.item.difficulty] - difficultyOrder[a.item.difficulty];
+          }
+          return 0;
+        });
       case 'newest':
       default:
-        return items; // Assuming items are already sorted by newest
+        return items;
     }
   };
 
@@ -241,6 +107,10 @@ const Marketplace = () => {
         );
     }
   };
+
+  const items = getSortedItems(getMarketplaceItems());
+
+  console.log('items', items);
 
   return (
     <PageLayout>
@@ -278,24 +148,14 @@ const Marketplace = () => {
       </div>
 
       <div className="space-y-4">
-        {getSortedItems(marketplaceItems[activeTab]).map((item, index) => (
-          <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
-            <FeedItem item={item} />
+        {items.map((entry) => (
+          <div key={entry.id} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+            <FeedItem entry={entry} />
           </div>
         ))}
       </div>
-
-      <CreateGrantModal 
-        open={isCreateGrantOpen}
-        onClose={() => setIsCreateGrantOpen(false)}
-      />
-
-      <RequestFundingModal 
-        open={isRequestFundingOpen}
-        onClose={() => setIsRequestFundingOpen(false)}
-      />
     </PageLayout>
   );
-}
+};
 
 export default Marketplace; 

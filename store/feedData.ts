@@ -1,5 +1,7 @@
 import { FeedEntry, User, Hub } from '@/types/feed';
 
+
+
 const users: Record<string, User> = {
   researchHub: {
     id: 'rhub-001',
@@ -7,6 +9,7 @@ const users: Record<string, User> = {
     verified: true,
     isOrganization: true,
     isVerified: true,
+    profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/10/20/blob",
   },
   dominikus: {
     id: 'dom-001',
@@ -14,6 +17,7 @@ const users: Record<string, User> = {
     verified: true,
     isOrganization: false,
     isVerified: true,
+    profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/04/19/blob",
   },
   bioRxiv: {
     id: 'biorxiv-001',
@@ -21,6 +25,7 @@ const users: Record<string, User> = {
     verified: true,
     isOrganization: true,
     isVerified: true,
+    profileImage: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh0mIPhY2F4yEhtpWJERf0sCvfaPwyUieCkVfg6aS8acUqZ7f5v21HNlFxEtHmtCQYFSXdX97Y7HiZd7pedBXfL2oTlj1NnaEwpwWQKXOLHwt7tp18djNgKdF3sKNE8bhIrTUiE/s0/lwyH1HFe_400x400.jpg",
   },
   adamDraper: {
     id: 'adam-001',
@@ -28,6 +33,7 @@ const users: Record<string, User> = {
     verified: true,
     isOrganization: false,
     isVerified: true,
+    profileImage: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2024/10/27/blob_yxyA3Mo'
   },
   elenaRodriguez: {
     id: 'elena-001',
@@ -35,6 +41,7 @@ const users: Record<string, User> = {
     verified: true,
     isOrganization: false,
     isVerified: true,
+    profileImage: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2024/05/18/blob_MRP9Qf6'
   },
   hundessaNemomssa: {
     id: 'hundessa-001',
@@ -42,6 +49,7 @@ const users: Record<string, User> = {
     verified: true,
     isOrganization: false,
     isVerified: true,
+    profileImage: "https://lh3.googleusercontent.com/a/ACg8ocJj0QP51OML0cy6qsoKezhVqHB96qVEBEMtlWY2Jhc8xWvWIjY=s96-c",
   },
   alexThompson: {
     id: 'alex-001',
@@ -49,6 +57,7 @@ const users: Record<string, User> = {
     verified: true,
     isOrganization: false,
     isVerified: true,
+    profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/11/17/blob_mXZ6zDF",
   },
   sarahChen: {
     id: 'sarah-001',
@@ -56,6 +65,7 @@ const users: Record<string, User> = {
     verified: true,
     isOrganization: false,
     isVerified: true,
+    profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/11/25/blob_7T1yCOe",
   },
   mariaGarcia: {
     id: 'maria-001',
@@ -63,6 +73,63 @@ const users: Record<string, User> = {
     verified: true,
     isOrganization: false,
     isVerified: true,
+    profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/11/17/blob_F2VhiHh",
+  },
+  davidKumar: {
+    id: 'david-001',
+    fullName: 'David Kumar',
+    verified: true,
+    isOrganization: false,
+    isVerified: true,
+    profileImage: "https://lh3.googleusercontent.com/a-/AOh14GiRKX1-3CxehVa8k35yT8n3E3kUUctMHuWEGhoJ6A=s96-c",
+  },
+  jamesWilson: {
+    id: 'james-001',
+    fullName: 'James Wilson',
+    verified: false,
+    isOrganization: false,
+    isVerified: false,
+    profileImage: "https://lh3.googleusercontent.com/a/ACg8ocIi10fNj-bjJh_6tKyaZ1PeC-hTcVvlHSMYLK-5LjXvuwmhpMxY=s96-c",
+  },
+  mariaPatel: {
+    id: 'maria-002',
+    fullName: 'Maria Patel',
+    verified: true,
+    isOrganization: false,
+    isVerified: true,
+    profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/11/13/blob_eu0M5yn",
+  },
+  stanfordAILab: {
+    id: 'stanford-001',
+    fullName: 'Stanford AI Lab',
+    verified: true,
+    isOrganization: true,
+    isVerified: true,
+    profileImage: "https://pbs.twimg.com/profile_images/875395483128049664/8z_jvdLB_400x400.jpg",
+  },
+  climateResearchInstitute: {
+    id: 'climate-001',
+    fullName: 'Climate Research Institute',
+    verified: true,
+    isOrganization: true,
+    isVerified: true,
+    profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2023/09/16/blob",
+  },
+  openBiologyInitiative: {
+    id: 'obi-001',
+    fullName: 'Open Biology Initiative',
+    verified: true,
+    isOrganization: true,
+    isVerified: true,
+    profileImage: "https://cdn-icons-png.flaticon.com/256/525/525916.png",
+  },
+  nationalScienceFoundation: {
+    id: 'nsf-001',
+    fullName: 'National Science Foundation',
+    verified: true,
+    isOrganization: true,
+    isVerified: true,
+    profileImage: "https://pbs.twimg.com/profile_images/1476237803763773447/bL1_CQLe_400x400.jpg"
   }
 };
 
@@ -90,6 +157,26 @@ const hubs: Record<string, Hub> = {
   dataScience: {
     name: 'Data Science',
     slug: 'data-science'
+  },
+  quantumComputing: {
+    name: 'Quantum Computing',
+    slug: 'quantum-computing'
+  },
+  genetics: {
+    name: 'Genetics',
+    slug: 'genetics'
+  },
+  artificialIntelligence: {
+    name: 'Artificial Intelligence',
+    slug: 'artificial-intelligence'
+  },
+  climateScience: {
+    name: 'Climate Science',
+    slug: 'climate-science'
+  },
+  biology: {
+    name: 'Biology',
+    slug: 'biology'
   }
 };
 
@@ -305,6 +392,208 @@ export const feedEntries: FeedEntry[] = [
       amount: '2,000',
       deadline: '5 days',
       difficulty: 'Intermediate'
+    }
+  },
+  {
+    id: 'marketplace-1',
+    action: 'post',
+    actor: users.sarahChen,
+    timestamp: '3h ago',
+    item: {
+      id: 'item-11',
+      type: 'funding_request',
+      title: 'ML for Early Detection of Neurodegenerative Diseases',
+      description: 'Developing AI models to identify early biomarkers of neurodegeneration.',
+      user: users.sarahChen,
+      timestamp: '3h ago',
+      hub: hubs.neuroscience,
+      metrics: {
+        votes: 28,
+        comments: 15,
+        contributors: 4
+      },
+      amount: 45000,
+      goalAmount: 75000,
+      progress: 60
+    }
+  },
+  {
+    id: 'marketplace-2',
+    action: 'post',
+    actor: users.davidKumar,
+    timestamp: '1d ago',
+    item: {
+      id: 'item-12',
+      type: 'funding_request',
+      title: 'Sustainable Battery Materials Research',
+      description: 'Investigating novel eco-friendly materials for next-generation battery technology with improved efficiency.',
+      user: users.davidKumar,
+      timestamp: '1d ago',
+      hub: hubs.environmentalScience,
+      metrics: {
+        votes: 45,
+        comments: 23,
+        contributors: 8
+      },
+      amount: 12000,
+      goalAmount: 50000,
+      progress: 24
+    }
+  },
+  {
+    id: 'marketplace-3',
+    action: 'post',
+    actor: users.elenaRodriguez,
+    timestamp: '2d ago',
+    item: {
+      id: 'item-13',
+      type: 'funding_request',
+      title: 'CRISPR Gene Therapy for Rare Diseases',
+      description: 'Developing targeted gene therapy approaches for treating rare genetic disorders using CRISPR-Cas9.',
+      user: users.elenaRodriguez,
+      timestamp: '2d ago',
+      hub: hubs.genetics,
+      metrics: {
+        votes: 156,
+        comments: 42,
+        contributors: 23
+      },
+      amount: 95000,
+      goalAmount: 100000,
+      progress: 95
+    }
+  },
+  {
+    id: 'marketplace-4',
+    action: 'post',
+    actor: users.jamesWilson,
+    timestamp: '4d ago',
+    item: {
+      id: 'item-14',
+      type: 'funding_request',
+      title: 'Urban Air Quality Monitoring Network',
+      description: 'Creating a network of low-cost air quality sensors for real-time urban pollution monitoring and analysis.',
+      user: users.jamesWilson,
+      timestamp: '4d ago',
+      hub: hubs.environmentalScience,
+      metrics: {
+        votes: 12,
+        comments: 8,
+        contributors: 5
+      },
+      amount: 3500,
+      goalAmount: 15000,
+      progress: 23
+    }
+  },
+  {
+    id: 'marketplace-5',
+    action: 'post',
+    actor: users.mariaPatel,
+    timestamp: '5d ago',
+    item: {
+      id: 'item-15',
+      type: 'funding_request',
+      title: 'Quantum Computing Algorithm Development',
+      description: 'Research into novel quantum algorithms for optimization problems in computational chemistry.',
+      user: users.mariaPatel,
+      timestamp: '5d ago',
+      hub: hubs.quantumComputing,
+      metrics: {
+        votes: 89,
+        comments: 31,
+        contributors: 15
+      },
+      amount: 68000,
+      goalAmount: 70000,
+      progress: 97
+    }
+  },
+  {
+    id: 'marketplace-8',
+    action: 'post',
+    actor: users.stanfordAILab,
+    timestamp: '1d ago',
+    item: {
+      id: 'item-18',
+      type: 'reward',
+      title: 'Dataset Annotation: Medical Imaging',
+      description: 'Help annotate MRI scans for machine learning model training. Medical background required.',
+      user: users.stanfordAILab,
+      timestamp: '1d ago',
+      hub: hubs.artificialIntelligence,
+      metrics: {
+        votes: 24,
+        comments: 7
+      },
+      amount: '300',
+      deadline: '14 days',
+      difficulty: 'Intermediate'
+    }
+  },
+  {
+    id: 'marketplace-9',
+    action: 'post',
+    actor: users.climateResearchInstitute,
+    timestamp: '4d ago',
+    item: {
+      id: 'item-19',
+      type: 'reward',
+      title: 'Data Analysis: Weather Station Readings',
+      description: 'Analyze and clean historical weather station data from remote locations.',
+      user: users.climateResearchInstitute,
+      timestamp: '4d ago',
+      hub: hubs.climateScience,
+      metrics: {
+        votes: 18,
+        comments: 5
+      },
+      amount: '250',
+      deadline: '30 days',
+      difficulty: 'Intermediate'
+    }
+  },
+  {
+    id: 'marketplace-10',
+    action: 'post',
+    actor: users.openBiologyInitiative,
+    timestamp: '2d ago',
+    item: {
+      id: 'item-20',
+      type: 'reward',
+      title: 'Protocol Translation',
+      description: 'Translate detailed laboratory protocols from English to Spanish. Biology expertise required.',
+      user: users.openBiologyInitiative,
+      timestamp: '2d ago',
+      hub: hubs.biology,
+      metrics: {
+        votes: 9,
+        comments: 2
+      },
+      amount: '200',
+      deadline: '20 days',
+      difficulty: 'Beginner'
+    }
+  },
+  {
+    id: 'marketplace-11',
+    action: 'post',
+    actor: users.nationalScienceFoundation,
+    timestamp: '2d ago',
+    item: {
+      id: 'item-21',
+      type: 'grant',
+      title: 'Climate Change Impact Assessment Grant',
+      description: 'Research grant for studying climate change effects on coastal ecosystems.',
+      user: users.nationalScienceFoundation,
+      timestamp: '2d ago',
+      hub: hubs.climateScience,
+      metrics: {
+        votes: 45,
+        comments: 8,
+        applicants: 12
+      },
+      amount: '750,000'
     }
   }
 ];

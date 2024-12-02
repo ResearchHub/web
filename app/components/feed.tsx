@@ -5,8 +5,8 @@ import { FeedItem as FeedItemComponent } from './FeedItem';
 import { FeedTabs } from './FeedTabs';
 import { InterestSelector } from './InterestSelector/InterestSelector';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { FeedItem as FeedItemType } from '@/types/feed';
-import { feedItems } from '@/store/feedData';
+import { FeedEntry } from '@/types/feed';
+import { feedEntries } from '@/store/feedData';
 
 const ResearchFeed: React.FC = () => {
   const [publishOpen, setPublishOpen] = useState(false);
@@ -39,10 +39,12 @@ const ResearchFeed: React.FC = () => {
         />
       ) : (
         <div className="space-y-4">
-          {feedItems.map((item: FeedItemType, index) => (
-            <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
-              <FeedItemComponent item={item} />
-            </div>
+          {feedEntries?.map((entry: FeedEntry, index) => (
+            entry && (
+              <div key={entry.id} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+                <FeedItemComponent entry={entry} />
+              </div>
+            )
           ))}
         </div>
       )}
