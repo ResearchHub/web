@@ -7,9 +7,10 @@ import { RightSidebar } from './RightSidebar';
 
 interface PageLayoutProps {
   children: React.ReactNode;
+  rightSidebar?: React.ReactNode;
 }
 
-export const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
+export const PageLayout: React.FC<PageLayoutProps> = ({ children, rightSidebar }) => {
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
 
   return (
@@ -37,7 +38,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
           onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)}
         />
         <div className="flex justify-center">
-          <div className="w-full max-w-6xl py-6 px-4 lg:ml-8 lg:mr-8">
+          <div className="w-full max-w-4xl py-6 px-4 lg:ml-8 lg:mr-8">
             {children}
           </div>
         </div>
@@ -45,7 +46,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
 
       {/* Right Sidebar - Hidden below 1200px */}
       <div className="hidden wide:block right-0 top-0 h-full bg-white w-80 border-l">
-        <RightSidebar />
+        {rightSidebar || <RightSidebar />}
       </div>
     </div>
   );
