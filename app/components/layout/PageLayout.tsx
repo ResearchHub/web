@@ -32,19 +32,19 @@ export const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
       </div>
       
       {/* Main Content */}
-      <div className="flex-1 w-full">
+      <div className="flex-1 justify-center w-full">
         <TopBar 
           onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)}
         />
-        <div className="flex justify-center lg:ml-10 lg:mr-10">
-          <div className="w-full max-w-4xl py-6">
+        <div className="flex justify-center">
+          <div className="w-full max-w-6xl py-6 px-4 lg:ml-8 lg:mr-8">
             {children}
           </div>
         </div>
       </div>
 
-      {/* Right Sidebar - Hidden on mobile, always visible on desktop */}
-      <div className="hidden lg:block h-full bg-white w-80 border-l">
+      {/* Right Sidebar - Hidden below 1200px */}
+      <div className="hidden wide:block right-0 top-0 h-full bg-white w-80 border-l">
         <RightSidebar />
       </div>
     </div>

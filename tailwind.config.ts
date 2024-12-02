@@ -13,7 +13,11 @@ export default {
         primary: colors.primary,
         gray: colors.gray,
       },
+      screens: {
+        'wide': '1200px',
+      }      
     },
   },
   plugins: [],
 } satisfies Config;
+
