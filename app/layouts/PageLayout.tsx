@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react';
-import { TopBar } from './TopBar';
 import { LeftSidebar } from './LeftSidebar';
+import { TopBar } from './TopBar';
 import { RightSidebar } from './RightSidebar';
 
 interface PageLayoutProps {

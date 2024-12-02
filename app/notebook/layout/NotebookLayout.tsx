@@ -1,5 +1,5 @@
 import LeftSidebar from './LeftSidebar';
-import { TopBar } from '../../components/layout/TopBar';
+import { TopBar } from '../../layouts/TopBar';
 
 export default function NotebookLayout({
   children,

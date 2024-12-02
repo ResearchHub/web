@@ -5,7 +5,7 @@ import {
   Coins, Gift, PiggyBank, Share, ChevronRight, Plus 
 } from 'lucide-react';
 import { useState } from 'react';
-import { CreateRewardModal } from '../modals/CreateRewardModal';
+import { CreateRewardModal } from '../components/modals/CreateRewardModal';
 
 interface PublishMenuProps {
   isOpen: boolean;

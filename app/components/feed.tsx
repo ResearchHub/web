@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react';
-import { PageLayout } from './layout/PageLayout';
 import { FeedItem } from './FeedItem';
 import { FeedTabs } from './FeedTabs';
 import { InterestSelector } from './InterestSelector/InterestSelector';
 import { InterestTrigger } from './InterestSelector/InterestTrigger';
 import { Settings } from 'lucide-react';
+import { PageLayout } from '@/app/layouts/PageLayout';
 
 const ResearchFeed: React.FC = () => {
   const [publishOpen, setPublishOpen] = useState(false);

@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { ArrowUpRight, ArrowDownRight, Gauge, Coins, ExternalLink } from 'lucide-react';
+import { PageLayout } from '../layouts/PageLayout';
+import { ResearchCoinRightSidebar } from '../components/ResearchCoin/ResearchCoinRightSidebar';
 
 const sampleTransactions = [
   {
@@ -104,8 +106,9 @@ export default function ResearchCoinPage() {
   const [balance] = useState('1,234.56');
   
   return (
-    <div className="flex">
-      <div className="flex-1">
+    <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
+      <div className="flex">
+        <div className="flex-1">
         {/* Balance Card */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -197,6 +200,7 @@ export default function ResearchCoinPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </PageLayout>
   );
 } 

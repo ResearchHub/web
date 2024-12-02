@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Store, Plus } from 'lucide-react';
-import { PageLayout } from '../layout/PageLayout';
+import { PageLayout } from '@/app/layouts/PageLayout';
 import { FeedItem } from '../FeedItem';
 import { MarketplaceTabs } from './MarketplaceTabs';
 import { MarketplaceSort } from './MarketplaceSort';

@@ -1,5 +1,6 @@
-import PaperLayout from '../../layout/PaperLayout'
 import { PaperDocument } from "@/app/components/paper/PaperDocument"
+import { PaperRightSidebar } from "@/app/components/paper/PaperRightSidebar"
+import { PageLayout } from "@/app/layouts/PageLayout"
 
 export default function PaperPage({ params }: { params: { id: string, slug: string } }) {
   // In a real app, we'd fetch paper data here
@@ -34,8 +35,8 @@ export default function PaperPage({ params }: { params: { id: string, slug: stri
   }
 
   return (
-    <PaperLayout paper={paperData}>
+    <PageLayout rightSidebar={<PaperRightSidebar paper={paperData} />}>
       <PaperDocument paper={paperData} />
-    </PaperLayout>
+    </PageLayout>
   )
 } 

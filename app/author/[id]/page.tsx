@@ -1,5 +1,7 @@
 'use client'
 
+import { PageLayout } from '@/app/layouts/PageLayout'
+import { ProfileRightSidebar } from '@/app/components/profile/ProfileRightSidebar'
 import { FeedItem } from '@/app/components/FeedItem'
 import { Pin, BadgeCheck } from 'lucide-react'
 
@@ -97,38 +99,40 @@ export default function AuthorProfile({ params }: AuthorProfileProps) {
   ]
 
   return (
-    <div>
-      {/* Profile header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-1.5">
-          <h1 className="text-2xl font-bold text-gray-900">{profile.name}</h1>
-          {profile.verified && profile.organization && (
-            <BadgeCheck className="h-6 w-6 text-yellow-500" />
-          )}
-        </div>
-        <p className="text-gray-600 mt-1">{profile.headline}</p>
-      </div>
-
-      {/* Feed */}
-      <div className="space-y-4">
-        {feedItems.map((item, index) => (
-          <div 
-            key={index} 
-            className={`bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow duration-200 
-              ${item.is_pinned ? 'border-orange-200 bg-orange-50/50' : 'border-gray-100'}`}
-          >
-            {item.is_pinned && (
-              <div className="px-6 pt-4 pb-0">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                  <Pin className="w-3.5 h-3.5" />
-                  Pinned
-                </span>
-              </div>
+    <PageLayout rightSidebar={<ProfileRightSidebar />}>
+      <div>
+        {/* Profile header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-1.5">
+            <h1 className="text-2xl font-bold text-gray-900">{profile.name}</h1>
+            {profile.verified && profile.organization && (
+              <BadgeCheck className="h-6 w-6 text-yellow-500" />
             )}
-            <FeedItem item={item} />
           </div>
-        ))}
+          <p className="text-gray-600 mt-1">{profile.headline}</p>
+        </div>
+
+        {/* Feed */}
+        <div className="space-y-4">
+          {feedItems.map((item, index) => (
+            <div 
+              key={index} 
+              className={`bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow duration-200 
+                ${item.is_pinned ? 'border-orange-200 bg-orange-50/50' : 'border-gray-100'}`}
+            >
+              {item.is_pinned && (
+                <div className="px-6 pt-4 pb-0">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                    <Pin className="w-3.5 h-3.5" />
+                    Pinned
+                  </span>
+                </div>
+              )}
+              <FeedItem item={item} />
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </PageLayout>
   )
 } 

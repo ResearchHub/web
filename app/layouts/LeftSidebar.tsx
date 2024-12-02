@@ -5,11 +5,11 @@ import {
   Star, BadgeCheck, FlaskConical, Notebook, ChevronDown 
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { FooterLinks } from '../FooterLinks';
+import { FooterLinks } from '../components/FooterLinks';
 import { Navigation } from './Navigation';
 import { useState } from 'react';
-import NotebookSidebar from '../../notebook/layout/LeftSidebar';
-import { NotebookTransition } from '../transitions/NotebookTransition';
+import NotebookSidebar from '../notebook/layout/LeftSidebar';
+import { NotebookTransition } from '../components/transitions/NotebookTransition';
 import { NotebookToggle } from '@/app/components/shared/NotebookToggle';
 
 export const LeftSidebar: React.FC = () => {

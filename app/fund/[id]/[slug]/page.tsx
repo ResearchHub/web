@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Coins, Users2, Share2, ArrowUp, MessageSquare, Clock } from 'lucide-react'
 import { ProfileTooltip } from '@/app/components/tooltips/ProfileTooltip'
-import { PageLayout } from '@/app/components/layout/PageLayout'
+import { PageLayout } from '@/app/layouts/PageLayout'
 import Link from 'next/link'
 import { BadgeCheck } from 'lucide-react'
 import { FundraiseLayout } from '@/app/components/layout/FundraiseLayout'
@@ -69,7 +69,9 @@ Research Deliverables
   }
 
   return (
-    <FundraiseLayout fundraise={funding}>
+    <PageLayout
+      rightSidebar={<FundraiseLayout fundraise={funding} />}
+    >
       <div className="max-w-4xl">
         {/* Header */}
         <div className="mb-8">
@@ -257,6 +259,6 @@ Research Deliverables
           </button>
         </div>
       </div>
-    </FundraiseLayout>
+    </PageLayout>
   )
 } 
