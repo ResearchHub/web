@@ -104,7 +104,7 @@ const WhoToFollow: React.FC = () => {
 
 // Main RightSidebar Component
 export const RightSidebar: React.FC = () => (
-  <div className="fixed right-0 top-0 w-80 h-screen border-l bg-white p-4 overflow-y-auto">
+  <div className="w-80 h-screen border-l bg-white p-4 overflow-y-auto">
     <InfoBanner />
     <WhoToFollow />
   </div>
