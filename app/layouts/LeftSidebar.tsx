@@ -12,7 +12,15 @@ import NotebookSidebar from '../notebook/layout/LeftSidebar';
 import { NotebookTransition } from '../components/transitions/NotebookTransition';
 import { NotebookToggle } from '@/app/components/shared/NotebookToggle';
 
-export const LeftSidebar: React.FC = () => {
+interface LeftSidebarProps {
+  isPublishMenuOpen: boolean;
+  onPublishMenuChange: (isOpen: boolean) => void;
+}
+
+export const LeftSidebar: React.FC<LeftSidebarProps> = ({ 
+  isPublishMenuOpen, 
+  onPublishMenuChange 
+}) => {
   const pathname = usePathname();
   const router = useRouter();
   const [isNotebookView, setIsNotebookView] = useState(false);
@@ -44,7 +52,7 @@ export const LeftSidebar: React.FC = () => {
         isExit={isExiting}
       />
 
-      <div className="w-64 fixed h-screen border-r overflow-y-auto flex flex-col z-30">
+      <div className="w-64 fixed h-screen border-r overflow-y-auto flex flex-col z-50 bg-white">
         <div className="p-4">
           <div className="flex items-center space-x-2">
             <FlaskConical className="h-5 w-5 text-indigo-600" />
@@ -56,7 +64,11 @@ export const LeftSidebar: React.FC = () => {
 
         <div className="flex-1">
           <div className="px-2 py-4">
-            <Navigation currentPath={pathname} />
+            <Navigation 
+              currentPath={pathname}
+              isPublishMenuOpen={isPublishMenuOpen}
+              onPublishMenuChange={onPublishMenuChange}
+            />
           </div>
         </div>
 

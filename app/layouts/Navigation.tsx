@@ -6,10 +6,12 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { PublishMenu } from './PublishMenu';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 interface NavigationProps {
   currentPath: string;
+  isPublishMenuOpen: boolean;
+  onPublishMenuChange: (isOpen: boolean) => void;
 }
 
 const navigationItems = [
@@ -61,8 +63,15 @@ const navigationItems = [
   },
 ];
 
-export const Navigation: React.FC<NavigationProps> = ({ currentPath }) => {
-  const [isPublishMenuOpen, setIsPublishMenuOpen] = useState(false);
+export const Navigation: React.FC<NavigationProps> = ({ 
+  currentPath, 
+  isPublishMenuOpen, 
+  onPublishMenuChange 
+}) => {
+  const handlePublishClick = useCallback(() => {
+    console.log('Navigation requesting change to:', !isPublishMenuOpen);
+    onPublishMenuChange(!isPublishMenuOpen);
+  }, [onPublishMenuChange, isPublishMenuOpen]);
 
   const getButtonStyles = (path: string) => {
     const isActive = currentPath === path;
@@ -89,23 +98,15 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath }) => {
   };
 
   return (
-    <div 
-      className="space-y-1"
-      onMouseLeave={() => setIsPublishMenuOpen(false)}
-    >
-      <div 
-        onMouseEnter={() => setIsPublishMenuOpen(true)}
-        className="relative"
-      >
+    <div className="space-y-1 relative">
+      <div className="relative">
         <PublishMenu 
           isOpen={isPublishMenuOpen}
-          onMouseEnter={() => setIsPublishMenuOpen(true)}
-          onMouseLeave={() => setIsPublishMenuOpen(false)}
+          onClose={() => onPublishMenuChange(false)}
         >
-          <div className="absolute -right-4 w-4 h-full" />
           <button 
             className={getButtonStyles('')}
-            onMouseEnter={() => setIsPublishMenuOpen(true)}
+            onClick={handlePublishClick}
           >
             <Plus className={getIconStyles('')} />
             New
@@ -118,7 +119,6 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath }) => {
           key={item.href}
           href={item.href} 
           className={getButtonStyles(item.href)}
-          onMouseEnter={() => setIsPublishMenuOpen(false)}
         >
           <item.icon className={getIconStyles(item.href)} />
           <div className="flex items-center justify-between w-full min-w-0">
