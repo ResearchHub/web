@@ -205,9 +205,20 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                     : item.description}
                 </p>
               </Link>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-gray-500">Amount: {formatNumber(item.amount)} RSC</span>
-                {item.deadline && <span className="text-sm text-gray-500">Deadline: {item.deadline}</span>}
+              <div className="flex items-center space-x-4 text-sm">
+                <div className="flex items-center space-x-1">
+                  <Coins className="h-4 w-4 text-orange-500" />
+                  <span className="text-orange-500 font-medium">{formatNumber(item.amount)} RSC</span>
+                </div>
+                {item.deadline && (
+                  <>
+                    <span className="text-gray-500">•</span>
+                    <div className="flex items-center space-x-1">
+                      <Clock className="h-4 w-4 text-gray-500" />
+                      <span className="text-gray-500">Due in {item.deadline}</span>
+                    </div>
+                  </>
+                )}
               </div>
             </>
           )}
@@ -268,8 +279,9 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                   ? `${item.description.slice(0, 200)}...` 
                   : item.description}
               </p>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-gray-500">Amount: {formatNumber(item.amount)} RSC</span>
+              <div className="flex items-center space-x-2 text-sm">
+                <Coins className="h-4 w-4 text-orange-500" />
+                <span className="text-orange-500 font-medium">Earned {formatNumber(item.amount)} RSC</span>
               </div>
             </>
           )}
