@@ -5,107 +5,23 @@ import { Coins, Share2, ArrowUp, MessageSquare } from 'lucide-react'
 import { ProfileTooltip } from '@/app/components/tooltips/ProfileTooltip'
 import Link from 'next/link'
 import { BadgeCheck } from 'lucide-react'
-import { GrantLayout } from '@/app/components/layout/GrantLayout'
 import { FeedItem } from '@/app/components/FeedItem'
+import { PageLayout } from '@/app/layouts/PageLayout'
+import { grants, grantApplications } from '@/store/grantStore'
+import { GrantRightSidebar } from '@/app/components/Grant/GrantRightSidebar'
 
 export default function GrantPage({ params }: { params: { id: string; slug: string } }) {
   const [activeTab, setActiveTab] = useState('details')
 
-  const applications = [
-    {
-      type: 'application',
-      user: 'Dr. Sarah Chen',
-      organization: 'Stanford University',
-      verified: true,
-      timestamp: '2d ago',
-      title: 'Application: Urban Water Quality Assessment Project',
-      description: `Our research team proposes a comprehensive approach to analyzing water quality across major urban centers. 
-        We will employ advanced spectroscopic techniques and machine learning algorithms to identify contaminants 
-        and predict water quality trends. Our lab has extensive experience in environmental monitoring and data analysis.`,
-      votes: 15,
-      comments: 4,
-      status: 'Under Review'
-    },
-    {
-      type: 'application',
-      user: 'Prof. James Martinez',
-      organization: 'UC Berkeley',
-      verified: true,
-      timestamp: '3d ago',
-      title: 'Application: Urban Water Quality Assessment Project',
-      description: `We propose to study water quality variations in urban areas using a novel combination of real-time 
-        monitoring systems and citizen science initiatives. Our approach emphasizes community engagement while 
-        maintaining rigorous scientific standards. Previous success in similar projects positions us well for this study.`,
-      votes: 12,
-      comments: 3,
-      status: 'Under Review'
-    },
-    {
-      type: 'application',
-      user: 'Dr. Emily Thompson',
-      organization: 'MIT',
-      verified: true,
-      timestamp: '4d ago',
-      title: 'Application: Urban Water Quality Assessment Project',
-      description: `Our proposal focuses on developing new methodologies for rapid water quality assessment in urban 
-        environments. We will integrate IoT sensors with traditional analytical methods to create a comprehensive 
-        monitoring system. Our team brings expertise in both environmental science and data analytics.`,
-      votes: 8,
-      comments: 2,
-      status: 'Under Review'
-    }
-  ]
+  const grant = grants[params.id]
+  const applications = grantApplications[params.id] || []
 
-  const grant = {
-    id: params.id,
-    title: "Urban Water Quality Assessment: A Multi-City Analysis of Municipal Water Systems Across America",
-    hub: { 
-      name: "Environmental Science",
-      slug: "environmental-science"
-    },
-    author: {
-      name: "Adam Draper",
-      verified: true,
-    },
-    authors: [],
-    publishDate: "October 18, 2024",
-    deadline: "December 15, 2024",
-    amount: "500,000",
-    amountUSD: "250,000",
-    abstract: "This grant aims to support researchers in conducting comprehensive water quality analysis in developing regions...",
-    metrics: {
-      votes: 32,
-      comments: 12,
-      applicants: 8,
-      views: 245
-    },
-    status: "Open",
-    keywords: ['Water Quality', 'Environmental Science', 'Sustainable Development', 'Public Health'],
-    details: `
-Our goal is to improve water quality assessment and treatment methods in developing regions through:
-
-1. Development of cost-effective water quality testing methods
-2. Analysis of contamination patterns and sources
-3. Design of locally sustainable water treatment solutions
-4. Community engagement and education programs
-
-Expected Outcomes:
-• Comprehensive water quality database for target regions
-• Novel, affordable testing methodologies
-• Sustainable treatment solution prototypes
-• Published research findings in peer-reviewed journals
-• Community education materials and programs
-
-Research Areas:
-• Water contamination analysis
-• Environmental impact assessment
-• Sustainable treatment technologies
-• Public health implications
-• Community engagement strategies`
+  if (!grant) {
+    return <div>Grant not found</div>
   }
 
   return (
-    <GrantLayout grant={grant}>
+    <PageLayout rightSidebar={<GrantRightSidebar grant={grant} />}>
       <div className="max-w-4xl">
         {/* Hub and Title */}
         <div className="mb-6">
@@ -133,14 +49,14 @@ Research Areas:
               <div className="flex items-center">
                 <ProfileTooltip
                   type="user"
-                  name={grant.author.name}
-                  verified={false}
+                  name={grant.createdBy.fullName}
+                  verified={grant.createdBy.verified}
                 >
                   <span className="text-gray-900 font-medium hover:text-indigo-600 cursor-pointer">
-                    {grant.author.name}
+                    {grant.createdBy.fullName}
                   </span>
                 </ProfileTooltip>
-                {grant.author.verified && (
+                {grant.createdBy.verified && (
                   <BadgeCheck className="h-4 w-4 text-blue-500 flex-shrink-0 ml-1" />
                 )}
               </div>
@@ -255,12 +171,12 @@ Research Areas:
             
             {activeTab === 'applications' && (
               <div className="space-y-4">
-                {applications.map((application, index) => (
+                {applications.map((entry) => (
                   <div 
-                    key={index} 
+                    key={entry.id} 
                     className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200"
                   >
-                    <FeedItem item={application} />
+                    <FeedItem entry={entry} />
                   </div>
                 ))}
               </div>
@@ -268,6 +184,6 @@ Research Areas:
           </div>
         </div>
       </div>
-    </GrantLayout>
+    </PageLayout>
   )
 } 

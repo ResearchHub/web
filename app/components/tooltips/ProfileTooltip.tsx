@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 interface ProfileTooltipProps {
   type: 'user' | 'organization'
   name: string
-  headline: string
+  headline?: string
   verified?: boolean
   id?: string
   children: React.ReactNode
