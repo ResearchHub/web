@@ -7,6 +7,7 @@ import { InterestSelector } from './InterestSelector/InterestSelector';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FeedEntry } from '@/types/feed';
 import { feedEntries } from '@/store/feedStore';
+import toast from 'react-hot-toast';
 
 const ResearchFeed: React.FC = () => {
   const [showInterests, setShowInterests] = useState(false);
@@ -35,6 +36,15 @@ const ResearchFeed: React.FC = () => {
 
   const handleInterestSelection = async (interests: any[]) => {
     setShowInterests(false);
+    toast.success('Your preferences have been updated', {
+      duration: 4000,
+      position: 'bottom-right',
+      style: {
+        background: '#F9FAFB',
+        color: '#111827',
+        border: '1px solid #E5E7EB',
+      },
+    });
   };
 
   return (
