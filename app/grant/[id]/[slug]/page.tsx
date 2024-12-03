@@ -66,9 +66,6 @@ export default function GrantPage({ params }: { params: Promise<{ id: string; sl
                       {grant.createdBy.fullName}
                     </span>
                   </ProfileTooltip>
-                  {grant.createdBy.verified && (
-                    <BadgeCheck className="h-4 w-4 text-blue-500 flex-shrink-0 ml-1" />
-                  )}
                 </div>
               </div>
 

@@ -109,6 +109,16 @@ export const feedEntries: FeedEntry[] = [
         saves: 5
       },
       amount: 500000,
+      applicants: [
+        users.elenaRodriguez,
+        users.mariaPatel,
+        users.sarahChen,
+        users.davidKumar,
+        users.jamesWilson,
+        users.alexThompson,
+        users.mariaGarcia,
+        users.hundessaNemomssa
+      ]
     }
   },
   {
@@ -493,6 +503,11 @@ export const feedEntries: FeedEntry[] = [
         users.climateResearchInstitute,
         users.openBiologyInitiative,
         users.bioRxiv
+      ],
+      applicants: [
+        users.elenaRodriguez,
+        users.davidKumar,
+        users.sarahChen
       ]
     }
   }
@@ -512,7 +527,7 @@ export function searchFeedItems(query: string): FeedEntry[] {
       item.description,
       item.type,
       item.hub.name,
-      item.user.name
+      item.user.fullName
     ];
     
     // Add type-specific searchable fields

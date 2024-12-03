@@ -67,6 +67,7 @@ export type GrantItem = BaseItem & {
   amount: number;
   deadline?: string;
   contributors?: User[];
+  applicants?: User[];
 };
 
 export type PaperItem = BaseItem & {

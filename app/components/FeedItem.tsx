@@ -208,7 +208,7 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
           )}
   
           {item.type === 'grant' && (
-            <>
+            <div className="space-y-4">
               <Link href={`/grant/${item.id}/${item.title.toLowerCase().replace(/ /g, '-')}`}>
                 <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
                   {item.title}
@@ -234,7 +234,20 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                   </>
                 )}
               </div>
-            </>
+  
+              <div className="flex items-center justify-between mt-4">
+                <Button size="sm">Apply Now</Button>
+                
+                {item.applicants && item.applicants.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <UserStack users={item.applicants} />
+                    <span className="text-sm text-muted-foreground">
+                      Applicant{item.applicants.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
   
           {item.type === 'reward' && (
