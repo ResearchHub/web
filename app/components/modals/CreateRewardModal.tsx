@@ -48,7 +48,6 @@ export function CreateRewardModal({ isOpen, onClose }: CreateRewardModalProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Handle form submission
-    console.log({ selectedType, summary, amount, details })
     onClose()
   }
 

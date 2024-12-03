@@ -123,8 +123,6 @@ export const Marketplace = () => {
 
   const items = getSortedItems(getMarketplaceItems());
 
-  console.log('items', items);
-
   return (
     <PageLayout>
       <div className="mb-6">

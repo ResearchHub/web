@@ -30,7 +30,6 @@ export const RequestFundingModal = ({ open, onClose }: RequestFundingModalProps)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
     onClose();
   };
 

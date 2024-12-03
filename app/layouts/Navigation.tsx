@@ -83,7 +83,6 @@ export const Navigation: React.FC<NavigationProps> = ({
   ];
 
   const handlePublishClick = useCallback(() => {
-    console.log('Navigation requesting change to:', !isPublishMenuOpen);
     onPublishMenuChange(!isPublishMenuOpen);
   }, [onPublishMenuChange, isPublishMenuOpen]);
 

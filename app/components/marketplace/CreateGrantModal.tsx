@@ -27,7 +27,6 @@ export const CreateGrantModal = ({ open, onClose }: CreateGrantModalProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
     onClose();
   };
 

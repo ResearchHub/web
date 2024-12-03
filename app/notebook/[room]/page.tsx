@@ -63,7 +63,7 @@ export default function Document({ params }: { params: { room: string } }) {
             'Content-Type': 'application/json',
           },
         })
-console.log('response', response)
+
         if (!response.ok) {
           throw new Error('No AI token provided, please set TIPTAP_AI_SECRET in your environment')
         }
