@@ -24,6 +24,7 @@ export type Metrics = {
   saves?: number;
   applicants?: number;
   reviewScore?: number;
+  views?: number;
 };
 
 export type FeedActionType = 

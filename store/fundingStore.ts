@@ -30,7 +30,9 @@ export const mockFunding: Funding = {
     votes: 45,
     comments: 21,
     reposts: 12,
-    saves: 18
+    saves: 18,
+    views: 1234,
+    reviewScore: 4.5
   },
 
   content: `Motivation
