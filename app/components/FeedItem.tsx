@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { ProfileTooltip } from './tooltips/ProfileTooltip'
 import { FeedEntry, FundingRequestItem, GrantItem, Item, RewardItem } from '@/types/feed'
 import { Button } from '@/app/components/ui/Button';
+import { UserStack } from './ui/UserStack';
 
 // Type guard to check if an item has contributors
 const hasContributors = (item: Item): item is FundingRequestItem | GrantItem | RewardItem => {
@@ -155,38 +156,10 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                 </Button>
                 {hasContributors(item) && item.contributors && (
                   <div className="flex items-center ml-4">
-                    <div className="flex items-center">
-                      <div className="flex -space-x-2">
-                        {item.contributors.slice(0, 3).map((contributor) => (
-                          <div key={contributor.id} className="relative">
-                            {contributor.profileImage ? (
-                              <img 
-                                src={contributor.profileImage}
-                                alt={contributor.fullName}
-                                className="h-8 w-8 rounded-full ring-2 ring-white object-cover border border-gray-200"
-                              />
-                            ) : (
-                              <div className="h-8 w-8 rounded-full bg-gray-200 ring-2 ring-white flex items-center justify-center border border-gray-200">
-                                <CircleUser className="h-4 w-4 text-gray-400" />
-                              </div>
-                            )}
-                            <ProfileTooltip
-                              type={contributor.isOrganization ? 'organization' : 'user'}
-                              name={contributor.fullName}
-                              headline={contributor.isOrganization ? 'Organization' : 'Researcher'}
-                              verified={false}
-                            >
-                              <span className="sr-only">{contributor.fullName}</span>
-                            </ProfileTooltip>
-                          </div>
-                        ))}
-                        {item.contributors.length > 3 && (
-                          <div className="relative h-8 px-2 rounded-full bg-gray-100 text-gray-600 text-xs font-medium flex items-center ml-1 border border-gray-200 ring-2 ring-white">
-                            +{item.contributors.length - 3} Others
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <UserStack 
+                      users={item.contributors.map(c => c)} 
+                      imageSize="md"
+                    />
                   </div>
                 )}
               </div>

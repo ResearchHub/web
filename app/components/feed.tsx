@@ -6,7 +6,7 @@ import { FeedTabs } from './FeedTabs';
 import { InterestSelector } from './InterestSelector/InterestSelector';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FeedEntry } from '@/types/feed';
-import { feedEntries } from '@/store/feedData';
+import { feedEntries } from '@/store/feedStore';
 
 const ResearchFeed: React.FC = () => {
   const [showInterests, setShowInterests] = useState(false);

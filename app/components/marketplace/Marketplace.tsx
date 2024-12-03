@@ -8,7 +8,7 @@ import { MarketplaceSort } from './MarketplaceSort';
 import { MarketplaceFundingBanner } from './MarketplaceFundingBanner';
 import { MarketplaceRewardsBanner } from './MarketplaceRewardsBanner';
 import { FeedItem } from '../FeedItem';
-import { feedEntries } from '@/store/feedData';
+import { feedEntries } from '@/store/feedStore';
 import { FeedEntry } from '@/types/feed';
 
 export const Marketplace = () => {

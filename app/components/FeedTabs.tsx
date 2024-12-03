@@ -1,8 +1,6 @@
 'use client'
 
 import { Settings } from "lucide-react";
-import { useState } from 'react';
-import { feedEntries } from '@/store/feedData';
 
 interface FeedTabsProps {
   showingInterests: boolean;
