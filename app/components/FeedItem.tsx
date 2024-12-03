@@ -2,7 +2,14 @@
 
 import { 
   ArrowUp, MessageSquare, Bookmark, Share2, CircleUser,
-  Coins, BadgeCheck, Repeat2, Clock 
+  Coins, BadgeCheck, Repeat2, Clock,
+  ScrollText,
+  BadgeDollarSign,
+  GraduationCap,
+  ClipboardCheck,
+  Award,
+  Users,
+  LucideIcon 
 } from 'lucide-react';
 import Link from 'next/link'
 import { ProfileTooltip } from './tooltips/ProfileTooltip'
@@ -18,6 +25,25 @@ const hasContributors = (item: Item): item is FundingRequestItem | GrantItem | R
 // Helper function to format numbers with commas
 const formatNumber = (num: number): string => {
   return num.toLocaleString();
+};
+
+const getItemTypeConfig = (type: string): { icon: LucideIcon; label: string } => {
+  switch (type) {
+    case 'funding_request':
+      return { icon: BadgeDollarSign, label: 'Funding Request' };
+    case 'grant':
+      return { icon: GraduationCap, label: 'Grant' };
+    case 'paper':
+      return { icon: ScrollText, label: 'Paper' };
+    case 'review':
+      return { icon: ClipboardCheck, label: 'Review' };
+    case 'reward':
+      return { icon: Award, label: 'Reward' };
+    case 'contribution':
+      return { icon: Users, label: 'Contribution' };
+    default:
+      return { icon: ScrollText, label: 'Other' };
+  }
 };
 
 export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
@@ -88,6 +114,16 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
         </div>
   
         <div className="p-4 rounded-lg border bg-gray-50">
+          <div className="flex items-center mb-3">
+            <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-gray-600 bg-gray-100 border border-gray-200">
+              {(() => {
+                const IconComponent = getItemTypeConfig(item.type).icon;
+                return <IconComponent className="w-3 h-3 mr-1" />;
+              })()}
+              {getItemTypeConfig(item.type).label}
+            </div>
+          </div>
+  
           {item.type === 'paper' && (
             <Link href={`/paper/${item.id}/${item.title.toLowerCase().replace(/ /g, '-')}`} className="block">
               <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600 transition-colors">
