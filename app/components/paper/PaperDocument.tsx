@@ -235,6 +235,11 @@ export const PaperDocument = ({ paper }: PaperDocumentProps) => {
             onClick={() => setActiveTab('reviews')}
           >
             Reviews
+            <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+              activeTab === 'reviews' ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-600'
+            }`}>
+              {paper.metrics.totalReviews}
+            </span>
           </button>
           <button 
             className={`px-1 py-4 text-sm font-medium ${
@@ -245,6 +250,11 @@ export const PaperDocument = ({ paper }: PaperDocumentProps) => {
             onClick={() => setActiveTab('rewards')}
           >
             Rewards
+            <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+              activeTab === 'rewards' ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-600'
+            }`}>
+              2
+            </span>
           </button>
           <button 
             className={`px-1 py-4 text-sm font-medium ${
@@ -255,6 +265,11 @@ export const PaperDocument = ({ paper }: PaperDocumentProps) => {
             onClick={() => setActiveTab('comments')}
           >
             Comments
+            <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+              activeTab === 'comments' ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-600'
+            }`}>
+              {paper.metrics.comments}
+            </span>
           </button>
         </nav>
       </div>

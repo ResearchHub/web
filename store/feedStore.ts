@@ -94,7 +94,7 @@ export const feedEntries: FeedEntry[] = [
     actor: users.adamDraper,
     timestamp: '1h ago',
     item: {
-      id: 'item-4',
+      id: 'urban-water-quality',
       type: 'grant',
       title: 'Urban Water Quality Assessment: A Multi-City Analysis of Municipal Water Systems Across America',
       description: 'Seeking researchers to conduct comprehensive water quality analysis in developing regions.',
