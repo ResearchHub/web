@@ -1,15 +1,20 @@
 'use client'
 
 import { 
-  ArrowUp, MessageSquare, Bookmark, Share2, CircleUser,
-  Coins, BadgeCheck, Repeat2, Clock,
-  ScrollText,
-  BadgeDollarSign,
-  GraduationCap,
-  ClipboardCheck,
-  Award,
-  Users,
-  LucideIcon 
+  HandCoins,     // for funding request
+  ScrollText,    // for paper
+  GraduationCap, // for grant
+  ClipboardCheck,// for review
+  Trophy,        // for reward
+  Coins,         // for contribution
+  LucideIcon, 
+  ArrowUp,
+  Repeat2,
+  MessageSquare,
+  Bookmark,
+  CircleUser,
+  BadgeCheck,
+  Clock
 } from 'lucide-react';
 import Link from 'next/link'
 import { ProfileTooltip } from './tooltips/ProfileTooltip'
@@ -30,7 +35,7 @@ const formatNumber = (num: number): string => {
 const getItemTypeConfig = (type: string): { icon: LucideIcon; label: string } => {
   switch (type) {
     case 'funding_request':
-      return { icon: BadgeDollarSign, label: 'Funding Request' };
+      return { icon: HandCoins, label: 'Funding Request' };
     case 'grant':
       return { icon: GraduationCap, label: 'Grant' };
     case 'paper':
@@ -38,9 +43,9 @@ const getItemTypeConfig = (type: string): { icon: LucideIcon; label: string } =>
     case 'review':
       return { icon: ClipboardCheck, label: 'Review' };
     case 'reward':
-      return { icon: Award, label: 'Reward' };
+      return { icon: Trophy, label: 'Reward' };
     case 'contribution':
-      return { icon: Users, label: 'Contribution' };
+      return { icon: Coins, label: 'Contribution' };
     default:
       return { icon: ScrollText, label: 'Other' };
   }
