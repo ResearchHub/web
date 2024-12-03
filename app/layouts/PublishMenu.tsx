@@ -7,10 +7,12 @@ import {
   Trophy,          // for reward
   Share,
   ChevronRight, 
-  Plus 
+  Plus,
+  AlertCircle
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { CreateRewardModal } from '../components/modals/CreateRewardModal';
+import toast from 'react-hot-toast';
 
 interface PublishMenuProps {
   isOpen: boolean;
@@ -40,6 +42,28 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
     }
   }, [isOpen, onClose]);
 
+  const handleItemClick = (title: string) => {
+    if (title === 'Create ResearchCoin Reward') {
+      setShowRewardModal(true);
+    } else {
+      toast((t) => (
+        <div className="flex items-center space-x-2">
+          <AlertCircle className="h-5 w-5" />
+          <span>Implementation coming soon</span>
+        </div>
+      ), {
+        duration: 2000,
+        position: 'bottom-right',
+        style: {
+          background: '#FFF7ED', // Orange-50
+          color: '#EA580C',     // Orange-600
+          border: '1px solid #FDBA74', // Orange-300
+        },
+      });
+    }
+    onClose();
+  };
+
   const menuItems = [
     {
       section: 'Publish',
@@ -51,7 +75,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
     {
       section: 'ResearchCoin Marketplace',
       items: [
-        { icon: <Trophy className="w-5 h-5" />, title: 'Create ResearchCoin Reward', description: 'Incentivize research contributions' },
+        { icon: <Trophy className="w-5 h-5" />, title: 'Create ResearchCoin reward', description: 'Incentivize research contributions' },
         { icon: <GraduationCap className="w-5 h-5" />, title: 'Create grant', description: 'Fund promising research projects' },
         { icon: <HandCoins className="w-5 h-5" />, title: 'Start a fundraise', description: 'Seek support for your research' },
       ]
@@ -84,12 +108,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
                 <button
                   key={itemIdx}
                   className="w-full text-left p-3 hover:bg-indigo-50 rounded-lg mb-2 last:mb-0 transition-colors duration-150"
-                  onClick={() => {
-                    if (item.title === 'Create ResearchCoin Reward') {
-                      setShowRewardModal(true);
-                    }
-                    onClose();
-                  }}
+                  onClick={() => handleItemClick(item.title)}
                 >
                   <div className="flex items-center mb-1">
                     <div className="text-indigo-600">
