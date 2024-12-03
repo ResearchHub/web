@@ -52,6 +52,7 @@ export type BaseItem = {
   timestamp: string;
   hub: Hub;
   metrics: Metrics;
+  isPinned?: boolean;
 };
 
 export type FundingRequestItem = BaseItem & {
