@@ -218,7 +218,7 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                   <div className="flex items-center ml-4">
                     <UserStack 
                       users={item.contributors.map(c => c)} 
-                      imageSize="md"
+                      imageSize="sm"
                     />
                   </div>
                 )}
@@ -259,7 +259,7 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                 
                 {item.applicants && item.applicants.length > 0 && (
                   <div className="flex items-center gap-2">
-                    <UserStack users={item.applicants} />
+                    <UserStack imageSize='sm' users={item.applicants} />
                     <span className="text-sm text-muted-foreground">
                       Applicant{item.applicants.length !== 1 ? 's' : ''}
                     </span>
@@ -295,7 +295,7 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                 </div>
                 <div>
                   <Button size="sm" variant="default" className="w-24">
-                    Start
+                    Learn more
                   </Button>
                 </div>
               </div>

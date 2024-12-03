@@ -1,6 +1,14 @@
-import { Eye, Quote, MessageSquare, Sparkles } from 'lucide-react'
+import { 
+  Eye, Quote, MessageSquare, Sparkles, Users, Coins, 
+  Tag, Link2, BarChart2, Star
+} from 'lucide-react'
+import { Paper } from '@/types/paper'
 
-export const PaperRightSidebar = ({ paper }) => {
+interface PaperRightSidebarProps {
+  paper: Paper;
+}
+
+export const PaperRightSidebar = ({ paper }: PaperRightSidebarProps) => {
   return (
     <div className="w-80 fixed right-0 top-0 bottom-0 border-l bg-white/50 backdrop-blur-sm p-6 overflow-y-auto">
       {/* AI Summary */}
@@ -33,8 +41,11 @@ export const PaperRightSidebar = ({ paper }) => {
 
       {/* Paper Metrics */}
       <div className="mb-8">
-        <h3 className="text-sm font-medium text-gray-900 mb-3">Paper Metrics</h3>
-        <div className="space-y-2">
+        <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
+          <BarChart2 className="h-4 w-4 text-gray-500" />
+          Paper Metrics
+        </h3>
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1.5 text-gray-500">
               <div className="w-5 h-5 flex items-center justify-center">
@@ -56,7 +67,7 @@ export const PaperRightSidebar = ({ paper }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1.5 text-gray-500">
               <div className="w-5 h-5 flex items-center justify-center">
-                <MessageSquare className="h-4 w-4 scale-[1.3]" />
+                <MessageSquare className="h-4 w-4" />
               </div>
               <span className="text-sm">Comments</span>
             </div>
@@ -65,59 +76,71 @@ export const PaperRightSidebar = ({ paper }) => {
         </div>
       </div>
 
+      {/* DOI */}
+      <div className="mb-8">
+        <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
+          <Link2 className="h-4 w-4 text-gray-500" />
+          DOI
+        </h3>
+        <a href={`https://doi.org/${paper.doi}`} 
+           className="text-sm text-blue-600 hover:underline"
+           target="_blank" 
+           rel="noopener noreferrer">
+          {paper.doi}
+        </a>
+      </div>
+
       {/* RSC Contributors */}
-      <div>
-        <h3 className="text-sm font-medium text-gray-900 mb-3">Top Contributors</h3>
+      <div className="mb-8">
+        <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
+          <Users className="h-4 w-4 text-gray-500" />
+          Top Contributors
+        </h3>
         <div className="space-y-3 mb-3">
-          <div className="flex items-center space-x-3">
-            <div className="h-8 w-8 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center text-sm font-medium">
-              AC
+          {paper.contributors.map((contributor) => (
+            <div key={contributor.user.id} className="flex items-center space-x-3">
+              {contributor.user.profileImage ? (
+                <img 
+                  src={contributor.user.profileImage} 
+                  alt={contributor.user.fullName}
+                  className="h-8 w-8 rounded-full object-cover ring-2 ring-white border border-gray-200" 
+                />
+              ) : (
+                <div className="h-8 w-8 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-sm font-medium ring-2 ring-white border border-gray-200">
+                  {contributor.user.fullName.split(' ').map(n => n[0]).join('')}
+                </div>
+              )}
+              <div>
+                <div className="text-sm font-medium">{contributor.user.fullName}</div>
+                <div className="flex items-center space-x-1 text-orange-500">
+                  <Coins className="h-3 w-3" />
+                  <span className="text-xs">{contributor.amount.toLocaleString()} RSC</span>
+                </div>
+              </div>
             </div>
-            <div>
-              <div className="text-sm font-medium">Alice Chen</div>
-              <div className="text-xs text-gray-500">1,250 RSC</div>
-            </div>
-          </div>
-          <div className="flex items-center space-x-3">
-            <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-medium">
-              BS
-            </div>
-            <div>
-              <div className="text-sm font-medium">Bob Smith</div>
-              <div className="text-xs text-gray-500">850 RSC</div>
-            </div>
-          </div>
-          <div className="flex items-center space-x-3">
-            <div className="h-8 w-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-sm font-medium">
-              CJ
-            </div>
-            <div>
-              <div className="text-sm font-medium">Carol Johnson</div>
-              <div className="text-xs text-gray-500">725 RSC</div>
-            </div>
-          </div>
-          <div className="flex items-center space-x-3">
-            <div className="h-8 w-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm font-medium">
-              DW
-            </div>
-            <div>
-              <div className="text-sm font-medium">David Wilson</div>
-              <div className="text-xs text-gray-500">500 RSC</div>
-            </div>
-          </div>
-          <div className="flex items-center space-x-3">
-            <div className="h-8 w-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm font-medium">
-              EB
-            </div>
-            <div>
-              <div className="text-sm font-medium">Emma Brown</div>
-              <div className="text-xs text-gray-500">450 RSC</div>
-            </div>
-          </div>
+          ))}
         </div>
         <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
           See all contributors →
         </button>
+      </div>
+
+      {/* Keywords */}
+      <div>
+        <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
+          <Tag className="h-4 w-4 text-gray-500" />
+          Keywords
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {paper.keywords.map((keyword, i) => (
+            <span 
+              key={i} 
+              className="bg-gray-100 px-2 py-1 rounded-full text-xs text-gray-600"
+            >
+              {keyword}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   )

@@ -7,6 +7,7 @@ import {
   Coins, MessageSquare, Star, Eye, Quote,
   BadgeCheck, UserPlus, X, Gift
 } from 'lucide-react'
+import { Paper } from '@/types/paper'
 import { PaperReviews } from './PaperReviews'
 import { PaperRewards } from './PaperRewards'
 import { PaperComments } from './PaperComments'
@@ -14,7 +15,11 @@ import { ReviewRewardModal } from './ReviewRewardModal'
 import { Dialog } from '@headlessui/react'
 import Link from 'next/link'
 
-export const PaperDocument = ({ paper }) => {
+interface PaperDocumentProps {
+  paper: Paper;
+}
+
+export const PaperDocument = ({ paper }: PaperDocumentProps) => {
   const [activeTab, setActiveTab] = useState('paper')
   const [rewardModalOpen, setRewardModalOpen] = useState(false)
   const [claimModalOpen, setClaimModalOpen] = useState(false)
@@ -154,18 +159,14 @@ export const PaperDocument = ({ paper }) => {
                 <div className="mb-1.5">
                   {paper.authors.map((author, i) => (
                     <span key={i} className="inline-flex items-center">
-                      <span>{author.name}</span>
-                      {author.verified && (
-                        <BadgeCheck className="h-4 w-4 text-blue-500 ml-1" />
-                      )}
-                      <span className="text-gray-500 ml-1">{author.affiliation}</span>
+                      <span>{author.fullName}</span>
                       {i < paper.authors.length - 1 && (
                         <span className="mx-2 text-gray-400">•</span>
                       )}
                     </span>
                   ))}
                 </div>
-                {!paper.hasVerifiedAuthors && (
+                {paper.isUnclaimed && (
                   <button 
                     onClick={() => setClaimModalOpen(true)}
                     className="flex items-center space-x-1 text-orange-500 hover:text-orange-600"
@@ -177,30 +178,24 @@ export const PaperDocument = ({ paper }) => {
               </div>
             </div>
           </div>
-          
-          <div className="flex items-center">
+
+          {/* Journal */}
+          <div className="flex items-start">
             <span className="font-medium text-gray-900 w-24">Journal</span>
-            <span>{paper.journal}</span>
-          </div>
-          
-          <div className="flex items-center">
-            <span className="font-medium text-gray-900 w-24">Published</span>
-            <span>{paper.publishDate}</span>
-          </div>
-          
-          <div className="flex items-center">
-            <span className="font-medium text-gray-900 w-24">DOI</span>
-            <span>{paper.doi}</span>
+            <div className="flex-1">
+              <span>{paper.journal}</span>
+            </div>
           </div>
 
-          <div className="flex items-center">
-            <span className="font-medium text-gray-900 w-24">Keywords</span>
-            <div className="flex flex-wrap gap-2">
-              {paper.keywords.map((keyword, i) => (
-                <span key={i} className="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-600">
-                  {keyword}
-                </span>
-              ))}
+          {/* Published Date */}
+          <div className="flex items-start">
+            <span className="font-medium text-gray-900 w-24">Published</span>
+            <div className="flex-1">
+              <span>{new Date(paper.publishDate).toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
+              })}</span>
             </div>
           </div>
         </div>
@@ -275,7 +270,7 @@ export const PaperDocument = ({ paper }) => {
       <ReviewRewardModal 
         open={rewardModalOpen}
         onClose={() => setRewardModalOpen(false)}
-        rewards={openRewards}
+        rewards={openRewards as any}
       />
 
       {/* Claim Profile Modal */}
