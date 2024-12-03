@@ -1,8 +1,13 @@
 'use client'
 
 import { 
-  FileText, FileUp, ClipboardList, BookOpen, 
-  Coins, Gift, PiggyBank, Share, ChevronRight, Plus 
+  ScrollText,      // for paper
+  HandCoins,       // for funding request
+  GraduationCap,   // for grant
+  Trophy,          // for reward
+  Share,
+  ChevronRight, 
+  Plus 
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { CreateRewardModal } from '../components/modals/CreateRewardModal';
@@ -39,17 +44,16 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
     {
       section: 'Publish',
       items: [
-        { icon: <FileText className="w-5 h-5" />, title: 'Publish preprint', description: 'Share your research before peer review' },
-        { icon: <FileUp className="w-5 h-5" />, title: 'Publish preregistration', description: 'Register your study design and methods' },
-        { icon: <BookOpen className="w-5 h-5" />, title: 'Publish in ResearchHub Journal', description: 'Submit to our peer-reviewed journal' },
+        { icon: <ScrollText className="w-5 h-5" />, title: 'Publish preprint', description: 'Share your research before peer review' },
+        { icon: <ScrollText className="w-5 h-5" />, title: 'Publish in ResearchHub Journal', description: 'Submit to our peer-reviewed journal' },
       ]
     },
     {
       section: 'ResearchCoin Marketplace',
       items: [
-        { icon: <Coins className="w-5 h-5" />, title: 'Create ResearchCoin Reward', description: 'Incentivize research contributions' },
-        { icon: <Gift className="w-5 h-5" />, title: 'Create grant', description: 'Fund promising research projects' },
-        { icon: <PiggyBank className="w-5 h-5" />, title: 'Request funding', description: 'Seek support for your research' },
+        { icon: <Trophy className="w-5 h-5" />, title: 'Create ResearchCoin Reward', description: 'Incentivize research contributions' },
+        { icon: <GraduationCap className="w-5 h-5" />, title: 'Create grant', description: 'Fund promising research projects' },
+        { icon: <HandCoins className="w-5 h-5" />, title: 'Start a fundraise', description: 'Seek support for your research' },
       ]
     },
     {
