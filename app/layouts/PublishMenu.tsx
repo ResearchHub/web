@@ -1,10 +1,11 @@
 'use client'
 
 import { 
-  ScrollText,      // for paper
-  HandCoins,       // for funding request
-  GraduationCap,   // for grant
-  Trophy,          // for reward
+  FileUp,         // for publishing preprint
+  ScrollText,     // for journal
+  HandCoins,      // for funding request
+  GraduationCap,  // for grant
+  Trophy,         // for reward
   Share,
   ChevronRight, 
   Plus,
@@ -68,7 +69,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
     {
       section: 'Publish',
       items: [
-        { icon: <ScrollText className="w-5 h-5" />, title: 'Publish preprint', description: 'Share your research before peer review' },
+        { icon: <FileUp className="w-5 h-5" />, title: 'Publish preprint', description: 'Share your research before peer review' },
         { icon: <ScrollText className="w-5 h-5" />, title: 'Publish in ResearchHub Journal', description: 'Submit to our peer-reviewed journal' },
       ]
     },
