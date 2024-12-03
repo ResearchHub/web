@@ -52,6 +52,24 @@ export const getItemTypeConfig = (type: string): { icon: LucideIcon; label: stri
   }
 };
 
+// Define the getItemUrl function
+const getItemUrl = (item: Item) => {
+  switch (item.type) {
+    case 'paper':
+      return `/paper/${item.id}/${item.title.toLowerCase().replace(/ /g, '-')}`;
+    case 'funding_request':
+      return `/fund/${item.id}/${item.title.toLowerCase().replace(/ /g, '-')}`;
+    case 'grant':
+      return `/grant/${item.id}/${item.title.toLowerCase().replace(/ /g, '-')}`;
+    case 'review':
+      return `/review/${item.id}/${item.title.toLowerCase().replace(/ /g, '-')}`;
+    case 'reward':
+      return `/reward/${item.id}/${item.title.toLowerCase().replace(/ /g, '-')}`;
+    default:
+      return '#';
+  }
+};
+
 export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
   if (!entry) {
     return null; // Or return a placeholder/skeleton component
@@ -119,7 +137,10 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
           </div>
         </div>
   
-        <div className="p-4 rounded-lg border bg-gray-50">
+        <div 
+          onClick={() => window.location.href = getItemUrl(item)} 
+          className="p-4 rounded-lg border bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
+        >
           <div className="flex items-center mb-3">
             <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-gray-600 bg-gray-100 border border-gray-200">
               {(() => {
@@ -131,7 +152,7 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
           </div>
   
           {item.type === 'paper' && (
-            <Link href={`/paper/${item.id}/${item.title.toLowerCase().replace(/ /g, '-')}`} className="block">
+            <>
               <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600 transition-colors">
                 {item.title}
               </h3>
@@ -155,22 +176,19 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                   ? `${item.description.slice(0, 200)}...` 
                   : item.description}
               </p>
-            </Link>
+            </>
           )}
   
           {item.type === 'funding_request' && (
             <>
-              <Link href={`/fund/${item.id}/${item.title.toLowerCase().replace(/ /g, '-')}`}>
-                <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
-                  {item.title}
-                </h3>
-                <p className="text-sm text-gray-600 mb-3">
-                  {item.description.length > 200 
-                    ? `${item.description.slice(0, 200)}...` 
-                    : item.description}
-                </p>
-              </Link>
-              
+              <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
+                {item.title}
+              </h3>
+              <p className="text-sm text-gray-600 mb-3">
+                {item.description.length > 200 
+                  ? `${item.description.slice(0, 200)}...` 
+                  : item.description}
+              </p>
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">

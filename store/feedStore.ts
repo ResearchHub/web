@@ -145,33 +145,6 @@ export const feedEntries: FeedEntry[] = [
     }
   },
   {
-    id: 'feed-6',
-    action: 'publish',
-    actor: users.hundessaNemomssa,
-    timestamp: '4h ago',
-    item: {
-      id: 'item-6',
-      type: 'paper',
-      title: 'Revolutionizing Patient Care: A Comprehensive Review',
-      description: 'New preprint exploring recent developments in flexible printed heaters for medical devices.',
-      user: users.hundessaNemomssa,
-      timestamp: '4h ago',
-      hub: hubs.medicalDevices,
-      metrics: {
-        votes: 24,
-        comments: 7,
-        reposts: 2,
-        saves: 3
-      },
-      authors: [
-        { name: "John Doe", verified: true },
-        { name: "Jane Smith", verified: false }
-      ],
-      doi: "10.1101/2024.10.16.618750",
-      journal: "Journal of Medical Devices"
-    }
-  },
-  {
     id: 'feed-7',
     action: 'contribute',
     actor: users.alexThompson,
@@ -214,6 +187,33 @@ export const feedEntries: FeedEntry[] = [
         users.elenaRodriguez,
         users.dominikus
       ]
+    }
+  },  
+  {
+    id: 'feed-6',
+    action: 'publish',
+    actor: users.hundessaNemomssa,
+    timestamp: '4h ago',
+    item: {
+      id: 'item-6',
+      type: 'paper',
+      title: 'Revolutionizing Patient Care: A Comprehensive Review',
+      description: 'New preprint exploring recent developments in flexible printed heaters for medical devices.',
+      user: users.hundessaNemomssa,
+      timestamp: '4h ago',
+      hub: hubs.medicalDevices,
+      metrics: {
+        votes: 24,
+        comments: 7,
+        reposts: 2,
+        saves: 3
+      },
+      authors: [
+        { name: "John Doe", verified: true },
+        { name: "Jane Smith", verified: false }
+      ],
+      doi: "10.1101/2024.10.16.618750",
+      journal: "Journal of Medical Devices"
     }
   },
   {
