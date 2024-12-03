@@ -17,7 +17,7 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
 
   return (
     <PageLayout
-      rightSidebar={<FundraiseRightSidebar votes={funding.metrics.votes} comments={funding.metrics.comments} />}
+      rightSidebar={<FundraiseRightSidebar fundraise={funding} />}
     >
       <div>
         {/* Header */}
@@ -63,22 +63,6 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
             <div className="flex items-center">
               <span className="font-medium text-gray-900 w-24">Published</span>
               <span>{funding.publishDate}</span>
-            </div>
-
-            <div className="flex items-center">
-              <span className="font-medium text-gray-900 w-24">DOI</span>
-              <span>{funding.doi}</span>
-            </div>
-
-            <div className="flex items-center">
-              <span className="font-medium text-gray-900 w-24">Keywords</span>
-              <div className="flex flex-wrap gap-2">
-                {funding.keywords.map((keyword, i) => (
-                  <span key={i} className="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-600">
-                    {keyword}
-                  </span>
-                ))}
-              </div>
             </div>
           </div>
         </div>
