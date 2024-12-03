@@ -12,62 +12,76 @@ interface NavigationProps {
   currentPath: string;
   isPublishMenuOpen: boolean;
   onPublishMenuChange: (isOpen: boolean) => void;
+  onUnimplementedFeature: (featureName: string) => void;
 }
-
-const navigationItems = [
-  {
-    label: 'Home',
-    href: '/',
-    icon: Home,
-    description: 'Navigate to the home page'
-  },
-  {
-    label: 'My ResearchCoin',
-    href: '/researchcoin',
-    icon: Coins,
-    description: 'Manage your ResearchCoin balance and transactions',
-    badge: {
-      text: '+10 RSC',
-      color: 'green'
-    }
-  },
-  {
-    label: 'Marketplace',
-    href: '/marketplace',
-    icon: Store,
-    description: 'Browse and buy research papers'
-  },
-  {
-    label: 'RH Journal',
-    href: '/rhjournal',
-    icon: BookOpen,
-    description: 'Read and publish research papers'
-  },
-  {
-    label: 'Peer Reviews',
-    href: '/peerreviews',
-    icon: Star,
-    description: 'Review and rate research papers'
-  },
-  {
-    label: 'Learn',
-    href: '/learn',
-    icon: GraduationCap,
-    description: 'Learn about research and academia'
-  },
-  {
-    label: 'Verify Identity',
-    href: '/verifyidentity',
-    icon: BadgeCheck,
-    description: 'Verify your identity for secure transactions'
-  },
-];
 
 export const Navigation: React.FC<NavigationProps> = ({ 
   currentPath, 
   isPublishMenuOpen, 
-  onPublishMenuChange 
+  onPublishMenuChange, 
+  onUnimplementedFeature 
 }) => {
+  const navigationItems = [
+    {
+      label: 'Home',
+      href: '/',
+      icon: Home,
+      description: 'Navigate to the home page'
+    },
+    {
+      label: 'My ResearchCoin',
+      href: '/researchcoin',
+      icon: Coins,
+      description: 'Manage your ResearchCoin balance and transactions',
+      badge: {
+        text: '+10 RSC',
+        color: 'green'
+      }
+    },
+    {
+      label: 'Marketplace',
+      href: '/marketplace',
+      icon: Store,
+      description: 'Browse and buy research papers'
+    },
+    {
+      label: 'RH Journal',
+      href: '/rhjournal',
+      icon: BookOpen,
+      description: 'Read and publish research papers',
+      onClick: (e: React.MouseEvent) => {
+        e.preventDefault();
+        onUnimplementedFeature('RH Journal');
+      }
+    },
+    {
+      label: 'Peer Reviews',
+      href: '/peerreviews',
+      icon: Star,
+      description: 'Review and rate research papers',
+      onClick: (e: React.MouseEvent) => {
+        e.preventDefault();
+        onUnimplementedFeature('Peer Reviews');
+      }
+    },
+    {
+      label: 'Learn',
+      href: '/learn',
+      icon: GraduationCap,
+      description: 'Learn about research and academia'
+    },
+    {
+      label: 'Verify Identity',
+      href: '/verifyidentity',
+      icon: BadgeCheck,
+      description: 'Verify your identity for secure transactions',
+      onClick: (e: React.MouseEvent) => {
+        e.preventDefault();
+        onUnimplementedFeature('Identity Verification');
+      }
+    },
+  ];
+
   const handlePublishClick = useCallback(() => {
     console.log('Navigation requesting change to:', !isPublishMenuOpen);
     onPublishMenuChange(!isPublishMenuOpen);
@@ -119,6 +133,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           key={item.href}
           href={item.href} 
           className={getButtonStyles(item.href)}
+          onClick={item.onClick}
         >
           <item.icon className={getIconStyles(item.href)} />
           <div className="flex items-center justify-between w-full min-w-0">

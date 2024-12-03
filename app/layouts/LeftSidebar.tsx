@@ -2,7 +2,8 @@
 
 import { 
   Home, Coins, GraduationCap, Store, BookOpen, 
-  Star, BadgeCheck, FlaskConical, Notebook, ChevronDown 
+  Star, BadgeCheck, FlaskConical, Notebook, ChevronDown,
+  AlertCircle 
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { FooterLinks } from '../components/FooterLinks';
@@ -11,6 +12,7 @@ import { useState } from 'react';
 import NotebookSidebar from '../notebook/layout/LeftSidebar';
 import { NotebookTransition } from '../components/transitions/NotebookTransition';
 import { NotebookToggle } from '@/app/components/shared/NotebookToggle';
+import toast from 'react-hot-toast';
 
 interface LeftSidebarProps {
   isPublishMenuOpen: boolean;
@@ -26,6 +28,23 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const [isNotebookView, setIsNotebookView] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+
+  const handleUnimplementedFeature = (featureName: string) => {
+    toast((t) => (
+      <div className="flex items-center space-x-2">
+        <AlertCircle className="h-5 w-5" />
+        <span>Implementation coming soon</span>
+      </div>
+    ), {
+      duration: 2000,
+      position: 'bottom-right',
+      style: {
+        background: '#FFF7ED', // Orange-50
+        color: '#EA580C',     // Orange-600
+        border: '1px solid #FDBA74', // Orange-300
+      },
+    });
+  };
 
   const handleToggleView = () => {
     if (isNotebookView) {
@@ -68,6 +87,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               currentPath={pathname}
               isPublishMenuOpen={isPublishMenuOpen}
               onPublishMenuChange={onPublishMenuChange}
+              onUnimplementedFeature={handleUnimplementedFeature}
             />
           </div>
         </div>

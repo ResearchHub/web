@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react';
-import { Search, Bell, CircleUser, Menu, BadgeCheck } from 'lucide-react';
+import { Search, Bell, CircleUser, Menu, BadgeCheck, X, AlertCircle } from 'lucide-react';
 import { searchFeedItems } from '@/store/feedStore';
 import { getItemTypeConfig } from '@/app/components/FeedItem';
+import toast from 'react-hot-toast';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -18,6 +19,28 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
     setQuery(searchQuery);
     const searchResults = searchFeedItems(searchQuery).map(entry => entry.item);
     setResults(searchResults);
+  };
+
+  const clearSearch = () => {
+    setQuery('');
+    setResults([]);
+  };
+
+  const handleUnimplementedFeature = () => {
+    toast((t) => (
+      <div className="flex items-center space-x-2">
+        <AlertCircle className="h-5 w-5" />
+        <span>Implementation coming soon</span>
+      </div>
+    ), {
+      duration: 2000,
+      position: 'bottom-right',
+      style: {
+        background: '#FFF7ED', // Orange-50
+        color: '#EA580C',     // Orange-600
+        border: '1px solid #FDBA74', // Orange-300
+      },
+    });
   };
 
   return (
@@ -37,10 +60,18 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
             <input
               type="text"
               placeholder="Search papers, reviews, grants..."
-              className="pl-10 pr-4 py-2.5 bg-gray-50 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 border border-gray-200"
+              className="pl-10 pr-10 py-2.5 bg-gray-50 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 border border-gray-200"
               value={query}
               onChange={handleSearch}
             />
+            {query && (
+              <button
+                onClick={clearSearch}
+                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            )}
 
             {/* Render search results */}
             {results.length > 0 && (
@@ -93,13 +124,19 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
           </div>        
 
           <div className="flex items-center space-x-4">
-            <button className="relative">
+            <button 
+              className="relative"
+              onClick={handleUnimplementedFeature}
+            >
               <Bell className="h-6 w-6 text-gray-600 hover:text-indigo-600" />
               <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
                 3
               </span>
             </button>
-            <button className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+            <button 
+              className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center"
+              onClick={handleUnimplementedFeature}
+            >
               <CircleUser className="h-5 w-5 text-gray-600" />
             </button>
           </div>
