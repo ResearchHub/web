@@ -497,3 +497,47 @@ export const feedEntries: FeedEntry[] = [
     }
   }
 ];
+
+export function searchFeedItems(query: string): FeedEntry[] {
+  if (!query.trim()) return [];
+  
+  const searchTerm = query.toLowerCase().trim();
+  
+  return feedEntries.filter(entry => {
+    const item = entry.item;
+    
+    // Common searchable fields that exist on all items
+    const searchableFields = [
+      item.title,
+      item.description,
+      item.type,
+      item.hub.name,
+      item.user.name
+    ];
+    
+    // Add type-specific searchable fields
+    switch (item.type) {
+      case 'paper':
+        if ('authors' in item && item.authors) {
+          const authorNames = item.authors.map(author => author.name);
+          searchableFields.push(...authorNames);
+          if ('doi' in item) searchableFields.push(item.doi);
+          if ('journal' in item) searchableFields.push(item.journal);
+        }
+        break;
+      
+      case 'funding_request':
+      case 'reward':
+      case 'grant':
+        if ('amount' in item) {
+          searchableFields.push(item.amount.toString());
+        }
+        break;
+    }
+    
+    // Return true if any field contains the search term
+    return searchableFields.some(field => 
+      field?.toString().toLowerCase().includes(searchTerm)
+    );
+  });
+}

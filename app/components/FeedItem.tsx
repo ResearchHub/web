@@ -32,7 +32,7 @@ const formatNumber = (num: number): string => {
   return num.toLocaleString();
 };
 
-const getItemTypeConfig = (type: string): { icon: LucideIcon; label: string } => {
+export const getItemTypeConfig = (type: string): { icon: LucideIcon; label: string } => {
   switch (type) {
     case 'funding_request':
       return { icon: HandCoins, label: 'Funding Request' };
