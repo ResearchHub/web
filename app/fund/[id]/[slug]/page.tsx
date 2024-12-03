@@ -21,7 +21,7 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
     <>
       <PageLayout
         rightSidebar={
-          <div className="hidden lg:block">
+          <div className="hidden lg:block h-screen sticky top-0">
             <FundraiseRightSidebar fundraise={funding} />
           </div>
         }
