@@ -268,8 +268,12 @@ export const PaperDocument = ({ paper }: PaperDocumentProps) => {
               <p className="text-gray-700">{paper.abstract}</p>
             </div>
             
-            <div className="bg-white rounded-xl shadow-sm border min-h-[500px]">
-              
+            <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+              <iframe
+                src={`https://www.biorxiv.org/content/10.1101/2024.10.16.618749v1.full.pdf#toolbar=0`}
+                className="w-full h-[800px]"
+                title="Paper PDF"
+              />
             </div>
           </>
         )}
