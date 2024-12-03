@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react';
-import { Plus, Store } from 'lucide-react';
+import { Plus, Store, AlertCircle } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { MarketplaceTabs } from './MarketplaceTabs';
 import { MarketplaceSort } from './MarketplaceSort';
@@ -10,6 +10,8 @@ import { MarketplaceRewardsBanner } from './MarketplaceRewardsBanner';
 import { FeedItem } from '../FeedItem';
 import { feedEntries } from '@/store/feedStore';
 import { FeedEntry } from '@/types/feed';
+import toast from 'react-hot-toast';
+import { Button } from '@/app/components/ui/Button';
 
 export const Marketplace = () => {
   const [activeTab, setActiveTab] = useState<'fund' | 'rewards' | 'grants'>('fund');
@@ -80,30 +82,41 @@ export const Marketplace = () => {
   };
 
   const getActionButton = () => {
+    const handleButtonClick = () => {
+      toast((t) => (
+        <div className="flex items-center space-x-2">
+          <AlertCircle className="h-5 w-5" />
+          <span>Implementation coming soon</span>
+        </div>
+      ), {
+        duration: 2000,
+        position: 'bottom-right',
+        style: {
+          background: '#FFF7ED', // Orange-50
+          color: '#EA580C',     // Orange-600
+          border: '1px solid #FDBA74', // Orange-300
+        },
+      });
+    };
+
     switch (activeTab) {
       case 'fund':
         return (
-          <button 
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            onClick={() => setIsRequestFundingOpen(true)}
-          >
-            <Plus className="h-4 w-4" /> Request Funding
-          </button>
+          <Button onClick={handleButtonClick}>
+            <Plus className="h-4 w-4 mr-2" /> Request Funding
+          </Button>
         );
       case 'rewards':
         return (
-          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-            <Plus className="h-4 w-4" /> Create Reward
-          </button>
+          <Button onClick={handleButtonClick}>
+            <Plus className="h-4 w-4 mr-2" /> Create Reward
+          </Button>
         );
       case 'grants':
         return (
-          <button 
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            onClick={() => setIsCreateGrantOpen(true)}
-          >
-            <Plus className="h-4 w-4" /> Create Grant
-          </button>
+          <Button onClick={handleButtonClick}>
+            <Plus className="h-4 w-4 mr-2" /> Create Grant
+          </Button>
         );
     }
   };
