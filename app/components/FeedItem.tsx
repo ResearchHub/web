@@ -22,6 +22,7 @@ import { ProfileTooltip } from './tooltips/ProfileTooltip'
 import { FeedEntry, FundingRequestItem, GrantItem, Item, RewardItem } from '@/types/feed'
 import { Button } from '@/app/components/ui/Button';
 import { UserStack } from './ui/UserStack';
+import { useRouter } from 'next/navigation'
 
 // Type guard to check if an item has contributors
 const hasContributors = (item: Item): item is FundingRequestItem | GrantItem | RewardItem => {
@@ -71,6 +72,7 @@ const getItemUrl = (item: Item) => {
 };
 
 export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
+  const router = useRouter()
   if (!entry) {
     return null; // Or return a placeholder/skeleton component
   }
@@ -83,7 +85,10 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
     <div className="p-6">
       <div className="flex flex-col">
         <div className="flex items-start mb-3">
-          <div className="flex-shrink-0 mr-4">
+          <div 
+            className="flex-shrink-0 mr-4 cursor-pointer" 
+            onClick={() => router.push(`/author/${actor.id}`)}
+          >
             {actor.profileImage ? (
               <img 
                 src={actor.profileImage} 
@@ -104,7 +109,10 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                 headline={isOrganization ? 'Organization' : 'Researcher'}
                 verified={actor.isVerified}
               >
-                <span className="font-medium text-gray-900 hover:text-indigo-600 cursor-pointer">
+                <span 
+                  onClick={() => router.push(`/author/${actor.id}`)}
+                  className="font-medium text-gray-900 hover:text-indigo-600 cursor-pointer"
+                >
                   {actor.fullName}
                 </span>
               </ProfileTooltip>
