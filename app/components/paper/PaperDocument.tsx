@@ -5,7 +5,7 @@ import { Menu } from '@headlessui/react'
 import { 
   ArrowUp, Download, Flag, Edit, Share2, MoreHorizontal,
   Coins, MessageSquare, Star, Eye, Quote,
-  BadgeCheck, UserPlus, X, Gift
+  BadgeCheck, UserPlus, X, Gift, BarChart2
 } from 'lucide-react'
 import { Paper } from '@/types/paper'
 import { PaperReviews } from './PaperReviews'
@@ -14,6 +14,7 @@ import { PaperComments } from './PaperComments'
 import { ReviewRewardModal } from './ReviewRewardModal'
 import { Dialog } from '@headlessui/react'
 import Link from 'next/link'
+import { PaperRightSidebar } from './PaperRightSidebar'
 
 interface PaperDocumentProps {
   paper: Paper;
@@ -23,6 +24,7 @@ export const PaperDocument = ({ paper }: PaperDocumentProps) => {
   const [activeTab, setActiveTab] = useState('paper')
   const [rewardModalOpen, setRewardModalOpen] = useState(false)
   const [claimModalOpen, setClaimModalOpen] = useState(false)
+  const [showMobileMetrics, setShowMobileMetrics] = useState(false)
   
   // Mock data - would come from API
   const openRewards = [
@@ -93,6 +95,16 @@ export const PaperDocument = ({ paper }: PaperDocumentProps) => {
               <ArrowUp className="h-4 w-4" />
               <span>{paper.metrics.votes}</span>
             </button>
+            
+            {/* Insights Button for Small Screens - Moved here */}
+            <button 
+              className="lg:hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+              onClick={() => setShowMobileMetrics(true)}
+            >
+              <BarChart2 className="h-4 w-4" />
+              <span>Insights</span>
+            </button>
+
             <button className="flex items-center space-x-2 px-4 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100">
               <Coins className="h-4 w-4" />
               <span>Tip RSC</span>
@@ -327,6 +339,23 @@ export const PaperDocument = ({ paper }: PaperDocumentProps) => {
           </Dialog.Panel>
         </div>
       </Dialog>
+
+      {/* Mobile sidebar overlay - moved outside PageLayout */}
+      <div 
+        className={`fixed inset-0 bg-black/50 z-30 z-50 lg:hidden ${
+          showMobileMetrics ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setShowMobileMetrics(false)}
+      >
+        <div 
+          className={`absolute right-0 top-0 bottom-0 w-80 bg-white shadow-xl transition-transform duration-200 ${
+            showMobileMetrics ? 'translate-x-0' : 'translate-x-full'
+          }`}
+          onClick={e => e.stopPropagation()}
+        >
+          <PaperRightSidebar paper={paper} />
+        </div>
+      </div>
     </div>
   )
 } 
