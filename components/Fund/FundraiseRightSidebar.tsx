@@ -16,11 +16,11 @@ export function FundraiseRightSidebar({ fundraise }: FundraiseRightSidebarProps)
     <div className="w-80 fixed right-0 top-0 bottom-0 border-l bg-white/50 backdrop-blur-sm p-6 overflow-y-auto">
       {/* Metrics */}
       <div className="mb-8">
-        <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
+        <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
           <BarChart2 className="h-4 w-4 text-gray-500" />
           Metrics
         </h3>
-        <div className="space-y-2">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1.5 text-gray-500">
               <div className="w-5 h-5 flex items-center justify-center">
@@ -56,7 +56,7 @@ export function FundraiseRightSidebar({ fundraise }: FundraiseRightSidebarProps)
 
       {/* DOI */}
       <div className="mb-8">
-        <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
+        <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
           <Link2 className="h-4 w-4 text-gray-500" />
           DOI
         </h3>
@@ -70,7 +70,7 @@ export function FundraiseRightSidebar({ fundraise }: FundraiseRightSidebarProps)
 
       {/* Top Contributors */}
       <div className="mb-8">
-        <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
+        <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
           <Users className="h-4 w-4 text-gray-500" />
           Top Contributors
         </h3>
@@ -81,10 +81,10 @@ export function FundraiseRightSidebar({ fundraise }: FundraiseRightSidebarProps)
                 <img 
                   src={user.profileImage} 
                   alt={user.fullName}
-                  className="h-8 w-8 rounded-full object-cover" 
+                  className="h-8 w-8 rounded-full object-cover ring-2 ring-white border border-gray-200" 
                 />
               ) : (
-                <div className="h-8 w-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-sm font-medium">
+                <div className="h-8 w-8 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-sm font-medium ring-2 ring-white border border-gray-200">
                   {user.fullName.split(' ').map(n => n[0]).join('')}
                 </div>
               )}
@@ -105,7 +105,7 @@ export function FundraiseRightSidebar({ fundraise }: FundraiseRightSidebarProps)
 
       {/* Keywords */}
       <div className="mb-8">
-        <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
+        <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
           <Tag className="h-4 w-4 text-gray-500" />
           Keywords
         </h3>
