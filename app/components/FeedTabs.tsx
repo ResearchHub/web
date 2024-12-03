@@ -1,19 +1,25 @@
 'use client'
 
 import { Settings } from "lucide-react";
+import { useState } from 'react';
+import { feedEntries } from '@/store/feedData';
 
 interface FeedTabsProps {
   showingInterests: boolean;
   onInterestsClick: () => void;
   activeInterestTab?: 'journal' | 'person' | 'topic';
   onInterestTabChange?: (tab: 'journal' | 'person' | 'topic') => void;
+  activeTab?: 'for-you' | 'following' | 'popular' | 'latest';
+  onTabChange?: (tab: 'for-you' | 'following' | 'popular' | 'latest') => void;
 }
 
 export const FeedTabs: React.FC<FeedTabsProps> = ({ 
   showingInterests, 
-  onInterestsClick, 
+  onInterestsClick,
   activeInterestTab,
-  onInterestTabChange 
+  onInterestTabChange,
+  activeTab = 'for-you',
+  onTabChange = () => {}
 }) => {
   if (showingInterests) {
     return (
@@ -73,16 +79,44 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
       <div className="border-b mb-6 w-full">
         <div className="flex justify-between">
           <div className="flex space-x-8">
-            <button className="px-1 py-4 text-sm font-medium text-indigo-600 border-b-2 border-indigo-600">
+            <button 
+              onClick={() => onTabChange('for-you')}
+              className={`px-1 py-4 text-sm font-medium ${
+                activeTab === 'for-you' 
+                  ? 'text-purple-600 border-b-2 border-purple-600' 
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
               For You
             </button>
-            <button className="px-1 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+            <button 
+              onClick={() => onTabChange('following')}
+              className={`px-1 py-4 text-sm font-medium ${
+                activeTab === 'following' 
+                  ? 'text-purple-600 border-b-2 border-purple-600' 
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
               Following
             </button>
-            <button className="px-1 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+            <button 
+              onClick={() => onTabChange('popular')}
+              className={`px-1 py-4 text-sm font-medium ${
+                activeTab === 'popular' 
+                  ? 'text-purple-600 border-b-2 border-purple-600' 
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
               Popular
             </button>
-            <button className="px-1 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+            <button 
+              onClick={() => onTabChange('latest')}
+              className={`px-1 py-4 text-sm font-medium ${
+                activeTab === 'latest' 
+                  ? 'text-purple-600 border-b-2 border-purple-600' 
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
               Latest
             </button>
           </div>
@@ -93,7 +127,7 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
             <span className="text-sm opacity-0 group-hover:opacity-100 transition-opacity">
               Customize Feed
             </span>
-            <Settings className="w-4 h-4" />
+            <Settings className="w-5 h-5" />
           </button>
         </div>
       </div>
