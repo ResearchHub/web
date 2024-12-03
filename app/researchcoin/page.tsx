@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react';
-import { ArrowUpRight, ArrowDownRight, Gauge, Coins, ExternalLink } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Gauge, Coins, ExternalLink, AlertCircle } from 'lucide-react';
 import { PageLayout } from '../layouts/PageLayout';
 import { ResearchCoinRightSidebar } from '../components/ResearchCoin/ResearchCoinRightSidebar';
+import toast from 'react-hot-toast';
 
 const sampleTransactions = [
   {
@@ -103,8 +104,25 @@ const sampleTransactions = [
 ];
 
 export default function ResearchCoinPage() {
-  const [balance] = useState('1,234.56');
+  const [balance] = useState('1,566.87');
   
+  const handleActionClick = (action: string) => {
+    toast((t) => (
+      <div className="flex items-center space-x-2">
+        <AlertCircle className="h-5 w-5" />
+        <span>{action} coming soon</span>
+      </div>
+    ), {
+      duration: 2000,
+      position: 'bottom-right',
+      style: {
+        background: '#FFF7ED', // Orange-50
+        color: '#EA580C',     // Orange-600
+        border: '1px solid #FDBA74', // Orange-300
+      },
+    });
+  };
+
   return (
     <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
       <div className="flex">
@@ -127,15 +145,24 @@ export default function ResearchCoinPage() {
 
           {/* Action Buttons */}
           <div className="grid grid-cols-3 gap-4 mt-6">
-            <button className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+            <button 
+              onClick={() => handleActionClick('Buy RSC')}
+              className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+            >
               <ArrowUpRight className="h-4 w-4" />
               Buy
             </button>
-            <button className="flex items-center justify-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50">
+            <button 
+              onClick={() => handleActionClick('Withdraw RSC')}
+              className="flex items-center justify-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50"
+            >
               <ArrowDownRight className="h-4 w-4" />
               Withdraw
             </button>
-            <button className="flex items-center justify-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50">
+            <button 
+              onClick={() => handleActionClick('Stake RSC')}
+              className="flex items-center justify-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50"
+            >
               <Gauge className="h-4 w-4" />
               <span>Stake</span>
               <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded-full">
