@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Bookmark,
   CircleUser,
+  Star,
   BadgeCheck,
   Clock
 } from 'lucide-react';
@@ -236,7 +237,7 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
               </div>
   
               <div className="flex items-center justify-between mt-4">
-                <Button size="sm">Apply Now</Button>
+                <Button size="sm" className="w-24">Apply Now</Button>
                 
                 {item.applicants && item.applicants.length > 0 && (
                   <div className="flex items-center gap-2">
@@ -291,9 +292,16 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                   ? `${item.description.slice(0, 200)}...` 
                   : item.description}
               </p>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-gray-500">Amount: {formatNumber(item.amount)} RSC</span>
-                <span className="text-sm text-gray-500">Review Score: {item.metrics.reviewScore}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Score:</span>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-4 w-4 ${i < item.metrics.reviewScore ? 'text-yellow-500 fill-current' : 'text-gray-300'}`}
+                    />
+                  ))}
+                </div>
               </div>
             </>
           )}
