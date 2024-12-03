@@ -13,8 +13,8 @@ interface GrantRightSidebarProps {
 
 export function GrantRightSidebar({ grant }: GrantRightSidebarProps) {
   return (
-    <div className="w-80 h-full bg-white">
-      <div className="h-full overflow-y-auto">
+    <div className="w-80 min-h-screen bg-white">
+      <div className="sticky top-0 h-screen overflow-y-auto">
         <div className="p-6 space-y-8">
           {/* Metrics */}
           <div className="mb-8">
