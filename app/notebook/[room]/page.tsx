@@ -5,6 +5,7 @@ import 'iframe-resizer/js/iframeResizer.contentWindow'
 import { useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { Doc as YDoc } from 'yjs'
+import { use } from 'react'
 
 import { BlockEditor } from '@/app/components/Editor/components/BlockEditor'
 import { createPortal } from 'react-dom'
@@ -43,11 +44,12 @@ const useDarkmode = () => {
 }
 
 export default function Document({ params }: { params: { room: string } }) {
+  const resolvedParams = use(params)
   const { isDarkMode, darkMode, lightMode } = useDarkmode()
   const [aiToken, setAiToken] = useState<string | null | undefined>()
   const searchParams = useSearchParams()
   const providerState = useCollaboration({
-    docId: params.room,
+    docId: resolvedParams.room,
     enabled: parseInt(searchParams?.get('noCollab') as string) !== 1,
   })
 
