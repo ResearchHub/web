@@ -1,6 +1,7 @@
 'use client'
 
 import { BookOpen, X, Check } from 'lucide-react';
+import { useState } from 'react';
 
 // InfoBanner Component
 const InfoBanner: React.FC = () => (
@@ -38,6 +39,15 @@ const InfoBanner: React.FC = () => (
 
 // WhoToFollow Component
 const WhoToFollow: React.FC = () => {
+  const [followStatus, setFollowStatus] = useState<{ [key: string]: boolean }>({});
+
+  const toggleFollow = (name: string) => {
+    setFollowStatus((prevStatus) => ({
+      ...prevStatus,
+      [name]: !prevStatus[name],
+    }));
+  };
+
   const organizations = [
     { name: 'Nature', logo: '🌿', followers: '1.2M followers', type: 'Journal' },
     { name: 'Science', logo: '🔬', followers: '980K followers', type: 'Journal' },
@@ -52,31 +62,42 @@ const WhoToFollow: React.FC = () => {
     { name: 'Prof. David Zhang', logo: '👨‍🏫', followers: '92K followers', type: 'Immunologist', org: 'Harvard Medical' }
   ];
 
-  const ProfileCard = ({ profile }: { profile: any }) => (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-lg">
-          {profile.logo}
-        </div>
-        <div>
-          <div className="font-medium text-gray-900">{profile.name}</div>
-          <div className="text-sm text-gray-500">
-            {profile.type === 'Journal' || profile.type === 'Institution' ? (
-              profile.followers
-            ) : (
-              <div className="flex flex-col">
-                <span>{profile.type}</span>
-                <span className="text-xs text-gray-400">{profile.org}</span>
-              </div>
-            )}
+  const ProfileCard = ({ profile }: { profile: any }) => {
+    const isFollowing = followStatus[profile.name];
+
+    return (
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-lg">
+            {profile.logo}
+          </div>
+          <div>
+            <div className="font-medium text-gray-900">{profile.name}</div>
+            <div className="text-sm text-gray-500">
+              {profile.type === 'Journal' || profile.type === 'Institution' ? (
+                profile.followers
+              ) : (
+                <div className="flex flex-col">
+                  <span>{profile.type}</span>
+                  <span className="text-xs text-gray-400">{profile.org}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
+        <button
+          onClick={() => toggleFollow(profile.name)}
+          className={`px-3 py-1 border rounded-full text-sm font-medium transition-colors duration-150 ${
+            isFollowing
+              ? 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'
+              : 'border-indigo-600 text-indigo-600 hover:bg-indigo-50'
+          }`}
+        >
+          {isFollowing ? 'Following' : 'Follow'}
+        </button>
       </div>
-      <button className="px-3 py-1 border border-indigo-600 text-indigo-600 rounded-full text-sm font-medium hover:bg-indigo-50">
-        Follow
-      </button>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="p-4">

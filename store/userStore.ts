@@ -31,7 +31,7 @@ export const users: Record<string, User> = {
       verified: true,
       isOrganization: false,
       isVerified: true,
-      profileImage: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2024/10/27/blob_yxyA3Mo'
+      profileImage: 'https://pbs.twimg.com/profile_images/1547324187588538370/tKLmbxhc_400x400.jpg'
     },
     elenaRodriguez: {
       id: 'elena-001',
