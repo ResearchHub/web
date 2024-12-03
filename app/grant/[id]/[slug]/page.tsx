@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { use } from 'react'
 import { Coins, Share2, ArrowUp, MessageSquare, BarChart2 } from 'lucide-react'
 import { ProfileTooltip } from '@/app/components/tooltips/ProfileTooltip'
 import Link from 'next/link'
@@ -10,12 +11,13 @@ import { PageLayout } from '@/app/layouts/PageLayout'
 import { grants, grantApplications } from '@/store/grantStore'
 import { GrantRightSidebar } from '@/app/components/Grant/GrantRightSidebar'
 
-export default function GrantPage({ params }: { params: { id: string; slug: string } }) {
+export default function GrantPage({ params }: { params: Promise<{ id: string; slug: string }> }) {
   const [activeTab, setActiveTab] = useState('details')
   const [showMobileMetrics, setShowMobileMetrics] = useState(false)
 
-  const grant = grants[params.id]
-  const applications = grantApplications[params.id] || []
+  const { id } = use(params)
+  const grant = grants[id]
+  const applications = grantApplications[id] || []
 
   if (!grant) {
     return <div>Grant not found</div>
@@ -114,9 +116,8 @@ export default function GrantPage({ params }: { params: { id: string; slug: stri
               </button>
             </div>
 
-            {/* Tabs */}
-            <div className="border-b border-gray-200 mb-6">
-              <nav className="-mb-px flex space-x-8">
+            <div className="mt-12 border-b border-gray-200 mb-6">
+              <nav className="flex space-x-8">
                 <button
                   onClick={() => setActiveTab('details')}
                   className={`
@@ -138,11 +139,13 @@ export default function GrantPage({ params }: { params: { id: string; slug: stri
                   `}
                 >
                   Comments
-                  <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                    activeTab === 'comments' ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {grant.metrics.comments}
-                  </span>
+                  {grant.metrics.comments > 0 && (
+                    <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                      activeTab === 'comments' ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {grant.metrics.comments}
+                    </span>
+                  )}
                 </button>
                 <button
                   onClick={() => setActiveTab('applications')}
@@ -186,14 +189,68 @@ export default function GrantPage({ params }: { params: { id: string; slug: stri
               
               {activeTab === 'applications' && (
                 <div className="space-y-4">
-                  {applications.map((entry) => (
+                  {applications.map((application) => (
                     <div 
-                      key={entry.id} 
-                      className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200"
+                      key={application.id} 
+                      className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
                     >
-                      <FeedItem entry={entry} />
+                      {/* Application Header */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          {application.user.profileImage ? (
+                            <img 
+                              src={application.user.profileImage} 
+                              alt={application.user.fullName}
+                              className="h-10 w-10 rounded-full object-cover border border-gray-200" 
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-sm font-medium">
+                              {application.user.fullName.split(' ').map(n => n[0]).join('')}
+                            </div>
+                          )}
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {application.user.fullName}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              Applied {application.timestamp}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm">
+                          <span className="text-gray-500">Status:</span>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            Under Review
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Application Content */}
+                      <div className="prose prose-sm max-w-none mb-4">
+                        <p className="text-gray-600">{application.description}</p>
+                      </div>
+
+                      {/* Application Metrics */}
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <button className="flex items-center space-x-1 hover:text-gray-700">
+                          <ArrowUp className="h-4 w-4" />
+                          <span>{application.metrics.votes}</span>
+                        </button>
+                        <button className="flex items-center space-x-1 hover:text-gray-700">
+                          <MessageSquare className="h-4 w-4" />
+                          <span>{application.metrics.comments}</span>
+                        </button>
+                      </div>
                     </div>
                   ))}
+
+                  {applications.length === 0 && (
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                      <div className="text-gray-500 text-center py-8">
+                        No applications yet
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

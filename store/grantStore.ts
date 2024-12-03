@@ -1,4 +1,4 @@
-import { FeedEntry } from '@/types/feed';
+import { FeedEntry, User } from '@/types/feed';
 import { Grant } from '@/types/grant';
 import { users } from './userStore';
 import { hubs } from './hubStore';
@@ -42,8 +42,8 @@ Research Areas:
     status: "Open",
     metrics: {
       votes: 32,
-      comments: 12,
-      applicants: 8,
+      comments: 0,
+      applicants: 3,
       views: 245,
       reposts: 0,
       saves: 0
@@ -56,81 +56,44 @@ Research Areas:
   }
 };
 
-export const grantApplications: Record<string, FeedEntry[]> = {
+export type Application = {
+  id: string;
+  user: User;
+  description: string;
+  timestamp: string;
+  status: 'under_review' | 'accepted' | 'rejected';
+  metrics: {
+    votes: number;
+    comments: number;
+  };
+};
+
+export const grantApplications: Record<string, Application[]> = {
   'urban-water-quality': [
     {
-      id: '1',
-      action: 'apply',
-      actor: users.sarahChen,
+      id: 'app-1',
+      user: users.sarahChen,
+      description: `Our research team proposes a comprehensive approach to analyzing water quality across major urban centers. 
+        We will employ advanced spectroscopic techniques and machine learning algorithms to identify contaminants 
+        and predict water quality trends. Our lab has extensive experience in environmental monitoring and data analysis.`,
       timestamp: '2d ago',
-      item: {
-        id: 'app-1',
-        type: 'grant',
-        title: 'Application: Urban Water Quality Assessment Project',
-        description: `Our research team proposes a comprehensive approach to analyzing water quality across major urban centers. 
-          We will employ advanced spectroscopic techniques and machine learning algorithms to identify contaminants 
-          and predict water quality trends. Our lab has extensive experience in environmental monitoring and data analysis.`,
-        user: users.sarahChen,
-        timestamp: '2d ago',
-        hub: hubs.environmentalScience,
-        metrics: {
-          votes: 15,
-          comments: 4,
-          reposts: 0,
-          saves: 0
-        },
-        amount: 500000,
-        deadline: '30 days'
+      status: 'under_review',
+      metrics: {
+        votes: 15,
+        comments: 4
       }
     },
     {
-      id: '2',
-      action: 'apply',
-      actor: users.jamesWilson,
+      id: 'app-2',
+      user: users.jamesWilson,
+      description: `We propose to study water quality variations in urban areas using a novel combination of real-time 
+        monitoring systems and citizen science initiatives. Our approach emphasizes community engagement while 
+        maintaining rigorous scientific standards.`,
       timestamp: '3d ago',
-      item: {
-        id: 'app-2',
-        type: 'grant',
-        title: 'Application: Urban Water Quality Assessment Project',
-        description: `We propose to study water quality variations in urban areas using a novel combination of real-time 
-          monitoring systems and citizen science initiatives. Our approach emphasizes community engagement while 
-          maintaining rigorous scientific standards. Previous success in similar projects positions us well for this study.`,
-        user: users.jamesWilson,
-        timestamp: '3d ago',
-        hub: hubs.environmentalScience,
-        metrics: {
-          votes: 12,
-          comments: 3,
-          reposts: 0,
-          saves: 0
-        },
-        amount: 500000,
-        deadline: '30 days'
-      }
-    },
-    {
-      id: '3',
-      action: 'apply',
-      actor: users.mariaPatel,
-      timestamp: '4d ago',
-      item: {
-        id: 'app-3',
-        type: 'grant',
-        title: 'Application: Urban Water Quality Assessment Project',
-        description: `Our proposal focuses on developing new methodologies for rapid water quality assessment in urban 
-          environments. We will integrate IoT sensors with traditional analytical methods to create a comprehensive 
-          monitoring system. Our team brings expertise in both environmental science and data analytics.`,
-        user: users.mariaPatel,
-        timestamp: '4d ago',
-        hub: hubs.environmentalScience,
-        metrics: {
-          votes: 8,
-          comments: 2,
-          reposts: 0,
-          saves: 0
-        },
-        amount: 500000,
-        deadline: '30 days'
+      status: 'under_review',
+      metrics: {
+        votes: 12,
+        comments: 3
       }
     }
   ]
