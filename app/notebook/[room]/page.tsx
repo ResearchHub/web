@@ -14,6 +14,7 @@ import { Toolbar } from '@/app/components/Editor/components/ui/Toolbar'
 import { Icon } from '@/app/components/Editor/components/ui/Icon'
 import { useCollaboration } from '@/app/components/Editor/hooks/useCollaboration'
 import NotebookLayout from '../layout/NotebookLayout'
+import { PageLayout } from '@/app/layouts/PageLayout'
 
 const useDarkmode = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(
@@ -100,9 +101,9 @@ export default function Document({ params }: { params: { room: string } }) {
   )
 
   return (
-    <NotebookLayout>
+    <PageLayout>
       {DarkModeSwitcher}
       <BlockEditor aiToken={aiToken ?? undefined} ydoc={providerState.yDoc} provider={providerState.provider} />
-    </NotebookLayout>
+    </PageLayout>
   )
 }

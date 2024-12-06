@@ -1,9 +1,7 @@
 'use client'
 
 import { 
-  Home, Coins, GraduationCap, Store, BookOpen, 
-  Star, BadgeCheck, FlaskConical, Notebook, ChevronDown,
-  AlertCircle 
+  FlaskConical
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { FooterLinks } from '../components/FooterLinks';
@@ -11,7 +9,6 @@ import { Navigation } from './Navigation';
 import { useState } from 'react';
 import NotebookSidebar from '../notebook/layout/LeftSidebar';
 import { NotebookTransition } from '../components/transitions/NotebookTransition';
-import { NotebookToggle } from '@/app/components/shared/NotebookToggle';
 import toast from 'react-hot-toast';
 
 interface LeftSidebarProps {
@@ -44,16 +41,6 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
         border: '1px solid #FDBA74', // Orange-300
       },
     });
-  };
-
-  const handleToggleView = () => {
-    if (isNotebookView) {
-      setIsExiting(true);
-      setIsTransitioning(true);
-    } else {
-      setIsExiting(false);
-      setIsTransitioning(true);
-    }
   };
 
   const handleTransitionComplete = () => {
@@ -90,10 +77,6 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               onUnimplementedFeature={handleUnimplementedFeature}
             />
           </div>
-        </div>
-
-        <div className="mt-auto">
-          <NotebookToggle isNotebookView={false} />
         </div>
 
         <FooterLinks />
