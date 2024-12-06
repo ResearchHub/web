@@ -70,10 +70,10 @@ const ResearchFeed: React.FC = () => {
           onComplete={handleInterestSelection}
         />
       ) : (
-        <div className="space-y-4">
+        <div className="divide-y divide">
           {getFeedContent().map((entry: FeedEntry) => (
             entry && (
-              <div key={entry.id} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+              <div key={entry.id} className="bg-white transition-shadow duration-200 pb-6 first:pt-4 pt-10">
                 <FeedItemComponent entry={entry} />
               </div>
             )

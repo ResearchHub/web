@@ -82,7 +82,6 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
   const isBioRxiv = actor.fullName.toLowerCase().includes('biorxiv')
 
   return (
-    <div className="p-6">
       <div className="flex flex-col">
         <div className="flex items-start mb-3">
           <div 
@@ -386,6 +385,5 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
           </Button>
         </div>
       </div>
-    </div>
   );
 };
