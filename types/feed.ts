@@ -29,10 +29,8 @@ export type Metrics = {
 
 export type FeedActionType = 
   | 'post'
-  | 'share'
+  | 'repost'
   | 'contribute'
-  | 'apply'
-  | 'review'
   | 'publish';
 
 export type ItemType = 

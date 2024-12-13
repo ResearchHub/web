@@ -2,7 +2,7 @@
 
 import { FC, useState } from 'react';
 import { feedEntries } from '@/store/feedStore';
-import { FeedEntry, FeedItemType } from '@/types/feed';
+import { FeedEntry, FeedItemType, FundingRequestItem, PaperType } from '@/types/feed';
 import {
   MessageCircle,
   Repeat,
@@ -21,41 +21,80 @@ import { UserStack } from './ui/UserStack';
 const FeedItemHeader: FC<{
   actor: FeedEntry['actor'];
   timestamp: string;
-  action: FeedEntry['action'];
+  action: FeedActionType;
   item: FeedItemType;
-}> = ({ actor, timestamp, item }) => {
+}> = ({ actor, timestamp, action, item }) => {
 
   const getActionText = () => {
-    switch (item.type) {
-        case 'funding_request':
-        return 'Crowdfund campaign';
-        case 'paper':
-        return 'Paper';
-        case 'comment':
-        return 'Comment';
-        default:
-        return 'Post';
+    // Special actions that always have the same text
+    switch (action) {
+      case 'repost':
+        return 'Reposted';
+      case 'contribute':
+        return 'Contributed RSC';
+      case 'publish':
+        return 'Published';
     }
+
+    // For 'post' action, text depends on item type
+    if (action === 'post') {
+      switch (item.type) {
+        case 'comment':
+          return 'Commented';
+        case 'funding_request':
+          return 'Started crowdfund';
+        case 'reward':
+          return 'Opened reward';
+        case 'grant':
+          return 'Published grant';
+        case 'paper':
+          return 'Published paper';
+        case 'review':
+          return 'Reviewed';
+        case 'contribution':
+          return 'Contributed';
+        default:
+          return 'Posted';
+      }
+    }
+
+    return 'Posted'; // fallback
   };
 
   const getActionIcon = () => {
-    switch (item.type) {
-      case 'comment':
-        return <MessageCircle className="w-4 h-4 text-gray-500" />;
+    // Special actions that always have the same icon
+    switch (action) {
       case 'repost':
         return <Repeat className="w-4 h-4 text-gray-500" />;
-    case 'funding_request':
-        return <HandCoins className="w-4 h-4 text-gray-500" />;        
-      case 'tip':
       case 'contribute':
         return <Coins className="w-4 h-4 text-gray-500" />;
-      case 'reward':
-        return <Award className="w-4 h-4 text-gray-500" />;
-      case 'review':
-        return <Star className="w-4 h-4 text-gray-500" />;
-      default:
+      case 'publish':
         return <FileText className="w-4 h-4 text-gray-500" />;
     }
+
+    // For 'post' action, icon depends on item type
+    if (action === 'post') {
+      switch (item.type) {
+        case 'comment':
+          return <MessageCircle className="w-4 h-4 text-gray-500" />;
+        case 'funding_request':
+          return <HandCoins className="w-4 h-4 text-gray-500" />;
+        case 'reward':
+          return <Award className="w-4 h-4 text-gray-500" />;
+        case 'grant':
+          return <Award className="w-4 h-4 text-gray-500" />;
+        case 'paper':
+          return <FileText className="w-4 h-4 text-gray-500" />;
+        case 'review':
+          return <Star className="w-4 h-4 text-gray-500" />;
+        case 'contribution':
+          return <Coins className="w-4 h-4 text-gray-500" />;
+        default:
+          return <FileText className="w-4 h-4 text-gray-500" />;
+      }
+    }
+
+    return <FileText className="w-4 h-4 text-gray-500" />; // fallback
   };
 
   return (
@@ -75,7 +114,7 @@ const FeedItemHeader: FC<{
           <div className="flex items-center mt-0.5 space-x-2 text-sm">
             <span className="flex items-center space-x-2 text-gray-500">
               {getActionIcon()}
-              <span className="capitalize">{getActionText()}</span>
+              <span>{getActionText()}</span>
             </span>
           </div>
         </div>
@@ -90,7 +129,8 @@ const FeedItemHeader: FC<{
 const FeedItemBody: FC<{
   item: FeedItemType;
   relatedItem?: FeedEntry['relatedItem'];
-}> = ({ item, relatedItem }) => {
+  action: FeedEntry['action'];
+}> = ({ item, relatedItem, action }) => {
   const [showFullDescription, setShowFullDescription] = useState(false);
 
   const renderComment = () => {
@@ -174,6 +214,26 @@ const FeedItemBody: FC<{
     );
   };
 
+  const renderContent = () => {
+    if (action === 'repost') {
+      return (
+        <div className="pl-4 border-l-2 border-gray-200">
+          {item.type === 'paper' && renderPaper()}
+          {item.type === 'funding_request' && renderFundingRequest()}
+          {item.type === 'comment' && renderComment()}
+        </div>
+      );
+    }
+
+    return (
+      <>
+        {item.type === 'paper' && renderPaper()}
+        {item.type === 'funding_request' && renderFundingRequest()}
+        {item.type === 'comment' && renderComment()}
+      </>
+    );
+  };
+
   return (
     <div className="mt-4">
       {relatedItem && (
@@ -181,10 +241,7 @@ const FeedItemBody: FC<{
           RE: <span className="text-blue-500 hover:underline cursor-pointer">{relatedItem.title}</span>
         </div>
       )}
-
-      {item.type === 'comment' && renderComment()}
-      {item.type === 'funding_request' && renderFundingRequest()}
-      {item.type === 'paper' && renderPaper()}
+      {renderContent()}
     </div>
   );
 };
@@ -220,7 +277,7 @@ const FeedItem: FC<{ entry: FeedEntry }> = ({ entry }) => {
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 hover:shadow-md transition-shadow duration-200">
       <div className="p-4">
         <FeedItemHeader actor={actor} timestamp={timestamp} action={action} item={item} />
-        <FeedItemBody item={item} relatedItem={relatedItem} />
+        <FeedItemBody item={item} relatedItem={relatedItem} action={action} />
         <FeedItemActions metrics={metrics} />
       </div>
     </div>

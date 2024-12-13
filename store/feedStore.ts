@@ -6,7 +6,7 @@ import { hubs } from './hubStore';
 export const feedEntries: FeedEntry[] = [
   {
     id: 'feed-comment-2',
-    action: 'comment',
+    action: 'post',
     actor: users.sarahChen,
     timestamp: '2h ago',
     item: {
@@ -158,7 +158,7 @@ export const feedEntries: FeedEntry[] = [
   },
   {
     id: 'feed-5',
-    action: 'review',
+    action: 'post',
     actor: users.elenaRodriguez,
     timestamp: '2h ago',
     item: {
@@ -290,7 +290,7 @@ export const feedEntries: FeedEntry[] = [
     timestamp: '3h ago',
     item: {
       id: 'item-11',
-      type: 'funding_request' as const,
+      type: 'funding_request',
       title: 'ML for Early Detection of Neurodegenerative Diseases',
       description: 'Developing AI models to identify early biomarkers of neurodegeneration.',
       user: users.sarahChen,
@@ -310,95 +310,6 @@ export const feedEntries: FeedEntry[] = [
     metrics: {
       votes: 28,
       comments: 15,
-      reposts: 3,
-      saves: 5
-    },    
-  },
-  {
-    id: 'marketplace-2',
-    action: 'post',
-    actor: users.davidKumar,
-    timestamp: '1d ago',
-    item: {
-      id: 'item-12',
-      type: 'funding_request' as const,
-      title: 'Sustainable Battery Materials Research',
-      description: 'Investigating novel eco-friendly materials for next-generation battery technology with improved efficiency.',
-      user: users.davidKumar,
-      timestamp: '1d ago',
-      hub: hubs.environmentalScience,
-      amount: 12000,
-      goalAmount: 50000,
-      progress: 24,
-      contributors: [
-        users.elenaRodriguez,
-        users.mariaPatel,
-        users.openBiologyInitiative
-      ]
-    },
-    metrics: {
-      votes: 45,
-      comments: 23,
-      reposts: 3,
-      saves: 5
-    },    
-  },
-  {
-    id: 'marketplace-3',
-    action: 'post',
-    actor: users.elenaRodriguez,
-    timestamp: '2d ago',
-    item: {
-      id: 'item-13',
-      type: 'funding_request' as const,
-      title: 'CRISPR Gene Therapy for Rare Diseases',
-      description: 'Developing targeted gene therapy approaches for treating rare genetic disorders using CRISPR-Cas9.',
-      user: users.elenaRodriguez,
-      timestamp: '2d ago',
-      hub: hubs.genetics,
-      amount: 95000,
-      goalAmount: 100000,
-      progress: 95,
-      contributors: [
-        users.stanfordAILab,
-        users.openBiologyInitiative,
-        users.bioRxiv,
-        users.elenaRodriguez,
-        users.nationalScienceFoundation
-      ]
-    },
-    metrics: {
-      votes: 156,
-      comments: 42,
-      reposts: 3,
-      saves: 5
-    },    
-  },
-  {
-    id: 'marketplace-4',
-    action: 'post',
-    actor: users.jamesWilson,
-    timestamp: '4d ago',
-    item: {
-      id: 'item-14',
-      type: 'funding_request',
-      title: 'Urban Air Quality Monitoring Network',
-      description: 'Creating a network of low-cost air quality sensors for real-time urban pollution monitoring and analysis.',
-      user: users.jamesWilson,
-      timestamp: '4d ago',
-      hub: hubs.environmentalScience,
-      contributors: [
-        users.elenaRodriguez,
-        users.dominikus,
-        users.bioRxiv
-      ],      
-      amount: 3500,
-      goalAmount: 15000,
-      progress: 23
-    },
-    metrics: {
-      votes: 12,
-      comments: 8,
       reposts: 3,
       saves: 5
     },    
