@@ -51,7 +51,6 @@ export type BaseItem = {
   user: User;
   timestamp: string;
   hub: Hub;
-  metrics: Metrics;
   isPinned?: boolean;
 };
 
@@ -96,19 +95,51 @@ export type ContributionItem = BaseItem & {
   amount: number;
 };
 
-export type Item = 
+export type CommentType = {
+  id: string;
+  type: 'comment';
+  content: string;
+  user: User;
+  timestamp: string;
+  parent?: CommentType;
+}
+
+export type PaperType = {
+  id: string;
+  type: 'paper';
+  title: string;
+  description: string;
+  user: User;
+  timestamp: string;
+  hub: Hub;
+  authors?: Array<{ name: string; verified: boolean }>;
+  doi?: string;
+  journal?: string;
+}
+
+export type FeedItemType = 
+  | CommentType 
+  | PaperType 
   | FundingRequestItem
   | GrantItem
-  | PaperItem
-  | ReviewItem
   | RewardItem
-  | ContributionItem;
+  | ContributionItem
+  | ReviewItem;
 
 export type FeedEntry = {
   id: string;
-  action: FeedActionType;
+  action: 'comment' | 'post' | 'repost' | 'review' | 'contribute' | 'publish' | 'tip';
   actor: User;
   timestamp: string;
-  item: Item;
-  relatedItem?: Item;
-}; 
+  metrics: Metrics;
+  item: FeedItemType;
+  relatedItem?: FeedItemType;
+} 
+
+export type Item = 
+  | PaperType 
+  | FundingRequestItem 
+  | GrantItem 
+  | RewardItem 
+  | ContributionItem
+  | CommentType; 

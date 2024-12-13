@@ -87,7 +87,7 @@ export const users: Record<string, User> = {
       verified: false,
       isOrganization: false,
       isVerified: false,
-      profileImage: "https://lh3.googleusercontent.com/a/ACg8ocIi10fNj-bjJh_6tKyaZ1PeC-hTcVvlHSMYLK-5LjXvuwmhpMxY=s96-c",
+      profileImage: "https://lh3.googleusercontent.com/a/ACg8ocKjrm4IKJD-j0EBm_l6Dq3e-9k6UG9Cw4LYeqvY2ivA1B69f4fE=s96-c",
     },
     mariaPatel: {
       id: 'maria-002',

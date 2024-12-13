@@ -19,14 +19,22 @@ import {
 } from 'lucide-react';
 import Link from 'next/link'
 import { ProfileTooltip } from './tooltips/ProfileTooltip'
-import { FeedEntry, FundingRequestItem, GrantItem, Item, RewardItem } from '@/types/feed'
+import { 
+  CommentType,  // Add this import
+  FeedEntry, 
+  FundingRequestItem, 
+  GrantItem, 
+  Item, 
+  PaperType,
+  RewardItem 
+} from '@/types/feed'
 import { Button } from '@/app/components/ui/Button';
 import { UserStack } from './ui/UserStack';
 import { useRouter } from 'next/navigation'
 
 // Type guard to check if an item has contributors
-const hasContributors = (item: Item): item is FundingRequestItem | GrantItem | RewardItem => {
-  return item.type === 'funding_request' || item.type === 'grant';
+const hasContributors = (item: Item): item is (FundingRequestItem | GrantItem | RewardItem) => {
+  return 'contributors' in item;
 };
 
 // Helper function to format numbers with commas
@@ -71,15 +79,91 @@ const getItemUrl = (item: Item) => {
   }
 };
 
+const renderComment = (comment: CommentType, isParent: boolean = false, relatedItem?: Item) => {
+  return (
+    <div className={`flex ${isParent ? 'mb-4 relative' : ''}`}>
+      <div className="flex-shrink-0 relative">
+        {comment.user.profileImage ? (
+          <img 
+            src={comment.user.profileImage} 
+            alt={comment.user.fullName} 
+            className="h-10 w-10 rounded-full object-cover ring-2 ring-gray-200 relative z-10 bg-white"
+          />
+        ) : (
+          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center ring-2 ring-gray-200 relative z-10 bg-white">
+            <CircleUser className="h-6 w-6 text-gray-400" />
+          </div>
+        )}
+        {isParent && (
+          <div className="absolute left-1/2 top-10 bottom-0 w-0.5 bg-gray-200 -translate-x-1/2" 
+               style={{ height: 'calc(100% + 16px)' }} />
+        )}
+      </div>
+
+      <div className="flex-1 ml-4">
+        <div className="flex flex-col">
+          <div className="flex items-center">
+            <ProfileTooltip
+              type={comment.user.isOrganization ? 'organization' : 'user'}
+              name={comment.user.fullName}
+              headline={comment.user.isOrganization ? 'Organization' : 'Researcher'}
+              verified={comment.user.isVerified}
+            >
+              <span className="font-medium text-gray-900 hover:text-indigo-600 cursor-pointer">
+                {comment.user.fullName}
+              </span>
+            </ProfileTooltip>
+            <span className="mx-2 text-gray-500">•</span>
+            <span className="text-sm text-gray-500">{comment.timestamp}</span>
+          </div>
+
+          {relatedItem && (
+            <div className="text-sm mb-1">
+              RE: <Link href={getItemUrl(relatedItem)} className="text-indigo-600 hover:text-indigo-700">
+                {relatedItem.title}
+              </Link>
+            </div>
+          )}
+
+          <p className="text-gray-700">{comment.content}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Type guard for paper items
+const isPaper = (item: Item): item is PaperType => {
+  return item.type === 'paper';
+};
+
 export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
   const router = useRouter()
-  if (!entry) {
-    return null; // Or return a placeholder/skeleton component
+  
+  if (!entry || !entry.item) {
+    return null;
   }
 
   const { actor, item } = entry
   const isOrganization = actor.isOrganization
-  const isBioRxiv = actor.fullName.toLowerCase().includes('biorxiv')
+
+  if (item.type === 'comment') {
+    return (
+      <div className="p-6">
+        <div className="relative">
+          {item.parent && (
+            <div className="mb-4">
+              {renderComment(item.parent, true, entry.relatedItem)}
+            </div>
+          )}
+          
+          <div className={`${item.parent ? 'ml-14' : ''}`}>
+            {renderComment(item)}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">

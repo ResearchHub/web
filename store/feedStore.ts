@@ -5,6 +5,41 @@ import { hubs } from './hubStore';
 
 export const feedEntries: FeedEntry[] = [
   {
+    id: 'feed-comment-2',
+    action: 'comment',
+    actor: users.sarahChen,
+    timestamp: '2h ago',
+    item: {
+      id: 'comment-2',
+      type: 'comment',
+      content: "Thank you for the feedback! We're currently working on extending this to regional models.",
+      user: users.sarahChen,
+      timestamp: '2h ago',
+      parent: {
+        id: 'comment-1',
+        type: 'comment',
+        content: 'The methodology presented here opens up exciting possibilities for climate modeling. The use of transformer architectures is particularly innovative.',
+        user: users.jamesWilson,
+        timestamp: '3h ago',
+      }
+    },
+    relatedItem: {
+      id: 'paper-neural-networks',
+      type: 'paper',
+      title: 'Neural Networks in Climate Prediction',
+      description: 'A novel approach to climate modeling using transformer architectures.',
+      user: users.sarahChen,
+      timestamp: '1d ago',
+      hub: hubs.climateScience
+    },
+    metrics: {
+      votes: 8,
+      comments: 1,
+      reposts: 0,
+      saves: 1
+    }    
+  },
+  {
     id: 'feed-2',
     action: 'post',
     actor: users.dominikus,
@@ -17,12 +52,6 @@ export const feedEntries: FeedEntry[] = [
       user: users.dominikus,
       timestamp: 'Oct 9, 2024',
       hub: hubs.researchMethods,
-      metrics: {
-        votes: 45,
-        comments: 21,
-        reposts: 12,
-        saves: 18
-      },
       amount: 30131,
       goalAmount: 36389,
       progress: 85,
@@ -34,27 +63,27 @@ export const feedEntries: FeedEntry[] = [
         users.davidKumar
         
       ]
-    }
+    },
+    metrics: {
+      votes: 45,
+      comments: 21,
+      reposts: 12,
+      saves: 18
+    },    
   },
   {
     id: 'feed-1',
-    action: 'share',
+    action: 'repost',
     actor: users.bioRxiv,
     timestamp: 'Oct 18, 2024',
     item: {
       id: 'item-1',
       type: 'paper',
       title: "Deoxysphingolipids Activate CGAS-STING In Colon Cancer Cells And Enhance Tumor Immunity",
-      description: "Bioactive sphingolipids (SLs) play critical roles in cellular function, including modifying the oncogenic potential of cancer cells. Depletion of the non-essential amino acid serine induces an intracellular shift from the generation of canonical SLs to non-canonical SLs known as deoxySLs, which can exert antitumor effects. Recent evidence has shown that restricting endogenous and exogenous sources of serine from cancer cells promotes antitumor immunity by activating the cyclic GMP-AMP Synthase-Stimulator of Interferon Genes (cGAS-STING) pathway. However, it is not known whether deoxySLs play a role in mediating this antitumor immune response. In this study, we demonstrated that depleting both externally supplied and internally synthesized serine from CT26 colon cancer cells maximally increased the levels of deoxySLs compared to removing either source alone. The ability of serine restriction to induce cytosolic accumulation of mitochondrial DNA (mtDNA) and subsequent activation of cGAS-STING components, including downstream Type I interferons (IFNs) was prevented by blocking deoxySL generation with the serine-palmitoyl transferase (SPT) inhibitor, myriocin. Direct administration of deoxysphinganine to cells induced mitochondrial dysfunction, in association with accumulation of cytosolic mtDNA, and increased expression of cGAS-STING components and Type I IFNs. A similar increase in IFNs was observed following mutation of SPT or supplementation of WT cells with alanine. Increasing deoxySLs in tumors through SPT mutation or feeding an alanine-enriched diet suppressed tumor growth in mice, while combining SPT mutation with a high alanine diet accentuated the antitumor effects. The observed tumor growth suppression was associated with increased infiltration of activated dendritic and cytotoxic T cells. Collectively, these findings reveal a novel role for deoxySLs in mediating antitumor immunity and provide support for the potential of using diet modification as an anticancer approach.",
+      description: "Bioactive sphingolipids (SLs) play critical roles in cellular function, including modifying the oncogenic potential of cancer cells. Depletion of the non-essential amino acid serine induces an intracellular shift from the generation of canonical SLs to non-canonical SLs known as deoxySLs, which can exert antitumor effects. Recent evidence has shown that restricting endogenous and exogenous sources of serine from cancer cells promotes antitumor immunity by activating the cyclic GMP-AMP Synthase-Stimulator of Interferon Genes (cGAS-STING) pathway. However, it is not known whether deoxySLs play a role in mediating this antitumor immune response. In this study, we demonstrated that depleting both externally supplied and internally synthesized serine from CT26 colon cancer cells maximally increased the levels of deoxySLs compared to removing either source alone. The ability of serine restriction to induce cytosolic accumulation of mitochondrial DNA (mtDNA) and subsequent activation of cGAS-STING components, including downstream Type I interferons (IFNs) was prevented by blocking deoxySLs generation with the serine-palmitoyl transferase (SPT) inhibitor, myriocin. Direct administration of deoxysphinganine to cells induced mitochondrial dysfunction, in association with accumulation of cytosolic mtDNA, and increased expression of cGAS-STING components and Type I IFNs. A similar increase in IFNs was observed following mutation of SPT or supplementation of WT cells with alanine. Increasing deoxySLs in tumors through SPT mutation or feeding an alanine-enriched diet suppressed tumor growth in mice, while combining SPT mutation with a high alanine diet accentuated the antitumor effects. The observed tumor growth suppression was associated with increased infiltration of activated dendritic and cytotoxic T cells. Collectively, these findings reveal a novel role for deoxySLs in mediating antitumor immunity and provide support for the potential of using diet modification as an anticancer approach.",
       user: users.bioRxiv,
       timestamp: 'Oct 18, 2024',
       hub: hubs.molecularBiology,
-      metrics: {
-        votes: 8,
-        comments: 12,
-        reposts: 3,
-        saves: 5
-      },
       authors: [
         { name: "Suchandrima Saha", verified: true },
         { name: "Fabiola Velázquez", verified: false },
@@ -62,7 +91,13 @@ export const feedEntries: FeedEntry[] = [
       ],
       doi: "10.1101/2024.10.16.618749",
       journal: "bioRxiv (Cold Spring Harbor Laboratory)"
-    }
+    },
+    metrics: {
+      votes: 8,
+      comments: 12,
+      reposts: 3,
+      saves: 5
+    },    
   },  
   {
     id: 'feed-3',
@@ -77,16 +112,16 @@ export const feedEntries: FeedEntry[] = [
       user: users.researchHub,
       timestamp: '1h ago',
       hub: hubs.neuroscience,
-      metrics: {
-        votes: 15,
-        comments: 4,
-        reposts: 2,
-        saves: 3
-      },
       amount: 500,
       deadline: '3 days',
       difficulty: 'Advanced'
-    }
+    },
+    metrics: {
+      votes: 15,
+      comments: 4,
+      reposts: 2,
+      saves: 3
+    },    
   },
   {
     id: 'feed-4',
@@ -101,13 +136,6 @@ export const feedEntries: FeedEntry[] = [
       user: users.adamDraper,
       timestamp: '1h ago',
       hub: hubs.environmentalScience,
-      metrics: {
-        votes: 32,
-        comments: 12,
-        applicants: 8,
-        reposts: 3,
-        saves: 5
-      },
       amount: 500000,
       applicants: [
         users.elenaRodriguez,
@@ -119,7 +147,14 @@ export const feedEntries: FeedEntry[] = [
         users.mariaGarcia,
         users.hundessaNemomssa
       ]
-    }
+    },
+    metrics: {
+      votes: 32,
+      comments: 12,
+      applicants: 8,
+      reposts: 3,
+      saves: 5
+    },    
   },
   {
     id: 'feed-5',
@@ -134,14 +169,14 @@ export const feedEntries: FeedEntry[] = [
       user: users.elenaRodriguez,
       timestamp: '2h ago',
       hub: hubs.medicalDevices,
-      metrics: {
-        votes: 12,
-        comments: 3,
-        reviewScore: 4,
-        reposts: 2,
-        saves: 3
-      },
       amount: 150
+    },
+    metrics: {
+      votes: 12,
+      comments: 3,
+      reviewScore: 4,
+      reposts: 2,
+      saves: 3
     }
   },
   {
@@ -157,12 +192,6 @@ export const feedEntries: FeedEntry[] = [
       user: users.alexThompson,
       timestamp: '15m ago',
       hub: hubs.neuroscience,
-      metrics: {
-        votes: 12,
-        comments: 3,
-        reposts: 2,
-        saves: 3
-      },
       amount: 500
     },
     relatedItem: {
@@ -173,12 +202,6 @@ export const feedEntries: FeedEntry[] = [
       user: users.sarahChen,
       timestamp: '3h ago',
       hub: hubs.neuroscience,
-      metrics: {
-        votes: 28,
-        comments: 15,
-        reposts: 3,
-        saves: 5
-      },
       amount: 45000,
       goalAmount: 75000,
       progress: 60,
@@ -187,7 +210,13 @@ export const feedEntries: FeedEntry[] = [
         users.elenaRodriguez,
         users.dominikus
       ]
-    }
+    },
+    metrics: {
+      votes: 12,
+      comments: 3,
+      reposts: 2,
+      saves: 3
+    },    
   },  
   {
     id: 'feed-6',
@@ -202,19 +231,19 @@ export const feedEntries: FeedEntry[] = [
       user: users.hundessaNemomssa,
       timestamp: '4h ago',
       hub: hubs.medicalDevices,
-      metrics: {
-        votes: 24,
-        comments: 7,
-        reposts: 2,
-        saves: 3
-      },
       authors: [
         { name: "John Doe", verified: true },
         { name: "Jane Smith", verified: false }
       ],
       doi: "10.1101/2024.10.16.618750",
       journal: "Journal of Medical Devices"
-    }
+    },
+    metrics: {
+      votes: 24,
+      comments: 7,
+      reposts: 2,
+      saves: 3
+    },    
   },
   {
     id: 'feed-8',
@@ -229,12 +258,6 @@ export const feedEntries: FeedEntry[] = [
       user: users.mariaGarcia,
       timestamp: '45m ago',
       hub: hubs.dataScience,
-      metrics: {
-        votes: 8,
-        comments: 5,
-        reposts: 2,
-        saves: 3
-      },
       amount: 750
     },
     relatedItem: {
@@ -245,12 +268,6 @@ export const feedEntries: FeedEntry[] = [
       user: users.researchHub,
       timestamp: '2d ago',
       hub: hubs.dataScience,
-      metrics: {
-        votes: 20,
-        comments: 10,
-        reposts: 3,
-        saves: 5
-      },
       amount: 2000,
       deadline: '5 days',
       difficulty: 'Intermediate',
@@ -258,7 +275,13 @@ export const feedEntries: FeedEntry[] = [
         users.mariaGarcia,
         users.alexThompson
       ]
-    }
+    },
+    metrics: {
+      votes: 20,
+      comments: 10,
+      reposts: 3,
+      saves: 5
+    },    
   },
   {
     id: 'marketplace-1',
@@ -273,12 +296,6 @@ export const feedEntries: FeedEntry[] = [
       user: users.sarahChen,
       timestamp: '3h ago',
       hub: hubs.neuroscience,
-      metrics: {
-        votes: 28,
-        comments: 15,
-        reposts: 3,
-        saves: 5
-      },
       amount: 45000,
       goalAmount: 75000,
       progress: 60,
@@ -289,7 +306,13 @@ export const feedEntries: FeedEntry[] = [
         users.mariaGarcia,
         users.davidKumar
       ]
-    }
+    },
+    metrics: {
+      votes: 28,
+      comments: 15,
+      reposts: 3,
+      saves: 5
+    },    
   },
   {
     id: 'marketplace-2',
@@ -304,12 +327,6 @@ export const feedEntries: FeedEntry[] = [
       user: users.davidKumar,
       timestamp: '1d ago',
       hub: hubs.environmentalScience,
-      metrics: {
-        votes: 45,
-        comments: 23,
-        reposts: 3,
-        saves: 5
-      },
       amount: 12000,
       goalAmount: 50000,
       progress: 24,
@@ -318,7 +335,13 @@ export const feedEntries: FeedEntry[] = [
         users.mariaPatel,
         users.openBiologyInitiative
       ]
-    }
+    },
+    metrics: {
+      votes: 45,
+      comments: 23,
+      reposts: 3,
+      saves: 5
+    },    
   },
   {
     id: 'marketplace-3',
@@ -333,12 +356,6 @@ export const feedEntries: FeedEntry[] = [
       user: users.elenaRodriguez,
       timestamp: '2d ago',
       hub: hubs.genetics,
-      metrics: {
-        votes: 156,
-        comments: 42,
-        reposts: 3,
-        saves: 5
-      },
       amount: 95000,
       goalAmount: 100000,
       progress: 95,
@@ -349,7 +366,13 @@ export const feedEntries: FeedEntry[] = [
         users.elenaRodriguez,
         users.nationalScienceFoundation
       ]
-    }
+    },
+    metrics: {
+      votes: 156,
+      comments: 42,
+      reposts: 3,
+      saves: 5
+    },    
   },
   {
     id: 'marketplace-4',
@@ -364,12 +387,6 @@ export const feedEntries: FeedEntry[] = [
       user: users.jamesWilson,
       timestamp: '4d ago',
       hub: hubs.environmentalScience,
-      metrics: {
-        votes: 12,
-        comments: 8,
-        reposts: 3,
-        saves: 5
-      },
       contributors: [
         users.elenaRodriguez,
         users.dominikus,
@@ -378,7 +395,13 @@ export const feedEntries: FeedEntry[] = [
       amount: 3500,
       goalAmount: 15000,
       progress: 23
-    }
+    },
+    metrics: {
+      votes: 12,
+      comments: 8,
+      reposts: 3,
+      saves: 5
+    },    
   },
   {
     id: 'marketplace-5',
@@ -393,16 +416,16 @@ export const feedEntries: FeedEntry[] = [
       user: users.mariaPatel,
       timestamp: '5d ago',
       hub: hubs.quantumComputing,
-      metrics: {
-        votes: 89,
-        comments: 31,
-        reposts: 3,
-        saves: 5
-      },
       amount: 68000,
       goalAmount: 70000,
       progress: 97
-    }
+    },
+    metrics: {
+      votes: 89,
+      comments: 31,
+      reposts: 3,
+      saves: 5
+    },    
   },
   {
     id: 'marketplace-8',
@@ -417,16 +440,16 @@ export const feedEntries: FeedEntry[] = [
       user: users.stanfordAILab,
       timestamp: '1d ago',
       hub: hubs.artificialIntelligence,
-      metrics: {
-        votes: 24,
-        comments: 7,
-        reposts: 3,
-        saves: 5
-      },
       amount: 300,
       deadline: '14 days',
       difficulty: 'Intermediate'
-    }
+    },
+    metrics: {
+      votes: 24,
+      comments: 7,
+      reposts: 3,
+      saves: 5
+    },    
   },
   {
     id: 'marketplace-9',
@@ -441,16 +464,16 @@ export const feedEntries: FeedEntry[] = [
       user: users.climateResearchInstitute,
       timestamp: '4d ago',
       hub: hubs.climateScience,
-      metrics: {
-        votes: 18,
-        comments: 5,
-        reposts: 3,
-        saves: 5
-      },
       amount: 250,
       deadline: '30 days',
       difficulty: 'Intermediate'
-    }
+    },
+    metrics: {
+      votes: 18,
+      comments: 5,
+      reposts: 3,
+      saves: 5
+    },    
   },
   {
     id: 'marketplace-10',
@@ -465,16 +488,16 @@ export const feedEntries: FeedEntry[] = [
       user: users.openBiologyInitiative,
       timestamp: '2d ago',
       hub: hubs.biology,
-      metrics: {
-        votes: 9,
-        comments: 2,
-        reposts: 3,
-        saves: 5
-      },
       amount: 200,
       deadline: '20 days',
       difficulty: 'Beginner'
-    }
+    },
+    metrics: {
+      votes: 9,
+      comments: 2,
+      reposts: 3,
+      saves: 5
+    },    
   },
   {
     id: 'marketplace-11',
@@ -489,12 +512,6 @@ export const feedEntries: FeedEntry[] = [
       user: users.nationalScienceFoundation,
       timestamp: '2d ago',
       hub: hubs.climateScience,
-      metrics: {
-        votes: 45,
-        comments: 8,
-        reposts: 3,
-        saves: 5
-      },
       amount: 750000,
       deadline: '30 days',
       contributors: [
@@ -509,50 +526,56 @@ export const feedEntries: FeedEntry[] = [
         users.davidKumar,
         users.sarahChen
       ]
-    }
+    },
+    metrics: {
+      votes: 45,
+      comments: 8,
+      reposts: 3,
+      saves: 5
+    },    
   }
 ];
 
-export function searchFeedItems(query: string): FeedEntry[] {
-  if (!query.trim()) return [];
+// export function searchFeedItems(query: string): FeedEntry[] {
+//   if (!query.trim()) return [];
   
-  const searchTerm = query.toLowerCase().trim();
+//   const searchTerm = query.toLowerCase().trim();
   
-  return feedEntries.filter(entry => {
-    const item = entry.item;
+//   return feedEntries.filter(entry => {
+//     const item = entry.item;
     
-    // Common searchable fields that exist on all items
-    const searchableFields = [
-      item.title,
-      item.description,
-      item.type,
-      item.hub.name,
-      item.user.fullName
-    ];
+//     // Common searchable fields that exist on all items
+//     const searchableFields = [
+//       item.title,
+//       item.description,
+//       item.type,
+//       item.hub.name,
+//       item.user.fullName
+//     ];
     
-    // Add type-specific searchable fields
-    switch (item.type) {
-      case 'paper':
-        if ('authors' in item && item.authors) {
-          const authorNames = item.authors.map(author => author.name);
-          searchableFields.push(...authorNames);
-          if ('doi' in item) searchableFields.push(item.doi);
-          if ('journal' in item) searchableFields.push(item.journal);
-        }
-        break;
+//     // Add type-specific searchable fields
+//     switch (item.type) {
+//       case 'paper':
+//         if ('authors' in item && item.authors) {
+//           const authorNames = item.authors.map(author => author.name);
+//           searchableFields.push(...authorNames);
+//           if ('doi' in item) searchableFields.push(item.doi);
+//           if ('journal' in item) searchableFields.push(item.journal);
+//         }
+//         break;
       
-      case 'funding_request':
-      case 'reward':
-      case 'grant':
-        if ('amount' in item) {
-          searchableFields.push(item.amount.toString());
-        }
-        break;
-    }
+//       case 'funding_request':
+//       case 'reward':
+//       case 'grant':
+//         if ('amount' in item) {
+//           searchableFields.push(item.amount.toString());
+//         }
+//         break;
+//     }
     
-    // Return true if any field contains the search term
-    return searchableFields.some(field => 
-      field?.toString().toLowerCase().includes(searchTerm)
-    );
-  });
-}
+//     // Return true if any field contains the search term
+//     return searchableFields.some(field => 
+//       field?.toString().toLowerCase().includes(searchTerm)
+//     );
+//   });
+// }
