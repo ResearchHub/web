@@ -89,7 +89,9 @@ export const feedEntries: FeedEntry[] = [
       authors: [
         { name: "Suchandrima Saha", verified: true },
         { name: "Fabiola Velázquez", verified: false },
-        { name: "David Montrose", verified: true }
+        { name: "David Montrose", verified: true },
+        { name: "Hundessa Nemomssa", verified: false },
+        { name: "Sarah Chen", verified: true },
       ],
       doi: "10.1101/2024.10.16.618749",
       journal: "bioRxiv (Cold Spring Harbor Laboratory)"

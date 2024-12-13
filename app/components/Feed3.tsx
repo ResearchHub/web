@@ -17,6 +17,7 @@ import {
   HandCoins,
 } from 'lucide-react';
 import { UserStack } from './ui/UserStack';
+import { AuthorList } from './ui/AuthorList'
 
 const FeedItemHeader: FC<{
   actor: FeedEntry['actor'];
@@ -220,13 +221,23 @@ const FeedItemBody: FC<{
   const renderPaper = () => {
     const paper = item as PaperType;
     return (
-      <div className="space-y-2">
-        <h2 className={`font-semibold text-gray-900 ${isReposted ? 'text-base' : 'text-lg'}`}>
-          {paper.title}
-        </h2>
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <h2 className={`font-semibold text-gray-900 ${isReposted ? 'text-base' : 'text-lg'}`}>
+            {paper.title}
+          </h2>
+          
+          <AuthorList 
+            authors={paper.authors || []}
+            size={isReposted ? 'sm' : 'base'} 
+            timestamp={paper.timestamp}
+          />
+        </div>
+
         <p className={`text-gray-600 ${isReposted ? 'text-sm' : 'text-base'} ${showFullDescription ? '' : 'line-clamp-3'}`}>
           {paper.description}
         </p>
+        
         {!showFullDescription && paper.description?.length > 200 && (
           <button
             onClick={() => setShowFullDescription(true)}
