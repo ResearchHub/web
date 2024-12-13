@@ -7,13 +7,15 @@ interface UserStackProps {
   limit?: number;
   imageSize?: 'sm' | 'md';
   className?: string;
+  descriptiveText?: string;
 }
 
 export const UserStack: React.FC<UserStackProps> = ({ 
   users, 
   limit = 3,
   imageSize = 'sm',
-  className = ''
+  className = '',
+  descriptiveText = 'Supporters'
 }) => {
   const imageSizeClass = imageSize === 'sm' ? 'h-6 w-6' : 'h-8 w-8';
   const iconSizeClass = imageSize === 'sm' ? 'h-3 w-3' : 'h-4 w-4';
@@ -28,7 +30,8 @@ export const UserStack: React.FC<UserStackProps> = ({
               <img 
                 src={user.profileImage}
                 alt={user.fullName}
-                className={`${imageSizeClass} rounded-full ring-2 ring-white object-cover border border-gray-200`}
+                // add gray ring
+                className={`${imageSizeClass} rounded-full ring-1 ring-gray-200 object-cover   `}
               />
             ) : (
               <div className={`${imageSizeClass} rounded-full bg-gray-200 ring-2 ring-white flex items-center justify-center border border-gray-200`}>
@@ -46,7 +49,7 @@ export const UserStack: React.FC<UserStackProps> = ({
         ))}
         {users.length > limit && (
           <div className={`relative ${heightClass} min-w-fit px-2 rounded-full bg-gray-100 text-gray-600 text-xs font-medium flex items-center ml-1 border border-gray-200 ring-2 ring-white`}>
-            +{users.length - limit} Others
+            +{users.length - limit} {descriptiveText}
           </div>
         )}
       </div>
