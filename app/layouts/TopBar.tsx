@@ -7,6 +7,7 @@ import { getItemTypeConfig } from '@/components/FeedItem';
 import { useSession, signOut } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import AuthModal from '@/components/modals/Auth/AuthModal';
+import UserMenu from '@/components/menus/UserMenu'
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -149,20 +150,11 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                         3
                       </span>
                     </button>
-                    <button 
-                      className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
-                      onClick={handleAuthClick}
-                    >
-                      {session.user?.image ? (
-                        <img 
-                          src={session.user.image} 
-                          alt={session.user.name || 'User avatar'} 
-                          className="h-8 w-8 rounded-full"
-                        />
-                      ) : (
-                        <CircleUser className="h-5 w-5 text-gray-600" />
-                      )}
-                    </button>
+                    <UserMenu 
+                      session={session}
+                      onViewProfile={() => null}
+                      onVerifyAccount={() => null}
+                    />
                   </>
                 ) : (
                   <button

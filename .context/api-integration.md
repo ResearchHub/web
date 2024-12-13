@@ -28,6 +28,9 @@ All paths are relative to the root of the project.
 - TailwindCSS
 - TipTap
 - next-auth
+- headlessui
+- react-hot-toast
+- lucide-react
 
 ## Current Status
 - Symlinks established
