@@ -11,7 +11,6 @@ import {
   MoreHorizontal,
   Coins,
   Award,
-  Users,
   FileText,
   ChevronDown,
   Star,
@@ -73,7 +72,7 @@ const FeedItemHeader: FC<{
             <span className="text-gray-500 text-sm">•</span>
             <span className="text-gray-500 text-sm">{timestamp}</span>
           </div>
-          <div className="flex items-center space-x-2 text-sm">
+          <div className="flex items-center mt-0.5 space-x-2 text-sm">
             <span className="flex items-center space-x-2 text-gray-500">
               {getActionIcon()}
               <span className="capitalize">{getActionText()}</span>
@@ -131,7 +130,11 @@ const FeedItemBody: FC<{
         <p className="text-gray-600">{fundingRequest.description}</p>
         <div className="space-y-2">
           <div className="flex justify-between text-sm text-gray-600">
-            <span>{fundingRequest.amount.toLocaleString()} RSC raised of {fundingRequest.goalAmount.toLocaleString()} RSC goal</span>
+            <span className="flex items-center gap-1">
+              <Coins className="w-4 h-4 text-gray-500 text-orange-500" />
+              <span className="text-orange-500 font-medium">{fundingRequest.amount.toLocaleString()} RSC</span>
+              <span>raised of {fundingRequest.goalAmount.toLocaleString()} RSC goal</span>
+            </span>
             <span>{fundingRequest.progress}%</span>
           </div>
           <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
