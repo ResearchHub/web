@@ -23,7 +23,8 @@ const FeedItemHeader: FC<{
   timestamp: string;
   action: FeedActionType;
   item: FeedItemType;
-}> = ({ actor, timestamp, action, item }) => {
+  isReposted?: boolean;
+}> = ({ actor, timestamp, action, item, isReposted }) => {
 
   const getActionText = () => {
     // Special actions that always have the same text
@@ -103,13 +104,15 @@ const FeedItemHeader: FC<{
         <img
           src={actor.profileImage}
           alt={actor.fullName}
-          className="w-10 h-10 rounded-full ring-2 ring-gray-100"
+          className={`rounded-full ring-2 ring-gray-100 ${isReposted ? 'w-5 h-5' : 'w-10 h-10'}`}
         />
         <div>
           <div className="flex items-center space-x-2">
-            <span className="font-semibold text-gray-900 text-sm">{actor.fullName}</span>
-            <span className="text-gray-500 text-sm">•</span>
-            <span className="text-gray-500 text-sm">{timestamp}</span>
+            <span className={`font-semibold text-gray-900 text-sm`}>
+              {actor.fullName}
+            </span>
+            <span className={`text-gray-500 ${isReposted ? 'text-xs' : 'text-sm'}`}>•</span>
+            <span className={`text-gray-500 ${isReposted ? 'text-xs' : 'text-sm'}`}>{timestamp}</span>
           </div>
           <div className="flex items-center mt-0.5 space-x-2 text-sm">
             <span className="flex items-center space-x-2 text-gray-500">
@@ -119,9 +122,11 @@ const FeedItemHeader: FC<{
           </div>
         </div>
       </div>
-      <button className="text-gray-400 hover:text-gray-600">
-        <MoreHorizontal className="w-5 h-5" />
-      </button>
+      {!isReposted && (
+        <button className="text-gray-400 hover:text-gray-600">
+          <MoreHorizontal className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 };
@@ -129,10 +134,28 @@ const FeedItemHeader: FC<{
 const FeedItemBody: FC<{
   item: FeedItemType;
   relatedItem?: FeedEntry['relatedItem'];
-  action: FeedEntry['action'];
+  action: FeedActionType;
   repostMessage?: string;
-}> = ({ item, relatedItem, action, repostMessage }) => {
+  isReposted?: boolean;
+}> = ({ item, relatedItem, action, repostMessage, isReposted }) => {
   const [showFullDescription, setShowFullDescription] = useState(false);
+
+  const getRelatedItemTitle = (item: FeedItemType | undefined) => {
+    if (!item) return '';
+    
+    if ('title' in item) {
+      return item.title;
+    }
+    
+    // For comments, use truncated content as title
+    if (item.type === 'comment') {
+      return item.content.length > 60 
+        ? `${item.content.slice(0, 60)}...` 
+        : item.content;
+    }
+    
+    return '';
+  };
 
   const renderComment = () => {
     const comment = item as CommentType;
@@ -198,8 +221,10 @@ const FeedItemBody: FC<{
     const paper = item as PaperType;
     return (
       <div className="space-y-2">
-        <h2 className="font-semibold text-lg text-gray-900">{paper.title}</h2>
-        <p className={`text-gray-600 ${showFullDescription ? '' : 'line-clamp-3'}`}>
+        <h2 className={`font-semibold text-gray-900 ${isReposted ? 'text-base' : 'text-lg'}`}>
+          {paper.title}
+        </h2>
+        <p className={`text-gray-600 ${isReposted ? 'text-sm' : 'text-base'} ${showFullDescription ? '' : 'line-clamp-3'}`}>
           {paper.description}
         </p>
         {!showFullDescription && paper.description?.length > 200 && (
@@ -223,22 +248,20 @@ const FeedItemBody: FC<{
             <p className="text-gray-600">{repostMessage}</p>
           )}
           <div className="pl-4 border-l-2 border-gray-200">
-            <div className="flex items-center space-x-2 mb-3">
-              <img
-                src={item.user.profileImage}
-                alt={item.user.fullName}
-                className="w-5 h-5 rounded-full"
+            {item.type !== 'paper' && (
+              <FeedItemHeader
+                actor={item.user}
+                timestamp={item.timestamp}
+                action={action}
+                item={item}
+                isReposted={true}
               />
-              <span className="text-sm font-medium text-gray-900">
-                {item.user.fullName}
-              </span>
-              <span className="text-sm text-gray-500">
-                • {item.timestamp}
-              </span>
-            </div>
-            {item.type === 'paper' && renderPaper()}
-            {item.type === 'funding_request' && renderFundingRequest()}
-            {item.type === 'comment' && renderComment()}
+            )}
+            <FeedItemBody
+              item={item}
+              action="post"
+              isReposted={true}
+            />
           </div>
         </div>
       );
@@ -257,7 +280,9 @@ const FeedItemBody: FC<{
     <div className="mt-4">
       {relatedItem && (
         <div className="mb-3 text-sm text-gray-500">
-          RE: <span className="text-blue-500 hover:underline cursor-pointer">{relatedItem.title}</span>
+          RE: <span className="text-blue-500 hover:underline cursor-pointer">
+            {getRelatedItemTitle(relatedItem)}
+          </span>
         </div>
       )}
       {renderContent()}
@@ -292,13 +317,19 @@ const FeedItemActions: FC<{
 const FeedItem: FC<{ entry: FeedEntry }> = ({ entry }) => {
   const { action, actor, timestamp, item, relatedItem, metrics } = entry;
   
-  // Get repostMessage only if action is 'repost'
-  const repostMessage = action === 'repost' ? (entry as Extract<FeedEntry, { action: 'repost' }>).repostMessage : undefined;
+  const repostMessage = action === 'repost' ? 
+    (entry as Extract<FeedEntry, { action: 'repost' }>).repostMessage : 
+    undefined;
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 hover:shadow-md transition-shadow duration-200">
       <div className="p-4">
-        <FeedItemHeader actor={actor} timestamp={timestamp} action={action} item={item} />
+        <FeedItemHeader 
+          actor={actor} 
+          timestamp={timestamp} 
+          action={action} 
+          item={item} 
+        />
         <FeedItemBody 
           item={item} 
           relatedItem={relatedItem} 
