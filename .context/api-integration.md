@@ -27,7 +27,7 @@ All paths are relative to the root of the project.
 - Next.js
 - TailwindCSS
 - TipTap
-- Clerk
+- next-auth
 
 ## Current Status
 - Symlinks established

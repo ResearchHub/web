@@ -1,16 +1,20 @@
 'use client'
 
 import { useState } from 'react';
-import { Search, Bell, CircleUser, Menu, BadgeCheck, X, AlertCircle } from 'lucide-react';
+import { Search, Bell, CircleUser, Menu, BadgeCheck, X, AlertCircle, LogIn } from 'lucide-react';
 import { searchFeedItems } from '@/store/feedStore';
 import { getItemTypeConfig } from '@/components/FeedItem';
+import { useSession, signOut } from 'next-auth/react';
 import toast from 'react-hot-toast';
+import AuthModal from '@/components/modals/Auth/AuthModal';
 
 interface TopBarProps {
   onMenuClick: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
+  const { data: session, status } = useSession();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
 
@@ -43,105 +47,143 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
     });
   };
 
+  const handleAuthClick = () => {
+    if (session) {
+      signOut();
+    } else {
+      setIsAuthModalOpen(true);
+    }
+  };
+
   return (
-    <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b z-20 h-16">
-      <div className="lg:ml-10 lg:mr-10 h-full">
-        <div className="h-full max-w-4xl mx-auto flex items-center justify-between">
-          {/* Mobile menu button */}
-          <button 
-            className="lg:hidden p-2"
-            onClick={onMenuClick}
-          >
-            <Menu className="h-6 w-6" />
-          </button>
+    <>
+      <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b z-20 h-16">
+        <div className="lg:ml-10 lg:mr-10 h-full">
+          <div className="h-full max-w-4xl mx-auto flex items-center justify-between">
+            {/* Mobile menu button */}
+            <button 
+              className="lg:hidden p-2"
+              onClick={onMenuClick}
+            >
+              <Menu className="h-6 w-6" />
+            </button>
 
-          <div className="relative flex-1 max-w-[400px]">
-            <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search papers, reviews, grants..."
-              className="pl-10 pr-10 py-2.5 bg-gray-50 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 border border-gray-200"
-              value={query}
-              onChange={handleSearch}
-            />
-            {query && (
-              <button
-                onClick={clearSearch}
-                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            )}
+            <div className="relative flex-1 max-w-[400px]">
+              <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search papers, reviews, grants..."
+                className="pl-10 pr-10 py-2.5 bg-gray-50 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 border border-gray-200"
+                value={query}
+                onChange={handleSearch}
+              />
+              {query && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
 
-            {/* Render search results */}
-            {results.length > 0 && (
-              <div className="absolute left-0 right-0 bg-white shadow-lg rounded-lg mt-2 z-10 max-h-[80vh] overflow-y-auto w-[500px]">
-                <ul className="divide-y divide-gray-100">
-                  {results.map((item, index) => {
-                    const { icon: IconComponent, label } = getItemTypeConfig(item.type);
-                    return (
-                      <li key={index} className="p-4 hover:bg-gray-50">
-                        {/* Type Badge */}
-                        <div className="flex items-center mb-2">
-                          <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-gray-600 bg-gray-100 border border-gray-200">
-                            <IconComponent className="w-3 h-3 mr-1" />
-                            {label}
-                          </div>
-                        </div>
-
-                        {/* Title and Authors */}
-                        <div>
-                          <h3 className="text-sm font-semibold text-gray-900">{item.title}</h3>
-                          {item.type === 'paper' && item.authors && (
-                            <div className="flex-1 text-xs text-gray-600 mt-1">
-                              {item.authors.map((author, i) => (
-                                <span key={i} className="inline-flex items-center">
-                                  <span>{author.name}</span>
-                                  {author.verified && (
-                                    <BadgeCheck className="h-4 w-4 text-blue-500 ml-1 inline" />
-                                  )}
-                                  {i < item.authors.length - 1 && (
-                                    <span className="mx-2 text-gray-400">•</span>
-                                  )}
-                                </span>
-                              ))}
+              {/* Render search results */}
+              {results.length > 0 && (
+                <div className="absolute left-0 right-0 bg-white shadow-lg rounded-lg mt-2 z-10 max-h-[80vh] overflow-y-auto w-[500px]">
+                  <ul className="divide-y divide-gray-100">
+                    {results.map((item, index) => {
+                      const { icon: IconComponent, label } = getItemTypeConfig(item.type);
+                      return (
+                        <li key={index} className="p-4 hover:bg-gray-50">
+                          {/* Type Badge */}
+                          <div className="flex items-center mb-2">
+                            <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-gray-600 bg-gray-100 border border-gray-200">
+                              <IconComponent className="w-3 h-3 mr-1" />
+                              {label}
                             </div>
-                          )}
-                        </div>
+                          </div>
 
-                        {/* Description */}
-                        <p className="text-xs text-gray-600 mt-1">
-                          {item.description.length > 100 
-                            ? `${item.description.slice(0, 100)}...` 
-                            : item.description}
-                        </p>
-                      </li>
-                    );
-                  })}
-                </ul>
+                          {/* Title and Authors */}
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">{item.title}</h3>
+                            {item.type === 'paper' && item.authors && (
+                              <div className="flex-1 text-xs text-gray-600 mt-1">
+                                {item.authors.map((author, i) => (
+                                  <span key={i} className="inline-flex items-center">
+                                    <span>{author.name}</span>
+                                    {author.verified && (
+                                      <BadgeCheck className="h-4 w-4 text-blue-500 ml-1 inline" />
+                                    )}
+                                    {i < item.authors.length - 1 && (
+                                      <span className="mx-2 text-gray-400">•</span>
+                                    )}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Description */}
+                          <p className="text-xs text-gray-600 mt-1">
+                            {item.description.length > 100 
+                              ? `${item.description.slice(0, 100)}...` 
+                              : item.description}
+                          </p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+            </div>        
+
+            {status !== "loading" && (
+              <div className="flex items-center space-x-4">
+                {session ? (
+                  <>
+                    <button 
+                      className="relative"
+                      onClick={handleUnimplementedFeature}
+                    >
+                      <Bell className="h-6 w-6 text-gray-600 hover:text-indigo-600" />
+                      <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+                        3
+                      </span>
+                    </button>
+                    <button 
+                      className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
+                      onClick={handleAuthClick}
+                    >
+                      {session.user?.image ? (
+                        <img 
+                          src={session.user.image} 
+                          alt={session.user.name || 'User avatar'} 
+                          className="h-8 w-8 rounded-full"
+                        />
+                      ) : (
+                        <CircleUser className="h-5 w-5 text-gray-600" />
+                      )}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={handleAuthClick}
+                    className="flex items-center space-x-2 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50"
+                  >
+                    <LogIn className="h-5 w-5 text-gray-600" />
+                    <span className="text-sm font-medium text-gray-600">Sign In</span>
+                  </button>
+                )}
               </div>
             )}
-          </div>        
-
-          <div className="flex items-center space-x-4">
-            <button 
-              className="relative"
-              onClick={handleUnimplementedFeature}
-            >
-              <Bell className="h-6 w-6 text-gray-600 hover:text-indigo-600" />
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                3
-              </span>
-            </button>
-            <button 
-              className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center"
-              onClick={handleUnimplementedFeature}
-            >
-              <CircleUser className="h-5 w-5 text-gray-600" />
-            </button>
           </div>
         </div>
       </div>
-    </div>
+
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={() => setIsAuthModalOpen(false)}
+      />
+    </>
   );
 };
