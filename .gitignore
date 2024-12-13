@@ -40,8 +40,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# old app reference
-old-app-reference/
-
-# django api reference
-django-api-reference/
+external_references/
