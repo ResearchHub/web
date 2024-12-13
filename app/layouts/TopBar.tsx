@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Search, Bell, CircleUser, Menu, BadgeCheck, X, AlertCircle } from 'lucide-react';
 import { searchFeedItems } from '@/store/feedStore';
-import { getItemTypeConfig } from '@/app/components/FeedItem';
+import { getItemTypeConfig } from '@/components/FeedItem';
 import toast from 'react-hot-toast';
 
 interface TopBarProps {
