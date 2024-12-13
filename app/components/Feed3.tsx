@@ -2,7 +2,7 @@
 
 import { FC, useState } from 'react';
 import { feedEntries } from '@/store/feedStore';
-import { FeedEntry, FeedItemType, FundingRequestItem, PaperType } from '@/types/feed';
+import { CommentType, FeedActionType, FeedEntry, FeedItemType, FundingRequestItem, PaperType } from '@/types/feed';
 import {
   MessageCircle,
   Repeat,
@@ -130,7 +130,8 @@ const FeedItemBody: FC<{
   item: FeedItemType;
   relatedItem?: FeedEntry['relatedItem'];
   action: FeedEntry['action'];
-}> = ({ item, relatedItem, action }) => {
+  repostMessage?: string;
+}> = ({ item, relatedItem, action, repostMessage }) => {
   const [showFullDescription, setShowFullDescription] = useState(false);
 
   const renderComment = () => {
@@ -217,10 +218,28 @@ const FeedItemBody: FC<{
   const renderContent = () => {
     if (action === 'repost') {
       return (
-        <div className="pl-4 border-l-2 border-gray-200">
-          {item.type === 'paper' && renderPaper()}
-          {item.type === 'funding_request' && renderFundingRequest()}
-          {item.type === 'comment' && renderComment()}
+        <div className="space-y-4">
+          {repostMessage && (
+            <p className="text-gray-600">{repostMessage}</p>
+          )}
+          <div className="pl-4 border-l-2 border-gray-200">
+            <div className="flex items-center space-x-2 mb-3">
+              <img
+                src={item.user.profileImage}
+                alt={item.user.fullName}
+                className="w-5 h-5 rounded-full"
+              />
+              <span className="text-sm font-medium text-gray-900">
+                {item.user.fullName}
+              </span>
+              <span className="text-sm text-gray-500">
+                • {item.timestamp}
+              </span>
+            </div>
+            {item.type === 'paper' && renderPaper()}
+            {item.type === 'funding_request' && renderFundingRequest()}
+            {item.type === 'comment' && renderComment()}
+          </div>
         </div>
       );
     }
@@ -272,12 +291,20 @@ const FeedItemActions: FC<{
 
 const FeedItem: FC<{ entry: FeedEntry }> = ({ entry }) => {
   const { action, actor, timestamp, item, relatedItem, metrics } = entry;
+  
+  // Get repostMessage only if action is 'repost'
+  const repostMessage = action === 'repost' ? (entry as Extract<FeedEntry, { action: 'repost' }>).repostMessage : undefined;
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 hover:shadow-md transition-shadow duration-200">
       <div className="p-4">
         <FeedItemHeader actor={actor} timestamp={timestamp} action={action} item={item} />
-        <FeedItemBody item={item} relatedItem={relatedItem} action={action} />
+        <FeedItemBody 
+          item={item} 
+          relatedItem={relatedItem} 
+          action={action} 
+          repostMessage={repostMessage}
+        />
         <FeedItemActions metrics={metrics} />
       </div>
     </div>

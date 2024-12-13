@@ -71,11 +71,13 @@ export const feedEntries: FeedEntry[] = [
       saves: 18
     },    
   },
+  // For repost, how do you suggest I add text associated with the repost?
   {
     id: 'feed-1',
     action: 'repost',
     actor: users.bioRxiv,
     timestamp: 'Oct 18, 2024',
+    repostMessage: "Exciting research on cancer cell immunity - this could have significant implications for treatment approaches. What are your thoughts on the methodology?",
     item: {
       id: 'item-1',
       type: 'paper',

@@ -126,13 +126,20 @@ export type FeedItemType =
 
 export type FeedEntry = {
   id: string;
-  action: 'comment' | 'post' | 'repost' | 'review' | 'contribute' | 'publish' | 'tip';
   actor: User;
   timestamp: string;
   metrics: Metrics;
   item: FeedItemType;
   relatedItem?: FeedItemType;
-} 
+} & (
+  | {
+      action: 'repost';
+      repostMessage?: string;
+    }
+  | {
+      action: 'post' | 'contribute' | 'publish';
+    }
+);
 
 export type Item = 
   | PaperType 
