@@ -1,7 +1,7 @@
 'use client';
 
 import { Plus, ChevronDown, File, Folder, Settings, BookOpen, Star } from 'lucide-react';
-import { NotebookToggle } from '@/app/components/shared/NotebookToggle';
+import { NotebookToggle } from '@/components/shared/NotebookToggle';
 
 const sampleDocuments = [
   {

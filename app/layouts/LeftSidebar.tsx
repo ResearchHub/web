@@ -6,12 +6,12 @@ import {
   AlertCircle 
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { FooterLinks } from '../components/FooterLinks';
+import { FooterLinks } from '../../components/FooterLinks';
 import { Navigation } from './Navigation';
 import { useState } from 'react';
 import NotebookSidebar from '../notebook/layout/LeftSidebar';
-import { NotebookTransition } from '../components/transitions/NotebookTransition';
-import { NotebookToggle } from '@/app/components/shared/NotebookToggle';
+import { NotebookTransition } from '../../components/transitions/NotebookTransition';
+import { NotebookToggle } from '@/components/shared/NotebookToggle';
 import toast from 'react-hot-toast';
 
 interface LeftSidebarProps {

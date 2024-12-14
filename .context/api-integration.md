@@ -13,11 +13,13 @@ Project goals:
 ## Reference Paths
 All paths are relative to the root of the project.
 
-- New app main path: `app/`
-- UI components: `app/components/ui`
+- Publicly facing pages: `app/`
+- UI components: `components/ui`
 - Django API: `external_references/django-app`
 - Old Next.js app (we are migrating from this): `external_references/old-nextjs-app`
 - Django API endpoints: `external_references/django-app/src/urls.py`
+- Modals should be added in `components/modals`
+- Services should be added in `services`
 
 ## Technologies used in the project (next.js)
 - TypeScript
@@ -25,8 +27,20 @@ All paths are relative to the root of the project.
 - Next.js
 - TailwindCSS
 - TipTap
-- Clerk
+- next-auth
+- headlessui
+- react-hot-toast
+- lucide-react
 
 ## Current Status
 - Symlinks established
 - Ready for API integration 
+- Ready for Auth integration
+
+Auth integration:
+- Old app uses LoginModal component in `external_references/old-nextjs-app/components/Login/LoginModal.tsx` to integrate with these API auth endpoints
+- We need to integrate with these endpoints in the new app
+- Users should be able to login/signup with their email or google provider
+- UX should be similar to old app but simplified when possible
+- We should support YOLO login
+

@@ -1,8 +1,8 @@
 'use client'
 
 import { PageLayout } from '@/app/layouts/PageLayout'
-import { ProfileRightSidebar } from '@/app/components/profile/ProfileRightSidebar'
-import { FeedItem } from '@/app/components/FeedItem'
+import { ProfileRightSidebar } from '@/components/profile/ProfileRightSidebar'
+import { FeedItem } from '@/components/FeedItem'
 import { Pin, BadgeCheck } from 'lucide-react'
 import { Item, FeedEntry } from '@/types/feed'
 import { User } from '@/types/feed'

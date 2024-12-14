@@ -2,15 +2,15 @@
 
 import { useState } from 'react'
 import { Coins, Users2, Share2, ArrowUp, MessageSquare, Clock, BarChart2 } from 'lucide-react'
-import { ProfileTooltip } from '@/app/components/tooltips/ProfileTooltip'
+import { ProfileTooltip } from '@/components/tooltips/ProfileTooltip'
 import { PageLayout } from '@/app/layouts/PageLayout'
 import Link from 'next/link'
 import { BadgeCheck } from 'lucide-react'
-import { FundraiseRightSidebar } from '@/app/components/Fund/FundraiseRightSidebar'
+import { FundraiseRightSidebar } from '@/components/Fund/FundraiseRightSidebar'
 import { mockFunding } from '@/store/fundingStore'
 import { Funding } from '@/types/funding'
-import { UserStack } from '@/app/components/ui/UserStack'
-import { Button } from '@/app/components/ui/Button'
+import { UserStack } from '@/components/ui/UserStack'
+import { Button } from '@/Button'
 
 export default function FundingPage({ params }: { params: { id: string; slug: string } }) {
   const [activeTab, setActiveTab] = useState('content')

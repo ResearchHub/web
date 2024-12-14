@@ -3,13 +3,13 @@
 import { useState } from 'react'
 import { use } from 'react'
 import { Coins, Share2, ArrowUp, MessageSquare, BarChart2 } from 'lucide-react'
-import { ProfileTooltip } from '@/app/components/tooltips/ProfileTooltip'
+import { ProfileTooltip } from '@/components/tooltips/ProfileTooltip'
 import Link from 'next/link'
 import { BadgeCheck } from 'lucide-react'
-import { FeedItem } from '@/app/components/FeedItem'
+import { FeedItem } from '@/components/FeedItem'
 import { PageLayout } from '@/app/layouts/PageLayout'
 import { grants, grantApplications } from '@/store/grantStore'
-import { GrantRightSidebar } from '@/app/components/Grant/GrantRightSidebar'
+import { GrantRightSidebar } from '@/components/Grant/GrantRightSidebar'
 
 export default function GrantPage({ params }: { params: Promise<{ id: string; slug: string }> }) {
   const [activeTab, setActiveTab] = useState('details')

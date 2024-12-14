@@ -1,5 +1,5 @@
-import { PaperDocument } from "@/app/components/paper/PaperDocument"
-import { PaperRightSidebar } from "@/app/components/paper/PaperRightSidebar"
+import { PaperDocument } from "@/components/paper/PaperDocument"
+import { PaperRightSidebar } from "@/components/paper/PaperRightSidebar"
 import { PageLayout } from "@/app/layouts/PageLayout"
 import { Paper } from "@/types/paper"
 import { users } from '@/store/userStore';
