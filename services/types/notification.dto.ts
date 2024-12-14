@@ -1,6 +1,6 @@
 import type { User } from '@/types/user'
 
-export interface Notification {
+export interface NotificationEntry {
   id: number
   read: boolean
   created_date: string
@@ -10,8 +10,8 @@ export interface Notification {
   target_object?: any
 }
 
-export interface NotificationResponse {
-  results: Notification[]
+export interface NotificationApiResponse {
+  results: NotificationEntry[]
   count: number
   next: string | null
   previous: string | null

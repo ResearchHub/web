@@ -1,4 +1,5 @@
 import { ApiError, ApiResponse } from '@/services/types';
+import { getSession } from 'next-auth/react'
 
 export class ApiClient {
   private static baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -17,12 +18,22 @@ export class ApiClient {
     return data
   }
 
-  private static createHeaders(options?: RequestInit): HeadersInit {
-    return {
+  private static async createHeaders(options?: RequestInit): Promise<HeadersInit> {
+    const session = await getSession()
+    
+    let headers: HeadersInit = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
       ...options?.headers,
     }
+    if (session?.authToken) {
+      headers = {
+        ...headers,
+        Authorization: `Token ${session.authToken}`
+      }
+    }
+    
+    return headers
   }
 
   private static async fetch<T>(
@@ -31,9 +42,11 @@ export class ApiClient {
   ): Promise<ApiResponse<T>> {
     try {
       const url = `${this.baseUrl}${endpoint}`
+      const headers = await this.createHeaders(options)
+      
       const response = await fetch(url, {
         ...options,
-        headers: this.createHeaders(options),
+        headers,
         credentials: 'include',
       })
       

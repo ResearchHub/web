@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { AuthService } from '@/services/auth'
-import { ApiError } from '@/services/types'
+import { AuthService } from '@/services/auth.service'
+import { ApiError } from '@/services/types/api'
 import { BaseScreenProps } from '../types'
 
 interface Props extends BaseScreenProps {

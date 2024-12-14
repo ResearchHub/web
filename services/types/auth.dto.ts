@@ -1,17 +1,16 @@
 import type { User } from '@/types/user'
 
-// Auth DTOs
-export interface LoginRequest {
+export interface LoginApiRequest {
   email: string
   password: string
 }
 
-export interface LoginResponse {
+export interface LoginApiResponse {
   user: User
   token?: string
 }
 
-export interface RegisterRequest {
+export interface RegisterApiRequest {
   email: string
   password1: string
   password2: string
@@ -19,7 +18,7 @@ export interface RegisterRequest {
   last_name: string
 }
 
-export interface CheckAccountResponse {
+export interface CheckAccountApiResponse {
   exists: boolean
   auth?: 'google' | 'email'
   is_verified?: boolean

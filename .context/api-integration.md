@@ -21,6 +21,18 @@ All paths are relative to the root of the project.
 - Modals should be added in `components/modals`
 - Services should be added in `services`
 
+## Auth
+- Next.js app is using Auth via next-auth
+- Django API does not use JWT but it does return a token in the response of the login endpoint
+- app/api/auth/[...nextauth]/route.ts is the file that handles the authentication
+
+
+
+## Layout
+- `app/layouts/PageLayout.tsx` is the main layout file for the app
+- `app/layouts/TopBar.tsx` is the top bar component for the app
+- Most pages have a three column layout
+
 ## Technologies used in the project (next.js)
 - TypeScript
 - React
@@ -36,12 +48,6 @@ All paths are relative to the root of the project.
 [x] Integrate Django API with Next.js via services directory completed
 [x] Auth integration completed via next-auth
 [ ] YOLO integration not in place
-[ ] Need to integrate with endpoint to fetch notifications
+[ ] Need to integrate with endpoint to fetch notifications and render them in /notifications endpoint
 
-Auth integration:
-- Old app uses LoginModal component in `external_references/old-nextjs-app/components/Login/LoginModal.tsx` to integrate with these API auth endpoints
-- We need to integrate with these endpoints in the new app
-- Users should be able to login/signup with their email or google provider
-- UX should be similar to old app but simplified when possible
-- We should support YOLO login
 

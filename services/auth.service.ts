@@ -1,9 +1,9 @@
 import { ApiClient } from './client'
 import type { 
-  LoginRequest, 
-  LoginResponse, 
-  RegisterRequest, 
-  CheckAccountResponse 
+  LoginApiRequest, 
+  LoginApiResponse, 
+  RegisterApiRequest, 
+  CheckAccountApiResponse 
 } from './types'
 import type { User } from '@/types/user'
 
@@ -11,20 +11,20 @@ export class AuthService {
   private static readonly BASE_PATH = '/api'
 
   static async checkAccount(email: string) {
-    return ApiClient.post<CheckAccountResponse>(
+    return ApiClient.post<CheckAccountApiResponse>(
       `${this.BASE_PATH}/check_account/`, 
       { email }
     )
   }
 
-  static async login(credentials: LoginRequest) {
-    return ApiClient.post<LoginResponse>(
+  static async login(credentials: LoginApiRequest) {
+    return ApiClient.post<LoginApiResponse>(
       `${this.BASE_PATH}/login/`, 
       credentials
     )
   }
 
-  static async register(credentials: RegisterRequest) {
+  static async register(credentials: RegisterApiRequest) {
     return ApiClient.post<User>(
       `${this.BASE_PATH}/register/`, 
       credentials
