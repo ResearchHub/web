@@ -33,9 +33,10 @@ All paths are relative to the root of the project.
 - lucide-react
 
 ## Current Status
-- Symlinks established
-- Ready for API integration 
-- Ready for Auth integration
+[x] Integrate Django API with Next.js via services directory completed
+[x] Auth integration completed via next-auth
+[ ] YOLO integration not in place
+[ ] Need to integrate with endpoint to fetch notifications
 
 Auth integration:
 - Old app uses LoginModal component in `external_references/old-nextjs-app/components/Login/LoginModal.tsx` to integrate with these API auth endpoints

@@ -1,4 +1,4 @@
-import { ApiError, ApiResponse } from './types';
+import { ApiError, ApiResponse } from '@/services/types';
 
 export class ApiClient {
   private static baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -44,6 +44,13 @@ export class ApiClient {
       }
       throw new ApiError('Network error occurred', 500)
     }
+  }
+
+  static async patch<T>(endpoint: string, data: unknown) {
+    return this.fetch<T>(endpoint, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    })
   }
 
   static async get<T>(endpoint: string, params?: Record<string, string>) {
