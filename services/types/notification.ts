@@ -12,6 +12,7 @@ export interface Notification {
 
 export interface NotificationResponse {
   results: Notification[]
-  fetching?: boolean
-  success?: boolean
+  count: number
+  next: string | null
+  previous: string | null
 }

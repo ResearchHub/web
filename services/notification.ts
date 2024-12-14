@@ -1,11 +1,11 @@
 import { ApiClient } from './client'
-import type { Notification } from './types'
+import type { Notification, NotificationResponse } from './types/notification'
 
 export class NotificationService {
   private static readonly BASE_PATH = '/api'
 
   static async getNotifications() {
-    return ApiClient.get<{ results: Notification[] }>(
+    return ApiClient.get<NotificationResponse>(
       `${this.BASE_PATH}/notification/`
     )
   }
