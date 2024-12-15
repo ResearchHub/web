@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import AuthModal from '@/components/modals/Auth/AuthModal';
 import UserMenu from '@/components/menus/UserMenu'
 import type { User } from '@/types/user'
+import { useNotifications } from '@/contexts/NotificationContext'
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -16,11 +17,14 @@ interface TopBarProps {
 
 export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const { data: session, status } = useSession();
+  const { unreadCount } = useNotifications();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
 
   console.log('session', session)
+  console.log('Notification unread count:', unreadCount);
+
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchQuery = event.target.value;
     setQuery(searchQuery);
@@ -148,9 +152,11 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                       onClick={handleUnimplementedFeature}
                     >
                       <Bell className="h-6 w-6 text-gray-600 hover:text-indigo-600" />
-                      <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                        3
-                      </span>
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-2 h-4 min-w-[16px] px-1 bg-red-500 rounded-lg text-xs text-white flex items-center justify-center">
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                      )}
                     </button>
                     <UserMenu 
                       user={session.user as User}

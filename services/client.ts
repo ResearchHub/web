@@ -26,34 +26,68 @@ export class ApiClient {
     const authToken = await this.getAuthToken();
     if (authToken) {
       headers['Authorization'] = `Token ${authToken}`;
+    } else {
+      console.warn('No auth token available for request');
     }
 
     return headers;
   }
 
-  static async get<T>(path: string) {
-    const response = await fetch(`${this.baseURL}${path}`, {
-      headers: await this.getHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return response.json() as Promise<T>;
+  private static getFetchOptions(method: string = 'GET', headers: Record<string, string>, body?: any): RequestInit {
+    return {
+      method,
+      headers,
+      mode: 'cors',
+      cache: 'no-cache',
+      body: body ? JSON.stringify(body) : undefined,
+    };
   }
 
-  static async post<T>(path: string, body?: any) {
-    const response = await fetch(`${this.baseURL}${path}`, {
-      method: 'POST',
-      headers: await this.getHeaders(),
-      body: body ? JSON.stringify(body) : undefined,
-    });
+  static async get<T>(path: string): Promise<T> {
+    try {
+      const headers = await this.getHeaders();
+      const response = await fetch(
+        `${this.baseURL}${path}`, 
+        this.getFetchOptions('GET', headers)
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${JSON.stringify(errorData)}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('API request failed:', error);
+      throw error;
+    }
+  }
+
+  static async post<T>(path: string, body?: any): Promise<T> {
+    const headers = await this.getHeaders();
+    const response = await fetch(
+      `${this.baseURL}${path}`,
+      this.getFetchOptions('POST', headers, body)
+    );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return response.json() as Promise<T>;
+    return response.json();
+  }
+
+  static async patch<T>(path: string, body?: any): Promise<T> {
+    const headers = await this.getHeaders();
+    const response = await fetch(
+      `${this.baseURL}${path}`,
+      this.getFetchOptions('PATCH', headers, body)
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
   }
 } 

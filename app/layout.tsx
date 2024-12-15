@@ -2,6 +2,7 @@ import NextAuthProvider from '@/components/providers/NextAuthProvider'
 import ToasterProvider from '@/components/providers/ToasterProvider'
 import localFont from "next/font/local";
 import "./globals.css";
+import { NotificationProvider } from '@/contexts/NotificationContext'
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -25,7 +26,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NextAuthProvider>
-          {children}
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
         </NextAuthProvider>
         <ToasterProvider />
       </body>

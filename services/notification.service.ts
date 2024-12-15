@@ -1,5 +1,5 @@
 import { ApiClient } from './client'
-import type { NotificationEntry, NotificationApiResponse } from './types/notification.dto'
+import type { NotificationEntry, NotificationApiResponse, NotificationCountResponse } from './types/notification.dto'
 
 export class NotificationService {
   private static readonly BASE_PATH = '/api'
@@ -7,6 +7,12 @@ export class NotificationService {
   static async getNotifications() {
     return ApiClient.get<NotificationApiResponse>(
       `${this.BASE_PATH}/notification/`
+    )
+  }
+
+  static async getUnreadCount() {
+    return ApiClient.get<NotificationCountResponse>(
+      `${this.BASE_PATH}/notification/unread_count/`
     )
   }
 
