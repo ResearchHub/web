@@ -13,6 +13,11 @@ export class NotificationService {
     )
   }
 
+  static async getNotificationsByUrl(url: string) {
+    const urlObject = new URL(url)
+    return ApiClient.get<NotificationListResponse>(urlObject.pathname + urlObject.search)
+  }
+
   static async getUnreadCount() {
     return ApiClient.get<NotificationCountResponse>(
       `${this.BASE_PATH}/notification/unread_count/`

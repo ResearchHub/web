@@ -18,6 +18,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         notification.isRead ? 'bg-gray-50' : 'bg-white'
       }`}
     >
+        {notification.id}
       <div className="flex justify-between items-start">
         <div>
           <p className="font-medium">

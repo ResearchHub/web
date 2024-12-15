@@ -16,7 +16,7 @@ export function NotificationList({
   if (loading) {
     return (
       <div className="space-y-4">
-        {[...Array(3)].map((_, index) => (
+        {[...Array(10)].map((_, index) => (
           <NotificationSkeleton key={index} />
         ))}
       </div>
@@ -41,9 +41,9 @@ export function NotificationList({
 
   return (
     <div className="space-y-4">
-      {notifications.map((notification) => (
+      {notifications.map((notification, index) => (
         <NotificationItem
-          key={notification.id}
+          key={`${notification.id}-${index}`}
           notification={notification}
         />
       ))}
