@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { NotificationService } from '@/services/notification.service'
-import type { NotificationListResponse } from '@/services/types/notification.dto'
 import { transformNotificationResponse } from '@/services/types/notification.dto'
 import type { Notification } from '@/types/notification'
 
@@ -13,7 +12,7 @@ interface NotificationContextType {
   error: string | null
   refreshUnreadCount: () => Promise<void>
   fetchNotifications: () => Promise<void>
-  markAsRead: (notificationId: number) => Promise<void>
+  markAllAsRead: () => Promise<void>
 }
 
 const NotificationContext = createContext<NotificationContextType>({
@@ -23,7 +22,7 @@ const NotificationContext = createContext<NotificationContextType>({
   error: null,
   refreshUnreadCount: async () => {},
   fetchNotifications: async () => {},
-  markAsRead: async () => {},
+  markAllAsRead: async () => {},
 })
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
@@ -47,7 +46,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     try {
       const response = await NotificationService.getNotifications()
       const transformedResponse = transformNotificationResponse(response)
-      console.log('transformedResponse', transformedResponse)
       setNotifications(transformedResponse.results)
     } catch (err) {
       setError('Failed to load notifications')
@@ -57,19 +55,22 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
   }, [])
 
-  const markAsRead = useCallback(async (notificationId: number) => {
+  const markAllAsRead = useCallback(async () => {
     try {
-      await NotificationService.markAsRead(notificationId)
-      setNotifications(notifications => notifications.map(notification => 
-        notification.id === notificationId 
-          ? { ...notification, isRead: true }
-          : notification
-      ))
-      await refreshUnreadCount()
+      await NotificationService.markAllAsRead()
+      
+      setNotifications(notifications => 
+        notifications.map(notification => ({
+          ...notification,
+          isRead: true
+        }))
+      )
+      
+      setUnreadCount(0)
     } catch (err) {
-      console.error('Failed to mark notification as read:', err)
+      console.error('Failed to mark all notifications as read:', err)
     }
-  }, [refreshUnreadCount])
+  }, [notifications])
 
   useEffect(() => {
     refreshUnreadCount()
@@ -84,7 +85,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         error,
         refreshUnreadCount,
         fetchNotifications,
-        markAsRead
+        markAllAsRead
       }}
     >
       {children}

@@ -19,17 +19,9 @@ export class NotificationService {
     )
   }
 
-  static async markAsRead(notificationId: number) {
-    return ApiClient.patch<Notification>(
-      `${this.BASE_PATH}/notification/${notificationId}/`,
-      { read: true }
-    )
-  }
-
-  static async markAllAsRead(ids: number[]) {
+  static async markAllAsRead() {
     return ApiClient.patch(
-      `${this.BASE_PATH}/notification/`,
-      { ids }
+      `${this.BASE_PATH}/notification/mark_read/`
     )
   }
 }

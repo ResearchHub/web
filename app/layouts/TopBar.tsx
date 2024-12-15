@@ -11,6 +11,7 @@ import UserMenu from '@/components/menus/UserMenu'
 import type { User } from '@/types/user'
 import { useNotifications } from '@/contexts/NotificationContext'
 import { useRouter } from 'next/navigation'
+import { NotificationBell } from '@/components/Notification/NotificationBell'
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -34,23 +35,6 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const clearSearch = () => {
     setQuery('');
     setResults([]);
-  };
-
-  const handleUnimplementedFeature = () => {
-    toast((t) => (
-      <div className="flex items-center space-x-2">
-        <AlertCircle className="h-5 w-5" />
-        <span>Implementation coming soon</span>
-      </div>
-    ), {
-      duration: 2000,
-      position: 'bottom-right',
-      style: {
-        background: '#FFF7ED', // Orange-50
-        color: '#EA580C',     // Orange-600
-        border: '1px solid #FDBA74', // Orange-300
-      },
-    });
   };
 
   const handleAuthClick = () => {
@@ -146,17 +130,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
               <div className="flex items-center space-x-4">
                 {session ? (
                   <>
-                    <button 
-                      className="relative"
-                      onClick={() => router.push('/notifications')}
-                    >
-                      <Bell className="h-6 w-6 text-gray-600 hover:text-indigo-600" />
-                      {unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-2 h-4 min-w-[16px] px-1 bg-red-500 rounded-lg text-xs text-white flex items-center justify-center">
-                          {unreadCount > 9 ? '9+' : unreadCount}
-                        </span>
-                      )}
-                    </button>
+                    <NotificationBell />
                     <UserMenu 
                       user={session.user as User}
                       onViewProfile={() => null}
