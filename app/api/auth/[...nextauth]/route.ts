@@ -1,7 +1,6 @@
 import NextAuth from 'next-auth'
 import type { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
-import type { User } from '@/types/user'
 import { transformUserData } from '@/services/types/user.dto'
 
 // Direct fetch for auth route to avoid circular dependency

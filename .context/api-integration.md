@@ -31,11 +31,11 @@ All paths are relative to the root of the project.
 - Services are used to interact with the Django API
 - DTOs are located in `services/types` directory
 
-
-## Layout
+## Layout and conventions
 - `app/layouts/PageLayout.tsx` is the main layout file for the app
 - `app/layouts/TopBar.tsx` is the top bar component for the app
-- Most pages have a three column layout
+- Every new page should be wrapped with `app/layouts/PageLayout.tsx` and have a three column layout. Initialize `RightSidebar` to be empty.
+- All component directories in `components` should be capitalized.
 
 ## Technologies used in the project (next.js)
 - TypeScript
