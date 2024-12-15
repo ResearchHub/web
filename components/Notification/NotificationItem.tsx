@@ -2,7 +2,6 @@ import { Notification } from '@/types/notification'
 
 interface NotificationItemProps {
   notification: Notification
-  onMarkAsRead: (id: number) => Promise<void>
 }
 
 const getNotificationTypeDisplay = (type: any) => {
@@ -12,7 +11,7 @@ const getNotificationTypeDisplay = (type: any) => {
   return String(type)
 }
 
-export function NotificationItem({ notification, onMarkAsRead }: NotificationItemProps) {
+export function NotificationItem({ notification }: NotificationItemProps) {
   return (
     <div 
       className={`p-4 rounded-lg border ${

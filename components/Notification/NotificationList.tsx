@@ -1,29 +1,42 @@
 import { Notification } from '@/types/notification'
 import { NotificationItem } from './NotificationItem'
+import { NotificationSkeleton } from './NotificationSkeleton'
 
 interface NotificationListProps {
   notifications: Notification[]
   loading: boolean
   error: string | null
-  onMarkAsRead: (id: number) => Promise<void>
 }
 
 export function NotificationList({ 
   notifications, 
   loading, 
   error, 
-  onMarkAsRead 
 }: NotificationListProps) {
   if (loading) {
-    return <div>Loading...</div>
+    return (
+      <div className="space-y-4">
+        {[...Array(3)].map((_, index) => (
+          <NotificationSkeleton key={index} />
+        ))}
+      </div>
+    )
   }
 
   if (error) {
-    return <div>{error}</div>
+    return (
+      <div className="p-4 rounded-lg border border-red-200 bg-red-50 text-red-700">
+        {error}
+      </div>
+    )
   }
 
   if (notifications.length === 0) {
-    return <p>No notifications</p>
+    return (
+      <div className="p-4 rounded-lg border border-gray-200 bg-gray-50 text-gray-600">
+        No notifications
+      </div>
+    )
   }
 
   return (
@@ -32,7 +45,6 @@ export function NotificationList({
         <NotificationItem
           key={notification.id}
           notification={notification}
-          onMarkAsRead={onMarkAsRead}
         />
       ))}
     </div>

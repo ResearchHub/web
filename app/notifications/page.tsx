@@ -10,8 +10,7 @@ export default function NotificationsPage() {
     notifications, 
     loading, 
     error, 
-    fetchNotifications, 
-    markAsRead 
+    fetchNotifications,
   } = useNotifications()
 
   useEffect(() => {
@@ -25,7 +24,6 @@ export default function NotificationsPage() {
         notifications={notifications}
         loading={loading}
         error={error}
-        onMarkAsRead={markAsRead}
       />
     </div>
   )
