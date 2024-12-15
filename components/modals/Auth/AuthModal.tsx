@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import SelectProvider from './screens/SelectProvider'
 import Login from './screens/Login'
@@ -10,13 +10,40 @@ interface AuthModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess?: () => void
+  initialError?: string | null
 }
 
-export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
+export default function AuthModal({ 
+  isOpen, 
+  onClose, 
+  onSuccess,
+  initialError 
+}: AuthModalProps) {
   const [screen, setScreen] = useState<AuthScreen>('SELECT_PROVIDER')
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Handle initial error from URL
+  useEffect(() => {
+    if (initialError) {
+      let errorMessage: string;
+      switch (initialError) {
+        case 'AccessDenied':
+          errorMessage = 'Access was denied. Please try again.'
+          break
+        case 'AuthenticationFailed':
+          errorMessage = 'Authentication failed. Please try again.'
+          break
+        case 'SessionExpired':
+          errorMessage = 'Your session has expired. Please sign in again.'
+          break
+        default:
+          errorMessage = 'An error occurred. Please try again.'
+      }
+      setError(errorMessage)
+    }
+  }, [initialError])
 
   if (!isOpen) return null
 
