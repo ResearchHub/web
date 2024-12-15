@@ -10,6 +10,7 @@ import AuthModal from '@/components/modals/Auth/AuthModal';
 import UserMenu from '@/components/menus/UserMenu'
 import type { User } from '@/types/user'
 import { useNotifications } from '@/contexts/NotificationContext'
+import { useRouter } from 'next/navigation'
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -21,9 +22,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
-
-  console.log('session', session)
-  console.log('Notification unread count:', unreadCount);
+  const router = useRouter()
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchQuery = event.target.value;
@@ -149,7 +148,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                   <>
                     <button 
                       className="relative"
-                      onClick={handleUnimplementedFeature}
+                      onClick={() => router.push('/notifications')}
                     >
                       <Bell className="h-6 w-6 text-gray-600 hover:text-indigo-600" />
                       {unreadCount > 0 && (

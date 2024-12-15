@@ -1,11 +1,14 @@
 import { ApiClient } from './client'
-import type { NotificationEntry, NotificationApiResponse, NotificationCountResponse } from './types/notification.dto'
+import type { 
+  NotificationListResponse, 
+  NotificationCountResponse,
+} from './types/notification.dto'
 
 export class NotificationService {
   private static readonly BASE_PATH = '/api'
 
   static async getNotifications() {
-    return ApiClient.get<NotificationApiResponse>(
+    return ApiClient.get<NotificationListResponse>(
       `${this.BASE_PATH}/notification/`
     )
   }
@@ -17,14 +20,14 @@ export class NotificationService {
   }
 
   static async markAsRead(notificationId: number) {
-    return ApiClient.patch<NotificationEntry>(
+    return ApiClient.patch<Notification>(
       `${this.BASE_PATH}/notification/${notificationId}/`,
       { read: true }
     )
   }
 
   static async markAllAsRead(ids: number[]) {
-    return ApiClient.patch<NotificationEntry[]>(
+    return ApiClient.patch(
       `${this.BASE_PATH}/notification/`,
       { ids }
     )

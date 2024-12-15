@@ -53,7 +53,8 @@ All paths are relative to the root of the project.
 ## Current Status
 [x] Integrate Django API with Next.js via services directory completed
 [x] Auth integration completed via next-auth
-[ ] YOLO integration not in place
+[x] Notification context completed. Fetching unread count.
 [ ] Need to integrate with endpoint to fetch notifications and render them in /notifications endpoint
+[ ] YOLO integration not in place
 
 
