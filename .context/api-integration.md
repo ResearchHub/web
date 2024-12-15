@@ -26,6 +26,10 @@ All paths are relative to the root of the project.
 - Django API does not use JWT but it does return a token in the response of the login endpoint
 - app/api/auth/[...nextauth]/route.ts is the file that handles the authentication
 
+## Services
+- Services are located in `services` directory
+- Services are used to interact with the Django API
+- DTOs are located in `services/types` directory
 
 
 ## Layout

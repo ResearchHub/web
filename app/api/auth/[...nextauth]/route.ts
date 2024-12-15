@@ -4,6 +4,22 @@ import GoogleProvider from 'next-auth/providers/google'
 import type { User } from '@/types/user'
 import { transformUserData } from '@/services/types/user.dto'
 
+// Direct fetch for auth route to avoid circular dependency
+async function fetchUserData(authToken: string) {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/`, {
+    headers: {
+      'Authorization': `Token ${authToken}`,
+      'Accept': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch user data');
+  }
+
+  return response.json();
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
@@ -34,21 +50,6 @@ export const authOptions: NextAuthOptions = {
           const data = await response.json();
           token.authToken = data.key;
           token.isLoggedIn = true;
-          
-          // Fetch user data immediately after successful login
-          const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user`, {
-            headers: {
-              'Authorization': `Token ${data.key}`,
-              'Accept': 'application/json',
-            },
-          });
-          
-          if (userResponse.ok) {
-            const userData = await userResponse.json();
-            if (userData.results?.[0]) {
-              token.user = transformUserData(userData.results[0]); // We'll create this function
-            }
-          }
         } catch (error) {
           console.error('Backend authentication failed:', error);
           token.isLoggedIn = false;
@@ -59,42 +60,47 @@ export const authOptions: NextAuthOptions = {
     },
 
     async session({ session, token }) {
-      // Only fetch user data if we have a token but no user data
-      if (token.authToken && !token.user) {
-        try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user`, {
-            headers: {
-              'Authorization': `Token ${token.authToken}`,
-              'Accept': 'application/json',
-            },
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            if (data.results?.[0]) {
-              token.user = transformUserData(data.results[0]) as User;
-            } else {
-              token.isLoggedIn = false;
-              token.error = 'User data not found';
-            }
-          } else {
-            token.isLoggedIn = false;
-            token.error = 'Session expired';
-          }
-        } catch (error) {
-          console.error('Failed to fetch user data:', error);
-          token.isLoggedIn = false;
-          token.error = 'Failed to fetch user data';
+      if (!token.authToken) {
+        return {
+          ...session,
+          isLoggedIn: false,
         }
       }
 
-      // Update session with current token state
+      // Always fetch user data to validate token and get latest user info
+      try {
+        const userData = await fetchUserData(token.authToken as string);
+        
+        // Legacy check for authenticated user
+        const isAuthenticated = Boolean(userData.results.length > 0 && userData.results[0]);
+        
+        if (isAuthenticated) {
+          const transformedUser = transformUserData(userData.results[0]);
+
+          console.log('transformedUser', transformedUser)
+          
+          return {
+            ...session,
+            authToken: token.authToken,
+            isLoggedIn: true,
+            user: transformedUser, // Using our User type directly
+          }
+        }
+      } catch (error) {
+        console.error('Token validation/user fetch failed:', error);
+        return {
+          ...session,
+          user: undefined,
+          isLoggedIn: false,
+          error: 'Session expired',
+        }
+      }
+
+      // If we get here, something went wrong
       return {
         ...session,
-        authToken: token.authToken,
-        isLoggedIn: token.isLoggedIn,
-        error: token.error,
-        user: token.user || session.user,
+        isLoggedIn: false,
+        error: 'Failed to fetch user data',
       }
     }
   },

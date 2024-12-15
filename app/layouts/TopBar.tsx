@@ -19,6 +19,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
 
+  console.log('session', session)
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchQuery = event.target.value;
     setQuery(searchQuery);

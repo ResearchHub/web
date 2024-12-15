@@ -8,4 +8,6 @@ export interface User {
   
   export interface AuthorProfile {
     id: number
+    profileImage: string
+    headline: string
   }

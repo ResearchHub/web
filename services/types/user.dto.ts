@@ -13,8 +13,6 @@ export interface UserApiResponse {
 
 export function transformUserData(apiUser: any): User {
 
-
-  console.log('apiUser', apiUser)
   return {
     id: apiUser.id,
     email: apiUser.email,
@@ -22,7 +20,8 @@ export function transformUserData(apiUser: any): User {
     lastName: apiUser.last_name,
     authorProfile: apiUser.author_profile ? {
         id: apiUser.author_profile.id,
-        // Add other author profile fields as needed
+        profileImage: apiUser.author_profile.profile_image,
+        headline: typeof(apiUser.author_profile.headline) === "string" ? apiUser.author_profile.headline : apiUser.author_profile.headline?.title,
       } : undefined
     };
   }
