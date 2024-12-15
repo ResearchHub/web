@@ -1,18 +1,19 @@
 'use client'
 
-import { User, LogOut, BadgeCheck, X } from 'lucide-react'
+import { User as UserIcon, LogOut, BadgeCheck, X } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { useState, useRef, useEffect } from 'react'
-import type { Session } from 'next-auth'
+import type { User } from '@/types/user'
 import VerificationBanner from '@/components/banners/VerificationBanner'
+import { Avatar } from '@/components/ui/Avatar'
 
 interface UserMenuProps {
-  session: Session
+  user: User
   onViewProfile: () => void
   onVerifyAccount: () => void
 }
 
-export default function UserMenu({ session, onViewProfile, onVerifyAccount }: UserMenuProps) {
+export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [showVerificationBanner, setShowVerificationBanner] = useState(true)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -43,18 +44,14 @@ export default function UserMenu({ session, onViewProfile, onVerifyAccount }: Us
     <div className="relative">
       <button 
         ref={buttonRef}
-        className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
+        className="hover:ring-2 hover:ring-gray-200 rounded-full"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {session.user?.image ? (
-          <img 
-            src={session.user.image} 
-            alt={session.user.name || 'User avatar'} 
-            className="h-8 w-8 rounded-full"
-          />
-        ) : (
-          <User className="h-5 w-5 text-gray-600" />
-        )}
+        <Avatar 
+          src={user.authorProfile?.profileImage} 
+          alt={`${user.firstName} ${user.lastName}`}
+          size="sm"
+        />
       </button>
 
       {isOpen && (
@@ -65,20 +62,14 @@ export default function UserMenu({ session, onViewProfile, onVerifyAccount }: Us
           {/* User info section */}
           <div className="px-4 py-3 border-b border-gray-200">
             <div className="flex items-center">
-              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                {session.user?.image ? (
-                  <img 
-                    src={session.user.image} 
-                    alt={session.user.name || 'User avatar'} 
-                    className="h-10 w-10 rounded-full"
-                  />
-                ) : (
-                  <User className="h-6 w-6 text-gray-600" />
-                )}
-              </div>
+              <Avatar 
+                src={user.authorProfile?.profileImage} 
+                alt={`${user.firstName} ${user.lastName}`}
+                size="md"
+              />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900">{session.user?.name}</p>
-                <p className="text-xs text-gray-500">{session.user?.email}</p>
+                <p className="text-sm font-medium text-gray-900">{`${user.firstName} ${user.lastName}`}</p>
+                <p className="text-xs text-gray-500">{user.email}</p>
               </div>
             </div>
           </div>
@@ -92,7 +83,7 @@ export default function UserMenu({ session, onViewProfile, onVerifyAccount }: Us
               }}
               className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
             >
-              <User className="h-4 w-4 mr-3 text-gray-500" />
+              <UserIcon className="h-4 w-4 mr-3 text-gray-500" />
               View Profile
             </button>
 

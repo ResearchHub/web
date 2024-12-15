@@ -44,14 +44,14 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!response.ok) {
-            throw new Error(`Failed to authenticate with backend: ${response.status}`);
+            throw new Error(`Failed to authenticate with API: ${response.status}`);
           }
 
           const data = await response.json();
           token.authToken = data.key;
           token.isLoggedIn = true;
         } catch (error) {
-          console.error('Backend authentication failed:', error);
+          console.error('API authentication failed:', error);
           token.isLoggedIn = false;
           token.error = 'Authentication failed';
         }
@@ -77,8 +77,6 @@ export const authOptions: NextAuthOptions = {
         if (isAuthenticated) {
           const transformedUser = transformUserData(userData.results[0]);
 
-          console.log('transformedUser', transformedUser)
-          
           return {
             ...session,
             authToken: token.authToken,

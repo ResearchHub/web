@@ -8,6 +8,7 @@ import { useSession, signOut } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import AuthModal from '@/components/modals/Auth/AuthModal';
 import UserMenu from '@/components/menus/UserMenu'
+import type { User } from '@/types/user'
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -152,7 +153,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                       </span>
                     </button>
                     <UserMenu 
-                      session={session}
+                      user={session.user as User}
                       onViewProfile={() => null}
                       onVerifyAccount={() => null}
                     />
