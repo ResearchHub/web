@@ -8,6 +8,10 @@ import { useSession, signOut } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import AuthModal from '@/components/modals/Auth/AuthModal';
 import UserMenu from '@/components/menus/UserMenu'
+import type { User } from '@/types/user'
+import { useNotifications } from '@/contexts/NotificationContext'
+import { useRouter } from 'next/navigation'
+import { NotificationBell } from '@/components/Notification/NotificationBell'
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -15,9 +19,11 @@ interface TopBarProps {
 
 export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const { data: session, status } = useSession();
+  const { unreadCount } = useNotifications();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
+  const router = useRouter()
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchQuery = event.target.value;
@@ -29,23 +35,6 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const clearSearch = () => {
     setQuery('');
     setResults([]);
-  };
-
-  const handleUnimplementedFeature = () => {
-    toast((t) => (
-      <div className="flex items-center space-x-2">
-        <AlertCircle className="h-5 w-5" />
-        <span>Implementation coming soon</span>
-      </div>
-    ), {
-      duration: 2000,
-      position: 'bottom-right',
-      style: {
-        background: '#FFF7ED', // Orange-50
-        color: '#EA580C',     // Orange-600
-        border: '1px solid #FDBA74', // Orange-300
-      },
-    });
   };
 
   const handleAuthClick = () => {
@@ -141,17 +130,9 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
               <div className="flex items-center space-x-4">
                 {session ? (
                   <>
-                    <button 
-                      className="relative"
-                      onClick={handleUnimplementedFeature}
-                    >
-                      <Bell className="h-6 w-6 text-gray-600 hover:text-indigo-600" />
-                      <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                        3
-                      </span>
-                    </button>
+                    <NotificationBell />
                     <UserMenu 
-                      session={session}
+                      user={session.user as User}
                       onViewProfile={() => null}
                       onVerifyAccount={() => null}
                     />

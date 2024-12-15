@@ -1,78 +1,93 @@
-import { ApiError, ApiResponse } from './types';
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { getSession } from 'next-auth/react'
 
 export class ApiClient {
-  private static baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-  
-  private static async handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
-    const data = await response.json()
-    
-    if (!response.ok) {
-      throw new ApiError(
-        data.message || 'An error occurred',
-        response.status,
-        data.errors
-      )
+  private static readonly baseURL = process.env.NEXT_PUBLIC_API_URL;
+
+  private static async getAuthToken() {
+    // For server-side requests
+    if (typeof window === 'undefined') {
+      const session = await getServerSession(authOptions);
+      return session?.authToken;
     }
     
-    return data
+    // For client-side requests
+    const session = await getSession();
+    return session?.authToken;
   }
 
-  private static createHeaders(options?: RequestInit): HeadersInit {
-    return {
+  private static async getHeaders() {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-      ...options?.headers,
+    };
+
+    const authToken = await this.getAuthToken();
+    if (authToken) {
+      headers['Authorization'] = `Token ${authToken}`;
+    } else {
+      console.warn('No auth token available for request');
     }
+
+    return headers;
   }
 
-  private static async fetch<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
+  private static getFetchOptions(method: string = 'GET', headers: Record<string, string>, body?: any): RequestInit {
+    return {
+      method,
+      headers,
+      mode: 'cors',
+      cache: 'no-cache',
+      body: body ? JSON.stringify(body) : undefined,
+    };
+  }
+
+  static async get<T>(path: string): Promise<T> {
     try {
-      const url = `${this.baseUrl}${endpoint}`
-      const response = await fetch(url, {
-        ...options,
-        headers: this.createHeaders(options),
-        credentials: 'include',
-      })
-      
-      return this.handleResponse<T>(response)
-    } catch (error) {
-      if (error instanceof ApiError) {
-        throw error
+      const headers = await this.getHeaders();
+      const response = await fetch(
+        `${this.baseURL}${path}`, 
+        this.getFetchOptions('GET', headers)
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${JSON.stringify(errorData)}`);
       }
-      throw new ApiError('Network error occurred', 500)
+
+      return response.json();
+    } catch (error) {
+      console.error('API request failed:', error);
+      throw error;
     }
   }
 
-  static async get<T>(endpoint: string, params?: Record<string, string>) {
-    const url = params 
-      ? `${endpoint}?${new URLSearchParams(params)}`
-      : endpoint
-    return this.fetch<T>(url, { method: 'GET' })
+  static async post<T>(path: string, body?: any): Promise<T> {
+    const headers = await this.getHeaders();
+    const response = await fetch(
+      `${this.baseURL}${path}`,
+      this.getFetchOptions('POST', headers, body)
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
   }
 
-  static async post<T>(
-    endpoint: string, 
-    data?: unknown, 
-    options?: RequestInit
-  ) {
-    return this.fetch<T>(endpoint, {
-      ...options,
-      method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
-    })
-  }
+  static async patch<T>(path: string, body?: any): Promise<T> {
+    const headers = await this.getHeaders();
+    const response = await fetch(
+      `${this.baseURL}${path}`,
+      this.getFetchOptions('PATCH', headers, body)
+    );
 
-  static async put<T>(endpoint: string, data: unknown) {
-    return this.fetch<T>(endpoint, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    })
-  }
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-  static async delete(endpoint: string) {
-    return this.fetch(endpoint, { method: 'DELETE' })
+    return response.json();
   }
 } 

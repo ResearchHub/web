@@ -1,25 +1,30 @@
 import { signIn } from 'next-auth/react'
-import { AuthService } from '@/services/auth'
-import { ApiError } from '@/services/types'
+import { AuthService } from '@/services/auth.service'
+import { ApiError } from '@/services/types/api'
 import { isValidEmail } from '@/utils/validation'
 import { BaseScreenProps } from '../types'
 
-interface Props extends BaseScreenProps {
+interface SelectProviderProps {
   onContinue: () => void
   onSignup: () => void
+  email: string
+  setEmail: (email: string) => void
+  isLoading: boolean
+  error: string | null
+  setError: (error: string | null) => void
+  showHeader?: boolean
 }
 
 export default function SelectProvider({
-  onClose,
+  onContinue,
+  onSignup,
   email,
   setEmail,
   isLoading,
-  setIsLoading,
   error,
   setError,
-  onContinue,
-  onSignup,
-}: Props) {
+  showHeader = true
+}: SelectProviderProps) {
   const handleCheckAccount = async (e?: React.FormEvent) => {
     e?.preventDefault()
     if (!isValidEmail(email)) {
@@ -27,17 +32,16 @@ export default function SelectProvider({
       return
     }
 
-    setIsLoading(true)
     setError(null)
 
     try {
-      const { data } = await AuthService.checkAccount(email)
+      const response = await AuthService.checkAccount(email)
       
-      if (data.exists) {
-        if (data.auth === 'google') {
+      if (response.exists) {
+        if (response.auth === 'google') {
           // Prompt user to use Google sign-in
           signIn('google')
-        } else if (data.is_verified) {
+        } else if (response.is_verified) {
           onContinue()
         } else {
           setError('Please verify your email before logging in')
@@ -48,7 +52,7 @@ export default function SelectProvider({
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'An error occurred')
     } finally {
-      setIsLoading(false)
+      // setIsLoading is not defined in props, need to remove it
     }
   }
 
@@ -58,7 +62,9 @@ export default function SelectProvider({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-6">Welcome to ResearchHub</h2>
+      {showHeader && (
+        <h2 className="text-xl font-semibold mb-6">Welcome to ResearchHub</h2>
+      )}
 
       {error && (
         <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">
