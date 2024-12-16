@@ -2,12 +2,11 @@
 
 import { FC, useState } from 'react';
 import { feedEntries } from '@/store/feedStore';
-import { CommentType, FeedActionType, FeedEntry, FeedItemType, FundingRequestItem, PaperType } from '@/types/feed';
+import { CommentType, FeedActionType, FeedEntry, FeedItemType, FundingRequestItem, PaperType, RewardType } from '@/types/feed';
 import { formatTimestamp } from '@/utils/date';
 import {
   MessageCircle,
   Repeat,
-  Heart,
   Share,
   MoreHorizontal,
   Coins,
@@ -16,9 +15,14 @@ import {
   ChevronDown,
   Star,
   HandCoins,
+  Clock,
+  Bookmark,
+  ExternalLink,
+  ArrowRight,
 } from 'lucide-react';
 import { UserStack } from './ui/UserStack';
 import { AuthorList } from './ui/AuthorList'
+import { Button } from './ui/Button';
 
 const FeedItemHeader: FC<{
   actor: FeedEntry['actor'];
@@ -221,6 +225,38 @@ const FeedItemBody: FC<{
     );
   };
 
+  const renderReward = () => {
+    const reward = item as RewardType;
+    return (
+      <div className="space-y-3">
+        <h2 className="font-semibold text-lg text-gray-900">{reward.title}</h2>
+        <p className="text-gray-600">{reward.description}</p>
+        
+        <div className="flex items-center gap-6 mt-4 mb-2">
+          <Button 
+            variant="default"
+            size="sm"
+            className="gap-2"
+          >
+            <span>Start Task</span>
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Coins className="w-4 h-4 text-orange-500" />
+              <span className="text-orange-500 text-sm">{reward.amount.toLocaleString()} RSC</span>
+            </div>
+            <span className="text-gray-500 text-sm">•</span>
+            <div className="flex items-center gap-2 text-gray-500">
+              <Clock className="w-4 h-4" />
+              <span className="text-sm">Due {formatTimestamp(reward.deadline)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderPaper = () => {
     const paper = item as PaperType;
     return (
@@ -286,6 +322,7 @@ const FeedItemBody: FC<{
         {item.type === 'paper' && renderPaper()}
         {item.type === 'funding_request' && renderFundingRequest()}
         {item.type === 'comment' && renderComment()}
+        {item.type === 'reward' && renderReward()}
       </>
     );
   };
@@ -306,7 +343,8 @@ const FeedItemBody: FC<{
 
 const FeedItemActions: FC<{
   metrics: FeedEntry['metrics'];
-}> = ({ metrics }) => {
+  item: FeedItemType;
+}> = ({ metrics, item }) => {
   return (
     <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
       <button className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors">
@@ -317,12 +355,12 @@ const FeedItemActions: FC<{
         <Repeat className="w-5 h-5" />
         <span className="text-sm">{metrics?.reposts || 0}</span>
       </button>
-      <button className="flex items-center space-x-1 text-gray-500 hover:text-red-500 transition-colors">
-        <Heart className="w-5 h-5" />
-        <span className="text-sm">{metrics?.votes || 0}</span>
+      <button className="flex items-center space-x-1 text-gray-500 hover:text-orange-500 transition-colors">
+        <Bookmark className="w-5 h-5" />
+        <span className="text-sm">{metrics?.saves || 0}</span>
       </button>
-      <button className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors">
-        <Share className="w-5 h-5" />
+      <button className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors" title="Open in new tab">
+        <ExternalLink className="w-5 h-5" />
       </button>
     </div>
   );
@@ -350,7 +388,7 @@ const FeedItem: FC<{ entry: FeedEntry }> = ({ entry }) => {
           action={action} 
           repostMessage={repostMessage}
         />
-        <FeedItemActions metrics={metrics} />
+        <FeedItemActions metrics={metrics} item={item} />
       </div>
     </div>
   );

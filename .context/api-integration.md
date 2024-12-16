@@ -39,6 +39,12 @@ All paths are relative to the root of the project.
 ## Contexts
 - Contexts including data providers should be located in `contexts` directory
 
+## Main Feed
+- `components/Feed3.tsx` is the main feed component
+- Feed item types are currently loaded from `store/feedStore.ts`
+- actions are: publish, repost, post, contribute
+- types are: grant, paper, review, comment, contribution
+
 ## Technologies used in the project (next.js)
 - TypeScript
 - React
