@@ -19,6 +19,7 @@ import {
   Bookmark,
   ExternalLink,
   ArrowRight,
+  Trophy,
 } from 'lucide-react';
 import { UserStack } from './ui/UserStack';
 import { AuthorList } from './ui/AuthorList'
@@ -87,7 +88,7 @@ const FeedItemHeader: FC<{
         case 'funding_request':
           return <HandCoins className="w-4 h-4 text-gray-500" />;
         case 'reward':
-          return <Award className="w-4 h-4 text-gray-500" />;
+          return <Trophy className="w-4 h-4 text-gray-500" />;
         case 'grant':
           return <Award className="w-4 h-4 text-gray-500" />;
         case 'paper':
@@ -148,28 +149,45 @@ const FeedItemBody: FC<{
 }> = ({ item, relatedItem, action, repostMessage, isReposted }) => {
   const [showFullDescription, setShowFullDescription] = useState(false);
 
-  const getRelatedItemTitle = (item: FeedItemType | undefined) => {
-    if (!item) return '';
-    
-    if ('title' in item) {
-      return item.title;
-    }
-    
-    // For comments, use truncated content as title
-    if (item.type === 'comment') {
-      return item.content.length > 60 
-        ? `${item.content.slice(0, 60)}...` 
-        : item.content;
-    }
-    
-    return '';
+  const renderContentHeader = (title?: string) => {
+    return (
+      <div className="space-y-2">
+        {title && (
+          <h2 className="font-semibold text-lg text-gray-900">{title}</h2>
+        )}
+        {relatedItem && (
+          <div className="text-sm text-gray-500">
+            RE: <a href={`/${relatedItem.type}/${relatedItem.slug}`} className="text-blue-500 hover:underline cursor-pointer">
+              {relatedItem.title}
+            </a>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const renderComment = () => {
     const comment = item as CommentType;
+    const [showFullContent, setShowFullContent] = useState(false);
+    const shouldTruncate = comment.content.length > 280;
+
     return (
       <div className="space-y-4">
-        <p className="text-gray-600">{comment.content}</p>
+        {renderContentHeader()}
+        <div>
+          <p className={`text-gray-600 ${!showFullContent && shouldTruncate ? 'line-clamp-3' : ''}`}>
+            {comment.content}
+          </p>
+          {shouldTruncate && !showFullContent && (
+            <button
+              onClick={() => setShowFullContent(true)}
+              className="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center space-x-1 mt-2"
+            >
+              <span>Read more</span>
+              <ChevronDown className="w-4 h-4" />
+            </button>
+          )}
+        </div>
         
         {comment.parent && (
           <div className="pl-4 border-l-2 border-gray-200">
@@ -198,7 +216,7 @@ const FeedItemBody: FC<{
     const fundingRequest = item as FundingRequestItem;
     return (
       <div className="space-y-3">
-        <h2 className="font-semibold text-lg text-gray-900">{fundingRequest.title}</h2>
+        {renderContentHeader(fundingRequest.title)}
         <p className="text-gray-600">{fundingRequest.description}</p>
         <div className="space-y-2">
           <div className="flex justify-between text-sm text-gray-600">
@@ -227,19 +245,33 @@ const FeedItemBody: FC<{
 
   const renderReward = () => {
     const reward = item as RewardType;
+    const [showFullDescription, setShowFullDescription] = useState(false);
+    const shouldTruncate = reward.description.length > 280;
+
     return (
       <div className="space-y-3">
-        <h2 className="font-semibold text-lg text-gray-900">{reward.title}</h2>
-        <p className="text-gray-600">{reward.description}</p>
+        {renderContentHeader(reward.title)}
+        <div>
+          <p className={`text-gray-600 ${!showFullDescription && shouldTruncate ? 'line-clamp-3' : ''}`}>
+            {reward.description}
+          </p>
+          {shouldTruncate && !showFullDescription && (
+            <button
+              onClick={() => setShowFullDescription(true)}
+              className="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center space-x-1 mt-2"
+            >
+              <span>Read more</span>
+              <ChevronDown className="w-4 h-4" />
+            </button>
+          )}
+        </div>
         
         <div className="flex items-center gap-6 mt-4 mb-2">
           <Button 
             variant="default"
             size="sm"
-            className="gap-2"
           >
-            <span>Start Task</span>
-            <ArrowRight className="w-4 h-4" />
+            Start Task
           </Button>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
@@ -261,18 +293,12 @@ const FeedItemBody: FC<{
     const paper = item as PaperType;
     return (
       <div className="space-y-3">
-        <div className="space-y-1">
-          <h2 className={`font-semibold text-gray-900 ${isReposted ? 'text-base' : 'text-lg'}`}>
-            {paper.title}
-          </h2>
-          
-          <AuthorList 
-            authors={paper.authors || []}
-            size={isReposted ? 'sm' : 'base'} 
-            timestamp={paper.timestamp}
-          />
-        </div>
-
+        {renderContentHeader(paper.title)}
+        <AuthorList 
+          authors={paper.authors || []}
+          size={isReposted ? 'sm' : 'base'} 
+          timestamp={paper.timestamp}
+        />
         <p className={`text-gray-600 ${isReposted ? 'text-sm' : 'text-base'} ${showFullDescription ? '' : 'line-clamp-3'}`}>
           {paper.description}
         </p>
@@ -329,13 +355,6 @@ const FeedItemBody: FC<{
 
   return (
     <div className="mt-4">
-      {relatedItem && (
-        <div className="mb-3 text-sm text-gray-500">
-          RE: <span className="text-blue-500 hover:underline cursor-pointer">
-            {getRelatedItemTitle(relatedItem)}
-          </span>
-        </div>
-      )}
       {renderContent()}
     </div>
   );

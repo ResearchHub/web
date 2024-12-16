@@ -55,6 +55,7 @@ All paths are relative to the root of the project.
 - headlessui
 - react-hot-toast
 - lucide-react
+- FontAwesome
 
 ## Current Status
 [x] Integrate Django API with Next.js via services directory completed

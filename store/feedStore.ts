@@ -30,7 +30,8 @@ export const feedEntries: FeedEntry[] = [
       description: 'A novel approach to climate modeling using transformer architectures.',
       user: users.sarahChen,
       timestamp: '1d ago',
-      hub: hubs.climateScience
+      hub: hubs.climateScience,
+      slug: 'neural-networks-in-climate-prediction'
     },
     metrics: {
       votes: 8,
@@ -112,12 +113,29 @@ export const feedEntries: FeedEntry[] = [
       id: 'item-3',
       type: 'reward',
       title: 'Peer Review: Neural Mechanisms of Memory Formation',
-      description: 'Review this manuscript investigating novel pathways in hippocampal memory consolidation using optogenetics and calcium imaging.',
+      description: 'We are seeking expert peer reviewers for a groundbreaking study on hippocampal memory consolidation. The manuscript employs cutting-edge optogenetic techniques combined with calcium imaging to investigate synaptic plasticity during memory formation. Ideal reviewers should have expertise in neuroscience, particularly in memory research, optogenetics, or calcium imaging. The review should evaluate the methodology, statistical analysis, and interpretation of results. Special attention should be given to the novel combination of techniques and their potential implications for understanding memory formation mechanisms.',
       user: users.researchHub,
       timestamp: '2024-12-14 11:24:06.069373+00',
       hub: hubs.neuroscience,
       amount: 500,
       deadline: 'Oct 25, 2024',
+    },
+    relatedItem: {
+      id: 'paper-memory-formation',
+      type: 'paper',
+      title: 'Neural Mechanisms of Memory Formation: A Novel Approach Using Optogenetics',
+      description: 'This study investigates the fundamental mechanisms of memory formation in the hippocampus using state-of-the-art optogenetic techniques combined with high-resolution calcium imaging.',
+      user: users.jamesWilson,
+      timestamp: '2024-12-13 09:24:06.069373+00',
+      hub: hubs.neuroscience,
+      authors: [
+        { name: "James Wilson", verified: true },
+        { name: "Sarah Chen", verified: true },
+        { name: "David Kumar", verified: false }
+      ],
+      doi: "10.1101/2024.12.13.123456",
+      journal: "bioRxiv",
+      slug: 'neural-mechanisms-of-memory-formation'
     },
     metrics: {
       votes: 15,
@@ -212,7 +230,8 @@ export const feedEntries: FeedEntry[] = [
         users.adamDraper,
         users.elenaRodriguez,
         users.dominikus
-      ]
+      ],
+      slug: 'ml-approaches-early-detection-neurodegenerative-diseases'
     },
     metrics: {
       votes: 12,
@@ -276,7 +295,8 @@ export const feedEntries: FeedEntry[] = [
       contributors: [
         users.mariaGarcia,
         users.alexThompson
-      ]
+      ],
+      slug: 'statistical-analysis-covid19-vaccination-efficacy-data'
     },
     metrics: {
       votes: 20,
