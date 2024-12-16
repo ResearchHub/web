@@ -1,6 +1,6 @@
 import { CircleUser } from 'lucide-react';
 import { ProfileTooltip } from '../tooltips/ProfileTooltip';
-import { User } from '@/types/feed';
+import { User } from '@/types/user';
 
 interface UserStackProps {
   users: User[];
@@ -26,12 +26,11 @@ export const UserStack: React.FC<UserStackProps> = ({
       <div className="flex -space-x-2">
         {users.slice(0, limit).map((user) => (
           <div key={user.id} className="relative">
-            {user.profileImage ? (
+            {user.authorProfile?.profileImage ? (
               <img 
-                src={user.profileImage}
+                src={user.authorProfile.profileImage}
                 alt={user.fullName}
-                // add gray ring
-                className={`${imageSizeClass} rounded-full ring-1 ring-gray-200 object-cover   `}
+                className={`${imageSizeClass} rounded-full ring-1 ring-gray-200 object-cover`}
               />
             ) : (
               <div className={`${imageSizeClass} rounded-full bg-gray-200 ring-2 ring-white flex items-center justify-center border border-gray-200`}>
@@ -41,7 +40,7 @@ export const UserStack: React.FC<UserStackProps> = ({
             <ProfileTooltip
               type={user.isOrganization ? 'organization' : 'user'}
               name={user.fullName}
-              headline={user.isOrganization ? 'Organization' : 'Researcher'}
+              headline={user.authorProfile?.headline || (user.isOrganization ? 'Organization' : 'Researcher')}
             >
               <span className="sr-only">{user.fullName}</span>
             </ProfileTooltip>

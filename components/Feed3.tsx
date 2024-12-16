@@ -2,7 +2,7 @@
 
 import { FC, useState } from 'react';
 import { feedEntries } from '@/store/feedStore';
-import { CommentType, FeedActionType, FeedEntry, FeedItemType, FundingRequestItem, PaperType, RewardType } from '@/types/feed';
+import { CommentItem, FeedActionType, FeedEntry, FeedItemType, FundingRequestItem, PaperItem, RewardItem, GrantItem, ReviewItem, ContributionItem } from '@/types/feed';
 import { formatTimestamp } from '@/utils/date';
 import {
   MessageCircle,
@@ -24,6 +24,9 @@ import {
 import { UserStack } from './ui/UserStack';
 import { AuthorList } from './ui/AuthorList'
 import { Button } from './ui/Button';
+import { assertNever } from '@/utils/assertNever';
+
+const TRUNCATE_LIMIT = 280;
 
 const FeedItemHeader: FC<{
   actor: FeedEntry['actor'];
@@ -34,7 +37,6 @@ const FeedItemHeader: FC<{
 }> = ({ actor, timestamp, action, item, isReposted }) => {
 
   const getActionText = () => {
-    // Special actions that always have the same text
     switch (action) {
       case 'repost':
         return 'Reposted';
@@ -42,35 +44,31 @@ const FeedItemHeader: FC<{
         return 'Contributed RSC';
       case 'publish':
         return 'Published';
+      case 'post':
+        switch (item.type) {
+          case 'comment':
+            return 'Commented';
+          case 'funding_request':
+            return 'Started crowdfund';
+          case 'reward':
+            return 'Opened reward';
+          case 'grant':
+            return 'Published grant';
+          case 'paper':
+            return 'Published paper';
+          case 'review':
+            return 'Reviewed';
+          case 'contribution':
+            return 'Contributed';
+          default:
+            return assertNever(item);
+        }
+      default:
+        return assertNever(action);
     }
-
-    // For 'post' action, text depends on item type
-    if (action === 'post') {
-      switch (item.type) {
-        case 'comment':
-          return 'Commented';
-        case 'funding_request':
-          return 'Started crowdfund';
-        case 'reward':
-          return 'Opened reward';
-        case 'grant':
-          return 'Published grant';
-        case 'paper':
-          return 'Published paper';
-        case 'review':
-          return 'Reviewed';
-        case 'contribution':
-          return 'Contributed';
-        default:
-          return 'Posted';
-      }
-    }
-
-    return 'Posted'; // fallback
   };
 
   const getActionIcon = () => {
-    // Special actions that always have the same icon
     switch (action) {
       case 'repost':
         return <Repeat className="w-4 h-4 text-gray-500" />;
@@ -78,38 +76,35 @@ const FeedItemHeader: FC<{
         return <Coins className="w-4 h-4 text-gray-500" />;
       case 'publish':
         return <FileText className="w-4 h-4 text-gray-500" />;
+      case 'post':
+        switch (item.type) {
+          case 'comment':
+            return <MessageCircle className="w-4 h-4 text-gray-500" />;
+          case 'funding_request':
+            return <HandCoins className="w-4 h-4 text-gray-500" />;
+          case 'reward':
+            return <Trophy className="w-4 h-4 text-gray-500" />;
+          case 'grant':
+            return <Award className="w-4 h-4 text-gray-500" />;
+          case 'paper':
+            return <FileText className="w-4 h-4 text-gray-500" />;
+          case 'review':
+            return <Star className="w-4 h-4 text-gray-500" />;
+          case 'contribution':
+            return <Coins className="w-4 h-4 text-gray-500" />;
+          default:
+            return assertNever(item);
+        }
+      default:
+        return assertNever(action);
     }
-
-    // For 'post' action, icon depends on item type
-    if (action === 'post') {
-      switch (item.type) {
-        case 'comment':
-          return <MessageCircle className="w-4 h-4 text-gray-500" />;
-        case 'funding_request':
-          return <HandCoins className="w-4 h-4 text-gray-500" />;
-        case 'reward':
-          return <Trophy className="w-4 h-4 text-gray-500" />;
-        case 'grant':
-          return <Award className="w-4 h-4 text-gray-500" />;
-        case 'paper':
-          return <FileText className="w-4 h-4 text-gray-500" />;
-        case 'review':
-          return <Star className="w-4 h-4 text-gray-500" />;
-        case 'contribution':
-          return <Coins className="w-4 h-4 text-gray-500" />;
-        default:
-          return <FileText className="w-4 h-4 text-gray-500" />;
-      }
-    }
-
-    return <FileText className="w-4 h-4 text-gray-500" />; // fallback
   };
 
   return (
     <div className="flex items-start justify-between">
       <div className="flex items-center space-x-3">
         <img
-          src={actor.profileImage}
+          src={actor.authorProfile?.profileImage}
           alt={actor.fullName}
           className={`rounded-full ring-2 ring-gray-100 ${isReposted ? 'w-5 h-5' : 'w-10 h-10'}`}
         />
@@ -155,7 +150,7 @@ const FeedItemBody: FC<{
         {title && (
           <h2 className="font-semibold text-lg text-gray-900">{title}</h2>
         )}
-        {relatedItem && (
+        {relatedItem?.slug && relatedItem?.title && (
           <div className="text-sm text-gray-500">
             RE: <a href={`/${relatedItem.type}/${relatedItem.slug}`} className="text-blue-500 hover:underline cursor-pointer">
               {relatedItem.title}
@@ -166,10 +161,9 @@ const FeedItemBody: FC<{
     );
   };
 
-  const renderComment = () => {
-    const comment = item as CommentType;
+  const renderComment = (comment: CommentItem) => {
     const [showFullContent, setShowFullContent] = useState(false);
-    const shouldTruncate = comment.content.length > 280;
+    const shouldTruncate = comment.content.length > TRUNCATE_LIMIT;
 
     return (
       <div className="space-y-4">
@@ -193,7 +187,7 @@ const FeedItemBody: FC<{
           <div className="pl-4 border-l-2 border-gray-200">
             <div className="flex items-start space-x-3">
               <img
-                src={comment.parent.user.profileImage}
+                src={comment.parent.user.authorProfile?.profileImage}
                 alt={comment.parent.user.fullName}
                 className="w-8 h-8 rounded-full"
               />
@@ -244,27 +238,30 @@ const FeedItemBody: FC<{
   };
 
   const renderReward = () => {
-    const reward = item as RewardType;
+    const reward = item as RewardItem;
     const [showFullDescription, setShowFullDescription] = useState(false);
-    const shouldTruncate = reward.description.length > 280;
+    const description = reward.description || '';
+    const shouldTruncate = description.length > TRUNCATE_LIMIT;
 
     return (
       <div className="space-y-3">
         {renderContentHeader(reward.title)}
-        <div>
-          <p className={`text-gray-600 ${!showFullDescription && shouldTruncate ? 'line-clamp-3' : ''}`}>
-            {reward.description}
-          </p>
-          {shouldTruncate && !showFullDescription && (
-            <button
-              onClick={() => setShowFullDescription(true)}
-              className="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center space-x-1 mt-2"
-            >
-              <span>Read more</span>
-              <ChevronDown className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+        {description && (
+          <div>
+            <p className={`text-gray-600 ${!showFullDescription && shouldTruncate ? 'line-clamp-3' : ''}`}>
+              {description}
+            </p>
+            {shouldTruncate && !showFullDescription && (
+              <button
+                onClick={() => setShowFullDescription(true)}
+                className="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center space-x-1 mt-2"
+              >
+                <span>Read more</span>
+                <ChevronDown className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
         
         <div className="flex items-center gap-6 mt-4 mb-2">
           <Button 
@@ -290,7 +287,10 @@ const FeedItemBody: FC<{
   };
 
   const renderPaper = () => {
-    const paper = item as PaperType;
+    const paper = item as PaperItem;
+    const description = paper.description || '';
+    const shouldTruncate = description.length > TRUNCATE_LIMIT;
+
     return (
       <div className="space-y-3">
         {renderContentHeader(paper.title)}
@@ -300,10 +300,10 @@ const FeedItemBody: FC<{
           timestamp={paper.timestamp}
         />
         <p className={`text-gray-600 ${isReposted ? 'text-sm' : 'text-base'} ${showFullDescription ? '' : 'line-clamp-3'}`}>
-          {paper.description}
+          {description}
         </p>
         
-        {!showFullDescription && paper.description?.length > 200 && (
+        {!showFullDescription && shouldTruncate && (
           <button
             onClick={() => setShowFullDescription(true)}
             className="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center space-x-1"
@@ -312,6 +312,70 @@ const FeedItemBody: FC<{
             <ChevronDown className="w-4 h-4" />
           </button>
         )}
+      </div>
+    );
+  };
+
+  const renderGrant = () => {
+    const grant = item as GrantItem;
+    return (
+      <div className="space-y-3">
+        {renderContentHeader(grant.title)}
+        {grant.description && (
+          <p className="text-gray-600">{grant.description}</p>
+        )}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Coins className="w-4 h-4 text-orange-500" />
+            <span className="text-orange-500 text-sm">{grant.amount.toLocaleString()} RSC</span>
+          </div>
+          {grant.deadline && (
+            <>
+              <span className="text-gray-500 text-sm">•</span>
+              <div className="flex items-center gap-2 text-gray-500">
+                <Clock className="w-4 h-4" />
+                <span className="text-sm">Due {formatTimestamp(grant.deadline)}</span>
+              </div>
+            </>
+          )}
+        </div>
+        {grant.applicants && grant.applicants.length > 0 && (
+          <div className="flex items-center space-x-2">
+            <UserStack users={grant.applicants} limit={3} descriptiveText="Applicants" />
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderReview = () => {
+    const review = item as ReviewItem;
+    return (
+      <div className="space-y-3">
+        {renderContentHeader(review.title)}
+        {review.description && (
+          <p className="text-gray-600">{review.description}</p>
+        )}
+        <div className="flex items-center gap-2">
+          <Coins className="w-4 h-4 text-orange-500" />
+          <span className="text-orange-500 text-sm">{review.amount.toLocaleString()} RSC</span>
+        </div>
+      </div>
+    );
+  };
+
+  const renderContribution = () => {
+    const contribution = item as ContributionItem;
+    return (
+      <div className="space-y-3">
+        {renderContentHeader(contribution.title)}
+        {contribution.description && (
+          <p className="text-gray-600">{contribution.description}</p>
+        )}
+        <div className="flex items-center gap-2">
+          <Coins className="w-4 h-4 text-orange-500" />
+          <span className="text-orange-500 text-sm">{contribution.amount.toLocaleString()} RSC</span>
+        </div>
       </div>
     );
   };
@@ -343,14 +407,24 @@ const FeedItemBody: FC<{
       );
     }
 
-    return (
-      <>
-        {item.type === 'paper' && renderPaper()}
-        {item.type === 'funding_request' && renderFundingRequest()}
-        {item.type === 'comment' && renderComment()}
-        {item.type === 'reward' && renderReward()}
-      </>
-    );
+    switch (item.type) {
+      case 'paper':
+        return renderPaper();
+      case 'funding_request':
+        return renderFundingRequest();
+      case 'comment':
+        return renderComment(item);
+      case 'reward':
+        return renderReward();
+      case 'grant':
+        return renderGrant();
+      case 'review':
+        return renderReview();
+      case 'contribution':
+        return renderContribution();
+      default:
+        return assertNever(item);
+    }
   };
 
   return (
@@ -388,9 +462,9 @@ const FeedItemActions: FC<{
 const FeedItem: FC<{ entry: FeedEntry }> = ({ entry }) => {
   const { action, actor, timestamp, item, relatedItem, metrics } = entry;
   
-  const repostMessage = action === 'repost' ? 
-    (entry as Extract<FeedEntry, { action: 'repost' }>).repostMessage : 
-    undefined;
+  const repostMessage = action === 'repost' 
+    ? (entry as { repostMessage?: string }).repostMessage 
+    : undefined;
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 hover:shadow-md transition-shadow duration-200">

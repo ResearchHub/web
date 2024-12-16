@@ -2,7 +2,6 @@ import { FeedEntry } from '@/types/feed';
 import { users } from './userStore';
 import { hubs } from './hubStore';
 
-
 export const feedEntries: FeedEntry[] = [
   {
     id: 'feed-comment-2',
@@ -31,6 +30,12 @@ export const feedEntries: FeedEntry[] = [
       user: users.sarahChen,
       timestamp: '1d ago',
       hub: hubs.climateScience,
+      authors: [
+        { name: "Sarah Chen", isVerified: true },
+        { name: "James Wilson", isVerified: false }
+      ],
+      doi: "10.1101/2024.12.13.123456",
+      journal: "bioRxiv",
       slug: 'neural-networks-in-climate-prediction'
     },
     metrics: {
@@ -62,17 +67,16 @@ export const feedEntries: FeedEntry[] = [
         users.openBiologyInitiative,
         users.bioRxiv,
         users.davidKumar
-        
-      ]
+      ],
+      slug: 'incentivized-vs-non-incentivized-open-peer-reviews'
     },
     metrics: {
       votes: 45,
       comments: 21,
       reposts: 12,
       saves: 18
-    },    
+    }    
   },
-  // For repost, how do you suggest I add text associated with the repost?
   {
     id: 'feed-1',
     action: 'repost',
@@ -83,27 +87,28 @@ export const feedEntries: FeedEntry[] = [
       id: 'item-1',
       type: 'paper',
       title: "Deoxysphingolipids Activate CGAS-STING In Colon Cancer Cells And Enhance Tumor Immunity",
-      description: "Bioactive sphingolipids (SLs) play critical roles in cellular function, including modifying the oncogenic potential of cancer cells. Depletion of the non-essential amino acid serine induces an intracellular shift from the generation of canonical SLs to non-canonical SLs known as deoxySLs, which can exert antitumor effects. Recent evidence has shown that restricting endogenous and exogenous sources of serine from cancer cells promotes antitumor immunity by activating the cyclic GMP-AMP Synthase-Stimulator of Interferon Genes (cGAS-STING) pathway. However, it is not known whether deoxySLs play a role in mediating this antitumor immune response. In this study, we demonstrated that depleting both externally supplied and internally synthesized serine from CT26 colon cancer cells maximally increased the levels of deoxySLs compared to removing either source alone. The ability of serine restriction to induce cytosolic accumulation of mitochondrial DNA (mtDNA) and subsequent activation of cGAS-STING components, including downstream Type I interferons (IFNs) was prevented by blocking deoxySLs generation with the serine-palmitoyl transferase (SPT) inhibitor, myriocin. Direct administration of deoxysphinganine to cells induced mitochondrial dysfunction, in association with accumulation of cytosolic mtDNA, and increased expression of cGAS-STING components and Type I IFNs. A similar increase in IFNs was observed following mutation of SPT or supplementation of WT cells with alanine. Increasing deoxySLs in tumors through SPT mutation or feeding an alanine-enriched diet suppressed tumor growth in mice, while combining SPT mutation with a high alanine diet accentuated the antitumor effects. The observed tumor growth suppression was associated with increased infiltration of activated dendritic and cytotoxic T cells. Collectively, these findings reveal a novel role for deoxySLs in mediating antitumor immunity and provide support for the potential of using diet modification as an anticancer approach.",
+      description: "Bioactive sphingolipids (SLs) play critical roles in cellular function...",
       user: users.bioRxiv,
       timestamp: '2024-12-14 09:24:06.069373+00',
       hub: hubs.molecularBiology,
       authors: [
-        { name: "Suchandrima Saha", verified: true },
-        { name: "Fabiola Velázquez", verified: false },
-        { name: "David Montrose", verified: true },
-        { name: "Hundessa Nemomssa", verified: false },
-        { name: "Sarah Chen", verified: true },
+        { name: "Suchandrima Saha", isVerified: true },
+        { name: "Fabiola Velázquez", isVerified: false },
+        { name: "David Montrose", isVerified: true },
+        { name: "Hundessa Nemomssa", isVerified: false },
+        { name: "Sarah Chen", isVerified: true }
       ],
       doi: "10.1101/2024.10.16.618749",
-      journal: "bioRxiv (Cold Spring Harbor Laboratory)"
+      journal: "bioRxiv (Cold Spring Harbor Laboratory)",
+      slug: 'deoxysphingolipids-activate-cgas-sting'
     },
     metrics: {
       votes: 8,
       comments: 12,
       reposts: 3,
       saves: 5
-    },    
-  },  
+    }    
+  },
   {
     id: 'feed-3',
     action: 'post',
@@ -113,25 +118,26 @@ export const feedEntries: FeedEntry[] = [
       id: 'item-3',
       type: 'reward',
       title: 'Peer Review: Neural Mechanisms of Memory Formation',
-      description: 'We are seeking expert peer reviewers for a groundbreaking study on hippocampal memory consolidation. The manuscript employs cutting-edge optogenetic techniques combined with calcium imaging to investigate synaptic plasticity during memory formation. Ideal reviewers should have expertise in neuroscience, particularly in memory research, optogenetics, or calcium imaging. The review should evaluate the methodology, statistical analysis, and interpretation of results. Special attention should be given to the novel combination of techniques and their potential implications for understanding memory formation mechanisms.',
+      description: 'We are seeking expert peer reviewers for a groundbreaking study...',
       user: users.researchHub,
       timestamp: '2024-12-14 11:24:06.069373+00',
       hub: hubs.neuroscience,
       amount: 500,
       deadline: 'Oct 25, 2024',
+      slug: 'peer-review-neural-mechanisms-memory-formation'
     },
     relatedItem: {
       id: 'paper-memory-formation',
       type: 'paper',
       title: 'Neural Mechanisms of Memory Formation: A Novel Approach Using Optogenetics',
-      description: 'This study investigates the fundamental mechanisms of memory formation in the hippocampus using state-of-the-art optogenetic techniques combined with high-resolution calcium imaging.',
+      description: 'This study investigates the fundamental mechanisms of memory formation...',
       user: users.jamesWilson,
       timestamp: '2024-12-13 09:24:06.069373+00',
       hub: hubs.neuroscience,
       authors: [
-        { name: "James Wilson", verified: true },
-        { name: "Sarah Chen", verified: true },
-        { name: "David Kumar", verified: false }
+        { name: "James Wilson", isVerified: true },
+        { name: "Sarah Chen", isVerified: true },
+        { name: "David Kumar", isVerified: false }
       ],
       doi: "10.1101/2024.12.13.123456",
       journal: "bioRxiv",
@@ -142,7 +148,7 @@ export const feedEntries: FeedEntry[] = [
       comments: 4,
       reposts: 2,
       saves: 3
-    },    
+    }    
   },
   {
     id: 'feed-4',
@@ -158,6 +164,7 @@ export const feedEntries: FeedEntry[] = [
       timestamp: '2024-12-13 13:24:06.069373+00',
       hub: hubs.environmentalScience,
       amount: 500000,
+      deadline: '60 days',
       applicants: [
         users.elenaRodriguez,
         users.mariaPatel,
@@ -167,7 +174,8 @@ export const feedEntries: FeedEntry[] = [
         users.alexThompson,
         users.mariaGarcia,
         users.hundessaNemomssa
-      ]
+      ],
+      slug: 'urban-water-quality-assessment'
     },
     metrics: {
       votes: 32,
@@ -175,7 +183,7 @@ export const feedEntries: FeedEntry[] = [
       applicants: 8,
       reposts: 3,
       saves: 5
-    },    
+    }    
   },
   {
     id: 'feed-5',
@@ -190,7 +198,8 @@ export const feedEntries: FeedEntry[] = [
       user: users.elenaRodriguez,
       timestamp: '2024-12-16 15:24:06.069373+00',
       hub: hubs.medicalDevices,
-      amount: 150
+      amount: 150,
+      slug: 'review-revolutionizing-patient-care'
     },
     metrics: {
       votes: 12,
@@ -238,8 +247,8 @@ export const feedEntries: FeedEntry[] = [
       comments: 3,
       reposts: 2,
       saves: 3
-    },    
-  },  
+    }    
+  },
   {
     id: 'feed-6',
     action: 'publish',
@@ -254,18 +263,19 @@ export const feedEntries: FeedEntry[] = [
       timestamp: '2024-12-16 13:24:06.069373+00',
       hub: hubs.medicalDevices,
       authors: [
-        { name: "John Doe", verified: true },
-        { name: "Jane Smith", verified: false }
+        { name: "John Doe", isVerified: true },
+        { name: "Jane Smith", isVerified: false }
       ],
       doi: "10.1101/2024.10.16.618750",
-      journal: "Journal of Medical Devices"
+      journal: "Journal of Medical Devices",
+      slug: 'revolutionizing-patient-care-comprehensive-review'
     },
     metrics: {
       votes: 24,
       comments: 7,
       reposts: 2,
       saves: 3
-    },    
+    }    
   },
   {
     id: 'feed-8',
@@ -303,7 +313,7 @@ export const feedEntries: FeedEntry[] = [
       comments: 10,
       reposts: 3,
       saves: 5
-    },    
+    }    
   },
   {
     id: 'marketplace-1',
@@ -327,14 +337,15 @@ export const feedEntries: FeedEntry[] = [
         users.dominikus,
         users.mariaGarcia,
         users.davidKumar
-      ]
+      ],
+      slug: 'ml-early-detection-neurodegenerative-diseases'
     },
     metrics: {
       votes: 28,
       comments: 15,
       reposts: 3,
       saves: 5
-    },    
+    }    
   },
   {
     id: 'marketplace-5',
@@ -351,14 +362,15 @@ export const feedEntries: FeedEntry[] = [
       hub: hubs.quantumComputing,
       amount: 68000,
       goalAmount: 70000,
-      progress: 97
+      progress: 97,
+      slug: 'quantum-computing-algorithm-development'
     },
     metrics: {
       votes: 89,
       comments: 31,
       reposts: 3,
       saves: 5
-    },    
+    }    
   },
   {
     id: 'marketplace-8',
@@ -375,13 +387,14 @@ export const feedEntries: FeedEntry[] = [
       hub: hubs.artificialIntelligence,
       amount: 300,
       deadline: '14 days',
+      slug: 'dataset-annotation-medical-imaging'
     },
     metrics: {
       votes: 24,
       comments: 7,
       reposts: 3,
       saves: 5
-    },    
+    }    
   },
   {
     id: 'marketplace-9',
@@ -398,13 +411,14 @@ export const feedEntries: FeedEntry[] = [
       hub: hubs.climateScience,
       amount: 250,
       deadline: '30 days',
+      slug: 'data-analysis-weather-station-readings'
     },
     metrics: {
       votes: 18,
       comments: 5,
       reposts: 3,
       saves: 5
-    },    
+    }    
   },
   {
     id: 'marketplace-10',
@@ -421,13 +435,14 @@ export const feedEntries: FeedEntry[] = [
       hub: hubs.biology,
       amount: 200,
       deadline: '20 days',
+      slug: 'protocol-translation'
     },
     metrics: {
       votes: 9,
       comments: 2,
       reposts: 3,
       saves: 5
-    },    
+    }    
   },
   {
     id: 'marketplace-11',
@@ -455,14 +470,15 @@ export const feedEntries: FeedEntry[] = [
         users.elenaRodriguez,
         users.davidKumar,
         users.sarahChen
-      ]
+      ],
+      slug: 'climate-change-impact-assessment-grant'
     },
     metrics: {
       votes: 45,
       comments: 8,
       reposts: 3,
       saves: 5
-    },    
+    }    
   }
 ];
 

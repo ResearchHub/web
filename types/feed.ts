@@ -1,8 +1,9 @@
 import { User } from "./user";
 import { Hub } from "./hub";
+
 export type PaperAuthor = {
   name: string;
-  verified: boolean;
+  isVerified: boolean;
 };
 
 export type Metrics = {
@@ -27,17 +28,25 @@ export type ItemType =
   | 'paper'
   | 'review'
   | 'reward'
-  | 'contribution';
+  | 'contribution'
+  | 'comment';
 
 export type BaseItem = {
   id: string;
   type: ItemType;
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
   user: User;
   timestamp: string;
-  hub: Hub;
+  hub?: Hub;
   isPinned?: boolean;
+  slug?: string;
+};
+
+export type CommentItem = BaseItem & {
+  type: 'comment';
+  content: string;
+  parent?: CommentItem;
 };
 
 export type FundingRequestItem = BaseItem & {
@@ -46,6 +55,7 @@ export type FundingRequestItem = BaseItem & {
   goalAmount: number;
   progress: number;
   contributors?: User[];
+  slug: string;
 };
 
 export type GrantItem = BaseItem & {
@@ -54,18 +64,21 @@ export type GrantItem = BaseItem & {
   deadline?: string;
   contributors?: User[];
   applicants?: User[];
+  slug: string;
 };
 
 export type PaperItem = BaseItem & {
   type: 'paper';
   authors: PaperAuthor[];
-  doi: string;
-  journal: string;
+  doi?: string;
+  journal?: string;
+  slug: string;
 };
 
 export type ReviewItem = BaseItem & {
   type: 'review';
   amount: number;
+  slug: string;
 };
 
 export type RewardItem = BaseItem & {
@@ -73,38 +86,18 @@ export type RewardItem = BaseItem & {
   amount: number;
   deadline: string;
   contributors?: User[];
+  slug: string;
 };
 
 export type ContributionItem = BaseItem & {
   type: 'contribution';
   amount: number;
+  slug?: string;
 };
 
-export type CommentType = {
-  id: string;
-  type: 'comment';
-  content: string;
-  user: User;
-  timestamp: string;
-  parent?: CommentType;
-}
-
-export type PaperType = {
-  id: string;
-  type: 'paper';
-  title: string;
-  description: string;
-  user: User;
-  timestamp: string;
-  hub: Hub;
-  authors?: Array<{ name: string; verified: boolean }>;
-  doi?: string;
-  journal?: string;
-}
-
 export type FeedItemType = 
-  | CommentType 
-  | PaperType 
+  | CommentItem 
+  | PaperItem 
   | FundingRequestItem
   | GrantItem
   | RewardItem
@@ -127,11 +120,3 @@ export type FeedEntry = {
       action: 'post' | 'contribute' | 'publish';
     }
 );
-
-export type Item = 
-  | PaperType 
-  | FundingRequestItem 
-  | GrantItem 
-  | RewardItem 
-  | ContributionItem
-  | CommentType; 

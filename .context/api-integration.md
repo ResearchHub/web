@@ -39,6 +39,10 @@ All paths are relative to the root of the project.
 ## Contexts
 - Contexts including data providers should be located in `contexts` directory
 
+## Other
+- Utility functions are located in `utils` directory
+
+
 ## Main Feed
 - `components/Feed3.tsx` is the main feed component
 - Feed item types are currently loaded from `store/feedStore.ts`

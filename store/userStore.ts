@@ -1,134 +1,198 @@
-import { User } from '@/types/feed';
+import { User } from '@/types/user';
 
 export const users: Record<string, User> = {
     researchHub: {
-      id: 'rhub-001',
+      id: 1,
+      email: 'contact@researchhub.org',
       fullName: 'ResearchHub Foundation',
-      verified: true,
-      isOrganization: true,
       isVerified: true,
-      profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/10/20/blob",
+      isOrganization: true,
+      authorProfile: {
+        id: 1,
+        profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/10/20/blob",
+        headline: "Decentralized Research Platform"
+      }
     },
     dominikus: {
-      id: 'dom-001',
+      id: 2,
+      email: 'dominikus@example.com',
       fullName: 'Dominikus Brian',
-      verified: true,
-      isOrganization: false,
       isVerified: true,
-      profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/04/19/blob",
+      isOrganization: false,
+      authorProfile: {
+        id: 2,
+        profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/04/19/blob",
+        headline: "Research Scientist"
+      }
     },
     bioRxiv: {
-      id: 'biorxiv-001',
+      id: 3,
+      email: 'contact@biorxiv.org',
       fullName: 'bioRxiv (Cold Spring Harbor Laboratory)',
-      verified: true,
-      isOrganization: true,
       isVerified: true,
-      profileImage: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh0mIPhY2F4yEhtpWJERf0sCvfaPwyUieCkVfg6aS8acUqZ7f5v21HNlFxEtHmtCQYFSXdX97Y7HiZd7pedBXfL2oTlj1NnaEwpwWQKXOLHwt7tp18djNgKdF3sKNE8bhIrTUiE/s0/lwyH1HFe_400x400.jpg",
+      isOrganization: true,
+      authorProfile: {
+        id: 3,
+        profileImage: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh0mIPhY2F4yEhtpWJERf0sCvfaPwyUieCkVfg6aS8acUqZ7f5v21HNlFxEtHmtCQYFSXdX97Y7HiZd7pedBXfL2oTlj1NnaEwpwWQKXOLHwt7tp18djNgKdF3sKNE8bhIrTUiE/s0/lwyH1HFe_400x400.jpg",
+        headline: "Preprint Server for Biology"
+      }
     },
     adamDraper: {
-      id: 'adam-001',
+      id: 4,
+      email: 'adam@example.com',
       fullName: 'Adam Draper',
-      verified: true,
-      isOrganization: false,
       isVerified: true,
-      profileImage: 'https://pbs.twimg.com/profile_images/1547324187588538370/tKLmbxhc_400x400.jpg'
+      isOrganization: false,
+      authorProfile: {
+        id: 4,
+        profileImage: 'https://pbs.twimg.com/profile_images/1547324187588538370/tKLmbxhc_400x400.jpg',
+        headline: "Research Fellow"
+      }
     },
     elenaRodriguez: {
-      id: 'elena-001',
+      id: 5,
+      email: 'elena@example.com',
       fullName: 'Dr. Elena Rodriguez',
-      verified: true,
-      isOrganization: false,
       isVerified: true,
-      profileImage: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2024/05/18/blob_MRP9Qf6'
+      isOrganization: false,
+      authorProfile: {
+        id: 5,
+        profileImage: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2024/05/18/blob_MRP9Qf6',
+        headline: "Principal Investigator"
+      }
     },
     hundessaNemomssa: {
-      id: 'hundessa-001',
+      id: 6,
+      email: 'hundessa@example.com',
       fullName: 'Hundessa Nemomssa',
-      verified: true,
-      isOrganization: false,
       isVerified: true,
-      profileImage: "https://lh3.googleusercontent.com/a/ACg8ocJj0QP51OML0cy6qsoKezhVqHB96qVEBEMtlWY2Jhc8xWvWIjY=s96-c",
+      isOrganization: false,
+      authorProfile: {
+        id: 6,
+        profileImage: "https://lh3.googleusercontent.com/a/ACg8ocJj0QP51OML0cy6qsoKezhVqHB96qVEBEMtlWY2Jhc8xWvWIjY=s96-c",
+        headline: "Research Associate"
+      }
     },
     alexThompson: {
-      id: 'alex-001',
+      id: 7,
+      email: 'alex@example.com',
       fullName: 'Alex Thompson',
-      verified: true,
-      isOrganization: false,
       isVerified: true,
-      profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/11/17/blob_mXZ6zDF",
+      isOrganization: false,
+      authorProfile: {
+        id: 7,
+        profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/11/17/blob_mXZ6zDF",
+        headline: "Data Scientist"
+      }
     },
     sarahChen: {
-      id: 'sarah-001',
+      id: 8,
+      email: 'sarah@example.com',
       fullName: 'Sarah Chen',
-      verified: true,
-      isOrganization: false,
       isVerified: true,
-      profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/11/25/blob_7T1yCOe",
+      isOrganization: false,
+      authorProfile: {
+        id: 8,
+        profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/11/25/blob_7T1yCOe",
+        headline: "ML Researcher"
+      }
     },
     mariaGarcia: {
-      id: 'maria-001',
+      id: 9,
+      email: 'maria@example.com',
       fullName: 'Maria Garcia',
-      verified: true,
-      isOrganization: false,
       isVerified: true,
-      profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/11/17/blob_F2VhiHh",
+      isOrganization: false,
+      authorProfile: {
+        id: 9,
+        profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/11/17/blob_F2VhiHh",
+        headline: "Research Fellow"
+      }
     },
     davidKumar: {
-      id: 'david-001',
+      id: 10,
+      email: 'david@example.com',
       fullName: 'David Kumar',
-      verified: true,
-      isOrganization: false,
       isVerified: true,
-      profileImage: "https://lh3.googleusercontent.com/a-/AOh14GiRKX1-3CxehVa8k35yT8n3E3kUUctMHuWEGhoJ6A=s96-c",
+      isOrganization: false,
+      authorProfile: {
+        id: 10,
+        profileImage: "https://lh3.googleusercontent.com/a-/AOh14GiRKX1-3CxehVa8k35yT8n3E3kUUctMHuWEGhoJ6A=s96-c",
+        headline: "Research Scientist"
+      }
     },
     jamesWilson: {
-      id: 'james-001',
+      id: 11,
+      email: 'james@example.com',
       fullName: 'James Wilson',
-      verified: false,
-      isOrganization: false,
       isVerified: false,
-      profileImage: "https://lh3.googleusercontent.com/a/ACg8ocKjrm4IKJD-j0EBm_l6Dq3e-9k6UG9Cw4LYeqvY2ivA1B69f4fE=s96-c",
+      isOrganization: false,
+      authorProfile: {
+        id: 11,
+        profileImage: "https://lh3.googleusercontent.com/a/ACg8ocKjrm4IKJD-j0EBm_l6Dq3e-9k6UG9Cw4LYeqvY2ivA1B69f4fE=s96-c",
+        headline: "PhD Candidate"
+      }
     },
     mariaPatel: {
-      id: 'maria-002',
+      id: 12,
+      email: 'mariap@example.com',
       fullName: 'Maria Patel',
-      verified: true,
-      isOrganization: false,
       isVerified: true,
-      profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/11/13/blob_eu0M5yn",
+      isOrganization: false,
+      authorProfile: {
+        id: 12,
+        profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/11/13/blob_eu0M5yn",
+        headline: "Research Associate"
+      }
     },
     stanfordAILab: {
-      id: 'stanford-001',
+      id: 13,
+      email: 'ai@stanford.edu',
       fullName: 'Stanford AI Lab',
-      verified: true,
-      isOrganization: true,
       isVerified: true,
-      profileImage: "https://pbs.twimg.com/profile_images/875395483128049664/8z_jvdLB_400x400.jpg",
+      isOrganization: true,
+      authorProfile: {
+        id: 13,
+        profileImage: "https://pbs.twimg.com/profile_images/875395483128049664/8z_jvdLB_400x400.jpg",
+        headline: "AI Research Lab"
+      }
     },
     climateResearchInstitute: {
-      id: 'climate-001',
+      id: 14,
+      email: 'contact@climate-research.org',
       fullName: 'Climate Research Institute',
-      verified: true,
-      isOrganization: true,
       isVerified: true,
-      profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2023/09/16/blob",
+      isOrganization: true,
+      authorProfile: {
+        id: 14,
+        profileImage: "https://storage.prod.researchhub.com/uploads/author_profile_images/2023/09/16/blob",
+        headline: "Climate Science Research"
+      }
     },
     openBiologyInitiative: {
-      id: 'obi-001',
+      id: 15,
+      email: 'contact@obi.org',
       fullName: 'Open Biology Initiative',
-      verified: true,
-      isOrganization: true,
       isVerified: true,
-      profileImage: "https://cdn-icons-png.flaticon.com/256/525/525916.png",
+      isOrganization: true,
+      authorProfile: {
+        id: 15,
+        profileImage: "https://cdn-icons-png.flaticon.com/256/525/525916.png",
+        headline: "Open Science Organization"
+      }
     },
     nationalScienceFoundation: {
-      id: 'nsf-001',
+      id: 16,
+      email: 'contact@nsf.gov',
       fullName: 'National Science Foundation',
-      verified: true,
-      isOrganization: true,
       isVerified: true,
-      profileImage: "https://pbs.twimg.com/profile_images/1476237803763773447/bL1_CQLe_400x400.jpg"
+      isOrganization: true,
+      authorProfile: {
+        id: 16,
+        profileImage: "https://pbs.twimg.com/profile_images/1476237803763773447/bL1_CQLe_400x400.jpg",
+        headline: "Federal Research Agency"
+      }
     }
-  };
+};
   
   
