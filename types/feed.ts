@@ -1,18 +1,6 @@
-export type Hub = {
-  name: string;
-  slug: string;
-};
-
-export type User = {
-  id: string;
-  fullName: string;
-  verified: boolean;
-  isOrganization: boolean;
-  isVerified: boolean;
-  profileImage?: string;
-};
-
-export type Author = {
+import { User } from "./user";
+import { Hub } from "./hub";
+export type PaperAuthor = {
   name: string;
   verified: boolean;
 };
@@ -70,7 +58,7 @@ export type GrantItem = BaseItem & {
 
 export type PaperItem = BaseItem & {
   type: 'paper';
-  authors: Author[];
+  authors: PaperAuthor[];
   doi: string;
   journal: string;
 };
@@ -84,7 +72,6 @@ export type RewardItem = BaseItem & {
   type: 'reward';
   amount: number;
   deadline: string;
-  difficulty: 'Advanced' | 'Intermediate' | 'Beginner';
   contributors?: User[];
 };
 

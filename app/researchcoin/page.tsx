@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ArrowUpRight, ArrowDownRight, Gauge, Coins, ExternalLink, AlertCircle } from 'lucide-react';
 import { PageLayout } from '../layouts/PageLayout';
 import toast from 'react-hot-toast';
-import { ResearchCoinRightSidebar } from '@/app/components/ResearchCoin/ResearchCoinRightSidebar';
+import { ResearchCoinRightSidebar } from '@/components/ResearchCoin/ResearchCoinRightSidebar';
 
 
 const sampleTransactions = [

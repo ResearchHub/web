@@ -12,7 +12,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { CreateRewardModal } from '../components/modals/CreateRewardModal';
+import { CreateRewardModal } from '../../components/modals/CreateRewardModal';
 import toast from 'react-hot-toast';
 
 interface PublishMenuProps {

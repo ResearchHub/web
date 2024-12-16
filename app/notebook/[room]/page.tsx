@@ -7,12 +7,12 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'reac
 import { Doc as YDoc } from 'yjs'
 import { use } from 'react'
 
-import { BlockEditor } from '@/app/components/Editor/components/BlockEditor'
+import { BlockEditor } from '@/components/Editor/components/BlockEditor'
 import { createPortal } from 'react-dom'
-import { Surface } from '@/app/components/Editor/components/ui/Surface'
-import { Toolbar } from '@/app/components/Editor/components/ui/Toolbar'
-import { Icon } from '@/app/components/Editor/components/ui/Icon'
-import { useCollaboration } from '@/app/components/Editor/hooks/useCollaboration'
+import { Surface } from '@/components/Editor/components/ui/Surface'
+import { Toolbar } from '@/components/Editor/components/ui/Toolbar'
+import { Icon } from '@/components/Editor/components/ui/Icon'
+import { useCollaboration } from '@/components/Editor/hooks/useCollaboration'
 import NotebookLayout from '../layout/NotebookLayout'
 
 const useDarkmode = () => {

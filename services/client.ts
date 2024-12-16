@@ -1,0 +1,93 @@
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { getSession } from 'next-auth/react'
+
+export class ApiClient {
+  private static readonly baseURL = process.env.NEXT_PUBLIC_API_URL;
+
+  private static async getAuthToken() {
+    // For server-side requests
+    if (typeof window === 'undefined') {
+      const session = await getServerSession(authOptions);
+      return session?.authToken;
+    }
+    
+    // For client-side requests
+    const session = await getSession();
+    return session?.authToken;
+  }
+
+  private static async getHeaders() {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    const authToken = await this.getAuthToken();
+    if (authToken) {
+      headers['Authorization'] = `Token ${authToken}`;
+    } else {
+      console.warn('No auth token available for request');
+    }
+
+    return headers;
+  }
+
+  private static getFetchOptions(method: string = 'GET', headers: Record<string, string>, body?: any): RequestInit {
+    return {
+      method,
+      headers,
+      mode: 'cors',
+      cache: 'no-cache',
+      body: body ? JSON.stringify(body) : undefined,
+    };
+  }
+
+  static async get<T>(path: string): Promise<T> {
+    try {
+      const headers = await this.getHeaders();
+      const response = await fetch(
+        `${this.baseURL}${path}`, 
+        this.getFetchOptions('GET', headers)
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${JSON.stringify(errorData)}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('API request failed:', error);
+      throw error;
+    }
+  }
+
+  static async post<T>(path: string, body?: any): Promise<T> {
+    const headers = await this.getHeaders();
+    const response = await fetch(
+      `${this.baseURL}${path}`,
+      this.getFetchOptions('POST', headers, body)
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  static async patch<T>(path: string, body?: any): Promise<T> {
+    const headers = await this.getHeaders();
+    const response = await fetch(
+      `${this.baseURL}${path}`,
+      this.getFetchOptions('PATCH', headers, body)
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+} 

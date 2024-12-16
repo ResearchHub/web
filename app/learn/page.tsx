@@ -1,4 +1,4 @@
-import { LearnRightSidebar } from '@/app/components/Learn/LearnRightSidebar'
+import { LearnRightSidebar } from '@/components/Learn/LearnRightSidebar'
 import { PageLayout } from '../layouts/PageLayout'
 
 export default function LearnPage() {

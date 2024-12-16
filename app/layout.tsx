@@ -1,6 +1,8 @@
+import NextAuthProvider from '@/components/providers/NextAuthProvider'
+import ToasterProvider from '@/components/providers/ToasterProvider'
 import localFont from "next/font/local";
 import "./globals.css";
-import { Toaster } from 'react-hot-toast';
+import { NotificationProvider } from '@/contexts/NotificationContext'
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -23,8 +25,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
-        <Toaster />
+        <NextAuthProvider>
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
+        </NextAuthProvider>
+        <ToasterProvider />
       </body>
     </html>
   );
