@@ -51,6 +51,7 @@ All paths are relative to the root of the project.
 ## Directives
 - Use next/Link component whenever rendering a component that redirects to another page
 - Use Button component whenever rendering a button
+- Refactor rather than adding new code when possible
 
 ## Technologies used in the project (next.js)
 - TypeScript

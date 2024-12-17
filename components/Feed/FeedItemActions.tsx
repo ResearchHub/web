@@ -6,7 +6,6 @@ import {
   MessageCircle,
   Repeat,
   Bookmark,
-  ExternalLink,
   Share2,
 } from 'lucide-react';
 
@@ -37,20 +36,11 @@ export const FeedItemActions: FC<{
         )}
       </button>
 
-      <div className="flex-grow" />
-
       <button 
-        className="group p-2 text-gray-400 hover:text-gray-500 rounded-lg hover:bg-gray-50 transition-all duration-200" 
+        className="group flex items-center gap-2 p-2 text-gray-500 hover:text-gray-600 rounded-lg hover:bg-gray-50 transition-all duration-200" 
         title="Share"
       >
         <Share2 className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
-      </button>
-
-      <button 
-        className="group p-2 text-gray-400 hover:text-gray-500 rounded-lg hover:bg-gray-50 transition-all duration-200" 
-        title="Open in new tab"
-      >
-        <ExternalLink className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
       </button>
     </div>
   );

@@ -59,27 +59,27 @@ export const FeedItemHeader: FC<{
   const getActionIcon = () => {
     switch (action) {
       case 'repost':
-        return <Repeat className="w-4 h-4 text-gray-500" />;
+        return <Repeat className="w-3.5 h-3.5" />;
       case 'contribute':
-        return <Coins className="w-4 h-4 text-gray-500" />;
+        return <Coins className="w-3.5 h-3.5" />;
       case 'publish':
-        return <FileText className="w-4 h-4 text-gray-500" />;
+        return <FileText className="w-3.5 h-3.5" />;
       case 'post':
         switch (item.type) {
           case 'comment':
-            return <MessageCircle className="w-4 h-4 text-gray-500" />;
+            return <MessageCircle className="w-3.5 h-3.5" />;
           case 'funding_request':
-            return <HandCoins className="w-4 h-4 text-gray-500" />;
+            return <HandCoins className="w-3.5 h-3.5" />;
           case 'reward':
-            return <Trophy className="w-4 h-4 text-gray-500" />;
+            return <Trophy className="w-3.5 h-3.5" />;
           case 'grant':
-            return <GraduationCap className="w-4 h-4 text-gray-500" />;
+            return <GraduationCap className="w-3.5 h-3.5" />;
           case 'paper':
-            return <FileText className="w-4 h-4 text-gray-500" />;
+            return <FileText className="w-3.5 h-3.5" />;
           case 'review':
-            return <Star className="w-4 h-4 text-gray-500" />;
+            return <Star className="w-3.5 h-3.5" />;
           case 'contribution':
-            return <Coins className="w-4 h-4 text-gray-500" />;
+            return <Coins className="w-3.5 h-3.5" />;
           default:
             return assertNever(item);
         }
@@ -90,7 +90,7 @@ export const FeedItemHeader: FC<{
 
   return (
     <div className="flex items-start justify-between group">
-      <div className="flex items-start space-x-3">
+      <div className="flex items-center space-x-3">
         <div className="relative">
           <Avatar
             src={actor.authorProfile?.profileImage}
@@ -98,11 +98,11 @@ export const FeedItemHeader: FC<{
             size="sm"
             className="ring-2 ring-gray-100 transition-all duration-200"
           />
-          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow-sm">
+          <div className="absolute -bottom-2 -right-2 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-md ring-1 ring-gray-200">
             {getActionIcon()}
           </div>
         </div>
-        <div>
+        <div className="-mt-0.5">
           <div className="flex flex-wrap items-center gap-x-1.5">
             <a href="#" className="text-sm font-semibold text-gray-900 hover:text-orange-500 transition-colors duration-200">
               {actor.fullName}

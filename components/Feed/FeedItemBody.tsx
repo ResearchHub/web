@@ -32,7 +32,7 @@ export const FeedItemBody: FC<{
 
   const renderContentHeader = (title?: string) => {
     return (
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {title && (
           <h2 className="font-semibold text-lg text-gray-900">{title}</h2>
         )}
@@ -52,7 +52,7 @@ export const FeedItemBody: FC<{
     const shouldTruncate = comment.content.length > TRUNCATE_LIMIT;
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-3">
         {renderContentHeader()}
         <div>
           <p className={`text-gray-600 ${!showFullContent && shouldTruncate ? 'line-clamp-3' : ''}`}>
@@ -70,7 +70,7 @@ export const FeedItemBody: FC<{
         </div>
         
         {comment.parent && (
-          <div className="pl-4 border-l-2 border-gray-100">
+          <div className="pl-4 border-l-2 border-gray-200">
             <div className="flex items-start space-x-3">
               <Avatar
                 src={comment.parent.user.authorProfile?.profileImage}
@@ -86,7 +86,7 @@ export const FeedItemBody: FC<{
                     {formatTimestamp(comment.parent.timestamp)}
                   </button>
                 </div>
-                <p className="text-gray-600 mt-2 text-sm">{comment.parent.content}</p>
+                <p className="text-gray-600 mt-1.5 text-sm">{comment.parent.content}</p>
               </div>
             </div>
           </div>
@@ -155,7 +155,7 @@ export const FeedItemBody: FC<{
         <div className={`flex ${isRewardOrGrant ? '' : 'flex-col-reverse sm:flex-row sm:justify-between sm:items-center'} gap-4`}>
           <Button 
             variant="default"
-            size="default"
+            size="md"
             className="bg-orange-500 hover:bg-orange-600 text-white font-medium px-8 w-full sm:w-auto"
           >
             {ctaText}
@@ -171,10 +171,10 @@ export const FeedItemBody: FC<{
   const renderFundingRequest = () => {
     const fundingRequest = item as FundingRequestItem;
     return (
-      <div className="space-y-4">
+      <div className="space-y-2">
         {renderContentHeader(fundingRequest.title)}
-        <div className="border-b border-gray-100 pb-4">
-          <p className="text-gray-600 text-sm leading-relaxed">{fundingRequest.description}</p>
+        <div className="pb-2">
+          <p className="text-gray-600 leading-relaxed">{fundingRequest.description}</p>
         </div>
         {renderActionFooter({
           amount: fundingRequest.amount,
@@ -361,7 +361,7 @@ export const FeedItemBody: FC<{
   };
 
   return (
-    <div className="mt-4">
+    <div className="mt-1.5">
       {renderContent()}
     </div>
   );

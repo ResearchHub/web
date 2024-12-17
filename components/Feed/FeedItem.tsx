@@ -18,10 +18,10 @@ export const FeedItem: FC<{ entry: FeedEntry; isFirst?: boolean }> = ({ entry, i
     <div 
       className={clsx(
         'relative bg-white',
-        !isFirst && 'mt-12'
+        !isFirst && 'mt-8'
       )}
     >
-      <div className="space-y-4">
+      <div>
         <FeedItemHeader 
           actor={actor} 
           timestamp={timestamp} 
@@ -35,7 +35,7 @@ export const FeedItem: FC<{ entry: FeedEntry; isFirst?: boolean }> = ({ entry, i
             action={action} 
             repostMessage={repostMessage}
           />
-          <div className="mt-6 -mx-4 px-4">
+          <div className="mt-4 -mx-4 px-4">
             <FeedItemActions metrics={metrics} item={item} />
           </div>
         </div>
