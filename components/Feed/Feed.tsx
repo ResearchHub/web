@@ -6,6 +6,7 @@ import { FeedTabs } from '../FeedTabs';
 import { InterestSelector } from '../InterestSelector/InterestSelector';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FeedItem } from './FeedItem';
+import { Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const Feed: FC = () => {
@@ -49,9 +50,11 @@ export const Feed: FC = () => {
   return (
     <PageLayout className="bg-white">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Today in Science</h1>
-          <p className="text-gray-600 mt-1">Discover the latest research, grants, earning, and funding opportunities</p>
+        <div className="pt-4 pb-7">
+          <h2 className="text-xl text-gray-600 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-indigo-500" />
+            Discover the latest research, grants, and funding opportunities
+          </h2>
         </div>
 
         <div className="border-b border-gray-100">

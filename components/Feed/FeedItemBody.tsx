@@ -4,6 +4,7 @@ import { FC, useState } from 'react';
 import { FeedActionType, FeedEntry, FeedItemType, CommentItem, FundingRequestItem, RewardItem, GrantItem, PaperItem, ReviewItem, ContributionItem } from '@/types/feed';
 import { User } from '@/types/user';
 import { formatTimestamp } from '@/utils/date';
+import { Avatar } from '@/components/ui/Avatar';
 import {
   ChevronDown,
   Coins,
@@ -71,18 +72,21 @@ export const FeedItemBody: FC<{
         {comment.parent && (
           <div className="pl-4 border-l-2 border-gray-100">
             <div className="flex items-start space-x-3">
-              <img
+              <Avatar
                 src={comment.parent.user.authorProfile?.profileImage}
                 alt={comment.parent.user.fullName}
-                className="w-8 h-8 rounded-full"
+                size="xs"
+                className="ring-2 ring-gray-100"
               />
               <div className="flex-1">
-                <div className="flex items-center space-x-2">
-                  <span className="font-semibold text-gray-900 text-sm">{comment.parent.user.fullName}</span>
-                  <span className="text-gray-500 text-sm">•</span>
-                  <span className="text-gray-500 text-sm">{formatTimestamp(comment.parent.timestamp)}</span>
+                <div className="flex items-center gap-x-1.5">
+                  <span className="text-sm font-semibold text-gray-900">{comment.parent.user.fullName}</span>
+                  <span className="text-gray-400">·</span>
+                  <button className="text-gray-400 hover:text-gray-600 text-sm transition-colors duration-200">
+                    {formatTimestamp(comment.parent.timestamp)}
+                  </button>
                 </div>
-                <p className="text-gray-600 mt-1 text-sm">{comment.parent.content}</p>
+                <p className="text-gray-600 mt-2 text-sm">{comment.parent.content}</p>
               </div>
             </div>
           </div>

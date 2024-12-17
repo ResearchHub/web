@@ -3,6 +3,7 @@
 import { FC } from 'react';
 import { FeedActionType, FeedEntry, FeedItemType } from '@/types/feed';
 import { formatTimestamp } from '@/utils/date';
+import { Avatar } from '@/components/ui/Avatar';
 import {
   Repeat,
   MoreHorizontal,
@@ -91,10 +92,11 @@ export const FeedItemHeader: FC<{
     <div className="flex items-start justify-between group">
       <div className="flex items-start space-x-3">
         <div className="relative">
-          <img
+          <Avatar
             src={actor.authorProfile?.profileImage}
             alt={actor.fullName}
-            className={`rounded-full ring-2 ring-white hover:ring-orange-100 transition-all duration-200 ${isReposted ? 'w-6 h-6' : 'w-8 h-8'}`}
+            size="sm"
+            className="ring-2 ring-gray-100 transition-all duration-200"
           />
           <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow-sm">
             {getActionIcon()}
@@ -102,7 +104,7 @@ export const FeedItemHeader: FC<{
         </div>
         <div>
           <div className="flex flex-wrap items-center gap-x-1.5">
-            <a href="#" className="font-medium text-gray-900 hover:text-orange-500 transition-colors duration-200">
+            <a href="#" className="text-sm font-semibold text-gray-900 hover:text-orange-500 transition-colors duration-200">
               {actor.fullName}
             </a>
             <span className="text-gray-500 text-sm">{getActionText()}</span>

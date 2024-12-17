@@ -7,23 +7,25 @@ import { cn } from '@/utils/styles'
 interface AvatarProps {
   src?: string | null
   alt?: string
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'xs' | 'sm' | 'md' | 'lg'
   className?: string
 }
 
 const sizeClasses = {
+  xs: 'h-6 w-6',
   sm: 'h-8 w-8',
   md: 'h-10 w-10',
   lg: 'h-12 w-12'
 }
 
 const iconSizeClasses = {
+  xs: 'h-4 w-4',
   sm: 'h-5 w-5',
   md: 'h-6 w-6',
   lg: 'h-7 w-7'
 }
 
-export function Avatar({ src, alt = '', size = 'md', className }: AvatarProps) {
+export function Avatar({ src, alt = '', size = 'sm', className }: AvatarProps) {
   const [imageError, setImageError] = useState(false)
 
   const handleImageError = () => {
