@@ -74,7 +74,7 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
 
   return (
     <div className="transition-colors duration-200 -mx-4 px-4">
-      <div className="border-b mb-6 w-full">
+      <div className="mb-6 w-full">
         <div className="flex justify-between">
           <div className="flex space-x-8">
             <button 

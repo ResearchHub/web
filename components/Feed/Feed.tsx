@@ -47,34 +47,46 @@ export const Feed: FC = () => {
   };
 
   return (
-    <PageLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Today in Science</h1>
-        <p className="text-gray-600 mt-1">Discover the latest research, grants, earning, and funding opportunities</p>
-      </div>
-
-      <FeedTabs 
-        showingInterests={showInterests} 
-        onInterestsClick={() => setShowInterests(!showInterests)}
-        activeInterestTab={activeInterestTab}
-        onInterestTabChange={setActiveInterestTab}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
-
-      {showInterests ? (
-        <InterestSelector
-          mode="preferences"
-          activeTab={activeInterestTab}
-          onComplete={handleInterestSelection}
-        />
-      ) : (
-        <div className="max-w-4xl mx-auto">
-          {getFeedContent().map((entry) => (
-            <FeedItem key={entry.id} entry={entry} />
-          ))}
+    <PageLayout className="bg-gray-50">
+      <div className="max-w-4xl mx-auto">
+        <div className="px-4 mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Today in Science</h1>
+          <p className="text-gray-600 mt-1">Discover the latest research, grants, earning, and funding opportunities</p>
         </div>
-      )}
+
+        <div className="mb-6">
+          <FeedTabs 
+            showingInterests={showInterests} 
+            onInterestsClick={() => setShowInterests(!showInterests)}
+            activeInterestTab={activeInterestTab}
+            onInterestTabChange={setActiveInterestTab}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+        </div>
+
+        {showInterests ? (
+          <div className="px-4">
+            <div className="bg-white border border-gray-200 p-6">
+              <InterestSelector
+                mode="preferences"
+                activeTab={activeInterestTab}
+                onComplete={handleInterestSelection}
+              />
+            </div>
+          </div>
+        ) : (
+          <div>
+            {getFeedContent().map((entry, index, array) => (
+              <FeedItem 
+                key={entry.id} 
+                entry={entry} 
+                isLast={index === array.length - 1}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </PageLayout>
   );
 };

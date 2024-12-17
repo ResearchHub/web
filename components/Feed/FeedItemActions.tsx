@@ -7,6 +7,7 @@ import {
   Repeat,
   Bookmark,
   ExternalLink,
+  Share2,
 } from 'lucide-react';
 
 export const FeedItemActions: FC<{
@@ -14,21 +15,47 @@ export const FeedItemActions: FC<{
   item: FeedItemType;
 }> = ({ metrics, item }) => {
   return (
-    <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-      <button className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors">
-        <MessageCircle className="w-5 h-5" />
-        <span className="text-sm">{metrics?.comments || 0}</span>
+    <div className="flex items-center -ml-2 mt-4 gap-1">
+      <button className="group flex items-center gap-2 p-2 text-gray-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-200">
+        <div className="relative">
+          <MessageCircle className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
+          {metrics?.comments > 0 && (
+            <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full" />
+          )}
+        </div>
+        {metrics?.comments > 0 && (
+          <span className="text-sm font-medium min-w-[20px]">{metrics.comments}</span>
+        )}
       </button>
-      <button className="flex items-center space-x-1 text-gray-500 hover:text-green-500 transition-colors">
-        <Repeat className="w-5 h-5" />
-        <span className="text-sm">{metrics?.reposts || 0}</span>
+
+      <button className="group flex items-center gap-2 p-2 text-gray-500 hover:text-green-600 rounded-lg hover:bg-green-50 transition-all duration-200">
+        <Repeat className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
+        {metrics?.reposts > 0 && (
+          <span className="text-sm font-medium min-w-[20px]">{metrics.reposts}</span>
+        )}
       </button>
-      <button className="flex items-center space-x-1 text-gray-500 hover:text-orange-500 transition-colors">
-        <Bookmark className="w-5 h-5" />
-        <span className="text-sm">{metrics?.saves || 0}</span>
+
+      <button className="group flex items-center gap-2 p-2 text-gray-500 hover:text-orange-500 rounded-lg hover:bg-orange-50 transition-all duration-200">
+        <Bookmark className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
+        {metrics?.saves > 0 && (
+          <span className="text-sm font-medium min-w-[20px]">{metrics.saves}</span>
+        )}
       </button>
-      <button className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors" title="Open in new tab">
-        <ExternalLink className="w-5 h-5" />
+
+      <div className="flex-grow" />
+
+      <button 
+        className="group p-2 text-gray-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-200" 
+        title="Share"
+      >
+        <Share2 className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
+      </button>
+
+      <button 
+        className="group p-2 text-gray-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-200" 
+        title="Open in new tab"
+      >
+        <ExternalLink className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
       </button>
     </div>
   );

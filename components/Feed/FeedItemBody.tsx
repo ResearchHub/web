@@ -117,7 +117,7 @@ export const FeedItemBody: FC<{
 
     return (
       <div className="space-y-4">
-        <div className={`flex flex-col sm:flex-row ${isRewardOrGrant ? 'justify-between' : ''} sm:items-center gap-4 border-b border-gray-100 pb-4`}>
+        <div className={`flex flex-col sm:flex-row ${isRewardOrGrant ? 'justify-between' : ''} sm:items-center gap-4`}>
           <div className="flex items-center gap-2 text-sm">
             <Coins className="w-5 h-5 text-orange-500" />
             <span className="text-orange-500 font-medium">{amount.toLocaleString()} RSC</span>
@@ -126,7 +126,7 @@ export const FeedItemBody: FC<{
             )}
             {deadline && (
               <>
-                <span className="text-gray-500">•</span>
+                <span className="text-gray-400">•</span>
                 <div className="flex items-center gap-2 text-gray-500">
                   <Clock className="w-4 h-4" />
                   <span>Due {formatTimestamp(deadline)}</span>
@@ -185,6 +185,25 @@ export const FeedItemBody: FC<{
     );
   };
 
+  const renderGrant = () => {
+    const grant = item as GrantItem;
+    return (
+      <div className="space-y-4">
+        {renderContentHeader(grant.title)}
+        <p className="text-gray-600 text-sm leading-relaxed">{grant.description}</p>
+        {renderActionFooter({
+          amount: grant.amount,
+          icon: GraduationCap,
+          deadline: grant.deadline,
+          ctaText: 'Apply Now',
+          users: grant.applicants,
+          userStackLabel: 'Applicants',
+          type: 'grant',
+        })}
+      </div>
+    );
+  };
+
   const renderReward = () => {
     const reward = item as RewardItem;
     const [showFullDescription, setShowFullDescription] = useState(false);
@@ -195,7 +214,7 @@ export const FeedItemBody: FC<{
       <div className="space-y-4">
         {renderContentHeader(reward.title)}
         {description && (
-          <div className="border-b border-gray-100 pb-4">
+          <div>
             <p className={`text-gray-600 text-sm leading-relaxed ${!showFullDescription && shouldTruncate ? 'line-clamp-3' : ''}`}>
               {description}
             </p>
@@ -217,27 +236,6 @@ export const FeedItemBody: FC<{
           ctaText: 'Start Task',
           users: reward.contributors,
           type: 'reward',
-        })}
-      </div>
-    );
-  };
-
-  const renderGrant = () => {
-    const grant = item as GrantItem;
-    return (
-      <div className="space-y-4">
-        {renderContentHeader(grant.title)}
-        <div className="border-b border-gray-100 pb-4">
-          <p className="text-gray-600 text-sm leading-relaxed">{grant.description}</p>
-        </div>
-        {renderActionFooter({
-          amount: grant.amount,
-          icon: GraduationCap,
-          deadline: grant.deadline,
-          ctaText: 'Apply Now',
-          users: grant.applicants,
-          userStackLabel: 'Applicants',
-          type: 'grant',
         })}
       </div>
     );

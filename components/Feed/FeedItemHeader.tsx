@@ -88,36 +88,41 @@ export const FeedItemHeader: FC<{
   };
 
   return (
-    <div className="flex items-start justify-between">
-      <div className="flex items-center space-x-3">
-        <img
-          src={actor.authorProfile?.profileImage}
-          alt={actor.fullName}
-          className={`rounded-full ring-2 ring-gray-100 ${isReposted ? 'w-5 h-5' : 'w-10 h-10'}`}
-        />
-        <div>
-          <div className="flex items-center space-x-2">
-            <span className={`font-semibold text-gray-900 text-sm`}>
-              {actor.fullName}
-            </span>
-            <span className={`text-gray-500 ${isReposted ? 'text-xs' : 'text-sm'}`}>•</span>
-            <span className={`text-gray-500 ${isReposted ? 'text-xs' : 'text-sm'}`}>
-              {formatTimestamp(timestamp)}
-            </span>
-          </div>
-          <div className="flex items-center mt-0.5 space-x-2 text-sm">
-            <span className="flex items-center space-x-2 text-gray-500">
-              {getActionIcon()}
-              <span>{getActionText()}</span>
-            </span>
+    <div className="flex items-start justify-between group">
+      <div className="flex items-start space-x-3">
+        <div className="relative">
+          <img
+            src={actor.authorProfile?.profileImage}
+            alt={actor.fullName}
+            className={`rounded-full ring-2 ring-white hover:ring-orange-100 transition-all duration-200 ${isReposted ? 'w-6 h-6' : 'w-8 h-8'}`}
+          />
+          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow-sm">
+            {getActionIcon()}
           </div>
         </div>
+        <div>
+          <div className="flex flex-wrap items-center gap-x-1.5">
+            <a href="#" className="font-medium text-gray-900 hover:text-orange-500 transition-colors duration-200">
+              {actor.fullName}
+            </a>
+            <span className="text-gray-500 text-sm">{getActionText()}</span>
+            <span className="text-gray-400">·</span>
+            <button className="text-gray-400 hover:text-gray-600 text-sm transition-colors duration-200">
+              {formatTimestamp(timestamp)}
+            </button>
+          </div>
+          {actor.authorProfile?.title && (
+            <div className="mt-0.5 text-sm text-gray-500">{actor.authorProfile.title}</div>
+          )}
+        </div>
       </div>
-      {!isReposted && (
-        <button className="text-gray-400 hover:text-gray-600">
-          <MoreHorizontal className="w-5 h-5" />
-        </button>
-      )}
+      <div className="flex items-center gap-2">
+        {!isReposted && (
+          <button className="text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-all duration-200 p-1 hover:bg-gray-50 rounded-full">
+            <MoreHorizontal className="w-5 h-5" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }; 
