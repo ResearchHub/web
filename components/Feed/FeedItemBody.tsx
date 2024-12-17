@@ -1,147 +1,26 @@
 'use client'
 
 import { FC, useState } from 'react';
-import { feedEntries } from '@/store/feedStore';
-import { CommentItem, FeedActionType, FeedEntry, FeedItemType, FundingRequestItem, PaperItem, RewardItem, GrantItem, ReviewItem, ContributionItem } from '@/types/feed';
+import { FeedActionType, FeedEntry, FeedItemType, CommentItem, FundingRequestItem, RewardItem, GrantItem, PaperItem, ReviewItem, ContributionItem } from '@/types/feed';
+import { User } from '@/types/user';
 import { formatTimestamp } from '@/utils/date';
 import {
-  MessageCircle,
-  Repeat,
-  Share,
-  MoreHorizontal,
-  Coins,
-  Award,
-  FileText,
   ChevronDown,
-  Star,
-  HandCoins,
+  Coins,
   Clock,
-  Bookmark,
-  ExternalLink,
-  ArrowRight,
   Trophy,
   GraduationCap,
+  HandCoins,
 } from 'lucide-react';
-import { UserStack } from './ui/UserStack';
-import { AuthorList } from './ui/AuthorList'
-import { Button } from './ui/Button';
+import { Button } from '../ui/Button';
+import { UserStack } from '../ui/UserStack';
+import { AuthorList } from '../ui/AuthorList';
 import { assertNever } from '@/utils/assertNever';
-import { User } from '@/types/user';
-import { FeedTabs } from './FeedTabs';
-import { InterestSelector } from './InterestSelector/InterestSelector';
-import { PageLayout } from '@/app/layouts/PageLayout';
-import toast from 'react-hot-toast';
+import { FeedItemHeader } from './FeedItemHeader';
 
 const TRUNCATE_LIMIT = 280;
 
-const FeedItemHeader: FC<{
-  actor: FeedEntry['actor'];
-  timestamp: string;
-  action: FeedActionType;
-  item: FeedItemType;
-  isReposted?: boolean;
-}> = ({ actor, timestamp, action, item, isReposted }) => {
-
-  const getActionText = () => {
-    switch (action) {
-      case 'repost':
-        return 'Reposted';
-      case 'contribute':
-        return 'Contributed RSC';
-      case 'publish':
-        return 'Published';
-      case 'post':
-        switch (item.type) {
-          case 'comment':
-            return 'Commented';
-          case 'funding_request':
-            return 'Started crowdfund';
-          case 'reward':
-            return 'Opened reward';
-          case 'grant':
-            return 'Published grant';
-          case 'paper':
-            return 'Published paper';
-          case 'review':
-            return 'Reviewed';
-          case 'contribution':
-            return 'Contributed';
-          default:
-            return assertNever(item);
-        }
-      default:
-        return assertNever(action);
-    }
-  };
-
-  const getActionIcon = () => {
-    switch (action) {
-      case 'repost':
-        return <Repeat className="w-4 h-4 text-gray-500" />;
-      case 'contribute':
-        return <Coins className="w-4 h-4 text-gray-500" />;
-      case 'publish':
-        return <FileText className="w-4 h-4 text-gray-500" />;
-      case 'post':
-        switch (item.type) {
-          case 'comment':
-            return <MessageCircle className="w-4 h-4 text-gray-500" />;
-          case 'funding_request':
-            return <HandCoins className="w-4 h-4 text-gray-500" />;
-          case 'reward':
-            return <Trophy className="w-4 h-4 text-gray-500" />;
-          case 'grant':
-            return <GraduationCap className="w-4 h-4 text-gray-500" />;
-          case 'paper':
-            return <FileText className="w-4 h-4 text-gray-500" />;
-          case 'review':
-            return <Star className="w-4 h-4 text-gray-500" />;
-          case 'contribution':
-            return <Coins className="w-4 h-4 text-gray-500" />;
-          default:
-            return assertNever(item);
-        }
-      default:
-        return assertNever(action);
-    }
-  };
-
-  return (
-    <div className="flex items-start justify-between">
-      <div className="flex items-center space-x-3">
-        <img
-          src={actor.authorProfile?.profileImage}
-          alt={actor.fullName}
-          className={`rounded-full ring-2 ring-gray-100 ${isReposted ? 'w-5 h-5' : 'w-10 h-10'}`}
-        />
-        <div>
-          <div className="flex items-center space-x-2">
-            <span className={`font-semibold text-gray-900 text-sm`}>
-              {actor.fullName}
-            </span>
-            <span className={`text-gray-500 ${isReposted ? 'text-xs' : 'text-sm'}`}>•</span>
-            <span className={`text-gray-500 ${isReposted ? 'text-xs' : 'text-sm'}`}>
-              {formatTimestamp(timestamp)}
-            </span>
-          </div>
-          <div className="flex items-center mt-0.5 space-x-2 text-sm">
-            <span className="flex items-center space-x-2 text-gray-500">
-              {getActionIcon()}
-              <span>{getActionText()}</span>
-            </span>
-          </div>
-        </div>
-      </div>
-      {!isReposted && (
-        <button className="text-gray-400 hover:text-gray-600">
-          <MoreHorizontal className="w-5 h-5" />
-        </button>
-      )}
-    </div>
-  );
-};
-
-const FeedItemBody: FC<{
+export const FeedItemBody: FC<{
   item: FeedItemType;
   relatedItem?: FeedEntry['relatedItem'];
   action: FeedActionType;
@@ -452,11 +331,16 @@ const FeedItemBody: FC<{
                 isReposted={true}
               />
             )}
-            <FeedItemBody
-              item={item}
-              action="post"
-              isReposted={true}
-            />
+            <div className="mt-4">
+              {item.type === 'paper' ? renderPaper() :
+               item.type === 'funding_request' ? renderFundingRequest() :
+               item.type === 'comment' ? renderComment(item) :
+               item.type === 'reward' ? renderReward() :
+               item.type === 'grant' ? renderGrant() :
+               item.type === 'review' ? renderReview() :
+               item.type === 'contribution' ? renderContribution() :
+               assertNever(item)}
+            </div>
           </div>
         </div>
       );
@@ -487,130 +371,4 @@ const FeedItemBody: FC<{
       {renderContent()}
     </div>
   );
-};
-
-const FeedItemActions: FC<{
-  metrics: FeedEntry['metrics'];
-  item: FeedItemType;
-}> = ({ metrics, item }) => {
-  return (
-    <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-      <button className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors">
-        <MessageCircle className="w-5 h-5" />
-        <span className="text-sm">{metrics?.comments || 0}</span>
-      </button>
-      <button className="flex items-center space-x-1 text-gray-500 hover:text-green-500 transition-colors">
-        <Repeat className="w-5 h-5" />
-        <span className="text-sm">{metrics?.reposts || 0}</span>
-      </button>
-      <button className="flex items-center space-x-1 text-gray-500 hover:text-orange-500 transition-colors">
-        <Bookmark className="w-5 h-5" />
-        <span className="text-sm">{metrics?.saves || 0}</span>
-      </button>
-      <button className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors" title="Open in new tab">
-        <ExternalLink className="w-5 h-5" />
-      </button>
-    </div>
-  );
-};
-
-const FeedItem: FC<{ entry: FeedEntry }> = ({ entry }) => {
-  const { action, actor, timestamp, item, relatedItem, metrics } = entry;
-  
-  const repostMessage = action === 'repost' 
-    ? (entry as { repostMessage?: string }).repostMessage 
-    : undefined;
-
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 hover:shadow-md transition-shadow duration-200">
-      <div className="p-4">
-        <FeedItemHeader 
-          actor={actor} 
-          timestamp={timestamp} 
-          action={action} 
-          item={item} 
-        />
-        <FeedItemBody 
-          item={item} 
-          relatedItem={relatedItem} 
-          action={action} 
-          repostMessage={repostMessage}
-        />
-        <FeedItemActions metrics={metrics} item={item} />
-      </div>
-    </div>
-  );
-};
-
-const Feed3: FC = () => {
-  const [showInterests, setShowInterests] = useState(false);
-  const [activeInterestTab, setActiveInterestTab] = useState<'journal' | 'person' | 'topic'>('journal');
-  const [activeTab, setActiveTab] = useState<'for-you' | 'following' | 'popular' | 'latest'>('for-you');
-
-  const getFeedContent = (): FeedEntry[] => {
-    switch (activeTab) {
-      case 'for-you':
-        return feedEntries; // Original order
-      case 'following':
-        return [...feedEntries].sort((a, b) => a.actor.fullName.localeCompare(b.actor.fullName));
-      case 'popular':
-        return [...feedEntries].sort((a, b) => 
-          (b.metrics.votes + b.metrics.comments) - 
-          (a.metrics.votes + a.metrics.comments)
-        );
-      case 'latest':
-        return [...feedEntries].sort((a, b) => 
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-        );
-      default:
-        return feedEntries;
-    }
-  };
-
-  const handleInterestSelection = async (interests: any[]) => {
-    setShowInterests(false);
-    toast.success('Your preferences have been updated', {
-      duration: 4000,
-      position: 'bottom-right',
-      style: {
-        background: '#F9FAFB',
-        color: '#111827',
-        border: '1px solid #E5E7EB',
-      },
-    });
-  };
-
-  return (
-    <PageLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Today in Science</h1>
-        <p className="text-gray-600 mt-1">Discover the latest research, grants, earning, and funding opportunities</p>
-      </div>
-
-      <FeedTabs 
-        showingInterests={showInterests} 
-        onInterestsClick={() => setShowInterests(!showInterests)}
-        activeInterestTab={activeInterestTab}
-        onInterestTabChange={setActiveInterestTab}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
-
-      {showInterests ? (
-        <InterestSelector
-          mode="preferences"
-          activeTab={activeInterestTab}
-          onComplete={handleInterestSelection}
-        />
-      ) : (
-        <div className="max-w-4xl mx-auto">
-          {getFeedContent().map((entry) => (
-            <FeedItem key={entry.id} entry={entry} />
-          ))}
-        </div>
-      )}
-    </PageLayout>
-  );
-};
-
-export default Feed3; 
+}; 

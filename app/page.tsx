@@ -1,5 +1,7 @@
-import ResearchFeed from '../components/feed'
+'use client'
+
+import Feed from '@/components/Feed/Feed';
 
 export default function Home() {
-  return <ResearchFeed />
+  return <Feed />;
 }
