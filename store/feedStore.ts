@@ -164,7 +164,7 @@ export const feedEntries: FeedEntry[] = [
       timestamp: '2024-12-13 13:24:06.069373+00',
       hub: hubs.environmentalScience,
       amount: 500000,
-      deadline: '60 days',
+      deadline: '2024-12-30 16:24:06.069373+00',
       applicants: [
         users.elenaRodriguez,
         users.mariaPatel,
@@ -348,31 +348,6 @@ export const feedEntries: FeedEntry[] = [
     }    
   },
   {
-    id: 'marketplace-5',
-    action: 'post',
-    actor: users.mariaPatel,
-    timestamp: '2024-12-13 16:24:06.069373+00',
-    item: {
-      id: 'item-15',
-      type: 'funding_request',
-      title: 'Quantum Computing Algorithm Development',
-      description: 'Research into novel quantum algorithms for optimization problems in computational chemistry.',
-      user: users.mariaPatel,
-      timestamp: '2024-12-13 16:24:06.069373+00',
-      hub: hubs.quantumComputing,
-      amount: 68000,
-      goalAmount: 70000,
-      progress: 97,
-      slug: 'quantum-computing-algorithm-development'
-    },
-    metrics: {
-      votes: 89,
-      comments: 31,
-      reposts: 3,
-      saves: 5
-    }    
-  },
-  {
     id: 'marketplace-8',
     action: 'post',
     actor: users.stanfordAILab,
@@ -458,7 +433,7 @@ export const feedEntries: FeedEntry[] = [
       timestamp: '2024-12-14 16:24:06.069373+00',
       hub: hubs.climateScience,
       amount: 750000,
-      deadline: '30 days',
+      deadline: '2024-12-30 16:24:06.069373+00',
       contributors: [
         users.mariaPatel,
         users.jamesWilson,

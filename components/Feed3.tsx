@@ -20,11 +20,13 @@ import {
   ExternalLink,
   ArrowRight,
   Trophy,
+  GraduationCap,
 } from 'lucide-react';
 import { UserStack } from './ui/UserStack';
 import { AuthorList } from './ui/AuthorList'
 import { Button } from './ui/Button';
 import { assertNever } from '@/utils/assertNever';
+import { User } from '@/types/user';
 
 const TRUNCATE_LIMIT = 280;
 
@@ -85,7 +87,7 @@ const FeedItemHeader: FC<{
           case 'reward':
             return <Trophy className="w-4 h-4 text-gray-500" />;
           case 'grant':
-            return <Award className="w-4 h-4 text-gray-500" />;
+            return <GraduationCap className="w-4 h-4 text-gray-500" />;
           case 'paper':
             return <FileText className="w-4 h-4 text-gray-500" />;
           case 'review':
@@ -206,33 +208,104 @@ const FeedItemBody: FC<{
     );
   };
 
-  const renderFundingRequest = () => {
-    const fundingRequest = item as FundingRequestItem;
+  const renderActionFooter = ({
+    amount,
+    icon: Icon,
+    deadline,
+    progress,
+    goalAmount,
+    ctaText,
+    users,
+    userStackLabel,
+    type,
+  }: {
+    amount: number;
+    icon: typeof Trophy | typeof GraduationCap | typeof HandCoins;
+    deadline?: string;
+    progress?: number;
+    goalAmount?: number;
+    ctaText: string;
+    users?: User[];
+    userStackLabel?: string;
+    type: 'reward' | 'grant' | 'funding_request';
+  }) => {
+    const isRewardOrGrant = type === 'reward' || type === 'grant';
+
     return (
-      <div className="space-y-3">
-        {renderContentHeader(fundingRequest.title)}
-        <p className="text-gray-600">{fundingRequest.description}</p>
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm text-gray-600">
-            <span className="flex items-center gap-1">
-              <Coins className="w-4 h-4 text-gray-500 text-orange-500" />
-              <span className="text-orange-500 font-medium">{fundingRequest.amount.toLocaleString()} RSC</span>
-              <span>raised of {fundingRequest.goalAmount.toLocaleString()} RSC goal</span>
-            </span>
-            <span>{fundingRequest.progress}%</span>
+      <div className="space-y-4">
+        <div className={`flex flex-col sm:flex-row ${isRewardOrGrant ? 'justify-between' : ''} sm:items-center gap-4 border-b border-gray-100 pb-4`}>
+          <div className="flex items-center gap-2 text-sm">
+            <Coins className="w-5 h-5 text-orange-500" />
+            <span className="text-orange-500 font-medium">{amount.toLocaleString()} RSC</span>
+            {goalAmount && (
+              <>
+                <span className="text-gray-500">•</span>
+                <span className="text-gray-500">raised of {goalAmount.toLocaleString()} RSC goal</span>
+              </>
+            )}
+            {progress && (
+              <>
+                <span className="text-gray-500">•</span>
+                <span className="text-gray-500">{progress}%</span>
+              </>
+            )}
+            {deadline && (
+              <>
+                <span className="text-gray-500">•</span>
+                <div className="flex items-center gap-2 text-gray-500">
+                  <Clock className="w-4 h-4" />
+                  <span>Due {formatTimestamp(deadline)}</span>
+                </div>
+              </>
+            )}
           </div>
+          {isRewardOrGrant && users && users.length > 0 && (
+            <UserStack users={users} limit={3} descriptiveText={userStackLabel} />
+          )}
+        </div>
+
+        {progress && (
           <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
             <div
               className="h-full bg-orange-500 rounded-full transition-all duration-500"
-              style={{ width: `${fundingRequest.progress}%` }}
+              style={{ width: `${progress}%` }}
             />
           </div>
-          {fundingRequest.contributors && (
-            <div className="flex items-center space-x-2">
-              <UserStack users={fundingRequest.contributors} limit={3} />
-            </div>
+        )}
+
+        <div className={`flex ${isRewardOrGrant ? '' : 'flex-col-reverse sm:flex-row sm:justify-between sm:items-center'} gap-4`}>
+          <Button 
+            variant="default"
+            size="default"
+            className="bg-orange-500 hover:bg-orange-600 text-white font-medium px-8 w-full sm:w-auto"
+          >
+            {ctaText}
+          </Button>
+          {!isRewardOrGrant && users && users.length > 0 && (
+            <UserStack users={users} limit={3} descriptiveText={userStackLabel} />
           )}
         </div>
+      </div>
+    );
+  };
+
+  const renderFundingRequest = () => {
+    const fundingRequest = item as FundingRequestItem;
+    return (
+      <div className="space-y-4">
+        {renderContentHeader(fundingRequest.title)}
+        <div className="border-b border-gray-100 pb-4">
+          <p className="text-gray-600 text-sm leading-relaxed">{fundingRequest.description}</p>
+        </div>
+        {renderActionFooter({
+          amount: fundingRequest.amount,
+          icon: HandCoins,
+          goalAmount: fundingRequest.goalAmount,
+          progress: fundingRequest.progress,
+          ctaText: 'Contribute',
+          users: fundingRequest.contributors,
+          type: 'funding_request',
+        })}
       </div>
     );
   };
@@ -244,11 +317,11 @@ const FeedItemBody: FC<{
     const shouldTruncate = description.length > TRUNCATE_LIMIT;
 
     return (
-      <div className="space-y-3">
+      <div className="space-y-4">
         {renderContentHeader(reward.title)}
         {description && (
-          <div>
-            <p className={`text-gray-600 ${!showFullDescription && shouldTruncate ? 'line-clamp-3' : ''}`}>
+          <div className="border-b border-gray-100 pb-4">
+            <p className={`text-gray-600 text-sm leading-relaxed ${!showFullDescription && shouldTruncate ? 'line-clamp-3' : ''}`}>
               {description}
             </p>
             {shouldTruncate && !showFullDescription && (
@@ -262,26 +335,35 @@ const FeedItemBody: FC<{
             )}
           </div>
         )}
-        
-        <div className="flex items-center gap-6 mt-4 mb-2">
-          <Button 
-            variant="default"
-            size="sm"
-          >
-            Start Task
-          </Button>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Coins className="w-4 h-4 text-orange-500" />
-              <span className="text-orange-500 text-sm">{reward.amount.toLocaleString()} RSC</span>
-            </div>
-            <span className="text-gray-500 text-sm">•</span>
-            <div className="flex items-center gap-2 text-gray-500">
-              <Clock className="w-4 h-4" />
-              <span className="text-sm">Due {formatTimestamp(reward.deadline)}</span>
-            </div>
-          </div>
+        {renderActionFooter({
+          amount: reward.amount,
+          icon: Trophy,
+          deadline: reward.deadline,
+          ctaText: 'Start Task',
+          users: reward.contributors,
+          type: 'reward',
+        })}
+      </div>
+    );
+  };
+
+  const renderGrant = () => {
+    const grant = item as GrantItem;
+    return (
+      <div className="space-y-4">
+        {renderContentHeader(grant.title)}
+        <div className="border-b border-gray-100 pb-4">
+          <p className="text-gray-600 text-sm leading-relaxed">{grant.description}</p>
         </div>
+        {renderActionFooter({
+          amount: grant.amount,
+          icon: GraduationCap,
+          deadline: grant.deadline,
+          ctaText: 'Apply Now',
+          users: grant.applicants,
+          userStackLabel: 'Applicants',
+          type: 'grant',
+        })}
       </div>
     );
   };
@@ -290,6 +372,7 @@ const FeedItemBody: FC<{
     const paper = item as PaperItem;
     const description = paper.description || '';
     const shouldTruncate = description.length > TRUNCATE_LIMIT;
+    const formattedTimestamp = paper.timestamp.includes('ago') ? paper.timestamp : formatTimestamp(paper.timestamp);
 
     return (
       <div className="space-y-3">
@@ -297,7 +380,7 @@ const FeedItemBody: FC<{
         <AuthorList 
           authors={paper.authors || []}
           size={isReposted ? 'sm' : 'base'} 
-          timestamp={paper.timestamp}
+          timestamp={formattedTimestamp}
         />
         <p className={`text-gray-600 ${isReposted ? 'text-sm' : 'text-base'} ${showFullDescription ? '' : 'line-clamp-3'}`}>
           {description}
@@ -311,38 +394,6 @@ const FeedItemBody: FC<{
             <span>Read more</span>
             <ChevronDown className="w-4 h-4" />
           </button>
-        )}
-      </div>
-    );
-  };
-
-  const renderGrant = () => {
-    const grant = item as GrantItem;
-    return (
-      <div className="space-y-3">
-        {renderContentHeader(grant.title)}
-        {grant.description && (
-          <p className="text-gray-600">{grant.description}</p>
-        )}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Coins className="w-4 h-4 text-orange-500" />
-            <span className="text-orange-500 text-sm">{grant.amount.toLocaleString()} RSC</span>
-          </div>
-          {grant.deadline && (
-            <>
-              <span className="text-gray-500 text-sm">•</span>
-              <div className="flex items-center gap-2 text-gray-500">
-                <Clock className="w-4 h-4" />
-                <span className="text-sm">Due {formatTimestamp(grant.deadline)}</span>
-              </div>
-            </>
-          )}
-        </div>
-        {grant.applicants && grant.applicants.length > 0 && (
-          <div className="flex items-center space-x-2">
-            <UserStack users={grant.applicants} limit={3} descriptiveText="Applicants" />
-          </div>
         )}
       </div>
     );
