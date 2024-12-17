@@ -54,7 +54,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({ children, rightSidebar }
           onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)}
         />
         <div className="flex justify-center">
-          <div className="w-full max-w-4xl py-6 px-4 lg:ml-8 lg:mr-8">
+          <div className="w-full max-w-4xl py-6 lg:ml-8 lg:mr-8">
             {children}
           </div>
         </div>

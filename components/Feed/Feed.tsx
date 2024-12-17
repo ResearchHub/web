@@ -49,13 +49,13 @@ export const Feed: FC = () => {
   return (
     <PageLayout className="bg-white">
       <div className="max-w-4xl mx-auto">
-        <div className="px-4 mb-8">
+        <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Today in Science</h1>
           <p className="text-gray-600 mt-1">Discover the latest research, grants, earning, and funding opportunities</p>
         </div>
 
         <div className="border-b border-gray-100">
-          <div className="px-4">
+          <div className="">
             <FeedTabs 
               showingInterests={showInterests} 
               onInterestsClick={() => setShowInterests(!showInterests)}
@@ -76,7 +76,7 @@ export const Feed: FC = () => {
             />
           </div>
         ) : (
-          <div className="mt-8 px-4">
+          <div className="mt-8">
             {getFeedContent().map((entry, index) => (
               <FeedItem 
                 key={entry.id} 
