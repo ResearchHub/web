@@ -6,7 +6,7 @@ import { FeedItemHeader } from './FeedItemHeader';
 import { FeedItemBody } from './FeedItemBody';
 import { FeedItemActions } from './FeedItemActions';
 
-export const FeedItem: FC<{ entry: FeedEntry; isLast?: boolean }> = ({ entry, isLast }) => {
+export const FeedItem: FC<{ entry: FeedEntry; isFirst?: boolean }> = ({ entry, isFirst }) => {
   const { action, actor, timestamp, item, relatedItem, metrics } = entry;
   
   const repostMessage = action === 'repost' 
@@ -14,8 +14,8 @@ export const FeedItem: FC<{ entry: FeedEntry; isLast?: boolean }> = ({ entry, is
     : undefined;
 
   return (
-    <div className={`bg-white border rounded-md border-gray-200 ${!isLast ? 'mb-4' : ''}`}>
-      <div className="p-6">
+    <div className={`bg-white border-b border-gray-200 ${isFirst ? 'border-t' : ''}`}>
+      <div className="pt-4 pb-3">
         <div className="space-y-4">
           <FeedItemHeader 
             actor={actor} 
@@ -30,7 +30,9 @@ export const FeedItem: FC<{ entry: FeedEntry; isLast?: boolean }> = ({ entry, is
               action={action} 
               repostMessage={repostMessage}
             />
-            <FeedItemActions metrics={metrics} item={item} />
+            <div className="mt-6 -mx-4 px-4">
+              <FeedItemActions metrics={metrics} item={item} />
+            </div>
           </div>
         </div>
       </div>

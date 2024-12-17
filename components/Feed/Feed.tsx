@@ -47,9 +47,9 @@ export const Feed: FC = () => {
   };
 
   return (
-    <PageLayout className="bg-gray-50">
+    <PageLayout className="bg-white">
       <div className="max-w-4xl mx-auto">
-        <div className="px-4 mb-6">
+        <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Today in Science</h1>
           <p className="text-gray-600 mt-1">Discover the latest research, grants, earning, and funding opportunities</p>
         </div>
@@ -67,21 +67,19 @@ export const Feed: FC = () => {
 
         {showInterests ? (
           <div className="px-4">
-            <div className="bg-white border border-gray-200 p-6">
-              <InterestSelector
-                mode="preferences"
-                activeTab={activeInterestTab}
-                onComplete={handleInterestSelection}
-              />
-            </div>
+            <InterestSelector
+              mode="preferences"
+              activeTab={activeInterestTab}
+              onComplete={handleInterestSelection}
+            />
           </div>
         ) : (
           <div>
-            {getFeedContent().map((entry, index, array) => (
+            {getFeedContent().map((entry, index) => (
               <FeedItem 
                 key={entry.id} 
                 entry={entry} 
-                isLast={index === array.length - 1}
+                isFirst={index === 0}
               />
             ))}
           </div>
