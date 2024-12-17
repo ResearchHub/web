@@ -113,6 +113,7 @@ export const FeedItemBody: FC<{
     type: 'reward' | 'grant' | 'funding_request';
   }) => {
     const isRewardOrGrant = type === 'reward' || type === 'grant';
+    const isFundingRequest = type === 'funding_request';
 
     return (
       <div className="space-y-4">
@@ -121,16 +122,7 @@ export const FeedItemBody: FC<{
             <Coins className="w-5 h-5 text-orange-500" />
             <span className="text-orange-500 font-medium">{amount.toLocaleString()} RSC</span>
             {goalAmount && (
-              <>
-                <span className="text-gray-500">•</span>
-                <span className="text-gray-500">raised of {goalAmount.toLocaleString()} RSC goal</span>
-              </>
-            )}
-            {progress && (
-              <>
-                <span className="text-gray-500">•</span>
-                <span className="text-gray-500">{progress}%</span>
-              </>
+              <span className="text-gray-500 text-sm">of {goalAmount.toLocaleString()} RSC</span>
             )}
             {deadline && (
               <>
@@ -147,7 +139,7 @@ export const FeedItemBody: FC<{
           )}
         </div>
 
-        {progress && (
+        {progress && isFundingRequest && (
           <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
             <div
               className="h-full bg-orange-500 rounded-full transition-all duration-500"

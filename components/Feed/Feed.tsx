@@ -69,7 +69,7 @@ export const Feed: FC = () => {
           onComplete={handleInterestSelection}
         />
       ) : (
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           {getFeedContent().map((entry) => (
             <FeedItem key={entry.id} entry={entry} />
           ))}
