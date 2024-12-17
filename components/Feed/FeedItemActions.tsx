@@ -6,42 +6,74 @@ import {
   MessageCircle,
   Repeat,
   Bookmark,
-  Share2,
+  Share,
 } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 export const FeedItemActions: FC<{
   metrics: FeedEntry['metrics'];
   item: FeedItemType;
 }> = ({ metrics, item }) => {
   return (
-    <div className="flex items-center border-t border-gray-100 pt-3">
-      <button className="group flex items-center gap-2 p-2 text-gray-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-200">
-        <MessageCircle className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
-        {metrics?.comments > 0 && (
-          <span className="text-sm font-medium min-w-[20px]">{metrics.comments}</span>
-        )}
-      </button>
-
-      <button className="group flex items-center gap-2 p-2 text-gray-500 hover:text-green-600 rounded-lg hover:bg-green-50 transition-all duration-200">
-        <Repeat className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
-        {metrics?.reposts > 0 && (
-          <span className="text-sm font-medium min-w-[20px]">{metrics.reposts}</span>
-        )}
-      </button>
-
-      <button className="group flex items-center gap-2 p-2 text-gray-500 hover:text-orange-500 rounded-lg hover:bg-orange-50 transition-all duration-200">
-        <Bookmark className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
-        {metrics?.saves > 0 && (
-          <span className="text-sm font-medium min-w-[20px]">{metrics.saves}</span>
-        )}
-      </button>
-
-      <button 
-        className="group flex items-center gap-2 p-2 text-gray-500 hover:text-gray-600 rounded-lg hover:bg-gray-50 transition-all duration-200" 
-        title="Share"
+    <div className="flex items-center space-x-0.5 border-t border-gray-100 pt-3">
+      <Button
+        variant="ghost"
+        size="sm"
+        tooltip="Comment"
+        className="-ml-3 flex items-center text-gray-500 hover:text-gray-900 h-7"
       >
-        <Share2 className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
-      </button>
+        <div className="flex items-center justify-center w-7">
+          <MessageCircle className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
+        </div>
+        {metrics?.comments > 0 && (
+          <span className="text-sm font-medium pr-1.5">
+            {metrics.comments}
+          </span>
+        )}
+      </Button>
+
+      <Button
+        variant="ghost"
+        size="sm"
+        tooltip="Repost"
+        className="flex items-center text-gray-500 hover:text-gray-900 h-7"
+      >
+        <div className="flex items-center justify-center w-7">
+          <Repeat className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
+        </div>
+        {metrics?.reposts > 0 && (
+          <span className="text-sm font-medium pr-1.5">
+            {metrics.reposts}
+          </span>
+        )}
+      </Button>
+
+      <Button
+        variant="ghost"
+        size="sm"
+        tooltip="Save"
+        className="flex items-center text-gray-500 hover:text-gray-900 h-7"
+      >
+        <div className="flex items-center justify-center w-7">
+          <Bookmark className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
+        </div>
+        {metrics?.saves > 0 && (
+          <span className="text-sm font-medium pr-1.5">
+            {metrics.saves}
+          </span>
+        )}
+      </Button>
+
+      <Button 
+        variant="ghost"
+        size="sm"
+        tooltip="Share"
+        className="flex items-center text-gray-500 hover:text-gray-900 h-7"
+      >
+        <div className="flex items-center justify-center w-7">
+          <Share className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
+        </div>
+      </Button>
     </div>
   );
 }; 
