@@ -15,14 +15,9 @@ export const FeedItemActions: FC<{
   item: FeedItemType;
 }> = ({ metrics, item }) => {
   return (
-    <div className="flex items-center -ml-2 mt-4 gap-1">
+    <div className="flex items-center border-t border-gray-100 pt-3">
       <button className="group flex items-center gap-2 p-2 text-gray-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-200">
-        <div className="relative">
-          <MessageCircle className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
-          {metrics?.comments > 0 && (
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full" />
-          )}
-        </div>
+        <MessageCircle className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
         {metrics?.comments > 0 && (
           <span className="text-sm font-medium min-w-[20px]">{metrics.comments}</span>
         )}
@@ -45,14 +40,14 @@ export const FeedItemActions: FC<{
       <div className="flex-grow" />
 
       <button 
-        className="group p-2 text-gray-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-200" 
+        className="group p-2 text-gray-400 hover:text-gray-500 rounded-lg hover:bg-gray-50 transition-all duration-200" 
         title="Share"
       >
         <Share2 className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
       </button>
 
       <button 
-        className="group p-2 text-gray-500 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-200" 
+        className="group p-2 text-gray-400 hover:text-gray-500 rounded-lg hover:bg-gray-50 transition-all duration-200" 
         title="Open in new tab"
       >
         <ExternalLink className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />

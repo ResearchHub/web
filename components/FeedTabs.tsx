@@ -73,46 +73,46 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
   }
 
   return (
-    <div className="transition-colors duration-200 -mx-4 px-4">
-      <div className="mb-6 w-full">
+    <div className="transition-colors duration-200">
+      <div className="w-full">
         <div className="flex justify-between">
-          <div className="flex space-x-8">
+          <div className="flex space-x-6">
             <button 
               onClick={() => onTabChange('for-you')}
-              className={`px-1 py-4 text-sm font-medium ${
+              className={`px-1 py-3 text-sm font-medium border-b-2 transition-colors duration-200 ${
                 activeTab === 'for-you' 
-                  ? 'text-purple-600 border-b-2 border-purple-600' 
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-indigo-600 border-indigo-600' 
+                  : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-200'
               }`}
             >
               For You
             </button>
             <button 
               onClick={() => onTabChange('following')}
-              className={`px-1 py-4 text-sm font-medium ${
+              className={`px-1 py-3 text-sm font-medium border-b-2 transition-colors duration-200 ${
                 activeTab === 'following' 
-                  ? 'text-purple-600 border-b-2 border-purple-600' 
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-indigo-600 border-indigo-600' 
+                  : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-200'
               }`}
             >
               Following
             </button>
             <button 
               onClick={() => onTabChange('popular')}
-              className={`px-1 py-4 text-sm font-medium ${
+              className={`px-1 py-3 text-sm font-medium border-b-2 transition-colors duration-200 ${
                 activeTab === 'popular' 
-                  ? 'text-purple-600 border-b-2 border-purple-600' 
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-indigo-600 border-indigo-600' 
+                  : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-200'
               }`}
             >
               Popular
             </button>
             <button 
               onClick={() => onTabChange('latest')}
-              className={`px-1 py-4 text-sm font-medium ${
+              className={`px-1 py-3 text-sm font-medium border-b-2 transition-colors duration-200 ${
                 activeTab === 'latest' 
-                  ? 'text-purple-600 border-b-2 border-purple-600' 
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-indigo-600 border-indigo-600' 
+                  : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-200'
               }`}
             >
               Latest
@@ -120,7 +120,7 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
           </div>
           <button 
             onClick={onInterestsClick}
-            className="group flex items-center gap-2 px-2 py-4 text-gray-500 hover:text-gray-700"
+            className="group flex items-center gap-2 px-2 py-3 text-gray-400 hover:text-gray-600 transition-colors duration-200"
           >
             <span className="text-sm opacity-0 group-hover:opacity-100 transition-opacity">
               Customize Feed

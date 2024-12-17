@@ -69,7 +69,7 @@ export const FeedItemBody: FC<{
         </div>
         
         {comment.parent && (
-          <div className="pl-4 border-l-2 border-gray-200">
+          <div className="pl-4 border-l-2 border-gray-100">
             <div className="flex items-start space-x-3">
               <img
                 src={comment.parent.user.authorProfile?.profileImage}
