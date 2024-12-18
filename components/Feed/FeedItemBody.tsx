@@ -78,7 +78,7 @@ const ExpandableText: FC<ExpandableTextProps> = ({ text, isNested, baseTextSize 
           variant="ghost"
           size="sm"
           onClick={() => setIsExpanded(true)}
-          className="-ml-2 text-blue-500 hover:text-blue-600 h-8"
+          className="-ml-3 text-blue-500 hover:text-blue-600 h-8"
         >
           <span className="font-medium">Read more</span>
           <ChevronDown className="w-4 h-4 ml-1" />
@@ -257,7 +257,7 @@ const ActionFooter: FC<ActionFooterProps> = ({
   goalAmount,
   ctaText,
   users,
-  userStackLabel,
+  userStackLabel = 'Contributors',
   type,
   isNested
 }) => {
@@ -293,8 +293,9 @@ const ActionFooter: FC<ActionFooterProps> = ({
         {isRewardOrGrant && userAvatars.length > 0 && (
           <AvatarStack 
             items={userAvatars} 
-            size={isNested ? 'xs' : 'sm'} 
+            size={'xs'} 
             maxItems={3}
+            label={userStackLabel}
           />
         )}
       </div>
@@ -319,8 +320,9 @@ const ActionFooter: FC<ActionFooterProps> = ({
         {!isRewardOrGrant && userAvatars.length > 0 && (
           <AvatarStack 
             items={userAvatars} 
-            size={isNested ? 'xs' : 'sm'} 
+            size={'xs'} 
             maxItems={3}
+            label={userStackLabel}
           />
         )}
       </div>
