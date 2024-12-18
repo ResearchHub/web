@@ -69,7 +69,7 @@ export const Feed: FC = () => {
         </div>
 
         {showInterests ? (
-          <div className="px-4 mt-6">
+          <div className="mt-6">
             <InterestSelector
               mode="preferences"
               activeTab={activeInterestTab}
