@@ -29,6 +29,8 @@ export interface TransactionDTO {
   updated_date: string;
   user: number;
   content_type: number;
+  fee?: number;
+  transaction_hash?: string;
 }
 
 export interface TransactionResponse {
@@ -62,6 +64,8 @@ export function transformTransaction(raw: any): TransactionDTO {
     updated_date: raw.updated_date,
     user: raw.user,
     content_type: raw.content_type,
+    fee: raw.fee,
+    transaction_hash: raw.transaction_hash,
   }
 }
 

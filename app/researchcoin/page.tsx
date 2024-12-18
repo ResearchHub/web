@@ -1,9 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { ArrowUpFromLine, ArrowDownToLine, Gauge, Coins, ExternalLink, AlertCircle, InfoIcon } from 'lucide-react';
+import { ArrowUpFromLine, ArrowDownToLine, AlertCircle, InfoIcon, FileDown } from 'lucide-react';
 import { PageLayout } from '../layouts/PageLayout';
 import toast from 'react-hot-toast';
 import { ResearchCoinRightSidebar } from '@/components/ResearchCoin/ResearchCoinRightSidebar';
@@ -12,6 +10,8 @@ import { TransactionDTO } from '@/services/types/transaction.dto';
 import Image from 'next/image';
 import { TransactionList } from '@/components/ResearchCoin/TransactionList';
 import { TransactionSkeleton } from '@/components/ResearchCoin/TransactionSkeleton';
+import { exportTransactionsToCSV } from '@/utils/csvExport';
+import { ExportFilterModal } from '@/components/modals/ResearchCoin/ExportFilterModal';
 
 const DISTRIBUTION_TYPES = {
   'EDITOR_BOUNTY': 'Editor Bounty',
@@ -38,54 +38,48 @@ const DISTRIBUTION_TYPES = {
 type DistributionType = keyof typeof DISTRIBUTION_TYPES;
 
 export default function ResearchCoinPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
   const [balance] = useState('1,566.87');
   const [transactions, setTransactions] = useState<TransactionDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [nextPageUrl, setNextPageUrl] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [hasNextPage, setHasNextPage] = useState<boolean>(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   
   const observerTarget = useRef<HTMLDivElement>(null);
-
-  // Check authentication status
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin?callbackUrl=/researchcoin');
-    }
-  }, [status, router]);
 
   const fetchTransactions = async () => {
     try {
       setIsLoading(true);
-      const response = await TransactionService.getTransactions();
-      const transformedData = transformTransactionResponse(response);
-      setTransactions(transformedData.results);
-      setNextPageUrl(transformedData.next);
+      const response = await TransactionService.getTransactions(1);
+      setTransactions(response.results);
+      setHasNextPage(!!response.next);
+      setCurrentPage(1);
     } catch (err) {
-      if (err instanceof AuthRequiredError) {
-        setError('Please sign in to view your transactions');
-        router.push('/auth/signin?callbackUrl=/researchcoin');
-      } else {
-        setError('Failed to load transactions');
-        console.error(err);
-      }
+      setError('Failed to load transactions');
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
   };
 
   const fetchNextPage = async () => {
-    if (!nextPageUrl || isLoadingMore || !session?.authToken) return;
+    if (!hasNextPage || isLoadingMore) return;
 
     try {
       setIsLoadingMore(true);
-      const response = await TransactionService.getTransactionsByUrl(nextPageUrl);
-      const transformedData = transformTransactionResponse(response);
-      setTransactions(prev => [...prev, ...transformedData.results]);
-      setNextPageUrl(transformedData.next);
+      const nextPage = currentPage + 1;
+      const response = await TransactionService.getTransactions(nextPage);
+      
+      if (response.results.length > 0) {
+        setTransactions(prev => [...prev, ...response.results]);
+        setCurrentPage(nextPage);
+        setHasNextPage(!!response.next);
+      } else {
+        setHasNextPage(false);
+      }
     } catch (err) {
       console.error('Error loading more transactions:', err);
       toast.error('Failed to load more transactions');
@@ -96,37 +90,28 @@ export default function ResearchCoinPage() {
 
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
     const [target] = entries;
-    if (target.isIntersecting && nextPageUrl) {
+    if (target.isIntersecting && hasNextPage && !isLoadingMore) {
       fetchNextPage();
     }
-  }, [nextPageUrl]);
+  }, [hasNextPage, currentPage, isLoadingMore]);
 
-  // Only fetch transactions when session is available
   useEffect(() => {
-    if (session?.authToken) {
-      fetchTransactions();
+    fetchTransactions();
+  }, []); // Fetch on mount
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(handleObserver, {
+      root: null,
+      rootMargin: '20px',
+      threshold: 1.0,
+    });
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
     }
-  }, [session]);
 
-  // Show loading state while checking authentication
-  if (status === 'loading') {
-    return (
-      <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
-        <div className="flex justify-center items-center min-h-[400px]">
-          <div className="space-y-4">
-            <TransactionSkeleton />
-            <TransactionSkeleton />
-            <TransactionSkeleton />
-          </div>
-        </div>
-      </PageLayout>
-    );
-  }
-
-  // Show error state if not authenticated
-  if (status === 'unauthenticated') {
-    return null; // Router will redirect to sign-in page
-  }
+    return () => observer.disconnect();
+  }, [handleObserver]);
 
   const handleActionClick = (action: string) => {
     toast((t) => (
@@ -138,11 +123,15 @@ export default function ResearchCoinPage() {
       duration: 2000,
       position: 'bottom-right',
       style: {
-        background: '#FFF7ED', // Orange-50
-        color: '#EA580C',     // Orange-600
-        border: '1px solid #FDBA74', // Orange-300
+        background: '#FFF7ED',
+        color: '#EA580C',
+        border: '1px solid #FDBA74',
       },
     });
+  };
+
+  const handleToggleExpand = (id: number) => {
+    setExpandedId(expandedId === id ? null : id);
   };
 
   const formatTransactionAmount = (transaction: TransactionDTO) => {
@@ -181,9 +170,9 @@ export default function ResearchCoinPage() {
     return 'Unknown Transaction';
   };
 
-  const handleToggleExpand = (id: number) => {
-    setExpandedId(expandedId === id ? null : id);
-  };
+  const handleExport = (transactions: TransactionDTO[]) => {
+    exportTransactionsToCSV(transactions)
+  }
 
   return (
     <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
@@ -260,7 +249,20 @@ export default function ResearchCoinPage() {
 
           {/* Transactions */}
           <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-xl font-semibold mb-4">Recent Transactions</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">Recent Transactions</h2>
+              
+              <button
+                onClick={() => setIsExportModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium 
+                  text-gray-700 bg-white border border-gray-200 rounded-lg 
+                  hover:bg-gray-50 transition-all"
+              >
+                <FileDown className="h-4 w-4" />
+                Export
+              </button>
+            </div>
+
             <TransactionList
               transactions={transactions}
               isLoading={isLoading}
@@ -268,7 +270,7 @@ export default function ResearchCoinPage() {
               expandedId={expandedId}
               onToggleExpand={handleToggleExpand}
             />
-            {nextPageUrl && (
+            {hasNextPage && (
               <div ref={observerTarget} className="mt-4">
                 {isLoadingMore && (
                   <div className="space-y-4">
@@ -280,6 +282,12 @@ export default function ResearchCoinPage() {
               </div>
             )}
           </div>
+
+          <ExportFilterModal
+            isOpen={isExportModalOpen}
+            onClose={() => setIsExportModalOpen(false)}
+            onExport={handleExport}
+          />
         </div>
       </div>
     </PageLayout>

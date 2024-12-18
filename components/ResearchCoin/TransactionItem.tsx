@@ -5,16 +5,12 @@ import {
   HandCoins, 
   CheckCircle,
   CircleDollarSign,
-  ExternalLink,
-  FileText,
-  ChevronDown,
-  ArrowBigUpDash,
   Percent,
   RotateCcw,
-  BadgeCheck
+  ArrowBigUpDash,
+  ExternalLink,
+  FileText,
 } from 'lucide-react';
-import { FeedItem } from '@/components/FeedItem';
-import { FeedEntry, Item, PaperItem } from '@/types/feed';
 
 const DISTRIBUTION_TYPES = {
   'EDITOR_BOUNTY': 'Editor Bounty',
@@ -39,114 +35,17 @@ const DISTRIBUTION_TYPES = {
   'BOUNTY': 'Bounty',
   'BOUNTY_FEE': 'Bounty Fee',
   'WITHDRAWAL': 'Withdrawal',
+  'DEPOSIT': 'Deposit',
 } as const;
 
 type DistributionType = keyof typeof DISTRIBUTION_TYPES;
 
 interface TransactionItemProps {
   transaction: TransactionDTO;
-  isExpanded: boolean;
-  onToggleExpand: (id: number) => void;
 }
-
-const transformTransactionToFeedEntry = (transaction: TransactionDTO): FeedEntry | null => {
-  // Only transform if we have source content
-  if (!transaction.source?.source) return null;
-
-  const source = transaction.source.source;
-  
-  // Transform to PaperItem format
-  const item: PaperItem = {
-    id: source.id?.toString() || '',
-    type: 'paper',
-    title: source.paper_title || 'Untitled',
-    description: source.abstract || '',
-    authors: source.authors?.map(author => ({
-      name: `${author.first_name} ${author.last_name}`,
-      verified: author.is_verified || false
-    })) || [],
-    doi: source.doi || '',
-    journal: source.external_source || '',
-    user: {
-      id: source.uploaded_by?.toString() || '',
-      fullName: '', // Could be populated if available
-      verified: false,
-      isOrganization: false,
-      isVerified: false
-    },
-    timestamp: source.created_date || '',
-    hub: source.hubs?.[0] ? {
-      name: source.hubs[0].name,
-      slug: source.hubs[0].slug
-    } : undefined,
-    metrics: {
-      votes: 0, // Could be populated if available
-      comments: source.discussion_count || 0,
-      reposts: 0,
-      saves: 0,
-      citations: source.citations || 0
-    }
-  };
-
-  // Create FeedEntry
-  const feedEntry: FeedEntry = {
-    id: transaction.id.toString(),
-    action: 'publish',
-    actor: {
-      id: transaction.user.toString(),
-      fullName: '', // Could be populated if available
-      verified: false,
-      isOrganization: false,
-      isVerified: false
-    },
-    timestamp: transaction.created_date,
-    item
-  };
-
-  return feedEntry;
-};
-
-const PaperContent = ({ source }: { source: any }) => {
-  return (
-    <div className="p-4 rounded-lg border bg-gray-50">
-      <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-gray-600 bg-gray-100 border border-gray-200 mb-3">
-        <FileText className="w-3 h-3 mr-1" />
-        Paper
-      </div>
-
-      <h3 className="text-base font-semibold text-gray-900 mb-2">
-        {source.paper_title || 'Untitled'}
-      </h3>
-
-      <div className="flex items-center text-sm mb-3">
-        <div className="flex-1 text-xs text-gray-600">
-          {source.authors?.map((author: any, i: number) => (
-            <span key={i} className="inline-flex items-center">
-              <span>{`${author.first_name} ${author.last_name}`}</span>
-              {author.is_verified && (
-                <BadgeCheck className="h-4 w-4 text-blue-500 ml-1" />
-              )}
-              {i < source.authors.length - 1 && (
-                <span className="mx-2 text-gray-400">•</span>
-              )}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <p className="text-sm text-gray-600">
-        {source.abstract?.length > 200 
-          ? `${source.abstract.slice(0, 200)}...` 
-          : source.abstract}
-      </p>
-    </div>
-  );
-};
 
 export function TransactionItem({ 
   transaction, 
-  isExpanded, 
-  onToggleExpand 
 }: TransactionItemProps) {
   const getTransactionIcon = (transaction: TransactionDTO) => {
     const type = transaction.source?.distribution_type;
@@ -316,11 +215,9 @@ export function TransactionItem({
     <div className="group">
       <div 
         className={`
-          relative py-4 transition-all duration-200 rounded-lg px-6 -mx-4 cursor-pointer
-          hover:shadow-sm group
-          ${isExpanded ? 'bg-gray-50 shadow-sm' : 'hover:bg-gray-50/50'}
+          relative py-4 transition-all duration-200 rounded-lg px-6 -mx-4
+          hover:shadow-sm hover:bg-gray-50/50 group
         `}
-        onClick={() => onToggleExpand(transaction.id)}
       >
         <div className="flex items-center justify-between">
           <div className="flex gap-3">
@@ -386,7 +283,7 @@ export function TransactionItem({
 
           <div className="flex flex-col items-end min-w-[140px]">
             <div className="flex items-center justify-end w-full">
-              <div className="flex flex-col items-end mr-2">
+              <div className="flex flex-col items-end">
                 <span className={`
                   text-base font-medium transition-colors duration-200
                   ${isPositive ? 'text-green-500 group-hover:text-green-600' : 'text-gray-900'}
@@ -397,25 +294,9 @@ export function TransactionItem({
                   {usdValue} USD
                 </span>
               </div>
-              <ChevronDown 
-                className={`h-4 w-4 text-gray-400 transition-all duration-200
-                  group-hover:text-gray-600
-                  ${isExpanded ? 'transform rotate-180' : ''}`}
-              />
             </div>
           </div>
         </div>
-
-        {isExpanded && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <div className="space-y-3">
-              {/* Use custom PaperContent instead of FeedItem */}
-              {transaction.source?.source && (
-                <PaperContent source={transaction.source.source} />
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

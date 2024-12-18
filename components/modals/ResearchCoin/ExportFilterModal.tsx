@@ -1,111 +1,238 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { Fragment } from 'react'
-import { X, Calendar, Filter, FileDown, Check } from 'lucide-react'
-import { filterTransactions } from '@/utils/csvExport'
-import { sampleTransactions } from '@/store/transactionStore'
+import { X, Calendar, FileDown } from 'lucide-react'
+import { TransactionDTO } from '@/services/types/transaction.dto'
+import { TransactionService } from '@/services/transaction.service'
+import toast from 'react-hot-toast'
+import { exportTransactionsToCSV } from '@/utils/csvExport'
 
 interface ExportFilterModalProps {
   isOpen: boolean
   onClose: () => void
-  onExport: (filters: ExportFilters) => void
-  transactionTypes: string[]
+  onExport: (transactions: TransactionDTO[]) => void
 }
 
 export interface ExportFilters {
   startDate: string
   endDate: string
-  selectedTypes: string[]
 }
 
 const PRESET_RANGES = [
-  { label: '7D', name: 'Last 7 days', days: 7 },
-  { label: '30D', name: 'Last 30 days', days: 30 },
-  { label: '90D', name: 'Last 90 days', days: 90 },
-  { 
-    label: 'YTD', 
-    name: 'This year',
-    days: 0,
-    getDateRange: () => {
-      const end = new Date()
-      const start = new Date(end.getFullYear(), 0, 1)
-      return {
-        startDate: start.toISOString().split('T')[0],
-        endDate: end.toISOString().split('T')[0],
-      }
-    }
+  {
+    label: '2024',
+    name: '2024',
+    getDateRange: () => ({
+      startDate: '2024-01-01',
+      endDate: formatDateForInput(new Date())
+    })
   },
   {
-    label: 'ALL',
-    name: 'All time',
-    days: 0,
-    getDateRange: () => {
-      const start = new Date('2019-10-01')
-      const end = new Date()
-      return {
-        startDate: start.toISOString().split('T')[0],
-        endDate: end.toISOString().split('T')[0],
-      }
-    }
+    label: '2023',
+    name: '2023',
+    getDateRange: () => ({
+      startDate: '2023-01-01',
+      endDate: '2023-12-31'
+    })
   },
+  {
+    label: '2022',
+    name: '2022',
+    getDateRange: () => ({
+      startDate: '2022-01-01',
+      endDate: '2022-12-31'
+    })
+  },
+  {
+    label: '2021',
+    name: '2021',
+    getDateRange: () => ({
+      startDate: '2021-01-01',
+      endDate: '2021-12-31'
+    })
+  },
+  {
+    label: '2020',
+    name: '2020',
+    getDateRange: () => ({
+      startDate: '2020-01-01',
+      endDate: '2020-12-31'
+    })
+  },
+  {
+    label: '2019',
+    name: '2019',
+    getDateRange: () => ({
+      startDate: '2019-10-01', // ResearchHub launch date
+      endDate: '2019-12-31'
+    })
+  }
 ] as const
 
-export function ExportFilterModal({ 
-  isOpen, 
-  onClose, 
-  onExport, 
-  transactionTypes 
-}: ExportFilterModalProps) {
-  const [filters, setFilters] = useState<ExportFilters>({
-    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0],
-    selectedTypes: [...transactionTypes]
-  })
+// Helper function to format dates consistently for input fields
+const formatDateForInput = (date: Date): string => {
+  return date.toISOString().split('T')[0]
+}
 
-  const [activeDatePreset, setActiveDatePreset] = useState<string>('30D')
+// Helper function to get local date range
+const getDateRange = (daysAgo: number): { startDate: string; endDate: string } => {
+  const end = new Date()
+  const start = new Date()
+  start.setDate(end.getDate() - daysAgo)
+  
+  return {
+    startDate: formatDateForInput(start),
+    endDate: formatDateForInput(end),
+  }
+}
+
+export function ExportFilterModal({ isOpen, onClose, onExport }: ExportFilterModalProps) {
+  // Initialize with current year
+  const currentYear = new Date().getFullYear().toString()
+  const currentYearRange = PRESET_RANGES.find(r => r.label === currentYear)?.getDateRange()
+  
+  const [filters, setFilters] = useState<ExportFilters>(
+    currentYearRange || {
+      startDate: `${currentYear}-01-01`,
+      endDate: formatDateForInput(new Date())
+    }
+  )
+  const [activeDatePreset, setActiveDatePreset] = useState<string>(currentYear)
+  const [isLoading, setIsLoading] = useState(false)
 
   const handlePresetRange = (preset: typeof PRESET_RANGES[number]) => {
     setActiveDatePreset(preset.label)
     
     if ('getDateRange' in preset) {
       const range = preset.getDateRange()
-      setFilters(prev => ({ ...prev, ...range }))
+      setFilters(range)
     } else {
-      const end = new Date()
-      const start = new Date()
-      start.setDate(end.getDate() - preset.days)
-      
-      setFilters(prev => ({
-        ...prev,
-        startDate: start.toISOString().split('T')[0],
-        endDate: end.toISOString().split('T')[0],
-      }))
+      const range = getDateRange(preset.days)
+      setFilters(range)
     }
   }
 
-  const handleSelectAllTypes = (select: boolean) => {
-    setFilters(prev => ({
-      ...prev,
-      selectedTypes: select ? [...transactionTypes] : []
-    }))
-  }
-
-  const handleTypeSelection = (type: string) => {
-    setFilters(prev => ({
-      ...prev,
-      selectedTypes: prev.selectedTypes.includes(type)
-        ? prev.selectedTypes.filter(t => t !== type)
-        : [...prev.selectedTypes, type]
-    }))
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isExportDisabled) {
-      onExport(filters)
+
+    try {
+      setIsLoading(true)
+      const loadingToast = toast.loading('Starting export...')
+      
+      // Create date objects and set to start/end of day
+      const startDateObj = new Date(filters.startDate)
+      startDateObj.setUTCHours(0, 0, 0, 0)
+      
+      const endDateObj = new Date(filters.endDate)
+      endDateObj.setUTCHours(23, 59, 59, 999)
+
+      // Format dates for API
+      const apiStartDate = startDateObj.toISOString().split('T')[0]
+      const apiEndDate = endDateObj.toISOString().split('T')[0]
+      
+      // First get total count with a small page size
+      const firstPageResponse = await TransactionService.getFilteredTransactions({
+        startDate: apiStartDate,
+        endDate: apiEndDate,
+        page: 1,
+        pageSize: 25
+      })
+
+      if (!firstPageResponse.results?.length) {
+        toast.dismiss(loadingToast)
+        toast.error('No transactions found for the selected dates')
+        return
+      }
+
+      let allTransactions: TransactionDTO[] = []
+      let currentPage = 1
+      let consecutiveFailures = 0
+      const MAX_CONSECUTIVE_FAILURES = 3
+      let hasMorePages = true
+
+      while (hasMorePages && consecutiveFailures < MAX_CONSECUTIVE_FAILURES) {
+        try {
+          toast.loading(
+            `Exported ${allTransactions.length.toLocaleString()} transactions...`, 
+            { id: loadingToast }
+          )
+
+          const response = await TransactionService.getFilteredTransactions({
+            startDate: apiStartDate,
+            endDate: apiEndDate,
+            page: currentPage,
+            pageSize: 10
+          })
+          
+          if (response.results?.length) {
+            // Filter transactions by date range client-side as backup
+            const validTransactions = response.results.filter(tx => {
+              const txDate = new Date(tx.created_date)
+              return txDate >= startDateObj && txDate <= endDateObj
+            })
+
+            if (validTransactions.length > 0) {
+              allTransactions = [...allTransactions, ...validTransactions]
+              consecutiveFailures = 0 // Reset failure counter on success
+            } else {
+              // No valid transactions in this page
+              consecutiveFailures++
+            }
+          } else {
+            // No results in this page
+            consecutiveFailures++
+          }
+          
+          hasMorePages = !!response.next && response.results?.length > 0
+          currentPage++
+          
+          // Add small delay between requests
+          await new Promise(resolve => setTimeout(resolve, 200))
+        } catch (error) {
+          console.error(`Failed to fetch page ${currentPage}:`, error)
+          consecutiveFailures++
+          
+          if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+            toast.loading(
+              `Export encountered errors. Proceeding with ${allTransactions.length.toLocaleString()} transactions...`,
+              { id: loadingToast }
+            )
+            break
+          } else {
+            // Log the error but continue with next page
+            console.warn(`Skipping problematic page ${currentPage}, continuing with next page`)
+            currentPage++
+            await new Promise(resolve => setTimeout(resolve, 500)) // Longer delay after error
+          }
+        }
+      }
+
+      if (allTransactions.length === 0) {
+        toast.dismiss(loadingToast)
+        toast.error('No transactions found for the selected dates')
+        return
+      }
+
+      // Sort transactions by date before export
+      allTransactions.sort((a, b) => 
+        new Date(b.created_date).getTime() - new Date(a.created_date).getTime()
+      )
+
+      // Export filtered transactions
+      exportTransactionsToCSV(allTransactions, filters.startDate, filters.endDate)
+      
+      toast.success(
+        `Successfully exported ${allTransactions.length.toLocaleString()} transactions`,
+        { id: loadingToast }
+      )
       onClose()
+    } catch (error) {
+      console.error('Failed to export transactions:', error)
+      toast.error('Failed to export transactions')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -115,33 +242,11 @@ export function ExportFilterModal({
       return
     }
 
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && !isExportDisabled) {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
       e.preventDefault()
-      onExport(filters)
-      onClose()
+      handleSubmit(e as any)
     }
   }
-
-  const filteredTransactionCount = useMemo(() => {
-    const filtered = filterTransactions(sampleTransactions, filters)
-    return filtered.length
-  }, [filters])
-
-  const isExportDisabled = filters.selectedTypes.length === 0 || filteredTransactionCount === 0
-
-  const getHelperText = () => {
-    if (filters.selectedTypes.length === 0) {
-      return 'Please select at least one transaction type'
-    }
-    if (filteredTransactionCount === 0) {
-      return 'No transactions found for selected dates'
-    }
-    return ''
-  }
-
-  const sortedTransactionTypes = useMemo(() => {
-    return [...transactionTypes].sort()
-  }, [transactionTypes])
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -192,32 +297,18 @@ export function ExportFilterModal({
               >
                 {/* Date Range Section */}
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-gray-800">
-                      <Calendar className="h-5 w-5" />
-                      <h3 className="font-medium">Date Range</h3>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-500">Transactions:</span>
-                      <span className={`px-2 py-0.5 rounded-md text-sm font-medium
-                        ${filteredTransactionCount > 0 
-                          ? 'bg-primary-50 text-primary-600' 
-                          : 'bg-gray-100 text-gray-600'
-                        }`}
-                      >
-                        {filteredTransactionCount.toLocaleString()}
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-2 text-gray-800">
+                    <Calendar className="h-5 w-5" />
+                    <h3 className="font-medium">Date Range</h3>
                   </div>
                   
-                  <div className="inline-flex p-1 gap-1 bg-gray-50 rounded-lg">
+                  <div className="inline-flex p-1 gap-1 bg-gray-50 rounded-lg flex-wrap">
                     {PRESET_RANGES.map((preset) => (
                       <button
                         key={preset.label}
                         type="button"
                         onClick={() => handlePresetRange(preset)}
-                        className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all
+                        className={`px-4 py-2 text-sm font-medium rounded-md transition-all min-w-[80px]
                           ${activeDatePreset === preset.label
                             ? 'bg-white text-primary-400 shadow-sm'
                             : 'text-gray-600 hover:text-primary-400'
@@ -258,96 +349,29 @@ export function ExportFilterModal({
                   </div>
                 </div>
 
-                {/* Transaction Types Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-gray-800">
-                      <Filter className="h-5 w-5" />
-                      <h3 className="font-medium">Transaction Types</h3>
-                    </div>
-                    <div className="flex gap-3">
-                      <button
-                        type="button"
-                        onClick={() => handleSelectAllTypes(false)}
-                        className="text-sm text-gray-500 hover:text-gray-600"
-                      >
-                        Clear
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleSelectAllTypes(true)}
-                        className="text-sm text-primary-400 hover:text-primary-500"
-                      >
-                        Select All
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto pr-2 
-                    scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-gray-100">
-                    {sortedTransactionTypes.map((type) => (
-                      <label
-                        key={type}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-md 
-                          hover:bg-gray-50 cursor-pointer group transition-colors
-                          ${filters.selectedTypes.includes(type) ? 'bg-primary-50' : ''}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={filters.selectedTypes.includes(type)}
-                          onChange={() => handleTypeSelection(type)}
-                          className="hidden"
-                        />
-                        <div className={`flex-shrink-0 w-4 h-4 rounded border 
-                          transition-colors flex items-center justify-center
-                          ${filters.selectedTypes.includes(type)
-                            ? 'bg-primary-400 border-primary-400'
-                            : 'border-gray-300 group-hover:border-primary-400'
-                          }`}
-                        >
-                          {filters.selectedTypes.includes(type) && (
-                            <Check className="h-3 w-3 text-white" />
-                          )}
-                        </div>
-                        <span className="text-sm text-gray-700 truncate">{type}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Action Buttons */}
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <div className="min-w-[240px]">
-                    {isExportDisabled && (
-                      <p className="text-xs text-gray-400">
-                        {getHelperText()}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex gap-3">
-                    <button
-                      type="button"
-                      onClick={onClose}
-                      className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white 
-                        border border-gray-200 rounded-lg hover:bg-gray-50 transition-all"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isExportDisabled}
-                      className={`px-5 py-2.5 text-sm font-medium text-white 
-                        rounded-lg transition-all flex items-center gap-2
-                        ${isExportDisabled 
-                          ? 'bg-gray-200 cursor-not-allowed opacity-60' 
-                          : 'bg-primary-400 hover:bg-primary-500'
-                        }`}
-                    >
-                      <FileDown className="h-4 w-4" />
-                      Export CSV
-                    </button>
-                  </div>
+                <div className="flex items-center justify-end pt-4 border-t gap-3">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white 
+                      border border-gray-200 rounded-lg hover:bg-gray-50 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`px-5 py-2.5 text-sm font-medium text-white 
+                      rounded-lg transition-all flex items-center gap-2
+                      ${isLoading 
+                        ? 'bg-gray-200 cursor-not-allowed opacity-60' 
+                        : 'bg-primary-400 hover:bg-primary-500'
+                      }`}
+                  >
+                    <FileDown className="h-4 w-4" />
+                    {isLoading ? 'Exporting...' : 'Export CSV'}
+                  </button>
                 </div>
               </form>
             </Dialog.Panel>
