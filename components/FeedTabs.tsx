@@ -1,6 +1,6 @@
 'use client'
 
-import { Settings } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "./ui/Button";
 import { Tabs } from "./ui/Tabs";
 
@@ -9,8 +9,8 @@ interface FeedTabsProps {
   onInterestsClick: () => void;
   activeInterestTab?: 'journal' | 'person' | 'topic';
   onInterestTabChange?: (tab: 'journal' | 'person' | 'topic') => void;
-  activeTab?: 'for-you' | 'following' | 'popular' | 'latest';
-  onTabChange?: (tab: 'for-you' | 'following' | 'popular' | 'latest') => void;
+  activeTab?: 'for-you' | 'following' | 'popular' | 'latest' | 'add-interests';
+  onTabChange?: (tab: 'for-you' | 'following' | 'popular' | 'latest' | 'add-interests') => void;
 }
 
 const feedTabs = [
@@ -18,6 +18,12 @@ const feedTabs = [
   { id: 'following', label: 'Following' },
   { id: 'popular', label: 'Popular' },
   { id: 'latest', label: 'Latest' },
+  { 
+    id: 'add-interests', 
+    label: 'Add Interests',
+    separator: true,
+    icon: Plus
+  },
 ];
 
 const interestTabs = [
@@ -34,14 +40,22 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
   activeTab = 'for-you',
   onTabChange = () => {}
 }) => {
+  const handleTabChange = (id: string) => {
+    if (id === 'add-interests') {
+      onInterestsClick();
+    } else {
+      onTabChange(id as 'for-you' | 'following' | 'popular' | 'latest');
+    }
+  };
+
   if (showingInterests) {
     return (
       <div className="transition-colors duration-200 -mx-4 px-4">
         <div className="border-b mb-6 w-full">
           <div className="flex justify-between items-center h-[52px]">
             <div className="flex items-center text-purple-600">
-              <Settings className="w-5 h-5 mr-2" />
-              <span className="font-medium">Customize Your Feed</span>
+              <Plus className="w-5 h-5 mr-2" />
+              <span className="font-medium">Select Your Interests</span>
             </div>
             <Button 
               variant="ghost"
@@ -62,21 +76,12 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
 
   return (
     <div className="transition-colors duration-200">
-      <div className="flex items-center justify-between border-b">
+      <div className="w-full border-b">
         <Tabs
           tabs={feedTabs}
           activeTab={activeTab}
-          onTabChange={(id) => onTabChange(id as 'for-you' | 'following' | 'popular' | 'latest')}
+          onTabChange={handleTabChange}
         />
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={onInterestsClick}
-          className="flex items-center gap-2 ml-4"
-        >
-          <Settings className="w-4 h-4" />
-          Customize Feed
-        </Button>
       </div>
     </div>
   );
