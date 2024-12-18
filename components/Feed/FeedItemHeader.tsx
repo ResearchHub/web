@@ -22,8 +22,8 @@ export const FeedItemHeader: FC<{
   timestamp: string;
   action: FeedActionType;
   item: FeedItemType;
-  isReposted?: boolean;
-}> = ({ actor, timestamp, action, item, isReposted }) => {
+  isNested?: boolean;
+}> = ({ actor, timestamp, action, item, isNested }) => {
   const getActionText = () => {
     switch (action) {
       case 'repost':
@@ -95,7 +95,7 @@ export const FeedItemHeader: FC<{
           <Avatar
             src={actor.authorProfile?.profileImage}
             alt={actor.fullName}
-            size="sm"
+            size={isNested ? 'xs' : 'sm'}
             className="ring-2 ring-gray-100 transition-all duration-200"
           />
           <div className="absolute -bottom-2 -right-2 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-md ring-1 ring-gray-200">
@@ -104,22 +104,22 @@ export const FeedItemHeader: FC<{
         </div>
         <div className="-mt-0.5">
           <div className="flex flex-wrap items-center gap-x-1.5">
-            <a href="#" className="text-sm font-semibold text-gray-900 hover:text-orange-500 transition-colors duration-200">
+            <a href="#" className={`${isNested ? 'text-xs' : 'text-sm'} font-semibold text-gray-900 hover:text-orange-500 transition-colors duration-200`}>
               {actor.fullName}
             </a>
-            <span className="text-gray-500 text-sm">{getActionText()}</span>
+            <span className={`text-gray-500 ${isNested ? 'text-xs' : 'text-sm'}`}>{getActionText()}</span>
             <span className="text-gray-400">·</span>
-            <button className="text-gray-400 hover:text-gray-600 text-sm transition-colors duration-200">
+            <button className={`text-gray-400 hover:text-gray-600 ${isNested ? 'text-xs' : 'text-sm'} transition-colors duration-200`}>
               {formatTimestamp(timestamp)}
             </button>
           </div>
-          {actor.authorProfile?.title && (
-            <div className="mt-0.5 text-sm text-gray-500">{actor.authorProfile.title}</div>
+          {actor.authorProfile?.headline && (
+            <div className={`mt-0.5 ${isNested ? 'text-xs' : 'text-sm'} text-gray-500`}>{actor.authorProfile.headline}</div>
           )}
         </div>
       </div>
       <div className="flex items-center gap-2">
-        {!isReposted && (
+        {!isNested && (
           <button className="text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-all duration-200 p-1 hover:bg-gray-50 rounded-full">
             <MoreHorizontal className="w-5 h-5" />
           </button>

@@ -21,340 +21,367 @@ import { FeedItemHeader } from './FeedItemHeader';
 
 const TRUNCATE_LIMIT = 280;
 
-export const FeedItemBody: FC<{
+// Utility to handle text size scaling based on context
+const getTextSize = (baseSize: 'xs' | 'sm' | 'base' | 'lg' | 'xl', isNested: boolean): string => {
+  const sizes = ['xs', 'sm', 'base', 'lg', 'xl'];
+  const currentIndex = sizes.indexOf(baseSize);
+  return currentIndex > 0 && isNested ? sizes[currentIndex - 1] : baseSize;
+};
+
+// Utility to handle avatar size scaling based on context
+const getAvatarSize = (baseSize: 'xs' | 'sm' | 'md' | 'lg', isNested: boolean): 'xs' | 'sm' | 'md' | 'lg' => {
+  const sizes: ('xs' | 'sm' | 'md' | 'lg')[] = ['xs', 'sm', 'md', 'lg'];
+  const currentIndex = sizes.indexOf(baseSize);
+  return currentIndex > 0 && isNested ? sizes[currentIndex - 1] : baseSize;
+};
+
+// Shared interfaces
+interface ContentWrapperProps {
+  children: React.ReactNode;
+  isNested?: boolean;
+  className?: string;
+}
+
+interface ExpandableTextProps {
+  text: string;
+  isNested?: boolean;
+  baseTextSize?: 'sm' | 'base';
+}
+
+// Shared components
+const ContentWrapper: FC<ContentWrapperProps> = ({ children, isNested, className = '' }) => (
+  <div className={`space-y-3 ${isNested ? 'pl-4 border-l-2 border-gray-200' : ''} ${className}`}>
+    {children}
+  </div>
+);
+
+const ExpandableText: FC<ExpandableTextProps> = ({ text, isNested, baseTextSize = 'base' }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const shouldTruncate = text.length > TRUNCATE_LIMIT;
+  const textSize = getTextSize(baseTextSize, Boolean(isNested));
+
+  if (!text) return null;
+
+  return (
+    <div>
+      <p className={`text-gray-600 text-${textSize} ${!isExpanded && shouldTruncate ? 'line-clamp-3' : ''}`}>
+        {text}
+      </p>
+      {shouldTruncate && !isExpanded && (
+        <button
+          onClick={() => setIsExpanded(true)}
+          className="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center space-x-1 mt-2"
+        >
+          <span>Read more</span>
+          <ChevronDown className="w-4 h-4" />
+        </button>
+      )}
+    </div>
+  );
+};
+
+// Main component props
+interface FeedItemBodyProps {
   item: FeedItemType;
   relatedItem?: FeedEntry['relatedItem'];
   action: FeedActionType;
   repostMessage?: string;
-  isReposted?: boolean;
-}> = ({ item, relatedItem, action, repostMessage, isReposted }) => {
-  const [showFullDescription, setShowFullDescription] = useState(false);
+  isNested?: boolean;
+}
 
-  const renderContentHeader = (title?: string) => {
-    return (
-      <div className="space-y-1.5">
-        {title && (
-          <h2 className="font-semibold text-lg text-gray-900">{title}</h2>
-        )}
-        {relatedItem?.slug && relatedItem?.title && (
-          <div className="text-sm text-gray-500">
-            RE: <a href={`/${relatedItem.type}/${relatedItem.slug}`} className="text-blue-500 hover:underline cursor-pointer">
-              {relatedItem.title}
-            </a>
-          </div>
-        )}
-      </div>
-    );
-  };
+// Content components
+interface ContentHeaderProps {
+  title?: string | JSX.Element;
+  relatedItem?: FeedEntry['relatedItem'];
+  isNested?: boolean;
+}
 
-  const renderComment = (comment: CommentItem) => {
-    const [showFullContent, setShowFullContent] = useState(false);
-    const shouldTruncate = comment.content.length > TRUNCATE_LIMIT;
+const ContentHeader: FC<ContentHeaderProps> = ({ title, relatedItem, isNested }) => {
+  if (!title && !relatedItem) return null;
 
-    return (
-      <div className="space-y-3">
-        {renderContentHeader()}
-        <div>
-          <p className={`text-gray-600 ${!showFullContent && shouldTruncate ? 'line-clamp-3' : ''}`}>
-            {comment.content}
-          </p>
-          {shouldTruncate && !showFullContent && (
-            <button
-              onClick={() => setShowFullContent(true)}
-              className="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center space-x-1 mt-2"
-            >
-              <span>Read more</span>
-              <ChevronDown className="w-4 h-4" />
-            </button>
-          )}
+  return (
+    <div className="space-y-1.5">
+      {title && (
+        typeof title === 'string' ? (
+          <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested))} text-gray-900`}>
+            {title}
+          </h2>
+        ) : title
+      )}
+      {relatedItem && 'slug' in relatedItem && relatedItem.slug && 'title' in relatedItem && relatedItem.title && (
+        <div className="text-sm text-gray-500">
+          RE: <a href={`/${relatedItem.type}/${relatedItem.slug}`} className="text-blue-500 hover:underline cursor-pointer">
+            {relatedItem.title}
+          </a>
         </div>
-        
-        {comment.parent && (
-          <div className="pl-4 border-l-2 border-gray-200">
-            <div className="flex items-start space-x-3">
-              <Avatar
-                src={comment.parent.user.authorProfile?.profileImage}
-                alt={comment.parent.user.fullName}
-                size="xs"
-                className="ring-2 ring-gray-100"
-              />
-              <div className="flex-1">
-                <div className="flex items-center gap-x-1.5">
-                  <span className="text-sm font-semibold text-gray-900">{comment.parent.user.fullName}</span>
-                  <span className="text-gray-400">·</span>
-                  <button className="text-gray-400 hover:text-gray-600 text-sm transition-colors duration-200">
-                    {formatTimestamp(comment.parent.timestamp)}
-                  </button>
-                </div>
-                <p className="text-gray-600 mt-1.5 text-sm">{comment.parent.content}</p>
+      )}
+    </div>
+  );
+};
+
+interface CommentContentProps {
+  comment: CommentItem;
+  isNested?: boolean;
+}
+
+const CommentContent: FC<CommentContentProps> = ({ comment, isNested }) => {
+  return (
+    <ContentWrapper isNested={isNested}>
+      <ContentHeader relatedItem={comment.parent} isNested={isNested} />
+      <ExpandableText text={comment.content} isNested={isNested} />
+      
+      {comment.parent && (
+        <ContentWrapper isNested={true}>
+          <div className="flex items-start space-x-3">
+            <Avatar
+              src={comment.parent.user.authorProfile?.profileImage}
+              alt={comment.parent.user.fullName}
+              size={getAvatarSize('sm', true)}
+              className="ring-2 ring-gray-100"
+            />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-x-1.5">
+                <span className={`font-semibold text-gray-900 text-${getTextSize('sm', true)}`}>
+                  {comment.parent.user.fullName}
+                </span>
+                <span className="text-gray-400">·</span>
+                <span className={`text-gray-500 text-${getTextSize('sm', true)}`}>
+                  {formatTimestamp(comment.parent.timestamp)}
+                </span>
               </div>
+              <ExpandableText 
+                text={comment.parent.content} 
+                isNested={true}
+                baseTextSize="sm"
+              />
             </div>
           </div>
-        )}
-      </div>
-    );
-  };
+        </ContentWrapper>
+      )}
+    </ContentWrapper>
+  );
+};
 
-  const renderActionFooter = ({
-    amount,
-    icon: Icon,
-    deadline,
-    progress,
-    goalAmount,
-    ctaText,
-    users,
-    userStackLabel,
-    type,
-  }: {
-    amount: number;
-    icon: typeof Trophy | typeof GraduationCap | typeof HandCoins;
-    deadline?: string;
-    progress?: number;
-    goalAmount?: number;
-    ctaText: string;
-    users?: User[];
-    userStackLabel?: string;
-    type: 'reward' | 'grant' | 'funding_request';
-  }) => {
-    const isRewardOrGrant = type === 'reward' || type === 'grant';
-    const isFundingRequest = type === 'funding_request';
+interface PaperContentProps {
+  paper: PaperItem;
+  isNested?: boolean;
+}
 
-    return (
-      <div className="space-y-4">
-        <div className={`flex flex-col sm:flex-row ${isRewardOrGrant ? 'justify-between' : ''} sm:items-center gap-4`}>
-          <div className="flex items-center gap-2 text-sm">
-            <Coins className="w-5 h-5 text-orange-500" />
-            <span className="text-orange-500 font-medium">{amount.toLocaleString()} RSC</span>
-            {goalAmount && (
-              <span className="text-gray-500 text-sm">of {goalAmount.toLocaleString()} RSC</span>
-            )}
-            {deadline && (
-              <>
-                <span className="text-gray-400">•</span>
-                <div className="flex items-center gap-2 text-gray-500">
-                  <Clock className="w-4 h-4" />
-                  <span>Due {formatTimestamp(deadline)}</span>
-                </div>
-              </>
-            )}
-          </div>
-          {isRewardOrGrant && users && users.length > 0 && (
-            <UserStack users={users} limit={3} descriptiveText={userStackLabel} />
-          )}
-        </div>
+const PaperContent: FC<PaperContentProps> = ({ paper, isNested }) => {
+  const formattedTimestamp = paper.timestamp.includes('ago') ? 
+    paper.timestamp : 
+    formatTimestamp(paper.timestamp);
 
-        {progress && isFundingRequest && (
-          <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-orange-500 rounded-full transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        )}
-
-        <div className={`flex ${isRewardOrGrant ? '' : 'flex-col-reverse sm:flex-row sm:justify-between sm:items-center'} gap-4`}>
-          <Button 
-            variant="default"
-            size="md"
-            className="bg-orange-500 hover:bg-orange-600 text-white font-medium px-8 w-full sm:w-auto"
-          >
-            {ctaText}
-          </Button>
-          {!isRewardOrGrant && users && users.length > 0 && (
-            <UserStack users={users} limit={3} descriptiveText={userStackLabel} />
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const renderFundingRequest = () => {
-    const fundingRequest = item as FundingRequestItem;
-    return (
-      <div className="space-y-2">
-        {renderContentHeader(fundingRequest.title)}
-        <div className="pb-2">
-          <p className="text-gray-600 leading-relaxed">{fundingRequest.description}</p>
-        </div>
-        {renderActionFooter({
-          amount: fundingRequest.amount,
-          icon: HandCoins,
-          goalAmount: fundingRequest.goalAmount,
-          progress: fundingRequest.progress,
-          ctaText: 'Contribute',
-          users: fundingRequest.contributors,
-          type: 'funding_request',
-        })}
-      </div>
-    );
-  };
-
-  const renderGrant = () => {
-    const grant = item as GrantItem;
-    return (
-      <div className="space-y-4">
-        {renderContentHeader(grant.title)}
-        <p className="text-gray-600 text-sm leading-relaxed">{grant.description}</p>
-        {renderActionFooter({
-          amount: grant.amount,
-          icon: GraduationCap,
-          deadline: grant.deadline,
-          ctaText: 'Apply Now',
-          users: grant.applicants,
-          userStackLabel: 'Applicants',
-          type: 'grant',
-        })}
-      </div>
-    );
-  };
-
-  const renderReward = () => {
-    const reward = item as RewardItem;
-    const [showFullDescription, setShowFullDescription] = useState(false);
-    const description = reward.description || '';
-    const shouldTruncate = description.length > TRUNCATE_LIMIT;
-
-    return (
-      <div className="space-y-4">
-        {renderContentHeader(reward.title)}
-        {description && (
-          <div>
-            <p className={`text-gray-600 text-sm leading-relaxed ${!showFullDescription && shouldTruncate ? 'line-clamp-3' : ''}`}>
-              {description}
-            </p>
-            {shouldTruncate && !showFullDescription && (
-              <button
-                onClick={() => setShowFullDescription(true)}
-                className="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center space-x-1 mt-2"
-              >
-                <span>Read more</span>
-                <ChevronDown className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-        )}
-        {renderActionFooter({
-          amount: reward.amount,
-          icon: Trophy,
-          deadline: reward.deadline,
-          ctaText: 'Start Task',
-          users: reward.contributors,
-          type: 'reward',
-        })}
-      </div>
-    );
-  };
-
-  const renderPaper = () => {
-    const paper = item as PaperItem;
-    const description = paper.description || '';
-    const shouldTruncate = description.length > TRUNCATE_LIMIT;
-    const formattedTimestamp = paper.timestamp.includes('ago') ? paper.timestamp : formatTimestamp(paper.timestamp);
-
-    return (
-      <div className="space-y-3">
-        {renderContentHeader(paper.title)}
+  return (
+    <ContentWrapper isNested={isNested}>
+      <div className={`space-y-${isNested ? '0.5' : '3'}`}>
+        <ContentHeader
+          title={
+            <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested))} text-gray-900`}>
+              {paper.title}
+            </h2>
+          }
+          isNested={isNested}
+        />
         <AuthorList 
           authors={paper.authors || []}
-          size={isReposted ? 'sm' : 'base'} 
+          size={isNested ? 'xs' : 'base'}
           timestamp={formattedTimestamp}
+          isNested={isNested}
         />
-        <p className={`text-gray-600 ${isReposted ? 'text-sm' : 'text-base'} ${showFullDescription ? '' : 'line-clamp-3'}`}>
-          {description}
-        </p>
-        
-        {!showFullDescription && shouldTruncate && (
-          <button
-            onClick={() => setShowFullDescription(true)}
-            className="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center space-x-1"
-          >
-            <span>Read more</span>
-            <ChevronDown className="w-4 h-4" />
-          </button>
-        )}
       </div>
-    );
-  };
+      <ExpandableText 
+        text={paper.abstract || ''} 
+        isNested={isNested}
+        baseTextSize="base"
+      />
+    </ContentWrapper>
+  );
+};
 
-  const renderReview = () => {
-    const review = item as ReviewItem;
-    return (
-      <div className="space-y-3">
-        {renderContentHeader(review.title)}
-        {review.description && (
-          <p className="text-gray-600">{review.description}</p>
-        )}
-        <div className="flex items-center gap-2">
-          <Coins className="w-4 h-4 text-orange-500" />
-          <span className="text-orange-500 text-sm">{review.amount.toLocaleString()} RSC</span>
+interface ActionFooterProps {
+  amount: number;
+  icon: typeof Trophy | typeof GraduationCap | typeof HandCoins;
+  deadline?: string;
+  progress?: number;
+  goalAmount?: number;
+  ctaText: string;
+  users?: User[];
+  userStackLabel?: string;
+  type: 'reward' | 'grant' | 'funding_request';
+  isNested?: boolean;
+}
+
+const ActionFooter: FC<ActionFooterProps> = ({
+  amount,
+  icon: Icon,
+  deadline,
+  progress,
+  goalAmount,
+  ctaText,
+  users,
+  userStackLabel,
+  type,
+  isNested
+}) => {
+  const isRewardOrGrant = type === 'reward' || type === 'grant';
+  const isFundingRequest = type === 'funding_request';
+  const textSize = getTextSize('sm', Boolean(isNested));
+
+  return (
+    <div className="space-y-4">
+      <div className={`flex flex-col sm:flex-row ${isRewardOrGrant ? 'justify-between' : ''} sm:items-center gap-4`}>
+        <div className={`flex items-center gap-2 text-${textSize}`}>
+          <Coins className="w-5 h-5 text-orange-500" />
+          <span className="text-orange-500 font-medium">{amount.toLocaleString()} RSC</span>
+          {goalAmount && (
+            <span className="text-gray-500">{goalAmount.toLocaleString()} RSC</span>
+          )}
+          {deadline && (
+            <>
+              <span className="text-gray-400">•</span>
+              <div className="flex items-center gap-2 text-gray-500">
+                <Clock className="w-4 h-4" />
+                <span>Due {formatTimestamp(deadline)}</span>
+              </div>
+            </>
+          )}
         </div>
-      </div>
-    );
-  };
-
-  const renderContribution = () => {
-    const contribution = item as ContributionItem;
-    return (
-      <div className="space-y-3">
-        {renderContentHeader(contribution.title)}
-        {contribution.description && (
-          <p className="text-gray-600">{contribution.description}</p>
+        {isRewardOrGrant && users && users.length > 0 && (
+          <UserStack users={users} limit={3} descriptiveText={userStackLabel} />
         )}
-        <div className="flex items-center gap-2">
-          <Coins className="w-4 h-4 text-orange-500" />
-          <span className="text-orange-500 text-sm">{contribution.amount.toLocaleString()} RSC</span>
-        </div>
       </div>
-    );
-  };
 
+      {progress && isFundingRequest && (
+        <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-orange-500 rounded-full transition-all duration-500"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      )}
+
+      <div className={`flex ${isRewardOrGrant ? '' : 'flex-col-reverse sm:flex-row sm:justify-between sm:items-center'} gap-4`}>
+        <Button 
+          variant="default"
+          size={isNested ? 'sm' : 'md'}
+          className="bg-orange-500 hover:bg-orange-600 text-white font-medium px-8 w-full sm:w-auto"
+        >
+          {ctaText}
+        </Button>
+        {!isRewardOrGrant && users && users.length > 0 && (
+          <UserStack users={users} limit={3} descriptiveText={userStackLabel} />
+        )}
+      </div>
+    </div>
+  );
+};
+
+export const FeedItemBody: FC<FeedItemBodyProps> = ({ 
+  item, 
+  relatedItem, 
+  action, 
+  repostMessage, 
+  isNested 
+}) => {
   const renderContent = () => {
     if (action === 'repost') {
       return (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {repostMessage && (
             <p className="text-gray-600">{repostMessage}</p>
           )}
-          <div className="pl-4 border-l-2 border-gray-200">
+          <div>
             {item.type !== 'paper' && (
               <FeedItemHeader
                 actor={item.user}
                 timestamp={item.timestamp}
                 action={action}
                 item={item}
-                isReposted={true}
+                isNested={true}
               />
             )}
             <div className="mt-4">
-              {item.type === 'paper' ? renderPaper() :
-               item.type === 'funding_request' ? renderFundingRequest() :
-               item.type === 'comment' ? renderComment(item) :
-               item.type === 'reward' ? renderReward() :
-               item.type === 'grant' ? renderGrant() :
-               item.type === 'review' ? renderReview() :
-               item.type === 'contribution' ? renderContribution() :
-               assertNever(item)}
+              {renderItemContent(item, true)}
             </div>
           </div>
         </div>
       );
     }
 
+    return renderItemContent(item, isNested);
+  };
+
+  const renderItemContent = (item: FeedItemType, isNested?: boolean) => {
     switch (item.type) {
       case 'paper':
-        return renderPaper();
-      case 'funding_request':
-        return renderFundingRequest();
+        return <PaperContent paper={item} isNested={isNested} />;
       case 'comment':
-        return renderComment(item);
+        return <CommentContent comment={item} isNested={isNested} />;
+      case 'funding_request':
+        return (
+          <ContentWrapper isNested={isNested}>
+            <ContentHeader title={item.title} isNested={isNested} />
+            <ExpandableText text={item.abstract} isNested={isNested} />
+            <ActionFooter
+              amount={item.amount}
+              icon={HandCoins}
+              goalAmount={item.goalAmount}
+              progress={item.progress}
+              ctaText="Contribute"
+              users={item.contributors}
+              type="funding_request"
+              isNested={isNested}
+            />
+          </ContentWrapper>
+        );
       case 'reward':
-        return renderReward();
+        return (
+          <ContentWrapper isNested={isNested}>
+            <ContentHeader title={item.title} isNested={isNested} />
+            <ExpandableText text={item.abstract} isNested={isNested} />
+            <ActionFooter
+              amount={item.amount}
+              icon={Trophy}
+              deadline={item.deadline}
+              ctaText="Start Task"
+              users={item.contributors}
+              type="reward"
+              isNested={isNested}
+            />
+          </ContentWrapper>
+        );
       case 'grant':
-        return renderGrant();
+        return (
+          <ContentWrapper isNested={isNested}>
+            <ContentHeader title={item.title} isNested={isNested} />
+            <ExpandableText text={item.abstract} isNested={isNested} baseTextSize="sm" />
+            <ActionFooter
+              amount={item.amount}
+              icon={GraduationCap}
+              deadline={item.deadline}
+              ctaText="Apply Now"
+              users={item.applicants}
+              userStackLabel="Applicants"
+              type="grant"
+              isNested={isNested}
+            />
+          </ContentWrapper>
+        );
       case 'review':
-        return renderReview();
       case 'contribution':
-        return renderContribution();
+        return (
+          <ContentWrapper isNested={isNested}>
+            <ContentHeader title={item.title} isNested={isNested} />
+            <ExpandableText text={item.abstract} isNested={isNested} />
+            <div className="flex items-center gap-2">
+              <Coins className={`w-${isNested ? '4' : '5'} h-${isNested ? '4' : '5'} text-orange-500`} />
+              <span className={`text-orange-500 text-${getTextSize('sm', Boolean(isNested))}`}>
+                {item.amount.toLocaleString()} RSC
+              </span>
+            </div>
+          </ContentWrapper>
+        );
       default:
         return assertNever(item);
     }

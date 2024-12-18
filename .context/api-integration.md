@@ -52,6 +52,7 @@ All paths are relative to the root of the project.
 - Use next/Link component whenever rendering a component that redirects to another page
 - Use `components/ui/Button` component whenever rendering a button. do not use `<button>` tags.
 - Refactor rather than adding new code when possible
+- All functions created should include parameter destructuring in the function signature
 
 ## Technologies used in the project (next.js)
 - TypeScript

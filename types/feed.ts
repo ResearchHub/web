@@ -34,19 +34,24 @@ export type ItemType =
 export type BaseItem = {
   id: string;
   type: ItemType;
-  title?: string;
-  description?: string;
+  title: string;
+  abstract: string;
   user: User;
   timestamp: string;
   hub?: Hub;
   isPinned?: boolean;
-  slug?: string;
+  slug: string;
 };
 
-export type CommentItem = BaseItem & {
+export type CommentItem = {
+  id: string;
   type: 'comment';
   content: string;
+  user: User;
+  timestamp: string;
   parent?: CommentItem;
+  hub?: Hub;
+  isPinned?: boolean;
 };
 
 export type FundingRequestItem = BaseItem & {
@@ -54,17 +59,15 @@ export type FundingRequestItem = BaseItem & {
   amount: number;
   goalAmount: number;
   progress: number;
-  contributors?: User[];
-  slug: string;
+  contributors: User[];
 };
 
 export type GrantItem = BaseItem & {
   type: 'grant';
   amount: number;
-  deadline?: string;
+  deadline: string;
   contributors?: User[];
   applicants?: User[];
-  slug: string;
 };
 
 export type PaperItem = BaseItem & {
@@ -72,13 +75,11 @@ export type PaperItem = BaseItem & {
   authors: PaperAuthor[];
   doi?: string;
   journal?: string;
-  slug: string;
 };
 
 export type ReviewItem = BaseItem & {
   type: 'review';
   amount: number;
-  slug: string;
 };
 
 export type RewardItem = BaseItem & {
@@ -86,13 +87,11 @@ export type RewardItem = BaseItem & {
   amount: number;
   deadline: string;
   contributors?: User[];
-  slug: string;
 };
 
-export type ContributionItem = BaseItem & {
+export type ContributionItem = Omit<BaseItem, 'slug'> & {
   type: 'contribution';
   amount: number;
-  slug?: string;
 };
 
 export type FeedItemType = 

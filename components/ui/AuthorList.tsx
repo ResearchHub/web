@@ -11,13 +11,25 @@ interface Author {
 
 interface AuthorListProps {
   authors: Author[]
-  size?: 'sm' | 'base' // For different text sizes
+  size?: 'xs' | 'sm' | 'base' // For different text sizes
   timestamp?: string
+  isNested?: boolean
 }
 
-export const AuthorList = ({ authors, size = 'base', timestamp }: AuthorListProps) => {
+export const AuthorList = ({ authors, size = 'base', timestamp, isNested }: AuthorListProps) => {
   const [showAll, setShowAll] = useState(false)
   
+  const getTextSize = () => {
+    switch (size) {
+      case 'xs':
+        return 'text-xs';
+      case 'sm':
+        return 'text-sm';
+      default:
+        return 'text-base';
+    }
+  };
+
   const renderAuthors = () => {
     if (authors.length <= 3 || showAll) {
       return (
@@ -36,7 +48,7 @@ export const AuthorList = ({ authors, size = 'base', timestamp }: AuthorListProp
               className="flex items-center text-blue-500 hover:text-blue-600"
             >
               <Minus className="w-3.5 h-3.5 mr-1" />
-              <span className={size === 'sm' ? 'text-sm' : 'text-base'}>
+              <span className={getTextSize()}>
                 Show less
               </span>
             </button>
@@ -55,7 +67,7 @@ export const AuthorList = ({ authors, size = 'base', timestamp }: AuthorListProp
           className="flex items-center text-blue-500 hover:text-blue-600"
         >
           <Plus className="w-3.5 h-3.5 mr-1" />
-          <span className={size === 'sm' ? 'text-sm' : 'text-base'}>
+          <span className={getTextSize()}>
             {authors.length - 3} more
           </span>
         </button>
@@ -74,7 +86,7 @@ export const AuthorList = ({ authors, size = 'base', timestamp }: AuthorListProp
       {timestamp && (
         <>
           <span className="text-gray-400">•</span>
-          <span className={`text-gray-500 ${size === 'sm' ? 'text-sm' : 'text-base'}`}>
+          <span className={`text-gray-500 ${getTextSize()}`}>
             {timestamp}
           </span>
         </>
@@ -91,14 +103,14 @@ const AuthorItem = ({
 }: { 
   author: Author; 
   showDot: boolean;
-  size: 'sm' | 'base';
+  size: 'xs' | 'sm' | 'base';
 }) => (
   <span className="flex items-center">
-    <span className={`${size === 'sm' ? 'text-sm' : 'text-base'} text-gray-900 hover:text-gray-900`}>
+    <span className={`${size === 'xs' ? 'text-xs' : size === 'sm' ? 'text-sm' : 'text-base'} text-gray-900 hover:text-gray-900`}>
       {author.name}
     </span>
     {author.verified && (
-      <BadgeCheck className="w-4 h-4 ml-1 text-blue-500" />
+      <BadgeCheck className={`${size === 'xs' ? 'w-3 h-3' : 'w-4 h-4'} ml-1 text-blue-500`} />
     )}
     {showDot && <span className="ml-2 text-gray-400">•</span>}
   </span>

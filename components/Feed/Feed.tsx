@@ -9,10 +9,13 @@ import { FeedItem } from './FeedItem';
 import { Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+type FeedTab = 'for-you' | 'following' | 'popular' | 'latest' | 'add-interests';
+type InterestTab = 'journal' | 'person' | 'topic';
+
 export const Feed: FC = () => {
   const [showInterests, setShowInterests] = useState(false);
-  const [activeInterestTab, setActiveInterestTab] = useState<'journal' | 'person' | 'topic'>('journal');
-  const [activeTab, setActiveTab] = useState<'for-you' | 'following' | 'popular' | 'latest'>('for-you');
+  const [activeInterestTab, setActiveInterestTab] = useState<InterestTab>('journal');
+  const [activeTab, setActiveTab] = useState<FeedTab>('for-you');
 
   const getFeedContent = () => {
     switch (activeTab) {
@@ -29,13 +32,23 @@ export const Feed: FC = () => {
         return [...feedEntries].sort((a, b) => 
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
         );
+      case 'add-interests':
+        return feedEntries; // Return default feed when in add interests mode
       default:
         return feedEntries;
     }
   };
 
+  const handleTabChange = (tab: FeedTab) => {
+    setActiveTab(tab);
+    if (tab === 'add-interests') {
+      setShowInterests(true);
+    }
+  };
+
   const handleInterestSelection = async (interests: any[]) => {
     setShowInterests(false);
+    setActiveTab('for-you'); // Reset to default tab after interests selection
     toast.success('Your preferences have been updated', {
       duration: 4000,
       position: 'bottom-right',
@@ -48,7 +61,7 @@ export const Feed: FC = () => {
   };
 
   return (
-    <PageLayout className="bg-white">
+    <PageLayout>
       <div className="max-w-4xl mx-auto">
         <div className="pt-4 pb-7">
           <h2 className="text-xl text-gray-600 flex items-center gap-2">
@@ -61,10 +74,8 @@ export const Feed: FC = () => {
           <FeedTabs 
             showingInterests={showInterests} 
             onInterestsClick={() => setShowInterests(!showInterests)}
-            activeInterestTab={activeInterestTab}
-            onInterestTabChange={setActiveInterestTab}
             activeTab={activeTab}
-            onTabChange={setActiveTab}
+            onTabChange={handleTabChange}
           />
         </div>
 
@@ -72,7 +83,6 @@ export const Feed: FC = () => {
           <div className="mt-6">
             <InterestSelector
               mode="preferences"
-              activeTab={activeInterestTab}
               onComplete={handleInterestSelection}
             />
           </div>
