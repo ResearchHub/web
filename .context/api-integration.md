@@ -50,7 +50,7 @@ All paths are relative to the root of the project.
 
 ## Directives
 - Use next/Link component whenever rendering a component that redirects to another page
-- Use Button component whenever rendering a button
+- Use `components/ui/Button` component whenever rendering a button. do not use `<button>` tags.
 - Refactor rather than adding new code when possible
 
 ## Technologies used in the project (next.js)

@@ -58,16 +58,14 @@ export const Feed: FC = () => {
         </div>
 
         <div className="border-b border-gray-100">
-          <div className="">
-            <FeedTabs 
-              showingInterests={showInterests} 
-              onInterestsClick={() => setShowInterests(!showInterests)}
-              activeInterestTab={activeInterestTab}
-              onInterestTabChange={setActiveInterestTab}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-            />
-          </div>
+          <FeedTabs 
+            showingInterests={showInterests} 
+            onInterestsClick={() => setShowInterests(!showInterests)}
+            activeInterestTab={activeInterestTab}
+            onInterestTabChange={setActiveInterestTab}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
         </div>
 
         {showInterests ? (
