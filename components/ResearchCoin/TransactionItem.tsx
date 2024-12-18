@@ -176,11 +176,36 @@ export function TransactionItem({
       return title.length > 50 ? `${title.substring(0, 47)}...` : title;
     };
 
+    // Handle withdrawals and deposits with transaction hash
+    if (
+      ['withdrawal', 'deposit'].includes(transaction.readable_content_type) && 
+      transaction.source?.transaction_hash
+    ) {
+      return {
+        title: `View on Etherscan`,
+        url: `https://etherscan.io/tx/${transaction.source.transaction_hash}`,
+        isExternal: true
+      };
+    }
+
+    // Handle bounty transactions with unified document
+    if (
+      transaction.readable_content_type === 'bounty' && 
+      transaction.source?.unified_document
+    ) {
+      return {
+        title: `Unified Doc #${transaction.source.unified_document}`,
+        url: `/unified-document/${transaction.source.unified_document}`,
+        isExternal: false
+      };
+    }
+
     // Check for paper title in source.source
     if (transaction.source?.source?.paper_title) {
       return {
         title: truncateTitle(transaction.source.source.paper_title),
-        url: `/paper/${transaction.source.object_id}/`
+        url: `/paper/${transaction.source.object_id}/`,
+        isExternal: false
       };
     }
 
@@ -190,7 +215,8 @@ export function TransactionItem({
         title: transaction.content_title ? 
           truncateTitle(transaction.content_title) : 
           'View Content',
-        url: `/${transaction.readable_content_type}/${transaction.content_id}/`
+        url: `/${transaction.readable_content_type}/${transaction.content_id}/`,
+        isExternal: false
       };
     }
 
@@ -251,13 +277,17 @@ export function TransactionItem({
                     <span>•</span>
                     <a 
                       href={getContentLink(transaction)?.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      target={getContentLink(transaction)?.isExternal ? "_blank" : undefined}
+                      rel={getContentLink(transaction)?.isExternal ? "noopener noreferrer" : undefined}
                       className="hover:text-primary-400 transition-colors flex items-center gap-1"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {getContentLink(transaction)?.title}
-                      <FileText className="h-3 w-3" />
+                      {getContentLink(transaction)?.isExternal ? (
+                        <ExternalLink className="h-3 w-3" />
+                      ) : (
+                        <FileText className="h-3 w-3" />
+                      )}
                     </a>
                   </>
                 )}
@@ -286,7 +316,7 @@ export function TransactionItem({
               <div className="flex flex-col items-end">
                 <span className={`
                   text-base font-medium transition-colors duration-200
-                  ${isPositive ? 'text-green-500 group-hover:text-green-600' : 'text-gray-900'}
+                  ${isPositive ? 'text-green-600 group-hover:text-green-700' : 'text-gray-900'}
                 `}>
                   {formatTransactionAmount(transaction)}
                 </span>

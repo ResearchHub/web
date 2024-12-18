@@ -5,15 +5,28 @@ import { Fragment, useState, useCallback } from 'react'
 import { X as XIcon, Info } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { colors } from '@/app/styles/colors'
+import Image from 'next/image'
 
 interface DepositModalProps {
   isOpen: boolean
   onClose: () => void
+  currentBalance: string
 }
 
-export function DepositModal({ isOpen, onClose }: DepositModalProps) {
+export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalProps) {
   const [amount, setAmount] = useState<string>('')
   const [isProcessing, setIsProcessing] = useState(false)
+
+  const formatUSDValue = (rscAmount: string): string => {
+    const amount = parseFloat(rscAmount.replace(',', '') || '0')
+    return `$${(amount * 1.576).toFixed(2)}`
+  }
+
+  const calculateNewBalance = (): string => {
+    const current = parseFloat(currentBalance.replace(',', ''))
+    const deposit = parseFloat(amount || '0')
+    return (current + deposit).toFixed(2)
+  }
 
   const handleDeposit = useCallback(async () => {
     if (!amount || parseFloat(amount) <= 0) {
@@ -61,7 +74,7 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
+              <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 shadow-xl transition-all">
                 <div className="flex items-center justify-between mb-8">
                   <DialogTitle className="text-2xl font-semibold text-gray-900">
                     Deposit RSC
@@ -108,6 +121,54 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
                         <span className="text-gray-500">RSC</span>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Balance Display */}
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Current Balance:</span>
+                      <div className="text-right flex items-center gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                          <Image
+                              src="/coin-filled.png"
+                              alt="RSC"
+                              width={16}
+                              height={16}
+                              className="object-contain"
+                            />
+                            <span className="text-sm font-semibold text-gray-900">{currentBalance}</span>
+                            <span className="text-sm text-gray-500">RSC</span>
+                          </div>
+                          <div className="text-xs text-gray-500">≈ {formatUSDValue(currentBalance)} USD</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {amount && parseFloat(amount) > 0 && (
+                      <>
+                        <div className="my-2 border-t border-gray-200" />
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">After Deposit:</span>
+                          <div className="text-right flex items-center gap-2">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-green-600">{calculateNewBalance()}</span>
+                                <Image
+                                  src="/coin-filled.png"
+                                  alt="RSC"
+                                  width={16}
+                                  height={16}
+                                  className="object-contain"
+                                />
+                                <span className="text-sm text-gray-500">RSC</span>
+                              </div>
+                              <div className="text-xs text-gray-500">≈ {formatUSDValue(calculateNewBalance())} USD</div>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* Action Button */}

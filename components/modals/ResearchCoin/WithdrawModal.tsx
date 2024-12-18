@@ -5,6 +5,7 @@ import { Fragment, useState, useCallback } from 'react'
 import { X as XIcon, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { colors } from '@/app/styles/colors'
+import Image from 'next/image';
 
 interface WithdrawModalProps {
   isOpen: boolean
@@ -46,6 +47,11 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
   const handleMaxAmount = () => {
     setAmount(availableBalance.replace(',', ''))
   }
+
+  const formatUSDValue = (rscAmount: string): string => {
+    const amount = parseFloat(rscAmount.replace(',', ''));
+    return `$${(amount * 1.576).toFixed(2)}`; // Using the same conversion rate as main page
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -104,12 +110,6 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                     </div>
                   </div>
 
-                  {/* Display Available Balance */}
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-700">Available Balance</span>
-                    <span className="text-sm font-medium text-gray-900">{availableBalance} RSC</span>
-                  </div>
-
                   {/* Amount Input */}
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
@@ -151,6 +151,29 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                     </div>
                   </div>
 
+                  {/* Balance Display */}
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Available Balance:</span>
+                      <div className="text-right flex items-center gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                          <Image
+                              src="/coin-filled.png"
+                              alt="RSC"
+                              width={16}
+                              height={16}
+                              className="object-contain"
+                            />
+                            <span className="text-sm font-semibold text-gray-900">{availableBalance}</span>
+                            <span className="text-xs text-gray-500">RSC</span>
+                          </div>
+                          <div className="text-xs text-gray-500">≈ {formatUSDValue(availableBalance)} USD</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Action Button */}
                   <button
                     onClick={handleWithdraw}
@@ -159,16 +182,7 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                       hover:bg-primary-600 transition-colors disabled:opacity-50 
                       disabled:cursor-not-allowed shadow-md"
                   >
-                    {isProcessing ? (
-                      <span className="flex items-center justify-center">
-                        <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                          <circle className="text-white" cx="12" cy="12" r="10" strokeWidth="4" />
-                        </svg>
-                        Processing...
-                      </span>
-                    ) : (
-                      'Withdraw RSC'
-                    )}
+                    {isProcessing ? 'Processing...' : 'Withdraw RSC'}
                   </button>
                 </div>
               </DialogPanel>

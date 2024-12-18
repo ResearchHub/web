@@ -12,6 +12,8 @@ import { TransactionList } from '@/components/ResearchCoin/TransactionList';
 import { TransactionSkeleton } from '@/components/ResearchCoin/TransactionSkeleton';
 import { exportTransactionsToCSV } from '@/utils/csvExport';
 import { ExportFilterModal } from '@/components/modals/ResearchCoin/ExportFilterModal';
+import { DepositModal } from '@/components/modals/ResearchCoin/DepositModal';
+import { WithdrawModal } from '@/components/modals/ResearchCoin/WithdrawModal';
 
 const DISTRIBUTION_TYPES = {
   'EDITOR_BOUNTY': 'Editor Bounty',
@@ -47,6 +49,8 @@ export default function ResearchCoinPage() {
   const [hasNextPage, setHasNextPage] = useState<boolean>(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   
   const observerTarget = useRef<HTMLDivElement>(null);
 
@@ -112,23 +116,6 @@ export default function ResearchCoinPage() {
 
     return () => observer.disconnect();
   }, [handleObserver]);
-
-  const handleActionClick = (action: string) => {
-    toast((t) => (
-      <div className="flex items-center space-x-2">
-        <AlertCircle className="h-5 w-5" />
-        <span>{action} coming soon</span>
-      </div>
-    ), {
-      duration: 2000,
-      position: 'bottom-right',
-      style: {
-        background: '#FFF7ED',
-        color: '#EA580C',
-        border: '1px solid #FDBA74',
-      },
-    });
-  };
 
   const handleToggleExpand = (id: number) => {
     setExpandedId(expandedId === id ? null : id);
@@ -218,7 +205,7 @@ export default function ResearchCoinPage() {
                 {/* Action Buttons */}
                 <div className="flex items-center px-0 gap-12 mx-4 lg:ml-auto">
                   <button 
-                    onClick={() => handleActionClick('Deposit RSC')}
+                    onClick={() => setIsDepositModalOpen(true)}
                     className="flex flex-col items-center gap-3"
                   >
                     <div className="w-16 h-16 flex items-center justify-center bg-indigo-600 
@@ -231,7 +218,7 @@ export default function ResearchCoinPage() {
                   </button>
                   
                   <button 
-                    onClick={() => handleActionClick('Withdraw RSC')}
+                    onClick={() => setIsWithdrawModalOpen(true)}
                     className="flex flex-col items-center gap-3"
                   >
                     <div className="w-16 h-16 flex items-center justify-center bg-white 
@@ -287,6 +274,18 @@ export default function ResearchCoinPage() {
             isOpen={isExportModalOpen}
             onClose={() => setIsExportModalOpen(false)}
             onExport={handleExport}
+          />
+
+          <DepositModal
+            isOpen={isDepositModalOpen}
+            onClose={() => setIsDepositModalOpen(false)}
+            currentBalance={balance}
+          />
+
+          <WithdrawModal
+            isOpen={isWithdrawModalOpen}
+            onClose={() => setIsWithdrawModalOpen(false)}
+            availableBalance={balance}
           />
         </div>
       </div>
