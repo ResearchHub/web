@@ -5,33 +5,41 @@ import { hubs } from './hubStore';
 export const feedEntries: FeedEntry[] = [
   {
     id: 'paper-1',
-    action: 'post',
-    actor: users.bioRxiv,
-    timestamp: '2024-12-14 09:24:06.069373+00',
+    action: 'publish',
+    actor: users.elenaRodriguez,
+    timestamp: '2024-01-10T15:30:00Z',
     item: {
-      id: 'item-1',
+      id: 'paper-1',
       type: 'paper',
-      title: "Deoxysphingolipids Activate CGAS-STING In Colon Cancer Cells And Enhance Tumor Immunity",
-      abstract: "Bioactive sphingolipids (SLs) play critical roles in cellular function and signaling pathways. This study investigates the novel role of deoxysphingolipids in activating the cGAS-STING pathway in colon cancer cells. Through comprehensive analysis of metabolomic and transcriptomic data, we demonstrate that deoxysphingolipids serve as endogenous danger signals, triggering innate immune responses. Our findings reveal a previously unknown mechanism by which these lipids enhance tumor immunity through direct activation of the STING pathway, leading to increased type I interferon production and enhanced T cell recruitment. This discovery opens new therapeutic possibilities for cancer immunotherapy by targeting sphingolipid metabolism.",
-      user: users.bioRxiv,
-      timestamp: '2024-12-14 09:24:06.069373+00',
-      hub: hubs.molecularBiology,
+      title: 'Deoxysphingolipids Activate CGAS-STING In Colon Cancer Cells And Enhance Tumor Immunity',
       authors: [
-        { name: "Suchandrima Saha", isVerified: true },
-        { name: "Fabiola Velázquez", isVerified: false },
-        { name: "David Montrose", isVerified: true },
-        { name: "Hundessa Nemomssa", isVerified: false },
-        { name: "Sarah Chen", isVerified: true }
+        {
+          name: "Elena Rodriguez",
+          isVerified: true,
+          user: users.elenaRodriguez
+        },
+        {
+          name: "Suchandrima Saha",
+          isVerified: false
+        },
+        {
+          name: "Fabiola Velázquez",
+          isVerified: false
+        },
+        {
+          name: "Sarah Chen",
+          isVerified: false
+        }
       ],
-      doi: "10.1101/2024.10.16.618749",
-      journal: "bioRxiv (Cold Spring Harbor Laboratory)",
+      user: users.elenaRodriguez,
+      abstract: "Bioactive sphingolipids (SLs) play critical roles in cellular function and signaling pathways. This study investigates the novel role of deoxysphingolipids in activating the cGAS-STING pathway in colon cancer cells. Through comprehensive analysis of metabolomic and transcriptomic data, we demonstrate that deoxysphingolipids serve as endogenous danger signals that trigger innate immune responses. Our findings reveal a previously unknown mechanism by which altered sphingolipid metabolism can modulate anti-tumor immunity, suggesting potential therapeutic applications in cancer immunotherapy.",
+      timestamp: '2024-01-10T15:30:00Z',
       slug: 'deoxysphingolipids-activate-cgas-sting'
     },
     metrics: {
-      votes: 42,
-      comments: 15,
-      reposts: 8,
-      saves: 12
+      votes: 15,
+      comments: 8,
+      reposts: 12
     }
   },
   {

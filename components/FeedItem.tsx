@@ -21,7 +21,7 @@ import Link from 'next/link'
 import { ProfileTooltip } from './tooltips/ProfileTooltip'
 import { FeedEntry, FundingRequestItem, GrantItem, Item, RewardItem } from '@/types/feed'
 import { Button } from '@/components/ui/Button';
-import { UserStack } from './ui/UserStack';
+import { AvatarStack } from './ui/AvatarStack';
 import { useRouter } from 'next/navigation'
 
 // Type guard to check if an item has contributors
@@ -300,9 +300,14 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                 </Button>
                 {hasContributors(item) && item.contributors && (
                   <div className="flex items-center ml-4">
-                    <UserStack 
-                      users={item.contributors.map(c => c)} 
-                      imageSize="sm"
+                    <AvatarStack
+                      items={item.contributors.map(u => ({
+                        src: u.authorProfile?.profileImage,
+                        alt: u.fullName,
+                        tooltip: u.fullName
+                      }))}
+                      size="sm"
+                      maxItems={2}
                     />
                   </div>
                 )}
@@ -343,7 +348,15 @@ export const FeedItem: React.FC<{ entry: FeedEntry }> = ({ entry }) => {
                 
                 {item.applicants && item.applicants.length > 0 && (
                   <div className="flex items-center gap-2">
-                    <UserStack imageSize='sm' users={item.applicants} />
+                    <AvatarStack
+                      items={item.applicants.map(a => ({
+                        src: a.authorProfile?.profileImage,
+                        alt: a.fullName,
+                        tooltip: a.fullName
+                      }))}
+                      size="sm"
+                      maxItems={2}
+                    />
                     <span className="text-sm text-muted-foreground">
                       Applicant{item.applicants.length !== 1 ? 's' : ''}
                     </span>

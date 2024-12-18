@@ -22,7 +22,7 @@ import {
   Trophy,
   GraduationCap,
 } from 'lucide-react';
-import { UserStack } from './ui/UserStack';
+import { AvatarStack } from './ui/AvatarStack';
 import { AuthorList } from './ui/AuthorList'
 import { Button } from './ui/Button';
 import { assertNever } from '@/utils/assertNever';
@@ -264,7 +264,15 @@ const FeedItemBody: FC<{
             )}
           </div>
           {isRewardOrGrant && users && users.length > 0 && (
-            <UserStack users={users} limit={3} descriptiveText={userStackLabel} />
+            <AvatarStack
+              items={users.map(user => ({
+                src: user.authorProfile?.profileImage,
+                alt: user.fullName,
+                tooltip: user.fullName
+              }))}
+              size="md"
+              maxItems={3}
+            />
           )}
         </div>
 
@@ -286,7 +294,15 @@ const FeedItemBody: FC<{
             {ctaText}
           </Button>
           {!isRewardOrGrant && users && users.length > 0 && (
-            <UserStack users={users} limit={3} descriptiveText={userStackLabel} />
+            <AvatarStack
+              items={users.map(user => ({
+                src: user.authorProfile?.profileImage,
+                alt: user.fullName,
+                tooltip: user.fullName
+              }))}
+              size="md"
+              maxItems={3}
+            />
           )}
         </div>
       </div>

@@ -14,10 +14,10 @@ import {
   HandCoins,
 } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { UserStack } from '../ui/UserStack';
 import { AuthorList } from '../ui/AuthorList';
 import { assertNever } from '@/utils/assertNever';
 import { FeedItemHeader } from './FeedItemHeader';
+import { AvatarStack } from '../ui/AvatarStack';
 
 const TRUNCATE_LIMIT = 280;
 
@@ -50,7 +50,7 @@ interface ExpandableTextProps {
 
 // Shared components
 const ContentWrapper: FC<ContentWrapperProps> = ({ children, isNested, className = '' }) => (
-  <div className={`space-y-3 ${isNested ? 'pl-4 border-l-2 border-gray-200' : ''} ${className}`}>
+  <div className={`space-y-2 ${isNested ? 'pl-4 border-l-2 border-gray-200' : ''} ${className}`}>
     {children}
   </div>
 );
@@ -108,11 +108,20 @@ const ContentHeader: FC<ContentHeaderProps> = ({ title, relatedItem, isNested })
           </h2>
         ) : title
       )}
-      {relatedItem && 'slug' in relatedItem && relatedItem.slug && 'title' in relatedItem && relatedItem.title && (
-        <div className="text-sm text-gray-500">
-          RE: <a href={`/${relatedItem.type}/${relatedItem.slug}`} className="text-blue-500 hover:underline cursor-pointer">
-            {relatedItem.title}
-          </a>
+      {relatedItem && (
+        <div className="space-y-2">
+          <div className="text-sm text-gray-500">
+            RE: <a href={`/${relatedItem.type}/${relatedItem.slug}`} className="text-blue-500 hover:underline cursor-pointer">
+              {relatedItem.title}
+            </a>
+          </div>
+          {'authors' in relatedItem && relatedItem.authors && (
+            <AuthorList 
+              authors={relatedItem.authors}
+              size={isNested ? 'xs' : 'sm'}
+              isNested={isNested}
+            />
+          )}
         </div>
       )}
     </div>
@@ -168,28 +177,16 @@ interface PaperContentProps {
 }
 
 const PaperContent: FC<PaperContentProps> = ({ paper, isNested }) => {
-  const formattedTimestamp = paper.timestamp.includes('ago') ? 
-    paper.timestamp : 
-    formatTimestamp(paper.timestamp);
-
   return (
     <ContentWrapper isNested={isNested}>
-      <div className={`space-y-${isNested ? '0.5' : '3'}`}>
-        <ContentHeader
-          title={
-            <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested))} text-gray-900`}>
-              {paper.title}
-            </h2>
-          }
-          isNested={isNested}
-        />
-        <AuthorList 
-          authors={paper.authors || []}
-          size={isNested ? 'xs' : 'base'}
-          timestamp={formattedTimestamp}
-          isNested={isNested}
-        />
-      </div>
+      <ContentHeader
+        title={
+          <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested))} text-gray-900`}>
+            {paper.title}
+          </h2>
+        }
+        isNested={isNested}
+      />
       <ExpandableText 
         text={paper.abstract || ''} 
         isNested={isNested}
@@ -228,6 +225,12 @@ const ActionFooter: FC<ActionFooterProps> = ({
   const isFundingRequest = type === 'funding_request';
   const textSize = getTextSize('sm', Boolean(isNested));
 
+  const userAvatars = users?.map(user => ({
+    src: user.authorProfile?.profileImage,
+    alt: user.fullName,
+    tooltip: user.fullName
+  })) || [];
+
   return (
     <div className="space-y-4">
       <div className={`flex flex-col sm:flex-row ${isRewardOrGrant ? 'justify-between' : ''} sm:items-center gap-4`}>
@@ -247,8 +250,12 @@ const ActionFooter: FC<ActionFooterProps> = ({
             </>
           )}
         </div>
-        {isRewardOrGrant && users && users.length > 0 && (
-          <UserStack users={users} limit={3} descriptiveText={userStackLabel} />
+        {isRewardOrGrant && userAvatars.length > 0 && (
+          <AvatarStack 
+            items={userAvatars} 
+            size={isNested ? 'xs' : 'sm'} 
+            maxItems={3}
+          />
         )}
       </div>
 
@@ -269,8 +276,12 @@ const ActionFooter: FC<ActionFooterProps> = ({
         >
           {ctaText}
         </Button>
-        {!isRewardOrGrant && users && users.length > 0 && (
-          <UserStack users={users} limit={3} descriptiveText={userStackLabel} />
+        {!isRewardOrGrant && userAvatars.length > 0 && (
+          <AvatarStack 
+            items={userAvatars} 
+            size={isNested ? 'xs' : 'sm'} 
+            maxItems={3}
+          />
         )}
       </div>
     </div>
@@ -287,7 +298,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
   const renderContent = () => {
     if (action === 'repost') {
       return (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {repostMessage && (
             <p className="text-gray-600">{repostMessage}</p>
           )}

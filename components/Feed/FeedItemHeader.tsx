@@ -1,29 +1,37 @@
 'use client'
 
 import { FC } from 'react';
-import { FeedActionType, FeedEntry, FeedItemType } from '@/types/feed';
-import { formatTimestamp } from '@/utils/date';
+import { FeedActionType, FeedItemType } from '@/types/feed';
+import { User } from '@/types/user';
 import { Avatar } from '@/components/ui/Avatar';
-import {
-  Repeat,
-  MoreHorizontal,
-  Coins,
-  FileText,
+import { formatTimestamp } from '@/utils/date';
+import { assertNever } from '@/utils/assertNever';
+import { 
+  Repeat, 
+  Coins, 
+  FileText, 
   MessageCircle,
   HandCoins,
   Trophy,
   GraduationCap,
-  Star,
+  Star
 } from 'lucide-react';
-import { assertNever } from '@/utils/assertNever';
 
-export const FeedItemHeader: FC<{
-  actor: FeedEntry['actor'];
+interface FeedItemHeaderProps {
+  actor: User;
   timestamp: string;
   action: FeedActionType;
   item: FeedItemType;
   isNested?: boolean;
-}> = ({ actor, timestamp, action, item, isNested }) => {
+}
+
+export const FeedItemHeader: FC<FeedItemHeaderProps> = ({ 
+  actor, 
+  timestamp, 
+  action, 
+  item,
+  isNested 
+}) => {
   const getActionText = () => {
     switch (action) {
       case 'repost':
@@ -88,9 +96,27 @@ export const FeedItemHeader: FC<{
     }
   };
 
+  const hasAuthors = item.type === 'paper' && item.authors && item.authors.length > 0;
+
+  const renderAuthors = () => {
+    if (!hasAuthors) return null;
+
+    const authors = item.authors;
+    const textSize = isNested ? 'text-xs' : 'text-sm';
+
+    return (
+      <span className={`${textSize} font-semibold text-gray-900`}>
+        {authors[0].name}
+        {authors.length > 1 && ' et al.'}
+      </span>
+    );
+  };
+
+  const textSize = isNested ? 'text-xs' : 'text-sm';
+
   return (
     <div className="flex items-start justify-between group">
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-4">
         <div className="relative">
           <Avatar
             src={actor.authorProfile?.profileImage}
@@ -104,26 +130,28 @@ export const FeedItemHeader: FC<{
         </div>
         <div className="-mt-0.5">
           <div className="flex flex-wrap items-center gap-x-1.5">
-            <a href="#" className={`${isNested ? 'text-xs' : 'text-sm'} font-semibold text-gray-900 hover:text-orange-500 transition-colors duration-200`}>
-              {actor.fullName}
-            </a>
-            <span className={`text-gray-500 ${isNested ? 'text-xs' : 'text-sm'}`}>{getActionText()}</span>
+            {hasAuthors ? (
+              <>
+                {renderAuthors()}
+                <span className={`${textSize} text-gray-500`}>{getActionText()}</span>
+              </>
+            ) : (
+              <>
+                <a href="#" className={`${textSize} font-semibold text-gray-900 hover:text-orange-500 transition-colors duration-200`}>
+                  {actor.fullName}
+                </a>
+                <span className={`${textSize} text-gray-500`}>{getActionText()}</span>
+              </>
+            )}
             <span className="text-gray-400">·</span>
-            <button className={`text-gray-400 hover:text-gray-600 ${isNested ? 'text-xs' : 'text-sm'} transition-colors duration-200`}>
+            <button className={`${textSize} text-gray-400 hover:text-gray-600 transition-colors duration-200`}>
               {formatTimestamp(timestamp)}
             </button>
           </div>
           {actor.authorProfile?.headline && (
-            <div className={`mt-0.5 ${isNested ? 'text-xs' : 'text-sm'} text-gray-500`}>{actor.authorProfile.headline}</div>
+            <div className={`${textSize} text-gray-500`}>{actor.authorProfile.headline}</div>
           )}
         </div>
-      </div>
-      <div className="flex items-center gap-2">
-        {!isNested && (
-          <button className="text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-all duration-200 p-1 hover:bg-gray-50 rounded-full">
-            <MoreHorizontal className="w-5 h-5" />
-          </button>
-        )}
       </div>
     </div>
   );

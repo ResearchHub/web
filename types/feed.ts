@@ -1,10 +1,11 @@
 import { User } from "./user";
 import { Hub } from "./hub";
 
-export type PaperAuthor = {
+export interface PaperAuthor {
   name: string;
-  isVerified: boolean;
-};
+  isVerified?: boolean;
+  user?: User;
+}
 
 export type Metrics = {
   votes: number;

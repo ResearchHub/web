@@ -28,7 +28,7 @@ export const FeedItem: FC<{ entry: FeedEntry; isFirst?: boolean }> = ({ entry, i
           action={action} 
           item={item} 
         />
-        <div className="pl-11">
+        <div className="pl-11 ml-1">
           <FeedItemBody 
             item={item} 
             relatedItem={relatedItem} 

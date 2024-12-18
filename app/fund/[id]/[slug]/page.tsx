@@ -9,8 +9,7 @@ import { BadgeCheck } from 'lucide-react'
 import { FundraiseRightSidebar } from '@/components/Fund/FundraiseRightSidebar'
 import { mockFunding } from '@/store/fundingStore'
 import { Funding } from '@/types/funding'
-import { UserStack } from '@/components/ui/UserStack'
-import { Button } from '@/Button'
+import { AvatarStack } from '@/components/ui/AvatarStack'
 
 export default function FundingPage({ params }: { params: { id: string; slug: string } }) {
   const [activeTab, setActiveTab] = useState('content')
@@ -117,10 +116,14 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
               </button>
 
               <div className="flex items-center space-x-2">
-                <UserStack
-                  users={funding.contributors.map(c => c.user)}
-                  limit={3}
-                  imageSize="md"
+                <AvatarStack
+                  items={funding.contributors.map(c => ({
+                    src: c.user.authorProfile?.profileImage,
+                    alt: c.user.fullName,
+                    tooltip: c.user.fullName
+                  }))}
+                  size="md"
+                  maxItems={3}
                 />
                 <span className="text-sm text-gray-600">contributors</span>
               </div>
