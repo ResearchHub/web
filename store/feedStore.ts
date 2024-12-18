@@ -50,7 +50,7 @@ export const feedEntries: FeedEntry[] = [
     item: {
       id: 'comment-2',
       type: 'comment',
-      content: "Thank you for the feedback! We're currently working on extending this to regional models.",
+      content: "Thank you for the feedback! We're currently working on extending this to regional models. Our preliminary results show promising accuracy improvements when incorporating local meteorological patterns and topographical data. ",
       user: users.sarahChen,
       timestamp: '2024-12-16 15:24:06.069373+00',
       parent: {

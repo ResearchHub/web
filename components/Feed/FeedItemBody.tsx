@@ -12,18 +12,24 @@ import {
   Trophy,
   GraduationCap,
   HandCoins,
+  FileText,
+  MessageCircle,
+  Sparkles,
+  Award,
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { AuthorList } from '../ui/AuthorList';
 import { assertNever } from '@/utils/assertNever';
 import { FeedItemHeader } from './FeedItemHeader';
 import { AvatarStack } from '../ui/AvatarStack';
+import Link from 'next/link';
+import { FeedItemDate } from './lib/FeedItemDate';
 
 const TRUNCATE_LIMIT = 280;
 
 // Utility to handle text size scaling based on context
-const getTextSize = (baseSize: 'xs' | 'sm' | 'base' | 'lg' | 'xl', isNested: boolean): string => {
-  const sizes = ['xs', 'sm', 'base', 'lg', 'xl'];
+const getTextSize = (baseSize: 'xs' | 'sm' | 'md' | 'base' | 'lg' | 'xl', isNested: boolean): string => {
+  const sizes = ['xs', 'sm', 'md', 'base', 'lg', 'xl'];
   const currentIndex = sizes.indexOf(baseSize);
   return currentIndex > 0 && isNested ? sizes[currentIndex - 1] : baseSize;
 };
@@ -50,7 +56,7 @@ interface ExpandableTextProps {
 
 // Shared components
 const ContentWrapper: FC<ContentWrapperProps> = ({ children, isNested, className = '' }) => (
-  <div className={`space-y-2 ${isNested ? 'pl-4 border-l-2 border-gray-200' : ''} ${className}`}>
+  <div className={`space-y-3 ${isNested ? 'pl-4 border-l-2 border-gray-200' : ''} ${className}`}>
     {children}
   </div>
 );
@@ -68,13 +74,15 @@ const ExpandableText: FC<ExpandableTextProps> = ({ text, isNested, baseTextSize 
         {text}
       </p>
       {shouldTruncate && !isExpanded && (
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setIsExpanded(true)}
-          className="text-blue-500 hover:text-blue-600 text-sm font-medium flex items-center space-x-1 mt-2"
+          className="-ml-2 text-blue-500 hover:text-blue-600 h-8"
         >
-          <span>Read more</span>
-          <ChevronDown className="w-4 h-4" />
-        </button>
+          <span className="font-medium">Read more</span>
+          <ChevronDown className="w-4 h-4 ml-1" />
+        </Button>
       )}
     </div>
   );
@@ -99,8 +107,51 @@ interface ContentHeaderProps {
 const ContentHeader: FC<ContentHeaderProps> = ({ title, relatedItem, isNested }) => {
   if (!title && !relatedItem) return null;
 
+  const getRelatedItemIcon = (type: string) => {
+    switch (type) {
+      case 'paper':
+        return FileText;
+      case 'comment':
+        return MessageCircle;
+      case 'funding_request':
+        return HandCoins;
+      case 'reward':
+        return Trophy;
+      case 'grant':
+        return GraduationCap;
+      case 'review':
+        return Sparkles;
+      case 'contribution':
+        return Award;
+      default:
+        return FileText;
+    }
+  };
+
+  const renderRelatedItemLink = () => {
+    if (!relatedItem || !('type' in relatedItem) || !('title' in relatedItem)) return null;
+
+    const Icon = getRelatedItemIcon(relatedItem.type);
+
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        className="-ml-5 hover:bg-gray-100  text-gray-600 hover:text-gray-900 h-8 rounded-md"
+        asChild
+      >
+        <Link href={`/${relatedItem.type}/${relatedItem.slug || ''}`} className="flex items-center gap-1.5 px-2">
+          <Icon className="w-4 h-4" />
+          <span className="text-sm font-medium">
+            RE: {relatedItem.title}
+          </span>
+        </Link>
+      </Button>
+    );
+  };
+
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-3">
       {title && (
         typeof title === 'string' ? (
           <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested))} text-gray-900`}>
@@ -108,65 +159,54 @@ const ContentHeader: FC<ContentHeaderProps> = ({ title, relatedItem, isNested })
           </h2>
         ) : title
       )}
-      {relatedItem && (
-        <div className="space-y-2">
-          <div className="text-sm text-gray-500">
-            RE: <a href={`/${relatedItem.type}/${relatedItem.slug}`} className="text-blue-500 hover:underline cursor-pointer">
-              {relatedItem.title}
-            </a>
-          </div>
-          {'authors' in relatedItem && relatedItem.authors && (
-            <AuthorList 
-              authors={relatedItem.authors}
-              size={isNested ? 'xs' : 'sm'}
-              isNested={isNested}
-            />
-          )}
-        </div>
-      )}
+      {relatedItem && renderRelatedItemLink()}
     </div>
   );
 };
 
 interface CommentContentProps {
   comment: CommentItem;
+  relatedItem?: FeedEntry['relatedItem'];
   isNested?: boolean;
 }
 
-const CommentContent: FC<CommentContentProps> = ({ comment, isNested }) => {
+const CommentContent: FC<CommentContentProps> = ({ comment, relatedItem, isNested }) => {
   return (
     <ContentWrapper isNested={isNested}>
-      <ContentHeader relatedItem={comment.parent} isNested={isNested} />
-      <ExpandableText text={comment.content} isNested={isNested} />
-      
-      {comment.parent && (
-        <ContentWrapper isNested={true}>
-          <div className="flex items-start space-x-3">
-            <Avatar
-              src={comment.parent.user.authorProfile?.profileImage}
-              alt={comment.parent.user.fullName}
-              size={getAvatarSize('sm', true)}
-              className="ring-2 ring-gray-100"
-            />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-x-1.5">
-                <span className={`font-semibold text-gray-900 text-${getTextSize('sm', true)}`}>
-                  {comment.parent.user.fullName}
-                </span>
-                <span className="text-gray-400">·</span>
-                <span className={`text-gray-500 text-${getTextSize('sm', true)}`}>
-                  {formatTimestamp(comment.parent.timestamp)}
-                </span>
-              </div>
-              <ExpandableText 
-                text={comment.parent.content} 
-                isNested={true}
-                baseTextSize="sm"
+      <div className="space-y-3">
+        <ExpandableText text={comment.content} isNested={isNested} />
+        
+        {comment.parent && (
+          <ContentWrapper isNested={true}>
+            <div className="flex items-start space-x-3">
+              <Avatar
+                src={comment.parent.user.authorProfile?.profileImage}
+                alt={comment.parent.user.fullName}
+                size={getAvatarSize('sm', true)}
+                className="ring-2 ring-gray-100"
               />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-x-1.5">
+                  <span className={`font-semibold text-gray-900 text-${getTextSize('md', true)}`}>
+                    {comment.parent.user.fullName}
+                  </span>
+                  <span className="text-gray-400">·</span>
+                  <FeedItemDate date={comment.parent.timestamp} />
+                </div>
+                <ExpandableText 
+                  text={comment.parent.content} 
+                  isNested={true}
+                  baseTextSize="md"
+                />
+              </div>
             </div>
-          </div>
-        </ContentWrapper>
-      )}
+          </ContentWrapper>
+        )}
+        
+        {relatedItem && (
+          <ContentHeader relatedItem={relatedItem} isNested={isNested} />
+        )}
+      </div>
     </ContentWrapper>
   );
 };
@@ -243,9 +283,9 @@ const ActionFooter: FC<ActionFooterProps> = ({
           {deadline && (
             <>
               <span className="text-gray-400">•</span>
-              <div className="flex items-center gap-2 text-gray-500">
-                <Clock className="w-4 h-4" />
-                <span>Due {formatTimestamp(deadline)}</span>
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-gray-500" />
+                <FeedItemDate date={deadline} />
               </div>
             </>
           )}
@@ -313,22 +353,22 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
               />
             )}
             <div className="mt-4">
-              {renderItemContent(item, true)}
+              {renderItemContent(item, true, relatedItem)}
             </div>
           </div>
         </div>
       );
     }
 
-    return renderItemContent(item, isNested);
+    return renderItemContent(item, isNested, relatedItem);
   };
 
-  const renderItemContent = (item: FeedItemType, isNested?: boolean) => {
+  const renderItemContent = (item: FeedItemType, isNested?: boolean, relatedItem?: FeedEntry['relatedItem']) => {
     switch (item.type) {
       case 'paper':
         return <PaperContent paper={item} isNested={isNested} />;
       case 'comment':
-        return <CommentContent comment={item} isNested={isNested} />;
+        return <CommentContent comment={item} relatedItem={relatedItem} isNested={isNested} />;
       case 'funding_request':
         return (
           <ContentWrapper isNested={isNested}>
@@ -399,7 +439,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
   };
 
   return (
-    <div className="mt-1.5">
+    <div className="mt-3">
       {renderContent()}
     </div>
   );
