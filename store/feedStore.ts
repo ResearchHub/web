@@ -132,11 +132,12 @@ export const feedEntries: FeedEntry[] = [
       timestamp: '2024-12-14 09:24:06.069373+00',
       hub: hubs.molecularBiology,
       authors: [
-        { name: "Suchandrima Saha", isVerified: true },
-        { name: "Fabiola Velázquez", isVerified: false },
-        { name: "David Montrose", isVerified: true },
-        { name: "Hundessa Nemomssa", isVerified: false },
-        { name: "Sarah Chen", isVerified: true }
+        { name: "bioRxiv Preprint Server", isVerified: true },
+        // { name: "Suchandrima Saha", isVerified: true },
+        // { name: "Fabiola Velázquez", isVerified: false },
+        // { name: "David Montrose", isVerified: true },
+        // { name: "Hundessa Nemomssa", isVerified: false },
+        // { name: "Sarah Chen", isVerified: true }
       ],
       doi: "10.1101/2024.10.16.618749",
       journal: "bioRxiv (Cold Spring Harbor Laboratory)",
