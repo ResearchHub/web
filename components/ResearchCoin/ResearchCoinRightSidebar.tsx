@@ -45,7 +45,7 @@ export const ResearchCoinRightSidebar = () => {
             <div className="group">
               <button 
                 onClick={() => toggleSection('what-is-rsc')}
-                className="w-full flex items-center justify-between py-2 text-left group"
+                className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
                   <Coins className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2}/>
@@ -71,7 +71,7 @@ export const ResearchCoinRightSidebar = () => {
             <div className="group">
               <button 
                 onClick={() => toggleSection('why-rsc')}
-                className="w-full flex items-center justify-between py-2 text-left group"
+                className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
                   <HelpCircle className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2}/>
@@ -97,7 +97,7 @@ export const ResearchCoinRightSidebar = () => {
             <div className="group">
               <button 
                 onClick={() => toggleSection('getting-started')}
-                className="w-full flex items-center justify-between py-2 text-left group"
+                className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
                   <Route className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
@@ -139,7 +139,7 @@ export const ResearchCoinRightSidebar = () => {
             <div className="group">
               <button 
                 onClick={() => toggleSection('create-reward')}
-                className="w-full flex items-center justify-between py-2 text-left group"
+                className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
                   <Trophy className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2}/>
@@ -165,7 +165,7 @@ export const ResearchCoinRightSidebar = () => {
             <div className="group">
               <button 
                 onClick={() => toggleSection('fund-science')}
-                className="w-full flex items-center justify-between py-2 text-left group"
+                className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
                   <CircleDollarSign className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
@@ -191,7 +191,7 @@ export const ResearchCoinRightSidebar = () => {
             <div className="group">
               <button 
                 onClick={() => toggleSection('tip-authors')}
-                className="w-full flex items-center justify-between py-2 text-left group"
+                className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
                   <HandCoins className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
@@ -215,7 +215,7 @@ export const ResearchCoinRightSidebar = () => {
             <div className="group">
               <button 
                 onClick={() => toggleSection('governance')}
-                className="w-full flex items-center justify-between py-2 text-left group"
+                className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
                   <Scale className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
@@ -248,7 +248,7 @@ export const ResearchCoinRightSidebar = () => {
             <div className="group">
               <button 
                 onClick={() => toggleSection('peer-review')}
-                className="w-full flex items-center justify-between py-2 text-left group"
+                className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
                   <ClipboardCheck className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
@@ -272,7 +272,7 @@ export const ResearchCoinRightSidebar = () => {
             <div className="group">
               <button 
                 onClick={() => toggleSection('answer-reward')}
-                className="w-full flex items-center justify-between py-2 text-left group"
+                className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
                   <Trophy className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
@@ -296,7 +296,7 @@ export const ResearchCoinRightSidebar = () => {
             <div className="group">
               <button 
                 onClick={() => toggleSection('reproducible-research')}
-                className="w-full flex items-center justify-between py-2 text-left group"
+                className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
                   <Microscope className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
@@ -323,7 +323,7 @@ export const ResearchCoinRightSidebar = () => {
             <div className="group">
               <button 
                 onClick={() => toggleSection('upvotes')}
-                className="w-full flex items-center justify-between py-2 text-left group"
+                className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
                   <ArrowBigUpDash className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />

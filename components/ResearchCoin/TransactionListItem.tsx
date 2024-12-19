@@ -49,45 +49,47 @@ export function TransactionListItem({
     const type = transaction.source?.distribution_type;
     const contentType = transaction.readable_content_type;
     
+    const iconClasses = "h-4 w-4 text-gray-600";
+    
     // Handle withdrawals
     if (contentType === 'withdrawal') {
-      return <ArrowUpFromLine className="h-4 w-4 text-gray-700" />;
+      return <ArrowUpFromLine className={iconClasses} strokeWidth={2} />;
     }
     
     // Handle fees
     if (contentType === 'bountyfee' || contentType === 'supportfee' || type?.includes('FEE')) {
-      return <Percent className="h-4 w-4 text-gray-700" />;
+      return <Percent className={iconClasses} strokeWidth={2} />;
     }
     
     // Handle bounties
     if (contentType === 'bounty' || type?.includes('BOUNTY')) {
-      return <Trophy className="h-4 w-4 text-gray-700" />;
+      return <Trophy className={iconClasses} strokeWidth={2} />;
     }
     
     // Handle refunds
     if (type?.includes('REFUND') || transaction.source?.status === 'REFUNDED') {
-      return <RotateCcw className="h-4 w-4 text-gray-700" />;
+      return <RotateCcw className={iconClasses} strokeWidth={2} />;
     }
     
     // Handle purchases and support fees
     if (contentType === 'purchase') {
       const purchaseType = transaction.source?.purchase_type;
       if (['BOOST', 'TIP'].includes(purchaseType || '')) {
-        return <HandCoins className="h-4 w-4 text-gray-700" />;
+        return <HandCoins className={iconClasses} strokeWidth={2} />;
       }
     }
     
     // Handle upvotes
     if (type?.includes('UPVOTED') || type?.includes('UPVOTE')) {
-      return <ArrowBigUpDash className="h-4 w-4 text-gray-700" />;
+      return <ArrowBigUpDash className={iconClasses} strokeWidth={2} />;
     }
     
     // Default icons based on transaction amount
     if (parseFloat(transaction.amount) >= 0) {
-      return <ArrowDownToLine className="h-4 w-4 text-gray-700" />;
+      return <ArrowDownToLine className={iconClasses} strokeWidth={2} />;
     }
     
-    return <ArrowUpFromLine className="h-4 w-4 text-gray-700" />;
+    return <ArrowUpFromLine className={iconClasses} strokeWidth={2} />;
   };
 
   const formatTransactionAmount = (transaction: any) => {
@@ -230,20 +232,16 @@ export function TransactionListItem({
 
   return (
     <div className="group">
-      <div 
-        className={`
-          relative py-3 transition-all duration-200 rounded-lg px-6 -mx-4
-          hover:shadow-sm hover:bg-gray-50/50 group
-        `}
-      >
+      <div className={`relative py-3 transition-all duration-200 rounded-lg px-4 -mx-4`}>
         <div className="flex items-center justify-between">
-          <div className="flex gap-3">
-            <div>
+          <div className="flex gap-3 w-full">
+            <div className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-gray-50">
+              {getTransactionIcon(transaction)}
+            </div>
+
+            <div className="flex-1">
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-4 py-1">
-                  {getTransactionIcon(transaction)}
-                  <p className="font-medium text-gray-900">{getTransactionType(transaction)}</p>
-                </div>
+                <p className="font-medium text-gray-900">{getTransactionType(transaction)}</p>
                 {transaction.readable_content_type === 'withdrawal' && transaction.source?.paid_status && (
                   <span className="text-xs px-2 py-0.5 rounded-full bg-gray-50">
                     {transaction.source.paid_status.charAt(0) + 
@@ -257,7 +255,7 @@ export function TransactionListItem({
                 )}
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-gray-600 mt-0.5 -ml-7 pl-7">
+              <div className="flex items-center gap-2 text-xs text-gray-600 mt-0.5">
                 <span>{formatDateTime(transaction.created_date)}</span>
                 
                 {getContentLink(transaction) && (
@@ -293,20 +291,20 @@ export function TransactionListItem({
                 )}
               </div>
             </div>
-          </div>
 
-          <div className="flex flex-col items-end min-w-[140px]">
-            <div className="flex items-center justify-end w-full">
-              <div className="flex flex-col items-end">
-                <span className={`
-                  text-base font-medium transition-colors duration-200
-                  ${isPositive ? 'text-green-600 group-hover:text-green-700' : 'text-gray-900'}
-                `}>
-                  {formatTransactionAmount(transaction)}
-                </span>
-                <span className="text-xs text-gray-500 group-hover:text-gray-600">
-                  {usdValue} USD
-                </span>
+            <div className="flex flex-col items-end min-w-[140px]">
+              <div className="flex items-center justify-end w-full">
+                <div className="flex flex-col items-end">
+                  <span className={`
+                    text-base font-medium transition-colors duration-200
+                    ${isPositive ? 'text-green-600 group-hover:text-green-700' : 'text-gray-900'}
+                  `}>
+                    {formatTransactionAmount(transaction)}
+                  </span>
+                  <span className="text-xs text-gray-500 group-hover:text-gray-600">
+                    {usdValue} USD
+                  </span>
+                </div>
               </div>
             </div>
           </div>
