@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react';
-import { Search, Bell, CircleUser, Menu, BadgeCheck, X, AlertCircle, LogIn } from 'lucide-react';
+import { Search, Menu, BadgeCheck, X, AlertCircle, LogIn } from 'lucide-react';
 import { searchFeedItems } from '@/store/feedStore';
 import { getItemTypeConfig } from '@/components/FeedItem';
 import { useSession, signOut } from 'next-auth/react';
@@ -10,8 +10,9 @@ import AuthModal from '@/components/modals/Auth/AuthModal';
 import UserMenu from '@/components/menus/UserMenu'
 import type { User } from '@/types/user'
 import { useNotifications } from '@/contexts/NotificationContext'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { NotificationBell } from '@/components/Notification/NotificationBell'
+import { PublishMenu } from './PublishMenu'
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -24,6 +25,20 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const router = useRouter()
+  const pathname = usePathname()
+
+  const getPageTitle = () => {
+    switch (pathname) {
+      case '/notifications':
+        return 'Notifications'
+      case '/profile':
+        return 'Profile'
+      default:
+        return 'Today in Science'
+    }
+  }
+
+  const isNotificationsPage = pathname === '/notifications'
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchQuery = event.target.value;
@@ -59,7 +74,9 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
             </button>
 
             {/* Title */}
-            <h1 className="hidden lg:block text-xl font-semibold text-gray-900">Today in Science</h1>
+            <h1 className="hidden lg:block text-xl font-semibold text-gray-900">
+              {getPageTitle()}
+            </h1>
 
             <div className="flex items-center gap-4 ml-auto">
               <div className="relative w-[380px]">
@@ -80,7 +97,6 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                   </button>
                 )}
 
-                {/* Render search results */}
                 {results.length > 0 && (
                   <div className="absolute left-0 right-0 bg-white shadow-lg rounded-lg mt-2 z-10 max-h-[80vh] overflow-y-auto w-[500px]">
                     <ul className="divide-y divide-gray-100">
@@ -130,12 +146,12 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                 )}
               </div>        
 
-              {/* Add fixed width placeholder for session loading state */}
-              <div className="flex items-center space-x-4 w-[100px]">
+              <div className="flex items-center gap-4">
                 {status !== "loading" ? (
                   session ? (
                     <>
-                      <NotificationBell />
+                      <PublishMenu />
+                      <NotificationBell filled={isNotificationsPage} />
                       <UserMenu 
                         user={session.user as User}
                         onViewProfile={() => null}

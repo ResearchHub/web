@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { LeftSidebar } from './LeftSidebar';
 import { TopBar } from './TopBar';
 import { RightSidebar } from './RightSidebar';
@@ -12,11 +12,6 @@ interface PageLayoutProps {
 
 export const PageLayout: React.FC<PageLayoutProps> = ({ children, rightSidebar }) => {
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
-  const [isPublishMenuOpen, setIsPublishMenuOpen] = useState(false);
-
-  const handlePublishMenuChange = useCallback((isOpen: boolean) => {
-    setIsPublishMenuOpen(isOpen);
-  }, []);
 
   return (
     <div className="flex min-h-screen bg-white relative">
@@ -28,24 +23,13 @@ export const PageLayout: React.FC<PageLayoutProps> = ({ children, rightSidebar }
         />
       )}
 
-      {/* Publish menu overlay */}
-      {isPublishMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40"
-          onClick={() => setIsPublishMenuOpen(false)}
-        />
-      )}
-
       {/* Left Sidebar */}
       <div className={`
         fixed lg:sticky top-0 left-0 h-full bg-white z-50 w-64 transform transition-transform duration-200 ease-in-out
         lg:translate-x-0
         ${isLeftSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <LeftSidebar 
-          isPublishMenuOpen={isPublishMenuOpen}
-          onPublishMenuChange={handlePublishMenuChange}
-        />
+        <LeftSidebar />
       </div>
       
       {/* Main Content */}

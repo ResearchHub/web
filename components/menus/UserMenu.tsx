@@ -49,7 +49,7 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
       >
         <Avatar 
           src={user.authorProfile?.profileImage} 
-          alt={`${user.firstName} ${user.lastName}`}
+          alt={user.fullName}
           size="sm"
         />
       </button>
@@ -57,18 +57,18 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
       {isOpen && (
         <div 
           ref={menuRef}
-          className="absolute right-0 mt-1 w-64 rounded-xl bg-gray-50 shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden"
+          className="absolute right-0 mt-2 w-64 rounded-xl bg-gray-50 shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden"
         >
           {/* User info section */}
           <div className="px-4 py-3 border-b border-gray-200">
             <div className="flex items-center">
               <Avatar 
                 src={user.authorProfile?.profileImage} 
-                alt={`${user.firstName} ${user.lastName}`}
+                alt={user.fullName}
                 size="md"
               />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900">{`${user.firstName} ${user.lastName}`}</p>
+                <p className="text-sm font-medium text-gray-900">{`${user.fullName}`}</p>
                 <p className="text-xs text-gray-500">{user.email}</p>
               </div>
             </div>

@@ -1,50 +1,46 @@
 'use client'
 
 import { 
-  FileUp,         // for publishing preprint
-  ScrollText,     // for journal
-  HandCoins,      // for funding request
-  GraduationCap,  // for grant
-  Trophy,         // for reward
-  Share,
-  ChevronRight, 
+  FileUp,
+  GraduationCap,
+  Trophy,
+  HandCoins,
+  AlertCircle,
   Plus,
-  AlertCircle
+  ChevronDown
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { CreateRewardModal } from '../../components/modals/CreateRewardModal';
 import toast from 'react-hot-toast';
 
 interface PublishMenuProps {
-  isOpen: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
-export const PublishMenu: React.FC<PublishMenuProps> = ({ 
-  isOpen, 
-  onClose,
-  children
-}) => {
+export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
+  const [isOpen, setIsOpen] = useState(false);
   const [showRewardModal, setShowRewardModal] = useState(false);
-
-  const handleOverlayClick = (event: MouseEvent) => {
-    if (event.target === event.currentTarget) {
-      onClose();
-    }
-  };
+  const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (isOpen) {
-      document.addEventListener('mousedown', handleOverlayClick);
-      return () => {
-        document.removeEventListener('mousedown', handleOverlayClick);
-      };
-    }
-  }, [isOpen, onClose]);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        menuRef.current && 
+        buttonRef.current && 
+        !menuRef.current.contains(event.target as Node) &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
 
-  const handleItemClick = (title: string) => {
-    if (title === 'Create ResearchCoin Reward') {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleItemClick = (action: string) => {
+    if (action === 'reward') {
       setShowRewardModal(true);
     } else {
       toast((t) => (
@@ -56,42 +52,53 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
         duration: 2000,
         position: 'bottom-right',
         style: {
-          background: '#FFF7ED', // Orange-50
-          color: '#EA580C',     // Orange-600
-          border: '1px solid #FDBA74', // Orange-300
+          background: '#FFF7ED',
+          color: '#EA580C',    
+          border: '1px solid #FDBA74',
         },
       });
     }
-    onClose();
+    setIsOpen(false);
   };
 
   const menuItems = [
-    {
-      section: 'Publish',
-      items: [
-        { icon: <FileUp className="w-5 h-5" />, title: 'Publish preprint', description: 'Share your research before peer review' },
-        { icon: <ScrollText className="w-5 h-5" />, title: 'Publish in ResearchHub Journal', description: 'Submit to our peer-reviewed journal' },
-      ]
+    { 
+      icon: <FileUp className="w-5 h-5" />, 
+      title: 'Publish', 
+      description: 'Publish preprint or submit to RH Journal',
+      action: 'publish'
     },
-    {
-      section: 'ResearchCoin Marketplace',
-      items: [
-        { icon: <Trophy className="w-5 h-5" />, title: 'Create ResearchCoin reward', description: 'Incentivize research contributions' },
-        { icon: <GraduationCap className="w-5 h-5" />, title: 'Create grant', description: 'Fund promising research projects' },
-        { icon: <HandCoins className="w-5 h-5" />, title: 'Start a fundraise', description: 'Seek support for your research' },
-      ]
+    { 
+      icon: <Trophy className="w-5 h-5" />, 
+      title: 'Create Reward', 
+      description: 'Open a scientific reward',
+      action: 'reward'
     },
-    {
-      section: 'Community',
-      items: [
-        { icon: <Share className="w-5 h-5" />, title: 'Share a paper', description: 'Discuss published research' },
-      ]
+    { 
+      icon: <GraduationCap className="w-5 h-5" />, 
+      title: 'Create Grant', 
+      description: 'Fund promising research',
+      action: 'grant'
+    },
+    { 
+      icon: <HandCoins className="w-5 h-5" />, 
+      title: 'Start a Fundraise', 
+      description: 'Seek research support',
+      action: 'fundraise'
     }
   ];
 
   return (
-    <div className="relative w-full">
-      {children}
+    <div className="relative">
+      <button
+        ref={buttonRef}
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#4A24E0] hover:bg-[#3D1DB9] rounded-lg transition-all duration-200"
+      >
+        <Plus className="h-5 w-5" />
+        <span>New</span>
+        <ChevronDown className="h-4 w-4 ml-1" />
+      </button>
 
       <CreateRewardModal 
         isOpen={showRewardModal} 
@@ -100,28 +107,32 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
 
       {isOpen && (
         <div 
-          className="fixed left-64 top-0 w-96 bg-white shadow-lg border-r p-6 h-screen z-60 publish-menu overflow-y-auto"
+          ref={menuRef}
+          className="absolute w-72 rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden"
+          style={{ 
+            right: '0', // Position to the left with 8px gap
+            top: '45px',
+          }}
         >
-          {menuItems.map((section, idx) => (
-            <div key={idx} className="mb-8 last:mb-0">
-              <h3 className="text-sm font-semibold text-indigo-600 mb-3">{section.section}</h3>
-              {section.items.map((item, itemIdx) => (
-                <button
-                  key={itemIdx}
-                  className="w-full text-left p-3 hover:bg-indigo-50 rounded-lg mb-2 last:mb-0 transition-colors duration-150"
-                  onClick={() => handleItemClick(item.title)}
-                >
-                  <div className="flex items-center mb-1">
-                    <div className="text-indigo-600">
-                      {item.icon}
-                    </div>
-                    <span className="ml-3 text-sm font-medium text-gray-900">{item.title}</span>
+          <div className="py-2">
+            {menuItems.map((item) => (
+              <button
+                key={item.title}
+                className="w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors duration-150"
+                onClick={() => handleItemClick(item.action)}
+              >
+                <div className="flex items-center">
+                  <div className="text-indigo-600">
+                    {item.icon}
                   </div>
-                  <p className="text-xs text-gray-500 ml-8">{item.description}</p>
-                </button>
-              ))}
-            </div>
-          ))}
+                  <div className="ml-3">
+                    <div className="text-sm font-medium text-gray-900">{item.title}</div>
+                    <p className="text-xs text-gray-500">{item.description}</p>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

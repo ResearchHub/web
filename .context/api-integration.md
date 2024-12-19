@@ -41,6 +41,7 @@ All paths are relative to the root of the project.
 
 ## Other
 - Utility functions are located in `utils` directory
+- Date functions are located in `utils/date.ts`
 
 ## Main Feed
 - `components/Feed3.tsx` is the main feed component

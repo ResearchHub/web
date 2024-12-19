@@ -620,9 +620,11 @@ const Feed3: FC = () => {
         />
       ) : (
         <div className="max-w-4xl mx-auto">
-          {getFeedContent().map((entry) => (
-            <FeedItem key={entry.id} entry={entry} />
-          ))}
+          <div className="feed-container">
+            {getFeedContent().map((entry) => (
+              <FeedItem key={entry.id} entry={entry} />
+            ))}
+          </div>
         </div>
       )}
     </PageLayout>
