@@ -16,6 +16,7 @@ import {
   MessageCircle,
   Sparkles,
   Award,
+  PlayCircle,
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { AuthorList } from '../ui/AuthorList';
@@ -51,7 +52,7 @@ interface ContentWrapperProps {
 interface ExpandableTextProps {
   text: string;
   isNested?: boolean;
-  baseTextSize?: 'sm' | 'base';
+  baseTextSize?: 'sm' | 'md' | 'base';
 }
 
 // Shared components
@@ -230,7 +231,7 @@ const PaperContent: FC<PaperContentProps> = ({ paper, isNested }) => {
       <ExpandableText 
         text={paper.abstract || ''} 
         isNested={isNested}
-        baseTextSize="base"
+        baseTextSize={isNested ? 'md' : 'base'}
       />
     </ContentWrapper>
   );
@@ -271,24 +272,91 @@ const ActionFooter: FC<ActionFooterProps> = ({
     tooltip: user.fullName
   })) || [];
 
+  const getButtonStyle = () => {
+    switch (type) {
+      case 'reward':
+        return {
+          icon: PlayCircle,
+          className: "text-indigo-600 hover:text-indigo-700 border-indigo-200 bg-indigo-50 hover:bg-indigo-100 font-medium w-auto"
+        };
+      default:
+        return {
+          icon: Coins,
+          className: "text-orange-500 hover:text-orange-600 border-orange-200 bg-orange-50 hover:bg-orange-100 font-medium w-auto"
+        };
+    }
+  };
+
+  const renderAmountSection = () => {
+    switch (type) {
+      case 'funding_request':
+        return (
+          <div className={`flex items-center gap-4 text-${textSize}`}>
+            <div className="flex items-center gap-2">
+              <Coins className="w-4 h-4 text-orange-500" />
+              <span className="text-orange-500 font-medium">{amount.toLocaleString()} RSC raised</span>
+              {goalAmount && (
+                <span className="text-gray-500">of {goalAmount.toLocaleString()} RSC goal</span>
+              )}
+            </div>
+            {deadline && (
+              <>
+                <span className="text-gray-400">•</span>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-gray-500" />
+                  <FeedItemDate date={deadline} className="text-sm" />
+                </div>
+              </>
+            )}
+          </div>
+        );
+      case 'reward':
+        return (
+          <div className={`flex items-center gap-4 text-${textSize}`}>
+            <div className="flex items-center gap-2">
+              <span className="text-orange-500 font-medium">{amount.toLocaleString()} RSC reward</span>
+            </div>
+            {deadline && (
+              <>
+                <span className="text-gray-400">•</span>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-gray-500" />
+                  <FeedItemDate date={deadline} className="text-sm" />
+                </div>
+              </>
+            )}
+          </div>
+        );
+      case 'grant':
+        return (
+          <div className={`flex items-center gap-4 text-${textSize}`}>
+            <div className="flex items-center gap-2">
+              <GraduationCap className="w-4 h-4 text-orange-500" />
+              <span className="text-orange-500 font-medium">{amount.toLocaleString()} RSC grant</span>
+            </div>
+            {deadline && (
+              <>
+                <span className="text-gray-400">•</span>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-gray-500" />
+                  <FeedItemDate date={deadline} className="text-sm" />
+                </div>
+              </>
+            )}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const buttonStyle = getButtonStyle();
+
   return (
     <div className="space-y-4">
       <div className={`flex flex-col sm:flex-row ${isRewardOrGrant ? 'justify-between' : ''} sm:items-center gap-4`}>
-        <div className={`flex items-center gap-2 text-${textSize}`}>
-          <Coins className="w-5 h-5 text-orange-500" />
-          <span className="text-orange-500 font-medium">{amount.toLocaleString()} RSC</span>
-          {goalAmount && (
-            <span className="text-gray-500">{goalAmount.toLocaleString()} RSC</span>
-          )}
-          {deadline && (
-            <>
-              <span className="text-gray-400">•</span>
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-gray-500" />
-                <FeedItemDate date={deadline} />
-              </div>
-            </>
-          )}
+        <div className="flex items-center gap-4">
+          {renderAmountSection()}
         </div>
         {isRewardOrGrant && userAvatars.length > 0 && (
           <AvatarStack 
@@ -311,10 +379,11 @@ const ActionFooter: FC<ActionFooterProps> = ({
 
       <div className={`flex ${isRewardOrGrant ? '' : 'flex-col-reverse sm:flex-row sm:justify-between sm:items-center'} gap-4`}>
         <Button 
-          variant="default"
-          size={isNested ? 'sm' : 'md'}
-          className="bg-orange-500 hover:bg-orange-600 text-white font-medium px-8 w-full sm:w-auto"
+          variant="outline"
+          size="sm"
+          className={buttonStyle.className}
         >
+          <buttonStyle.icon className="w-4 h-4 mr-1.5" />
           {ctaText}
         </Button>
         {!isRewardOrGrant && userAvatars.length > 0 && (
@@ -381,6 +450,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
               icon={HandCoins}
               goalAmount={item.goalAmount}
               progress={item.progress}
+              deadline={item.expirationDate}
               ctaText="Contribute"
               users={item.contributors}
               type="funding_request"

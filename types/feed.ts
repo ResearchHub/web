@@ -61,6 +61,7 @@ export type FundingRequestItem = BaseItem & {
   goalAmount: number;
   progress: number;
   contributors: User[];
+  expirationDate: string;
 };
 
 export type GrantItem = BaseItem & {

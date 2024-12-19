@@ -41,14 +41,14 @@ export const AvatarStack: FC<AvatarStackProps> = ({
                 src={item.src}
                 alt={item.alt}
                 size={size}
-                className="ring-2 ring-gray-200"
+                className="ring-1 ring-gray-200"
               />
             </div>
           </Tooltip>
         ))}
         {remainingCount > 0 && label && (
           <div className="relative -ml-2">
-            <div className={`bg-gray-100 text-gray-500 px-2 rounded-full ring-2 ring-gray-200 text-xs flex items-center ${
+            <div className={`bg-gray-100 text-gray-500 px-2 rounded-full ring-1 ring-gray-200 text-xs flex items-center ${
               size === 'xs' ? 'h-6' :
               size === 'sm' ? 'h-8' :
               size === 'md' ? 'h-10' :

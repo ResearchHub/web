@@ -98,6 +98,7 @@ export const feedEntries: FeedEntry[] = [
       timestamp: '2024-12-13 10:24:06.069373+00',
       hub: hubs.researchMethods,
       amount: 30131,
+      expirationDate: '2024-12-30 16:24:06.069373+00',
       goalAmount: 36389,
       progress: 85,
       contributors: [
@@ -272,6 +273,7 @@ export const feedEntries: FeedEntry[] = [
       timestamp: '2024-12-16 14:24:06.069373+00',
       hub: hubs.neuroscience,
       amount: 45000,
+      expirationDate: '2024-12-30 16:24:06.069373+00',
       goalAmount: 75000,
       progress: 60,
       contributors: [
@@ -365,6 +367,7 @@ export const feedEntries: FeedEntry[] = [
       title: 'ML for Early Detection of Neurodegenerative Diseases',
       abstract: 'Developing AI models to identify early biomarkers of neurodegeneration.',
       user: users.sarahChen,
+      expirationDate: '2024-12-30 16:24:06.069373+00',
       timestamp: '2024-12-16 14:24:06.069373+00',
       hub: hubs.neuroscience,
       amount: 45000,
