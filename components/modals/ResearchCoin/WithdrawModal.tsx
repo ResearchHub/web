@@ -1,22 +1,41 @@
 'use client'
 
 import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react'
-import { Fragment, useState, useCallback } from 'react'
+import { Fragment, useState, useCallback, useEffect } from 'react'
 import { X as XIcon, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { colors } from '@/app/styles/colors'
 import Image from 'next/image';
+import { TransactionService } from '@/services/transaction.service'
 
 interface WithdrawModalProps {
   isOpen: boolean
   onClose: () => void
-  availableBalance: string
+  availableBalance: number
 }
 
 export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawModalProps) {
   const [amount, setAmount] = useState<string>('')
+  const [exchangeRate, setExchangeRate] = useState<number>(1.576) // Default fallback
   const [isProcessing, setIsProcessing] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string>('')
+
+  useEffect(() => {
+    const fetchExchangeRate = async () => {
+      try {
+        const response = await TransactionService.getLatestExchangeRate();
+        if (response.results[0]?.rate) {
+          setExchangeRate(response.results[0].rate);
+        }
+      } catch (error) {
+        console.error('Failed to fetch exchange rate:', error);
+      }
+    };
+
+    if (isOpen) {
+      fetchExchangeRate();
+    }
+  }, [isOpen]);
 
   const handleWithdraw = useCallback(async () => {
     setErrorMessage(''); // Reset error message
@@ -25,7 +44,7 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
       return;
     }
 
-    if (parseFloat(amount) > parseFloat(availableBalance.replace(',', ''))) {
+    if (parseFloat(amount) > availableBalance) {
       setErrorMessage('Insufficient balance');
       return;
     }
@@ -45,13 +64,24 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
   }, [amount, onClose, availableBalance])
 
   const handleMaxAmount = () => {
-    setAmount(availableBalance.replace(',', ''))
+    setAmount(availableBalance.toString())
   }
 
-  const formatUSDValue = (rscAmount: string): string => {
-    const amount = parseFloat(rscAmount.replace(',', ''));
-    return `$${(amount * 1.576).toFixed(2)}`; // Using the same conversion rate as main page
+  const formatUSDValue = (rscAmount: string | number): string => {
+    const amount = typeof rscAmount === 'string' ? parseFloat(rscAmount.replace(',', '') || '0') : rscAmount;
+    const usdAmount = amount * exchangeRate;
+    return `$${usdAmount.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
   };
+
+  const formatRSCValue = (value: number): string => {
+    return value.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })
+  }
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -158,14 +188,14 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                       <div className="text-right flex items-center gap-2">
                         <div>
                           <div className="flex items-center gap-2">
-                          <Image
+                            <Image
                               src="/coin-filled.png"
                               alt="RSC"
                               width={16}
                               height={16}
                               className="object-contain"
                             />
-                            <span className="text-sm font-semibold text-gray-900">{availableBalance}</span>
+                            <span className="text-sm font-semibold text-gray-900">{formatRSCValue(availableBalance)}</span>
                             <span className="text-xs text-gray-500">RSC</span>
                           </div>
                           <div className="text-xs text-gray-500">≈ {formatUSDValue(availableBalance)} USD</div>

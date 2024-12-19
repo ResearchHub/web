@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { Fragment } from 'react'
 import { X, Calendar, FileDown } from 'lucide-react'
 import { TransactionDTO } from '@/services/types/transaction.dto'
 import { TransactionService } from '@/services/transaction.service'
 import toast from 'react-hot-toast'
-import { exportTransactionsToCSV } from '@/utils/csvExport'
+import { exportTransactionsToCSV } from '@/components/ResearchCoin/lib/transactionCSVExport';
 
 interface ExportFilterModalProps {
   isOpen: boolean
@@ -101,6 +101,7 @@ export function ExportFilterModal({ isOpen, onClose, onExport }: ExportFilterMod
   )
   const [activeDatePreset, setActiveDatePreset] = useState<string>(currentYear)
   const [isLoading, setIsLoading] = useState(false)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   const handlePresetRange = (preset: typeof PRESET_RANGES[number]) => {
     setActiveDatePreset(preset.label)
@@ -114,12 +115,46 @@ export function ExportFilterModal({ isOpen, onClose, onExport }: ExportFilterMod
     }
   }
 
+  const handleCancel = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
+      setIsLoading(false)
+      toast.dismiss()
+      toast.error('Export cancelled')
+      onClose()
+    }
+  }
+
+  const handleModalClose = () => {
+    if (!isLoading) {
+      onClose()
+    } else {
+      // If export is in progress, just close the modal without cancelling
+      onClose()
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    const controller = new AbortController()
+    abortControllerRef.current = controller
 
     try {
       setIsLoading(true)
-      const loadingToast = toast.loading('Starting export...')
+      const loadingToast = toast.loading(
+        <div className="flex items-center justify-between gap-4">
+          <span>Starting export...</span>
+          <button
+            onClick={() => handleCancel()}
+            className="px-2 py-1 text-xs font-medium text-red-600 bg-red-50 
+              rounded hover:bg-red-100 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      )
       
       // Create date objects and set to start/end of day
       const startDateObj = new Date(filters.startDate)
@@ -137,7 +172,8 @@ export function ExportFilterModal({ isOpen, onClose, onExport }: ExportFilterMod
         startDate: apiStartDate,
         endDate: apiEndDate,
         page: 1,
-        pageSize: 25
+        pageSize: 25,
+        signal: controller.signal
       })
 
       if (!firstPageResponse.results?.length) {
@@ -152,10 +188,19 @@ export function ExportFilterModal({ isOpen, onClose, onExport }: ExportFilterMod
       const MAX_CONSECUTIVE_FAILURES = 3
       let hasMorePages = true
 
-      while (hasMorePages && consecutiveFailures < MAX_CONSECUTIVE_FAILURES) {
+      while (hasMorePages && consecutiveFailures < MAX_CONSECUTIVE_FAILURES && !controller.signal.aborted) {
         try {
           toast.loading(
-            `Exported ${allTransactions.length.toLocaleString()} transactions...`, 
+            <div className="flex items-center justify-between gap-4">
+              <span>Exported {allTransactions.length.toLocaleString()} transactions...</span>
+              <button
+                onClick={() => handleCancel()}
+                className="px-2 py-1 text-xs font-medium text-red-600 bg-red-50 
+                  rounded hover:bg-red-100 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>,
             { id: loadingToast }
           )
 
@@ -163,7 +208,8 @@ export function ExportFilterModal({ isOpen, onClose, onExport }: ExportFilterMod
             startDate: apiStartDate,
             endDate: apiEndDate,
             page: currentPage,
-            pageSize: 10
+            pageSize: 10,
+            signal: controller.signal
           })
           
           if (response.results?.length) {
@@ -189,14 +235,33 @@ export function ExportFilterModal({ isOpen, onClose, onExport }: ExportFilterMod
           currentPage++
           
           // Add small delay between requests
-          await new Promise(resolve => setTimeout(resolve, 200))
+          await new Promise((resolve, reject) => {
+            const timeout = setTimeout(resolve, 200)
+            controller.signal.addEventListener('abort', () => {
+              clearTimeout(timeout)
+              reject(new Error('Export cancelled'))
+            })
+          })
         } catch (error) {
+          if (error instanceof Error && error.message === 'Export cancelled') {
+            throw error
+          }
+          
           console.error(`Failed to fetch page ${currentPage}:`, error)
           consecutiveFailures++
           
           if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
             toast.loading(
-              `Export encountered errors. Proceeding with ${allTransactions.length.toLocaleString()} transactions...`,
+              <div className="flex items-center justify-between gap-4">
+                <span>Export encountered errors. Proceeding with {allTransactions.length.toLocaleString()} transactions...</span>
+                <button
+                  onClick={() => handleCancel()}
+                  className="px-2 py-1 text-xs font-medium text-red-600 bg-red-50 
+                    rounded hover:bg-red-100 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>,
               { id: loadingToast }
             )
             break
@@ -204,9 +269,19 @@ export function ExportFilterModal({ isOpen, onClose, onExport }: ExportFilterMod
             // Log the error but continue with next page
             console.warn(`Skipping problematic page ${currentPage}, continuing with next page`)
             currentPage++
-            await new Promise(resolve => setTimeout(resolve, 500)) // Longer delay after error
+            await new Promise((resolve, reject) => {
+              const timeout = setTimeout(resolve, 500)
+              controller.signal.addEventListener('abort', () => {
+                clearTimeout(timeout)
+                reject(new Error('Export cancelled'))
+              })
+            })
           }
         }
+      }
+
+      if (controller.signal.aborted) {
+        throw new Error('Export cancelled')
       }
 
       if (allTransactions.length === 0) {
@@ -229,10 +304,16 @@ export function ExportFilterModal({ isOpen, onClose, onExport }: ExportFilterMod
       )
       onClose()
     } catch (error) {
+      if (error instanceof Error && error.message === 'Export cancelled') {
+        return
+      }
       console.error('Failed to export transactions:', error)
       toast.error('Failed to export transactions')
     } finally {
       setIsLoading(false)
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null
+      }
     }
   }
 
@@ -250,7 +331,7 @@ export function ExportFilterModal({ isOpen, onClose, onExport }: ExportFilterMod
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
+      <Dialog as="div" className="relative z-50" onClose={handleModalClose}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -282,7 +363,7 @@ export function ExportFilterModal({ isOpen, onClose, onExport }: ExportFilterMod
                   </Dialog.Title>
                 </div>
                 <button
-                  onClick={onClose}
+                  onClick={handleModalClose}
                   className="text-gray-400 hover:text-gray-500 transition-colors"
                   aria-label="Close"
                 >
@@ -351,14 +432,25 @@ export function ExportFilterModal({ isOpen, onClose, onExport }: ExportFilterMod
 
                 {/* Action Buttons */}
                 <div className="flex items-center justify-end pt-4 border-t gap-3">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white 
-                      border border-gray-200 rounded-lg hover:bg-gray-50 transition-all"
-                  >
-                    Cancel
-                  </button>
+                  {isLoading ? (
+                    <button
+                      type="button"
+                      onClick={handleCancel}
+                      className="px-5 py-2.5 text-sm font-medium text-red-600 bg-white 
+                        border border-red-200 rounded-lg hover:bg-red-50 transition-all"
+                    >
+                      Cancel Export
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleModalClose}
+                      className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white 
+                        border border-gray-200 rounded-lg hover:bg-gray-50 transition-all"
+                    >
+                      Close
+                    </button>
+                  )}
                   <button
                     type="submit"
                     disabled={isLoading}

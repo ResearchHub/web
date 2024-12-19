@@ -1,10 +1,10 @@
-import { TransactionDTO } from '@/services/types/transaction.dto'
+import type { TransactionAPIRequest } from '@/services/types/transaction.dto'
 
 type TransactionType = 'Buy' | 'Sale' | 'Convert' | 'Transfer' | 'Income' | 
   'Expense' | 'Deposit' | 'Withdrawal' | 'Mining' | 'Airdrop' | 'Staking' | 'Other';
 
 // Helper function to map our transaction types to TurboTax types
-function mapTransactionType(tx: TransactionDTO): TransactionType {
+function mapTransactionType(tx: TransactionAPIRequest): TransactionType {
   const type = tx.readable_content_type?.toLowerCase() || '';
   const distributionType = tx.source?.distribution_type?.toLowerCase() || '';
 
@@ -63,7 +63,7 @@ function mapTransactionType(tx: TransactionDTO): TransactionType {
 }
 
 // Update the rowData initialization to include better descriptions
-function getTransactionDescription(tx: TransactionDTO): string {
+function getTransactionDescription(tx: TransactionAPIRequest): string {
   const type = tx.readable_content_type;
   const distributionType = tx.source?.distribution_type;
   
@@ -100,7 +100,7 @@ function getTransactionDescription(tx: TransactionDTO): string {
 /**
  * Attempts to process a transaction, returning undefined if the transaction is invalid
  */
-function processTransaction(tx: TransactionDTO) {
+function processTransaction(tx: TransactionAPIRequest) {
   try {
     // Format date exactly as specified in TurboTax requirements
     const date = new Date(tx.created_date);
@@ -173,10 +173,15 @@ function processTransaction(tx: TransactionDTO) {
 }
 
 export function exportTransactionsToCSV(
-  transactions: TransactionDTO[], 
+  transactions: TransactionAPIRequest[], 
   startDate: string, 
   endDate: string
 ) {
+  // If no transactions, don't create file
+  if (!transactions.length) {
+    return;
+  }
+
   const headers = [
     'Date',
     'Type',
@@ -221,17 +226,22 @@ export function exportTransactionsToCSV(
     ...rows.map(row => row.join(','))
   ].join('\n');
 
-  // Create and trigger download
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  
-  const fileName = `rsc-transactions-${startDate}-to-${endDate}.csv`;
-  link.setAttribute('href', url);
-  link.setAttribute('download', fileName);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  try {
+    // Create and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    const fileName = `rsc-transactions-${startDate}-to-${endDate}.csv`;
+    link.setAttribute('href', url);
+    link.setAttribute('download', fileName);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error creating CSV file:', error);
+    throw error;
+  }
 } 

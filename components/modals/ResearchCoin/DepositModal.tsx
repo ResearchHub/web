@@ -1,31 +1,60 @@
 'use client'
 
 import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react'
-import { Fragment, useState, useCallback } from 'react'
+import { Fragment, useState, useCallback, useEffect } from 'react'
 import { X as XIcon, Info } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { colors } from '@/app/styles/colors'
 import Image from 'next/image'
+import { TransactionService } from '@/services/transaction.service'
 
 interface DepositModalProps {
   isOpen: boolean
   onClose: () => void
-  currentBalance: string
+  currentBalance: number
 }
 
 export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalProps) {
   const [amount, setAmount] = useState<string>('')
+  const [exchangeRate, setExchangeRate] = useState<number>(1.576) // Default fallback
   const [isProcessing, setIsProcessing] = useState(false)
 
-  const formatUSDValue = (rscAmount: string): string => {
-    const amount = parseFloat(rscAmount.replace(',', '') || '0')
-    return `$${(amount * 1.576).toFixed(2)}`
+  useEffect(() => {
+    const fetchExchangeRate = async () => {
+      try {
+        const response = await TransactionService.getLatestExchangeRate();
+        if (response.results[0]?.rate) {
+          setExchangeRate(response.results[0].rate);
+        }
+      } catch (error) {
+        console.error('Failed to fetch exchange rate:', error);
+      }
+    };
+
+    if (isOpen) {
+      fetchExchangeRate();
+    }
+  }, [isOpen]);
+
+  const formatUSDValue = (rscAmount: string | number): string => {
+    const amount = typeof rscAmount === 'string' ? parseFloat(rscAmount.replace(',', '') || '0') : rscAmount;
+    const usdAmount = amount * exchangeRate;
+    return `$${usdAmount.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
   }
 
   const calculateNewBalance = (): string => {
-    const current = parseFloat(currentBalance.replace(',', ''))
     const deposit = parseFloat(amount || '0')
-    return (current + deposit).toFixed(2)
+    return (currentBalance + deposit).toFixed(2)
+  }
+
+  const formatRSCValue = (value: number): string => {
+    return value.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })
   }
 
   const handleDeposit = useCallback(async () => {
@@ -130,14 +159,14 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
                       <div className="text-right flex items-center gap-2">
                         <div>
                           <div className="flex items-center gap-2">
-                          <Image
+                            <Image
                               src="/coin-filled.png"
                               alt="RSC"
                               width={16}
                               height={16}
                               className="object-contain"
                             />
-                            <span className="text-sm font-semibold text-gray-900">{currentBalance}</span>
+                            <span className="text-sm font-semibold text-gray-900">{formatRSCValue(currentBalance)}</span>
                             <span className="text-sm text-gray-500">RSC</span>
                           </div>
                           <div className="text-xs text-gray-500">≈ {formatUSDValue(currentBalance)} USD</div>

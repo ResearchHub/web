@@ -1,16 +1,14 @@
-import { TransactionDTO } from '@/services/types/transaction.dto';
 import { 
   ArrowDownToLine,
   ArrowUpFromLine, 
   HandCoins, 
-  CheckCircle,
-  CircleDollarSign,
+  Trophy,
   Percent,
   RotateCcw,
   ArrowBigUpDash,
   ExternalLink,
-  FileText,
 } from 'lucide-react';
+import dayjs from 'dayjs';
 
 const DISTRIBUTION_TYPES = {
   'EDITOR_BOUNTY': 'Editor Bounty',
@@ -29,8 +27,8 @@ const DISTRIBUTION_TYPES = {
   'MOD_PAYMENT': 'Moderator Payment',
   'REPLY_COMMENT': 'Reply Comment',
   'PURCHASE': 'Purchase',
-  'PURCHASE_BOOST': 'Support',
-  'PURCHASE_TIP': 'Support',
+  'PURCHASE_BOOST': 'Tip',
+  'PURCHASE_TIP': 'Tip',
   'SUPPORT_RH_FEE': 'Support RH Fee',
   'BOUNTY': 'Bounty',
   'BOUNTY_FEE': 'Bounty Fee',
@@ -40,14 +38,14 @@ const DISTRIBUTION_TYPES = {
 
 type DistributionType = keyof typeof DISTRIBUTION_TYPES;
 
-interface TransactionItemProps {
-  transaction: TransactionDTO;
+interface TransactionListItemProps {
+  transaction: any;
 }
 
-export function TransactionItem({ 
+export function TransactionListItem({ 
   transaction, 
-}: TransactionItemProps) {
-  const getTransactionIcon = (transaction: TransactionDTO) => {
+}: TransactionListItemProps) {
+  const getTransactionIcon = (transaction: any) => {
     const type = transaction.source?.distribution_type;
     const contentType = transaction.readable_content_type;
     
@@ -63,7 +61,7 @@ export function TransactionItem({
     
     // Handle bounties
     if (contentType === 'bounty' || type?.includes('BOUNTY')) {
-      return <CheckCircle className="h-4 w-4 text-gray-700" />;
+      return <Trophy className="h-4 w-4 text-gray-700" />;
     }
     
     // Handle refunds
@@ -92,13 +90,13 @@ export function TransactionItem({
     return <ArrowUpFromLine className="h-4 w-4 text-gray-700" />;
   };
 
-  const formatTransactionAmount = (transaction: TransactionDTO) => {
+  const formatTransactionAmount = (transaction: any) => {
     const amount = parseFloat(transaction.amount);
     const formattedAmount = amount % 1 === 0 ? amount.toString() : amount.toFixed(2);
     return `${amount >= 0 ? '+' : ''}${formattedAmount} RSC`;
   };
 
-  const getTransactionType = (transaction: TransactionDTO) => {
+  const getTransactionType = (transaction: any) => {
     // Handle withdrawals first
     if (transaction.readable_content_type === 'withdrawal') {
       return 'Withdrawal';
@@ -130,7 +128,7 @@ export function TransactionItem({
     }
 
     if (transaction.readable_content_type === 'supportfee') {
-      return 'Fee: Support';
+      return 'Fee: Tip';
     }
 
     if (transaction?.source?.distribution_type) {
@@ -161,17 +159,10 @@ export function TransactionItem({
   const netUsdValue = formatUsdValue(parseFloat(netAmount));
 
   const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return dayjs(dateString).format('MMM D, YYYY, h:mm A');
   };
 
-  const getContentLink = (transaction: TransactionDTO) => {
+  const getContentLink = (transaction: any) => {
     const truncateTitle = (title: string) => {
       return title.length > 50 ? `${title.substring(0, 47)}...` : title;
     };
@@ -223,7 +214,7 @@ export function TransactionItem({
     return null;
   };
 
-  const getUserLink = (transaction: TransactionDTO) => {
+  const getUserLink = (transaction: any) => {
     // Check if there's a giver in the source for upvotes and rewards
     if (
       transaction.source?.giver && 
@@ -241,21 +232,18 @@ export function TransactionItem({
     <div className="group">
       <div 
         className={`
-          relative py-4 transition-all duration-200 rounded-lg px-6 -mx-4
+          relative py-3 transition-all duration-200 rounded-lg px-6 -mx-4
           hover:shadow-sm hover:bg-gray-50/50 group
         `}
       >
         <div className="flex items-center justify-between">
           <div className="flex gap-3">
-            <div className="flex items-center justify-center rounded-full p-2 
-              bg-gray-50 group-hover:bg-white transition-all duration-200
-              shadow-sm group-hover:shadow">
-              {getTransactionIcon(transaction)}
-            </div>
-
             <div>
               <div className="flex items-center gap-2">
-                <p className="font-medium text-gray-900">{getTransactionType(transaction)}</p>
+                <div className="flex items-center gap-4 py-1">
+                  {getTransactionIcon(transaction)}
+                  <p className="font-medium text-gray-900">{getTransactionType(transaction)}</p>
+                </div>
                 {transaction.readable_content_type === 'withdrawal' && transaction.source?.paid_status && (
                   <span className="text-xs px-2 py-0.5 rounded-full bg-gray-50">
                     {transaction.source.paid_status.charAt(0) + 
@@ -269,7 +257,7 @@ export function TransactionItem({
                 )}
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">
+              <div className="flex items-center gap-2 text-xs text-gray-600 mt-0.5 -ml-7 pl-7">
                 <span>{formatDateTime(transaction.created_date)}</span>
                 
                 {getContentLink(transaction) && (
@@ -277,17 +265,13 @@ export function TransactionItem({
                     <span>•</span>
                     <a 
                       href={getContentLink(transaction)?.url}
-                      target={getContentLink(transaction)?.isExternal ? "_blank" : undefined}
-                      rel={getContentLink(transaction)?.isExternal ? "noopener noreferrer" : undefined}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="hover:text-primary-400 transition-colors flex items-center gap-1"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {getContentLink(transaction)?.title}
-                      {getContentLink(transaction)?.isExternal ? (
-                        <ExternalLink className="h-3 w-3" />
-                      ) : (
-                        <FileText className="h-3 w-3" />
-                      )}
+                      <ExternalLink className="h-3 w-3" />
                     </a>
                   </>
                 )}

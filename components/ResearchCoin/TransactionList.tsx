@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { TransactionDTO } from '@/services/types/transaction.dto';
-import { TransactionItem } from './TransactionItem';
-import { TransactionSkeleton } from './TransactionSkeleton';
-
+import { TransactionListItem } from './TransactionListItem';
+import { TransactionSkeleton } from '@/components/skeletons/TransactionSkeleton';
 interface TransactionListProps {
-  transactions: TransactionDTO[];
+  transactions: any[];
   isLoading: boolean;
   error: string | null;
 }
@@ -35,7 +33,7 @@ export function TransactionList({ transactions, isLoading, error }: TransactionL
           key={`${transaction.id}-${index}`} 
           className="first:pt-0 pt-2"
         >
-          <TransactionItem
+          <TransactionListItem
             transaction={transaction}
             isExpanded={expandedId === transaction.id}
             onToggleExpand={handleToggleExpand}

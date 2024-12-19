@@ -2,16 +2,13 @@
 
 import { useState } from 'react'
 import { 
-  Award,
   ChevronDown,
   ChevronRight,
   ClipboardCheck,
-  Coins, 
   GraduationCap,
-  Gift,
   Route,
   HandCoins,
-  MessageSquare,
+  Coins,
   Microscope,
   ArrowBigUpDash,
   CircleDollarSign,
@@ -20,7 +17,6 @@ import {
   Sparkles,
   Trophy,
   Scale,
-  Users,
 } from 'lucide-react'
 import { colors } from '@/app/styles/colors'
 
@@ -52,12 +48,12 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group"
               >
                 <div className="flex items-center gap-2.5">
-                  <MessageSquare className="h-4 w-4 text-gray-400 group-hover:text-primary-400 transition-colors" strokeWidth={2}/>
+                  <Coins className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2}/>
                   <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
                     What is ResearchCoin (RSC)?
                   </span>
                 </div>
-                <div className="text-gray-400 group-hover:text-gray-600 transition-colors">
+                <div className="text-gray-600 group-hover:text-gray-600 transition-colors">
                   {openSections.includes('what-is-rsc') ? 
                     <ChevronDown className="h-4 w-4" /> :
                     <ChevronRight className="h-4 w-4" />
@@ -78,12 +74,12 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group"
               >
                 <div className="flex items-center gap-2.5">
-                  <HelpCircle className="h-4 w-4 text-gray-400 group-hover:text-primary-400 transition-colors" strokeWidth={2}/>
+                  <HelpCircle className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2}/>
                   <span className={`text-sm text-gray-600 group-hover:text-gray-900 transition-colors`}>
                     Why RSC?
                   </span>
                 </div>
-                <div className={`text-gray-400 group-hover:text-gray-600 transition-colors`}>
+                <div className={`text-gray-600 group-hover:text-gray-600 transition-colors`}>
                   {openSections.includes('why-rsc') ? 
                     <ChevronDown className="h-4 w-4" /> :
                     <ChevronRight className="h-4 w-4" />
@@ -104,12 +100,12 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group"
               >
                 <div className="flex items-center gap-2.5">
-                  <Route className="h-4 w-4 text-gray-400 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
+                  <Route className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
                   <span className={`text-sm text-gray-600 group-hover:text-gray-900 transition-colors`}>
                     Getting Started with RSC
                   </span>
                 </div>
-                <div className={`text-gray-400 group-hover:text-gray-600 transition-colors`}>
+                <div className={`text-gray-600 group-hover:text-gray-600 transition-colors`}>
                   {openSections.includes('getting-started') ? 
                     <ChevronDown className="h-4 w-4" /> :
                     <ChevronRight className="h-4 w-4" />
@@ -146,12 +142,12 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group"
               >
                 <div className="flex items-center gap-2.5">
-                  <CheckCircle className="h-4 w-4 text-gray-400 group-hover:text-primary-400 transition-colors" strokeWidth={2}/>
+                  <Trophy className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2}/>
                   <span className={`text-sm text-gray-600 group-hover:text-gray-900 transition-colors`}>
                     Create reward
                   </span>
                 </div>
-                <div className={`text-gray-400 group-hover:text-gray-600 transition-colors`}>
+                <div className={`text-gray-600 group-hover:text-gray-600 transition-colors`}>
                   {openSections.includes('create-reward') ? 
                     <ChevronDown className="h-4 w-4" /> :
                     <ChevronRight className="h-4 w-4" />
@@ -172,12 +168,12 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group"
               >
                 <div className="flex items-center gap-2.5">
-                  <CircleDollarSign className="h-4 w-4 text-gray-400 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
+                  <CircleDollarSign className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
                   <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
                     Fund open science
                   </span>
                 </div>
-                <div className="text-gray-400 group-hover:text-gray-600 transition-colors">
+                <div className="text-gray-600 group-hover:text-gray-600 transition-colors">
                   {openSections.includes('fund-science') ? 
                     <ChevronDown className="h-4 w-4" /> :
                     <ChevronRight className="h-4 w-4" />
@@ -198,10 +194,10 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group"
               >
                 <div className="flex items-center gap-2.5">
-                  <HandCoins className="h-4 w-4 text-gray-400 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
+                  <HandCoins className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
                   <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">Tip authors</span>
                 </div>
-                <div className="text-gray-400 group-hover:text-gray-600 transition-colors">
+                <div className="text-gray-600 group-hover:text-gray-600 transition-colors">
                   {openSections.includes('tip-authors') ? 
                     <ChevronDown className="h-4 w-4" /> :
                     <ChevronRight className="h-4 w-4" />
@@ -222,10 +218,10 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group"
               >
                 <div className="flex items-center gap-2.5">
-                  <Scale className="h-4 w-4 text-gray-400 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
+                  <Scale className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
                   <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">Change the platform</span>
                 </div>
-                <div className="text-gray-400 group-hover:text-gray-600 transition-colors">
+                <div className="text-gray-600 group-hover:text-gray-600 transition-colors">
                   {openSections.includes('governance') ? 
                     <ChevronDown className="h-4 w-4" /> :
                     <ChevronRight className="h-4 w-4" />
@@ -255,10 +251,10 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group"
               >
                 <div className="flex items-center gap-2.5">
-                  <ClipboardCheck className="h-4 w-4 text-gray-400 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
+                  <ClipboardCheck className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
                   <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">Share a peer review</span>
                 </div>
-                <div className="text-gray-400 group-hover:text-gray-600 transition-colors">
+                <div className="text-gray-600 group-hover:text-gray-600 transition-colors">
                   {openSections.includes('peer-review') ? 
                     <ChevronDown className="h-4 w-4" /> :
                     <ChevronRight className="h-4 w-4" />
@@ -279,10 +275,10 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group"
               >
                 <div className="flex items-center gap-2.5">
-                  <CheckCircle className="h-4 w-4 text-gray-400 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
+                  <Trophy className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
                   <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">Answer a reward</span>
                 </div>
-                <div className="text-gray-400 group-hover:text-gray-600 transition-colors">
+                <div className="text-gray-600 group-hover:text-gray-600 transition-colors">
                   {openSections.includes('answer-reward') ? 
                     <ChevronDown className="h-4 w-4" /> :
                     <ChevronRight className="h-4 w-4" />
@@ -303,10 +299,10 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group"
               >
                 <div className="flex items-center gap-2.5">
-                  <Microscope className="h-4 w-4 text-gray-400 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
+                  <Microscope className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
                   <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">Do reproducible research</span>
                 </div>
-                <div className="text-gray-400 group-hover:text-gray-600 transition-colors">
+                <div className="text-gray-600 group-hover:text-gray-600 transition-colors">
                   {openSections.includes('reproducible-research') ? 
                     <ChevronDown className="h-4 w-4" /> :
                     <ChevronRight className="h-4 w-4" />
@@ -330,10 +326,10 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group"
               >
                 <div className="flex items-center gap-2.5">
-                  <ArrowBigUpDash className="h-4 w-4 text-gray-400 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
+                  <ArrowBigUpDash className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
                   <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">Get upvotes on your content</span>
                 </div>
-                <div className="text-gray-400 group-hover:text-gray-600 transition-colors">
+                <div className="text-gray-600 group-hover:text-gray-600 transition-colors">
                   {openSections.includes('upvotes') ? 
                     <ChevronDown className="h-4 w-4" /> :
                     <ChevronRight className="h-4 w-4" />

@@ -1,14 +1,13 @@
 import { ApiClient } from './client'
-import type { 
-  TransactionResponse,
-  TransactionDTO,
-} from './types/transaction.dto'
+import type { TransactionAPIResponse, UserBalanceResponse, ExchangeRateResponse } from './types/transaction.dto'
 
 export class TransactionService {
   private static readonly BASE_PATH = '/transactions'
+  private static readonly WITHDRAWAL_PATH = '/withdrawal'
+  private static readonly EXCHANGE_RATE_PATH = '/exchange_rate'
 
   static async getTransactions(page: number = 1) {
-    return ApiClient.get<TransactionResponse>(
+    return ApiClient.get<TransactionAPIResponse>(
       `${this.BASE_PATH}/?page=${page}`
     )
   }
@@ -38,8 +37,18 @@ export class TransactionService {
       params.append('page_size', filters.pageSize.toString())
     }
 
-    return ApiClient.get<TransactionResponse>(
+    return ApiClient.get<TransactionAPIResponse>(
       `${this.BASE_PATH}/?${params.toString()}`
     )
+  }
+
+  static async getUserBalance() {
+    return ApiClient.get<UserBalanceResponse>(this.WITHDRAWAL_PATH)
+  }
+
+  static async getLatestExchangeRate() {
+    return ApiClient.get<ExchangeRateResponse>(
+      `${this.EXCHANGE_RATE_PATH}/?page_size=1&ordering=-id&price_source=COIN_GECKO`
+    );
   }
 } 
