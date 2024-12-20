@@ -243,14 +243,16 @@ export function TransactionListItem({
               <div className="flex items-center gap-2">
                 <p className="font-medium text-gray-900">{getTransactionType(transaction)}</p>
                 {transaction.readable_content_type === 'withdrawal' && transaction.source?.paid_status && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-gray-50">
-                    {transaction.source.paid_status.charAt(0) + 
+                  <span className="text-[12px] px-2 py-0.5 rounded-full bg-gray-50">
+                    {transaction.source.paid_status === 'PAID' ? 'Completed' : 
+                     transaction.source.paid_status === 'FAILED' ? 'Failed' :
+                     transaction.source.paid_status.charAt(0) + 
                      transaction.source.paid_status.slice(1).toLowerCase()}
                   </span>
                 )}
                 {transaction?.source?.status && transaction.readable_content_type !== 'withdrawal' && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-gray-50">
-                    {transaction.source.status}
+                  <span className="text-[12px] px-2 py-0.5 rounded-full bg-gray-50">
+                    {transaction.source.status.charAt(0) + transaction.source.status.slice(1).toLowerCase()}
                   </span>
                 )}
               </div>
