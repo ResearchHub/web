@@ -196,32 +196,32 @@ export const feedEntries: FeedEntry[] = [
     timestamp: '2024-12-14 11:24:06.069373+00',
     item: {
       id: 'item-3',
-      type: 'reward',
-      title: 'Peer Review: Neural Mechanisms of Memory Formation',
-      abstract: 'We are seeking expert peer reviewers for a groundbreaking study...',
+      type: 'bounty',
+      bountyType: 'review',
+      description: 'We are seeking expert peer reviewers for a groundbreaking study on neural mechanisms of memory formation.',
       user: users.researchHub,
       timestamp: '2024-12-14 11:24:06.069373+00',
       hub: hubs.neuroscience,
       amount: 500,
       deadline: 'Oct 25, 2024',
-      slug: 'peer-review-neural-mechanisms-memory-formation'
-    },
-    relatedItem: {
-      id: 'paper-memory-formation',
-      type: 'paper',
-      title: 'Neural Mechanisms of Memory Formation: A Novel Approach Using Optogenetics',
-      abstract: 'This study investigates the fundamental mechanisms of memory formation...',
-      user: users.jamesWilson,
-      timestamp: '2024-12-13 09:24:06.069373+00',
-      hub: hubs.neuroscience,
-      authors: [
-        { name: "James Wilson", isVerified: true },
-        { name: "Sarah Chen", isVerified: true },
-        { name: "David Kumar", isVerified: false }
-      ],
-      doi: "10.1101/2024.12.13.123456",
-      journal: "bioRxiv",
-      slug: 'neural-mechanisms-of-memory-formation'
+      slug: 'neural-mechanisms-memory-formation-review',
+      relatedPaper: {
+        id: 'paper-memory-formation',
+        type: 'paper',
+        title: 'Neural Mechanisms of Memory Formation: A Novel Approach Using Optogenetics',
+        abstract: 'This study investigates the fundamental mechanisms of memory formation...',
+        user: users.jamesWilson,
+        timestamp: '2024-12-13 09:24:06.069373+00',
+        hub: hubs.neuroscience,
+        authors: [
+          { name: "James Wilson", isVerified: true },
+          { name: "Sarah Chen", isVerified: true },
+          { name: "David Kumar", isVerified: false }
+        ],
+        doi: "10.1101/2024.12.13.123456",
+        journal: "bioRxiv",
+        slug: 'neural-mechanisms-of-memory-formation'
+      }
     },
     metrics: {
       votes: 15,
@@ -331,9 +331,9 @@ export const feedEntries: FeedEntry[] = [
       amount: 750,
       recipientItem: {
         id: 'item-10',
-        type: 'reward',
-        title: 'Statistical Analysis of COVID-19 Vaccination Efficacy Data',
-        abstract: 'Analyze vaccination efficacy data to provide insights into vaccine performance.',
+        type: 'bounty',
+        bountyType: 'dataset',
+        description: 'Analyze vaccination efficacy data to provide insights into vaccine performance.',
         user: users.researchHub,
         timestamp: '2024-12-14 16:24:06.069373+00',
         hub: hubs.dataScience,
@@ -393,9 +393,9 @@ export const feedEntries: FeedEntry[] = [
     timestamp: '2024-12-15 16:24:06.069373+00',
     item: {
       id: 'item-18',
-      type: 'reward',
-      title: 'Dataset Annotation: Medical Imaging',
-      abstract: 'Help annotate MRI scans for machine learning model training. Medical background required.',
+      type: 'bounty',
+      bountyType: 'dataset',
+      description: 'Help annotate MRI scans for machine learning model training. Medical background required.',
       user: users.stanfordAILab,
       timestamp: '2024-12-15 16:24:06.069373+00',
       hub: hubs.artificialIntelligence,
@@ -417,9 +417,9 @@ export const feedEntries: FeedEntry[] = [
     timestamp: '2024-12-13 16:24:06.069373+00',
     item: {
       id: 'item-19',
-      type: 'reward',
-      title: 'Data Analysis: Weather Station Readings',
-      abstract: 'Analyze and clean historical weather station data from remote locations.',
+      type: 'bounty',
+      bountyType: 'dataset',
+      description: 'Analyze and clean historical weather station data from remote locations.',
       user: users.climateResearchInstitute,
       timestamp: '2024-12-13 16:24:06.069373+00',
       hub: hubs.climateScience,
@@ -441,9 +441,9 @@ export const feedEntries: FeedEntry[] = [
     timestamp: '2024-12-14 16:24:06.069373+00',
     item: {
       id: 'item-20',
-      type: 'reward',
-      title: 'Protocol Translation',
-      abstract: 'Translate detailed laboratory protocols from English to Spanish. Biology expertise required.',
+      type: 'bounty',
+      bountyType: 'translation',
+      description: 'Translate detailed laboratory protocols from English to Spanish. Biology expertise required.',
       user: users.openBiologyInitiative,
       timestamp: '2024-12-14 16:24:06.069373+00',
       hub: hubs.biology,

@@ -19,6 +19,7 @@ import {
 import { AvatarStack } from '../ui/AvatarStack';
 import { AuthorList } from '../ui/AuthorList';
 import { ResearchCoinIcon } from '../ui/icons/ResearchCoinIcon';
+import Link from 'next/link';
 
 interface FeedItemHeaderProps {
   actor: User;
@@ -66,8 +67,8 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
             return 'Commented';
           case 'funding_request':
             return 'started crowdfund';
-          case 'reward':
-            return 'opened reward';
+          case 'bounty':
+            return 'opened bounty';
           case 'grant':
             return 'published grant';
           case 'paper':
@@ -98,7 +99,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
             return <MessageCircle className="w-3.5 h-3.5" />;
           case 'funding_request':
             return <HandCoins className="w-3.5 h-3.5" />;
-          case 'reward':
+          case 'bounty':
             return <Trophy className="w-3.5 h-3.5" />;
           case 'grant':
             return <GraduationCap className="w-3.5 h-3.5" />;
@@ -179,9 +180,9 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
                       {item.recipientItem.type === 'funding_request' ? (
                         <span className="text-gray-500">crowdfund</span>
                       ) : (
-                        <a href="#" className="font-medium text-gray-900 hover:text-orange-500 transition-colors duration-200">
+                        <Link href="#" className="font-medium text-gray-900 hover:text-orange-500 transition-colors duration-200">
                           {item.recipientItem.user.fullName}
-                        </a>
+                        </Link>
                       )}
                     </div>
                   </>

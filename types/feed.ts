@@ -28,7 +28,7 @@ export type ItemType =
   | 'grant'
   | 'paper'
   | 'review'
-  | 'reward'
+  | 'bounty'
   | 'contribution'
   | 'comment';
 
@@ -84,11 +84,22 @@ export type ReviewItem = BaseItem & {
   amount: number;
 };
 
-export type RewardItem = BaseItem & {
-  type: 'reward';
+export type BountyType = 'review' | 'dataset' | 'translation' | 'other';
+
+export type BountyItem = {
+  id: string;
+  type: 'bounty';
+  bountyType: BountyType;
+  description: string;
+  title?: string;
+  user: User;
+  timestamp: string;
+  hub: Hub;
   amount: number;
-  deadline: string;
+  deadline?: string;
   contributors?: User[];
+  slug?: string;
+  relatedPaper?: PaperItem;
 };
 
 export type ContributionItem = {
@@ -102,13 +113,13 @@ export type ContributionItem = {
 };
 
 export type FeedItemType = 
-  | CommentItem 
   | PaperItem 
-  | FundingRequestItem
-  | GrantItem
-  | RewardItem
-  | ContributionItem
-  | ReviewItem;
+  | CommentItem 
+  | FundingRequestItem 
+  | BountyItem 
+  | GrantItem 
+  | ReviewItem
+  | ContributionItem;
 
 export type FeedEntry = {
   id: string;

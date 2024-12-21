@@ -1,7 +1,7 @@
 'use client'
 
 import { FC, useState } from 'react';
-import { FeedActionType, FeedEntry, FeedItemType, CommentItem, FundingRequestItem, RewardItem, GrantItem, PaperItem, ReviewItem, ContributionItem } from '@/types/feed';
+import { FeedActionType, FeedEntry, FeedItemType, CommentItem, FundingRequestItem, BountyItem, GrantItem, PaperItem, ReviewItem, ContributionItem } from '@/types/feed';
 import { User } from '@/types/user';
 import { Avatar } from '@/components/ui/Avatar';
 import {
@@ -25,7 +25,7 @@ import { AvatarStack } from '../ui/AvatarStack';
 import Link from 'next/link';
 import { FeedItemDate } from './lib/FeedItemDate';
 
-const TRUNCATE_LIMIT = 280;
+const TRUNCATE_LIMIT = 200;
 
 // Utility to handle text size scaling based on context
 const getTextSize = (
@@ -62,6 +62,7 @@ interface ContentWrapperProps {
   isNested?: boolean;
   className?: string;
   card?: boolean;
+  href?: string;  // Optional URL for clickable cards
 }
 
 interface ExpandableTextProps {
@@ -72,16 +73,37 @@ interface ExpandableTextProps {
 }
 
 // Shared components
-const ContentWrapper: FC<ContentWrapperProps> = ({ children, isNested, className = '', card = false }) => (
-  <div className={`
-    space-y-3 
-    ${isNested ? 'border-gray-200' : ''} 
-    ${card ? 'border p-4 rounded-lg' : ''}
-    ${className}
-  `}>
-    {children}
-  </div>
-);
+const ContentWrapper: FC<ContentWrapperProps> = ({ children, isNested, className = '', card = false, href }) => {
+  const content = (
+    <div 
+      className={`
+        space-y-3 
+        ${isNested ? 'border-gray-200' : ''} 
+        ${card ? 'border p-4 rounded-lg transition-colors duration-200' : ''}
+        ${href ? 'hover:border-gray-300 hover:bg-gray-50 cursor-pointer' : ''}
+        ${className}
+      `}
+      onClick={(e) => {
+        // Don't trigger card click if clicking on a button or link
+        if ((e.target as HTMLElement).closest('button, a')) {
+          e.stopPropagation();
+        }
+      }}
+    >
+      {children}
+    </div>
+  );
+
+  if (href) {
+    return (
+      <Link href={href} className="block">
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
+};
 
 const ExpandableText: FC<ExpandableTextProps> = ({ 
   text, 
@@ -98,13 +120,16 @@ const ExpandableText: FC<ExpandableTextProps> = ({
   return (
     <div>
       <p className={`text-gray-600 text-${textSize} ${!isExpanded && shouldTruncate ? 'line-clamp-3' : ''}`}>
-        {text}
+        {!isExpanded && shouldTruncate ? `${text.slice(0, TRUNCATE_LIMIT)}...` : text}
       </p>
       {shouldTruncate && !isExpanded && (
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setIsExpanded(true)}
+          onClick={(e) => {
+            e.stopPropagation();  // Prevent card click when expanding
+            setIsExpanded(true);
+          }}
           className="-ml-3 text-blue-500 hover:text-blue-600 h-8"
         >
           <span className="font-medium text-sm">Read more</span>
@@ -142,7 +167,7 @@ const ContentHeader: FC<ContentHeaderProps> = ({ title, relatedItem, isNested })
         return MessageCircle;
       case 'funding_request':
         return HandCoins;
-      case 'reward':
+      case 'bounty':
         return Trophy;
       case 'grant':
         return GraduationCap;
@@ -165,7 +190,6 @@ const ContentHeader: FC<ContentHeaderProps> = ({ title, relatedItem, isNested })
         variant="ghost"
         size="sm"
         className="-ml-5 hover:bg-gray-100  text-gray-600 hover:text-gray-900 h-8 rounded-md"
-        asChild
       >
         <Link href={`/${relatedItem.type}/${relatedItem.slug || ''}`} className="flex items-center gap-1.5 px-2">
           <Icon className="w-4 h-4" />
@@ -198,40 +222,87 @@ interface CommentContentProps {
 }
 
 const CommentContent: FC<CommentContentProps> = ({ comment, relatedItem, isNested }) => {
+  const getRelatedItemIcon = (type: string) => {
+    switch (type) {
+      case 'paper':
+        return FileText;
+      case 'comment':
+        return MessageCircle;
+      case 'funding_request':
+        return HandCoins;
+      case 'bounty':
+        return Trophy;
+      case 'grant':
+        return GraduationCap;
+      case 'review':
+        return Sparkles;
+      case 'contribution':
+        return Award;
+      default:
+        return FileText;
+    }
+  };
+
+  const renderRelatedItemLink = () => {
+    if (!relatedItem || !('type' in relatedItem) || !('title' in relatedItem)) return null;
+
+    const Icon = getRelatedItemIcon(relatedItem.type);
+
+    return (
+      <div className="ml-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="-ml-3 hover:bg-gray-100 text-gray-600 hover:text-gray-900 h-8 rounded-md pl-1 pr-1"
+        >
+          <Link href={`/${relatedItem.type}/${relatedItem.slug || ''}`} className="flex items-center gap-1.5 px-2">
+            <Icon className="w-4 h-4" />
+            <span className="text-sm font-medium">
+              {relatedItem.title}
+            </span>
+          </Link>
+        </Button>
+      </div>
+    );
+  };
+
   return (
     <ContentWrapper isNested={isNested}>
       <div className="space-y-3">
         <ExpandableText text={comment.content} isNested={isNested} />
         
         {comment.parent && (
-          <ContentWrapper isNested={true} card={true}>
-            <div className="flex items-start space-x-3">
-              <Avatar
-                src={comment.parent.user.authorProfile?.profileImage}
-                alt={comment.parent.user.fullName}
-                size={getAvatarSize('sm', true)}
-                className="ring-2 ring-gray-100"
-              />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-x-1.5">
-                  <span className={`font-semibold text-gray-900 text-${getTextSize('md', true)}`}>
-                    {comment.parent.user.fullName}
-                  </span>
-                  <span className="text-gray-400">·</span>
-                  <FeedItemDate date={comment.parent.timestamp} />
+          <div className="relative">
+            <ContentWrapper isNested={true} card={true}>
+              <div className="space-y-3">
+                <div className="flex items-start space-x-3">
+                  <Avatar
+                    src={comment.parent.user.authorProfile?.profileImage}
+                    alt={comment.parent.user.fullName}
+                    size={getAvatarSize('sm', true)}
+                    className="ring-2 ring-gray-100"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-x-1.5">
+                      <span className={`font-semibold text-gray-900 text-${getTextSize('md', true)}`}>
+                        {comment.parent.user.fullName}
+                      </span>
+                      <span className="text-gray-400">·</span>
+                      <FeedItemDate date={comment.parent.timestamp} />
+                    </div>
+                    <ExpandableText 
+                      text={comment.parent.content} 
+                      isNested={true}
+                      baseTextSize="md"
+                    />
+                  </div>
                 </div>
-                <ExpandableText 
-                  text={comment.parent.content} 
-                  isNested={true}
-                  baseTextSize="md"
-                />
+
+                {/* Add related item link at the bottom of the card */}
+                {relatedItem && renderRelatedItemLink()}
               </div>
-            </div>
-          </ContentWrapper>
-        )}
-        
-        {relatedItem && (
-          <ContentHeader relatedItem={relatedItem} isNested={isNested} />
+            </ContentWrapper>
+          </div>
         )}
       </div>
     </ContentWrapper>
@@ -246,9 +317,9 @@ interface PaperContentProps {
 const PaperContent: FC<PaperContentProps> = ({ paper, isNested }) => {
   // Convert paper authors to avatar items
   const authorAvatars = paper.authors?.map(author => ({
-    src: author.authorProfile?.profileImage,
-    alt: author.fullName,
-    tooltip: author.fullName
+    src: author.user?.authorProfile?.profileImage,
+    alt: author.name,
+    tooltip: author.name
   })) || [];
 
   return (
@@ -288,8 +359,9 @@ interface ActionFooterProps {
   ctaText: string;
   users?: User[];
   userStackLabel?: string;
-  type: 'reward' | 'grant' | 'funding_request';
+  type: 'bounty' | 'grant' | 'funding_request';
   isNested?: boolean;
+  relatedItem?: FeedEntry['relatedItem'];
 }
 
 const ActionFooter: FC<ActionFooterProps> = ({
@@ -302,9 +374,10 @@ const ActionFooter: FC<ActionFooterProps> = ({
   users,
   userStackLabel = 'Contributors',
   type,
-  isNested
+  isNested,
+  relatedItem
 }) => {
-  const isRewardOrGrant = type === 'reward' || type === 'grant';
+  const isBountyOrGrant = type === 'bounty' || type === 'grant';
   const isFundingRequest = type === 'funding_request';
   const textSize = getTextSize('sm', Boolean(isNested));
 
@@ -316,7 +389,7 @@ const ActionFooter: FC<ActionFooterProps> = ({
 
   const getButtonStyle = () => {
     switch (type) {
-      case 'reward':
+      case 'bounty':
         return {
           icon: PlayCircle,
           className: "text-indigo-700 hover:text-indigo-800 border-indigo-300 bg-indigo-100 hover:bg-indigo-200 font-medium w-auto"
@@ -327,6 +400,46 @@ const ActionFooter: FC<ActionFooterProps> = ({
           className: "text-orange-700 hover:text-orange-800 border-orange-300 bg-orange-100 hover:bg-orange-200 font-medium w-auto"
         };
     }
+  };
+
+  const getRelatedItemIcon = (type: string) => {
+    switch (type) {
+      case 'paper':
+        return FileText;
+      case 'comment':
+        return MessageCircle;
+      case 'funding_request':
+        return HandCoins;
+      case 'bounty':
+        return Trophy;
+      case 'grant':
+        return GraduationCap;
+      case 'review':
+        return Sparkles;
+      case 'contribution':
+        return Award;
+      default:
+        return FileText;
+    }
+  };
+
+  const renderRelatedItemLink = () => {
+    if (!relatedItem || !('type' in relatedItem) || !('title' in relatedItem)) return null;
+
+    const RelatedIcon = getRelatedItemIcon(relatedItem.type);
+
+    return (
+      <div className="flex items-center gap-2">
+        <RelatedIcon className="w-4 h-4 text-gray-500" />
+        <Link 
+          href={`/${relatedItem.type}/${relatedItem.slug || ''}`} 
+          className="text-gray-500 hover:text-gray-900 text-sm font-medium"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {relatedItem.title}
+        </Link>
+      </div>
+    );
   };
 
   const renderAmountSection = () => {
@@ -346,25 +459,29 @@ const ActionFooter: FC<ActionFooterProps> = ({
                 <span className="text-gray-400">•</span>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-gray-500" />
-                  <FeedItemDate date={deadline} className="text-sm" />
+                  <span className="text-gray-500">
+                    Ends<FeedItemDate date={deadline} className="text-sm" />
+                  </span>
                 </div>
               </>
             )}
           </div>
         );
-      case 'reward':
+      case 'bounty':
         return (
           <div className={`flex items-center gap-4 text-${textSize}`}>
             <div className="flex items-center gap-2">
               <ResearchCoinIcon size={16} className="text-orange-500" />
-              <span className="text-orange-500 font-medium">{amount.toLocaleString()} RSC reward</span>
+              <span className="text-orange-500 font-medium">{amount.toLocaleString()} RSC bounty</span>
             </div>
             {deadline && (
               <>
                 <span className="text-gray-400">•</span>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-gray-500" />
-                  <FeedItemDate date={deadline} className="text-sm" />
+                  <span className="text-gray-500">
+                    Ends <FeedItemDate date={deadline} className="text-sm" />
+                  </span>
                 </div>
               </>
             )}
@@ -397,11 +514,11 @@ const ActionFooter: FC<ActionFooterProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className={`flex flex-col sm:flex-row ${isRewardOrGrant ? 'justify-between' : ''} sm:items-center gap-4`}>
+      <div className={`flex flex-col sm:flex-row ${isBountyOrGrant ? 'justify-between' : ''} sm:items-center gap-4`}>
         <div className="flex items-center gap-4">
           {renderAmountSection()}
         </div>
-        {isRewardOrGrant && userAvatars.length > 0 && (
+        {isBountyOrGrant && userAvatars.length > 0 && (
           <AvatarStack 
             items={userAvatars} 
             size={'xs'} 
@@ -420,16 +537,16 @@ const ActionFooter: FC<ActionFooterProps> = ({
         </div>
       )}
 
-      <div className={`flex ${isRewardOrGrant ? '' : 'flex-col-reverse sm:flex-row sm:justify-between sm:items-center'} gap-4`}>
+      <div className={`flex ${isBountyOrGrant ? '' : 'flex-col-reverse sm:flex-row sm:justify-between sm:items-center'} gap-4`}>
         <Button 
-          variant="outline"
+          variant="secondary"
           size="sm"
           className={buttonStyle.className}
         >
           <buttonStyle.icon className="w-4 h-4 mr-1.5" />
           {ctaText}
         </Button>
-        {!isRewardOrGrant && userAvatars.length > 0 && (
+        {!isBountyOrGrant && userAvatars.length > 0 && (
           <AvatarStack 
             items={userAvatars} 
             size={'xs'} 
@@ -489,6 +606,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
           <ContentWrapper 
             isNested={isNested} 
             card={!isReposted}
+            href={`/paper/${item.slug}`}
           >
             <ContentHeader
               title={
@@ -513,6 +631,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
           <ContentWrapper 
             isNested={isNested} 
             card={!isReposted}
+            href={`/funding_request/${item.slug}`}
           >
             <ContentHeader 
               title={
@@ -538,37 +657,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
               users={item.contributors}
               type="funding_request"
               isNested={isNested}
-            />
-          </ContentWrapper>
-        );
-      case 'reward':
-        return (
-          <ContentWrapper 
-            isNested={isNested} 
-            card={!isReposted}
-          >
-            <ContentHeader 
-              title={
-                <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested), true)} text-gray-900`}>
-                  {item.title}
-                </h2>
-              }
-              isNested={isNested}
-            />
-            <ExpandableText 
-              text={item.abstract} 
-              isNested={isNested} 
-              baseTextSize="sm"
-              inCard={true} 
-            />
-            <ActionFooter
-              amount={item.amount}
-              icon={Trophy}
-              deadline={item.deadline}
-              ctaText="Start Task"
-              users={item.contributors}
-              type="reward"
-              isNested={isNested}
+              relatedItem={relatedItem}
             />
           </ContentWrapper>
         );
@@ -577,6 +666,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
           <ContentWrapper 
             isNested={isNested} 
             card={!isReposted}
+            href={`/grant/${item.slug}`}
           >
             <ContentHeader 
               title={
@@ -601,6 +691,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
               userStackLabel="Applicants"
               type="grant"
               isNested={isNested}
+              relatedItem={relatedItem}
             />
           </ContentWrapper>
         );
@@ -624,6 +715,40 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
           isNested,
           relatedItem,
           false // not reposted
+        );
+      case 'bounty':
+        return (
+          <ContentWrapper 
+            isNested={isNested} 
+            card={!isReposted}
+            href={`/bounty/${item.slug}`}
+          >
+            {item.bountyType === 'review' && item.relatedPaper && (
+              <ContentHeader 
+                title={
+                  <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested), true)} text-gray-900`}>
+                    Peer Review: {item.relatedPaper.title}
+                  </h2>
+                }
+                isNested={isNested}
+              />
+            )}
+            <ExpandableText 
+              text={item.description} 
+              isNested={isNested} 
+              baseTextSize="sm"
+              inCard={true} 
+            />
+            <ActionFooter
+              amount={item.amount}
+              icon={Trophy}
+              deadline={item.deadline}
+              ctaText="Start Task"
+              users={item.contributors}
+              type="bounty"
+              isNested={isNested}
+            />
+          </ContentWrapper>
         );
       default:
         return assertNever(item);
