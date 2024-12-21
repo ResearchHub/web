@@ -16,6 +16,8 @@ import {
   GraduationCap,
   Star
 } from 'lucide-react';
+import { AvatarStack } from '../ui/AvatarStack';
+import { AuthorList } from '../ui/AuthorList';
 
 interface FeedItemHeaderProps {
   actor: User;
@@ -35,27 +37,44 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   const getActionText = () => {
     switch (action) {
       case 'repost':
-        return 'Reposted';
+        return 'reposted';
       case 'contribute':
-        return 'Contributed RSC';
+        return 'contributed RSC';
       case 'publish':
-        return 'Published';
+        switch (item.type) {
+          case 'paper':
+            return 'published paper';
+          case 'review':
+            return 'published review';
+          case 'comment':
+            return 'published comment';
+          case 'funding_request':
+            return 'published funding request';
+          case 'reward':
+            return 'published reward';
+          case 'grant':
+            return 'published grant';
+          case 'contribution':
+            return 'published contribution';
+          default:
+            return assertNever(item);
+        }
       case 'post':
         switch (item.type) {
           case 'comment':
             return 'Commented';
           case 'funding_request':
-            return 'Started crowdfund';
+            return 'started crowdfund';
           case 'reward':
-            return 'Opened reward';
+            return 'opened reward';
           case 'grant':
-            return 'Published grant';
+            return 'published grant';
           case 'paper':
-            return 'Published paper';
+            return 'published paper';
           case 'review':
-            return 'Reviewed';
+            return 'reviewed';
           case 'contribution':
-            return 'Contributed';
+            return 'contributed';
           default:
             return assertNever(item);
         }
@@ -97,42 +116,48 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   };
 
   const hasAuthors = item.type === 'paper' && item.authors && item.authors.length > 0;
-
-  const renderAuthors = () => {
-    if (!hasAuthors) return null;
-
-    const authors = item.authors;
-    const textSize = isNested ? 'text-xs' : 'text-sm';
-
-    return (
-      <span className={`${textSize} font-semibold text-gray-900`}>
-        {authors[0].name}
-        {authors.length > 1 && ' et al.'}
-      </span>
-    );
-  };
-
+  const authors = hasAuthors ? item.authors : [];
   const textSize = isNested ? 'text-xs' : 'text-sm';
 
   return (
     <div className="flex items-start justify-between group">
       <div className="flex items-center space-x-4">
         <div className="relative">
-          <Avatar
-            src={actor.authorProfile?.profileImage}
-            alt={actor.fullName}
-            size={isNested ? 'xs' : 'sm'}
-            className="ring-2 ring-gray-100 transition-all duration-200"
-          />
-          <div className="absolute -bottom-2 -right-2 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-md ring-1 ring-gray-200">
-            {getActionIcon()}
-          </div>
+          {hasAuthors ? (
+            <AvatarStack
+              items={authors.map(author => ({
+                src: author.user?.authorProfile?.profileImage,
+                alt: author.name,
+                tooltip: author.name
+              }))}
+              size={isNested ? 'xs' : 'sm'}
+              maxItems={1}
+              spacing={-12}
+              // reverseOrder
+              // hideLabel
+            />
+          ) : (
+            <Avatar
+              src={actor.authorProfile?.profileImage}
+              alt={actor.fullName}
+              size={isNested ? 'xs' : 'sm'}
+              className="ring-2 ring-gray-100 transition-all duration-200"
+            />
+          )}
         </div>
         <div className="-mt-0.5">
           <div className="flex flex-wrap items-center gap-x-1.5">
             {hasAuthors ? (
               <>
-                {renderAuthors()}
+                <AuthorList 
+                  authors={authors.map(author => ({
+                    name: author.name,
+                    verified: author.isVerified,
+                    profileUrl: `/@${author.user?.username}`
+                  }))}
+                  size={isNested ? 'xs' : 'sm'}
+                  className="font-semibold"
+                />
                 <span className={`${textSize} text-gray-500`}>{getActionText()}</span>
               </>
             ) : (
@@ -148,9 +173,6 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
               {formatTimestamp(timestamp)}
             </button>
           </div>
-          {actor.authorProfile?.headline && (
-            <div className={`${textSize} text-gray-500`}>{actor.authorProfile.headline}</div>
-          )}
         </div>
       </div>
     </div>

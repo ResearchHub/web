@@ -57,7 +57,7 @@ export const users: Record<string, User> = {
       isOrganization: false,
       authorProfile: {
         id: 5,
-        profileImage: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2024/05/18/blob_MRP9Qf6',
+        profileImage: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2024/07/26/blob_TgYbKAo',
         headline: "Principal Investigator"
       }
     },

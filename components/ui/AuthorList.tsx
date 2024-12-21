@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Plus, Minus, BadgeCheck } from 'lucide-react'
+import { cn } from 'utils/styles'
 
 interface Author {
   name: string
@@ -14,9 +15,17 @@ interface AuthorListProps {
   size?: 'xs' | 'sm' | 'base' // For different text sizes
   timestamp?: string
   isNested?: boolean
+  /** Class names to apply to author names */
+  className?: string
 }
 
-export const AuthorList = ({ authors, size = 'base', timestamp, isNested }: AuthorListProps) => {
+export const AuthorList = ({ 
+  authors, 
+  size = 'base', 
+  timestamp, 
+  isNested,
+  className 
+}: AuthorListProps) => {
   const [showAll, setShowAll] = useState(false)
   
   const getTextSize = () => {
@@ -40,6 +49,7 @@ export const AuthorList = ({ authors, size = 'base', timestamp, isNested }: Auth
               author={author} 
               showDot={index < authors.length - 1}
               size={size}
+              className={className}
             />
           ))}
           {showAll && authors.length > 3 && (
@@ -60,8 +70,8 @@ export const AuthorList = ({ authors, size = 'base', timestamp, isNested }: Auth
     // Show first two authors, then CTA, then last author
     return (
       <>
-        <AuthorItem author={authors[0]} showDot={true} size={size} />
-        <AuthorItem author={authors[1]} showDot={authors.length <= 3} size={size} />
+        <AuthorItem author={authors[0]} showDot={true} size={size} className={className} />
+        <AuthorItem author={authors[1]} showDot={authors.length <= 3} size={size} className={className} />
         <button
           onClick={() => setShowAll(true)}
           className="flex items-center text-blue-500 hover:text-blue-600"
@@ -75,6 +85,7 @@ export const AuthorList = ({ authors, size = 'base', timestamp, isNested }: Auth
           author={authors[authors.length - 1]} 
           showDot={false}
           size={size}
+          className={className}
         />
       </>
     );
@@ -99,14 +110,20 @@ export const AuthorList = ({ authors, size = 'base', timestamp, isNested }: Auth
 const AuthorItem = ({ 
   author, 
   showDot, 
-  size 
+  size,
+  className 
 }: { 
   author: Author; 
   showDot: boolean;
   size: 'xs' | 'sm' | 'base';
+  className?: string
 }) => (
   <span className="flex items-center">
-    <span className={`${size === 'xs' ? 'text-xs' : size === 'sm' ? 'text-sm' : 'text-base'} text-gray-900 hover:text-gray-900`}>
+    <span className={cn(
+      size === 'xs' ? 'text-xs' : size === 'sm' ? 'text-sm' : 'text-base',
+      'text-gray-900 hover:text-gray-900',
+      className
+    )}>
       {author.name}
     </span>
     {author.verified && (

@@ -15,12 +15,12 @@ export const FeedItemActions: FC<{
   item: FeedItemType;
 }> = ({ metrics, item }) => {
   return (
-    <div className="flex items-center space-x-0.5 border-t border-gray-100 pt-3">
+    <div className="flex items-center space-x-0.5">
       <Button
         variant="ghost"
         size="sm"
         tooltip="Comment"
-        className="-ml-3 flex items-center text-gray-500 hover:text-gray-900 h-7"
+        className="-ml-3 flex items-center text-gray-900 hover:text-gray-900 h-7"
       >
         <div className="flex items-center justify-center w-7">
           <MessageCircle className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
@@ -36,7 +36,7 @@ export const FeedItemActions: FC<{
         variant="ghost"
         size="sm"
         tooltip="Repost"
-        className="flex items-center text-gray-500 hover:text-gray-900 h-7"
+        className="flex items-center text-gray-900 hover:text-gray-900 h-7"
       >
         <div className="flex items-center justify-center w-7">
           <Repeat className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
@@ -52,7 +52,7 @@ export const FeedItemActions: FC<{
         variant="ghost"
         size="sm"
         tooltip="Save"
-        className="flex items-center text-gray-500 hover:text-gray-900 h-7"
+        className="flex items-center text-gray-900 hover:text-gray-900 h-7"
       >
         <div className="flex items-center justify-center w-7">
           <Bookmark className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
@@ -68,7 +68,7 @@ export const FeedItemActions: FC<{
         variant="ghost"
         size="sm"
         tooltip="Share"
-        className="flex items-center text-gray-500 hover:text-gray-900 h-7"
+        className="flex items-center text-gray-900 hover:text-gray-900 h-7"
       >
         <div className="flex items-center justify-center w-7">
           <Share className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />

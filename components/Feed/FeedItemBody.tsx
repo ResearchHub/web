@@ -7,7 +7,6 @@ import { formatTimestamp } from '@/utils/date';
 import { Avatar } from '@/components/ui/Avatar';
 import {
   ChevronDown,
-  Coins,
   Clock,
   Trophy,
   GraduationCap,
@@ -18,6 +17,7 @@ import {
   Award,
   PlayCircle,
 } from 'lucide-react';
+import { ResearchCoinIcon } from '../ui/ResearchCoinIcon';
 import { Button } from '../ui/Button';
 import { AuthorList } from '../ui/AuthorList';
 import { assertNever } from '@/utils/assertNever';
@@ -29,10 +29,25 @@ import { FeedItemDate } from './lib/FeedItemDate';
 const TRUNCATE_LIMIT = 280;
 
 // Utility to handle text size scaling based on context
-const getTextSize = (baseSize: 'xs' | 'sm' | 'md' | 'base' | 'lg' | 'xl', isNested: boolean): string => {
+const getTextSize = (
+  baseSize: 'xs' | 'sm' | 'md' | 'base' | 'lg' | 'xl', 
+  isNested: boolean,
+  inCard?: boolean
+): string => {
   const sizes = ['xs', 'sm', 'md', 'base', 'lg', 'xl'];
-  const currentIndex = sizes.indexOf(baseSize);
-  return currentIndex > 0 && isNested ? sizes[currentIndex - 1] : baseSize;
+  let currentIndex = sizes.indexOf(baseSize);
+  
+  // If it's already 'sm' and in a card, don't scale down further
+  if (baseSize === 'sm' && inCard) {
+    return 'sm';
+  }
+  
+  // Only step down once, either for nesting or card
+  if (isNested || inCard) {
+    currentIndex = Math.max(1, currentIndex - 1); // Use 1 instead of 0 to prevent scaling below 'sm'
+  }
+  
+  return sizes[currentIndex];
 };
 
 // Utility to handle avatar size scaling based on context
@@ -47,25 +62,37 @@ interface ContentWrapperProps {
   children: React.ReactNode;
   isNested?: boolean;
   className?: string;
+  card?: boolean;
 }
 
 interface ExpandableTextProps {
   text: string;
   isNested?: boolean;
   baseTextSize?: 'sm' | 'md' | 'base';
+  inCard?: boolean;
 }
 
 // Shared components
-const ContentWrapper: FC<ContentWrapperProps> = ({ children, isNested, className = '' }) => (
-  <div className={`space-y-3 ${isNested ? 'pl-4 border-l-2 border-gray-200' : ''} ${className}`}>
+const ContentWrapper: FC<ContentWrapperProps> = ({ children, isNested, className = '', card = false }) => (
+  <div className={`
+    space-y-3 
+    ${isNested ? 'border-gray-200' : ''} 
+    ${card ? 'border p-4 rounded-lg' : ''}
+    ${className}
+  `}>
     {children}
   </div>
 );
 
-const ExpandableText: FC<ExpandableTextProps> = ({ text, isNested, baseTextSize = 'base' }) => {
+const ExpandableText: FC<ExpandableTextProps> = ({ 
+  text, 
+  isNested, 
+  baseTextSize = 'base',
+  inCard = false 
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const shouldTruncate = text.length > TRUNCATE_LIMIT;
-  const textSize = getTextSize(baseTextSize, Boolean(isNested));
+  const textSize = getTextSize(baseTextSize, Boolean(isNested), inCard);
 
   if (!text) return null;
 
@@ -81,7 +108,7 @@ const ExpandableText: FC<ExpandableTextProps> = ({ text, isNested, baseTextSize 
           onClick={() => setIsExpanded(true)}
           className="-ml-3 text-blue-500 hover:text-blue-600 h-8"
         >
-          <span className="font-medium">Read more</span>
+          <span className="font-medium text-sm">Read more</span>
           <ChevronDown className="w-4 h-4 ml-1" />
         </Button>
       )}
@@ -178,7 +205,7 @@ const CommentContent: FC<CommentContentProps> = ({ comment, relatedItem, isNeste
         <ExpandableText text={comment.content} isNested={isNested} />
         
         {comment.parent && (
-          <ContentWrapper isNested={true}>
+          <ContentWrapper isNested={true} card={true}>
             <div className="flex items-start space-x-3">
               <Avatar
                 src={comment.parent.user.authorProfile?.profileImage}
@@ -218,20 +245,36 @@ interface PaperContentProps {
 }
 
 const PaperContent: FC<PaperContentProps> = ({ paper, isNested }) => {
+  // Convert paper authors to avatar items
+  const authorAvatars = paper.authors?.map(author => ({
+    src: author.authorProfile?.profileImage,
+    alt: author.fullName,
+    tooltip: author.fullName
+  })) || [];
+
   return (
-    <ContentWrapper isNested={isNested}>
+    <ContentWrapper isNested={isNested} card={true}>
       <ContentHeader
         title={
-          <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested))} text-gray-900`}>
+          <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested), true)} text-gray-900`}>
             {paper.title}
           </h2>
         }
         isNested={isNested}
       />
+      <div className="flex items-center gap-2">
+        <AvatarStack 
+          items={authorAvatars}
+          size="xs"
+          maxItems={3}
+          label="Authors"
+        />
+      </div>
       <ExpandableText 
         text={paper.abstract || ''} 
         isNested={isNested}
-        baseTextSize={isNested ? 'md' : 'base'}
+        baseTextSize="md"
+        inCard={true}
       />
     </ContentWrapper>
   );
@@ -277,12 +320,12 @@ const ActionFooter: FC<ActionFooterProps> = ({
       case 'reward':
         return {
           icon: PlayCircle,
-          className: "text-indigo-600 hover:text-indigo-700 border-indigo-200 bg-indigo-50 hover:bg-indigo-100 font-medium w-auto"
+          className: "text-indigo-700 hover:text-indigo-800 border-indigo-300 bg-indigo-100 hover:bg-indigo-200 font-medium w-auto"
         };
       default:
         return {
-          icon: Coins,
-          className: "text-orange-500 hover:text-orange-600 border-orange-200 bg-orange-50 hover:bg-orange-100 font-medium w-auto"
+          icon: ResearchCoinIcon,
+          className: "text-orange-700 hover:text-orange-800 border-orange-300 bg-orange-100 hover:bg-orange-200 font-medium w-auto"
         };
     }
   };
@@ -293,7 +336,7 @@ const ActionFooter: FC<ActionFooterProps> = ({
         return (
           <div className={`flex items-center gap-4 text-${textSize}`}>
             <div className="flex items-center gap-2">
-              <Coins className="w-4 h-4 text-orange-500" />
+              <ResearchCoinIcon size={16} className="text-orange-500" />
               <span className="text-orange-500 font-medium">{amount.toLocaleString()} RSC raised</span>
               {goalAmount && (
                 <span className="text-gray-500">of {goalAmount.toLocaleString()} RSC goal</span>
@@ -314,6 +357,7 @@ const ActionFooter: FC<ActionFooterProps> = ({
         return (
           <div className={`flex items-center gap-4 text-${textSize}`}>
             <div className="flex items-center gap-2">
+              <ResearchCoinIcon size={16} className="text-orange-500" />
               <span className="text-orange-500 font-medium">{amount.toLocaleString()} RSC reward</span>
             </div>
             {deadline && (
@@ -413,7 +457,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
           {repostMessage && (
             <p className="text-gray-600">{repostMessage}</p>
           )}
-          <div>
+          <div className="border p-4 rounded-lg">
             {item.type !== 'paper' && (
               <FeedItemHeader
                 actor={item.user}
@@ -423,8 +467,8 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
                 isNested={true}
               />
             )}
-            <div className="mt-4">
-              {renderItemContent(item, true, relatedItem)}
+            <div>
+              {renderItemContent(item, true, relatedItem, true)}
             </div>
           </div>
         </div>
@@ -434,17 +478,57 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
     return renderItemContent(item, isNested, relatedItem);
   };
 
-  const renderItemContent = (item: FeedItemType, isNested?: boolean, relatedItem?: FeedEntry['relatedItem']) => {
+  const renderItemContent = (
+    item: FeedItemType, 
+    isNested?: boolean, 
+    relatedItem?: FeedEntry['relatedItem'],
+    isReposted?: boolean
+  ) => {
     switch (item.type) {
       case 'paper':
-        return <PaperContent paper={item} isNested={isNested} />;
+        return (
+          <ContentWrapper 
+            isNested={isNested} 
+            card={!isReposted}
+          >
+            <ContentHeader
+              title={
+                <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested), true)} text-gray-900`}>
+                  {item.title}
+                </h2>
+              }
+              isNested={isNested}
+            />
+            <ExpandableText 
+              text={item.abstract} 
+              isNested={isNested} 
+              baseTextSize="sm"
+              inCard={true} 
+            />
+          </ContentWrapper>
+        );
       case 'comment':
         return <CommentContent comment={item} relatedItem={relatedItem} isNested={isNested} />;
       case 'funding_request':
         return (
-          <ContentWrapper isNested={isNested}>
-            <ContentHeader title={item.title} isNested={isNested} />
-            <ExpandableText text={item.abstract} isNested={isNested} />
+          <ContentWrapper 
+            isNested={isNested} 
+            card={!isReposted}
+          >
+            <ContentHeader 
+              title={
+                <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested), true)} text-gray-900`}>
+                  {item.title}
+                </h2>
+              }
+              isNested={isNested} 
+            />
+            <ExpandableText 
+              text={item.abstract} 
+              isNested={isNested} 
+              baseTextSize="sm"
+              inCard={true} 
+            />
             <ActionFooter
               amount={item.amount}
               icon={HandCoins}
@@ -460,9 +544,24 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
         );
       case 'reward':
         return (
-          <ContentWrapper isNested={isNested}>
-            <ContentHeader title={item.title} isNested={isNested} />
-            <ExpandableText text={item.abstract} isNested={isNested} />
+          <ContentWrapper 
+            isNested={isNested} 
+            card={!isReposted}
+          >
+            <ContentHeader 
+              title={
+                <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested), true)} text-gray-900`}>
+                  {item.title}
+                </h2>
+              }
+              isNested={isNested}
+            />
+            <ExpandableText 
+              text={item.abstract} 
+              isNested={isNested} 
+              baseTextSize="sm"
+              inCard={true} 
+            />
             <ActionFooter
               amount={item.amount}
               icon={Trophy}
@@ -476,9 +575,24 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
         );
       case 'grant':
         return (
-          <ContentWrapper isNested={isNested}>
-            <ContentHeader title={item.title} isNested={isNested} />
-            <ExpandableText text={item.abstract} isNested={isNested} baseTextSize="sm" />
+          <ContentWrapper 
+            isNested={isNested} 
+            card={!isReposted}
+          >
+            <ContentHeader 
+              title={
+                <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested), true)} text-gray-900`}>
+                  {item.title}
+                </h2>
+              }
+              isNested={isNested}
+            />
+            <ExpandableText 
+              text={item.abstract} 
+              isNested={isNested} 
+              baseTextSize="sm" 
+              inCard={true} 
+            />
             <ActionFooter
               amount={item.amount}
               icon={GraduationCap}
@@ -494,12 +608,27 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
       case 'review':
       case 'contribution':
         return (
-          <ContentWrapper isNested={isNested}>
-            <ContentHeader title={item.title} isNested={isNested} />
-            <ExpandableText text={item.abstract} isNested={isNested} />
+          <ContentWrapper 
+            isNested={isNested} 
+            card={!isReposted}
+          >
+            <ContentHeader 
+              title={
+                <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested), true)} text-gray-900`}>
+                  {item.title}
+                </h2>
+              }
+              isNested={isNested}
+            />
+            <ExpandableText 
+              text={item.abstract} 
+              isNested={isNested} 
+              baseTextSize="sm"
+              inCard={true} 
+            />
             <div className="flex items-center gap-2">
-              <Coins className={`w-${isNested ? '4' : '5'} h-${isNested ? '4' : '5'} text-orange-500`} />
-              <span className={`text-orange-500 text-${getTextSize('sm', Boolean(isNested))}`}>
+              <ResearchCoinIcon size={16} className="text-orange-500" />
+              <span className={`text-orange-500 text-${getTextSize('sm', Boolean(isNested), true)}`}>
                 {item.amount.toLocaleString()} RSC
               </span>
             </div>
