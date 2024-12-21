@@ -6,9 +6,10 @@ import {
   MessageCircle,
   Repeat,
   Bookmark,
-  Share,
+  MoreHorizontal
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { FeedItemMenu } from '../menus/FeedItemMenu';
 
 export const FeedItemActions: FC<{
   metrics: FeedEntry['metrics'];
@@ -64,16 +65,17 @@ export const FeedItemActions: FC<{
         )}
       </Button>
 
-      <Button 
-        variant="ghost"
-        size="sm"
-        tooltip="Share"
-        className="flex items-center text-gray-900 hover:text-gray-900 h-7"
-      >
-        <div className="flex items-center justify-center w-7">
-          <Share className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
-        </div>
-      </Button>
+      <FeedItemMenu>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex items-center text-gray-900 hover:text-gray-900 h-7"
+        >
+          <div className="flex items-center justify-center w-7">
+            <MoreHorizontal className="w-[18px] h-[18px]" />
+          </div>
+        </Button>
+      </FeedItemMenu>
     </div>
   );
 }; 
