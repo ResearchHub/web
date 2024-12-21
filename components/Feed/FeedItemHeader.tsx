@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { AvatarStack } from '../ui/AvatarStack';
 import { AuthorList } from '../ui/AuthorList';
+import { ResearchCoinIcon } from '../ui/icons/ResearchCoinIcon';
 
 interface FeedItemHeaderProps {
   actor: User;
@@ -39,7 +40,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
       case 'repost':
         return 'reposted';
       case 'contribute':
-        return 'contributed RSC';
+        return item.recipientItem.type === 'funding_request' ? 'contributed' : 'sent';
       case 'publish':
         switch (item.type) {
           case 'paper':
@@ -119,6 +120,9 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   const authors = hasAuthors ? item.authors : [];
   const textSize = isNested ? 'text-xs' : 'text-sm';
 
+  // Show RSC amount for contributions
+  const showRscAmount = item.type === 'contribution';
+
   return (
     <div className="flex items-start justify-between group">
       <div className="flex items-center space-x-4">
@@ -133,8 +137,6 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
               size={isNested ? 'xs' : 'sm'}
               maxItems={1}
               spacing={-12}
-              // reverseOrder
-              // hideLabel
             />
           ) : (
             <Avatar
@@ -166,6 +168,24 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
                   {actor.fullName}
                 </a>
                 <span className={`${textSize} text-gray-500`}>{getActionText()}</span>
+                {showRscAmount && (
+                  <>
+                    <div className="flex items-center gap-1.5 text-sm">
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-orange-50 text-orange-500 text-xs font-medium ring-1 ring-orange-100">
+                        <ResearchCoinIcon size={12} className="text-orange-500" />
+                        {item.amount.toLocaleString()}
+                      </span>
+                      <span className="text-gray-500">→</span>
+                      {item.recipientItem.type === 'funding_request' ? (
+                        <span className="text-gray-500">crowdfund</span>
+                      ) : (
+                        <a href="#" className="font-medium text-gray-900 hover:text-orange-500 transition-colors duration-200">
+                          {item.recipientItem.user.fullName}
+                        </a>
+                      )}
+                    </div>
+                  </>
+                )}
               </>
             )}
             <span className="text-gray-400">·</span>

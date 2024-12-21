@@ -91,9 +91,14 @@ export type RewardItem = BaseItem & {
   contributors?: User[];
 };
 
-export type ContributionItem = Omit<BaseItem, 'slug'> & {
+export type ContributionItem = {
+  id: string;
   type: 'contribution';
+  user: User;
+  timestamp: string;
+  hub?: Hub;
   amount: number;
+  recipientItem: Exclude<FeedItemType, ContributionItem>;
 };
 
 export type FeedItemType = 

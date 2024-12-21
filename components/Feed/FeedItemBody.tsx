@@ -3,7 +3,6 @@
 import { FC, useState } from 'react';
 import { FeedActionType, FeedEntry, FeedItemType, CommentItem, FundingRequestItem, RewardItem, GrantItem, PaperItem, ReviewItem, ContributionItem } from '@/types/feed';
 import { User } from '@/types/user';
-import { formatTimestamp } from '@/utils/date';
 import { Avatar } from '@/components/ui/Avatar';
 import {
   ChevronDown,
@@ -17,7 +16,7 @@ import {
   Award,
   PlayCircle,
 } from 'lucide-react';
-import { ResearchCoinIcon } from '../ui/ResearchCoinIcon';
+import { ResearchCoinIcon } from '../ui/icons/ResearchCoinIcon';
 import { Button } from '../ui/Button';
 import { AuthorList } from '../ui/AuthorList';
 import { assertNever } from '@/utils/assertNever';
@@ -91,7 +90,7 @@ const ExpandableText: FC<ExpandableTextProps> = ({
   inCard = false 
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const shouldTruncate = text.length > TRUNCATE_LIMIT;
+  const shouldTruncate = text?.length > TRUNCATE_LIMIT;
   const textSize = getTextSize(baseTextSize, Boolean(isNested), inCard);
 
   if (!text) return null;
@@ -606,26 +605,11 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
           </ContentWrapper>
         );
       case 'review':
-      case 'contribution':
         return (
           <ContentWrapper 
             isNested={isNested} 
             card={!isReposted}
           >
-            <ContentHeader 
-              title={
-                <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested), true)} text-gray-900`}>
-                  {item.title}
-                </h2>
-              }
-              isNested={isNested}
-            />
-            <ExpandableText 
-              text={item.abstract} 
-              isNested={isNested} 
-              baseTextSize="sm"
-              inCard={true} 
-            />
             <div className="flex items-center gap-2">
               <ResearchCoinIcon size={16} className="text-orange-500" />
               <span className={`text-orange-500 text-${getTextSize('sm', Boolean(isNested), true)}`}>
@@ -633,6 +617,13 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
               </span>
             </div>
           </ContentWrapper>
+        );
+      case 'contribution':
+        return renderItemContent(
+          item.recipientItem,
+          isNested,
+          relatedItem,
+          false // not reposted
         );
       default:
         return assertNever(item);

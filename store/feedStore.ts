@@ -4,6 +4,45 @@ import { hubs } from './hubStore';
 
 export const feedEntries: FeedEntry[] = [
   {
+    id: 'feed-7',
+    action: 'contribute',
+    actor: users.alexThompson,
+    timestamp: '2024-12-16 16:45:06.069373+00',
+    item: {
+      id: 'item-7',
+      type: 'contribution',
+      user: users.alexThompson,
+      timestamp: '2024-12-16 16:45:06.069373+00',
+      hub: hubs.neuroscience,
+      amount: 500,
+      recipientItem: {
+        id: 'item-8',
+        type: 'funding_request',
+        title: 'Machine Learning Approaches to Early Detection of Neurodegenerative Diseases',
+        abstract: 'Developing AI models to identify early biomarkers of neurodegeneration using multi-modal medical imaging data.',
+        user: users.sarahChen,
+        timestamp: '2024-12-16 14:24:06.069373+00',
+        hub: hubs.neuroscience,
+        amount: 45000,
+        expirationDate: '2024-12-30 16:24:06.069373+00',
+        goalAmount: 75000,
+        progress: 60,
+        contributors: [
+          users.adamDraper,
+          users.elenaRodriguez,
+          users.dominikus
+        ],
+        slug: 'ml-approaches-early-detection-neurodegenerative-diseases'
+      }
+    },
+    metrics: {
+      votes: 12,
+      comments: 3,
+      reposts: 2,
+      saves: 3
+    }    
+  },  
+  {
     id: 'paper-1',
     action: 'publish',
     actor: users.elenaRodriguez,
@@ -251,47 +290,6 @@ export const feedEntries: FeedEntry[] = [
     }
   },
   {
-    id: 'feed-7',
-    action: 'contribute',
-    actor: users.alexThompson,
-    timestamp: '2024-12-16 16:45:06.069373+00',
-    item: {
-      id: 'item-7',
-      type: 'contribution',
-      title: 'Contribution to Neurodegenerative Disease Research',
-      abstract: 'Contributed to funding request for early detection of neurodegenerative diseases.',
-      user: users.alexThompson,
-      timestamp: '2024-12-16 16:45:06.069373+00',
-      hub: hubs.neuroscience,
-      amount: 500
-    },
-    relatedItem: {
-      id: 'item-8',
-      type: 'funding_request',
-      title: 'Machine Learning Approaches to Early Detection of Neurodegenerative Diseases',
-      abstract: 'Developing AI models to identify early biomarkers of neurodegeneration using multi-modal medical imaging data.',
-      user: users.sarahChen,
-      timestamp: '2024-12-16 14:24:06.069373+00',
-      hub: hubs.neuroscience,
-      amount: 45000,
-      expirationDate: '2024-12-30 16:24:06.069373+00',
-      goalAmount: 75000,
-      progress: 60,
-      contributors: [
-        users.adamDraper,
-        users.elenaRodriguez,
-        users.dominikus
-      ],
-      slug: 'ml-approaches-early-detection-neurodegenerative-diseases'
-    },
-    metrics: {
-      votes: 12,
-      comments: 3,
-      reposts: 2,
-      saves: 3
-    }    
-  },
-  {
     id: 'feed-6',
     action: 'publish',
     actor: users.hundessaNemomssa,
@@ -327,28 +325,26 @@ export const feedEntries: FeedEntry[] = [
     item: {
       id: 'item-9',
       type: 'contribution',
-      title: 'Contribution to COVID-19 Vaccination Efficacy Data Analysis',
-      abstract: 'Contributed to reward for statistical analysis of COVID-19 vaccination efficacy data.',
       user: users.mariaGarcia,
       timestamp: '2024-12-16 16:15:06.069373+00',
       hub: hubs.dataScience,
-      amount: 750
-    },
-    relatedItem: {
-      id: 'item-10',
-      type: 'reward',
-      title: 'Statistical Analysis of COVID-19 Vaccination Efficacy Data',
-      abstract: 'Analyze vaccination efficacy data to provide insights into vaccine performance.',
-      user: users.researchHub,
-      timestamp: '2024-12-14 16:24:06.069373+00',
-      hub: hubs.dataScience,
-      amount: 2000,
-      deadline: '5 days',
-      contributors: [
-        users.mariaGarcia,
-        users.alexThompson
-      ],
-      slug: 'statistical-analysis-covid19-vaccination-efficacy-data'
+      amount: 750,
+      recipientItem: {
+        id: 'item-10',
+        type: 'reward',
+        title: 'Statistical Analysis of COVID-19 Vaccination Efficacy Data',
+        abstract: 'Analyze vaccination efficacy data to provide insights into vaccine performance.',
+        user: users.researchHub,
+        timestamp: '2024-12-14 16:24:06.069373+00',
+        hub: hubs.dataScience,
+        amount: 2000,
+        deadline: '5 days',
+        contributors: [
+          users.mariaGarcia,
+          users.alexThompson
+        ],
+        slug: 'statistical-analysis-covid19-vaccination-efficacy-data'
+      }
     },
     metrics: {
       votes: 20,
