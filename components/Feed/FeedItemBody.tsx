@@ -258,7 +258,7 @@ const CommentContent: FC<CommentContentProps> = ({ comment, relatedItem, isNeste
           <Link href={`/${relatedItem.type}/${relatedItem.slug || ''}`} className="flex items-center gap-1.5 px-2">
             <Icon className="w-4 h-4" />
             <span className="text-sm font-medium">
-              {relatedItem.title}
+              RE: {relatedItem.title}
             </span>
           </Link>
         </Button>

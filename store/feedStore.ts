@@ -4,6 +4,42 @@ import { hubs } from './hubStore';
 
 export const feedEntries: FeedEntry[] = [
   {
+    id: 'feed-8',
+    action: 'contribute',
+    actor: users.mariaGarcia,
+    timestamp: '2024-12-16 16:15:06.069373+00',
+    item: {
+      id: 'item-9',
+      type: 'contribution',
+      user: users.mariaGarcia,
+      timestamp: '2024-12-16 16:15:06.069373+00',
+      hub: hubs.dataScience,
+      amount: 750,
+      recipientItem: {
+        id: 'item-10',
+        type: 'bounty',
+        bountyType: 'other',
+        description: 'Analyze vaccination efficacy data to provide insights into vaccine performance.',
+        user: users.researchHub,
+        timestamp: '2024-12-14 16:24:06.069373+00',
+        hub: hubs.dataScience,
+        amount: 2000,
+        deadline: '5 days',
+        contributors: [
+          users.mariaGarcia,
+          users.alexThompson
+        ],
+        slug: 'statistical-analysis-covid19-vaccination-efficacy-data'
+      }
+    },
+    metrics: {
+      votes: 20,
+      comments: 10,
+      reposts: 3,
+      saves: 5
+    }    
+  },  
+  {
     id: 'feed-7',
     action: 'contribute',
     actor: users.alexThompson,
@@ -315,42 +351,6 @@ export const feedEntries: FeedEntry[] = [
       comments: 7,
       reposts: 2,
       saves: 3
-    }    
-  },
-  {
-    id: 'feed-8',
-    action: 'contribute',
-    actor: users.mariaGarcia,
-    timestamp: '2024-12-16 16:15:06.069373+00',
-    item: {
-      id: 'item-9',
-      type: 'contribution',
-      user: users.mariaGarcia,
-      timestamp: '2024-12-16 16:15:06.069373+00',
-      hub: hubs.dataScience,
-      amount: 750,
-      recipientItem: {
-        id: 'item-10',
-        type: 'bounty',
-        bountyType: 'dataset',
-        description: 'Analyze vaccination efficacy data to provide insights into vaccine performance.',
-        user: users.researchHub,
-        timestamp: '2024-12-14 16:24:06.069373+00',
-        hub: hubs.dataScience,
-        amount: 2000,
-        deadline: '5 days',
-        contributors: [
-          users.mariaGarcia,
-          users.alexThompson
-        ],
-        slug: 'statistical-analysis-covid19-vaccination-efficacy-data'
-      }
-    },
-    metrics: {
-      votes: 20,
-      comments: 10,
-      reposts: 3,
-      saves: 5
     }    
   },
   {
