@@ -1,139 +1,114 @@
-import { User } from "./user";
-import { Hub } from "./hub";
+import { AuthorProfile } from './user';
 
-export interface PaperAuthor {
-  name: string;
-  isVerified?: boolean;
-  user?: User;
+export type Role = 'contributor' | 'author' | 'reviewer' | 'applicant';
+
+export interface Participants {
+  role: Role;
+  profiles: AuthorProfile[];
 }
 
-export type Metrics = {
-  votes: number;
-  comments: number;
-  reposts: number;
-  saves?: number;
-  applicants?: number;
-  reviewScore?: number;
-  views?: number;
-};
+export type FeedActionType = 'repost' | 'contribute' | 'publish' | 'post';
 
-export type FeedActionType = 
-  | 'post'
-  | 'repost'
-  | 'contribute'
-  | 'publish';
-
-export type ItemType = 
-  | 'funding_request'
-  | 'grant'
+export type ContentType = 
   | 'paper'
-  | 'review'
+  | 'comment'
+  | 'funding_request'
   | 'bounty'
-  | 'contribution'
-  | 'comment';
+  | 'grant'
+  | 'review'
+  | 'contribution';
 
-export type BaseItem = {
+interface BaseContent {
   id: string;
-  type: ItemType;
-  title: string;
-  abstract: string;
-  user: User;
+  type: ContentType;
   timestamp: string;
-  hub?: Hub;
-  isPinned?: boolean;
+  hub: {
+    id: string;
+    name: string;
+    slug: string;
+  };
   slug: string;
-};
+  title?: string;
+  actor: AuthorProfile;
+  participants?: Participants;
+}
 
-export type CommentItem = {
-  id: string;
-  type: 'comment';
-  content: string;
-  user: User;
-  timestamp: string;
-  parent?: CommentItem;
-  hub?: Hub;
-  isPinned?: boolean;
-};
-
-export type FundingRequestItem = BaseItem & {
-  type: 'funding_request';
-  amount: number;
-  goalAmount: number;
-  progress: number;
-  contributors: User[];
-  expirationDate: string;
-};
-
-export type GrantItem = BaseItem & {
-  type: 'grant';
-  amount: number;
-  deadline: string;
-  contributors?: User[];
-  applicants?: User[];
-};
-
-export type PaperItem = BaseItem & {
+export interface Paper extends BaseContent {
   type: 'paper';
-  authors: PaperAuthor[];
+  abstract: string;
   doi?: string;
   journal?: string;
-};
+}
 
-export type ReviewItem = BaseItem & {
-  type: 'review';
+export interface Comment extends BaseContent {
+  type: 'comment';
+  content: string;
+  parent?: Content;
+}
+
+export type FundingRequestStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
+
+export interface FundingRequest extends BaseContent {
+  type: 'funding_request';
+  title: string;
+  abstract: string;
   amount: number;
-};
+  deadline: string;
+  goalAmount: number;
+  status: FundingRequestStatus;
+}
 
-export type BountyType = 'review' | 'dataset' | 'translation' | 'other';
-
-export type BountyItem = {
-  id: string;
+export interface Bounty extends BaseContent {
   type: 'bounty';
-  bountyType: BountyType;
-  description: string;
   title?: string;
-  user: User;
-  timestamp: string;
-  hub: Hub;
+  description: string;
   amount: number;
-  deadline?: string;
-  contributors?: User[];
-  slug?: string;
-  relatedPaper?: PaperItem;
-};
+  deadline: string;
+}
 
-export type ContributionItem = {
-  id: string;
+export interface Grant extends BaseContent {
+  type: 'grant';
+  title: string;
+  abstract: string;
+  amount: number;
+  deadline: string;
+}
+
+export interface Review extends BaseContent {
+  type: 'review';
+  title?: string;
+  content: string;
+  score?: number;
+}
+
+export interface Contribution extends BaseContent {
   type: 'contribution';
-  user: User;
-  timestamp: string;
-  hub?: Hub;
   amount: number;
-  recipientItem: Exclude<FeedItemType, ContributionItem>;
-};
+}
 
-export type FeedItemType = 
-  | PaperItem 
-  | CommentItem 
-  | FundingRequestItem 
-  | BountyItem 
-  | GrantItem 
-  | ReviewItem
-  | ContributionItem;
+export type Content = 
+  | Paper 
+  | Comment 
+  | FundingRequest 
+  | Bounty 
+  | Grant 
+  | Review
+  | Contribution;
 
-export type FeedEntry = {
+export interface FeedEntry {
   id: string;
-  actor: User;
   timestamp: string;
-  metrics: Metrics;
-  item: FeedItemType;
-  relatedItem?: FeedItemType;
-} & (
-  | {
-      action: 'repost';
-      repostMessage?: string;
-    }
-  | {
-      action: 'post' | 'contribute' | 'publish';
-    }
-);
+  action: FeedActionType;
+  content: Content;
+  target?: Content;
+  context?: Content;
+  metrics?: {
+    votes: number;
+    comments: number;
+    reposts: number;
+    saves?: number;
+    applicants?: number;
+    reviewScore?: number;
+    views?: number;
+  };
+}

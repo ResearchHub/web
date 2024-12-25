@@ -51,6 +51,7 @@ All paths are relative to the root of the project.
 
 ## Directives
 - Use next/Link component whenever rendering a component that redirects to another page
+- Use `components/ui/Tabs` component whenever rendering a horizontal navigation
 - Use `components/ui/Button` component whenever rendering a button. do not use `<button>` tags.
 - Refactor rather than adding new code when possible
 - All functions created should include parameter destructuring in the function signature
@@ -66,6 +67,13 @@ All paths are relative to the root of the project.
 - react-hot-toast
 - lucide-react
 - FontAwesome
+- dayjs
+
+# Directives when creating new code 
+Execute the following whenver you are creating new code:
+- Create human readable code
+- Test for scalability
+- Test for performance
 
 ## Current Status
 [x] Integrate Django API with Next.js via services directory completed

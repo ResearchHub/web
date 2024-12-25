@@ -34,4 +34,27 @@ export function formatTimestamp(timestamp: string): string {
     return formatTimeAgo(timestamp);
   }
   return dayjs(timestamp).format('MMM D, YYYY');
+}
+
+/**
+ * Formats a deadline timestamp into a human-readable string
+ * @param deadline ISO timestamp string
+ * @returns Formatted deadline string (e.g. "Ended", "Ends today", "5 days left", etc.)
+ */
+export function formatDeadline(deadline: string): string {
+  const now = dayjs();
+  const deadlineDate = dayjs(deadline);
+  const diffDays = deadlineDate.diff(now, 'day');
+  
+  if (diffDays < 0) {
+    return 'Ended';
+  } else if (diffDays === 0) {
+    return 'Ends today';
+  } else if (diffDays === 1) {
+    return 'Ends tomorrow';
+  } else if (diffDays < 30) {
+    return `${diffDays} days left`;
+  } else {
+    return `Ends ${formatTimestamp(deadline)}`;
+  }
 } 

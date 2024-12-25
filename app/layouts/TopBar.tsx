@@ -2,8 +2,6 @@
 
 import { useState } from 'react';
 import { Search, Menu, BadgeCheck, X, AlertCircle, LogIn } from 'lucide-react';
-import { searchFeedItems } from '@/store/feedStore';
-import { getItemTypeConfig } from '@/components/FeedItem';
 import { useSession, signOut } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import AuthModal from '@/components/modals/Auth/AuthModal';

@@ -62,7 +62,7 @@ export const AvatarStack: FC<AvatarStackProps> = ({
             </div>
           </Tooltip>
         ))}
-        {remainingCount > 0 && !hideLabel && (
+        {!hideLabel && remainingCount > 0 && (
           <div 
             className="relative"
             style={{ 
@@ -70,13 +70,13 @@ export const AvatarStack: FC<AvatarStackProps> = ({
               zIndex: reverseOrder ? 0 : displayItems.length
             }}
           >
-            <div className={`bg-gray-100 text-gray-500 px-2 rounded-full ring-1 ring-gray-200 text-xs flex items-center ${
+            <div className={`bg-gray-100 text-gray-500 px-2 rounded-full ring-1 ring-gray-200 text-xs flex items-center capitalize ${
               size === 'xs' ? 'h-6' :
               size === 'sm' ? 'h-8' :
               size === 'md' ? 'h-10' :
               'h-12'
             }`}>
-              +{remainingCount}{label ? ` ${label}` : ''}
+              {remainingCount > 0 && `+${remainingCount}`} {label ? ` ${label}` : ''}
             </div>
           </div>
         )}

@@ -5,38 +5,43 @@ import { FeedEntry } from '@/types/feed';
 import { FeedItemHeader } from './FeedItemHeader';
 import { FeedItemBody } from './FeedItemBody';
 import { FeedItemActions } from './FeedItemActions';
-import clsx from 'clsx';
+import { cn } from '@/utils/styles';
 
-export const FeedItem: FC<{ entry: FeedEntry; isFirst?: boolean }> = ({ entry, isFirst }) => {
-  const { action, actor, timestamp, item, relatedItem, metrics } = entry;
-  
-  const repostMessage = action === 'repost' 
-    ? (entry as { repostMessage?: string }).repostMessage 
-    : undefined;
+interface FeedItemProps {
+  entry: FeedEntry;
+  isFirst?: boolean;
+}
+
+export const FeedItem: FC<FeedItemProps> = ({ entry, isFirst }) => {
+  const { content, target, context, metrics } = entry;
 
   return (
     <div 
-      className={clsx(
-        'relative bg-white',
-        !isFirst && 'mt-8'
+      className={cn(
+        'relative',
+        !isFirst && 'mt-6'
       )}
     >
       <div>
         <FeedItemHeader 
-          actor={actor} 
-          timestamp={timestamp} 
-          action={action} 
-          item={item} 
+          action={entry.action}
+          timestamp={entry.timestamp}
+          content={content}
+          target={target}
         />
-        <div className="pl-11 ml-1">
+
+        <div className="mt-2 ml-11">
           <FeedItemBody 
-            item={item} 
-            relatedItem={relatedItem} 
-            action={action} 
-            repostMessage={repostMessage}
+            content={content}
+            target={target}
+            context={context}
           />
-          <div className="mt-3 -mx-4 px-4">
-            <FeedItemActions metrics={metrics} item={item} />
+
+          <div className="pt-3">
+            <FeedItemActions 
+              metrics={metrics} 
+              content={content}
+            />
           </div>
         </div>
       </div>

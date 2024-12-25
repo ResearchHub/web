@@ -1,79 +1,79 @@
 'use client'
 
 import { FC } from 'react';
-import { FeedEntry, FeedItemType } from '@/types/feed';
+import { Content, FeedEntry } from '@/types/feed';
 import {
   MessageCircle,
   Repeat,
-  Bookmark,
-  MoreHorizontal
+  MoreHorizontal,
+  ChevronUp,
+  Bookmark
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { FeedItemMenu } from '../menus/FeedItemMenu';
+import { FeedItemMenu } from '@/components/menus/FeedItemMenu';
 
-export const FeedItemActions: FC<{
-  metrics: FeedEntry['metrics'];
-  item: FeedItemType;
-}> = ({ metrics, item }) => {
+interface ActionButtonProps {
+  icon: any;
+  count?: number;
+  label: string;
+  tooltip?: string;
+}
+
+const ActionButton: FC<ActionButtonProps> = ({ icon: Icon, count, label, tooltip }) => (
+  <Button
+    variant="ghost"
+    size="sm"
+    className="flex items-center space-x-1.5 text-gray-900 hover:text-gray-900"
+    tooltip={tooltip}
+  >
+    <Icon className="w-4 h-4" />
+    {count !== undefined && count > 0 && (
+      <span className="text-sm font-medium">{count}</span>
+    )}
+    <span className="sr-only">{label}</span>
+  </Button>
+);
+
+interface FeedItemActionsProps {
+  metrics?: FeedEntry['metrics'];
+  content: Content;
+}
+
+export const FeedItemActions: FC<FeedItemActionsProps> = ({ metrics, content }) => {
   return (
-    <div className="flex items-center space-x-0.5">
-      <Button
-        variant="ghost"
-        size="sm"
+    <div className="flex items-center space-x-2">
+      <ActionButton 
+        icon={ChevronUp} 
+        count={metrics?.votes} 
+        tooltip="Upvote"
+        label="Upvote"
+      />
+      <ActionButton 
+        icon={MessageCircle} 
+        count={metrics?.comments} 
         tooltip="Comment"
-        className="-ml-3 flex items-center text-gray-900 hover:text-gray-900 h-7"
-      >
-        <div className="flex items-center justify-center w-7">
-          <MessageCircle className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
-        </div>
-        {metrics?.comments > 0 && (
-          <span className="text-sm font-medium pr-1.5">
-            {metrics.comments}
-          </span>
-        )}
-      </Button>
-
-      <Button
-        variant="ghost"
-        size="sm"
+        label="Comment"
+      />
+      <ActionButton 
+        icon={Repeat} 
+        count={metrics?.reposts} 
         tooltip="Repost"
-        className="flex items-center text-gray-900 hover:text-gray-900 h-7"
-      >
-        <div className="flex items-center justify-center w-7">
-          <Repeat className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
-        </div>
-        {metrics?.reposts > 0 && (
-          <span className="text-sm font-medium pr-1.5">
-            {metrics.reposts}
-          </span>
-        )}
-      </Button>
-
-      <Button
-        variant="ghost"
-        size="sm"
+        label="Repost"
+      />
+      <ActionButton
+        icon={Bookmark}
+        count={metrics?.saves}
         tooltip="Save"
-        className="flex items-center text-gray-900 hover:text-gray-900 h-7"
-      >
-        <div className="flex items-center justify-center w-7">
-          <Bookmark className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110" />
-        </div>
-        {metrics?.saves > 0 && (
-          <span className="text-sm font-medium pr-1.5">
-            {metrics.saves}
-          </span>
-        )}
-      </Button>
-
+        label="Save"
+      />
       <FeedItemMenu>
         <Button
           variant="ghost"
           size="sm"
-          className="flex items-center text-gray-900 hover:text-gray-900 h-7"
+          className="text-gray-600 hover:text-gray-900"
         >
-          <div className="flex items-center justify-center w-7">
-            <MoreHorizontal className="w-[18px] h-[18px]" />
-          </div>
+          <MoreHorizontal className="w-4 h-4" />
+          <span className="sr-only">More options</span>
         </Button>
       </FeedItemMenu>
     </div>

@@ -7,7 +7,7 @@ import { MarketplaceTabs } from './MarketplaceTabs';
 import { MarketplaceSort } from './MarketplaceSort';
 import { MarketplaceFundingBanner } from './MarketplaceFundingBanner';
 import { MarketplaceRewardsBanner } from './MarketplaceRewardsBanner';
-import { FeedItem } from '../FeedItem';
+import { FeedItem } from '@/components/Feed/FeedItem';
 import { feedEntries } from '@/store/feedStore';
 import { FeedEntry } from '@/types/feed';
 import toast from 'react-hot-toast';

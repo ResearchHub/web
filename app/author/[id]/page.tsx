@@ -2,10 +2,10 @@
 
 import { PageLayout } from '@/app/layouts/PageLayout'
 import { ProfileRightSidebar } from '@/components/profile/ProfileRightSidebar'
-import { FeedItem } from '@/components/FeedItem'
+import { FeedItem } from '@/components/Feed/FeedItem'
 import { Pin, BadgeCheck } from 'lucide-react'
-import { Item, FeedEntry } from '@/types/feed'
-import { User } from '@/types/feed'
+import { FeedEntry } from '@/types/feed'
+import { User } from '@/types/user'
 
 type AuthorProfileProps = {
   params: {

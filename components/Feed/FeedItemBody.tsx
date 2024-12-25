@@ -1,763 +1,387 @@
 'use client'
 
-import { FC, useState } from 'react';
-import { FeedActionType, FeedEntry, FeedItemType, CommentItem, FundingRequestItem, BountyItem, GrantItem, PaperItem, ReviewItem, ContributionItem } from '@/types/feed';
-import { User } from '@/types/user';
-import { Avatar } from '@/components/ui/Avatar';
-import {
-  ChevronDown,
-  Clock,
-  Trophy,
-  GraduationCap,
-  HandCoins,
-  FileText,
-  MessageCircle,
-  Sparkles,
-  Award,
-  PlayCircle,
-} from 'lucide-react';
-import { ResearchCoinIcon } from '../ui/icons/ResearchCoinIcon';
-import { Button } from '../ui/Button';
-import { AuthorList } from '../ui/AuthorList';
-import { assertNever } from '@/utils/assertNever';
-import { FeedItemHeader } from './FeedItemHeader';
-import { AvatarStack } from '../ui/AvatarStack';
+import { FC } from 'react';
+import { Content } from '@/types/feed';
+import { Button } from '@/components/ui/Button';
+import { AvatarStack } from '@/components/ui/AvatarStack';
+import { Progress } from '@/components/ui/Progress';
+import { Star, Clock } from 'lucide-react';
+import { formatDeadline } from '@/utils/date';
 import Link from 'next/link';
-import { FeedItemDate } from './lib/FeedItemDate';
+import { cn } from '@/utils/styles';
+import { RSCBadge } from '@/components/ui/RSCBadge';
+import { ResearchCoinIcon } from '../ui/icons/ResearchCoinIcon';
+import { FeedItemHeader } from './FeedItemHeader';
 
-const TRUNCATE_LIMIT = 200;
-
-// Utility to handle text size scaling based on context
-const getTextSize = (
-  baseSize: 'xs' | 'sm' | 'md' | 'base' | 'lg' | 'xl', 
-  isNested: boolean,
-  inCard?: boolean
-): string => {
-  const sizes = ['xs', 'sm', 'md', 'base', 'lg', 'xl'];
-  let currentIndex = sizes.indexOf(baseSize);
-  
-  // If it's already 'sm' and in a card, don't scale down further
-  if (baseSize === 'sm' && inCard) {
-    return 'sm';
-  }
-  
-  // Only step down once, either for nesting or card
-  if (isNested || inCard) {
-    currentIndex = Math.max(1, currentIndex - 1); // Use 1 instead of 0 to prevent scaling below 'sm'
-  }
-  
-  return sizes[currentIndex];
-};
-
-// Utility to handle avatar size scaling based on context
-const getAvatarSize = (baseSize: 'xs' | 'sm' | 'md' | 'lg', isNested: boolean): 'xs' | 'sm' | 'md' | 'lg' => {
-  const sizes: ('xs' | 'sm' | 'md' | 'lg')[] = ['xs', 'sm', 'md', 'lg'];
-  const currentIndex = sizes.indexOf(baseSize);
-  return currentIndex > 0 && isNested ? sizes[currentIndex - 1] : baseSize;
-};
-
-// Shared interfaces
-interface ContentWrapperProps {
-  children: React.ReactNode;
-  isNested?: boolean;
-  className?: string;
-  card?: boolean;
-  href?: string;  // Optional URL for clickable cards
-}
-
-interface ExpandableTextProps {
-  text: string;
-  isNested?: boolean;
-  baseTextSize?: 'sm' | 'md' | 'base';
-  inCard?: boolean;
-}
-
-// Shared components
-const ContentWrapper: FC<ContentWrapperProps> = ({ children, isNested, className = '', card = false, href }) => {
-  const content = (
-    <div 
-      className={`
-        space-y-3 
-        ${isNested ? 'border-gray-200' : ''} 
-        ${card ? 'border p-4 rounded-lg transition-colors duration-200' : ''}
-        ${href ? 'hover:border-gray-300 hover:bg-gray-50 cursor-pointer' : ''}
-        ${className}
-      `}
-      onClick={(e) => {
-        // Don't trigger card click if clicking on a button or link
-        if ((e.target as HTMLElement).closest('button, a')) {
-          e.stopPropagation();
-        }
-      }}
-    >
-      {children}
-    </div>
-  );
-
-  if (href) {
-    return (
-      <Link href={href} className="block">
-        {content}
-      </Link>
-    );
-  }
-
-  return content;
-};
-
-const ExpandableText: FC<ExpandableTextProps> = ({ 
-  text, 
-  isNested, 
-  baseTextSize = 'base',
-  inCard = false 
-}) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const shouldTruncate = text?.length > TRUNCATE_LIMIT;
-  const textSize = getTextSize(baseTextSize, Boolean(isNested), inCard);
-
-  if (!text) return null;
-
-  return (
-    <div>
-      <p className={`text-gray-600 text-${textSize} ${!isExpanded && shouldTruncate ? 'line-clamp-3' : ''}`}>
-        {!isExpanded && shouldTruncate ? `${text.slice(0, TRUNCATE_LIMIT)}...` : text}
-      </p>
-      {shouldTruncate && !isExpanded && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation();  // Prevent card click when expanding
-            setIsExpanded(true);
-          }}
-          className="-ml-3 text-blue-500 hover:text-blue-600 h-8"
-        >
-          <span className="font-medium text-sm">Read more</span>
-          <ChevronDown className="w-4 h-4 ml-1" />
-        </Button>
-      )}
-    </div>
-  );
-};
-
-// Main component props
 interface FeedItemBodyProps {
-  item: FeedItemType;
-  relatedItem?: FeedEntry['relatedItem'];
-  action: FeedActionType;
-  repostMessage?: string;
-  isNested?: boolean;
+  content: Content;
+  target?: Content;
+  context?: Content;
 }
 
-// Content components
-interface ContentHeaderProps {
-  title?: string | JSX.Element;
-  relatedItem?: FeedEntry['relatedItem'];
-  isNested?: boolean;
-}
+const getItemUrl = (content: Content) => {
+  const title = content.type === 'paper' ? content.title :
+               content.type === 'funding_request' ? content.title :
+               content.type === 'grant' ? content.title :
+               content.type === 'review' ? content.title : '';
+  const slug = title?.toLowerCase().replace(/ /g, '-') || content.id;
+  return `/${content.type}/${content.id}/${slug}`;
+};
 
-const ContentHeader: FC<ContentHeaderProps> = ({ title, relatedItem, isNested }) => {
-  if (!title && !relatedItem) return null;
+export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context }) => {
+  const renderItem = (item: Content, isTarget: boolean = false) => {
+    const itemContent = (() => {
+      switch (item.type) {
+        case 'paper':
+          return renderPaper(item);
+        case 'funding_request':
+          return renderFundingRequest(item);
+        case 'grant':
+          return renderGrant(item);
+        case 'bounty':
+          return renderBounty(item);
+        case 'review':
+          return renderReview(item);
+        case 'contribution':
+          return renderContribution(item);
+        case 'comment':
+          return renderComment(item);
+        default:
+          return null;
+      }
+    })();
 
-  const getRelatedItemIcon = (type: string) => {
-    switch (type) {
-      case 'paper':
-        return FileText;
-      case 'comment':
-        return MessageCircle;
-      case 'funding_request':
-        return HandCoins;
-      case 'bounty':
-        return Trophy;
-      case 'grant':
-        return GraduationCap;
-      case 'review':
-        return Sparkles;
-      case 'contribution':
-        return Award;
-      default:
-        return FileText;
-    }
+    if (!itemContent) return null;
+
+    const getTypeLabel = (type: string) => {
+      if (type === 'funding_request') return 'crowdfund';
+      return type.replace('_', ' ');
+    };
+
+    const shouldShowBorder = isTarget || item.type === 'paper';
+    const isComment = item.type === 'comment';
+
+    return (
+      <div className={cn(
+        'rounded-lg',
+        shouldShowBorder && 'p-4 border border-gray-200 bg-white',
+        isComment && !shouldShowBorder
+      )}>
+        {!isComment && (
+          <div className="flex items-center mb-3">
+            <div className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
+              {getTypeLabel(item.type)}
+            </div>
+          </div>
+        )}
+        {itemContent}
+      </div>
+    );
   };
 
-  const renderRelatedItemLink = () => {
-    if (!relatedItem || !('type' in relatedItem) || !('title' in relatedItem)) return null;
-
-    const Icon = getRelatedItemIcon(relatedItem.type);
+  const renderComment = (comment: Content) => {
+    if (comment.type !== 'comment') return null;
+    
+    const commentContent = comment.type === 'comment' ? comment.content : '';
+    const parentContent = comment.parent?.type === 'comment' ? comment.parent.content : '';
 
     return (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="-ml-5 hover:bg-gray-100  text-gray-600 hover:text-gray-900 h-8 rounded-md"
-      >
-        <Link href={`/${relatedItem.type}/${relatedItem.slug || ''}`} className="flex items-center gap-1.5 px-2">
-          <Icon className="w-4 h-4" />
-          <span className="text-sm font-medium">
-            RE: {relatedItem.title}
-          </span>
-        </Link>
-      </Button>
+      <div>
+        <div className="text-md text-gray-600">
+          {commentContent}
+        </div>
+        {comment.parent && (
+          <div className="mt-3 rounded-lg border p-3 border-gray-200 pl-4">
+            <div>
+              <FeedItemHeader
+                action="post"
+                timestamp={comment.parent.timestamp}
+                content={comment.parent}
+                size="xs"
+              />
+              <div className="ml-9">
+                <div className="text-sm text-gray-600">
+                  {parentContent}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderContribution = (contribution: Content) => {
+    if (contribution.type !== 'contribution') return null;
+    return null;
+  };
+
+  const renderPaper = (paper: Content) => {
+    if (paper.type !== 'paper') return null;
+    const authors = paper.participants?.role === 'author' ? paper.participants.profiles : [];
+    
+    return (
+      <div>
+        <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
+          {paper.title}
+        </h3>
+        <p className="text-sm text-gray-600">
+          {paper.abstract}
+        </p>
+      </div>
+    );
+  };
+
+  const renderFundingRequest = (fundingRequest: Content) => {
+    if (fundingRequest.type !== 'funding_request') return null;
+    const contributors = fundingRequest.participants?.role === 'contributor' ? fundingRequest.participants.profiles : [];
+    const deadlineText = formatDeadline(fundingRequest.deadline);
+    
+    const getStatusDisplay = () => {
+      switch (fundingRequest.status) {
+        case 'COMPLETED':
+          return (
+            <span className="text-sm text-green-500 font-medium">
+              Fundraise Completed
+            </span>
+          );
+        case 'CLOSED':
+          return (
+            <span className="text-sm text-gray-500 font-medium">
+              Fundraise Closed
+            </span>
+          );
+        case 'OPEN':
+          return deadlineText === 'Ended' ? (
+            <span className="text-sm text-gray-500 font-medium">
+              Fundraise Ended
+            </span>
+          ) : (
+            <span className="text-sm text-gray-600">
+              {deadlineText}
+            </span>
+          );
+        default:
+          return null;
+      }
+    };
+
+    const progress = fundingRequest.amount && fundingRequest.goalAmount 
+      ? (fundingRequest.amount / fundingRequest.goalAmount) * 100
+      : 0;
+    
+    return (
+      <div>
+        <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
+          {fundingRequest.title}
+        </h3>
+        <p className="text-sm text-gray-600 mb-3">
+          {fundingRequest.abstract}
+        </p>
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              <ResearchCoinIcon size={16} outlined />
+              <span className="text-sm font-medium text-orange-500">
+                {fundingRequest.amount.toLocaleString()} RSC raised
+              </span>
+              <span className="text-sm text-gray-500">
+                of {fundingRequest.goalAmount.toLocaleString()} RSC goal
+              </span>
+            </div>
+            {getStatusDisplay()}
+          </div>
+          <Progress 
+            value={progress}
+            variant={fundingRequest.status === 'COMPLETED' ? 'success' : 'default'}
+            size="xs"
+          />
+        </div>
+        <div className="flex justify-between items-center">
+          <Button 
+            variant="contribute" 
+            size="sm" 
+          >
+            Contribute
+          </Button>
+          {contributors.length > 0 && (
+            <div className="flex items-center ml-4">
+              <AvatarStack
+                items={contributors.map(profile => ({
+                  src: profile.profileImage,
+                  alt: profile.fullName,
+                  tooltip: profile.fullName
+                }))}
+                size="xs"
+                maxItems={2}
+                label='contributors'
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderGrant = (grant: Content) => {
+    if (grant.type !== 'grant') return null;
+    const applicants = grant.participants?.role === 'applicant' ? grant.participants.profiles : [];
+    const deadlineText = formatDeadline(grant.deadline);
+    
+    return (
+      <div>
+        <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
+          {grant.title}
+        </h3>
+        <p className="text-sm text-gray-600 mb-3">
+          {grant.abstract}
+        </p>
+        <div className="flex items-center space-x-4 text-sm">
+          {grant.amount && (
+            <div className="flex items-center space-x-1">
+              <ResearchCoinIcon size={16} color="#F97316" />
+              <span className="text-orange-500 font-medium">
+                {grant.amount.toLocaleString()} RSC
+              </span>
+            </div>
+          )}
+          {grant.deadline && (
+            <>
+              <span className="text-gray-500">•</span>
+              <div className="flex items-center space-x-1">
+                <Clock className="h-4 w-4 text-gray-500" />
+                <span className={`text-gray-500 ${deadlineText === 'Ended' ? 'line-through' : ''}`}>
+                  {deadlineText}
+                </span>
+              </div>
+            </>
+          )}
+        </div>
+        <div className="flex items-center justify-between mt-4">
+          <Button size="sm" disabled={deadlineText === 'Ended'}>Apply Now</Button>
+          {applicants.length > 0 && (
+            <div className="flex items-center gap-2">
+              <AvatarStack
+                items={applicants.map(profile => ({
+                  src: profile.profileImage,
+                  alt: profile.fullName,
+                  tooltip: profile.fullName
+                }))}
+                size="xs"
+                maxItems={2}
+              />
+              <span className="text-sm text-gray-500">
+                {applicants.length} Applicant{applicants.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderReview = (review: Content) => {
+    if (review.type !== 'review') return null;
+    return (
+      <div>
+        <h3 className="text-base font-semibold text-gray-900 mb-2">
+          {review.title}
+        </h3>
+        <p className="text-sm text-gray-600 mb-3">
+          {review.content}
+        </p>
+        {review.score !== undefined && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">Score:</span>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  className={`h-4 w-4 ${
+                    i < review.score! ? 'text-yellow-500 fill-current' : 'text-gray-300'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderBounty = (bounty: Content) => {
+    if (bounty.type !== 'bounty') return null;
+    const deadlineText = formatDeadline(bounty.deadline);
+    const participants = bounty.participants?.role === 'contributor' ? bounty.participants.profiles : [];
+    
+    return (
+      <div>
+        <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
+          <Link href={getItemUrl(bounty)}>{bounty.title}</Link>
+        </h3>
+        <p className="text-sm text-gray-600 mb-3">
+          {bounty.description}
+        </p>
+        <div className="flex items-center space-x-4 text-sm">
+          {bounty.amount && (
+            <div className="flex items-center space-x-1">
+              <RSCBadge 
+                amount={bounty.amount} 
+                variant="inline" 
+                showText
+              />
+            </div>
+          )}
+          {bounty.deadline && (
+            <>
+              <span className="text-gray-500">•</span>
+              <div className="flex items-center space-x-1">
+                <Clock className="h-4 w-4 text-gray-500" />
+                <span className={`text-gray-500`}>
+                  {deadlineText}
+                </span>
+              </div>
+            </>
+          )}
+        </div>
+        <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="start-task" 
+              size="sm" 
+            >
+              Start Task
+            </Button>
+            <Button 
+              variant="contribute" 
+              size="sm" 
+            >
+              Contribute
+            </Button>
+          </div>
+          {participants.length > 0 && (
+            <div className="flex items-center gap-2">
+              <AvatarStack
+                items={participants.map(profile => ({
+                  src: profile.profileImage,
+                  alt: profile.fullName,
+                  tooltip: profile.fullName
+                }))}
+                size="xs"
+                maxItems={2}
+                label='contributors'
+              />
+            </div>
+          )}
+        </div>
+      </div>
     );
   };
 
   return (
     <div className="space-y-3">
-      {title && (
-        typeof title === 'string' ? (
-          <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested))} text-gray-900`}>
-            {title}
-          </h2>
-        ) : title
-      )}
-      {relatedItem && renderRelatedItemLink()}
-    </div>
-  );
-};
-
-interface CommentContentProps {
-  comment: CommentItem;
-  relatedItem?: FeedEntry['relatedItem'];
-  isNested?: boolean;
-}
-
-const CommentContent: FC<CommentContentProps> = ({ comment, relatedItem, isNested }) => {
-  const getRelatedItemIcon = (type: string) => {
-    switch (type) {
-      case 'paper':
-        return FileText;
-      case 'comment':
-        return MessageCircle;
-      case 'funding_request':
-        return HandCoins;
-      case 'bounty':
-        return Trophy;
-      case 'grant':
-        return GraduationCap;
-      case 'review':
-        return Sparkles;
-      case 'contribution':
-        return Award;
-      default:
-        return FileText;
-    }
-  };
-
-  const renderRelatedItemLink = () => {
-    if (!relatedItem || !('type' in relatedItem) || !('title' in relatedItem)) return null;
-
-    const Icon = getRelatedItemIcon(relatedItem.type);
-
-    return (
-      <div className="ml-1">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="-ml-3 hover:bg-gray-100 text-gray-600 hover:text-gray-900 h-8 rounded-md pl-1 pr-1"
-        >
-          <Link href={`/${relatedItem.type}/${relatedItem.slug || ''}`} className="flex items-center gap-1.5 px-2">
-            <Icon className="w-4 h-4" />
-            <span className="text-sm font-medium">
-              RE: {relatedItem.title}
-            </span>
-          </Link>
-        </Button>
-      </div>
-    );
-  };
-
-  return (
-    <ContentWrapper isNested={isNested}>
-      <div className="space-y-3">
-        <ExpandableText text={comment.content} isNested={isNested} />
-        
-        {comment.parent && (
-          <div className="relative">
-            <ContentWrapper isNested={true} card={true}>
-              <div className="space-y-3">
-                <div className="flex items-start space-x-3">
-                  <Avatar
-                    src={comment.parent.user.authorProfile?.profileImage}
-                    alt={comment.parent.user.fullName}
-                    size={getAvatarSize('sm', true)}
-                    className="ring-2 ring-gray-100"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-x-1.5">
-                      <span className={`font-semibold text-gray-900 text-${getTextSize('md', true)}`}>
-                        {comment.parent.user.fullName}
-                      </span>
-                      <span className="text-gray-400">·</span>
-                      <FeedItemDate date={comment.parent.timestamp} />
-                    </div>
-                    <ExpandableText 
-                      text={comment.parent.content} 
-                      isNested={true}
-                      baseTextSize="md"
-                    />
-                  </div>
-                </div>
-
-                {/* Add related item link at the bottom of the card */}
-                {relatedItem && renderRelatedItemLink()}
-              </div>
-            </ContentWrapper>
-          </div>
-        )}
-      </div>
-    </ContentWrapper>
-  );
-};
-
-interface PaperContentProps {
-  paper: PaperItem;
-  isNested?: boolean;
-}
-
-const PaperContent: FC<PaperContentProps> = ({ paper, isNested }) => {
-  // Convert paper authors to avatar items
-  const authorAvatars = paper.authors?.map(author => ({
-    src: author.user?.authorProfile?.profileImage,
-    alt: author.name,
-    tooltip: author.name
-  })) || [];
-
-  return (
-    <ContentWrapper isNested={isNested} card={true}>
-      <ContentHeader
-        title={
-          <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested), true)} text-gray-900`}>
-            {paper.title}
-          </h2>
-        }
-        isNested={isNested}
-      />
-      <div className="flex items-center gap-2">
-        <AvatarStack 
-          items={authorAvatars}
-          size="xs"
-          maxItems={3}
-          label="Authors"
-        />
-      </div>
-      <ExpandableText 
-        text={paper.abstract || ''} 
-        isNested={isNested}
-        baseTextSize="md"
-        inCard={true}
-      />
-    </ContentWrapper>
-  );
-};
-
-interface ActionFooterProps {
-  amount: number;
-  icon: typeof Trophy | typeof GraduationCap | typeof HandCoins;
-  deadline?: string;
-  progress?: number;
-  goalAmount?: number;
-  ctaText: string;
-  users?: User[];
-  userStackLabel?: string;
-  type: 'bounty' | 'grant' | 'funding_request';
-  isNested?: boolean;
-  relatedItem?: FeedEntry['relatedItem'];
-}
-
-const ActionFooter: FC<ActionFooterProps> = ({
-  amount,
-  icon: Icon,
-  deadline,
-  progress,
-  goalAmount,
-  ctaText,
-  users,
-  userStackLabel = 'Contributors',
-  type,
-  isNested,
-  relatedItem
-}) => {
-  const isBountyOrGrant = type === 'bounty' || type === 'grant';
-  const isFundingRequest = type === 'funding_request';
-  const textSize = getTextSize('sm', Boolean(isNested));
-
-  const userAvatars = users?.map(user => ({
-    src: user.authorProfile?.profileImage,
-    alt: user.fullName,
-    tooltip: user.fullName
-  })) || [];
-
-  const getButtonStyle = () => {
-    switch (type) {
-      case 'bounty':
-        return {
-          icon: PlayCircle,
-          className: "text-indigo-700 hover:text-indigo-800 border-indigo-300 bg-indigo-100 hover:bg-indigo-200 font-medium w-auto"
-        };
-      default:
-        return {
-          icon: ResearchCoinIcon,
-          className: "text-orange-700 hover:text-orange-800 border-orange-300 bg-orange-100 hover:bg-orange-200 font-medium w-auto"
-        };
-    }
-  };
-
-  const getRelatedItemIcon = (type: string) => {
-    switch (type) {
-      case 'paper':
-        return FileText;
-      case 'comment':
-        return MessageCircle;
-      case 'funding_request':
-        return HandCoins;
-      case 'bounty':
-        return Trophy;
-      case 'grant':
-        return GraduationCap;
-      case 'review':
-        return Sparkles;
-      case 'contribution':
-        return Award;
-      default:
-        return FileText;
-    }
-  };
-
-  const renderRelatedItemLink = () => {
-    if (!relatedItem || !('type' in relatedItem) || !('title' in relatedItem)) return null;
-
-    const RelatedIcon = getRelatedItemIcon(relatedItem.type);
-
-    return (
-      <div className="flex items-center gap-2">
-        <RelatedIcon className="w-4 h-4 text-gray-500" />
-        <Link 
-          href={`/${relatedItem.type}/${relatedItem.slug || ''}`} 
-          className="text-gray-500 hover:text-gray-900 text-sm font-medium"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {relatedItem.title}
-        </Link>
-      </div>
-    );
-  };
-
-  const renderAmountSection = () => {
-    switch (type) {
-      case 'funding_request':
-        return (
-          <div className={`flex items-center gap-4 text-${textSize}`}>
-            <div className="flex items-center gap-2">
-              <ResearchCoinIcon size={16} className="text-orange-500" />
-              <span className="text-orange-500 font-medium">{amount.toLocaleString()} RSC raised</span>
-              {goalAmount && (
-                <span className="text-gray-500">of {goalAmount.toLocaleString()} RSC goal</span>
-              )}
-            </div>
-            {deadline && (
-              <>
-                <span className="text-gray-400">•</span>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-500">
-                    Ends<FeedItemDate date={deadline} className="text-sm" />
-                  </span>
-                </div>
-              </>
-            )}
-          </div>
-        );
-      case 'bounty':
-        return (
-          <div className={`flex items-center gap-4 text-${textSize}`}>
-            <div className="flex items-center gap-2">
-              <ResearchCoinIcon size={16} className="text-orange-500" />
-              <span className="text-orange-500 font-medium">{amount.toLocaleString()} RSC bounty</span>
-            </div>
-            {deadline && (
-              <>
-                <span className="text-gray-400">•</span>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-500">
-                    Ends <FeedItemDate date={deadline} className="text-sm" />
-                  </span>
-                </div>
-              </>
-            )}
-          </div>
-        );
-      case 'grant':
-        return (
-          <div className={`flex items-center gap-4 text-${textSize}`}>
-            <div className="flex items-center gap-2">
-              <GraduationCap className="w-4 h-4 text-orange-500" />
-              <span className="text-orange-500 font-medium">{amount.toLocaleString()} RSC grant</span>
-            </div>
-            {deadline && (
-              <>
-                <span className="text-gray-400">•</span>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-gray-500" />
-                  <FeedItemDate date={deadline} className="text-sm" />
-                </div>
-              </>
-            )}
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-
-  const buttonStyle = getButtonStyle();
-
-  return (
-    <div className="space-y-4">
-      <div className={`flex flex-col sm:flex-row ${isBountyOrGrant ? 'justify-between' : ''} sm:items-center gap-4`}>
-        <div className="flex items-center gap-4">
-          {renderAmountSection()}
-        </div>
-        {isBountyOrGrant && userAvatars.length > 0 && (
-          <AvatarStack 
-            items={userAvatars} 
-            size={'xs'} 
-            maxItems={3}
-            label={userStackLabel}
-          />
-        )}
-      </div>
-
-      {progress && isFundingRequest && (
-        <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-orange-500 rounded-full transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      )}
-
-      <div className={`flex ${isBountyOrGrant ? '' : 'flex-col-reverse sm:flex-row sm:justify-between sm:items-center'} gap-4`}>
-        <Button 
-          variant="secondary"
-          size="sm"
-          className={buttonStyle.className}
-        >
-          <buttonStyle.icon className="w-4 h-4 mr-1.5" />
-          {ctaText}
-        </Button>
-        {!isBountyOrGrant && userAvatars.length > 0 && (
-          <AvatarStack 
-            items={userAvatars} 
-            size={'xs'} 
-            maxItems={3}
-            label={userStackLabel}
-          />
-        )}
-      </div>
-    </div>
-  );
-};
-
-export const FeedItemBody: FC<FeedItemBodyProps> = ({ 
-  item, 
-  relatedItem, 
-  action, 
-  repostMessage, 
-  isNested 
-}) => {
-  const renderContent = () => {
-    if (action === 'repost') {
-      return (
-        <div className="space-y-2">
-          {repostMessage && (
-            <p className="text-gray-600">{repostMessage}</p>
-          )}
-          <div className="border p-4 rounded-lg">
-            {item.type !== 'paper' && (
-              <FeedItemHeader
-                actor={item.user}
-                timestamp={item.timestamp}
-                action={action}
-                item={item}
-                isNested={true}
-              />
-            )}
-            <div>
-              {renderItemContent(item, true, relatedItem, true)}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    return renderItemContent(item, isNested, relatedItem);
-  };
-
-  const renderItemContent = (
-    item: FeedItemType, 
-    isNested?: boolean, 
-    relatedItem?: FeedEntry['relatedItem'],
-    isReposted?: boolean
-  ) => {
-    switch (item.type) {
-      case 'paper':
-        return (
-          <ContentWrapper 
-            isNested={isNested} 
-            card={!isReposted}
-            href={`/paper/${item.slug}`}
-          >
-            <ContentHeader
-              title={
-                <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested), true)} text-gray-900`}>
-                  {item.title}
-                </h2>
-              }
-              isNested={isNested}
-            />
-            <ExpandableText 
-              text={item.abstract} 
-              isNested={isNested} 
-              baseTextSize="sm"
-              inCard={true} 
-            />
-          </ContentWrapper>
-        );
-      case 'comment':
-        return <CommentContent comment={item} relatedItem={relatedItem} isNested={isNested} />;
-      case 'funding_request':
-        return (
-          <ContentWrapper 
-            isNested={isNested} 
-            card={!isReposted}
-            href={`/funding_request/${item.slug}`}
-          >
-            <ContentHeader 
-              title={
-                <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested), true)} text-gray-900`}>
-                  {item.title}
-                </h2>
-              }
-              isNested={isNested} 
-            />
-            <ExpandableText 
-              text={item.abstract} 
-              isNested={isNested} 
-              baseTextSize="sm"
-              inCard={true} 
-            />
-            <ActionFooter
-              amount={item.amount}
-              icon={HandCoins}
-              goalAmount={item.goalAmount}
-              progress={item.progress}
-              deadline={item.expirationDate}
-              ctaText="Contribute"
-              users={item.contributors}
-              type="funding_request"
-              isNested={isNested}
-              relatedItem={relatedItem}
-            />
-          </ContentWrapper>
-        );
-      case 'grant':
-        return (
-          <ContentWrapper 
-            isNested={isNested} 
-            card={!isReposted}
-            href={`/grant/${item.slug}`}
-          >
-            <ContentHeader 
-              title={
-                <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested), true)} text-gray-900`}>
-                  {item.title}
-                </h2>
-              }
-              isNested={isNested}
-            />
-            <ExpandableText 
-              text={item.abstract} 
-              isNested={isNested} 
-              baseTextSize="sm" 
-              inCard={true} 
-            />
-            <ActionFooter
-              amount={item.amount}
-              icon={GraduationCap}
-              deadline={item.deadline}
-              ctaText="Apply Now"
-              users={item.applicants}
-              userStackLabel="Applicants"
-              type="grant"
-              isNested={isNested}
-              relatedItem={relatedItem}
-            />
-          </ContentWrapper>
-        );
-      case 'review':
-        return (
-          <ContentWrapper 
-            isNested={isNested} 
-            card={!isReposted}
-          >
-            <div className="flex items-center gap-2">
-              <ResearchCoinIcon size={16} className="text-orange-500" />
-              <span className={`text-orange-500 text-${getTextSize('sm', Boolean(isNested), true)}`}>
-                {item.amount.toLocaleString()} RSC
-              </span>
-            </div>
-          </ContentWrapper>
-        );
-      case 'contribution':
-        return renderItemContent(
-          item.recipientItem,
-          isNested,
-          relatedItem,
-          false // not reposted
-        );
-      case 'bounty':
-        return (
-          <ContentWrapper 
-            isNested={isNested} 
-            card={!isReposted}
-            href={`/bounty/${item.slug}`}
-          >
-            {item.bountyType === 'review' && item.relatedPaper && (
-              <ContentHeader 
-                title={
-                  <h2 className={`font-semibold text-${getTextSize('lg', Boolean(isNested), true)} text-gray-900`}>
-                    Peer Review: {item.relatedPaper.title}
-                  </h2>
-                }
-                isNested={isNested}
-              />
-            )}
-            <ExpandableText 
-              text={item.description} 
-              isNested={isNested} 
-              baseTextSize="sm"
-              inCard={true} 
-            />
-            <ActionFooter
-              amount={item.amount}
-              icon={Trophy}
-              deadline={item.deadline}
-              ctaText="Start Task"
-              users={item.contributors}
-              type="bounty"
-              isNested={isNested}
-            />
-          </ContentWrapper>
-        );
-      default:
-        return assertNever(item);
-    }
-  };
-
-  return (
-    <div className="mt-3">
-      {renderContent()}
+      {renderItem(content)}
+      {target && renderItem(target, true)}
     </div>
   );
 }; 

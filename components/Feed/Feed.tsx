@@ -2,19 +2,15 @@
 
 import { FC, useState } from 'react';
 import { feedEntries } from '@/store/feedStore';
-import { FeedTabs } from '../FeedTabs';
-import { InterestSelector } from '../InterestSelector/InterestSelector';
+import { FeedEntry } from '@/types/feed';
+import { FeedTabs } from './FeedTabs';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FeedItem } from './FeedItem';
 import { Sparkles } from 'lucide-react';
-import toast from 'react-hot-toast';
 
-type FeedTab = 'for-you' | 'following' | 'popular' | 'latest' | 'add-interests';
-type InterestTab = 'journal' | 'person' | 'topic';
+type FeedTab = 'for-you' | 'following' | 'popular' | 'latest';
 
 export const Feed: FC = () => {
-  const [showInterests, setShowInterests] = useState(false);
-  const [activeInterestTab, setActiveInterestTab] = useState<InterestTab>('journal');
   const [activeTab, setActiveTab] = useState<FeedTab>('for-you');
 
   const getFeedContent = () => {
@@ -22,42 +18,24 @@ export const Feed: FC = () => {
       case 'for-you':
         return feedEntries; // Original order
       case 'following':
-        return [...feedEntries].sort((a, b) => a.actor.fullName.localeCompare(b.actor.fullName));
-      case 'popular':
         return [...feedEntries].sort((a, b) => 
-          (b.metrics.votes + b.metrics.comments) - 
-          (a.metrics.votes + a.metrics.comments)
+          a.content.actor.fullName.localeCompare(b.content.actor.fullName)
         );
+      case 'popular':
+        return [...feedEntries].sort((a, b) => {
+          const getMetricScore = (entry: FeedEntry) => {
+            const metrics = entry.metrics || { votes: 0, comments: 0 };
+            return (metrics.votes || 0) + (metrics.comments || 0);
+          };
+          return getMetricScore(b) - getMetricScore(a);
+        });
       case 'latest':
         return [...feedEntries].sort((a, b) => 
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
         );
-      case 'add-interests':
-        return feedEntries; // Return default feed when in add interests mode
       default:
         return feedEntries;
     }
-  };
-
-  const handleTabChange = (tab: FeedTab) => {
-    setActiveTab(tab);
-    if (tab === 'add-interests') {
-      setShowInterests(true);
-    }
-  };
-
-  const handleInterestSelection = async (interests: any[]) => {
-    setShowInterests(false);
-    setActiveTab('for-you'); // Reset to default tab after interests selection
-    toast.success('Your preferences have been updated', {
-      duration: 4000,
-      position: 'bottom-right',
-      style: {
-        background: '#F9FAFB',
-        color: '#111827',
-        border: '1px solid #E5E7EB',
-      },
-    });
   };
 
   return (
@@ -72,31 +50,20 @@ export const Feed: FC = () => {
 
         <div className="border-b border-gray-100">
           <FeedTabs 
-            showingInterests={showInterests} 
-            onInterestsClick={() => setShowInterests(!showInterests)}
             activeTab={activeTab}
-            onTabChange={handleTabChange}
+            onTabChange={setActiveTab}
           />
         </div>
 
-        {showInterests ? (
-          <div className="mt-6">
-            <InterestSelector
-              mode="preferences"
-              onComplete={handleInterestSelection}
+        <div className="mt-8 space-y-6">
+          {getFeedContent().map((entry, index) => (
+            <FeedItem 
+              key={entry.id} 
+              entry={entry} 
+              isFirst={index === 0}
             />
-          </div>
-        ) : (
-          <div className="mt-8">
-            {getFeedContent().map((entry, index) => (
-              <FeedItem 
-                key={entry.id} 
-                entry={entry} 
-                isFirst={index === 0}
-              />
-            ))}
-          </div>
-        )}
+          ))}
+        </div>
       </div>
     </PageLayout>
   );
