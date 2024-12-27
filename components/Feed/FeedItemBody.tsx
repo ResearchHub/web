@@ -5,7 +5,7 @@ import { Content } from '@/types/feed';
 import { Button } from '@/components/ui/Button';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Progress } from '@/components/ui/Progress';
-import { Star, Clock } from 'lucide-react';
+import { Star, Clock, FileText } from 'lucide-react';
 import { formatDeadline } from '@/utils/date';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
@@ -55,10 +55,11 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context }
 
     const getTypeLabel = (type: string) => {
       if (type === 'funding_request') return 'crowdfund';
+      else if (type === 'review') return 'Peer Review';
       return type.replace('_', ' ');
     };
 
-    const shouldShowBorder = isTarget || item.type === 'paper';
+    const shouldShowBorder = isTarget || item.type === 'paper' || item.type === 'review';
     const isComment = item.type === 'comment';
 
     return (
@@ -104,6 +105,17 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context }
                   {parentContent}
                 </div>
               </div>
+              {context?.type === 'paper' && (
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <Link 
+                    href={getItemUrl(context)}
+                    className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900"
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span>RE: {context.title}</span>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         )}

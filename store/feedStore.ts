@@ -78,7 +78,7 @@ export const feedEntries: FeedEntry[] = [
       actor: users.sarahChen,
       participants: {
         role: 'contributor',
-        profiles: [users.adamDraper, users.elenaRodriguez, users.dominikus]
+        profiles: [users.adamDraper, users.elenaRodriguez, users.dominikus, users.alexThompson]
       }
     },
     metrics: {
@@ -161,6 +161,28 @@ export const feedEntries: FeedEntry[] = [
       reposts: 0,
       saves: 1
     }    
+  },
+  {
+    id: 'feed-5',
+    action: 'post',
+    timestamp: '2024-12-13 14:24:06.069373+00',
+    content: {
+      id: 'item-5',
+      type: 'review',
+      title: 'Review of "Revolutionizing Patient Care: Advances in Flexible Printed Heaters"',
+      content: 'Excellent methodology and comprehensive literature review. The discussion of thermal management challenges could be expanded.',
+      timestamp: '2024-12-16 15:24:06.069373+00',
+      hub: hubs.medicalDevices,
+      slug: 'review-revolutionizing-patient-care',
+      actor: users.elenaRodriguez,
+      score: 4
+    },
+    metrics: {
+      votes: 12,
+      comments: 3,
+      reposts: 2,
+      saves: 3
+    }
   }
 ];
 
