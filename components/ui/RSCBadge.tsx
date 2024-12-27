@@ -3,12 +3,13 @@
 import { FC } from 'react'
 import { cn } from '@/utils/styles'
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon'
+import { Plus } from 'lucide-react'
 
 interface RSCBadgeProps {
   amount: number
   className?: string
   size?: 'xs' | 'sm' | 'md'
-  variant?: 'inline' | 'badge'
+  variant?: 'inline' | 'badge' | 'contribute'
   /** Whether to show "RSC" text after the amount */
   showText?: boolean
   /** Whether to show the RSC icon */
@@ -31,7 +32,8 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
 
   const variantClasses = {
     badge: 'rounded-full border border-orange-200 bg-orange-50 py-1 px-2',
-    inline: ''
+    inline: '',
+    contribute: 'rounded-full border border-orange-200 hover:border-orange-300 hover:bg-orange-50 py-1 px-2'
   }
 
   const iconSizes = {

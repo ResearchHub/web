@@ -23,6 +23,16 @@ interface ResearchCoinIconProps {
    * @default false
    */
   outlined?: boolean
+  /**
+   * Whether to show the simplified coin variant without circles
+   * @default false
+   */
+  coin?: boolean
+  /**
+   * Stroke width of the coin
+   * @default 1.0
+   */
+  strokeWidth?: number
 }
 
 export function ResearchCoinIcon({
@@ -31,7 +41,10 @@ export function ResearchCoinIcon({
   className,
   onClick,
   outlined = false,
+  strokeWidth = 1,
 }: ResearchCoinIconProps) {
+
+
   if (outlined) {
     return (
       <svg
@@ -48,7 +61,7 @@ export function ResearchCoinIcon({
           clipRule="evenodd"
           d="M7.96539 1.07912C11.2355 1.61221 13.4541 4.6951 12.9209 7.96525C12.3877 11.2355 9.30472 13.454 6.03461 12.9209C2.7645 12.3876 0.545902 9.30493 1.07911 6.03456C1.61231 2.7643 4.69517 0.545903 7.96539 1.07912Z"
           stroke={color}
-          strokeWidth="1"
+          strokeWidth={strokeWidth}
           fill="white"
         />
         <g transform="translate(1, 1)">

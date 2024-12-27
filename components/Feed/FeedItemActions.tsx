@@ -7,10 +7,12 @@ import {
   Repeat,
   MoreHorizontal,
   ChevronUp,
-  Bookmark
+  PlusIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FeedItemMenu } from '@/components/menus/FeedItemMenu';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { ContributeRSC } from '../ui/icons/ContributeRSC';
 
 interface ActionButtonProps {
   icon: any;
@@ -60,12 +62,14 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({ metrics, content }) 
         tooltip="Repost"
         label="Repost"
       />
-      <ActionButton
-        icon={Bookmark}
-        count={metrics?.saves}
-        tooltip="Save"
-        label="Save"
-      />
+      <Button
+        variant="ghost"
+        size="sm"
+        className="flex items-center space-x-1.5 text-gray-900 hover:text-gray-900 relative"
+        tooltip="Contribute ResearchCoin"
+      >
+        <ContributeRSC size={20} />
+      </Button>
       <FeedItemMenu>
         <Button
           variant="ghost"
