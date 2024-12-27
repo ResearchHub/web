@@ -110,5 +110,6 @@ export interface FeedEntry {
     applicants?: number;
     reviewScore?: number;
     views?: number;
+    earned?: number;
   };
 }

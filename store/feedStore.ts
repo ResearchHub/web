@@ -46,7 +46,8 @@ export const feedEntries: FeedEntry[] = [
       votes: 20,
       comments: 10,
       reposts: 3,
-      saves: 5
+      saves: 5,
+      earned: "2K"
     }    
   },  
   {

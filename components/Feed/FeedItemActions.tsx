@@ -68,7 +68,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({ metrics, content }) 
         className="flex items-center space-x-1.5 text-gray-900 hover:text-gray-900 relative"
         tooltip="Contribute ResearchCoin"
       >
-        <ContributeRSC size={20} />
+        <ContributeRSC size={20} amount={metrics?.earned} />
       </Button>
       <FeedItemMenu>
         <Button
