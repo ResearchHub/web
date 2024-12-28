@@ -49,9 +49,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   target,
   contributors = []
 }) => {
-  const getContributors = () => {
-    return contributors.map(c => c.profile);
-  };
 
   return (
     <div className="flex items-center space-x-4">
@@ -73,12 +70,11 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
         tooltip="Repost"
         label="Repost"
       />
-
-        <ContributeRSC 
-          size={22} 
-          amount={metrics?.earned}
-          contributors={getContributors()}
-        />
+      <ContributeRSC 
+        size={22} 
+        amount={metrics?.earned}
+        contributors={contributors}
+      />
       <div className="flex-1" />
       <FeedItemMenu>
         <Button

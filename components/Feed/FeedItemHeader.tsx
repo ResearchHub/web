@@ -6,6 +6,7 @@ import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { formatTimestamp } from '@/utils/date';
 import { RSCBadge } from '@/components/ui/RSCBadge';
+import { formatRSC } from '@/utils/number';
 
 interface FeedItemHeaderProps {
   action: FeedActionType;
@@ -106,16 +107,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
           />
           {action === 'contribute' && content.type === 'contribution' ? (
             <>
-              <span className="text-sm text-gray-500">contributed</span>
-              <RSCBadge 
-                amount={content.amount} 
-                variant="inline" 
-                size="xs" 
-                className="font-semibold"
-                showText={true}
-                showIcon={false}
-              />
-              <span className="text-sm text-gray-500">towards bounty</span>
+              <span className="text-sm text-gray-500">contributed {formatRSC({amount: content.amount})} RSC towards bounty</span>
             </>
           ) : (
             <span className="text-sm text-gray-500">{getActionText()}</span>

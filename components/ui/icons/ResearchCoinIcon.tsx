@@ -1,4 +1,5 @@
 import { cn } from '@/utils/styles';
+import { PlusIcon } from 'lucide-react';
 
 interface ResearchCoinIconProps {
   /**
@@ -29,10 +30,43 @@ interface ResearchCoinIconProps {
    */
   coin?: boolean
   /**
+   * Shows RSC icon with plus icon
+   * @default false
+   */
+  contribute?: boolean
+  /**
    * Stroke width of the coin
    * @default 1.0
    */
   strokeWidth?: number
+}
+
+function ContributeVariant({ size, color }: { size: number; color: string }) {
+  return (
+    <div className="relative">
+      <ResearchCoinIcon
+        size={size}
+        color={color}
+        outlined
+        coin
+        strokeWidth={1.1}
+      />
+      <div 
+        className="absolute -top-0.5 -right-1 rounded-full bg-white shadow-sm border border-white"
+        style={{ width: '11px', height: '12px' }}
+      >
+        <PlusIcon 
+          className="absolute -top-px -left-px"
+          style={{ 
+            width: '11px', 
+            height: '12px',
+            color: color,
+            strokeWidth: 4
+          }}
+        />
+      </div>
+    </div>
+  );
 }
 
 export function ResearchCoinIcon({
@@ -41,9 +75,12 @@ export function ResearchCoinIcon({
   className,
   onClick,
   outlined = false,
+  contribute = false,
   strokeWidth = 1,
 }: ResearchCoinIconProps) {
-
+  if (contribute) {
+    return <ContributeVariant size={size} color={color} />;
+  }
 
   if (outlined) {
     return (

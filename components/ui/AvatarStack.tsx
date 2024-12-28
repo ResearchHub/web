@@ -27,6 +27,8 @@ interface AvatarStackProps {
   hideLabel?: boolean;
   /** When true, leftmost avatar appears on top */
   reverseOrder?: boolean;
+  /** When true, disables individual avatar tooltips */
+  disableTooltip?: boolean;
 }
 
 export const AvatarStack: FC<AvatarStackProps> = ({ 
@@ -38,34 +40,45 @@ export const AvatarStack: FC<AvatarStackProps> = ({
   spacing = -8,
   reverseOrder = false,
   hideLabel = false,
+  disableTooltip = false,
 }) => {
   const displayItems = items.slice(0, maxItems);
   const remainingCount = items.length - maxItems;
 
+  const renderAvatar = (item: AvatarStackProps['items'][0], index: number) => {
+    const avatar = (
+      <div 
+        className="relative inline-block" 
+        style={{ 
+          marginLeft: index !== 0 ? `${spacing}px` : undefined,
+          zIndex: reverseOrder ? displayItems.length - index : index,
+        }}
+      >
+        <Avatar
+          src={item.src}
+          alt={item.alt}
+          size={size}
+          className="ring-1 ring-gray-200"
+        />
+      </div>
+    );
+
+    if (disableTooltip) return avatar;
+
+    return (
+      <Tooltip 
+        key={`${item.alt}-${index}`}
+        content={item.tooltip || item.alt}
+      >
+        {avatar}
+      </Tooltip>
+    );
+  };
+
   return (
     <div className={cn('flex items-center', className)}>
       <div className="flex">
-        {displayItems.map((item, index) => (
-          <Tooltip 
-            key={`${item.alt}-${index}`}
-            content={item.tooltip || item.alt}
-          >
-            <div 
-              className="relative inline-block" 
-              style={{ 
-                marginLeft: index !== 0 ? `${spacing}px` : undefined,
-                zIndex: reverseOrder ? displayItems.length - index : index,
-              }}
-            >
-              <Avatar
-                src={item.src}
-                alt={item.alt}
-                size={size}
-                className="ring-1 ring-gray-200"
-              />
-            </div>
-          </Tooltip>
-        ))}
+        {displayItems.map((item, index) => renderAvatar(item, index))}
         {!hideLabel && remainingCount > 0 && (
           <div 
             className="relative"
