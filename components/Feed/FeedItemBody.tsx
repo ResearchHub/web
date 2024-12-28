@@ -18,6 +18,7 @@ interface FeedItemBodyProps {
   target?: Content;
   context?: Content;
   metrics?: FeedEntry['metrics'];
+  applicants?: FeedEntry['applicants'];
 }
 
 const getItemUrl = (content: Content) => {
@@ -29,7 +30,7 @@ const getItemUrl = (content: Content) => {
   return `/${content.type}/${content.id}/${slug}`;
 };
 
-export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, metrics }) => {
+export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, metrics, applicants }) => {
   const renderItem = (item: Content, isTarget: boolean = false) => {
     const itemContent = (() => {
       switch (item.type) {
@@ -60,7 +61,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
       return type.replace('_', ' ');
     };
 
-    const shouldShowBorder = isTarget || item.type === 'paper' || item.type === 'review';
+    const shouldShowBorder = isTarget || item.type === 'paper' || item.type === 'review' || item.type === 'grant';
     const isComment = item.type === 'comment';
 
     return (
@@ -219,7 +220,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
     return (
       <div>
         <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
-          {grant.title}
+          <Link href={getItemUrl(grant)}>{grant.title}</Link>
         </h3>
         <p className="text-sm text-gray-600 mb-3">
           {grant.abstract}
@@ -227,10 +228,11 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
         <div className="flex items-center space-x-4 text-sm">
           {grant.amount && (
             <div className="flex items-center space-x-1">
-              <ResearchCoinIcon size={16} color="#F97316" />
-              <span className="text-orange-500 font-medium">
-                {grant.amount.toLocaleString()} RSC
-              </span>
+              <RSCBadge 
+                amount={grant.amount} 
+                variant="inline" 
+                showText
+              />
             </div>
           )}
           {grant.deadline && (
@@ -244,15 +246,33 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
               </div>
             </>
           )}
-        </div>
-        <div className="flex items-center justify-between mt-4">
-          <Button size="sm" disabled={deadlineText === 'Ended'}>Apply Now</Button>
           {metrics?.applicants && metrics.applicants > 0 && (
-            <div className="flex items-center gap-2">
+            <>
+              <span className="text-gray-500">•</span>
               <span className="text-sm text-gray-500">
                 {metrics.applicants} Applicant{metrics.applicants !== 1 ? 's' : ''}
               </span>
-            </div>
+            </>
+          )}
+        </div>
+        <div className="flex items-center justify-between mt-4">
+          <Button 
+            size="sm" 
+            disabled={deadlineText === 'Ended'}
+            variant="start-task"
+          >
+            Apply Now
+          </Button>
+          {metrics?.applicants && metrics.applicants > 0 && applicants && (
+            <AvatarStack 
+              items={applicants.map(profile => ({
+                src: profile.profileImage || '',
+                alt: profile.fullName,
+                tooltip: profile.fullName
+              }))}
+              size="xs"
+              maxItems={3}
+            />
           )}
         </div>
       </div>

@@ -118,7 +118,16 @@ export const feedEntries: FeedEntry[] = [
         users.dominikus
       ]
     },
-    contributors: [],
+    contributors: [
+      {
+        profile: users.sarahChen,
+        amount: 210
+      },
+      {
+        profile: users.jamesWilson,
+        amount: 340
+      }
+    ],
     metrics: {
       votes: 15,
       comments: 8,
@@ -180,7 +189,8 @@ export const feedEntries: FeedEntry[] = [
       votes: 8,
       comments: 1,
       reposts: 0,
-      saves: 1
+      saves: 1,
+      earned: 1000
     }    
   },
   {
@@ -208,8 +218,44 @@ export const feedEntries: FeedEntry[] = [
       votes: 12,
       comments: 3,
       reposts: 2,
-      saves: 3
+      saves: 3,
+      earned: 500
     }
+  },
+  {
+    id: 'feed-4',
+    action: 'post',
+    timestamp: '2024-12-13 13:24:06.069373+00',
+    content: {
+      id: 'urban-water-quality',
+      type: 'grant',
+      title: 'Urban Water Quality Assessment: A Multi-City Analysis of Municipal Water Systems Across America',
+      abstract: 'Seeking researchers to conduct comprehensive water quality analysis in developing regions.',
+      timestamp: '2024-12-13 13:24:06.069373+00',
+      hub: hubs.environmentalScience,
+      amount: 500000,
+      deadline: '2024-12-30 16:24:06.069373+00',
+      slug: 'urban-water-quality-assessment',
+      actor: users.adamDraper
+    },
+    applicants: [
+      users.elenaRodriguez,
+      users.mariaPatel,
+      users.sarahChen,
+      users.davidKumar,
+      users.jamesWilson,
+      users.alexThompson,
+      users.mariaGarcia,
+      users.hundessaNemomssa
+    ],
+    contributors: [],
+    metrics: {
+      votes: 32,
+      comments: 12,
+      applicants: 8,
+      reposts: 3,
+      saves: 5
+    }    
   }
 ];
 

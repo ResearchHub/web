@@ -15,7 +15,7 @@ const buttonVariants = cva(
         link: 'text-primary-600 underline-offset-4 hover:underline',
         destructive: 'bg-red-600 text-white hover:bg-red-700',
         researchcoin: 'bg-orange-100 text-orange-600 hover:bg-orange-200',
-        'start-task': 'bg-orange-500 text-white hover:bg-orange-600 focus-visible:ring-orange-500',
+        'start-task': 'bg-indigo-200 text-indigo-900 hover:bg-indigo-300 focus-visible:ring-indigo-500',
         contribute: 'bg-white bg-orange-100 text-orange-600 border border-orange-100 hover:bg-orange-200 hover:border-orange-200',
       },
       size: {
