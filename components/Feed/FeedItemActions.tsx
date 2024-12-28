@@ -39,11 +39,22 @@ const ActionButton: FC<ActionButtonProps> = ({ icon: Icon, count, label, tooltip
 interface FeedItemActionsProps {
   metrics?: FeedEntry['metrics'];
   content: Content;
+  target?: Content;
+  contributors?: FeedEntry['contributors'];
 }
 
-export const FeedItemActions: FC<FeedItemActionsProps> = ({ metrics, content }) => {
+export const FeedItemActions: FC<FeedItemActionsProps> = ({ 
+  metrics, 
+  content, 
+  target,
+  contributors = []
+}) => {
+  const getContributors = () => {
+    return contributors.map(c => c.profile);
+  };
+
   return (
-    <div className="flex items-center space-x-3">
+    <div className="flex items-center space-x-4">
       <ActionButton 
         icon={ChevronUp} 
         count={metrics?.votes} 
@@ -62,18 +73,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({ metrics, content }) 
         tooltip="Repost"
         label="Repost"
       />
-      <Button
-        variant="ghost"
-        size="sm"
-        className="flex items-center space-x-1.5 text-gray-900 hover:text-gray-900 relative"
-        tooltip="Contribute ResearchCoin"
-      >
+
         <ContributeRSC 
           size={22} 
           amount={metrics?.earned}
-          contributors={content.participants?.profiles}
+          contributors={getContributors()}
         />
-      </Button>
       <div className="flex-1" />
       <FeedItemMenu>
         <Button

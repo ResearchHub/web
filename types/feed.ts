@@ -1,11 +1,7 @@
 import { AuthorProfile } from './user';
 
-export type Role = 'contributor' | 'author' | 'reviewer' | 'applicant';
+export type Role = 'applicant';
 
-export interface Participants {
-  role: Role;
-  profiles: AuthorProfile[];
-}
 
 export type FeedActionType = 'repost' | 'contribute' | 'publish' | 'post';
 
@@ -30,7 +26,6 @@ interface BaseContent {
   slug: string;
   title?: string;
   actor: AuthorProfile;
-  participants?: Participants;
 }
 
 export interface Paper extends BaseContent {
@@ -38,6 +33,7 @@ export interface Paper extends BaseContent {
   abstract: string;
   doi?: string;
   journal?: string;
+  authors: AuthorProfile[];
 }
 
 export interface Comment extends BaseContent {
@@ -102,6 +98,11 @@ export interface FeedEntry {
   content: Content;
   target?: Content;
   context?: Content;
+  contributors: Array<{
+    profile: AuthorProfile;
+    amount: number;
+  }>;
+  applicants?: AuthorProfile[];  
   metrics?: {
     votes: number;
     comments: number;

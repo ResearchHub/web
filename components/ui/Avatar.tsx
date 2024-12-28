@@ -1,86 +1,63 @@
 'use client'
 
 import { FC, useState } from 'react';
-
-const COLORS = [
-  'bg-blue-100 text-blue-700',
-  'bg-green-100 text-green-700',
-  'bg-purple-100 text-purple-700',
-  'bg-orange-100 text-orange-700',
-  'bg-pink-100 text-pink-700',
-  'bg-indigo-100 text-indigo-700',
-];
+import { cn } from '@/utils/styles';
 
 interface AvatarProps {
   src?: string | null;
-  alt?: string;
-  size?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg';
+  alt: string;
+  size?: 'xxs' | 'xs' | 'sm' | 'md';
   className?: string;
-  style?: React.CSSProperties;
 }
-
-const getInitials = (name: string | undefined) => {
-  if (!name) return '?';
-  
-  const parts = name.trim().split(' ').filter(Boolean);
-  if (parts.length === 0) return '?';
-  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-};
-
-const getRandomColor = (name: string | undefined) => {
-  if (!name) return COLORS[0];
-  // Use name to consistently get same color for same person
-  const index = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return COLORS[index % COLORS.length];
-};
-
-const getSizeClasses = (size: AvatarProps['size']) => {
-  switch (size) {
-    case 'xxs':
-      return 'w-5 h-5 text-xs';    
-    case 'xs':
-      return 'w-6 h-6 text-xs';
-    case 'sm':
-      return 'w-8 h-8 text-sm';
-    case 'md':
-      return 'w-10 h-10 text-base';
-    case 'lg':
-      return 'w-12 h-12 text-lg';
-    default:
-      return 'w-8 h-8 text-sm';
-  }
-};
 
 export const Avatar: FC<AvatarProps> = ({ 
   src, 
-  alt = '', 
-  size = 'sm',
-  className = '' 
+  alt, 
+  size = 'md',
+  className 
 }) => {
   const [imageError, setImageError] = useState(false);
-  const sizeClasses = getSizeClasses(size);
-  const initials = getInitials(alt);
-  const colorClasses = getRandomColor(alt);
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  };
+
+  const sizeClasses = {
+    xxs: 'h-5 w-5 text-[8px]',
+    xs: 'h-6 w-6 text-[10px]',
+    sm: 'h-8 w-8 text-xs',
+    md: 'h-10 w-10 text-sm'
+  };
 
   const handleImageError = () => {
     setImageError(true);
   };
 
-  if (src && !imageError) {
-    return (
-      <img
-        src={src}
-        alt={alt}
-        onError={handleImageError}
-        className={`${sizeClasses} rounded-full object-cover ${className}`}
-      />
-    );
-  }
-
   return (
-    <div className={`${sizeClasses} ${colorClasses} rounded-full flex items-center justify-center font-medium ${className}`}>
-      {initials}
+    <div 
+      className={cn(
+        'relative inline-flex items-center justify-center rounded-full bg-gray-100 overflow-hidden',
+        sizeClasses[size],
+        className
+      )}
+    >
+      {src && !imageError ? (
+        <img
+          src={src}
+          alt={alt}
+          className="h-full w-full object-cover"
+          onError={handleImageError}
+        />
+      ) : (
+        <span className="font-medium text-gray-600">
+          {getInitials(alt)}
+        </span>
+      )}
     </div>
   );
 }; 

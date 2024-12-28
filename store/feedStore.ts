@@ -21,10 +21,6 @@ export const feedEntries: FeedEntry[] = [
       slug: 'contribution-statistical-analysis',
       title: 'Contribution to Statistical Analysis',
       actor: users.mariaGarcia,
-      participants: {
-        role: 'contributor',
-        profiles: [users.alexThompson]
-      }
     },
     target: {
       id: 'item-10',
@@ -37,16 +33,20 @@ export const feedEntries: FeedEntry[] = [
       deadline: futureDate(5),
       slug: 'statistical-analysis-covid19-vaccination-efficacy-data',
       actor: users.researchHub,
-      participants: {
-        role: 'contributor',
-        profiles: [users.mariaGarcia, users.alexThompson]
-      }
     },
+    contributors: [{
+      profile: users.mariaGarcia,
+      amount: 750
+    }, {
+      profile: users.alexThompson,
+      amount: 1250
+    }],
     metrics: {
       votes: 20,
       comments: 10,
       reposts: 3,
       saves: 5,
+      // For bounties, earned amount will be target.amount. It is double exposed.
       earned: 2000,
     }    
   },  
@@ -77,16 +77,26 @@ export const feedEntries: FeedEntry[] = [
       deadline: futureDate(20),
       slug: 'ml-approaches-early-detection-neurodegenerative-diseases',
       actor: users.sarahChen,
-      participants: {
-        role: 'contributor',
-        profiles: [users.adamDraper, users.elenaRodriguez, users.dominikus, users.alexThompson]
-      }
     },
+    contributors: [{
+      profile: users.adamDraper,
+      amount: 500
+    }, {
+      profile: users.elenaRodriguez,
+      amount: 10000
+    }, {
+      profile: users.dominikus,
+      amount: 10000
+    }, {
+      profile: users.alexThompson,
+      amount: 24500
+    }],
     metrics: {
       votes: 12,
       comments: 3,
       reposts: 2,
       saves: 3,
+      earned: 45000,
     }    
   },
   {
@@ -102,15 +112,13 @@ export const feedEntries: FeedEntry[] = [
       hub: hubs.neuroscience,
       slug: 'deoxysphingolipids-activate-cgas-sting',
       actor: users.elenaRodriguez,
-      participants: {
-        role: 'author',
-        profiles: [
-          users.sarahChen,
-          users.jamesWilson,
-          users.dominikus
-        ]
-      }
+      authors: [
+        users.sarahChen,
+        users.jamesWilson,
+        users.dominikus
+      ]
     },
+    contributors: [],
     metrics: {
       votes: 15,
       comments: 8,
@@ -152,11 +160,22 @@ export const feedEntries: FeedEntry[] = [
       journal: "bioRxiv",
       slug: 'neural-networks-in-climate-prediction',
       actor: users.sarahChen,
-      participants: {
-        role: 'author',
-        profiles: [users.jamesWilson]
-      }
+      authors: [
+        users.sarahChen,
+        users.jamesWilson,
+        users.dominikus
+      ]
     },
+    contributors: [
+      {
+        profile: users.sarahChen,
+        amount: 500
+      },
+      {
+        profile: users.jamesWilson,
+        amount: 500
+      }
+    ],
     metrics: {
       votes: 8,
       comments: 1,
@@ -179,6 +198,12 @@ export const feedEntries: FeedEntry[] = [
       actor: users.elenaRodriguez,
       score: 4
     },
+    contributors: [
+      {
+        profile: users.dominikus,
+        amount: 500
+      }
+    ],
     metrics: {
       votes: 12,
       comments: 3,

@@ -1,7 +1,7 @@
 'use client'
 
 import { FC } from 'react';
-import { Content } from '@/types/feed';
+import { Content, FeedEntry } from '@/types/feed';
 import { Button } from '@/components/ui/Button';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Progress } from '@/components/ui/Progress';
@@ -17,6 +17,7 @@ interface FeedItemBodyProps {
   content: Content;
   target?: Content;
   context?: Content;
+  metrics?: FeedEntry['metrics'];
 }
 
 const getItemUrl = (content: Content) => {
@@ -28,7 +29,7 @@ const getItemUrl = (content: Content) => {
   return `/${content.type}/${content.id}/${slug}`;
 };
 
-export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context }) => {
+export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, metrics }) => {
   const renderItem = (item: Content, isTarget: boolean = false) => {
     const itemContent = (() => {
       switch (item.type) {
@@ -130,7 +131,6 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context }
 
   const renderPaper = (paper: Content) => {
     if (paper.type !== 'paper') return null;
-    const authors = paper.participants?.role === 'author' ? paper.participants.profiles : [];
     
     return (
       <div>
@@ -146,7 +146,6 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context }
 
   const renderFundingRequest = (fundingRequest: Content) => {
     if (fundingRequest.type !== 'funding_request') return null;
-    const contributors = fundingRequest.participants?.role === 'contributor' ? fundingRequest.participants.profiles : [];
     const deadlineText = formatDeadline(fundingRequest.deadline);
     
     const getStatusDisplay = () => {
@@ -209,35 +208,12 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context }
             size="xs"
           />
         </div>
-        <div className="flex justify-between items-center">
-          <Button 
-            variant="contribute" 
-            size="sm" 
-          >
-            Contribute
-          </Button>
-          {contributors.length > 0 && (
-            <div className="flex items-center ml-4">
-              <AvatarStack
-                items={contributors.map(profile => ({
-                  src: profile.profileImage,
-                  alt: profile.fullName,
-                  tooltip: profile.fullName
-                }))}
-                size="xs"
-                maxItems={2}
-                label='contributors'
-              />
-            </div>
-          )}
-        </div>
       </div>
     );
   };
 
   const renderGrant = (grant: Content) => {
     if (grant.type !== 'grant') return null;
-    const applicants = grant.participants?.role === 'applicant' ? grant.participants.profiles : [];
     const deadlineText = formatDeadline(grant.deadline);
     
     return (
@@ -271,19 +247,10 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context }
         </div>
         <div className="flex items-center justify-between mt-4">
           <Button size="sm" disabled={deadlineText === 'Ended'}>Apply Now</Button>
-          {applicants.length > 0 && (
+          {metrics?.applicants && metrics.applicants > 0 && (
             <div className="flex items-center gap-2">
-              <AvatarStack
-                items={applicants.map(profile => ({
-                  src: profile.profileImage,
-                  alt: profile.fullName,
-                  tooltip: profile.fullName
-                }))}
-                size="xs"
-                maxItems={2}
-              />
               <span className="text-sm text-gray-500">
-                {applicants.length} Applicant{applicants.length !== 1 ? 's' : ''}
+                {metrics.applicants} Applicant{metrics.applicants !== 1 ? 's' : ''}
               </span>
             </div>
           )}
@@ -324,7 +291,6 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context }
   const renderBounty = (bounty: Content) => {
     if (bounty.type !== 'bounty') return null;
     const deadlineText = formatDeadline(bounty.deadline);
-    const participants = bounty.participants?.role === 'contributor' ? bounty.participants.profiles : [];
     
     return (
       <div>
@@ -364,27 +330,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context }
             >
               Start Task
             </Button>
-            <Button 
-              variant="contribute" 
-              size="sm" 
-            >
-              Contribute
-            </Button>
           </div>
-          {participants.length > 0 && (
-            <div className="flex items-center gap-2">
-              <AvatarStack
-                items={participants.map(profile => ({
-                  src: profile.profileImage,
-                  alt: profile.fullName,
-                  tooltip: profile.fullName
-                }))}
-                size="xs"
-                maxItems={2}
-                label='contributors'
-              />
-            </div>
-          )}
         </div>
       </div>
     );

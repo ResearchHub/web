@@ -12,17 +12,21 @@ interface AvatarItem {
 }
 
 interface AvatarStackProps {
-  items: AvatarItem[];
-  size?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg';
+  items: {
+    src: string;
+    alt: string;
+    tooltip?: string;
+  }[];
+  size?: 'xxs' | 'xs' | 'sm' | 'md';
   maxItems?: number;
-  className?: string;
-  label?: string;
   /** Spacing in pixels between avatars. Negative values create overlap. */
   spacing?: number;
-  /** When true, leftmost avatar appears on top */
-  reverseOrder?: boolean;
+  className?: string;
+  label?: string;
   /** When true, hides the count label completely */
   hideLabel?: boolean;
+  /** When true, leftmost avatar appears on top */
+  reverseOrder?: boolean;
 }
 
 export const AvatarStack: FC<AvatarStackProps> = ({ 

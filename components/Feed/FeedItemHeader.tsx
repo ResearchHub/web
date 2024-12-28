@@ -37,72 +37,73 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
     }
   };
 
+  const getAvatarItems = () => {
+    if (content.type === 'paper') {
+      return [
+        {
+          src: content.actor.profileImage,
+          alt: content.actor.fullName,
+          tooltip: content.actor.fullName
+        },
+        ...content.authors
+          .filter(author => author.id !== content.actor.id)
+          .map(author => ({
+            src: author.profileImage,
+            alt: author.fullName,
+            tooltip: author.fullName
+          }))
+      ];
+    }
+    
+    return [{
+      src: content.actor.profileImage,
+      alt: content.actor.fullName,
+      tooltip: content.actor.fullName
+    }];
+  };
+
+  const getAuthors = () => {
+    if (content.type === 'paper') {
+      return [
+        {
+          name: content.actor.fullName,
+          verified: content.actor.user?.isVerified,
+          profileUrl: content.actor.profileUrl
+        },
+        ...content.authors
+          .filter(author => author.id !== content.actor.id)
+          .map(author => ({
+            name: author.fullName,
+            verified: author.user?.isVerified,
+            profileUrl: author.profileUrl
+          }))
+      ];
+    }
+
+    return [{
+      name: content.actor.fullName,
+      verified: content.actor.user?.isVerified,
+      profileUrl: content.actor.profileUrl
+    }];
+  };
 
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-3">
         <AvatarStack
-          items={content.type === 'paper' && content.participants?.role === 'author' 
-            ? [
-                {
-                  src: content.actor.profileImage,
-                  alt: content.actor.fullName,
-                  tooltip: content.actor.fullName
-                },
-                ...content.participants.profiles
-                  .filter(profile => profile.id !== content.actor.id)
-                  .map(profile => ({
-                    src: profile.profileImage,
-                    alt: profile.fullName,
-                    tooltip: profile.fullName
-                  }))
-              ]
-            : [{
-                src: content.actor.profileImage,
-                alt: content.actor.fullName,
-                tooltip: content.actor.fullName
-              }]
-          }
+          items={getAvatarItems()}
           size={size}
           maxItems={content.type === 'paper' ? 3 : 1}
           spacing={-12}
         />
-        
         <div className="flex flex-wrap items-center gap-1.5 -mt-1">
-          {content.type === 'paper' && content.participants?.role === 'author' ? (
-            <AuthorList
-              authors={[
-                {
-                  name: content.actor.fullName,
-                  verified: content.actor.user?.isVerified,
-                  profileUrl: content.actor.profileUrl
-                },
-                ...content.participants.profiles
-                  .filter(profile => profile.id !== content.actor.id)
-                  .map(profile => ({
-                    name: profile.fullName,
-                    verified: profile.user?.isVerified,
-                    profileUrl: profile.profileUrl
-                  }))
-              ]}
-              size="sm"
-              className="font-semibold"
-              delimiter="and"
-              delimiterClassName="text-gray-900"
-            />
-          ) : (
-            <AuthorList
-              authors={[{
-                name: content.actor.fullName,
-                verified: content.actor.user?.isVerified,
-                profileUrl: content.actor.profileUrl
-              }]}
-              size="sm"
-              className="font-semibold"
-              delimiter="and"
-              delimiterClassName="text-gray-900"
-            />
-          )}
+          <AuthorList
+            authors={getAuthors()}
+            size="sm"
+            className="font-semibold"
+            delimiter="and"
+            delimiterClassName="text-gray-900"
+          />
           {action === 'contribute' && content.type === 'contribution' ? (
             <>
               <span className="text-sm text-gray-500">contributed</span>
