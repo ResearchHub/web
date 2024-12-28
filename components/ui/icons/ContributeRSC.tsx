@@ -3,6 +3,8 @@
 import { cn } from '@/utils/styles';
 import { ResearchCoinIcon } from './ResearchCoinIcon';
 import { PlusIcon } from 'lucide-react';
+import { AvatarStack } from '../AvatarStack';
+import { AuthorProfile } from '@/types/user';
 
 interface ContributeRSCProps {
   /**
@@ -11,9 +13,14 @@ interface ContributeRSCProps {
   size?: number
   /**
    * Primary color
-   * @default '#F97316' (orange)
+   * @default '#4D525D' (orange)
    */
-  color?: string
+  iconColor?: string
+  /**
+   * Text color
+   * @default '#101827'
+   */
+  textColor?: string
   /**
    * Optional CSS class name
    */
@@ -26,32 +33,75 @@ interface ContributeRSCProps {
    * Amount of RSC earned
    */
   amount?: number
+  /**
+   * Contributors to show in avatar stack
+   */
+  contributors?: AuthorProfile[]
 }
 
 export function ContributeRSC({
   size = 24,
-  color = '#F97316',
+  iconColor = '#4D525D',
+  textColor = '#101827',
   className,
   onClick,
   amount,
+  contributors = [],
 }: ContributeRSCProps) {
+  const avatarItems = contributors.map(profile => ({
+    src: profile.profileImage,
+    alt: profile.fullName,
+    tooltip: profile.fullName
+  }));
+
   return (
-    <div className={cn("relative inline-flex items-center pl-3", className)} onClick={onClick}>
-      <PlusIcon 
-        className="w-3.5 h-3.5 absolute text-orange-500" 
-        style={{ left: "-1px", top: "4px", width: "12px", height: "12px"}}
-        strokeWidth={3}
-      />
-      <ResearchCoinIcon
-        size={size}
-        color={color}
-        outlined
-        coin
-        strokeWidth={1.25}
-      />
-      {amount !== undefined && (
-        <span className="ml-1.5 text-sm font-medium text-orange-500">{amount}</span>
+    <div className={cn("relative inline-flex items-center gap-2", className)} onClick={onClick}>
+      <div className="inline-flex items-center relative">
+        <ResearchCoinIcon
+          size={size}
+          color={iconColor}
+          outlined
+          coin
+          strokeWidth={1.1}
+        />
+        <div 
+          className="rounded-full bg-white absolute shadow-sm"
+          style={{ 
+            top: "-2px", 
+            right: "-4px", 
+            width: "11px", 
+            height: "12px",
+            border: "1px solid white"
+          }}
+        >
+          <PlusIcon 
+            className="absolute" 
+            style={{ 
+              top: "-1px",
+              left: "-1px",
+              width: "11px", 
+              height: "12px",
+              color: iconColor
+            }}
+            strokeWidth={3}
+          />
+        </div>
+      </div>
+      {contributors.length > 0 && (
+        <div className="mt-1">
+          <AvatarStack
+            items={avatarItems}
+            size="xxs"
+            maxItems={2}
+            spacing={-8}
+            className="origin-left"
+            hideLabel
+          />
+        </div>
       )}
+      {amount !== undefined && (
+        <span className="text-sm font-medium" style={{ color: textColor }}>{amount}</span>
+      )}      
     </div>
   );
 } 

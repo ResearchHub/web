@@ -13,7 +13,7 @@ interface AvatarItem {
 
 interface AvatarStackProps {
   items: AvatarItem[];
-  size?: 'xs' | 'sm' | 'md' | 'lg';
+  size?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg';
   maxItems?: number;
   className?: string;
   label?: string;
@@ -33,7 +33,7 @@ export const AvatarStack: FC<AvatarStackProps> = ({
   label,
   spacing = -8,
   reverseOrder = false,
-  hideLabel = false
+  hideLabel = false,
 }) => {
   const displayItems = items.slice(0, maxItems);
   const remainingCount = items.length - maxItems;
@@ -71,7 +71,7 @@ export const AvatarStack: FC<AvatarStackProps> = ({
             }}
           >
             <div className={`bg-gray-100 text-gray-500 px-2 rounded-full ring-1 ring-gray-200 text-xs flex items-center capitalize ${
-              size === 'xs' ? 'h-6' :
+              size === 'xs' ? 'h-4' :
               size === 'sm' ? 'h-8' :
               size === 'md' ? 'h-10' :
               'h-12'

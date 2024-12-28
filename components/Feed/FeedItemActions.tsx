@@ -28,7 +28,7 @@ const ActionButton: FC<ActionButtonProps> = ({ icon: Icon, count, label, tooltip
     className="flex items-center space-x-1.5 text-gray-900 hover:text-gray-900"
     tooltip={tooltip}
   >
-    <Icon className="w-4 h-4" />
+    <Icon className="w-5 h-5" />
     {count !== undefined && count > 0 && (
       <span className="text-sm font-medium">{count}</span>
     )}
@@ -43,7 +43,7 @@ interface FeedItemActionsProps {
 
 export const FeedItemActions: FC<FeedItemActionsProps> = ({ metrics, content }) => {
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center space-x-3">
       <ActionButton 
         icon={ChevronUp} 
         count={metrics?.votes} 
@@ -68,15 +68,20 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({ metrics, content }) 
         className="flex items-center space-x-1.5 text-gray-900 hover:text-gray-900 relative"
         tooltip="Contribute ResearchCoin"
       >
-        <ContributeRSC size={20} amount={metrics?.earned} />
+        <ContributeRSC 
+          size={22} 
+          amount={metrics?.earned}
+          contributors={content.participants?.profiles}
+        />
       </Button>
+      <div className="flex-1" />
       <FeedItemMenu>
         <Button
           variant="ghost"
           size="sm"
           className="text-gray-600 hover:text-gray-900"
         >
-          <MoreHorizontal className="w-4 h-4" />
+          <MoreHorizontal className="w-5 h-5" />
           <span className="sr-only">More options</span>
         </Button>
       </FeedItemMenu>

@@ -14,8 +14,9 @@ const COLORS = [
 interface AvatarProps {
   src?: string | null;
   alt?: string;
-  size?: 'xs' | 'sm' | 'md' | 'lg';
+  size?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg';
   className?: string;
+  style?: React.CSSProperties;
 }
 
 const getInitials = (name: string | undefined) => {
@@ -36,6 +37,8 @@ const getRandomColor = (name: string | undefined) => {
 
 const getSizeClasses = (size: AvatarProps['size']) => {
   switch (size) {
+    case 'xxs':
+      return 'w-5 h-5 text-xs';    
     case 'xs':
       return 'w-6 h-6 text-xs';
     case 'sm':
