@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { cn } from '@/utils/styles';
 import { ResearchCoinIcon } from './ResearchCoinIcon';
-import { PlusIcon } from 'lucide-react';
 import { AvatarStack } from '../AvatarStack';
 import { AuthorProfile } from '@/types/user';
 import { formatRSC } from '@/utils/number';
@@ -78,7 +77,7 @@ export function ContributeRSC({
             color={iconColor}
             contribute
           />
-          {amount !== undefined && (
+          {amount !== undefined && amount > 0 && (
             <span className="text-sm font-medium" style={{ color: textColor }}>
               {formatRSC({ amount, shorten: true })}
             </span>

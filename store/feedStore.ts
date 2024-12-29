@@ -256,6 +256,45 @@ export const feedEntries: FeedEntry[] = [
       reposts: 3,
       saves: 5
     }    
+  },
+  {
+    id: 'feed-standalone-comment',
+    action: 'post',
+    timestamp: '2024-12-16 12:24:06.069373+00',
+    content: {
+      id: 'comment-standalone',
+      type: 'comment',
+      content: "Our latest spectroscopic analysis revealed a significant shift in the absorption peaks (Δλ = 15nm) when the sample was exposed to varying pH levels (6.5-8.0). This suggests potential applications in biosensing, particularly for monitoring subtle changes in cellular microenvironments.",
+      timestamp: '2024-12-16 12:24:06.069373+00',
+      hub: hubs.biophysics,
+      slug: 'spectroscopic-analysis-comment',
+      actor: users.jamesWilson
+    },
+    context: {
+      id: 'paper-spectroscopic',
+      type: 'paper',
+      title: 'Novel pH-Sensitive Fluorescent Probes for Real-Time Cellular Imaging',
+      abstract: 'We present a new class of fluorescent molecular probes that exhibit remarkable sensitivity to physiological pH changes. These probes demonstrate exceptional photostability and minimal photobleaching, making them ideal for long-term cellular imaging applications.',
+      timestamp: '2024-12-15 10:24:06.069373+00',
+      hub: hubs.biophysics,
+      doi: "10.1038/s41557-024-1234-5",
+      journal: "Nature Chemistry",
+      slug: 'novel-ph-sensitive-fluorescent-probes',
+      actor: users.sarahChen,
+      authors: [
+        users.sarahChen,
+        users.jamesWilson,
+        users.elenaRodriguez
+      ]
+    },
+    contributors: [],
+    metrics: {
+      votes: 5,
+      comments: 0,
+      reposts: 1,
+      saves: 2,
+      earned: 0
+    }    
   }
 ];
 

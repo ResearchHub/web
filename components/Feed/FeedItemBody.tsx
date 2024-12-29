@@ -86,14 +86,13 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
     if (comment.type !== 'comment') return null;
     
     const commentContent = comment.type === 'comment' ? comment.content : '';
-    const parentContent = comment.parent?.type === 'comment' ? comment.parent.content : '';
 
     return (
       <div>
         <div className="text-md text-gray-600">
           {commentContent}
         </div>
-        {comment.parent && (
+        {comment.parent ? (
           <div className="mt-3 rounded-lg border p-3 border-gray-200 pl-4">
             <div>
               <FeedItemHeader
@@ -104,21 +103,14 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
               />
               <div className="ml-9">
                 <div className="text-sm text-gray-600">
-                  {parentContent}
+                  {comment.parent.type === 'comment' ? comment.parent.content : ''}
                 </div>
               </div>
-              {context?.type === 'paper' && (
-                <div className="mt-3 pt-3 border-t border-gray-100">
-                  <Link 
-                    href={getItemUrl(context)}
-                    className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900"
-                  >
-                    <FileText className="h-4 w-4" />
-                    <span>RE: {context.title}</span>
-                  </Link>
-                </div>
-              )}
             </div>
+          </div>
+        ) : context && (
+          <div className="mt-3">
+            {renderItem(context, true)}
           </div>
         )}
       </div>
