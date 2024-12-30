@@ -1,54 +1,83 @@
 'use client'
 
-import { FC } from 'react';
+import { FC, useState } from 'react';
+import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
-import { Sparkles, Users, TrendingUp, Clock } from 'lucide-react';
+import { Settings } from 'lucide-react';
+import { InterestSelector } from '@/components/InterestSelector/InterestSelector';
+import { Interest } from '@/store/interestStore';
 
 type FeedTab = 'for-you' | 'following' | 'popular' | 'latest';
 
 interface FeedTabsProps {
   activeTab: FeedTab;
   onTabChange: (tab: FeedTab) => void;
+  onCustomizeComplete?: (interests: Interest[]) => void;
 }
 
-export const FeedTabs: FC<FeedTabsProps> = ({ activeTab, onTabChange }) => {
+export const FeedTabs: FC<FeedTabsProps> = ({ 
+  activeTab, 
+  onTabChange,
+  onCustomizeComplete 
+}) => {
+  const [isCustomizing, setIsCustomizing] = useState(false);
+
   const tabs = [
     {
       id: 'for-you',
       label: 'For You',
-      icon: Sparkles,
     },
     {
       id: 'following',
       label: 'Following',
-      icon: Users,
     },
     {
       id: 'popular',
       label: 'Popular',
-      icon: TrendingUp,
     },
     {
       id: 'latest',
       label: 'Latest',
-      icon: Clock,
     },
-  ] as const;
+  ];
+
+  const handleTabChange = (tabId: string) => {
+    setIsCustomizing(false);
+    onTabChange(tabId as FeedTab);
+  };
+
+  const handleInterestSelection = (selectedInterests: Interest[]) => {
+    setIsCustomizing(false);
+    onCustomizeComplete?.(selectedInterests);
+  };
 
   return (
-    <div className="flex items-center space-x-2">
-      {tabs.map(({ id, label, icon: Icon }) => (
+    <div>
+      <div className="flex items-center justify-between">
+        <Tabs
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+        />
         <Button
-          key={id}
-          variant={activeTab === id ? 'default' : 'ghost'}
+          variant={isCustomizing ? 'default' : 'ghost'}
           size="sm"
-          onClick={() => onTabChange(id)}
-          className="flex items-center space-x-1.5"
+          onClick={() => setIsCustomizing(!isCustomizing)}
+          className="flex items-center gap-2"
         >
-          <Icon className="w-4 h-4" />
-          <span>{label}</span>
+          <Settings className="w-4 h-4" />
+          Customize
         </Button>
-      ))}
+      </div>
+
+      {isCustomizing && (
+        <div className="mt-6">
+          <InterestSelector
+            mode="preferences"
+            onComplete={handleInterestSelection}
+          />
+        </div>
+      )}
     </div>
   );
 };
