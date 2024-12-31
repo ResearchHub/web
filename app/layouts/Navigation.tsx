@@ -1,9 +1,11 @@
 'use client'
 
 import { 
-  Home, Coins, GraduationCap, Store, 
-  BookOpen, Star, Info, Notebook
+  Home, GraduationCap, 
+  BookOpen, Star, Info, Notebook, Trophy, HandCoins,
+  Coins
 } from 'lucide-react';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import Link from 'next/link';
 
 interface NavigationProps {
@@ -25,7 +27,15 @@ export const Navigation: React.FC<NavigationProps> = ({
     {
       label: 'My ResearchCoin',
       href: '/researchcoin',
-      icon: Coins,
+      icon: ({ className }: { className?: string }) => (
+        <div className={className}>
+          <ResearchCoinIcon 
+            size={20} 
+            outlined 
+            color={currentPath === '/researchcoin' ? '#4F46E5' : '#4B5563'}
+          />
+        </div>
+      ),
       description: 'Manage your ResearchCoin balance and transactions',
       badge: {
         text: '+10 RSC',
@@ -33,10 +43,16 @@ export const Navigation: React.FC<NavigationProps> = ({
       }
     },
     {
-      label: 'Marketplace',
-      href: '/marketplace',
-      icon: Store,
-      description: 'Browse and buy research papers'
+      label: 'Earn',
+      href: '/earn',
+      icon: Coins,
+      description: 'Find opportunities to earn RSC'
+    },
+    {
+      label: 'Funding',
+      href: '/funding',
+      icon: HandCoins,
+      description: 'Browse grants and fundraising opportunities'
     },
     {
       label: 'RH Journal',

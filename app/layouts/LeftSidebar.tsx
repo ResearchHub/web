@@ -59,7 +59,7 @@ export const LeftSidebar: React.FC = () => {
       <div className="flex-1">
         <div className="px-2 py-4">
           <Navigation 
-            currentPath={pathname}
+            currentPath={pathname || ''}
             onUnimplementedFeature={handleUnimplementedFeature}
           />
         </div>
