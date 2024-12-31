@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Coins } from 'lucide-react'
 import { ReviewRewardModal } from './ReviewRewardModal'
-import { FeedItem } from '../FeedItem'
+import { FeedItem } from '../Feed/FeedItem'
 
 export const PaperReviews = ({ paperId }) => {
   const [rewardModalOpen, setRewardModalOpen] = useState(false)

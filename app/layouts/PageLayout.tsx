@@ -14,7 +14,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({ children, rightSidebar }
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-white relative">
+    <div className="min-h-screen bg-white">
       {/* Mobile overlay - only for left sidebar */}
       {isLeftSidebarOpen && (
         <div 
@@ -23,30 +23,38 @@ export const PageLayout: React.FC<PageLayoutProps> = ({ children, rightSidebar }
         />
       )}
 
-      {/* Left Sidebar */}
-      <div className={`
-        fixed lg:sticky top-0 left-0 h-full bg-white z-50 w-64 transform transition-transform duration-200 ease-in-out
-        lg:translate-x-0
-        ${isLeftSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
-        <LeftSidebar />
-      </div>
-      
-      {/* Main Content */}
-      <div className="flex-1 justify-center w-full">
-        <TopBar 
-          onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)}
-        />
-        <div className="flex justify-center">
-          <div className="w-full max-w-4xl py-6 lg:ml-8 lg:mr-8">
-            {children}
+      {/* Main content area with sidebars */}
+      <div className="flex relative">
+        {/* Left Sidebar */}
+        <div className={`
+          fixed lg:sticky top-0 left-0 h-screen bg-white z-40 w-64 transform transition-transform duration-200 ease-in-out
+          lg:translate-x-0
+          ${isLeftSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}>
+          <LeftSidebar />
+        </div>
+        
+        {/* Main Content Area */}
+        <div className="flex-1">
+          {/* TopBar - Full width */}
+          <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md">
+            <TopBar 
+              onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)}
+            />
+          </div>
+
+          {/* Content + Right Sidebar Container */}
+          <div className="flex">
+            <div className="w-full max-w-4xl pl-32 pr-8 py-6">
+              {children}
+            </div>
+
+            {/* Right Sidebar - Hidden below 1200px */}
+            <div className="hidden wide:block w-80 flex-shrink-0 px-4">
+              {rightSidebar || <RightSidebar />}
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Right Sidebar - Hidden below 1200px */}
-      <div className="hidden wide:sticky wide:block right-0 top-0 h-full bg-white w-80 border-l">
-        {rightSidebar || <RightSidebar />}
       </div>
     </div>
   );
