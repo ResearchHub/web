@@ -21,13 +21,10 @@ interface FeedItemBodyProps {
   applicants?: FeedEntry['applicants'];
 }
 
-const getItemUrl = (content: Content) => {
-  const title = content.type === 'paper' ? content.title :
-               content.type === 'funding_request' ? content.title :
-               content.type === 'grant' ? content.title :
-               content.type === 'review' ? content.title : '';
-  const slug = title?.toLowerCase().replace(/ /g, '-') || content.id;
-  return `/${content.type}/${content.id}/${slug}`;
+const buildUrl = (item: Content) => {
+  const title = item.title || '';
+  const slug = title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]/g, '');
+  return `/${item.type}/${item.id}/${slug}`;
 };
 
 export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, metrics, applicants }) => {
@@ -61,15 +58,27 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
       return type.replace('_', ' ');
     };
 
-    const shouldShowBorder = isTarget || item.type === 'paper' || item.type === 'review' || item.type === 'grant';
+    const isCard = isTarget || item.type === 'paper' || item.type === 'review' || item.type === 'grant';
     const isComment = item.type === 'comment';
 
-    return (
-      <div className={cn(
-        'rounded-lg',
-        shouldShowBorder && 'p-4 border border-gray-200 bg-white',
-        isComment && !shouldShowBorder
-      )}>
+    const renderCard = (children: React.ReactNode) => {
+      if (!isCard) return children;
+      
+      const cardContent = (
+        <div className="p-4 border border-gray-300 bg-white rounded-md transition-colors duration-150 hover:bg-gray-50">
+          {children}
+        </div>
+      );
+
+      return isCard ? (
+        <Link href={buildUrl(item)}>
+          {cardContent}
+        </Link>
+      ) : cardContent;
+    };
+
+    return renderCard(
+      <div>
         {!isComment && (
           <div className="flex items-center mb-3">
             <div className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
@@ -93,7 +102,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
           {commentContent}
         </div>
         {comment.parent ? (
-          <div className="mt-3 rounded-lg border p-3 border-gray-200 pl-4">
+          <div className="mt-3 rounded-md border p-3 border-gray-300 pl-4">
             <div>
               <FeedItemHeader
                 action="post"
@@ -212,7 +221,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
     return (
       <div>
         <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
-          <Link href={getItemUrl(grant)}>{grant.title}</Link>
+          <Link href={buildUrl(grant)}>{grant.title}</Link>
         </h3>
         <p className="text-sm text-gray-800 mb-3">
           {grant.abstract}
@@ -307,7 +316,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
     return (
       <div>
         <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
-          <Link href={getItemUrl(bounty)}>{bounty.title}</Link>
+          <Link href={buildUrl(bounty)}>{bounty.title}</Link>
         </h3>
         <p className="text-sm text-gray-800 mb-3">
           {bounty.description}

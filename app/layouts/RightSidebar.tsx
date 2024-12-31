@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 // InfoBanner Component
 const InfoBanner: React.FC = () => (
-  <div className="bg-indigo-50/60 rounded-xl p-6 mb-6">
+  <div className="bg-indigo-50/60 rounded-md p-6 mb-6">
     <div className="flex justify-between items-start mb-6">
       <div className="flex items-center space-x-3">
         <BookOpen className="h-8 w-8 text-indigo-500/70" />
@@ -125,7 +125,7 @@ const WhoToFollow: React.FC = () => {
 
 // Main RightSidebar Component
 export const RightSidebar: React.FC = () => (
-  <div className="w-80 h-screen border-l bg-white p-6 overflow-y-auto">
+  <div>
     <InfoBanner />
     <WhoToFollow />
   </div>

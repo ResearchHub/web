@@ -9,7 +9,7 @@ interface VerificationBannerProps {
 
 export default function VerificationBanner({ onClose, onLearnMore }: VerificationBannerProps) {
   return (
-    <div className="bg-indigo-50 p-3 rounded-lg">
+    <div className="bg-indigo-50 p-3 rounded-md">
       <div className="flex justify-between items-start">
         <div className="flex-1">
           <div className="flex items-center mb-1.5">
@@ -40,7 +40,7 @@ export default function VerificationBanner({ onClose, onLearnMore }: Verificatio
         </div>
         <button 
           onClick={onClose}
-          className="p-0.5 hover:bg-indigo-100 rounded-lg text-gray-500"
+          className="p-0.5 hover:bg-indigo-100 rounded-md text-gray-500"
         >
           <X className="h-4 w-4" />
         </button>

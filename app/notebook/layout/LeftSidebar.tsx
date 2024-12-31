@@ -48,7 +48,7 @@ const LeftSidebar: React.FC = () => (
   <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col">
     {/* Organization Header */}
     <div className="p-4 border-b border-gray-200">
-      <button className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+      <button className="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-gray-100 transition-colors">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 bg-gradient-to-br from-indigo-500 to-purple-500 rounded flex items-center justify-center text-white text-xs font-bold">
             SO

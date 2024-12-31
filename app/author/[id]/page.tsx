@@ -104,7 +104,7 @@ export default function AuthorProfile({ params }: AuthorProfileProps) {
           {feedEntries.map((entry, index) => (
             <div 
               key={index} 
-              className={`bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow duration-200 
+              className={`bg-white rounded-md shadow-sm border hover:shadow-md transition-shadow duration-200 
                 ${entry.item.isPinned ? 'border-orange-200 bg-orange-50/50' : 'border-gray-100'}`}
             >
               {entry.item.isPinned && (

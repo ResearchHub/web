@@ -57,7 +57,7 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
       {isOpen && (
         <div 
           ref={menuRef}
-          className="absolute right-0 mt-2 w-64 rounded-xl bg-gray-50 shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden"
+          className="absolute right-0 mt-2 w-64 rounded-md bg-gray-50 shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden"
         >
           {/* User info section */}
           <div className="px-4 py-3 border-b border-gray-200">

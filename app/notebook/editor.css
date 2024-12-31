@@ -53,7 +53,7 @@
 
   .node-imageBlock {
     & img {
-      @apply border-2 border-transparent rounded-xl overflow-hidden;
+      @apply border-2 border-transparent rounded-md overflow-hidden;
     }
 
     &:hover img {
@@ -70,7 +70,7 @@
   .node-aiImage,
   .node-tableOfContentsNode {
     &.has-focus [data-node-view-wrapper] > * {
-      @apply shadow-[0_0_0_2px] shadow-black/30 dark:shadow-white/30 transition-all rounded-lg;
+      @apply shadow-[0_0_0_2px] shadow-black/30 dark:shadow-white/30 transition-all rounded-md;
     }
   }
 
@@ -81,7 +81,7 @@
   }
 
   [data-type='blockquoteFigure'] > div {
-    @apply border-l-4 border-l-neutral-700 py-2 px-4 bg-opacity-80 rounded-lg rounded-tl-none rounded-bl-none;
+    @apply border-l-4 border-l-neutral-700 py-2 px-4 bg-opacity-80 rounded-md rounded-tl-none rounded-bl-none;
     @apply dark:border-l-neutral-300;
   }
 

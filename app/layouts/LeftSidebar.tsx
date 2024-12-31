@@ -34,7 +34,7 @@ export const LeftSidebar: React.FC = () => {
   };
 
   return (
-    <div className="w-64 fixed h-screen border-r flex flex-col z-50 bg-white">
+    <div className="w-72 fixed h-screen border-r flex flex-col z-50 bg-white">
       <div className="p-4">
         <div className="flex items-center space-x-2">
           <FlaskConical className="h-5 w-5 text-indigo-600" />
@@ -57,7 +57,7 @@ export const LeftSidebar: React.FC = () => {
       </div>
 
       <div className="flex-1">
-        <div className="px-2 py-4">
+        <div className="px-4 py-4">
           <Navigation 
             currentPath={pathname || ''}
             onUnimplementedFeature={handleUnimplementedFeature}

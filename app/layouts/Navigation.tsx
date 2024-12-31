@@ -91,8 +91,8 @@ export const Navigation: React.FC<NavigationProps> = ({
   const getButtonStyles = (path: string) => {
     const isActive = currentPath === path;
     return isActive
-      ? "flex items-center w-full px-4 py-3 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg group"
-      : "flex items-center w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg group";
+      ? "flex items-center w-full px-4 py-3 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-md group"
+      : "flex items-center w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md group";
   };
 
   const getIconStyles = (path: string) => {

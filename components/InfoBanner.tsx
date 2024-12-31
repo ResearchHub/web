@@ -1,9 +1,9 @@
 import { Info } from 'lucide-react';
 
 export const InfoBanner: React.FC = () => (
-    <div className="bg-indigo-50 rounded-xl p-4 mb-6">
+    <div className="bg-indigo-50 rounded-md p-4 mb-6">
       <div className="flex items-start space-x-3">
-        <div className="bg-indigo-100 rounded-lg p-2">
+        <div className="bg-indigo-100 rounded-md p-2">
           <Info className="h-5 w-5 text-indigo-600" />
         </div>
         <div>

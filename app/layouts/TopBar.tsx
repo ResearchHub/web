@@ -81,7 +81,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                 <input
                   type="text"
                   placeholder="Search papers, reviews, grants..."
-                  className="pl-10 pr-10 py-2 bg-gray-50 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 border border-gray-200"
+                  className="pl-10 pr-10 py-2 bg-gray-50 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-indigo-500/20 border border-gray-200"
                   value={query}
                   onChange={handleSearch}
                 />
@@ -95,7 +95,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                 )}
 
                 {results.length > 0 && (
-                  <div className="absolute left-0 right-0 bg-white shadow-lg rounded-lg mt-2 z-10 max-h-[80vh] overflow-y-auto w-[500px]">
+                  <div className="absolute left-0 right-0 bg-white shadow-lg rounded-md mt-2 z-10 max-h-[80vh] overflow-y-auto w-[500px]">
                     <ul className="divide-y divide-gray-100">
                       {results.map((item, index) => {
                         const { icon: IconComponent, label } = getItemTypeConfig(item.type);
@@ -157,7 +157,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                   ) : (
                     <button
                       onClick={handleAuthClick}
-                      className="flex items-center space-x-2 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50"
+                      className="flex items-center space-x-2 px-4 py-2 rounded-md border border-gray-200 hover:bg-gray-50"
                     >
                       <LogIn className="h-5 w-5 text-gray-600" />
                       <span className="text-sm font-medium text-gray-600">Sign In</span>

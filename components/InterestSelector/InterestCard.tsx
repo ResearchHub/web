@@ -37,7 +37,7 @@ export function InterestCard({ interest, selected, onSelect }: InterestCardProps
   return (
     <button
       onClick={onSelect}
-      className={`p-4 rounded-lg border transition-all duration-200 text-left w-full relative
+      className={`p-4 rounded-md border transition-all duration-200 text-left w-full relative
         ${selected 
           ? 'border-primary-600 bg-primary-50 ring-1 ring-primary-600' 
           : 'border-gray-200 hover:border-gray-300'}`}

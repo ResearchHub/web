@@ -108,7 +108,7 @@ export function CreateRewardModal({ isOpen, onClose }: CreateRewardModalProps) {
                               className={({ active, checked }) =>
                                 `${active ? 'ring-2 ring-indigo-600 ring-offset-2' : ''}
                                 ${checked ? 'bg-indigo-600 text-white' : 'bg-white'}
-                                relative flex cursor-pointer rounded-lg px-5 py-4 border focus:outline-none`
+                                relative flex cursor-pointer rounded-md px-5 py-4 border focus:outline-none`
                               }
                             >
                               {({ checked }) => (
@@ -154,7 +154,7 @@ export function CreateRewardModal({ isOpen, onClose }: CreateRewardModalProps) {
                             type="text"
                             value={paperUrl}
                             onChange={(e) => setPaperUrl(e.target.value)}
-                            className="block w-full rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 sm:text-sm px-4 py-3 h-[44px]"
+                            className="block w-full rounded-md bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 sm:text-sm px-4 py-3 h-[44px]"
                             placeholder="https://doi.org/..."
                           />
                         </div>
@@ -172,7 +172,7 @@ export function CreateRewardModal({ isOpen, onClose }: CreateRewardModalProps) {
                         onChange={(e) => setSummary(e.target.value)}
                         maxLength={140}
                         rows={2}
-                        className="block w-full rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 sm:text-sm px-4 py-3 h-[80px] resize-none"
+                        className="block w-full rounded-md bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 sm:text-sm px-4 py-3 h-[80px] resize-none"
                         placeholder="Summarize what you need in 140 characters or less"
                       />
                       <p className="mt-1 text-sm text-gray-500">{140 - summary.length} characters remaining</p>
@@ -198,7 +198,7 @@ export function CreateRewardModal({ isOpen, onClose }: CreateRewardModalProps) {
                             type="number"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
-                            className="block w-full rounded-xl bg-gray-50 border border-gray-200 pl-4 pr-12 py-3 h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 sm:text-sm"
+                            className="block w-full rounded-md bg-gray-50 border border-gray-200 pl-4 pr-12 py-3 h-[44px] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 sm:text-sm"
                             placeholder="0.00"
                           />
                           <div className="absolute inset-y-0 right-0 flex items-center pr-4">
@@ -233,7 +233,7 @@ export function CreateRewardModal({ isOpen, onClose }: CreateRewardModalProps) {
                         value={details}
                         onChange={(e) => setDetails(e.target.value)}
                         rows={6}
-                        className="block w-full rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 sm:text-sm px-4 py-3 h-[160px] resize-none"
+                        className="block w-full rounded-md bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 sm:text-sm px-4 py-3 h-[160px] resize-none"
                         placeholder="Provide additional details and relevant resources..."
                       />
                     </div>

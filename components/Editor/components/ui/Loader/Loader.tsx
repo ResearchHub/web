@@ -4,7 +4,7 @@ import { LoaderProps, LoadingWrapperProps } from './types'
 
 const LoadingWrapper = ({ label }: LoadingWrapperProps) => {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 p-4 text-white bg-black rounded-lg shadow-2xl dark:text-black dark:bg-white">
+    <div className="flex flex-col items-center justify-center gap-2 p-4 text-white bg-black rounded-md shadow-2xl dark:text-black dark:bg-white">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"

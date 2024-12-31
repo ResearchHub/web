@@ -29,7 +29,7 @@ export const MarketplaceFundingBanner: React.FC<MarketplaceFundingBannerProps> =
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
     >
-      <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl p-5 mb-6 relative overflow-hidden">
+      <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-md p-5 mb-6 relative overflow-hidden">
         <button
           onClick={dismissBanner}
           className="absolute top-3 right-3 text-white/80 hover:text-white z-10"
@@ -49,7 +49,7 @@ export const MarketplaceFundingBanner: React.FC<MarketplaceFundingBannerProps> =
 
           <div className="grid md:grid-cols-2 gap-6">
             <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 bg-white/10 rounded-lg p-2">
+              <div className="flex-shrink-0 bg-white/10 rounded-md p-2">
                 <Users2 className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -61,7 +61,7 @@ export const MarketplaceFundingBanner: React.FC<MarketplaceFundingBannerProps> =
             </div>
 
             <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 bg-white/10 rounded-lg p-2">
+              <div className="flex-shrink-0 bg-white/10 rounded-md p-2">
                 <Coins className="h-5 w-5 text-white" />
               </div>
               <div>

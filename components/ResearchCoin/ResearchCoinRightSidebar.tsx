@@ -37,7 +37,7 @@ export const ResearchCoinRightSidebar = () => {
         </div>
         <div className="space-y-3">
           <Link href="/marketplace/create-reward" 
-            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg text-sm">
+            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md text-sm">
             <div className="flex items-center gap-2">
               <Gift className="h-4 w-4 text-indigo-600" />
               <span>Create reward</span>
@@ -45,7 +45,7 @@ export const ResearchCoinRightSidebar = () => {
             <ChevronRight className="h-4 w-4 text-gray-400" />
           </Link>
           <Link href="/marketplace/fund" 
-            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg text-sm">
+            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md text-sm">
             <div className="flex items-center gap-2">
               <Rocket className="h-4 w-4 text-indigo-600" />
               <span>Fund open science</span>
@@ -53,7 +53,7 @@ export const ResearchCoinRightSidebar = () => {
             <ChevronRight className="h-4 w-4 text-gray-400" />
           </Link>
           <Link href="/marketplace/tip" 
-            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg text-sm">
+            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md text-sm">
             <div className="flex items-center gap-2">
               <HandCoins className="h-4 w-4 text-indigo-600" />
               <span>Tip authors</span>
@@ -71,7 +71,7 @@ export const ResearchCoinRightSidebar = () => {
         </div>
         <div className="space-y-3">
           <Link href="/marketplace" 
-            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg text-sm">
+            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md text-sm">
             <div className="flex items-center gap-2">
               <ClipboardCheck className="h-4 w-4 text-indigo-600" />
               <span>Share a peer review</span>
@@ -79,7 +79,7 @@ export const ResearchCoinRightSidebar = () => {
             <ChevronRight className="h-4 w-4 text-gray-400" />
           </Link>
           <Link href="/marketplace" 
-            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg text-sm">
+            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md text-sm">
             <div className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4 text-indigo-600" />
               <span>Answer a grant</span>
@@ -87,7 +87,7 @@ export const ResearchCoinRightSidebar = () => {
             <ChevronRight className="h-4 w-4 text-gray-400" />
           </Link>
           <Link href="/marketplace" 
-            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg text-sm">
+            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md text-sm">
             <div className="flex items-center gap-2">
               <Microscope className="h-4 w-4 text-indigo-600" />
               <span>Do reproducible research</span>
@@ -95,7 +95,7 @@ export const ResearchCoinRightSidebar = () => {
             <ChevronRight className="h-4 w-4 text-gray-400" />
           </Link>
           <Link href="/marketplace" 
-            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg text-sm">
+            className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md text-sm">
             <div className="flex items-center gap-2">
               <ThumbsUp className="h-4 w-4 text-indigo-600" />
               <span>Get upvotes on your content</span>
