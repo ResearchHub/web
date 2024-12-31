@@ -10,7 +10,6 @@ import type { User } from '@/types/user'
 import { useNotifications } from '@/contexts/NotificationContext'
 import { useRouter, usePathname } from 'next/navigation'
 import { NotificationBell } from '@/components/Notification/NotificationBell'
-import { PublishMenu } from './PublishMenu'
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -148,7 +147,6 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                 {status !== "loading" ? (
                   session ? (
                     <>
-                      <PublishMenu />
                       <NotificationBell filled={isNotificationsPage} />
                       <UserMenu 
                         user={session.user as User}

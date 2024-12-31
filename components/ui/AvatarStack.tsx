@@ -78,7 +78,11 @@ export const AvatarStack: FC<AvatarStackProps> = ({
   return (
     <div className={cn('flex items-center', className)}>
       <div className="flex">
-        {displayItems.map((item, index) => renderAvatar(item, index))}
+        {displayItems.map((item, index) => (
+          <div key={`${item.alt}-${index}`}>
+            {renderAvatar(item, index)}
+          </div>
+        ))}
         {!hideLabel && remainingCount > 0 && (
           <div 
             className="relative"

@@ -4,7 +4,7 @@ import { hubs } from './hubStore';
 import dayjs from 'dayjs';
 
 // Helper to generate future dates relative to Dec 23rd, 2024
-const baseDate = dayjs('2024-12-23');
+const baseDate = dayjs('2024-12-28');
 const futureDate = (days: number) => baseDate.add(days, 'day').toISOString();
 
 export const feedEntries: FeedEntry[] = [

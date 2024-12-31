@@ -5,33 +5,33 @@ import { useState } from 'react';
 
 // InfoBanner Component
 const InfoBanner: React.FC = () => (
-  <div className="bg-indigo-600 rounded-xl p-6 mb-6 text-white">
+  <div className="bg-indigo-50/60 rounded-xl p-6 mb-6">
     <div className="flex justify-between items-start mb-6">
       <div className="flex items-center space-x-3">
-        <BookOpen className="h-8 w-8" />
-        <div className="text-xl font-semibold">ResearchHub Journal</div>
+        <BookOpen className="h-8 w-8 text-indigo-500/70" />
+        <div className="text-xl font-semibold text-gray-900">ResearchHub Journal</div>
       </div>
-      <button className="text-white/80 hover:text-white">
+      <button className="text-gray-400 hover:text-gray-600">
         <X className="h-5 w-5" />
       </button>
     </div>
     
     <div className="space-y-4 mb-6">
       <div className="flex items-center space-x-3">
-        <Check className="h-5 w-5 text-white" />
-        <span>14 days to peer reviews</span>
+        <Check className="h-5 w-5 text-indigo-500/70" />
+        <span className="text-gray-700">14 days to peer reviews</span>
       </div>
       <div className="flex items-center space-x-3">
-        <Check className="h-5 w-5 text-white" />
-        <span>Paid peer reviewers</span>
+        <Check className="h-5 w-5 text-indigo-500/70" />
+        <span className="text-gray-700">Paid peer reviewers</span>
       </div>
       <div className="flex items-center space-x-3">
-        <Check className="h-5 w-5 text-white" />
-        <span>Open access by default</span>
+        <Check className="h-5 w-5 text-indigo-500/70" />
+        <span className="text-gray-700">Open access by default</span>
       </div>
     </div>
     
-    <button className="w-full py-2.5 bg-white text-indigo-600 rounded-lg font-medium hover:bg-white/90">
+    <button className="w-full py-2.5 text-indigo-500 hover:text-indigo-600 font-medium">
       Learn more
     </button>
   </div>

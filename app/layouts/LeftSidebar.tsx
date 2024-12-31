@@ -2,13 +2,15 @@
 
 import { 
   Home, Coins, GraduationCap, Store, BookOpen, 
-  Star, FlaskConical, AlertCircle
+  Star, FlaskConical, AlertCircle, Plus
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { FooterLinks } from '../../components/FooterLinks';
 import { Navigation } from './Navigation';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { Button } from '@/components/ui/Button';
+import { PublishMenu } from './PublishMenu';
 
 export const LeftSidebar: React.FC = () => {
   const pathname = usePathname();
@@ -32,7 +34,7 @@ export const LeftSidebar: React.FC = () => {
   };
 
   return (
-    <div className="w-64 fixed h-screen border-r overflow-y-auto flex flex-col z-50 bg-white">
+    <div className="w-64 fixed h-screen border-r flex flex-col z-50 bg-white">
       <div className="p-4">
         <div className="flex items-center space-x-2">
           <FlaskConical className="h-5 w-5 text-indigo-600" />
@@ -40,6 +42,18 @@ export const LeftSidebar: React.FC = () => {
             ResearchHub
           </h1>
         </div>
+      </div>
+
+      <div className="px-4 mb-4">
+        <PublishMenu>
+          <Button 
+            className="w-full justify-start shadow-sm"
+            size="lg"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            New
+          </Button>
+        </PublishMenu>
       </div>
 
       <div className="flex-1">

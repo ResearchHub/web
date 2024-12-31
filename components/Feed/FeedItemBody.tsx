@@ -89,7 +89,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
 
     return (
       <div>
-        <div className="text-md text-gray-600">
+        <div className="text-md text-gray-800">
           {commentContent}
         </div>
         {comment.parent ? (
@@ -102,7 +102,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
                 size="xs"
               />
               <div className="ml-9">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-gray-800">
                   {comment.parent.type === 'comment' ? comment.parent.content : ''}
                 </div>
               </div>
@@ -130,7 +130,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
         <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
           {paper.title}
         </h3>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-800">
           {paper.abstract}
         </p>
       </div>
@@ -161,7 +161,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
               Fundraise Ended
             </span>
           ) : (
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-gray-800">
               {deadlineText}
             </span>
           );
@@ -179,7 +179,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
         <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
           {fundingRequest.title}
         </h3>
-        <p className="text-sm text-gray-600 mb-3">
+        <p className="text-sm text-gray-800 mb-3">
           {fundingRequest.abstract}
         </p>
         <div className="mb-4">
@@ -214,7 +214,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
         <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
           <Link href={getItemUrl(grant)}>{grant.title}</Link>
         </h3>
-        <p className="text-sm text-gray-600 mb-3">
+        <p className="text-sm text-gray-800 mb-3">
           {grant.abstract}
         </p>
         <div className="flex items-center space-x-4 text-sm">
@@ -249,11 +249,11 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
         </div>
         <div className="flex items-center justify-between mt-4">
           <Button 
+            variant="outlined" 
             size="sm" 
             disabled={deadlineText === 'Ended'}
-            variant="start-task"
           >
-            Apply Now
+            Start Task
           </Button>
           {metrics?.applicants && metrics.applicants > 0 && applicants && (
             <AvatarStack 
@@ -278,12 +278,12 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
         <h3 className="text-base font-semibold text-gray-900 mb-2">
           {review.title}
         </h3>
-        <p className="text-sm text-gray-600 mb-3">
+        <p className="text-sm text-gray-800 mb-3">
           {review.content}
         </p>
         {review.score !== undefined && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Score:</span>
+            <span className="text-sm text-gray-800">Score:</span>
             <div className="flex items-center gap-1">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Star
@@ -309,7 +309,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
         <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
           <Link href={getItemUrl(bounty)}>{bounty.title}</Link>
         </h3>
-        <p className="text-sm text-gray-600 mb-3">
+        <p className="text-sm text-gray-800 mb-3">
           {bounty.description}
         </p>
         <div className="flex items-center space-x-4 text-sm">
@@ -337,8 +337,9 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
         <div className="flex items-center justify-between mt-4">
           <div className="flex items-center gap-3">
             <Button 
-              variant="start-task" 
+              variant="outlined" 
               size="sm" 
+              disabled={deadlineText === 'Ended'}
             >
               Start Task
             </Button>

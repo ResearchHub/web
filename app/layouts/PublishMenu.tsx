@@ -93,11 +93,16 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#4A24E0] hover:bg-[#3D1DB9] rounded-lg transition-all duration-200"
+        className="flex items-center gap-3 px-5 py-2.5 text-base font-medium text-white rounded-md transition-all duration-200 min-w-[120px]
+          bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600
+          border border-white/10
+          shadow-[0_0_0_1px_rgba(255,255,255,0.1)_inset,0_-1px_0_0_rgba(255,255,255,0.1)_inset,0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)]
+          hover:shadow-[0_0_0_1px_rgba(255,255,255,0.2)_inset,0_-1px_0_0_rgba(255,255,255,0.2)_inset,0_6px_8px_-1px_rgba(0,0,0,0.2),0_4px_6px_-2px_rgba(0,0,0,0.1)]
+          hover:scale-[1.02]
+          active:scale-[0.98]"
       >
-        <Plus className="h-5 w-5" />
+        <Plus className="h-6 w-6 stroke-[1.5]" />
         <span>New</span>
-        <ChevronDown className="h-4 w-4 ml-1" />
       </button>
 
       <CreateRewardModal 
@@ -108,10 +113,11 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
       {isOpen && (
         <div 
           ref={menuRef}
-          className="absolute w-72 rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden"
+          className="absolute w-72 rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden z-50"
           style={{ 
-            right: '0', // Position to the left with 8px gap
-            top: '45px',
+            left: '0',
+            top: 'calc(100% + 4px)',
+            filter: 'drop-shadow(0 20px 13px rgb(0 0 0 / 0.03)) drop-shadow(0 8px 5px rgb(0 0 0 / 0.08))'
           }}
         >
           <div className="py-2">

@@ -107,10 +107,10 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
           />
           {action === 'contribute' && content.type === 'contribution' ? (
             <>
-              <span className="text-sm text-gray-500">contributed {formatRSC({amount: content.amount})} RSC towards bounty</span>
+              <span className="text-sm text-gray-700">contributed {formatRSC({amount: content.amount})} RSC towards bounty</span>
             </>
           ) : (
-            <span className="text-sm text-gray-500">{getActionText()}</span>
+            <span className="text-sm text-gray-700">{getActionText()}</span>
           )}
           <span className="text-sm text-gray-400">•</span>
           <span className="text-sm text-gray-400">
