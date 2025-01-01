@@ -241,7 +241,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
               <span className="text-gray-500">•</span>
               <div className="flex items-center space-x-1">
                 <Clock className="h-4 w-4 text-gray-500" />
-                <span className={`text-gray-500 ${deadlineText === 'Ended' ? 'line-through' : ''}`}>
+                <span className={`text-gray-500`}>
                   {deadlineText}
                 </span>
               </div>
@@ -291,18 +291,23 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
           {review.content}
         </p>
         {review.score !== undefined && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-800">Score:</span>
-            <div className="flex items-center gap-1">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-4 w-4 ${
-                    i < review.score! ? 'text-yellow-500 fill-current' : 'text-gray-300'
-                  }`}
-                />
-              ))}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-800">Score:</span>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${
+                      i < review.score! ? 'text-yellow-500 fill-current' : 'text-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
+            <span className="text-sm font-medium text-orange-500">
+              Get paid to become a peer reviewer
+            </span>
           </div>
         )}
       </div>

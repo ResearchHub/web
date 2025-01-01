@@ -83,7 +83,7 @@ export const PaperDocument = ({ paper }: PaperDocumentProps) => {
       {/* Title & Actions */}
       <div className="mb-6">
         <div className="flex items-start justify-between mb-4">
-          <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+          <h1 className="text-2xl font-bold text-gray-900 leading-tight">
             {paper.title}
           </h1>
         </div>

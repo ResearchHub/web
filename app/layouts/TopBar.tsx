@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react';
-import { Search, Menu, BadgeCheck, X, AlertCircle, LogIn } from 'lucide-react';
+import { Search, Menu, BadgeCheck, X, AlertCircle, LogIn, MoveLeft } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
-import toast from 'react-hot-toast';
 import AuthModal from '@/components/modals/Auth/AuthModal';
 import UserMenu from '@/components/menus/UserMenu'
 import type { User } from '@/types/user'
@@ -25,14 +24,21 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const pathname = usePathname()
 
   const getPageTitle = () => {
-    switch (pathname) {
-      case '/notifications':
-        return 'Notifications'
-      case '/profile':
-        return 'Profile'
-      default:
-        return 'Today in Science'
+    if (!pathname) return 'Today in Science'
+    
+    if (pathname === '/notifications') {
+      return 'Notifications'
     }
+    
+    if (pathname === '/profile') {
+      return 'Profile'
+    }
+    
+    if (pathname.includes('/paper')) {
+      return 'Paper'
+    }
+
+    return 'Today in Science'
   }
 
   const isNotificationsPage = pathname === '/notifications'
@@ -57,6 +63,8 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
     }
   };
 
+  const showBackArrow = pathname?.includes('/paper')
+
   return (
     <>
       <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b z-20 h-[64px]">
@@ -70,13 +78,23 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
               <Menu className="h-6 w-6" />
             </button>
 
-            {/* Title */}
-            <h1 className="hidden lg:block text-xl font-semibold text-gray-900">
-              {getPageTitle()}
-            </h1>
+            {/* Title with Back Arrow */}
+            <div className="hidden lg:flex items-center gap-3">
+              {showBackArrow && (
+                <button 
+                  onClick={() => router.back()}
+                  className="p-2 rounded-full hover:bg-gray-100 transition-all duration-150"
+                >
+                  <MoveLeft className="h-6 w-6 text-gray-600 hover:text-indigo-600" />
+                </button>
+              )}
+              <h1 className="text-xl font-semibold text-gray-900">
+                {getPageTitle()}
+              </h1>
+            </div>
 
             <div className="flex items-center gap-4 ml-auto">
-              <div className="relative w-[380px]">
+              <div className="relative w-[420px]">
                 <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                 <input
                   type="text"

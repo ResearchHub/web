@@ -45,7 +45,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({ children, rightSidebar }
 
           {/* Content + Right Sidebar Container */}
           <div className="flex">
-            <div className="w-full max-w-4xl pl-32 pr-8 py-6">
+            <div className="w-full max-w-4xl pl-32 pr-12 py-6">
               {children}
             </div>
 
