@@ -98,7 +98,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
       {isOpen && (
         <div 
           ref={menuRef}
-          className="absolute w-80 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden z-50"
+          className="absolute w-[280px] rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden z-50"
           style={{ 
             left: '0',
             top: 'calc(100% + 4px)',
