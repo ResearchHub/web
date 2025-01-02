@@ -1,17 +1,11 @@
 'use client'
 
-import { 
-  FileUp,
-  GraduationCap,
-  Trophy,
-  HandCoins,
-  AlertCircle,
-  Plus,
-  ChevronDown
-} from 'lucide-react';
+import { Plus, FileUp } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { CreateRewardModal } from '../../components/modals/CreateRewardModal';
-import toast from 'react-hot-toast';
+import { ClaimModal } from '@/components/modals/ClaimModal';
+import { ClaimPaperIcon } from '@/components/ui/icons/ClaimPaperIcon';
+import { FundingIcon } from '@/components/ui/icons/FundingIcon';
+import { GrantIcon } from '@/components/ui/icons/GrantIcon';
 
 interface PublishMenuProps {
   children?: React.ReactNode;
@@ -19,7 +13,7 @@ interface PublishMenuProps {
 
 export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [showRewardModal, setShowRewardModal] = useState(false);
+  const [showClaimModal, setShowClaimModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -40,51 +34,46 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
   }, []);
 
   const handleItemClick = (action: string) => {
-    if (action === 'reward') {
-      setShowRewardModal(true);
-    } else {
-      toast((t) => (
-        <div className="flex items-center space-x-2">
-          <AlertCircle className="h-5 w-5" />
-          <span>Implementation coming soon</span>
-        </div>
-      ), {
-        duration: 2000,
-        position: 'bottom-right',
-        style: {
-          background: '#FFF7ED',
-          color: '#EA580C',    
-          border: '1px solid #FDBA74',
-        },
-      });
+    if (action === 'claim') {
+      setShowClaimModal(true);
     }
     setIsOpen(false);
   };
 
-  const menuItems = [
-    { 
-      icon: <FileUp className="w-5 h-5" />, 
-      title: 'Publish', 
-      description: 'Publish preprint or submit to RH Journal',
-      action: 'publish'
+  const menuCategories = [
+    {
+      title: 'Your Research',
+      items: [
+        {
+          icon: <FileUp strokeWidth={1.75} className="w-7 h-7" />,
+          title: 'Submit new research',
+          description: 'Submit your original research',
+          action: 'publish'
+        },
+        {
+          icon: <ClaimPaperIcon size={26} className="w-5 h-5" />,
+          title: 'Claim paper',
+          description: 'Earn ResearchCoin on your paper',
+          action: 'claim'
+        }
+      ]
     },
-    { 
-      icon: <Trophy className="w-5 h-5" />, 
-      title: 'Create Reward', 
-      description: 'Open a scientific reward',
-      action: 'reward'
-    },
-    { 
-      icon: <GraduationCap className="w-5 h-5" />, 
-      title: 'Create Grant', 
-      description: 'Fund promising research',
-      action: 'grant'
-    },
-    { 
-      icon: <HandCoins className="w-5 h-5" />, 
-      title: 'Start a Fundraise', 
-      description: 'Seek research support',
-      action: 'fundraise'
+    {
+      title: 'Funding',
+      items: [
+        {
+          icon: <FundingIcon size={28} className="w-5 h-5" color="rgb(79, 70, 229)" />,
+          title: 'Request funding',
+          description: 'Request funding on your research',
+          action: 'request-funding'
+        },
+        {
+          icon: <GrantIcon size={28} className="w-5 h-5" color="rgb(79, 70, 229)" />,
+          title: 'Submit grant',
+          description: 'Fund promising research by publishing an RFP',
+          action: 'submit-grant'
+        }
+      ]
     }
   ];
 
@@ -93,27 +82,23 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 px-5 py-2.5 text-base font-medium text-white rounded-md transition-all duration-200 min-w-[120px]
-          bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600
-          border border-white/10
-          shadow-[0_0_0_1px_rgba(255,255,255,0.1)_inset,0_-1px_0_0_rgba(255,255,255,0.1)_inset,0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)]
-          hover:shadow-[0_0_0_1px_rgba(255,255,255,0.2)_inset,0_-1px_0_0_rgba(255,255,255,0.2)_inset,0_6px_8px_-1px_rgba(0,0,0,0.2),0_4px_6px_-2px_rgba(0,0,0,0.1)]
-          hover:scale-[1.02]
-          active:scale-[0.98]"
+        className="flex items-center gap-3 px-4 py-2.5 text-base font-medium text-white rounded-md transition-all duration-200 w-fit
+            bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600
+            border border-white/10
+            shadow-[0_0_0_1px_rgba(255,255,255,0.1)_inset,0_-1px_0_0_rgba(255,255,255,0.1)_inset,0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)]
+            hover:shadow-[0_0_0_1px_rgba(255,255,255,0.2)_inset,0_-1px_0_0_rgba(255,255,255,0.2)_inset,0_6px_8px_-1px_rgba(0,0,0,0.2),0_4px_6px_-2px_rgba(0,0,0,0.1)]
+            hover:scale-[1.02]
+            active:scale-[0.98]
+            min-w-[120px]"
       >
         <Plus className="h-6 w-6 stroke-[1.5]" />
         <span>New</span>
       </button>
 
-      <CreateRewardModal 
-        isOpen={showRewardModal} 
-        onClose={() => setShowRewardModal(false)} 
-      />
-
       {isOpen && (
         <div 
           ref={menuRef}
-          className="absolute w-72 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden z-50"
+          className="absolute w-80 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden z-50"
           style={{ 
             left: '0',
             top: 'calc(100% + 4px)',
@@ -121,26 +106,41 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
           }}
         >
           <div className="py-2">
-            {menuItems.map((item) => (
-              <button
-                key={item.title}
-                className="w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors duration-150"
-                onClick={() => handleItemClick(item.action)}
-              >
-                <div className="flex items-center">
-                  <div className="text-indigo-600">
-                    {item.icon}
-                  </div>
-                  <div className="ml-3">
-                    <div className="text-sm font-medium text-gray-900">{item.title}</div>
-                    <p className="text-xs text-gray-500">{item.description}</p>
-                  </div>
+            {menuCategories.map((category, categoryIndex) => (
+              <div key={category.title}>
+                {categoryIndex > 0 && <div className="h-px bg-gray-100 mx-4 my-2" />}
+                <div className="px-4 py-2">
+                  <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {category.title}
+                  </h3>
                 </div>
-              </button>
+                {category.items.map((item) => (
+                  <button
+                    key={item.title}
+                    className="w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors duration-150"
+                    onClick={() => handleItemClick(item.action)}
+                  >
+                    <div className="flex items-center">
+                      <div className="text-indigo-600">
+                        {item.icon}
+                      </div>
+                      <div className="ml-3">
+                        <div className="text-sm font-medium text-gray-900">{item.title}</div>
+                        <p className="text-xs text-gray-500">{item.description}</p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
             ))}
           </div>
         </div>
       )}
+
+      <ClaimModal 
+        isOpen={showClaimModal}
+        onClose={() => setShowClaimModal(false)}
+      />
     </div>
   );
 }; 

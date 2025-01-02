@@ -2,14 +2,13 @@
 
 import { 
   Home, Coins, GraduationCap, Store, BookOpen, 
-  Star, FlaskConical, AlertCircle, Plus
+  Star, FlaskConical, AlertCircle
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { FooterLinks } from '../../components/FooterLinks';
 import { Navigation } from './Navigation';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { Button } from '@/components/ui/Button';
 import { PublishMenu } from './PublishMenu';
 
 export const LeftSidebar: React.FC = () => {
@@ -45,15 +44,7 @@ export const LeftSidebar: React.FC = () => {
       </div>
 
       <div className="px-4 mb-4">
-        <PublishMenu>
-          <Button 
-            className="w-full justify-start shadow-sm"
-            size="lg"
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            New
-          </Button>
-        </PublishMenu>
+        <PublishMenu />
       </div>
 
       <div className="flex-1">

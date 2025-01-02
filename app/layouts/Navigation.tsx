@@ -3,7 +3,7 @@
 import { 
   Home, GraduationCap, 
   BookOpen, Star, Info, Notebook, Trophy, HandCoins,
-  Coins
+  Coins, Telescope
 } from 'lucide-react';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import Link from 'next/link';
@@ -73,6 +73,12 @@ export const Navigation: React.FC<NavigationProps> = ({
         e.preventDefault();
         onUnimplementedFeature('Peer Reviews');
       }
+    },
+    {
+      label: 'Explore',
+      href: '/explore',
+      icon: Telescope,
+      description: 'Discover trending research and opportunities'
     },
     {
       label: 'Lab Notebook',

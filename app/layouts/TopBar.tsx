@@ -38,6 +38,10 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
       return 'Paper'
     }
 
+    if (pathname.includes('/funding')) {
+      return 'Funding'
+    }
+
     return 'Today in Science'
   }
 

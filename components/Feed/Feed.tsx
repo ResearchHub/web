@@ -42,7 +42,7 @@ export const Feed: FC = () => {
     <PageLayout>
       <div className="max-w-4xl mx-auto">
         <div className="pt-4 pb-7">
-          <h2 className="text-xl text-gray-600 flex items-center gap-2">
+          <h2 className="text-lg text-gray-600 flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-indigo-500" />
             Discover the latest research, earning, and funding opportunities
           </h2>
