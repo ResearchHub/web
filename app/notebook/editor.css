@@ -53,7 +53,7 @@
 
   .node-imageBlock {
     & img {
-      @apply border-2 border-transparent rounded-xl overflow-hidden;
+      @apply border-2 border-transparent rounded-lg overflow-hidden;
     }
 
     &:hover img {

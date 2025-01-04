@@ -10,7 +10,7 @@ interface PaperRightSidebarProps {
 
 export const PaperRightSidebar = ({ paper }: PaperRightSidebarProps) => {
   return (
-    <div className="w-80 fixed right-0 top-0 bottom-0 border-l bg-white/50 backdrop-blur-sm p-6 overflow-y-auto">
+    <div>
       {/* AI Summary */}
       <div className="mb-8">
         <div className="flex items-center space-x-2 mb-3">

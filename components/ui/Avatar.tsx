@@ -1,55 +1,83 @@
 'use client'
 
-import { useState } from 'react'
-import { User as UserIcon } from 'lucide-react'
-import { cn } from '@/utils/styles'
+import { FC, useState, useEffect } from 'react';
+import { cn } from '@/utils/styles';
 
 interface AvatarProps {
-  src?: string | null
-  alt?: string
-  size?: 'sm' | 'md' | 'lg'
-  className?: string
+  src?: string | null;
+  alt: string;
+  size?: 'xxs' | 'xs' | 'sm' | 'md';
+  className?: string;
 }
 
-const sizeClasses = {
-  sm: 'h-8 w-8',
-  md: 'h-10 w-10',
-  lg: 'h-12 w-12'
-}
+export const Avatar: FC<AvatarProps> = ({ 
+  src, 
+  alt, 
+  size = 'md',
+  className 
+}) => {
+  const [imageError, setImageError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-const iconSizeClasses = {
-  sm: 'h-5 w-5',
-  md: 'h-6 w-6',
-  lg: 'h-7 w-7'
-}
+  useEffect(() => {
+    if (src) {
+      setImageError(false);
+      setIsLoading(true);
+      const img = new Image();
+      img.src = src;
+      img.onload = () => setIsLoading(false);
+      img.onerror = () => {
+        setImageError(true);
+        setIsLoading(false);
+      };
+    } else {
+      setIsLoading(false);
+    }
+  }, [src]);
 
-export function Avatar({ src, alt = '', size = 'md', className }: AvatarProps) {
-  const [imageError, setImageError] = useState(false)
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(' ').filter(Boolean);
+    if (parts.length === 0) return '?';
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  };
+
+  const sizeClasses = {
+    xxs: 'h-5 w-5 text-[8px]',
+    xs: 'h-6 w-6 text-[10px]',
+    sm: 'h-8 w-8 text-xs',
+    md: 'h-10 w-10 text-sm'
+  };
 
   const handleImageError = () => {
-    setImageError(true)
-  }
+    setImageError(true);
+    setIsLoading(false);
+  };
 
-  const baseClasses = 'rounded-full flex items-center justify-center bg-gray-200'
-  const sizeClass = sizeClasses[size]
-  const iconSizeClass = iconSizeClasses[size]
-
-  if (!src || imageError) {
-    return (
-      <div className={cn(baseClasses, sizeClass, className)}>
-        <UserIcon className={cn(iconSizeClass, 'text-gray-600')} />
-      </div>
-    )
-  }
+  const shouldShowInitials = !src || imageError || isLoading;
 
   return (
-    <div className={cn(baseClasses, sizeClass, className)}>
-      <img
-        src={src}
-        alt={alt}
-        onError={handleImageError}
-        className="h-full w-full rounded-full object-cover"
-      />
+    <div 
+      className={cn(
+        'relative inline-flex rounded-full bg-gray-100 overflow-hidden',
+        'flex items-center justify-center',
+        sizeClasses[size],
+        className
+      )}
+      style={{ lineHeight: 1 }}
+    >
+      {shouldShowInitials ? (
+        <span className="absolute inset-0 flex items-center justify-center font-medium text-gray-600">
+          {getInitials(alt)}
+        </span>
+      ) : (
+        <img
+          src={src}
+          alt={alt}
+          className="h-full w-full object-cover"
+          onError={handleImageError}
+        />
+      )}
     </div>
-  )
-} 
+  );
+}; 

@@ -16,8 +16,7 @@ export function transformUserData(apiUser: any): User {
   return {
     id: apiUser.id,
     email: apiUser.email,
-    firstName: apiUser.first_name,
-    lastName: apiUser.last_name,
+    fullName: apiUser.first_name + (apiUser.last_name ? " " + apiUser.last_name : ""),
     authorProfile: apiUser.author_profile ? {
         id: apiUser.author_profile.id,
         profileImage: apiUser.author_profile.profile_image,

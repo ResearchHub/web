@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Coins } from 'lucide-react'
 import { ReviewRewardModal } from './ReviewRewardModal'
-import { FeedItem } from '../FeedItem'
+import { FeedItem } from '../Feed/FeedItem'
 
 export const PaperReviews = ({ paperId }) => {
   const [rewardModalOpen, setRewardModalOpen] = useState(false)
@@ -72,7 +72,7 @@ export const PaperReviews = ({ paperId }) => {
       {/* Reviews List */}
       <div className="space-y-4">
         {reviews.map((review, index) => (
-          <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+          <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
             <FeedItem item={review} />
           </div>
         ))}

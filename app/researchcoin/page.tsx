@@ -129,7 +129,7 @@ export default function ResearchCoinPage() {
       <div className="flex">
         <div className="flex-1">
         {/* Balance Card */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Coins className="h-8 w-8 text-indigo-600" />
             <h1 className="text-2xl font-bold">My ResearchCoin</h1>
@@ -174,7 +174,7 @@ export default function ResearchCoinPage() {
         </div>
 
         {/* Transactions */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-xl font-semibold mb-4">Recent Transactions</h2>
           <div className="divide-y">
             {sampleTransactions.map((transaction) => (

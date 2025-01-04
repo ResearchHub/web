@@ -15,6 +15,7 @@ export default {
       },
       screens: {
         'wide': '1200px',
+        '3xl': '1600px',
       }      
     },
   },

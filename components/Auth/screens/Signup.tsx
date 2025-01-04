@@ -58,7 +58,7 @@ export default function Signup({
       <h2 className="text-xl font-semibold mb-6">Create your account</h2>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">
+        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">
           {error}
         </div>
       )}

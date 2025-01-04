@@ -2,10 +2,10 @@
 
 import { PageLayout } from '@/app/layouts/PageLayout'
 import { ProfileRightSidebar } from '@/components/profile/ProfileRightSidebar'
-import { FeedItem } from '@/components/FeedItem'
+import { FeedItem } from '@/components/Feed/FeedItem'
 import { Pin, BadgeCheck } from 'lucide-react'
-import { Item, FeedEntry } from '@/types/feed'
-import { User } from '@/types/feed'
+import { FeedEntry } from '@/types/feed'
+import { User } from '@/types/user'
 
 type AuthorProfileProps = {
   params: {
@@ -104,7 +104,7 @@ export default function AuthorProfile({ params }: AuthorProfileProps) {
           {feedEntries.map((entry, index) => (
             <div 
               key={index} 
-              className={`bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow duration-200 
+              className={`bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-200 
                 ${entry.item.isPinned ? 'border-orange-200 bg-orange-50/50' : 'border-gray-100'}`}
             >
               {entry.item.isPinned && (
