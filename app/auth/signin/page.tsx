@@ -4,8 +4,9 @@ import { useSearchParams } from 'next/navigation'
 import AuthContent from '@/components/Auth/AuthContent'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { Suspense } from 'react'
 
-export default function SignIn() {
+function SignInContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const error = searchParams?.get('error')
@@ -55,5 +56,13 @@ export default function SignIn() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignInContent />
+    </Suspense>
   )
 } 
