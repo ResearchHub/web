@@ -44,7 +44,7 @@ All paths are relative to the root of the project.
 - Date functions are located in `utils/date.ts`
 
 ## Main Feed
-- `components/Feed3.tsx` is the main feed component
+- `components/Feed/Feed.tsx` is the main feed component
 - Feed item types are currently loaded from `store/feedStore.ts`
 - actions are: publish, repost, post, contribute
 - types are: grant, paper, review, comment, contribution
