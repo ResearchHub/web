@@ -53,7 +53,7 @@ export const PaperDocument = ({ paper }: PaperDocumentProps) => {
           <div className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="bg-orange-100 p-2 rounded-md">
+                <div className="bg-orange-100 p-2 rounded-lg">
                   <Coins className="h-5 w-5 text-orange-600" />
                 </div>
                 <div>
@@ -65,7 +65,7 @@ export const PaperDocument = ({ paper }: PaperDocumentProps) => {
               </div>
               <button 
                 onClick={() => setRewardModalOpen(true)}
-                className="px-4 py-1.5 bg-orange-500 text-white rounded-md text-sm font-medium hover:bg-orange-600"
+                className="px-4 py-1.5 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600"
               >
                 View Rewards
               </button>
@@ -91,32 +91,32 @@ export const PaperDocument = ({ paper }: PaperDocumentProps) => {
         <div className="flex items-center space-x-4 mb-4">
           {/* Primary Actions */}
           <div className="flex items-center space-x-3">
-            <button className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-md hover:bg-gray-100">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100">
               <ArrowUp className="h-4 w-4" />
               <span>{paper.metrics.votes}</span>
             </button>
             
             {/* Insights Button for Small Screens - Moved here */}
             <button 
-              className="lg:hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-md hover:bg-gray-100"
+              className="lg:hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
               onClick={() => setShowMobileMetrics(true)}
             >
               <BarChart2 className="h-4 w-4" />
               <span>Insights</span>
             </button>
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-orange-50 text-orange-600 rounded-md hover:bg-orange-100">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100">
               <Coins className="h-4 w-4" />
               <span>Tip RSC</span>
             </button>
             
             {/* More Actions Dropdown */}
             <Menu as="div" className="relative">
-              <Menu.Button className="p-2 text-gray-600 hover:bg-gray-50 rounded-md">
+              <Menu.Button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg">
                 <MoreHorizontal className="h-5 w-5" />
               </Menu.Button>
 
-              <Menu.Items className="absolute left-0 mt-2 w-48 origin-top-left bg-white rounded-md shadow-lg border border-gray-200 py-1 focus:outline-none">
+              <Menu.Items className="absolute left-0 mt-2 w-48 origin-top-left bg-white rounded-lg shadow-lg border border-gray-200 py-1 focus:outline-none">
                 <Menu.Item>
                   {({ active }) => (
                     <button className={`${
@@ -278,12 +278,12 @@ export const PaperDocument = ({ paper }: PaperDocumentProps) => {
       <div>
         {activeTab === 'paper' && (
           <>
-            <div className="bg-white rounded-md shadow-sm border p-6 mb-6">
+            <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
               <h2 className="text-xl font-semibold mb-4">Abstract</h2>
               <p className="text-gray-700">{paper.abstract}</p>
             </div>
             
-            <div className="bg-white rounded-md shadow-sm border overflow-hidden">
+            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
               <iframe
                 src={`https://www.biorxiv.org/content/10.1101/2024.10.16.618749v1.full.pdf#toolbar=0`}
                 className="w-full h-[800px]"
@@ -313,7 +313,7 @@ export const PaperDocument = ({ paper }: PaperDocumentProps) => {
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="mx-auto max-w-md w-full bg-white rounded-md p-6">
+          <Dialog.Panel className="mx-auto max-w-md w-full bg-white rounded-lg p-6">
             <div className="flex items-center justify-between mb-6">
               <Dialog.Title className="text-lg font-semibold">
                 Claim Author Profile
@@ -346,7 +346,7 @@ export const PaperDocument = ({ paper }: PaperDocumentProps) => {
               </ul>
 
               <button 
-                className="w-full px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+                className="w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
                 onClick={() => {
                   // Handle claim profile action
                   setClaimModalOpen(false)

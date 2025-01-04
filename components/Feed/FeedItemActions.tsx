@@ -70,12 +70,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
         tooltip="Repost"
         label="Repost"
       />
-      <ContributeRSC 
-        size={22} 
-        amount={metrics?.earned}
-        contributors={contributors}
-      />
-      <div className="flex-1" />
       <FeedItemMenu>
         <Button
           variant="ghost"

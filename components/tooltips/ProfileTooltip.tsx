@@ -66,7 +66,7 @@ export const ProfileTooltip = ({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            <div className="rounded-md bg-white shadow-lg border border-gray-200 p-4">
+            <div className="rounded-lg bg-white shadow-lg border border-gray-200 p-4">
               <div className="space-y-3">
                 <div>
                   <div className="flex items-center gap-1.5">
@@ -77,12 +77,12 @@ export const ProfileTooltip = ({
                 </div>
                 
                 <div className="flex gap-2">
-                  <button className="flex-1 px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
+                  <button className="flex-1 px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700">
                     Follow
                   </button>
                   <button 
                     onClick={handleViewProfile}
-                    className="flex-1 px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-200"
+                    className="flex-1 px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200"
                   >
                     View Profile
                   </button>

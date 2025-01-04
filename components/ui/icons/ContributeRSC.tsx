@@ -3,11 +3,10 @@
 import { useState } from 'react';
 import { cn } from '@/utils/styles';
 import { ResearchCoinIcon } from './ResearchCoinIcon';
-import { AvatarStack } from '../AvatarStack';
 import { AuthorProfile } from '@/types/user';
 import { formatRSC } from '@/utils/number';
 import { Button } from '../Button';
-import { ContributorModal } from '@/components/modals/ContributorModal';
+import { ContributorsButton } from '../ContributorsButton';
 
 interface ContributeRSCProps {
   /**
@@ -54,62 +53,33 @@ export function ContributeRSC({
   amount,
   contributors = [],
 }: ContributeRSCProps) {
-  const [showModal, setShowModal] = useState(false);
-  console.log('contributors', contributors);
-  const avatarItems = contributors.map(({ profile }) => ({
-    src: profile.profileImage,
-    alt: profile.fullName,
-    tooltip: profile.fullName
-  }));
-
   return (
-    <>
-      <div className={cn("inline-flex items-center gap-2", className)}>
-        <Button
-          variant="ghost"
-          size="sm"
-          tooltip="Contribute ResearchCoin"
-          className="flex items-center space-x-1.5 text-gray-900 hover:text-gray-900"
-          onClick={onClick}
-        >
-          <ResearchCoinIcon
-            size={size}
-            color={iconColor}
-            contribute
-          />
-          {amount !== undefined && amount > 0 && (
-            <span className="text-sm font-medium" style={{ color: textColor }}>
-              {formatRSC({ amount, shorten: true })}
-            </span>
-          )}
-        </Button>
-
-        {contributors.length > 0 && (
-          <Button
-            variant="default"
-            size="sm"
-            className="hover:bg-gray-100 bg-transparent"
-            tooltip="View contributors"
-            onClick={() => setShowModal(true)}
-          >
-            <AvatarStack
-              items={avatarItems}
-              size="xxs"
-              maxItems={3}
-              spacing={-8}
-              hideLabel
-              disableTooltip
-            />
-          </Button>
+    <div className={cn("inline-flex items-center gap-2", className)}>
+      <Button
+        variant="ghost"
+        size="sm"
+        tooltip="Contribute ResearchCoin"
+        className="flex items-center space-x-1.5 text-gray-900 hover:text-gray-900"
+        onClick={onClick}
+      >
+        <ResearchCoinIcon
+          size={size}
+          color={iconColor}
+          contribute
+        />
+        {amount !== undefined && amount > 0 && (
+          <span className="text-sm font-medium" style={{ color: textColor }}>
+            {formatRSC({ amount, shorten: true })}
+          </span>
         )}
-      </div>
+      </Button>
 
-      <ContributorModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        contributors={contributors}
-        onContribute={onClick ? () => onClick({} as React.MouseEvent) : undefined}
-      />
-    </>
+      {contributors.length > 0 && (
+        <ContributorsButton
+          contributors={contributors}
+          onContribute={onClick ? () => onClick({} as React.MouseEvent) : undefined}
+        />
+      )}
+    </div>
   );
 } 

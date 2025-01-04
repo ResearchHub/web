@@ -129,7 +129,7 @@ export default function ResearchCoinPage() {
       <div className="flex">
         <div className="flex-1">
         {/* Balance Card */}
-        <div className="bg-white rounded-md shadow-sm p-6 mb-8">
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Coins className="h-8 w-8 text-indigo-600" />
             <h1 className="text-2xl font-bold">My ResearchCoin</h1>
@@ -148,21 +148,21 @@ export default function ResearchCoinPage() {
           <div className="grid grid-cols-3 gap-4 mt-6">
             <button 
               onClick={() => handleActionClick('Buy RSC')}
-              className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+              className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
             >
               <ArrowUpRight className="h-4 w-4" />
               Buy
             </button>
             <button 
               onClick={() => handleActionClick('Withdraw RSC')}
-              className="flex items-center justify-center gap-2 border border-gray-300 px-4 py-2 rounded-md hover:bg-gray-50"
+              className="flex items-center justify-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50"
             >
               <ArrowDownRight className="h-4 w-4" />
               Withdraw
             </button>
             <button 
               onClick={() => handleActionClick('Stake RSC')}
-              className="flex items-center justify-center gap-2 border border-gray-300 px-4 py-2 rounded-md hover:bg-gray-50"
+              className="flex items-center justify-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50"
             >
               <Gauge className="h-4 w-4" />
               <span>Stake</span>
@@ -174,7 +174,7 @@ export default function ResearchCoinPage() {
         </div>
 
         {/* Transactions */}
-        <div className="bg-white rounded-md shadow-sm p-6">
+        <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-xl font-semibold mb-4">Recent Transactions</h2>
           <div className="divide-y">
             {sampleTransactions.map((transaction) => (

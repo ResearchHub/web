@@ -17,7 +17,7 @@ export const PaperRightSidebar = ({ paper }: PaperRightSidebarProps) => {
           <h3 className="text-sm font-medium text-gray-900">AI Summary</h3>
           <Sparkles className="h-4 w-4 text-indigo-500" />
         </div>
-        <div className="bg-indigo-50 rounded-md p-4">
+        <div className="bg-indigo-50 rounded-lg p-4">
           <h4 className="text-sm font-medium text-indigo-900 mb-2">Key Points:</h4>
           <ul className="space-y-2 text-sm text-indigo-900">
             <li className="flex items-start">

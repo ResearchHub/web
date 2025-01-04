@@ -102,15 +102,15 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
             authors={getAuthors()}
             size="sm"
             className="font-semibold"
-            delimiter="and"
+            delimiter={<span className="text-gray-400">•</span>}
             delimiterClassName="text-gray-900"
           />
           {action === 'contribute' && content.type === 'contribution' ? (
             <>
-              <span className="text-sm text-gray-700">contributed {formatRSC({amount: content.amount})} RSC towards bounty</span>
+              <span className="text-sm text-gray-600">contributed {formatRSC({amount: content.amount})} RSC towards bounty</span>
             </>
           ) : (
-            <span className="text-sm text-gray-700">{getActionText()}</span>
+            <span className="text-sm text-gray-600">{getActionText()}</span>
           )}
           <span className="text-sm text-gray-400">•</span>
           <span className="text-sm text-gray-400">

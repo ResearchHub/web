@@ -1,43 +1,24 @@
 'use client'
 
-import { Plus, FileUp } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { Plus, FileUp, ChevronDown } from 'lucide-react';
+import { useState } from 'react';
 import { ClaimModal } from '@/components/modals/ClaimModal';
 import { ClaimPaperIcon } from '@/components/ui/icons/ClaimPaperIcon';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { GrantIcon } from '@/components/ui/icons/GrantIcon';
+import { BaseMenu, BaseMenuItem } from '@/components/menus/BaseMenu';
 
 interface PublishMenuProps {
   children?: React.ReactNode;
 }
 
 export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
-  const [isOpen, setIsOpen] = useState(false);
   const [showClaimModal, setShowClaimModal] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        menuRef.current && 
-        buttonRef.current && 
-        !menuRef.current.contains(event.target as Node) &&
-        !buttonRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const handleItemClick = (action: string) => {
     if (action === 'claim') {
       setShowClaimModal(true);
     }
-    setIsOpen(false);
   };
 
   const menuCategories = [
@@ -77,70 +58,60 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
     }
   ];
 
-  return (
-    <div className="relative">
-      <button
-        ref={buttonRef}
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 px-4 py-2.5 text-base font-medium text-white rounded-md transition-all duration-200 w-fit
-            bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600
-            border border-white/10
-            shadow-[0_0_0_1px_rgba(255,255,255,0.1)_inset,0_-1px_0_0_rgba(255,255,255,0.1)_inset,0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)]
-            hover:shadow-[0_0_0_1px_rgba(255,255,255,0.2)_inset,0_-1px_0_0_rgba(255,255,255,0.2)_inset,0_6px_8px_-1px_rgba(0,0,0,0.2),0_4px_6px_-2px_rgba(0,0,0,0.1)]
-            hover:scale-[1.02]
-            active:scale-[0.98]
-            min-w-[120px]"
-      >
-        <Plus className="h-6 w-6 stroke-[1.5]" />
-        <span>New</span>
-      </button>
+  const trigger = (
+    <button className="flex items-center gap-2 px-4 py-2 text-base font-medium text-white rounded-lg transition-all duration-200
+        bg-indigo-600 hover:bg-indigo-500
+        hover:shadow-[0_3px_10px_-3px_rgba(0,0,0,0.15),0_3px_4px_-3px_rgba(0,0,0,0.08)]">
+      <Plus className="h-5 w-5 stroke-[1.5]" />
+      <span>New</span>
+      <ChevronDown className="h-4 w-4 stroke-[1.5] opacity-70" />
+    </button>
+  );
 
-      {isOpen && (
-        <div 
-          ref={menuRef}
-          className="absolute w-[280px] rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden z-50"
-          style={{ 
-            left: '0',
-            top: 'calc(100% + 4px)',
-            filter: 'drop-shadow(0 20px 13px rgb(0 0 0 / 0.03)) drop-shadow(0 8px 5px rgb(0 0 0 / 0.08))'
-          }}
-        >
-          <div className="py-2">
-            {menuCategories.map((category, categoryIndex) => (
-              <div key={category.title}>
-                {categoryIndex > 0 && <div className="h-px bg-gray-100 mx-4 my-2" />}
-                <div className="px-4 py-2">
-                  <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {category.title}
-                  </h3>
-                </div>
-                {category.items.map((item) => (
-                  <button
-                    key={item.title}
-                    className="w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors duration-150"
-                    onClick={() => handleItemClick(item.action)}
-                  >
-                    <div className="flex items-center">
-                      <div className="text-indigo-600">
-                        {item.icon}
-                      </div>
-                      <div className="ml-3">
-                        <div className="text-sm font-medium text-gray-900">{item.title}</div>
-                        <p className="text-xs text-gray-500">{item.description}</p>
-                      </div>
-                    </div>
-                  </button>
-                ))}
+  return (
+    <>
+      <BaseMenu 
+        trigger={trigger}
+        align="start"
+        withOverlay
+        className="w-[280px] p-0"
+        sideOffset={8}
+      >
+        <div className="py-2">
+          {menuCategories.map((category, categoryIndex) => (
+            <div key={category.title}>
+              {categoryIndex > 0 && <div className="h-px bg-gray-100 mx-4 my-2" />}
+              <div className="px-4 py-2">
+                <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {category.title}
+                </h3>
               </div>
-            ))}
-          </div>
+              {category.items.map((item) => (
+                <BaseMenuItem
+                  key={item.title}
+                  className="w-full px-4 py-2.5"
+                  onClick={() => handleItemClick(item.action)}
+                >
+                  <div className="flex items-center">
+                    <div className="text-indigo-600">
+                      {item.icon}
+                    </div>
+                    <div className="ml-3">
+                      <div className="text-sm font-medium text-gray-900">{item.title}</div>
+                      <p className="text-xs text-gray-500">{item.description}</p>
+                    </div>
+                  </div>
+                </BaseMenuItem>
+              ))}
+            </div>
+          ))}
         </div>
-      )}
+      </BaseMenu>
 
       <ClaimModal 
         isOpen={showClaimModal}
         onClose={() => setShowClaimModal(false)}
       />
-    </div>
+    </>
   );
 }; 

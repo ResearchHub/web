@@ -28,7 +28,7 @@ export const MarketplaceRewardsBanner: React.FC<MarketplaceRewardsBannerProps> =
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
     >
-      <div className="bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 rounded-md p-5 mb-6 relative overflow-hidden animate-gradient">
+      <div className="bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 rounded-lg p-5 mb-6 relative overflow-hidden animate-gradient">
         <button
           onClick={dismissBanner}
           className="absolute top-3 right-3 text-white/80 hover:text-white z-10"
@@ -48,7 +48,7 @@ export const MarketplaceRewardsBanner: React.FC<MarketplaceRewardsBannerProps> =
 
           <div className="grid md:grid-cols-2 gap-6">
             <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 bg-white/10 rounded-md p-2">
+              <div className="flex-shrink-0 bg-white/10 rounded-lg p-2">
                 <FileCheck className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -60,7 +60,7 @@ export const MarketplaceRewardsBanner: React.FC<MarketplaceRewardsBannerProps> =
             </div>
 
             <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 bg-white/10 rounded-md p-2">
+              <div className="flex-shrink-0 bg-white/10 rounded-lg p-2">
                 <Award className="h-5 w-5 text-white" />
               </div>
               <div>

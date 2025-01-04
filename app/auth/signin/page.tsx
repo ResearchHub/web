@@ -28,9 +28,9 @@ export default function SignIn() {
         </p>
       </div>
 
-      <div className="bg-white w-full max-w-md rounded-md shadow-sm border border-gray-200 p-8">
+      <div className="bg-white w-full max-w-md rounded-lg shadow-sm border border-gray-200 p-8">
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm text-red-600">{error}</p>
           </div>
         )}

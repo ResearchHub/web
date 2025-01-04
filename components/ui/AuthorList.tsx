@@ -20,7 +20,7 @@ interface AuthorListProps {
   /** Class names to apply to the delimiter */
   delimiterClassName?: string
   /** Word to use as delimiter between authors (e.g. "and") */
-  delimiter?: string
+  delimiter?: any
 }
 
 export const AuthorList = ({ 

@@ -39,16 +39,16 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
 
             {/* Action buttons */}
             <div className="flex items-center space-x-3 mb-6">
-              <button className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-md hover:bg-gray-100">
+              <button className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100">
                 <ArrowUp className="h-4 w-4" />
                 <span>{funding.metrics.votes}</span>
               </button>
-              <button className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-md hover:bg-gray-100">
+              <button className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100">
                 <Share2 className="h-4 w-4" />
                 <span>Share</span>
               </button>
               <button 
-                className="lg:hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-md hover:bg-gray-100"
+                className="lg:hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
                 onClick={() => setShowMobileMetrics(true)}
               >
                 <BarChart2 className="h-4 w-4" />
@@ -85,7 +85,7 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
           </div>
 
           {/* Funding Progress */}
-          <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-2">
@@ -110,7 +110,7 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
             </div>
 
             <div className="flex items-center space-x-4 justify-between">
-              <button className="inline-flex items-center justify-center px-4 py-2 bg-orange-100 text-orange-600 rounded-md text-sm font-medium hover:bg-orange-200">
+              <button className="inline-flex items-center justify-center px-4 py-2 bg-orange-100 text-orange-600 rounded-lg text-sm font-medium hover:bg-orange-200">
                 <Coins className="h-4 w-4 mr-2" />
                 Contribute
               </button>
@@ -169,7 +169,7 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
           {/* Content */}
           <div>
             {activeTab === 'content' && (
-              <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6 mb-6">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">About this fundraise</h2>
                 <div className="prose prose-sm max-w-none">
                   {funding.content.split('\n\n').map((paragraph, i) => (
@@ -180,7 +180,7 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
             )}
             
             {activeTab === 'reviews' && (
-              <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div className="text-gray-500 text-center py-8">
                   No reviews yet
                 </div>
@@ -188,7 +188,7 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
             )}
             
             {activeTab === 'comments' && (
-              <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div className="text-gray-500 text-center py-8">
                   No comments yet
                 </div>

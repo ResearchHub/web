@@ -25,7 +25,7 @@ export function NotificationList({
 
   if (error) {
     return (
-      <div className="p-4 rounded-md border border-red-200 bg-red-50 text-red-700">
+      <div className="p-4 rounded-lg border border-red-200 bg-red-50 text-red-700">
         {error}
       </div>
     )
@@ -33,7 +33,7 @@ export function NotificationList({
 
   if (notifications.length === 0) {
     return (
-      <div className="p-4 rounded-md border border-gray-200 bg-gray-50 text-gray-600">
+      <div className="p-4 rounded-lg border border-gray-200 bg-gray-50 text-gray-600">
         No notifications
       </div>
     )

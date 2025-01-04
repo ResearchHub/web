@@ -11,7 +11,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, icon, error, rightElement, ...props }, ref) => {
     return (
       <div>
-        <div className="relative">
+        <div className={cn(
+          "relative flex rounded-lg border border-gray-200 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all",
+          error && "border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20"
+        )}>
           {icon && (
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
               {icon}
@@ -19,19 +22,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
           <input
             className={cn(
-              'w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-all',
+              'w-full bg-white px-3 py-2 text-sm outline-none border-none focus:ring-0',
               'placeholder:text-gray-400',
-              'focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20',
               icon && 'pl-10',
-              rightElement && 'pr-10',
-              error && 'border-red-500 focus:border-red-500 focus:ring-red-500/20',
               className
             )}
             ref={ref}
             {...props}
           />
           {rightElement && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <div className="flex">
               {rightElement}
             </div>
           )}

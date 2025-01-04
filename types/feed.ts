@@ -32,7 +32,10 @@ export interface Paper extends BaseContent {
   type: 'paper';
   abstract: string;
   doi?: string;
-  journal?: string;
+  journal?: {
+    slug: string;
+    image?: string;
+  };
   authors: AuthorProfile[];
 }
 

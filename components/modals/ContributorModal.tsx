@@ -41,7 +41,7 @@ export const ContributorModal: FC<ContributorModalProps> = ({
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="mx-auto max-w-lg w-full rounded-md bg-white shadow-lg">
+        <Dialog.Panel className="mx-auto max-w-lg w-full rounded-lg bg-white shadow-lg">
           <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
             <div className="flex flex-col">
               <Dialog.Title className="text-lg font-semibold text-gray-900">

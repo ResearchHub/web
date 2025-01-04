@@ -3,14 +3,70 @@
 import { Dialog } from '@headlessui/react'
 import { X } from 'lucide-react'
 import { SearchInput } from '@/components/Search/SearchInput'
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon'
+import { Button } from '@/components/ui/Button'
+import { Alert } from '@/components/ui/Alert'
+import { useState } from 'react'
+import { cn } from '@/utils/styles'
 
 interface ClaimModalProps {
   isOpen: boolean
   onClose: () => void
 }
 
+interface SearchResult {
+  id: string
+  title: string
+  authors: string
+  journal: string
+  year: number
+}
+
+const DEMO_RESULTS: SearchResult[] = [
+  {
+    id: '1',
+    title: 'The role of artificial intelligence in modern healthcare systems',
+    authors: 'Sarah Johnson, Michael Chen, David Smith',
+    journal: 'Nature Medicine',
+    year: 2023,
+  },
+  {
+    id: '2',
+    title: 'Quantum computing: A new era of computational power',
+    authors: 'Robert Brown, Lisa Anderson',
+    journal: 'Science',
+    year: 2023,
+  },
+  {
+    id: '3',
+    title: 'Climate change impacts on global biodiversity',
+    authors: 'Emma Wilson, James Taylor, Maria Garcia',
+    journal: 'Nature Climate Change',
+    year: 2022,
+  },
+]
+
 export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
+  const [isSearching, setIsSearching] = useState(false)
+  const [results, setResults] = useState<SearchResult[]>([])
+  const [selectedPaper, setSelectedPaper] = useState<SearchResult | null>(null)
+  const [showVerification, setShowVerification] = useState(false)
+
+  const handleSearch = (query: string) => {
+    if (!query) {
+      setResults([])
+      setSelectedPaper(null)
+      return
+    }
+
+    setIsSearching(true)
+    
+    // Simulate API call
+    setTimeout(() => {
+      setResults(DEMO_RESULTS)
+      setIsSearching(false)
+    }, 500)
+  }
+
   return (
     <Dialog
       open={isOpen}
@@ -30,32 +86,72 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
 
           <div className="mb-6">
             <Dialog.Title className="text-lg font-medium text-gray-900">
-              Claim your research
+              Claim your paper
             </Dialog.Title>
+            <p className="mt-1 text-sm text-gray-500">
+              Earn ResearchCoin rewards for open science.
+            </p>
           </div>
 
           <div className="space-y-6">
-            <div className="text-center">
-              <h3 className="text-base font-medium text-gray-900 mb-2">
-                Claim your research papers
-              </h3>
-              <p className="text-sm text-gray-500 mb-4">
-                Search for your published papers and claim them to start earning ResearchCoin rewards
-              </p>
-              <div className="inline-flex items-center gap-1 text-xs text-orange-500 font-medium">
-                <span>*Earn up to 100</span>
-                <ResearchCoinIcon size={16} color="#F97316" />
-                <span>per verified claim</span>
+            <Alert variant="info" className="text-xs">
+              <span>ResearchCoin earn potential depends on factors: open access, includes open data, preregistered</span>
+            </Alert>
+
+            <div className="space-y-4">
+              <SearchInput 
+                placeholder="Search for papers to claim..."
+                onSearch={handleSearch}
+              />
+
+              {isSearching && (
+                <div className="animate-pulse space-y-3">
+                  <div className="h-20 rounded-lg bg-gray-100" />
+                  <div className="h-20 rounded-lg bg-gray-100" />
+                  <div className="h-20 rounded-lg bg-gray-100" />
+                </div>
+              )}
+
+              {!isSearching && results.length > 0 && (
+                <div className="space-y-3">
+                  {results.map((paper) => (
+                    <button
+                      key={paper.id}
+                      onClick={() => setSelectedPaper(paper)}
+                      className={cn(
+                        'w-full rounded-lg border p-4 text-left transition',
+                        selectedPaper?.id === paper.id
+                          ? 'border-indigo-600 bg-indigo-50'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      )}
+                    >
+                      <div className="text-sm font-medium text-gray-900">
+                        {paper.title}
+                      </div>
+                      <div className="mt-1 text-xs text-gray-500">
+                        {paper.authors} • {paper.journal} • {paper.year}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <Button 
+                  className="w-full justify-center"
+                  disabled={!selectedPaper}
+                  onClick={() => setShowVerification(true)}
+                >
+                  Claim Paper
+                </Button>
+
+                {showVerification && (
+                  <Alert variant="warning" className="text-xs">
+                    <span>Claim paper requires verification. Verify now.</span>
+                  </Alert>
+                )}
               </div>
             </div>
-            
-            <SearchInput 
-              placeholder="Search for papers to claim..."
-              onSearch={(query) => {
-                // Handle search
-                console.log(query)
-              }}
-            />
           </div>
         </div>
       </div>

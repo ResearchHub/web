@@ -60,7 +60,7 @@ export const PaperReviews = ({ paperId }) => {
           {openRewards.length > 0 && (
             <button 
               onClick={() => setRewardModalOpen(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-orange-100 text-orange-600 rounded-md hover:bg-orange-200"
+              className="flex items-center space-x-2 px-4 py-2 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-200"
             >
               <Coins className="h-4 w-4" />
               <span>Review to Earn {openRewards.reduce((sum, r) => sum + r.amount, 0)} RSC</span>
@@ -72,7 +72,7 @@ export const PaperReviews = ({ paperId }) => {
       {/* Reviews List */}
       <div className="space-y-4">
         {reviews.map((review, index) => (
-          <div key={index} className="bg-white rounded-md shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+          <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
             <FeedItem item={review} />
           </div>
         ))}

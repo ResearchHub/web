@@ -48,7 +48,7 @@ const LeftSidebar: React.FC = () => (
   <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col">
     {/* Organization Header */}
     <div className="p-4 border-b border-gray-200">
-      <button className="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-gray-100 transition-colors">
+      <button className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 bg-gradient-to-br from-indigo-500 to-purple-500 rounded flex items-center justify-center text-white text-xs font-bold">
             SO
@@ -59,7 +59,7 @@ const LeftSidebar: React.FC = () => (
       </button>
       
       <div className="mt-3 space-y-1">
-        <button className="w-full text-left px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md flex items-center gap-2">
+        <button className="w-full text-left px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg flex items-center gap-2">
           <Settings className="h-4 w-4" />
           Settings & Members
         </button>
@@ -80,7 +80,7 @@ const LeftSidebar: React.FC = () => (
           {sampleDocuments.map((doc, index) => (
             <button
               key={index}
-              className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-md group"
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-lg group"
             >
               <doc.icon className="h-4 w-4 text-gray-400 group-hover:text-indigo-500" />
               <span className="truncate">{doc.name}</span>
@@ -101,7 +101,7 @@ const LeftSidebar: React.FC = () => (
           {privateDocuments.map((doc, index) => (
             <button
               key={index}
-              className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-md group"
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-lg group"
             >
               <doc.icon className="h-4 w-4 text-gray-400 group-hover:text-indigo-500" />
               <span className="truncate">{doc.name}</span>

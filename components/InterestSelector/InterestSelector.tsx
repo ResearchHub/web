@@ -118,7 +118,7 @@ function InterestGrid({ interests, selectedInterests, onSelect }: InterestGridPr
         <input
           type="search"
           placeholder="Search..."
-          className="w-full px-4 py-2 border rounded-md"
+          className="w-full px-4 py-2 border rounded-lg"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />

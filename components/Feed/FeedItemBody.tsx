@@ -1,17 +1,19 @@
 'use client'
 
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { Content, FeedEntry } from '@/types/feed';
 import { Button } from '@/components/ui/Button';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Progress } from '@/components/ui/Progress';
-import { Star, Clock, FileText } from 'lucide-react';
+import { Star, Clock, FileText, Plus, FileUp, ChevronDown } from 'lucide-react';
 import { formatDeadline } from '@/utils/date';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
 import { RSCBadge } from '@/components/ui/RSCBadge';
 import { ResearchCoinIcon } from '../ui/icons/ResearchCoinIcon';
 import { FeedItemHeader } from './FeedItemHeader';
+import { ContributorsButton } from '../ui/ContributorsButton';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface FeedItemBodyProps {
   content: Content;
@@ -19,6 +21,7 @@ interface FeedItemBodyProps {
   context?: Content;
   metrics?: FeedEntry['metrics'];
   applicants?: FeedEntry['applicants'];
+  contributors?: FeedEntry['contributors'];
 }
 
 const buildUrl = (item: Content) => {
@@ -27,7 +30,7 @@ const buildUrl = (item: Content) => {
   return `/${item.type}/${item.id}/${slug}`;
 };
 
-export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, metrics, applicants }) => {
+export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, metrics, applicants, contributors }) => {
   const renderItem = (item: Content, isTarget: boolean = false) => {
     const itemContent = (() => {
       switch (item.type) {
@@ -80,10 +83,21 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
     return renderCard(
       <div>
         {!isComment && (
-          <div className="flex items-center mb-3">
-            <div className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="px-2 h-8 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-700 capitalize">
               {getTypeLabel(item.type)}
             </div>
+            {item.type === 'paper' && 'journal' in item && item.journal && (
+              <div className="flex items-center gap-2 px-2 h-8 rounded-full text-sm font-medium border border-gray-200 bg-white hover:bg-gray-200 transition-colors">
+                <Avatar
+                  src={item.journal.image}
+                  alt={item.journal.slug}
+                  size="xxs"
+                  className="ring-1 ring-gray-200"
+                />
+                <span className="text-gray-700">{item.journal.slug}</span>
+              </div>
+            )}
           </div>
         )}
         {itemContent}
@@ -134,14 +148,42 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
   const renderPaper = (paper: Content) => {
     if (paper.type !== 'paper') return null;
     
+    const [isExpanded, setIsExpanded] = useState(false);
+    const truncateAbstract = (text: string, limit: number = 200) => {
+      if (text.length <= limit) return text;
+      return text.slice(0, limit).trim() + '...';
+    };
+
+    const isAbstractTruncated = paper.abstract.length > 200;
+    
     return (
       <div>
         <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
           {paper.title}
         </h3>
-        <p className="text-sm text-gray-800">
-          {paper.abstract}
-        </p>
+        <div className="text-sm text-gray-800">
+          <p>{isExpanded ? paper.abstract : truncateAbstract(paper.abstract)}</p>
+          {isAbstractTruncated && (
+            <Button 
+              variant="link" 
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                setIsExpanded(!isExpanded);
+              }}
+              className="flex items-center gap-1"
+            >
+              {isExpanded ? 'Show less' : 'Read more'}
+              <ChevronDown 
+                size={16} 
+                className={cn(
+                  "transition-transform duration-200",
+                  isExpanded && "transform rotate-180"
+                )}
+              />
+            </Button>
+          )}
+        </div>
       </div>
     );
   };
@@ -210,6 +252,25 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
             size="xs"
           />
         </div>
+        <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="contribute" 
+              size="sm" 
+              disabled={fundingRequest.status !== 'OPEN' || deadlineText === 'Ended'}
+            >
+              Contribute
+            </Button>
+          </div>
+          {contributors && contributors.length > 0 && (
+            <ContributorsButton 
+              contributors={contributors}
+              onContribute={() => {
+                // Handle contribute click
+              }}
+            />
+          )}
+        </div>
       </div>
     );
   };
@@ -240,7 +301,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
             <>
               <span className="text-gray-500">•</span>
               <div className="flex items-center space-x-1">
-                <Clock className="h-4 w-4 text-gray-500" />
+                <Clock className="h-5 w-5 text-gray-500" />
                 <span className={`text-gray-500`}>
                   {deadlineText}
                 </span>
@@ -258,21 +319,21 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
         </div>
         <div className="flex items-center justify-between mt-4">
           <Button 
-            variant="outlined" 
+            variant="secondary" 
             size="sm" 
             disabled={deadlineText === 'Ended'}
           >
             Start Task
           </Button>
           {metrics?.applicants && metrics.applicants > 0 && applicants && (
-            <AvatarStack 
-              items={applicants.map(profile => ({
-                src: profile.profileImage || '',
-                alt: profile.fullName,
-                tooltip: profile.fullName
+            <ContributorsButton 
+              contributors={applicants.map(profile => ({
+                profile,
+                amount: 0 // Since applicants don't have amounts in this context
               }))}
-              size="xs"
-              maxItems={3}
+              onContribute={() => {
+                // Handle contribute click
+              }}
             />
           )}
         </div>
@@ -349,15 +410,23 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
           )}
         </div>
         <div className="flex items-center justify-between mt-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Button 
-              variant="outlined" 
+              variant="start-task" 
               size="sm" 
               disabled={deadlineText === 'Ended'}
             >
               Start Task
             </Button>
           </div>
+          {contributors && contributors.length > 0 && (
+            <ContributorsButton 
+              contributors={contributors}
+              onContribute={() => {
+                // Handle contribute click
+              }}
+            />
+          )}
         </div>
       </div>
     );

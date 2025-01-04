@@ -35,7 +35,7 @@ export const PaperRewards = ({ paperId }) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Open Rewards</h2>
-        <button className="flex items-center space-x-2 px-4 py-2 bg-orange-50 text-orange-600 rounded-md hover:bg-orange-100">
+        <button className="flex items-center space-x-2 px-4 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100">
           <Coins className="h-4 w-4" />
           <span>Create Reward</span>
         </button>
@@ -43,7 +43,7 @@ export const PaperRewards = ({ paperId }) => {
 
       <div className="space-y-4">
         {rewards.map(reward => (
-          <div key={reward.id} className="bg-white rounded-md shadow-sm border p-6">
+          <div key={reward.id} className="bg-white rounded-lg shadow-sm border p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className="font-medium text-lg mb-2">{reward.title}</h3>
@@ -63,7 +63,7 @@ export const PaperRewards = ({ paperId }) => {
                 </div>
               </div>
               <div className="flex items-center space-x-4">
-                <button className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
                   Start
                 </button>
               </div>

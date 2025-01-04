@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 
 // InfoBanner Component
 const InfoBanner: React.FC = () => (
-  <div className="bg-indigo-50 rounded-md p-5 mb-6">
+  <div className="bg-indigo-50 rounded-lg p-5 mb-6">
     <div className="flex flex-col items-center mb-4">
       <BookOpen className="h-8 w-8 text-indigo-900 mb-2" />
       <div className="text-lg font-semibold text-indigo-900 text-center">ResearchHub Journal</div>

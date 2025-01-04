@@ -4,7 +4,7 @@ import { hubs } from './hubStore';
 import dayjs from 'dayjs';
 
 // Helper to generate future dates relative to Dec 23rd, 2024
-const baseDate = dayjs('2024-12-28');
+const baseDate = dayjs('2025-01-20');
 const futureDate = (days: number) => baseDate.add(days, 'day').toISOString();
 
 export const feedEntries: FeedEntry[] = [
@@ -110,6 +110,10 @@ export const feedEntries: FeedEntry[] = [
       abstract: 'Bioactive sphingolipids (SLs) play critical roles in cellular function and signaling pathways. This study investigates the novel role of deoxysphingolipids in activating the cGAS-STING pathway in colon cancer cells. Through comprehensive analysis of metabolomic and transcriptomic data, we demonstrate that deoxysphingolipids serve as endogenous danger signals that trigger innate immune responses. Our findings reveal a previously unknown mechanism by which altered sphingolipid metabolism can modulate anti-tumor immunity, suggesting potential therapeutic applications in cancer immunotherapy.',
       timestamp: '2024-01-10T15:30:00Z',
       hub: hubs.neuroscience,
+      journal: {
+        slug: "bioRxiv",
+        image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh0mIPhY2F4yEhtpWJERf0sCvfaPwyUieCkVfg6aS8acUqZ7f5v21HNlFxEtHmtCQYFSXdX97Y7HiZd7pedBXfL2oTlj1NnaEwpwWQKXOLHwt7tp18djNgKdF3sKNE8bhIrTUiE/s0/lwyH1HFe_400x400.jpg"
+      },      
       slug: 'deoxysphingolipids-activate-cgas-sting',
       actor: users.elenaRodriguez,
       authors: [
@@ -166,7 +170,10 @@ export const feedEntries: FeedEntry[] = [
       timestamp: '2024-12-15 16:24:06.069373+00',
       hub: hubs.climateScience,
       doi: "10.1101/2024.12.13.123456",
-      journal: "bioRxiv",
+      journal: {
+        slug: "bioRxiv",
+        image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh0mIPhY2F4yEhtpWJERf0sCvfaPwyUieCkVfg6aS8acUqZ7f5v21HNlFxEtHmtCQYFSXdX97Y7HiZd7pedBXfL2oTlj1NnaEwpwWQKXOLHwt7tp18djNgKdF3sKNE8bhIrTUiE/s0/lwyH1HFe_400x400.jpg"
+      },
       slug: 'neural-networks-in-climate-prediction',
       actor: users.sarahChen,
       authors: [
@@ -278,7 +285,10 @@ export const feedEntries: FeedEntry[] = [
       timestamp: '2024-12-15 10:24:06.069373+00',
       hub: hubs.biophysics,
       doi: "10.1038/s41557-024-1234-5",
-      journal: "Nature Chemistry",
+      journal: {
+        slug: "Nature Chemistry",
+        image: "/images/journals/nature-chemistry.png"
+      },
       slug: 'novel-ph-sensitive-fluorescent-probes',
       actor: users.sarahChen,
       authors: [

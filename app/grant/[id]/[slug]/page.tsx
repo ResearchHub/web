@@ -93,19 +93,19 @@ export default function GrantPage({ params }: { params: Promise<{ id: string; sl
 
             {/* Action Buttons */}
             <div className="flex items-center space-x-3 mb-6">
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium">
+              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">
                 Apply Now
               </button>
-              <button className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-md hover:bg-gray-100">
+              <button className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100">
                 <ArrowUp className="h-4 w-4" />
                 <span>{grant.metrics.votes}</span>
               </button>
-              <button className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-md hover:bg-gray-100">
+              <button className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100">
                 <Share2 className="h-4 w-4" />
                 <span>Share</span>
               </button>
               <button 
-                className="lg:hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-md hover:bg-gray-100"
+                className="lg:hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
                 onClick={() => setShowMobileMetrics(true)}
               >
                 <BarChart2 className="h-4 w-4" />
@@ -166,7 +166,7 @@ export default function GrantPage({ params }: { params: Promise<{ id: string; sl
             {/* Tab Content */}
             <div>
               {activeTab === 'details' && (
-                <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   <div className="prose prose-sm max-w-none">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">About this Grant</h3>
                     {grant.details.split('\n').map((paragraph, i) => (
@@ -177,7 +177,7 @@ export default function GrantPage({ params }: { params: Promise<{ id: string; sl
               )}
               
               {activeTab === 'comments' && (
-                <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   <div className="text-gray-500 text-center py-8">
                     No comments yet
                   </div>
@@ -189,7 +189,7 @@ export default function GrantPage({ params }: { params: Promise<{ id: string; sl
                   {applications.map((application) => (
                     <div 
                       key={application.id} 
-                      className="bg-white rounded-md shadow-sm border border-gray-200 p-6"
+                      className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
                     >
                       {/* Application Header */}
                       <div className="flex items-start justify-between mb-4">
@@ -242,7 +242,7 @@ export default function GrantPage({ params }: { params: Promise<{ id: string; sl
                   ))}
 
                   {applications.length === 0 && (
-                    <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                       <div className="text-gray-500 text-center py-8">
                         No applications yet
                       </div>

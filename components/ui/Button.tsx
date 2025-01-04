@@ -5,17 +5,18 @@ import { cn } from '@/utils/styles';
 import { PlayCircle, Plus } from 'lucide-react';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
         default: 'bg-primary-600 text-white hover:bg-primary-700 focus-visible:ring-primary-500',
+        secondary: 'bg-indigo-100 text-indigo-900 hover:bg-indigo-200 focus-visible:ring-indigo-500',
         outlined: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50',
         ghost: 'hover:bg-gray-100 text-gray-700',
-        link: 'text-primary-600 underline-offset-4 hover:underline',
+        link: 'p-0 h-auto text-primary-600 underline-offset-4 hover:underline focus-visible:ring-0 !px-0 !py-0',
         destructive: 'bg-red-600 text-white hover:bg-red-700',
         researchcoin: 'bg-orange-100 text-orange-600 hover:bg-orange-200',
-        'start-task': 'bg-indigo-200 text-indigo-900 hover:bg-indigo-300 focus-visible:ring-indigo-500',
+        'start-task': 'bg-indigo-100 text-indigo-900 hover:bg-indigo-200 focus-visible:ring-indigo-500',
         contribute: 'bg-white bg-orange-100 text-orange-600 border border-orange-100 hover:bg-orange-200 hover:border-orange-200',
       },
       size: {

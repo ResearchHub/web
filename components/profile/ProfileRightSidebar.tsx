@@ -28,19 +28,19 @@ export function ProfileRightSidebar() {
         <div>
           <h3 className="text-sm font-medium text-gray-900 mb-3">Stats</h3>
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-50 p-3 rounded-md">
+            <div className="bg-gray-50 p-3 rounded-lg">
               <div className="text-2xl font-semibold text-gray-900">245.7K</div>
               <div className="text-sm text-gray-600">Publications</div>
             </div>
-            <div className="bg-gray-50 p-3 rounded-md">
+            <div className="bg-gray-50 p-3 rounded-lg">
               <div className="text-2xl font-semibold text-gray-900">892.3K</div>
               <div className="text-sm text-gray-600">Citations</div>
             </div>
-            <div className="bg-gray-50 p-3 rounded-md">
+            <div className="bg-gray-50 p-3 rounded-lg">
               <div className="text-2xl font-semibold text-gray-900">892</div>
               <div className="text-sm text-gray-600">h-index</div>
             </div>
-            <div className="bg-gray-50 p-3 rounded-md">
+            <div className="bg-gray-50 p-3 rounded-lg">
               <div className="text-2xl font-semibold text-gray-900">298.4K</div>
               <div className="text-sm text-gray-600">Works</div>
             </div>
@@ -50,7 +50,7 @@ export function ProfileRightSidebar() {
         {/* Publications Chart */}
         <div>
           <h3 className="text-sm font-medium text-gray-900 mb-3">Publications</h3>
-          <div className="bg-gray-50 p-4 rounded-md">
+          <div className="bg-gray-50 p-4 rounded-lg">
             <BarChart data={publicationData} />
           </div>
         </div>

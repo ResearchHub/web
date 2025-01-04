@@ -9,7 +9,7 @@ export const ReviewRewardModal = ({ open, onClose, rewards = [] }) => {
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="mx-auto max-w-lg w-full bg-white rounded-md p-4">
+        <Dialog.Panel className="mx-auto max-w-lg w-full bg-white rounded-lg p-4">
           <div className="flex items-center justify-between mb-4">
             <Dialog.Title className="text-lg font-semibold">
               Open Rewards
@@ -37,7 +37,7 @@ export const ReviewRewardModal = ({ open, onClose, rewards = [] }) => {
                   deadline: '30 days'
                 }
               ].map(reward => (
-                <div key={reward.id} className="bg-white rounded-md border p-4">
+                <div key={reward.id} className="bg-white rounded-lg border p-4">
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <h3 className="font-medium text-lg mb-2">{reward.title}</h3>
@@ -58,7 +58,7 @@ export const ReviewRewardModal = ({ open, onClose, rewards = [] }) => {
                     </div>
                     <button
                       onClick={() => onClose()}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
                     >
                       Start
                     </button>

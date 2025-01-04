@@ -1,7 +1,9 @@
 'use client'
 
-import { FC, ReactNode } from 'react';
+import { FC, ReactNode, useState } from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import * as Portal from '@radix-ui/react-portal';
+import { Transition } from '@headlessui/react';
 import { cn } from '@/utils/styles';
 
 interface BaseMenuProps {
@@ -9,32 +11,64 @@ interface BaseMenuProps {
   trigger: ReactNode;
   align?: 'start' | 'center' | 'end';
   className?: string;
+  withOverlay?: boolean;
+  sideOffset?: number;
+  animate?: boolean;
 }
 
 export const BaseMenu: FC<BaseMenuProps> = ({ 
   children, 
   trigger,
   align = 'end',
-  className 
+  className,
+  withOverlay = false,
+  sideOffset = 0,
+  animate = true
 }) => {
-  return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger asChild>
-        {trigger}
-      </DropdownMenu.Trigger>
+  const [isOpen, setIsOpen] = useState(false);
 
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content
-          align={align}
-          className={cn(
-            "z-50 min-w-[8rem] overflow-hidden rounded-md border border-gray-200 bg-white p-1 shadow-md",
-            className
-          )}
-        >
-          {children}
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
+  return (
+    <>
+      {withOverlay && (
+        <Portal.Root>
+          <Transition
+            show={isOpen}
+            enter="transition-opacity duration-200"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="transition-opacity duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div 
+              className="fixed inset-0 bg-black/[0.15]"
+              style={{ zIndex: 99999 }}
+              onClick={() => setIsOpen(false)}
+            />
+          </Transition>
+        </Portal.Root>
+      )}
+      <DropdownMenu.Root onOpenChange={setIsOpen}>
+        <DropdownMenu.Trigger asChild>
+          {trigger}
+        </DropdownMenu.Trigger>
+
+        <DropdownMenu.Portal>
+          <DropdownMenu.Content
+            align={align}
+            sideOffset={sideOffset}
+            className={cn(
+              "z-50 min-w-[8rem] overflow-hidden rounded-lg border border-gray-200 bg-white p-1 shadow-md",
+              animate && "animate-in fade-in-0 slide-in-from-top-8 duration-200",
+              className
+            )}
+            style={{ zIndex: 100000 }}
+          >
+            {children}
+          </DropdownMenu.Content>
+        </DropdownMenu.Portal>
+      </DropdownMenu.Root>
+    </>
   );
 };
 

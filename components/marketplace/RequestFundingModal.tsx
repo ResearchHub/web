@@ -76,7 +76,7 @@ export const RequestFundingModal = ({ open, onClose }: RequestFundingModalProps)
                         value={formData.rscAmount}
                         onChange={handleInputChange}
                         placeholder="Enter RSC amount"
-                        className="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <div className="text-sm text-gray-500">
                         ≈ ${calculateUsdAmount()} USD
@@ -94,7 +94,7 @@ export const RequestFundingModal = ({ open, onClose }: RequestFundingModalProps)
                       value={formData.title}
                       onChange={handleInputChange}
                       placeholder="Enter project title"
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
@@ -108,7 +108,7 @@ export const RequestFundingModal = ({ open, onClose }: RequestFundingModalProps)
                       onChange={handleInputChange}
                       placeholder="Describe your research project"
                       rows={4}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
@@ -122,7 +122,7 @@ export const RequestFundingModal = ({ open, onClose }: RequestFundingModalProps)
                       onChange={handleInputChange}
                       placeholder="Expected project timeline"
                       rows={2}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
@@ -136,7 +136,7 @@ export const RequestFundingModal = ({ open, onClose }: RequestFundingModalProps)
                       onChange={handleInputChange}
                       placeholder="Key project milestones"
                       rows={3}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
@@ -150,7 +150,7 @@ export const RequestFundingModal = ({ open, onClose }: RequestFundingModalProps)
                       onChange={handleInputChange}
                       placeholder="List team members and their roles"
                       rows={2}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
@@ -158,13 +158,13 @@ export const RequestFundingModal = ({ open, onClose }: RequestFundingModalProps)
                     <button
                       type="button"
                       onClick={onClose}
-                      className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                      className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                     >
                       Submit Request
                     </button>

@@ -37,7 +37,7 @@ export const PaperComments = ({ paperId }) => {
   return (
     <div className="space-y-6">
       {/* Comment Input */}
-      <div className="bg-white rounded-md shadow-sm border p-4">
+      <div className="bg-white rounded-lg shadow-sm border p-4">
         <div className="flex space-x-4">
           <div className="flex-shrink-0">
             <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
@@ -49,11 +49,11 @@ export const PaperComments = ({ paperId }) => {
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Add a comment..."
-              className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               rows={3}
             />
             <div className="mt-2 flex justify-end">
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
                 Comment
               </button>
             </div>
@@ -64,7 +64,7 @@ export const PaperComments = ({ paperId }) => {
       {/* Comments List */}
       <div className="space-y-4">
         {comments.map(comment => (
-          <div key={comment.id} className="bg-white rounded-md shadow-sm border p-6">
+          <div key={comment.id} className="bg-white rounded-lg shadow-sm border p-6">
             <div className="flex space-x-4">
               <div className="flex-shrink-0">
                 <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
