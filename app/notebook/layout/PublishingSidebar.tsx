@@ -3,12 +3,11 @@ import {
   ChevronDown, 
   FileText, 
   Hash, 
-  Link, 
   Check, 
   BookOpen,
   Users,
   Tag,
-  Link2
+  Heading
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/menus/BaseMenu';
@@ -25,14 +24,15 @@ interface PublishingSidebarProps {
   bountyAmount: number | null;
   onBountyClick: () => void;
   onPublishClick: () => void;
-  doi?: string;
+  title: string;
+  onTitleChange: (title: string) => void;
 }
 
 const SectionHeader = ({ icon: Icon, children }: { icon: any, children: React.ReactNode }) => (
   <div className="mb-3">
     <div className="flex items-center gap-1.5 mb-2">
-      <Icon className="h-4 w-4 text-gray-500" />
-      <h3 className="text-sm font-medium text-gray-900">{children}</h3>
+      <Icon className="h-4 w-4 text-gray-700" />
+      <h3 className="text-[15px] font-semibold tracking-tight text-gray-900">{children}</h3>
     </div>
   </div>
 );
@@ -43,7 +43,8 @@ export const PublishingSidebar = ({
   bountyAmount,
   onBountyClick,
   onPublishClick,
-  doi,
+  title,
+  onTitleChange,
 }: PublishingSidebarProps) => {
   const [isJournalEnabled, setIsJournalEnabled] = useState(false);
   
@@ -60,10 +61,25 @@ export const PublishingSidebar = ({
   };
 
   return (
-    <div className="w-80 border-l flex flex-col h-full">
+    <div className="w-80 border-l flex flex-col h-screen sticky right-0 top-0 bg-white">
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto">
-        <div>
+        <div className="pb-6">
+
+          {/* Paper Title Input */}
+          <div className="py-4 px-6">
+            <SectionHeader icon={Heading}>Title</SectionHeader>
+            <div className="mt-3">
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => onTitleChange(e.target.value)}
+                placeholder="Enter the title of your paper..."
+                className="w-full px-3 py-2 border rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
           {/* Article Type Section */}
           <div className="py-4 px-6">
             <SectionHeader icon={FileText}>Article Type</SectionHeader>
@@ -71,7 +87,6 @@ export const PublishingSidebar = ({
               <BaseMenu
                 trigger={
                   <button className="border w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
-                    {renderSelectedIcon()}
                     {articleTypes[articleType]}
                     <ChevronDown className="h-4 w-4 ml-auto" />
                   </button>
@@ -83,16 +98,14 @@ export const PublishingSidebar = ({
                 </div>
                 <BaseMenuItem
                   onClick={() => setArticleType('research')}
-                  className={`flex items-center gap-2 ${articleType === 'research' ? 'bg-gray-100' : ''}`}
+                  className={articleType === 'research' ? 'bg-gray-100' : ''}
                 >
-                  <FileText className="h-4 w-4 text-gray-500" />
                   Original research article
                 </BaseMenuItem>
                 <BaseMenuItem
                   onClick={() => setArticleType('grant')}
-                  className={`flex items-center gap-2 ${articleType === 'grant' ? 'bg-gray-100' : ''}`}
+                  className={articleType === 'grant' ? 'bg-gray-100' : ''}
                 >
-                  <GrantIcon size={16} className="text-gray-500" />
                   Grant (Request for Proposal)
                 </BaseMenuItem>
               </BaseMenu>
@@ -130,24 +143,6 @@ export const PublishingSidebar = ({
                   <span>Cell Biology</span>
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* DOI Section */}
-          <div className="py-4 px-6">
-            <SectionHeader icon={Link2}>DOI</SectionHeader>
-            <div className="mt-3">
-              {doi ? (
-                <div className="flex items-center gap-2 text-sm">
-                  <Link className="h-4 w-4 text-gray-500" />
-                  <span className="text-gray-900">{doi}</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <Link className="h-4 w-4" />
-                  DOI will be generated after article is published
-                </div>
-              )}
             </div>
           </div>
 
@@ -219,8 +214,8 @@ export const PublishingSidebar = ({
         </div>
       </div>
 
-      {/* Fixed bottom section */}
-      <div className="border-t bg-white p-6 space-y-3">
+      {/* Sticky bottom section */}
+      <div className="border-t bg-white p-6 space-y-3 sticky bottom-0">
         {isJournalEnabled && (
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-600">Payment due:</span>

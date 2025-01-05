@@ -37,6 +37,10 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
       return 'Paper'
     }
 
+    if (pathname.includes('/notebook')) {
+      return 'Lab Notebook'
+    }    
+
     if (pathname.includes('/funding')) {
       return 'Funding'
     }
@@ -61,13 +65,6 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
       <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b z-20 h-[64px]">
         <div className="lg:ml-10 lg:mr-10 h-full">
           <div className="h-full flex items-center justify-between">
-            {/* Mobile menu button */}
-            <button 
-              className="lg:hidden p-2"
-              onClick={onMenuClick}
-            >
-              <Menu className="h-6 w-6" />
-            </button>
 
             {/* Title with Back Arrow */}
             <div className="hidden lg:flex items-center gap-3">
