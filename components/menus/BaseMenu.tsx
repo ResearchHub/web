@@ -22,8 +22,8 @@ export const BaseMenu: FC<BaseMenuProps> = ({
   align = 'end',
   className,
   withOverlay = false,
-  sideOffset = 0,
-  animate = true
+  sideOffset = 5,
+  animate = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
