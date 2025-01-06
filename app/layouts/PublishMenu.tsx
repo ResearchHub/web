@@ -89,6 +89,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
         withOverlay
         className="w-[280px] p-0"
         sideOffset={8}
+        animate
       >
         <div className="py-2">
           {menuCategories.map((category, categoryIndex) => (
