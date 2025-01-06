@@ -2,7 +2,7 @@
 
 import { 
   Home, Coins, GraduationCap, Store, BookOpen, 
-  Star, FlaskConical, AlertCircle
+  Star, AlertCircle
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { FooterLinks } from '../../components/FooterLinks';
@@ -10,6 +10,7 @@ import { Navigation } from './Navigation';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { PublishMenu } from './PublishMenu';
+import { Logo } from '@/components/ui/Logo';
 
 export const LeftSidebar: React.FC = () => {
   const pathname = usePathname();
@@ -35,12 +36,7 @@ export const LeftSidebar: React.FC = () => {
   return (
     <div className="w-72 fixed h-screen border-r flex flex-col z-50 bg-white">
       <div className="p-4">
-        <div className="flex items-center space-x-2">
-          <FlaskConical className="h-5 w-5 text-indigo-600" />
-          <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text">
-            ResearchHub
-          </h1>
-        </div>
+        <Logo size={38} color="text-indigo-600" />
       </div>
 
       <div className="px-4 mb-4">

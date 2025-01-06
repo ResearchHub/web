@@ -20,7 +20,9 @@ export default function NotebookLayout({
 
   return (
     <div className="flex min-h-screen">
-      <LeftSidebar />
+      <div className="hidden xl:block">
+        <LeftSidebar />
+      </div>
       <div className="flex flex-1">
         <div className="flex-1">
           <TopBar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
@@ -32,7 +34,8 @@ export default function NotebookLayout({
           bountyAmount={bountyAmount}
           onBountyClick={() => setIsBountyModalOpen(true)}
           onPublishClick={() => setIsPublishModalOpen(true)}
-          doi={undefined}
+          title=""
+          onTitleChange={() => {}}
         />
       </div>
 

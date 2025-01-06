@@ -29,8 +29,8 @@ interface PublishingSidebarProps {
 }
 
 const SectionHeader = ({ icon: Icon, children }: { icon: any, children: React.ReactNode }) => (
-  <div className="mb-3">
-    <div className="flex items-center gap-1.5 mb-2">
+  <div className="mb-2">
+    <div className="flex items-center gap-1.5 mb-1.5">
       <Icon className="h-4 w-4 text-gray-700" />
       <h3 className="text-[15px] font-semibold tracking-tight text-gray-900">{children}</h3>
     </div>
@@ -67,9 +67,9 @@ export const PublishingSidebar = ({
         <div className="pb-6">
 
           {/* Paper Title Input */}
-          <div className="py-4 px-6">
+          <div className="py-3 px-6">
             <SectionHeader icon={Heading}>Title</SectionHeader>
-            <div className="mt-3">
+            <div className="mt-2">
               <input
                 type="text"
                 value={title}
@@ -81,9 +81,9 @@ export const PublishingSidebar = ({
           </div>
 
           {/* Article Type Section */}
-          <div className="py-4 px-6">
+          <div className="py-3 px-6">
             <SectionHeader icon={FileText}>Article Type</SectionHeader>
-            <div className="mt-3">
+            <div className="mt-2">
               <BaseMenu
                 trigger={
                   <button className="border w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
@@ -113,17 +113,17 @@ export const PublishingSidebar = ({
           </div>
 
           {/* Authors Section */}
-          <div className="py-4 px-6">
+          <div className="py-3 px-6">
             <SectionHeader icon={Users}>Authors</SectionHeader>
-            <div className="mt-3 text-sm text-gray-500">
+            <div className="mt-2 text-sm text-gray-500">
               Add authors to your article
             </div>
           </div>
 
           {/* Topics Section */}
-          <div className="py-4 px-6">
+          <div className="py-3 px-6">
             <SectionHeader icon={Tag}>Topics</SectionHeader>
-            <div className="mt-3">
+            <div className="mt-2">
               <Button
                 variant="outlined"
                 onClick={() => {}}
@@ -147,9 +147,9 @@ export const PublishingSidebar = ({
           </div>
 
           {/* ResearchCoin Section */}
-          <div className="py-4 px-6">
+          <div className="py-3 px-6">
             <SectionHeader icon={Coins}>ResearchCoin</SectionHeader>
-            <div className="mt-3">
+            <div className="mt-2">
               {bountyAmount ? (
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-100 text-orange-600 rounded-lg">
                   <Coins className="h-4 w-4" />
@@ -169,9 +169,9 @@ export const PublishingSidebar = ({
           </div>
 
           {/* ResearchHub Journal Section */}
-          <div className="py-4 px-6">
+          <div className="py-3 px-6">
             <SectionHeader icon={BookOpen}>ResearchHub Journal</SectionHeader>
-            <div className="mt-3">
+            <div className="mt-2">
               <div className="p-3 bg-gradient-to-b from-indigo-50/80 to-white rounded-lg border">
                 <div className="flex items-start justify-between mb-4">
                   <div>
