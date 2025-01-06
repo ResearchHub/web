@@ -2,6 +2,7 @@
 
 import { Plus, FileUp, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ClaimModal } from '@/components/modals/ClaimModal';
 import { ClaimPaperIcon } from '@/components/ui/icons/ClaimPaperIcon';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
@@ -14,10 +15,22 @@ interface PublishMenuProps {
 
 export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
   const [showClaimModal, setShowClaimModal] = useState(false);
+  const router = useRouter();
 
   const handleItemClick = (action: string) => {
-    if (action === 'claim') {
-      setShowClaimModal(true);
+    switch (action) {
+      case 'claim':
+        setShowClaimModal(true);
+        break;
+      case 'submit-grant':
+        router.push('/notebook/new?type=grant');
+        break;
+      case 'publish':
+        router.push('/notebook/new');
+        break;
+      case 'request-funding':
+        // TODO: Implement funding request flow
+        break;
     }
   };
 
@@ -76,6 +89,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
         withOverlay
         className="w-[280px] p-0"
         sideOffset={8}
+        animate
       >
         <div className="py-2">
           {menuCategories.map((category, categoryIndex) => (

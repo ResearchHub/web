@@ -38,6 +38,7 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
       sideOffset={8}
       className="w-64 p-0"
       withOverlay={true}
+      animate
     >
       {/* User info section */}
       <div className="px-4 py-3 border-b border-gray-200">

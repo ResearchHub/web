@@ -5,12 +5,13 @@ import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
 import { TiptapCollabProvider, WebSocketStatus } from '@hocuspocus/provider'
 import type { Doc as YDoc } from 'yjs'
+import { useSearchParams } from 'next/navigation'
 
 import { ExtensionKit } from '@/components/Editor/extensions/extension-kit'
 import { userColors, userNames } from '../lib/constants'
 import { randomElement } from '../lib/utils'
 import type { EditorUser } from '../components/BlockEditor/types'
-import { initialContent } from '@/components/Editor/lib/data/initialContent'
+import { getInitialContent } from '@/components/Editor/lib/data/initialContent'
 import { Ai } from '@/components/Editor/extensions/Ai'
 import { AiImage, AiWriter } from '@/components/Editor/extensions'
 
@@ -36,6 +37,8 @@ export const useBlockEditor = ({
   const [collabState, setCollabState] = useState<WebSocketStatus>(
     provider ? WebSocketStatus.Connecting : WebSocketStatus.Disconnected,
   )
+  const searchParams = useSearchParams();
+  const templateType = searchParams?.get('type') as 'research' | 'grant' | null;
 
   const editor = useEditor(
     {
@@ -47,12 +50,12 @@ export const useBlockEditor = ({
           provider.on('synced', () => {
             setTimeout(() => {
               if (ctx.editor.isEmpty) {
-                ctx.editor.commands.setContent(initialContent)
+                ctx.editor.commands.setContent(getInitialContent(templateType || 'research'))
               }
             }, 0)
           })
         } else if (ctx.editor.isEmpty) {
-          ctx.editor.commands.setContent(initialContent)
+          ctx.editor.commands.setContent(getInitialContent(templateType || 'research'))
           ctx.editor.commands.focus('start', { scrollIntoView: true })
         }
       },
@@ -97,7 +100,7 @@ export const useBlockEditor = ({
         },
       },
     },
-    [ydoc, provider],
+    [ydoc, provider, templateType],
   )
   const users = useEditorState({
     editor,
