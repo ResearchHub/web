@@ -35,11 +35,11 @@ export const LeftSidebar: React.FC = () => {
 
   return (
     <div className="w-72 fixed h-screen border-r flex flex-col z-50 bg-white">
-      <div className="p-4">
+      <div className="p-2 pl-4">
         <Logo size={38} color="text-indigo-600" />
       </div>
 
-      <div className="px-4 mb-4">
+      <div className="px-4 mt-4">
         <PublishMenu />
       </div>
 

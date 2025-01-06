@@ -1,4 +1,9 @@
-export const initialContent = {
+type ContentTemplate = {
+  type: 'doc';
+  content: any[];
+};
+
+const researchTemplate: ContentTemplate = {
   type: 'doc',
   content: [
     {
@@ -9,27 +14,8 @@ export const initialContent = {
       },
       content: [
         {
-          type: 'emoji',
-          attrs: {
-            name: 'microscope',
-          },
-        },
-        {
           type: 'text',
-          text: ' Digital Lab Notebook',
-        },
-      ],
-    },
-    {
-      type: 'paragraph',
-      attrs: {
-        class: null,
-        textAlign: 'left',
-      },
-      content: [
-        {
-          type: 'text',
-          text: 'Welcome to your intelligent lab notebook. This modern research environment combines the structure of traditional lab documentation with AI-assisted features and real-time collaboration capabilities.',
+          text: 'Research Article Title',
         },
       ],
     },
@@ -42,19 +28,7 @@ export const initialContent = {
       content: [
         {
           type: 'text',
-          text: 'Experiment: PCR Amplification',
-        },
-      ],
-    },
-    {
-      type: 'codeBlock',
-      attrs: {
-        language: 'python'
-      },
-      content: [
-        {
-          type: 'text',
-          text: 'def calculate_pcr_temp(primer_sequence):\n    # Calculate melting temperature\n    gc_content = (primer_sequence.count("G") + primer_sequence.count("C")) / len(primer_sequence)\n    tm = 64.9 + 41 * (gc_content - 0.41)\n    return tm\n\n# Example primer\nprimer = "ATCGGGCTAT"\nprint(f"Annealing temperature: {calculate_pcr_temp(primer)}°C")',
+          text: 'Abstract',
         },
       ],
     },
@@ -67,136 +41,59 @@ export const initialContent = {
       content: [
         {
           type: 'text',
-          text: 'Protocol steps:',
+          text: 'Summarize your research findings here...',
         },
       ],
     },
     {
-      type: 'taskList',
+      type: 'heading',
+      attrs: {
+        textAlign: 'left',
+        level: 2,
+      },
       content: [
         {
-          type: 'taskItem',
-          attrs: {
-            checked: true,
-          },
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: 'Prepare master mix',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'taskItem',
-          attrs: {
-            checked: true,
-          },
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: 'Add primers (',
-                },
-                {
-                  type: 'text',
-                  marks: [
-                    {
-                      type: 'textStyle',
-                      attrs: {
-                        color: '#b91c1c',
-                      },
-                    },
-                  ],
-                  text: '10µM',
-                },
-                {
-                  type: 'text',
-                  text: ' final concentration)',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'taskItem',
-          attrs: {
-            checked: false,
-          },
-          content: [
-            {
-              type: 'paragraph',
-              attrs: {
-                class: null,
-                textAlign: 'left',
-              },
-              content: [
-                {
-                  type: 'text',
-                  text: 'Run thermal cycler',
-                },
-              ],
-            },
-          ],
+          type: 'text',
+          text: 'Introduction',
         },
       ],
     },
     {
-      type: 'table',
+      type: 'paragraph',
+      attrs: {
+        class: null,
+        textAlign: 'left',
+      },
       content: [
         {
-          type: 'tableRow',
-          content: [
-            {
-              type: 'tableHeader',
-              attrs: { colspan: 1, rowspan: 1, colwidth: null },
-              content: [{ type: 'text', text: 'Step' }],
-            },
-            {
-              type: 'tableHeader',
-              attrs: { colspan: 1, rowspan: 1, colwidth: null },
-              content: [{ type: 'text', text: 'Temperature' }],
-            },
-            {
-              type: 'tableHeader',
-              attrs: { colspan: 1, rowspan: 1, colwidth: null },
-              content: [{ type: 'text', text: 'Time' }],
-            },
-          ],
+          type: 'text',
+          text: 'Provide background and context for your research...',
         },
+      ],
+    },
+    {
+      type: 'heading',
+      attrs: {
+        textAlign: 'left',
+        level: 2,
+      },
+      content: [
         {
-          type: 'tableRow',
-          content: [
-            {
-              type: 'tableCell',
-              attrs: { colspan: 1, rowspan: 1, colwidth: null },
-              content: [{ type: 'text', text: 'Initial Denaturation' }],
-            },
-            {
-              type: 'tableCell',
-              attrs: { colspan: 1, rowspan: 1, colwidth: null },
-              content: [{ type: 'text', text: '95°C' }],
-            },
-            {
-              type: 'tableCell',
-              attrs: { colspan: 1, rowspan: 1, colwidth: null },
-              content: [{ type: 'text', text: '3 min' }],
-            },
-          ],
+          type: 'text',
+          text: 'Methods',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      attrs: {
+        class: null,
+        textAlign: 'left',
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Describe your research methodology...',
         },
       ],
     },
@@ -214,13 +111,30 @@ export const initialContent = {
       ],
     },
     {
-      type: 'imageBlock',
+      type: 'paragraph',
       attrs: {
-        src: '/placeholder-image.jpg',
-        width: '100%',
-        align: 'center',
-        caption: 'Gel electrophoresis results',
+        class: null,
+        textAlign: 'left',
       },
+      content: [
+        {
+          type: 'text',
+          text: 'Present your research findings...',
+        },
+      ],
+    },
+    {
+      type: 'heading',
+      attrs: {
+        textAlign: 'left',
+        level: 2,
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Discussion',
+        },
+      ],
     },
     {
       type: 'paragraph',
@@ -231,21 +145,190 @@ export const initialContent = {
       content: [
         {
           type: 'text',
-          marks: [
-            {
-              type: 'highlight',
-              attrs: {
-                color: '#7e7922',
-              },
-            },
-          ],
-          text: 'Key observation:',
-        },
-        {
-          type: 'text',
-          text: ' Band intensity suggests successful amplification of target sequence.',
+          text: 'Interpret and discuss your findings...',
         },
       ],
     },
   ],
-}
+};
+
+const grantTemplate: ContentTemplate = {
+  type: 'doc',
+  content: [
+    {
+      type: 'heading',
+      attrs: {
+        textAlign: 'left',
+        level: 1,
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Grant Proposal Title',
+        },
+      ],
+    },
+    {
+      type: 'heading',
+      attrs: {
+        textAlign: 'left',
+        level: 2,
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Executive Summary',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      attrs: {
+        class: null,
+        textAlign: 'left',
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Brief overview of your proposal...',
+        },
+      ],
+    },
+    {
+      type: 'heading',
+      attrs: {
+        textAlign: 'left',
+        level: 2,
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Project Description',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      attrs: {
+        class: null,
+        textAlign: 'left',
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Detailed description of your proposed project...',
+        },
+      ],
+    },
+    {
+      type: 'heading',
+      attrs: {
+        textAlign: 'left',
+        level: 2,
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Goals and Objectives',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      attrs: {
+        class: null,
+        textAlign: 'left',
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'List your project goals and objectives...',
+        },
+      ],
+    },
+    {
+      type: 'heading',
+      attrs: {
+        textAlign: 'left',
+        level: 2,
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Methodology',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      attrs: {
+        class: null,
+        textAlign: 'left',
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Describe your approach and methods...',
+        },
+      ],
+    },
+    {
+      type: 'heading',
+      attrs: {
+        textAlign: 'left',
+        level: 2,
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Budget',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      attrs: {
+        class: null,
+        textAlign: 'left',
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Detailed budget breakdown...',
+        },
+      ],
+    },
+    {
+      type: 'heading',
+      attrs: {
+        textAlign: 'left',
+        level: 2,
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Timeline',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      attrs: {
+        class: null,
+        textAlign: 'left',
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Project timeline and milestones...',
+        },
+      ],
+    },
+  ],
+};
+
+export const getInitialContent = (type: 'research' | 'grant' = 'research'): ContentTemplate => {
+  return type === 'research' ? researchTemplate : grantTemplate;
+};
+
+export const initialContent = researchTemplate; // Default export for backward compatibility
