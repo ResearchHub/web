@@ -47,9 +47,8 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
               {/* Search Input 500px */}
               <div className="w-[600px] mx-auto">
                 <SearchInput 
-                  placeholder="Search papers, people, ..."
-                  className="w-full border-gray-600 rounded-lg h-10"
-                  iconPosition="right"
+                  placeholder="Search any paper, journal, topic, ..."
+                  className="w-full border-gray-200 rounded-full"
                 />
               </div>
             </div>
