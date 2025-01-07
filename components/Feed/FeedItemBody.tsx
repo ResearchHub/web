@@ -68,7 +68,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
       if (!isCard) return children;
       
       const cardContent = (
-        <div className="p-4 border border-gray-200 rounded-xl bg-gray-50 transition-colors duration-150 hover:bg-gray-50">
+        <div className="p-3 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
           {children}
         </div>
       );
@@ -83,12 +83,12 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
     return renderCard(
       <div>
         {!isComment && (
-          <div className="flex items-center gap-2 mb-3">
-            <div className="px-2 h-8 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-700 capitalize">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
               {getTypeLabel(item.type)}
             </div>
             {item.type === 'paper' && 'journal' in item && item.journal && (
-              <div className="flex items-center gap-2 px-2 h-8 rounded-full text-sm font-medium border border-gray-200 rounded-xl bg-gray-50  hover:bg-gray-200 transition-colors">
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border border-gray-200 bg-gray-50 hover:bg-gray-200 transition-colors">
                 <Avatar
                   src={item.journal.image}
                   alt={item.journal.slug}
@@ -112,11 +112,11 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
 
     return (
       <div>
-        <div className="text-md text-gray-800">
+        <div className="text-sm text-gray-800">
           {commentContent}
         </div>
         {comment.parent ? (
-          <div className="mt-3 border p-3 border-gray-200 rounded-xl bg-gray-50  pl-4">
+          <div className="mt-2 border p-2 border-gray-200 rounded-lg bg-gray-50 pl-3">
             <div>
               <FeedItemHeader
                 action="post"
@@ -124,7 +124,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
                 content={comment.parent}
                 size="xs"
               />
-              <div className="ml-9">
+              <div className="ml-8">
                 <div className="text-sm text-gray-800">
                   {comment.parent.type === 'comment' ? comment.parent.content : ''}
                 </div>
@@ -132,7 +132,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
             </div>
           </div>
         ) : context && (
-          <div className="mt-3">
+          <div className="mt-2">
             {renderItem(context, true)}
           </div>
         )}
@@ -158,7 +158,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
     
     return (
       <div>
-        <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
+        <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
           {paper.title}
         </h3>
         <div className="text-sm text-gray-800">
@@ -171,11 +171,11 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
                 e.preventDefault();
                 setIsExpanded(!isExpanded);
               }}
-              className="flex items-center gap-1"
+              className="flex items-center gap-0.5 mt-1"
             >
               {isExpanded ? 'Show less' : 'Read more'}
               <ChevronDown 
-                size={16} 
+                size={14} 
                 className={cn(
                   "transition-transform duration-200",
                   isExpanded && "transform rotate-180"
@@ -195,27 +195,13 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
     const getStatusDisplay = () => {
       switch (fundingRequest.status) {
         case 'COMPLETED':
-          return (
-            <span className="text-sm text-green-500 font-medium">
-              Fundraise Completed
-            </span>
-          );
+          return <span className="text-xs text-green-500 font-medium">Fundraise Completed</span>;
         case 'CLOSED':
-          return (
-            <span className="text-sm text-gray-500 font-medium">
-              Fundraise Closed
-            </span>
-          );
+          return <span className="text-xs text-gray-500 font-medium">Fundraise Closed</span>;
         case 'OPEN':
-          return deadlineText === 'Ended' ? (
-            <span className="text-sm text-gray-500 font-medium">
-              Fundraise Ended
-            </span>
-          ) : (
-            <span className="text-sm text-gray-800">
-              {deadlineText}
-            </span>
-          );
+          return deadlineText === 'Ended' 
+            ? <span className="text-xs text-gray-500 font-medium">Fundraise Ended</span>
+            : <span className="text-xs text-gray-800">{deadlineText}</span>;
         default:
           return null;
       }
@@ -227,20 +213,20 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
     
     return (
       <div>
-        <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
+        <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
           {fundingRequest.title}
         </h3>
-        <p className="text-sm text-gray-800 mb-3">
+        <p className="text-sm text-gray-800 mb-2">
           {fundingRequest.abstract}
         </p>
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center space-x-2">
-              <ResearchCoinIcon size={16} outlined />
-              <span className="text-sm font-medium text-orange-500">
+        <div className="mb-3">
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-1.5">
+              <ResearchCoinIcon size={14} outlined />
+              <span className="text-xs font-medium text-orange-500">
                 {fundingRequest.amount.toLocaleString()} RSC raised
               </span>
-              <span className="text-sm text-gray-500">
+              <span className="text-xs text-gray-500">
                 of {fundingRequest.goalAmount.toLocaleString()} RSC goal
               </span>
             </div>
@@ -252,22 +238,18 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
             size="xs"
           />
         </div>
-        <div className="flex items-center justify-between mt-4">
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="contribute" 
-              size="sm" 
-              disabled={fundingRequest.status !== 'OPEN' || deadlineText === 'Ended'}
-            >
-              Contribute
-            </Button>
-          </div>
+        <div className="flex items-center justify-between">
+          <Button 
+            variant="contribute" 
+            size="sm" 
+            disabled={fundingRequest.status !== 'OPEN' || deadlineText === 'Ended'}
+          >
+            Contribute
+          </Button>
           {contributors && contributors.length > 0 && (
             <ContributorsButton 
               contributors={contributors}
-              onContribute={() => {
-                // Handle contribute click
-              }}
+              onContribute={() => {}}
             />
           )}
         </div>
@@ -281,43 +263,29 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
     
     return (
       <div>
-        <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
+        <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
           <Link href={buildUrl(grant)}>{grant.title}</Link>
         </h3>
-        <p className="text-sm text-gray-800 mb-3">
+        <p className="text-sm text-gray-800 mb-2">
           {grant.abstract}
         </p>
-        <div className="flex items-center space-x-4 text-sm">
+        <div className="flex items-center gap-3 text-xs">
           {grant.amount && (
-            <div className="flex items-center space-x-1">
-              <RSCBadge 
-                amount={grant.amount} 
-                variant="inline" 
-                showText
-              />
-            </div>
+            <RSCBadge amount={grant.amount} variant="inline" showText />
           )}
           {grant.deadline && (
-            <>
-              <span className="text-gray-500">•</span>
-              <div className="flex items-center space-x-1">
-                <Clock className="h-5 w-5 text-gray-500" />
-                <span className={`text-gray-500`}>
-                  {deadlineText}
-                </span>
-              </div>
-            </>
+            <div className="flex items-center gap-1 text-gray-500">
+              <Clock className="h-4 w-4" />
+              <span>{deadlineText}</span>
+            </div>
           )}
           {metrics?.applicants && metrics.applicants > 0 && (
-            <>
-              <span className="text-gray-500">•</span>
-              <span className="text-sm text-gray-500">
-                {metrics.applicants} Applicant{metrics.applicants !== 1 ? 's' : ''}
-              </span>
-            </>
+            <span className="text-gray-500">
+              {metrics.applicants} Applicant{metrics.applicants !== 1 ? 's' : ''}
+            </span>
           )}
         </div>
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center justify-between mt-3">
           <Button 
             variant="secondary" 
             size="sm" 
@@ -329,11 +297,9 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
             <ContributorsButton 
               contributors={applicants.map(profile => ({
                 profile,
-                amount: 0 // Since applicants don't have amounts in this context
+                amount: 0
               }))}
-              onContribute={() => {
-                // Handle contribute click
-              }}
+              onContribute={() => {}}
             />
           )}
         </div>
@@ -345,28 +311,28 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
     if (review.type !== 'review') return null;
     return (
       <div>
-        <h3 className="text-base font-semibold text-gray-900 mb-2">
+        <h3 className="text-sm font-semibold text-gray-900 mb-1.5">
           {review.title}
         </h3>
-        <p className="text-sm text-gray-800 mb-3">
+        <p className="text-sm text-gray-800 mb-2">
           {review.content}
         </p>
         {review.score !== undefined && (
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-800">Score:</span>
-              <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-gray-800">Score:</span>
+              <div className="flex items-center gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star
                     key={i}
-                    className={`h-4 w-4 ${
+                    className={`h-3.5 w-3.5 ${
                       i < review.score! ? 'text-yellow-500 fill-current' : 'text-gray-300'
                     }`}
                   />
                 ))}
               </div>
             </div>
-            <span className="text-sm font-medium text-orange-500">
+            <span className="text-xs font-medium text-orange-500">
               Get paid to become a peer reviewer
             </span>
           </div>
@@ -381,50 +347,35 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
     
     return (
       <div>
-        <h3 className="text-base font-semibold text-gray-900 mb-2 hover:text-indigo-600">
+        <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
           <Link href={buildUrl(bounty)}>{bounty.title}</Link>
         </h3>
-        <p className="text-sm text-gray-800 mb-3">
+        <p className="text-sm text-gray-800 mb-2">
           {bounty.description}
         </p>
-        <div className="flex items-center space-x-4 text-sm">
+        <div className="flex items-center gap-3 text-xs">
           {bounty.amount && (
-            <div className="flex items-center space-x-1">
-              <RSCBadge 
-                amount={bounty.amount} 
-                variant="inline" 
-                showText
-              />
-            </div>
+            <RSCBadge amount={bounty.amount} variant="inline" showText />
           )}
           {bounty.deadline && (
-            <>
-              <span className="text-gray-500">•</span>
-              <div className="flex items-center space-x-1">
-                <Clock className="h-4 w-4 text-gray-500" />
-                <span className={`text-gray-500`}>
-                  {deadlineText}
-                </span>
-              </div>
-            </>
+            <div className="flex items-center gap-1 text-gray-500">
+              <Clock className="h-4 w-4" />
+              <span>{deadlineText}</span>
+            </div>
           )}
         </div>
-        <div className="flex items-center justify-between mt-4">
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="start-task" 
-              size="sm" 
-              disabled={deadlineText === 'Ended'}
-            >
-              Start Task
-            </Button>
-          </div>
+        <div className="flex items-center justify-between mt-3">
+          <Button 
+            variant="start-task" 
+            size="sm" 
+            disabled={deadlineText === 'Ended'}
+          >
+            Start Task
+          </Button>
           {contributors && contributors.length > 0 && (
             <ContributorsButton 
               contributors={contributors}
-              onContribute={() => {
-                // Handle contribute click
-              }}
+              onContribute={() => {}}
             />
           )}
         </div>
