@@ -33,24 +33,28 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
           <LeftSidebar />
         </div>
 
-        {/* Main Content Area */}
+        {/* Main Content Area with TopBar and Right Sidebar */}
         <div className="flex-1">
           <TopBar onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)} />
-          <main className="px-4 py-4 lg:px-8">
-            <div className="mx-auto max-w-4xl">
-              {children}
-            </div>
-          </main>
-        </div>
+          
+          <div className="flex">
+            {/* Main Content */}
+            <main className="flex-1 px-4 py-4 lg:px-8">
+              <div className="mx-auto max-w-4xl">
+                {children}
+              </div>
+            </main>
 
-        {/* Right Sidebar */}
-        {rightSidebar && (
-          <div className="hidden lg:block w-80 border-l bg-white">
-            <div className="sticky p-4">
-              <RightSidebar />
-            </div>
+            {/* Right Sidebar */}
+            {rightSidebar && (
+              <div className="hidden lg:block w-80 bg-white">
+                <div className="sticky top-[64px] p-4">
+                  <RightSidebar />
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   )

@@ -22,32 +22,6 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const router = useRouter()
   const pathname = usePathname()
 
-  const getPageTitle = () => {
-    if (!pathname) return 'Today in Science'
-    
-    if (pathname === '/notifications') {
-      return 'Notifications'
-    }
-    
-    if (pathname === '/profile') {
-      return 'Profile'
-    }
-    
-    if (pathname.includes('/paper')) {
-      return 'Paper'
-    }
-
-    if (pathname.includes('/notebook')) {
-      return 'Lab Notebook'
-    }    
-
-    if (pathname.includes('/funding')) {
-      return 'Funding'
-    }
-
-    return 'Today in Science'
-  }
-
   const isNotificationsPage = pathname === '/notifications'
 
   const handleAuthClick = () => {
@@ -62,58 +36,52 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
 
   return (
     <>
-      <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b z-20 h-[64px]">
-        <div className="lg:ml-10 lg:mr-10 h-full">
-          <div className="h-full flex items-center justify-between">
+      <div className="sticky top-0 bg-white/80 backdrop-blur-md z-20 h-[64px]">
+        <div className="h-full relative flex items-center">
 
-            {/* Title with Back Arrow */}
-            <div className="hidden lg:flex items-center gap-3">
-              {showBackArrow && (
-                <button 
-                  onClick={() => router.back()}
-                  className="p-2 rounded-full hover:bg-gray-100 transition-all duration-150"
-                >
-                  <MoveLeft className="h-6 w-6 text-gray-600 hover:text-indigo-600" />
-                </button>
-              )}
-              <h1 className="text-xl font-semibold text-gray-900">
-                {getPageTitle()}
-              </h1>
-            </div>
 
-            <div className="flex items-center gap-4 ml-auto">
-              <div className="relative w-[500px]">
+
+          {/* Centered Search */}
+          <div className="flex-1 px-4 py-4 lg:px-8">
+            <div className="mx-auto max-w-4xl">
+              {/* Search Input 500px */}
+              <div className="w-[600px] mx-auto">
                 <SearchInput 
                   placeholder="Search papers, people, ..."
-                  className="w-full border-gray-300 rounded-lg"
+                  className="w-full border-gray-600 rounded-lg h-10"
                   iconPosition="right"
                 />
-              </div>        
-
-              <div className="flex items-center gap-4">
-                {status !== "loading" ? (
-                  session ? (
-                    <>
-                      <NotificationBell filled={isNotificationsPage} />
-                      <UserMenu 
-                        user={session.user as User}
-                        onViewProfile={() => null}
-                        onVerifyAccount={() => null}
-                      />
-                    </>
-                  ) : (
-                    <button
-                      onClick={handleAuthClick}
-                      className="flex items-center space-x-2 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50"
-                    >
-                      <LogIn className="h-5 w-5 text-gray-600" />
-                      <span className="text-sm font-medium text-gray-600">Sign In</span>
-                    </button>
-                  )
-                ) : null}
               </div>
             </div>
           </div>
+
+          <div className="lg:block w-80 bg-white">
+            {/* Right-aligned buttons */}
+            <div className="flex items-center justify-end h-full px-6 gap-4">
+              {status !== "loading" ? (
+                session ? (
+                  <>
+                    <NotificationBell filled={isNotificationsPage} />
+                    <UserMenu 
+                      user={session.user as User}
+                      onViewProfile={() => null}
+                      onVerifyAccount={() => null}
+                    />
+                  </>
+                ) : (
+                  <button
+                    onClick={handleAuthClick}
+                    className="flex items-center space-x-2 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50"
+                  >
+                    <LogIn className="h-5 w-5 text-gray-600" />
+                    <span className="text-sm font-medium text-gray-600">Sign In</span>
+                  </button>
+                )
+              ) : null}
+            </div>
+          </div>          
+          
+
         </div>
       </div>
 

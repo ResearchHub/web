@@ -72,9 +72,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
   ];
 
   const trigger = (
-    <button className="flex items-center gap-2 px-4 py-2 text-base font-medium text-white rounded-lg transition-all duration-200
-        bg-indigo-600 hover:bg-indigo-500
-        hover:shadow-[0_3px_10px_-3px_rgba(0,0,0,0.15),0_3px_4px_-3px_rgba(0,0,0,0.08)]">
+    <button className="flex items-center px-4 py-3 gap-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-50 text-sm font-medium text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px]">
       <Plus className="h-5 w-5 stroke-[1.5]" />
       <span>New</span>
       <ChevronDown className="h-4 w-4 stroke-[1.5] opacity-70" />

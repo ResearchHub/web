@@ -68,7 +68,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
       if (!isCard) return children;
       
       const cardContent = (
-        <div className="p-4 border border-gray-300 bg-white rounded-md transition-colors duration-150 hover:bg-gray-50">
+        <div className="p-4 border border-gray-200 rounded-xl bg-gray-50 transition-colors duration-150 hover:bg-gray-50">
           {children}
         </div>
       );
@@ -88,7 +88,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
               {getTypeLabel(item.type)}
             </div>
             {item.type === 'paper' && 'journal' in item && item.journal && (
-              <div className="flex items-center gap-2 px-2 h-8 rounded-full text-sm font-medium border border-gray-200 bg-white hover:bg-gray-200 transition-colors">
+              <div className="flex items-center gap-2 px-2 h-8 rounded-full text-sm font-medium border border-gray-200 rounded-xl bg-gray-50  hover:bg-gray-200 transition-colors">
                 <Avatar
                   src={item.journal.image}
                   alt={item.journal.slug}
@@ -116,7 +116,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
           {commentContent}
         </div>
         {comment.parent ? (
-          <div className="mt-3 rounded-md border p-3 border-gray-300 pl-4">
+          <div className="mt-3 border p-3 border-gray-200 rounded-xl bg-gray-50  pl-4">
             <div>
               <FeedItemHeader
                 action="post"
