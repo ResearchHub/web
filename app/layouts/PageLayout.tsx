@@ -7,7 +7,7 @@ import { TopBar } from './TopBar'
 
 interface PageLayoutProps {
   children: ReactNode
-  rightSidebar?: boolean
+  rightSidebar?: boolean | ReactNode
 }
 
 export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
@@ -49,7 +49,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
             {rightSidebar && (
               <div className="hidden lg:block w-80 bg-white">
                 <div className="sticky top-[64px] p-4">
-                  <RightSidebar />
+                  {typeof rightSidebar === 'boolean' ? <RightSidebar /> : rightSidebar}
                 </div>
               </div>
             )}

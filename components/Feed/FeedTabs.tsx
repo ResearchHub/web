@@ -65,7 +65,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
           onClick={() => setIsCustomizing(!isCustomizing)}
           className="flex items-center gap-2"
         >
-          <Settings className="w-4 h-4" />
+          <Settings className="w-5 h-5" />
           Customize
         </Button>
       </div>

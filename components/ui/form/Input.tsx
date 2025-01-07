@@ -9,23 +9,29 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, icon, error, rightElement, ...props }, ref) => {
+    const isRoundedFull = className?.includes('rounded-full')
+    const roundedClass = isRoundedFull ? 'rounded-full' : 'rounded-lg'
+
     return (
       <div>
         <div className={cn(
-          "relative flex rounded-lg border border-gray-300 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all",
-          error && "border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20"
+          "relative flex border border-gray-200 transition-all",
+          roundedClass,
+          error && "border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20",
+          className
         )}>
           {icon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2">
               {icon}
             </div>
           )}
           <input
             className={cn(
-              'w-full bg-white px-3 py-2 text-sm outline-none border-none focus:ring-0',
-              'placeholder:text-gray-400',
-              icon && 'pl-10',
-              className
+              'w-full px-4 py-2 text-sm outline-none border-none',
+              roundedClass,
+              'placeholder:text-gray-500',
+              icon && 'pl-11',
+              className?.includes('bg-') ? className : 'bg-white'
             )}
             ref={ref}
             {...props}
