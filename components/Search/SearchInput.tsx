@@ -53,7 +53,7 @@ export function SearchInput({
       }
       className={cn(
         'placeholder:text-gray-500',
-        className
+        className,
       )}
     />
   )

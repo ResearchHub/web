@@ -18,10 +18,10 @@ export function NotificationBell({ filled }: NotificationBellProps) {
     <Link href="/notifications" className="relative">
       <FontAwesomeIcon 
         icon={bellIcon} 
-        className="h-5 w-5 text-gray-600 hover:text-gray-900 transition-colors translate-y-[1px]"
+        className="h-6 w-6 text-gray-600 hover:text-gray-900 transition-colors translate-y-[1px]"
       />
       {unreadCount > 0 && (
-        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
+        <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[11px] font-medium text-white">
           {unreadCount > 99 ? '99+' : unreadCount}
         </span>
       )}
