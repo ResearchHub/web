@@ -1,9 +1,9 @@
 'use client'
 
-import { Suspense, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-function AuthErrorContent() {
+export default function AuthError() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const error = searchParams?.get('error')
@@ -14,12 +14,4 @@ function AuthErrorContent() {
   }, [error, router])
 
   return null // This page won't render anything, it just redirects
-}
-
-export default function AuthError() {
-  return (
-    <Suspense fallback={null}>
-      <AuthErrorContent />
-    </Suspense>
-  )
 } 
