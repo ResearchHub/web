@@ -140,6 +140,9 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                 ) : (
                   <button
                     onClick={handleAuthClick}
+                    // This test ID is used in TransactionsSection.tsx to programmatically trigger 
+                    // the sign-in button click when users click "Sign In to Get Started"
+                    data-testid="sign-in-button"
                     className="flex items-center space-x-2 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50"
                   >
                     <LogIn className="h-5 w-5 text-gray-600" />

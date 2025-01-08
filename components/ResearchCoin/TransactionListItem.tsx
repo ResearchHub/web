@@ -1,15 +1,33 @@
-import { 
+import { memo } from 'react';
+import dayjs from 'dayjs';
+import {
+  ArrowBigUpDash,
+  ArrowUpFromLine,
+  HandCoins,
   ArrowDownToLine,
-  ArrowUpFromLine, 
-  HandCoins, 
   Trophy,
   Percent,
-  RotateCcw,
-  ArrowBigUpDash,
-  ExternalLink,
+  HelpCircle,
 } from 'lucide-react';
-import dayjs from 'dayjs';
+import type { LucideIcon } from 'lucide-react';
+import type { TransactionAPIRequest } from '@/services/types/transaction.dto';
 
+interface TransactionListItemProps {
+  transaction: TransactionAPIRequest;
+  /**
+   * Exchange rate for the transaction date.
+   * This is fetched and managed by the parent component using ExchangeRateService.
+   */
+  exchangeRate?: number;
+  isLoadingRate: boolean;
+}
+
+interface TransactionTypeInfo {
+  label: string;
+  icon: LucideIcon;
+}
+
+// Map of distribution types to display names
 const DISTRIBUTION_TYPES = {
   'EDITOR_BOUNTY': 'Editor Bounty',
   'PAPER_UPVOTED': 'Upvote: Paper',
@@ -36,261 +54,104 @@ const DISTRIBUTION_TYPES = {
   'DEPOSIT': 'Deposit',
 } as const;
 
-type DistributionType = keyof typeof DISTRIBUTION_TYPES;
+// Map content_type IDs to display names and icons
+const CONTENT_TYPE_MAP: Record<number, TransactionTypeInfo> = {
+  27: { label: 'Distribution', icon: ArrowBigUpDash },
+  30: { label: 'Withdrawal', icon: ArrowUpFromLine },
+  55: { label: 'Purchase', icon: HandCoins },
+  61: { label: 'Support', icon: HandCoins },
+  89: { label: 'Deposit', icon: ArrowDownToLine },
+  108: { label: 'Bounty', icon: Trophy },
+  110: { label: 'Bounty Fee', icon: Percent },
+  127: { label: 'Support Fee', icon: Percent },
+  144: { label: 'Paper Reward', icon: Trophy },
+  154: { label: 'Payment', icon: HandCoins }
+} as const;
 
-interface TransactionListItemProps {
-  transaction: any;
-}
-
-export function TransactionListItem({ 
+function TransactionListItemComponent({ 
   transaction, 
+  exchangeRate,
+  isLoadingRate,
 }: TransactionListItemProps) {
-  const getTransactionIcon = (transaction: any) => {
-    const type = transaction.source?.distribution_type;
-    const contentType = transaction.readable_content_type;
-    
-    const iconClasses = "h-4 w-4 text-gray-600";
-    
-    // Handle withdrawals
-    if (contentType === 'withdrawal') {
-      return <ArrowUpFromLine className={iconClasses} strokeWidth={2} />;
-    }
-    
-    // Handle fees
-    if (contentType === 'bountyfee' || contentType === 'supportfee' || type?.includes('FEE')) {
-      return <Percent className={iconClasses} strokeWidth={2} />;
-    }
-    
-    // Handle bounties
-    if (contentType === 'bounty' || type?.includes('BOUNTY')) {
-      return <Trophy className={iconClasses} strokeWidth={2} />;
-    }
-    
-    // Handle refunds
-    if (type?.includes('REFUND') || transaction.source?.status === 'REFUNDED') {
-      return <RotateCcw className={iconClasses} strokeWidth={2} />;
-    }
-    
-    // Handle purchases and support fees
-    if (contentType === 'purchase') {
-      const purchaseType = transaction.source?.purchase_type;
-      if (['BOOST', 'TIP'].includes(purchaseType || '')) {
-        return <HandCoins className={iconClasses} strokeWidth={2} />;
+  const formatTransactionAmount = (amount: string) => {
+    const parsedAmount = parseFloat(amount);
+    const formattedAmount = parsedAmount % 1 === 0 ? 
+      parsedAmount.toString() : 
+      parsedAmount.toFixed(2);
+    return `${parsedAmount >= 0 ? '+' : ''}${formattedAmount} RSC`;
+  };
+
+  const getTransactionInfo = (tx: TransactionAPIRequest): TransactionTypeInfo => {
+    // First check if we have source type information
+    if (tx.source?.purchase_type) {
+      const sourceType = tx.source.purchase_type;
+      const label = DISTRIBUTION_TYPES[sourceType as keyof typeof DISTRIBUTION_TYPES];
+      if (label) {
+        return {
+          label,
+          icon: sourceType.includes('BOOST') || sourceType.includes('TIP') ? HandCoins : 
+                sourceType === 'BOUNTY' ? Trophy :
+                ArrowBigUpDash
+        };
       }
     }
-    
-    // Handle upvotes
-    if (type?.includes('UPVOTED') || type?.includes('UPVOTE')) {
-      return <ArrowBigUpDash className={iconClasses} strokeWidth={2} />;
+
+    // Then check content type map
+    if (tx.content_type && CONTENT_TYPE_MAP[tx.content_type]) {
+      return CONTENT_TYPE_MAP[tx.content_type];
     }
-    
-    // Default icons based on transaction amount
-    if (parseFloat(transaction.amount) >= 0) {
-      return <ArrowDownToLine className={iconClasses} strokeWidth={2} />;
-    }
-    
-    return <ArrowUpFromLine className={iconClasses} strokeWidth={2} />;
+
+    // Finally fall back to readable content type or unknown
+    return {
+      label: tx.readable_content_type?.charAt(0).toUpperCase() + 
+             tx.readable_content_type?.slice(1) || 'Unknown TX',
+      icon: HelpCircle
+    };
   };
-
-  const formatTransactionAmount = (transaction: any) => {
-    const amount = parseFloat(transaction.amount);
-    const formattedAmount = amount % 1 === 0 ? amount.toString() : amount.toFixed(2);
-    return `${amount >= 0 ? '+' : ''}${formattedAmount} RSC`;
-  };
-
-  const getTransactionType = (transaction: any) => {
-    // Handle withdrawals first
-    if (transaction.readable_content_type === 'withdrawal') {
-      return 'Withdrawal';
-    }
-
-    // Handle bounty and bounty fee cases first
-    if (transaction.readable_content_type === 'bounty') {
-      const bountyType = transaction.source?.bounty_type;
-      return bountyType ? `Bounty: ${bountyType.charAt(0) + bountyType.slice(1).toLowerCase()}` : 'Bounty';
-    }
-
-    if (transaction.readable_content_type === 'bountyfee') {
-      // If there's a related bounty type, show it
-      const bountyType = transaction.source?.bounty_type;
-      return bountyType ? 
-        `Fee: ${bountyType.charAt(0) + bountyType.slice(1).toLowerCase()} Bounty` : 
-        'Fee: Bounty';
-    }
-
-    // Handle purchases
-    if (transaction.readable_content_type === 'purchase') {
-      const purchaseType = transaction.source?.purchase_type;
-      if (purchaseType === 'BOOST') {
-        return DISTRIBUTION_TYPES['PURCHASE_BOOST'];
-      } else if (purchaseType === 'TIP') {
-        return DISTRIBUTION_TYPES['PURCHASE_TIP'];
-      }
-      return DISTRIBUTION_TYPES['PURCHASE'];
-    }
-
-    if (transaction.readable_content_type === 'supportfee') {
-      return 'Fee: Tip';
-    }
-
-    if (transaction?.source?.distribution_type) {
-      const type = transaction.source.distribution_type as DistributionType;
-      return DISTRIBUTION_TYPES[type] || type.split('_')
-        .map(word => word.charAt(0) + word.slice(1).toLowerCase())
-        .join(' ');
-    }
-
-    return 'Unknown Transaction';
-  };
-
-  const amount = parseFloat(transaction.amount);
-  const isPositive = amount >= 0;
-  
-  // Calculate fees and net amount first
-  const fee = transaction.source?.fee || '0';
-  const netAmount = (amount - parseFloat(fee)).toFixed(2);
-  
-  // Format USD value with correct minus sign placement
-  const formatUsdValue = (value: number) => {
-    const absValue = Math.abs(value).toFixed(2);
-    return value < 0 ? `-$${absValue}` : `$${absValue}`;
-  };
-  
-  // Then calculate USD values
-  const usdValue = formatUsdValue(amount);
-  const netUsdValue = formatUsdValue(parseFloat(netAmount));
 
   const formatDateTime = (dateString: string) => {
     return dayjs(dateString).format('MMM D, YYYY, h:mm A');
   };
 
-  const getContentLink = (transaction: any) => {
-    const truncateTitle = (title: string) => {
-      return title.length > 50 ? `${title.substring(0, 47)}...` : title;
-    };
-
-    // Handle withdrawals and deposits with transaction hash
-    if (
-      ['withdrawal', 'deposit'].includes(transaction.readable_content_type) && 
-      transaction.source?.transaction_hash
-    ) {
-      return {
-        title: `View on Etherscan`,
-        url: `https://etherscan.io/tx/${transaction.source.transaction_hash}`,
-        isExternal: true
-      };
+  const renderUsdValue = () => {
+    if (isLoadingRate) {
+      return (
+        <div className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
+      );
     }
 
-    // Handle bounty transactions with unified document
-    if (
-      transaction.readable_content_type === 'bounty' && 
-      transaction.source?.unified_document
-    ) {
-      return {
-        title: `Unified Doc #${transaction.source.unified_document}`,
-        url: `/unified-document/${transaction.source.unified_document}`,
-        isExternal: false
-      };
-    }
+    if (exchangeRate === undefined) return null;
 
-    // Check for paper title in source.source
-    if (transaction.source?.source?.paper_title) {
-      return {
-        title: truncateTitle(transaction.source.source.paper_title),
-        url: `/paper/${transaction.source.object_id}/`,
-        isExternal: false
-      };
-    }
-
-    // For other content types
-    if (transaction.content_id) {
-      return {
-        title: transaction.content_title ? 
-          truncateTitle(transaction.content_title) : 
-          'View Content',
-        url: `/${transaction.readable_content_type}/${transaction.content_id}/`,
-        isExternal: false
-      };
-    }
-
-    return null;
+    const amount = parseFloat(transaction.amount);
+    const usdValue = amount * exchangeRate;
+    const absValue = Math.abs(usdValue).toFixed(2);
+    
+    return (
+      <span className="text-xs text-gray-500 group-hover:text-gray-600">
+        {usdValue < 0 ? `-$${absValue}` : `$${absValue}`} USD
+      </span>
+    );
   };
 
-  const getUserLink = (transaction: any) => {
-    // Check if there's a giver in the source for upvotes and rewards
-    if (
-      transaction.source?.giver && 
-      transaction.source?.distribution_type?.includes('UPVOTED')
-    ) {
-      return {
-        userId: transaction.source.giver,
-        url: `/user/${transaction.source.giver}`
-      };
-    }
-    return null;
-  };
+  const isPositive = parseFloat(transaction.amount) >= 0;
+  const transactionInfo = getTransactionInfo(transaction);
+  const Icon = transactionInfo.icon;
 
   return (
     <div className="group">
-      <div className={`relative py-3 transition-all duration-200 rounded-lg px-4 -mx-4`}>
+      <div className="relative py-3 transition-all duration-200 rounded-lg px-4 -mx-4">
         <div className="flex items-center justify-between">
           <div className="flex gap-3 w-full">
             <div className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-gray-50">
-              {getTransactionIcon(transaction)}
+              <Icon className="h-4 w-4 text-gray-600" strokeWidth={2} />
             </div>
 
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <p className="font-medium text-gray-900">{getTransactionType(transaction)}</p>
-                {transaction.readable_content_type === 'withdrawal' && transaction.source?.paid_status && (
-                  <span className="text-[12px] px-2 py-0.5 rounded-full bg-gray-50">
-                    {transaction.source.paid_status === 'PAID' ? 'Completed' : 
-                     transaction.source.paid_status === 'FAILED' ? 'Failed' :
-                     transaction.source.paid_status.charAt(0) + 
-                     transaction.source.paid_status.slice(1).toLowerCase()}
-                  </span>
-                )}
-                {transaction?.source?.status && transaction.readable_content_type !== 'withdrawal' && (
-                  <span className="text-[12px] px-2 py-0.5 rounded-full bg-gray-50">
-                    {transaction.source.status.charAt(0) + transaction.source.status.slice(1).toLowerCase()}
-                  </span>
-                )}
+                <p className="font-medium text-gray-900">{transactionInfo.label}</p>
               </div>
-
-              <div className="flex items-center gap-2 text-xs text-gray-600 mt-0.5">
-                <span>{formatDateTime(transaction.created_date)}</span>
-                
-                {getContentLink(transaction) && (
-                  <>
-                    <span>•</span>
-                    <a 
-                      href={getContentLink(transaction)?.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-primary-400 transition-colors flex items-center gap-1"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {getContentLink(transaction)?.title}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </>
-                )}
-
-                {getUserLink(transaction) && (
-                  <>
-                    <span>•</span>
-                    <a 
-                      href={getUserLink(transaction)?.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-primary-400 transition-colors flex items-center gap-1"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      From User #{getUserLink(transaction)?.userId}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </>
-                )}
+              <div className="text-xs text-gray-600 mt-0.5">
+                {formatDateTime(transaction.created_date)}
               </div>
             </div>
 
@@ -301,11 +162,9 @@ export function TransactionListItem({
                     text-base font-medium transition-colors duration-200
                     ${isPositive ? 'text-green-600 group-hover:text-green-700' : 'text-gray-900'}
                   `}>
-                    {formatTransactionAmount(transaction)}
+                    {formatTransactionAmount(transaction.amount)}
                   </span>
-                  <span className="text-xs text-gray-500 group-hover:text-gray-600">
-                    {usdValue} USD
-                  </span>
+                  {renderUsdValue()}
                 </div>
               </div>
             </div>
@@ -314,4 +173,7 @@ export function TransactionListItem({
       </div>
     </div>
   );
-} 
+}
+
+// Memoize the component to prevent unnecessary re-renders
+export const TransactionListItem = memo(TransactionListItemComponent); 

@@ -2,9 +2,9 @@ import { ApiClient } from './client'
 import type { TransactionAPIResponse, UserBalanceResponse, ExchangeRateResponse } from './types/transaction.dto'
 
 export class TransactionService {
-  private static readonly BASE_PATH = '/transactions'
-  private static readonly WITHDRAWAL_PATH = '/withdrawal'
-  private static readonly EXCHANGE_RATE_PATH = '/exchange_rate'
+  private static readonly BASE_PATH = '/api/transactions'
+  private static readonly WITHDRAWAL_PATH = '/api/withdrawal'
+  private static readonly EXCHANGE_RATE_PATH = '/api/exchange_rate'
 
   static async getTransactions(page: number = 1) {
     return ApiClient.get<TransactionAPIResponse>(
@@ -18,15 +18,9 @@ export class TransactionService {
     page?: number;
     pageSize?: number;
   }) {
-    // Convert dates to UTC midnight for consistent filtering
-    const startDateTime = new Date(filters.startDate)
-    const endDateTime = new Date(filters.endDate)
-    endDateTime.setHours(23, 59, 59, 999)  // End of day
-
     const params = new URLSearchParams({
-      // Try simple date strings in ISO format without time
-      start_date: filters.startDate,
-      end_date: filters.endDate
+      created_date_after: filters.startDate,
+      created_date_before: filters.endDate
     })
 
     // Add pagination parameters if provided
