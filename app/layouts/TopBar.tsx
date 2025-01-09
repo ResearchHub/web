@@ -9,7 +9,9 @@ import type { User } from '@/types/user'
 import { useNotifications } from '@/contexts/NotificationContext'
 import { useRouter, usePathname } from 'next/navigation'
 import { NotificationBell } from '@/components/Notification/NotificationBell'
-import { SearchInput } from '@/components/Search/SearchInput'
+import { Search } from '@/components/Search/Search'
+import { PaperService } from '@/services/paper.service'
+import { toast } from 'react-hot-toast'
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -32,6 +34,25 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
     }
   };
 
+  const handlePaperSelect = async (suggestion: any) => {
+    try {
+      if (suggestion.id) {
+        // Paper already exists in ResearchHub
+        router.push(`/paper/${suggestion.id}`)
+      } else {
+        // Need to create paper from OpenAlex
+        const loadingToast = toast.loading('Importing paper...')
+        const { paper_id } = await PaperService.createByOpenAlexId(suggestion.openalexId)
+        toast.dismiss(loadingToast)
+        toast.success('Paper imported successfully')
+        router.push(`/paper/${paper_id}`)
+      }
+    } catch (error) {
+      console.error('Failed to handle paper selection:', error)
+      toast.error('Failed to import paper')
+    }
+  }
+
   const showBackArrow = pathname?.includes('/paper')
 
   return (
@@ -39,16 +60,15 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
       <div className="sticky top-0 bg-white/80 backdrop-blur-md z-20 h-[64px]">
         <div className="h-full relative flex items-center">
 
-
-
           {/* Centered Search */}
           <div className="flex-1 px-4 py-4 lg:px-8">
             <div className="mx-auto max-w-4xl">
               {/* Search Input 500px */}
               <div className="w-[600px] mx-auto">
-                <SearchInput 
+                <Search 
                   placeholder="Search any paper, journal, topic, ..."
                   className="w-full border-gray-200 rounded-full"
+                  onSelect={handlePaperSelect}
                 />
               </div>
             </div>
@@ -82,8 +102,6 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
               ) : null}
             </div>
           </div>          
-          
-
         </div>
       </div>
 
