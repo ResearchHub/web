@@ -32,13 +32,13 @@ export const ResearchCoinRightSidebar = () => {
   }
 
   return (
-    <div className={`w-80 fixed top-0 right-0 h-screen bg-white/95 backdrop-blur-md border-l border-[${colors.gray[100]}]`}>
-      <div className={`h-full overflow-y-auto pb-16 scrollbar-thin scrollbar-thumb-[${colors.gray[200]}] scrollbar-track-transparent`}>
+    <div className="w-80 fixed top-[64px] right-0 h-[calc(100vh-64px)] bg-white/95 backdrop-blur-md border-l border-gray-100">
+      <div className="h-full overflow-y-auto pb-16 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
         {/* About Section */}
         <div className="px-6 pt-6 pb-4">
           <div className="flex items-center gap-3 mb-3 mt-2">
-            <GraduationCap className={`h-5 w-5 text-[${colors.primary[400]}]`} strokeWidth={2} />
-            <h2 className={`text-base font-semibold text-[${colors.gray[900]}]`}>About ResearchCoin</h2>
+            <GraduationCap className="h-5 w-5 text-primary-400" strokeWidth={2} />
+            <h2 className="text-base font-semibold text-gray-900">About ResearchCoin</h2>
           </div>
           <div className="space-y-1 pl-4">
             {/* What is ResearchCoin */}
