@@ -9,8 +9,7 @@ import { BadgeCheck } from 'lucide-react'
 import { FundraiseRightSidebar } from '@/components/Fund/FundraiseRightSidebar'
 import { mockFunding } from '@/store/fundingStore'
 import { Funding } from '@/types/funding'
-import { UserStack } from '@/components/ui/UserStack'
-import { Button } from '@/Button'
+import { AvatarStack } from '@/components/ui/AvatarStack'
 
 export default function FundingPage({ params }: { params: { id: string; slug: string } }) {
   const [activeTab, setActiveTab] = useState('content')
@@ -86,7 +85,7 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
           </div>
 
           {/* Funding Progress */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-2">
@@ -117,10 +116,14 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
               </button>
 
               <div className="flex items-center space-x-2">
-                <UserStack
-                  users={funding.contributors.map(c => c.user)}
-                  limit={3}
-                  imageSize="md"
+                <AvatarStack
+                  items={funding.contributors.map(c => ({
+                    src: c.user.authorProfile?.profileImage,
+                    alt: c.user.fullName,
+                    tooltip: c.user.fullName
+                  }))}
+                  size="md"
+                  maxItems={3}
                 />
                 <span className="text-sm text-gray-600">contributors</span>
               </div>
@@ -166,7 +169,7 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
           {/* Content */}
           <div>
             {activeTab === 'content' && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">About this fundraise</h2>
                 <div className="prose prose-sm max-w-none">
                   {funding.content.split('\n\n').map((paragraph, i) => (
@@ -177,7 +180,7 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
             )}
             
             {activeTab === 'reviews' && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div className="text-gray-500 text-center py-8">
                   No reviews yet
                 </div>
@@ -185,7 +188,7 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
             )}
             
             {activeTab === 'comments' && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div className="text-gray-500 text-center py-8">
                   No comments yet
                 </div>

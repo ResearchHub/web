@@ -1,17 +1,19 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 
-export default function AuthError() {
-  const router = useRouter()
+function ErrorContent() {
   const searchParams = useSearchParams()
   const error = searchParams?.get('error')
 
-  useEffect(() => {
-    // Redirect to sign-in with the error parameter
-    router.push(`/auth/signin?error=${error ?? ''}`)
-  }, [error, router])
-
   return null // This page won't render anything, it just redirects
+}
+
+export default function ErrorPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ErrorContent />
+    </Suspense>
+  )
 } 

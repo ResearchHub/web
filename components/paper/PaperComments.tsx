@@ -37,7 +37,7 @@ export const PaperComments = ({ paperId }) => {
   return (
     <div className="space-y-6">
       {/* Comment Input */}
-      <div className="bg-white rounded-xl shadow-sm border p-4">
+      <div className="bg-white rounded-lg shadow-sm border p-4">
         <div className="flex space-x-4">
           <div className="flex-shrink-0">
             <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
@@ -64,7 +64,7 @@ export const PaperComments = ({ paperId }) => {
       {/* Comments List */}
       <div className="space-y-4">
         {comments.map(comment => (
-          <div key={comment.id} className="bg-white rounded-xl shadow-sm border p-6">
+          <div key={comment.id} className="bg-white rounded-lg shadow-sm border p-6">
             <div className="flex space-x-4">
               <div className="flex-shrink-0">
                 <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">

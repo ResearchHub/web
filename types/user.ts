@@ -1,13 +1,17 @@
 export interface User {
-    id: number
+    id: string
+    username: string
     email: string
-    firstName: string
-    lastName: string
-    authorProfile?: AuthorProfile
-  }
-  
-  export interface AuthorProfile {
-    id: number
+    isVerified: boolean
+    isOrganization?: boolean
+    fullName: string
+}
+
+export interface AuthorProfile {
+    id: string
+    fullName: string
     profileImage: string
-    headline: string
-  }
+    headline?: string
+    user?: User
+    profileUrl: string
+}

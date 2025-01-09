@@ -1,6 +1,6 @@
 export function NotificationSkeleton() {
   return (
-    <div className="p-4 rounded-lg border bg-white animate-pulse">
+    <div className="pt-4 pb-4 rounded-lg bg-white animate-pulse">
       <div className="flex justify-between items-start">
         <div className="w-full">
           {/* Header - User name and type */}

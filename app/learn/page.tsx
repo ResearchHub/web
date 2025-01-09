@@ -39,7 +39,7 @@ export default function LearnPage() {
 
                   {/* Video Section */}
                   <div className="mt-8">
-                    <div className="aspect-video w-full max-w-2xl mx-auto rounded-xl overflow-hidden">
+                    <div className="aspect-video w-full max-w-2xl mx-auto rounded-lg overflow-hidden">
                       <iframe 
                         className="w-full h-[400px]"
                         src="https://www.youtube.com/embed/mbIdAODhcXo"
@@ -105,7 +105,7 @@ export default function LearnPage() {
                   </p>
 
                   {/* Token Details Card */}
-                  <div className="bg-gray-50 rounded-xl p-6 mb-8">
+                  <div className="bg-gray-50 rounded-lg p-6 mb-8">
                     {/* ... Token Details content remains the same ... */}
                   </div>
 

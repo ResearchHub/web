@@ -6,7 +6,7 @@ import { Coins, Share2, ArrowUp, MessageSquare, BarChart2 } from 'lucide-react'
 import { ProfileTooltip } from '@/components/tooltips/ProfileTooltip'
 import Link from 'next/link'
 import { BadgeCheck } from 'lucide-react'
-import { FeedItem } from '@/components/FeedItem'
+import { FeedItem } from '@/components/Feed/FeedItem'
 import { PageLayout } from '@/app/layouts/PageLayout'
 import { grants, grantApplications } from '@/store/grantStore'
 import { GrantRightSidebar } from '@/components/Grant/GrantRightSidebar'
@@ -166,7 +166,7 @@ export default function GrantPage({ params }: { params: Promise<{ id: string; sl
             {/* Tab Content */}
             <div>
               {activeTab === 'details' && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   <div className="prose prose-sm max-w-none">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">About this Grant</h3>
                     {grant.details.split('\n').map((paragraph, i) => (
@@ -177,7 +177,7 @@ export default function GrantPage({ params }: { params: Promise<{ id: string; sl
               )}
               
               {activeTab === 'comments' && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   <div className="text-gray-500 text-center py-8">
                     No comments yet
                   </div>
@@ -189,7 +189,7 @@ export default function GrantPage({ params }: { params: Promise<{ id: string; sl
                   {applications.map((application) => (
                     <div 
                       key={application.id} 
-                      className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+                      className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
                     >
                       {/* Application Header */}
                       <div className="flex items-start justify-between mb-4">
@@ -242,7 +242,7 @@ export default function GrantPage({ params }: { params: Promise<{ id: string; sl
                   ))}
 
                   {applications.length === 0 && (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                       <div className="text-gray-500 text-center py-8">
                         No applications yet
                       </div>

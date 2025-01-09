@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import { PageLayout } from '@/app/layouts/PageLayout'
 import { useNotifications } from '@/contexts/NotificationContext'
 import { NotificationList } from '@/components/Notification/NotificationList'
 import { NotificationSkeleton } from '@/components/Notification/NotificationSkeleton'
+import { Tabs } from '@/components/ui/Tabs'
+import { Trophy, MessageCircle } from 'lucide-react'
 
 export default function NotificationsPage() {
   const { 
@@ -15,6 +17,14 @@ export default function NotificationsPage() {
     fetchNotifications,
     fetchNextPage
   } = useNotifications()
+
+  const [activeTab, setActiveTab] = useState('all')
+
+  const tabs = [
+    { id: 'all', label: 'All' },
+    { id: 'earning', label: 'Earning', icon: Trophy },
+    { id: 'responses', label: 'Responses', icon: MessageCircle },
+  ]
 
   const observerTarget = useRef<HTMLDivElement>(null)
 
@@ -48,23 +58,33 @@ export default function NotificationsPage() {
 
   const content = (
     <div className="w-full">
-      <h1 className="text-2xl font-bold mb-6">Notifications</h1>
-      <NotificationList
-        notifications={notificationData.results}
-        loading={loading}
-        error={error}
-      />
-      {notificationData.next && (
-        <div ref={observerTarget} className="mt-4">
-          {isLoadingMore && (
-            <div className="space-y-4">
-              <NotificationSkeleton key="skeleton-1" />
-              <NotificationSkeleton key="skeleton-2" />
-              <NotificationSkeleton key="skeleton-3" />
-            </div>
-          )}
-        </div>
-      )}
+      <div className="border-b">
+        <Tabs 
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          className="max-w-screen-xl mx-auto"
+        />
+      </div>
+
+      <div className="mt-6">
+        <NotificationList
+          notifications={notificationData.results}
+          loading={loading}
+          error={error}
+        />
+        {notificationData.next && (
+          <div ref={observerTarget} className="mt-4">
+            {isLoadingMore && (
+              <div className="space-y-4">
+                <NotificationSkeleton key="skeleton-1" />
+                <NotificationSkeleton key="skeleton-2" />
+                <NotificationSkeleton key="skeleton-3" />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 

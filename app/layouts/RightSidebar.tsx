@@ -2,38 +2,38 @@
 
 import { BookOpen, X, Check } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/Button';
 
 // InfoBanner Component
 const InfoBanner: React.FC = () => (
-  <div className="bg-indigo-600 rounded-xl p-6 mb-6 text-white">
-    <div className="flex justify-between items-start mb-6">
-      <div className="flex items-center space-x-3">
-        <BookOpen className="h-8 w-8" />
-        <div className="text-xl font-semibold">ResearchHub Journal</div>
-      </div>
-      <button className="text-white/80 hover:text-white">
-        <X className="h-5 w-5" />
-      </button>
+  <div className="bg-indigo-50 rounded-lg p-5 mb-6">
+    <div className="flex flex-col items-center mb-4">
+      <BookOpen className="h-8 w-8 text-indigo-900 mb-2" />
+      <div className="text-lg font-semibold text-indigo-900 text-center">ResearchHub Journal</div>
     </div>
     
-    <div className="space-y-4 mb-6">
-      <div className="flex items-center space-x-3">
-        <Check className="h-5 w-5 text-white" />
-        <span>14 days to peer reviews</span>
+    <div className="space-y-2.5 mb-5">
+      <div className="flex items-center space-x-2.5">
+        <Check className="h-4 w-4 text-indigo-900 flex-shrink-0" />
+        <span className="text-sm text-gray-700">14 days to peer reviews</span>
       </div>
-      <div className="flex items-center space-x-3">
-        <Check className="h-5 w-5 text-white" />
-        <span>Paid peer reviewers</span>
+      <div className="flex items-center space-x-2.5">
+        <Check className="h-4 w-4 text-indigo-900 flex-shrink-0" />
+        <span className="text-sm text-gray-700">Paid peer reviewers</span>
       </div>
-      <div className="flex items-center space-x-3">
-        <Check className="h-5 w-5 text-white" />
-        <span>Open access by default</span>
+      <div className="flex items-center space-x-2.5">
+        <Check className="h-4 w-4 text-indigo-900 flex-shrink-0" />
+        <span className="text-sm text-gray-700">Open access by default</span>
       </div>
     </div>
     
-    <button className="w-full py-2.5 bg-white text-indigo-600 rounded-lg font-medium hover:bg-white/90">
+    <Button 
+      variant="outlined" 
+      size="default"
+      className="w-full justify-center text-indigo-500 border-indigo-500 hover:text-indigo-600 hover:bg-indigo-100 font-medium"
+    >
       Learn more
-    </button>
+    </Button>
   </div>
 );
 
@@ -100,7 +100,7 @@ const WhoToFollow: React.FC = () => {
   };
 
   return (
-    <div className="p-4">
+    <div className="">
       <h2 className="font-semibold text-gray-900 mb-4">Who to Follow</h2>
       
       {/* Organizations Section */}
@@ -125,7 +125,7 @@ const WhoToFollow: React.FC = () => {
 
 // Main RightSidebar Component
 export const RightSidebar: React.FC = () => (
-  <div className="w-80 h-screen border-l bg-white p-4 overflow-y-auto">
+  <div>
     <InfoBanner />
     <WhoToFollow />
   </div>

@@ -39,6 +39,23 @@ All paths are relative to the root of the project.
 ## Contexts
 - Contexts including data providers should be located in `contexts` directory
 
+## Other
+- Utility functions are located in `utils` directory
+- Date functions are located in `utils/date.ts`
+
+## Main Feed
+- `components/Feed/Feed.tsx` is the main feed component
+- Feed item types are currently loaded from `store/feedStore.ts`
+- actions are: publish, repost, post, contribute
+- types are: grant, paper, review, comment, contribution
+
+## Directives
+- Use next/Link component whenever rendering a component that redirects to another page
+- Use `components/ui/Tabs` component whenever rendering a horizontal navigation
+- Use `components/ui/Button` component whenever rendering a button. do not use `<button>` tags.
+- Refactor rather than adding new code when possible
+- All functions created should include parameter destructuring in the function signature
+
 ## Technologies used in the project (next.js)
 - TypeScript
 - React
@@ -49,12 +66,21 @@ All paths are relative to the root of the project.
 - headlessui
 - react-hot-toast
 - lucide-react
+- FontAwesome
+- dayjs
+
+# Directives when creating new code 
+Execute the following whenver you are creating new code:
+- Create human readable code
+- Test for scalability
+- Test for performance
 
 ## Current Status
 [x] Integrate Django API with Next.js via services directory completed
 [x] Auth integration completed via next-auth
 [x] Notification context completed. Fetching unread count.
-[ ] Need to integrate with endpoint to fetch notifications and render them in /notifications endpoint
+[x] Need to integrate with endpoint to fetch notifications and render them in /notifications endpoint
+[ ] Fetching + Rendering main feed
 [ ] YOLO integration not in place
 
 

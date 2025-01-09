@@ -1,37 +1,30 @@
 'use client'
 
-import { Bell } from 'lucide-react'
+import Link from 'next/link'
 import { useNotifications } from '@/contexts/NotificationContext'
-import { useRouter } from 'next/navigation'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faBell as faBellRegular } from '@fortawesome/free-regular-svg-icons'
+import { faBell as faBellSolid } from '@fortawesome/free-solid-svg-icons'
 
 interface NotificationBellProps {
-  className?: string
+  filled?: boolean
 }
 
-export function NotificationBell({ className }: NotificationBellProps) {
-  const { unreadCount, markAllAsRead } = useNotifications()
-  const router = useRouter()
-
-  const handleClick = async (e: React.MouseEvent) => {
-    if (unreadCount > 0) {
-      await markAllAsRead()
-    }
-
-    router.push('/notifications')
-  }
+export function NotificationBell({ filled }: NotificationBellProps) {
+  const { unreadCount } = useNotifications()
+  const bellIcon = filled ? faBellSolid : faBellRegular
 
   return (
-    <button 
-      className={`relative ${className}`}
-      onClick={handleClick}
-      title={unreadCount > 0 ? "Shift+Click to mark all as read" : "Notifications"}
-    >
-      <Bell className="h-6 w-6 text-gray-600 hover:text-indigo-600" />
+    <Link href="/notifications" className="relative">
+      <FontAwesomeIcon 
+        icon={bellIcon} 
+        className="h-6 w-6 text-gray-600 hover:text-gray-900 transition-colors translate-y-[1px]"
+      />
       {unreadCount > 0 && (
-        <span className="absolute -top-1 -right-2 h-4 min-w-[16px] px-1 bg-red-500 rounded-lg text-xs text-white flex items-center justify-center">
-          {unreadCount > 9 ? '9+' : unreadCount}
+        <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[11px] font-medium text-white">
+          {unreadCount > 99 ? '99+' : unreadCount}
         </span>
       )}
-    </button>
+    </Link>
   )
 } 

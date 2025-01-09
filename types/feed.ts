@@ -1,114 +1,119 @@
-export type Hub = {
-  name: string;
-  slug: string;
-};
+import { AuthorProfile } from './user';
 
-export type User = {
-  id: string;
-  fullName: string;
-  verified: boolean;
-  isOrganization: boolean;
-  isVerified: boolean;
-  profileImage?: string;
-};
+export type Role = 'applicant';
 
-export type Author = {
-  name: string;
-  verified: boolean;
-};
 
-export type Metrics = {
-  votes: number;
-  comments: number;
-  reposts: number;
-  saves?: number;
-  applicants?: number;
-  reviewScore?: number;
-  views?: number;
-};
+export type FeedActionType = 'repost' | 'contribute' | 'publish' | 'post';
 
-export type FeedActionType = 
-  | 'post'
-  | 'share'
-  | 'contribute'
-  | 'apply'
-  | 'review'
-  | 'publish';
-
-export type ItemType = 
-  | 'funding_request'
-  | 'grant'
+export type ContentType = 
   | 'paper'
+  | 'comment'
+  | 'funding_request'
+  | 'bounty'
+  | 'grant'
   | 'review'
-  | 'reward'
   | 'contribution';
 
-export type BaseItem = {
+interface BaseContent {
   id: string;
-  type: ItemType;
-  title: string;
-  description: string;
-  user: User;
+  type: ContentType;
   timestamp: string;
-  hub: Hub;
-  metrics: Metrics;
-  isPinned?: boolean;
-};
+  hub: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  slug: string;
+  title?: string;
+  actor: AuthorProfile;
+}
 
-export type FundingRequestItem = BaseItem & {
-  type: 'funding_request';
-  amount: number;
-  goalAmount: number;
-  progress: number;
-  contributors?: User[];
-};
-
-export type GrantItem = BaseItem & {
-  type: 'grant';
-  amount: number;
-  deadline?: string;
-  contributors?: User[];
-  applicants?: User[];
-};
-
-export type PaperItem = BaseItem & {
+export interface Paper extends BaseContent {
   type: 'paper';
-  authors: Author[];
-  doi: string;
-  journal: string;
-};
+  abstract: string;
+  doi?: string;
+  journal?: {
+    slug: string;
+    image?: string;
+  };
+  authors: AuthorProfile[];
+}
 
-export type ReviewItem = BaseItem & {
-  type: 'review';
-  amount: number;
-};
+export interface Comment extends BaseContent {
+  type: 'comment';
+  content: string;
+  parent?: Content;
+}
 
-export type RewardItem = BaseItem & {
-  type: 'reward';
+export type FundingRequestStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
+
+export interface FundingRequest extends BaseContent {
+  type: 'funding_request';
+  title: string;
+  abstract: string;
   amount: number;
   deadline: string;
-  difficulty: 'Advanced' | 'Intermediate' | 'Beginner';
-  contributors?: User[];
-};
+  goalAmount: number;
+  status: FundingRequestStatus;
+}
 
-export type ContributionItem = BaseItem & {
+export interface Bounty extends BaseContent {
+  type: 'bounty';
+  title?: string;
+  description: string;
+  amount: number;
+  deadline: string;
+}
+
+export interface Grant extends BaseContent {
+  type: 'grant';
+  title: string;
+  abstract: string;
+  amount: number;
+  deadline: string;
+}
+
+export interface Review extends BaseContent {
+  type: 'review';
+  title?: string;
+  content: string;
+  score?: number;
+}
+
+export interface Contribution extends BaseContent {
   type: 'contribution';
   amount: number;
-};
+}
 
-export type Item = 
-  | FundingRequestItem
-  | GrantItem
-  | PaperItem
-  | ReviewItem
-  | RewardItem
-  | ContributionItem;
+export type Content = 
+  | Paper 
+  | Comment 
+  | FundingRequest 
+  | Bounty 
+  | Grant 
+  | Review
+  | Contribution;
 
-export type FeedEntry = {
+export interface FeedEntry {
   id: string;
-  action: FeedActionType;
-  actor: User;
   timestamp: string;
-  item: Item;
-  relatedItem?: Item;
-}; 
+  action: FeedActionType;
+  content: Content;
+  target?: Content;
+  context?: Content;
+  contributors: Array<{
+    profile: AuthorProfile;
+    amount: number;
+  }>;
+  applicants?: AuthorProfile[];  
+  metrics?: {
+    votes: number;
+    comments: number;
+    reposts: number;
+    saves?: number;
+    applicants?: number;
+    reviewScore?: number;
+    views?: number;
+    earned?: number;
+  };
+}

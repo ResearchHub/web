@@ -43,7 +43,7 @@ export const PaperRewards = ({ paperId }) => {
 
       <div className="space-y-4">
         {rewards.map(reward => (
-          <div key={reward.id} className="bg-white rounded-xl shadow-sm border p-6">
+          <div key={reward.id} className="bg-white rounded-lg shadow-sm border p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className="font-medium text-lg mb-2">{reward.title}</h3>

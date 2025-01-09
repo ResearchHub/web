@@ -83,7 +83,7 @@ export const PaperDocument = ({ paper }: PaperDocumentProps) => {
       {/* Title & Actions */}
       <div className="mb-6">
         <div className="flex items-start justify-between mb-4">
-          <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+          <h1 className="text-2xl font-bold text-gray-900 leading-tight">
             {paper.title}
           </h1>
         </div>
@@ -278,12 +278,12 @@ export const PaperDocument = ({ paper }: PaperDocumentProps) => {
       <div>
         {activeTab === 'paper' && (
           <>
-            <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
+            <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
               <h2 className="text-xl font-semibold mb-4">Abstract</h2>
               <p className="text-gray-700">{paper.abstract}</p>
             </div>
             
-            <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
               <iframe
                 src={`https://www.biorxiv.org/content/10.1101/2024.10.16.618749v1.full.pdf#toolbar=0`}
                 className="w-full h-[800px]"
@@ -313,7 +313,7 @@ export const PaperDocument = ({ paper }: PaperDocumentProps) => {
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="mx-auto max-w-md w-full bg-white rounded-xl p-6">
+          <Dialog.Panel className="mx-auto max-w-md w-full bg-white rounded-lg p-6">
             <div className="flex items-center justify-between mb-6">
               <Dialog.Title className="text-lg font-semibold">
                 Claim Author Profile

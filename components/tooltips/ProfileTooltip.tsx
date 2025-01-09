@@ -66,7 +66,7 @@ export const ProfileTooltip = ({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            <div className="rounded-xl bg-white shadow-lg border border-gray-200 p-4">
+            <div className="rounded-lg bg-white shadow-lg border border-gray-200 p-4">
               <div className="space-y-3">
                 <div>
                   <div className="flex items-center gap-1.5">

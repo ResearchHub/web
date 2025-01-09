@@ -40,7 +40,7 @@ export function NotificationList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       {notifications.map((notification, index) => (
         <NotificationItem
           key={`${notification.id}-${index}`}
