@@ -75,12 +75,5 @@ Execute the following whenver you are creating new code:
 - Test for scalability
 - Test for performance
 
-## Current Status
-[x] Integrate Django API with Next.js via services directory completed
-[x] Auth integration completed via next-auth
-[x] Notification context completed. Fetching unread count.
-[x] Need to integrate with endpoint to fetch notifications and render them in /notifications endpoint
-[ ] Fetching + Rendering main feed
-[ ] YOLO integration not in place
 
 
