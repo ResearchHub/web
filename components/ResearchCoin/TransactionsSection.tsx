@@ -1,4 +1,4 @@
-import { FileDown, LogIn, Coins } from 'lucide-react';
+import { FileDown, LogIn, Coins, HelpCircle } from 'lucide-react';
 import { TransactionList } from '@/components/ResearchCoin/TransactionList';
 import { TransactionSkeleton } from '@/components/skeletons/TransactionSkeleton';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
@@ -29,12 +29,14 @@ interface TransactionsSectionProps {
   onExportClick: () => void;
   initialTransactions: TransactionAPIResponse['results'];
   isInitialLoading: boolean;
+  exchangeRate: number;
 }
 
 export function TransactionsSection({ 
   onExportClick, 
   initialTransactions,
-  isInitialLoading 
+  isInitialLoading,
+  exchangeRate
 }: TransactionsSectionProps) {
   const { data: session, status } = useSession();
   const [transactions, setTransactions] = useState<TransactionAPIResponse['results']>(initialTransactions);
@@ -227,7 +229,20 @@ export function TransactionsSection({
   return (
     <div className="bg-white p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">Recent Transactions</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-xl font-semibold text-gray-800">Recent Transactions</h2>
+          <div className="group relative">
+            <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help transition-colors" />
+            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 
+              bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible
+              group-hover:opacity-100 group-hover:visible transition-all duration-200
+              whitespace-nowrap shadow-lg z-10 w-max max-w-md">
+              USD values shown reflect current exchange rates estimates
+              <div className="absolute left-1/2 -translate-x-1/2 top-full
+                border-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </div>
+        </div>
         <button
           onClick={onExportClick}
           disabled={isInitialLoading || !transactions.length}
@@ -244,6 +259,7 @@ export function TransactionsSection({
 
       <TransactionList
         transactions={transactions}
+        exchangeRate={exchangeRate}
         isLoading={false}
         error={error}
       />

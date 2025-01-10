@@ -9,6 +9,7 @@ import { ExportFilterModal, ExportProvider } from '@/components/modals/ResearchC
 import { TransactionService } from '@/services/transaction.service';
 import { useSession } from 'next-auth/react';
 import type { TransactionAPIResponse } from '@/services/types/transaction.dto';
+import { ExchangeRateService } from '@/services/exchangeRate.service';
 
 const STORAGE_KEY = 'researchhub_page_cache';
 const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
@@ -25,8 +26,9 @@ export default function ResearchCoinPage() {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [balance, setBalance] = useState<number | null>(null);
-  const [exchangeRate, setExchangeRate] = useState<number>(1.576);
+  const [exchangeRate, setExchangeRate] = useState<number>(0);
   const [transactions, setTransactions] = useState<TransactionAPIResponse['results']>([]);
+  const [isLoadingRate, setIsLoadingRate] = useState(true);
 
   // Initialize from cache
   useEffect(() => {
@@ -63,17 +65,18 @@ export default function ResearchCoinPage() {
       try {
         const [balanceResponse, rateResponse, transactionsResponse] = await Promise.all([
           TransactionService.getUserBalance(),
-          TransactionService.getLatestExchangeRate(),
+          ExchangeRateService.getLatestRate(),
           TransactionService.getTransactions(1)
         ]);
         
         const newBalance = balanceResponse.user.balance;
-        const newRate = rateResponse.results[0]?.rate ?? 1.576;
+        const newRate = rateResponse;
         const newTransactions = transactionsResponse.results;
 
         setBalance(newBalance);
         setExchangeRate(newRate);
         setTransactions(newTransactions);
+        setIsLoadingRate(false);
 
         // Update cache
         const cacheData: PageCache = {
@@ -102,13 +105,14 @@ export default function ResearchCoinPage() {
           <BalanceCard
             balance={balance}
             exchangeRate={exchangeRate}
-            isLoading={isLoading}
+            isLoading={isLoadingRate}
           />
 
           <TransactionsSection 
             onExportClick={() => setIsExportModalOpen(true)}
             initialTransactions={transactions}
             isInitialLoading={isLoading}
+            exchangeRate={exchangeRate}
           />
 
           <ExportProvider>

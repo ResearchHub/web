@@ -15,11 +15,9 @@ import type { TransactionAPIRequest } from '@/services/types/transaction.dto';
 interface TransactionListItemProps {
   transaction: TransactionAPIRequest;
   /**
-   * Exchange rate for the transaction date.
-   * This is fetched and managed by the parent component using ExchangeRateService.
+   * Current exchange rate passed down from BalanceCard
    */
-  exchangeRate?: number;
-  isLoadingRate: boolean;
+  exchangeRate: number;
 }
 
 interface TransactionTypeInfo {
@@ -71,7 +69,6 @@ const CONTENT_TYPE_MAP: Record<number, TransactionTypeInfo> = {
 function TransactionListItemComponent({ 
   transaction, 
   exchangeRate,
-  isLoadingRate,
 }: TransactionListItemProps) {
   const formatTransactionAmount = (amount: string) => {
     const parsedAmount = parseFloat(amount);
@@ -114,14 +111,6 @@ function TransactionListItemComponent({
   };
 
   const renderUsdValue = () => {
-    if (isLoadingRate) {
-      return (
-        <div className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
-      );
-    }
-
-    if (exchangeRate === undefined) return null;
-
     const amount = parseFloat(transaction.amount);
     const usdValue = amount * exchangeRate;
     const absValue = Math.abs(usdValue).toFixed(2);
