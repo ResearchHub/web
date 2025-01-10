@@ -1,5 +1,4 @@
 import { User } from "./user"
-import { Document } from "./document"
 
 export interface Notification {
     id: number
@@ -7,7 +6,10 @@ export interface Notification {
     type: string
     actionUser: User
     recipient: User
-    document?: Document
+    work?: {
+      id: number;
+      title: string;
+    }
     body: any
     extra: any
     navigationUrl: string | null
