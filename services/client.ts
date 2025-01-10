@@ -63,6 +63,31 @@ export class ApiClient {
     }
   }
 
+  static async getBlob(path: string): Promise<Blob> {
+    try {
+      const headers = await this.getHeaders();
+      delete headers['Content-Type']; // Remove Content-Type for blob response
+      delete headers['Accept']; // Remove Accept header to allow blob response
+      
+      const response = await fetch(
+        `${this.baseURL}${path}`,
+        {
+          ...this.getFetchOptions('GET', headers),
+          headers: headers // Override headers
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return response.blob();
+    } catch (error) {
+      console.error('API request failed:', error);
+      throw error;
+    }
+  }
+
   static async post<T>(path: string, body?: any): Promise<T> {
     const headers = await this.getHeaders();
     const response = await fetch(

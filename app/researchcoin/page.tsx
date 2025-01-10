@@ -5,7 +5,7 @@ import { PageLayout } from '../layouts/PageLayout';
 import { ResearchCoinRightSidebar } from '@/components/ResearchCoin/ResearchCoinRightSidebar';
 import { BalanceCard } from '@/components/ResearchCoin/BalanceCard';
 import { TransactionsSection } from '@/components/ResearchCoin/TransactionsSection';
-import { ExportFilterModal, ExportProvider } from '@/components/modals/ResearchCoin/ExportFilterModal';
+import { ExportFilterModal } from '@/components/modals/ResearchCoin/ExportFilterModal';
 import { TransactionService } from '@/services/transaction.service';
 import { useSession } from 'next-auth/react';
 import type { TransactionAPIResponse } from '@/services/types/transaction.dto';
@@ -24,6 +24,7 @@ interface PageCache {
 export default function ResearchCoinPage() {
   const { data: session, status } = useSession();
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [balance, setBalance] = useState<number | null>(null);
   const [exchangeRate, setExchangeRate] = useState<number>(0);
@@ -98,6 +99,12 @@ export default function ResearchCoinPage() {
     }
   }, [session, status]);
 
+  const handleExportClick = () => {
+    if (!isExporting) {
+      setIsExportModalOpen(true);
+    }
+  };
+
   return (
     <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
       <div className="flex">
@@ -109,20 +116,20 @@ export default function ResearchCoinPage() {
           />
 
           <TransactionsSection 
-            onExportClick={() => setIsExportModalOpen(true)}
+            onExportClick={handleExportClick}
             initialTransactions={transactions}
             isInitialLoading={isLoading}
             exchangeRate={exchangeRate}
+            isExporting={isExporting}
           />
 
-          <ExportProvider>
-            {isExportModalOpen && (
-              <ExportFilterModal
-                isOpen={isExportModalOpen}
-                onClose={() => setIsExportModalOpen(false)}
-              />
-            )}
-          </ExportProvider>
+          {isExportModalOpen && (
+            <ExportFilterModal
+              isOpen={isExportModalOpen}
+              onClose={() => setIsExportModalOpen(false)}
+              onExportStateChange={setIsExporting}
+            />
+          )}
         </div>
       </div>
     </PageLayout>

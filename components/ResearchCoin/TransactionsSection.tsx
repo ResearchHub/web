@@ -30,13 +30,15 @@ interface TransactionsSectionProps {
   initialTransactions: TransactionAPIResponse['results'];
   isInitialLoading: boolean;
   exchangeRate: number;
+  isExporting: boolean;
 }
 
 export function TransactionsSection({ 
   onExportClick, 
   initialTransactions,
   isInitialLoading,
-  exchangeRate
+  exchangeRate,
+  isExporting
 }: TransactionsSectionProps) {
   const { data: session, status } = useSession();
   const [transactions, setTransactions] = useState<TransactionAPIResponse['results']>(initialTransactions);
@@ -245,15 +247,16 @@ export function TransactionsSection({
         </div>
         <button
           onClick={onExportClick}
-          disabled={isInitialLoading || !transactions.length}
+          disabled={isInitialLoading || !transactions.length || isExporting}
           className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md 
-            transition-colors ${isInitialLoading || !transactions.length
+            transition-colors ${isInitialLoading || !transactions.length || isExporting
               ? 'text-gray-400 bg-gray-50 border border-gray-200 cursor-not-allowed'
               : 'text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300'
             }`}
+          title={isExporting ? 'Export in progress...' : undefined}
         >
           <FileDown className="h-4 w-4" />
-          Export
+          {isExporting ? 'Exporting...' : 'Export'}
         </button>
       </div>
 
