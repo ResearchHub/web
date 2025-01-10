@@ -1,8 +1,5 @@
 import { AuthorProfile } from './user';
 
-export type Role = 'applicant';
-
-
 export type FeedActionType = 'repost' | 'contribute' | 'publish' | 'post';
 
 export type ContentType = 

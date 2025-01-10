@@ -1,7 +1,6 @@
 import { User } from "@/types/user"
 import { transformUserData } from "./user.dto"
 import { Notification } from "@/types/notification"
-import { Document } from "@/types/document"
 
 export interface NotificationHub {
   name: string
@@ -77,7 +76,7 @@ export function transformNotification(raw: any): Notification {
     type: raw.notification_type,
     actionUser: transformUserData(raw.action_user),
     recipient: transformUserData(raw.recipient),
-    document: raw.unified_document ? transformDocument(raw.unified_document) : undefined,
+    work: raw.unified_document ? transformDocument(raw.unified_document) : undefined,
     body: raw.notification_type === 'RSC_SUPPORT_ON_DIS' 
       ? transformNotificationLegacyBodyProperty(raw.body)
       : raw.body,
@@ -88,15 +87,13 @@ export function transformNotification(raw: any): Notification {
   }
 }
 
-export function transformDocument(raw: any): Document | undefined {
+export function transformDocument(raw: any): { id: number; title: string; } | undefined {
   if (!raw?.documents) {
     return undefined
   }
 
   return {
-    id: raw.documents.id,
+    id: raw.id,
     title: raw.documents.title || raw.documents.paper_title,
-    slug: raw.documents.slug,
-    type: raw.document_type || 'unknown'
   }
 }
