@@ -1,18 +1,15 @@
 'use client'
 
-import { useState } from 'react'
-import { Tabs } from '@/components/ui/Tabs'
-import { PageLayout } from '@/app/layouts/PageLayout'
-import { HandCoins } from 'lucide-react'
+import { FeedItemBody } from '@/components/Feed/FeedItemBody';
+import { fundingFeedEntries } from '@/store/fundingFeedStore';
+import { FundingRequest } from '@/types/feed';
+import { PageLayout } from '@/app/layouts/PageLayout';
+import { HandCoins } from 'lucide-react';
+import Image from 'next/image';
+
+const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1507413245164-6160d8298b31?q=80&w=800';
 
 export default function FundingPage() {
-  const [activeTab, setActiveTab] = useState('fund-science')
-
-  const tabs = [
-    { id: 'fund-science', label: 'Fund Science' },
-    { id: 'grants', label: 'Grants' }
-  ]
-
   return (
     <PageLayout>
       <div>
@@ -23,28 +20,35 @@ export default function FundingPage() {
           </h2>
         </div>
 
-        <div className="border-b border-gray-100">
-          <Tabs 
-            tabs={tabs}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
-        </div>
-
-        <div className="mt-8">
-          {activeTab === 'fund-science' && (
-            <div>
-              {/* Fund Science feed will go here */}
-            </div>
-          )}
-
-          {activeTab === 'grants' && (
-            <div>
-              {/* Grants feed will go here */}
-            </div>
-          )}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {fundingFeedEntries.map((entry) => {
+            const content = entry.content as FundingRequest;
+            const imageUrl = content.image || DEFAULT_IMAGE;
+            
+            return (
+              <div key={entry.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                {content.type === 'funding_request' && (
+                  <div className="relative w-full h-48">
+                    <Image
+                      src={imageUrl}
+                      alt={content.title || 'Research funding request'}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                )}
+                <div className="p-4">
+                  <FeedItemBody 
+                    content={content}
+                    metrics={entry.metrics}
+                    contributors={entry.contributors}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </PageLayout>
-  )
+  );
 }

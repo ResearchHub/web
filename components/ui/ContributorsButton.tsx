@@ -13,9 +13,10 @@ interface ContributorsButtonProps {
     amount: number
   }>
   onContribute?: () => void
+  label?: string
 }
 
-export function ContributorsButton({ contributors, onContribute }: ContributorsButtonProps) {
+export function ContributorsButton({ contributors, onContribute, label = 'Contributors' }: ContributorsButtonProps) {
   const [showModal, setShowModal] = useState(false)
 
   const avatarItems = contributors.map(({ profile }) => ({
@@ -42,7 +43,7 @@ export function ContributorsButton({ contributors, onContribute }: ContributorsB
             disableTooltip
           />
           <span className="text-xs text-gray-600 ml-1.5">
-            {contributors.length} Contributors
+            {contributors.length} {label}
           </span>
         </div>
       </Button>

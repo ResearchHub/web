@@ -14,6 +14,8 @@ import { ResearchCoinIcon } from '../ui/icons/ResearchCoinIcon';
 import { FeedItemHeader } from './FeedItemHeader';
 import { ContributorsButton } from '../ui/ContributorsButton';
 import { Avatar } from '@/components/ui/Avatar';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHexagonImage } from '@fortawesome/pro-solid-svg-icons';
 
 interface FeedItemBodyProps {
   content: Content;
@@ -56,7 +58,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
     if (!itemContent) return null;
 
     const getTypeLabel = (type: string) => {
-      if (type === 'funding_request') return 'crowdfund';
+      if (type === 'funding_request') return 'Preregistration';
       else if (type === 'review') return 'Peer Review';
       return type.replace('_', ' ');
     };
@@ -243,13 +245,16 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
             variant="contribute" 
             size="sm" 
             disabled={fundingRequest.status !== 'OPEN' || deadlineText === 'Ended'}
+            className="flex items-center gap-1.5"
           >
-            Contribute
+            <FontAwesomeIcon icon={faHexagonImage} className="w-4 h-4" />
+            Fund for NFT
           </Button>
           {contributors && contributors.length > 0 && (
             <ContributorsButton 
               contributors={contributors}
               onContribute={() => {}}
+              label="Funders"
             />
           )}
         </div>

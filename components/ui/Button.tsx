@@ -59,7 +59,6 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       if (variant === 'contribute') {
         return (
           <div className="flex items-center gap-2">
-            <Plus size={16} />
             {children}
           </div>
         );
