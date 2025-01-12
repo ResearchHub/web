@@ -48,10 +48,12 @@ export interface FundingRequest extends BaseContent {
   type: 'funding_request';
   title: string;
   abstract: string;
+  status: 'OPEN' | 'CLOSED' | 'COMPLETED';
   amount: number;
-  deadline: string;
   goalAmount: number;
-  status: FundingRequestStatus;
+  deadline: string;
+  image?: string;
+  preregistered?: boolean;
 }
 
 export interface Bounty extends BaseContent {
