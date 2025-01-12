@@ -63,6 +63,11 @@ export class ApiClient {
     }
   }
 
+  /**
+   * Fetches binary data from an API endpoint and returns it as a Blob.
+   * Primarily used for downloading files like CSV exports of transactions.
+   * Removes Content-Type and Accept headers to properly handle blob responses.
+   */
   static async getBlob(path: string): Promise<Blob> {
     try {
       const headers = await this.getHeaders();

@@ -32,15 +32,14 @@ export const ResearchCoinRightSidebar = () => {
   }
 
   return (
-    <div className="w-80 fixed top-[64px] right-0 h-[calc(100vh-64px)] bg-white/95 backdrop-blur-md border-l border-gray-100">
+    <div className="w-80 sticky top-[64px] h-[calc(100vh-64px)] bg-white/95 backdrop-blur-md border-gray-100 overscroll-contain">
       <div className="h-full overflow-y-auto pb-16 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
         {/* About Section */}
         <div className="px-6 pt-6 pb-4">
-          <div className="flex items-center gap-3 mb-3 mt-2">
-            <GraduationCap className="h-5 w-5 text-primary-400" strokeWidth={2} />
+          <div className="mb-3 mt-2">
             <h2 className="text-base font-semibold text-gray-900">About ResearchCoin</h2>
           </div>
-          <div className="space-y-1 pl-4">
+          <div className="space-y-1">
             {/* What is ResearchCoin */}
             <div className="group">
               <button 
@@ -48,7 +47,7 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <Coins className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2}/>
+                  <Coins className="h-4 w-4 text-gray-600 group-hover:text-gray-900 transition-colors" strokeWidth={2}/>
                   <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
                     What is ResearchCoin (RSC)?
                   </span>
@@ -74,7 +73,7 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <HelpCircle className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2}/>
+                  <HelpCircle className="h-4 w-4 text-gray-600 group-hover:text-gray-900 transition-colors" strokeWidth={2}/>
                   <span className={`text-sm text-gray-600 group-hover:text-gray-900 transition-colors`}>
                     Why RSC?
                   </span>
@@ -100,7 +99,7 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <Route className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
+                  <Route className="h-4 w-4 text-gray-600 group-hover:text-gray-900 transition-colors" strokeWidth={2} />
                   <span className={`text-sm text-gray-600 group-hover:text-gray-900 transition-colors`}>
                     Getting Started with RSC
                   </span>
@@ -130,11 +129,10 @@ export const ResearchCoinRightSidebar = () => {
 
         {/* RSC Utility Section */}
         <div className="px-6 py-4">
-          <div className="flex items-center gap-3 mb-3">
-            <Sparkles className={`h-5 w-5 text-[${colors.primary[400]}]`} strokeWidth={2} />
-            <h2 className={`text-base font-semibold text-[${colors.gray[900]}]`}>Using ResearchCoin</h2>
+          <div className="mb-3">
+            <h2 className="text-base font-semibold text-gray-900">Using ResearchCoin</h2>
           </div>
-          <div className="space-y-1 pl-4">
+          <div className="space-y-1">
             {/* Create Reward */}
             <div className="group">
               <button 
@@ -142,7 +140,7 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <Trophy className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2}/>
+                  <Trophy className="h-4 w-4 text-gray-600 group-hover:text-gray-900 transition-colors" strokeWidth={2}/>
                   <span className={`text-sm text-gray-600 group-hover:text-gray-900 transition-colors`}>
                     Create reward
                   </span>
@@ -168,7 +166,7 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <CircleDollarSign className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
+                  <CircleDollarSign className="h-4 w-4 text-gray-600 group-hover:text-gray-900 transition-colors" strokeWidth={2} />
                   <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
                     Fund open science
                   </span>
@@ -194,7 +192,7 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <HandCoins className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
+                  <HandCoins className="h-4 w-4 text-gray-600 group-hover:text-gray-900 transition-colors" strokeWidth={2} />
                   <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">Tip authors</span>
                 </div>
                 <div className="text-gray-600 group-hover:text-gray-600 transition-colors">
@@ -218,7 +216,7 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <Scale className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
+                  <Scale className="h-4 w-4 text-gray-600 group-hover:text-gray-900 transition-colors" strokeWidth={2} />
                   <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">Change the platform</span>
                 </div>
                 <div className="text-gray-600 group-hover:text-gray-600 transition-colors">
@@ -239,11 +237,10 @@ export const ResearchCoinRightSidebar = () => {
 
         {/* Earning Section */}
         <div className="px-6 py-4">
-          <div className="flex items-center gap-3 mb-3 mt-2">
-            <Trophy className={`h-5 w-5 text-[${colors.primary[400]}]`} strokeWidth={2} />
-            <h2 className={`text-base font-semibold text-[${colors.gray[900]}]`}>Earning ResearchCoin</h2>
+          <div className="mb-3 mt-2">
+            <h2 className="text-base font-semibold text-gray-900">Earning ResearchCoin</h2>
           </div>
-          <div className="space-y-1 pl-4">
+          <div className="space-y-1">
             {/* Peer Review */}
             <div className="group">
               <button 
@@ -251,7 +248,7 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <ClipboardCheck className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
+                  <ClipboardCheck className="h-4 w-4 text-gray-600 group-hover:text-gray-900 transition-colors" strokeWidth={2} />
                   <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">Share a peer review</span>
                 </div>
                 <div className="text-gray-600 group-hover:text-gray-600 transition-colors">
@@ -275,7 +272,7 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <Trophy className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
+                  <Trophy className="h-4 w-4 text-gray-600 group-hover:text-gray-900 transition-colors" strokeWidth={2} />
                   <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">Answer a reward</span>
                 </div>
                 <div className="text-gray-600 group-hover:text-gray-600 transition-colors">
@@ -299,7 +296,7 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <Microscope className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
+                  <Microscope className="h-4 w-4 text-gray-600 group-hover:text-gray-900 transition-colors" strokeWidth={2} />
                   <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">Do reproducible research</span>
                 </div>
                 <div className="text-gray-600 group-hover:text-gray-600 transition-colors">
@@ -326,7 +323,7 @@ export const ResearchCoinRightSidebar = () => {
                 className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <ArrowBigUpDash className="h-4 w-4 text-gray-600 group-hover:text-primary-400 transition-colors" strokeWidth={2} />
+                  <ArrowBigUpDash className="h-4 w-4 text-gray-600 group-hover:text-gray-900 transition-colors" strokeWidth={2} />
                   <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">Get upvotes on your content</span>
                 </div>
                 <div className="text-gray-600 group-hover:text-gray-600 transition-colors">

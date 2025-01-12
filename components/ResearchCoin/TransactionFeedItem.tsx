@@ -1,5 +1,3 @@
-import { memo } from 'react';
-import dayjs from 'dayjs';
 import {
   ArrowBigUpDash,
   ArrowUpFromLine,
@@ -11,11 +9,13 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { TransactionAPIRequest } from '@/services/types/transaction.dto';
+import { formatTransactionAmount, formatUsdValue } from '@/utils/number';
+import { formatTimestamp } from '@/utils/date';
 
-interface TransactionListItemProps {
+interface TransactionFeedItemProps {
   transaction: TransactionAPIRequest;
   /**
-   * Current exchange rate passed down from BalanceCard
+   * Current exchange rate passed down from UserBalanceSection
    */
   exchangeRate: number;
 }
@@ -66,18 +66,10 @@ const CONTENT_TYPE_MAP: Record<number, TransactionTypeInfo> = {
   154: { label: 'Payment', icon: HandCoins }
 } as const;
 
-function TransactionListItemComponent({ 
+export function TransactionFeedItem({ 
   transaction, 
   exchangeRate,
-}: TransactionListItemProps) {
-  const formatTransactionAmount = (amount: string) => {
-    const parsedAmount = parseFloat(amount);
-    const formattedAmount = parsedAmount % 1 === 0 ? 
-      parsedAmount.toString() : 
-      parsedAmount.toFixed(2);
-    return `${parsedAmount >= 0 ? '+' : ''}${formattedAmount} RSC`;
-  };
-
+}: TransactionFeedItemProps) {
   const getTransactionInfo = (tx: TransactionAPIRequest): TransactionTypeInfo => {
     // First check if we have source type information
     if (tx.source?.purchase_type) {
@@ -106,22 +98,6 @@ function TransactionListItemComponent({
     };
   };
 
-  const formatDateTime = (dateString: string) => {
-    return dayjs(dateString).format('MMM D, YYYY, h:mm A');
-  };
-
-  const renderUsdValue = () => {
-    const amount = parseFloat(transaction.amount);
-    const usdValue = amount * exchangeRate;
-    const absValue = Math.abs(usdValue).toFixed(2);
-    
-    return (
-      <span className="text-xs text-gray-500 group-hover:text-gray-600">
-        {usdValue < 0 ? `-$${absValue}` : `$${absValue}`} USD
-      </span>
-    );
-  };
-
   const isPositive = parseFloat(transaction.amount) >= 0;
   const transactionInfo = getTransactionInfo(transaction);
   const Icon = transactionInfo.icon;
@@ -140,7 +116,7 @@ function TransactionListItemComponent({
                 <p className="font-medium text-gray-900">{transactionInfo.label}</p>
               </div>
               <div className="text-xs text-gray-600 mt-0.5">
-                {formatDateTime(transaction.created_date)}
+                {formatTimestamp(transaction.created_date)}
               </div>
             </div>
 
@@ -153,7 +129,9 @@ function TransactionListItemComponent({
                   `}>
                     {formatTransactionAmount(transaction.amount)}
                   </span>
-                  {renderUsdValue()}
+                  <span className="text-xs text-gray-500 group-hover:text-gray-600">
+                    {formatUsdValue(transaction.amount, exchangeRate)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -162,7 +140,4 @@ function TransactionListItemComponent({
       </div>
     </div>
   );
-}
-
-// Memoize the component to prevent unnecessary re-renders
-export const TransactionListItem = memo(TransactionListItemComponent); 
+} 

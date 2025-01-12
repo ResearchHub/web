@@ -13,7 +13,7 @@ export class TransactionService {
   }
 
   static async getUserBalance() {
-    return ApiClient.get<UserBalanceResponse>(this.WITHDRAWAL_PATH)
+    return ApiClient.get<UserBalanceResponse>(`${this.WITHDRAWAL_PATH}/`)
   }
 
   static async getLatestExchangeRate() {

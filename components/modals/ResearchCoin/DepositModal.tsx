@@ -1,12 +1,13 @@
 'use client'
 
 import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react'
-import { Fragment, useState, useCallback, useEffect } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { X as XIcon, Info } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { colors } from '@/app/styles/colors'
-import Image from 'next/image'
 import { TransactionService } from '@/services/transaction.service'
+import { formatRSC, formatUsdValue } from '@/utils/number'
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon'
 
 interface DepositModalProps {
   isOpen: boolean
@@ -36,28 +37,12 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
     }
   }, [isOpen]);
 
-  const formatUSDValue = (rscAmount: string | number): string => {
-    const amount = typeof rscAmount === 'string' ? parseFloat(rscAmount.replace(',', '') || '0') : rscAmount;
-    const usdAmount = amount * exchangeRate;
-    return `$${usdAmount.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
-  }
-
-  const calculateNewBalance = (): string => {
+  const calculateNewBalance = (): number => {
     const deposit = parseFloat(amount || '0')
-    return (currentBalance + deposit).toFixed(2)
+    return currentBalance + deposit
   }
 
-  const formatRSCValue = (value: number): string => {
-    return value.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })
-  }
-
-  const handleDeposit = useCallback(async () => {
+  async function handleDeposit() {
     if (!amount || parseFloat(amount) <= 0) {
       toast.error('Please enter a valid amount')
       return
@@ -75,7 +60,7 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
     } finally {
       setIsProcessing(false)
     }
-  }, [amount, onClose])
+  }
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -159,17 +144,15 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
                       <div className="text-right flex items-center gap-2">
                         <div>
                           <div className="flex items-center gap-2">
-                            <Image
-                              src="/coin-filled.png"
-                              alt="RSC"
-                              width={16}
-                              height={16}
-                              className="object-contain"
-                            />
-                            <span className="text-sm font-semibold text-gray-900">{formatRSCValue(currentBalance)}</span>
+                            <ResearchCoinIcon size={16} />
+                            <span className="text-sm font-semibold text-gray-900">
+                              {formatRSC({ amount: currentBalance })}
+                            </span>
                             <span className="text-sm text-gray-500">RSC</span>
                           </div>
-                          <div className="text-xs text-gray-500">≈ {formatUSDValue(currentBalance)} USD</div>
+                          <div className="text-xs text-gray-500">
+                            ≈ {formatUsdValue(currentBalance.toString(), exchangeRate)}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -182,17 +165,15 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
                           <div className="text-right flex items-center gap-2">
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold text-green-600">{calculateNewBalance()}</span>
-                                <Image
-                                  src="/coin-filled.png"
-                                  alt="RSC"
-                                  width={16}
-                                  height={16}
-                                  className="object-contain"
-                                />
+                                <span className="text-sm font-semibold text-green-600">
+                                  {formatRSC({ amount: calculateNewBalance() })}
+                                </span>
+                                <ResearchCoinIcon size={16} />
                                 <span className="text-sm text-gray-500">RSC</span>
                               </div>
-                              <div className="text-xs text-gray-500">≈ {formatUSDValue(calculateNewBalance())} USD</div>
+                              <div className="text-xs text-gray-500">
+                                ≈ {formatUsdValue(calculateNewBalance().toString(), exchangeRate)}
+                              </div>
                             </div>
                           </div>
                         </div>

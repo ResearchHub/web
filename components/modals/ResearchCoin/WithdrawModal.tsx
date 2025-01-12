@@ -1,12 +1,13 @@
 'use client'
 
 import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react'
-import { Fragment, useState, useCallback, useEffect } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { X as XIcon, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { colors } from '@/app/styles/colors'
-import Image from 'next/image';
 import { TransactionService } from '@/services/transaction.service'
+import { formatRSC, formatUsdValue } from '@/utils/number'
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon'
 
 interface WithdrawModalProps {
   isOpen: boolean
@@ -37,7 +38,7 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
     }
   }, [isOpen]);
 
-  const handleWithdraw = useCallback(async () => {
+  async function handleWithdraw() {
     setErrorMessage(''); // Reset error message
     if (!amount || parseFloat(amount) <= 0) {
       setErrorMessage('Please enter a valid amount');
@@ -61,26 +62,10 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
     } finally {
       setIsProcessing(false)
     }
-  }, [amount, onClose, availableBalance])
+  }
 
   const handleMaxAmount = () => {
     setAmount(availableBalance.toString())
-  }
-
-  const formatUSDValue = (rscAmount: string | number): string => {
-    const amount = typeof rscAmount === 'string' ? parseFloat(rscAmount.replace(',', '') || '0') : rscAmount;
-    const usdAmount = amount * exchangeRate;
-    return `$${usdAmount.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
-  };
-
-  const formatRSCValue = (value: number): string => {
-    return value.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })
   }
 
   return (
@@ -188,17 +173,15 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                       <div className="text-right flex items-center gap-2">
                         <div>
                           <div className="flex items-center gap-2">
-                            <Image
-                              src="/coin-filled.png"
-                              alt="RSC"
-                              width={16}
-                              height={16}
-                              className="object-contain"
-                            />
-                            <span className="text-sm font-semibold text-gray-900">{formatRSCValue(availableBalance)}</span>
+                            <ResearchCoinIcon size={16} />
+                            <span className="text-sm font-semibold text-gray-900">
+                              {formatRSC({ amount: availableBalance })}
+                            </span>
                             <span className="text-xs text-gray-500">RSC</span>
                           </div>
-                          <div className="text-xs text-gray-500">≈ {formatUSDValue(availableBalance)} USD</div>
+                          <div className="text-xs text-gray-500">
+                            ≈ {formatUsdValue(availableBalance.toString(), exchangeRate)}
+                          </div>
                         </div>
                       </div>
                     </div>

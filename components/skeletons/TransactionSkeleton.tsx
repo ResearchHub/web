@@ -15,7 +15,7 @@ export function TransactionSkeleton() {
                 <p className="h-5 w-24 bg-gray-200 rounded animate-pulse" />
               </div>
               {/* Date */}
-              <div className="text-xs mt-0.5">
+              <div className="text-xs mt-1.5">
                 <div className="h-3 w-32 bg-gray-200 rounded animate-pulse" />
               </div>
             </div>
