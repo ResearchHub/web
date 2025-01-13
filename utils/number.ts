@@ -37,3 +37,40 @@ export function formatRSC({ amount, shorten = false }: FormatRSCOptions): string
 
   return amount.toString();
 }
+
+/**
+ * Formats a transaction amount with a + or - prefix and RSC suffix
+ * @param amount The amount to format
+ * @returns Formatted string with RSC suffix
+ * 
+ * @example
+ * formatTransactionAmount("10500.5") // "+10,500.50 RSC"
+ * formatTransactionAmount("-5000") // "-5,000 RSC"
+ */
+export function formatTransactionAmount(amount: string): string {
+  const parsedAmount = parseFloat(amount);
+  const formattedAmount = parsedAmount.toLocaleString('en-US', {
+    minimumFractionDigits: parsedAmount % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2
+  });
+  return `${parsedAmount >= 0 ? '+' : ''}${formattedAmount} RSC`;
+}
+
+/**
+ * Formats a USD value with $ prefix
+ * @param amount The amount in RSC
+ * @param exchangeRate The current RSC to USD exchange rate
+ * @returns Formatted USD string
+ * 
+ * @example
+ * formatUsdValue("10500.5", 0.5) // "$5,250.25 USD"
+ */
+export function formatUsdValue(amount: string, exchangeRate: number): string {
+  const parsedAmount = parseFloat(amount);
+  const usdValue = parsedAmount * exchangeRate;
+  const absValue = Math.abs(usdValue).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+  return `${usdValue < 0 ? '-$' : '$'}${absValue} USD`;
+}
