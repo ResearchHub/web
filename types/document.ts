@@ -6,6 +6,14 @@ export type WorkType =
   | 'preprint'
   | 'preregistration'
 
+export type AuthorPosition = 'first' | 'middle' | 'last';
+
+export interface Authorship {
+  authorProfile: AuthorProfile;
+  isCorresponding: boolean;
+  position: AuthorPosition;
+}
+
 // TODO: Createa a transformer function
 export type DocumentVersion = {
   workId: number;
@@ -23,7 +31,7 @@ export interface Work {
   slug: string;
   createdDate: string;
   publishedDate: string;
-  authors: AuthorProfile[];
+  authors: Authorship[];
   abstract?: string;
   doi?: string;
   // TODO: Break into own type

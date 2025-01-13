@@ -10,8 +10,6 @@ import { useNotifications } from '@/contexts/NotificationContext'
 import { useRouter, usePathname } from 'next/navigation'
 import { NotificationBell } from '@/components/Notification/NotificationBell'
 import { Search } from '@/components/Search/Search'
-import { PaperService } from '@/services/paper.service'
-import { toast } from 'react-hot-toast'
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -34,26 +32,17 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
     }
   };
 
-  const handlePaperSelect = async (suggestion: any) => {
-    try {
-      if (suggestion.id) {
-        // Paper already exists in ResearchHub
-        router.push(`/paper/${suggestion.id}`)
-      } else {
-        // Need to create paper from OpenAlex
-        const loadingToast = toast.loading('Importing paper...')
-        const { paper_id } = await PaperService.createByOpenAlexId(suggestion.openalexId)
-        toast.dismiss(loadingToast)
-        toast.success('Paper imported successfully')
-        router.push(`/paper/${paper_id}`)
-      }
-    } catch (error) {
-      console.error('Failed to handle paper selection:', error)
-      toast.error('Failed to import paper')
+  const handleWorkSelect = async (suggestion: any) => {
+    if (suggestion.id) {
+      // Work already exists in ResearchHub
+      router.push(`/work/${suggestion.id}`)
+    } else if (suggestion.doi) {
+      // Redirect to work by DOI
+      router.push(`/work?doi=${suggestion.doi}`)
     }
   }
 
-  const showBackArrow = pathname?.includes('/paper')
+  const showBackArrow = pathname?.includes('/work')
 
   return (
     <>
@@ -68,7 +57,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                 <Search 
                   placeholder="Search any paper, journal, topic, ..."
                   className="w-full border-gray-200 rounded-full"
-                  onSelect={handlePaperSelect}
+                  onSelect={handleWorkSelect}
                 />
               </div>
             </div>

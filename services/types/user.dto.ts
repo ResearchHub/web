@@ -1,4 +1,5 @@
 import { User } from "@/types/user"
+import { AuthorProfile } from '@/types/user'
 
 export interface UserApiResponse {
     id: number
@@ -24,3 +25,14 @@ export function transformUserData(apiUser: any): User {
       } : undefined
     };
   }
+
+export function transformAuthorProfile(raw: any): AuthorProfile {
+  return {
+    id: raw.id.toString(),
+    fullName: `${raw.first_name} ${raw.last_name}`.trim(),
+    profileImage: '',
+    headline: '',
+    profileUrl: '',
+    user: raw.user,
+  }
+}

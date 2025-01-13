@@ -50,7 +50,7 @@ export const AuthorList = ({
       return (
         <>
           {authors.map((author, index) => (
-            <Fragment key={author.name}>
+            <Fragment key={author.name + index}>
               <AuthorItem 
                 author={author} 
                 showDot={false}
