@@ -10,6 +10,8 @@ export interface SearchSuggestionResponse {
   id?: number
 }
 
+export type SuggestionSource = 'api' | 'recent'
+
 export interface SearchSuggestion {
   entityType: string
   doi: string
@@ -20,9 +22,39 @@ export interface SearchSuggestion {
   source: string
   openalexId: string
   id?: number
+  // Additional fields for recent suggestions
+  isRecent?: boolean
+  lastVisited?: string
+  slug?: string
 }
 
-export function transformSearchSuggestion(raw: any): SearchSuggestion {
+export interface RecentPageView {
+  id: number
+  title: string
+  doi?: string
+  authors: string[]
+  lastVisited: string
+  slug: string
+}
+
+export function transformSearchSuggestion(raw: any, source: SuggestionSource = 'api'): SearchSuggestion {
+  if (source === 'recent') {
+    return {
+      entityType: 'work',
+      doi: raw.doi || '',
+      displayName: raw.title,
+      authors: raw.authors,
+      score: 0,
+      citations: 0,
+      source: '',
+      openalexId: '',
+      id: raw.id,
+      isRecent: true,
+      lastVisited: raw.lastVisited,
+      slug: raw.slug
+    }
+  }
+
   return {
     entityType: raw.entity_type,
     doi: raw.doi,
@@ -33,5 +65,6 @@ export function transformSearchSuggestion(raw: any): SearchSuggestion {
     source: raw.source,
     openalexId: raw.openalex_id,
     id: raw.id,
+    isRecent: false
   }
 } 

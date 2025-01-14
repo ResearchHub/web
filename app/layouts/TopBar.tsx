@@ -10,6 +10,7 @@ import { useNotifications } from '@/contexts/NotificationContext'
 import { useRouter, usePathname } from 'next/navigation'
 import { NotificationBell } from '@/components/Notification/NotificationBell'
 import { Search } from '@/components/Search/Search'
+import { SearchSuggestion } from '@/services/types/search.dto'
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -32,12 +33,16 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
     }
   };
 
-  const handleWorkSelect = async (suggestion: any) => {
+  const handleWorkSelect = (suggestion: SearchSuggestion) => {
+    console.log('handleWorkSelect', suggestion)
     if (suggestion.id) {
-      // Work already exists in ResearchHub
-      router.push(`/work/${suggestion.id}`)
+      // If we have an ID, redirect to the work page with slug
+      const path = suggestion.slug 
+        ? `/work/${suggestion.id}/${suggestion.slug}`
+        : `/work/${suggestion.id}`
+      router.push(path)
     } else if (suggestion.doi) {
-      // Redirect to work by DOI
+      // If we only have a DOI, redirect to the DOI route
       router.push(`/work?doi=${suggestion.doi}`)
     }
   }
@@ -54,11 +59,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
             <div className="mx-auto max-w-4xl">
               {/* Search Input 500px */}
               <div className="w-[600px] mx-auto">
-                <Search 
-                  placeholder="Search any paper, journal, topic, ..."
-                  className="w-full border-gray-200 rounded-full"
-                  onSelect={handleWorkSelect}
-                />
+                <Search onSelect={handleWorkSelect} />
               </div>
             </div>
           </div>
