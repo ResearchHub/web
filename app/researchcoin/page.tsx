@@ -8,44 +8,35 @@ import { TransactionFeed } from '@/components/ResearchCoin/TransactionFeed';
 import { ExportFilterModal } from '@/components/modals/ResearchCoin/ExportFilterModal';
 import { TransactionService } from '@/services/transaction.service';
 import { useSession } from 'next-auth/react';
-import type { TransactionAPIResponse } from '@/services/types/transaction.dto';
-import { ExchangeRateService } from '@/services/exchangeRate.service';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import type { TransformedBalance } from '@/services/transaction.service';
 
 export default function ResearchCoinPage() {
   const { data: session, status } = useSession();
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [balance, setBalance] = useState<number | null>(null);
-  const [exchangeRate, setExchangeRate] = useState<number>(0);
-  const [isFetchingExchangeRate, setIsFetchingExchangeRate] = useState(true);
+  const [balance, setBalance] = useState<TransformedBalance | null>(null);
+  const { exchangeRate, isLoading: isFetchingExchangeRate } = useExchangeRate();
 
   // Fetch initial data
   useEffect(() => {
     if (status === 'loading') return;
     
     if (!session) {
-      setIsFetchingExchangeRate(false);
       return;
     }
 
     const fetchInitialData = async () => {
       try {
-        const [balanceResponse, rateResponse] = await Promise.all([
-          TransactionService.getUserBalance(),
-          ExchangeRateService.getLatestRate()
-        ]);
-        
-        setBalance(balanceResponse.user.balance);
-        setExchangeRate(rateResponse);
+        const balanceResponse = await TransactionService.getUserBalance(exchangeRate);
+        setBalance(balanceResponse);
       } catch (error) {
         console.error('Failed to fetch initial data:', error);
-      } finally {
-        setIsFetchingExchangeRate(false);
       }
     };
 
     fetchInitialData();
-  }, [session, status]);
+  }, [session, status, exchangeRate]);
 
   const handleExport = () => {
     setIsExportModalOpen(true);
@@ -57,7 +48,6 @@ export default function ResearchCoinPage() {
         <div className="flex-1">
           <UserBalanceSection
             balance={balance}
-            exchangeRate={exchangeRate}
             isFetchingExchangeRate={isFetchingExchangeRate}
           />
 

@@ -5,7 +5,9 @@ export class ExchangeRateService {
   private static readonly BASE_PATH = '/api/exchange_rate';
 
   /**
-   * Fetches the latest exchange rate
+   * Fetches and transforms the latest exchange rate
+   * @returns The latest exchange rate as a number
+   * @throws Error if no exchange rates are available
    */
   static async getLatestRate(): Promise<number> {
     try {

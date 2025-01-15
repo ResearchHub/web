@@ -3,6 +3,7 @@ import ToasterProvider from '@/components/providers/ToasterProvider'
 import localFont from "next/font/local";
 import "./globals.css";
 import { NotificationProvider } from '@/contexts/NotificationContext'
+import { ExchangeRateProvider } from '@/contexts/ExchangeRateContext'
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -27,7 +28,9 @@ export default function RootLayout({
       >
         <NextAuthProvider>
           <NotificationProvider>
-            {children}
+            <ExchangeRateProvider>
+              {children}
+            </ExchangeRateProvider>
           </NotificationProvider>
         </NextAuthProvider>
         <ToasterProvider />

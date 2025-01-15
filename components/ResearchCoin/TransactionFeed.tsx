@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { TransactionService } from '@/services/transaction.service';
 import { TransactionFeedItem } from './TransactionFeedItem';
 import { TransactionSkeleton } from '@/components/skeletons/TransactionSkeleton';
-import type { TransactionAPIResponse } from '@/services/types/transaction.dto';
+import type { TransformedTransaction } from '@/services/transaction.service';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { FileDown, LogIn, Coins, HelpCircle } from 'lucide-react';
@@ -16,7 +16,7 @@ const OBSERVER_THRESHOLD = 0.01;
 const LOADING_SKELETON_COUNT = 3;
 
 interface TransactionFeedProps {
-  onTransactionsChange?: (transactions: TransactionAPIResponse['results']) => void;
+  onTransactionsChange?: (transactions: TransformedTransaction[]) => void;
   onExport: () => void;
   exchangeRate: number;
   isExporting: boolean;
@@ -29,7 +29,7 @@ export function TransactionFeed({
   isExporting
 }: TransactionFeedProps) {
   const { data: session, status } = useSession();
-  const [transactions, setTransactions] = useState<TransactionAPIResponse['results']>([]);
+  const [transactions, setTransactions] = useState<TransformedTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true); // For initial load
   const [isLoadingMore, setIsLoadingMore] = useState(false); // For infinite scroll
   const [error, setError] = useState<string | null>(null);
@@ -107,14 +107,10 @@ export function TransactionFeed({
         setIsLoading(true);
       }
 
-      const response = await TransactionService.getTransactions(page);
+      const response = await TransactionService.getTransactions(page, exchangeRate);
       
-      if (!response?.results) {
-        throw new Error('Invalid response format');
-      }
-
-      setTransactions(prev => page === INITIAL_PAGE ? response.results : [...prev, ...response.results]);
-      setHasNextPage(!!response.next);
+      setTransactions(prev => page === INITIAL_PAGE ? response.transactions : [...prev, ...response.transactions]);
+      setHasNextPage(response.hasNextPage);
       setCurrentPage(page);
       setError(null);
     } catch (err) {
@@ -256,7 +252,6 @@ export function TransactionFeed({
           <TransactionFeedItem
             key={transaction.id}
             transaction={transaction}
-            exchangeRate={exchangeRate}
           />
         ))}
 
