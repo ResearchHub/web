@@ -32,7 +32,7 @@ const CreationOption = ({
     `}
   >
     <div className="flex-1">
-      <div className="flex items-center gap-3 mb-1">
+      <div className="flex items-center gap-4 mb-1">
         <Icon className={`${iconSize} text-black flex-shrink-0`} color="black" />
         <h3 className="text-[18px] font-semibold text-gray-900">{title}</h3>
       </div>
@@ -121,10 +121,10 @@ export default function CreatePage() {
       {/* Right Sidebar */}
       <div className="hidden lg:block w-[35%] relative overflow-hidden">
         {/* Background Gradients */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/90 via-purple-800/85 to-purple-700/90 backdrop-blur-md" />
+        <div className="absolute inset-0 [background:linear-gradient(135deg,rgba(79,70,229,0.85)_0%,rgba(147,51,234,0.75)_50%,rgba(168,85,247,0.80)_100%)] backdrop-blur-xl" />
         <div className="absolute inset-0 bg-black/10 backdrop-blur-[100px]" />
         <div className="absolute inset-0 mix-blend-overlay bg-gradient-to-t from-transparent via-white/5 to-white/10" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(255,255,255,0.08),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(255,255,255,0.1),transparent)]" />
         
         {/* Content */}
         <div className="relative z-10 p-12">
@@ -152,7 +152,7 @@ export default function CreatePage() {
               alt=""
               layout="fill"
               objectFit="contain"
-              className="opacity-20 scale-75"
+              className="opacity-25 scale-75"
             />
           </div>
         </div>
