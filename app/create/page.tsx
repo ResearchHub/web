@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, FileUp, BadgeCheck, ArrowRight, PlusIcon } from 'lucide-react'
+import { ArrowLeft, FileUp, BadgeCheck, ArrowRight, PlusIcon, HandCoins } from 'lucide-react'
 import Image from 'next/image'
 import { FundingIcon } from '@/components/ui/icons/FundingIcon'
 import { GrantIcon } from '@/components/ui/icons/GrantIcon'
@@ -25,21 +25,23 @@ const CreationOption = ({
     onClick={onClick}
     disabled={comingSoon}
     className={`
-      w-full p-6 rounded-lg border border-gray-400 bg-white
-      hover:bg-gray-100 hover:shadow-sm transition-all
-      flex items-center gap-6 text-left group relative
+      w-full p-6 rounded-lg border border-gray-200 bg-white
+      hover:border-gray-300 hover:shadow-sm transition-all
+      flex items-start gap-4 text-left group relative
       ${comingSoon ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}
     `}
   >
-    <div className="flex-1">
-      <div className="flex items-center gap-4 mb-1">
-        <Icon className={`${iconSize} text-black flex-shrink-0`} color="black" />
-        <h3 className="text-[18px] font-semibold text-gray-900">{title}</h3>
+    <div className="flex-shrink-0">
+      <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center">
+        <Icon className={`${iconSize} text-blue-600`} />
       </div>
-      <p className="text-[16px] mt-2 text-gray-900">{description}</p>
     </div>
-    <div className="flex-shrink-0 self-center">
-      <ArrowRight className="w-5 h-5 text-black" />
+    <div className="flex-1 min-w-0">
+      <h3 className="font-medium text-gray-900">{title}</h3>
+      <p className="mt-1 text-sm text-gray-500">{description}</p>
+    </div>
+    <div className="flex-shrink-0 self-center ml-4">
+      <ArrowRight className="w-5 h-5 text-gray-400" />
     </div>
   </button>
 )
@@ -86,8 +88,8 @@ export default function CreatePage() {
                 icon={FileUp}
                 title="Submit your research"
                 description="Submit your original research. Optionally publish in the ResearchHub Journal."
-                onClick={() => router.push('/work/submit')}
-                iconSize="w-5 h-5"
+                onClick={() => router.push('/work/create')}
+                iconSize="w-7 h-7"
               />
               
               <CreationOption
@@ -95,19 +97,19 @@ export default function CreatePage() {
                 title="Claim paper"
                 description="Claim ownership of your paper and earn ResearchCoin when it is cited."
                 onClick={() => router.push('/work/claim')}
-                iconSize="w-5 h-5"
+                iconSize="w-7 h-7"
               />
 
               <CreationOption
-                icon={FundingIcon}
+                icon={(props: { className?: string }) => <FundingIcon size={28} {...props} color="rgb(37, 99, 235)" />}
                 title="Request funding"
                 description="Request funding on your research by submitting a preregistration."
                 onClick={() => router.push('/funding/request')}
-                iconSize="w-8 h-8"
+                iconSize="w-9 h-9"
               />
               
               <CreationOption
-                icon={GrantIcon}
+                icon={HandCoins}
                 title="Submit grant"
                 description="Fund promising research on ResearchHub."
                 onClick={() => router.push('/grants/create')}
@@ -119,41 +121,43 @@ export default function CreatePage() {
       </div>
 
       {/* Right Sidebar */}
-      <div className="hidden lg:block w-[35%] relative overflow-hidden">
-        {/* Background Gradients */}
-        <div className="absolute inset-0 [background:linear-gradient(135deg,rgba(79,70,229,0.85)_0%,rgba(147,51,234,0.75)_50%,rgba(168,85,247,0.80)_100%)] backdrop-blur-xl" />
-        <div className="absolute inset-0 bg-black/10 backdrop-blur-[100px]" />
-        <div className="absolute inset-0 mix-blend-overlay bg-gradient-to-t from-transparent via-white/5 to-white/10" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(255,255,255,0.1),transparent)]" />
-        
-        {/* Content */}
-        <div className="relative z-10 p-12">
-          <h2 className="text-3xl font-bold text-white leading-tight backdrop-blur-sm">
-            Let's accelerate science together
-          </h2>
-          <p className="mt-4 text-lg text-white/90 backdrop-blur-sm">
-            ResearchHub is an Open Science platform that incentivizes good scientific behavior
-          </p>
+      <div className="hidden lg:block w-[35%] relative">
+        <div className="sticky top-0 h-screen overflow-hidden">
+          {/* Background Gradients */}
+          <div className="absolute inset-0 [background:linear-gradient(135deg,rgba(37,99,235,0.85)_0%,rgba(59,130,246,0.75)_50%,rgba(96,165,250,0.80)_100%)] backdrop-blur-xl" />
+          <div className="absolute inset-0 bg-black/10 backdrop-blur-[100px]" />
+          <div className="absolute inset-0 mix-blend-overlay bg-gradient-to-t from-transparent via-white/5 to-white/10" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(255,255,255,0.1),transparent)]" />
+          
+          {/* Content */}
+          <div className="relative z-10 p-12">
+            <h2 className="text-3xl font-bold text-white leading-tight backdrop-blur-sm">
+              Let's accelerate science together
+            </h2>
+            <p className="mt-4 text-lg text-white/90 backdrop-blur-sm">
+              ResearchHub is an Open Science platform that incentivizes good scientific behavior
+            </p>
 
-          {/* Stats */}
-          <div className="mt-12 grid grid-cols-2 gap-4">
-            <Stat number="10,000+" label="Researchers" />
-            <Stat number="5,000+" label="Papers Published" />
-            <Stat number="$2M+" label="In Funding" />
-            <Stat number="3,000+" label="Active Projects" />
+            {/* Stats */}
+            <div className="mt-12 grid grid-cols-2 gap-4">
+              <Stat number="10,000+" label="Researchers" />
+              <Stat number="5,000+" label="Papers Published" />
+              <Stat number="$2M+" label="In Funding" />
+              <Stat number="3,000+" label="Active Projects" />
+            </div>
           </div>
-        </div>
-        
-        {/* Logo Circle */}
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2">
-          <div className="relative w-[400px] h-[400px] rounded-full border-[10px] border-white/20 animate-pulse-slow backdrop-blur-sm">
-            <Image
-              src="/logo_white_no_text.png"
-              alt=""
-              layout="fill"
-              objectFit="contain"
-              className="opacity-25 scale-75"
-            />
+          
+          {/* Logo Circle */}
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2">
+            <div className="relative w-[400px] h-[400px] rounded-full border-[10px] border-white/20 animate-pulse-slow backdrop-blur-sm">
+              <Image
+                src="/logo_white_no_text.png"
+                alt=""
+                layout="fill"
+                objectFit="contain"
+                className="opacity-25 scale-75"
+              />
+            </div>
           </div>
         </div>
       </div>

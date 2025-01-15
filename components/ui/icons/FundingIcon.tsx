@@ -50,7 +50,7 @@ export function FundingIcon({
       >
         <div 
           className="h-full rounded-lg bg-black"
-          style={{ width: '50%' }}
+          style={{ width: '50%', backgroundColor: color }}
         />
       </div>
     </div>
