@@ -49,7 +49,7 @@ export function SearchSuggestions({
         <li key={suggestion.doi || suggestion.id}>
           <button
             type="button"
-            className="w-full p-6 rounded-lg border border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm transition-all flex items-start gap-4 text-left group"
+            className="w-full p-6 rounded-lg border border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm hover:translate-x-1 transition-all duration-200 flex items-start gap-4 text-left group"
             onClick={() => onSelect?.(suggestion)}
           >
             <div className="flex-shrink-0">

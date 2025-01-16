@@ -5,15 +5,23 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   icon?: React.ReactNode
   error?: string
   rightElement?: React.ReactNode
+  helperText?: string
+  label?: string
+  required?: boolean
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, icon, error, rightElement, ...props }, ref) => {
+  ({ className, icon, error, rightElement, helperText, label, required, ...props }, ref) => {
     const isRoundedFull = className?.includes('rounded-full')
     const roundedClass = isRoundedFull ? 'rounded-full' : 'rounded-lg'
 
     return (
       <div>
+        {label && (
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            {label} {required && <span className="text-gray-700">*</span>}
+          </label>
+        )}
         <div className={cn(
           "relative flex border border-gray-200 transition-all",
           roundedClass,
@@ -34,6 +42,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               className?.includes('bg-') ? className : 'bg-white'
             )}
             ref={ref}
+            required={required}
             {...props}
           />
           {rightElement && (
@@ -44,6 +53,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         </div>
         {error && (
           <p className="mt-1 text-xs text-red-500">{error}</p>
+        )}
+        {helperText && (
+          <p className="mt-1 text-xs text-gray-500">{helperText}</p>
         )}
       </div>
     )

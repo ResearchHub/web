@@ -57,7 +57,7 @@ export function Search({
         <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
-          placeholder="Search papers..."
+          placeholder="Search for your preprint"
           className="h-12 w-full rounded-lg border border-gray-300 bg-gray-50 pl-10 pr-10 text-base focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
