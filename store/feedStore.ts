@@ -111,6 +111,8 @@ export const feedEntries: FeedEntry[] = [
       timestamp: '2024-01-10T15:30:00Z',
       hub: hubs.neuroscience,
       journal: {
+        id: 1,
+        name: 'bioRxiv',
         slug: "bioRxiv",
         image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh0mIPhY2F4yEhtpWJERf0sCvfaPwyUieCkVfg6aS8acUqZ7f5v21HNlFxEtHmtCQYFSXdX97Y7HiZd7pedBXfL2oTlj1NnaEwpwWQKXOLHwt7tp18djNgKdF3sKNE8bhIrTUiE/s0/lwyH1HFe_400x400.jpg"
       },      
@@ -171,6 +173,8 @@ export const feedEntries: FeedEntry[] = [
       hub: hubs.climateScience,
       doi: "10.1101/2024.12.13.123456",
       journal: {
+        id: 1,
+        name: 'bioRxiv',
         slug: "bioRxiv",
         image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh0mIPhY2F4yEhtpWJERf0sCvfaPwyUieCkVfg6aS8acUqZ7f5v21HNlFxEtHmtCQYFSXdX97Y7HiZd7pedBXfL2oTlj1NnaEwpwWQKXOLHwt7tp18djNgKdF3sKNE8bhIrTUiE/s0/lwyH1HFe_400x400.jpg"
       },
@@ -286,6 +290,8 @@ export const feedEntries: FeedEntry[] = [
       hub: hubs.biophysics,
       doi: "10.1038/s41557-024-1234-5",
       journal: {
+        id: 2,
+        name: 'Nature Chemistry',
         slug: "Nature Chemistry",
         image: "/images/journals/nature-chemistry.png"
       },

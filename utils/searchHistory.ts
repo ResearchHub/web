@@ -1,3 +1,5 @@
+import { SearchSuggestion } from '@/types/search'
+
 export const SEARCH_HISTORY_KEY = 'search_history'
 export const MAX_HISTORY_ITEMS = 10
 
@@ -26,5 +28,3 @@ export const saveSearchHistory = (items: SearchSuggestion[]) => {
     console.error('Error saving to localStorage:', error)
   }
 }
-
-import { SearchSuggestion } from '@/services/types/search.dto' 

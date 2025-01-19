@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { RecentPageView } from './services/types/search.dto'
-
+import { RecentPageView } from '@/types/search'
 const MAX_RECENT_VIEWS = 10
 const RECENT_VIEWS_KEY = 'recent_views'
 
