@@ -59,7 +59,11 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
             <div className="mx-auto max-w-4xl">
               {/* Search Input 500px */}
               <div className="w-[600px] mx-auto">
-                <Search onSelect={handleWorkSelect} placeholder="Search for works, researchers, and more" />
+                <Search 
+                  onSelect={handleWorkSelect} 
+                  placeholder="Search any paper, journal, topic, ..." 
+                  className="[&_input]:rounded-full [&_input]:bg-[#F8F9FC]"
+                />
               </div>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import { Work, DocumentVersion, WorkType, Authorship, AuthorPosition } from '@/types/document'
 import { transformAuthorProfile } from './user.dto'
+import { createTransformer } from '@/types/transformer'
 
 export function transformAuthorship(raw: any): Authorship {
   return {
@@ -20,7 +21,7 @@ export function transformDocumentVersion(raw: any): DocumentVersion {
 }
 
 export function transformWork(raw: any): Work {
-  return {
+  return createTransformer<any, Work>((raw) => ({
     id: raw.id,
     type: raw.work_type as WorkType,
     title: raw.title || raw.paper_title,
@@ -52,5 +53,5 @@ export function transformWork(raw: any): Work {
       reviews: raw.unified_document?.reviews?.count || 0,
       earned: 0, // Not provided in current response
     }
-  }
+  }))(raw);
 } 
