@@ -6,7 +6,7 @@ import {
   ArrowUp, Download, Flag, Edit, Share2, MoreHorizontal,
   Coins, UserPlus, BarChart2
 } from 'lucide-react'
-import { Work } from '@/types/document'
+import { Work } from '@/types/work'
 import { WorkRightSidebar } from './WorkRightSidebar'
 import { WorkReviews } from './WorkReviews'
 import { WorkRewards } from './WorkRewards'

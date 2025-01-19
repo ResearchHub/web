@@ -6,9 +6,8 @@ import { X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Search } from '@/components/Search/Search'
 import { Button } from '@/components/ui/Button'
-import type { SearchSuggestion } from '@/services/types/search.dto'
 import { useSession } from 'next-auth/react'
-
+import { SearchSuggestion } from '@/types/search'
 interface ClaimModalProps {
   isOpen: boolean
   onClose: () => void

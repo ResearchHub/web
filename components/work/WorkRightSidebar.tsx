@@ -1,6 +1,6 @@
 'use client'
 
-import { Work } from '@/types/document'
+import { Work } from '@/types/work'
 import { Eye, MessageSquare, Star } from 'lucide-react'
 
 interface WorkRightSidebarProps {

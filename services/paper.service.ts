@@ -1,7 +1,6 @@
 import { ApiClient } from './client'
 import { isDOI } from '@/utils/doi'
-import { Work } from '@/types/document'
-import { transformWork } from './types/work.dto'
+import { Work, transformWork } from '@/types/work'
 
 interface CreateByOpenAlexIdResponse {
   paper_id: number

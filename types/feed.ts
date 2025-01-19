@@ -1,4 +1,7 @@
 import { AuthorProfile } from './user';
+import { ContentMetrics } from './metrics';
+import { Journal } from './journal';
+import { Topic } from './topic';
 
 export type FeedActionType = 'repost' | 'contribute' | 'publish' | 'post';
 
@@ -29,10 +32,7 @@ export interface Paper extends BaseContent {
   type: 'paper';
   abstract: string;
   doi?: string;
-  journal?: {
-    slug: string;
-    image?: string;
-  };
+  journal?: Journal;
   authors: AuthorProfile[];
 }
 
@@ -105,14 +105,5 @@ export interface FeedEntry {
     amount: number;
   }>;
   applicants?: AuthorProfile[];  
-  metrics?: {
-    votes: number;
-    comments: number;
-    reposts: number;
-    saves?: number;
-    applicants?: number;
-    reviewScore?: number;
-    views?: number;
-    earned?: number;
-  };
+  metrics?: ContentMetrics;
 }

@@ -1,7 +1,8 @@
+import { transformUser } from '@/types/user';
 import NextAuth from 'next-auth'
 import type { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
-import { transformUserData } from '@/services/types/user.dto'
+
 
 // Direct fetch for auth route to avoid circular dependency
 async function fetchUserData(authToken: string) {
@@ -96,7 +97,7 @@ export const authOptions: NextAuthOptions = {
         const isAuthenticated = Boolean(userData.results.length > 0 && userData.results[0]);
         
         if (isAuthenticated) {
-          const transformedUser = transformUserData(userData.results[0]);
+          const transformedUser = transformUser(userData.results[0]);
 
           return {
             ...session,

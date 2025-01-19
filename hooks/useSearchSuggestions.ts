@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { SearchService } from '@/services/search.service'
-import { SearchSuggestion } from '@/services/types/search.dto'
+import { SearchSuggestion } from '@/types/search'
 import { getSearchHistory, saveSearchHistory, SEARCH_HISTORY_KEY } from '@/utils/searchHistory'
 
 export function useSearchSuggestions(query: string, isFocused: boolean = true) {

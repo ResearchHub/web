@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
-import { Work } from '@/types/document'
-import { SearchSuggestion } from '@/services/types/search.dto'
+import { Work } from '@/types/work'
+import { SearchSuggestion } from '@/types/search'
 
 const SEARCH_HISTORY_KEY = 'search_history'
 const MAX_RECENT_VIEWS = 10

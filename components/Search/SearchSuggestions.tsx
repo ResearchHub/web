@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
-import type { SearchSuggestion } from '@/services/types/search.dto'
 import { FileText, History, Search, X, Lightbulb, ArrowRight } from 'lucide-react'
 import { useSearchSuggestions } from '@/hooks/useSearchSuggestions'
 import { cn } from '@/utils/styles'
-
+import { SearchSuggestion } from '@/types/search'
 interface SearchSuggestionsProps {
   query: string
   isFocused?: boolean
@@ -28,7 +27,6 @@ export function SearchSuggestions({
   const [tipIndex, setTipIndex] = useState(0)
   const { loading, suggestions, hasLocalSuggestions, clearSearchHistory } = useSearchSuggestions(query, isFocused)
 
-  console.log('SearchSuggestions render:', { loading, suggestionsCount: suggestions.length, hasLocalSuggestions, isFocused })
 
   // Rotate through tips
   useEffect(() => {

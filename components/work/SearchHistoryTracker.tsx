@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect } from 'react'
-import { Work } from '@/types/document'
-import { SearchSuggestion } from '@/services/types/search.dto'
+import { Work } from '@/types/work'
 import { getSearchHistory, saveSearchHistory, MAX_HISTORY_ITEMS } from '@/utils/searchHistory'
+import { SearchSuggestion } from '@/types/search'
 
 interface SearchHistoryTrackerProps {
   work: Work

@@ -4,9 +4,8 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search as SearchIcon, X } from 'lucide-react'
 import { SearchSuggestions } from './SearchSuggestions'
-import type { SearchSuggestion } from '@/services/types/search.dto'
 import { cn } from '@/utils/styles'
-
+import { SearchSuggestion } from '@/types/search'
 interface SearchProps {
   onSelect?: (suggestion: SearchSuggestion) => void
   displayMode?: 'dropdown' | 'inline'

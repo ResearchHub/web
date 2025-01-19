@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { PaperService } from '@/services/paper.service'
-import { Work } from '@/types/document'
+import { Work } from '@/types/work'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { PageLayout } from '@/app/layouts/PageLayout'
