@@ -9,13 +9,13 @@ import { ExportFilterModal } from '@/components/modals/ResearchCoin/ExportFilter
 import { TransactionService } from '@/services/transaction.service';
 import { useSession } from 'next-auth/react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
-import type { TransformedBalance } from '@/services/transaction.service';
+import { formatBalance } from '@/components/ResearchCoin/lib/types';
 
 export default function ResearchCoinPage() {
   const { data: session, status } = useSession();
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [balance, setBalance] = useState<TransformedBalance | null>(null);
+  const [balance, setBalance] = useState<number | null>(null);
   const { exchangeRate, isLoading: isFetchingExchangeRate } = useExchangeRate();
 
   // Fetch initial data
@@ -28,7 +28,7 @@ export default function ResearchCoinPage() {
 
     const fetchInitialData = async () => {
       try {
-        const balanceResponse = await TransactionService.getUserBalance(exchangeRate);
+        const balanceResponse = await TransactionService.getUserBalance();
         setBalance(balanceResponse);
       } catch (error) {
         console.error('Failed to fetch initial data:', error);
@@ -36,7 +36,7 @@ export default function ResearchCoinPage() {
     };
 
     fetchInitialData();
-  }, [session, status, exchangeRate]);
+  }, [session, status]);
 
   const handleExport = () => {
     setIsExportModalOpen(true);
@@ -47,7 +47,7 @@ export default function ResearchCoinPage() {
       <div className="flex">
         <div className="flex-1">
           <UserBalanceSection
-            balance={balance}
+            balance={balance ? formatBalance(balance, exchangeRate) : null}
             isFetchingExchangeRate={isFetchingExchangeRate}
           />
 
