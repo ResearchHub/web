@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { FC } from 'react';
 import { Dialog } from '@headlessui/react';
@@ -27,19 +27,15 @@ export const ContributorModal: FC<ContributorModalProps> = ({
   isOpen,
   onClose,
   contributors = [],
-  onContribute
+  onContribute,
 }) => {
   const sortedContributors = [...contributors].sort((a, b) => b.amount - a.amount);
   const totalAmount = contributors.reduce((sum, c) => sum + c.amount, 0);
 
   return (
-    <Dialog
-      open={isOpen}
-      onClose={onClose}
-      className="relative z-50"
-    >
+    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-      
+
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <Dialog.Panel className="mx-auto max-w-lg w-full rounded-lg bg-white shadow-lg">
           <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
@@ -75,7 +71,7 @@ export const ContributorModal: FC<ContributorModalProps> = ({
           <div className="px-4 py-3 max-h-[60vh] overflow-y-auto">
             <div className="space-y-3">
               {sortedContributors.map((contributor, index) => (
-                <div 
+                <div
                   key={contributor.profile.fullName + index}
                   className="flex items-center justify-between py-2"
                 >
@@ -100,4 +96,4 @@ export const ContributorModal: FC<ContributorModalProps> = ({
       </div>
     </Dialog>
   );
-}; 
+};

@@ -1,38 +1,38 @@
-'use client'
+'use client';
 
-import { Dialog, Transition } from '@headlessui/react'
-import { Fragment, useState, ChangeEvent, FormEvent } from 'react'
-import { X } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/Button'
-import { useSession } from 'next-auth/react'
+import { Dialog, Transition } from '@headlessui/react';
+import { Fragment, useState, ChangeEvent, FormEvent } from 'react';
+import { X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/Button';
+import { useSession } from 'next-auth/react';
 
 interface GrantModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 interface GrantInfo {
-  title: string
-  description: string
-  amount: number
+  title: string;
+  description: string;
+  amount: number;
 }
 
 export function GrantModal({ isOpen, onClose }: GrantModalProps) {
   const [grantInfo, setGrantInfo] = useState<GrantInfo>({
     title: '',
     description: '',
-    amount: 10000 // Minimum 10,000 RSC
-  })
-  const router = useRouter()
-  const { data: session } = useSession()
+    amount: 10000, // Minimum 10,000 RSC
+  });
+  const router = useRouter();
+  const { data: session } = useSession();
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     // TODO: Implement grant submission
-    router.push('/grants')
-    onClose()
-  }
+    router.push('/grants');
+    onClose();
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -73,9 +73,7 @@ export function GrantModal({ isOpen, onClose }: GrantModalProps) {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Submit a Grant
-                    </h3>
+                    <h3 className="text-lg font-medium text-gray-900">Submit a Grant</h3>
                     <p className="mt-1 text-sm text-gray-500">
                       Fund promising research by publishing a Request for Proposals (RFP)
                     </p>
@@ -90,7 +88,9 @@ export function GrantModal({ isOpen, onClose }: GrantModalProps) {
                         id="title"
                         type="text"
                         value={grantInfo.title}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) => setGrantInfo({ ...grantInfo, title: e.target.value })}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                          setGrantInfo({ ...grantInfo, title: e.target.value })
+                        }
                         placeholder="Enter grant title"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         required
@@ -98,13 +98,18 @@ export function GrantModal({ isOpen, onClose }: GrantModalProps) {
                     </div>
 
                     <div>
-                      <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="description"
+                        className="block text-sm font-medium text-gray-700"
+                      >
                         Description
                       </label>
                       <textarea
                         id="description"
                         value={grantInfo.description}
-                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setGrantInfo({ ...grantInfo, description: e.target.value })}
+                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                          setGrantInfo({ ...grantInfo, description: e.target.value })
+                        }
                         placeholder="Describe the research you want to fund..."
                         rows={5}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
@@ -121,7 +126,9 @@ export function GrantModal({ isOpen, onClose }: GrantModalProps) {
                         type="number"
                         min={10000}
                         value={grantInfo.amount}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) => setGrantInfo({ ...grantInfo, amount: Number(e.target.value) })}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                          setGrantInfo({ ...grantInfo, amount: Number(e.target.value) })
+                        }
                         placeholder="Enter grant amount in ResearchCoin"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         required
@@ -142,10 +149,7 @@ export function GrantModal({ isOpen, onClose }: GrantModalProps) {
                     </ul>
                   </div>
 
-                  <Button 
-                    type="submit" 
-                    className="w-full justify-center"
-                  >
+                  <Button type="submit" className="w-full justify-center">
                     Submit Grant
                   </Button>
                 </form>
@@ -155,5 +159,5 @@ export function GrantModal({ isOpen, onClose }: GrantModalProps) {
         </div>
       </Dialog>
     </Transition>
-  )
-} 
+  );
+}

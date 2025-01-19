@@ -1,13 +1,11 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Search } from '@/components/Search/Search'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/form/Input'
-import { BookOpen, TrendingUp, Coins, MessageSquare } from 'lucide-react'
-import type { SearchSuggestion } from '@/services/types/search.dto'
-import { PageLayout } from '@/app/layouts/PageLayout'
+import { useRouter } from 'next/navigation';
+import { Search } from '@/components/Search/Search';
+import { Button } from '@/components/ui/Button';
+import { BookOpen, TrendingUp, Coins, MessageSquare } from 'lucide-react';
+import { PageLayout } from '@/app/layouts/PageLayout';
+import { SearchSuggestion } from '@/types/search';
 
 const RightSidebar = () => (
   <div className="space-y-8">
@@ -38,79 +36,69 @@ const RightSidebar = () => (
     {/* Process Steps */}
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">
-          Publication Process
-        </h2>
-        <p className="mt-1 text-sm text-gray-500">
-          Follow these steps to publish your research
-        </p>
+        <h2 className="text-lg font-semibold text-gray-900">Publication Process</h2>
+        <p className="mt-1 text-sm text-gray-500">Follow these steps to publish your research</p>
       </div>
 
       <div className="space-y-6">
         {[
           {
-            step: "1",
-            title: "Submit Your Research",
-            description: "Upload your paper or enter its DOI."
+            step: '1',
+            title: 'Submit Your Research',
+            description: 'Upload your paper or enter its DOI.',
           },
           {
-            step: "2",
-            title: "Add Details",
-            description: "Add context, tags, and supplementary materials."
+            step: '2',
+            title: 'Add Details',
+            description: 'Add context, tags, and supplementary materials.',
           },
           {
-            step: "3",
-            title: "Review & Publish",
-            description: "Preview and publish to the community."
+            step: '3',
+            title: 'Review & Publish',
+            description: 'Preview and publish to the community.',
           },
           {
-            step: "4",
-            title: "Engage & Earn",
-            description: "Get feedback and earn ResearchCoin rewards."
-          }
+            step: '4',
+            title: 'Engage & Earn',
+            description: 'Get feedback and earn ResearchCoin rewards.',
+          },
         ].map((step) => (
           <div key={step.step} className="flex items-start gap-4">
             <div className="flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-white text-sm font-medium">
               {step.step}
             </div>
             <div>
-              <h3 className="font-medium text-gray-900">
-                {step.title}
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {step.description}
-              </p>
+              <h3 className="font-medium text-gray-900">{step.title}</h3>
+              <p className="mt-1 text-sm text-gray-500">{step.description}</p>
             </div>
           </div>
         ))}
       </div>
     </div>
   </div>
-)
+);
 
 export default function SubmitResearchPage() {
-  const router = useRouter()
+  const router = useRouter();
 
   const handleSearchSelect = (suggestion: SearchSuggestion) => {
     if (suggestion.id) {
-      router.push(`/notebook/new?paper_id=${suggestion.id}`)
+      router.push(`/notebook/new?paper_id=${suggestion.id}`);
     } else if (suggestion.doi) {
-      router.push(`/notebook/new?doi=${encodeURIComponent(suggestion.doi)}`)
+      router.push(`/notebook/new?doi=${encodeURIComponent(suggestion.doi)}`);
     }
-  }
+  };
 
   const handleContinueWithoutDOI = () => {
-    router.push('/notebook/new')
-  }
+    router.push('/notebook/new');
+  };
 
   return (
     <PageLayout rightSidebar={<RightSidebar />}>
       <div>
         {/* Header */}
         <div className="mb-12">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Publish your research
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900">Publish your research</h1>
           <p className="mt-3 text-gray-500">
             Join the open science movement and make your research accessible to everyone
           </p>
@@ -119,9 +107,7 @@ export default function SubmitResearchPage() {
         {/* Search Box */}
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Find Your Paper
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Find Your Paper</h2>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Search by DOI or Title
@@ -151,5 +137,5 @@ export default function SubmitResearchPage() {
         </div>
       </div>
     </PageLayout>
-  )
-} 
+  );
+}

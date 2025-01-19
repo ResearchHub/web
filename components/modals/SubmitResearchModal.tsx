@@ -1,36 +1,36 @@
-'use client'
+'use client';
 
-import { Dialog, Transition } from '@headlessui/react'
-import { Fragment, useState } from 'react'
-import { X } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { Search } from '@/components/Search/Search'
-import { Button } from '@/components/ui/Button'
-import { SearchSuggestion } from '@/types/search'
+import { Dialog, Transition } from '@headlessui/react';
+import { Fragment, useState } from 'react';
+import { X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Search } from '@/components/Search/Search';
+import { Button } from '@/components/ui/Button';
+import { SearchSuggestion } from '@/types/search';
 interface SubmitResearchModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-type Step = 'intro' | 'search'
+type Step = 'intro' | 'search';
 
 export function SubmitResearchModal({ isOpen, onClose }: SubmitResearchModalProps) {
-  const [currentStep, setCurrentStep] = useState<Step>('intro')
-  const router = useRouter()
+  const [currentStep, setCurrentStep] = useState<Step>('intro');
+  const router = useRouter();
 
   const handleSearchSelect = (suggestion: SearchSuggestion) => {
     if (suggestion.id) {
-      router.push(`/notebook/new?paper_id=${suggestion.id}`)
+      router.push(`/notebook/new?paper_id=${suggestion.id}`);
     } else if (suggestion.doi) {
-      router.push(`/notebook/new?doi=${encodeURIComponent(suggestion.doi)}`)
+      router.push(`/notebook/new?doi=${encodeURIComponent(suggestion.doi)}`);
     }
-    onClose()
-  }
+    onClose();
+  };
 
   const handleContinueWithoutDOI = () => {
-    router.push('/notebook/new')
-    onClose()
-  }
+    router.push('/notebook/new');
+    onClose();
+  };
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -42,8 +42,8 @@ export function SubmitResearchModal({ isOpen, onClose }: SubmitResearchModalProp
                 Share Your Research with the World
               </h3>
               <p className="mt-2 text-gray-600">
-                Join the open science movement and earn ResearchCoin rewards for
-                contributing to scientific knowledge.
+                Join the open science movement and earn ResearchCoin rewards for contributing to
+                scientific knowledge.
               </p>
             </div>
 
@@ -77,22 +77,17 @@ export function SubmitResearchModal({ isOpen, onClose }: SubmitResearchModalProp
               </ul>
             </div>
 
-            <Button
-              onClick={() => setCurrentStep('search')}
-              className="w-full justify-center"
-            >
+            <Button onClick={() => setCurrentStep('search')} className="w-full justify-center">
               Get Started
             </Button>
           </div>
-        )
+        );
 
       case 'search':
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">
-                Search for your paper
-              </h3>
+              <h3 className="text-lg font-medium text-gray-900">Search for your paper</h3>
               <p className="mt-1 text-sm text-gray-500">
                 Enter your paper's DOI or search by title
               </p>
@@ -112,9 +107,9 @@ export function SubmitResearchModal({ isOpen, onClose }: SubmitResearchModalProp
               Continue without DOI
             </Button>
           </div>
-        )
+        );
     }
-  }
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -143,21 +138,16 @@ export function SubmitResearchModal({ isOpen, onClose }: SubmitResearchModalProp
           >
             <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
               <div className="absolute right-4 top-4">
-                <button
-                  onClick={onClose}
-                  className="text-gray-400 hover:text-gray-500"
-                >
+                <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
-              <div className="mt-4">
-                {renderStepContent()}
-              </div>
+              <div className="mt-4">{renderStepContent()}</div>
             </Dialog.Panel>
           </Transition.Child>
         </div>
       </Dialog>
     </Transition>
-  )
-} 
+  );
+}

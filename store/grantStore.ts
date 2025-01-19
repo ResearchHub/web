@@ -7,8 +7,10 @@ export const grants: Record<string, Grant> = {
   'urban-water-quality': {
     id: 'urban-water-quality',
     type: 'grant',
-    title: "Urban Water Quality Assessment: A Multi-City Analysis of Municipal Water Systems Across America",
-    abstract: "This grant aims to support researchers in conducting comprehensive water quality analysis in developing regions...",
+    title:
+      'Urban Water Quality Assessment: A Multi-City Analysis of Municipal Water Systems Across America',
+    abstract:
+      'This grant aims to support researchers in conducting comprehensive water quality analysis in developing regions...',
     details: `
 Our goal is to improve water quality assessment and treatment methods in developing regions through:
 
@@ -32,28 +34,29 @@ Research Areas:
 • Community engagement strategies`,
     createdBy: users.adamDraper,
     authors: [users.sarahChen, users.mariaGarcia],
-    publishDate: "October 18, 2024",
-    deadline: "December 15, 2024",
+    publishDate: 'October 18, 2024',
+    deadline: 'December 15, 2024',
     hub: hubs.environmentalScience,
-    doi: "10.1234/example.doi",
-    keywords: ['Water Quality', 'Environmental Science', 'Sustainable Development', 'Public Health'],
-    amount: "500,000",
-    amountUSD: "250,000",
-    status: "Open",
+    doi: '10.1234/example.doi',
+    keywords: [
+      'Water Quality',
+      'Environmental Science',
+      'Sustainable Development',
+      'Public Health',
+    ],
+    amount: '500,000',
+    amountUSD: '250,000',
+    status: 'Open',
     metrics: {
       votes: 32,
       comments: 0,
       applicants: 3,
       views: 245,
       reposts: 0,
-      saves: 0
+      saves: 0,
     },
-    applicants: [
-      { user: users.sarahChen },
-      { user: users.dominikus },
-      { user: users.mariaPatel }
-    ]
-  }
+    applicants: [{ user: users.sarahChen }, { user: users.dominikus }, { user: users.mariaPatel }],
+  },
 };
 
 export type Application = {
@@ -80,8 +83,8 @@ export const grantApplications: Record<string, Application[]> = {
       status: 'under_review',
       metrics: {
         votes: 15,
-        comments: 4
-      }
+        comments: 4,
+      },
     },
     {
       id: 'app-2',
@@ -93,8 +96,8 @@ export const grantApplications: Record<string, Application[]> = {
       status: 'under_review',
       metrics: {
         votes: 12,
-        comments: 3
-      }
-    }
-  ]
-}; 
+        comments: 3,
+      },
+    },
+  ],
+};

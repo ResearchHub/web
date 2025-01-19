@@ -1,6 +1,6 @@
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
-import { getSession } from 'next-auth/react'
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { getSession } from 'next-auth/react';
 
 export class ApiClient {
   private static readonly baseURL = process.env.NEXT_PUBLIC_API_URL;
@@ -11,7 +11,7 @@ export class ApiClient {
       const session = await getServerSession(authOptions);
       return session?.authToken;
     }
-    
+
     // For client-side requests
     const session = await getSession();
     return session?.authToken;
@@ -20,7 +20,7 @@ export class ApiClient {
   private static async getHeaders() {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      Accept: 'application/json',
     };
 
     const authToken = await this.getAuthToken();
@@ -33,7 +33,11 @@ export class ApiClient {
     return headers;
   }
 
-  private static getFetchOptions(method: string = 'GET', headers: Record<string, string>, body?: any): RequestInit {
+  private static getFetchOptions(
+    method: string = 'GET',
+    headers: Record<string, string>,
+    body?: any
+  ): RequestInit {
     return {
       method,
       headers,
@@ -46,14 +50,13 @@ export class ApiClient {
   static async get<T>(path: string): Promise<T> {
     try {
       const headers = await this.getHeaders();
-      const response = await fetch(
-        `${this.baseURL}${path}`, 
-        this.getFetchOptions('GET', headers)
-      );
+      const response = await fetch(`${this.baseURL}${path}`, this.getFetchOptions('GET', headers));
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
-        throw new Error(`HTTP error! status: ${response.status}, message: ${JSON.stringify(errorData)}`);
+        throw new Error(
+          `HTTP error! status: ${response.status}, message: ${JSON.stringify(errorData)}`
+        );
       }
 
       return response.json();
@@ -73,14 +76,11 @@ export class ApiClient {
       const headers = await this.getHeaders();
       delete headers['Content-Type']; // Remove Content-Type for blob response
       delete headers['Accept']; // Remove Accept header to allow blob response
-      
-      const response = await fetch(
-        `${this.baseURL}${path}`,
-        {
-          ...this.getFetchOptions('GET', headers),
-          headers: headers // Override headers
-        }
-      );
+
+      const response = await fetch(`${this.baseURL}${path}`, {
+        ...this.getFetchOptions('GET', headers),
+        headers: headers, // Override headers
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -120,4 +120,4 @@ export class ApiClient {
 
     return response.json();
   }
-} 
+}

@@ -1,5 +1,5 @@
-import { cn } from "@/utils/styles";
-import { LucideIcon } from "lucide-react";
+import { cn } from '@/utils/styles';
+import { LucideIcon } from 'lucide-react';
 
 interface Tab {
   id: string;
@@ -17,12 +17,12 @@ interface TabsProps {
   variant?: 'underline' | 'pill';
 }
 
-export const Tabs: React.FC<TabsProps> = ({ 
-  tabs, 
-  activeTab, 
+export const Tabs: React.FC<TabsProps> = ({
+  tabs,
+  activeTab,
   onTabChange,
   className,
-  variant = 'underline'
+  variant = 'underline',
 }) => {
   const getTabStyles = (tab: Tab) => {
     const Icon = tab.icon;
@@ -31,9 +31,7 @@ export const Tabs: React.FC<TabsProps> = ({
     if (variant === 'pill') {
       return cn(
         'px-6 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 flex items-center gap-2 flex-1 justify-center',
-        isActive
-          ? 'bg-indigo-100 text-indigo-600 shadow-sm'
-          : 'text-gray-500 hover:text-gray-700'
+        isActive ? 'bg-indigo-100 text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
       );
     }
 
@@ -57,11 +55,7 @@ export const Tabs: React.FC<TabsProps> = ({
       {tabs.map((tab, index) => {
         const Icon = tab.icon;
         const TabButton = (
-          <button
-            key={tab.id}
-            onClick={() => onTabChange(tab.id)}
-            className={getTabStyles(tab)}
-          >
+          <button key={tab.id} onClick={() => onTabChange(tab.id)} className={getTabStyles(tab)}>
             {Icon && <Icon className="w-4 h-4" />}
             {tab.label}
           </button>
@@ -80,4 +74,4 @@ export const Tabs: React.FC<TabsProps> = ({
       })}
     </div>
   );
-}; 
+};

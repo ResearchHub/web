@@ -8,9 +8,10 @@ export interface BaseTransformed<T = any> {
 /**
  * Base transformer function type
  */
-export type BaseTransformer<Input = any, Output extends BaseTransformed<Input> = BaseTransformed<Input>> = (
-  raw: Input
-) => Output;
+export type BaseTransformer<
+  Input = any,
+  Output extends BaseTransformed<Input> = BaseTransformed<Input>,
+> = (raw: Input) => Output;
 
 /**
  * Helper function to create a transformer that automatically includes the raw data
@@ -22,4 +23,4 @@ export function createTransformer<Input, TransformedOutput>(
     ...transform(raw),
     raw,
   });
-} 
+}

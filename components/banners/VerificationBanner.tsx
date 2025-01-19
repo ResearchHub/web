@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
-import { X, BadgeCheck, ChevronRight } from 'lucide-react'
+import { X, BadgeCheck, ChevronRight } from 'lucide-react';
 
 interface VerificationBannerProps {
-  onClose: () => void
-  onLearnMore?: () => void
+  onClose: () => void;
+  onLearnMore?: () => void;
 }
 
 export default function VerificationBanner({ onClose, onLearnMore }: VerificationBannerProps) {
@@ -30,7 +30,7 @@ export default function VerificationBanner({ onClose, onLearnMore }: Verificatio
               Fast track your earnings
             </li>
           </ul>
-          <button 
+          <button
             onClick={onLearnMore}
             className="text-xs text-indigo-600 hover:text-indigo-700 font-medium flex items-center"
           >
@@ -38,13 +38,10 @@ export default function VerificationBanner({ onClose, onLearnMore }: Verificatio
             <ChevronRight className="h-3 w-3 ml-0.5" />
           </button>
         </div>
-        <button 
-          onClick={onClose}
-          className="p-0.5 hover:bg-indigo-100 rounded-lg text-gray-500"
-        >
+        <button onClick={onClose} className="p-0.5 hover:bg-indigo-100 rounded-lg text-gray-500">
           <X className="h-4 w-4" />
         </button>
       </div>
     </div>
-  )
-} 
+  );
+}

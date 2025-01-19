@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -11,7 +11,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
   const router = useRouter();
 
   return (
-    <button 
+    <button
       onClick={() => router.push('/create')}
       className="flex items-center px-4 py-3 gap-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-50 text-sm font-medium text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px]"
     >
@@ -19,4 +19,4 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
       <span>New</span>
     </button>
   );
-}; 
+};

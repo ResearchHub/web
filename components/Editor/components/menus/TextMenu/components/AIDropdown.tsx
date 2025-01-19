@@ -1,23 +1,23 @@
-import { DropdownButton } from '@/components/Editor/components/ui/Dropdown'
-import { Icon } from '@/components/Editor/components/ui/Icon'
-import { Surface } from '@/components/Editor/components/ui/Surface'
-import { Toolbar } from '@/components/Editor/components/ui/Toolbar'
-import { languages, tones } from '@/components/Editor/lib/constants'
-import * as Dropdown from '@radix-ui/react-dropdown-menu'
-import type { Language } from '@/components/Editor/extensions/Ai'
-import { useCallback } from 'react'
+import { DropdownButton } from '@/components/Editor/components/ui/Dropdown';
+import { Icon } from '@/components/Editor/components/ui/Icon';
+import { Surface } from '@/components/Editor/components/ui/Surface';
+import { Toolbar } from '@/components/Editor/components/ui/Toolbar';
+import { languages, tones } from '@/components/Editor/lib/constants';
+import * as Dropdown from '@radix-ui/react-dropdown-menu';
+import type { Language } from '@/components/Editor/extensions/Ai';
+import { useCallback } from 'react';
 
 export type AIDropdownProps = {
-  onSimplify: () => void
-  onFixSpelling: () => void
-  onMakeShorter: () => void
-  onMakeLonger: () => void
-  onEmojify: () => void
-  onTldr: () => void
-  onTranslate: (language: Language) => void
-  onTone: (tone: string) => void
-  onCompleteSentence: () => void
-}
+  onSimplify: () => void;
+  onFixSpelling: () => void;
+  onMakeShorter: () => void;
+  onMakeLonger: () => void;
+  onEmojify: () => void;
+  onTldr: () => void;
+  onTranslate: (language: Language) => void;
+  onTone: (tone: string) => void;
+  onCompleteSentence: () => void;
+};
 
 export const AIDropdown = ({
   onCompleteSentence,
@@ -30,8 +30,11 @@ export const AIDropdown = ({
   onTone,
   onTranslate,
 }: AIDropdownProps) => {
-  const handleTone = useCallback((tone: string) => () => onTone(tone), [onTone])
-  const handleTranslate = useCallback((language: Language) => () => onTranslate(language), [onTranslate])
+  const handleTone = useCallback((tone: string) => () => onTone(tone), [onTone]);
+  const handleTranslate = useCallback(
+    (language: Language) => () => onTranslate(language),
+    [onTranslate]
+  );
 
   return (
     <Dropdown.Root>
@@ -81,7 +84,7 @@ export const AIDropdown = ({
             </Dropdown.SubTrigger>
             <Dropdown.SubContent>
               <Surface className="flex flex-col min-w-[15rem] p-2 max-h-[20rem] overflow-auto">
-                {tones.map(tone => (
+                {tones.map((tone) => (
                   <Dropdown.Item onClick={handleTone(tone.value)} key={tone.value}>
                     <DropdownButton>{tone.label}</DropdownButton>
                   </Dropdown.Item>
@@ -111,7 +114,7 @@ export const AIDropdown = ({
             </Dropdown.SubTrigger>
             <Dropdown.SubContent>
               <Surface className="flex flex-col min-w-[15rem] p-2 max-h-[20rem] overflow-auto">
-                {languages.map(lang => (
+                {languages.map((lang) => (
                   <Dropdown.Item onClick={handleTranslate(lang.value)} key={lang.value}>
                     <DropdownButton>{lang.label}</DropdownButton>
                   </Dropdown.Item>
@@ -128,5 +131,5 @@ export const AIDropdown = ({
         </Surface>
       </Dropdown.Content>
     </Dropdown.Root>
-  )
-}
+  );
+};

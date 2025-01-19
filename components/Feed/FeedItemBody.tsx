@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { FC, useState } from 'react';
 import { Content, FeedEntry } from '@/types/feed';
@@ -30,11 +30,22 @@ interface FeedItemBodyProps {
 
 const buildUrl = (item: Content) => {
   const title = item.title || '';
-  const slug = title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]/g, '');
+  const slug = title
+    .toLowerCase()
+    .replace(/ /g, '-')
+    .replace(/[^\w-]/g, '');
   return `/${item.type}/${item.id}/${slug}`;
 };
 
-export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, metrics, applicants, contributors, hideTypeLabel }) => {
+export const FeedItemBody: FC<FeedItemBodyProps> = ({
+  content,
+  target,
+  context,
+  metrics,
+  applicants,
+  contributors,
+  hideTypeLabel,
+}) => {
   const [showFundModal, setShowFundModal] = useState(false);
 
   const renderItem = (item: Content, isTarget: boolean = false) => {
@@ -67,23 +78,20 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
       return type.replace('_', ' ');
     };
 
-    const isCard = isTarget || item.type === 'paper' || item.type === 'review' || item.type === 'grant';
+    const isCard =
+      isTarget || item.type === 'paper' || item.type === 'review' || item.type === 'grant';
     const isComment = item.type === 'comment';
 
     const renderCard = (children: React.ReactNode) => {
       if (!isCard) return children;
-      
+
       const cardContent = (
         <div className="p-3 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
           {children}
         </div>
       );
 
-      return isCard ? (
-        <Link href={buildUrl(item)}>
-          {cardContent}
-        </Link>
-      ) : cardContent;
+      return isCard ? <Link href={buildUrl(item)}>{cardContent}</Link> : cardContent;
     };
 
     return renderCard(
@@ -113,14 +121,12 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
 
   const renderComment = (comment: Content) => {
     if (comment.type !== 'comment') return null;
-    
+
     const commentContent = comment.type === 'comment' ? comment.content : '';
 
     return (
       <div>
-        <div className="text-sm text-gray-800">
-          {commentContent}
-        </div>
+        <div className="text-sm text-gray-800">{commentContent}</div>
         {comment.parent ? (
           <div className="mt-2 border p-2 border-gray-200 rounded-lg bg-gray-50 pl-3">
             <div>
@@ -137,10 +143,8 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
               </div>
             </div>
           </div>
-        ) : context && (
-          <div className="mt-2">
-            {renderItem(context, true)}
-          </div>
+        ) : (
+          context && <div className="mt-2">{renderItem(context, true)}</div>
         )}
       </div>
     );
@@ -153,7 +157,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
 
   const renderPaper = (paper: Content) => {
     if (paper.type !== 'paper') return null;
-    
+
     const [isExpanded, setIsExpanded] = useState(false);
     const truncateAbstract = (text: string, limit: number = 200) => {
       if (text.length <= limit) return text;
@@ -161,7 +165,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
     };
 
     const isAbstractTruncated = paper.abstract.length > 200;
-    
+
     return (
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
@@ -170,8 +174,8 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
         <div className="text-sm text-gray-800">
           <p>{isExpanded ? paper.abstract : truncateAbstract(paper.abstract)}</p>
           {isAbstractTruncated && (
-            <Button 
-              variant="link" 
+            <Button
+              variant="link"
               size="sm"
               onClick={(e) => {
                 e.preventDefault();
@@ -180,11 +184,11 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
               className="flex items-center gap-0.5 mt-1"
             >
               {isExpanded ? 'Show less' : 'Read more'}
-              <ChevronDown 
-                size={14} 
+              <ChevronDown
+                size={14}
                 className={cn(
-                  "transition-transform duration-200",
-                  isExpanded && "transform rotate-180"
+                  'transition-transform duration-200',
+                  isExpanded && 'transform rotate-180'
                 )}
               />
             </Button>
@@ -197,7 +201,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
   const renderFundingRequest = (fundingRequest: Content) => {
     if (fundingRequest.type !== 'funding_request') return null;
     const deadlineText = formatDeadline(fundingRequest.deadline);
-    
+
     const getStatusDisplay = () => {
       switch (fundingRequest.status) {
         case 'COMPLETED':
@@ -205,26 +209,27 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
         case 'CLOSED':
           return <span className="text-xs text-gray-500 font-medium">Fundraise Closed</span>;
         case 'OPEN':
-          return deadlineText === 'Ended' 
-            ? <span className="text-xs text-gray-500 font-medium">Fundraise Ended</span>
-            : <span className="text-xs text-gray-800">{deadlineText}</span>;
+          return deadlineText === 'Ended' ? (
+            <span className="text-xs text-gray-500 font-medium">Fundraise Ended</span>
+          ) : (
+            <span className="text-xs text-gray-800">{deadlineText}</span>
+          );
         default:
           return null;
       }
     };
 
-    const progress = fundingRequest.amount && fundingRequest.goalAmount 
-      ? (fundingRequest.amount / fundingRequest.goalAmount) * 100
-      : 0;
-    
+    const progress =
+      fundingRequest.amount && fundingRequest.goalAmount
+        ? (fundingRequest.amount / fundingRequest.goalAmount) * 100
+        : 0;
+
     return (
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
           {fundingRequest.title}
         </h3>
-        <p className="text-sm text-gray-800 mb-2">
-          {fundingRequest.abstract}
-        </p>
+        <p className="text-sm text-gray-800 mb-2">{fundingRequest.abstract}</p>
         <div className="mb-3">
           <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-1.5">
@@ -238,16 +243,16 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
             </div>
             {getStatusDisplay()}
           </div>
-          <Progress 
+          <Progress
             value={progress}
             variant={fundingRequest.status === 'COMPLETED' ? 'success' : 'default'}
             size="xs"
           />
         </div>
         <div className="flex items-center justify-between">
-          <Button 
-            variant="contribute" 
-            size="sm" 
+          <Button
+            variant="contribute"
+            size="sm"
             disabled={fundingRequest.status !== 'OPEN' || deadlineText === 'Ended'}
             className="flex items-center gap-1.5"
             onClick={() => setShowFundModal(true)}
@@ -256,7 +261,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
             Fund this research
           </Button>
           {contributors && contributors.length > 0 && (
-            <ContributorsButton 
+            <ContributorsButton
               contributors={contributors}
               onContribute={() => setShowFundModal(true)}
               label="Funders"
@@ -276,19 +281,15 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
   const renderGrant = (grant: Content) => {
     if (grant.type !== 'grant') return null;
     const deadlineText = formatDeadline(grant.deadline);
-    
+
     return (
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
           <Link href={buildUrl(grant)}>{grant.title}</Link>
         </h3>
-        <p className="text-sm text-gray-800 mb-2">
-          {grant.abstract}
-        </p>
+        <p className="text-sm text-gray-800 mb-2">{grant.abstract}</p>
         <div className="flex items-center gap-3 text-xs">
-          {grant.amount && (
-            <RSCBadge amount={grant.amount} variant="inline" showText />
-          )}
+          {grant.amount && <RSCBadge amount={grant.amount} variant="inline" showText />}
           {grant.deadline && (
             <div className="flex items-center gap-1 text-gray-500">
               <Clock className="h-4 w-4" />
@@ -302,18 +303,14 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
           )}
         </div>
         <div className="flex items-center justify-between mt-3">
-          <Button 
-            variant="secondary" 
-            size="sm" 
-            disabled={deadlineText === 'Ended'}
-          >
+          <Button variant="secondary" size="sm" disabled={deadlineText === 'Ended'}>
             Start Task
           </Button>
           {metrics?.applicants && metrics.applicants > 0 && applicants && (
-            <ContributorsButton 
-              contributors={applicants.map(profile => ({
+            <ContributorsButton
+              contributors={applicants.map((profile) => ({
                 profile,
-                amount: 0
+                amount: 0,
               }))}
               onContribute={() => {}}
             />
@@ -327,12 +324,8 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
     if (review.type !== 'review') return null;
     return (
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-1.5">
-          {review.title}
-        </h3>
-        <p className="text-sm text-gray-800 mb-2">
-          {review.content}
-        </p>
+        <h3 className="text-sm font-semibold text-gray-900 mb-1.5">{review.title}</h3>
+        <p className="text-sm text-gray-800 mb-2">{review.content}</p>
         {review.score !== undefined && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
@@ -360,19 +353,15 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
   const renderBounty = (bounty: Content) => {
     if (bounty.type !== 'bounty') return null;
     const deadlineText = formatDeadline(bounty.deadline);
-    
+
     return (
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
           <Link href={buildUrl(bounty)}>{bounty.title}</Link>
         </h3>
-        <p className="text-sm text-gray-800 mb-2">
-          {bounty.description}
-        </p>
+        <p className="text-sm text-gray-800 mb-2">{bounty.description}</p>
         <div className="flex items-center gap-3 text-xs">
-          {bounty.amount && (
-            <RSCBadge amount={bounty.amount} variant="inline" showText />
-          )}
+          {bounty.amount && <RSCBadge amount={bounty.amount} variant="inline" showText />}
           {bounty.deadline && (
             <div className="flex items-center gap-1 text-gray-500">
               <Clock className="h-4 w-4" />
@@ -381,18 +370,11 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
           )}
         </div>
         <div className="flex items-center justify-between mt-3">
-          <Button 
-            variant="start-task" 
-            size="sm" 
-            disabled={deadlineText === 'Ended'}
-          >
+          <Button variant="start-task" size="sm" disabled={deadlineText === 'Ended'}>
             Start Task
           </Button>
           {contributors && contributors.length > 0 && (
-            <ContributorsButton 
-              contributors={contributors}
-              onContribute={() => {}}
-            />
+            <ContributorsButton contributors={contributors} onContribute={() => {}} />
           )}
         </div>
       </div>
@@ -405,4 +387,4 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
       {target && renderItem(target, true)}
     </div>
   );
-}; 
+};

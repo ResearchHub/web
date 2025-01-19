@@ -1,10 +1,10 @@
-import { useState } from 'react'
-import { AuthService } from '@/services/auth.service'
-import { ApiError } from '@/services/types/api'
-import { BaseScreenProps } from '../types'
+import { useState } from 'react';
+import { AuthService } from '@/services/auth.service';
+import { ApiError } from '@/services/types/api';
+import { BaseScreenProps } from '../types';
 
 interface Props extends BaseScreenProps {
-  onBack: () => void
+  onBack: () => void;
 }
 
 export default function Login({
@@ -16,37 +16,33 @@ export default function Login({
   setError,
   onBack,
 }: Props) {
-  const [password, setPassword] = useState('')
+  const [password, setPassword] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!password) {
-      setError('Please enter your password')
-      return
+      setError('Please enter your password');
+      return;
     }
 
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      await AuthService.login({ email, password })
-      onClose()
+      await AuthService.login({ email, password });
+      onClose();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Login failed')
+      setError(err instanceof ApiError ? err.message : 'Login failed');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div>
       <h2 className="text-xl font-semibold mb-6">Welcome back</h2>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">
-          {error}
-        </div>
-      )}
+      {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">{error}</div>}
 
       <form onSubmit={handleLogin}>
         <input
@@ -59,7 +55,7 @@ export default function Login({
         <input
           type="password"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
           className="w-full p-3 border rounded mb-4"
           autoFocus
@@ -74,12 +70,9 @@ export default function Login({
         </button>
       </form>
 
-      <button
-        onClick={onBack}
-        className="w-full text-gray-600 hover:text-gray-800"
-      >
+      <button onClick={onBack} className="w-full text-gray-600 hover:text-gray-800">
         ← Back
       </button>
     </div>
-  )
-} 
+  );
+}

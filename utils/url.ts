@@ -17,4 +17,4 @@ export function generateSlug(text: string): string {
 export function buildWorkUrl(id: number | string, title?: string): string {
   const slug = title ? generateSlug(title) : '';
   return `/work/${id}${slug ? '/' + slug : ''}`;
-} 
+}

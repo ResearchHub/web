@@ -1,44 +1,46 @@
-import { useEffect, useState } from 'react'
-import { FileText, History, Search, X, Lightbulb, ArrowRight } from 'lucide-react'
-import { useSearchSuggestions } from '@/hooks/useSearchSuggestions'
-import { cn } from '@/utils/styles'
-import { SearchSuggestion } from '@/types/search'
+import { useEffect, useState } from 'react';
+import { FileText, History, Search, X, Lightbulb, ArrowRight } from 'lucide-react';
+import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
+import { cn } from '@/utils/styles';
+import { SearchSuggestion } from '@/types/search';
 interface SearchSuggestionsProps {
-  query: string
-  isFocused?: boolean
-  onSelect?: (suggestion: SearchSuggestion) => void
-  displayMode?: 'dropdown' | 'inline'
-  showSuggestionsOnFocus?: boolean
+  query: string;
+  isFocused?: boolean;
+  onSelect?: (suggestion: SearchSuggestion) => void;
+  displayMode?: 'dropdown' | 'inline';
+  showSuggestionsOnFocus?: boolean;
 }
 
 const searchTips = [
-  "Search by keyword or DOI",
-  "Use quotes for exact matches",
+  'Search by keyword or DOI',
+  'Use quotes for exact matches',
   "Filter by author using 'author:'",
-]
+];
 
-export function SearchSuggestions({ 
-  query, 
-  isFocused = true, 
+export function SearchSuggestions({
+  query,
+  isFocused = true,
   onSelect,
   displayMode = 'dropdown',
-  showSuggestionsOnFocus = true
+  showSuggestionsOnFocus = true,
 }: SearchSuggestionsProps) {
-  const [tipIndex, setTipIndex] = useState(0)
-  const { loading, suggestions, hasLocalSuggestions, clearSearchHistory } = useSearchSuggestions(query, isFocused)
-
+  const [tipIndex, setTipIndex] = useState(0);
+  const { loading, suggestions, hasLocalSuggestions, clearSearchHistory } = useSearchSuggestions(
+    query,
+    isFocused
+  );
 
   // Rotate through tips
   useEffect(() => {
     const timer = setInterval(() => {
-      setTipIndex((current) => (current + 1) % searchTips.length)
-    }, 5000)
-    return () => clearInterval(timer)
-  }, [])
+      setTipIndex((current) => (current + 1) % searchTips.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Only hide when explicitly not focused
   if (isFocused === false) {
-    return null
+    return null;
   }
 
   const renderSuggestion = (suggestion: SearchSuggestion) => {
@@ -66,9 +68,7 @@ export function SearchSuggestions({
                 {suggestion.authors.length > 3 ? ', et al.' : ''}
               </p>
               {suggestion.doi && (
-                <p className="mt-1 text-xs text-gray-400">
-                  DOI: {suggestion.doi}
-                </p>
+                <p className="mt-1 text-xs text-gray-400">DOI: {suggestion.doi}</p>
               )}
             </div>
             <div className="flex-shrink-0 self-center ml-4">
@@ -76,7 +76,7 @@ export function SearchSuggestions({
             </div>
           </button>
         </li>
-      )
+      );
     }
 
     return (
@@ -102,21 +102,25 @@ export function SearchSuggestions({
           </div>
         </button>
       </li>
-    )
-  }
+    );
+  };
 
   return (
-    <div className={cn(
-      'w-full bg-white rounded-md',
-      displayMode === 'dropdown' ? 'absolute z-50 mt-1 shadow-lg border border-gray-200' : 'mt-4'
-    )}>
+    <div
+      className={cn(
+        'w-full bg-white rounded-md',
+        displayMode === 'dropdown' ? 'absolute z-50 mt-1 shadow-lg border border-gray-200' : 'mt-4'
+      )}
+    >
       {/* Local suggestions section */}
       {showSuggestionsOnFocus && !query && hasLocalSuggestions && (
         <div>
-          <div className={cn(
-            'flex items-center justify-between px-4 py-2',
-            displayMode === 'dropdown' ? 'border-b' : ''
-          )}>
+          <div
+            className={cn(
+              'flex items-center justify-between px-4 py-2',
+              displayMode === 'dropdown' ? 'border-b' : ''
+            )}
+          >
             <span className="text-xs font-medium text-gray-500">Recent</span>
             <button
               onClick={clearSearchHistory}
@@ -126,10 +130,12 @@ export function SearchSuggestions({
               Clear all
             </button>
           </div>
-          <ul className={cn(
-            displayMode === 'inline' ? 'space-y-3' : 'divide-y divide-gray-100',
-            displayMode === 'dropdown' ? 'py-2' : ''
-          )}>
+          <ul
+            className={cn(
+              displayMode === 'inline' ? 'space-y-3' : 'divide-y divide-gray-100',
+              displayMode === 'dropdown' ? 'py-2' : ''
+            )}
+          >
             {suggestions.map(renderSuggestion)}
           </ul>
         </div>
@@ -139,22 +145,20 @@ export function SearchSuggestions({
       {query && (
         <>
           {loading && suggestions.length === 0 && (
-            <div className="px-4 py-3 text-sm text-gray-500">
-              Loading results...
-            </div>
+            <div className="px-4 py-3 text-sm text-gray-500">Loading results...</div>
           )}
-          
+
           {!loading && suggestions.length === 0 && (
-            <div className="px-4 py-3 text-sm text-gray-500">
-              No results found
-            </div>
+            <div className="px-4 py-3 text-sm text-gray-500">No results found</div>
           )}
 
           {suggestions.length > 0 && (
-            <ul className={cn(
-              displayMode === 'inline' ? 'space-y-3' : 'divide-y divide-gray-100',
-              displayMode === 'dropdown' ? 'py-2' : ''
-            )}>
+            <ul
+              className={cn(
+                displayMode === 'inline' ? 'space-y-3' : 'divide-y divide-gray-100',
+                displayMode === 'dropdown' ? 'py-2' : ''
+              )}
+            >
               {suggestions.map(renderSuggestion)}
             </ul>
           )}
@@ -171,5 +175,5 @@ export function SearchSuggestions({
         </div>
       )}
     </div>
-  )
-} 
+  );
+}

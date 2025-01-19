@@ -1,51 +1,48 @@
-'use client'
+'use client';
 
-import { useEffect, useRef, useCallback } from 'react'
-import { PageLayout } from '@/app/layouts/PageLayout'
-import { useNotifications } from '@/contexts/NotificationContext'
-import { NotificationList } from '@/components/Notification/NotificationList'
-import { NotificationSkeleton } from '@/components/Notification/NotificationSkeleton'
-import { PageHeader } from '@/components/ui/PageHeader'
+import { useEffect, useRef, useCallback } from 'react';
+import { PageLayout } from '@/app/layouts/PageLayout';
+import { useNotifications } from '@/contexts/NotificationContext';
+import { NotificationList } from '@/components/Notification/NotificationList';
+import { NotificationSkeleton } from '@/components/Notification/NotificationSkeleton';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default function NotificationsPage() {
-  const { 
-    notificationData,
-    loading, 
-    isLoadingMore,
-    error, 
-    fetchNotifications,
-    fetchNextPage
-  } = useNotifications()
+  const { notificationData, loading, isLoadingMore, error, fetchNotifications, fetchNextPage } =
+    useNotifications();
 
-  const observerTarget = useRef<HTMLDivElement>(null)
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchNotifications()
-  }, [fetchNotifications])
+    fetchNotifications();
+  }, [fetchNotifications]);
 
-  const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
-    const [target] = entries
-    if (target.isIntersecting && notificationData.next) {
-      fetchNextPage()
-    }
-  }, [fetchNextPage, notificationData.next])
+  const handleObserver = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      const [target] = entries;
+      if (target.isIntersecting && notificationData.next) {
+        fetchNextPage();
+      }
+    },
+    [fetchNextPage, notificationData.next]
+  );
 
   useEffect(() => {
-    const element = observerTarget.current
-    if (!element) return
+    const element = observerTarget.current;
+    if (!element) return;
 
     const observer = new IntersectionObserver(handleObserver, {
       threshold: 1.0,
-    })
+    });
 
-    observer.observe(element)
+    observer.observe(element);
 
     return () => {
       if (element) {
-        observer.unobserve(element)
+        observer.unobserve(element);
       }
-    }
-  }, [handleObserver])
+    };
+  }, [handleObserver]);
 
   return (
     <PageLayout>
@@ -72,5 +69,5 @@ export default function NotificationsPage() {
         </div>
       </div>
     </PageLayout>
-  )
-} 
+  );
+}

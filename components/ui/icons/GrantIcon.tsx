@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { cn } from '@/utils/styles';
 import { ResearchCoinIcon } from './ResearchCoinIcon';
@@ -30,37 +30,26 @@ export function GrantIcon({
   onClick,
 }: GrantIconProps) {
   const coinSize = size * 0.55;
-  
+
   return (
-    <div 
-      className={cn('relative', className)} 
-      style={{ width: size, height: size }}
-    >
+    <div className={cn('relative', className)} style={{ width: size, height: size }}>
       {/* Create a container with padding to accommodate the coin */}
       <div className="absolute inset-0 pt-[10%]">
         {/* Hand in background */}
-        <HandHelping 
-          className="w-full h-full text-current" 
-          strokeWidth={1.75}
-        />
+        <HandHelping className="w-full h-full text-current" strokeWidth={1.75} />
       </div>
-      
+
       {/* ResearchCoin positioned over the palm */}
-      <div 
+      <div
         className="absolute"
-        style={{ 
+        style={{
           left: '65%',
           top: '0%',
-          transform: 'translate(-50%, -50%)'
+          transform: 'translate(-50%, -50%)',
         }}
       >
-        <ResearchCoinIcon
-          size={coinSize}
-          color={color}
-          outlined
-          strokeWidth={1.25}
-        />
+        <ResearchCoinIcon size={coinSize} color={color} outlined strokeWidth={1.25} />
       </div>
     </div>
   );
-} 
+}

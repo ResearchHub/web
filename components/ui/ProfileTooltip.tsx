@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { FC } from 'react';
 import { Tooltip } from './Tooltip';
@@ -17,7 +17,7 @@ export const ProfileTooltip: FC<ProfileTooltipProps> = ({
   name,
   headline,
   verified,
-  children
+  children,
 }) => {
   return (
     <Tooltip
@@ -27,9 +27,7 @@ export const ProfileTooltip: FC<ProfileTooltipProps> = ({
             <span className="font-medium">{name}</span>
             {verified && <BadgeCheck className="w-4 h-4 text-blue-500" />}
           </div>
-          {headline && (
-            <span className="text-gray-600">{headline}</span>
-          )}
+          {headline && <span className="text-gray-600">{headline}</span>}
           <span className="text-gray-500 text-xs capitalize">{type}</span>
         </div>
       }
@@ -37,4 +35,4 @@ export const ProfileTooltip: FC<ProfileTooltipProps> = ({
       {children}
     </Tooltip>
   );
-}; 
+};

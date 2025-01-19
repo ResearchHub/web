@@ -4,15 +4,15 @@
  */
 export const isDOI = (text: string): boolean => {
   if (!text || typeof text !== 'string') {
-    return false
+    return false;
   }
 
   // Remove common DOI URL prefixes
-  const cleanedText = text.replace(/^https?:\/\/(dx\.)?doi\.org\//, '')
+  const cleanedText = text.replace(/^https?:\/\/(dx\.)?doi\.org\//, '');
 
   // Simpler DOI pattern that matches 10.XXXX/any.characters
-  const DOI_REGEX = /10\.\d{4,}\/[-._;()\/:a-zA-Z0-9]+/
-  const match = cleanedText.match(DOI_REGEX)
+  const DOI_REGEX = /10\.\d{4,}\/[-._;()\/:a-zA-Z0-9]+/;
+  const match = cleanedText.match(DOI_REGEX);
 
-  return Boolean(match)
-} 
+  return Boolean(match);
+};

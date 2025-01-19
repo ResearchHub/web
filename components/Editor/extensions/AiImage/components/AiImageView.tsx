@@ -1,19 +1,19 @@
-import { Extension, NodeViewWrapper, NodeViewWrapperProps } from '@tiptap/react'
-import { useCallback, useMemo, useState } from 'react'
-import toast from 'react-hot-toast'
-import { v4 as uuid } from 'uuid'
-import { ImageOptions } from '@tiptap-pro/extension-ai'
+import { Extension, NodeViewWrapper, NodeViewWrapperProps } from '@tiptap/react';
+import { useCallback, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
+import { v4 as uuid } from 'uuid';
+import { ImageOptions } from '@tiptap-pro/extension-ai';
 
-import * as Dropdown from '@radix-ui/react-dropdown-menu'
+import * as Dropdown from '@radix-ui/react-dropdown-menu';
 
-import { Button } from '@/components/Editor/components/ui/Button'
-import { Loader } from '@/components/Editor/components/ui/Loader'
-import { Panel, PanelHeadline } from '@/components/Editor/components/ui/Panel'
-import { Textarea } from '@/components/Editor/components/ui/Textarea'
-import { Icon } from '@/components/Editor/components/ui/Icon'
-import { Surface } from '@/components/Editor/components/ui/Surface'
-import { DropdownButton } from '@/components/Editor/components/ui/Dropdown'
-import { Toolbar } from '@/components/Editor/components/ui/Toolbar'
+import { Button } from '@/components/Editor/components/ui/Button';
+import { Loader } from '@/components/Editor/components/ui/Loader';
+import { Panel, PanelHeadline } from '@/components/Editor/components/ui/Panel';
+import { Textarea } from '@/components/Editor/components/ui/Textarea';
+import { Icon } from '@/components/Editor/components/ui/Icon';
+import { Surface } from '@/components/Editor/components/ui/Surface';
+import { DropdownButton } from '@/components/Editor/components/ui/Dropdown';
+import { Toolbar } from '@/components/Editor/components/ui/Toolbar';
 
 const imageStyles = [
   { name: 'photorealistic', label: 'Photorealistic', value: 'photorealistic' },
@@ -23,41 +23,43 @@ const imageStyles = [
   { name: 'isometric', label: 'Isometric', value: 'isometric' },
   { name: 'line-art', label: 'Line art', value: 'line_art' },
   { name: '3d-model', label: '3D model', value: '3d_model' },
-]
+];
 
 interface Data {
-  text: string
-  imageStyle?: ImageOptions
+  text: string;
+  imageStyle?: ImageOptions;
 }
 
 export const AiImageView = ({ editor, node, getPos, deleteNode }: NodeViewWrapperProps) => {
-  const aiOptions = editor.extensionManager.extensions.find((ext: Extension) => ext.name === 'ai').options
+  const aiOptions = editor.extensionManager.extensions.find(
+    (ext: Extension) => ext.name === 'ai'
+  ).options;
 
   const [data, setData] = useState<Data>({
     text: '',
     imageStyle: undefined,
-  })
-  const currentImageStyle = imageStyles.find(t => t.value === data.imageStyle)
-  const [previewImage, setPreviewImage] = useState<string | undefined>(undefined)
-  const [isFetching, setIsFetching] = useState(false)
-  const textareaId = useMemo(() => uuid(), [])
+  });
+  const currentImageStyle = imageStyles.find((t) => t.value === data.imageStyle);
+  const [previewImage, setPreviewImage] = useState<string | undefined>(undefined);
+  const [isFetching, setIsFetching] = useState(false);
+  const textareaId = useMemo(() => uuid(), []);
 
   const generateImage = useCallback(async () => {
     if (!data.text) {
-      toast.error('Please enter a description for the image')
+      toast.error('Please enter a description for the image');
 
-      return
+      return;
     }
 
-    setIsFetching(true)
+    setIsFetching(true);
 
     const payload = {
       text: data.text,
       style: data.imageStyle,
-    }
+    };
 
     try {
-      const { baseUrl, appId, token } = aiOptions
+      const { baseUrl, appId, token } = aiOptions;
       const response = await fetch(`${baseUrl}/image/prompt`, {
         method: 'POST',
         headers: {
@@ -67,30 +69,33 @@ export const AiImageView = ({ editor, node, getPos, deleteNode }: NodeViewWrappe
           Authorization: `Bearer ${token.trim()}`,
         },
         body: JSON.stringify(payload),
-      })
+      });
 
-      const json = await response.json()
-      const url = json.response
+      const json = await response.json();
+      const url = json.response;
 
       if (!url.length) {
-        return
+        return;
       }
 
-      setPreviewImage(url)
+      setPreviewImage(url);
 
-      setIsFetching(false)
+      setIsFetching(false);
     } catch (errPayload: any) {
-      const errorMessage = errPayload?.response?.data?.error
-      const message = errorMessage !== 'An error occurred' ? `An error has occured: ${errorMessage}` : errorMessage
+      const errorMessage = errPayload?.response?.data?.error;
+      const message =
+        errorMessage !== 'An error occurred'
+          ? `An error has occured: ${errorMessage}`
+          : errorMessage;
 
-      setIsFetching(false)
-      toast.error(message)
+      setIsFetching(false);
+      toast.error(message);
     }
-  }, [data, aiOptions])
+  }, [data, aiOptions]);
 
   const insert = useCallback(() => {
     if (!previewImage?.length) {
-      return
+      return;
     }
 
     editor
@@ -98,28 +103,33 @@ export const AiImageView = ({ editor, node, getPos, deleteNode }: NodeViewWrappe
       .insertContent(`<img src="${previewImage}" alt="" />`)
       .deleteRange({ from: getPos(), to: getPos() })
       .focus()
-      .run()
+      .run();
 
-    setIsFetching(false)
-  }, [editor, previewImage, getPos])
+    setIsFetching(false);
+  }, [editor, previewImage, getPos]);
 
   const discard = useCallback(() => {
-    deleteNode()
-  }, [deleteNode])
+    deleteNode();
+  }, [deleteNode]);
 
   const handleTextareaChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => setData(prevData => ({ ...prevData, text: e.target.value })),
-    [],
-  )
+    (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+      setData((prevData) => ({ ...prevData, text: e.target.value })),
+    []
+  );
 
   const onUndoClick = useCallback(() => {
-    setData(prevData => ({ ...prevData, imageStyle: undefined }))
-    setPreviewImage(undefined)
-  }, [])
+    setData((prevData) => ({ ...prevData, imageStyle: undefined }));
+    setPreviewImage(undefined);
+  }, []);
 
-  const createItemClickHandler = useCallback((style: { name: string; label: string; value: string }) => {
-    return () => setData(prevData => ({ ...prevData, imageStyle: style.value as ImageOptions }))
-  }, [])
+  const createItemClickHandler = useCallback(
+    (style: { name: string; label: string; value: string }) => {
+      return () =>
+        setData((prevData) => ({ ...prevData, imageStyle: style.value as ImageOptions }));
+    },
+    []
+  );
 
   return (
     <NodeViewWrapper data-drag-handle>
@@ -163,14 +173,17 @@ export const AiImageView = ({ editor, node, getPos, deleteNode }: NodeViewWrappe
                     <Surface className="p-2 min-w-[12rem]">
                       {!!data.imageStyle && (
                         <>
-                          <DropdownButton isActive={data.imageStyle === undefined} onClick={onUndoClick}>
+                          <DropdownButton
+                            isActive={data.imageStyle === undefined}
+                            onClick={onUndoClick}
+                          >
                             <Icon name="Undo2" />
                             Reset
                           </DropdownButton>
                           <Toolbar.Divider horizontal />
                         </>
                       )}
-                      {imageStyles.map(style => (
+                      {imageStyles.map((style) => (
                         <DropdownButton
                           isActive={style.value === data.imageStyle}
                           key={style.value}
@@ -210,5 +223,5 @@ export const AiImageView = ({ editor, node, getPos, deleteNode }: NodeViewWrappe
         </div>
       </Panel>
     </NodeViewWrapper>
-  )
-}
+  );
+};

@@ -1,59 +1,59 @@
-'use client'
+'use client';
 
-import { useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import { Search as SearchIcon, X } from 'lucide-react'
-import { SearchSuggestions } from './SearchSuggestions'
-import { cn } from '@/utils/styles'
-import { SearchSuggestion } from '@/types/search'
+import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { Search as SearchIcon, X } from 'lucide-react';
+import { SearchSuggestions } from './SearchSuggestions';
+import { cn } from '@/utils/styles';
+import { SearchSuggestion } from '@/types/search';
 interface SearchProps {
-  onSelect?: (suggestion: SearchSuggestion) => void
-  displayMode?: 'dropdown' | 'inline'
-  showSuggestionsOnFocus?: boolean
-  className?: string
-  placeholder?: string
+  onSelect?: (suggestion: SearchSuggestion) => void;
+  displayMode?: 'dropdown' | 'inline';
+  showSuggestionsOnFocus?: boolean;
+  className?: string;
+  placeholder?: string;
 }
 
-export function Search({ 
-  onSelect, 
+export function Search({
+  onSelect,
   displayMode = 'dropdown',
   showSuggestionsOnFocus = true,
   className,
-  placeholder = 'Search'
+  placeholder = 'Search',
 }: SearchProps) {
-  const [query, setQuery] = useState('')
-  const [isFocused, setIsFocused] = useState(false)
-  const router = useRouter()
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [query, setQuery] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
+  const router = useRouter();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleBlur = (e: React.FocusEvent) => {
     // Check if the related target is inside our component
     if (!containerRef.current?.contains(e.relatedTarget as Node)) {
-      setIsFocused(false)
+      setIsFocused(false);
     }
-  }
+  };
 
   const handleSelect = (suggestion: SearchSuggestion) => {
     // If onSelect is provided, use that instead of default behavior
     if (onSelect) {
-      onSelect(suggestion)
-      return
+      onSelect(suggestion);
+      return;
     }
 
     // Default behavior
     if (suggestion.isRecent) {
-      router.push(`/work/${suggestion.id}/${suggestion.slug}`)
+      router.push(`/work/${suggestion.id}/${suggestion.slug}`);
     } else {
       if (suggestion.id) {
-        router.push(`/work/${suggestion.id}/${suggestion.slug}`)
+        router.push(`/work/${suggestion.id}/${suggestion.slug}`);
       } else if (suggestion.doi) {
-        router.push(`/work?doi=${encodeURIComponent(suggestion.doi)}`)
+        router.push(`/work?doi=${encodeURIComponent(suggestion.doi)}`);
       }
     }
-  }
+  };
 
   return (
-    <div ref={containerRef} className={cn("relative", className)}>
+    <div ref={containerRef} className={cn('relative', className)}>
       <div className="relative">
         <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <input
@@ -83,5 +83,5 @@ export function Search({
         showSuggestionsOnFocus={showSuggestionsOnFocus}
       />
     </div>
-  )
-} 
+  );
+}

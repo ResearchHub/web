@@ -6,11 +6,11 @@
  */
 export function assertNever(value: never, shouldThrow = false): never {
   const message = `Unexpected object: ${JSON.stringify(value)}`;
-  
+
   if (shouldThrow) {
     throw new Error(message);
   } else {
     console.error(message);
     return value as never;
   }
-} 
+}

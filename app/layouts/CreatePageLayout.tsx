@@ -1,21 +1,21 @@
-'use client'
+'use client';
 
-import { ArrowLeft } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import { ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 interface Stat {
-  number: string
-  label: string
+  number: string;
+  label: string;
 }
 
 interface CreatePageLayoutProps {
-  children: React.ReactNode
-  title: React.ReactNode
-  description: string
-  stats: Stat[]
-  sidebarTitle: string
-  sidebarDescription: string
+  children: React.ReactNode;
+  title: React.ReactNode;
+  description: string;
+  stats: Stat[];
+  sidebarTitle: string;
+  sidebarDescription: string;
 }
 
 const Stat = ({ number, label }: Stat) => (
@@ -23,7 +23,7 @@ const Stat = ({ number, label }: Stat) => (
     <div className="text-2xl font-bold text-white">{number}</div>
     <div className="text-sm text-white/80">{label}</div>
   </div>
-)
+);
 
 export function CreatePageLayout({
   children,
@@ -33,7 +33,7 @@ export function CreatePageLayout({
   sidebarTitle,
   sidebarDescription,
 }: CreatePageLayoutProps) {
-  const router = useRouter()
+  const router = useRouter();
 
   return (
     <div className="min-h-screen flex">
@@ -69,15 +69,13 @@ export function CreatePageLayout({
           <div className="absolute inset-0 bg-black/10 backdrop-blur-[100px]" />
           <div className="absolute inset-0 mix-blend-overlay bg-gradient-to-t from-transparent via-white/5 to-white/10" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(255,255,255,0.1),transparent)]" />
-          
+
           {/* Content */}
           <div className="relative z-10 p-12">
             <h2 className="text-3xl font-bold text-white leading-tight backdrop-blur-sm">
               {sidebarTitle}
             </h2>
-            <p className="mt-4 text-lg text-white/90 backdrop-blur-sm">
-              {sidebarDescription}
-            </p>
+            <p className="mt-4 text-lg text-white/90 backdrop-blur-sm">{sidebarDescription}</p>
 
             {/* Stats */}
             <div className="mt-12 grid grid-cols-2 gap-4">
@@ -86,7 +84,7 @@ export function CreatePageLayout({
               ))}
             </div>
           </div>
-          
+
           {/* Logo Circle */}
           <div className="absolute bottom-12 left-1/2 -translate-x-1/2">
             <div className="relative w-[400px] h-[400px] rounded-full border-[10px] border-white/20 animate-pulse-slow backdrop-blur-sm">
@@ -102,5 +100,5 @@ export function CreatePageLayout({
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}

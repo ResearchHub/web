@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { FC, ReactNode, useState } from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
@@ -16,14 +16,14 @@ interface BaseMenuProps {
   animate?: boolean;
 }
 
-export const BaseMenu: FC<BaseMenuProps> = ({ 
-  children, 
+export const BaseMenu: FC<BaseMenuProps> = ({
+  children,
   trigger,
   align = 'end',
   className,
   withOverlay = false,
   sideOffset = 5,
-  animate = false
+  animate = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -40,7 +40,7 @@ export const BaseMenu: FC<BaseMenuProps> = ({
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div 
+            <div
               className="fixed inset-0 bg-black/[0.15]"
               style={{ zIndex: 99999 }}
               onClick={() => setIsOpen(false)}
@@ -49,17 +49,15 @@ export const BaseMenu: FC<BaseMenuProps> = ({
         </Portal.Root>
       )}
       <DropdownMenu.Root onOpenChange={setIsOpen}>
-        <DropdownMenu.Trigger asChild>
-          {trigger}
-        </DropdownMenu.Trigger>
+        <DropdownMenu.Trigger asChild>{trigger}</DropdownMenu.Trigger>
 
         <DropdownMenu.Portal>
           <DropdownMenu.Content
             align={align}
             sideOffset={sideOffset}
             className={cn(
-              "z-50 min-w-[8rem] overflow-hidden rounded-lg border border-gray-200 bg-white p-1 shadow-md",
-              animate && "animate-in fade-in-0 slide-in-from-top-8 duration-200",
+              'z-50 min-w-[8rem] overflow-hidden rounded-lg border border-gray-200 bg-white p-1 shadow-md',
+              animate && 'animate-in fade-in-0 slide-in-from-top-8 duration-200',
               className
             )}
             style={{ zIndex: 100000 }}
@@ -72,7 +70,7 @@ export const BaseMenu: FC<BaseMenuProps> = ({
   );
 };
 
-export const BaseMenuItem = ({ 
+export const BaseMenuItem = ({
   children,
   className,
   ...props
@@ -80,7 +78,7 @@ export const BaseMenuItem = ({
   return (
     <DropdownMenu.Item
       className={cn(
-        "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-gray-100 focus:text-gray-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        'relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-gray-100 focus:text-gray-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         className
       )}
       {...props}
@@ -88,4 +86,4 @@ export const BaseMenuItem = ({
       {children}
     </DropdownMenu.Item>
   );
-}; 
+};

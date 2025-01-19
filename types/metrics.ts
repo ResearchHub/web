@@ -8,4 +8,4 @@ export interface ContentMetrics {
   reposts?: number;
   views?: number;
   applicants?: number;
-} 
+}

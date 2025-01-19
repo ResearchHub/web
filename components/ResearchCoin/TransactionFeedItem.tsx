@@ -27,29 +27,29 @@ interface TransactionTypeInfo {
 
 // Map of distribution types to display names
 const DISTRIBUTION_TYPES = {
-  'EDITOR_BOUNTY': 'Editor Bounty',
-  'PAPER_UPVOTED': 'Upvote: Paper',
-  'COMMENT_UPVOTED': 'Upvote: Comment',
-  'RESEARCH_UPVOTED': 'Upvote: Research',
-  'PURCHASING_POWER': 'Purchasing Power',
-  'RhCOMMENT': 'Comment',
-  'STORED_REWARD': 'Stored Reward',
-  'THREAD_REWARD': 'Thread Reward',
-  'PAPER_REWARD': 'Paper Reward',
-  'EDITOR_CONTRIBUTION': 'Editor Contribution',
-  'COMMENT_REWARD': 'Comment Reward',
-  'RhCOMMENT_UPVOTED': 'Upvote: Comment',
-  'RESEARCHHUB_POST_UPVOTED': 'Upvote: Post',
-  'MOD_PAYMENT': 'Moderator Payment',
-  'REPLY_COMMENT': 'Reply Comment',
-  'PURCHASE': 'Purchase',
-  'PURCHASE_BOOST': 'Tip',
-  'PURCHASE_TIP': 'Tip',
-  'SUPPORT_RH_FEE': 'Support RH Fee',
-  'BOUNTY': 'Bounty',
-  'BOUNTY_FEE': 'Bounty Fee',
-  'WITHDRAWAL': 'Withdrawal',
-  'DEPOSIT': 'Deposit',
+  EDITOR_BOUNTY: 'Editor Bounty',
+  PAPER_UPVOTED: 'Upvote: Paper',
+  COMMENT_UPVOTED: 'Upvote: Comment',
+  RESEARCH_UPVOTED: 'Upvote: Research',
+  PURCHASING_POWER: 'Purchasing Power',
+  RhCOMMENT: 'Comment',
+  STORED_REWARD: 'Stored Reward',
+  THREAD_REWARD: 'Thread Reward',
+  PAPER_REWARD: 'Paper Reward',
+  EDITOR_CONTRIBUTION: 'Editor Contribution',
+  COMMENT_REWARD: 'Comment Reward',
+  RhCOMMENT_UPVOTED: 'Upvote: Comment',
+  RESEARCHHUB_POST_UPVOTED: 'Upvote: Post',
+  MOD_PAYMENT: 'Moderator Payment',
+  REPLY_COMMENT: 'Reply Comment',
+  PURCHASE: 'Purchase',
+  PURCHASE_BOOST: 'Tip',
+  PURCHASE_TIP: 'Tip',
+  SUPPORT_RH_FEE: 'Support RH Fee',
+  BOUNTY: 'Bounty',
+  BOUNTY_FEE: 'Bounty Fee',
+  WITHDRAWAL: 'Withdrawal',
+  DEPOSIT: 'Deposit',
 } as const;
 
 // Map content_type IDs to display names and icons
@@ -63,13 +63,10 @@ const CONTENT_TYPE_MAP: Record<number, TransactionTypeInfo> = {
   110: { label: 'Bounty Fee', icon: Percent },
   127: { label: 'Support Fee', icon: Percent },
   144: { label: 'Paper Reward', icon: Trophy },
-  154: { label: 'Payment', icon: HandCoins }
+  154: { label: 'Payment', icon: HandCoins },
 } as const;
 
-export function TransactionFeedItem({ 
-  transaction, 
-  exchangeRate,
-}: TransactionFeedItemProps) {
+export function TransactionFeedItem({ transaction, exchangeRate }: TransactionFeedItemProps) {
   const getTransactionInfo = (tx: TransactionAPIRequest): TransactionTypeInfo => {
     // First check if we have source type information
     if (tx.source?.purchase_type) {
@@ -78,9 +75,12 @@ export function TransactionFeedItem({
       if (label) {
         return {
           label,
-          icon: sourceType.includes('BOOST') || sourceType.includes('TIP') ? HandCoins : 
-                sourceType === 'BOUNTY' ? Trophy :
-                ArrowBigUpDash
+          icon:
+            sourceType.includes('BOOST') || sourceType.includes('TIP')
+              ? HandCoins
+              : sourceType === 'BOUNTY'
+                ? Trophy
+                : ArrowBigUpDash,
         };
       }
     }
@@ -92,9 +92,10 @@ export function TransactionFeedItem({
 
     // Finally fall back to readable content type or unknown
     return {
-      label: tx.readable_content_type?.charAt(0).toUpperCase() + 
-             tx.readable_content_type?.slice(1) || 'Unknown TX',
-      icon: HelpCircle
+      label:
+        tx.readable_content_type?.charAt(0).toUpperCase() + tx.readable_content_type?.slice(1) ||
+        'Unknown TX',
+      icon: HelpCircle,
     };
   };
 
@@ -123,10 +124,12 @@ export function TransactionFeedItem({
             <div className="flex flex-col items-end min-w-[140px]">
               <div className="flex items-center justify-end w-full">
                 <div className="flex flex-col items-end">
-                  <span className={`
+                  <span
+                    className={`
                     text-base font-medium transition-colors duration-200
                     ${isPositive ? 'text-green-600 group-hover:text-green-700' : 'text-gray-900'}
-                  `}>
+                  `}
+                  >
                     {formatTransactionAmount(transaction.amount)}
                   </span>
                   <span className="text-xs text-gray-500 group-hover:text-gray-600">
@@ -140,4 +143,4 @@ export function TransactionFeedItem({
       </div>
     </div>
   );
-} 
+}

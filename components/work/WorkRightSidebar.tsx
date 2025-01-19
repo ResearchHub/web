@@ -1,17 +1,17 @@
-'use client'
+'use client';
 
-import { Work } from '@/types/work'
-import { Eye, MessageSquare, Star } from 'lucide-react'
+import { Work } from '@/types/work';
+import { Eye, MessageSquare, Star } from 'lucide-react';
 
 interface WorkRightSidebarProps {
-  work: Work
+  work: Work;
 }
 
 export const WorkRightSidebar = ({ work }: WorkRightSidebarProps) => {
   return (
     <div className="p-4">
       <h2 className="text-sm font-semibold text-gray-900 mb-4">Metrics</h2>
-      
+
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -38,5 +38,5 @@ export const WorkRightSidebar = ({ work }: WorkRightSidebarProps) => {
         </div>
       </div>
     </div>
-  )
-} 
+  );
+};

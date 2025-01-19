@@ -1,25 +1,24 @@
-'use client'
+'use client';
 
-import { useRouter } from 'next/navigation'
-import { Eye, BadgeCheck, BookOpen, ArrowRight } from 'lucide-react'
-import { Search } from '@/components/Search/Search'
-import { Button } from '@/components/ui/Button'
-import { useState } from 'react'
-import type { SearchSuggestion } from '@/services/types/search.dto'
-import { CreatePageLayout } from '@/app/layouts/CreatePageLayout'
-
-const PaperActionCard = ({ 
-  icon: Icon, 
-  title, 
-  description, 
+import { useRouter } from 'next/navigation';
+import { Eye, BadgeCheck, BookOpen, ArrowRight } from 'lucide-react';
+import { Search } from '@/components/Search/Search';
+import { Button } from '@/components/ui/Button';
+import { useState } from 'react';
+import { CreatePageLayout } from '@/app/layouts/CreatePageLayout';
+import { SearchSuggestion } from '@/types/search';
+const PaperActionCard = ({
+  icon: Icon,
+  title,
+  description,
   onClick,
   badge,
-}: { 
-  icon: any, 
-  title: string, 
-  description: string, 
-  onClick: () => void,
-  badge?: string
+}: {
+  icon: any;
+  title: string;
+  description: string;
+  onClick: () => void;
+  badge?: string;
 }) => (
   <button
     onClick={onClick}
@@ -45,18 +44,18 @@ const PaperActionCard = ({
       <ArrowRight className="w-5 h-5 text-gray-400" />
     </div>
   </button>
-)
+);
 
 export default function WorkCreatePage() {
-  const router = useRouter()
-  const [selectedPaper, setSelectedPaper] = useState<SearchSuggestion | null>(null)
-  
+  const router = useRouter();
+  const [selectedPaper, setSelectedPaper] = useState<SearchSuggestion | null>(null);
+
   // Check if we should show the NEW badge (before June 1st 2025)
-  const showNewBadge = new Date() < new Date('2025-06-01')
+  const showNewBadge = new Date() < new Date('2025-06-01');
 
   const handlePaperSelect = (paper: SearchSuggestion) => {
-    setSelectedPaper(paper)
-  }
+    setSelectedPaper(paper);
+  };
 
   return (
     <CreatePageLayout
@@ -65,10 +64,10 @@ export default function WorkCreatePage() {
       sidebarTitle="Let's accelerate science together"
       sidebarDescription="ResearchHub is an Open Science platform that incentivizes good scientific behavior"
       stats={[
-        { number: "10,000+", label: "Researchers" },
-        { number: "5,000+", label: "Papers Published" },
-        { number: "$2M+", label: "In Funding" },
-        { number: "3,000+", label: "Active Projects" }
+        { number: '10,000+', label: 'Researchers' },
+        { number: '5,000+', label: 'Papers Published' },
+        { number: '$2M+', label: 'In Funding' },
+        { number: '3,000+', label: 'Active Projects' },
       ]}
     >
       <div className="space-y-8 pb-12">
@@ -80,16 +79,16 @@ export default function WorkCreatePage() {
             <p className="text-gray-500 mb-6">
               Search by DOI or title to find your published preprint
             </p>
-            
+
             <div className="space-y-6">
-              <Search 
-                displayMode="inline" 
+              <Search
+                displayMode="inline"
                 showSuggestionsOnFocus={false}
                 className="w-full"
                 placeholder="Search for your preprint"
                 onSelect={handlePaperSelect}
               />
-              
+
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-200" />
@@ -132,9 +131,7 @@ export default function WorkCreatePage() {
                 </p>
               )}
               {selectedPaper.doi && (
-                <p className="text-sm text-gray-500 mt-1">
-                  DOI: {selectedPaper.doi}
-                </p>
+                <p className="text-sm text-gray-500 mt-1">DOI: {selectedPaper.doi}</p>
               )}
             </div>
 
@@ -145,20 +142,22 @@ export default function WorkCreatePage() {
                 description="View paper on ResearchHub"
                 onClick={() => router.push(`/work/${selectedPaper.id}/${selectedPaper.slug}`)}
               />
-              
+
               <PaperActionCard
                 icon={BadgeCheck}
                 title="Claim paper"
                 description="Claim paper to earn ResearchCoin rewards"
                 onClick={() => router.push(`/work/${selectedPaper.id}/${selectedPaper.slug}/claim`)}
               />
-              
+
               <PaperActionCard
                 icon={BookOpen}
                 title="Publish in ResearchHub Journal"
                 description="Fast peer-reviewed publication with 14-day decision"
-                onClick={() => router.push(`/work/${selectedPaper.id}/${selectedPaper.slug}/publish`)}
-                badge={showNewBadge ? "NEW" : undefined}
+                onClick={() =>
+                  router.push(`/work/${selectedPaper.id}/${selectedPaper.slug}/publish`)
+                }
+                badge={showNewBadge ? 'NEW' : undefined}
               />
             </div>
 
@@ -174,5 +173,5 @@ export default function WorkCreatePage() {
         )}
       </div>
     </CreatePageLayout>
-  )
-} 
+  );
+}

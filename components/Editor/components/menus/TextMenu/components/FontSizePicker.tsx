@@ -1,9 +1,9 @@
-import { DropdownButton, DropdownCategoryTitle } from '@/components/Editor/components/ui/Dropdown'
-import { Icon } from '@/components/Editor/components/ui/Icon'
-import { Surface } from '@/components/Editor/components/ui/Surface'
-import { Toolbar } from '@/components/Editor/components/ui/Toolbar'
-import * as Dropdown from '@radix-ui/react-dropdown-menu'
-import { useCallback } from 'react'
+import { DropdownButton, DropdownCategoryTitle } from '@/components/Editor/components/ui/Dropdown';
+import { Icon } from '@/components/Editor/components/ui/Icon';
+import { Surface } from '@/components/Editor/components/ui/Surface';
+import { Toolbar } from '@/components/Editor/components/ui/Toolbar';
+import * as Dropdown from '@radix-ui/react-dropdown-menu';
+import { useCallback } from 'react';
 
 const FONT_SIZES = [
   { label: 'Smaller', value: '12px' },
@@ -11,18 +11,18 @@ const FONT_SIZES = [
   { label: 'Medium', value: '' },
   { label: 'Large', value: '18px' },
   { label: 'Extra Large', value: '24px' },
-]
+];
 
 export type FontSizePickerProps = {
-  onChange: (value: string) => void // eslint-disable-line no-unused-vars
-  value: string
-}
+  onChange: (value: string) => void; // eslint-disable-line no-unused-vars
+  value: string;
+};
 
 export const FontSizePicker = ({ onChange, value }: FontSizePickerProps) => {
-  const currentValue = FONT_SIZES.find(size => size.value === value)
-  const currentSizeLabel = currentValue?.label.split(' ')[0] || 'Medium'
+  const currentValue = FONT_SIZES.find((size) => size.value === value);
+  const currentSizeLabel = currentValue?.label.split(' ')[0] || 'Medium';
 
-  const selectSize = useCallback((size: string) => () => onChange(size), [onChange])
+  const selectSize = useCallback((size: string) => () => onChange(size), [onChange]);
 
   return (
     <Dropdown.Root>
@@ -34,7 +34,7 @@ export const FontSizePicker = ({ onChange, value }: FontSizePickerProps) => {
       </Dropdown.Trigger>
       <Dropdown.Content asChild>
         <Surface className="flex flex-col gap-1 px-2 py-4">
-          {FONT_SIZES.map(size => (
+          {FONT_SIZES.map((size) => (
             <DropdownButton
               isActive={value === size.value}
               onClick={selectSize(size.value)}
@@ -46,5 +46,5 @@ export const FontSizePicker = ({ onChange, value }: FontSizePickerProps) => {
         </Surface>
       </Dropdown.Content>
     </Dropdown.Root>
-  )
-}
+  );
+};

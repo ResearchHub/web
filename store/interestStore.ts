@@ -22,7 +22,7 @@ export const mockInterests = {
       id: 'science',
       name: 'Science',
       type: 'journal',
-      description: 'The world\'s leading outlet for scientific news',
+      description: "The world's leading outlet for scientific news",
       followers: 980000,
       verified: true,
     },
@@ -89,7 +89,7 @@ export const mockInterests = {
       description: 'Premier journal for stem cell research',
       followers: 320000,
       verified: true,
-    }
+    },
   ],
   people: [
     {
@@ -171,7 +171,7 @@ export const mockInterests = {
       description: 'Pioneer in bioorthogonal chemistry, Nobel laureate',
       followers: 140000,
       verified: true,
-    }
+    },
   ],
   topics: [
     {
@@ -253,8 +253,8 @@ export const mockInterests = {
       description: 'Pharmaceutical research and development',
       followers: 340000,
       verified: true,
-    }
-  ]
+    },
+  ],
 };
 
 export function fetchInterests(type: 'journal' | 'person' | 'topic'): Promise<Interest[]> {
@@ -275,4 +275,4 @@ export function fetchInterests(type: 'journal' | 'person' | 'topic'): Promise<In
       }
     }, 500);
   });
-} 
+}

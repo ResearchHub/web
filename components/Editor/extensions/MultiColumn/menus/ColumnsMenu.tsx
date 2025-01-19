@@ -1,48 +1,48 @@
-import { BubbleMenu as BaseBubbleMenu, useEditorState } from '@tiptap/react'
-import { useCallback } from 'react'
-import { sticky } from 'tippy.js'
-import { v4 as uuid } from 'uuid'
+import { BubbleMenu as BaseBubbleMenu, useEditorState } from '@tiptap/react';
+import { useCallback } from 'react';
+import { sticky } from 'tippy.js';
+import { v4 as uuid } from 'uuid';
 
-import { MenuProps } from '@/components/Editor/components/menus/types'
-import { getRenderContainer } from '@/components/Editor/lib/utils/getRenderContainer'
-import { Toolbar } from '@/components/Editor/components/ui/Toolbar'
-import { ColumnLayout } from '../Columns'
-import { Icon } from '@/components/Editor/components/ui/Icon'
+import { MenuProps } from '@/components/Editor/components/menus/types';
+import { getRenderContainer } from '@/components/Editor/lib/utils/getRenderContainer';
+import { Toolbar } from '@/components/Editor/components/ui/Toolbar';
+import { ColumnLayout } from '../Columns';
+import { Icon } from '@/components/Editor/components/ui/Icon';
 
 export const ColumnsMenu = ({ editor, appendTo }: MenuProps) => {
   const getReferenceClientRect = useCallback(() => {
-    const renderContainer = getRenderContainer(editor, 'columns')
-    const rect = renderContainer?.getBoundingClientRect() || new DOMRect(-1000, -1000, 0, 0)
+    const renderContainer = getRenderContainer(editor, 'columns');
+    const rect = renderContainer?.getBoundingClientRect() || new DOMRect(-1000, -1000, 0, 0);
 
-    return rect
-  }, [editor])
+    return rect;
+  }, [editor]);
 
   const shouldShow = useCallback(() => {
-    const isColumns = editor.isActive('columns')
-    return isColumns
-  }, [editor])
+    const isColumns = editor.isActive('columns');
+    return isColumns;
+  }, [editor]);
 
   const onColumnLeft = useCallback(() => {
-    editor.chain().focus().setLayout(ColumnLayout.SidebarLeft).run()
-  }, [editor])
+    editor.chain().focus().setLayout(ColumnLayout.SidebarLeft).run();
+  }, [editor]);
 
   const onColumnRight = useCallback(() => {
-    editor.chain().focus().setLayout(ColumnLayout.SidebarRight).run()
-  }, [editor])
+    editor.chain().focus().setLayout(ColumnLayout.SidebarRight).run();
+  }, [editor]);
 
   const onColumnTwo = useCallback(() => {
-    editor.chain().focus().setLayout(ColumnLayout.TwoColumn).run()
-  }, [editor])
+    editor.chain().focus().setLayout(ColumnLayout.TwoColumn).run();
+  }, [editor]);
   const { isColumnLeft, isColumnRight, isColumnTwo } = useEditorState({
     editor,
-    selector: ctx => {
+    selector: (ctx) => {
       return {
         isColumnLeft: ctx.editor.isActive('columns', { layout: ColumnLayout.SidebarLeft }),
         isColumnRight: ctx.editor.isActive('columns', { layout: ColumnLayout.SidebarRight }),
         isColumnTwo: ctx.editor.isActive('columns', { layout: ColumnLayout.TwoColumn }),
-      }
+      };
     },
-  })
+  });
 
   return (
     <BaseBubbleMenu
@@ -73,7 +73,7 @@ export const ColumnsMenu = ({ editor, appendTo }: MenuProps) => {
         </Toolbar.Button>
       </Toolbar.Wrapper>
     </BaseBubbleMenu>
-  )
-}
+  );
+};
 
-export default ColumnsMenu
+export default ColumnsMenu;

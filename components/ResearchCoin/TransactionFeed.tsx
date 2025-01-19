@@ -22,11 +22,11 @@ interface TransactionFeedProps {
   isExporting: boolean;
 }
 
-export function TransactionFeed({ 
+export function TransactionFeed({
   onTransactionsChange,
   onExport,
   exchangeRate,
-  isExporting
+  isExporting,
 }: TransactionFeedProps) {
   const { data: session, status } = useSession();
   const [transactions, setTransactions] = useState<TransactionAPIResponse['results']>([]);
@@ -35,7 +35,7 @@ export function TransactionFeed({
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(INITIAL_PAGE);
   const [hasNextPage, setHasNextPage] = useState(true);
-  
+
   const observerRef = useRef<IntersectionObserver | null>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
   const abortController = useRef<AbortController | null>(null);
@@ -43,7 +43,7 @@ export function TransactionFeed({
   // Initial data fetch
   useEffect(() => {
     if (status === 'loading') return;
-    
+
     if (!session) {
       setIsLoading(false);
       return;
@@ -97,9 +97,9 @@ export function TransactionFeed({
     if (abortController.current) {
       abortController.current.abort();
     }
-    
+
     abortController.current = new AbortController();
-    
+
     try {
       if (isLoadingMore) {
         setIsLoadingMore(true);
@@ -108,12 +108,14 @@ export function TransactionFeed({
       }
 
       const response = await TransactionService.getTransactions(page);
-      
+
       if (!response?.results) {
         throw new Error('Invalid response format');
       }
 
-      setTransactions(prev => page === INITIAL_PAGE ? response.results : [...prev, ...response.results]);
+      setTransactions((prev) =>
+        page === INITIAL_PAGE ? response.results : [...prev, ...response.results]
+      );
       setHasNextPage(!!response.next);
       setCurrentPage(page);
       setError(null);
@@ -145,22 +147,21 @@ export function TransactionFeed({
             <h2 className="text-xl font-semibold text-gray-800">Recent Transactions</h2>
             <div className="group relative">
               <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help transition-colors" />
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 
+              <div
+                className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 
                 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible
                 group-hover:opacity-100 group-hover:visible transition-all duration-200
-                whitespace-nowrap shadow-lg z-10 w-max max-w-md">
+                whitespace-nowrap shadow-lg z-10 w-max max-w-md"
+              >
                 USD values reflect current exchange rates
-                <div className="absolute left-1/2 -translate-x-1/2 top-full
-                  border-4 border-transparent border-t-gray-900"></div>
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 top-full
+                  border-4 border-transparent border-t-gray-900"
+                ></div>
               </div>
             </div>
           </div>
-          <Button
-            disabled
-            variant="outlined"
-            size="default"
-            className="gap-2"
-          >
+          <Button disabled variant="outlined" size="default" className="gap-2">
             <FileDown className="h-4 w-4" />
             Export
           </Button>
@@ -180,12 +181,7 @@ export function TransactionFeed({
       <div className="bg-white">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-gray-800">Recent Transactions</h2>
-          <Button
-            disabled
-            variant="outlined"
-            size="default"
-            className="gap-2"
-          >
+          <Button disabled variant="outlined" size="default" className="gap-2">
             <FileDown className="h-4 w-4" />
             Export
           </Button>
@@ -195,13 +191,10 @@ export function TransactionFeed({
             <Coins className="h-8 w-8 text-gray-400" />
           </div>
           <div className="text-center max-w-md">
-            <h3 className="text-2xl font-semibold text-gray-900 mb-3">
-              Welcome to ResearchCoin
-            </h3>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-3">Welcome to ResearchCoin</h3>
             <p className="text-base text-gray-600 mb-8">
-              Sign in to start earning and managing your ResearchCoin.
-              Track your balance, view transaction history, and participate in
-              the ResearchHub economy.
+              Sign in to start earning and managing your ResearchCoin. Track your balance, view
+              transaction history, and participate in the ResearchHub economy.
             </p>
             <Button
               onClick={() => {
@@ -228,13 +221,17 @@ export function TransactionFeed({
           <h2 className="text-xl font-semibold text-gray-800">Recent Transactions</h2>
           <div className="group relative">
             <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help transition-colors" />
-            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 
+            <div
+              className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 
               bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible
               group-hover:opacity-100 group-hover:visible transition-all duration-200
-              whitespace-nowrap shadow-lg z-10 w-max max-w-md">
+              whitespace-nowrap shadow-lg z-10 w-max max-w-md"
+            >
               USD values reflect current exchange rates
-              <div className="absolute left-1/2 -translate-x-1/2 top-full
-                border-4 border-transparent border-t-gray-900"></div>
+              <div
+                className="absolute left-1/2 -translate-x-1/2 top-full
+                border-4 border-transparent border-t-gray-900"
+              ></div>
             </div>
           </div>
         </div>
@@ -261,11 +258,7 @@ export function TransactionFeed({
         ))}
 
         {/* Infinite scroll trigger and loading feedback */}
-        <div 
-          ref={observerTarget}
-          className="min-h-[20px]"
-          aria-hidden="true"
-        />
+        <div ref={observerTarget} className="min-h-[20px]" aria-hidden="true" />
       </div>
 
       {/* Loading more feedback */}
@@ -278,4 +271,4 @@ export function TransactionFeed({
       )}
     </div>
   );
-} 
+}

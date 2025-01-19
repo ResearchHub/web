@@ -1,25 +1,25 @@
-'use client'
+'use client';
 
-import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react'
-import { Fragment, useState, useEffect } from 'react'
-import { X as XIcon, AlertTriangle } from 'lucide-react'
-import toast from 'react-hot-toast'
-import { colors } from '@/app/styles/colors'
-import { TransactionService } from '@/services/transaction.service'
-import { formatRSC, formatUsdValue } from '@/utils/number'
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon'
+import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react';
+import { Fragment, useState, useEffect } from 'react';
+import { X as XIcon, AlertTriangle } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { colors } from '@/app/styles/colors';
+import { TransactionService } from '@/services/transaction.service';
+import { formatRSC, formatUsdValue } from '@/utils/number';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 
 interface WithdrawModalProps {
-  isOpen: boolean
-  onClose: () => void
-  availableBalance: number
+  isOpen: boolean;
+  onClose: () => void;
+  availableBalance: number;
 }
 
 export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawModalProps) {
-  const [amount, setAmount] = useState<string>('')
-  const [exchangeRate, setExchangeRate] = useState<number>(1.576) // Default fallback
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string>('')
+  const [amount, setAmount] = useState<string>('');
+  const [exchangeRate, setExchangeRate] = useState<number>(1.576); // Default fallback
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   useEffect(() => {
     const fetchExchangeRate = async () => {
@@ -51,22 +51,22 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
     }
 
     try {
-      setIsProcessing(true)
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      toast.success(`Withdrawal of ${amount} RSC initiated successfully!`)
-      onClose()
-      setAmount('')
+      setIsProcessing(true);
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      toast.success(`Withdrawal of ${amount} RSC initiated successfully!`);
+      onClose();
+      setAmount('');
     } catch (error) {
-      console.error('Withdrawal failed:', error)
-      toast.error('Withdrawal failed. Please try again.')
+      console.error('Withdrawal failed:', error);
+      toast.error('Withdrawal failed. Please try again.');
     } finally {
-      setIsProcessing(false)
+      setIsProcessing(false);
     }
   }
 
   const handleMaxAmount = () => {
-    setAmount(availableBalance.toString())
-  }
+    setAmount(availableBalance.toString());
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -113,14 +113,12 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                   {/* Network Info */}
                   <div className="bg-gray-50 rounded-xl p-4 shadow-md border border-gray-200">
                     <div className="flex items-center gap-3">
-                      <img 
-                        src="/base-logo.svg" 
-                        alt="Base Network" 
-                        className="h-6 w-6"
-                      />
+                      <img src="/base-logo.svg" alt="Base Network" className="h-6 w-6" />
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-gray-900">Base Network</span>
-                        <span className="text-xs text-gray-500">Withdrawals are processed on Base L2</span>
+                        <span className="text-xs text-gray-500">
+                          Withdrawals are processed on Base L2
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -152,7 +150,9 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                         <span className="text-gray-500">RSC</span>
                       </div>
                     </div>
-                    {errorMessage && <p className="text-red-500 text-sm font-semibold">{errorMessage}</p>}
+                    {errorMessage && (
+                      <p className="text-red-500 text-sm font-semibold">{errorMessage}</p>
+                    )}
                   </div>
 
                   {/* Warning */}
@@ -160,8 +160,8 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                     <div className="flex gap-3">
                       <AlertTriangle className="h-5 w-5 text-amber-700 flex-shrink-0" />
                       <p className="text-sm text-amber-700">
-                        Please ensure the withdrawal address is correct.
-                        Transactions cannot be reversed once confirmed.
+                        Please ensure the withdrawal address is correct. Transactions cannot be
+                        reversed once confirmed.
                       </p>
                     </div>
                   </div>
@@ -204,5 +204,5 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
         </div>
       </Dialog>
     </Transition>
-  )
-} 
+  );
+}

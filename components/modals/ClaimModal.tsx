@@ -1,40 +1,40 @@
-'use client'
+'use client';
 
-import { Dialog, Transition } from '@headlessui/react'
-import { Fragment, useState } from 'react'
-import { X } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { Search } from '@/components/Search/Search'
-import { Button } from '@/components/ui/Button'
-import { useSession } from 'next-auth/react'
-import { SearchSuggestion } from '@/types/search'
+import { Dialog, Transition } from '@headlessui/react';
+import { Fragment, useState } from 'react';
+import { X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Search } from '@/components/Search/Search';
+import { Button } from '@/components/ui/Button';
+import { useSession } from 'next-auth/react';
+import { SearchSuggestion } from '@/types/search';
 interface ClaimModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-type Step = 'search' | 'verify'
+type Step = 'search' | 'verify';
 
 export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
-  const [currentStep, setCurrentStep] = useState<Step>('search')
-  const [selectedPaper, setSelectedPaper] = useState<SearchSuggestion | null>(null)
-  const router = useRouter()
-  const { data: session } = useSession()
+  const [currentStep, setCurrentStep] = useState<Step>('search');
+  const [selectedPaper, setSelectedPaper] = useState<SearchSuggestion | null>(null);
+  const router = useRouter();
+  const { data: session } = useSession();
 
   const handleSearchSelect = (suggestion: SearchSuggestion) => {
-    setSelectedPaper(suggestion)
-    setCurrentStep('verify')
-  }
+    setSelectedPaper(suggestion);
+    setCurrentStep('verify');
+  };
 
   const handleVerifyProfile = () => {
     // TODO: Implement profile verification flow
     if (selectedPaper?.id) {
-      router.push(`/profile/verify?paper_id=${selectedPaper.id}`)
+      router.push(`/profile/verify?paper_id=${selectedPaper.id}`);
     } else if (selectedPaper?.doi) {
-      router.push(`/profile/verify?doi=${encodeURIComponent(selectedPaper.doi)}`)
+      router.push(`/profile/verify?doi=${encodeURIComponent(selectedPaper.doi)}`);
     }
-    onClose()
-  }
+    onClose();
+  };
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -42,9 +42,7 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">
-                Search for your paper
-              </h3>
+              <h3 className="text-lg font-medium text-gray-900">Search for your paper</h3>
               <p className="mt-1 text-sm text-gray-500">
                 Enter your paper's DOI or search by title to claim it and earn ResearchCoin
               </p>
@@ -52,15 +50,13 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
 
             <Search onSelect={handleSearchSelect} />
           </div>
-        )
+        );
 
       case 'verify':
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">
-                Verify Your Profile
-              </h3>
+              <h3 className="text-lg font-medium text-gray-900">Verify Your Profile</h3>
               <p className="mt-1 text-sm text-gray-500">
                 To claim your paper and earn ResearchCoin, we need to verify your identity
               </p>
@@ -80,16 +76,13 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
               </div>
             )}
 
-            <Button
-              onClick={handleVerifyProfile}
-              className="w-full justify-center"
-            >
+            <Button onClick={handleVerifyProfile} className="w-full justify-center">
               Continue to Verification
             </Button>
           </div>
-        )
+        );
     }
-  }
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -135,5 +128,5 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
         </div>
       </Dialog>
     </Transition>
-  )
-} 
+  );
+}

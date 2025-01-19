@@ -1,4 +1,4 @@
-import { createTransformer, BaseTransformed } from "./transformer";
+import { createTransformer, BaseTransformed } from './transformer';
 
 export type SuggestionSource = 'api' | 'recent';
 
@@ -30,7 +30,8 @@ export interface RecentPageView {
 export type TransformedSearchSuggestion = SearchSuggestion & BaseTransformed;
 
 export const transformSearchSuggestion = createTransformer<any, SearchSuggestion>((raw: any) => {
-  if (raw.lastVisited) { // If it's a recent suggestion
+  if (raw.lastVisited) {
+    // If it's a recent suggestion
     return {
       entityType: 'work',
       doi: raw.doi || '',
@@ -43,7 +44,7 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
       id: raw.id,
       isRecent: true,
       lastVisited: raw.lastVisited,
-      slug: raw.slug
+      slug: raw.slug,
     };
   }
 
@@ -57,6 +58,6 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
     source: raw.source,
     openalexId: raw.openalex_id,
     id: raw.id,
-    isRecent: false
+    isRecent: false,
   };
-}); 
+});

@@ -6,8 +6,10 @@ export const mockFunding: Funding = {
   id: '1234',
   type: 'funding_request',
   title: 'Incentivized vs Non-Incentivized Open Peer Reviews: Dynamics, Economics, and Quality',
-  objective: 'Develop a comprehensive understanding toward the influence of incentives for Open Peer Review toward tackling the Peer Review Crisis across the scientific publication ecosystem.',
-  abstract: 'Open peer review (OPR) is an emerging concept in the scientific publication scene that has gained attention alongside the rise of open science. OPR has led to a starkly different dynamic and possibilities of how peer reviewers behave...',
+  objective:
+    'Develop a comprehensive understanding toward the influence of incentives for Open Peer Review toward tackling the Peer Review Crisis across the scientific publication ecosystem.',
+  abstract:
+    'Open peer review (OPR) is an emerging concept in the scientific publication scene that has gained attention alongside the rise of open science. OPR has led to a starkly different dynamic and possibilities of how peer reviewers behave...',
 
   // User information
   user: users.dominikus,
@@ -18,7 +20,13 @@ export const mockFunding: Funding = {
   publishDate: 'October 9, 2024',
   hub: hubs.researchMethods,
   doi: '10.55277/ResearchHub.taescjxh',
-  keywords: ['Open Peer Review', 'Incentives', 'Research Methods', 'Scientometrics', 'Open Science'],
+  keywords: [
+    'Open Peer Review',
+    'Incentives',
+    'Research Methods',
+    'Scientometrics',
+    'Open Science',
+  ],
 
   // Funding specific
   amount: 30131,
@@ -32,7 +40,7 @@ export const mockFunding: Funding = {
     reposts: 12,
     saves: 18,
     views: 1234,
-    reviewScore: 4.5
+    reviewScore: 4.5,
   },
 
   content: `Motivation
@@ -61,7 +69,6 @@ export const mockFunding: Funding = {
     { user: users.mariaPatel, amount: 3500 },
     { user: users.openBiologyInitiative, amount: 10000 },
     { user: users.bioRxiv, amount: 8000 },
-    { user: users.davidKumar, amount: 3631 }
-  ]
+    { user: users.davidKumar, amount: 3631 },
+  ],
 };
-

@@ -1,44 +1,44 @@
-import { Suspense } from 'react'
-import { PaperService } from '@/services/paper.service'
-import { Work } from '@/types/work'
-import { Metadata } from 'next'
-import { notFound } from 'next/navigation'
-import { PageLayout } from '@/app/layouts/PageLayout'
-import { WorkDocument } from '@/components/work/WorkDocument'
-import { WorkRightSidebar } from '@/components/work/WorkRightSidebar'
-import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker'
+import { Suspense } from 'react';
+import { PaperService } from '@/services/paper.service';
+import { Work } from '@/types/work';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { PageLayout } from '@/app/layouts/PageLayout';
+import { WorkDocument } from '@/components/work/WorkDocument';
+import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
+import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 
 interface Props {
   params: Promise<{
-    id: string
-    slug: string
-  }>
+    id: string;
+    slug: string;
+  }>;
 }
 
 async function getWork(id: string) {
   if (!id.match(/^\d+$/)) {
-    notFound()
+    notFound();
   }
 
   try {
-    return await PaperService.get(id)
+    return await PaperService.get(id);
   } catch (error) {
-    notFound()
+    notFound();
   }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const resolvedParams = await params
-  const work = await getWork(resolvedParams.id)
+  const resolvedParams = await params;
+  const work = await getWork(resolvedParams.id);
   return {
     title: work.title,
     description: work.abstract,
-  }
+  };
 }
 
 export default async function WorkPage({ params }: Props) {
-  const resolvedParams = await params
-  const work = await getWork(resolvedParams.id)
+  const resolvedParams = await params;
+  const work = await getWork(resolvedParams.id);
 
   return (
     <PageLayout rightSidebar={<WorkRightSidebar work={work} />}>
@@ -47,5 +47,5 @@ export default async function WorkPage({ params }: Props) {
         <SearchHistoryTracker work={work} />
       </Suspense>
     </PageLayout>
-  )
-} 
+  );
+}

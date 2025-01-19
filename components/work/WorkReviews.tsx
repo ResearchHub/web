@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
 interface WorkReviewsProps {
-  workId: number
+  workId: number;
 }
 
 export const WorkReviews = ({ workId }: WorkReviewsProps) => {
@@ -11,5 +11,5 @@ export const WorkReviews = ({ workId }: WorkReviewsProps) => {
         No reviews yet. Be the first to review this work.
       </div>
     </div>
-  )
-} 
+  );
+};

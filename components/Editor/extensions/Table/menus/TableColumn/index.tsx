@@ -1,35 +1,35 @@
-import { BubbleMenu as BaseBubbleMenu } from '@tiptap/react'
-import React, { useCallback } from 'react'
-import * as PopoverMenu from '@/components/Editor/components/ui/PopoverMenu'
+import { BubbleMenu as BaseBubbleMenu } from '@tiptap/react';
+import React, { useCallback } from 'react';
+import * as PopoverMenu from '@/components/Editor/components/ui/PopoverMenu';
 
-import { Toolbar } from '@/components/Editor/components/ui/Toolbar'
-import { isColumnGripSelected } from './utils'
-import { Icon } from '@/components/Editor/components/ui/Icon'
-import { MenuProps, ShouldShowProps } from '@/components/Editor/components/menus/types'
+import { Toolbar } from '@/components/Editor/components/ui/Toolbar';
+import { isColumnGripSelected } from './utils';
+import { Icon } from '@/components/Editor/components/ui/Icon';
+import { MenuProps, ShouldShowProps } from '@/components/Editor/components/menus/types';
 
 export const TableColumnMenu = React.memo(({ editor, appendTo }: MenuProps): JSX.Element => {
   const shouldShow = useCallback(
     ({ view, state, from }: ShouldShowProps) => {
       if (!state) {
-        return false
+        return false;
       }
 
-      return isColumnGripSelected({ editor, view, state, from: from || 0 })
+      return isColumnGripSelected({ editor, view, state, from: from || 0 });
     },
-    [editor],
-  )
+    [editor]
+  );
 
   const onAddColumnBefore = useCallback(() => {
-    editor.chain().focus().addColumnBefore().run()
-  }, [editor])
+    editor.chain().focus().addColumnBefore().run();
+  }, [editor]);
 
   const onAddColumnAfter = useCallback(() => {
-    editor.chain().focus().addColumnAfter().run()
-  }, [editor])
+    editor.chain().focus().addColumnAfter().run();
+  }, [editor]);
 
   const onDeleteColumn = useCallback(() => {
-    editor.chain().focus().deleteColumn().run()
-  }, [editor])
+    editor.chain().focus().deleteColumn().run();
+  }, [editor]);
 
   return (
     <BaseBubbleMenu
@@ -38,7 +38,7 @@ export const TableColumnMenu = React.memo(({ editor, appendTo }: MenuProps): JSX
       updateDelay={0}
       tippyOptions={{
         appendTo: () => {
-          return appendTo?.current
+          return appendTo?.current;
         },
         offset: [0, 15],
         popperOptions: {
@@ -60,12 +60,17 @@ export const TableColumnMenu = React.memo(({ editor, appendTo }: MenuProps): JSX
           label="Add column after"
           onClick={onAddColumnAfter}
         />
-        <PopoverMenu.Item icon="Trash" close={false} label="Delete column" onClick={onDeleteColumn} />
+        <PopoverMenu.Item
+          icon="Trash"
+          close={false}
+          label="Delete column"
+          onClick={onDeleteColumn}
+        />
       </Toolbar.Wrapper>
     </BaseBubbleMenu>
-  )
-})
+  );
+});
 
-TableColumnMenu.displayName = 'TableColumnMenu'
+TableColumnMenu.displayName = 'TableColumnMenu';
 
-export default TableColumnMenu
+export default TableColumnMenu;

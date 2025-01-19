@@ -1,54 +1,54 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { PageLayout } from '@/app/layouts/PageLayout'
-import { ResearchCoinRightSidebar } from '@/components/ResearchCoin/ResearchCoinRightSidebar'
-import { UserBalanceSection } from '@/components/ResearchCoin/UserBalanceSection'
-import { TransactionFeed } from '@/components/ResearchCoin/TransactionFeed'
-import { ExportFilterModal } from '@/components/modals/ResearchCoin/ExportFilterModal'
-import { useSession } from 'next-auth/react'
-import { PageHeader } from '@/components/ui/PageHeader'
-import { TransactionService } from '@/services/transaction.service'
-import { ExchangeRateService } from '@/services/exchangeRate.service'
+import { useEffect, useState } from 'react';
+import { PageLayout } from '@/app/layouts/PageLayout';
+import { ResearchCoinRightSidebar } from '@/components/ResearchCoin/ResearchCoinRightSidebar';
+import { UserBalanceSection } from '@/components/ResearchCoin/UserBalanceSection';
+import { TransactionFeed } from '@/components/ResearchCoin/TransactionFeed';
+import { ExportFilterModal } from '@/components/modals/ResearchCoin/ExportFilterModal';
+import { useSession } from 'next-auth/react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { TransactionService } from '@/services/transaction.service';
+import { ExchangeRateService } from '@/services/exchangeRate.service';
 
 export default function ResearchCoinPage() {
-  const { data: session, status } = useSession()
-  const [exchangeRate, setExchangeRate] = useState<number>(0)
-  const [userBalance, setUserBalance] = useState<number | null>(null)
-  const [isExporting, setIsExporting] = useState(false)
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
-  const [isFetchingExchangeRate, setIsFetchingExchangeRate] = useState(true)
+  const { data: session, status } = useSession();
+  const [exchangeRate, setExchangeRate] = useState<number>(0);
+  const [userBalance, setUserBalance] = useState<number | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isFetchingExchangeRate, setIsFetchingExchangeRate] = useState(true);
 
   useEffect(() => {
-    if (status === 'loading') return
+    if (status === 'loading') return;
 
     if (!session) {
-      setIsFetchingExchangeRate(false)
-      return
+      setIsFetchingExchangeRate(false);
+      return;
     }
 
     const fetchInitialData = async () => {
       try {
         const [balanceResponse, rateResponse] = await Promise.all([
           TransactionService.getUserBalance(),
-          ExchangeRateService.getLatestRate()
-        ])
-        
-        setUserBalance(balanceResponse.user.balance)
-        setExchangeRate(rateResponse)
-      } catch (error) {
-        console.error('Failed to fetch initial data:', error)
-      } finally {
-        setIsFetchingExchangeRate(false)
-      }
-    }
+          ExchangeRateService.getLatestRate(),
+        ]);
 
-    fetchInitialData()
-  }, [session, status])
+        setUserBalance(balanceResponse.user.balance);
+        setExchangeRate(rateResponse);
+      } catch (error) {
+        console.error('Failed to fetch initial data:', error);
+      } finally {
+        setIsFetchingExchangeRate(false);
+      }
+    };
+
+    fetchInitialData();
+  }, [session, status]);
 
   const handleExport = () => {
-    setIsExportModalOpen(true)
-  }
+    setIsExportModalOpen(true);
+  };
 
   return (
     <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
@@ -57,13 +57,13 @@ export default function ResearchCoinPage() {
 
         <div className="py-6">
           <div className="lg:col-span-2">
-            <UserBalanceSection 
-              balance={userBalance} 
+            <UserBalanceSection
+              balance={userBalance}
               exchangeRate={exchangeRate}
               isFetchingExchangeRate={isFetchingExchangeRate}
             />
             <div className="mt-6">
-              <TransactionFeed 
+              <TransactionFeed
                 onExport={handleExport}
                 exchangeRate={exchangeRate}
                 isExporting={isExporting}
@@ -84,5 +84,5 @@ export default function ResearchCoinPage() {
         />
       )}
     </PageLayout>
-  )
-} 
+  );
+}

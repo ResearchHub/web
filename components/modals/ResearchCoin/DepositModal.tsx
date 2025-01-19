@@ -1,24 +1,24 @@
-'use client'
+'use client';
 
-import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react'
-import { Fragment, useState, useEffect } from 'react'
-import { X as XIcon, Info } from 'lucide-react'
-import toast from 'react-hot-toast'
-import { colors } from '@/app/styles/colors'
-import { TransactionService } from '@/services/transaction.service'
-import { formatRSC, formatUsdValue } from '@/utils/number'
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon'
+import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react';
+import { Fragment, useState, useEffect } from 'react';
+import { X as XIcon, Info } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { colors } from '@/app/styles/colors';
+import { TransactionService } from '@/services/transaction.service';
+import { formatRSC, formatUsdValue } from '@/utils/number';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 
 interface DepositModalProps {
-  isOpen: boolean
-  onClose: () => void
-  currentBalance: number
+  isOpen: boolean;
+  onClose: () => void;
+  currentBalance: number;
 }
 
 export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalProps) {
-  const [amount, setAmount] = useState<string>('')
-  const [exchangeRate, setExchangeRate] = useState<number>(1.576) // Default fallback
-  const [isProcessing, setIsProcessing] = useState(false)
+  const [amount, setAmount] = useState<string>('');
+  const [exchangeRate, setExchangeRate] = useState<number>(1.576); // Default fallback
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const fetchExchangeRate = async () => {
@@ -38,27 +38,27 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
   }, [isOpen]);
 
   const calculateNewBalance = (): number => {
-    const deposit = parseFloat(amount || '0')
-    return currentBalance + deposit
-  }
+    const deposit = parseFloat(amount || '0');
+    return currentBalance + deposit;
+  };
 
   async function handleDeposit() {
     if (!amount || parseFloat(amount) <= 0) {
-      toast.error('Please enter a valid amount')
-      return
+      toast.error('Please enter a valid amount');
+      return;
     }
 
     try {
-      setIsProcessing(true)
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      toast.success('Deposit successful!')
-      onClose()
-      setAmount('')
+      setIsProcessing(true);
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      toast.success('Deposit successful!');
+      onClose();
+      setAmount('');
     } catch (error) {
-      console.error('Deposit failed:', error)
-      toast.error('Deposit failed. Please try again.')
+      console.error('Deposit failed:', error);
+      toast.error('Deposit failed. Please try again.');
     } finally {
-      setIsProcessing(false)
+      setIsProcessing(false);
     }
   }
 
@@ -105,14 +105,12 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
                   {/* Network Info */}
                   <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-md">
                     <div className="flex items-center gap-3">
-                      <img 
-                        src="/base-logo.svg" 
-                        alt="Base Network" 
-                        className="h-6 w-6"
-                      />
+                      <img src="/base-logo.svg" alt="Base Network" className="h-6 w-6" />
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-gray-900">Base Network</span>
-                        <span className="text-xs text-gray-500">Deposits are processed on Base L2</span>
+                        <span className="text-xs text-gray-500">
+                          Deposits are processed on Base L2
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -198,5 +196,5 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
         </div>
       </Dialog>
     </Transition>
-  )
-} 
+  );
+}

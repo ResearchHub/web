@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useState } from 'react';
 import { cn } from '@/utils/styles';
@@ -12,36 +12,36 @@ interface ContributeRSCProps {
   /**
    * Size in pixels. Component maintains 1:1 aspect ratio
    */
-  size?: number
+  size?: number;
   /**
    * Primary color
    * @default '#4D525D'
    */
-  iconColor?: string
+  iconColor?: string;
   /**
    * Text color
    * @default '#101827'
    */
-  textColor?: string
+  textColor?: string;
   /**
    * Optional CSS class name
    */
-  className?: string
+  className?: string;
   /**
    * Optional click handler
    */
-  onClick?: (event: React.MouseEvent) => void
+  onClick?: (event: React.MouseEvent) => void;
   /**
    * Amount of RSC earned
    */
-  amount?: number
+  amount?: number;
   /**
    * Contributors to show in avatar stack
    */
   contributors?: Array<{
     profile: AuthorProfile;
     amount: number;
-  }>
+  }>;
 }
 
 export function ContributeRSC({
@@ -54,7 +54,7 @@ export function ContributeRSC({
   contributors = [],
 }: ContributeRSCProps) {
   return (
-    <div className={cn("inline-flex items-center gap-2", className)}>
+    <div className={cn('inline-flex items-center gap-2', className)}>
       <Button
         variant="ghost"
         size="sm"
@@ -62,11 +62,7 @@ export function ContributeRSC({
         className="flex items-center space-x-1.5 text-gray-900 hover:text-gray-900"
         onClick={onClick}
       >
-        <ResearchCoinIcon
-          size={size}
-          color={iconColor}
-          contribute
-        />
+        <ResearchCoinIcon size={size} color={iconColor} contribute />
         {amount !== undefined && amount > 0 && (
           <span className="text-sm font-medium" style={{ color: textColor }}>
             {formatRSC({ amount, shorten: true })}
@@ -82,4 +78,4 @@ export function ContributeRSC({
       )}
     </div>
   );
-} 
+}

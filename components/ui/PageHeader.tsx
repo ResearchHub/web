@@ -1,9 +1,9 @@
-import { LargeHeader } from './LargeHeader'
+import { LargeHeader } from './LargeHeader';
 
 interface PageHeaderProps {
-  title: string
-  className?: string
-  children?: React.ReactNode
+  title: string;
+  className?: string;
+  children?: React.ReactNode;
 }
 
 export function PageHeader({ title, className, children }: PageHeaderProps) {
@@ -16,5 +16,5 @@ export function PageHeader({ title, className, children }: PageHeaderProps) {
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}

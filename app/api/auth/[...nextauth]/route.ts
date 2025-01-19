@@ -1,15 +1,14 @@
 import { transformUser } from '@/types/user';
-import NextAuth from 'next-auth'
-import type { NextAuthOptions } from 'next-auth'
-import GoogleProvider from 'next-auth/providers/google'
-
+import NextAuth from 'next-auth';
+import type { NextAuthOptions } from 'next-auth';
+import GoogleProvider from 'next-auth/providers/google';
 
 // Direct fetch for auth route to avoid circular dependency
 async function fetchUserData(authToken: string) {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/`, {
     headers: {
-      'Authorization': `Token ${authToken}`,
-      'Accept': 'application/json',
+      Authorization: `Token ${authToken}`,
+      Accept: 'application/json',
     },
   });
 
@@ -34,17 +33,16 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account, profile }) {
       try {
-
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/google/login/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            Accept: 'application/json',
           },
           body: JSON.stringify({
             access_token: account?.access_token,
             id_token: account?.id_token,
-          })
+          }),
         });
 
         if (!response.ok) {
@@ -88,14 +86,14 @@ export const authOptions: NextAuthOptions = {
         return {
           ...session,
           isLoggedIn: false,
-          error: 'AuthenticationFailed'
-        }
+          error: 'AuthenticationFailed',
+        };
       }
 
       try {
         const userData = await fetchUserData(token.authToken as string);
         const isAuthenticated = Boolean(userData.results.length > 0 && userData.results[0]);
-        
+
         if (isAuthenticated) {
           const transformedUser = transformUser(userData.results[0]);
 
@@ -104,13 +102,13 @@ export const authOptions: NextAuthOptions = {
             authToken: token.authToken,
             isLoggedIn: true,
             user: transformedUser,
-          }
+          };
         } else {
           return {
             ...session,
             isLoggedIn: false,
-            error: 'AccessDenied'
-          }
+            error: 'AccessDenied',
+          };
         }
       } catch (error) {
         console.error('Session callback failed:', error);
@@ -118,16 +116,12 @@ export const authOptions: NextAuthOptions = {
           ...session,
           user: undefined,
           isLoggedIn: false,
-          error: 'SessionExpired'
-        }
+          error: 'SessionExpired',
+        };
       }
-    }
+    },
   },
-}
+};
 
-const handler = NextAuth(authOptions)
-export { handler as GET, handler as POST } 
-
-
-
-
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };

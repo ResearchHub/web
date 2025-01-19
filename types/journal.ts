@@ -3,4 +3,4 @@ export interface Journal {
   name: string;
   slug: string;
   image?: string;
-} 
+}

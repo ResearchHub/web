@@ -1,14 +1,22 @@
-'use client'
+'use client';
 
-import { 
-  ArrowUp, MessageSquare, Users, Link2, Tag, 
-  Coins, Repeat2, Bookmark, Eye, Star,
-  BarChart2
-} from 'lucide-react'
-import type { Funding } from '@/types/funding'
+import {
+  ArrowUp,
+  MessageSquare,
+  Users,
+  Link2,
+  Tag,
+  Coins,
+  Repeat2,
+  Bookmark,
+  Eye,
+  Star,
+  BarChart2,
+} from 'lucide-react';
+import type { Funding } from '@/types/funding';
 
 interface FundraiseRightSidebarProps {
-  fundraise: Funding
+  fundraise: Funding;
 }
 
 export function FundraiseRightSidebar({ fundraise }: FundraiseRightSidebarProps) {
@@ -62,10 +70,12 @@ export function FundraiseRightSidebar({ fundraise }: FundraiseRightSidebarProps)
               <Link2 className="h-4 w-4 text-gray-500" />
               DOI
             </h3>
-            <a href={`https://doi.org/${fundraise.doi}`} 
-               className="text-sm text-blue-600 hover:underline"
-               target="_blank" 
-               rel="noopener noreferrer">
+            <a
+              href={`https://doi.org/${fundraise.doi}`}
+              className="text-sm text-blue-600 hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {fundraise.doi}
             </a>
           </div>
@@ -80,14 +90,17 @@ export function FundraiseRightSidebar({ fundraise }: FundraiseRightSidebarProps)
               {fundraise.contributors.map(({ user, amount }) => (
                 <div key={user.id} className="flex items-center space-x-3">
                   {user.profileImage ? (
-                    <img 
-                      src={user.profileImage} 
+                    <img
+                      src={user.profileImage}
                       alt={user.fullName}
-                      className="h-8 w-8 rounded-full object-cover ring-2 ring-white border border-gray-200" 
+                      className="h-8 w-8 rounded-full object-cover ring-2 ring-white border border-gray-200"
                     />
                   ) : (
                     <div className="h-8 w-8 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-sm font-medium ring-2 ring-white border border-gray-200">
-                      {user.fullName.split(' ').map(n => n[0]).join('')}
+                      {user.fullName
+                        .split(' ')
+                        .map((n) => n[0])
+                        .join('')}
                     </div>
                   )}
                   <div>
@@ -113,7 +126,7 @@ export function FundraiseRightSidebar({ fundraise }: FundraiseRightSidebarProps)
             </h3>
             <div className="flex flex-wrap gap-2">
               {fundraise.keywords.map((keyword) => (
-                <span 
+                <span
                   key={keyword}
                   className="bg-gray-100 px-2 py-1 rounded-full text-xs text-gray-600"
                 >
@@ -125,5 +138,5 @@ export function FundraiseRightSidebar({ fundraise }: FundraiseRightSidebarProps)
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}

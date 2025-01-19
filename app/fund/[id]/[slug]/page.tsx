@@ -1,20 +1,20 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Coins, Users2, Share2, ArrowUp, MessageSquare, Clock, BarChart2 } from 'lucide-react'
-import { ProfileTooltip } from '@/components/tooltips/ProfileTooltip'
-import { PageLayout } from '@/app/layouts/PageLayout'
-import Link from 'next/link'
-import { BadgeCheck } from 'lucide-react'
-import { FundraiseRightSidebar } from '@/components/Fund/FundraiseRightSidebar'
-import { mockFunding } from '@/store/fundingStore'
-import { Funding } from '@/types/funding'
-import { AvatarStack } from '@/components/ui/AvatarStack'
+import { useState } from 'react';
+import { Coins, Users2, Share2, ArrowUp, MessageSquare, Clock, BarChart2 } from 'lucide-react';
+import { ProfileTooltip } from '@/components/tooltips/ProfileTooltip';
+import { PageLayout } from '@/app/layouts/PageLayout';
+import Link from 'next/link';
+import { BadgeCheck } from 'lucide-react';
+import { FundraiseRightSidebar } from '@/components/Fund/FundraiseRightSidebar';
+import { mockFunding } from '@/store/fundingStore';
+import { Funding } from '@/types/funding';
+import { AvatarStack } from '@/components/ui/AvatarStack';
 
 export default function FundingPage({ params }: { params: { id: string; slug: string } }) {
-  const [activeTab, setActiveTab] = useState('content')
-  const [showMobileMetrics, setShowMobileMetrics] = useState(false)
-  const funding: Funding = mockFunding
+  const [activeTab, setActiveTab] = useState('content');
+  const [showMobileMetrics, setShowMobileMetrics] = useState(false);
+  const funding: Funding = mockFunding;
 
   return (
     <>
@@ -30,7 +30,10 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
           <div className="mb-8">
             {/* Hub link */}
             <div className="flex items-center space-x-2 text-sm text-gray-500 mb-4">
-              <Link href={`/hub/${funding.hub.slug}`} className="text-indigo-600 hover:text-indigo-700">
+              <Link
+                href={`/hub/${funding.hub.slug}`}
+                className="text-indigo-600 hover:text-indigo-700"
+              >
                 {funding.hub.name}
               </Link>
             </div>
@@ -47,7 +50,7 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
                 <Share2 className="h-4 w-4" />
                 <span>Share</span>
               </button>
-              <button 
+              <button
                 className="lg:hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
                 onClick={() => setShowMobileMetrics(true)}
               >
@@ -65,9 +68,7 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
                   {funding.authors.map((author, i) => (
                     <span key={i} className="inline-flex items-center">
                       <span>{author.fullName}</span>
-                      {author.verified && (
-                        <BadgeCheck className="h-4 w-4 text-blue-500 ml-1" />
-                      )}
+                      {author.verified && <BadgeCheck className="h-4 w-4 text-blue-500 ml-1" />}
                       {i < funding.authors.length - 1 && (
                         <span className="mx-2 text-gray-400">•</span>
                       )}
@@ -102,7 +103,7 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
                 )}
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div 
+                <div
                   className={`h-2.5 rounded-full ${funding.progress === 100 ? 'bg-green-500' : 'bg-orange-500'}`}
                   style={{ width: `${funding.progress}%` }}
                 ></div>
@@ -117,10 +118,10 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
 
               <div className="flex items-center space-x-2">
                 <AvatarStack
-                  items={funding.contributors.map(c => ({
+                  items={funding.contributors.map((c) => ({
                     src: c.user.authorProfile?.profileImage,
                     alt: c.user.fullName,
-                    tooltip: c.user.fullName
+                    tooltip: c.user.fullName,
                   }))}
                   size="md"
                   maxItems={3}
@@ -133,9 +134,9 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
           {/* Navigation */}
           <div className="border-b mb-6">
             <nav className="flex space-x-8">
-              <button 
+              <button
                 className={`px-1 py-4 text-sm font-medium border-b-2 ${
-                  activeTab === 'content' 
+                  activeTab === 'content'
                     ? 'text-indigo-600 border-indigo-600'
                     : 'text-gray-500 border-transparent hover:text-gray-700'
                 }`}
@@ -143,9 +144,9 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
               >
                 Content
               </button>
-              <button 
+              <button
                 className={`px-1 py-4 text-sm font-medium border-b-2 ${
-                  activeTab === 'reviews' 
+                  activeTab === 'reviews'
                     ? 'text-indigo-600 border-indigo-600'
                     : 'text-gray-500 border-transparent hover:text-gray-700'
                 }`}
@@ -153,9 +154,9 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
               >
                 Reviews
               </button>
-              <button 
+              <button
                 className={`px-1 py-4 text-sm font-medium ${
-                  activeTab === 'comments' 
+                  activeTab === 'comments'
                     ? 'text-indigo-600 border-b-2 border-indigo-600'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
@@ -173,25 +174,23 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">About this fundraise</h2>
                 <div className="prose prose-sm max-w-none">
                   {funding.content.split('\n\n').map((paragraph, i) => (
-                    <p key={i} className="mb-4">{paragraph}</p>
+                    <p key={i} className="mb-4">
+                      {paragraph}
+                    </p>
                   ))}
                 </div>
               </div>
             )}
-            
+
             {activeTab === 'reviews' && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="text-gray-500 text-center py-8">
-                  No reviews yet
-                </div>
+                <div className="text-gray-500 text-center py-8">No reviews yet</div>
               </div>
             )}
-            
+
             {activeTab === 'comments' && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="text-gray-500 text-center py-8">
-                  No comments yet
-                </div>
+                <div className="text-gray-500 text-center py-8">No comments yet</div>
               </div>
             )}
           </div>
@@ -199,21 +198,21 @@ export default function FundingPage({ params }: { params: { id: string; slug: st
       </PageLayout>
 
       {/* Mobile sidebar overlay - moved outside PageLayout */}
-      <div 
+      <div
         className={`fixed inset-0 bg-black/50 z-30 z-50 lg:hidden ${
           showMobileMetrics ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={() => setShowMobileMetrics(false)}
       >
-        <div 
+        <div
           className={`absolute right-0 top-0 bottom-0 w-80 bg-white shadow-xl transition-transform duration-200 ${
             showMobileMetrics ? 'translate-x-0' : 'translate-x-full'
           }`}
-          onClick={e => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
         >
           <FundraiseRightSidebar fundraise={funding} />
         </div>
       </div>
     </>
-  )
-} 
+  );
+}

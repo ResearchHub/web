@@ -1,9 +1,16 @@
-'use client'
+'use client';
 
-import { 
-  Home, GraduationCap, 
-  BookOpen, Star, Info, Notebook, Trophy, HandCoins,
-  Coins, Telescope
+import {
+  Home,
+  GraduationCap,
+  BookOpen,
+  Star,
+  Info,
+  Notebook,
+  Trophy,
+  HandCoins,
+  Coins,
+  Telescope,
 } from 'lucide-react';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import Link from 'next/link';
@@ -13,25 +20,22 @@ interface NavigationProps {
   onUnimplementedFeature: (featureName: string) => void;
 }
 
-export const Navigation: React.FC<NavigationProps> = ({ 
-  currentPath, 
-  onUnimplementedFeature 
-}) => {
+export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimplementedFeature }) => {
   const navigationItems = [
     {
       label: 'Home',
       href: '/',
       icon: Home,
-      description: 'Navigate to the home page'
+      description: 'Navigate to the home page',
     },
     {
       label: 'My ResearchCoin',
       href: '/researchcoin',
       icon: ({ className }: { className?: string }) => (
         <div className={className}>
-          <ResearchCoinIcon 
-            size={20} 
-            outlined 
+          <ResearchCoinIcon
+            size={20}
+            outlined
             color={currentPath === '/researchcoin' ? '#4F46E5' : '#4B5563'}
           />
         </div>
@@ -39,20 +43,20 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Manage your ResearchCoin balance and transactions',
       badge: {
         text: '+10 RSC',
-        color: 'green'
-      }
+        color: 'green',
+      },
     },
     {
       label: 'Earn',
       href: '/earn',
       icon: Coins,
-      description: 'Find opportunities to earn RSC'
+      description: 'Find opportunities to earn RSC',
     },
     {
       label: 'Fund',
       href: '/funding',
       icon: HandCoins,
-      description: 'Browse grants and fundraising opportunities'
+      description: 'Browse grants and fundraising opportunities',
     },
     {
       label: 'RH Journal',
@@ -62,7 +66,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       onClick: (e: React.MouseEvent) => {
         e.preventDefault();
         onUnimplementedFeature('RH Journal');
-      }
+      },
     },
     {
       label: 'Peer Reviews',
@@ -72,33 +76,33 @@ export const Navigation: React.FC<NavigationProps> = ({
       onClick: (e: React.MouseEvent) => {
         e.preventDefault();
         onUnimplementedFeature('Peer Reviews');
-      }
+      },
     },
     {
       label: 'Explore',
       href: '/explore',
       icon: Telescope,
-      description: 'Discover trending research and opportunities'
+      description: 'Discover trending research and opportunities',
     },
     {
       label: 'Lab Notebook',
       href: '/notebook',
       icon: Notebook,
-      description: 'Access your research notebook'
+      description: 'Access your research notebook',
     },
     {
       label: 'About',
       href: '/about',
       icon: Info,
-      description: 'Learn about ResearchHub'
-    }
+      description: 'Learn about ResearchHub',
+    },
   ];
 
   const getButtonStyles = (path: string) => {
     const isActive = currentPath === path;
     return isActive
-      ? "flex items-center w-full px-4 py-3 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg group"
-      : "flex items-center w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg group";
+      ? 'flex items-center w-full px-4 py-3 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg group'
+      : 'flex items-center w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg group';
   };
 
   const getIconStyles = (path: string) => {
@@ -108,10 +112,10 @@ export const Navigation: React.FC<NavigationProps> = ({
 
   return (
     <div className="space-y-1">
-      {navigationItems.map(item => (
-        <Link 
+      {navigationItems.map((item) => (
+        <Link
           key={item.href}
-          href={item.href} 
+          href={item.href}
           className={getButtonStyles(item.href)}
           onClick={item.onClick}
         >

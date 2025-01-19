@@ -1,38 +1,38 @@
-import { useCallback, useState } from 'react'
-import { HexColorPicker } from 'react-colorful'
-import { ColorButton } from './ColorButton'
-import { Toolbar } from '../../ui/Toolbar'
-import { Icon } from '../../ui/Icon'
-import { themeColors } from '@/components/Editor/lib/constants'
+import { useCallback, useState } from 'react';
+import { HexColorPicker } from 'react-colorful';
+import { ColorButton } from './ColorButton';
+import { Toolbar } from '../../ui/Toolbar';
+import { Icon } from '../../ui/Icon';
+import { themeColors } from '@/components/Editor/lib/constants';
 
 export type ColorPickerProps = {
-  color?: string
-  onChange?: (color: string) => void
-  onClear?: () => void
-}
+  color?: string;
+  onChange?: (color: string) => void;
+  onClear?: () => void;
+};
 
 export const ColorPicker = ({ color, onChange, onClear }: ColorPickerProps) => {
-  const [colorInputValue, setColorInputValue] = useState(color || '')
+  const [colorInputValue, setColorInputValue] = useState(color || '');
 
   const handleColorUpdate = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setColorInputValue(event.target.value)
-  }, [])
+    setColorInputValue(event.target.value);
+  }, []);
 
   const handleColorChange = useCallback(() => {
-    const isCorrectColor = /^#([0-9A-F]{3}){1,2}$/i.test(colorInputValue)
+    const isCorrectColor = /^#([0-9A-F]{3}){1,2}$/i.test(colorInputValue);
 
     if (!isCorrectColor) {
       if (onChange) {
-        onChange('')
+        onChange('');
       }
 
-      return
+      return;
     }
 
     if (onChange) {
-      onChange(colorInputValue)
+      onChange(colorInputValue);
     }
-  }, [colorInputValue, onChange])
+  }, [colorInputValue, onChange]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -46,7 +46,7 @@ export const ColorPicker = ({ color, onChange, onClear }: ColorPickerProps) => {
         onBlur={handleColorChange}
       />
       <div className="flex flex-wrap items-center gap-1 max-w-[15rem]">
-        {themeColors.map(currentColor => (
+        {themeColors.map((currentColor) => (
           <ColorButton
             active={currentColor === color}
             color={currentColor}
@@ -59,5 +59,5 @@ export const ColorPicker = ({ color, onChange, onClear }: ColorPickerProps) => {
         </Toolbar.Button>
       </div>
     </div>
-  )
-}
+  );
+};

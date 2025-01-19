@@ -1,18 +1,14 @@
-import { Notification } from '@/types/notification'
-import { NotificationItem } from './NotificationItem'
-import { NotificationSkeleton } from './NotificationSkeleton'
+import { Notification } from '@/types/notification';
+import { NotificationItem } from './NotificationItem';
+import { NotificationSkeleton } from './NotificationSkeleton';
 
 interface NotificationListProps {
-  notifications: Notification[]
-  loading: boolean
-  error: string | null
+  notifications: Notification[];
+  loading: boolean;
+  error: string | null;
 }
 
-export function NotificationList({ 
-  notifications, 
-  loading, 
-  error, 
-}: NotificationListProps) {
+export function NotificationList({ notifications, loading, error }: NotificationListProps) {
   if (loading) {
     return (
       <div className="space-y-4">
@@ -20,15 +16,13 @@ export function NotificationList({
           <NotificationSkeleton key={index} />
         ))}
       </div>
-    )
+    );
   }
 
   if (error) {
     return (
-      <div className="p-4 rounded-lg border border-red-200 bg-red-50 text-red-700">
-        {error}
-      </div>
-    )
+      <div className="p-4 rounded-lg border border-red-200 bg-red-50 text-red-700">{error}</div>
+    );
   }
 
   if (notifications.length === 0) {
@@ -36,17 +30,14 @@ export function NotificationList({
       <div className="p-4 rounded-lg border border-gray-200 bg-gray-50 text-gray-600">
         No notifications
       </div>
-    )
+    );
   }
 
   return (
     <div className="space-y-8">
       {notifications.map((notification, index) => (
-        <NotificationItem
-          key={`${notification.id}-${index}`}
-          notification={notification}
-        />
+        <NotificationItem key={`${notification.id}-${index}`} notification={notification} />
       ))}
     </div>
-  )
-} 
+  );
+}

@@ -1,24 +1,24 @@
-'use client'
+'use client';
 
-import { useRouter } from 'next/navigation'
-import { FileUp, BadgeCheck, ArrowRight, PlusIcon, HandCoins } from 'lucide-react'
-import { FundingIcon } from '@/components/ui/icons/FundingIcon'
-import { CreatePageLayout } from '@/app/layouts/CreatePageLayout'
+import { useRouter } from 'next/navigation';
+import { FileUp, BadgeCheck, ArrowRight, PlusIcon, HandCoins } from 'lucide-react';
+import { FundingIcon } from '@/components/ui/icons/FundingIcon';
+import { CreatePageLayout } from '@/app/layouts/CreatePageLayout';
 
-const CreationOption = ({ 
-  icon: Icon, 
-  title, 
-  description, 
+const CreationOption = ({
+  icon: Icon,
+  title,
+  description,
   onClick,
   comingSoon = false,
-  iconSize = "w-6 h-6"
-}: { 
-  icon: any, 
-  title: string, 
-  description: string, 
-  onClick?: () => void,
-  comingSoon?: boolean,
-  iconSize?: string
+  iconSize = 'w-6 h-6',
+}: {
+  icon: any;
+  title: string;
+  description: string;
+  onClick?: () => void;
+  comingSoon?: boolean;
+  iconSize?: string;
 }) => (
   <button
     onClick={onClick}
@@ -43,10 +43,10 @@ const CreationOption = ({
       <ArrowRight className="w-5 h-5 text-gray-400" />
     </div>
   </button>
-)
+);
 
 export default function CreatePage() {
-  const router = useRouter()
+  const router = useRouter();
 
   return (
     <CreatePageLayout
@@ -60,10 +60,10 @@ export default function CreatePage() {
       sidebarTitle="Let's accelerate science together"
       sidebarDescription="ResearchHub is an Open Science platform that incentivizes good scientific behavior"
       stats={[
-        { number: "10,000+", label: "Researchers" },
-        { number: "5,000+", label: "Papers Published" },
-        { number: "$2M+", label: "In Funding" },
-        { number: "3,000+", label: "Active Projects" }
+        { number: '10,000+', label: 'Researchers' },
+        { number: '5,000+', label: 'Papers Published' },
+        { number: '$2M+', label: 'In Funding' },
+        { number: '3,000+', label: 'Active Projects' },
       ]}
     >
       <div className="grid gap-6 pb-12">
@@ -75,7 +75,7 @@ export default function CreatePage() {
             onClick={() => router.push('/work/create')}
             iconSize="w-7 h-7"
           />
-          
+
           <CreationOption
             icon={BadgeCheck}
             title="Claim paper"
@@ -85,13 +85,15 @@ export default function CreatePage() {
           />
 
           <CreationOption
-            icon={(props: { className?: string }) => <FundingIcon size={28} {...props} color="rgb(37, 99, 235)" />}
+            icon={(props: { className?: string }) => (
+              <FundingIcon size={28} {...props} color="rgb(37, 99, 235)" />
+            )}
             title="Fund your research"
             description="Fund your research through a crowdfunding campaign."
             onClick={() => router.push('/funding/create')}
             iconSize="w-9 h-9"
           />
-          
+
           <CreationOption
             icon={HandCoins}
             title="Open a grant"
@@ -102,5 +104,5 @@ export default function CreatePage() {
         </div>
       </div>
     </CreatePageLayout>
-  )
-} 
+  );
+}

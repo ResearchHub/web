@@ -1,20 +1,17 @@
-import { BaseScreenProps } from '../types'
+import { BaseScreenProps } from '../types';
 
-export default function VerifyEmail({
-  email,
-  onClose,
-}: BaseScreenProps) {
+export default function VerifyEmail({ email, onClose }: BaseScreenProps) {
   return (
     <div className="text-center">
       <h2 className="text-xl font-semibold mb-6">Check your email</h2>
-      
+
       <p className="text-gray-600 mb-6">
         We sent a verification link to <strong>{email}</strong>
       </p>
 
       <p className="text-sm text-gray-500 mb-8">
-        Click the link in the email to verify your account. 
-        If you don't see it, check your spam folder.
+        Click the link in the email to verify your account. If you don't see it, check your spam
+        folder.
       </p>
 
       <button
@@ -24,5 +21,5 @@ export default function VerifyEmail({
         Close
       </button>
     </div>
-  )
-} 
+  );
+}

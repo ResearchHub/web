@@ -5,7 +5,7 @@ import { Topic } from './topic';
 
 export type FeedActionType = 'repost' | 'contribute' | 'publish' | 'post';
 
-export type ContentType = 
+export type ContentType =
   | 'paper'
   | 'comment'
   | 'funding_request'
@@ -84,14 +84,7 @@ export interface Contribution extends BaseContent {
   amount: number;
 }
 
-export type Content = 
-  | Paper 
-  | Comment 
-  | FundingRequest 
-  | Bounty 
-  | Grant 
-  | Review
-  | Contribution;
+export type Content = Paper | Comment | FundingRequest | Bounty | Grant | Review | Contribution;
 
 export interface FeedEntry {
   id: string;
@@ -104,6 +97,6 @@ export interface FeedEntry {
     profile: AuthorProfile;
     amount: number;
   }>;
-  applicants?: AuthorProfile[];  
+  applicants?: AuthorProfile[];
   metrics?: ContentMetrics;
 }

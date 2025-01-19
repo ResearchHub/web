@@ -1,15 +1,15 @@
-'use client'
+'use client';
 
-import { useSearchParams } from 'next/navigation'
-import AuthContent from '@/components/Auth/AuthContent'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
-import { Suspense } from 'react'
+import { useSearchParams } from 'next/navigation';
+import AuthContent from '@/components/Auth/AuthContent';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { Suspense } from 'react';
 
 function SignInContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const error = searchParams?.get('error')
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const error = searchParams?.get('error');
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -21,9 +21,7 @@ function SignInContent() {
           height={48}
           className="mx-auto mb-4"
         />
-        <h2 className="text-3xl font-bold tracking-tight text-gray-900">
-          Welcome to ResearchHub
-        </h2>
+        <h2 className="text-3xl font-bold tracking-tight text-gray-900">Welcome to ResearchHub</h2>
         <p className="mt-2 text-sm text-gray-600">
           Join the community of researchers and academics
         </p>
@@ -36,11 +34,7 @@ function SignInContent() {
           </div>
         )}
 
-        <AuthContent 
-          initialError={error}
-          onSuccess={() => router.push('/')}
-          showHeader={false}
-        />
+        <AuthContent initialError={error} onSuccess={() => router.push('/')} showHeader={false} />
       </div>
 
       <div className="mt-8 text-center text-sm text-gray-500">
@@ -56,7 +50,7 @@ function SignInContent() {
         </p>
       </div>
     </div>
-  )
+  );
 }
 
 export default function SignInPage() {
@@ -64,5 +58,5 @@ export default function SignInPage() {
     <Suspense fallback={<div>Loading...</div>}>
       <SignInContent />
     </Suspense>
-  )
-} 
+  );
+}

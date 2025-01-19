@@ -28,4 +28,4 @@ export const Switch = ({ checked, onCheckedChange, disabled, className }: Switch
       />
     </HeadlessSwitch>
   );
-}; 
+};

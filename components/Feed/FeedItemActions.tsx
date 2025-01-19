@@ -1,14 +1,8 @@
-'use client'
+'use client';
 
 import { FC } from 'react';
 import { Content, FeedEntry } from '@/types/feed';
-import {
-  MessageCircle,
-  Repeat,
-  MoreHorizontal,
-  ChevronUp,
-  PlusIcon
-} from 'lucide-react';
+import { MessageCircle, Repeat, MoreHorizontal, ChevronUp, PlusIcon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FeedItemMenu } from '@/components/menus/FeedItemMenu';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
@@ -29,9 +23,7 @@ const ActionButton: FC<ActionButtonProps> = ({ icon: Icon, count, label, tooltip
     tooltip={tooltip}
   >
     <Icon className="w-5 h-5" />
-    {count !== undefined && count > 0 && (
-      <span className="text-sm font-medium">{count}</span>
-    )}
+    {count !== undefined && count > 0 && <span className="text-sm font-medium">{count}</span>}
     <span className="sr-only">{label}</span>
   </Button>
 );
@@ -43,43 +35,28 @@ interface FeedItemActionsProps {
   contributors?: FeedEntry['contributors'];
 }
 
-export const FeedItemActions: FC<FeedItemActionsProps> = ({ 
-  metrics, 
-  content, 
+export const FeedItemActions: FC<FeedItemActionsProps> = ({
+  metrics,
+  content,
   target,
-  contributors = []
+  contributors = [],
 }) => {
-
   return (
     <div className="flex items-center space-x-4">
-      <ActionButton 
-        icon={ChevronUp} 
-        count={metrics?.votes} 
-        tooltip="Upvote"
-        label="Upvote"
-      />
-      <ActionButton 
-        icon={MessageCircle} 
-        count={metrics?.comments} 
+      <ActionButton icon={ChevronUp} count={metrics?.votes} tooltip="Upvote" label="Upvote" />
+      <ActionButton
+        icon={MessageCircle}
+        count={metrics?.comments}
         tooltip="Comment"
         label="Comment"
       />
-      <ActionButton 
-        icon={Repeat} 
-        count={metrics?.reposts} 
-        tooltip="Repost"
-        label="Repost"
-      />
+      <ActionButton icon={Repeat} count={metrics?.reposts} tooltip="Repost" label="Repost" />
       <FeedItemMenu>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-gray-600 hover:text-gray-900"
-        >
+        <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
           <MoreHorizontal className="w-5 h-5" />
           <span className="sr-only">More options</span>
         </Button>
       </FeedItemMenu>
     </div>
   );
-}; 
+};

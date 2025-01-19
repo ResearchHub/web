@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { FC, useState } from 'react';
 import { Tabs } from '@/components/ui/Tabs';
@@ -15,11 +15,7 @@ interface FeedTabsProps {
   onCustomizeComplete?: (interests: Interest[]) => void;
 }
 
-export const FeedTabs: FC<FeedTabsProps> = ({ 
-  activeTab, 
-  onTabChange,
-  onCustomizeComplete 
-}) => {
+export const FeedTabs: FC<FeedTabsProps> = ({ activeTab, onTabChange, onCustomizeComplete }) => {
   const [isCustomizing, setIsCustomizing] = useState(false);
 
   const tabs = [
@@ -54,11 +50,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   return (
     <div>
       <div className="flex items-center justify-between">
-        <Tabs
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-        />
+        <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
         <Button
           variant={isCustomizing ? 'default' : 'ghost'}
           size="sm"
@@ -72,10 +64,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
 
       {isCustomizing && (
         <div className="mt-6">
-          <InterestSelector
-            mode="preferences"
-            onComplete={handleInterestSelection}
-          />
+          <InterestSelector mode="preferences" onComplete={handleInterestSelection} />
         </div>
       )}
     </div>

@@ -44,7 +44,9 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
               <button
                 onClick={() => handleTypeSelection('research')}
                 className={`p-4 border rounded-lg text-left hover:border-indigo-600 transition-colors ${
-                  publicationType === 'research' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200'
+                  publicationType === 'research'
+                    ? 'border-indigo-600 bg-indigo-50'
+                    : 'border-gray-200'
                 }`}
               >
                 <h4 className="font-medium">Research Article</h4>
@@ -100,17 +102,14 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-      
+
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <Dialog.Panel className="mx-auto max-w-3xl w-full bg-white rounded-xl shadow-lg">
           <div className="flex justify-between items-center p-6 border-b">
             <Dialog.Title className="text-xl font-semibold">
               {currentStep === 'type' ? 'Select Publication Type' : 'Publish Notebook'}
             </Dialog.Title>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-full hover:bg-gray-100"
-            >
+            <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100">
               <X className="h-5 w-5" />
             </button>
           </div>
@@ -144,7 +143,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
               <div className="flex justify-between mt-8">
                 <button
                   onClick={() => {
-                    const currentIndex = steps.findIndex(s => s.id === currentStep);
+                    const currentIndex = steps.findIndex((s) => s.id === currentStep);
                     if (currentIndex > 1) {
                       setCurrentStep(steps[currentIndex - 1].id);
                     }
@@ -156,7 +155,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                 </button>
                 <button
                   onClick={() => {
-                    const currentIndex = steps.findIndex(s => s.id === currentStep);
+                    const currentIndex = steps.findIndex((s) => s.id === currentStep);
                     if (currentIndex < steps.length - 1) {
                       setCurrentStep(steps[currentIndex + 1].id);
                     }

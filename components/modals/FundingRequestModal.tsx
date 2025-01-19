@@ -1,57 +1,57 @@
-'use client'
+'use client';
 
-import { Dialog, Transition } from '@headlessui/react'
-import { Fragment, useState, ChangeEvent, FormEvent } from 'react'
-import { X } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/Button'
-import { useSession } from 'next-auth/react'
+import { Dialog, Transition } from '@headlessui/react';
+import { Fragment, useState, ChangeEvent, FormEvent } from 'react';
+import { X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/Button';
+import { useSession } from 'next-auth/react';
 
 interface FundingRequestModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-type Step = 'study' | 'funding' | 'nft'
+type Step = 'study' | 'funding' | 'nft';
 
 interface StudyInfo {
-  title: string
-  proposal: string
+  title: string;
+  proposal: string;
 }
 
 interface FundingInfo {
-  amount: number
-  supply: number
+  amount: number;
+  supply: number;
 }
 
 interface NFTInfo {
-  image: File | null
+  image: File | null;
 }
 
 export function FundingRequestModal({ isOpen, onClose }: FundingRequestModalProps) {
-  const [currentStep, setCurrentStep] = useState<Step>('study')
-  const [studyInfo, setStudyInfo] = useState<StudyInfo>({ title: '', proposal: '' })
-  const [fundingInfo, setFundingInfo] = useState<FundingInfo>({ amount: 0, supply: 0 })
-  const [nftInfo, setNftInfo] = useState<NFTInfo>({ image: null })
-  const router = useRouter()
-  const { data: session } = useSession()
+  const [currentStep, setCurrentStep] = useState<Step>('study');
+  const [studyInfo, setStudyInfo] = useState<StudyInfo>({ title: '', proposal: '' });
+  const [fundingInfo, setFundingInfo] = useState<FundingInfo>({ amount: 0, supply: 0 });
+  const [nftInfo, setNftInfo] = useState<NFTInfo>({ image: null });
+  const router = useRouter();
+  const { data: session } = useSession();
 
   const handleStudySubmit = (e: FormEvent) => {
-    e.preventDefault()
-    setCurrentStep('funding')
-  }
+    e.preventDefault();
+    setCurrentStep('funding');
+  };
 
   const handleFundingSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    setCurrentStep('nft')
-  }
+    e.preventDefault();
+    setCurrentStep('nft');
+  };
 
   const handleNFTSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     // TODO: Implement NFT upload and funding request submission
-    router.push('/funding/requests')
-    onClose()
-  }
+    router.push('/funding/requests');
+    onClose();
+  };
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -59,12 +59,8 @@ export function FundingRequestModal({ isOpen, onClose }: FundingRequestModalProp
         return (
           <form onSubmit={handleStudySubmit} className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">
-                Study Information
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Tell us about your research study
-              </p>
+              <h3 className="text-lg font-medium text-gray-900">Study Information</h3>
+              <p className="mt-1 text-sm text-gray-500">Tell us about your research study</p>
             </div>
 
             <div className="space-y-4">
@@ -76,7 +72,9 @@ export function FundingRequestModal({ isOpen, onClose }: FundingRequestModalProp
                   id="title"
                   type="text"
                   value={studyInfo.title}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setStudyInfo({ ...studyInfo, title: e.target.value })}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setStudyInfo({ ...studyInfo, title: e.target.value })
+                  }
                   placeholder="Enter study title"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   required
@@ -90,7 +88,9 @@ export function FundingRequestModal({ isOpen, onClose }: FundingRequestModalProp
                 <textarea
                   id="proposal"
                   value={studyInfo.proposal}
-                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setStudyInfo({ ...studyInfo, proposal: e.target.value })}
+                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                    setStudyInfo({ ...studyInfo, proposal: e.target.value })
+                  }
                   placeholder="Describe your study..."
                   rows={5}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
@@ -103,18 +103,14 @@ export function FundingRequestModal({ isOpen, onClose }: FundingRequestModalProp
               Continue to Funding
             </Button>
           </form>
-        )
+        );
 
       case 'funding':
         return (
           <form onSubmit={handleFundingSubmit} className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">
-                Funding Information
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Specify your funding requirements
-              </p>
+              <h3 className="text-lg font-medium text-gray-900">Funding Information</h3>
+              <p className="mt-1 text-sm text-gray-500">Specify your funding requirements</p>
             </div>
 
             <div className="space-y-4">
@@ -127,7 +123,9 @@ export function FundingRequestModal({ isOpen, onClose }: FundingRequestModalProp
                   type="number"
                   min={0}
                   value={fundingInfo.amount}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setFundingInfo({ ...fundingInfo, amount: Number(e.target.value) })}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setFundingInfo({ ...fundingInfo, amount: Number(e.target.value) })
+                  }
                   placeholder="Enter amount in ResearchCoin"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   required
@@ -143,7 +141,9 @@ export function FundingRequestModal({ isOpen, onClose }: FundingRequestModalProp
                   type="number"
                   min={1}
                   value={fundingInfo.supply}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setFundingInfo({ ...fundingInfo, supply: Number(e.target.value) })}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setFundingInfo({ ...fundingInfo, supply: Number(e.target.value) })
+                  }
                   placeholder="Enter number of NFTs to mint"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   required
@@ -155,25 +155,19 @@ export function FundingRequestModal({ isOpen, onClose }: FundingRequestModalProp
               Continue to NFT Art
             </Button>
           </form>
-        )
+        );
 
       case 'nft':
         return (
           <form onSubmit={handleNFTSubmit} className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">
-                NFT Artwork
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Upload artwork for your funding NFTs
-              </p>
+              <h3 className="text-lg font-medium text-gray-900">NFT Artwork</h3>
+              <p className="mt-1 text-sm text-gray-500">Upload artwork for your funding NFTs</p>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  NFT Image
-                </label>
+                <label className="block text-sm font-medium text-gray-700">NFT Image</label>
                 <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
                   <div className="space-y-1 text-center">
                     <svg
@@ -203,9 +197,9 @@ export function FundingRequestModal({ isOpen, onClose }: FundingRequestModalProp
                           className="sr-only"
                           accept="image/*"
                           onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                            const file = e.target.files?.[0]
+                            const file = e.target.files?.[0];
                             if (file) {
-                              setNftInfo({ image: file })
+                              setNftInfo({ image: file });
                             }
                           }}
                           required
@@ -219,17 +213,13 @@ export function FundingRequestModal({ isOpen, onClose }: FundingRequestModalProp
               </div>
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full justify-center"
-              disabled={!nftInfo.image}
-            >
+            <Button type="submit" className="w-full justify-center" disabled={!nftInfo.image}>
               Submit Funding Request
             </Button>
           </form>
-        )
+        );
     }
-  }
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -275,5 +265,5 @@ export function FundingRequestModal({ isOpen, onClose }: FundingRequestModalProp
         </div>
       </Dialog>
     </Transition>
-  )
-} 
+  );
+}

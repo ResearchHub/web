@@ -27,5 +27,5 @@ export const LearnRightSidebar: React.FC = () => {
         </nav>
       </div>
     </div>
-  )
-} 
+  );
+};

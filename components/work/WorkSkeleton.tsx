@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import { Transition } from '@headlessui/react'
+import { Transition } from '@headlessui/react';
 
 export function WorkSkeleton() {
   return (
@@ -36,5 +36,5 @@ export function WorkSkeleton() {
         <div className="h-20 rounded-lg bg-gray-200" />
       </div>
     </div>
-  )
-} 
+  );
+}

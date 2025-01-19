@@ -1,15 +1,15 @@
-import { 
-  Coins, 
-  ChevronDown, 
-  FileText, 
-  Hash, 
-  Check, 
+import {
+  Coins,
+  ChevronDown,
+  FileText,
+  Hash,
+  Check,
   BookOpen,
   Users,
   Tag,
   Heading,
   DollarSign,
-  Wallet
+  Wallet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/menus/BaseMenu';
@@ -30,7 +30,7 @@ interface PublishingSidebarProps {
   onTitleChange: (title: string) => void;
 }
 
-const SectionHeader = ({ icon: Icon, children }: { icon: any, children: React.ReactNode }) => (
+const SectionHeader = ({ icon: Icon, children }: { icon: any; children: React.ReactNode }) => (
   <div className="mb-2">
     <div className="flex items-center gap-1.5 mb-1.5">
       <Icon className="h-4 w-4 text-gray-700" />
@@ -51,20 +51,20 @@ export const PublishingSidebar = ({
   const [isJournalEnabled, setIsJournalEnabled] = useState(false);
   const [fundingAmount, setFundingAmount] = useState('');
   const [nftPrice, setNftPrice] = useState('');
-  
+
   const articleTypes = {
     research: {
       title: 'Original Research Article',
-      description: 'Submit your original research'
+      description: 'Submit your original research',
     },
     preregistration: {
       title: 'Preregistration',
-      description: 'Get funding by sharing your research plan'
+      description: 'Get funding by sharing your research plan',
     },
     other: {
       title: 'Other',
-      description: 'Literature review, hypothesis, question, etc.'
-    }
+      description: 'Literature review, hypothesis, question, etc.',
+    },
   };
 
   const renderSelectedIcon = () => {
@@ -120,10 +120,14 @@ export const PublishingSidebar = ({
               {articleType === 'preregistration' && (
                 <div className="mt-4 p-4 bg-indigo-50 rounded-lg text-sm text-indigo-900">
                   <p className="mb-3">
-                    <strong>What is a preregistration?</strong> It's a detailed plan of your research before you begin, including your hypotheses, methods, and analysis plan.
+                    <strong>What is a preregistration?</strong> It's a detailed plan of your
+                    research before you begin, including your hypotheses, methods, and analysis
+                    plan.
                   </p>
                   <p>
-                    <strong>How funding works:</strong> After submitting your preregistration, funders can support your research by purchasing NFTs. Each NFT represents a stake in your research's success.
+                    <strong>How funding works:</strong> After submitting your preregistration,
+                    funders can support your research by purchasing NFTs. Each NFT represents a
+                    stake in your research's success.
                   </p>
                 </div>
               )}
@@ -147,9 +151,7 @@ export const PublishingSidebar = ({
           {/* Authors Section */}
           <div className="py-3 px-6">
             <SectionHeader icon={Users}>Authors</SectionHeader>
-            <div className="mt-2 text-sm text-gray-500">
-              Add authors to your article
-            </div>
+            <div className="mt-2 text-sm text-gray-500">Add authors to your article</div>
           </div>
 
           {/* Topics Section */}
@@ -262,28 +264,27 @@ export const PublishingSidebar = ({
                         <span className="text-xs font-medium text-indigo-600">$1,000 USD</span>
                       </div>
                     </div>
-                    <Switch 
-                      checked={isJournalEnabled}
-                      onCheckedChange={setIsJournalEnabled}
-                    />
+                    <Switch checked={isJournalEnabled} onCheckedChange={setIsJournalEnabled} />
                   </div>
                   <ul className="space-y-3">
                     <li className="flex items-start gap-2">
-                      <Check 
+                      <Check
                         className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
                         strokeWidth={2}
                       />
-                      <span className="text-sm text-gray-600">Accredited journal publication with low APCs</span>
+                      <span className="text-sm text-gray-600">
+                        Accredited journal publication with low APCs
+                      </span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Check 
+                      <Check
                         className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
                         strokeWidth={2}
                       />
                       <span className="text-sm text-gray-600">Rapid decision (21 days)</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Check 
+                      <Check
                         className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
                         strokeWidth={2}
                       />
@@ -305,14 +306,10 @@ export const PublishingSidebar = ({
             <span className="font-medium text-gray-900">$1,000 USD</span>
           </div>
         )}
-        <Button
-          variant="default"
-          onClick={onPublishClick}
-          className="w-full"
-        >
+        <Button variant="default" onClick={onPublishClick} className="w-full">
           {articleType === 'research' && isJournalEnabled ? 'Pay & Publish' : 'Publish'}
         </Button>
       </div>
     </div>
   );
-}; 
+};

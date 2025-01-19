@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { Notebook } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -24,8 +24,8 @@ export const NotebookToggle: React.FC<NotebookToggleProps> = ({ isNotebookView }
 
   return (
     <>
-      <NotebookTransition 
-        isActive={isTransitioning} 
+      <NotebookTransition
+        isActive={isTransitioning}
         onComplete={handleTransitionComplete}
         isExit={isNotebookView}
       />
@@ -39,15 +39,19 @@ export const NotebookToggle: React.FC<NotebookToggleProps> = ({ isNotebookView }
             <Notebook className="h-5 w-5 text-gray-600" />
             <span className="text-sm font-medium text-gray-900">Lab Notebook</span>
           </div>
-          <div className={`w-11 h-6 flex items-center rounded-full p-1 duration-300 ease-in-out ${
-            isNotebookView ? 'bg-indigo-600' : 'bg-gray-200'
-          }`}>
-            <div className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ease-in-out ${
-              isNotebookView ? 'translate-x-5' : 'translate-x-0'
-            }`} />
+          <div
+            className={`w-11 h-6 flex items-center rounded-full p-1 duration-300 ease-in-out ${
+              isNotebookView ? 'bg-indigo-600' : 'bg-gray-200'
+            }`}
+          >
+            <div
+              className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ease-in-out ${
+                isNotebookView ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
           </div>
         </button>
       </div>
     </>
   );
-}; 
+};

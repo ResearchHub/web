@@ -1,39 +1,39 @@
-'use client'
+'use client';
 
-import { useState, Fragment } from 'react'
-import { Plus, Minus, BadgeCheck } from 'lucide-react'
-import { cn } from 'utils/styles'
+import { useState, Fragment } from 'react';
+import { Plus, Minus, BadgeCheck } from 'lucide-react';
+import { cn } from 'utils/styles';
 
 interface Author {
-  name: string
-  verified?: boolean
-  profileUrl?: string
+  name: string;
+  verified?: boolean;
+  profileUrl?: string;
 }
 
 interface AuthorListProps {
-  authors: Author[]
-  size?: 'xs' | 'sm' | 'base' // For different text sizes
-  timestamp?: string
-  isNested?: boolean
+  authors: Author[];
+  size?: 'xs' | 'sm' | 'base'; // For different text sizes
+  timestamp?: string;
+  isNested?: boolean;
   /** Class names to apply to author names */
-  className?: string
+  className?: string;
   /** Class names to apply to the delimiter */
-  delimiterClassName?: string
+  delimiterClassName?: string;
   /** Word to use as delimiter between authors (e.g. "and") */
-  delimiter?: any
+  delimiter?: any;
 }
 
-export const AuthorList = ({ 
-  authors, 
-  size = 'base', 
-  timestamp, 
+export const AuthorList = ({
+  authors,
+  size = 'base',
+  timestamp,
   isNested,
   className,
   delimiterClassName,
-  delimiter = '•'
+  delimiter = '•',
 }: AuthorListProps) => {
-  const [showAll, setShowAll] = useState(false)
-  
+  const [showAll, setShowAll] = useState(false);
+
   const getTextSize = () => {
     switch (size) {
       case 'xs':
@@ -51,17 +51,14 @@ export const AuthorList = ({
         <>
           {authors.map((author, index) => (
             <Fragment key={author.name + index}>
-              <AuthorItem 
-                author={author} 
-                showDot={false}
-                size={size}
-                className={className}
-              />
+              <AuthorItem author={author} showDot={false} size={size} className={className} />
               {index < authors.length - 2 && (
-                <span className={cn("mx-1", getTextSize(), delimiterClassName)}>{delimiter}</span>
+                <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
               )}
               {index === authors.length - 2 && (
-                <span className={cn("mx-1", getTextSize(), delimiterClassName)}>{` ${delimiter} `}</span>
+                <span
+                  className={cn('mx-1', getTextSize(), delimiterClassName)}
+                >{` ${delimiter} `}</span>
               )}
             </Fragment>
           ))}
@@ -71,9 +68,7 @@ export const AuthorList = ({
               className="flex items-center text-blue-500 hover:text-blue-600 ml-2"
             >
               <Minus className="w-3.5 h-3.5 mr-1" />
-              <span className={getTextSize()}>
-                Show less
-              </span>
+              <span className={getTextSize()}>Show less</span>
             </button>
           )}
         </>
@@ -84,20 +79,18 @@ export const AuthorList = ({
     return (
       <>
         <AuthorItem author={authors[0]} showDot={false} size={size} className={className} />
-        <span className={cn("mx-1", getTextSize(), delimiterClassName)}>{delimiter}</span>
+        <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
         <AuthorItem author={authors[1]} showDot={false} size={size} className={className} />
         <button
           onClick={() => setShowAll(true)}
           className="flex items-center text-blue-500 hover:text-blue-600 mx-1"
         >
           <Plus className="w-3.5 h-3.5 mr-1" />
-          <span className={getTextSize()}>
-            {authors.length - 3} more
-          </span>
+          <span className={getTextSize()}>{authors.length - 3} more</span>
         </button>
-        <span className={cn("mx-1", getTextSize(), delimiterClassName)}>{delimiter}</span>
-        <AuthorItem 
-          author={authors[authors.length - 1]} 
+        <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
+        <AuthorItem
+          author={authors[authors.length - 1]}
           showDot={false}
           size={size}
           className={className}
@@ -111,10 +104,8 @@ export const AuthorList = ({
       {renderAuthors()}
       {timestamp && (
         <>
-          <span className={cn("mx-1", getTextSize(), delimiterClassName)}>{delimiter}</span>
-          <span className={`text-gray-500 ${getTextSize()}`}>
-            {timestamp}
-          </span>
+          <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
+          <span className={`text-gray-500 ${getTextSize()}`}>{timestamp}</span>
         </>
       )}
     </div>
@@ -122,27 +113,29 @@ export const AuthorList = ({
 };
 
 // Extracted AuthorItem component for cleaner code
-const AuthorItem = ({ 
-  author, 
-  showDot, 
+const AuthorItem = ({
+  author,
+  showDot,
   size,
-  className 
-}: { 
-  author: Author; 
+  className,
+}: {
+  author: Author;
   showDot: boolean;
   size: 'xs' | 'sm' | 'base';
-  className?: string
+  className?: string;
 }) => (
   <span className="flex items-center">
-    <span className={cn(
-      size === 'xs' ? 'text-xs' : size === 'sm' ? 'text-sm' : 'text-base',
-      'text-gray-900 hover:text-gray-900 font-semibold',
-      className
-    )}>
+    <span
+      className={cn(
+        size === 'xs' ? 'text-xs' : size === 'sm' ? 'text-sm' : 'text-base',
+        'text-gray-900 hover:text-gray-900 font-semibold',
+        className
+      )}
+    >
       {author.name}
     </span>
     {author.verified && (
       <BadgeCheck className={`${size === 'xs' ? 'w-3 h-3' : 'w-4 h-4'} ml-1 text-blue-500`} />
     )}
   </span>
-); 
+);

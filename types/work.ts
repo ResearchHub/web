@@ -1,15 +1,11 @@
-import { AuthorProfile } from "./user";
-import { ContentMetrics } from "./metrics";
-import { Journal } from "./journal";
-import { Topic } from "./topic";
-import { createTransformer, BaseTransformed } from "./transformer";
-import { transformAuthorProfile } from "./user";
+import { AuthorProfile } from './user';
+import { ContentMetrics } from './metrics';
+import { Journal } from './journal';
+import { Topic } from './topic';
+import { createTransformer, BaseTransformed } from './transformer';
+import { transformAuthorProfile } from './user';
 
-export type WorkType = 
-  | 'article'
-  | 'review'
-  | 'preprint'
-  | 'preregistration'
+export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration';
 
 export type AuthorPosition = 'first' | 'middle' | 'last';
 
@@ -64,12 +60,12 @@ export type TransformedWork = Work & BaseTransformed;
 export const transformAuthorship = createTransformer<any, Authorship>((raw) => ({
   authorProfile: transformAuthorProfile(raw),
   isCorresponding: raw.authorship?.is_corresponding || false,
-  position: raw.authorship?.position as AuthorPosition || 'middle',
+  position: (raw.authorship?.position as AuthorPosition) || 'middle',
 }));
 
 export const transformJournal = (raw: any): TransformedJournal | undefined => {
   if (!raw.external_source) return undefined;
-  
+
   return createTransformer<any, Journal>((raw) => ({
     id: raw.external_source_id || 0,
     name: raw.external_source,
@@ -107,9 +103,13 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
   formats: raw.formats || [],
   license: raw.pdf_license,
   pdfCopyrightAllowsDisplay: raw.pdf_copyright_allows_display,
-  figures: raw.first_preview ? [{
-    url: raw.first_preview.file,
-  }] : [],
+  figures: raw.first_preview
+    ? [
+        {
+          url: raw.first_preview.file,
+        },
+      ]
+    : [],
   versions: Array.isArray(raw.version_list) ? raw.version_list.map(transformDocumentVersion) : [],
   metrics: {
     votes: raw.score || 0,
@@ -119,5 +119,5 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
     reviews: raw.unified_document?.reviews?.count || 0,
     earned: raw.earned || 0,
     views: raw.views_count || 0,
-  }
-})); 
+  },
+}));

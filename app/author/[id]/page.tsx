@@ -1,17 +1,17 @@
-'use client'
+'use client';
 
-import { PageLayout } from '@/app/layouts/PageLayout'
-import { ProfileRightSidebar } from '@/components/profile/ProfileRightSidebar'
-import { FeedItem } from '@/components/Feed/FeedItem'
-import { Pin, BadgeCheck } from 'lucide-react'
-import { FeedEntry } from '@/types/feed'
-import { User } from '@/types/user'
+import { PageLayout } from '@/app/layouts/PageLayout';
+import { ProfileRightSidebar } from '@/components/profile/ProfileRightSidebar';
+import { FeedItem } from '@/components/Feed/FeedItem';
+import { Pin, BadgeCheck } from 'lucide-react';
+import { FeedEntry } from '@/types/feed';
+import { User } from '@/types/user';
 
 type AuthorProfileProps = {
   params: {
-    id: string
-  }
-}
+    id: string;
+  };
+};
 
 export default function AuthorProfile({ params }: AuthorProfileProps) {
   // Mock data for bioRxiv profile
@@ -21,7 +21,7 @@ export default function AuthorProfile({ params }: AuthorProfileProps) {
     verified: true,
     isOrganization: true,
     isVerified: true,
-  }
+  };
 
   // Mock feed items with pinned funding request
   const feedItems: Item[] = [
@@ -29,7 +29,8 @@ export default function AuthorProfile({ params }: AuthorProfileProps) {
       id: '1',
       type: 'funding_request',
       title: 'bioRxiv 2025 Operational Costs',
-      description: 'Support bioRxiv\'s mission to accelerate scientific communication. Funds will be used for server infrastructure, development of new features, and maintaining our commitment to free preprint hosting for the scientific community.',
+      description:
+        "Support bioRxiv's mission to accelerate scientific communication. Funds will be used for server infrastructure, development of new features, and maintaining our commitment to free preprint hosting for the scientific community.",
       user: profile,
       timestamp: 'Dec 1, 2024',
       hub: { name: 'Research Infrastructure', slug: 'research-infrastructure' },
@@ -57,7 +58,8 @@ export default function AuthorProfile({ params }: AuthorProfileProps) {
       id: '2',
       type: 'paper',
       title: 'Structural basis of mRNA cap modification by SARS-CoV-2 nsp14-nsp10',
-      description: 'The SARS-CoV-2 nsp14-nsp10 complex plays a crucial role in viral mRNA cap modification. Here we present the cryo-EM structure of this complex, revealing novel insights into the mechanism of RNA capping in coronaviruses.',
+      description:
+        'The SARS-CoV-2 nsp14-nsp10 complex plays a crucial role in viral mRNA cap modification. Here we present the cryo-EM structure of this complex, revealing novel insights into the mechanism of RNA capping in coronaviruses.',
       user: profile,
       timestamp: 'Oct 18, 2024',
       hub: { name: 'Molecular Biology', slug: 'molecular-biology' },
@@ -67,17 +69,17 @@ export default function AuthorProfile({ params }: AuthorProfileProps) {
         reposts: 0,
       },
       authors: [
-        { name: "Sarah Chen", verified: true },
-        { name: "David Wang", verified: true },
-        { name: "Maria Garcia", verified: false }
+        { name: 'Sarah Chen', verified: true },
+        { name: 'David Wang', verified: true },
+        { name: 'Maria Garcia', verified: false },
       ],
       doi: '10.1101/2024.10.18.123456',
-      journal: 'bioRxiv'
+      journal: 'bioRxiv',
     },
-  ]
+  ];
 
   // Create mock feed entries
-  const feedEntries: FeedEntry[] = feedItems.map(item => ({
+  const feedEntries: FeedEntry[] = feedItems.map((item) => ({
     id: item.id,
     action: 'post', // or another appropriate action
     actor: profile,
@@ -102,8 +104,8 @@ export default function AuthorProfile({ params }: AuthorProfileProps) {
         {/* Feed */}
         <div className="space-y-4">
           {feedEntries.map((entry, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className={`bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-200 
                 ${entry.item.isPinned ? 'border-orange-200 bg-orange-50/50' : 'border-gray-100'}`}
             >
@@ -121,5 +123,5 @@ export default function AuthorProfile({ params }: AuthorProfileProps) {
         </div>
       </div>
     </PageLayout>
-  )
-} 
+  );
+}

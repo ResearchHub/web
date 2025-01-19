@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useEffect, useState } from 'react';
 import { FlaskConical } from 'lucide-react';
@@ -10,10 +10,10 @@ interface NotebookTransitionProps {
   isExit?: boolean;
 }
 
-export const NotebookTransition: React.FC<NotebookTransitionProps> = ({ 
-  isActive, 
+export const NotebookTransition: React.FC<NotebookTransitionProps> = ({
+  isActive,
   onComplete,
-  isExit = false 
+  isExit = false,
 }) => {
   const [opacity, setOpacity] = useState(0);
   const [mounted, setMounted] = useState(false);
@@ -37,18 +37,20 @@ export const NotebookTransition: React.FC<NotebookTransitionProps> = ({
   if (!isActive || !mounted) return null;
 
   const transitionContent = (
-    <div 
+    <div
       className="fixed inset-0 flex items-center justify-center bg-indigo-600
         transition-opacity duration-500 ease-in-out z-[99999]"
       style={{ opacity }}
     >
-      <div className={`transform transition-transform duration-700 ease-in-out ${
-        opacity === 1 ? 'scale-100' : 'scale-50'
-      }`}>
+      <div
+        className={`transform transition-transform duration-700 ease-in-out ${
+          opacity === 1 ? 'scale-100' : 'scale-50'
+        }`}
+      >
         <div className="flex flex-col items-center space-y-4">
           <FlaskConical className="h-16 w-16 text-white" />
           <div className="w-32 h-1 bg-white/20 rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-white transition-all duration-1000 ease-in-out"
               style={{ width: opacity === 1 ? '100%' : '0%' }}
             />
@@ -59,4 +61,4 @@ export const NotebookTransition: React.FC<NotebookTransitionProps> = ({
   );
 
   return createPortal(transitionContent, document.body);
-}; 
+};

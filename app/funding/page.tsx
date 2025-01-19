@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { FeedItemBody } from '@/components/Feed/FeedItemBody';
 import { fundingFeedEntries } from '@/store/fundingFeedStore';
@@ -24,9 +24,12 @@ export default function FundingPage() {
           {fundingFeedEntries.map((entry) => {
             const content = entry.content as FundingRequest;
             const imageUrl = content.image || DEFAULT_IMAGE;
-            
+
             return (
-              <div key={entry.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div
+                key={entry.id}
+                className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+              >
                 {content.type === 'funding_request' && (
                   <div className="relative w-full h-48">
                     <Image
@@ -38,7 +41,7 @@ export default function FundingPage() {
                   </div>
                 )}
                 <div className="p-4">
-                  <FeedItemBody 
+                  <FeedItemBody
                     content={content}
                     metrics={entry.metrics}
                     contributors={entry.contributors}
