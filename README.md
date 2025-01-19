@@ -2,8 +2,21 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-### Required VS Code Extensions
+### Development Requirements
+
+- Node.js
 - Install the [Prettier - Code formatter](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) extension for VS Code
+
+### TypeScript and Code Quality
+
+This project uses strict TypeScript configuration and enforces code quality through pre-commit hooks:
+
+- All TypeScript files are checked for type errors
+- Code is automatically formatted with Prettier
+- ESLint runs to catch potential issues
+- Commits will be blocked if there are any TypeScript errors or linting issues
+
+> Note: Pre-commit hooks are automatically installed when you run `npm install`. No manual setup is required.
 
 First, run the development server:
 
