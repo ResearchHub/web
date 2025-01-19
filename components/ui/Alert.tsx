@@ -2,8 +2,11 @@
 
 import { cn } from '@/utils/styles'
 import { Info, AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCircleInfo, faSparkles } from '@fortawesome/pro-solid-svg-icons'
 
-type AlertVariant = 'info' | 'warning' | 'error' | 'success'
+
+type AlertVariant = 'info' | 'warning' | 'error' | 'success' | 'special'
 
 interface AlertProps {
   /**
@@ -22,8 +25,8 @@ interface AlertProps {
 
 const variantStyles = {
   info: {
-    container: 'bg-blue-50 text-blue-800',
-    icon: <Info className="h-4 w-4 text-blue-500" />,
+    container: 'bg-blue-50 text-blue-800 border border-blue-100',
+    icon: <FontAwesomeIcon icon={faCircleInfo} className="h-4 w-4 text-blue-600" />,
   },
   warning: {
     container: 'bg-yellow-50 text-yellow-800',
@@ -36,6 +39,10 @@ const variantStyles = {
   success: {
     container: 'bg-green-50 text-green-800',
     icon: <CheckCircle className="h-4 w-4 text-green-500" />,
+  },
+  special: {
+    container: 'bg-green-50 text-green-800 border border-green-100',
+    icon: <FontAwesomeIcon icon={faSparkles} className="h-4 w-4 text-green-500" />,
   },
 }
 

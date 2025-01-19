@@ -49,7 +49,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Find opportunities to earn RSC'
     },
     {
-      label: 'Funding',
+      label: 'Fund',
       href: '/funding',
       icon: HandCoins,
       description: 'Browse grants and fundraising opportunities'

@@ -42,6 +42,7 @@ export default function FundingPage() {
                     content={content}
                     metrics={entry.metrics}
                     contributors={entry.contributors}
+                    hideTypeLabel
                   />
                 </div>
               </div>

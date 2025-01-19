@@ -5,7 +5,7 @@ import { Content, FeedEntry } from '@/types/feed';
 import { Button } from '@/components/ui/Button';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Progress } from '@/components/ui/Progress';
-import { Star, Clock, FileText, Plus, FileUp, ChevronDown } from 'lucide-react';
+import { Star, Clock, FileText, Plus, FileUp, ChevronDown, Beaker } from 'lucide-react';
 import { formatDeadline } from '@/utils/date';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
@@ -15,7 +15,8 @@ import { FeedItemHeader } from './FeedItemHeader';
 import { ContributorsButton } from '../ui/ContributorsButton';
 import { Avatar } from '@/components/ui/Avatar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHexagonImage } from '@fortawesome/pro-solid-svg-icons';
+import { faHexagonImage, faPlus } from '@fortawesome/pro-solid-svg-icons';
+import { FundResearchModal } from '../modals/FundResearchModal';
 
 interface FeedItemBodyProps {
   content: Content;
@@ -24,6 +25,7 @@ interface FeedItemBodyProps {
   metrics?: FeedEntry['metrics'];
   applicants?: FeedEntry['applicants'];
   contributors?: FeedEntry['contributors'];
+  hideTypeLabel?: boolean;
 }
 
 const buildUrl = (item: Content) => {
@@ -32,7 +34,9 @@ const buildUrl = (item: Content) => {
   return `/${item.type}/${item.id}/${slug}`;
 };
 
-export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, metrics, applicants, contributors }) => {
+export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, metrics, applicants, contributors, hideTypeLabel }) => {
+  const [showFundModal, setShowFundModal] = useState(false);
+
   const renderItem = (item: Content, isTarget: boolean = false) => {
     const itemContent = (() => {
       switch (item.type) {
@@ -84,7 +88,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
 
     return renderCard(
       <div>
-        {!isComment && (
+        {!isComment && !hideTypeLabel && (
           <div className="flex items-center gap-2 mb-2">
             <div className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
               {getTypeLabel(item.type)}
@@ -246,18 +250,25 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({ content, target, context, 
             size="sm" 
             disabled={fundingRequest.status !== 'OPEN' || deadlineText === 'Ended'}
             className="flex items-center gap-1.5"
+            onClick={() => setShowFundModal(true)}
           >
-            <FontAwesomeIcon icon={faHexagonImage} className="w-4 h-4" />
-            Fund for NFT
+            <ResearchCoinIcon size={16} contribute />
+            Fund this research
           </Button>
           {contributors && contributors.length > 0 && (
             <ContributorsButton 
               contributors={contributors}
-              onContribute={() => {}}
+              onContribute={() => setShowFundModal(true)}
               label="Funders"
             />
           )}
         </div>
+
+        <FundResearchModal
+          isOpen={showFundModal}
+          onClose={() => setShowFundModal(false)}
+          fundingRequest={fundingRequest}
+        />
       </div>
     );
   };

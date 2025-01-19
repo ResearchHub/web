@@ -86,6 +86,7 @@ export default function WorkCreatePage() {
                 displayMode="inline" 
                 showSuggestionsOnFocus={false}
                 className="w-full"
+                placeholder="Search for your preprint"
                 onSelect={handlePaperSelect}
               />
               
