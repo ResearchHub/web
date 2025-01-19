@@ -1,31 +1,30 @@
 'use client'
 
-import { useState, useEffect } from 'react';
-import { PageLayout } from '../layouts/PageLayout';
-import { ResearchCoinRightSidebar } from '@/components/ResearchCoin/ResearchCoinRightSidebar';
-import { UserBalanceSection } from '@/components/ResearchCoin/UserBalanceSection';
-import { TransactionFeed } from '@/components/ResearchCoin/TransactionFeed';
-import { ExportFilterModal } from '@/components/modals/ResearchCoin/ExportFilterModal';
-import { TransactionService } from '@/services/transaction.service';
-import { useSession } from 'next-auth/react';
-import type { TransactionAPIResponse } from '@/services/types/transaction.dto';
-import { ExchangeRateService } from '@/services/exchangeRate.service';
+import { useEffect, useState } from 'react'
+import { PageLayout } from '@/app/layouts/PageLayout'
+import { ResearchCoinRightSidebar } from '@/components/ResearchCoin/ResearchCoinRightSidebar'
+import { UserBalanceSection } from '@/components/ResearchCoin/UserBalanceSection'
+import { TransactionFeed } from '@/components/ResearchCoin/TransactionFeed'
+import { ExportFilterModal } from '@/components/modals/ResearchCoin/ExportFilterModal'
+import { useSession } from 'next-auth/react'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { TransactionService } from '@/services/transaction.service'
+import { ExchangeRateService } from '@/services/exchangeRate.service'
 
 export default function ResearchCoinPage() {
-  const { data: session, status } = useSession();
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const [balance, setBalance] = useState<number | null>(null);
-  const [exchangeRate, setExchangeRate] = useState<number>(0);
-  const [isFetchingExchangeRate, setIsFetchingExchangeRate] = useState(true);
+  const { data: session, status } = useSession()
+  const [exchangeRate, setExchangeRate] = useState<number>(0)
+  const [userBalance, setUserBalance] = useState<number | null>(null)
+  const [isExporting, setIsExporting] = useState(false)
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+  const [isFetchingExchangeRate, setIsFetchingExchangeRate] = useState(true)
 
-  // Fetch initial data
   useEffect(() => {
-    if (status === 'loading') return;
-    
+    if (status === 'loading') return
+
     if (!session) {
-      setIsFetchingExchangeRate(false);
-      return;
+      setIsFetchingExchangeRate(false)
+      return
     }
 
     const fetchInitialData = async () => {
@@ -33,49 +32,57 @@ export default function ResearchCoinPage() {
         const [balanceResponse, rateResponse] = await Promise.all([
           TransactionService.getUserBalance(),
           ExchangeRateService.getLatestRate()
-        ]);
+        ])
         
-        setBalance(balanceResponse.user.balance);
-        setExchangeRate(rateResponse);
+        setUserBalance(balanceResponse.user.balance)
+        setExchangeRate(rateResponse)
       } catch (error) {
-        console.error('Failed to fetch initial data:', error);
+        console.error('Failed to fetch initial data:', error)
       } finally {
-        setIsFetchingExchangeRate(false);
+        setIsFetchingExchangeRate(false)
       }
-    };
+    }
 
-    fetchInitialData();
-  }, [session, status]);
+    fetchInitialData()
+  }, [session, status])
 
   const handleExport = () => {
-    setIsExportModalOpen(true);
-  };
+    setIsExportModalOpen(true)
+  }
 
   return (
     <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
-      <div className="flex">
-        <div className="flex-1">
-          <UserBalanceSection
-            balance={balance}
-            exchangeRate={exchangeRate}
-            isFetchingExchangeRate={isFetchingExchangeRate}
-          />
+      <div className="w-full">
+        <PageHeader title="ResearchCoin" />
 
-          <TransactionFeed
-            onExport={handleExport}
-            exchangeRate={exchangeRate}
-            isExporting={isExporting}
-          />
-
-          {isExportModalOpen && (
-            <ExportFilterModal
-              isOpen={isExportModalOpen}
-              onClose={() => setIsExportModalOpen(false)}
-              onExportStateChange={setIsExporting}
+        <div className="py-6">
+          <div className="lg:col-span-2">
+            <UserBalanceSection 
+              balance={userBalance} 
+              exchangeRate={exchangeRate}
+              isFetchingExchangeRate={isFetchingExchangeRate}
             />
-          )}
+            <div className="mt-6">
+              <TransactionFeed 
+                onExport={handleExport}
+                exchangeRate={exchangeRate}
+                isExporting={isExporting}
+              />
+            </div>
+          </div>
+          <div className="lg:col-span-1 lg:hidden">
+            <ResearchCoinRightSidebar />
+          </div>
         </div>
       </div>
+
+      {isExportModalOpen && (
+        <ExportFilterModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          onExportStateChange={setIsExporting}
+        />
+      )}
     </PageLayout>
-  );
+  )
 } 

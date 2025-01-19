@@ -3,19 +3,22 @@ import type {
   NotificationListResponse, 
   NotificationCountResponse,
 } from './types/notification.dto'
+import { transformNotificationResponse } from './types/notification.dto'
 
 export class NotificationService {
   private static readonly BASE_PATH = '/api'
 
-  static async getNotifications() {
-    return ApiClient.get<NotificationListResponse>(
+  static async getNotifications(): Promise<NotificationListResponse> {
+    const response = await ApiClient.get<any>(
       `${this.BASE_PATH}/notification/`
     )
+    return transformNotificationResponse(response)
   }
 
-  static async getNotificationsByUrl(url: string) {
+  static async getNotificationsByUrl(url: string): Promise<NotificationListResponse> {
     const urlObject = new URL(url)
-    return ApiClient.get<NotificationListResponse>(urlObject.pathname + urlObject.search)
+    const response = await ApiClient.get<any>(urlObject.pathname + urlObject.search)
+    return transformNotificationResponse(response)
   }
 
   static async getUnreadCount() {

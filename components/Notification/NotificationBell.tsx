@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useNotifications } from '@/contexts/NotificationContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBell as faBellRegular } from '@fortawesome/free-regular-svg-icons'
@@ -12,10 +13,12 @@ interface NotificationBellProps {
 
 export function NotificationBell({ filled }: NotificationBellProps) {
   const { unreadCount } = useNotifications()
+  const pathname = usePathname()
   const bellIcon = filled ? faBellSolid : faBellRegular
+  const href = pathname === '/notifications' ? '/' : '/notifications'
 
   return (
-    <Link href="/notifications" className="relative">
+    <Link href={href} className="relative">
       <FontAwesomeIcon 
         icon={bellIcon} 
         className="h-6 w-6 text-gray-600 hover:text-gray-900 transition-colors translate-y-[1px]"

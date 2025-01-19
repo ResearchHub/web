@@ -21,66 +21,52 @@ export function UserBalanceSection({ balance, exchangeRate, isFetchingExchangeRa
 
   return (
     <>
-      <div className="mb-6 mx-auto w-full">
-        <div className="px-0 py-8">
-          <div className="flex flex-col space-y-8">
-            <div className="flex justify-between items-start">
-              {/* Left side: Balance Section */}
-              <div className="space-y-6">
-                <div className="flex items-center">
-                  <h2 className="text-2xl font-semibold text-gray-800">My ResearchCoin</h2>
-                </div>
-
-                <div className="space-y-1">
-                  {isFetchingExchangeRate ? (
-                    <div className="space-y-2">
-                      <div className="h-10 w-58 bg-gray-200 animate-pulse rounded" />
-                      <div className="h-5 w-32 bg-gray-200 animate-pulse rounded" />
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex items-center gap-3">
-                        <ResearchCoinIcon size={28} />
-                        <div className="flex items-baseline">
-                          <span className="text-4xl font-semibold text-gray-900">{formattedBalance}</span>
-                          <span className="text-xl font-medium text-gray-600 ml-2">RSC</span>
-                        </div>
-                      </div>
-                      <div className="text-sm font-medium text-gray-600">
-                        ≈ {formatUsdValue(balance?.toString() ?? '0', exchangeRate)}
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-4">
-                  <Button 
-                    onClick={() => setIsDepositModalOpen(true)}
-                    variant="default"
-                    size="lg"
-                    className="gap-2"
-                  >
-                    <ArrowDownToLine className="h-5 w-5" />
-                    Deposit
-                  </Button>
-                  
-                  <Button 
-                    onClick={() => setIsWithdrawModalOpen(true)}
-                    variant="outlined"
-                    size="lg"
-                    className="gap-2"
-                  >
-                    <ArrowUpFromLine className="h-5 w-5" />
-                    Withdraw
-                  </Button>
-                </div>
+        <div className="flex flex-col space-y-6">
+          <div className="space-y-1">
+            {isFetchingExchangeRate ? (
+              <div className="space-y-2">
+                <div className="h-10 w-58 bg-gray-200 animate-pulse rounded" />
+                <div className="h-5 w-32 bg-gray-200 animate-pulse rounded" />
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-3">
+                  <ResearchCoinIcon size={28} />
+                  <div className="flex items-baseline">
+                    <span className="text-4xl font-semibold text-gray-900">{formattedBalance}</span>
+                    <span className="text-xl font-medium text-gray-600 ml-2">RSC</span>
+                  </div>
+                </div>
+                <div className="text-sm font-medium text-gray-600">
+                  ≈ {formatUsdValue(balance?.toString() ?? '0', exchangeRate)}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-4">
+            <Button 
+              onClick={() => setIsDepositModalOpen(true)}
+              variant="default"
+              size="lg"
+              className="gap-2"
+            >
+              <ArrowDownToLine className="h-5 w-5" />
+              Deposit
+            </Button>
+            
+            <Button 
+              onClick={() => setIsWithdrawModalOpen(true)}
+              variant="outlined"
+              size="lg"
+              className="gap-2"
+            >
+              <ArrowUpFromLine className="h-5 w-5" />
+              Withdraw
+            </Button>
           </div>
         </div>
-        <div className="h-px bg-gray-200" />
-      </div>
 
       {/* Modals */}
       <DepositModal

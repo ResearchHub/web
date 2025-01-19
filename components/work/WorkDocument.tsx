@@ -13,6 +13,7 @@ import { WorkRewards } from './WorkRewards'
 import { WorkComments } from './WorkComments'
 import { ClaimModal } from '@/components/modals/ClaimModal'
 import { AuthorList } from '@/components/ui/AuthorList'
+import { PageHeader } from '@/components/ui/PageHeader'
 
 interface WorkDocumentProps {
   work: Work;
@@ -72,14 +73,8 @@ export const WorkDocument = ({ work }: WorkDocumentProps) => {
       </div>
 
       {/* Title & Actions */}
-      <div className="mb-6">
-        <div className="flex items-start justify-between mb-4">
-          <h1 className="text-2xl font-bold text-gray-900 leading-tight">
-            {work.title}
-          </h1>
-        </div>
-
-        <div className="flex items-center space-x-4 mb-4">
+      <PageHeader title={work.title}>
+        <div className="flex items-center space-x-4">
           {/* Primary Actions */}
           <div className="flex items-center space-x-3">
             <button className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100">
@@ -207,7 +202,7 @@ export const WorkDocument = ({ work }: WorkDocumentProps) => {
             </div>
           )}
         </div>
-      </div>
+      </PageHeader>
 
       {/* Navigation */}
       <div className="border-b mb-6">

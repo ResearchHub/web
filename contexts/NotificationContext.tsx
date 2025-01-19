@@ -3,8 +3,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { NotificationService } from '@/services/notification.service'
 import type { NotificationListResponse } from '@/services/types/notification.dto'
-import { transformNotificationResponse } from '@/services/types/notification.dto'
-import type { Notification } from '@/types/notification'
 
 interface NotificationContextType {
   notificationData: NotificationListResponse
@@ -44,14 +42,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [unreadCount, setUnreadCount] = useState(0)
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-
   const fetchNotifications = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
       const response = await NotificationService.getNotifications()
-      const transformedResponse = transformNotificationResponse(response)
-      setNotificationData(transformedResponse)
+      setNotificationData(response)
     } catch (err) {
       setError('Failed to load notifications')
       console.error(err)
@@ -65,11 +61,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     try {
       setIsLoadingMore(true)
       const response = await NotificationService.getNotificationsByUrl(notificationData.next)
-      const transformedResponse = transformNotificationResponse(response)
       
       setNotificationData(prev => ({
-        ...transformedResponse,
-        results: [...prev.results, ...transformedResponse.results]
+        ...response,
+        results: [...prev.results, ...response.results]
       }))
     } catch (err) {
       setError('Failed to load more notifications')
@@ -104,7 +99,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     } catch (err) {
       console.error('Failed to mark all notifications as read:', err)
     }
-  }, [notificationData.results])
+  }, [])
 
   useEffect(() => {
     refreshUnreadCount()
