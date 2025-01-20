@@ -2,12 +2,14 @@ import { PaperService } from '@/services/paper.service';
 import { redirect } from 'next/navigation';
 import { buildWorkUrl } from '@/utils/url';
 
-interface Props {
-  searchParams: { [key: string]: string | string[] | undefined };
-}
+type Props = {
+  params: Promise<Record<string, never>>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
 
-export default async function WorkPage({ searchParams }: Props) {
-  const doi = searchParams.doi;
+export default async function WorkPage({ params, searchParams }: Props) {
+  const searchParamsData = await searchParams;
+  const doi = searchParamsData.doi;
   if (!doi || typeof doi !== 'string') {
     redirect('/404');
   }

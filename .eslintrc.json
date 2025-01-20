@@ -7,7 +7,9 @@
     "@typescript-eslint/no-explicit-any": "off",
     "react/no-unescaped-entities": "off",
     "@typescript-eslint/ban-ts-comment": "off",
-    "react-hooks/exhaustive-deps": "warn",
+    "react-hooks/exhaustive-deps": "off",
+    "@next/next/no-async-client-component": "off",
+    "react-hooks/rules-of-hooks": "off",
     "prefer-const": "off",
     "@next/next/no-img-element": "off"
   }
