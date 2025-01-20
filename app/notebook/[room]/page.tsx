@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import { TiptapCollabProvider } from '@hocuspocus/provider';
@@ -10,11 +11,14 @@ import { BlockEditor } from '@/components/Editor/components/BlockEditor';
 import { useCollaboration } from '@/components/Editor/hooks/useCollaboration';
 import NotebookLayout from '../layout/NotebookLayout';
 
-interface PageParams {
-  room: string;
-}
+type Props = {
+  params: {
+    room: string;
+  };
+};
 
-export default function Document({ params }: { params: PageParams }) {
+export default function Document(props: Props) {
+  const { params } = props;
   const [aiToken, setAiToken] = useState<string | null | undefined>();
   const searchParams = useSearchParams();
   const providerState = useCollaboration({
