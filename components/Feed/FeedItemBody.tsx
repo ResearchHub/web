@@ -47,12 +47,25 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
   hideTypeLabel,
 }) => {
   const [showFundModal, setShowFundModal] = useState(false);
+  const [expandedPaperIds, setExpandedPaperIds] = useState<Set<string | number>>(new Set());
 
   const renderItem = (item: Content, isTarget: boolean = false) => {
+    const toggleExpanded = (id: string | number) => {
+      setExpandedPaperIds((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(id)) {
+          newSet.delete(id);
+        } else {
+          newSet.add(id);
+        }
+        return newSet;
+      });
+    };
+
     const itemContent = (() => {
       switch (item.type) {
         case 'paper':
-          return renderPaper(item);
+          return renderPaper(item, expandedPaperIds.has(item.id), () => toggleExpanded(item.id));
         case 'funding_request':
           return renderFundingRequest(item);
         case 'grant':
@@ -155,10 +168,9 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
     return null;
   };
 
-  const renderPaper = (paper: Content) => {
+  const renderPaper = (paper: Content, isExpanded: boolean, onToggleExpand: () => void) => {
     if (paper.type !== 'paper') return null;
 
-    const [isExpanded, setIsExpanded] = useState(false);
     const truncateAbstract = (text: string, limit: number = 200) => {
       if (text.length <= limit) return text;
       return text.slice(0, limit).trim() + '...';
@@ -179,7 +191,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
               size="sm"
               onClick={(e) => {
                 e.preventDefault();
-                setIsExpanded(!isExpanded);
+                onToggleExpand();
               }}
               className="flex items-center gap-0.5 mt-1"
             >

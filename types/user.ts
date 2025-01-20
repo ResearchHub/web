@@ -6,13 +6,14 @@ export interface User {
   firstName: string;
   lastName: string;
   fullName: string;
+  username: string;
   isVerified: boolean;
   isOrganization?: boolean;
   authorProfile?: AuthorProfile;
 }
 
 export interface AuthorProfile {
-  id: string;
+  id: number;
   fullName: string;
   profileImage: string;
   headline?: string;
@@ -30,6 +31,7 @@ const baseTransformUser = (raw: any): User => ({
   firstName: raw.first_name,
   lastName: raw.last_name,
   fullName: raw.first_name + (raw.last_name ? ' ' + raw.last_name : ''),
+  username: raw.username || '',
   isVerified: raw.is_verified || false,
   isOrganization: raw.is_organization,
   authorProfile: undefined,

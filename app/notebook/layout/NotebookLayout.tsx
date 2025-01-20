@@ -5,7 +5,7 @@ import { PublishModal } from '@/components/modals/PublishModal';
 import { BountyModal } from '@/components/modals/BountyModal';
 import { PublishingSidebar } from './PublishingSidebar';
 
-type ArticleType = 'research' | 'grant';
+type ArticleType = 'research';
 
 export default function NotebookLayout({ children }: { children: React.ReactNode }) {
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
@@ -26,7 +26,7 @@ export default function NotebookLayout({ children }: { children: React.ReactNode
         </div>
         <PublishingSidebar
           articleType={articleType}
-          setArticleType={setArticleType}
+          setArticleType={(type) => setArticleType(type as ArticleType)}
           bountyAmount={bountyAmount}
           onBountyClick={() => setIsBountyModalOpen(true)}
           onPublishClick={() => setIsPublishModalOpen(true)}

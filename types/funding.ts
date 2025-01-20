@@ -1,4 +1,6 @@
-import { Hub, User, Metrics } from './feed';
+import { Hub } from './hub';
+import { ContentMetrics } from './metrics';
+import { User } from './user';
 
 export type FundingAuthor = {
   name: string;
@@ -35,7 +37,7 @@ export type Funding = {
   progress: number;
 
   // Metrics grouped together
-  metrics: Metrics;
+  metrics: ContentMetrics;
 
   // Contributors as User types
   contributors: { user: User; amount: number }[];

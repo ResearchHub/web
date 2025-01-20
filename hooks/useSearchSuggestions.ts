@@ -79,13 +79,6 @@ export function useSearchSuggestions(query: string, isFocused: boolean = true) {
 
   // Combine suggestions, prioritizing local results
   const suggestions = useMemo(() => {
-    console.log('Combining suggestions:', {
-      isFocused,
-      query,
-      localCount: filteredLocalSuggestions.length,
-      apiCount: apiSuggestions.length,
-    });
-
     if (isFocused === false) return []; // Only return empty if explicitly false
 
     let results: SearchSuggestion[] = [];

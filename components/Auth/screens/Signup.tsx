@@ -6,6 +6,10 @@ import { BaseScreenProps } from '../types';
 interface Props extends BaseScreenProps {
   onBack: () => void;
   onVerify: () => void;
+  isLoading: boolean;
+  setIsLoading: (loading: boolean) => void;
+  error: string | null;
+  setError: (error: string | null) => void;
 }
 
 export default function Signup({

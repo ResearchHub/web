@@ -13,7 +13,7 @@ export const mockInterests = {
     {
       id: 'nature',
       name: 'Nature',
-      type: 'journal',
+      type: 'journal' as const,
       description: 'International journal of science',
       followers: 1200000,
       verified: true,
@@ -21,7 +21,7 @@ export const mockInterests = {
     {
       id: 'science',
       name: 'Science',
-      type: 'journal',
+      type: 'journal' as const,
       description: "The world's leading outlet for scientific news",
       followers: 980000,
       verified: true,
@@ -29,15 +29,15 @@ export const mockInterests = {
     {
       id: 'cell',
       name: 'Cell',
-      type: 'journal',
-      description: 'Leading journal in life sciences research',
-      followers: 750000,
+      type: 'journal' as const,
+      description: 'Leading journal in life sciences',
+      followers: 850000,
       verified: true,
     },
     {
       id: 'nejm',
       name: 'New England Journal of Medicine',
-      type: 'journal',
+      type: 'journal' as const,
       description: 'Leading medical research journal',
       followers: 890000,
       verified: true,
@@ -45,7 +45,7 @@ export const mockInterests = {
     {
       id: 'lancet',
       name: 'The Lancet',
-      type: 'journal',
+      type: 'journal' as const,
       description: 'Prestigious medical journal since 1823',
       followers: 820000,
       verified: true,
@@ -53,7 +53,7 @@ export const mockInterests = {
     {
       id: 'pnas',
       name: 'PNAS',
-      type: 'journal',
+      type: 'journal' as const,
       description: 'Proceedings of the National Academy of Sciences',
       followers: 680000,
       verified: true,
@@ -61,7 +61,7 @@ export const mockInterests = {
     {
       id: 'nature_medicine',
       name: 'Nature Medicine',
-      type: 'journal',
+      type: 'journal' as const,
       description: 'Premier journal for medical research',
       followers: 560000,
       verified: true,
@@ -69,7 +69,7 @@ export const mockInterests = {
     {
       id: 'nature_biotech',
       name: 'Nature Biotechnology',
-      type: 'journal',
+      type: 'journal' as const,
       description: 'Leading journal in biotechnology',
       followers: 480000,
       verified: true,
@@ -77,7 +77,7 @@ export const mockInterests = {
     {
       id: 'nature_neuro',
       name: 'Nature Neuroscience',
-      type: 'journal',
+      type: 'journal' as const,
       description: 'Leading neuroscience research journal',
       followers: 440000,
       verified: true,
@@ -85,7 +85,7 @@ export const mockInterests = {
     {
       id: 'cell_stem_cell',
       name: 'Cell Stem Cell',
-      type: 'journal',
+      type: 'journal' as const,
       description: 'Premier journal for stem cell research',
       followers: 320000,
       verified: true,
@@ -95,7 +95,7 @@ export const mockInterests = {
     {
       id: 'jennifer_doudna',
       name: 'Jennifer Doudna',
-      type: 'person',
+      type: 'person' as const,
       description: 'Nobel laureate, CRISPR pioneer at UC Berkeley',
       followers: 250000,
       verified: true,
@@ -103,7 +103,7 @@ export const mockInterests = {
     {
       id: 'francis_collins',
       name: 'Francis Collins',
-      type: 'person',
+      type: 'person' as const,
       description: 'Former NIH Director, Human Genome Project leader',
       followers: 220000,
       verified: true,
@@ -111,7 +111,7 @@ export const mockInterests = {
     {
       id: 'emmanuelle_charpentier',
       name: 'Emmanuelle Charpentier',
-      type: 'person',
+      type: 'person' as const,
       description: 'Nobel laureate, CRISPR pioneer',
       followers: 190000,
       verified: true,
@@ -119,7 +119,7 @@ export const mockInterests = {
     {
       id: 'feng_zhang',
       name: 'Feng Zhang',
-      type: 'person',
+      type: 'person' as const,
       description: 'CRISPR pioneer at MIT-Harvard Broad Institute',
       followers: 180000,
       verified: true,
@@ -127,7 +127,7 @@ export const mockInterests = {
     {
       id: 'george_church',
       name: 'George Church',
-      type: 'person',
+      type: 'person' as const,
       description: 'Genetics pioneer, synthetic biology researcher',
       followers: 175000,
       verified: true,
@@ -135,7 +135,7 @@ export const mockInterests = {
     {
       id: 'david_liu',
       name: 'David Liu',
-      type: 'person',
+      type: 'person' as const,
       description: 'Pioneer in base editing and protein evolution',
       followers: 145000,
       verified: true,
@@ -143,7 +143,7 @@ export const mockInterests = {
     {
       id: 'mary_claire_king',
       name: 'Mary-Claire King',
-      type: 'person',
+      type: 'person' as const,
       description: 'Discovered BRCA1 gene, breast cancer research',
       followers: 135000,
       verified: true,
@@ -151,7 +151,7 @@ export const mockInterests = {
     {
       id: 'karl_deisseroth',
       name: 'Karl Deisseroth',
-      type: 'person',
+      type: 'person' as const,
       description: 'Pioneer in optogenetics and CLARITY',
       followers: 130000,
       verified: true,
@@ -159,7 +159,7 @@ export const mockInterests = {
     {
       id: 'svante_paabo',
       name: 'Svante Pääbo',
-      type: 'person',
+      type: 'person' as const,
       description: 'Pioneer in paleogenetics, Nobel laureate',
       followers: 120000,
       verified: true,
@@ -167,7 +167,7 @@ export const mockInterests = {
     {
       id: 'carolyn_bertozzi',
       name: 'Carolyn Bertozzi',
-      type: 'person',
+      type: 'person' as const,
       description: 'Pioneer in bioorthogonal chemistry, Nobel laureate',
       followers: 140000,
       verified: true,
@@ -177,7 +177,7 @@ export const mockInterests = {
     {
       id: 'ai_ml',
       name: 'AI & Machine Learning',
-      type: 'topic',
+      type: 'topic' as const,
       description: 'Artificial intelligence and machine learning research',
       followers: 890000,
       verified: true,
@@ -185,7 +185,7 @@ export const mockInterests = {
     {
       id: 'crispr',
       name: 'CRISPR Technology',
-      type: 'topic',
+      type: 'topic' as const,
       description: 'Gene editing and therapeutic applications',
       followers: 450000,
       verified: true,
@@ -193,7 +193,7 @@ export const mockInterests = {
     {
       id: 'cancer_research',
       name: 'Cancer Research',
-      type: 'topic',
+      type: 'topic' as const,
       description: 'Cancer biology and treatment advances',
       followers: 560000,
       verified: true,
@@ -201,7 +201,7 @@ export const mockInterests = {
     {
       id: 'neuroscience',
       name: 'Neuroscience',
-      type: 'topic',
+      type: 'topic' as const,
       description: 'Brain function and nervous system research',
       followers: 520000,
       verified: true,
@@ -209,7 +209,7 @@ export const mockInterests = {
     {
       id: 'immunology',
       name: 'Immunology',
-      type: 'topic',
+      type: 'topic' as const,
       description: 'Immune system and disease research',
       followers: 420000,
       verified: true,
@@ -217,7 +217,7 @@ export const mockInterests = {
     {
       id: 'genomics',
       name: 'Genomics',
-      type: 'topic',
+      type: 'topic' as const,
       description: 'Genome sequencing and analysis',
       followers: 390000,
       verified: true,
@@ -225,7 +225,7 @@ export const mockInterests = {
     {
       id: 'quantum_computing',
       name: 'Quantum Computing',
-      type: 'topic',
+      type: 'topic' as const,
       description: 'Quantum information science and computing',
       followers: 380000,
       verified: true,
@@ -233,7 +233,7 @@ export const mockInterests = {
     {
       id: 'climate_science',
       name: 'Climate Science',
-      type: 'topic',
+      type: 'topic' as const,
       description: 'Climate change and environmental research',
       followers: 680000,
       verified: true,
@@ -241,7 +241,7 @@ export const mockInterests = {
     {
       id: 'synthetic_biology',
       name: 'Synthetic Biology',
-      type: 'topic',
+      type: 'topic' as const,
       description: 'Engineering biological systems',
       followers: 280000,
       verified: true,
@@ -249,7 +249,7 @@ export const mockInterests = {
     {
       id: 'drug_discovery',
       name: 'Drug Discovery',
-      type: 'topic',
+      type: 'topic' as const,
       description: 'Pharmaceutical research and development',
       followers: 340000,
       verified: true,

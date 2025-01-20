@@ -1,5 +1,4 @@
-import { Notification } from '@/types/notification';
-import { NotificationBodyElement } from '@/services/types/notification.dto';
+import { Notification, NotificationBodyElement } from '@/types/notification';
 import Link from 'next/link';
 import { formatTimestamp } from '@/utils/date';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
@@ -12,13 +11,12 @@ interface NotificationItemProps {
   notification: Notification;
 }
 
-const RewardBadge = ({ type }: { type: string }) => {
-  const label =
-    {
-      REVIEW: 'Peer Review',
-      CONTRIBUTION: 'Contribution',
-      DISCUSSION: 'Discussion',
-    }[type] || type;
+const RewardBadge = ({ type }: { type: 'REVIEW' | 'CONTRIBUTION' | 'DISCUSSION' }) => {
+  const label = {
+    REVIEW: 'Peer Review',
+    CONTRIBUTION: 'Contribution',
+    DISCUSSION: 'Discussion',
+  }[type];
 
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
@@ -135,20 +133,21 @@ const NotificationIcon = ({ type }: { type: string }) => {
 };
 
 const NotificationContent = ({ notification }: { notification: Notification }) => {
-  const { type, body, actionUser, document, extra } = notification;
+  const { type, body, actionUser, work, extra } = notification;
 
   const renderExtraInfo = () => {
-    const hasRewardType = extra?.rewardType;
-    const hasHub = extra?.hub;
+    const hasRewardType =
+      extra?.rewardType && ['REVIEW', 'CONTRIBUTION', 'DISCUSSION'].includes(extra.rewardType);
+    const hasHub = extra?.hub?.name;
     const hasAmount = extra?.amount;
 
     if (!hasRewardType && !hasHub && !hasAmount) return null;
 
     return (
       <div className="flex flex-wrap gap-2 pt-1">
-        {hasRewardType && <RewardBadge type={extra.rewardType} />}
-        {hasHub && <HubBadge name={extra.hub.name} />}
-        {hasAmount && <RSCAmount amount={extra.amount} />}
+        {hasRewardType && extra?.rewardType && <RewardBadge type={extra.rewardType} />}
+        {hasHub && extra?.hub && <HubBadge name={extra.hub.name} />}
+        {hasAmount && extra?.amount && <RSCAmount amount={extra.amount} />}
       </div>
     );
   };
@@ -171,9 +170,9 @@ const NotificationContent = ({ notification }: { notification: Notification }) =
       ) : type === 'BOUNTY_FOR_YOU' ? (
         <>
           <span>An earning opportunity is recommended for you based on your expertise</span>
-          {document && (
-            <Link href={`/paper/${document.id}`} className="text-blue-600 hover:underline block">
-              {document.title}
+          {work && (
+            <Link href={`/paper/${work.id}`} className="text-blue-600 hover:underline block">
+              {work.title}
             </Link>
           )}
         </>

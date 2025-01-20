@@ -9,6 +9,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  ChartData,
 } from 'chart.js';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -27,6 +28,10 @@ const options = {
   },
 };
 
-export function BarChart({ data }) {
+interface BarChartProps {
+  data: ChartData<'bar'>;
+}
+
+export function BarChart({ data }: BarChartProps) {
   return <Bar options={options} data={data} />;
 }

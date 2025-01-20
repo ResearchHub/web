@@ -5,6 +5,8 @@ import { BaseScreenProps } from '../types';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
+  isLoading: boolean;
+  setIsLoading: (loading: boolean) => void;
 }
 
 export default function Login({
