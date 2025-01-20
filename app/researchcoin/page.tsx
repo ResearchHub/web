@@ -8,39 +8,30 @@ import { TransactionFeed } from '@/components/ResearchCoin/TransactionFeed';
 import { ExportFilterModal } from '@/components/modals/ResearchCoin/ExportFilterModal';
 import { TransactionService } from '@/services/transaction.service';
 import { useSession } from 'next-auth/react';
-import type { TransactionAPIResponse } from '@/services/types/transaction.dto';
-import { ExchangeRateService } from '@/services/exchangeRate.service';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { formatBalance } from '@/components/ResearchCoin/lib/types';
 
 export default function ResearchCoinPage() {
   const { data: session, status } = useSession();
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
-  const [exchangeRate, setExchangeRate] = useState<number>(0);
-  const [isFetchingExchangeRate, setIsFetchingExchangeRate] = useState(true);
+  const { exchangeRate, isLoading: isFetchingExchangeRate } = useExchangeRate();
 
   // Fetch initial data
   useEffect(() => {
     if (status === 'loading') return;
     
     if (!session) {
-      setIsFetchingExchangeRate(false);
       return;
     }
 
     const fetchInitialData = async () => {
       try {
-        const [balanceResponse, rateResponse] = await Promise.all([
-          TransactionService.getUserBalance(),
-          ExchangeRateService.getLatestRate()
-        ]);
-        
-        setBalance(balanceResponse.user.balance);
-        setExchangeRate(rateResponse);
+        const balanceResponse = await TransactionService.getUserBalance();
+        setBalance(balanceResponse);
       } catch (error) {
         console.error('Failed to fetch initial data:', error);
-      } finally {
-        setIsFetchingExchangeRate(false);
       }
     };
 
@@ -56,8 +47,7 @@ export default function ResearchCoinPage() {
       <div className="flex">
         <div className="flex-1">
           <UserBalanceSection
-            balance={balance}
-            exchangeRate={exchangeRate}
+            balance={balance ? formatBalance(balance, exchangeRate) : null}
             isFetchingExchangeRate={isFetchingExchangeRate}
           />
 
