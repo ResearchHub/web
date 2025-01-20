@@ -14,12 +14,12 @@ import NotebookLayout from '../layout/NotebookLayout';
 interface PageParams {
   room: string;
 }
+
 export default function Document({ params }: { params: PageParams }) {
-  const resolvedParams = use(Promise.resolve(params)) as PageParams;
   const [aiToken, setAiToken] = useState<string | null | undefined>();
   const searchParams = useSearchParams();
   const providerState = useCollaboration({
-    docId: resolvedParams.room,
+    docId: params.room,
     enabled: parseInt(searchParams?.get('noCollab') as string) !== 1,
   });
 
