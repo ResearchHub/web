@@ -80,10 +80,13 @@ All paths are relative to the root of the project.
 - dayjs
 - We use node v20.16.0
 
-# Directives when creating new code
+# Directives when creating new code (Very important)
 
 Execute the following whenver you are creating new code:
 
 - Create human readable code
 - Test for scalability
 - Test for performance
+- Test for security
+- Test for maintainability
+- Test for readability

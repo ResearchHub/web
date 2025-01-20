@@ -9,7 +9,6 @@ export const getSearchHistory = (): SearchSuggestion[] => {
   try {
     const stored = localStorage.getItem(SEARCH_HISTORY_KEY);
     const history = stored ? JSON.parse(stored) : [];
-    console.log('Loaded search history:', history);
     return history;
   } catch (error) {
     console.error('Error reading from localStorage:', error);
@@ -21,7 +20,6 @@ export const saveSearchHistory = (items: SearchSuggestion[]) => {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(items));
-    console.log('Saved search history:', items);
     // Dispatch a custom event to notify other components
     window.dispatchEvent(new Event('search-history-updated'));
   } catch (error) {

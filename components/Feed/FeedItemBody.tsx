@@ -297,7 +297,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
     return (
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
-          <Link href={buildUrl(grant)}>{grant.title}</Link>
+          {grant.title}
         </h3>
         <p className="text-sm text-gray-800 mb-2">{grant.abstract}</p>
         <div className="flex items-center gap-3 text-xs">
@@ -369,7 +369,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
     return (
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
-          <Link href={buildUrl(bounty)}>{bounty.title}</Link>
+          {bounty.title}
         </h3>
         <p className="text-sm text-gray-800 mb-2">{bounty.description}</p>
         <div className="flex items-center gap-3 text-xs">
