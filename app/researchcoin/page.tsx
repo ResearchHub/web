@@ -10,6 +10,7 @@ import { TransactionService } from '@/services/transaction.service';
 import { useSession } from 'next-auth/react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatBalance } from '@/components/ResearchCoin/lib/types';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default function ResearchCoinPage() {
   const { data: session, status } = useSession();
@@ -44,26 +45,32 @@ export default function ResearchCoinPage() {
 
   return (
     <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
-      <div className="flex">
-        <div className="flex-1">
-          <UserBalanceSection
-            balance={balance ? formatBalance(balance, exchangeRate) : null}
-            isFetchingExchangeRate={isFetchingExchangeRate}
-          />
+      <div className="w-full">
+        <PageHeader title="My ResearchCoin" />
 
-          <TransactionFeed
-            onExport={handleExport}
-            exchangeRate={exchangeRate}
-            isExporting={isExporting}
-          />
+        <div className="py-6">
+          <div className="flex">
+            <div className="flex-1">
+              <UserBalanceSection
+                balance={balance ? formatBalance(balance, exchangeRate) : null}
+                isFetchingExchangeRate={isFetchingExchangeRate}
+              />
 
-          {isExportModalOpen && (
-            <ExportFilterModal
-              isOpen={isExportModalOpen}
-              onClose={() => setIsExportModalOpen(false)}
-              onExportStateChange={setIsExporting}
-            />
-          )}
+              <TransactionFeed
+                onExport={handleExport}
+                exchangeRate={exchangeRate}
+                isExporting={isExporting}
+              />
+
+              {isExportModalOpen && (
+                <ExportFilterModal
+                  isOpen={isExportModalOpen}
+                  onClose={() => setIsExportModalOpen(false)}
+                  onExportStateChange={setIsExporting}
+                />
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </PageLayout>
