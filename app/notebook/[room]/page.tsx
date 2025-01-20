@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 
 import { TiptapCollabProvider } from '@hocuspocus/provider';
@@ -11,30 +10,20 @@ import { BlockEditor } from '@/components/Editor/components/BlockEditor';
 import { useCollaboration } from '@/components/Editor/hooks/useCollaboration';
 import NotebookLayout from '../layout/NotebookLayout';
 
-type PageParams = Promise<{
+interface PageParams {
   room: string;
-}>;
-
-type Props = {
-  params: PageParams;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-};
-
-async function getPageParams(): Promise<PageParams> {
-  return { room: '' }; // This will be populated by Next.js routing
 }
 
-export default async function Document({ params, searchParams }: Props) {
-  const { room } = await params;
-  const searchParamsData = await searchParams;
+export default function Document({ params }: { params: PageParams }) {
   const [aiToken, setAiToken] = useState<string | null | undefined>();
-  const urlSearchParams = useSearchParams();
+  const searchParams = useSearchParams();
   const providerState = useCollaboration({
-    docId: room,
-    enabled: parseInt(urlSearchParams?.get('noCollab') as string) !== 1,
+    docId: params.room,
+    enabled: parseInt(searchParams?.get('noCollab') as string) !== 1,
   });
 
   useEffect(() => {
+    // fetch data
     const dataFetch = async () => {
       try {
         const response = await fetch('/notebook/api/ai', {
@@ -48,7 +37,10 @@ export default async function Document({ params, searchParams }: Props) {
           throw new Error('No AI token provided, please set TIPTAP_AI_SECRET in your environment');
         }
         const data = await response.json();
+
         const { token } = data;
+
+        // set state when the data received
         setAiToken(token);
       } catch (e) {
         if (e instanceof Error) {
@@ -62,7 +54,7 @@ export default async function Document({ params, searchParams }: Props) {
     dataFetch();
   }, []);
 
-  if (providerState.state === 'loading' || aiToken === undefined) return null;
+  if (providerState.state === 'loading' || aiToken === undefined) return;
 
   return (
     <NotebookLayout>
