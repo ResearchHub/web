@@ -11,14 +11,12 @@ import { BlockEditor } from '@/components/Editor/components/BlockEditor';
 import { useCollaboration } from '@/components/Editor/hooks/useCollaboration';
 import NotebookLayout from '../layout/NotebookLayout';
 
-type Props = {
-  params: {
-    room: string;
-  };
-};
-
-export default function Document(props: Props) {
-  const { params } = props;
+export default function Document({
+  params,
+}: {
+  params: { room: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
   const [aiToken, setAiToken] = useState<string | null | undefined>();
   const searchParams = useSearchParams();
   const providerState = useCollaboration({
