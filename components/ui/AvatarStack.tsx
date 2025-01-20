@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { FC } from 'react';
 import { Avatar } from './Avatar';
@@ -22,9 +22,9 @@ interface AvatarStackProps {
   disableTooltip?: boolean;
 }
 
-export const AvatarStack: FC<AvatarStackProps> = ({ 
-  items, 
-  size = 'sm', 
+export const AvatarStack: FC<AvatarStackProps> = ({
+  items,
+  size = 'sm',
   maxItems = 3,
   className = '',
   spacing = -8,
@@ -35,29 +35,21 @@ export const AvatarStack: FC<AvatarStackProps> = ({
 
   const renderAvatar = (item: AvatarStackProps['items'][0], index: number) => {
     const avatar = (
-      <div 
-        className="relative inline-flex" 
-        style={{ 
+      <div
+        className="relative inline-flex"
+        style={{
           marginLeft: index !== 0 ? `${spacing}px` : undefined,
           zIndex: reverseOrder ? displayItems.length - index : index,
         }}
       >
-        <Avatar
-          src={item.src}
-          alt={item.alt}
-          size={size}
-          className="ring-1 ring-gray-300"
-        />
+        <Avatar src={item.src} alt={item.alt} size={size} className="ring-1 ring-gray-300" />
       </div>
     );
 
     if (disableTooltip) return avatar;
 
     return (
-      <Tooltip 
-        key={`${item.alt}-${index}`}
-        content={item.tooltip || item.alt}
-      >
+      <Tooltip key={`${item.alt}-${index}`} content={item.tooltip || item.alt}>
         {avatar}
       </Tooltip>
     );
@@ -74,4 +66,4 @@ export const AvatarStack: FC<AvatarStackProps> = ({
       </div>
     </div>
   );
-}; 
+};

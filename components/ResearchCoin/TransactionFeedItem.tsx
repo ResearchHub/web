@@ -1,10 +1,4 @@
-import type { TransformedTransaction } from '@/services/transaction.service';
-
-interface TransactionFeedItemProps {
-  transaction: TransformedTransaction;
-}
-
-export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
+export function TransactionFeedItem({ transaction }: any) {
   const Icon = transaction.typeInfo.icon;
 
   return (
@@ -20,18 +14,18 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
               <div className="flex items-center gap-2">
                 <p className="font-medium text-gray-900">{transaction.typeInfo.label}</p>
               </div>
-              <div className="text-xs text-gray-600 mt-0.5">
-                {transaction.formattedDate}
-              </div>
+              <div className="text-xs text-gray-600 mt-0.5">{transaction.formattedDate}</div>
             </div>
 
             <div className="flex flex-col items-end min-w-[140px]">
               <div className="flex items-center justify-end w-full">
                 <div className="flex flex-col items-end">
-                  <span className={`
+                  <span
+                    className={`
                     text-base font-medium transition-colors duration-200
                     ${transaction.isPositive ? 'text-green-600 group-hover:text-green-700' : 'text-gray-900'}
-                  `}>
+                  `}
+                  >
                     {transaction.formattedAmount}
                   </span>
                   <span className="text-xs text-gray-500 group-hover:text-gray-600">
@@ -45,4 +39,4 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
       </div>
     </div>
   );
-} 
+}

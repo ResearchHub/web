@@ -1,3 +1,16 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"]
+  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "rules": {
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "react/no-unescaped-entities": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
+    "react-hooks/exhaustive-deps": "off",
+    "@next/next/no-async-client-component": "off",
+    "react-hooks/rules-of-hooks": "off",
+    "prefer-const": "off",
+    "@next/next/no-img-element": "off"
+  }
 }

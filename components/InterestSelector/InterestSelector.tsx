@@ -22,11 +22,11 @@ export function InterestSelector({ mode, onComplete }: InterestSelectorProps) {
   const [activeType, setActiveType] = useState<'journal' | 'person' | 'topic'>('journal');
   const [isLoading, setIsLoading] = useState(true);
   const [interests, setInterests] = useState<Interest[]>([]);
-  
+
   const descriptions = {
     journal: 'Select journals to stay updated with the latest research in your field',
     person: 'Follow leading researchers and stay updated with their work',
-    topic: 'Choose topics you\'re interested in to get personalized recommendations'
+    topic: "Choose topics you're interested in to get personalized recommendations",
   };
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export function InterestSelector({ mode, onComplete }: InterestSelectorProps) {
 
         {/* Interest type selector */}
         <div className="flex gap-4 mb-8">
-          {interestTypes.map(type => {
+          {interestTypes.map((type) => {
             const Icon = type.icon;
             return (
               <Button
@@ -76,10 +76,10 @@ export function InterestSelector({ mode, onComplete }: InterestSelectorProps) {
               interests={interests}
               selectedInterests={selectedInterests}
               onSelect={(interest) => {
-                setSelectedInterests(prev => {
-                  const exists = prev.find(i => i.id === interest.id);
+                setSelectedInterests((prev) => {
+                  const exists = prev.find((i) => i.id === interest.id);
                   if (exists) {
-                    return prev.filter(i => i.id !== interest.id);
+                    return prev.filter((i) => i.id !== interest.id);
                   }
                   return [...prev, interest];
                 });
@@ -107,7 +107,7 @@ interface InterestGridProps {
 function InterestGrid({ interests, selectedInterests, onSelect }: InterestGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredInterests = interests.filter(interest =>
+  const filteredInterests = interests.filter((interest) =>
     interest.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -126,11 +126,11 @@ function InterestGrid({ interests, selectedInterests, onSelect }: InterestGridPr
 
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredInterests.map(interest => (
+        {filteredInterests.map((interest) => (
           <InterestCard
             key={interest.id}
             interest={interest}
-            selected={selectedInterests.some(i => i.id === interest.id)}
+            selected={selectedInterests.some((i) => i.id === interest.id)}
             onSelect={() => onSelect(interest)}
           />
         ))}

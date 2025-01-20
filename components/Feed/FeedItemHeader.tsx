@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { FC } from 'react';
 import { Content, FeedActionType } from '@/types/feed';
@@ -16,12 +16,12 @@ interface FeedItemHeaderProps {
   size?: 'xs' | 'sm';
 }
 
-export const FeedItemHeader: FC<FeedItemHeaderProps> = ({ 
-  action, 
-  timestamp, 
+export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
+  action,
+  timestamp,
   content,
   target,
-  size = 'sm'
+  size = 'sm',
 }) => {
   const getActionText = () => {
     switch (action) {
@@ -44,23 +44,25 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
         {
           src: content.actor.profileImage,
           alt: content.actor.fullName,
-          tooltip: content.actor.fullName
+          tooltip: content.actor.fullName,
         },
         ...content.authors
-          .filter(author => author.id !== content.actor.id)
-          .map(author => ({
+          .filter((author) => author.id !== content.actor.id)
+          .map((author) => ({
             src: author.profileImage,
             alt: author.fullName,
-            tooltip: author.fullName
-          }))
+            tooltip: author.fullName,
+          })),
       ];
     }
-    
-    return [{
-      src: content.actor.profileImage,
-      alt: content.actor.fullName,
-      tooltip: content.actor.fullName
-    }];
+
+    return [
+      {
+        src: content.actor.profileImage,
+        alt: content.actor.fullName,
+        tooltip: content.actor.fullName,
+      },
+    ];
   };
 
   const getAuthors = () => {
@@ -69,23 +71,25 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
         {
           name: content.actor.fullName,
           verified: content.actor.user?.isVerified,
-          profileUrl: content.actor.profileUrl
+          profileUrl: content.actor.profileUrl,
         },
         ...content.authors
-          .filter(author => author.id !== content.actor.id)
-          .map(author => ({
+          .filter((author) => author.id !== content.actor.id)
+          .map((author) => ({
             name: author.fullName,
             verified: author.user?.isVerified,
-            profileUrl: author.profileUrl
-          }))
+            profileUrl: author.profileUrl,
+          })),
       ];
     }
 
-    return [{
-      name: content.actor.fullName,
-      verified: content.actor.user?.isVerified,
-      profileUrl: content.actor.profileUrl
-    }];
+    return [
+      {
+        name: content.actor.fullName,
+        verified: content.actor.user?.isVerified,
+        profileUrl: content.actor.profileUrl,
+      },
+    ];
   };
 
   return (
@@ -107,17 +111,17 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
           />
           {action === 'contribute' && content.type === 'contribution' ? (
             <>
-              <span className="text-sm text-gray-600">contributed {formatRSC({amount: content.amount})} RSC towards bounty</span>
+              <span className="text-sm text-gray-600">
+                contributed {formatRSC({ amount: content.amount })} RSC towards bounty
+              </span>
             </>
           ) : (
             <span className="text-sm text-gray-600">{getActionText()}</span>
           )}
           <span className="text-sm text-gray-400">•</span>
-          <span className="text-sm text-gray-400">
-            {formatTimestamp(timestamp)}
-          </span>
+          <span className="text-sm text-gray-400">{formatTimestamp(timestamp)}</span>
         </div>
       </div>
     </div>
   );
-}; 
+};

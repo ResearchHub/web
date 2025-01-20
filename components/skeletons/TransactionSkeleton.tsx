@@ -36,4 +36,4 @@ export function TransactionSkeleton() {
       </div>
     </div>
   );
-} 
+}

@@ -1,16 +1,16 @@
-'use client'
+'use client';
 
-import { useState, useEffect, useRef } from 'react'
-import { Dialog, Transition } from '@headlessui/react'
-import { Fragment } from 'react'
-import { X, FileDown, Loader2 } from 'lucide-react'
-import { TransactionService } from '@/services/transaction.service'
-import toast from 'react-hot-toast'
+import { useState, useEffect, useRef } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
+import { Fragment } from 'react';
+import { X, FileDown, Loader2 } from 'lucide-react';
+import { TransactionService } from '@/services/transaction.service';
+import toast from 'react-hot-toast';
 
 interface ExportFilterModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onExportStateChange: (isExporting: boolean) => void
+  isOpen: boolean;
+  onClose: () => void;
+  onExportStateChange: (isExporting: boolean) => void;
 }
 
 const EXPORT_STAGES = [
@@ -19,93 +19,100 @@ const EXPORT_STAGES = [
   'Processing transaction data...',
   'Calculating USD values...',
   'Preparing CSV file...',
-  'Almost done...'
+  'Almost done...',
 ] as const;
 
 const STAGE_INTERVALS = [
-  1000,  // Starting export
-  2000,  // Gathering transactions
-  2000,  // Processing data
-  2000,  // Calculating USD values
-  2000,  // Preparing CSV
-  1000   // Almost done
+  1000, // Starting export
+  2000, // Gathering transactions
+  2000, // Processing data
+  2000, // Calculating USD values
+  2000, // Preparing CSV
+  1000, // Almost done
 ] as const;
 
-export function ExportFilterModal({ isOpen, onClose, onExportStateChange }: ExportFilterModalProps) {
-  const [currentStage, setCurrentStage] = useState(0)
-  const hasStartedExport = useRef(false)
-  const progressInterval = useRef<NodeJS.Timeout>()
+export function ExportFilterModal({
+  isOpen,
+  onClose,
+  onExportStateChange,
+}: ExportFilterModalProps) {
+  const [currentStage, setCurrentStage] = useState(0);
+  const hasStartedExport = useRef(false);
+  const progressInterval = useRef<NodeJS.Timeout>();
 
   // Progress simulation and export handling
   useEffect(() => {
     if (!isOpen) {
-      hasStartedExport.current = false
-      setCurrentStage(0)
+      hasStartedExport.current = false;
+      setCurrentStage(0);
       if (progressInterval.current) {
-        clearInterval(progressInterval.current)
+        clearInterval(progressInterval.current);
       }
-      return
+      return;
     }
 
     const startExport = async () => {
-      if (hasStartedExport.current) return
-      hasStartedExport.current = true
-      onExportStateChange(true)
+      if (hasStartedExport.current) return;
+      hasStartedExport.current = true;
+      onExportStateChange(true);
 
       try {
         // Start the API call immediately
-        const exportPromise = TransactionService.exportTransactionsCSV()
-        
+        const exportPromise = TransactionService.exportTransactionsCSV();
+
         // Start the progress simulation
-        let stage = 0
+        let stage = 0;
         const advanceStage = () => {
           if (stage < EXPORT_STAGES.length - 1) {
-            stage++
-            setCurrentStage(stage)
+            stage++;
+            setCurrentStage(stage);
           }
-        }
+        };
 
         // Schedule the stage updates
-        let totalDelay = 0
+        let totalDelay = 0;
         for (let i = 0; i < STAGE_INTERVALS.length - 1; i++) {
-          totalDelay += STAGE_INTERVALS[i]
-          setTimeout(advanceStage, totalDelay)
+          totalDelay += STAGE_INTERVALS[i];
+          setTimeout(advanceStage, totalDelay);
         }
 
         // Wait for the export to complete
-        const blob = await exportPromise
-        const url = window.URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.href = url
-        link.setAttribute('download', `researchcoin-transactions-${new Date().toISOString().split('T')[0]}.csv`)
-        document.body.appendChild(link)
-        link.click()
-        link.remove()
-        window.URL.revokeObjectURL(url)
-        
-        // Show final stage and close
-        setCurrentStage(EXPORT_STAGES.length - 1)
-        setTimeout(() => {
-          onClose()
-          onExportStateChange(false)
-          toast.success('Successfully exported transactions')
-        }, 1000)
-      } catch (error) {
-        console.error('Error exporting transactions:', error)
-        toast.error('Failed to export transactions')
-        onExportStateChange(false)
-        onClose()
-      }
-    }
+        const blob = await exportPromise;
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute(
+          'download',
+          `researchcoin-transactions-${new Date().toISOString().split('T')[0]}.csv`
+        );
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
 
-    startExport()
+        // Show final stage and close
+        setCurrentStage(EXPORT_STAGES.length - 1);
+        setTimeout(() => {
+          onClose();
+          onExportStateChange(false);
+          toast.success('Successfully exported transactions');
+        }, 1000);
+      } catch (error) {
+        console.error('Error exporting transactions:', error);
+        toast.error('Failed to export transactions');
+        onExportStateChange(false);
+        onClose();
+      }
+    };
+
+    startExport();
 
     return () => {
       if (progressInterval.current) {
-        clearInterval(progressInterval.current)
+        clearInterval(progressInterval.current);
       }
-    }
-  }, [isOpen, onClose, onExportStateChange])
+    };
+  }, [isOpen, onClose, onExportStateChange]);
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -152,12 +159,10 @@ export function ExportFilterModal({ isOpen, onClose, onExportStateChange }: Expo
               <div className="space-y-6">
                 <div className="flex flex-col items-center justify-center py-4">
                   <Loader2 className="h-8 w-8 text-primary-400 animate-spin mb-4" />
-                  <p className="text-gray-600 text-center">
-                    {EXPORT_STAGES[currentStage]}
-                  </p>
+                  <p className="text-gray-600 text-center">{EXPORT_STAGES[currentStage]}</p>
                   <p className="text-sm text-gray-500 mt-2 text-center">
-                    Your download will begin automatically.
-                    This process usually takes about 10 seconds.
+                    Your download will begin automatically. This process usually takes about 10
+                    seconds.
                   </p>
                 </div>
 
@@ -178,5 +183,5 @@ export function ExportFilterModal({ isOpen, onClose, onExportStateChange }: Expo
         </div>
       </Dialog>
     </Transition>
-  )
-} 
+  );
+}

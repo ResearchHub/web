@@ -7,10 +7,10 @@ interface InterestSelectorFooterProps {
   onComplete: (interests: Interest[]) => void;
 }
 
-export function InterestSelectorFooter({ 
-  selectedInterests, 
-  onCancel, 
-  onComplete 
+export function InterestSelectorFooter({
+  selectedInterests,
+  onCancel,
+  onComplete,
 }: InterestSelectorFooterProps) {
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t pt-4 pb-4 shadow-lg">
@@ -18,20 +18,18 @@ export function InterestSelectorFooter({
         <div className="text-sm text-gray-600">
           {selectedInterests.length > 0 ? (
             <span>
-              {selectedInterests.length} {selectedInterests.length === 1 ? 'interest' : 'interests'} selected
+              {selectedInterests.length} {selectedInterests.length === 1 ? 'interest' : 'interests'}{' '}
+              selected
             </span>
           ) : (
             <span>No interests selected</span>
           )}
         </div>
         <div className="flex items-center gap-3">
-          <Button 
-            variant="secondary"
-            onClick={() => onCancel()}
-          >
+          <Button variant="secondary" onClick={() => onCancel()}>
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={() => onComplete(selectedInterests)}
             disabled={selectedInterests.length === 0}
           >
@@ -41,4 +39,4 @@ export function InterestSelectorFooter({
       </div>
     </div>
   );
-} 
+}

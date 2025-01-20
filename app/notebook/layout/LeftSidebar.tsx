@@ -28,7 +28,7 @@ const sampleDocuments = [
     name: 'RNA Sequencing Data',
     type: 'data',
     icon: File,
-  }
+  },
 ];
 
 const privateDocuments = [
@@ -41,7 +41,7 @@ const privateDocuments = [
     name: 'Research Ideas 2024',
     type: 'notes',
     icon: Star,
-  }
+  },
 ];
 
 const LeftSidebar: React.FC = () => (
@@ -57,7 +57,7 @@ const LeftSidebar: React.FC = () => (
         </div>
         <ChevronDown className="h-4 w-4 text-gray-500" />
       </button>
-      
+
       <div className="mt-3 space-y-1">
         <button className="w-full text-left px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg flex items-center gap-2">
           <Settings className="h-4 w-4" />

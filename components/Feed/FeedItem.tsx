@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { FC } from 'react';
 import { FeedEntry } from '@/types/feed';
@@ -16,14 +16,9 @@ export const FeedItem: FC<FeedItemProps> = ({ entry, isFirst }) => {
   const { content, target, context, metrics } = entry;
 
   return (
-    <div 
-      className={cn(
-        'relative',
-        !isFirst && 'mt-6'
-      )}
-    >
+    <div className={cn('relative', !isFirst && 'mt-6')}>
       <div>
-        <FeedItemHeader 
+        <FeedItemHeader
           action={entry.action}
           timestamp={entry.timestamp}
           content={content}
@@ -31,7 +26,7 @@ export const FeedItem: FC<FeedItemProps> = ({ entry, isFirst }) => {
         />
 
         <div className="mt-2">
-          <FeedItemBody 
+          <FeedItemBody
             content={content}
             target={target}
             context={context}
@@ -41,8 +36,8 @@ export const FeedItem: FC<FeedItemProps> = ({ entry, isFirst }) => {
           />
 
           <div className="pt-3">
-            <FeedItemActions 
-              metrics={metrics} 
+            <FeedItemActions
+              metrics={metrics}
               content={content}
               target={target}
               contributors={entry.contributors}
@@ -52,4 +47,4 @@ export const FeedItem: FC<FeedItemProps> = ({ entry, isFirst }) => {
       </div>
     </div>
   );
-}; 
+};

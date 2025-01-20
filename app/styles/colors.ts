@@ -6,7 +6,7 @@ export const colors = {
     300: '#a5b4fc',
     400: '#818cf8',
     500: '#6366f1',
-    600: '#4f46e5',  // New primary indigo
+    600: '#4f46e5', // New primary indigo
     700: '#4338ca',
     800: '#3730a3',
     900: '#312e81',
@@ -26,4 +26,4 @@ export const colors = {
     900: '#111827',
     950: '#030712',
   },
-} 
+};

@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { FC, useState, useEffect } from 'react';
 import { cn } from '@/utils/styles';
@@ -10,12 +10,7 @@ interface AvatarProps {
   className?: string;
 }
 
-export const Avatar: FC<AvatarProps> = ({ 
-  src, 
-  alt, 
-  size = 'md',
-  className 
-}) => {
+export const Avatar: FC<AvatarProps> = ({ src, alt, size = 'md', className }) => {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -46,7 +41,7 @@ export const Avatar: FC<AvatarProps> = ({
     xxs: 'h-5 w-5 text-[8px]',
     xs: 'h-6 w-6 text-[10px]',
     sm: 'h-8 w-8 text-xs',
-    md: 'h-10 w-10 text-sm'
+    md: 'h-10 w-10 text-sm',
   };
 
   const handleImageError = () => {
@@ -57,7 +52,7 @@ export const Avatar: FC<AvatarProps> = ({
   const shouldShowInitials = !src || imageError || isLoading;
 
   return (
-    <div 
+    <div
       className={cn(
         'relative inline-flex rounded-full bg-gray-100 overflow-hidden',
         'flex items-center justify-center',
@@ -80,4 +75,4 @@ export const Avatar: FC<AvatarProps> = ({
       )}
     </div>
   );
-}; 
+};

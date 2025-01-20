@@ -1,29 +1,29 @@
-import { useState } from 'react'
-import SelectProvider from './screens/SelectProvider'
-import Login from './screens/Login'
-import Signup from './screens/Signup'
-import VerifyEmail from './screens/VerifyEmail'
-import { AuthScreen } from './types'
+import { useState } from 'react';
+import SelectProvider from './screens/SelectProvider';
+import Login from './screens/Login';
+import Signup from './screens/Signup';
+import VerifyEmail from './screens/VerifyEmail';
+import { AuthScreen } from './types';
 
 interface AuthContentProps {
-  onClose?: () => void
-  onSuccess?: () => void
-  initialError?: string | null
-  initialScreen?: AuthScreen
-  showHeader?: boolean
+  onClose?: () => void;
+  onSuccess?: () => void;
+  initialError?: string | null;
+  initialScreen?: AuthScreen;
+  showHeader?: boolean;
 }
 
-export default function AuthContent({ 
-  onClose, 
+export default function AuthContent({
+  onClose,
   onSuccess,
   initialError,
   initialScreen = 'SELECT_PROVIDER',
-  showHeader = true
+  showHeader = true,
 }: AuthContentProps) {
-  const [screen, setScreen] = useState<AuthScreen>(initialScreen)
-  const [email, setEmail] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(initialError || null)
+  const [screen, setScreen] = useState<AuthScreen>(initialScreen);
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(initialError || null);
 
   const sharedProps = {
     onClose: onClose || (() => {}),
@@ -34,8 +34,8 @@ export default function AuthContent({
     error,
     setError,
     showHeader,
-  }
-  
+  };
+
   return (
     <div className="w-full">
       {screen === 'SELECT_PROVIDER' && (
@@ -45,12 +45,7 @@ export default function AuthContent({
           onSignup={() => setScreen('SIGNUP')}
         />
       )}
-      {screen === 'LOGIN' && (
-        <Login
-          {...sharedProps}
-          onBack={() => setScreen('SELECT_PROVIDER')}
-        />
-      )}
+      {screen === 'LOGIN' && <Login {...sharedProps} onBack={() => setScreen('SELECT_PROVIDER')} />}
       {screen === 'SIGNUP' && (
         <Signup
           {...sharedProps}
@@ -58,9 +53,7 @@ export default function AuthContent({
           onVerify={() => setScreen('VERIFY_EMAIL')}
         />
       )}
-      {screen === 'VERIFY_EMAIL' && (
-        <VerifyEmail {...sharedProps} />
-      )}
+      {screen === 'VERIFY_EMAIL' && <VerifyEmail {...sharedProps} />}
     </div>
-  )
-} 
+  );
+}

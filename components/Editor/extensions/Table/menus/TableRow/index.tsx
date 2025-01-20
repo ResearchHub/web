@@ -1,35 +1,35 @@
-import { BubbleMenu as BaseBubbleMenu } from '@tiptap/react'
-import React, { useCallback } from 'react'
-import * as PopoverMenu from '@/components/Editor/components/ui/PopoverMenu'
+import { BubbleMenu as BaseBubbleMenu } from '@tiptap/react';
+import React, { useCallback } from 'react';
+import * as PopoverMenu from '@/components/Editor/components/ui/PopoverMenu';
 
-import { Toolbar } from '@/components/Editor/components/ui/Toolbar'
-import { isRowGripSelected } from './utils'
-import { Icon } from '@/components/Editor/components/ui/Icon'
-import { MenuProps, ShouldShowProps } from '@/components/Editor/components/menus/types'
+import { Toolbar } from '@/components/Editor/components/ui/Toolbar';
+import { isRowGripSelected } from './utils';
+import { Icon } from '@/components/Editor/components/ui/Icon';
+import { MenuProps, ShouldShowProps } from '@/components/Editor/components/menus/types';
 
 export const TableRowMenu = React.memo(({ editor, appendTo }: MenuProps): JSX.Element => {
   const shouldShow = useCallback(
     ({ view, state, from }: ShouldShowProps) => {
       if (!state || !from) {
-        return false
+        return false;
       }
 
-      return isRowGripSelected({ editor, view, state, from })
+      return isRowGripSelected({ editor, view, state, from });
     },
-    [editor],
-  )
+    [editor]
+  );
 
   const onAddRowBefore = useCallback(() => {
-    editor.chain().focus().addRowBefore().run()
-  }, [editor])
+    editor.chain().focus().addRowBefore().run();
+  }, [editor]);
 
   const onAddRowAfter = useCallback(() => {
-    editor.chain().focus().addRowAfter().run()
-  }, [editor])
+    editor.chain().focus().addRowAfter().run();
+  }, [editor]);
 
   const onDeleteRow = useCallback(() => {
-    editor.chain().focus().deleteRow().run()
-  }, [editor])
+    editor.chain().focus().deleteRow().run();
+  }, [editor]);
 
   return (
     <BaseBubbleMenu
@@ -38,7 +38,7 @@ export const TableRowMenu = React.memo(({ editor, appendTo }: MenuProps): JSX.El
       updateDelay={0}
       tippyOptions={{
         appendTo: () => {
-          return appendTo?.current
+          return appendTo?.current;
         },
         placement: 'left',
         offset: [0, 15],
@@ -64,9 +64,9 @@ export const TableRowMenu = React.memo(({ editor, appendTo }: MenuProps): JSX.El
         <PopoverMenu.Item icon="Trash" close={false} label="Delete row" onClick={onDeleteRow} />
       </Toolbar.Wrapper>
     </BaseBubbleMenu>
-  )
-})
+  );
+});
 
-TableRowMenu.displayName = 'TableRowMenu'
+TableRowMenu.displayName = 'TableRowMenu';
 
-export default TableRowMenu
+export default TableRowMenu;

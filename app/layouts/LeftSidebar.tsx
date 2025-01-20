@@ -1,9 +1,6 @@
-'use client'
+'use client';
 
-import { 
-  Home, Coins, GraduationCap, Store, BookOpen, 
-  Star, AlertCircle
-} from 'lucide-react';
+import { Home, Coins, GraduationCap, Store, BookOpen, Star, AlertCircle } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { FooterLinks } from '../../components/FooterLinks';
 import { Navigation } from './Navigation';
@@ -17,20 +14,23 @@ export const LeftSidebar: React.FC = () => {
   const router = useRouter();
 
   const handleUnimplementedFeature = (featureName: string) => {
-    toast((t) => (
-      <div className="flex items-center space-x-2">
-        <AlertCircle className="h-5 w-5" />
-        <span>Implementation coming soon</span>
-      </div>
-    ), {
-      duration: 2000,
-      position: 'bottom-right',
-      style: {
-        background: '#FFF7ED',
-        color: '#EA580C',
-        border: '1px solid #FDBA74',
-      },
-    });
+    toast(
+      (t) => (
+        <div className="flex items-center space-x-2">
+          <AlertCircle className="h-5 w-5" />
+          <span>Implementation coming soon</span>
+        </div>
+      ),
+      {
+        duration: 2000,
+        position: 'bottom-right',
+        style: {
+          background: '#FFF7ED',
+          color: '#EA580C',
+          border: '1px solid #FDBA74',
+        },
+      }
+    );
   };
 
   return (
@@ -45,7 +45,7 @@ export const LeftSidebar: React.FC = () => {
 
       <div className="flex-1">
         <div className="px-4 py-4">
-          <Navigation 
+          <Navigation
             currentPath={pathname || ''}
             onUnimplementedFeature={handleUnimplementedFeature}
           />

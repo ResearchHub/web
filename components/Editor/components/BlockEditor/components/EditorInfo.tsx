@@ -1,16 +1,16 @@
-import { WebSocketStatus } from '@hocuspocus/provider'
-import { memo } from 'react'
-import { EditorUser } from '../types'
-import { cn } from '../../../lib/utils'
-import { getConnectionText } from '../../../lib/utils/getConnectionText'
-import Tooltip from '../../ui/Tooltip'
+import { WebSocketStatus } from '@hocuspocus/provider';
+import { memo } from 'react';
+import { EditorUser } from '../types';
+import { cn } from '../../../lib/utils';
+import { getConnectionText } from '../../../lib/utils/getConnectionText';
+import Tooltip from '../../ui/Tooltip';
 
 export type EditorInfoProps = {
-  characters: number
-  words: number
-  collabState: WebSocketStatus
-  users: EditorUser[]
-}
+  characters: number;
+  words: number;
+  collabState: WebSocketStatus;
+  users: EditorUser[];
+};
 
 export const EditorInfo = memo(({ characters, collabState, users, words }: EditorInfoProps) => {
   return (
@@ -62,7 +62,7 @@ export const EditorInfo = memo(({ characters, collabState, users, words }: Edito
         </div>
       )}
     </div>
-  )
-})
+  );
+});
 
-EditorInfo.displayName = 'EditorInfo'
+EditorInfo.displayName = 'EditorInfo';

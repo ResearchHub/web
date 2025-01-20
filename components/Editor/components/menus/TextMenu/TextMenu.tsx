@@ -1,35 +1,35 @@
-import { Icon } from '@/components/Editor/components/ui/Icon'
-import { Toolbar } from '@/components/Editor/components/ui/Toolbar'
-import { useTextmenuCommands } from './hooks/useTextmenuCommands'
-import { useTextmenuStates } from './hooks/useTextmenuStates'
-import { BubbleMenu, Editor } from '@tiptap/react'
-import { memo } from 'react'
-import * as Popover from '@radix-ui/react-popover'
-import { Surface } from '@/components/Editor/components/ui/Surface'
-import { ColorPicker } from '@/components/Editor/components/panels'
-import { FontFamilyPicker } from './components/FontFamilyPicker'
-import { FontSizePicker } from './components/FontSizePicker'
-import { useTextmenuContentTypes } from './hooks/useTextmenuContentTypes'
-import { ContentTypePicker } from './components/ContentTypePicker'
-import { AIDropdown } from './components/AIDropdown'
-import { EditLinkPopover } from './components/EditLinkPopover'
+import { Icon } from '@/components/Editor/components/ui/Icon';
+import { Toolbar } from '@/components/Editor/components/ui/Toolbar';
+import { useTextmenuCommands } from './hooks/useTextmenuCommands';
+import { useTextmenuStates } from './hooks/useTextmenuStates';
+import { BubbleMenu, Editor } from '@tiptap/react';
+import { memo } from 'react';
+import * as Popover from '@radix-ui/react-popover';
+import { Surface } from '@/components/Editor/components/ui/Surface';
+import { ColorPicker } from '@/components/Editor/components/panels';
+import { FontFamilyPicker } from './components/FontFamilyPicker';
+import { FontSizePicker } from './components/FontSizePicker';
+import { useTextmenuContentTypes } from './hooks/useTextmenuContentTypes';
+import { ContentTypePicker } from './components/ContentTypePicker';
+import { AIDropdown } from './components/AIDropdown';
+import { EditLinkPopover } from './components/EditLinkPopover';
 
 // We memorize the button so each button is not rerendered
 // on every editor state change
-const MemoButton = memo(Toolbar.Button)
-const MemoColorPicker = memo(ColorPicker)
-const MemoFontFamilyPicker = memo(FontFamilyPicker)
-const MemoFontSizePicker = memo(FontSizePicker)
-const MemoContentTypePicker = memo(ContentTypePicker)
+const MemoButton = memo(Toolbar.Button);
+const MemoColorPicker = memo(ColorPicker);
+const MemoFontFamilyPicker = memo(FontFamilyPicker);
+const MemoFontSizePicker = memo(FontSizePicker);
+const MemoContentTypePicker = memo(ContentTypePicker);
 
 export type TextMenuProps = {
-  editor: Editor
-}
+  editor: Editor;
+};
 
 export const TextMenu = ({ editor }: TextMenuProps) => {
-  const commands = useTextmenuCommands(editor)
-  const states = useTextmenuStates(editor)
-  const blockOptions = useTextmenuContentTypes(editor)
+  const commands = useTextmenuCommands(editor);
+  const states = useTextmenuStates(editor);
+  const blockOptions = useTextmenuContentTypes(editor);
 
   return (
     <BubbleMenu
@@ -76,7 +76,12 @@ export const TextMenu = ({ editor }: TextMenuProps) => {
         <MemoFontFamilyPicker onChange={commands.onSetFont} value={states.currentFont || ''} />
         <MemoFontSizePicker onChange={commands.onSetFontSize} value={states.currentSize || ''} />
         <Toolbar.Divider />
-        <MemoButton tooltip="Bold" tooltipShortcut={['Mod', 'B']} onClick={commands.onBold} active={states.isBold}>
+        <MemoButton
+          tooltip="Bold"
+          tooltipShortcut={['Mod', 'B']}
+          onClick={commands.onBold}
+          active={states.isBold}
+        >
           <Icon name="Bold" />
         </MemoButton>
         <MemoButton
@@ -103,7 +108,12 @@ export const TextMenu = ({ editor }: TextMenuProps) => {
         >
           <Icon name="Strikethrough" />
         </MemoButton>
-        <MemoButton tooltip="Code" tooltipShortcut={['Mod', 'E']} onClick={commands.onCode} active={states.isCode}>
+        <MemoButton
+          tooltip="Code"
+          tooltipShortcut={['Mod', 'E']}
+          onClick={commands.onCode}
+          active={states.isCode}
+        >
           <Icon name="Code" />
         </MemoButton>
         <MemoButton tooltip="Code block" onClick={commands.onCodeBlock}>
@@ -204,5 +214,5 @@ export const TextMenu = ({ editor }: TextMenuProps) => {
         </Popover.Root>
       </Toolbar.Wrapper>
     </BubbleMenu>
-  )
-}
+  );
+};

@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { HocuspocusProvider } from '@hocuspocus/provider'
+import { HocuspocusProvider } from '@hocuspocus/provider';
 
-import { API } from '@/components/Editor/lib/api'
+import { API } from '@/components/Editor/lib/api';
 
 import {
   BlockquoteFigure,
@@ -47,14 +47,14 @@ import {
   TaskItem,
   TaskList,
   UniqueID,
-} from '.'
+} from '.';
 
-import { ImageUpload } from './ImageUpload'
-import { TableOfContentsNode } from './TableOfContentsNode'
-import { isChangeOrigin } from '@tiptap/extension-collaboration'
+import { ImageUpload } from './ImageUpload';
+import { TableOfContentsNode } from './TableOfContentsNode';
+import { isChangeOrigin } from '@tiptap/extension-collaboration';
 
 interface ExtensionKitProps {
-  provider?: HocuspocusProvider | null
+  provider?: HocuspocusProvider | null;
 }
 
 export const ExtensionKit = ({ provider }: ExtensionKitProps) => [
@@ -72,7 +72,7 @@ export const ExtensionKit = ({ provider }: ExtensionKitProps) => [
   HorizontalRule,
   UniqueID.configure({
     types: ['paragraph', 'heading', 'blockquote', 'codeBlock', 'table'],
-    filterTransaction: transaction => !isChangeOrigin(transaction),
+    filterTransaction: (transaction) => !isChangeOrigin(transaction),
   }),
   StarterKit.configure({
     document: false,
@@ -112,22 +112,22 @@ export const ExtensionKit = ({ provider }: ExtensionKitProps) => [
   FileHandler.configure({
     allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
     onDrop: (currentEditor, files, pos) => {
-      files.forEach(async file => {
-        const url = await API.uploadImage(file)
+      files.forEach(async (file) => {
+        const url = await API.uploadImage(file);
 
-        currentEditor.chain().setImageBlockAt({ pos, src: url }).focus().run()
-      })
+        currentEditor.chain().setImageBlockAt({ pos, src: url }).focus().run();
+      });
     },
     onPaste: (currentEditor, files) => {
-      files.forEach(async file => {
-        const url = await API.uploadImage(file)
+      files.forEach(async (file) => {
+        const url = await API.uploadImage(file);
 
         return currentEditor
           .chain()
           .setImageBlockAt({ pos: currentEditor.state.selection.anchor, src: url })
           .focus()
-          .run()
-      })
+          .run();
+      });
     },
   }),
   Emoji.configure({
@@ -136,7 +136,7 @@ export const ExtensionKit = ({ provider }: ExtensionKitProps) => [
   }),
   TextAlign.extend({
     addKeyboardShortcuts() {
-      return {}
+      return {};
     },
   }).configure({
     types: ['heading', 'paragraph'],
@@ -161,6 +161,6 @@ export const ExtensionKit = ({ provider }: ExtensionKitProps) => [
     width: 2,
     class: 'ProseMirror-dropcursor border-black',
   }),
-]
+];
 
-export default ExtensionKit
+export default ExtensionKit;

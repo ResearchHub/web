@@ -4,10 +4,9 @@ import { DepositModal } from '../modals/ResearchCoin/DepositModal';
 import { WithdrawModal } from '../modals/ResearchCoin/WithdrawModal';
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import type { TransformedBalance } from '@/services/transaction.service';
 
 interface UserBalanceSectionProps {
-  balance: TransformedBalance | null;
+  balance: any;
   isFetchingExchangeRate: boolean;
 }
 
@@ -21,15 +20,11 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
   return (
     <>
       <div className="mb-6 mx-auto w-full">
-        <div className="px-0 py-8">
+        <div className="px-0 pb-8">
           <div className="flex flex-col space-y-8">
             <div className="flex justify-between items-start">
               {/* Left side: Balance Section */}
               <div className="space-y-6">
-                <div className="flex items-center">
-                  <h2 className="text-2xl font-semibold text-gray-800">My ResearchCoin</h2>
-                </div>
-
                 <div className="space-y-1">
                   {!isBalanceReady ? (
                     <div className="space-y-2">
@@ -56,7 +51,7 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
 
                 {/* Action Buttons */}
                 <div className="flex gap-4">
-                  <Button 
+                  <Button
                     onClick={() => setIsDepositModalOpen(true)}
                     variant="default"
                     size="lg"
@@ -66,8 +61,8 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
                     <ArrowDownToLine className="h-5 w-5" />
                     Deposit
                   </Button>
-                  
-                  <Button 
+
+                  <Button
                     onClick={() => setIsWithdrawModalOpen(true)}
                     variant="outlined"
                     size="lg"
@@ -102,4 +97,4 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
       )}
     </>
   );
-} 
+}

@@ -1,4 +1,4 @@
-import { AiToneOption, LanguageOption } from '../components/BlockEditor/types'
+import { AiToneOption, LanguageOption } from '../components/BlockEditor/types';
 
 export const languages: LanguageOption[] = [
   { name: 'arabic', label: 'Arabic', value: 'ar' as LanguageOption['value'] },
@@ -14,7 +14,7 @@ export const languages: LanguageOption[] = [
   { name: 'spanish', label: 'Spanish', value: 'es' as LanguageOption['value'] },
   { name: 'swedish', label: 'Swedish', value: 'sv' as LanguageOption['value'] },
   { name: 'ukrainian', label: 'Ukrainian', value: 'ua' as LanguageOption['value'] },
-]
+];
 
 export const tones: AiToneOption[] = [
   { name: 'academic', label: 'Academic', value: 'academic' },
@@ -31,7 +31,7 @@ export const tones: AiToneOption[] = [
   { name: 'objective', label: 'Objective', value: 'objective' },
   { name: 'persuasive', label: 'Persuasive', value: 'persuasive' },
   { name: 'poetic', label: 'Poetic', value: 'poetic' },
-]
+];
 
 export const userNames = [
   'Lea Thompson',
@@ -59,8 +59,16 @@ export const userNames = [
   'Matthew Broderick',
   'Justine Bateman',
   'Lisa Bonet',
-]
+];
 
-export const userColors = ['#fb7185', '#fdba74', '#d9f99d', '#a7f3d0', '#a5f3fc', '#a5b4fc', '#f0abfc']
+export const userColors = [
+  '#fb7185',
+  '#fdba74',
+  '#d9f99d',
+  '#a7f3d0',
+  '#a5f3fc',
+  '#a5b4fc',
+  '#f0abfc',
+];
 
-export const themeColors = ['#fb7185', '#fdba74', '#d9f99d', '#a7f3d0', '#a5f3fc', '#a5b4fc']
+export const themeColors = ['#fb7185', '#fdba74', '#d9f99d', '#a7f3d0', '#a5f3fc', '#a5b4fc'];

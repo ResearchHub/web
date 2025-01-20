@@ -1,11 +1,12 @@
 import { AuthorProfile } from './user';
-
-export type Role = 'applicant';
-
+import { ContentMetrics } from './metrics';
+import { Journal } from './journal';
+import { Topic } from './topic';
+import { Hub } from './hub';
 
 export type FeedActionType = 'repost' | 'contribute' | 'publish' | 'post';
 
-export type ContentType = 
+export type ContentType =
   | 'paper'
   | 'comment'
   | 'funding_request'
@@ -18,11 +19,7 @@ interface BaseContent {
   id: string;
   type: ContentType;
   timestamp: string;
-  hub: {
-    id: string;
-    name: string;
-    slug: string;
-  };
+  hub: Hub;
   slug: string;
   title?: string;
   actor: AuthorProfile;
@@ -32,10 +29,7 @@ export interface Paper extends BaseContent {
   type: 'paper';
   abstract: string;
   doi?: string;
-  journal?: {
-    slug: string;
-    image?: string;
-  };
+  journal?: Journal;
   authors: AuthorProfile[];
 }
 
@@ -51,10 +45,12 @@ export interface FundingRequest extends BaseContent {
   type: 'funding_request';
   title: string;
   abstract: string;
+  status: 'OPEN' | 'CLOSED' | 'COMPLETED';
   amount: number;
-  deadline: string;
   goalAmount: number;
-  status: FundingRequestStatus;
+  deadline: string;
+  image?: string;
+  preregistered?: boolean;
 }
 
 export interface Bounty extends BaseContent {
@@ -85,14 +81,7 @@ export interface Contribution extends BaseContent {
   amount: number;
 }
 
-export type Content = 
-  | Paper 
-  | Comment 
-  | FundingRequest 
-  | Bounty 
-  | Grant 
-  | Review
-  | Contribution;
+export type Content = Paper | Comment | FundingRequest | Bounty | Grant | Review | Contribution;
 
 export interface FeedEntry {
   id: string;
@@ -105,15 +94,6 @@ export interface FeedEntry {
     profile: AuthorProfile;
     amount: number;
   }>;
-  applicants?: AuthorProfile[];  
-  metrics?: {
-    votes: number;
-    comments: number;
-    reposts: number;
-    saves?: number;
-    applicants?: number;
-    reviewScore?: number;
-    views?: number;
-    earned?: number;
-  };
+  applicants?: AuthorProfile[];
+  metrics?: ContentMetrics;
 }

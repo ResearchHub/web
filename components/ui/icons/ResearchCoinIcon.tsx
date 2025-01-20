@@ -5,63 +5,57 @@ interface ResearchCoinIconProps {
   /**
    * Size in pixels. Component maintains 1:1 aspect ratio
    */
-  size?: number
+  size?: number;
   /**
    * Primary color of the coin
    * @default '#F3A113' (orange)
    */
-  color?: string
+  color?: string;
   /**
    * Optional CSS class name
    */
-  className?: string
+  className?: string;
   /**
    * Optional click handler
    */
-  onClick?: (event: React.MouseEvent) => void
+  onClick?: (event: React.MouseEvent) => void;
   /**
    * Whether to show the outlined variant
    * @default false
    */
-  outlined?: boolean
+  outlined?: boolean;
   /**
    * Whether to show the simplified coin variant without circles
    * @default false
    */
-  coin?: boolean
+  coin?: boolean;
   /**
    * Shows RSC icon with plus icon
    * @default false
    */
-  contribute?: boolean
+  contribute?: boolean;
   /**
    * Stroke width of the coin
    * @default 1.0
    */
-  strokeWidth?: number
+  strokeWidth?: number;
 }
 
 function ContributeVariant({ size, color }: { size: number; color: string }) {
   return (
     <div className="relative">
-      <ResearchCoinIcon
-        size={size}
-        color={color}
-        outlined
-        coin
-        strokeWidth={1.1}
-      />
-      <div 
+      <ResearchCoinIcon size={size} color={color} outlined coin strokeWidth={1.1} />
+      <div
         className="absolute -top-0.5 -right-1 rounded-full bg-white shadow-sm border border-white"
         style={{ width: '11px', height: '12px' }}
       >
-        <PlusIcon 
+        <PlusIcon
           className="absolute -top-px -left-px"
-          style={{ 
-            width: '11px', 
+          style={{
+            width: '11px',
             height: '12px',
             color: color,
-            strokeWidth: 4
+            strokeWidth: 4,
           }}
         />
       </div>
@@ -120,30 +114,9 @@ export function ResearchCoinIcon({
             rx="0.265115"
             fill={color}
           />
-          <rect
-            x="4.64062"
-            y="2.3689"
-            width="1.1"
-            height="1.1"
-            rx="0.55"
-            fill={color}
-          />
-          <rect
-            x="6.5"
-            y="2.3689"
-            width="1.1"
-            height="1.1"
-            rx="0.55"
-            fill={color}
-          />
-          <rect
-            x="5.70469"
-            y="1.2854"
-            width="0.85"
-            height="0.85"
-            rx="0.425"
-            fill={color}
-          />
+          <rect x="4.64062" y="2.3689" width="1.1" height="1.1" rx="0.55" fill={color} />
+          <rect x="6.5" y="2.3689" width="1.1" height="1.1" rx="0.55" fill={color} />
+          <rect x="5.70469" y="1.2854" width="0.85" height="0.85" rx="0.425" fill={color} />
         </g>
       </svg>
     );
@@ -184,31 +157,10 @@ export function ResearchCoinIcon({
           rx="0.265115"
           fill="white"
         />
-        <rect
-          x="4.64062"
-          y="2.3689"
-          width="1.1"
-          height="1.1"
-          rx="0.55"
-          fill="white"
-        />
-        <rect
-          x="6.5"
-          y="2.3689"
-          width="1.1"
-          height="1.1"
-          rx="0.55"
-          fill="white"
-        />
-        <rect
-          x="5.70469"
-          y="1.2854"
-          width="0.85"
-          height="0.85"
-          rx="0.425"
-          fill="white"
-        />
+        <rect x="4.64062" y="2.3689" width="1.1" height="1.1" rx="0.55" fill="white" />
+        <rect x="6.5" y="2.3689" width="1.1" height="1.1" rx="0.55" fill="white" />
+        <rect x="5.70469" y="1.2854" width="0.85" height="0.85" rx="0.425" fill="white" />
       </g>
     </svg>
   );
-} 
+}

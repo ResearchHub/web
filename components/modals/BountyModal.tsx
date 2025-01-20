@@ -22,26 +22,19 @@ export const BountyModal: React.FC<BountyModalProps> = ({ isOpen, onClose, onAdd
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-      
+
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <Dialog.Panel className="mx-auto max-w-md w-full bg-white rounded-xl shadow-lg">
           <div className="flex justify-between items-center p-6 border-b">
-            <Dialog.Title className="text-xl font-semibold">
-              Add Bounty
-            </Dialog.Title>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-full hover:bg-gray-100"
-            >
+            <Dialog.Title className="text-xl font-semibold">Add Bounty</Dialog.Title>
+            <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100">
               <X className="h-5 w-5" />
             </button>
           </div>
 
           <div className="p-6 space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                I am offering
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">I am offering</label>
               <div className="flex items-center gap-2">
                 <input
                   type="number"
@@ -73,11 +66,7 @@ export const BountyModal: React.FC<BountyModalProps> = ({ isOpen, onClose, onAdd
             </div>
 
             <div className="flex justify-end">
-              <Button
-                variant="default"
-                onClick={handleSubmit}
-                className="w-full"
-              >
+              <Button variant="default" onClick={handleSubmit} className="w-full">
                 Add grant
               </Button>
             </div>
@@ -86,4 +75,4 @@ export const BountyModal: React.FC<BountyModalProps> = ({ isOpen, onClose, onAdd
       </div>
     </Dialog>
   );
-}; 
+};

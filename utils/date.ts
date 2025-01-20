@@ -45,7 +45,7 @@ export function formatDeadline(deadline: string): string {
   const now = dayjs();
   const deadlineDate = dayjs(deadline);
   const diffDays = deadlineDate.diff(now, 'day');
-  
+
   if (diffDays < 0) {
     return 'Ended';
   } else if (diffDays === 0) {
@@ -57,4 +57,4 @@ export function formatDeadline(deadline: string): string {
   } else {
     return `Ends ${formatTimestamp(deadline)}`;
   }
-} 
+}

@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { FC, ReactNode } from 'react';
 import { Flag, Share } from 'lucide-react';
@@ -21,4 +21,4 @@ export const FeedItemMenu: FC<FeedItemMenuProps> = ({ children }) => {
       </BaseMenuItem>
     </BaseMenu>
   );
-}; 
+};

@@ -47,4 +47,4 @@ export interface ExchangeRateResponse {
 export interface TransactionSource {
   purchase_type?: string;
   distribution_type?: string;
-} 
+}

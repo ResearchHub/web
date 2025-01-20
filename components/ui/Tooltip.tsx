@@ -1,41 +1,41 @@
-"use client"
+'use client';
 
-import React, { useState, useRef, useEffect } from 'react'
-import { createPortal } from 'react-dom'
-import { cn } from '@/utils/styles'
+import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { cn } from '@/utils/styles';
 
 interface TooltipProps {
-  children: React.ReactNode
-  content: React.ReactNode
-  className?: string
+  children: React.ReactNode;
+  content: React.ReactNode;
+  className?: string;
 }
 
-const TooltipContent = ({ 
-  content, 
+const TooltipContent = ({
+  content,
   triggerRect,
-  className 
-}: { 
-  content: React.ReactNode
-  triggerRect: DOMRect | null
-  className?: string
+  className,
+}: {
+  content: React.ReactNode;
+  triggerRect: DOMRect | null;
+  className?: string;
 }) => {
-  const tooltipRef = useRef<HTMLDivElement>(null)
+  const tooltipRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!tooltipRef.current || !triggerRect) return
+    if (!tooltipRef.current || !triggerRect) return;
 
-    const tooltip = tooltipRef.current
-    const tooltipRect = tooltip.getBoundingClientRect()
-    
+    const tooltip = tooltipRef.current;
+    const tooltipRect = tooltip.getBoundingClientRect();
+
     // Center horizontally above the trigger
-    const left = triggerRect.left + (triggerRect.width - tooltipRect.width) / 2
-    const top = triggerRect.top - tooltipRect.height - 8 // 8px gap
+    const left = triggerRect.left + (triggerRect.width - tooltipRect.width) / 2;
+    const top = triggerRect.top - tooltipRect.height - 8; // 8px gap
 
-    tooltip.style.left = `${left}px`
-    tooltip.style.top = `${top}px`
-  }, [triggerRect])
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+  }, [triggerRect]);
 
-  if (!triggerRect) return null
+  if (!triggerRect) return null;
 
   return createPortal(
     <div
@@ -48,25 +48,25 @@ const TooltipContent = ({
       {content}
     </div>,
     document.body
-  )
-}
+  );
+};
 
 export function Tooltip({ children, content, className }: TooltipProps) {
-  const [isVisible, setIsVisible] = useState(false)
-  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
-  const triggerRef = useRef<HTMLDivElement>(null)
+  const [isVisible, setIsVisible] = useState(false);
+  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
 
   const showTooltip = () => {
     if (triggerRef.current) {
-      setTriggerRect(triggerRef.current.getBoundingClientRect())
-      setIsVisible(true)
+      setTriggerRect(triggerRef.current.getBoundingClientRect());
+      setIsVisible(true);
     }
-  }
+  };
 
   const hideTooltip = () => {
-    setIsVisible(false)
-    setTriggerRect(null)
-  }
+    setIsVisible(false);
+    setTriggerRect(null);
+  };
 
   return (
     <>
@@ -79,12 +79,8 @@ export function Tooltip({ children, content, className }: TooltipProps) {
         {children}
       </div>
       {isVisible && (
-        <TooltipContent
-          content={content}
-          triggerRect={triggerRect}
-          className={className}
-        />
+        <TooltipContent content={content} triggerRect={triggerRect} className={className} />
       )}
     </>
-  )
-} 
+  );
+}

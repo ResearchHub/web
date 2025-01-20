@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { FC, useState } from 'react';
 import { feedEntries } from '@/store/feedStore';
@@ -18,7 +18,7 @@ export const Feed: FC = () => {
       case 'for-you':
         return feedEntries; // Original order
       case 'following':
-        return [...feedEntries].sort((a, b) => 
+        return [...feedEntries].sort((a, b) =>
           a.content.actor.fullName.localeCompare(b.content.actor.fullName)
         );
       case 'popular':
@@ -30,8 +30,8 @@ export const Feed: FC = () => {
           return getMetricScore(b) - getMetricScore(a);
         });
       case 'latest':
-        return [...feedEntries].sort((a, b) => 
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        return [...feedEntries].sort(
+          (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
         );
       default:
         return feedEntries;
@@ -49,19 +49,12 @@ export const Feed: FC = () => {
         </div>
 
         <div className="border-b border-gray-100">
-          <FeedTabs 
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
+          <FeedTabs activeTab={activeTab} onTabChange={setActiveTab} />
         </div>
 
         <div className="mt-8 space-y-6">
           {getFeedContent().map((entry, index) => (
-            <FeedItem 
-              key={entry.id} 
-              entry={entry} 
-              isFirst={index === 0}
-            />
+            <FeedItem key={entry.id} entry={entry} isFirst={index === 0} />
           ))}
         </div>
       </div>
@@ -69,4 +62,4 @@ export const Feed: FC = () => {
   );
 };
 
-export default Feed; 
+export default Feed;

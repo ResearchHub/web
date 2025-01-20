@@ -1,32 +1,34 @@
-import { ApiClient } from './client'
-import type { 
-  NotificationListResponse, 
+import { ApiClient } from './client';
+import type {
+  NotificationListResponse,
   NotificationCountResponse,
-} from './types/notification.dto'
+  TransformedNotificationCountResponse,
+} from './types/notification.dto';
+import {
+  transformNotificationListResponse,
+  transformNotificationCountResponse,
+} from './types/notification.dto';
 
 export class NotificationService {
-  private static readonly BASE_PATH = '/api'
+  private static readonly BASE_PATH = '/api';
 
-  static async getNotifications() {
-    return ApiClient.get<NotificationListResponse>(
-      `${this.BASE_PATH}/notification/`
-    )
+  static async getNotifications(): Promise<NotificationListResponse> {
+    const response = await ApiClient.get<any>(`${this.BASE_PATH}/notification/`);
+    return transformNotificationListResponse(response);
   }
 
-  static async getNotificationsByUrl(url: string) {
-    const urlObject = new URL(url)
-    return ApiClient.get<NotificationListResponse>(urlObject.pathname + urlObject.search)
+  static async getNotificationsByUrl(url: string): Promise<NotificationListResponse> {
+    const urlObject = new URL(url);
+    const response = await ApiClient.get<any>(urlObject.pathname + urlObject.search);
+    return transformNotificationListResponse(response);
   }
 
-  static async getUnreadCount() {
-    return ApiClient.get<NotificationCountResponse>(
-      `${this.BASE_PATH}/notification/unread_count/`
-    )
+  static async getUnreadCount(): Promise<TransformedNotificationCountResponse> {
+    const response = await ApiClient.get<any>(`${this.BASE_PATH}/notification/unread_count/`);
+    return transformNotificationCountResponse(response);
   }
 
   static async markAllAsRead() {
-    return ApiClient.patch(
-      `${this.BASE_PATH}/notification/mark_read/`
-    )
+    return ApiClient.patch(`${this.BASE_PATH}/notification/mark_read/`);
   }
 }

@@ -1,15 +1,16 @@
-'use client'
+'use client';
 
 import { useState } from 'react';
 import { Menu, BadgeCheck, LogIn, MoveLeft } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import AuthModal from '@/components/modals/Auth/AuthModal';
-import UserMenu from '@/components/menus/UserMenu'
-import type { User } from '@/types/user'
-import { useNotifications } from '@/contexts/NotificationContext'
-import { useRouter, usePathname } from 'next/navigation'
-import { NotificationBell } from '@/components/Notification/NotificationBell'
-import { SearchInput } from '@/components/Search/SearchInput'
+import UserMenu from '@/components/menus/UserMenu';
+import type { User } from '@/types/user';
+import { useNotifications } from '@/contexts/NotificationContext';
+import { useRouter, usePathname } from 'next/navigation';
+import { NotificationBell } from '@/components/Notification/NotificationBell';
+import { Search } from '@/components/Search/Search';
+import { SearchSuggestion } from '@/types/search';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -19,10 +20,10 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const { data: session, status } = useSession();
   const { unreadCount } = useNotifications();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const router = useRouter()
-  const pathname = usePathname()
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const isNotificationsPage = pathname === '/notifications'
+  const isNotificationsPage = pathname === '/notifications';
 
   const handleAuthClick = () => {
     if (session) {
@@ -32,23 +33,33 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
     }
   };
 
-  const showBackArrow = pathname?.includes('/paper')
+  const handleWorkSelect = (suggestion: SearchSuggestion) => {
+    console.log('handleWorkSelect', suggestion);
+    if (suggestion.id) {
+      // If we have an ID, redirect to the work page with slug
+      const path = suggestion.slug
+        ? `/work/${suggestion.id}/${suggestion.slug}`
+        : `/work/${suggestion.id}`;
+      router.push(path);
+    } else if (suggestion.doi) {
+      // If we only have a DOI, redirect to the DOI route
+      router.push(`/work?doi=${suggestion.doi}`);
+    }
+  };
 
   return (
     <>
       <div className="sticky top-0 bg-white/80 backdrop-blur-md z-20 h-[64px]">
         <div className="h-full relative flex items-center">
-
-
-
           {/* Centered Search */}
           <div className="flex-1 px-4 py-4 lg:px-8">
             <div className="mx-auto max-w-4xl">
               {/* Search Input 500px */}
               <div className="w-[600px] mx-auto">
-                <SearchInput 
+                <Search
+                  onSelect={handleWorkSelect}
                   placeholder="Search any paper, journal, topic, ..."
-                  className="w-full border-gray-200 rounded-full"
+                  className="[&_input]:rounded-full [&_input]:bg-[#F8F9FC] mt-2"
                 />
               </div>
             </div>
@@ -57,11 +68,11 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
           <div className="lg:block w-80 bg-white">
             {/* Right-aligned buttons */}
             <div className="flex items-center justify-end h-full px-6 gap-4">
-              {status !== "loading" ? (
+              {status !== 'loading' ? (
                 session ? (
                   <>
                     <NotificationBell filled={isNotificationsPage} />
-                    <UserMenu 
+                    <UserMenu
                       user={session.user as User}
                       onViewProfile={() => null}
                       onVerifyAccount={() => null}
@@ -70,7 +81,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                 ) : (
                   <button
                     onClick={handleAuthClick}
-                    // This test ID is used in TransactionsSection.tsx to programmatically trigger 
+                    // This test ID is used in TransactionsSection.tsx to programmatically trigger
                     // the sign-in button click when users click "Sign In to Get Started"
                     data-testid="sign-in-button"
                     className="flex items-center space-x-2 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50"
@@ -81,14 +92,12 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                 )
               ) : null}
             </div>
-          </div>          
-          
-
+          </div>
         </div>
       </div>
 
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
+      <AuthModal
+        isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         onSuccess={() => setIsAuthModalOpen(false)}
       />

@@ -1,28 +1,33 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Button } from './Button'
-import { AvatarStack } from './AvatarStack'
-import { ContributorModal } from '../modals/ContributorModal'
-import { AuthorProfile } from '@/types/user'
-import { cn } from '@/utils/styles'
+import { useState } from 'react';
+import { Button } from './Button';
+import { AvatarStack } from './AvatarStack';
+import { ContributorModal } from '../modals/ContributorModal';
+import { AuthorProfile } from '@/types/user';
+import { cn } from '@/utils/styles';
 
 interface ContributorsButtonProps {
   contributors: Array<{
-    profile: AuthorProfile
-    amount: number
-  }>
-  onContribute?: () => void
+    profile: AuthorProfile;
+    amount: number;
+  }>;
+  onContribute?: () => void;
+  label?: string;
 }
 
-export function ContributorsButton({ contributors, onContribute }: ContributorsButtonProps) {
-  const [showModal, setShowModal] = useState(false)
+export function ContributorsButton({
+  contributors,
+  onContribute,
+  label = 'Contributors',
+}: ContributorsButtonProps) {
+  const [showModal, setShowModal] = useState(false);
 
   const avatarItems = contributors.map(({ profile }) => ({
     src: profile.profileImage || '',
     alt: profile.fullName,
-    tooltip: profile.fullName
-  }))
+    tooltip: profile.fullName,
+  }));
 
   return (
     <>
@@ -34,15 +39,9 @@ export function ContributorsButton({ contributors, onContribute }: ContributorsB
         onClick={() => setShowModal(true)}
       >
         <div className="flex items-center">
-          <AvatarStack
-            items={avatarItems}
-            size="xxs"
-            maxItems={2}
-            spacing={-8}
-            disableTooltip
-          />
+          <AvatarStack items={avatarItems} size="xxs" maxItems={2} spacing={-8} disableTooltip />
           <span className="text-xs text-gray-600 ml-1.5">
-            {contributors.length} Contributors
+            {contributors.length} {label}
           </span>
         </div>
       </Button>
@@ -54,5 +53,5 @@ export function ContributorsButton({ contributors, onContribute }: ContributorsB
         onContribute={onContribute}
       />
     </>
-  )
-} 
+  );
+}

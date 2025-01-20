@@ -1,4 +1,6 @@
-import { Hub, User, Metrics } from './feed';
+import { Hub } from './hub';
+import { ContentMetrics } from './metrics';
+import { User } from './user';
 
 export type FundingAuthor = {
   name: string;
@@ -17,26 +19,26 @@ export type Funding = {
   objective: string;
   abstract: string;
   content: string;
-  
+
   // User information
   user: User;
   authors: User[];
-  
+
   // Metadata
   timestamp: string;
   publishDate: string;
   hub: Hub;
   doi: string;
   keywords: string[];
-  
+
   // Funding specific
   amount: number;
   goalAmount: number;
   progress: number;
-  
+
   // Metrics grouped together
-  metrics: Metrics;
-  
+  metrics: ContentMetrics;
+
   // Contributors as User types
-  contributors: { user: User, amount: number }[];
-}; 
+  contributors: { user: User; amount: number }[];
+};

@@ -12,8 +12,8 @@ export const Logo = ({ className, noText = false, size }: LogoProps) => {
   const dimensions = (() => {
     if (!size) return { height: 32, width: noText ? 23 : 150 };
     if (typeof size === 'number') {
-      return noText 
-        ? { height: size, width: (size * 23) / 32 }  // maintain beaker aspect ratio
+      return noText
+        ? { height: size, width: (size * 23) / 32 } // maintain beaker aspect ratio
         : { height: size, width: (size * 150) / 33 }; // maintain full logo aspect ratio
     }
     return size;
@@ -28,4 +28,4 @@ export const Logo = ({ className, noText = false, size }: LogoProps) => {
       className={cn(className)}
     />
   );
-}; 
+};

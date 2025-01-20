@@ -5,13 +5,9 @@ import { PublishModal } from '@/components/modals/PublishModal';
 import { BountyModal } from '@/components/modals/BountyModal';
 import { PublishingSidebar } from './PublishingSidebar';
 
-type ArticleType = 'research' | 'grant';
+type ArticleType = 'research';
 
-export default function NotebookLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function NotebookLayout({ children }: { children: React.ReactNode }) {
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [isBountyModalOpen, setIsBountyModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -28,9 +24,9 @@ export default function NotebookLayout({
           <TopBar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
           <main className="min-h-[calc(100vh-64px)]">{children}</main>
         </div>
-        <PublishingSidebar 
+        <PublishingSidebar
           articleType={articleType}
-          setArticleType={setArticleType}
+          setArticleType={(type) => setArticleType(type as ArticleType)}
           bountyAmount={bountyAmount}
           onBountyClick={() => setIsBountyModalOpen(true)}
           onPublishClick={() => setIsPublishModalOpen(true)}
@@ -39,10 +35,7 @@ export default function NotebookLayout({
         />
       </div>
 
-      <PublishModal 
-        isOpen={isPublishModalOpen}
-        onClose={() => setIsPublishModalOpen(false)}
-      />
+      <PublishModal isOpen={isPublishModalOpen} onClose={() => setIsPublishModalOpen(false)} />
       <BountyModal
         isOpen={isBountyModalOpen}
         onClose={() => setIsBountyModalOpen(false)}

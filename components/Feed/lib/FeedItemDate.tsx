@@ -15,4 +15,4 @@ export const FeedItemDate: FC<FeedItemDateProps> = ({ date, className = '' }) =>
   >
     {formatTimestamp(date)}
   </Button>
-); 
+);
