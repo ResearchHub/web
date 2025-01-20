@@ -1,13 +1,14 @@
 'use client';
 
 import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react';
-import { Fragment, useState, useEffect } from 'react';
+import { Fragment, useState } from 'react';
 import { X as XIcon, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { colors } from '@/app/styles/colors';
 import { TransactionService } from '@/services/transaction.service';
 import { formatRSC, formatUsdValue } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 
 interface DepositModalProps {
   isOpen: boolean;
@@ -17,25 +18,8 @@ interface DepositModalProps {
 
 export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalProps) {
   const [amount, setAmount] = useState<string>('');
-  const [exchangeRate, setExchangeRate] = useState<number>(1.576); // Default fallback
   const [isProcessing, setIsProcessing] = useState(false);
-
-  useEffect(() => {
-    const fetchExchangeRate = async () => {
-      try {
-        const response = await TransactionService.getLatestExchangeRate();
-        if (response.results[0]?.rate) {
-          setExchangeRate(response.results[0].rate);
-        }
-      } catch (error) {
-        console.error('Failed to fetch exchange rate:', error);
-      }
-    };
-
-    if (isOpen) {
-      fetchExchangeRate();
-    }
-  }, [isOpen]);
+  const { exchangeRate, isLoading: isLoadingRate } = useExchangeRate();
 
   const calculateNewBalance = (): number => {
     const deposit = parseFloat(amount || '0');

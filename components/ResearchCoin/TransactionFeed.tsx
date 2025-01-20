@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { TransactionService } from '@/services/transaction.service';
 import { TransactionFeedItem } from './TransactionFeedItem';
 import { TransactionSkeleton } from '@/components/skeletons/TransactionSkeleton';
-import type { TransactionAPIResponse } from '@/services/types/transaction.dto';
+import type { TransactionAPIRequest } from '@/services/types/transaction.dto';
+import { formatTransaction } from './lib/types';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { FileDown, LogIn, Coins, HelpCircle } from 'lucide-react';
@@ -16,7 +17,7 @@ const OBSERVER_THRESHOLD = 0.01;
 const LOADING_SKELETON_COUNT = 3;
 
 interface TransactionFeedProps {
-  onTransactionsChange?: (transactions: TransactionAPIResponse['results']) => void;
+  onTransactionsChange?: (transactions: TransactionAPIRequest[]) => void;
   onExport: () => void;
   exchangeRate: number;
   isExporting: boolean;
@@ -29,7 +30,7 @@ export function TransactionFeed({
   isExporting,
 }: TransactionFeedProps) {
   const { data: session, status } = useSession();
-  const [transactions, setTransactions] = useState<TransactionAPIResponse['results']>([]);
+  const [transactions, setTransactions] = useState<TransactionAPIRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true); // For initial load
   const [isLoadingMore, setIsLoadingMore] = useState(false); // For infinite scroll
   const [error, setError] = useState<string | null>(null);
@@ -88,8 +89,8 @@ export function TransactionFeed({
 
   // Notify parent of transactions changes
   useEffect(() => {
-    onTransactionsChange?.(transactions);
-  }, [transactions, onTransactionsChange]);
+    onTransactionsChange?.(transactions.map((tx) => formatTransaction(tx, exchangeRate)));
+  }, [transactions, onTransactionsChange, exchangeRate]);
 
   async function fetchTransactions(page: number, isLoadingMore = false) {
     if (!session) return;
@@ -108,10 +109,6 @@ export function TransactionFeed({
       }
 
       const response = await TransactionService.getTransactions(page);
-
-      if (!response?.results) {
-        throw new Error('Invalid response format');
-      }
 
       setTransactions((prev) =>
         page === INITIAL_PAGE ? response.results : [...prev, ...response.results]
@@ -252,8 +249,7 @@ export function TransactionFeed({
         {transactions.map((transaction) => (
           <TransactionFeedItem
             key={transaction.id}
-            transaction={transaction}
-            exchangeRate={exchangeRate}
+            transaction={formatTransaction(transaction, exchangeRate)}
           />
         ))}
 
