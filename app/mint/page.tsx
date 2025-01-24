@@ -10,7 +10,7 @@ export default function MintPage() {
         <h1 className="text-4xl font-bold mb-8">Mint ResearchHub NFT</h1>
         <div className="w-full max-w-md">
           <NFTMintCardDefault
-            contractAddress="0xd9145CCE52D386f254917e481eB44e9943F39138"
+            contractAddress="0xed2f34043387783b2727ff2799a46ce3ae1a34d2" //pre-deployed contract
             tokenId="2"
           />
         </div>
