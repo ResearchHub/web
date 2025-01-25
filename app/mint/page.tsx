@@ -1,6 +1,6 @@
 'use client';
 
-import { NFTMintCardDefault } from '@coinbase/onchainkit/nft';
+import { NFTMintCardDefault, type UseNFTData } from '@coinbase/onchainkit/nft';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useState } from 'react';
 import { Alert } from '@/components/ui/Alert';
@@ -8,6 +8,27 @@ import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useRouter } from 'next/navigation';
 import { TransactionReceipt } from 'viem';
 import { Loader2 } from 'lucide-react';
+
+const useNFTData: UseNFTData = () => {
+  return {
+    name: 'ResearchHub Pre-print Memento',
+    description:
+      'Support groundbreaking research and receive a unique NFT memento of your contribution',
+    imageUrl:
+      'https://store-images.s-microsoft.com/image/apps.25376.80890a42-81aa-4e39-abc7-9c943b107f12.e208c7b7-3988-4e14-b9ac-fe46c9ecde18.cb8011b3-cd9f-4ea4-9769-b1b51a43f38d.png',
+    mimeType: 'image/png',
+    ownerAddress: '0x0000000000000000000000000000000000000000',
+    contractType: 'ERC721',
+    mintDate: new Date(),
+    price: '0',
+    mintFee: '0',
+    maxMintsPerWallet: 1,
+    isEligibleToMint: true,
+    network: 'base',
+    totalOwners: '0',
+    recentOwners: [],
+  };
+};
 
 export default function MintPage() {
   const router = useRouter();
@@ -18,7 +39,6 @@ export default function MintPage() {
   const handleMintSuccess = (receipt?: TransactionReceipt) => {
     setMintSuccess(true);
     setIsLoading(false);
-    // Could redirect to a success page or profile page
     setTimeout(() => {
       router.push('/researchcoin');
     }, 2000);
@@ -70,9 +90,10 @@ export default function MintPage() {
             )}
 
             <NFTMintCardDefault
-              contractAddress="0xed2f34043387783b2727ff2799a46ce3ae1a34d2"
-              tokenId="2"
-              isSponsored={true}
+              contractAddress="0xECFEdf71b11F9aa1527d450680c37e6A00114150"
+              tokenId="1"
+              isSponsored={false}
+              useNFTData={useNFTData}
               onError={handleMintError}
               onStatus={handleMintStatus}
               onSuccess={handleMintSuccess}
