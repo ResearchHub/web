@@ -1,7 +1,18 @@
+import type { AuthorProfile } from '@/types/user';
+
+export const ORGANIZATION_ROLES = ['ADMIN', 'EDITOR', 'VIEWER'] as const;
+export type OrganizationRole = (typeof ORGANIZATION_ROLES)[number];
+
+/**
+ * Raw permission data from the API
+ */
 export interface OrganizationPermission {
-  access_type: 'ADMIN' | 'EDITOR' | 'VIEWER';
+  access_type: OrganizationRole;
 }
 
+/**
+ * Organization data as returned from the API
+ */
 export interface Organization {
   id: number;
   member_count: number;
@@ -13,52 +24,34 @@ export interface Organization {
   slug: string;
 }
 
-export interface OrganizationUser {
-  id: string;
-  name: string;
+/**
+ * Organization member data from the API
+ */
+export interface OrganizationMember {
+  id: number;
+  author_profile: AuthorProfile;
   email: string;
-  role: 'admin' | 'editor' | 'viewer';
-  avatarUrl?: string;
 }
 
+/**
+ * Organization invite data from the API
+ */
 export interface OrganizationInvite {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'editor' | 'viewer';
-  status: 'pending';
-  expirationDate: string;
+  recipient_email: string;
+  created_date: string;
+  expiration_date: string;
+  accepted: boolean;
 }
 
-export type OrganizationResponse = Organization[];
-
+/**
+ * Complete organization users response from the API
+ */
 export interface OrganizationUsersResponse {
-  admins: Array<{
-    id: number;
-    author_profile: {
-      id: number;
-      first_name: string;
-      last_name: string;
-      profile_image: string | null;
-    };
-    email: string;
-  }>;
-  members: Array<{
-    id: number;
-    author_profile: {
-      id: number;
-      first_name: string;
-      last_name: string;
-      profile_image: string | null;
-    };
-    email: string;
-  }>;
-  invited_users: Array<{
-    recipient_email: string;
-    created_date: string;
-    expiration_date: string;
-    accepted: boolean;
-  }>;
+  admins: OrganizationMember[];
+  members: OrganizationMember[];
+  invited_users: OrganizationInvite[];
   user_count: number;
   note_count: number;
 }
+
+export type OrganizationResponse = Organization[];

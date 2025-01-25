@@ -29,18 +29,18 @@ export function formatOrganizationUsers(
     // Map admins with admin role
     ...response.admins.map((admin) => ({
       id: admin.id.toString(),
-      name: `${admin.author_profile.first_name} ${admin.author_profile.last_name}`,
+      name: admin.author_profile.fullName,
       email: admin.email,
       role: 'admin' as const,
-      avatarUrl: admin.author_profile.profile_image || undefined,
+      avatarUrl: admin.author_profile.profileImage || undefined,
     })),
     // Map regular members with viewer role
     ...response.members.map((member) => ({
       id: member.id.toString(),
-      name: `${member.author_profile.first_name} ${member.author_profile.last_name}`,
+      name: member.author_profile.fullName,
       email: member.email,
       role: 'viewer' as const,
-      avatarUrl: member.author_profile.profile_image || undefined,
+      avatarUrl: member.author_profile.profileImage || undefined,
     })),
   ];
 

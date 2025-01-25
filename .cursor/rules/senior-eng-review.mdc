@@ -1,0 +1,81 @@
+---
+description: This is a document that provides key PR reviewing as if they were a senior engineer
+globs: 
+---
+# Key Learnings from Senior Engineer Code Review
+
+1. **Leverage React Providers for Global State**
+
+   - Using context providers (like the ExchangeRateContext) is an effective way to share data application-wide.
+   - Encapsulating fetch logic within these providers or in dedicated hooks can simplify the rest of the codebase and improve maintainability.
+
+2. **Separate Concerns Between Services and View Layer**
+
+   - Keep the "services" layer focused on fetching and basic data transformations.
+   - Avoid placing view-specific formatting (e.g., icon lookup or UI-ready strings) inside services—this leads to entanglement and potential reusability issues.
+   - Move highly UI-related transforms (for example, mapping distribution types to icons) into a dedicated "lib" or the "view layer" (e.g., inside component utilities or dedicated functions).
+
+3. **Use Dedicated Transformers Carefully**
+
+   - Keep data transformations minimal and "model-oriented" in services, returning clean, typed data.
+   - Perform purely presentational transformations (e.g., formatting numeric values or currency strings) within the view layer to reduce the likelihood of unnecessary re-fetching or tight coupling.
+
+4. **Consider Creating Custom Hooks for Data Fetching**
+
+   - Custom hooks (like "useUserBalance") can abstract away internal fetch logic and state management, similar to how "useSession" works in Next.js.
+   - This pattern improves readability, makes the code more composable, and centralizes asynchronous logic behind a well-defined interface.
+
+5. **Watch Out for Unnecessary Re-Renders and Side Effects**
+
+   - Multiple data retrieval triggers can cause performance issues or data inconsistencies if not handled carefully.
+   - Use checks to ensure that data is only fetched when needed. Employ memoization or context effectively to prevent repetitive fetch calls.
+
+6. **Embrace a Layered Architecture**
+
+   - A "service" layer for API interactions.
+   - A "types/model" layer to define and represent data structures.
+   - A "view/presentation" layer (React components) that handles all UI and formatting.
+   - This structure is analogous to classic architectural patterns (e.g., "MVC") and ensures a more scalable and maintainable application over time.
+
+7. **Balance Raw Data vs. Derived Data**
+
+   - Keep a reference to the raw data (unformatted, untransformed) for potential debugging and logic needs.
+   - Derive only what's necessary for display in the UI to avoid confusion or data loss.
+
+8. **Consistent, Incremental Refinement**
+
+   - Small refactors—such as relocating formatting functions and hooking into contexts—can make a significant difference in clarity and scalability.
+   - Regular feedback loops and code reviews help solidify best practices and ensure the application remains well-structured as it grows.
+
+9. **Minimal Client-Side Caching and Centralized Data**
+
+   - Use React Context for global or shared data rather than implementing multiple fetch calls or storing redundant data in each component.
+   - Avoid heavy local caching or memoization beyond what React already provides; excessive caching can introduce staleness bugs and complicate the code.
+   - Fetch data once (for instance, in a provider) and rely on that single source of truth across your application.
+   - Keep caching boundaries small: if data is needed by multiple components, lifting it into Context makes sense; otherwise, store it locally.
+   - Be mindful of Next.js server/client boundaries; avoid turning everything into a client-side component, as it diminishes server-rendering advantages.
+
+10. **Keep File and Folder Names Consistent**
+
+    - Use a clear and consistent naming scheme for files and folders. For example, if you have a component for an item in a list, call it `TransactionListItem.tsx`, not `TransactionItem.tsx`.
+    - For directories, use lowercase (e.g., `services`, `skeletons`) and consider capitalization for React component files.
+
+11. **Use Descriptive Names That Reflect Purpose**
+
+    - Choose intuitive front-end labels that reflect the actual functionality; avoid ambiguous terms.
+    - If you have a button that exports data, label it "Export CSV" or "Export," rather than something vague like "export by year."
+
+12. **DTO vs. "Plain" Types**
+
+    - In service files, use type names like `SomethingApiResponse` or `SomethingDto` to indicate it's a direct mapping from an API payload.
+    - For app-wide types (after you've transformed them), use straightforward names like `Transaction` or `Notification` that don't reference the API layer.
+
+13. **Keep Function Names Action-Oriented**
+
+    - Use verbs and descriptive phrases, like `markAllAsRead()` instead of `mark()`.
+    - For fetching or transforming data, name them accordingly, e.g. `getTransactions()` or `transformTransaction()`.
+
+14. **Use Short but Unambiguous Events or Handlers**
+
+    - Handlers should be clear about which user action they handle, such as `onClickDeposit` or `handleDeposit`.
+    - Keep them concise: `onClose`, `onClick`, `handleSubmit`, etc.

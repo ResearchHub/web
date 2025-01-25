@@ -1,20 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, ChevronDown, File, Settings, BookOpen, Star, Check, Lock } from 'lucide-react';
 import { NotebookToggle } from '@/components/shared/NotebookToggle';
-import { OrganizationService } from '@/services/organization.service';
-import type {
-  Organization, //,
-  //OrganizationUser,
-  //OrganizationInvite,
-} from '@/services/types/organization.dto';
-// import { SettingsModal } from '@/components/modals/Editor/SettingsModal';
-import { useSession } from 'next-auth/react';
+import { useOrganization } from '@/hooks/useOrganization';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
-// import { cn } from '@/utils/styles';
 import type { LucideIcon } from 'lucide-react';
+import type { Organization } from '@/services/types/organization.dto';
 
 interface SidebarSectionProps {
   children: React.ReactNode;
@@ -85,60 +78,8 @@ const privateDocuments = [
 ];
 
 const LeftSidebar: React.FC = () => {
-  const { data: session } = useSession();
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
+  const { organizations, selectedOrg, setSelectedOrg, isLoading, error } = useOrganization();
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-  // Commenting out organization users state as it's only used by SettingsModal
-  // const [organizationUsers, setOrganizationUsers] = useState<{
-  //   users: OrganizationUser[];
-  //   invites: OrganizationInvite[];
-  // }>({ users: [], invites: [] });
-  // const [isLoadingUsers, setIsLoadingUsers] = useState(true);
-
-  useEffect(() => {
-    const fetchOrganizations = async () => {
-      try {
-        const orgs = await OrganizationService.getUserOrganizations();
-        setOrganizations(orgs);
-        if (orgs.length > 0) {
-          setSelectedOrg(orgs[0]); // Select first org by default
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Failed to fetch organizations'));
-        console.error('Failed to fetch organizations:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchOrganizations();
-  }, []);
-
-  // Commenting out organization users effect as it's only used by SettingsModal
-  // useEffect(() => {
-  //   const fetchOrganizationUsers = async () => {
-  //     if (!selectedOrg || !session?.user?.id) return;
-
-  //     setIsLoadingUsers(true);
-  //     try {
-  //       const data = await OrganizationService.getOrganizationUsers(
-  //         String(session.user.id),
-  //         String(selectedOrg.id)
-  //       );
-  //       setOrganizationUsers(data);
-  //     } catch (error) {
-  //       console.error('Failed to fetch organization users:', error);
-  //     } finally {
-  //       setIsLoadingUsers(false);
-  //     }
-  //   };
-
-  //   fetchOrganizationUsers();
-  // }, [selectedOrg, session?.user?.id]);
 
   const handleOrgSelect = (org: Organization) => {
     setSelectedOrg(org);
@@ -171,11 +112,12 @@ const LeftSidebar: React.FC = () => {
                 <span className="font-medium truncate">{selectedOrg?.name}</span>
               </div>
               <ChevronDown
-                className={`h-4 w-4 text-gray-500 transition-transform ${isOrgDropdownOpen ? 'transform rotate-180' : ''}`}
+                className={`h-4 w-4 text-gray-500 transition-transform ${
+                  isOrgDropdownOpen ? 'transform rotate-180' : ''
+                }`}
               />
             </button>
 
-            {/* Organization Dropdown */}
             {isOrgDropdownOpen && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
                 {organizations.map((org) => (
@@ -202,26 +144,20 @@ const LeftSidebar: React.FC = () => {
         )}
 
         <div className="mt-3 space-y-1">
-          <Button
-            onClick={() => setIsSettingsModalOpen(true)}
-            variant="ghost"
-            className="w-full justify-between px-3 py-2 h-auto"
-          >
+          <Button variant="ghost" className="w-full justify-between px-3 py-2 h-auto">
             <div className="flex items-center gap-2">
               <Settings className="h-4 w-4 text-gray-500 group-hover:text-gray-900" />
               <span className="text-gray-600 group-hover:text-gray-900">Manage</span>
             </div>
-            {/* Commenting out member count since it relies on organizationUsers state */}
-            {/* {isLoading || isLoadingUsers ? (
+            {isLoading ? (
               <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
             ) : (
               selectedOrg && (
                 <span className="text-xs text-gray-500 group-hover:text-gray-600 whitespace-nowrap">
-                  {organizationUsers.users.length}{' '}
-                  {organizationUsers.users.length === 1 ? 'member' : 'members'}
+                  {selectedOrg.member_count} {selectedOrg.member_count === 1 ? 'member' : 'members'}
                 </span>
               )
-            )} */}
+            )}
           </Button>
         </div>
       </div>
@@ -294,29 +230,6 @@ const LeftSidebar: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Commenting out SettingsModal */}
-      {/* {selectedOrg && session?.user?.id && (
-        <SettingsModal
-          isOpen={isSettingsModalOpen}
-          onClose={() => setIsSettingsModalOpen(false)}
-          organization={{
-            id: String(selectedOrg.id),
-            name: selectedOrg.name,
-            photoUrl: selectedOrg.cover_image || undefined,
-            members: [
-              ...organizationUsers.users,
-              ...organizationUsers.invites.map((invite) => ({
-                ...invite,
-                status: 'pending' as const,
-              })),
-            ],
-          }}
-          userId={String(session.user.id)}
-          organizationUsers={organizationUsers}
-          onOrganizationUsersChange={setOrganizationUsers}
-        />
-      )} */}
 
       {/* Fixed bottom section */}
       <div className="border-t mt-auto">
