@@ -35,6 +35,7 @@ export interface Work {
   authors: Authorship[];
   abstract?: string;
   previewContent?: string;
+  contentUrl?: string;
   doi?: string;
   journal?: Journal;
   topics: Topic[];
