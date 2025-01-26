@@ -79,3 +79,30 @@ globs:
 
     - Handlers should be clear about which user action they handle, such as `onClickDeposit` or `handleDeposit`.
     - Keep them concise: `onClose`, `onClick`, `handleSubmit`, etc.
+
+15. **Simplify Type Organization and API Integration**
+
+    - Avoid using `.dto` files for API types unless specifically needed (e.g., authentication).
+    - Maintain two primary files for each domain:
+      1. A service file (e.g., `services/organization.service.ts`) handling API calls
+      2. A types file (e.g., `types/organization.ts`) containing domain types and transformers
+    - Use `any` type for raw API responses in service files since we don't control the API
+    - Define clean, transformed types in the types directory that match our application's needs
+    - Implement defensive transformers with null checks (e.g., `response.items || []`)
+    - Keep service methods focused on API calls and basic error handling
+    - Return transformed, application-specific types from service methods
+    - Consider adding specific error classes for each service domain
+
+16. **State Management Best Practices**
+
+    - Be cautious with object dependencies in useEffect hooks
+    - Remember that object reassignment (even with same values) triggers effects due to reference changes
+    - Use additional state variables to prevent unnecessary re-fetching when dealing with session-like objects
+    - Consider implementing fetch flags or other mechanisms to prevent duplicate API calls
+
+17. **Type Naming Conventions**
+
+    - Avoid prefixes like "Formatted" in type names
+    - Use clear, domain-focused names (e.g., `Organization` instead of `FormattedOrganization`)
+    - Keep type definitions close to their domain context
+    - Use transformer functions to convert API data to application types

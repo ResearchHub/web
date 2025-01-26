@@ -1,5 +1,6 @@
 import { ApiClient } from './client';
-import type { OrganizationResponse, OrganizationUsersResponse } from './types/organization.dto';
+import { transformOrganization, transformOrganizationUsers } from '@/types/organization';
+import type { Organization, OrganizationUsers } from '@/types/organization';
 import type { Session } from 'next-auth';
 
 export class OrganizationError extends Error {
@@ -20,15 +21,16 @@ export class OrganizationService {
    * @param session - The user's session
    * @throws {OrganizationError} When the user is not authenticated or the request fails
    */
-  static async getUserOrganizations(session: Session | null): Promise<OrganizationResponse> {
+  static async getUserOrganizations(session: Session | null): Promise<Organization[]> {
     if (!session?.user?.id) {
       throw new OrganizationError('User not authenticated', 'UNAUTHENTICATED');
     }
 
     try {
-      return await ApiClient.get<OrganizationResponse>(
+      const response = await ApiClient.get<any>(
         `${this.BASE_PATH}/${session.user.id}/get_user_organizations/`
       );
+      return Array.isArray(response) ? response.map(transformOrganization) : [];
     } catch (error) {
       throw new OrganizationError(
         'Failed to fetch organizations',
@@ -43,18 +45,16 @@ export class OrganizationService {
    * @param orgId - The ID of the organization
    * @throws {OrganizationError} When the request fails or parameters are invalid
    */
-  static async getOrganizationUsers(
-    userId: string,
-    orgId: string
-  ): Promise<OrganizationUsersResponse> {
+  static async getOrganizationUsers(userId: string, orgId: string): Promise<OrganizationUsers> {
     if (!userId || !orgId) {
       throw new OrganizationError('Missing required parameters', 'INVALID_PARAMS');
     }
 
     try {
-      return await ApiClient.get<OrganizationUsersResponse>(
+      const response = await ApiClient.get<any>(
         `${this.BASE_PATH}/${orgId}/get_organization_users/`
       );
+      return transformOrganizationUsers(response);
     } catch (error) {
       throw new OrganizationError(
         'Failed to fetch organization users',

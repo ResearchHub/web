@@ -7,7 +7,7 @@ import { useOrganization } from '@/hooks/useOrganization';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import type { LucideIcon } from 'lucide-react';
-import type { Organization } from '@/services/types/organization.dto';
+import type { Organization } from '@/types/organization';
 
 interface SidebarSectionProps {
   children: React.ReactNode;
@@ -104,7 +104,7 @@ const LeftSidebar: React.FC = () => {
             >
               <div className="flex items-center gap-2">
                 <Avatar
-                  src={selectedOrg?.cover_image}
+                  src={selectedOrg?.coverImage}
                   alt={selectedOrg?.name || ''}
                   size="sm"
                   className="bg-gradient-to-br from-indigo-500 to-purple-500"
@@ -128,7 +128,7 @@ const LeftSidebar: React.FC = () => {
                   >
                     <div className="flex-1 flex items-center gap-2">
                       <Avatar
-                        src={org.cover_image}
+                        src={org.coverImage}
                         alt={org.name}
                         size="sm"
                         className="bg-gradient-to-br from-indigo-500 to-purple-500"
@@ -154,7 +154,7 @@ const LeftSidebar: React.FC = () => {
             ) : (
               selectedOrg && (
                 <span className="text-xs text-gray-500 group-hover:text-gray-600 whitespace-nowrap">
-                  {selectedOrg.member_count} {selectedOrg.member_count === 1 ? 'member' : 'members'}
+                  {selectedOrg.memberCount} {selectedOrg.memberCount === 1 ? 'member' : 'members'}
                 </span>
               )
             )}

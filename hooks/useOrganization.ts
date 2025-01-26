@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { OrganizationService } from '@/services/organization.service';
-import type { Organization } from '@/services/types/organization.dto';
+import type { Organization } from '@/types/organization';
 
 export interface UseOrganizationReturn {
   organizations: Organization[];
@@ -17,11 +17,12 @@ export function useOrganization(): UseOrganizationReturn {
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [orgsFetched, setOrgsFetched] = useState(false);
 
   useEffect(() => {
     const fetchOrganizations = async () => {
-      // Only proceed if we have a definitive session status
-      if (status === 'loading') {
+      // Only proceed if we have a definitive session status and haven't fetched orgs yet
+      if (orgsFetched || status === 'loading') {
         return;
       }
 
@@ -30,28 +31,26 @@ export function useOrganization(): UseOrganizationReturn {
 
       if (!session) {
         setIsLoading(false);
+        setOrgsFetched(true);
         return;
       }
 
       try {
         const orgs = await OrganizationService.getUserOrganizations(session);
-        if (Array.isArray(orgs)) {
-          setOrganizations(orgs);
-          if (orgs.length > 0) {
-            setSelectedOrg(orgs[0]);
-          }
-        } else {
-          setError(new Error('Invalid response format'));
+        setOrganizations(orgs);
+        if (orgs.length > 0) {
+          setSelectedOrg(orgs[0]);
         }
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Failed to fetch organizations'));
       } finally {
         setIsLoading(false);
+        setOrgsFetched(true);
       }
     };
 
     fetchOrganizations();
-  }, [session, status]);
+  }, [session, status, orgsFetched]);
 
   return {
     organizations,
