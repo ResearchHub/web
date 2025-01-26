@@ -16,7 +16,6 @@ export function useSearchSuggestions(query: string, isFocused: boolean = true) {
 
     // Listen for changes
     const handleStorageChange = () => {
-      console.log('Search history updated, reloading...');
       const updatedHistory = getSearchHistory();
       setLocalSuggestions(updatedHistory);
     };
@@ -37,7 +36,6 @@ export function useSearchSuggestions(query: string, isFocused: boolean = true) {
         suggestion.authors.some((author) => author.toLowerCase().includes(lowerQuery)) ||
         suggestion.doi?.toLowerCase().includes(lowerQuery)
     );
-    console.log('Filtered local suggestions:', filtered);
     return filtered;
   }, [localSuggestions, query]);
 
@@ -52,9 +50,7 @@ export function useSearchSuggestions(query: string, isFocused: boolean = true) {
 
       setLoading(true);
       try {
-        console.log('Fetching suggestions for query:', query);
         const suggestions = await SearchService.getSuggestions(query);
-        console.log('API suggestions received:', suggestions);
         if (mounted) {
           setApiSuggestions(suggestions);
         }
@@ -100,7 +96,6 @@ export function useSearchSuggestions(query: string, isFocused: boolean = true) {
       results.push(...uniqueApiSuggestions);
     }
 
-    console.log('Final combined suggestions:', results);
     return results;
   }, [isFocused, query, filteredLocalSuggestions, apiSuggestions, localSuggestions]);
 
