@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Plus, ChevronDown, File, Settings, BookOpen, Star, Check, Lock } from 'lucide-react';
 import { NotebookToggle } from '@/components/shared/NotebookToggle';
 import { useOrganization } from '@/hooks/useOrganization';
+import { useOrganizationNotes } from '@/hooks/useOrganizationNotes';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import type { LucideIcon } from 'lucide-react';
@@ -36,49 +37,20 @@ const SidebarSection = ({
   );
 };
 
-const sampleDocuments = [
-  {
-    name: 'Neural Network Architecture',
-    type: 'research',
-    icon: File,
-  },
-  {
-    name: 'CRISPR Gene Editing Protocol',
-    type: 'protocol',
-    icon: BookOpen,
-  },
-  {
-    name: 'Quantum Computing Review',
-    type: 'review',
-    icon: Star,
-  },
-  {
-    name: 'Lab Meeting Notes',
-    type: 'notes',
-    icon: File,
-  },
-  {
-    name: 'RNA Sequencing Data',
-    type: 'data',
-    icon: File,
-  },
-];
-
-const privateDocuments = [
-  {
-    name: 'Grant Proposal Draft',
-    type: 'draft',
-    icon: File,
-  },
-  {
-    name: 'Research Ideas 2024',
-    type: 'notes',
-    icon: Star,
-  },
-];
-
 const LeftSidebar: React.FC = () => {
-  const { organizations, selectedOrg, setSelectedOrg, isLoading, error } = useOrganization();
+  const {
+    organizations,
+    selectedOrg,
+    setSelectedOrg,
+    isLoading: isLoadingOrg,
+    error: orgError,
+  } = useOrganization();
+  const {
+    workspaceNotes,
+    privateNotes,
+    isLoading: isLoadingNotes,
+    error: notesError,
+  } = useOrganizationNotes(selectedOrg);
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
 
   const handleOrgSelect = (org: Organization) => {
@@ -90,11 +62,11 @@ const LeftSidebar: React.FC = () => {
     <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col">
       {/* Organization Header */}
       <div className="p-4 border-b border-gray-200">
-        {isLoading ? (
+        {isLoadingOrg ? (
           <div className="animate-pulse">
             <div className="h-10 bg-gray-200 rounded-lg w-full" />
           </div>
-        ) : error ? (
+        ) : orgError ? (
           <div className="text-red-500 text-sm">Failed to load organizations</div>
         ) : (
           <div className="relative">
@@ -149,7 +121,7 @@ const LeftSidebar: React.FC = () => {
               <Settings className="h-4 w-4 text-gray-500 group-hover:text-gray-900" />
               <span className="text-gray-600 group-hover:text-gray-900">Manage</span>
             </div>
-            {isLoading ? (
+            {isLoadingOrg ? (
               <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
             ) : (
               selectedOrg && (
@@ -182,18 +154,28 @@ const LeftSidebar: React.FC = () => {
           >
             Workspace
           </SidebarSection>
-          <div className="space-y-0.5">
-            {sampleDocuments.map((doc, index) => (
-              <Button
-                key={index}
-                variant="ghost"
-                className="w-full justify-start px-2.5 py-1.5 h-8 text-sm font-normal hover:bg-gray-50 text-gray-700 group"
-              >
-                <doc.icon className="h-3.5 w-3.5 text-gray-400 group-hover:text-indigo-500 transition-colors" />
-                <span className="ml-2 truncate">{doc.name}</span>
-              </Button>
-            ))}
-          </div>
+          {isLoadingNotes ? (
+            <div className="space-y-2 px-2.5">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />
+              ))}
+            </div>
+          ) : notesError ? (
+            <div className="px-2.5 text-sm text-red-500">Failed to load notes</div>
+          ) : (
+            <div className="space-y-0.5">
+              {workspaceNotes.map((note) => (
+                <Button
+                  key={note.id}
+                  variant="ghost"
+                  className="w-full justify-start px-2.5 py-1.5 h-8 text-sm font-normal hover:bg-gray-50 text-gray-700 group"
+                >
+                  <File className="h-3.5 w-3.5 text-gray-400 group-hover:text-indigo-500 transition-colors" />
+                  <span className="ml-2 truncate">{note.title}</span>
+                </Button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Private Section */}
@@ -216,18 +198,28 @@ const LeftSidebar: React.FC = () => {
           >
             Private
           </SidebarSection>
-          <div className="space-y-0.5">
-            {privateDocuments.map((doc, index) => (
-              <Button
-                key={index}
-                variant="ghost"
-                className="w-full justify-start px-2.5 py-1.5 h-8 text-sm font-normal hover:bg-gray-50 text-gray-700 group"
-              >
-                <doc.icon className="h-3.5 w-3.5 text-gray-400 group-hover:text-indigo-500 transition-colors" />
-                <span className="ml-2 truncate">{doc.name}</span>
-              </Button>
-            ))}
-          </div>
+          {isLoadingNotes ? (
+            <div className="space-y-2 px-2.5">
+              {[1, 2].map((i) => (
+                <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />
+              ))}
+            </div>
+          ) : notesError ? (
+            <div className="px-2.5 text-sm text-red-500">Failed to load notes</div>
+          ) : (
+            <div className="space-y-0.5">
+              {privateNotes.map((note) => (
+                <Button
+                  key={note.id}
+                  variant="ghost"
+                  className="w-full justify-start px-2.5 py-1.5 h-8 text-sm font-normal hover:bg-gray-50 text-gray-700 group"
+                >
+                  <File className="h-3.5 w-3.5 text-gray-400 group-hover:text-indigo-500 transition-colors" />
+                  <span className="ml-2 truncate">{note.title}</span>
+                </Button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
