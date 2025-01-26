@@ -3,6 +3,9 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PostService } from '@/services/post.service';
 import { Work } from '@/types/work';
+import { PageLayout } from '@/app/layouts/PageLayout';
+import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
+import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 
 interface Props {
   params: Promise<{
@@ -44,11 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function FundingProjectPage({ params }: Props) {
-  const resolvedParams = await params;
-  const work = await getFundingProject(resolvedParams.id);
-  const content = await getWorkHTMLContent(work);
-
+function FundingDocument({ work, content }: { work: Work; content?: string }) {
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">{work.title}</h1>
@@ -70,5 +69,20 @@ export default async function FundingProjectPage({ params }: Props) {
         <p className="text-gray-500">No content available</p>
       )}
     </div>
+  );
+}
+
+export default async function FundingProjectPage({ params }: Props) {
+  const resolvedParams = await params;
+  const work = await getFundingProject(resolvedParams.id);
+  const content = await getWorkHTMLContent(work);
+
+  return (
+    <PageLayout rightSidebar={<WorkRightSidebar work={work} />}>
+      <Suspense>
+        <FundingDocument work={work} content={content} />
+        <SearchHistoryTracker work={work} />
+      </Suspense>
+    </PageLayout>
   );
 }
