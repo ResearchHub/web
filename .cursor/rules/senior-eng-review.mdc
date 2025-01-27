@@ -106,3 +106,35 @@ globs:
     - Use clear, domain-focused names (e.g., `Organization` instead of `FormattedOrganization`)
     - Keep type definitions close to their domain context
     - Use transformer functions to convert API data to application types
+
+18. **Error Handling Philosophy**
+
+    - Let errors bubble up naturally unless there's a specific need to handle them
+    - Remove unnecessary try-catch blocks that just re-throw errors
+    - Fail fast when data is invalid rather than trying to recover silently
+    - Use try-catch only when:
+      1. You can meaningfully recover from the error
+      2. You need to transform the error type
+      3. The API doesn't return data in the expected format
+    - For API interactions:
+      1. Always use try-catch to transform technical errors into domain-specific ones
+      2. Ensure errors are followed by user-facing alerts (even if implementation is deferred)
+      3. Keep error messages user-friendly but specific enough for debugging
+
+19. **Debugging and Logging**
+
+    - Avoid committing console.log statements to production code
+    - Use proper error tracking and monitoring tools instead
+    - If logging is needed, implement structured logging with proper levels
+    - Consider adding debug flags for development-only logging
+
+20. **Component Naming Best Practices**
+
+    - Name components based on their primary function, not their location or styling
+    - Use action-oriented names for interactive components (e.g., `OrganizationSwitcher` instead of `OrganizationHeader`)
+    - Consider the component's role in the larger application context
+    - Examples:
+      - ✅ `OrganizationSwitcher` (describes action/purpose)
+      - ❌ `OrganizationHeader` (describes location/styling)
+      - ✅ `NoteList` (describes content type)
+      - ❌ `SidebarContent` (too generic/location-based)
