@@ -71,6 +71,7 @@ export function useOrganizationNotes(
         setNotes(response.results);
         setTotalCount(response.count);
       } catch (err) {
+        // TODO: Implement user-facing error alerts using global error handling pattern
         setError(err instanceof Error ? err : new Error('Failed to fetch notes'));
         setNotes([]);
         setTotalCount(0);

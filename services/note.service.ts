@@ -44,6 +44,7 @@ export class NoteService {
         results: response.results.map(transformNote),
       };
     } catch (error) {
+      // TODO: Integrate with global error handling system for user alerts on API failures
       throw new NoteError(
         'Failed to fetch organization notes',
         error instanceof Error ? error.message : 'UNKNOWN_ERROR'

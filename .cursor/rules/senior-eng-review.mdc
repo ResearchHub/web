@@ -116,6 +116,10 @@ globs:
       1. You can meaningfully recover from the error
       2. You need to transform the error type
       3. The API doesn't return data in the expected format
+    - For API interactions:
+      1. Always use try-catch to transform technical errors into domain-specific ones
+      2. Ensure errors are followed by user-facing alerts (even if implementation is deferred)
+      3. Keep error messages user-friendly but specific enough for debugging
 
 19. **Debugging and Logging**
 
