@@ -9,12 +9,14 @@ import { WorkRewards } from './WorkRewards';
 import { WorkComments } from './WorkComments';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { WorkLineItems } from './WorkLineItems';
+import { WorkMetadata } from '@/services/metadata.service';
 
 interface WorkDocumentProps {
   work: Work;
+  metadata: WorkMetadata;
 }
 
-export const WorkDocument = ({ work }: WorkDocumentProps) => {
+export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
   const [activeTab, setActiveTab] = useState('paper');
   const [rewardModalOpen, setRewardModalOpen] = useState(false);
   const [showMobileMetrics, setShowMobileMetrics] = useState(false);
@@ -66,8 +68,12 @@ export const WorkDocument = ({ work }: WorkDocumentProps) => {
           </div>
         </div>
       </div>
-
       {/* Title & Actions */}
+      {work.type === 'preprint' && (
+        <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
+          Preprint
+        </div>
+      )}
       <PageHeader title={work.title}>
         <div className="flex items-center space-x-4">
           <WorkLineItems work={work} />
@@ -82,7 +88,6 @@ export const WorkDocument = ({ work }: WorkDocumentProps) => {
           </button>
         </div>
       </PageHeader>
-
       {/* Navigation */}
       <div className="border-b mb-6">
         <nav className="flex space-x-8">
@@ -155,7 +160,6 @@ export const WorkDocument = ({ work }: WorkDocumentProps) => {
           </button>
         </nav>
       </div>
-
       {/* Content */}
       <div>
         {activeTab === 'paper' && (
@@ -173,7 +177,6 @@ export const WorkDocument = ({ work }: WorkDocumentProps) => {
         {activeTab === 'rewards' && <WorkRewards workId={work.id} />}
         {activeTab === 'comments' && <WorkComments workId={work.id} />}
       </div>
-
       {/* Mobile sidebar overlay */}
       <div
         className={`fixed inset-0 bg-black/50 z-30 z-50 lg:hidden ${
@@ -187,7 +190,7 @@ export const WorkDocument = ({ work }: WorkDocumentProps) => {
           }`}
           onClick={(e) => e.stopPropagation()}
         >
-          <WorkRightSidebar work={work} />
+          <WorkRightSidebar metadata={metadata} work={work} />
         </div>
       </div>
     </div>
