@@ -23,7 +23,6 @@ interface FundResearchModalProps {
 type Currency = 'RSC' | 'USD';
 type Step = 'amount' | 'payment';
 
-// Reusable Components
 const ModalHeader = ({
   title,
   onClose,
@@ -229,8 +228,6 @@ const FeeBreakdown = ({
     </div>
   </div>
 );
-
-// Reusable Components
 const NFTPreview = ({ rscAmount, nftCount }: { rscAmount: number; nftCount: number }) => (
   <div className="mt-4 bg-gray-50 rounded-lg p-4 space-y-2">
     <div className="flex justify-between items-center">
