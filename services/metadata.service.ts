@@ -3,18 +3,20 @@ import { Hub } from '@/types/hub';
 import { AuthorProfile, transformAuthorProfile } from '@/types/user';
 import { ContentMetrics } from '@/types/metrics';
 
+interface DocumentData {
+  bounties: any[];
+  discussion_aggregates: {
+    review_count: number;
+    summary_count: number;
+    discussion_count: number;
+  };
+  purchases: any[];
+  user_vote: any;
+}
+
 interface MetadataResponse {
   id: number;
-  documents: Array<{
-    bounties: any[];
-    discussion_aggregates: {
-      review_count: number;
-      summary_count: number;
-      discussion_count: number;
-    };
-    purchases: any[];
-    user_vote: any;
-  }>;
+  documents: DocumentData | DocumentData[];
   hubs: Array<
     Hub & {
       created_date: string;
@@ -84,7 +86,8 @@ export interface WorkMetadata {
 }
 
 function transformWorkMetadata(response: MetadataResponse): WorkMetadata {
-  const document = response.documents[0];
+  // Handle both array and object document structures
+  const document = Array.isArray(response.documents) ? response.documents[0] : response.documents;
 
   return {
     id: response.id,
@@ -120,9 +123,9 @@ function transformWorkMetadata(response: MetadataResponse): WorkMetadata {
 export class MetadataService {
   private static readonly BASE_PATH = '/api/researchhub_unified_document';
 
-  static async get(id: string): Promise<WorkMetadata> {
+  static async get(unifiedDocumentId: string): Promise<WorkMetadata> {
     const response = await ApiClient.get<MetadataResponse>(
-      `${this.BASE_PATH}/${id}/get_document_metadata/`
+      `${this.BASE_PATH}/${unifiedDocumentId}/get_document_metadata/`
     );
     return transformWorkMetadata(response);
   }

@@ -17,6 +17,7 @@ function transformWorkFromPost(post: any): Work {
     publishedDate: post.created_date,
     authors: Array.isArray(post.authors) ? post.authors.map(transformAuthorship) : [],
     abstract: undefined,
+    unifiedDocumentId: post.unified_document_id,
     previewContent: post.full_markdown,
     contentUrl: post.post_src,
     doi: post.doi,

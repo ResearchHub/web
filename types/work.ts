@@ -50,6 +50,7 @@ export interface Work {
   }>;
   versions: Array<DocumentVersion>;
   metrics: ContentMetrics;
+  unifiedDocumentId: number;
 }
 
 // Transformed types
@@ -129,4 +130,5 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
     earned: raw.earned || 0,
     views: raw.views_count || 0,
   },
+  unifiedDocumentId: raw.unified_document.id,
 }));
