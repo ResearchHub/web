@@ -37,25 +37,13 @@ export class NoteService {
         `${this.BASE_PATH}/${orgSlug}/get_organization_notes/`
       );
 
-      console.log('API Response:', response);
-
-      const transformedNotes = response.results.map((note: any) => {
-        try {
-          return transformNote(note);
-        } catch (e) {
-          console.error('Error transforming note:', note, e);
-          throw e;
-        }
-      });
-
       return {
         count: response.count,
         next: response.next,
         previous: response.previous,
-        results: transformedNotes,
+        results: response.results.map(transformNote),
       };
     } catch (error) {
-      console.error('Note service error:', error);
       throw new NoteError(
         'Failed to fetch organization notes',
         error instanceof Error ? error.message : 'UNKNOWN_ERROR'

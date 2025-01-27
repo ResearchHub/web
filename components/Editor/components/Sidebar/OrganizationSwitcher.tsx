@@ -3,7 +3,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import type { Organization } from '@/types/organization';
 
-interface OrganizationHeaderProps {
+interface OrganizationSwitcherProps {
   selectedOrg: Organization | null;
   organizations: Organization[];
   isLoading: boolean;
@@ -14,9 +14,10 @@ interface OrganizationHeaderProps {
 }
 
 /**
- * The organization header section of the sidebar with dropdown
+ * Organization switcher component that allows users to switch between their organizations
+ * Displays the current organization and a dropdown of available organizations
  */
-export const OrganizationHeader: React.FC<OrganizationHeaderProps> = ({
+export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
   selectedOrg,
   organizations,
   isLoading,

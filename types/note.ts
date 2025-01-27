@@ -14,18 +14,11 @@ export interface Note {
 
 export type TransformedNote = Note & BaseTransformed;
 
-export const transformNote = createTransformer<any, Note>((raw) => {
-  try {
-    return {
-      id: raw.id,
-      access: raw.access as NoteAccess,
-      organization: transformOrganization(raw.organization),
-      createdDate: raw.created_date,
-      updatedDate: raw.updated_date,
-      title: raw.title,
-    };
-  } catch (e) {
-    console.error('Error transforming note:', raw, e);
-    throw e;
-  }
-});
+export const transformNote = createTransformer<any, Note>((raw) => ({
+  id: raw.id,
+  access: raw.access as NoteAccess,
+  organization: transformOrganization(raw.organization),
+  createdDate: raw.created_date,
+  updatedDate: raw.updated_date,
+  title: raw.title,
+}));

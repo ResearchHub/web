@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button';
 import type { Organization } from '@/types/organization';
 import { SidebarSection } from '@/components/Editor/components/Sidebar/SidebarSection';
 import { NoteList } from '@/components/Editor/components/Sidebar/NoteList';
-import { OrganizationHeader } from '@/components/Editor/components/Sidebar/OrganizationHeader';
+import { OrganizationSwitcher } from '@/components/Editor/components/Sidebar/OrganizationSwitcher';
 
 /**
  * Left sidebar component for the notebook layout
@@ -38,7 +38,7 @@ const LeftSidebar: React.FC = () => {
 
   return (
     <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col">
-      <OrganizationHeader
+      <OrganizationSwitcher
         selectedOrg={selectedOrg}
         organizations={organizations}
         isLoading={isLoadingOrg}

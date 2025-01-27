@@ -65,17 +65,13 @@ export function useOrganizationNotes(
       }
 
       try {
-        console.log('Fetching notes for organization:', organization);
         setError(null);
         setIsLoading(true);
         const response = await NoteService.getOrganizationNotes(organization.slug);
-        console.log('Notes response:', response);
         setNotes(response.results);
         setTotalCount(response.count);
       } catch (err) {
-        console.error('Error in useOrganizationNotes:', err);
         setError(err instanceof Error ? err : new Error('Failed to fetch notes'));
-        // Clear notes when there's an error
         setNotes([]);
         setTotalCount(0);
       } finally {
@@ -92,14 +88,6 @@ export function useOrganizationNotes(
     (note) => note.access === 'WORKSPACE' || note.access === 'SHARED'
   );
   const privateNotes = notes.filter((note) => note.access === 'PRIVATE');
-
-  console.log('Current notes state:', {
-    all: notes,
-    workspace: workspaceNotes,
-    private: privateNotes,
-    isLoading,
-    error,
-  });
 
   return {
     notes,
