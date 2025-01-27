@@ -90,7 +90,7 @@ export default function CreatePage() {
             )}
             title="Fund your research"
             description="Fund your research through a crowdfunding campaign."
-            onClick={() => router.push('/funding/create')}
+            onClick={() => router.push('/fund/create')}
             iconSize="w-9 h-9"
           />
 

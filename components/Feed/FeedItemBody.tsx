@@ -17,6 +17,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHexagonImage, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import { FundResearchModal } from '../modals/FundResearchModal';
+import { FundItem } from '../Fund/FundItem';
 
 interface FeedItemBodyProps {
   content: Content;
@@ -212,29 +213,6 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
 
   const renderFundingRequest = (fundingRequest: Content) => {
     if (fundingRequest.type !== 'funding_request') return null;
-    const deadlineText = formatDeadline(fundingRequest.deadline);
-
-    const getStatusDisplay = () => {
-      switch (fundingRequest.status) {
-        case 'COMPLETED':
-          return <span className="text-xs text-green-500 font-medium">Fundraise Completed</span>;
-        case 'CLOSED':
-          return <span className="text-xs text-gray-500 font-medium">Fundraise Closed</span>;
-        case 'OPEN':
-          return deadlineText === 'Ended' ? (
-            <span className="text-xs text-gray-500 font-medium">Fundraise Ended</span>
-          ) : (
-            <span className="text-xs text-gray-800">{deadlineText}</span>
-          );
-        default:
-          return null;
-      }
-    };
-
-    const progress =
-      fundingRequest.amount && fundingRequest.goalAmount
-        ? (fundingRequest.amount / fundingRequest.goalAmount) * 100
-        : 0;
 
     return (
       <div>
@@ -242,49 +220,18 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
           {fundingRequest.title}
         </h3>
         <p className="text-sm text-gray-800 mb-2">{fundingRequest.abstract}</p>
-        <div className="mb-3">
-          <div className="flex items-center justify-between mb-1.5">
-            <div className="flex items-center gap-1.5">
-              <ResearchCoinIcon size={14} outlined />
-              <span className="text-xs font-medium text-orange-500">
-                {fundingRequest.amount.toLocaleString()} RSC raised
-              </span>
-              <span className="text-xs text-gray-500">
-                of {fundingRequest.goalAmount.toLocaleString()} RSC goal
-              </span>
-            </div>
-            {getStatusDisplay()}
-          </div>
-          <Progress
-            value={progress}
-            variant={fundingRequest.status === 'COMPLETED' ? 'success' : 'default'}
-            size="xs"
-          />
-        </div>
-        <div className="flex items-center justify-between">
-          <Button
-            variant="contribute"
-            size="sm"
-            disabled={fundingRequest.status !== 'OPEN' || deadlineText === 'Ended'}
-            className="flex items-center gap-1.5"
-            onClick={() => setShowFundModal(true)}
-          >
-            <ResearchCoinIcon size={16} contribute />
-            Fund this research
-          </Button>
-          {contributors && contributors.length > 0 && (
-            <ContributorsButton
-              contributors={contributors}
-              onContribute={() => setShowFundModal(true)}
-              label="Funders"
-            />
-          )}
-        </div>
-
-        <FundResearchModal
-          isOpen={showFundModal}
-          onClose={() => setShowFundModal(false)}
-          fundingRequest={fundingRequest}
+        <FundItem
+          title={fundingRequest.title}
+          status={fundingRequest.status}
+          amount={fundingRequest.amount}
+          goalAmount={fundingRequest.goalAmount}
+          deadline={fundingRequest.deadline}
+          nftRewardsEnabled={false}
+          contributors={contributors?.map((contributor) => ({
+            profile: contributor.profile,
+            amount: contributor.amount,
+          }))}
+          variant="compact"
         />
       </div>
     );

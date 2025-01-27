@@ -54,7 +54,7 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
     },
     {
       label: 'Fund',
-      href: '/funding',
+      href: '/fund',
       icon: HandCoins,
       description: 'Browse grants and fundraising opportunities',
     },

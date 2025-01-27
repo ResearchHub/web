@@ -4,6 +4,7 @@ import { Journal } from './journal';
 import { Topic } from './topic';
 import { createTransformer, BaseTransformed } from './transformer';
 import { transformAuthorProfile } from './user';
+import { Hub } from './hub';
 
 export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration';
 
@@ -33,6 +34,8 @@ export interface Work {
   publishedDate: string;
   authors: Authorship[];
   abstract?: string;
+  previewContent?: string;
+  contentUrl?: string;
   doi?: string;
   journal?: Journal;
   topics: Topic[];
@@ -47,6 +50,7 @@ export interface Work {
   }>;
   versions: Array<DocumentVersion>;
   metrics: ContentMetrics;
+  unifiedDocumentId: number;
 }
 
 // Transformed types
@@ -99,7 +103,13 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
   abstract: raw.abstract,
   doi: raw.doi,
   journal: raw.external_source ? transformJournal(raw) : undefined,
-  topics: Array.isArray(raw.topics) ? raw.topics.map(transformTopic) : [],
+  topics: Array.isArray(raw.hubs)
+    ? raw.hubs.map((hub: Hub) => ({
+        id: hub.id,
+        name: hub.name,
+        slug: hub.slug,
+      }))
+    : [],
   formats: raw.formats || [],
   license: raw.pdf_license,
   pdfCopyrightAllowsDisplay: raw.pdf_copyright_allows_display,
@@ -120,4 +130,5 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
     earned: raw.earned || 0,
     views: raw.views_count || 0,
   },
+  unifiedDocumentId: raw.unified_document.id,
 }));

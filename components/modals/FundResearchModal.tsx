@@ -5,29 +5,24 @@ import { Fragment, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import Image from 'next/image';
-import { Content } from '@/types/feed';
 import { ArrowLeft, ArrowDownToLine, CreditCard, ChevronDown } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHexagonImage } from '@fortawesome/pro-solid-svg-icons';
 import { Alert } from '@/components/ui/Alert';
-import Link from 'next/link';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
-
-const DEFAULT_IMAGE =
-  'https://images.unsplash.com/photo-1507413245164-6160d8298b31?q=80&w=800' as const;
 
 interface FundResearchModalProps {
   isOpen: boolean;
   onClose: () => void;
-  fundingRequest: Content;
+  title: string;
   nftRewardsEnabled?: boolean;
+  nftImageSrc?: string;
 }
 
 type Currency = 'RSC' | 'USD';
 type Step = 'amount' | 'payment';
 
-// Reusable Components
 const ModalHeader = ({
   title,
   onClose,
@@ -233,15 +228,28 @@ const FeeBreakdown = ({
     </div>
   </div>
 );
+const NFTPreview = ({ rscAmount, nftCount }: { rscAmount: number; nftCount: number }) => (
+  <div className="mt-4 bg-gray-50 rounded-lg p-4 space-y-2">
+    <div className="flex justify-between items-center">
+      <span className="text-sm text-gray-600">Your contribution:</span>
+      <span className="text-sm font-medium">{rscAmount.toLocaleString()} RSC</span>
+    </div>
+    <div className="flex justify-between items-center">
+      <span className="text-sm text-gray-600">NFTs will receive:</span>
+      <span className="text-sm font-bold text-blue-600">{nftCount.toLocaleString()}</span>
+    </div>
+  </div>
+);
 
 export function FundResearchModal({
   isOpen,
   onClose,
-  fundingRequest,
-  nftRewardsEnabled = true,
+  title,
+  nftRewardsEnabled = false,
+  nftImageSrc,
 }: FundResearchModalProps) {
   const [step, setStep] = useState<Step>('amount');
-  const [amount, setAmount] = useState(0);
+  const [inputAmount, setInputAmount] = useState(0);
   const [currency, setCurrency] = useState<Currency>('RSC');
   const [isFeesExpanded, setIsFeesExpanded] = useState(false);
   const RSC_TO_USD = 1;
@@ -249,9 +257,20 @@ export function FundResearchModal({
 
   // Utility functions
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9.]/g, '');
-    const numValue = parseFloat(value);
-    setAmount(isNaN(numValue) ? 0 : numValue);
+    // Remove any non-numeric characters except decimal point
+    const rawValue = e.target.value.replace(/[^0-9.]/g, '');
+    const numValue = parseFloat(rawValue);
+
+    if (!isNaN(numValue)) {
+      setInputAmount(numValue);
+    } else {
+      setInputAmount(0);
+    }
+  };
+
+  const getFormattedInputValue = () => {
+    if (inputAmount === 0) return '';
+    return inputAmount.toLocaleString();
   };
 
   const toggleCurrency = () => {
@@ -259,14 +278,14 @@ export function FundResearchModal({
   };
 
   const getConvertedAmount = () => {
-    if (amount === 0) return '';
+    if (inputAmount === 0) return '';
     return currency === 'RSC'
-      ? `≈ $${(amount * RSC_TO_USD).toLocaleString()} USD`
-      : `≈ ${(amount / RSC_TO_USD).toLocaleString()} RSC`;
+      ? `≈ $${(inputAmount * RSC_TO_USD).toLocaleString()} USD`
+      : `≈ ${(inputAmount / RSC_TO_USD).toLocaleString()} RSC`;
   };
 
   const getRscAmount = () => {
-    return currency === 'RSC' ? amount : amount / RSC_TO_USD;
+    return currency === 'RSC' ? inputAmount : inputAmount / RSC_TO_USD;
   };
 
   const getNFTCount = () => {
@@ -279,21 +298,14 @@ export function FundResearchModal({
     <div className="p-6">
       <ModalHeader title="Fund Research" onClose={onClose} />
       <div>
-        <h3 className="text-base font-semibold text-gray-900 mb-4">{fundingRequest.title}</h3>
+        <h3 className="text-base font-semibold text-gray-900 mb-4">{title}</h3>
 
-        {nftRewardsEnabled && (
+        {nftRewardsEnabled && nftImageSrc && (
           <div className="mb-6 flex justify-center">
-            {/* add border widht of 2px */}
             <div className="relative w-[240px] h-[240px] overflow-hidden bg-gray-100 rounded-xl border border-gray-200/60 shadow-[0_0_15px_rgba(0,0,0,0.05)] hover:shadow-[0_0_20px_rgba(0,0,0,0.1)] transition-shadow duration-200">
               <Image
-                src={
-                  fundingRequest.type === 'funding_request' &&
-                  'image' in fundingRequest &&
-                  fundingRequest.image
-                    ? fundingRequest.image
-                    : DEFAULT_IMAGE
-                }
-                alt={fundingRequest.title || 'Research funding'}
+                src={nftImageSrc}
+                alt={title || 'Research funding'}
                 fill
                 className="object-cover"
                 sizes="240px"
@@ -324,32 +336,21 @@ export function FundResearchModal({
 
         <div className="mt-6 mb-6">
           <CurrencyInput
-            value={amount === 0 ? '' : amount.toString()}
+            value={getFormattedInputValue()}
             onChange={handleAmountChange}
             currency={currency}
             onCurrencyToggle={toggleCurrency}
             convertedAmount={getConvertedAmount()}
           />
-          {amount > 1 && (
-            <div className="mt-4 bg-gray-50 rounded-lg p-4 space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Your contribution:</span>
-                <span className="text-sm font-medium">{getRscAmount().toLocaleString()} RSC</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">NFTs will receive:</span>
-                <span className="text-sm font-bold text-blue-600">
-                  {getNFTCount().toLocaleString()}
-                </span>
-              </div>
-            </div>
+          {inputAmount > 1 && nftRewardsEnabled && (
+            <NFTPreview rscAmount={getRscAmount()} nftCount={getNFTCount()} />
           )}
         </div>
 
         <Button
           type="submit"
           variant="default"
-          disabled={!amount}
+          disabled={!inputAmount}
           className="w-full h-12 text-base"
           onClick={() => setStep('payment')}
         >
@@ -360,64 +361,45 @@ export function FundResearchModal({
   );
 
   const renderPaymentStep = () => {
-    const totalAmount = getRscAmount();
-    const platformFeePercent = 0.09; // 9%
-    const platformFee = totalAmount * platformFeePercent;
-    const baseAmount = totalAmount - platformFee;
-    const daoFee = totalAmount * 0.02;
-    const incFee = totalAmount * 0.07;
-    const currentBalance = 0; // This would come from props or context in real implementation
-    const hasSufficientBalance = currentBalance >= totalAmount;
+    const rscAmount = getRscAmount();
+    const platformFee = Math.floor(rscAmount * 0.09);
+    const daoFee = Math.floor(rscAmount * 0.02);
+    const incFee = Math.floor(rscAmount * 0.07);
+    const baseAmount = rscAmount - platformFee;
+    const nftCount = nftRewardsEnabled ? Math.floor(rscAmount / NFT_THRESHOLD_USD) : 0;
 
     return (
       <div className="p-6">
         <ModalHeader title="Fund Research" onClose={onClose} onBack={() => setStep('amount')} />
 
         <BalanceInfo
-          currentBalance={`${currentBalance} RSC`}
-          requiredAmount={totalAmount.toLocaleString()}
+          currentBalance="0 RSC"
+          requiredAmount={`${getRscAmount().toLocaleString()} RSC`}
         />
 
-        <div className="grid grid-cols-2 gap-4 mb-6 mt-6">
-          <PaymentOption icon={PaymentIcons.card} title="Buy RSC" subtitle="Card or Apple Pay" />
-          <PaymentOption
-            icon={PaymentIcons.deposit}
-            title="Deposit RSC"
-            subtitle="From your wallet"
+        <div className="mt-6 mb-6">
+          <FeeBreakdown
+            totalAmount={rscAmount}
+            platformFee={platformFee}
+            daoFee={daoFee}
+            incFee={incFee}
+            baseAmount={baseAmount}
+            nftCount={nftCount}
+            isFeesExpanded={isFeesExpanded}
+            onToggleExpand={() => setIsFeesExpanded(!isFeesExpanded)}
           />
         </div>
 
-        <FeeBreakdown
-          totalAmount={totalAmount}
-          platformFee={platformFee}
-          daoFee={daoFee}
-          incFee={incFee}
-          baseAmount={baseAmount}
-          nftCount={getNFTCount()}
-          isFeesExpanded={isFeesExpanded}
-          onToggleExpand={() => setIsFeesExpanded(!isFeesExpanded)}
-        />
+        <div className="grid grid-cols-2 gap-4">
+          <PaymentOption icon={PaymentIcons.card} title="Card" subtitle="Visa, Mastercard" />
+          <PaymentOption icon={PaymentIcons.deposit} title="Deposit" subtitle="Bank transfer" />
+        </div>
 
-        <Button
-          type="submit"
-          variant="default"
-          disabled={!hasSufficientBalance}
-          className="w-full h-12 text-base mt-6"
-        >
-          Pay {totalAmount.toLocaleString()} RSC
-        </Button>
-
-        <Alert variant="info" className="mt-6">
-          <div>
-            <p>
-              Also earn RSC by contributing to open science through peer reviews, replication
-              studies, and more.
-            </p>
-            <Link href="#" className="text-blue-600 hover:text-blue-700">
-              Learn more about earning RSC
-            </Link>
-          </div>
-        </Alert>
+        {nftRewardsEnabled && nftCount > 0 && (
+          <Alert className="mt-6" variant="info">
+            You will receive {nftCount} NFT{nftCount !== 1 ? 's' : ''} for this contribution
+          </Alert>
+        )}
       </div>
     );
   };
@@ -434,7 +416,7 @@ export function FundResearchModal({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/25" />
+          <div className="fixed inset-0 bg-black bg-opacity-25" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -448,7 +430,7 @@ export function FundResearchModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-[448px] transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
                 {step === 'amount' ? renderAmountStep() : renderPaymentStep()}
               </Dialog.Panel>
             </Transition.Child>
