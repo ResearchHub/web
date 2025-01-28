@@ -5,7 +5,7 @@ import { BarChart2, Coins } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkRightSidebar } from './WorkRightSidebar';
 import { WorkReviews } from './WorkReviews';
-import { WorkRewards } from './WorkRewards';
+import { WorkBounties } from './WorkBounties';
 import { WorkComments } from './WorkComments';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { WorkLineItems } from './WorkLineItems';
@@ -23,7 +23,7 @@ export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
   const [showMobileMetrics, setShowMobileMetrics] = useState(false);
 
   // Mock data - would come from API
-  const openRewards = [
+  const openBounties = [
     {
       id: 1,
       title: 'Comprehensive Methodology Review',
@@ -53,9 +53,9 @@ export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
                   <Coins className="h-5 w-5 text-orange-600" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-medium text-orange-900">RSC Rewards Available</h2>
-                  <p className="text-sm text-orange-700 mt-0.5">
-                    Earn ResearchCoin by completing rewards on this paper
+                  <h2 className="text-sm font-medium text-orange-900">RSC Bounties Available</h2>
+                  <p className="mt-1 text-sm text-orange-700">
+                    Earn ResearchCoin by completing bounties on this paper
                   </p>
                 </div>
               </div>
@@ -63,7 +63,7 @@ export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
                 onClick={() => setRewardModalOpen(true)}
                 className="px-4 py-1.5 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600"
               >
-                View Rewards
+                View Bounties
               </button>
             </div>
           </div>
@@ -123,16 +123,16 @@ export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
           </button>
           <button
             className={`px-1 py-4 text-sm font-medium ${
-              activeTab === 'rewards'
+              activeTab === 'bounties'
                 ? 'text-indigo-600 border-b-2 border-indigo-600'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
-            onClick={() => setActiveTab('rewards')}
+            onClick={() => setActiveTab('bounties')}
           >
-            Rewards
+            Bounties
             <span
               className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                activeTab === 'rewards'
+                activeTab === 'bounties'
                   ? 'bg-indigo-100 text-indigo-600'
                   : 'bg-gray-100 text-gray-600'
               }`}
@@ -183,7 +183,7 @@ export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
         )}
 
         {activeTab === 'reviews' && <WorkReviews workId={work.id} />}
-        {activeTab === 'rewards' && <WorkRewards workId={work.id} />}
+        {activeTab === 'bounties' && <WorkBounties workId={work.id.toString()} />}
         {activeTab === 'comments' && <WorkComments workId={work.id} />}
       </div>
       {/* Mobile sidebar overlay */}
