@@ -10,6 +10,7 @@ import { WorkComments } from './WorkComments';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { WorkLineItems } from './WorkLineItems';
 import { WorkMetadata } from '@/services/metadata.service';
+import { DocumentViewer } from './DocumentViewer';
 
 interface WorkDocumentProps {
   work: Work;
@@ -169,7 +170,15 @@ export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
               <p className="text-gray-700">{work.abstract}</p>
             </div>
 
-            {/* TODO: Add PDF viewer component */}
+            {/* PDF Viewer */}
+            {work.formats.find((format) => format.type === 'PDF')?.url && (
+              <div className="bg-white rounded-lg shadow-sm border mb-6">
+                <DocumentViewer
+                  url={work.formats.find((format) => format.type === 'PDF')?.url || ''}
+                  className="min-h-[800px]"
+                />
+              </div>
+            )}
           </>
         )}
 

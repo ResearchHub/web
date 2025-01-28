@@ -110,7 +110,9 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
         slug: hub.slug,
       }))
     : [],
-  formats: raw.formats || [],
+  formats: raw.pdf_url
+    ? [...(raw.formats || []), { type: 'PDF', url: raw.pdf_url }]
+    : raw.formats || [],
   license: raw.pdf_license,
   pdfCopyrightAllowsDisplay: raw.pdf_copyright_allows_display,
   figures: raw.first_preview

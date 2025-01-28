@@ -12,10 +12,14 @@ import {
   BarChart2,
   FileText,
   ChevronDown,
+  Download,
 } from 'lucide-react';
 import Link from 'next/link';
 import type { WorkMetadata } from '@/services/metadata.service';
 import { useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFilePdf, faFileLines } from '@fortawesome/pro-light-svg-icons';
+import { handleDownload } from '@/utils/download';
 
 interface WorkRightSidebarProps {
   work: Work;
@@ -29,9 +33,6 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
 
   const displayedTopics = showAllTopics ? topics : topics.slice(0, 5);
   const hasMoreTopics = topics.length > 5;
-
-  // Debug logging
-  console.log('WorkRightSidebar render:', { metadata, work, metrics, topics });
 
   return (
     <div className="p-4 space-y-8">
@@ -48,14 +49,6 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
               <span className="text-sm text-gray-600">Review Score</span>
             </div>
             <span className="text-sm font-medium text-gray-900">{metrics.reviewScore || 0}</span>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <MessageSquare className="h-4 w-4 text-gray-400" />
-              <span className="text-sm text-gray-600">Comments</span>
-            </div>
-            <span className="text-sm font-medium text-gray-900">{metrics.comments || 0}</span>
           </div>
 
           <div className="flex items-center justify-between">
@@ -134,21 +127,33 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
       {work.formats.length > 0 && (
         <section>
           <div className="flex items-center space-x-2 mb-4">
-            <FileText className="h-5 w-5 text-gray-500" />
             <h2 className="text-base font-semibold text-gray-900">Other Formats</h2>
           </div>
           <div className="space-y-2">
             {work.formats.map((format, index) => (
-              <Link
-                key={index}
-                href={format.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800"
-              >
-                <File className="h-4 w-4" />
-                <span>{format.type.toUpperCase()}</span>
-              </Link>
+              <div key={index} className="flex items-center justify-between">
+                <Link
+                  href={format.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800"
+                >
+                  {format.type === 'PDF' ? (
+                    <FontAwesomeIcon icon={faFilePdf} className="h-4 w-4 text-gray-500" />
+                  ) : (
+                    <File className="h-4 w-4" />
+                  )}
+                  <span>{format.type}</span>
+                </Link>
+                <button
+                  onClick={() =>
+                    handleDownload(format.url, `document.${format.type.toLowerCase()}`)
+                  }
+                  className="p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100"
+                >
+                  <Download className="h-4 w-4" />
+                </button>
+              </div>
             ))}
           </div>
         </section>
