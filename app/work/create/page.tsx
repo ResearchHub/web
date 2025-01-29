@@ -65,8 +65,8 @@ export default function WorkCreatePage() {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="pb-12">
-          <PageHeader title="Submit your research" />
-          <p className="mt-2 text-xl text-gray-600">
+          <PageHeader title="Submit your research" className="mb-0" />
+          <p className="mt-2 text-lg text-gray-600">
             Share your work with the ResearchHub community
           </p>
         </div>

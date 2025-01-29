@@ -75,20 +75,15 @@ export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
           Preprint
         </div>
       )}
-      <PageHeader title={work.title}>
-        <div className="flex items-center space-x-4">
-          <WorkLineItems work={work} />
-
-          {/* Insights Button for Small Screens */}
-          <button
-            className="lg:hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
-            onClick={() => setShowMobileMetrics(true)}
-          >
-            <BarChart2 className="h-4 w-4" />
-            <span>Insights</span>
-          </button>
-        </div>
-      </PageHeader>
+      <PageHeader title={work.title} className="text-3xl mt-2" />
+      <button
+        className="lg:hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+        onClick={() => setShowMobileMetrics(true)}
+      >
+        <BarChart2 className="h-4 w-4" />
+        <span>Insights</span>
+      </button>
+      <WorkLineItems work={work} />
       {/* Navigation */}
       <div className="border-b mb-6">
         <nav className="flex space-x-8">

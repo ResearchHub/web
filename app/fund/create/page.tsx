@@ -200,12 +200,11 @@ export default function FundingCreatePage() {
         <div className="relative">
           {/* Header with icon */}
           <div className="flex items-center gap-4 mb-4">
-            <PageHeader title="Fund your Research" className="gap-2">
-              <p className="text-base text-gray-600">
-                Launch a crowdfunding campaign and bring your research to life.
-              </p>
-            </PageHeader>
+            <PageHeader title="Fund your Research" className="mb-0" />
           </div>
+          <p className="text-base text-gray-600 text-lg">
+            Launch a crowdfunding campaign and bring your research to life.
+          </p>
 
           {/* Process Steps */}
           <div className="space-y-4 mt-8 mb-12">

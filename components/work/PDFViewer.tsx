@@ -12,13 +12,9 @@
 'use client';
 
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { getDocument, GlobalWorkerOptions, version } from 'pdfjs-dist/build/pdf';
-import { PDFPageView, EventBus } from 'pdfjs-dist/web/pdf_viewer';
-
-GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.js`;
 
 interface Page {
-  pdfPageView: PDFPageView;
+  pdfPageView: any;
   pageNumber: number;
   pageContainer: HTMLDivElement;
 }
@@ -46,6 +42,27 @@ const PDFViewer = ({
   contentRef,
   scale,
 }: Props): React.ReactElement => {
+  // Move PDF.js imports inside the component to ensure they're only loaded on the client
+  const [pdfjs, setPdfjs] = useState<any>(null);
+  const [pdfViewer, setPdfViewer] = useState<any>(null);
+
+  useEffect(() => {
+    // Dynamically import PDF.js only on the client side
+    const loadPdfjs = async () => {
+      try {
+        const { getDocument, GlobalWorkerOptions, version } = await import('pdfjs-dist/build/pdf');
+        const { PDFPageView, EventBus } = await import('pdfjs-dist/web/pdf_viewer');
+        GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.js`;
+        setPdfjs({ getDocument });
+        setPdfViewer({ PDFPageView, EventBus });
+      } catch (error) {
+        console.error('Failed to load PDF.js:', error);
+        onLoadError?.(error);
+      }
+    };
+    loadPdfjs();
+  }, [onLoadError]);
+
   const viewerWidthRef = useRef<number>(viewerWidth);
   const scaleRef = useRef<number>(scale);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -59,7 +76,14 @@ const PDFViewer = ({
   const [renderedPages, setRenderedPages] = useState<{ [pageNumber: number]: Page }>({});
   const renderedPagesRef = useRef<{ [pageNumber: number]: Page }>({});
   const observer = useRef<IntersectionObserver | null>(null);
-  const eventBus = new EventBus();
+  const eventBus = useRef<any>(null);
+
+  // Initialize EventBus when pdfViewer is loaded
+  useEffect(() => {
+    if (pdfViewer) {
+      eventBus.current = new pdfViewer.EventBus();
+    }
+  }, [pdfViewer]);
 
   // Store destinations for internal links (e.g. anchors)
   const internalLinkDestinations = useRef<{ [key: string]: any }>({});
@@ -125,6 +149,8 @@ const PDFViewer = ({
 
   const loadPage = useCallback(
     async (pageNumber: number) => {
+      if (!pdfDocument || !pdfViewer) return;
+
       setPagesLoading((prevPagesLoading) => {
         if (prevPagesLoading.includes(pageNumber)) {
           pagesLoadingRef.current = prevPagesLoading;
@@ -140,12 +166,12 @@ const PDFViewer = ({
       const pageContainer = document.createElement('div') as HTMLDivElement;
       pageContainer.style.position = 'relative';
 
-      const pdfPageView = new PDFPageView({
+      const pdfPageView = new pdfViewer.PDFPageView({
         container: pageContainer,
         id: pageNumber,
         scale: scaleRef.current,
         defaultViewport: viewport,
-        eventBus,
+        eventBus: eventBus.current,
         textLayerMode: 1,
       });
 
@@ -202,13 +228,15 @@ const PDFViewer = ({
 
       setPagesLoading((prevPagesLoading) => prevPagesLoading.filter((page) => page !== pageNumber));
     },
-    [pdfDocument, eventBus, scrollToDestination]
+    [pdfDocument, pdfViewer]
   );
 
   useEffect(() => {
     const loadDocument = async () => {
+      if (!pdfjs || !pdfUrl) return;
+
       try {
-        const loadingTask = getDocument(pdfUrl);
+        const loadingTask = pdfjs.getDocument(pdfUrl);
         const doc = await loadingTask.promise;
         setPdfDocument(doc);
         setNumPages(doc.numPages);
@@ -219,10 +247,8 @@ const PDFViewer = ({
       }
     };
 
-    if (pdfUrl) {
-      loadDocument();
-    }
-  }, [pdfUrl, onReady, onLoadError]);
+    loadDocument();
+  }, [pdfjs, pdfUrl, onReady, onLoadError]);
 
   useLayoutEffect(() => {
     function updateWidth() {
@@ -310,7 +336,7 @@ const PDFViewer = ({
           boxSizing: 'border-box',
         }}
       />
-      {(pagesLoading.length > 0 || !isReadyToRender) && showWhenLoading}
+      {(pagesLoading.length > 0 || !isReadyToRender || !pdfjs || !pdfViewer) && showWhenLoading}
     </div>
   );
 };
