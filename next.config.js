@@ -21,11 +21,21 @@ const nextConfig = {
     locales: ['en'],
     defaultLocale: 'en',
   },
-  webpack(config) {
+  webpack: (config, { isServer }) => {
+    // Preserve existing alias configuration
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': __dirname,
     };
+
+    if (!isServer) {
+      // Add fallback for 'canvas' module
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        canvas: false,
+      };
+    }
+
     return config;
   },
 };
