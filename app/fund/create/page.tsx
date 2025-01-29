@@ -18,6 +18,10 @@ import {
   UserPlus,
   Clock,
   HelpCircle,
+  GraduationCap,
+  CircleDollarSign,
+  Shield,
+  CheckCircle2,
 } from 'lucide-react';
 import { Input } from '@/components/ui/form/Input';
 import { Textarea } from '@/components/ui/form/Textarea';
@@ -28,32 +32,7 @@ import Image from 'next/image';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
-
-interface FAQItemProps {
-  title: string;
-  children: React.ReactNode;
-  isOpen: boolean;
-  onToggle: () => void;
-}
-
-const FAQItem = ({ title, children, isOpen, onToggle }: FAQItemProps) => {
-  return (
-    <div className="group">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
-      >
-        <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
-          {title}
-        </span>
-        <div className="text-gray-600 group-hover:text-gray-600 transition-colors">
-          {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-        </div>
-      </button>
-      {isOpen && <div className="pl-6 py-3 text-sm text-gray-600">{children}</div>}
-    </div>
-  );
-};
+import { CollapsibleSection, CollapsibleItem } from '@/components/ui/CollapsibleSection';
 
 export default function FundingCreatePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -135,90 +114,83 @@ export default function FundingCreatePage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl">
-        <div className="pt-6 pb-2">
-          <h4 className="text-base font-semibold text-gray-900 inline-flex items-center gap-3">
-            <HelpCircle className="w-5 h-5 text-gray-900 -mt-0.5" />
-            FAQs
-          </h4>
-        </div>
+      <CollapsibleSection
+        title="Frequently Asked Questions"
+        icon={<HelpCircle className="w-4 h-4 text-gray-900" />}
+      >
+        <CollapsibleItem
+          title="Who is eligible?"
+          isOpen={openSections.includes('eligibility')}
+          onToggle={() => toggleSection('eligibility')}
+        >
+          <p>Anyone who has an idea for a cost effective project</p>
+        </CollapsibleItem>
 
-        <div className="space-y-1">
-          <FAQItem
-            title="Who is eligible?"
-            isOpen={openSections.includes('eligibility')}
-            onToggle={() => toggleSection('eligibility')}
-          >
-            <p>Anyone who has an idea for a cost effective project</p>
-          </FAQItem>
+        <CollapsibleItem
+          title="What happens if funding goal isn't met?"
+          isOpen={openSections.includes('protection')}
+          onToggle={() => toggleSection('protection')}
+        >
+          <p>
+            If your experiment does not reach its funding goal, all contributions will be returned
+            to the funders in full.
+          </p>
+        </CollapsibleItem>
 
-          <FAQItem
-            title="What happens if funding goal isn't met?"
-            isOpen={openSections.includes('protection')}
-            onToggle={() => toggleSection('protection')}
-          >
-            <p>
-              If your experiment does not reach its funding goal, all contributions will be returned
-              to the funders in full.
-            </p>
-          </FAQItem>
+        <CollapsibleItem
+          title="What are the criteria for funding?"
+          isOpen={openSections.includes('criteria')}
+          onToggle={() => toggleSection('criteria')}
+        >
+          <ul className="list-disc pl-4 space-y-1">
+            <li>Studies must be feasible to complete in under 1.5 years</li>
+            <li>
+              Studies must have a definitive endpoint that can result in a publishable unit of work
+            </li>
+            <li>Applications are not limited to a specific domain of research</li>
+          </ul>
+        </CollapsibleItem>
 
-          <FAQItem
-            title="What are the criteria for receiving funding?"
-            isOpen={openSections.includes('criteria')}
-            onToggle={() => toggleSection('criteria')}
-          >
-            <ul className="list-disc pl-4 space-y-1">
-              <li>Studies must be feasible to complete in under 1.5 years</li>
-              <li>
-                Studies must have a definitive endpoint that can result in a publishable unit of
-                work
-              </li>
-              <li>Applications are not limited to a specific domain of research</li>
-            </ul>
-          </FAQItem>
+        <CollapsibleItem
+          title="How will this be funded?"
+          isOpen={openSections.includes('funding')}
+          onToggle={() => toggleSection('funding')}
+        >
+          <ul className="list-disc pl-4 space-y-2">
+            <li>
+              A panel of multi-disciplinary scientists will make funding decisions based on a
+              blinded screening of proposals
+            </li>
+            <li>
+              Proposals will undergo screening to verify the capability of the applicant to perform
+              experiments
+            </li>
+            <li>
+              Once selected, winning proposals will expand their projects into a Pre-Registration to
+              go live on our Funding page to raise crowdfunding from ResearchHub users
+            </li>
+          </ul>
+          <p className="mt-2 text-xs italic">
+            Note: The ResearchHub Foundation will provide 1-on-1 direct assistance with this process
+            for any applicants who would like it.
+          </p>
+        </CollapsibleItem>
 
-          <FAQItem
-            title="How will this be funded?"
-            isOpen={openSections.includes('funding')}
-            onToggle={() => toggleSection('funding')}
-          >
-            <ul className="list-disc pl-4 space-y-2">
-              <li>
-                A panel of multi-disciplinary scientists will make funding decisions based on a
-                blinded screening of proposals
-              </li>
-              <li>
-                Proposals will undergo screening to verify the capability of the applicant to
-                perform experiments
-              </li>
-              <li>
-                Once selected, winning proposals will expand their projects into a Pre-Registration
-                to go live on our Funding page to raise crowdfunding from ResearchHub users
-              </li>
-            </ul>
-            <p className="mt-2 text-xs italic">
-              Note: The ResearchHub Foundation will provide 1-on-1 direct assistance with this
-              process for any applicants who would like it.
-            </p>
-          </FAQItem>
-
-          <FAQItem
-            title="What are the conditions?"
-            isOpen={openSections.includes('conditions')}
-            onToggle={() => toggleSection('conditions')}
-          >
-            <ul className="list-disc pl-4 space-y-2">
-              <li>
-                Applications that are chosen for crowdfunding will have an open line of
-                communication with members of the ResearchHub staff and are expected to respond to
-                infrequent progress inquiries and updates in a timely manner
-              </li>
-              <li>Awardees should provide a brief (1-paragraph) progress update each month</li>
-            </ul>
-          </FAQItem>
-        </div>
-      </div>
+        <CollapsibleItem
+          title="What are the conditions?"
+          isOpen={openSections.includes('conditions')}
+          onToggle={() => toggleSection('conditions')}
+        >
+          <ul className="list-disc pl-4 space-y-2">
+            <li>
+              Applications that are chosen for crowdfunding will have an open line of communication
+              with members of the ResearchHub staff and are expected to respond to infrequent
+              progress inquiries and updates in a timely manner
+            </li>
+            <li>Awardees should provide a brief (1-paragraph) progress update each month</li>
+          </ul>
+        </CollapsibleItem>
+      </CollapsibleSection>
     </div>
   );
 
