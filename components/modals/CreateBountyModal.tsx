@@ -4,6 +4,8 @@ import { Dialog, Transition, Listbox } from '@headlessui/react';
 import { Fragment, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
+import { Search } from '@/components/Search/Search';
+import { SearchSuggestion } from '@/types/search';
 import {
   ArrowLeft,
   ChevronDown,
@@ -29,6 +31,13 @@ type Currency = 'RSC' | 'USD';
 type Step = 'details' | 'payment';
 type BountyLength = '14' | '30' | '60' | 'custom';
 type BountyType = 'peer_review' | 'question' | 'other';
+
+interface SelectedPaper {
+  id: string;
+  title: string;
+  authors: string[];
+  abstract?: string;
+}
 
 interface BountyLengthOption {
   value: BountyLength;
@@ -375,7 +384,45 @@ const FeeBreakdown = ({
   </div>
 );
 
-// Balance Info Component (reused from FundResearchModal)
+// Payment Option Button component
+const PaymentOption = ({
+  icon,
+  title,
+  subtitle,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle?: string;
+}) => (
+  <button className="flex flex-col items-center justify-center p-4 border border-gray-200 rounded-lg hover:border-gray-300 w-full">
+    <div className="text-gray-700 mb-2">{icon}</div>
+    <span className="text-sm font-medium text-gray-900">{title}</span>
+    {subtitle && <span className="text-xs text-gray-500">{subtitle}</span>}
+  </button>
+);
+
+// Add RSC Section component
+const AddRscSection = () => (
+  <div>
+    <div className="mb-2">
+      <span className="text-sm font-semibold text-gray-700">Add more ResearchCoin</span>
+    </div>
+    <div className="grid grid-cols-2 gap-2">
+      <PaymentOption
+        icon={<CreditCard className="w-5 h-5" />}
+        title="Buy or Swap"
+        subtitle="Card, ETH, Apple Pay"
+      />
+      <PaymentOption
+        icon={<ArrowDownToLine className="w-5 h-5" />}
+        title="Deposit"
+        subtitle="From an external wallet"
+      />
+    </div>
+  </div>
+);
+
+// Update BalanceInfo component
 const BalanceInfo = ({
   currentBalance,
   requiredAmount,
@@ -394,25 +441,10 @@ const BalanceInfo = ({
   </div>
 );
 
-// Payment Options Component (reused from FundResearchModal)
-const PaymentOption = ({
-  icon,
-  title,
-  subtitle,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  subtitle?: string;
-}) => (
-  <button className="flex flex-col items-center justify-center p-6 border border-gray-200 rounded-xl hover:border-gray-300 w-full">
-    <div className="w-6 h-6 text-gray-700 mb-3">{icon}</div>
-    <span className="font-semibold text-gray-900">{title}</span>
-    {subtitle && <span className="text-sm text-gray-500 mt-1">{subtitle}</span>}
-  </button>
-);
-
 export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModalProps) {
   const [step, setStep] = useState<Step>('details');
+  const [selectedPaper, setSelectedPaper] = useState<SelectedPaper | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(true);
   const [inputAmount, setInputAmount] = useState(0);
   const [currency, setCurrency] = useState<Currency>('RSC');
   const [bountyLength, setBountyLength] = useState<BountyLength>('14');
@@ -421,6 +453,16 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
   const [isFeesExpanded, setIsFeesExpanded] = useState(false);
   const [customDate, setCustomDate] = useState('');
   const RSC_TO_USD = 1;
+
+  const handleWorkSelect = (suggestion: SearchSuggestion) => {
+    setSelectedPaper({
+      id: suggestion.id?.toString() || suggestion.openalexId,
+      title: suggestion.displayName,
+      authors: suggestion.authors || [],
+      abstract: undefined,
+    });
+    setShowSuggestions(false);
+  };
 
   // Utility functions
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -454,16 +496,45 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
     return currency === 'RSC' ? inputAmount : inputAmount / RSC_TO_USD;
   };
 
-  // Step rendering functions
   const renderDetailsStep = () => (
     <div className="p-6">
       <ModalHeader
         title="Create Bounty"
         onClose={onClose}
-        subtitle="Engage the world's brightest minds by opening a bounty"
+        subtitle="Engage the world's brightest minds by offering ResearchCoin"
       />
-      <div>
-        <div className="mb-6">
+      <div className="space-y-6">
+        {/* Paper Search Section */}
+        <div>
+          <div className="mb-2">
+            <label className="block text-sm font-semibold text-gray-700">
+              Which work is this bounty for?
+            </label>
+          </div>
+          <div className="relative">
+            <Search
+              onSelect={handleWorkSelect}
+              displayMode="inline"
+              placeholder="Search for work..."
+              className="w-full [&_input]:bg-white"
+              showSuggestionsOnFocus={!selectedPaper || showSuggestions}
+            />
+            {selectedPaper && (
+              <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="text-sm font-medium text-gray-900">{selectedPaper.title}</div>
+                <div className="text-xs text-gray-600 mt-1">{selectedPaper.authors.join(', ')}</div>
+                {selectedPaper.abstract && (
+                  <div className="text-xs text-gray-500 mt-2 line-clamp-2">
+                    {selectedPaper.abstract}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Bounty Type Section */}
+        <div>
           <div className="flex items-center gap-2 mb-2">
             <label className="block text-sm font-semibold text-gray-700">
               What is this bounty for?
@@ -484,7 +555,8 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
           )}
         </div>
 
-        <div className="mb-6">
+        {/* Amount Section */}
+        <div>
           <CurrencyInput
             value={getFormattedInputValue()}
             onChange={handleAmountChange}
@@ -494,13 +566,15 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
           />
         </div>
 
-        <div className="mb-6">
+        {/* Bounty Length Section */}
+        <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">Bounty Length</label>
           <BountyLengthSelector selected={bountyLength} onChange={setBountyLength} />
           {bountyLength === 'custom' && <DatePicker value={customDate} onChange={setCustomDate} />}
         </div>
 
-        <div className="mb-6">
+        {/* Target Audience Section */}
+        <div>
           <div className="flex items-center gap-2 mb-2">
             <Users className="w-5 h-5 text-gray-500" />
             <label className="block text-sm font-semibold text-gray-700">Target Audience</label>
@@ -514,7 +588,17 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
           </div>
         </div>
 
-        <Alert variant="info" className="mb-6">
+        <Button
+          type="button"
+          variant="default"
+          disabled={!selectedPaper || !inputAmount || (bountyType === 'other' && !otherDescription)}
+          className="w-full h-12 text-base"
+          onClick={() => setStep('payment')}
+        >
+          Continue
+        </Button>
+
+        <Alert variant="info">
           <div className="flex items-center gap-3">
             <span>
               If no solution satisfies your request, the full bounty amount (excluding platform fee)
@@ -522,16 +606,6 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
             </span>
           </div>
         </Alert>
-
-        <Button
-          type="button"
-          variant="default"
-          disabled={!inputAmount || (bountyType === 'other' && !otherDescription)}
-          className="w-full h-12 text-base"
-          onClick={() => setStep('payment')}
-        >
-          Continue
-        </Button>
       </div>
     </div>
   );
@@ -549,34 +623,43 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
           title="Create Bounty"
           onClose={onClose}
           onBack={() => setStep('details')}
-          subtitle="Engage the ResearchHub community by opening a ResearchCoin bounty"
+          subtitle="Engage the world's brightest minds by offering ResearchCoin"
         />
 
-        <BalanceInfo currentBalance="0 RSC" requiredAmount={`${rscAmount.toLocaleString()} RSC`} />
+        <div className="space-y-6">
+          <BalanceInfo
+            currentBalance="0 RSC"
+            requiredAmount={`${rscAmount.toLocaleString()} RSC`}
+          />
 
-        <div className="mt-6 mb-6">
-          <FeeBreakdown
-            totalAmount={rscAmount}
-            platformFee={platformFee}
-            daoFee={daoFee}
-            incFee={incFee}
-            baseAmount={baseAmount}
-            isFeesExpanded={isFeesExpanded}
-            onToggleExpand={() => setIsFeesExpanded(!isFeesExpanded)}
-          />
-        </div>
+          <AddRscSection />
 
-        <div className="grid grid-cols-2 gap-4">
-          <PaymentOption
-            icon={<CreditCard className="w-6 h-6" />}
-            title="Card"
-            subtitle="Visa, Mastercard"
-          />
-          <PaymentOption
-            icon={<ArrowDownToLine className="w-6 h-6" />}
-            title="Deposit"
-            subtitle="Bank transfer"
-          />
+          <div>
+            <div className="mb-2">
+              <h3 className="text-sm font-semibold text-gray-900">Fees Breakdown</h3>
+            </div>
+            <FeeBreakdown
+              totalAmount={rscAmount}
+              platformFee={platformFee}
+              daoFee={daoFee}
+              incFee={incFee}
+              baseAmount={baseAmount}
+              isFeesExpanded={isFeesExpanded}
+              onToggleExpand={() => setIsFeesExpanded(!isFeesExpanded)}
+            />
+          </div>
+
+          <Button
+            type="button"
+            variant="default"
+            className="w-full h-12 text-base"
+            onClick={() => {
+              // TODO: Implement bounty creation
+              onClose();
+            }}
+          >
+            Create Bounty
+          </Button>
         </div>
       </div>
     );
@@ -609,7 +692,8 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
-                {step === 'details' ? renderDetailsStep() : renderPaymentStep()}
+                {step === 'details' && renderDetailsStep()}
+                {step === 'payment' && renderPaymentStep()}
               </Dialog.Panel>
             </Transition.Child>
           </div>
