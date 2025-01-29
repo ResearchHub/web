@@ -1,129 +1,82 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Eye, BadgeCheck, BookOpen, ArrowRight } from 'lucide-react';
 import { Search } from '@/components/Search/Search';
 import { Button } from '@/components/ui/Button';
-import { useState } from 'react';
-import { CreatePageLayout } from '@/app/layouts/CreatePageLayout';
-import { SearchSuggestion } from '@/types/search';
-const PaperActionCard = ({
-  icon: Icon,
-  title,
-  description,
-  onClick,
-  badge,
-}: {
-  icon: any;
+import { PageLayout } from '@/app/layouts/PageLayout';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { RadioGroup } from '@headlessui/react';
+import { FileUp, Notebook, Eye, BadgeCheck, BookOpen } from 'lucide-react';
+import type { SearchSuggestion } from '@/types/search';
+import { PaperActionCard } from './PaperActionCard';
+
+type PublishOption = 'notebook' | 'pdf' | null;
+
+interface SelectedPaper {
+  id: string;
   title: string;
-  description: string;
-  onClick: () => void;
-  badge?: string;
-}) => (
-  <button
-    onClick={onClick}
-    className="w-full p-6 rounded-lg border border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm hover:translate-x-1 transition-all duration-200 flex items-start gap-4 text-left group"
-  >
-    <div className="flex-shrink-0">
-      <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center">
-        <Icon className="w-6 h-6 text-blue-600" />
-      </div>
-    </div>
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center gap-2">
-        <h3 className="font-medium text-gray-900">{title}</h3>
-        {badge && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-            {badge}
-          </span>
-        )}
-      </div>
-      <p className="mt-1 text-sm text-gray-500">{description}</p>
-    </div>
-    <div className="flex-shrink-0 self-center ml-4">
-      <ArrowRight className="w-5 h-5 text-gray-400" />
-    </div>
-  </button>
-);
+  authors: string[];
+  abstract?: string;
+  doi?: string;
+  slug?: string;
+  displayName: string;
+  openalexId: string;
+}
 
 export default function WorkCreatePage() {
   const router = useRouter();
-  const [selectedPaper, setSelectedPaper] = useState<SearchSuggestion | null>(null);
-
-  // Check if we should show the NEW badge (before June 1st 2025)
-  const showNewBadge = new Date() < new Date('2025-06-01');
+  const [selectedPaper, setSelectedPaper] = useState<SelectedPaper | null>(null);
+  const [publishOption, setPublishOption] = useState<PublishOption>(null);
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const showNewBadge = true; // This can be controlled by a feature flag or other logic
 
   const handlePaperSelect = (paper: SearchSuggestion) => {
-    setSelectedPaper(paper);
+    setSelectedPaper({
+      ...paper,
+      id: paper.id?.toString() || paper.openalexId,
+      title: paper.displayName,
+      authors: paper.authors || [],
+      abstract: undefined,
+      slug: paper.slug || paper.id?.toString() || paper.openalexId,
+      displayName: paper.displayName,
+      openalexId: paper.openalexId,
+    });
+    setShowSuggestions(false);
   };
 
+  const publishOptions = [
+    {
+      id: 'notebook',
+      title: 'Draft in Lab Notebook',
+      description: 'Write and format your research directly in our editor',
+      icon: Notebook,
+    },
+    {
+      id: 'pdf',
+      title: 'Upload a PDF',
+      description: 'Upload your existing research paper',
+      icon: FileUp,
+    },
+  ];
+
   return (
-    <CreatePageLayout
-      title="Submit your research"
-      description="Share your work with the scientific community"
-      sidebarTitle="Let's accelerate science together"
-      sidebarDescription="ResearchHub is an Open Science platform that incentivizes good scientific behavior"
-      stats={[
-        { number: '10,000+', label: 'Researchers' },
-        { number: '5,000+', label: 'Papers Published' },
-        { number: '$2M+', label: 'In Funding' },
-        { number: '3,000+', label: 'Active Projects' },
-      ]}
-    >
-      <div className="space-y-8 pb-12">
-        {!selectedPaper ? (
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              Do you have a preprint published?
-            </h2>
-            <p className="text-gray-500 mb-6">
-              Search by DOI or title to find your published preprint
-            </p>
+    <PageLayout>
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="pb-12">
+          <PageHeader title="Submit your research" />
+          <p className="mt-2 text-xl text-gray-600">
+            Share your work with the ResearchHub community
+          </p>
+        </div>
 
-            <div className="space-y-6">
-              <Search
-                displayMode="inline"
-                showSuggestionsOnFocus={false}
-                className="w-full"
-                placeholder="Search for your preprint"
-                onSelect={handlePaperSelect}
-              />
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-white px-4 text-sm text-gray-500">or</span>
-                </div>
-              </div>
-
-              <div>
-                <Button
-                  onClick={() => router.push('/work/create/new')}
-                  variant="outlined"
-                  className="w-full py-6 text-base"
-                >
-                  I haven't published a preprint yet
-                </Button>
-              </div>
-            </div>
-          </div>
-        ) : (
+        {selectedPaper ? (
           <div className="space-y-6">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">
-                What would you like to do with this paper?
-              </h2>
-              <p className="text-gray-500 mb-6">
-                Choose how you want to share your research on ResearchHub
-              </p>
-            </div>
-
             {/* Selected Paper Preview */}
-            <div className="p-4 bg-gray-50 rounded-lg mb-6">
+            <div className="p-4 bg-gray-50 rounded-lg">
               <div className="text-sm text-gray-500 mb-1">Selected Paper</div>
-              <h3 className="font-medium text-gray-900">{selectedPaper.displayName}</h3>
+              <h3 className="font-medium text-gray-900">{selectedPaper.title}</h3>
               {selectedPaper.authors && selectedPaper.authors.length > 0 && (
                 <p className="text-sm text-gray-600 mt-1">
                   {selectedPaper.authors.slice(0, 3).join(', ')}
@@ -170,8 +123,108 @@ export default function WorkCreatePage() {
               </button>
             </div>
           </div>
+        ) : (
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                Do you have a preprint published?
+              </h2>
+              <p className="text-gray-500 mb-6">
+                Search by DOI or title to find your published preprint
+              </p>
+
+              <div className="relative">
+                <Search
+                  displayMode="inline"
+                  showSuggestionsOnFocus={!selectedPaper || showSuggestions}
+                  className="w-full [&_input]:bg-white"
+                  placeholder="Search for your preprint"
+                  onSelect={handlePaperSelect}
+                />
+              </div>
+
+              <div className="relative mt-8">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="bg-white px-4 text-sm text-gray-500">or</span>
+                </div>
+              </div>
+
+              <div className="mt-8">
+                <RadioGroup value={publishOption} onChange={setPublishOption}>
+                  <div className="grid grid-cols-1 gap-4">
+                    {publishOptions.map((option) => {
+                      const Icon = option.icon;
+                      return (
+                        <RadioGroup.Option
+                          key={option.id}
+                          value={option.id}
+                          className={({ checked }) =>
+                            `relative flex cursor-pointer rounded-lg border-2 p-4 focus:outline-none
+                            ${
+                              checked
+                                ? 'border-indigo-600 bg-indigo-50'
+                                : 'border-gray-200 bg-white hover:bg-gray-50'
+                            }`
+                          }
+                        >
+                          {({ checked }) => (
+                            <div className="flex w-full items-start gap-4">
+                              <div
+                                className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${
+                                  checked ? 'bg-indigo-100' : 'bg-gray-100'
+                                }`}
+                              >
+                                <Icon
+                                  className={`h-5 w-5 ${
+                                    checked ? 'text-indigo-600' : 'text-gray-600'
+                                  }`}
+                                />
+                              </div>
+                              <div className="flex flex-col">
+                                <RadioGroup.Label
+                                  as="span"
+                                  className={`font-medium ${
+                                    checked ? 'text-indigo-900' : 'text-gray-900'
+                                  }`}
+                                >
+                                  {option.title}
+                                </RadioGroup.Label>
+                                <RadioGroup.Description
+                                  as="span"
+                                  className={`text-sm ${
+                                    checked ? 'text-indigo-700' : 'text-gray-500'
+                                  }`}
+                                >
+                                  {option.description}
+                                </RadioGroup.Description>
+                              </div>
+                            </div>
+                          )}
+                        </RadioGroup.Option>
+                      );
+                    })}
+                  </div>
+                </RadioGroup>
+
+                {publishOption && (
+                  <div className="mt-6">
+                    <Button
+                      onClick={() => router.push(`/work/create/${publishOption}`)}
+                      variant="default"
+                      className="w-full py-6 text-base"
+                    >
+                      Continue
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         )}
       </div>
-    </CreatePageLayout>
+    </PageLayout>
   );
 }

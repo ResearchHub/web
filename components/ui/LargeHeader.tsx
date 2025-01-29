@@ -4,9 +4,5 @@ interface LargeHeaderProps {
 }
 
 export function LargeHeader({ children, className }: LargeHeaderProps) {
-  return (
-    <h1 className={`text-2xl font-bold text-gray-900 leading-tight ${className || ''}`}>
-      {children}
-    </h1>
-  );
+  return <h1 className={`text-4xl font-bold text-gray-900 ${className || ''}`}>{children}</h1>;
 }

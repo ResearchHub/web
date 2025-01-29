@@ -11,6 +11,9 @@ import { useRouter, usePathname } from 'next/navigation';
 import { NotificationBell } from '@/components/Notification/NotificationBell';
 import { Search } from '@/components/Search/Search';
 import { SearchSuggestion } from '@/types/search';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { Tooltip } from '@/components/ui/Tooltip';
+import Link from 'next/link';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -67,10 +70,21 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
 
           <div className="lg:block w-80 bg-white">
             {/* Right-aligned buttons */}
-            <div className="flex items-center justify-end h-full px-6 gap-4">
+            <div className="flex items-center justify-end h-full px-6 gap-6">
               {status !== 'loading' ? (
                 session ? (
                   <>
+                    <Tooltip content="View ResearchCoin balance and transactions">
+                      <Link
+                        href="/researchcoin"
+                        className="relative flex items-center justify-center -mt-0.5"
+                      >
+                        <ResearchCoinIcon size={29} outlined color="#4B5563" />
+                        {/* <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-green-50 text-[10px] font-medium text-green-700">
+                          +10
+                        </span> */}
+                      </Link>
+                    </Tooltip>
                     <NotificationBell filled={isNotificationsPage} />
                     <UserMenu
                       user={session.user as User}

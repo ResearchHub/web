@@ -39,16 +39,16 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
         <div className="flex-1">
           <TopBar onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)} />
 
-          <div className="flex">
+          <div className="flex py-8">
             {/* Main Content */}
-            <main className="flex-1 px-4 py-4 lg:px-8">
+            <main className="flex-1 px-4 lg:px-8">
               <div className="mx-auto max-w-4xl">{children}</div>
             </main>
 
             {/* Right Sidebar */}
             {rightSidebar && (
               <div className="hidden lg:block w-80 bg-white">
-                <div className="sticky top-[64px] p-4">
+                <div className="sticky top-[64px] p-4 pt-0">
                   {typeof rightSidebar === 'boolean' ? <RightSidebar /> : rightSidebar}
                 </div>
               </div>
