@@ -1,4 +1,4 @@
-declare module 'pdfjs-dist/build/pdf' {
+declare module 'pdfjs-dist/webpack' {
   export const getDocument: any;
   export const GlobalWorkerOptions: {
     workerSrc: string;

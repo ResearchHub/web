@@ -50,9 +50,13 @@ const PDFViewer = ({
     // Dynamically import PDF.js only on the client side
     const loadPdfjs = async () => {
       try {
-        const { getDocument, GlobalWorkerOptions, version } = await import('pdfjs-dist/build/pdf');
+        // Use the prebuilt version that doesn't require canvas
+        const { getDocument, GlobalWorkerOptions, version } = await import('pdfjs-dist/webpack');
         const { PDFPageView, EventBus } = await import('pdfjs-dist/web/pdf_viewer');
+
+        // Use the prebuilt worker from CDN
         GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.js`;
+
         setPdfjs({ getDocument });
         setPdfViewer({ PDFPageView, EventBus });
       } catch (error) {
