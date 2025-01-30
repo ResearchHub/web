@@ -10,10 +10,13 @@ import { Alert } from '@/components/ui/Alert';
 import { Switch } from '@/components/ui/Switch';
 import Image from 'next/image';
 import { CreatePageLayout } from '@/app/layouts/CreatePageLayout';
+import { Currency, DocumentType, PostPayload } from '@/services/types/post.dto';
+import { PostService } from '@/services/post.service';
 
 export default function FundingCreatePage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     background: '',
@@ -60,8 +63,33 @@ export default function FundingCreatePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement submission logic
+    setSubmitting(true);
     console.log('Form submitted:', formData);
+    try {
+      const payload: PostPayload = {
+        document_type: DocumentType.PREREGISTRATION,
+        title: formData.title,
+        renderable_text: formData.background,
+        full_src: formData.background,
+        hypothesis: formData.hypothesis,
+        methods: formData.methods,
+        budgetUse: formData.budgetUse,
+        rewardFunders: formData.rewardFunders,
+        nftArt: formData.nftArt,
+        nftSupply: formData.nftSupply,
+        fundraise_goal_amount: parseFloat(formData.budget.replace(/[^0-9.]/g, '')),
+        fundraise_goal_currency: Currency.USD,
+      };
+      console.log({ payload });
+
+      const response = await PostService.post(payload);
+      router.push(`/fund/${response.id}/${response.slug}`); // Adjust the route as needed
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      // You might want to add error handling/display here
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -253,7 +281,12 @@ export default function FundingCreatePage() {
         </div>
 
         <div className="mt-12">
-          <Button type="submit" size="lg" className="w-full py-6 text-lg">
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full py-6 text-lg"
+            variant={submitting ? 'start-task' : undefined} //TODO is there a loading state for the button? or do we need it at all
+          >
             Submit for Review
           </Button>
         </div>

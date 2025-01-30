@@ -38,6 +38,20 @@ export class ApiClient {
     headers: Record<string, string>,
     body?: any
   ): RequestInit {
+    if (body instanceof FormData) {
+      // Remove Content-Type header for FormData to let browser set it with boundary
+      const formDataHeaders = { ...headers };
+      delete formDataHeaders['Content-Type'];
+
+      return {
+        method,
+        headers: formDataHeaders,
+        mode: 'cors',
+        cache: 'no-cache',
+        body: body,
+      };
+    }
+
     return {
       method,
       headers,

@@ -2,6 +2,7 @@ import { ApiClient } from './client';
 import { Work, WorkType, Authorship, transformAuthorship } from '@/types/work';
 import { Hub } from '@/types/hub';
 import sanitizeHtml, { Attributes } from 'sanitize-html';
+import { PostPayload } from './types/post.dto';
 
 interface GetContentOptions {
   cleanIntroEmptyContent?: boolean;
@@ -51,6 +52,26 @@ export class PostService {
 
   static async get(id: string): Promise<Work> {
     const response = await ApiClient.get<any>(`${this.BASE_PATH}/${id}/`);
+    return transformWorkFromPost(response);
+  }
+
+  static async post(payload: PostPayload): Promise<Work> {
+    console.log('post START', payload);
+    const formData = new FormData();
+
+    // Add all text fields to formData
+    Object.entries(payload).forEach(([key, value]) => {
+      if (key !== 'nftArt' && value !== null) {
+        const formValue = typeof value === 'object' ? JSON.stringify(value) : value.toString();
+        formData.append(key, formValue);
+      }
+    });
+    // Add file if present
+    if (payload.nftArt) {
+      formData.append('nftArt', payload.nftArt);
+    }
+
+    const response = await ApiClient.post<any>(`${this.BASE_PATH}/`, formData);
     return transformWorkFromPost(response);
   }
 
