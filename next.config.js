@@ -29,11 +29,22 @@ const nextConfig = {
     };
 
     if (!isServer) {
-      // Add fallback for 'canvas' module
+      // Add fallbacks for client-side
       config.resolve.fallback = {
         ...config.resolve.fallback,
         canvas: false,
+        fs: false,
+        path: false,
       };
+
+      // Handle PDF.js worker
+      config.module.rules.push({
+        test: /pdf\.worker\.(min\.)?js/,
+        type: 'asset/resource',
+        generator: {
+          filename: 'static/[hash][ext][query]',
+        },
+      });
     }
 
     return config;
