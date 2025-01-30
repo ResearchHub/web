@@ -62,7 +62,7 @@ export class PostService {
     // Add all text fields to formData
     Object.entries(payload).forEach(([key, value]) => {
       if (key !== 'nftArt' && value !== null) {
-        const formValue = typeof value === 'object' ? JSON.stringify(value) : value.toString();
+        const formValue = value.toString();
         formData.append(key, formValue);
       }
     });
