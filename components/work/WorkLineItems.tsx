@@ -11,6 +11,7 @@ import {
   MoreHorizontal,
   Coins,
   UserPlus,
+  Bookmark,
 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
@@ -23,6 +24,7 @@ interface WorkLineItemsProps {
 
 export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsProps) => {
   const [claimModalOpen, setClaimModalOpen] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   return (
     <div>
@@ -32,6 +34,18 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
           <button className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100">
             <ArrowUp className="h-4 w-4" />
             <span>{work.metrics.votes}</span>
+          </button>
+
+          <button
+            onClick={() => setIsSaved(!isSaved)}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+              isSaved
+                ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <Bookmark className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
+            <span>{isSaved ? 'Saved' : 'Save'}</span>
           </button>
 
           <button className="flex items-center space-x-2 px-4 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100">

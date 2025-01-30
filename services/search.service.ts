@@ -6,7 +6,7 @@ export class SearchService {
 
   static async getSuggestions(query: string): Promise<SearchSuggestion[]> {
     const response = await ApiClient.get<any[]>(
-      `${this.BASE_PATH}/paper/suggest/?q=${encodeURIComponent(query)}`
+      `${this.BASE_PATH}/search/suggest/?q=${encodeURIComponent(query)}`
     );
 
     return response.map(transformSearchSuggestion);

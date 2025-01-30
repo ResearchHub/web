@@ -1,5 +1,5 @@
-export interface Topic {
-  id: number;
+export type Topic = {
   name: string;
   slug: string;
-}
+  id: number;
+};

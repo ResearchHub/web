@@ -27,9 +27,9 @@ const TooltipContent = ({
     const tooltip = tooltipRef.current;
     const tooltipRect = tooltip.getBoundingClientRect();
 
-    // Center horizontally above the trigger
+    // Center horizontally and position below the trigger
     const left = triggerRect.left + (triggerRect.width - tooltipRect.width) / 2;
-    const top = triggerRect.top - tooltipRect.height - 8; // 8px gap
+    const top = triggerRect.bottom + 8; // 8px gap below the trigger
 
     tooltip.style.left = `${left}px`;
     tooltip.style.top = `${top}px`;

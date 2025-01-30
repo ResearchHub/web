@@ -1,12 +1,12 @@
 import { ApiClient } from './client';
-import { Hub } from '@/types/hub';
+import { Topic } from '@/types/topic';
 import { AuthorProfile, transformAuthorProfile } from '@/types/user';
 import { ContentMetrics } from '@/types/metrics';
 
 export interface WorkMetadata {
   id: number;
   score: number;
-  hubs: Hub[];
+  topics: Topic[];
   metrics: ContentMetrics;
   fundraising?: {
     id: number;
@@ -36,7 +36,11 @@ function transformWorkMetadata(response: any): WorkMetadata {
   return {
     id: response.id,
     score: response.score,
-    hubs: response.hubs,
+    topics: response.hubs.map((hub: any) => ({
+      id: hub.id,
+      name: hub.name,
+      slug: hub.slug,
+    })),
     metrics: {
       votes: response.score,
       comments: document.discussion_aggregates.discussion_count,
