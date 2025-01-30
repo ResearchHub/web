@@ -69,6 +69,7 @@ function FundingDocument({ work, metadata, content }: FundingDocumentProps) {
 
       {metadata.fundraising && (
         <FundItem
+          id={metadata.fundraising.id}
           title={work.title}
           status={metadata.fundraising.status}
           amount={metadata.fundraising.amountRaised.rsc}

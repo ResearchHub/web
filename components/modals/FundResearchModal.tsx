@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import Image from 'next/image';
@@ -11,13 +11,15 @@ import { faHexagonImage } from '@fortawesome/pro-solid-svg-icons';
 import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
-
+import { useCreateContribution } from '@/hooks/useFundraise';
+import { Currency as CurrencyType } from '@/services/types/post.dto';
 interface FundResearchModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   nftRewardsEnabled?: boolean;
   nftImageSrc?: string;
+  fundraiseId: number;
 }
 
 type Currency = 'RSC' | 'USD';
@@ -247,6 +249,7 @@ export function FundResearchModal({
   title,
   nftRewardsEnabled = false,
   nftImageSrc,
+  fundraiseId,
 }: FundResearchModalProps) {
   const [step, setStep] = useState<Step>('amount');
   const [inputAmount, setInputAmount] = useState(0);
@@ -254,6 +257,33 @@ export function FundResearchModal({
   const [isFeesExpanded, setIsFeesExpanded] = useState(false);
   const RSC_TO_USD = 1;
   const NFT_THRESHOLD_USD = 1000;
+
+  const [
+    { data: contributionData, isLoading: isContributing, error: contributionError },
+    createContribution,
+  ] = useCreateContribution();
+
+  const handleCreateContribution = async () => {
+    try {
+      //TODO we need a fundraise id
+      await createContribution(fundraiseId, {
+        amount: getRscAmount(),
+        amount_currency: currency as CurrencyType,
+      });
+    } catch (error) {
+      // Error is handled by the hook
+      console.error('Contribution failed:', error);
+    }
+  };
+
+  // Watch for changes in contributionData to handle success
+  useEffect(() => {
+    if (contributionData) {
+      // Contribution was successful
+      // TODO: show success toast or something?? ++ refresh the page
+      onClose();
+    }
+  }, [contributionData, onClose]);
 
   // Utility functions
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -400,6 +430,21 @@ export function FundResearchModal({
             You will receive {nftCount} NFT{nftCount !== 1 ? 's' : ''} for this contribution
           </Alert>
         )}
+
+        {contributionError && (
+          <Alert className="mt-4" variant="error">
+            {contributionError.message}
+          </Alert>
+        )}
+        <Button
+          type="button"
+          variant="default"
+          disabled={isContributing}
+          className="w-full h-12 text-base mt-6"
+          onClick={handleCreateContribution}
+        >
+          {isContributing ? 'Processing...' : 'Confirm Payment'}
+        </Button>
       </div>
     );
   };

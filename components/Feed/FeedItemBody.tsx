@@ -221,6 +221,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
         </h3>
         <p className="text-sm text-gray-800 mb-2">{fundingRequest.abstract}</p>
         <FundItem
+          id={parseInt(fundingRequest.id.replace(/[^0-9]/g, ''), 10)}
           title={fundingRequest.title}
           status={fundingRequest.status}
           amount={fundingRequest.amount}

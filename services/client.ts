@@ -114,8 +114,14 @@ export class ApiClient {
       this.getFetchOptions('POST', headers, body)
     );
 
+    // if (!response.ok) {
+    //   throw new Error(`HTTP error! status: ${response.status}`);
+    // }
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorData = await response.json().catch(() => null);
+      throw new Error(
+        errorData?.message || errorData?.detail || `HTTP error! status: ${response.status}`
+      );
     }
 
     return response.json();
