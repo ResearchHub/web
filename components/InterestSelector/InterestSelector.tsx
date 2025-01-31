@@ -4,6 +4,8 @@ import { BookOpen, Users, Hash } from 'lucide-react';
 import { fetchInterests, Interest } from '@/store/interestStore';
 import { InterestSkeleton } from '@/components/skeletons/InterestSkeleton';
 import { InterestCard } from './InterestCard';
+import { HubService } from '@/services/hub.service';
+import { AuthorService } from '@/services/author.service';
 
 interface InterestSelectorProps {
   mode: 'onboarding' | 'preferences';
@@ -19,6 +21,7 @@ export function InterestSelector({ mode }: InterestSelectorProps) {
   const [activeType, setActiveType] = useState<'journal' | 'person' | 'topic'>('journal');
   const [isLoading, setIsLoading] = useState(true);
   const [interests, setInterests] = useState<Interest[]>([]);
+  const [followedIds, setFollowedIds] = useState<number[]>([]);
 
   const descriptions = {
     journal: 'Select journals to stay updated with the latest research in your field',
@@ -29,13 +32,32 @@ export function InterestSelector({ mode }: InterestSelectorProps) {
   useEffect(() => {
     const loadInterests = async () => {
       setIsLoading(true);
-      const data = await fetchInterests(activeType);
-      setInterests(data as Interest[]);
-      setIsLoading(false);
+      try {
+        const [data, followedItems] = await Promise.all([
+          fetchInterests(activeType),
+          activeType === 'person'
+            ? AuthorService.getFollowedAuthors()
+            : HubService.getFollowedHubs(),
+        ]);
+        setInterests(data);
+        setFollowedIds(followedItems);
+      } catch (error) {
+        console.error('Error loading interests:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadInterests();
   }, [activeType]);
+
+  const handleFollowToggle = async (interestId: number, isFollowing: boolean) => {
+    if (isFollowing) {
+      setFollowedIds((prev) => prev.filter((id) => id !== interestId));
+    } else {
+      setFollowedIds((prev) => [...prev, interestId]);
+    }
+  };
 
   return (
     <div className="max-w-4xl">
@@ -68,7 +90,11 @@ export function InterestSelector({ mode }: InterestSelectorProps) {
             ))}
           </div>
         ) : (
-          <InterestGrid interests={interests} />
+          <InterestGrid
+            interests={interests}
+            followedIds={followedIds}
+            onFollowToggle={handleFollowToggle}
+          />
         )}
       </div>
     </div>
@@ -77,15 +103,16 @@ export function InterestSelector({ mode }: InterestSelectorProps) {
 
 interface InterestGridProps {
   interests: Interest[];
+  followedIds: number[];
+  onFollowToggle: (interestId: number, isFollowing: boolean) => void;
 }
 
-function InterestGrid({ interests }: InterestGridProps) {
+function InterestGrid({ interests, followedIds, onFollowToggle }: InterestGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  console.log('-------------', interests);
+
   const filteredInterests = interests.filter((interest) =>
     interest.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
   return (
     <div>
       {/* Search bar */}
@@ -105,8 +132,8 @@ function InterestGrid({ interests }: InterestGridProps) {
           <InterestCard
             key={interest.id}
             interest={interest}
-            selected={false}
-            onSelect={() => {}}
+            isFollowing={followedIds.includes(Number(interest.id))}
+            onFollowToggle={onFollowToggle}
           />
         ))}
       </div>

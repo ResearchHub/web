@@ -13,6 +13,15 @@ interface AuthorsApiResponse {
   results: AuthorResponse[];
 }
 
+interface FollowResponse {
+  id: number;
+  content_type: string;
+  type: string;
+  object_id: number;
+  created_date: string;
+  updated_date: string;
+}
+
 export interface Author {
   id: number;
   name: string;
@@ -33,6 +42,11 @@ export class AuthorService {
       imageUrl: author.profile_image,
       description: author.description,
     }));
+  }
+
+  static async getFollowedAuthors(): Promise<number[]> {
+    const response = await ApiClient.get<FollowResponse[]>(`${this.BASE_PATH}/following/`);
+    return response.map((follow) => follow.object_id);
   }
 
   static async followAuthor(authorId: number): Promise<void> {

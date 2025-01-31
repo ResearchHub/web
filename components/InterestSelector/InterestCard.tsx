@@ -2,22 +2,28 @@ import { Check } from 'lucide-react';
 import { Interest } from '@/store/interestStore';
 import { HubService } from '@/services/hub.service';
 import { AuthorService } from '@/services/author.service';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface InterestCardProps {
   interest: Interest;
-  selected: boolean;
-  onSelect: () => void;
+  isFollowing: boolean;
+  onFollowToggle: (interestId: number, isFollowing: boolean) => void;
 }
 
-export function InterestCard({ interest, selected, onSelect }: InterestCardProps) {
-  const [isFollowing, setIsFollowing] = useState(false);
+export function InterestCard({
+  interest,
+  isFollowing: initialIsFollowing,
+  onFollowToggle,
+}: InterestCardProps) {
+  const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleClick = async () => {
-    if (isLoading) return;
+  useEffect(() => {
+    setIsFollowing(initialIsFollowing);
+  }, [initialIsFollowing]);
 
-    if (typeof interest.id !== 'number') return;
+  const handleClick = async () => {
+    if (isLoading || typeof interest.id !== 'number') return;
 
     setIsLoading(true);
     try {
@@ -35,6 +41,7 @@ export function InterestCard({ interest, selected, onSelect }: InterestCardProps
         }
       }
       setIsFollowing(!isFollowing);
+      onFollowToggle(interest.id, isFollowing);
     } catch (error) {
       console.error('Error toggling follow status:', error);
     } finally {
@@ -68,17 +75,11 @@ export function InterestCard({ interest, selected, onSelect }: InterestCardProps
     }
   };
 
-  const isActive = interest.type === 'journal' ? isFollowing : selected;
-
   return (
     <button
       onClick={handleClick}
-      className={`p-4 rounded-lg border transition-all duration-200 text-left w-full relative
-        ${
-          isActive
-            ? 'border-primary-600 bg-primary-50 ring-1 ring-primary-600'
-            : 'border-gray-200 hover:border-gray-300'
-        }`}
+      className={`p-4 rounded-lg border-2 transition-all duration-200 text-left w-full relative
+        ${isFollowing ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:border-gray-300'}`}
       disabled={isLoading}
     >
       <div className="flex items-center gap-3">
@@ -103,7 +104,7 @@ export function InterestCard({ interest, selected, onSelect }: InterestCardProps
           <div className="flex items-center gap-1">
             <h3 className="font-medium">{interest.name}</h3>
             <div
-              className={`w-5 h-5 flex items-center justify-center ${isActive ? 'text-green-600' : 'text-gray-300'}`}
+              className={`w-5 h-5 flex items-center justify-center ${isFollowing ? 'text-green-600' : 'text-gray-300'}`}
             >
               <Check className="w-5 h-5" />
             </div>

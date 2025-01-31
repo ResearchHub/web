@@ -12,6 +12,15 @@ interface HubsApiResponse {
   results: HubResponse[];
 }
 
+interface FollowResponse {
+  id: number;
+  content_type: string;
+  type: string;
+  object_id: number;
+  created_date: string;
+  updated_date: string;
+}
+
 export interface Hub {
   id: number;
   name: string;
@@ -33,6 +42,11 @@ export class HubService {
       imageUrl: hub.hub_image,
       description: hub.description,
     }));
+  }
+
+  static async getFollowedHubs(): Promise<number[]> {
+    const response = await ApiClient.get<FollowResponse[]>(`${this.BASE_PATH}/following/`);
+    return response.map((follow) => follow.object_id);
   }
 
   static async followHub(hubId: number): Promise<void> {
