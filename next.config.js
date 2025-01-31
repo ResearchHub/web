@@ -21,11 +21,32 @@ const nextConfig = {
     locales: ['en'],
     defaultLocale: 'en',
   },
-  webpack(config) {
+  webpack: (config, { isServer }) => {
+    // Preserve existing alias configuration
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': __dirname,
     };
+
+    if (!isServer) {
+      // Add fallbacks for client-side
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        canvas: false,
+        fs: false,
+        path: false,
+      };
+
+      // Handle PDF.js worker
+      config.module.rules.push({
+        test: /pdf\.worker\.(min\.)?js/,
+        type: 'asset/resource',
+        generator: {
+          filename: 'static/[hash][ext][query]',
+        },
+      });
+    }
+
     return config;
   },
 };

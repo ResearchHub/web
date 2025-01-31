@@ -17,6 +17,11 @@ export default {
         wide: '1200px',
         '3xl': '1600px',
       },
+      fontWeight: {
+        medium: '500',
+        large: '550',
+        semibold: '600',
+      },
     },
   },
   plugins: [],

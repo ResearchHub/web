@@ -29,24 +29,6 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
       description: 'Navigate to the home page',
     },
     {
-      label: 'My ResearchCoin',
-      href: '/researchcoin',
-      icon: ({ className }: { className?: string }) => (
-        <div className={className}>
-          <ResearchCoinIcon
-            size={20}
-            outlined
-            color={currentPath === '/researchcoin' ? '#4F46E5' : '#4B5563'}
-          />
-        </div>
-      ),
-      description: 'Manage your ResearchCoin balance and transactions',
-      badge: {
-        text: '+10 RSC',
-        color: 'green',
-      },
-    },
-    {
       label: 'Earn',
       href: '/earn',
       icon: Coins,
@@ -79,35 +61,23 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
       },
     },
     {
-      label: 'Explore',
-      href: '/explore',
-      icon: Telescope,
-      description: 'Discover trending research and opportunities',
-    },
-    {
       label: 'Lab Notebook',
       href: '/notebook',
       icon: Notebook,
       description: 'Access your research notebook',
-    },
-    {
-      label: 'About',
-      href: '/about',
-      icon: Info,
-      description: 'Learn about ResearchHub',
     },
   ];
 
   const getButtonStyles = (path: string) => {
     const isActive = currentPath === path;
     return isActive
-      ? 'flex items-center w-full px-4 py-3 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg group'
-      : 'flex items-center w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg group';
+      ? 'flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-indigo-600 bg-indigo-50 rounded-lg group'
+      : 'flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-lg group';
   };
 
   const getIconStyles = (path: string) => {
     const isActive = currentPath === path;
-    return `h-5 w-5 mr-3 ${isActive ? 'text-indigo-600' : 'text-gray-600 group-hover:text-indigo-600'}`;
+    return `h-[22px] w-[22px] mr-3.5 ${isActive ? 'text-indigo-600' : 'text-gray-600 group-hover:text-indigo-600'}`;
   };
 
   return (
@@ -122,11 +92,6 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
           <item.icon className={getIconStyles(item.href)} />
           <div className="flex items-center justify-between w-full min-w-0">
             <span className="truncate">{item.label}</span>
-            {item.badge && (
-              <span className="flex-shrink-0 bg-green-50 text-green-700 text-[10px] font-medium px-1 py-0.5 rounded-full ml-2 whitespace-nowrap">
-                +10 RSC
-              </span>
-            )}
           </div>
         </Link>
       ))}

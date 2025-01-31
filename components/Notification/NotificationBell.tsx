@@ -21,7 +21,7 @@ export function NotificationBell({ filled }: NotificationBellProps) {
     <Link href={href} className="relative">
       <FontAwesomeIcon
         icon={bellIcon}
-        className="h-6 w-6 text-gray-600 hover:text-gray-900 transition-colors translate-y-[1px]"
+        className="h-7 w-7 text-gray-600 hover:text-gray-900 transition-colors translate-y-[1px]"
       />
       {unreadCount > 0 && (
         <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[11px] font-medium text-white">

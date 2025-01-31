@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/form/Input';
 import { Textarea } from '@/components/ui/form/Textarea';
 import { Button } from '@/components/ui/Button';
-import { CreatePageLayout } from '@/app/layouts/CreatePageLayout';
 
 type ContactMethod = 'email' | 'phone' | null;
 
@@ -41,17 +40,17 @@ export default function GrantCreatePage() {
   };
 
   return (
-    <CreatePageLayout
-      title="Open a Grant"
-      description="Fund breakthrough research shaping tomorrow"
-      sidebarTitle="Fund Research with Grants"
-      sidebarDescription="Support innovative research projects and help advance scientific discovery"
-      stats={[
-        { number: '$2M+', label: 'Total Grants' },
-        { number: '500+', label: 'Projects Funded' },
-        { number: '10k+', label: 'Researchers' },
-        { number: '5k+', label: 'Active Grants' },
-      ]}
+    <div
+    // title="Open a Grant"
+    // description="Fund breakthrough research shaping tomorrow"
+    // sidebarTitle="Fund Research with Grants"
+    // sidebarDescription="Support innovative research projects and help advance scientific discovery"
+    // stats={[
+    //   { number: '$2M+', label: 'Total Grants' },
+    //   { number: '500+', label: 'Projects Funded' },
+    //   { number: '10k+', label: 'Researchers' },
+    //   { number: '5k+', label: 'Active Grants' },
+    // ]}
     >
       <form onSubmit={handleSubmit} className="pb-12">
         <div className="space-y-12">
@@ -138,6 +137,6 @@ export default function GrantCreatePage() {
           </Button>
         </div>
       </form>
-    </CreatePageLayout>
+    </div>
   );
 }

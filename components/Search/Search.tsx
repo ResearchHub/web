@@ -6,6 +6,7 @@ import { Search as SearchIcon, X } from 'lucide-react';
 import { SearchSuggestions } from './SearchSuggestions';
 import { cn } from '@/utils/styles';
 import { SearchSuggestion } from '@/types/search';
+
 interface SearchProps {
   onSelect?: (suggestion: SearchSuggestion) => void;
   displayMode?: 'dropdown' | 'inline';

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import LeftSidebar from './LeftSidebar';
 import { TopBar } from '../../layouts/TopBar';
 import { PublishModal } from '@/components/modals/PublishModal';
-import { BountyModal } from '@/components/modals/BountyModal';
 import { PublishingSidebar } from './PublishingSidebar';
 
 type ArticleType = 'research';
@@ -36,11 +35,6 @@ export default function NotebookLayout({ children }: { children: React.ReactNode
       </div>
 
       <PublishModal isOpen={isPublishModalOpen} onClose={() => setIsPublishModalOpen(false)} />
-      <BountyModal
-        isOpen={isBountyModalOpen}
-        onClose={() => setIsBountyModalOpen(false)}
-        onAddBounty={(amount) => setBountyAmount(amount)}
-      />
     </div>
   );
 }
