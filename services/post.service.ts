@@ -56,9 +56,7 @@ export class PostService {
   }
 
   static async post(payload: PostPayload): Promise<Work> {
-    console.log('post START', payload);
     const formData = new FormData();
-
     // Add all text fields to formData
     Object.entries(payload).forEach(([key, value]) => {
       if (key !== 'nftArt' && value !== null) {

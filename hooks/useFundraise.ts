@@ -23,10 +23,8 @@ export function useCreateContribution(): UseCreateContributionReturn {
 
     try {
       const response = await FundraiseService.createContribution(id, payload);
-      console.log('response', response);
       setState((prev) => ({ ...prev, data: response, isLoading: false }));
     } catch (err) {
-      console.log('error', err);
       setState((prev) => ({
         ...prev,
         error: err instanceof Error ? err : new Error('Failed to create contribution'),

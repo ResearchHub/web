@@ -104,7 +104,6 @@ export default function FundingCreatePage() {
         fundraise_goal_amount: parseFloat(formData.budget.replace(/[^0-9.]/g, '')),
         fundraise_goal_currency: Currency.USD,
       };
-      console.log({ payload });
 
       const response = await PostService.post(payload);
       router.push(`/fund/${response.id}/${response.slug}`); // Adjust the route as needed
