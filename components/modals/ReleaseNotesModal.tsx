@@ -118,6 +118,16 @@ export function ReleaseNotesModal({ isOpen, onClose }: ReleaseNotesModalProps) {
                       </h3>
                       <div className="space-y-4">
                         <div>
+                          <div className="text-sm font-medium text-gray-700 mb-2">01/31/2024</div>
+                          <ul className="list-disc list-inside space-y-1 text-gray-600 text-sm pl-2">
+                            <li>Fetch lists of journals, topics, and authors to follow</li>
+                            <li>
+                              Implemented user-specific follow tracking for personalized content
+                            </li>
+                          </ul>
+                        </div>
+
+                        <div>
                           <div className="text-sm font-medium text-gray-700 mb-2">01/29/25</div>
                           <ul className="list-disc list-inside space-y-1 text-gray-600 text-sm pl-2">
                             <li>Publish flow as dropdown</li>
