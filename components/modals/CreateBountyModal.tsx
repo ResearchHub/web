@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, Transition, Listbox } from '@headlessui/react';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Search } from '@/components/Search/Search';
@@ -20,6 +20,8 @@ import {
 import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
+import { useCreateComment } from '@/hooks/useComment';
+import { COMMENT_TYPES } from '@/services/types/comment.dto';
 
 interface CreateBountyModalProps {
   isOpen: boolean;
@@ -454,6 +456,61 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
   const [customDate, setCustomDate] = useState('');
   const RSC_TO_USD = 1;
 
+  const [{ data: commentData, isLoading: isCreatingBounty, error: bountyError }, createComment] =
+    useCreateComment();
+
+  const handleCreateBounty = async () => {
+    try {
+      const rscAmount = getRscAmount();
+
+      const expirationDate = (() => {
+        if (bountyLength === 'custom' && customDate) {
+          // For custom dates, use the selected date
+          return new Date(customDate).toISOString();
+        }
+
+        // For preset lengths (14, 30, 60 days)
+        const days = parseInt(bountyLength);
+        const date = new Date();
+        date.setDate(date.getDate() + days);
+        return date.toISOString();
+      })();
+
+      await createComment({
+        content: {},
+        commentType: COMMENT_TYPES.GENERIC_COMMENT,
+        documentType: 'paper',
+        documentId: workId,
+        bountyAmount: rscAmount,
+        bountyType: (() => {
+          switch (bountyType) {
+            case 'peer_review':
+              return COMMENT_TYPES.REVIEW;
+            case 'question':
+              return COMMENT_TYPES.ANSWER;
+            default:
+              return COMMENT_TYPES.GENERIC_COMMENT;
+          }
+        })(),
+        privacy: 'PUBLIC',
+        expirationDate: expirationDate,
+        // mentions: [],
+        // targetHubs: [],
+      });
+    } catch (error) {
+      // Error is handled by the hook
+      console.error('Failed to create bounty:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (commentData) {
+      // Bounty was successfully created
+      onClose();
+      // TODO: Add success toast notification if needed
+    }
+  }, [commentData, onClose]);
+
   const handleWorkSelect = (suggestion: SearchSuggestion) => {
     setSelectedPaper({
       id: suggestion.id?.toString() || suggestion.openalexId,
@@ -649,16 +706,16 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
             />
           </div>
 
+          {bountyError && <Alert variant="error">{bountyError.message}</Alert>}
+
           <Button
             type="button"
             variant="default"
+            disabled={isCreatingBounty}
             className="w-full h-12 text-base"
-            onClick={() => {
-              // TODO: Implement bounty creation
-              onClose();
-            }}
+            onClick={handleCreateBounty}
           >
-            Create Bounty
+            {isCreatingBounty ? 'Creating Bounty...' : 'Create Bounty'}
           </Button>
         </div>
       </div>
