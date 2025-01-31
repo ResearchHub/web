@@ -1,11 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { BookOpen, Users, Hash } from 'lucide-react';
-import { fetchInterests, Interest } from '@/store/interestStore';
 import { InterestSkeleton } from '@/components/skeletons/InterestSkeleton';
 import { InterestCard } from './InterestCard';
 import { HubService } from '@/services/hub.service';
 import { AuthorService } from '@/services/author.service';
+import { JournalService } from '@/services/journal.service';
+
+export interface Interest {
+  id: number;
+  name: string;
+  type: 'journal' | 'person' | 'topic';
+  imageUrl?: string;
+  description?: string;
+}
 
 interface InterestSelectorProps {
   mode: 'onboarding' | 'preferences';
@@ -27,6 +35,55 @@ export function InterestSelector({ mode }: InterestSelectorProps) {
     journal: 'Select journals to stay updated with the latest research in your field',
     person: 'Follow leading researchers and stay updated with their work',
     topic: "Choose topics you're interested in to get personalized recommendations",
+  };
+
+  const capitalizeWords = (str: string) => {
+    return str
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
+  const fetchInterests = async (type: 'journal' | 'person' | 'topic'): Promise<Interest[]> => {
+    try {
+      if (type === 'journal') {
+        const journals = await JournalService.getJournals();
+        return journals.map((journal) => ({
+          id: journal.id,
+          name: capitalizeWords(journal.name),
+          type: 'journal',
+          imageUrl: journal.imageUrl,
+          description: journal.description,
+        }));
+      }
+
+      if (type === 'topic') {
+        const hubs = await HubService.getHubs();
+        return hubs.map((hub) => ({
+          id: hub.id,
+          name: capitalizeWords(hub.name),
+          type: 'topic',
+          imageUrl: hub.imageUrl,
+          description: hub.description,
+        }));
+      }
+
+      if (type === 'person') {
+        const authors = await AuthorService.getAuthors();
+        return authors.map((author) => ({
+          id: author.id,
+          name: author.name,
+          type: 'person',
+          imageUrl: author.imageUrl,
+          description: author.description,
+        }));
+      }
+
+      return [];
+    } catch (error) {
+      console.error(`Error fetching ${type}s:`, error);
+      return [];
+    }
   };
 
   useEffect(() => {

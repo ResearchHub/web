@@ -1,5 +1,4 @@
-import { Check } from 'lucide-react';
-import { Interest } from '@/store/interestStore';
+import { Interest } from './InterestSelector';
 import { HubService } from '@/services/hub.service';
 import { AuthorService } from '@/services/author.service';
 import { useState, useEffect } from 'react';
@@ -103,11 +102,6 @@ export function InterestCard({
         <div className="flex-1">
           <div className="flex items-center gap-1">
             <h3 className="font-medium">{interest.name}</h3>
-            <div
-              className={`w-5 h-5 flex items-center justify-center ${isFollowing ? 'text-green-600' : 'text-gray-300'}`}
-            >
-              <Check className="w-5 h-5" />
-            </div>
           </div>
           {interest.description && (
             <p className="text-sm text-gray-600 mt-1 line-clamp-2">{interest.description}</p>
