@@ -64,7 +64,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({ activeTab, onTabChange, onCustomiz
 
       {isCustomizing && (
         <div className="mt-6">
-          <InterestSelector mode="preferences" onComplete={handleInterestSelection} />
+          <InterestSelector mode="preferences" />
         </div>
       )}
     </div>
