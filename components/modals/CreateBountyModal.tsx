@@ -26,7 +26,7 @@ import { COMMENT_TYPES } from '@/services/types/comment.dto';
 interface CreateBountyModalProps {
   isOpen: boolean;
   onClose: () => void;
-  workId: string;
+  workId?: string;
 }
 
 type Currency = 'RSC' | 'USD';
@@ -480,7 +480,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
         content: {},
         commentType: COMMENT_TYPES.GENERIC_COMMENT,
         documentType: 'paper',
-        documentId: workId,
+        documentId: workId || selectedPaper?.id || '',
         bountyAmount: rscAmount,
         bountyType: (() => {
           switch (bountyType) {
@@ -562,33 +562,37 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
       />
       <div className="space-y-6">
         {/* Paper Search Section */}
-        <div>
-          <div className="mb-2">
-            <label className="block text-sm font-semibold text-gray-700">
-              Which work is this bounty for?
-            </label>
-          </div>
-          <div className="relative">
-            <Search
-              onSelect={handleWorkSelect}
-              displayMode="inline"
-              placeholder="Search for work..."
-              className="w-full [&_input]:bg-white"
-              showSuggestionsOnFocus={!selectedPaper || showSuggestions}
-            />
-            {selectedPaper && (
-              <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="text-sm font-medium text-gray-900">{selectedPaper.title}</div>
-                <div className="text-xs text-gray-600 mt-1">{selectedPaper.authors.join(', ')}</div>
-                {selectedPaper.abstract && (
-                  <div className="text-xs text-gray-500 mt-2 line-clamp-2">
-                    {selectedPaper.abstract}
+        {!workId && (
+          <div>
+            <div className="mb-2">
+              <label className="block text-sm font-semibold text-gray-700">
+                Which work is this bounty for?
+              </label>
+            </div>
+            <div className="relative">
+              <Search
+                onSelect={handleWorkSelect}
+                displayMode="inline"
+                placeholder="Search for work..."
+                className="w-full [&_input]:bg-white"
+                showSuggestionsOnFocus={!selectedPaper || showSuggestions}
+              />
+              {selectedPaper && (
+                <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="text-sm font-medium text-gray-900">{selectedPaper.title}</div>
+                  <div className="text-xs text-gray-600 mt-1">
+                    {selectedPaper.authors.join(', ')}
                   </div>
-                )}
-              </div>
-            )}
+                  {selectedPaper.abstract && (
+                    <div className="text-xs text-gray-500 mt-2 line-clamp-2">
+                      {selectedPaper.abstract}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Bounty Type Section */}
         <div>
