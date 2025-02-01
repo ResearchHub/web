@@ -11,6 +11,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { WorkLineItems } from './WorkLineItems';
 import { WorkMetadata } from '@/services/metadata.service';
 import { DocumentViewer } from './DocumentViewer';
+import { CommentEditor } from '@/components/Comment/CommentEditor';
 
 interface WorkDocumentProps {
   work: Work;
@@ -179,7 +180,44 @@ export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
 
         {activeTab === 'reviews' && <WorkReviews workId={work.id} />}
         {activeTab === 'bounties' && <WorkBounties workId={work.id.toString()} />}
-        {activeTab === 'comments' && <WorkComments workId={work.id} />}
+        {activeTab === 'comments' && (
+          <div className="space-y-6">
+            <CommentEditor
+              initialContent={{
+                ops: [
+                  {
+                    insert: {
+                      'peer-review-rating': {
+                        rating: 4,
+                        category: 'overall',
+                      },
+                    },
+                  },
+                  {
+                    insert:
+                      'Leaving a peer review on this paper Leaving a peer review on this paper Leaving a peer review on this paper Leaving a peer review on this paper Leaving a peer review on this paper Leaving a peer review on this paper.\n\n',
+                  },
+                  {
+                    insert: {
+                      'peer-review-rating': {
+                        rating: 2,
+                        category: 'methods',
+                      },
+                    },
+                  },
+                  {
+                    insert: ' Bad methods\n\n',
+                  },
+                ],
+              }}
+              onSubmit={async (content) => {
+                // Here you would typically call your API to save the comment
+                console.log('Comment submitted:', content);
+              }}
+            />
+            <WorkComments workId={work.id} />
+          </div>
+        )}
       </div>
       {/* Mobile sidebar overlay */}
       <div
