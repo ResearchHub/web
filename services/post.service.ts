@@ -1,8 +1,7 @@
 import { ApiClient } from './client';
-import { Work, WorkType, Authorship, transformAuthorship } from '@/types/work';
-import { Hub } from '@/types/hub';
+import { Work, WorkType, transformAuthorship } from '@/types/work';
 import sanitizeHtml, { Attributes } from 'sanitize-html';
-import { PostPayload } from './types/post.dto';
+import { Post, transformPost } from '@/types/post';
 
 interface GetContentOptions {
   cleanIntroEmptyContent?: boolean;
@@ -55,22 +54,22 @@ export class PostService {
     return transformWorkFromPost(response);
   }
 
-  static async post(payload: PostPayload): Promise<Work> {
-    const formData = new FormData();
-    // Add all text fields to formData
-    Object.entries(payload).forEach(([key, value]) => {
-      if (key !== 'nftArt' && value !== null) {
-        const formValue = value.toString();
-        formData.append(key, formValue);
-      }
-    });
-    // Add file if present
-    if (payload.nftArt) {
-      formData.append('nftArt', payload.nftArt);
-    }
+  static async post(formData: FormData): Promise<Post> {
+    // const formData = new FormData();
+    // // Add all text fields to formData
+    // Object.entries(payload).forEach(([key, value]) => {
+    //   if (key !== 'nftArt' && value !== null) {
+    //     const formValue = value.toString();
+    //     formData.append(key, formValue);
+    //   }
+    // });
+    // // Add file if present
+    // if (payload.nftArt) {
+    //   formData.append('nftArt', payload.nftArt);
+    // }
 
     const response = await ApiClient.post<any>(`${this.BASE_PATH}/`, formData);
-    return transformWorkFromPost(response);
+    return transformPost(response);
   }
 
   static async getContent(url: string, options: GetContentOptions = {}): Promise<string> {

@@ -12,7 +12,6 @@ import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import { useCreateContribution } from '@/hooks/useFundraise';
-import { Currency as CurrencyType } from '@/services/types/post.dto';
 interface FundResearchModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -307,7 +306,7 @@ export function FundResearchModal({
         fundraiseId,
         {
           amount: getRscAmount(),
-          amount_currency: currency as CurrencyType,
+          amount_currency: currency,
         },
         onClose
       );

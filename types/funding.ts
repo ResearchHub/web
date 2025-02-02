@@ -20,8 +20,8 @@ export interface Fundraise {
     rsc: number;
   };
   // ISO 8601
-  startDate: string;
-  endDate: string;
+  startDate?: string;
+  endDate?: string;
 
   contributors: {
     total: number;

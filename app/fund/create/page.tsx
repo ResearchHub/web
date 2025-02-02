@@ -29,18 +29,30 @@ import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import { Switch } from '@/components/ui/Switch';
 import Image from 'next/image';
-import { Currency, DocumentType, PostPayload } from '@/services/types/post.dto';
 import { PostService } from '@/services/post.service';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { CollapsibleSection, CollapsibleItem } from '@/components/ui/CollapsibleSection';
+import { usePreregistrationPost } from '@/hooks/useDocument';
+
+export interface FormData {
+  title: string;
+  background: string;
+  hypothesis: string;
+  methods: string;
+  budget: string;
+  budgetUse: string;
+  rewardFunders: boolean;
+  nftArt: File | null;
+  nftSupply: string;
+}
 
 export default function FundingCreatePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     title: '',
     background: '',
     hypothesis: '',
@@ -53,6 +65,7 @@ export default function FundingCreatePage() {
   });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<string[]>([]);
+  const [{ error, isLoading }, createPreregistrationPost] = usePreregistrationPost();
 
   const pricePerNFT = useMemo(() => {
     if (!formData.budget || !formData.nftSupply) return 0;
@@ -88,28 +101,13 @@ export default function FundingCreatePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    console.log('Form submitted:', formData);
-    try {
-      const payload: PostPayload = {
-        document_type: DocumentType.PREREGISTRATION,
-        title: formData.title,
-        renderable_text: formData.background,
-        full_src: formData.background,
-        hypothesis: formData.hypothesis,
-        methods: formData.methods,
-        budgetUse: formData.budgetUse,
-        rewardFunders: formData.rewardFunders,
-        nftArt: formData.nftArt,
-        nftSupply: formData.nftSupply,
-        fundraise_goal_amount: parseFloat(formData.budget.replace(/[^0-9.]/g, '')),
-        fundraise_goal_currency: Currency.USD,
-      };
 
-      const response = await PostService.post(payload);
-      router.push(`/fund/${response.id}/${response.slug}`); // Adjust the route as needed
+    try {
+      const response = await createPreregistrationPost(formData);
+
+      router.push(`/fund/${response.id}/${response.slug}`);
     } catch (error) {
       console.error('Error submitting form:', error);
-      // You might want to add error handling/display here
     } finally {
       setSubmitting(false);
     }
