@@ -1,5 +1,7 @@
 import { createTransformer, BaseTransformed } from './transformer';
 
+export type ID = string | number | null | undefined;
+
 export interface User {
   id: number;
   email: string;

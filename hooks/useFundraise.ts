@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { FundraiseService } from '@/services/fundraise.service';
-import type { CreateContributionPayload, FundraiseResponse } from '@/services/types/fundraise.dto';
-import { ApiError } from '@/services/types';
+import { Fundraise } from '@/types/funding';
 
 interface ContributionState {
-  data: FundraiseResponse | null;
+  data: Fundraise | null;
   isLoading: boolean;
   error: string | null;
 }
 
-type CreateContributionFn = (id: number, payload: CreateContributionPayload) => Promise<void>;
+type CreateContributionFn = (id: number, payload: any, onSuccess?: () => void) => Promise<void>;
 type UseCreateContributionReturn = [ContributionState, CreateContributionFn];
 
 export function useCreateContribution(): UseCreateContributionReturn {
@@ -19,7 +18,7 @@ export function useCreateContribution(): UseCreateContributionReturn {
     error: null,
   });
 
-  const createContribution = async (id: number, payload: CreateContributionPayload) => {
+  const createContribution = async (id: number, payload: any) => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {

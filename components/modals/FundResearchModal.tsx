@@ -263,28 +263,6 @@ export function FundResearchModal({
     createContribution,
   ] = useCreateContribution();
 
-  const handleCreateContribution = async () => {
-    try {
-      //TODO we need a fundraise id
-      await createContribution(fundraiseId, {
-        amount: getRscAmount(),
-        amount_currency: currency as CurrencyType,
-      });
-    } catch (error) {
-      // Error is handled by the hook
-      console.error('Contribution failed:', error);
-    }
-  };
-
-  // Watch for changes in contributionData to handle success
-  useEffect(() => {
-    if (contributionData) {
-      // Contribution was successful
-      // TODO: show success toast or something?? ++ refresh the page
-      onClose();
-    }
-  }, [contributionData, onClose]);
-
   // Utility functions
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Remove any non-numeric characters except decimal point
@@ -314,13 +292,29 @@ export function FundResearchModal({
       : `≈ ${(inputAmount / RSC_TO_USD).toLocaleString()} RSC`;
   };
 
-  const getRscAmount = () => {
+  const getRscAmount = (): number => {
     return currency === 'RSC' ? inputAmount : inputAmount / RSC_TO_USD;
   };
 
   const getNFTCount = () => {
     const amountUSD = getRscAmount() * RSC_TO_USD;
     return Math.floor(amountUSD / NFT_THRESHOLD_USD);
+  };
+
+  const handleCreateContribution = async () => {
+    try {
+      await createContribution(
+        fundraiseId,
+        {
+          amount: getRscAmount(),
+          amount_currency: currency as CurrencyType,
+        },
+        onClose
+      );
+    } catch (error) {
+      // Error is handled by the hook
+      console.error('Contribution failed:', error);
+    }
   };
 
   // Step rendering functions
