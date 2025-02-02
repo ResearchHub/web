@@ -87,7 +87,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                     </Tooltip>
                     <NotificationBell filled={isNotificationsPage} />
                     <UserMenu
-                      user={session.user as User}
+                      user={session.user}
                       onViewProfile={() => null}
                       onVerifyAccount={() => null}
                     />
