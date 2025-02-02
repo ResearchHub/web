@@ -433,7 +433,7 @@ export function FundResearchModal({
 
         {contributionError && (
           <Alert className="mt-4" variant="error">
-            {contributionError.message}
+            {contributionError}
           </Alert>
         )}
         <Button

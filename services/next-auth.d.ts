@@ -16,4 +16,8 @@ declare module 'next-auth' {
     error?: string;
     user?: User;
   }
+
+  interface User {
+    authToken?: string;
+  }
 }

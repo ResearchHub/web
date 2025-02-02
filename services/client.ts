@@ -107,21 +107,19 @@ export class ApiClient {
     }
   }
 
-  static async post<T>(path: string, body?: any): Promise<T> {
+  static async post<T>(path: string, body?: any, options: { rawError?: boolean } = {}): Promise<T> {
     const headers = await this.getHeaders();
     const response = await fetch(
       `${this.baseURL}${path}`,
       this.getFetchOptions('POST', headers, body)
     );
 
-    // if (!response.ok) {
-    //   throw new Error(`HTTP error! status: ${response.status}`);
-    // }
     if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      throw new Error(
-        errorData?.message || errorData?.detail || `HTTP error! status: ${response.status}`
-      );
+      if (options.rawError) {
+        const errorData = await response.json();
+        throw new Error(JSON.stringify({ data: errorData, status: response.status }));
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     return response.json();

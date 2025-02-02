@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { FundraiseService } from '@/services/fundraise.service';
 import type { CreateContributionPayload, FundraiseResponse } from '@/services/types/fundraise.dto';
+import { ApiError } from '@/services/types';
 
 interface ContributionState {
   data: FundraiseResponse | null;
   isLoading: boolean;
-  error: Error | null;
+  error: string | null;
 }
 
 type CreateContributionFn = (id: number, payload: CreateContributionPayload) => Promise<void>;
@@ -24,10 +25,10 @@ export function useCreateContribution(): UseCreateContributionReturn {
     try {
       const response = await FundraiseService.createContribution(id, payload);
       setState((prev) => ({ ...prev, data: response, isLoading: false }));
-    } catch (err) {
+    } catch (err: any) {
       setState((prev) => ({
         ...prev,
-        error: err instanceof Error ? err : new Error('Failed to create contribution'),
+        error: err.message,
         isLoading: false,
       }));
     }

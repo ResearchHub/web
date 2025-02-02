@@ -1,9 +1,10 @@
 import { ApiClient } from './client';
-import type {
-  LoginApiRequest,
-  LoginApiResponse,
-  RegisterApiRequest,
-  CheckAccountApiResponse,
+import {
+  type LoginApiRequest,
+  type LoginApiResponse,
+  type RegisterApiRequest,
+  type CheckAccountApiResponse,
+  ApiError,
 } from './types';
 import type { User } from '@/types/user';
 
@@ -11,15 +12,25 @@ export class AuthService {
   private static readonly BASE_PATH = '/api';
 
   static async checkAccount(email: string) {
-    return ApiClient.post<CheckAccountApiResponse>(`${this.BASE_PATH}/check_account/`, { email });
+    return ApiClient.post<CheckAccountApiResponse>(`${this.BASE_PATH}/user/check_account/`, {
+      email,
+    });
   }
 
   static async login(credentials: LoginApiRequest) {
-    return ApiClient.post<LoginApiResponse>(`${this.BASE_PATH}/login/`, credentials);
+    return ApiClient.post<LoginApiResponse>(`${this.BASE_PATH}/auth/login/`, credentials);
   }
 
   static async register(credentials: RegisterApiRequest) {
-    return ApiClient.post<User>(`${this.BASE_PATH}/register/`, credentials);
+    try {
+      return await ApiClient.post<User>(`${this.BASE_PATH}/auth/register/`, credentials, {
+        rawError: true,
+      });
+    } catch (error: any) {
+      const { data, status } = JSON.parse(error.message);
+      const errorMsg = Object.values(data as Record<string, string[]>)?.[0]?.[0];
+      throw new ApiError(errorMsg || 'Registration failed', status, data);
+    }
   }
 
   static async resetPassword(email: string) {

@@ -1,4 +1,5 @@
 import { ApiClient } from './client';
+import { ApiError } from './types';
 import {
   CreateContributionPayload,
   FundraiseResponse,
@@ -12,11 +13,18 @@ export class FundraiseService {
     id: number,
     payload: CreateContributionPayload
   ): Promise<FundraiseResponse> {
-    const response = await ApiClient.post<any>(
-      `${this.BASE_PATH}/${id}/create_contribution/`,
-      payload
-    );
+    try {
+      const response = await ApiClient.post<any>(
+        `${this.BASE_PATH}/${id}/create_contribution/`,
+        payload,
+        { rawError: true }
+      );
 
-    return transformFundraiseResponse(response);
+      return transformFundraiseResponse(response);
+    } catch (error: any) {
+      const { data, status } = JSON.parse(error.message);
+      const errorMsg = data?.detail || 'Failed to create contribution';
+      throw new ApiError(errorMsg, status, data);
+    }
   }
 }
