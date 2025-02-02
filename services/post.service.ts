@@ -2,6 +2,7 @@ import { ApiClient } from './client';
 import { Work, WorkType, transformAuthorship } from '@/types/work';
 import sanitizeHtml, { Attributes } from 'sanitize-html';
 import { Post, transformPost } from '@/types/post';
+import { ApiError } from './types';
 
 interface GetContentOptions {
   cleanIntroEmptyContent?: boolean;
@@ -55,21 +56,16 @@ export class PostService {
   }
 
   static async post(formData: FormData): Promise<Post> {
-    // const formData = new FormData();
-    // // Add all text fields to formData
-    // Object.entries(payload).forEach(([key, value]) => {
-    //   if (key !== 'nftArt' && value !== null) {
-    //     const formValue = value.toString();
-    //     formData.append(key, formValue);
-    //   }
-    // });
-    // // Add file if present
-    // if (payload.nftArt) {
-    //   formData.append('nftArt', payload.nftArt);
-    // }
-
-    const response = await ApiClient.post<any>(`${this.BASE_PATH}/`, formData);
-    return transformPost(response);
+    try {
+      const response = await ApiClient.post<any>(`${this.BASE_PATH}/`, formData, {
+        rawError: true,
+      });
+      return transformPost(response);
+    } catch (error: any) {
+      const { data, status } = JSON.parse(error.message);
+      const errorMsg = data?.msg || 'An error occurred while creating the preregistration';
+      throw new ApiError(errorMsg, status, data);
+    }
   }
 
   static async getContent(url: string, options: GetContentOptions = {}): Promise<string> {

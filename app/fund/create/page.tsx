@@ -51,7 +51,6 @@ export interface FormData {
 export default function FundingCreatePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     title: '',
     background: '',
@@ -65,7 +64,7 @@ export default function FundingCreatePage() {
   });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<string[]>([]);
-  const [{ error, isLoading }, createPreregistrationPost] = usePreregistrationPost();
+  const [{ error, isLoading: submitting }, createPreregistrationPost] = usePreregistrationPost();
 
   const pricePerNFT = useMemo(() => {
     if (!formData.budget || !formData.nftSupply) return 0;
@@ -100,16 +99,12 @@ export default function FundingCreatePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
-
     try {
       const response = await createPreregistrationPost(formData);
 
       router.push(`/fund/${response.id}/${response.slug}`);
     } catch (error) {
       console.error('Error submitting form:', error);
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -479,13 +474,18 @@ export default function FundingCreatePage() {
               </div>
 
               <div className="mt-12">
+                {error && (
+                  <Alert variant="error" className="mb-4">
+                    {error}
+                  </Alert>
+                )}
                 <Button
                   type="submit"
                   size="lg"
                   className="w-full py-6 text-lg"
-                  variant={submitting ? 'start-task' : undefined}
+                  disabled={submitting}
                 >
-                  Submit for Review
+                  {submitting ? 'Submitting...' : 'Submit for Review'}
                 </Button>
               </div>
             </form>

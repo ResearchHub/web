@@ -47,10 +47,9 @@ export function usePreregistrationPost(): UsePreregistrationReturn {
       setState((prev) => ({ ...prev, data: response, isLoading: false }));
       return response;
     } catch (err: any) {
-      const errorMessage = err.message || 'An error occurred while creating the preregistration';
       setState((prev) => ({
         ...prev,
-        error: errorMessage,
+        error: err.message,
         isLoading: false,
       }));
       throw err;
