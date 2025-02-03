@@ -44,7 +44,7 @@ export const useCreatePost = (): UseCreatePostReturn => {
         formDataToSubmit.append('nft_art', formData.nftArt);
       }
 
-      const response = await PostService.post(formDataToSubmit);
+      const response = await PostService.post({ formData: formDataToSubmit });
       setData(response);
       return response;
     } catch (err) {

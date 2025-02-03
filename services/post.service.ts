@@ -7,6 +7,10 @@ interface GetContentOptions {
   cleanIntroEmptyContent?: boolean;
 }
 
+interface PostOptions {
+  formData: FormData;
+}
+
 export class PostService {
   private static readonly BASE_PATH = '/api/researchhubpost';
 
@@ -15,7 +19,7 @@ export class PostService {
     return transformPost(response);
   }
 
-  static async post(formData: FormData): Promise<Work> {
+  static async post({ formData }: PostOptions): Promise<Work> {
     const response = await ApiClient.post<any>(`${this.BASE_PATH}/`, formData);
 
     return transformPost(response);
