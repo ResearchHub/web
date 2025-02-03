@@ -7,29 +7,23 @@ import { Link } from '@tiptap/extension-link';
 import { Image } from '@tiptap/extension-image';
 import { Button } from '@/components/ui/Button';
 import { useState } from 'react';
-import { convertDeltaToHTML } from './lib/quillUtils';
 
 interface CommentEditorProps {
-  onSubmit: (content: string) => void;
+  onSubmit: (content: string) => Promise<void>;
   placeholder?: string;
-  initialContent?: string | { ops: any[] }; // Accept both HTML and Quill Delta
+  initialContent?: string;
+  threadId?: number;
+  parentId?: number;
 }
 
 export const CommentEditor = ({
   onSubmit,
   placeholder = 'Write a comment...',
   initialContent,
+  threadId,
+  parentId,
 }: CommentEditorProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Convert initial content if it's in Delta format
-  const processedInitialContent = initialContent
-    ? typeof initialContent === 'string'
-      ? initialContent
-      : convertDeltaToHTML(initialContent)
-    : '';
-
-  console.log('Processed content:', processedInitialContent); // For debugging
 
   const editor = useEditor({
     extensions: [
@@ -53,7 +47,7 @@ export const CommentEditor = ({
         },
       }),
     ],
-    content: processedInitialContent,
+    content: initialContent,
     editorProps: {
       attributes: {
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[100px] px-4 py-2',
@@ -66,8 +60,12 @@ export const CommentEditor = ({
 
     setIsSubmitting(true);
     try {
-      await onSubmit(editor.getHTML());
+      const html = editor.getHTML();
+      await onSubmit(html);
       editor.commands.clearContent();
+    } catch (error) {
+      console.error('Failed to create comment:', error);
+      // TODO: Add error handling UI
     } finally {
       setIsSubmitting(false);
     }

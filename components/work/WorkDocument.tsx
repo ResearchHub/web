@@ -7,7 +7,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { WorkRightSidebar } from './WorkRightSidebar';
 import { WorkReviews } from './WorkReviews';
 import { WorkBounties } from './WorkBounties';
-import { WorkComments } from './WorkComments';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { WorkLineItems } from './WorkLineItems';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -202,13 +201,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
         {activeTab === 'bounties' && <WorkBounties workId={work.id.toString()} />}
         {activeTab === 'comments' && (
           <div className="space-y-6">
-            <CommentEditor
-              onSubmit={async (content) => {
-                // Here you would typically call your API to save the comment
-                console.log('Comment submitted:', content);
-              }}
-            />
-            <CommentFeed documentId={work.id} />
+            <CommentFeed documentId={work.id} contentType={work.contentType} />
           </div>
         )}
       </div>

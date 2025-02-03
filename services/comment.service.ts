@@ -1,70 +1,21 @@
 import { ApiClient } from './client';
 import { AuthorProfile, transformAuthorProfile } from '@/types/user';
 import { BaseTransformer } from '@/types/transformer';
-
-export type CommentFilter = 'BOUNTY' | 'DISCUSSION' | 'REVIEW';
-export type CommentSort = 'BEST' | 'NEWEST' | 'TOP';
-export type CommentPrivacyType = 'PUBLIC' | 'PRIVATE';
-export type ContentFormat = 'QUILL' | 'HTML';
-
-interface UserMention {
-  userId: string | null;
-  firstName: string | null;
-  lastName: string | null;
-  authorProfileId: string | null;
-}
-
-interface QuillOperation {
-  insert: string | { user: UserMention };
-  attributes?: {
-    bold?: boolean;
-    italic?: boolean;
-    link?: string;
-  };
-}
-
-interface QuillContent {
-  ops: QuillOperation[];
-}
-
-export interface Bounty {
-  id: number;
-  amount: string;
-  status: 'OPEN' | 'CLOSED';
-  expirationDate: string;
-  bountyType: string;
-  createdBy: AuthorProfile;
-  raw: any;
-}
-
-export interface Thread {
-  id: number;
-  threadType: string;
-  privacyType: CommentPrivacyType;
-  objectId: number;
-  raw: any;
-}
-
-export interface Comment {
-  id: number;
-  content: QuillContent | string;
-  contentFormat: ContentFormat;
-  createdDate: string;
-  updatedDate: string;
-  author: AuthorProfile;
-  score: number;
-  replyCount: number;
-  replies: Comment[];
-  bounties: Bounty[];
-  thread: Thread;
-  isPublic: boolean;
-  isRemoved: boolean;
-  isAcceptedAnswer: boolean | null;
-  raw: any;
-}
+import { ContentType } from '@/types/work';
+import {
+  Comment,
+  CommentFilter,
+  CommentSort,
+  CommentPrivacyType,
+  ContentFormat,
+  Thread,
+  Bounty,
+  QuillContent,
+} from '@/types/comment';
 
 interface FetchCommentsOptions {
   documentId: number;
+  contentType: ContentType;
   filter?: CommentFilter;
   sort?: CommentSort;
   page?: number;
@@ -79,6 +30,16 @@ interface CommentResponse {
   next: string | null;
   previous: string | null;
   results: any[];
+}
+
+interface CreateCommentOptions {
+  workId: number;
+  contentType: ContentType;
+  content: QuillContent | string;
+  contentFormat: ContentFormat;
+  threadId?: number;
+  parentId?: number;
+  privacyType?: CommentPrivacyType;
 }
 
 const transformThread: BaseTransformer<any, Thread> = (raw) => ({
@@ -99,18 +60,17 @@ const transformBounty: BaseTransformer<any, Bounty> = (raw) => ({
   raw,
 });
 
-const transformContent = (raw: any): QuillContent | string => {
-  // Transform based on content_format
-  if (raw.content_format === 'QUILL') {
-    return raw.comment_content_json;
+const transformContent = (raw: any): string => {
+  if (raw.html) {
+    return raw.html;
   }
-  return raw.comment_content_src || '';
+  return raw.comment_content_json || '';
 };
 
 const transformComment: BaseTransformer<any, Comment> = (raw) => ({
   id: raw.id,
   content: transformContent(raw),
-  contentFormat: raw.content_format as ContentFormat,
+  contentFormat: raw.html ? 'HTML' : 'QUILL',
   createdDate: raw.created_date,
   updatedDate: raw.updated_date,
   author: transformAuthorProfile(raw.created_by),
@@ -125,21 +85,35 @@ const transformComment: BaseTransformer<any, Comment> = (raw) => ({
   raw,
 });
 
-// Keep the existing mock response
-const MOCK_RESPONSE: CommentResponse = {
-  count: 3,
-  next: null,
-  previous: null,
-  results: [
-    // ... existing mock data ...
-  ],
-};
-
 export class CommentService {
-  private static readonly BASE_PATH = '/api/paper';
+  private static readonly BASE_PATH = '/api';
+
+  static async createComment({
+    workId,
+    contentType,
+    content,
+    contentFormat,
+    threadId,
+    parentId,
+    privacyType = 'PUBLIC',
+  }: CreateCommentOptions): Promise<Comment> {
+    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${workId}/comments/create_rh_comment/`;
+
+    const payload = {
+      comment_content: content,
+      content_format: contentFormat,
+      thread_id: threadId,
+      parent_id: parentId,
+      privacy_type: privacyType,
+    };
+
+    const response = await ApiClient.post<any>(path, payload);
+    return transformComment(response);
+  }
 
   static async fetchComments({
     documentId,
+    contentType,
     filter,
     sort = 'BEST',
     page,
@@ -148,10 +122,27 @@ export class CommentService {
     ascending = false,
     privacyType = 'PUBLIC',
   }: FetchCommentsOptions): Promise<{ comments: Comment[]; count: number }> {
-    // Return mock data instead of making an API call
+    const queryParams = new URLSearchParams({
+      page_size: pageSize.toString(),
+      child_page_size: childPageSize.toString(),
+      ascending: ascending.toString(),
+      privacy_type: privacyType,
+      sort_by: sort.toLowerCase(),
+    });
+
+    if (filter) {
+      queryParams.append('filter', filter.toLowerCase());
+    }
+    if (page) {
+      queryParams.append('page', page.toString());
+    }
+
+    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/?${queryParams.toString()}`;
+    const response = await ApiClient.get<CommentResponse>(path);
+
     return {
-      comments: MOCK_RESPONSE.results.map(transformComment),
-      count: MOCK_RESPONSE.count,
+      comments: response.results.map(transformComment),
+      count: response.count,
     };
   }
 }

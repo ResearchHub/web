@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import { Comment, CommentFilter } from '@/services/comment.service';
+import { Comment, CommentFilter } from '@/types/comment';
 import { convertDeltaToHTML } from '@/lib/convertDeltaToHTML';
 import { Coins, CheckCircle } from 'lucide-react';
 import { useComments } from '@/hooks/useComments';
+import { CommentEditor } from './CommentEditor';
+import { ContentType } from '@/types/work';
+import { CommentService } from '@/services/comment.service';
 
 interface CommentFeedProps {
   documentId: number;
+  contentType: ContentType;
   className?: string;
 }
 
@@ -96,7 +100,7 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
   );
 };
 
-export const CommentFeed = ({ documentId, className }: CommentFeedProps) => {
+export const CommentFeed = ({ documentId, contentType, className }: CommentFeedProps) => {
   const [commentFilter, setCommentFilter] = useState<CommentFilter>('DISCUSSION');
 
   const {
@@ -109,9 +113,20 @@ export const CommentFeed = ({ documentId, className }: CommentFeedProps) => {
     refresh,
   } = useComments({
     documentId,
+    contentType,
     filter: commentFilter,
   });
 
+  const handleSubmit = async (content: string) => {
+    await CommentService.createComment({
+      workId: documentId,
+      contentType,
+      content,
+      contentFormat: 'HTML',
+    });
+    refresh();
+  };
+  console.log(comments);
   return (
     <div className={className}>
       <div className="flex justify-between items-center mb-4">
@@ -132,13 +147,15 @@ export const CommentFeed = ({ documentId, className }: CommentFeedProps) => {
         </div>
       </div>
 
-      {error && (
-        <div className="text-red-600 p-4 rounded-md bg-red-50">
-          Failed to load comments. Please try again.
-        </div>
-      )}
-
       <div className="space-y-4">
+        <CommentEditor onSubmit={handleSubmit} />
+
+        {error && (
+          <div className="text-red-600 p-4 rounded-md bg-red-50">
+            Failed to load comments. Please try again.
+          </div>
+        )}
+
         {comments.map((comment) => (
           <CommentItem key={comment.id} comment={comment} />
         ))}
