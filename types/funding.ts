@@ -1,5 +1,6 @@
+import { ID } from './root';
 import { createTransformer } from './transformer';
-import { ID, transformAuthorProfile, User } from './user';
+import { transformAuthorProfile, User } from './user';
 
 export type Currency = 'USD' | 'RSC';
 

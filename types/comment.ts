@@ -1,18 +1,11 @@
-import { AuthorProfile } from './user';
+import { AuthorProfile, transformAuthorProfile } from './user';
+import { BaseTransformer } from './transformer';
 
 export type CommentFilter = 'BOUNTY' | 'DISCUSSION' | 'REVIEW';
 export type CommentSort = 'BEST' | 'NEWEST' | 'TOP';
 export type CommentPrivacyType = 'PUBLIC' | 'PRIVATE';
 export type ContentFormat = 'QUILL' | 'HTML';
-export type CommentType =
-  | 'GENERIC_COMMENT'
-  | 'SUMMARY'
-  | 'REVIEW'
-  | 'PEER_REVIEW'
-  | 'ANSWER'
-  | 'INNER_CONTENT_COMMENT'
-  | 'REPLICABILITY_COMMENT'
-  | 'BOUNTIES';
+export type CommentType = 'GENERIC_COMMENT' | 'REVIEW' | 'ANSWER';
 
 export interface UserMention {
   userId: string | null;
@@ -22,7 +15,7 @@ export interface UserMention {
 }
 
 export interface QuillOperation {
-  insert: string | { user: UserMention };
+  insert: string;
   attributes?: {
     bold?: boolean;
     italic?: boolean;
@@ -69,3 +62,46 @@ export interface Comment {
   isAcceptedAnswer: boolean | null;
   raw: any;
 }
+
+export const transformThread: BaseTransformer<any, Thread> = (raw) => ({
+  id: raw.id,
+  threadType: raw.thread_type,
+  privacyType: raw.privacy_type,
+  objectId: raw.object_id,
+  raw,
+});
+
+export const transformBounty: BaseTransformer<any, Bounty> = (raw) => ({
+  id: raw.id,
+  amount: raw.amount,
+  status: raw.status,
+  expirationDate: raw.expiration_date,
+  bountyType: raw.bounty_type,
+  createdBy: transformAuthorProfile(raw.created_by),
+  raw,
+});
+
+export const transformContent = (raw: any): string => {
+  if (raw.html) {
+    return raw.html;
+  }
+  return raw.comment_content_json || '';
+};
+
+export const transformComment: BaseTransformer<any, Comment> = (raw) => ({
+  id: raw.id,
+  content: transformContent(raw),
+  contentFormat: raw.html ? 'HTML' : 'QUILL',
+  createdDate: raw.created_date,
+  updatedDate: raw.updated_date,
+  author: transformAuthorProfile(raw.created_by),
+  score: raw.score || 0,
+  replyCount: raw.children_count || 0,
+  replies: (raw.children || []).map(transformComment),
+  bounties: (raw.bounties || []).map(transformBounty),
+  thread: transformThread(raw.thread),
+  isPublic: raw.is_public,
+  isRemoved: raw.is_removed,
+  isAcceptedAnswer: raw.is_accepted_answer,
+  raw,
+});
