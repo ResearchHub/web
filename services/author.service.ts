@@ -46,9 +46,7 @@ export class AuthorService {
 
   static async getFollowedAuthors(): Promise<number[]> {
     const response = await ApiClient.get<FollowResponse[]>('/api/author/following/');
-    return response
-      .filter((follow) => follow.content_type === 'author')
-      .map((follow) => follow.object_id);
+    return response.map((follow) => follow.object_id);
   }
 
   static async followAuthor(authorId: number): Promise<void> {
