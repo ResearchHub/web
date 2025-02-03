@@ -92,7 +92,7 @@ export const useCreateComment = (): UseCommentReturn => {
     setError(null);
 
     try {
-      const response = await CommentService.createComment({ ...input, rawError: true });
+      const response = await CommentService.createComment(input);
       setData(response);
     } catch (err) {
       const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};

@@ -16,9 +16,7 @@ export class PostService {
   }
 
   static async post(formData: FormData): Promise<Work> {
-    const response = await ApiClient.post<any>(`${this.BASE_PATH}/`, formData, {
-      rawError: true,
-    });
+    const response = await ApiClient.post<any>(`${this.BASE_PATH}/`, formData);
 
     return transformPost(response);
   }

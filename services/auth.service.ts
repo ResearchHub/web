@@ -24,9 +24,7 @@ export class AuthService {
 
   static async register(credentials: RegisterApiRequest) {
     try {
-      return await ApiClient.post<User>(`${this.BASE_PATH}/auth/register/`, credentials, {
-        rawError: true,
-      });
+      return await ApiClient.post<User>(`${this.BASE_PATH}/auth/register/`, credentials);
     } catch (error: any) {
       const { data, status } = JSON.parse(error.message);
       const errorMsg = Object.values(data as Record<string, string[]>)?.[0]?.[0];

@@ -108,7 +108,7 @@ export class ApiClient {
     }
   }
 
-  static async post<T>(path: string, body?: any, options: { rawError?: boolean } = {}): Promise<T> {
+  static async post<T>(path: string, body?: any): Promise<T> {
     const headers = await this.getHeaders();
     const response = await fetch(
       `${this.baseURL}${path}`,
@@ -116,16 +116,13 @@ export class ApiClient {
     );
 
     if (!response.ok) {
-      if (options.rawError) {
-        let errorData;
-        try {
-          errorData = await response.json();
-        } catch (e) {
-          errorData = { message: 'Invalid JSON response from server' };
-        }
-        throw new ApiError(JSON.stringify({ data: errorData, status: response.status }));
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { message: 'Invalid JSON response from server' };
       }
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new ApiError(JSON.stringify({ data: errorData, status: response.status }));
     }
 
     return response.json();

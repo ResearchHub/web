@@ -45,7 +45,6 @@ export interface CreateCommentOptions {
   bountyType?: CommentType;
   expirationDate?: string;
   commentType?: CommentType;
-  rawError?: boolean;
 }
 
 const transformThread: BaseTransformer<any, Thread> = (raw) => ({
@@ -106,7 +105,6 @@ export class CommentService {
     expirationDate,
     commentType,
     privacyType = 'PUBLIC',
-    rawError = false,
   }: CreateCommentOptions): Promise<Comment> {
     const path =
       `${this.BASE_PATH}/${contentType.toLowerCase()}/${workId}/comments/` +
@@ -123,7 +121,7 @@ export class CommentService {
       ...(commentType && { comment_type: commentType }),
     };
 
-    const response = await ApiClient.post<any>(path, payload, { rawError });
+    const response = await ApiClient.post<any>(path, payload);
     return transformComment(response);
   }
 

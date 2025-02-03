@@ -8,8 +8,7 @@ export class FundraiseService {
   static async createContribution(id: number, payload: any): Promise<Fundraise> {
     const response = await ApiClient.post<any>(
       `${this.BASE_PATH}/${id}/create_contribution/`,
-      payload,
-      { rawError: true }
+      payload
     );
 
     return transformFundraise(response);
