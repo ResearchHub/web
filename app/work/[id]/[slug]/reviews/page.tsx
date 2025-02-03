@@ -8,7 +8,6 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkDocument } from '@/components/work/WorkDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
-import type { WorkMetadata } from '@/services/metadata.service';
 
 interface Props {
   params: Promise<{
@@ -33,12 +32,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const work = await getWork(resolvedParams.id);
   return {
-    title: work.title,
+    title: `${work.title} - Reviews`,
     description: work.abstract,
   };
 }
 
-export default async function WorkPage({ params }: Props) {
+export default async function WorkReviewsPage({ params }: Props) {
   const resolvedParams = await params;
   const work = await getWork(resolvedParams.id);
   const metadata = await MetadataService.get(work.unifiedDocumentId.toString());
@@ -50,7 +49,7 @@ export default async function WorkPage({ params }: Props) {
   return (
     <PageLayout rightSidebar={<WorkRightSidebar work={work} metadata={metadata} />}>
       <Suspense>
-        <WorkDocument work={work} metadata={metadata} />
+        <WorkDocument work={work} metadata={metadata} defaultTab="reviews" />
         <SearchHistoryTracker work={work} />
       </Suspense>
     </PageLayout>
