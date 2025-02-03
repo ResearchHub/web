@@ -18,7 +18,8 @@ export const useComments = ({ documentId, contentType, filter }: UseCommentsOpti
   const [error, setError] = useState<Error | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const fetchComments = async (pageNum: number = 1) => {
+
+  async function fetchComments(pageNum: number = 1) {
     try {
       setIsLoading(true);
       const response = await CommentService.fetchComments({
@@ -43,27 +44,28 @@ export const useComments = ({ documentId, contentType, filter }: UseCommentsOpti
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   useEffect(() => {
-    setPage(1);
     fetchComments(1);
   }, [documentId, contentType, filter]);
 
-  const loadMore = () => {
+  function loadMore() {
     const nextPage = page + 1;
     setPage(nextPage);
     fetchComments(nextPage);
-  };
+  }
 
-  const refresh = () => {
+  function refresh() {
     setPage(1);
     fetchComments(1);
-  };
+  }
 
   return {
     comments,
+    setComments,
     count,
+    setCount,
     isLoading,
     error,
     hasMore,

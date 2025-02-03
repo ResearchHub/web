@@ -53,6 +53,7 @@ export const CommentEditor = ({
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[100px] px-4 py-2',
       },
     },
+    immediatelyRender: false,
   });
 
   const handleSubmit = async () => {
