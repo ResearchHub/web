@@ -24,6 +24,9 @@ export interface Fundraise {
     numContributors: number;
     topContributors: AuthorProfile[];
   };
+
+  createdDate: string;
+  updatedDate: string;
 }
 
 export const transformFundraise = createTransformer<any, Fundraise>((raw) => ({
@@ -46,7 +49,6 @@ export const transformFundraise = createTransformer<any, Fundraise>((raw) => ({
   goalCurrency: raw.goal_currency as Currency,
   startDate: raw.start_date || undefined,
   endDate: raw.end_date || undefined,
-  created_date: raw.created_date,
-  updated_date: raw.updated_date,
-  unified_document: raw.unified_document || undefined,
+  createdDate: raw.created_date,
+  updatedDate: raw.updated_date,
 }));
