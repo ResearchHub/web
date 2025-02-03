@@ -11,7 +11,7 @@ interface UseFundraiseState {
   error: string | null;
 }
 
-type CreateContributionFn = (id: number, payload: any, onSuccess?: () => void) => Promise<void>;
+type CreateContributionFn = (id: number, payload: any) => Promise<void>;
 type UseCreateContributionReturn = [UseFundraiseState, CreateContributionFn];
 
 export const useCreateContribution = (): UseCreateContributionReturn => {
@@ -21,13 +21,12 @@ export const useCreateContribution = (): UseCreateContributionReturn => {
     error: null,
   });
 
-  const createContribution = async (id: number, payload: any, onSuccess?: () => void) => {
+  const createContribution = async (id: number, payload: any) => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
       const response = await FundraiseService.createContribution(id, payload);
       setState((prev) => ({ ...prev, data: response, isLoading: false }));
-      onSuccess?.();
     } catch (err) {
       const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
       const errorMsg = data?.message || 'Failed to create contribution';
@@ -36,6 +35,8 @@ export const useCreateContribution = (): UseCreateContributionReturn => {
         error: errorMsg,
         isLoading: false,
       }));
+
+      throw err;
     }
   };
 

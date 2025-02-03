@@ -302,14 +302,12 @@ export function FundResearchModal({
 
   const handleCreateContribution = async () => {
     try {
-      await createContribution(
-        fundraiseId,
-        {
-          amount: getRscAmount(),
-          amount_currency: currency,
-        },
-        onClose
-      );
+      await createContribution(fundraiseId, {
+        amount: getRscAmount(),
+        amount_currency: currency,
+      });
+
+      onClose();
     } catch (error) {
       // Error is handled by the hook
       console.error('Contribution failed:', error);
