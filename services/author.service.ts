@@ -31,7 +31,7 @@ export interface Author {
 }
 
 export class AuthorService {
-  private static readonly BASE_PATH = '/api/author';
+  private static readonly BASE_PATH = '/api/search/person';
 
   static async getAuthors(): Promise<Author[]> {
     const response = await ApiClient.get<AuthorsApiResponse>(`${this.BASE_PATH}/`);
@@ -45,7 +45,7 @@ export class AuthorService {
   }
 
   static async getFollowedAuthors(): Promise<number[]> {
-    const response = await ApiClient.get<FollowResponse[]>(`${this.BASE_PATH}/following/`);
+    const response = await ApiClient.get<FollowResponse[]>('/api/author/following/');
     return response.map((follow) => follow.object_id);
   }
 
