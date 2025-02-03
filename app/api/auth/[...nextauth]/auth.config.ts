@@ -4,22 +4,6 @@ import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { AuthService } from '@/services/auth.service';
 
-// Direct fetch for auth route to avoid circular dependency
-async function fetchUserData(authToken: string) {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/`, {
-    headers: {
-      Authorization: `Token ${authToken}`,
-      Accept: 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch user data');
-  }
-
-  return response.json();
-}
-
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
@@ -46,20 +30,11 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          // Then fetch user data using the token
-          const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/`, {
-            headers: {
-              Authorization: `Token ${loginResponse.key}`,
-              Accept: 'application/json',
-            },
-          });
-
-          if (!userResponse.ok) {
-            return null;
-          }
-
-          const userData = await userResponse.json();
-          const user = transformUser(userData.results[0]);
+          // Then fetch user data using the AuthService
+          const userData = await AuthService.fetchUserData(loginResponse.key);
+          // The API returns an array of results, but for user data we only expect
+          // and need the first element since it represents the current authenticated user
+          const user = userData.results[0];
 
           return {
             id: String(user.id),
@@ -147,17 +122,17 @@ export const authOptions: NextAuthOptions = {
       }
 
       try {
-        const userData = await fetchUserData(token.authToken as string);
+        const userData = await AuthService.fetchUserData(token.authToken as string);
+        // The API returns an array of results, but for user data we only expect
+        // and need the first element since it represents the current authenticated user
         const isAuthenticated = Boolean(userData.results.length > 0 && userData.results[0]);
 
         if (isAuthenticated) {
-          const transformedUser = transformUser(userData.results[0]);
-
           return {
             ...session,
             authToken: token.authToken,
             isLoggedIn: true,
-            user: transformedUser,
+            user: userData.results[0],
           };
         } else {
           return {

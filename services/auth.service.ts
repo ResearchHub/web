@@ -7,6 +7,7 @@ import {
   ApiError,
 } from './types';
 import type { User } from '@/types/user';
+import { transformUser } from '@/types/user';
 
 export class AuthService {
   private static readonly BASE_PATH = '/api';
@@ -43,5 +44,23 @@ export class AuthService {
 
   static async logout() {
     return ApiClient.post(`${this.BASE_PATH}/logout/`);
+  }
+
+  static async fetchUserData(authToken: string): Promise<{ results: User[] }> {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/`, {
+      headers: {
+        Authorization: `Token ${authToken}`,
+        Accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user data');
+    }
+
+    const data = await response.json();
+    return {
+      results: data.results.map(transformUser),
+    };
   }
 }
