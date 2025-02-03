@@ -1,10 +1,8 @@
 import { Currency, ID } from './root';
 import { createTransformer } from './transformer';
-import { transformAuthorProfile, User } from './user';
+import { AuthorProfile, transformAuthorProfile } from './user';
 
 export type FundraiseStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
-
-export type Contributor = Pick<User, 'id' | 'firstName' | 'lastName' | 'authorProfile'>;
 
 export interface Fundraise {
   id: ID;
@@ -23,8 +21,8 @@ export interface Fundraise {
   endDate?: string;
 
   contributors: {
-    total: number;
-    top: Contributor[];
+    numContributors: number;
+    topContributors: AuthorProfile[];
   };
 }
 
@@ -39,13 +37,10 @@ export const transformFundraise = createTransformer<any, Fundraise>((raw) => ({
     rsc: raw.goal_amount.rsc,
   },
   contributors: {
-    total: raw.contributors.total,
-    top: raw.contributors.top.map((user: any) => ({
-      id: user.id,
-      authorProfile: transformAuthorProfile(user.author_profile),
-      firstName: user.first_name,
-      lastName: user.last_name,
-    })),
+    numContributors: raw.contributors.total,
+    topContributors: raw.contributors.top.map((contributor: any) =>
+      transformAuthorProfile(contributor.author_profile)
+    ),
   },
   status: raw.status as FundraiseStatus,
   goalCurrency: raw.goal_currency as Currency,
