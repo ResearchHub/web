@@ -1,5 +1,6 @@
 import { AuthorProfile, transformAuthorProfile } from './user';
 import { BaseTransformer } from './transformer';
+import { Bounty, transformBounty } from './bounty';
 
 export type CommentFilter = 'BOUNTY' | 'DISCUSSION' | 'REVIEW';
 export type CommentSort = 'BEST' | 'NEWEST' | 'TOP';
@@ -25,16 +26,6 @@ export interface QuillOperation {
 
 export interface QuillContent {
   ops: QuillOperation[];
-}
-
-export interface Bounty {
-  id: number;
-  amount: string;
-  status: 'OPEN' | 'CLOSED';
-  expirationDate: string;
-  bountyType: CommentType;
-  createdBy: AuthorProfile;
-  raw: any;
 }
 
 export interface Thread {
@@ -68,16 +59,6 @@ export const transformThread: BaseTransformer<any, Thread> = (raw) => ({
   threadType: raw.thread_type,
   privacyType: raw.privacy_type,
   objectId: raw.object_id,
-  raw,
-});
-
-export const transformBounty: BaseTransformer<any, Bounty> = (raw) => ({
-  id: raw.id,
-  amount: raw.amount,
-  status: raw.status,
-  expirationDate: raw.expiration_date,
-  bountyType: raw.bounty_type,
-  createdBy: transformAuthorProfile(raw.created_by),
   raw,
 });
 

@@ -21,6 +21,8 @@ import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import { useCreateComment } from '@/hooks/useComments';
+import { Currency } from '@/types/root';
+import { BountyType } from '@/types/bounty';
 
 interface CreateBountyModalProps {
   isOpen: boolean;
@@ -28,10 +30,8 @@ interface CreateBountyModalProps {
   workId?: string;
 }
 
-type Currency = 'RSC' | 'USD';
 type Step = 'details' | 'payment';
 type BountyLength = '14' | '30' | '60' | 'custom';
-type BountyType = 'REVIEW' | 'ANSWER' | 'GENERIC_COMMENT';
 
 interface SelectedPaper {
   id: string;

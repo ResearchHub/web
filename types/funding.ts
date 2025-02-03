@@ -1,8 +1,6 @@
-import { ID } from './root';
+import { Currency, ID } from './root';
 import { createTransformer } from './transformer';
 import { transformAuthorProfile, User } from './user';
-
-export type Currency = 'USD' | 'RSC';
 
 export type FundraiseStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
 
