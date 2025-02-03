@@ -1,5 +1,7 @@
+'use client';
+
 import { useState } from 'react';
-import { Comment, CommentFilter } from '@/types/comment';
+import { Comment, CommentFilter, CommentType } from '@/types/comment';
 import { convertDeltaToHTML } from '@/lib/convertDeltaToHTML';
 import { Coins, CheckCircle } from 'lucide-react';
 import { useComments } from '@/hooks/useComments';
@@ -11,9 +13,36 @@ interface CommentFeedProps {
   documentId: number;
   contentType: ContentType;
   className?: string;
+  commentType?: CommentType;
 }
 
-const CommentItem = ({ comment }: { comment: Comment }) => {
+const CommentItem = ({
+  comment,
+  contentType,
+  commentType,
+  onCommentUpdate,
+}: {
+  comment: Comment;
+  contentType: ContentType;
+  commentType: CommentType;
+  onCommentUpdate: (newComment: Comment, parentId?: number) => void;
+}) => {
+  const [isReplying, setIsReplying] = useState(false);
+
+  const handleReplySubmit = async (content: string) => {
+    const newComment = await CommentService.createComment({
+      workId: comment.thread.objectId,
+      contentType,
+      content,
+      contentFormat: 'HTML',
+      parentId: comment.id,
+      commentType,
+      threadType: commentType,
+    });
+    setIsReplying(false);
+    onCommentUpdate(newComment, comment.id);
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm border p-4">
       {/* Author Info */}
@@ -74,6 +103,7 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
 
       {/* Comment Metadata */}
       <div className="mt-2 text-sm text-gray-500 flex items-center gap-4">
+        <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">ID: {comment.id}</span>
         <span>Score: {comment.score}</span>
         {comment.replyCount > 0 && (
           <span>
@@ -86,13 +116,32 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
             Accepted Answer
           </span>
         )}
+        <button
+          onClick={() => setIsReplying(!isReplying)}
+          className="text-indigo-600 hover:text-indigo-800"
+        >
+          Reply
+        </button>
       </div>
+
+      {/* Reply Editor */}
+      {isReplying && (
+        <div className="mt-4 ml-8">
+          <CommentEditor onSubmit={handleReplySubmit} placeholder="Write a reply..." />
+        </div>
+      )}
 
       {/* Recursive Replies */}
       {comment.replies && comment.replies.length > 0 && (
         <div className="mt-4 ml-8 space-y-4">
           {comment.replies.map((reply) => (
-            <CommentItem key={reply.id} comment={reply} />
+            <CommentItem
+              key={reply.id}
+              comment={reply}
+              contentType={contentType}
+              commentType={commentType}
+              onCommentUpdate={onCommentUpdate}
+            />
           ))}
         </div>
       )}
@@ -100,7 +149,12 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
   );
 };
 
-export const CommentFeed = ({ documentId, contentType, className }: CommentFeedProps) => {
+export const CommentFeed = ({
+  documentId,
+  contentType,
+  className,
+  commentType = 'GENERIC_COMMENT',
+}: CommentFeedProps) => {
   const [commentFilter, setCommentFilter] = useState<CommentFilter>('DISCUSSION');
 
   const {
@@ -111,22 +165,66 @@ export const CommentFeed = ({ documentId, contentType, className }: CommentFeedP
     hasMore,
     loadMore,
     refresh,
+    setComments,
+    setCount,
   } = useComments({
     documentId,
     contentType,
     filter: commentFilter,
   });
 
+  const handleCommentUpdate = (newComment: Comment, parentId?: number) => {
+    if (!parentId) {
+      // Add new top-level comment to the beginning of the list
+      setComments([newComment, ...comments]);
+      setCount(commentCount + 1);
+      return;
+    }
+
+    // Update nested comment at any depth
+    const updateReplies = (commentList: Comment[]): Comment[] => {
+      return commentList.map((comment) => {
+        // If this is the parent comment, add the reply
+        if (comment.id === parentId) {
+          return {
+            ...comment,
+            replies: [newComment, ...(comment.replies || [])],
+            replyCount: (comment.replyCount || 0) + 1,
+          };
+        }
+
+        // If this comment has replies, recursively search them
+        if (comment.replies?.length > 0) {
+          const updatedReplies = updateReplies(comment.replies);
+          // Only update the comment if one of its nested replies was modified
+          if (updatedReplies !== comment.replies) {
+            return {
+              ...comment,
+              replies: updatedReplies,
+            };
+          }
+        }
+
+        // No changes needed for this comment
+        return comment;
+      });
+    };
+
+    setComments(updateReplies(comments));
+  };
+
   const handleSubmit = async (content: string) => {
-    await CommentService.createComment({
+    const newComment = await CommentService.createComment({
       workId: documentId,
       contentType,
       content,
       contentFormat: 'HTML',
+      commentType,
+      threadType: commentType,
     });
-    refresh();
+    handleCommentUpdate(newComment);
   };
-  console.log(comments);
+
   return (
     <div className={className}>
       <div className="flex justify-between items-center mb-4">
@@ -134,7 +232,10 @@ export const CommentFeed = ({ documentId, contentType, className }: CommentFeedP
           <select
             className="rounded-md border border-gray-300 py-1 px-2"
             value={commentFilter}
-            onChange={(e) => setCommentFilter(e.target.value as CommentFilter)}
+            onChange={(e) => {
+              setCommentFilter(e.target.value as CommentFilter);
+              refresh();
+            }}
           >
             <option value="DISCUSSION">Discussion</option>
             <option value="QUESTION">Questions</option>
@@ -156,23 +257,31 @@ export const CommentFeed = ({ documentId, contentType, className }: CommentFeedP
           </div>
         )}
 
-        {comments.map((comment) => (
-          <CommentItem key={comment.id} comment={comment} />
-        ))}
-
-        {isLoading && (
+        {isLoading ? (
           <div className="text-center py-4">
             <div className="animate-pulse">Loading comments...</div>
           </div>
-        )}
+        ) : (
+          <>
+            {comments.map((comment) => (
+              <CommentItem
+                key={comment.id}
+                comment={comment}
+                contentType={contentType}
+                commentType={commentType}
+                onCommentUpdate={handleCommentUpdate}
+              />
+            ))}
 
-        {hasMore && !isLoading && (
-          <button
-            onClick={loadMore}
-            className="w-full py-2 text-sm text-gray-600 hover:text-gray-900"
-          >
-            Load more comments
-          </button>
+            {hasMore && (
+              <button
+                onClick={loadMore}
+                className="w-full py-2 text-sm text-gray-600 hover:text-gray-900"
+              >
+                Load more comments
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

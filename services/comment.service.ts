@@ -1,6 +1,4 @@
 import { ApiClient } from './client';
-import { AuthorProfile, transformAuthorProfile } from '@/types/user';
-import { BaseTransformer } from '@/types/transformer';
 import { ContentType } from '@/types/work';
 import {
   Comment,
@@ -8,9 +6,9 @@ import {
   CommentSort,
   CommentPrivacyType,
   ContentFormat,
-  Thread,
-  Bounty,
+  CommentType,
   QuillContent,
+  transformComment,
 } from '@/types/comment';
 
 interface FetchCommentsOptions {
@@ -37,53 +35,11 @@ interface CreateCommentOptions {
   contentType: ContentType;
   content: QuillContent | string;
   contentFormat: ContentFormat;
-  threadId?: number;
   parentId?: number;
   privacyType?: CommentPrivacyType;
+  commentType?: CommentType;
+  threadType?: string;
 }
-
-const transformThread: BaseTransformer<any, Thread> = (raw) => ({
-  id: raw.id,
-  threadType: raw.thread_type,
-  privacyType: raw.privacy_type,
-  objectId: raw.object_id,
-  raw,
-});
-
-const transformBounty: BaseTransformer<any, Bounty> = (raw) => ({
-  id: raw.id,
-  amount: raw.amount,
-  status: raw.status,
-  expirationDate: raw.expiration_date,
-  bountyType: raw.bounty_type,
-  createdBy: transformAuthorProfile(raw.created_by),
-  raw,
-});
-
-const transformContent = (raw: any): string => {
-  if (raw.html) {
-    return raw.html;
-  }
-  return raw.comment_content_json || '';
-};
-
-const transformComment: BaseTransformer<any, Comment> = (raw) => ({
-  id: raw.id,
-  content: transformContent(raw),
-  contentFormat: raw.html ? 'HTML' : 'QUILL',
-  createdDate: raw.created_date,
-  updatedDate: raw.updated_date,
-  author: transformAuthorProfile(raw.created_by),
-  score: raw.score || 0,
-  replyCount: raw.children_count || 0,
-  replies: (raw.children || []).map(transformComment),
-  bounties: (raw.bounties || []).map(transformBounty),
-  thread: transformThread(raw.thread),
-  isPublic: raw.is_public,
-  isRemoved: raw.is_removed,
-  isAcceptedAnswer: raw.is_accepted_answer,
-  raw,
-});
 
 export class CommentService {
   private static readonly BASE_PATH = '/api';
@@ -93,18 +49,22 @@ export class CommentService {
     contentType,
     content,
     contentFormat,
-    threadId,
     parentId,
     privacyType = 'PUBLIC',
+    commentType = 'GENERIC_COMMENT',
+    threadType = 'GENERIC_COMMENT',
   }: CreateCommentOptions): Promise<Comment> {
     const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${workId}/comments/create_rh_comment/`;
 
     const payload = {
       comment_content: content,
       content_format: contentFormat,
-      thread_id: threadId,
-      parent_id: parentId,
       privacy_type: privacyType,
+      ...(parentId && {
+        parent_id: parentId,
+        comment_type: commentType,
+        thread_type: threadType,
+      }),
     };
 
     const response = await ApiClient.post<any>(path, payload);
@@ -128,6 +88,7 @@ export class CommentService {
       ascending: ascending.toString(),
       privacy_type: privacyType,
       sort_by: sort.toLowerCase(),
+      parent__isnull: 'true',
     });
 
     if (filter) {
