@@ -83,28 +83,25 @@ type CreateCommentFn = (input: CreateCommentOptions) => Promise<void>;
 type UseCommentReturn = [CommentState, CreateCommentFn];
 
 export const useCreateComment = (): UseCommentReturn => {
-  const [state, setState] = useState<CommentState>({
-    data: null,
-    isLoading: false,
-    error: null,
-  });
+  const [data, setData] = useState<Comment | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const createComment = async (input: CreateCommentOptions) => {
-    setState((prev) => ({ ...prev, isLoading: true, error: null }));
+    setIsLoading(true);
+    setError(null);
 
     try {
       const response = await CommentService.createComment({ ...input, rawError: true });
-      setState((prev) => ({ ...prev, data: response, isLoading: false }));
+      setData(response);
     } catch (err) {
       const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
       const errorMsg = data?.detail || 'Failed to create comment';
-      setState((prev) => ({
-        ...prev,
-        error: errorMsg,
-        isLoading: false,
-      }));
+      setError(errorMsg);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return [state, createComment];
+  return [{ data, isLoading, error }, createComment];
 };

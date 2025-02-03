@@ -15,14 +15,13 @@ type CreatePostFn = (formData: FundingFormData) => Promise<Work>;
 type UseCreatePostReturn = [UsePostState, CreatePostFn];
 
 export const useCreatePost = (): UseCreatePostReturn => {
-  const [state, setState] = useState<UsePostState>({
-    data: null,
-    isLoading: false,
-    error: null,
-  });
+  const [data, setData] = useState<Work | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const createPreregistrationPost = async (formData: FundingFormData) => {
-    setState((prev) => ({ ...prev, isLoading: true, error: null }));
+    setIsLoading(true);
+    setError(null);
 
     try {
       const formDataToSubmit = new FormData();
@@ -46,21 +45,17 @@ export const useCreatePost = (): UseCreatePostReturn => {
       }
 
       const response = await PostService.post(formDataToSubmit);
-      setState((prev) => ({ ...prev, data: response, isLoading: false }));
-
+      setData(response);
       return response;
     } catch (err) {
       const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
       const errorMsg = data?.msg || 'An error occurred while creating the preregistration post';
-      setState((prev) => ({
-        ...prev,
-        error: errorMsg,
-        isLoading: false,
-      }));
-
+      setError(errorMsg);
       throw err;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return [state, createPreregistrationPost];
+  return [{ data, isLoading, error }, createPreregistrationPost];
 };

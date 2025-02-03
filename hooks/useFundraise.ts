@@ -15,30 +15,26 @@ type CreateContributionFn = (id: number, payload: any) => Promise<void>;
 type UseCreateContributionReturn = [UseFundraiseState, CreateContributionFn];
 
 export const useCreateContribution = (): UseCreateContributionReturn => {
-  const [state, setState] = useState<UseFundraiseState>({
-    data: null,
-    isLoading: false,
-    error: null,
-  });
+  const [data, setData] = useState<Fundraise | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const createContribution = async (id: number, payload: any) => {
-    setState((prev) => ({ ...prev, isLoading: true, error: null }));
+    setIsLoading(true);
+    setError(null);
 
     try {
       const response = await FundraiseService.createContribution(id, payload);
-      setState((prev) => ({ ...prev, data: response, isLoading: false }));
+      setData(response);
     } catch (err) {
       const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
       const errorMsg = data?.message || 'Failed to create contribution';
-      setState((prev) => ({
-        ...prev,
-        error: errorMsg,
-        isLoading: false,
-      }));
-
+      setError(errorMsg);
       throw err;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return [state, createContribution];
+  return [{ data, isLoading, error }, createContribution];
 };
