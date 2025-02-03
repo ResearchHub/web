@@ -63,4 +63,36 @@ export class AuthService {
       results: data.results.map(transformUser),
     };
   }
+
+  static async googleLogin(tokens: { access_token?: string; id_token?: string }) {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}${this.BASE_PATH}/auth/google/login/`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          access_token: tokens.access_token,
+          id_token: tokens.id_token,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      switch (response.status) {
+        case 401:
+          throw new Error('AuthenticationFailed');
+        case 403:
+          throw new Error('AccessDenied');
+        case 409:
+          throw new Error('Verification');
+        default:
+          throw new Error('AuthenticationFailed');
+      }
+    }
+
+    return response.json();
+  }
 }
