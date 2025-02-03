@@ -1,6 +1,5 @@
 import { ApiClient } from './client';
 import { Work, transformPost } from '@/types/work';
-import { Hub } from '@/types/hub';
 import sanitizeHtml, { Attributes } from 'sanitize-html';
 import { ApiError } from './types';
 
@@ -17,16 +16,11 @@ export class PostService {
   }
 
   static async post(formData: FormData): Promise<Work> {
-    try {
-      const response = await ApiClient.post<any>(`${this.BASE_PATH}/`, formData, {
-        rawError: true,
-      });
-      return transformPost(response);
-    } catch (error: any) {
-      const { data, status } = JSON.parse(error.message);
-      const errorMsg = data?.msg || 'An error occurred while creating the preregistration';
-      throw new ApiError(errorMsg, status, data);
-    }
+    const response = await ApiClient.post<any>(`${this.BASE_PATH}/`, formData, {
+      rawError: true,
+    });
+
+    return transformPost(response);
   }
 
   static async getContent(url: string, options: GetContentOptions = {}): Promise<string> {

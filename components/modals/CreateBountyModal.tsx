@@ -640,7 +640,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
           type="button"
           variant="default"
           disabled={
-            !selectedPaper ||
+            !(selectedPaper || workId) ||
             !inputAmount ||
             (bountyType === 'GENERIC_COMMENT' && !otherDescription)
           }

@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/auth.config';
 import { getSession } from 'next-auth/react';
+import { ApiError } from './types';
 
 export class ApiClient {
   private static readonly baseURL = process.env.NEXT_PUBLIC_API_URL;
@@ -116,8 +117,13 @@ export class ApiClient {
 
     if (!response.ok) {
       if (options.rawError) {
-        const errorData = await response.json();
-        throw new Error(JSON.stringify({ data: errorData, status: response.status }));
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { message: 'Invalid JSON response from server' };
+        }
+        throw new ApiError(JSON.stringify({ data: errorData, status: response.status }));
       }
       throw new Error(`HTTP error! status: ${response.status}`);
     }

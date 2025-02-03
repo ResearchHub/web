@@ -34,7 +34,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { CollapsibleSection, CollapsibleItem } from '@/components/ui/CollapsibleSection';
-import { usePreregistrationPost } from '@/hooks/useDocument';
+import { useCreatePost } from '@/hooks/useDocument';
 
 export interface FormData {
   title: string;
@@ -64,7 +64,7 @@ export default function FundingCreatePage() {
   });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<string[]>([]);
-  const [{ error, isLoading: submitting }, createPreregistrationPost] = usePreregistrationPost();
+  const [{ error, isLoading: submitting }, createPreregistrationPost] = useCreatePost();
 
   const pricePerNFT = useMemo(() => {
     if (!formData.budget || !formData.nftSupply) return 0;

@@ -1,19 +1,21 @@
+'use client';
 import { useState } from 'react';
 import { PostService } from '@/services/post.service';
 import { Work } from '@/types/work';
 import { FormData as FundingFormData } from '@/app/fund/create/page';
+import { ApiError } from '@/services/types';
 
-interface PreregistrationState {
+interface UsePostState {
   data: Work | null;
   isLoading: boolean;
   error: string | null;
 }
 
-type CreatePreregistrationPostFn = (formData: FundingFormData) => Promise<Work>;
-type UsePreregistrationReturn = [PreregistrationState, CreatePreregistrationPostFn];
+type CreatePostFn = (formData: FundingFormData) => Promise<Work>;
+type UseCreatePostReturn = [UsePostState, CreatePostFn];
 
-export function usePreregistrationPost(): UsePreregistrationReturn {
-  const [state, setState] = useState<PreregistrationState>({
+export const useCreatePost = (): UseCreatePostReturn => {
+  const [state, setState] = useState<UsePostState>({
     data: null,
     isLoading: false,
     error: null,
@@ -45,16 +47,20 @@ export function usePreregistrationPost(): UsePreregistrationReturn {
 
       const response = await PostService.post(formDataToSubmit);
       setState((prev) => ({ ...prev, data: response, isLoading: false }));
+
       return response;
-    } catch (err: any) {
+    } catch (err) {
+      const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
+      const errorMsg = data?.msg || 'An error occurred while creating the preregistration post';
       setState((prev) => ({
         ...prev,
-        error: err.message,
+        error: errorMsg,
         isLoading: false,
       }));
+
       throw err;
     }
   };
 
   return [state, createPreregistrationPost];
-}
+};

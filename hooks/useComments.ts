@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { CommentService, CreateCommentOptions } from '@/services/comment.service';
 import { Comment, CommentFilter } from '@/types/comment';
 import { ContentType } from '@/types/work';
+import { ApiError } from '@/services/types';
 
 interface UseCommentsOptions {
   documentId: number;
@@ -92,12 +93,14 @@ export const useCreateComment = (): UseCommentReturn => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const response = await CommentService.createComment(input);
+      const response = await CommentService.createComment({ ...input, rawError: true });
       setState((prev) => ({ ...prev, data: response, isLoading: false }));
     } catch (err) {
+      const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
+      const errorMsg = data?.detail || 'Failed to create comment';
       setState((prev) => ({
         ...prev,
-        error: err instanceof Error ? err.message : 'Failed to create comment',
+        error: errorMsg,
         isLoading: false,
       }));
     }
