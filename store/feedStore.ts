@@ -126,7 +126,7 @@ export const feedEntries: FeedEntry[] = [
         id: 1,
         name: 'bioRxiv',
         slug: 'bioRxiv',
-        image:
+        imageUrl:
           'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh0mIPhY2F4yEhtpWJERf0sCvfaPwyUieCkVfg6aS8acUqZ7f5v21HNlFxEtHmtCQYFSXdX97Y7HiZd7pedBXfL2oTlj1NnaEwpwWQKXOLHwt7tp18djNgKdF3sKNE8bhIrTUiE/s0/lwyH1HFe_400x400.jpg',
       },
       slug: 'deoxysphingolipids-activate-cgas-sting',
@@ -187,7 +187,7 @@ export const feedEntries: FeedEntry[] = [
         id: 1,
         name: 'bioRxiv',
         slug: 'bioRxiv',
-        image:
+        imageUrl:
           'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh0mIPhY2F4yEhtpWJERf0sCvfaPwyUieCkVfg6aS8acUqZ7f5v21HNlFxEtHmtCQYFSXdX97Y7HiZd7pedBXfL2oTlj1NnaEwpwWQKXOLHwt7tp18djNgKdF3sKNE8bhIrTUiE/s0/lwyH1HFe_400x400.jpg',
       },
       slug: 'neural-networks-in-climate-prediction',
@@ -306,7 +306,7 @@ export const feedEntries: FeedEntry[] = [
         id: 2,
         name: 'Nature Chemistry',
         slug: 'Nature Chemistry',
-        image: '/images/journals/nature-chemistry.png',
+        imageUrl: '/images/journals/nature-chemistry.png',
       },
       slug: 'novel-ph-sensitive-fluorescent-probes',
       actor: users.sarahChen,

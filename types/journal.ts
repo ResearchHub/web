@@ -2,5 +2,6 @@ export interface Journal {
   id: number;
   name: string;
   slug: string;
-  image?: string;
+  imageUrl?: string;
+  description?: string;
 }
