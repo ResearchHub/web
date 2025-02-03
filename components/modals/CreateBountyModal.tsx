@@ -20,8 +20,7 @@ import {
 import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
-import { useCreateComment } from '@/hooks/useComment';
-import { COMMENT_TYPES } from '@/services/types/comment.dto';
+import { useCreateComment } from '@/hooks/useComments';
 
 interface CreateBountyModalProps {
   isOpen: boolean;
@@ -32,7 +31,7 @@ interface CreateBountyModalProps {
 type Currency = 'RSC' | 'USD';
 type Step = 'details' | 'payment';
 type BountyLength = '14' | '30' | '60' | 'custom';
-type BountyType = 'peer_review' | 'question' | 'other';
+type BountyType = 'REVIEW' | 'ANSWER' | 'GENERIC_COMMENT';
 
 interface SelectedPaper {
   id: string;
@@ -450,7 +449,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
   const [inputAmount, setInputAmount] = useState(0);
   const [currency, setCurrency] = useState<Currency>('RSC');
   const [bountyLength, setBountyLength] = useState<BountyLength>('14');
-  const [bountyType, setBountyType] = useState<BountyType>('peer_review');
+  const [bountyType, setBountyType] = useState<BountyType>('REVIEW');
   const [otherDescription, setOtherDescription] = useState('');
   const [isFeesExpanded, setIsFeesExpanded] = useState(false);
   const [customDate, setCustomDate] = useState('');
@@ -477,25 +476,13 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
       })();
 
       await createComment({
-        content: {},
-        commentType: COMMENT_TYPES.GENERIC_COMMENT,
-        documentType: 'paper',
-        documentId: workId || selectedPaper?.id || '',
+        commentType: 'GENERIC_COMMENT',
+        workId: workId || selectedPaper?.id || '',
         bountyAmount: rscAmount,
-        bountyType: (() => {
-          switch (bountyType) {
-            case 'peer_review':
-              return COMMENT_TYPES.REVIEW;
-            case 'question':
-              return COMMENT_TYPES.ANSWER;
-            default:
-              return COMMENT_TYPES.GENERIC_COMMENT;
-          }
-        })(),
-        privacy: 'PUBLIC',
+        bountyType: bountyType,
+        privacyType: 'PUBLIC',
         expirationDate: expirationDate,
-        // mentions: [],
-        // targetHubs: [],
+        contentType: 'paper', // TODO. what type do we want to use here?
       });
     } catch (error) {
       // Error is handled by the hook
@@ -602,7 +589,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
             </label>
           </div>
           <BountyTypeSelector selected={bountyType} onChange={setBountyType} />
-          {bountyType === 'other' && (
+          {bountyType === 'GENERIC_COMMENT' && (
             <div className="mt-3">
               <Input
                 placeholder="Describe what you're looking for..."
@@ -652,7 +639,11 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
         <Button
           type="button"
           variant="default"
-          disabled={!selectedPaper || !inputAmount || (bountyType === 'other' && !otherDescription)}
+          disabled={
+            !selectedPaper ||
+            !inputAmount ||
+            (bountyType === 'GENERIC_COMMENT' && !otherDescription)
+          }
           className="w-full h-12 text-base"
           onClick={() => setStep('payment')}
         >
@@ -710,7 +701,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
             />
           </div>
 
-          {bountyError && <Alert variant="error">{bountyError.message}</Alert>}
+          {bountyError && <Alert variant="error">{bountyError}</Alert>}
 
           <Button
             type="button"

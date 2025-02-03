@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { PostService } from '@/services/post.service';
-import { Post } from '@/types/post';
+import { Work } from '@/types/work';
 import { FormData as FundingFormData } from '@/app/fund/create/page';
 
 interface PreregistrationState {
-  data: Post | null;
+  data: Work | null;
   isLoading: boolean;
   error: string | null;
 }
 
-type CreatePreregistrationPostFn = (formData: FundingFormData) => Promise<Post>;
+type CreatePreregistrationPostFn = (formData: FundingFormData) => Promise<Work>;
 type UsePreregistrationReturn = [PreregistrationState, CreatePreregistrationPostFn];
 
 export function usePreregistrationPost(): UsePreregistrationReturn {

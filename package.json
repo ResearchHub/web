@@ -113,6 +113,7 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^20",
+    "@types/quill": "^2.0.14",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/styled-components": "^5.1.34",

@@ -1,6 +1,6 @@
 import { ApiClient } from './client';
 import { isDOI } from '@/utils/doi';
-import { Work, transformWork } from '@/types/work';
+import { Work, transformPaper } from '@/types/work';
 
 interface CreateByOpenAlexIdResponse {
   paper_id: number;
@@ -25,6 +25,6 @@ export class PaperService {
       response = await ApiClient.get(`${this.BASE_PATH}/${identifier}/`);
     }
 
-    return transformWork(response);
+    return transformPaper(response);
   }
 }
