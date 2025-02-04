@@ -20,7 +20,7 @@ import { Logo } from '@/components/ui/Logo';
 import { ReleaseNotesModal } from '@/components/modals/ReleaseNotesModal';
 
 // This key should be updated whenever the release notes content changes
-const RELEASE_NOTES_VERSION = 'v1.0.0';
+const RELEASE_NOTES_VERSION = 'v1.0.1';
 const STORAGE_KEY = `rh-release-notes-${RELEASE_NOTES_VERSION}`;
 
 export const LeftSidebar: React.FC = () => {
