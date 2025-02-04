@@ -1,8 +1,9 @@
-import { transformUser } from '@/types/user';
 import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { AuthService } from '@/services/auth.service';
+
+const promptInvalidCredentials = () => null;
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -19,7 +20,7 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         try {
           if (!credentials?.email || !credentials?.password) {
-            throw new Error('Invalid credentials');
+            return promptInvalidCredentials();
           }
           const loginResponse = await AuthService.login({
             email: credentials.email,
@@ -27,7 +28,7 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!loginResponse.key) {
-            return null;
+            return promptInvalidCredentials();
           }
 
           // Then fetch user data using the AuthService
@@ -43,7 +44,7 @@ export const authOptions: NextAuthOptions = {
             authToken: loginResponse.key,
           };
         } catch (error) {
-          return null;
+          return promptInvalidCredentials();
         }
       },
     }),
