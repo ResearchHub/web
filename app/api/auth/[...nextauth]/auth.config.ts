@@ -1,28 +1,52 @@
-import { transformUser } from '@/types/user';
 import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import { AuthService } from '@/services/auth.service';
 
-// Direct fetch for auth route to avoid circular dependency
-async function fetchUserData(authToken: string) {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/`, {
-    headers: {
-      Authorization: `Token ${authToken}`,
-      Accept: 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch user data');
-  }
-
-  return response.json();
-}
+const promptInvalidCredentials = () => null;
 
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    CredentialsProvider({
+      name: 'Credentials',
+      credentials: {
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            return promptInvalidCredentials();
+          }
+          const loginResponse = await AuthService.login({
+            email: credentials.email,
+            password: credentials.password,
+          });
+
+          if (!loginResponse.key) {
+            return promptInvalidCredentials();
+          }
+
+          // Then fetch user data using the AuthService
+          const userData = await AuthService.fetchUserData(loginResponse.key);
+          // The API returns an array of results, but for user data we only expect
+          // and need the first element since it represents the current authenticated user
+          const user = userData.results[0];
+
+          return {
+            id: String(user.id),
+            email: user.email,
+            name: user.fullName,
+            authToken: loginResponse.key,
+          };
+        } catch (error) {
+          return promptInvalidCredentials();
+        }
+      },
     }),
   ],
   pages: {
@@ -31,51 +55,36 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/google/login/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-          body: JSON.stringify({
+      if (account?.type === 'oauth') {
+        try {
+          const data = await AuthService.googleLogin({
             access_token: account?.access_token,
             id_token: account?.id_token,
-          }),
-        });
+          });
 
-        if (!response.ok) {
-          switch (response.status) {
-            case 401:
-              throw new Error('AuthenticationFailed');
-            case 403:
-              throw new Error('AccessDenied');
-            case 409:
-              throw new Error('Verification');
-            default:
-              throw new Error('AuthenticationFailed');
+          if (data.key) {
+            (account as any).authToken = data.key;
           }
-        }
 
-        const data = await response.json();
-        if (data.key) {
-          (account as any).authToken = data.key;
+          return true;
+        } catch (error) {
+          // Instead of returning an error object, throw it to trigger next-auth's error handling
+          if (error instanceof Error) {
+            throw new Error(error.message);
+          }
+          throw new Error('AuthenticationFailed');
         }
-
-        return true;
-      } catch (error) {
-        // Instead of returning an error object, throw it to trigger next-auth's error handling
-        if (error instanceof Error) {
-          throw new Error(error.message);
-        }
-        throw new Error('AuthenticationFailed');
       }
+
+      return true;
     },
 
-    async jwt({ token, account }) {
-      if (account && (account as any).authToken) {
-        token.authToken = (account as any).authToken;
-        token.isLoggedIn = true;
+    async jwt({ token, user, account }) {
+      if (account && user) {
+        return {
+          ...token,
+          authToken: account.type === 'credentials' ? user.authToken : account.authToken,
+        };
       }
       return token;
     },
@@ -90,17 +99,17 @@ export const authOptions: NextAuthOptions = {
       }
 
       try {
-        const userData = await fetchUserData(token.authToken as string);
+        const userData = await AuthService.fetchUserData(token.authToken as string);
+        // The API returns an array of results, but for user data we only expect
+        // and need the first element since it represents the current authenticated user
         const isAuthenticated = Boolean(userData.results.length > 0 && userData.results[0]);
 
         if (isAuthenticated) {
-          const transformedUser = transformUser(userData.results[0]);
-
           return {
             ...session,
             authToken: token.authToken,
             isLoggedIn: true,
-            user: transformedUser,
+            user: userData.results[0],
           };
         } else {
           return {

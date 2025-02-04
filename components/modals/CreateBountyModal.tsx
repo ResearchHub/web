@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, Transition, Listbox } from '@headlessui/react';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Search } from '@/components/Search/Search';
@@ -20,17 +20,18 @@ import {
 import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
+import { useCreateComment } from '@/hooks/useComments';
+import { Currency } from '@/types/root';
+import { BountyType } from '@/types/bounty';
 
 interface CreateBountyModalProps {
   isOpen: boolean;
   onClose: () => void;
-  workId: string;
+  workId?: string;
 }
 
-type Currency = 'RSC' | 'USD';
 type Step = 'details' | 'payment';
 type BountyLength = '14' | '30' | '60' | 'custom';
-type BountyType = 'peer_review' | 'question' | 'other';
 
 interface SelectedPaper {
   id: string;
@@ -448,11 +449,54 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
   const [inputAmount, setInputAmount] = useState(0);
   const [currency, setCurrency] = useState<Currency>('RSC');
   const [bountyLength, setBountyLength] = useState<BountyLength>('14');
-  const [bountyType, setBountyType] = useState<BountyType>('peer_review');
+  const [bountyType, setBountyType] = useState<BountyType>('REVIEW');
   const [otherDescription, setOtherDescription] = useState('');
   const [isFeesExpanded, setIsFeesExpanded] = useState(false);
   const [customDate, setCustomDate] = useState('');
   const RSC_TO_USD = 1;
+
+  const [{ data: commentData, isLoading: isCreatingBounty, error: bountyError }, createComment] =
+    useCreateComment();
+
+  const handleCreateBounty = async () => {
+    try {
+      const rscAmount = getRscAmount();
+
+      const expirationDate = (() => {
+        if (bountyLength === 'custom' && customDate) {
+          // For custom dates, use the selected date
+          return new Date(customDate).toISOString();
+        }
+
+        // For preset lengths (14, 30, 60 days)
+        const days = parseInt(bountyLength);
+        const date = new Date();
+        date.setDate(date.getDate() + days);
+        return date.toISOString();
+      })();
+
+      await createComment({
+        commentType: 'GENERIC_COMMENT',
+        workId: workId || selectedPaper?.id || '',
+        bountyAmount: rscAmount,
+        bountyType: bountyType,
+        privacyType: 'PUBLIC',
+        expirationDate: expirationDate,
+        contentType: 'paper', // TODO. what type do we want to use here?
+      });
+    } catch (error) {
+      // Error is handled by the hook
+      console.error('Failed to create bounty:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (commentData) {
+      // Bounty was successfully created
+      onClose();
+      // TODO: Add success toast notification if needed
+    }
+  }, [commentData, onClose]);
 
   const handleWorkSelect = (suggestion: SearchSuggestion) => {
     setSelectedPaper({
@@ -505,33 +549,37 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
       />
       <div className="space-y-6">
         {/* Paper Search Section */}
-        <div>
-          <div className="mb-2">
-            <label className="block text-sm font-semibold text-gray-700">
-              Which work is this bounty for?
-            </label>
-          </div>
-          <div className="relative">
-            <Search
-              onSelect={handleWorkSelect}
-              displayMode="inline"
-              placeholder="Search for work..."
-              className="w-full [&_input]:bg-white"
-              showSuggestionsOnFocus={!selectedPaper || showSuggestions}
-            />
-            {selectedPaper && (
-              <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="text-sm font-medium text-gray-900">{selectedPaper.title}</div>
-                <div className="text-xs text-gray-600 mt-1">{selectedPaper.authors.join(', ')}</div>
-                {selectedPaper.abstract && (
-                  <div className="text-xs text-gray-500 mt-2 line-clamp-2">
-                    {selectedPaper.abstract}
+        {!workId && (
+          <div>
+            <div className="mb-2">
+              <label className="block text-sm font-semibold text-gray-700">
+                Which work is this bounty for?
+              </label>
+            </div>
+            <div className="relative">
+              <Search
+                onSelect={handleWorkSelect}
+                displayMode="inline"
+                placeholder="Search for work..."
+                className="w-full [&_input]:bg-white"
+                showSuggestionsOnFocus={!selectedPaper || showSuggestions}
+              />
+              {selectedPaper && (
+                <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="text-sm font-medium text-gray-900">{selectedPaper.title}</div>
+                  <div className="text-xs text-gray-600 mt-1">
+                    {selectedPaper.authors.join(', ')}
                   </div>
-                )}
-              </div>
-            )}
+                  {selectedPaper.abstract && (
+                    <div className="text-xs text-gray-500 mt-2 line-clamp-2">
+                      {selectedPaper.abstract}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Bounty Type Section */}
         <div>
@@ -541,7 +589,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
             </label>
           </div>
           <BountyTypeSelector selected={bountyType} onChange={setBountyType} />
-          {bountyType === 'other' && (
+          {bountyType === 'GENERIC_COMMENT' && (
             <div className="mt-3">
               <Input
                 placeholder="Describe what you're looking for..."
@@ -591,7 +639,11 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
         <Button
           type="button"
           variant="default"
-          disabled={!selectedPaper || !inputAmount || (bountyType === 'other' && !otherDescription)}
+          disabled={
+            !(selectedPaper || workId) ||
+            !inputAmount ||
+            (bountyType === 'GENERIC_COMMENT' && !otherDescription)
+          }
           className="w-full h-12 text-base"
           onClick={() => setStep('payment')}
         >
@@ -649,16 +701,16 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
             />
           </div>
 
+          {bountyError && <Alert variant="error">{bountyError}</Alert>}
+
           <Button
             type="button"
             variant="default"
+            disabled={isCreatingBounty}
             className="w-full h-12 text-base"
-            onClick={() => {
-              // TODO: Implement bounty creation
-              onClose();
-            }}
+            onClick={handleCreateBounty}
           >
-            Create Bounty
+            {isCreatingBounty ? 'Creating Bounty...' : 'Create Bounty'}
           </Button>
         </div>
       </div>

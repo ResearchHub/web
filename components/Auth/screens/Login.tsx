@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { AuthService } from '@/services/auth.service';
 import { ApiError } from '@/services/types/api';
 import { BaseScreenProps } from '../types';
+import { Eye, EyeOff } from 'lucide-react';
+import { signIn } from 'next-auth/react';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
@@ -19,6 +21,7 @@ export default function Login({
   onBack,
 }: Props) {
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,10 +34,23 @@ export default function Login({
     setError(null);
 
     try {
-      await AuthService.login({ email, password });
-      onClose();
+      // This endpoint will return a CredentialsSignin error with no description.
+      // Currently we try to login with email and password + fetch the user's data separately,
+      // because the current endpoint only returns a token
+      // So, we show "Invalid email or password" error
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError('Invalid email or password');
+      } else {
+        onClose();
+      }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Login failed');
+      setError('Login failed');
     } finally {
       setIsLoading(false);
     }
@@ -54,14 +70,23 @@ export default function Login({
           disabled
         />
 
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          className="w-full p-3 border rounded mb-4"
-          autoFocus
-        />
+        <div className="relative mb-4">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            className="w-full p-3 border rounded pr-12"
+            autoFocus
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-[50%] -translate-y-[50%] text-gray-500 hover:text-gray-700"
+          >
+            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+          </button>
+        </div>
 
         <button
           type="submit"

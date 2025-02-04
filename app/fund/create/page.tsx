@@ -29,14 +29,29 @@ import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import { Switch } from '@/components/ui/Switch';
 import Image from 'next/image';
+import { PostService } from '@/services/post.service';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { CollapsibleSection, CollapsibleItem } from '@/components/ui/CollapsibleSection';
+import { useCreatePost } from '@/hooks/useDocument';
+
+export interface FormData {
+  title: string;
+  background: string;
+  hypothesis: string;
+  methods: string;
+  budget: string;
+  budgetUse: string;
+  rewardFunders: boolean;
+  nftArt: File | null;
+  nftSupply: string;
+}
 
 export default function FundingCreatePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [formData, setFormData] = useState({
+  const router = useRouter();
+  const [formData, setFormData] = useState<FormData>({
     title: '',
     background: '',
     hypothesis: '',
@@ -49,6 +64,7 @@ export default function FundingCreatePage() {
   });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<string[]>([]);
+  const [{ error, isLoading: submitting }, createPreregistrationPost] = useCreatePost();
 
   const pricePerNFT = useMemo(() => {
     if (!formData.budget || !formData.nftSupply) return 0;
@@ -83,8 +99,13 @@ export default function FundingCreatePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement submission logic
-    console.log('Form submitted:', formData);
+    try {
+      const response = await createPreregistrationPost(formData);
+
+      router.push(`/fund/${response.id}/${response.slug}`);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    }
   };
 
   const toggleSection = (section: string) => {
@@ -453,8 +474,18 @@ export default function FundingCreatePage() {
               </div>
 
               <div className="mt-12">
-                <Button type="submit" size="lg" className="w-full py-6 text-lg">
-                  Submit for Review
+                {error && (
+                  <Alert variant="error" className="mb-4">
+                    {error}
+                  </Alert>
+                )}
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full py-6 text-lg"
+                  disabled={submitting}
+                >
+                  {submitting ? 'Submitting...' : 'Submit for Review'}
                 </Button>
               </div>
             </form>

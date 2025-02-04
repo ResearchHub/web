@@ -1,14 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CommentService } from '@/services/comment.service';
+import { CommentService, CreateCommentOptions } from '@/services/comment.service';
 import { Comment, CommentFilter } from '@/types/comment';
 import { ContentType } from '@/types/work';
+import { ApiError } from '@/services/types';
 
 interface UseCommentsOptions {
   documentId: number;
   contentType: ContentType;
   filter?: CommentFilter;
+}
+
+interface CommentState {
+  data: Comment | null;
+  isLoading: boolean;
+  error: string | null;
 }
 
 export const useComments = ({ documentId, contentType, filter }: UseCommentsOptions) => {
@@ -72,4 +79,31 @@ export const useComments = ({ documentId, contentType, filter }: UseCommentsOpti
     loadMore,
     refresh,
   };
+};
+
+type CreateCommentFn = (input: CreateCommentOptions) => Promise<void>;
+type UseCommentReturn = [CommentState, CreateCommentFn];
+
+export const useCreateComment = (): UseCommentReturn => {
+  const [data, setData] = useState<Comment | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const createComment = async (input: CreateCommentOptions) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await CommentService.createComment(input);
+      setData(response);
+    } catch (err) {
+      const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
+      const errorMsg = data?.detail || 'Failed to create comment';
+      setError(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return [{ data, isLoading, error }, createComment];
 };

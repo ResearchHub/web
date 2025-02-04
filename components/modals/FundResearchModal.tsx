@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import Image from 'next/image';
@@ -11,13 +11,14 @@ import { faHexagonImage } from '@fortawesome/pro-solid-svg-icons';
 import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
-
+import { useCreateContribution } from '@/hooks/useFundraise';
 interface FundResearchModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   nftRewardsEnabled?: boolean;
   nftImageSrc?: string;
+  fundraiseId: number;
 }
 
 type Currency = 'RSC' | 'USD';
@@ -247,6 +248,7 @@ export function FundResearchModal({
   title,
   nftRewardsEnabled = false,
   nftImageSrc,
+  fundraiseId,
 }: FundResearchModalProps) {
   const [step, setStep] = useState<Step>('amount');
   const [inputAmount, setInputAmount] = useState(0);
@@ -254,6 +256,11 @@ export function FundResearchModal({
   const [isFeesExpanded, setIsFeesExpanded] = useState(false);
   const RSC_TO_USD = 1;
   const NFT_THRESHOLD_USD = 1000;
+
+  const [
+    { data: contributionData, isLoading: isContributing, error: contributionError },
+    createContribution,
+  ] = useCreateContribution();
 
   // Utility functions
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -284,13 +291,27 @@ export function FundResearchModal({
       : `≈ ${(inputAmount / RSC_TO_USD).toLocaleString()} RSC`;
   };
 
-  const getRscAmount = () => {
+  const getRscAmount = (): number => {
     return currency === 'RSC' ? inputAmount : inputAmount / RSC_TO_USD;
   };
 
   const getNFTCount = () => {
     const amountUSD = getRscAmount() * RSC_TO_USD;
     return Math.floor(amountUSD / NFT_THRESHOLD_USD);
+  };
+
+  const handleCreateContribution = async () => {
+    try {
+      await createContribution(fundraiseId, {
+        amount: getRscAmount(),
+        amount_currency: currency,
+      });
+
+      onClose();
+    } catch (error) {
+      // Error is handled by the hook
+      console.error('Contribution failed:', error);
+    }
   };
 
   // Step rendering functions
@@ -400,6 +421,21 @@ export function FundResearchModal({
             You will receive {nftCount} NFT{nftCount !== 1 ? 's' : ''} for this contribution
           </Alert>
         )}
+
+        {contributionError && (
+          <Alert className="mt-4" variant="error">
+            {contributionError}
+          </Alert>
+        )}
+        <Button
+          type="button"
+          variant="default"
+          disabled={isContributing}
+          className="w-full h-12 text-base mt-6"
+          onClick={handleCreateContribution}
+        >
+          {isContributing ? 'Processing...' : 'Confirm Payment'}
+        </Button>
       </div>
     );
   };

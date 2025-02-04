@@ -1,10 +1,14 @@
 import { ApiClient } from './client';
 import { Work, transformPost } from '@/types/work';
-import { Hub } from '@/types/hub';
 import sanitizeHtml, { Attributes } from 'sanitize-html';
+import { ApiError } from './types';
 
 interface GetContentOptions {
   cleanIntroEmptyContent?: boolean;
+}
+
+interface PostOptions {
+  formData: FormData;
 }
 
 export class PostService {
@@ -12,6 +16,12 @@ export class PostService {
 
   static async get(id: string): Promise<Work> {
     const response = await ApiClient.get<any>(`${this.BASE_PATH}/${id}/`);
+    return transformPost(response);
+  }
+
+  static async post({ formData }: PostOptions): Promise<Work> {
+    const response = await ApiClient.post<any>(`${this.BASE_PATH}/`, formData);
+
     return transformPost(response);
   }
 

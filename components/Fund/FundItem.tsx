@@ -11,6 +11,7 @@ import type { AuthorProfile } from '@/types/user';
 import { FundResearchModal } from '@/components/modals/FundResearchModal';
 
 interface FundItemProps {
+  id: number;
   status: 'OPEN' | 'COMPLETED' | 'CLOSED';
   amount: number;
   goalAmount: number;
@@ -27,6 +28,7 @@ interface FundItemProps {
 }
 
 export function FundItem({
+  id,
   status,
   amount,
   goalAmount,
@@ -131,6 +133,7 @@ export function FundItem({
           title={title}
           nftRewardsEnabled={nftRewardsEnabled}
           nftImageSrc={nftImageSrc}
+          fundraiseId={id}
         />
       )}
     </>

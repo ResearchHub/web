@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/auth.config';
 import { getSession } from 'next-auth/react';
+import { ApiError } from './types';
 
 export class ApiClient {
   private static readonly baseURL = process.env.NEXT_PUBLIC_API_URL;
@@ -38,6 +39,20 @@ export class ApiClient {
     headers: Record<string, string>,
     body?: any
   ): RequestInit {
+    if (body instanceof FormData) {
+      // Remove Content-Type header for FormData to let browser set it with boundary
+      const formDataHeaders = { ...headers };
+      delete formDataHeaders['Content-Type'];
+
+      return {
+        method,
+        headers: formDataHeaders,
+        mode: 'cors',
+        cache: 'no-cache',
+        body: body,
+      };
+    }
+
     return {
       method,
       headers,
@@ -101,7 +116,13 @@ export class ApiClient {
     );
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { message: 'Invalid JSON response from server' };
+      }
+      throw new ApiError(JSON.stringify({ data: errorData, status: response.status }));
     }
 
     return response.json();

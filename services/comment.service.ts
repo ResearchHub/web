@@ -1,5 +1,5 @@
-import { ApiClient } from './client';
 import { ContentType } from '@/types/work';
+import { ApiClient } from './client';
 import {
   Comment,
   CommentFilter,
@@ -10,6 +10,7 @@ import {
   QuillContent,
   transformComment,
 } from '@/types/comment';
+import { ID } from '@/types/root';
 
 interface FetchCommentsOptions {
   documentId: number;
@@ -30,13 +31,17 @@ interface CommentResponse {
   results: any[];
 }
 
-interface CreateCommentOptions {
-  workId: number;
+export interface CreateCommentOptions {
+  workId: ID;
   contentType: ContentType;
-  content: QuillContent | string;
-  contentFormat: ContentFormat;
-  parentId?: number;
+  content?: QuillContent | string;
+  contentFormat?: ContentFormat;
+  threadId?: ID;
+  parentId?: ID;
   privacyType?: CommentPrivacyType;
+  bountyAmount?: number;
+  bountyType?: CommentType;
+  expirationDate?: string;
   commentType?: CommentType;
   threadType?: string;
 }
@@ -50,16 +55,24 @@ export class CommentService {
     content,
     contentFormat,
     parentId,
+    bountyAmount,
+    bountyType,
+    expirationDate,
     privacyType = 'PUBLIC',
     commentType = 'GENERIC_COMMENT',
     threadType = 'GENERIC_COMMENT',
   }: CreateCommentOptions): Promise<Comment> {
-    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${workId}/comments/create_rh_comment/`;
+    const path =
+      `${this.BASE_PATH}/${contentType.toLowerCase()}/${workId}/comments/` +
+      (bountyAmount ? 'create_comment_with_bounty/' : 'create_rh_comment/');
 
     const payload = {
       comment_content: content,
       content_format: contentFormat,
       privacy_type: privacyType,
+      ...(bountyAmount && { amount: bountyAmount, bounty_type: bountyType }),
+      ...(expirationDate && { expiration_date: expirationDate }),
+      ...(commentType && { comment_type: commentType }),
       ...(parentId && {
         parent_id: parentId,
         comment_type: commentType,
