@@ -171,6 +171,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
 
   const renderPaper = (paper: Content, isExpanded: boolean, onToggleExpand: () => void) => {
     if (paper.type !== 'paper') return null;
+    if (!paper.abstract) return null;
 
     const truncateAbstract = (text: string, limit: number = 200) => {
       if (text.length <= limit) return text;
