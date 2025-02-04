@@ -43,14 +43,15 @@ export const useCreatePost = (): UseCreatePostReturn => {
       if (formData.nftArt) {
         formDataToSubmit.append('nft_art', formData.nftArt);
       }
-
       const response = await PostService.post({ formData: formDataToSubmit });
       setData(response);
+
       return response;
     } catch (err) {
       const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
       const errorMsg = data?.msg || 'An error occurred while creating the preregistration post';
       setError(errorMsg);
+
       throw err;
     } finally {
       setIsLoading(false);
