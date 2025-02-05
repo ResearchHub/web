@@ -6,22 +6,20 @@ import { Underline } from '@tiptap/extension-underline';
 import { Link } from '@tiptap/extension-link';
 import { Image } from '@tiptap/extension-image';
 import { Button } from '@/components/ui/Button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface CommentEditorProps {
-  onSubmit: (content: string) => Promise<void>;
+  onSubmit: (content: string) => void;
+  onCancel?: () => void;
   placeholder?: string;
   initialContent?: string;
-  threadId?: number;
-  parentId?: number;
 }
 
 export const CommentEditor = ({
   onSubmit,
+  onCancel,
   placeholder = 'Write a comment...',
-  initialContent,
-  threadId,
-  parentId,
+  initialContent = '',
 }: CommentEditorProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -53,8 +51,17 @@ export const CommentEditor = ({
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[100px] px-4 py-2',
       },
     },
+    onUpdate: ({ editor }) => {
+      // Optional: Add any update handlers here
+    },
     immediatelyRender: false,
   });
+
+  useEffect(() => {
+    if (editor && initialContent) {
+      editor.commands.setContent(initialContent);
+    }
+  }, [editor, initialContent]);
 
   const handleSubmit = async () => {
     if (!editor || !editor.getText().trim()) return;
@@ -189,7 +196,12 @@ export const CommentEditor = ({
         </div>
       </div>
       <EditorContent editor={editor} />
-      <div className="border-t px-4 py-2 flex justify-end">
+      <div className="border-t px-4 py-2 flex justify-end gap-2">
+        {onCancel && (
+          <Button onClick={onCancel} variant="ghost" size="sm">
+            Cancel
+          </Button>
+        )}
         <Button onClick={handleSubmit} disabled={!editor.getText().trim() || isSubmitting}>
           {isSubmitting ? 'Submitting...' : 'Submit'}
         </Button>

@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 import { Comment, CommentFilter, CommentType } from '@/types/comment';
-import { convertDeltaToHTML } from '@/lib/convertDeltaToHTML';
-import { Coins, CheckCircle } from 'lucide-react';
 import { useComments } from '@/hooks/useComments';
 import { CommentEditor } from './CommentEditor';
+import { CommentItem } from './CommentItem';
 import { ContentType } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
 
@@ -15,139 +14,6 @@ interface CommentFeedProps {
   className?: string;
   commentType?: CommentType;
 }
-
-const CommentItem = ({
-  comment,
-  contentType,
-  commentType,
-  onCommentUpdate,
-}: {
-  comment: Comment;
-  contentType: ContentType;
-  commentType: CommentType;
-  onCommentUpdate: (newComment: Comment, parentId?: number) => void;
-}) => {
-  const [isReplying, setIsReplying] = useState(false);
-
-  const handleReplySubmit = async (content: string) => {
-    const newComment = await CommentService.createComment({
-      workId: comment.thread.objectId,
-      contentType,
-      content,
-      contentFormat: 'HTML',
-      parentId: comment.id,
-      commentType,
-      threadType: commentType,
-    });
-    setIsReplying(false);
-    onCommentUpdate(newComment, comment.id);
-  };
-
-  return (
-    <div className="bg-white rounded-lg shadow-sm border p-4">
-      {/* Author Info */}
-      <div className="flex items-center gap-2 mb-2">
-        <img
-          src={comment.author.profileImage || '/default-avatar.png'}
-          alt={comment.author.fullName}
-          className="w-8 h-8 rounded-full"
-        />
-        <div>
-          <a href={comment.author.profileUrl} className="font-medium hover:text-indigo-600">
-            {comment.author.fullName}
-          </a>
-          <div className="text-sm text-gray-500">
-            {new Date(comment.createdDate).toLocaleDateString()}
-          </div>
-        </div>
-      </div>
-
-      {/* Bounties */}
-      {comment.bounties.length > 0 && (
-        <div className="mb-4">
-          {comment.bounties.map((bounty) => (
-            <div
-              key={bounty.id}
-              className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-2"
-            >
-              <div className="flex items-center gap-2">
-                <Coins className="h-4 w-4 text-orange-600" />
-                <span className="font-medium text-orange-900">
-                  {parseFloat(bounty.amount).toFixed(0)} RSC Bounty
-                </span>
-                <span className="text-orange-700 text-sm">
-                  · Expires {new Date(bounty.expirationDate).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Comment Content */}
-      {comment.contentFormat === 'QUILL' ? (
-        <div
-          className="prose prose-sm max-w-none"
-          dangerouslySetInnerHTML={{
-            __html: convertDeltaToHTML(
-              typeof comment.content === 'string' ? { ops: [] } : comment.content
-            ),
-          }}
-        />
-      ) : (
-        <div
-          className="prose prose-sm max-w-none"
-          dangerouslySetInnerHTML={{ __html: comment.content as string }}
-        />
-      )}
-
-      {/* Comment Metadata */}
-      <div className="mt-2 text-sm text-gray-500 flex items-center gap-4">
-        <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">ID: {comment.id}</span>
-        <span>Score: {comment.score}</span>
-        {comment.replyCount > 0 && (
-          <span>
-            · {comment.replyCount} repl{comment.replyCount === 1 ? 'y' : 'ies'}
-          </span>
-        )}
-        {comment.isAcceptedAnswer && (
-          <span className="text-green-600 flex items-center gap-1">
-            <CheckCircle className="h-4 w-4" />
-            Accepted Answer
-          </span>
-        )}
-        <button
-          onClick={() => setIsReplying(!isReplying)}
-          className="text-indigo-600 hover:text-indigo-800"
-        >
-          Reply
-        </button>
-      </div>
-
-      {/* Reply Editor */}
-      {isReplying && (
-        <div className="mt-4 ml-8">
-          <CommentEditor onSubmit={handleReplySubmit} placeholder="Write a reply..." />
-        </div>
-      )}
-
-      {/* Recursive Replies */}
-      {comment.replies && comment.replies.length > 0 && (
-        <div className="mt-4 ml-8 space-y-4">
-          {comment.replies.map((reply) => (
-            <CommentItem
-              key={reply.id}
-              comment={reply}
-              contentType={contentType}
-              commentType={commentType}
-              onCommentUpdate={onCommentUpdate}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
 
 export const CommentFeed = ({
   documentId,
@@ -173,19 +39,34 @@ export const CommentFeed = ({
     filter: commentFilter,
   });
 
-  const handleCommentUpdate = (newComment: Comment, parentId?: number) => {
-    if (!parentId) {
-      // Add new top-level comment to the beginning of the list
-      setComments([newComment, ...comments]);
-      setCount(commentCount + 1);
-      return;
-    }
+  const updateCommentTree = (newComment: Comment, parentId?: number) => {
+    console.log('updateCommentTree called with:', {
+      newComment,
+      parentId,
+      currentComments: comments,
+    });
 
-    // Update nested comment at any depth
-    const updateReplies = (commentList: Comment[]): Comment[] => {
+    // Helper function to update a comment in a list
+    const updateCommentInList = (commentList: Comment[]): Comment[] => {
+      console.log('Processing comment list:', {
+        commentIds: commentList.map((c) => c.id),
+        lookingForCommentId: newComment.id,
+        lookingForParentId: parentId,
+      });
+
       return commentList.map((comment) => {
-        // If this is the parent comment, add the reply
+        // If this is the comment being updated
+        if (comment.id === newComment.id) {
+          console.log('Found and updating comment:', comment.id);
+          return {
+            ...newComment,
+            replies: comment.replies, // Preserve existing replies
+          };
+        }
+
+        // If this is the parent comment and we're adding a new reply
         if (comment.id === parentId) {
+          console.log('Adding new reply to parent:', parentId);
           return {
             ...comment,
             replies: [newComment, ...(comment.replies || [])],
@@ -195,9 +76,10 @@ export const CommentFeed = ({
 
         // If this comment has replies, recursively search them
         if (comment.replies?.length > 0) {
-          const updatedReplies = updateReplies(comment.replies);
-          // Only update the comment if one of its nested replies was modified
+          console.log('Checking replies for comment:', comment.id);
+          const updatedReplies = updateCommentInList(comment.replies);
           if (updatedReplies !== comment.replies) {
+            console.log('Found and updated nested reply in comment:', comment.id);
             return {
               ...comment,
               replies: updatedReplies,
@@ -205,12 +87,46 @@ export const CommentFeed = ({
           }
         }
 
-        // No changes needed for this comment
         return comment;
       });
     };
 
-    setComments(updateReplies(comments));
+    // If this is a new top-level comment (no parent ID)
+    if (!parentId) {
+      console.log('Adding/updating top-level comment');
+      // If it's an existing comment being updated
+      if (comments.some((c) => c.id === newComment.id)) {
+        setComments(updateCommentInList(comments));
+      } else {
+        // It's a new top-level comment
+        setComments([newComment, ...comments]);
+        setCount(commentCount + 1);
+      }
+      return;
+    }
+
+    // Handle replies (new or updates)
+    console.log('Starting recursive update for reply');
+    const updatedComments = updateCommentInList(comments);
+    console.log('Finished recursive update:', updatedComments);
+    setComments(updatedComments);
+  };
+
+  const handleCommentDelete = (commentId: number) => {
+    const deleteComment = (commentList: Comment[]): Comment[] => {
+      return commentList.filter((comment) => {
+        if (comment.id === commentId) {
+          return false;
+        }
+        if (comment.replies?.length > 0) {
+          comment.replies = deleteComment(comment.replies);
+        }
+        return true;
+      });
+    };
+
+    setComments(deleteComment(comments));
+    setCount(commentCount - 1);
   };
 
   const handleSubmit = async (content: string) => {
@@ -222,7 +138,7 @@ export const CommentFeed = ({
       commentType,
       threadType: commentType,
     });
-    handleCommentUpdate(newComment);
+    updateCommentTree(newComment);
   };
 
   return (
@@ -269,7 +185,8 @@ export const CommentFeed = ({
                 comment={comment}
                 contentType={contentType}
                 commentType={commentType}
-                onCommentUpdate={handleCommentUpdate}
+                onCommentUpdate={updateCommentTree}
+                onCommentDelete={handleCommentDelete}
               />
             ))}
 

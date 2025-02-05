@@ -141,4 +141,20 @@ export class ApiClient {
 
     return response.json();
   }
+
+  static async delete<T>(path: string): Promise<T> {
+    const response = await fetch(path, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
 }

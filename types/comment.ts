@@ -51,6 +51,7 @@ export interface Comment {
   isPublic: boolean;
   isRemoved: boolean;
   isAcceptedAnswer: boolean | null;
+  parentId: number | null;
   raw: any;
 }
 
@@ -84,5 +85,6 @@ export const transformComment: BaseTransformer<any, Comment> = (raw) => ({
   isPublic: raw.is_public,
   isRemoved: raw.is_removed,
   isAcceptedAnswer: raw.is_accepted_answer,
+  parentId: raw.parent?.id || null,
   raw,
 });

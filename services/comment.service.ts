@@ -46,6 +46,20 @@ export interface CreateCommentOptions {
   threadType?: string;
 }
 
+export interface UpdateCommentOptions {
+  commentId: ID;
+  documentId: ID;
+  contentType: ContentType;
+  content: string | QuillContent;
+  contentFormat?: ContentFormat;
+}
+
+export interface DeleteCommentOptions {
+  commentId: ID;
+  documentId: ID;
+  contentType: ContentType;
+}
+
 export class CommentService {
   private static readonly BASE_PATH = '/api';
 
@@ -118,5 +132,31 @@ export class CommentService {
       comments: response.results.map(transformComment),
       count: response.count,
     };
+  }
+
+  static async updateComment({
+    commentId,
+    documentId,
+    contentType,
+    content,
+    contentFormat,
+  }: UpdateCommentOptions): Promise<Comment> {
+    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/`;
+    const payload = {
+      comment_content: content,
+      content_format: contentFormat,
+    };
+
+    const response = await ApiClient.patch<any>(path, payload);
+    return transformComment(response);
+  }
+
+  static async deleteComment({
+    commentId,
+    documentId,
+    contentType,
+  }: DeleteCommentOptions): Promise<void> {
+    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/censor/`;
+    await ApiClient.delete(path);
   }
 }
