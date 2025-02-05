@@ -20,7 +20,7 @@ export const fundingFeedEntries: FeedEntry[] = [
       abstract:
         'This study investigates how circadian rhythms influence cognitive performance and memory consolidation in young adults using EEG monitoring and cognitive testing.',
       timestamp: '2024-01-15T10:30:00Z',
-      hub: hubs.neuroscience,
+      topic: hubs.neuroscience,
       amount: 25000,
       goalAmount: 50000,
       deadline: futureDate(30),
@@ -58,7 +58,7 @@ export const fundingFeedEntries: FeedEntry[] = [
       abstract:
         'Developing new CRISPR-based therapeutic approaches for rare genetic disorders, focusing on improving delivery methods and reducing off-target effects.',
       timestamp: '2024-01-14T15:45:00Z',
-      hub: hubs.genetics,
+      topic: hubs.genetics,
       amount: 75000,
       goalAmount: 150000,
       deadline: futureDate(45),
@@ -96,7 +96,7 @@ export const fundingFeedEntries: FeedEntry[] = [
       abstract:
         'Using machine learning and satellite imagery to develop an early warning system for detecting and tracking ocean pollution sources and spread patterns.',
       timestamp: '2024-01-13T09:15:00Z',
-      hub: hubs.environmentalScience,
+      topic: hubs.environmentalScience,
       amount: 40000,
       goalAmount: 80000,
       deadline: futureDate(60),
@@ -134,7 +134,7 @@ export const fundingFeedEntries: FeedEntry[] = [
       abstract:
         'Investigating quantum effects in biological processes, focusing on photosynthesis and bird navigation using cutting-edge quantum sensors.',
       timestamp: '2024-01-12T14:20:00Z',
-      hub: hubs.quantumPhysics,
+      topic: hubs.quantumPhysics,
       amount: 85000,
       goalAmount: 200000,
       deadline: futureDate(40),
@@ -172,7 +172,7 @@ export const fundingFeedEntries: FeedEntry[] = [
       abstract:
         'Using machine learning to accelerate drug discovery for rare diseases by combining structural biology and deep learning for compound screening.',
       timestamp: '2024-01-11T09:45:00Z',
-      hub: hubs.artificialIntelligence,
+      topic: hubs.artificialIntelligence,
       amount: 120000,
       goalAmount: 300000,
       deadline: futureDate(50),
@@ -210,7 +210,7 @@ export const fundingFeedEntries: FeedEntry[] = [
       abstract:
         'Studying microplastic accumulation in deep-sea biodiversity using autonomous vehicles to map distribution and analyze marine life impact.',
       timestamp: '2024-01-10T16:30:00Z',
-      hub: hubs.marineScience,
+      topic: hubs.marineScience,
       amount: 65000,
       goalAmount: 150000,
       deadline: futureDate(35),
