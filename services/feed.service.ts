@@ -1,6 +1,7 @@
 import { ApiClient } from './client';
 import { FeedEntry, Content, FeedActionType, Paper } from '@/types/feed';
 import { transformAuthorProfile } from '@/types/authorProfile';
+import { transformTopic } from '@/types/work';
 
 interface FeedResponse {
   id: number;
@@ -40,11 +41,13 @@ export class FeedService {
       id: contentObject.id.toString(),
       type: type.toLowerCase() as Content['type'],
       timestamp: contentObject.created_date,
-      hub: {
-        id: contentObject.hub?.id || 0,
-        name: contentObject.hub?.name || '',
-        slug: contentObject.hub?.slug || '',
-      },
+      topic: contentObject.topic
+        ? transformTopic(contentObject.topic)
+        : {
+            id: 0,
+            name: '',
+            slug: '',
+          },
       slug: contentObject.slug,
       actor: transformAuthorProfile(
         contentObject.author ? contentObject.author : contentObject.authors[0]

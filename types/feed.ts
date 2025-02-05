@@ -2,7 +2,6 @@ import { AuthorProfile } from './authorProfile';
 import { ContentMetrics } from './metrics';
 import { Journal } from './journal';
 import { Topic } from './topic';
-import { Hub } from './hub';
 
 export type FeedActionType = 'repost' | 'contribute' | 'publish' | 'post';
 
@@ -19,7 +18,7 @@ interface BaseContent {
   id: string;
   type: ContentType;
   timestamp: string;
-  hub: Hub;
+  topic: Topic;
   slug: string;
   title?: string;
   actor?: AuthorProfile;
