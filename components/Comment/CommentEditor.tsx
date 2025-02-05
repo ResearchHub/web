@@ -247,6 +247,29 @@ export const CommentEditor = ({
 
   return (
     <div className="border rounded-lg bg-white" ref={editorRef}>
+      <style jsx global>{`
+        /* Editor list styles */
+        .ProseMirror ul {
+          list-style-type: disc;
+          padding-left: 1.5rem;
+          margin: 1rem 0;
+        }
+
+        .ProseMirror ol {
+          list-style-type: decimal;
+          padding-left: 1.5rem;
+          margin: 1rem 0;
+        }
+
+        .ProseMirror li {
+          margin: 0.5rem 0;
+        }
+
+        .ProseMirror li > ul,
+        .ProseMirror li > ol {
+          margin: 0.5rem 0;
+        }
+      `}</style>
       <div className="border-b px-4 py-2">
         <div className="flex flex-wrap gap-2">
           <Button
@@ -290,6 +313,20 @@ export const CommentEditor = ({
             size="sm"
           >
             Quote
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            variant={editor.isActive('bulletList') ? 'secondary' : 'ghost'}
+            size="sm"
+          >
+            Bullet List
+          </Button>
+          <Button
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            variant={editor.isActive('orderedList') ? 'secondary' : 'ghost'}
+            size="sm"
+          >
+            Numbered List
           </Button>
           <Button
             onClick={handleLinkAdd}

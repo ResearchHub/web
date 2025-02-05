@@ -108,6 +108,28 @@ export const CommentItem = ({
           margin-left: 0.5rem;
         }
 
+        /* List styles */
+        .prose ul {
+          list-style-type: disc;
+          padding-left: 1.5rem;
+          margin: 1rem 0;
+        }
+
+        .prose ol {
+          list-style-type: decimal;
+          padding-left: 1.5rem;
+          margin: 1rem 0;
+        }
+
+        .prose li {
+          margin: 0.5rem 0;
+        }
+
+        .prose li > ul,
+        .prose li > ol {
+          margin: 0.5rem 0;
+        }
+
         /* Code block styles */
         .prose pre {
           background-color: rgb(40, 44, 52);
