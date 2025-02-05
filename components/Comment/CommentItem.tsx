@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Comment, CommentType } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
 import { CommentEditor } from './CommentEditor';
 import { convertDeltaToHTML } from '@/lib/convertDeltaToHTML';
 import { Coins, CheckCircle, Edit2, Trash2 } from 'lucide-react';
+import 'highlight.js/styles/atom-one-dark.css';
+import hljs from 'highlight.js';
 
 interface CommentItemProps {
   comment: Comment;
@@ -26,6 +28,14 @@ export const CommentItem = ({
   const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Find all pre code blocks and apply highlighting
+    const codeBlocks = document.querySelectorAll('pre code');
+    codeBlocks.forEach((block) => {
+      hljs.highlightElement(block as HTMLElement);
+    });
+  }, [comment.content]);
 
   const handleReplySubmit = async (content: string) => {
     const newComment = await CommentService.createComment({
@@ -97,6 +107,31 @@ export const CommentItem = ({
           border-left-color: #d1d5db;
           margin-left: 0.5rem;
         }
+
+        /* Code block styles */
+        .prose pre {
+          background-color: rgb(40, 44, 52);
+          color: rgb(171, 178, 191);
+          padding: 1rem;
+          border-radius: 0.5rem;
+          margin: 1rem 0;
+          overflow-x: auto;
+        }
+
+        .prose pre code {
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+            'Courier New', monospace;
+          font-size: 0.875rem;
+          line-height: 1.5;
+          background: none;
+          padding: 0;
+          margin: 0;
+          border-radius: 0;
+          box-shadow: none;
+        }
+
+        /* Import highlight.js theme */
+        @import 'highlight.js/styles/atom-one-dark.css';
       `}</style>
 
       {/* Author Info */}

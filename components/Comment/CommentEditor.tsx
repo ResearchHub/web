@@ -11,6 +11,17 @@ import { ImageUploadModal } from './ImageUploadModal';
 import { LinkMenu } from './lib/LinkMenu';
 import { LinkEditModal } from './lib/LinkEditModal';
 import { Extension } from '@tiptap/core';
+import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight';
+import { createLowlight } from 'lowlight';
+import javascript from 'highlight.js/lib/languages/javascript';
+import typescript from 'highlight.js/lib/languages/typescript';
+import python from 'highlight.js/lib/languages/python';
+import 'highlight.js/styles/atom-one-dark.css';
+
+const lowlight = createLowlight();
+lowlight.register('javascript', javascript);
+lowlight.register('typescript', typescript);
+lowlight.register('python', python);
 
 const ExitLinkOnSpace = Extension.create({
   name: 'exitLinkOnSpace',
@@ -61,11 +72,7 @@ export const CommentEditor = ({
             class: 'border-l-4 border-gray-200 pl-4 my-4 italic text-gray-700',
           },
         },
-        codeBlock: {
-          HTMLAttributes: {
-            class: 'rounded-md bg-gray-100 p-4',
-          },
-        },
+        codeBlock: false,
       }),
       Underline,
       Link.configure({
@@ -80,6 +87,14 @@ export const CommentEditor = ({
         },
       }),
       ExitLinkOnSpace,
+      CodeBlockLowlight.configure({
+        lowlight,
+        defaultLanguage: 'javascript',
+        languageClassPrefix: 'hljs language-',
+        HTMLAttributes: {
+          class: 'not-prose',
+        },
+      }),
     ],
     content: initialContent,
     editorProps: {
@@ -232,65 +247,6 @@ export const CommentEditor = ({
 
   return (
     <div className="border rounded-lg bg-white" ref={editorRef}>
-      <style jsx global>{`
-        .peer-review-rating {
-          background: #f8f9fa;
-          border-radius: 6px;
-          padding: 12px;
-          margin: 8px 0;
-        }
-        .peer-review-rating .rating-category {
-          text-transform: capitalize;
-          font-weight: 500;
-          color: #4b5563;
-          margin-bottom: 4px;
-        }
-        .peer-review-rating .rating-value {
-          color: #f59e0b;
-          letter-spacing: 2px;
-        }
-
-        /* TipTap Editor Styles */
-        .ProseMirror blockquote {
-          border-left: 4px solid #e5e7eb;
-          padding-left: 1rem;
-          margin: 1rem 0;
-          font-style: italic;
-          color: #4b5563;
-        }
-
-        .ProseMirror blockquote p {
-          margin: 0;
-        }
-
-        /* Nested blockquotes */
-        .ProseMirror blockquote blockquote {
-          border-left-color: #d1d5db;
-          margin-left: 0.5rem;
-        }
-
-        /* Link hover styles */
-        .ProseMirror a {
-          position: relative;
-        }
-
-        .ProseMirror a:hover::after {
-          content: '✎';
-          position: absolute;
-          right: -1.5em;
-          top: 50%;
-          transform: translateY(-50%);
-          font-size: 0.9em;
-          color: #6b7280;
-          opacity: 0.8;
-        }
-
-        .ProseMirror a:hover {
-          background-color: rgba(59, 130, 246, 0.1);
-          border-radius: 2px;
-          transition: background-color 0.2s ease;
-        }
-      `}</style>
       <div className="border-b px-4 py-2">
         <div className="flex flex-wrap gap-2">
           <Button
