@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Menu } from '@headlessui/react';
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import {
   ArrowUp,
   Download,
@@ -16,6 +16,7 @@ import {
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { ClaimModal } from '@/components/modals/ClaimModal';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -25,15 +26,29 @@ interface WorkLineItemsProps {
 export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsProps) => {
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [isUpvoted, setIsUpvoted] = useState(false);
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
 
   return (
     <div>
       {/* Primary Actions */}
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-3">
-          <button className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100">
-            <ArrowUp className="h-4 w-4" />
-            <span>{work.metrics.votes}</span>
+          <button
+            onClick={() =>
+              executeAuthenticatedAction(() => {
+                setIsUpvoted(!isUpvoted);
+                console.log('Upvote clicked:', work.id);
+              })
+            }
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+              isUpvoted
+                ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <ArrowUp className={`h-4 w-4 ${isUpvoted ? 'fill-current' : ''}`} />
+            <span>{work.metrics.votes + (isUpvoted ? 1 : 0)}</span>
           </button>
 
           <button
@@ -55,60 +70,65 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
 
           {/* More Actions Dropdown */}
           <Menu as="div" className="relative">
-            <Menu.Button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg">
+            <MenuButton className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg">
               <MoreHorizontal className="h-5 w-5" />
-            </Menu.Button>
+            </MenuButton>
 
-            <Menu.Items className="absolute left-0 mt-2 w-48 origin-top-left bg-white rounded-lg shadow-lg border border-gray-200 py-1 focus:outline-none">
-              <Menu.Item>
-                {({ active }) => (
+            <MenuItems className="absolute left-0 mt-2 w-48 origin-top-left bg-white rounded-lg shadow-lg border border-gray-200 py-1 focus:outline-none">
+              <MenuItem>
+                {({ focus }) => (
                   <button
                     className={`${
-                      active ? 'bg-gray-50' : ''
+                      focus ? 'bg-gray-50' : ''
                     } flex items-center space-x-2 px-4 py-2 text-gray-700 w-full text-left`}
                   >
                     <Download className="h-4 w-4" />
                     <span>Download PDF</span>
                   </button>
                 )}
-              </Menu.Item>
-              <Menu.Item>
-                {({ active }) => (
+              </MenuItem>
+              <MenuItem>
+                {({ focus }) => (
                   <button
                     className={`${
-                      active ? 'bg-gray-50' : ''
+                      focus ? 'bg-gray-50' : ''
                     } flex items-center space-x-2 px-4 py-2 text-gray-700 w-full text-left`}
                   >
                     <Share2 className="h-4 w-4" />
                     <span>Share</span>
                   </button>
                 )}
-              </Menu.Item>
-              <Menu.Item>
-                {({ active }) => (
+              </MenuItem>
+              <MenuItem>
+                {({ focus }) => (
                   <button
                     className={`${
-                      active ? 'bg-gray-50' : ''
+                      focus ? 'bg-gray-50' : ''
                     } flex items-center space-x-2 px-4 py-2 text-gray-700 w-full text-left`}
                   >
                     <Edit className="h-4 w-4" />
                     <span>Edit</span>
                   </button>
                 )}
-              </Menu.Item>
-              <Menu.Item>
-                {({ active }) => (
+              </MenuItem>
+              <MenuItem>
+                {({ focus }) => (
                   <button
+                    onClick={() =>
+                      executeAuthenticatedAction(() => {
+                        console.log('Flag content clicked:', work.id);
+                      })
+                    }
                     className={`${
-                      active ? 'bg-gray-50' : ''
+                      focus ? 'bg-gray-50' : ''
                     } flex items-center space-x-2 px-4 py-2 text-gray-700 w-full text-left`}
                   >
                     <Flag className="h-4 w-4" />
                     <span>Flag Content</span>
                   </button>
                 )}
-              </Menu.Item>
-            </Menu.Items>
+              </MenuItem>
+            </MenuItems>
           </Menu>
         </div>
       </div>
