@@ -1,16 +1,6 @@
 import { ApiClient } from './client';
-import {
-  FeedEntry,
-  Content,
-  FeedActionType,
-  Paper,
-  Comment,
-  FundingRequest,
-  Bounty,
-  Grant,
-  Review,
-  Contribution,
-} from '@/types/feed';
+import { FeedEntry, Content, FeedActionType, Paper } from '@/types/feed';
+import { transformAuthorProfile } from '@/types/authorProfile';
 
 interface FeedResponse {
   id: number;
@@ -18,13 +8,20 @@ interface FeedResponse {
   content_object: any;
   created_date: string;
   action: string;
-  user: {
+  action_date: string;
+  author: {
     id: number;
     first_name: string;
     last_name: string;
+    description: string;
     profile_image: string;
-    email: string;
-    is_verified: boolean;
+    user?: {
+      id: number;
+      first_name: string;
+      last_name: string;
+      email: string;
+      is_verified: boolean;
+    };
   };
 }
 
@@ -38,17 +35,7 @@ interface FeedApiResponse {
 export class FeedService {
   private static readonly BASE_PATH = '/api/feed';
 
-  private static mapAuthor(user: any) {
-    return {
-      id: user.id,
-      fullName: `${user.first_name} ${user.last_name}`,
-      profileImage: user.profile_image,
-      isVerified: user.is_verified,
-      profileUrl: `/profile/${user.id}`, // TODO: Get actual profile URL format
-    };
-  }
-
-  private static mapContentObject(contentObject: any, type: string): Content {
+  private static transformContentObject(contentObject: any, type: string): Content {
     const baseContent = {
       id: contentObject.id.toString(),
       type: type.toLowerCase() as Content['type'],
@@ -59,7 +46,9 @@ export class FeedService {
         slug: contentObject.hub?.slug || '',
       },
       slug: contentObject.slug,
-      actor: FeedService.mapAuthor(contentObject.user),
+      actor: transformAuthorProfile(
+        contentObject.author ? contentObject.author : contentObject.authors[0]
+      ),
     };
 
     switch (type.toLowerCase()) {
@@ -76,90 +65,24 @@ export class FeedService {
             slug: contentObject.journal.slug,
             imageUrl: contentObject.journal.image,
           },
-          authors: contentObject.authors.map(FeedService.mapAuthor),
+          authors: contentObject.authors.map(transformAuthorProfile),
         };
         return paper;
-      }
-      case 'comment': {
-        const comment: Comment = {
-          ...baseContent,
-          type: 'comment',
-          content: contentObject.content,
-          parent: contentObject.parent
-            ? FeedService.mapContentObject(contentObject.parent, contentObject.parent.type)
-            : undefined,
-        };
-        return comment;
-      }
-      case 'funding_request': {
-        const fundingRequest: FundingRequest = {
-          ...baseContent,
-          type: 'funding_request',
-          title: contentObject.title,
-          abstract: contentObject.abstract,
-          status: contentObject.status || 'OPEN',
-          amount: contentObject.amount || 0,
-          goalAmount: contentObject.goal_amount || 0,
-          deadline: contentObject.deadline,
-          image: contentObject.image,
-          preregistered: contentObject.preregistered,
-        };
-        return fundingRequest;
-      }
-      case 'bounty': {
-        const bounty: Bounty = {
-          ...baseContent,
-          type: 'bounty',
-          title: contentObject.title,
-          description: contentObject.description,
-          amount: contentObject.amount || 0,
-          deadline: contentObject.deadline,
-        };
-        return bounty;
-      }
-      case 'grant': {
-        const grant: Grant = {
-          ...baseContent,
-          type: 'grant',
-          title: contentObject.title,
-          abstract: contentObject.abstract,
-          amount: contentObject.amount || 0,
-          deadline: contentObject.deadline,
-        };
-        return grant;
-      }
-      case 'review': {
-        const review: Review = {
-          ...baseContent,
-          type: 'review',
-          title: contentObject.title,
-          content: contentObject.content,
-          score: contentObject.score,
-        };
-        return review;
-      }
-      case 'contribution': {
-        const contribution: Contribution = {
-          ...baseContent,
-          type: 'contribution',
-          amount: contentObject.amount || 0,
-        };
-        return contribution;
       }
       default:
         throw new Error(`Unknown content type: ${type}`);
     }
   }
 
-  private static mapFeedResponse(response: FeedResponse): FeedEntry {
+  private static transformFeedEntry(response: FeedResponse): FeedEntry {
     const contentType = response.content_type.toLowerCase();
     const contentObject = response.content_object;
 
     return {
       id: response.id.toString(),
-      timestamp: response.created_date,
+      timestamp: response.action_date,
       action: response.action.toLowerCase() as FeedActionType,
-      content: FeedService.mapContentObject(contentObject, contentType),
+      content: FeedService.transformContentObject(contentObject, contentType),
       metrics: {
         votes: contentObject.metrics?.votes || 0,
         comments: contentObject.metrics?.comments || 0,
@@ -168,7 +91,7 @@ export class FeedService {
       },
       contributors:
         contentObject.contributors?.map((contributor: any) => ({
-          profile: FeedService.mapAuthor(contributor.profile),
+          profile: transformAuthorProfile(contributor.profile),
           amount: contributor.amount,
         })) || [],
     };
@@ -190,7 +113,7 @@ export class FeedService {
     const response = await ApiClient.get<FeedApiResponse>(url);
 
     return {
-      entries: response.results.map(FeedService.mapFeedResponse),
+      entries: response.results.map(FeedService.transformFeedEntry),
       hasMore: !!response.next,
     };
   }

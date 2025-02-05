@@ -1,4 +1,4 @@
-import { AuthorProfile } from './user';
+import { AuthorProfile } from './authorProfile';
 import { ContentMetrics } from './metrics';
 import { Journal } from './journal';
 import { Topic } from './topic';
@@ -22,7 +22,7 @@ interface BaseContent {
   hub: Hub;
   slug: string;
   title?: string;
-  actor: AuthorProfile;
+  actor?: AuthorProfile;
 }
 
 export interface Paper extends BaseContent {

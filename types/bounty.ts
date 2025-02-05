@@ -1,5 +1,5 @@
 import { BaseTransformer } from './transformer';
-import { AuthorProfile, transformAuthorProfile } from './user';
+import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 
 export type BountyType = 'REVIEW' | 'ANSWER' | 'GENERIC_COMMENT';
 
