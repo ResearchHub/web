@@ -79,6 +79,26 @@ export const CommentItem = ({
 
   return (
     <div className="bg-white rounded-lg shadow-sm border p-4">
+      <style jsx global>{`
+        /* Comment Content Styles */
+        .prose blockquote {
+          border-left: 4px solid #e5e7eb;
+          padding-left: 1rem;
+          margin: 1rem 0;
+          font-style: italic;
+          color: #4b5563;
+        }
+
+        .prose blockquote p {
+          margin: 0;
+        }
+
+        .prose blockquote blockquote {
+          border-left-color: #d1d5db;
+          margin-left: 0.5rem;
+        }
+      `}</style>
+
       {/* Author Info */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
