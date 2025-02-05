@@ -7,6 +7,7 @@ import { Link } from '@tiptap/extension-link';
 import { Image } from '@tiptap/extension-image';
 import { Button } from '@/components/ui/Button';
 import { useState, useEffect } from 'react';
+import { ImageUploadModal } from './ImageUploadModal';
 
 interface CommentEditorProps {
   onSubmit: (content: string) => void;
@@ -22,6 +23,7 @@ export const CommentEditor = ({
   initialContent = '',
 }: CommentEditorProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -86,11 +88,9 @@ export const CommentEditor = ({
     }
   };
 
-  const handleImageAdd = () => {
-    const url = window.prompt('Enter image URL:');
-    if (url) {
-      editor?.chain().focus().setImage({ src: url }).run();
-    }
+  const handleImageEmbed = (imageUrl: string) => {
+    editor?.chain().focus().setImage({ src: imageUrl }).run();
+    setIsImageModalOpen(false);
   };
 
   const handleVideoEmbed = () => {
@@ -184,7 +184,7 @@ export const CommentEditor = ({
           >
             Link
           </Button>
-          <Button onClick={handleImageAdd} variant="ghost" size="sm">
+          <Button onClick={() => setIsImageModalOpen(true)} variant="ghost" size="sm">
             Image
           </Button>
           <Button onClick={handleVideoEmbed} variant="ghost" size="sm">
@@ -206,6 +206,13 @@ export const CommentEditor = ({
           {isSubmitting ? 'Submitting...' : 'Submit'}
         </Button>
       </div>
+
+      {isImageModalOpen && (
+        <ImageUploadModal
+          onClose={() => setIsImageModalOpen(false)}
+          onImageEmbed={handleImageEmbed}
+        />
+      )}
     </div>
   );
 };
