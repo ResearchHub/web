@@ -49,7 +49,7 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Update cookie
+  // Update cookie:
   const response = NextResponse.next();
   response.cookies.set(RECENT_VIEWS_KEY, JSON.stringify(recentViews), {
     maxAge: 30 * 24 * 60 * 60, // 30 days
