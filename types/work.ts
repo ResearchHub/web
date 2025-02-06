@@ -136,6 +136,7 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
     views: raw.views_count || 0,
   },
   unifiedDocumentId: raw.unified_document.id,
+  raw: raw,
 }));
 
 export const transformPost = createTransformer<any, Work>((raw) => ({

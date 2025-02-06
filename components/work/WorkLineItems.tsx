@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import {
   ArrowUp,
@@ -17,6 +17,8 @@ import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { ClaimModal } from '@/components/modals/ClaimModal';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { DocumentType } from '@/types/vote';
+import { useVote } from '@/hooks/useVote';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -28,6 +30,23 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
   const [isSaved, setIsSaved] = useState(false);
   const [isUpvoted, setIsUpvoted] = useState(false);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const [{ isLoading: isVoting }, vote] = useVote();
+
+  const handleVote = useCallback(async () => {
+    try {
+      const documentType: DocumentType = work.contentType === 'paper' ? 'paper' : 'researchhubpost';
+
+      await vote({
+        documentType,
+        documentId: work.id,
+        voteType: isUpvoted ? 'neutralvote' : 'upvote',
+      });
+
+      setIsUpvoted(!isUpvoted);
+    } catch (error) {
+      console.error('Error voting:', error);
+    }
+  }, [work.contentType, work.id, isUpvoted, vote]);
 
   return (
     <div>
@@ -35,17 +54,13 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-3">
           <button
-            onClick={() =>
-              executeAuthenticatedAction(() => {
-                setIsUpvoted(!isUpvoted);
-                console.log('Upvote clicked:', work.id);
-              })
-            }
+            onClick={() => executeAuthenticatedAction(handleVote)}
+            disabled={isVoting}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
               isUpvoted
                 ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
                 : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-            }`}
+            } ${isVoting ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <ArrowUp className={`h-4 w-4 ${isUpvoted ? 'fill-current' : ''}`} />
             <span>{work.metrics.votes + (isUpvoted ? 1 : 0)}</span>
