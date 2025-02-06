@@ -26,21 +26,10 @@ export const FeedItem: FC<FeedItemProps> = ({ entry, isFirst }) => {
         />
 
         <div className="mt-2">
-          <FeedItemBody
-            content={content}
-            target={target}
-            context={context}
-            metrics={metrics}
-            contributors={entry.contributors}
-          />
+          <FeedItemBody content={content} target={target} context={context} metrics={metrics} />
 
           <div className="pt-3">
-            <FeedItemActions
-              metrics={metrics}
-              content={content}
-              target={target}
-              contributors={entry.contributors}
-            />
+            <FeedItemActions metrics={metrics} content={content} target={target} />
           </div>
         </div>
       </div>

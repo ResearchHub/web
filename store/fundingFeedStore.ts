@@ -35,16 +35,6 @@ export const fundingFeedEntries: FeedEntry[] = [
       reposts: 8,
       saves: 15,
     },
-    contributors: [
-      {
-        profile: users.elenaRodriguez,
-        amount: 15000,
-      },
-      {
-        profile: users.dominikus,
-        amount: 10000,
-      },
-    ],
   },
   {
     id: 'funding-2',
@@ -73,16 +63,6 @@ export const fundingFeedEntries: FeedEntry[] = [
       reposts: 25,
       saves: 30,
     },
-    contributors: [
-      {
-        profile: users.mariaPatel,
-        amount: 50000,
-      },
-      {
-        profile: users.alexThompson,
-        amount: 25000,
-      },
-    ],
   },
   {
     id: 'funding-3',
@@ -111,16 +91,6 @@ export const fundingFeedEntries: FeedEntry[] = [
       reposts: 12,
       saves: 20,
     },
-    contributors: [
-      {
-        profile: users.davidKumar,
-        amount: 30000,
-      },
-      {
-        profile: users.hundessaNemomssa,
-        amount: 10000,
-      },
-    ],
   },
   {
     id: 'funding-4',
@@ -149,16 +119,6 @@ export const fundingFeedEntries: FeedEntry[] = [
       reposts: 18,
       saves: 40,
     },
-    contributors: [
-      {
-        profile: users.dominikus,
-        amount: 50000,
-      },
-      {
-        profile: users.sarahChen,
-        amount: 35000,
-      },
-    ],
   },
   {
     id: 'funding-5',
@@ -187,16 +147,6 @@ export const fundingFeedEntries: FeedEntry[] = [
       reposts: 28,
       saves: 55,
     },
-    contributors: [
-      {
-        profile: users.elenaRodriguez,
-        amount: 70000,
-      },
-      {
-        profile: users.jamesWilson,
-        amount: 50000,
-      },
-    ],
   },
   {
     id: 'funding-6',
@@ -225,15 +175,5 @@ export const fundingFeedEntries: FeedEntry[] = [
       reposts: 22,
       saves: 45,
     },
-    contributors: [
-      {
-        profile: users.hundessaNemomssa,
-        amount: 40000,
-      },
-      {
-        profile: users.mariaGarcia,
-        amount: 25000,
-      },
-    ],
   },
 ];

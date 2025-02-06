@@ -30,15 +30,9 @@ interface FeedItemActionsProps {
   metrics?: FeedEntry['metrics'];
   content: Content;
   target?: Content;
-  contributors?: FeedEntry['contributors'];
 }
 
-export const FeedItemActions: FC<FeedItemActionsProps> = ({
-  metrics,
-  content,
-  target,
-  contributors = [],
-}) => {
+export const FeedItemActions: FC<FeedItemActionsProps> = ({ metrics, content, target }) => {
   return (
     <div className="flex items-center space-x-4">
       <ActionButton icon={ChevronUp} count={metrics?.votes} tooltip="Upvote" label="Upvote" />

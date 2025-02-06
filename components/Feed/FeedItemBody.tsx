@@ -6,15 +6,12 @@ import { Button } from '@/components/ui/Button';
 import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
-import { FeedItemHeader } from './FeedItemHeader';
-import { Avatar } from '@/components/ui/Avatar';
 
 interface FeedItemBodyProps {
   content: Content;
   target?: Content;
   context?: Content;
   metrics?: FeedEntry['metrics'];
-  contributors?: FeedEntry['contributors'];
   hideTypeLabel?: boolean;
 }
 
@@ -32,7 +29,6 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
   target,
   context,
   metrics,
-  contributors,
   hideTypeLabel,
 }) => {
   const [showFundModal, setShowFundModal] = useState(false);

@@ -50,10 +50,6 @@ export interface FeedEntry {
   content: Content;
   target?: Content;
   context?: Content;
-  contributors: Array<{
-    profile: AuthorProfile;
-    amount: number;
-  }>;
   metrics?: ContentMetrics;
 }
 
