@@ -3,21 +3,11 @@
 import { FC, useState } from 'react';
 import { Content, FeedEntry } from '@/types/feed';
 import { Button } from '@/components/ui/Button';
-import { AvatarStack } from '@/components/ui/AvatarStack';
-import { Progress } from '@/components/ui/Progress';
-import { Star, Clock, FileText, Plus, FileUp, ChevronDown, Beaker } from 'lucide-react';
-import { formatDeadline } from '@/utils/date';
+import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
-import { RSCBadge } from '@/components/ui/RSCBadge';
-import { ResearchCoinIcon } from '../ui/icons/ResearchCoinIcon';
 import { FeedItemHeader } from './FeedItemHeader';
-import { ContributorsButton } from '../ui/ContributorsButton';
 import { Avatar } from '@/components/ui/Avatar';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHexagonImage, faPlus } from '@fortawesome/pro-solid-svg-icons';
-import { FundResearchModal } from '../modals/FundResearchModal';
-import { FundItem } from '../Fund/FundItem';
 
 interface FeedItemBodyProps {
   content: Content;
@@ -35,7 +25,7 @@ const buildUrl = (item: Content) => {
     .toLowerCase()
     .replace(/ /g, '-')
     .replace(/[^\w-]/g, '');
-  return `/${item.type}/${item.id}/${slug}`;
+  return `/work/${item.id}/${slug}`;
 };
 
 export const FeedItemBody: FC<FeedItemBodyProps> = ({
@@ -67,18 +57,6 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
       switch (item.type) {
         case 'paper':
           return renderPaper(item, expandedPaperIds.has(item.id), () => toggleExpanded(item.id));
-        case 'funding_request':
-          return renderFundingRequest(item);
-        case 'grant':
-          return renderGrant(item);
-        case 'bounty':
-          return renderBounty(item);
-        case 'review':
-          return renderReview(item);
-        case 'contribution':
-          return renderContribution(item);
-        case 'comment':
-          return renderComment(item);
         default:
           return null;
       }
@@ -164,11 +142,6 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
     );
   };
 
-  const renderContribution = (contribution: Content) => {
-    if (contribution.type !== 'contribution') return null;
-    return null;
-  };
-
   const renderPaper = (paper: Content, isExpanded: boolean, onToggleExpand: () => void) => {
     if (paper.type !== 'paper') return null;
 
@@ -177,7 +150,8 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
       return text.slice(0, limit).trim() + '...';
     };
 
-    const isAbstractTruncated = paper.abstract.length > 200;
+    const abstract = paper.abstract || '';
+    const isAbstractTruncated = abstract.length > 200;
 
     return (
       <div>
@@ -185,7 +159,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
           {paper.title}
         </h3>
         <div className="text-sm text-gray-800">
-          <p>{isExpanded ? paper.abstract : truncateAbstract(paper.abstract)}</p>
+          <p>{isExpanded ? abstract : truncateAbstract(abstract)}</p>
           {isAbstractTruncated && (
             <Button
               variant="link"
@@ -205,136 +179,6 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
                 )}
               />
             </Button>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const renderFundingRequest = (fundingRequest: Content) => {
-    if (fundingRequest.type !== 'funding_request') return null;
-
-    return (
-      <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
-          {fundingRequest.title}
-        </h3>
-        <p className="text-sm text-gray-800 mb-2">{fundingRequest.abstract}</p>
-        <FundItem
-          id={parseInt(fundingRequest.id.replace(/[^0-9]/g, ''), 10)}
-          title={fundingRequest.title}
-          status={fundingRequest.status}
-          amount={fundingRequest.amount}
-          goalAmount={fundingRequest.goalAmount}
-          deadline={fundingRequest.deadline}
-          nftRewardsEnabled={false}
-          contributors={contributors?.map((contributor) => ({
-            profile: contributor.profile,
-            amount: contributor.amount,
-          }))}
-          variant="compact"
-        />
-      </div>
-    );
-  };
-
-  const renderGrant = (grant: Content) => {
-    if (grant.type !== 'grant') return null;
-    const deadlineText = formatDeadline(grant.deadline);
-
-    return (
-      <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
-          {grant.title}
-        </h3>
-        <p className="text-sm text-gray-800 mb-2">{grant.abstract}</p>
-        <div className="flex items-center gap-3 text-xs">
-          {grant.amount && <RSCBadge amount={grant.amount} variant="inline" showText />}
-          {grant.deadline && (
-            <div className="flex items-center gap-1 text-gray-500">
-              <Clock className="h-4 w-4" />
-              <span>{deadlineText}</span>
-            </div>
-          )}
-          {metrics?.applicants && metrics.applicants > 0 && (
-            <span className="text-gray-500">
-              {metrics.applicants} Applicant{metrics.applicants !== 1 ? 's' : ''}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center justify-between mt-3">
-          <Button variant="secondary" size="sm" disabled={deadlineText === 'Ended'}>
-            Start Task
-          </Button>
-          {metrics?.applicants && metrics.applicants > 0 && applicants && (
-            <ContributorsButton
-              contributors={applicants.map((profile) => ({
-                profile,
-                amount: 0,
-              }))}
-              onContribute={() => {}}
-            />
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const renderReview = (review: Content) => {
-    if (review.type !== 'review') return null;
-    return (
-      <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-1.5">{review.title}</h3>
-        <p className="text-sm text-gray-800 mb-2">{review.content}</p>
-        {review.score !== undefined && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-gray-800">Score:</span>
-              <div className="flex items-center gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-3.5 w-3.5 ${
-                      i < review.score! ? 'text-yellow-500 fill-current' : 'text-gray-300'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-            <span className="text-xs font-medium text-orange-500">
-              Get paid to become a peer reviewer
-            </span>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderBounty = (bounty: Content) => {
-    if (bounty.type !== 'bounty') return null;
-    const deadlineText = formatDeadline(bounty.deadline);
-
-    return (
-      <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
-          {bounty.title}
-        </h3>
-        <p className="text-sm text-gray-800 mb-2">{bounty.description}</p>
-        <div className="flex items-center gap-3 text-xs">
-          {bounty.amount && <RSCBadge amount={bounty.amount} variant="inline" showText />}
-          {bounty.deadline && (
-            <div className="flex items-center gap-1 text-gray-500">
-              <Clock className="h-4 w-4" />
-              <span>{deadlineText}</span>
-            </div>
-          )}
-        </div>
-        <div className="flex items-center justify-between mt-3">
-          <Button variant="start-task" size="sm" disabled={deadlineText === 'Ended'}>
-            Start Task
-          </Button>
-          {contributors && contributors.length > 0 && (
-            <ContributorsButton contributors={contributors} onContribute={() => {}} />
           )}
         </div>
       </div>

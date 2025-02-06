@@ -1,6 +1,6 @@
 import { Currency, ID } from './root';
 import { createTransformer } from './transformer';
-import { AuthorProfile, transformAuthorProfile } from './user';
+import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 
 export type FundraiseStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
 

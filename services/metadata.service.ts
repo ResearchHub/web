@@ -1,6 +1,7 @@
 import { ApiClient } from './client';
 import { Topic } from '@/types/topic';
-import { AuthorProfile, transformAuthorProfile } from '@/types/user';
+import type { AuthorProfile } from '@/types/authorProfile';
+import { transformAuthorProfile } from '@/types/authorProfile';
 import { ContentMetrics } from '@/types/metrics';
 
 export interface WorkMetadata {
