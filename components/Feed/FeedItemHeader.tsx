@@ -5,7 +5,6 @@ import { Content, FeedActionType } from '@/types/feed';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { formatTimestamp } from '@/utils/date';
-import { RSCBadge } from '@/components/ui/RSCBadge';
 import { formatRSC } from '@/utils/number';
 
 interface FeedItemHeaderProps {
@@ -46,13 +45,11 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
 
   const getAuthors = () => {
     if (content.type === 'paper') {
-      return [
-        ...content.authors.map((author) => ({
-          name: author.fullName,
-          verified: author.user?.isVerified,
-          profileUrl: author.profileUrl,
-        })),
-      ];
+      return content.authors.map((author) => ({
+        name: author.fullName,
+        verified: author.user?.isVerified,
+        profileUrl: author.profileUrl,
+      }));
     }
 
     return [];

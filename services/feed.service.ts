@@ -37,6 +37,13 @@ export class FeedService {
   private static readonly BASE_PATH = '/api/feed';
 
   private static transformContentObject(contentObject: any, type: string): Content {
+    let transformedActor;
+    if (contentObject.author) {
+      transformedActor = transformAuthorProfile(contentObject.author);
+    } else if (contentObject.authors?.length > 0) {
+      transformedActor = transformAuthorProfile(contentObject.authors[0]);
+    }
+
     const baseContent = {
       id: contentObject.id.toString(),
       type: type.toLowerCase() as Content['type'],
@@ -49,9 +56,7 @@ export class FeedService {
             slug: '',
           },
       slug: contentObject.slug,
-      actor: transformAuthorProfile(
-        contentObject.author ? contentObject.author : contentObject.authors[0]
-      ),
+      actor: transformedActor,
     };
 
     switch (type.toLowerCase()) {
