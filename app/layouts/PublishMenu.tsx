@@ -146,11 +146,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
         </div>
       </BaseMenu>
 
-      <CreateBountyModal
-        isOpen={isBountyModalOpen}
-        onClose={() => setIsBountyModalOpen(false)}
-        workId=""
-      />
+      <CreateBountyModal isOpen={isBountyModalOpen} onClose={() => setIsBountyModalOpen(false)} />
     </div>
   );
 };

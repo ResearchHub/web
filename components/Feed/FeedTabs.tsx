@@ -4,8 +4,7 @@ import { FC, useState } from 'react';
 import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
 import { Settings } from 'lucide-react';
-import { InterestSelector } from '@/components/InterestSelector/InterestSelector';
-import { Interest } from '@/store/interestStore';
+import { InterestSelector, Interest } from '@/components/InterestSelector/InterestSelector';
 
 type FeedTab = 'for-you' | 'following' | 'popular' | 'latest';
 
@@ -64,7 +63,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({ activeTab, onTabChange, onCustomiz
 
       {isCustomizing && (
         <div className="mt-6">
-          <InterestSelector mode="preferences" onComplete={handleInterestSelection} />
+          <InterestSelector mode="preferences" />
         </div>
       )}
     </div>

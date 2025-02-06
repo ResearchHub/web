@@ -1,49 +1,14 @@
 import { ApiClient } from './client';
-import { Work, WorkType, Authorship, transformAuthorship } from '@/types/work';
-import { Hub } from '@/types/hub';
+import { Work, transformPost } from '@/types/work';
 import sanitizeHtml, { Attributes } from 'sanitize-html';
+import { ApiError } from './types';
 
 interface GetContentOptions {
   cleanIntroEmptyContent?: boolean;
 }
 
-function transformWorkFromPost(post: any): Work {
-  return {
-    id: post.id,
-    type: post.document_type.toLowerCase() as WorkType,
-    title: post.title,
-    slug: post.slug,
-    createdDate: post.created_date,
-    publishedDate: post.created_date,
-    authors: Array.isArray(post.authors) ? post.authors.map(transformAuthorship) : [],
-    abstract: undefined,
-    unifiedDocumentId: post.unified_document_id,
-    previewContent: post.full_markdown,
-    contentUrl: post.post_src,
-    doi: post.doi,
-    journal: undefined,
-    topics: Array.isArray(post.hubs)
-      ? post.hubs.map((hub: any) => ({
-          id: hub.id,
-          name: hub.name,
-          slug: hub.slug,
-        }))
-      : [],
-    formats: [],
-    license: undefined,
-    pdfCopyrightAllowsDisplay: true,
-    figures: [],
-    versions: [],
-    metrics: {
-      votes: post.score || 0,
-      comments: post.discussion_count || 0,
-      saves: 0,
-      reviewScore: post.unified_document?.reviews?.avg || 0,
-      reviews: post.unified_document?.reviews?.count || 0,
-      earned: 0,
-      views: 0,
-    },
-  };
+interface PostOptions {
+  formData: FormData;
 }
 
 export class PostService {
@@ -51,7 +16,13 @@ export class PostService {
 
   static async get(id: string): Promise<Work> {
     const response = await ApiClient.get<any>(`${this.BASE_PATH}/${id}/`);
-    return transformWorkFromPost(response);
+    return transformPost(response);
+  }
+
+  static async post({ formData }: PostOptions): Promise<Work> {
+    const response = await ApiClient.post<any>(`${this.BASE_PATH}/`, formData);
+
+    return transformPost(response);
   }
 
   static async getContent(url: string, options: GetContentOptions = {}): Promise<string> {

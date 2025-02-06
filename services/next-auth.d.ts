@@ -1,10 +1,10 @@
 // services/next-auth.d.ts
 import 'next-auth';
-import type { User } from '@/types/user';
+import type { User as RHUser } from '@/types/user';
 
 declare module 'next-auth' {
   interface Session {
-    user: User;
+    user: RHUser;
     authToken?: string;
     isLoggedIn?: boolean;
     error?: string;
@@ -14,6 +14,10 @@ declare module 'next-auth' {
     authToken?: string;
     isLoggedIn?: boolean;
     error?: string;
-    user?: User;
+    user?: RHUser;
+  }
+
+  interface User {
+    authToken?: string;
   }
 }

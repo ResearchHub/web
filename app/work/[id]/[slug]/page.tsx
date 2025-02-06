@@ -43,6 +43,10 @@ export default async function WorkPage({ params }: Props) {
   const work = await getWork(resolvedParams.id);
   const metadata = await MetadataService.get(work.unifiedDocumentId.toString());
 
+  if (!work) {
+    notFound();
+  }
+
   return (
     <PageLayout rightSidebar={<WorkRightSidebar work={work} metadata={metadata} />}>
       <Suspense>

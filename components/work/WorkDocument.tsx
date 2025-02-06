@@ -1,26 +1,46 @@
 'use client';
 
-import { useState } from 'react';
-import { BarChart2, Coins } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { BarChart2, Coins, CheckCircle } from 'lucide-react';
 import { Work } from '@/types/work';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { WorkRightSidebar } from './WorkRightSidebar';
 import { WorkReviews } from './WorkReviews';
 import { WorkBounties } from './WorkBounties';
-import { WorkComments } from './WorkComments';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { WorkLineItems } from './WorkLineItems';
 import { WorkMetadata } from '@/services/metadata.service';
 import { DocumentViewer } from './DocumentViewer';
+import { CommentEditor } from '@/components/Comment/CommentEditor';
+import { CommentFeed } from '@/components/Comment/CommentFeed';
 
 interface WorkDocumentProps {
   work: Work;
   metadata: WorkMetadata;
+  defaultTab?: 'paper' | 'reviews' | 'bounties' | 'comments';
 }
 
-export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
-  const [activeTab, setActiveTab] = useState('paper');
+export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocumentProps) => {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [rewardModalOpen, setRewardModalOpen] = useState(false);
   const [showMobileMetrics, setShowMobileMetrics] = useState(false);
+
+  // Update URL when tab changes
+  const handleTabChange = (tab: typeof activeTab) => {
+    setActiveTab(tab);
+    // Construct the URL based on the tab
+    const baseUrl = `/work/${work.id}/${work.slug}`;
+    if (tab === 'comments') {
+      router.push(`${baseUrl}/conversation`);
+    } else if (tab === 'reviews') {
+      router.push(`${baseUrl}/reviews`);
+    } else if (tab === 'bounties') {
+      router.push(`${baseUrl}/bounties`);
+    } else {
+      router.push(baseUrl);
+    }
+  };
 
   // Mock data - would come from API
   const openBounties = [
@@ -93,7 +113,7 @@ export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
                 ? 'text-indigo-600 border-indigo-600'
                 : 'text-gray-500 border-transparent hover:text-gray-700'
             }`}
-            onClick={() => setActiveTab('paper')}
+            onClick={() => handleTabChange('paper')}
           >
             Paper
           </button>
@@ -103,7 +123,7 @@ export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
                 ? 'text-indigo-600 border-b-2 border-indigo-600'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
-            onClick={() => setActiveTab('reviews')}
+            onClick={() => handleTabChange('reviews')}
           >
             Reviews
             <span
@@ -122,7 +142,7 @@ export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
                 ? 'text-indigo-600 border-b-2 border-indigo-600'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
-            onClick={() => setActiveTab('bounties')}
+            onClick={() => handleTabChange('bounties')}
           >
             Bounties
             <span
@@ -141,7 +161,7 @@ export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
                 ? 'text-indigo-600 border-b-2 border-indigo-600'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
-            onClick={() => setActiveTab('comments')}
+            onClick={() => handleTabChange('comments')}
           >
             Comments
             <span
@@ -179,7 +199,15 @@ export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
 
         {activeTab === 'reviews' && <WorkReviews workId={work.id} />}
         {activeTab === 'bounties' && <WorkBounties workId={work.id.toString()} />}
-        {activeTab === 'comments' && <WorkComments workId={work.id} />}
+        {activeTab === 'comments' && (
+          <div className="space-y-6">
+            <CommentFeed
+              documentId={work.id}
+              contentType={work.contentType}
+              commentType="GENERIC_COMMENT"
+            />
+          </div>
+        )}
       </div>
       {/* Mobile sidebar overlay */}
       <div

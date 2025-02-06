@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import { cn } from '@/utils/styles';
 import { ResearchCoinIcon } from './ResearchCoinIcon';
-import { AuthorProfile } from '@/types/user';
+import type { AuthorProfile } from '@/types/authorProfile';
 import { formatRSC } from '@/utils/number';
 import { Button } from '../Button';
 import { ContributorsButton } from '../ContributorsButton';

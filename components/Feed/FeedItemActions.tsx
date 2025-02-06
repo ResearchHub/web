@@ -2,11 +2,9 @@
 
 import { FC } from 'react';
 import { Content, FeedEntry } from '@/types/feed';
-import { MessageCircle, Repeat, MoreHorizontal, ChevronUp, PlusIcon } from 'lucide-react';
+import { MessageCircle, Repeat, MoreHorizontal, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FeedItemMenu } from '@/components/menus/FeedItemMenu';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { ContributeRSC } from '../ui/icons/ContributeRSC';
 
 interface ActionButtonProps {
   icon: any;

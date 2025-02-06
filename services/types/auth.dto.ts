@@ -6,8 +6,9 @@ export interface LoginApiRequest {
 }
 
 export interface LoginApiResponse {
-  user: User;
+  user?: User;
   token?: string;
+  key?: string;
 }
 
 export interface RegisterApiRequest {

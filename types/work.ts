@@ -1,14 +1,15 @@
-import { AuthorProfile } from './user';
+import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { ContentMetrics } from './metrics';
 import { Journal } from './journal';
 import { Topic } from './topic';
 import { createTransformer, BaseTransformed } from './transformer';
-import { transformAuthorProfile } from './user';
 import { Hub } from './hub';
 
 export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration';
 
 export type AuthorPosition = 'first' | 'middle' | 'last';
+
+export type ContentType = 'post' | 'paper' | 'preregistration';
 
 export interface Authorship {
   authorProfile: AuthorProfile;
@@ -28,6 +29,7 @@ export type DocumentVersion = {
 export interface Work {
   id: number;
   type: WorkType;
+  contentType: ContentType;
   title: string;
   slug: string;
   createdDate: string;
@@ -95,6 +97,7 @@ export const transformDocumentVersion = createTransformer<any, DocumentVersion>(
 export const transformWork = createTransformer<any, Work>((raw) => ({
   id: raw.id,
   type: raw.work_type as WorkType,
+  contentType: raw.content_type as ContentType,
   title: raw.title || raw.paper_title,
   slug: raw.slug,
   createdDate: raw.created_date,
@@ -133,4 +136,20 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
     views: raw.views_count || 0,
   },
   unifiedDocumentId: raw.unified_document.id,
+}));
+
+export const transformPost = createTransformer<any, Work>((raw) => ({
+  ...transformWork(raw),
+  contentType: 'post',
+  publishedDate: raw.created_date, // Posts use created_date for both
+  previewContent: raw.full_markdown,
+  contentUrl: raw.post_src,
+  formats: [], // Posts don't have formats
+  license: undefined,
+  pdfCopyrightAllowsDisplay: true,
+}));
+
+export const transformPaper = createTransformer<any, Work>((raw) => ({
+  ...transformWork(raw),
+  contentType: raw.work_type === 'preregistration' ? 'preregistration' : 'paper',
 }));

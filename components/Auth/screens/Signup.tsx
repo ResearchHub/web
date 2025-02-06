@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AuthService } from '@/services/auth.service';
 import { ApiError } from '@/services/types/api';
 import { BaseScreenProps } from '../types';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
@@ -26,6 +27,8 @@ export default function Signup({
   const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,21 +91,39 @@ export default function Signup({
           disabled
         />
 
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          className="w-full p-3 border rounded mb-4"
-        />
+        <div className="relative mb-4">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            className="w-full p-3 border rounded pr-12"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-[50%] -translate-y-[50%] text-gray-500 hover:text-gray-700"
+          >
+            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+          </button>
+        </div>
 
-        <input
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Confirm password"
-          className="w-full p-3 border rounded mb-4"
-        />
+        <div className="relative mb-4">
+          <input
+            type={showConfirmPassword ? 'text' : 'password'}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Confirm password"
+            className="w-full p-3 border rounded pr-12"
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            className="absolute right-3 top-[50%] -translate-y-[50%] text-gray-500 hover:text-gray-700"
+          >
+            {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+          </button>
+        </div>
 
         <button
           type="submit"
