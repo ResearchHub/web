@@ -6,6 +6,7 @@ import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { formatTimestamp } from '@/utils/date';
 import { formatRSC } from '@/utils/number';
+import { AuthorProfile } from '@/types/authorProfile';
 
 interface FeedItemHeaderProps {
   action: FeedActionType;
@@ -33,7 +34,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
 
   const getAvatarItems = () => {
     if (content.type === 'paper') {
-      return content.authors.map((author) => ({
+      return content.authors.map((author: AuthorProfile) => ({
         src: author.profileImage,
         alt: author.fullName,
         tooltip: author.fullName,
@@ -45,7 +46,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
 
   const getAuthors = () => {
     if (content.type === 'paper') {
-      return content.authors.map((author) => ({
+      return content.authors.map((author: AuthorProfile) => ({
         name: author.fullName,
         verified: author.user?.isVerified,
         profileUrl: author.profileUrl,
