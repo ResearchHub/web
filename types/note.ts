@@ -33,34 +33,6 @@ export interface NoteApiItem {
   title: string;
 }
 
-export interface NoteContentApiResponse {
-  id: number;
-  access: NoteAccess;
-  latest_version: {
-    id: number;
-    src: string;
-    created_date: string;
-    plain_text: string;
-    note: number;
-  };
-  organization: {
-    id: number;
-    member_count: number;
-    user_permission: {
-      access_type: string;
-    };
-    created_date: string;
-    updated_date: string;
-    cover_image: string | null;
-    description: string;
-    name: string;
-    slug: string;
-  };
-  created_date: string;
-  updated_date: string;
-  title: string;
-}
-
 export type TransformedNote = Note & BaseTransformed;
 
 export const transformNote = (data: NoteApiItem): Note => ({
@@ -77,7 +49,7 @@ export const transformNote = (data: NoteApiItem): Note => ({
   title: data.title,
 });
 
-export const transformNoteContent = (data: NoteContentApiResponse): NoteContent => ({
+export const transformNoteContent = (data: any): NoteContent => ({
   id: data.id,
   access: data.access,
   organization: {
@@ -89,8 +61,8 @@ export const transformNoteContent = (data: NoteContentApiResponse): NoteContent 
   createdDate: data.created_date,
   updatedDate: data.updated_date,
   title: data.title,
-  content: data.latest_version.src,
-  versionId: data.latest_version.id,
-  versionDate: data.latest_version.created_date,
-  plainText: data.latest_version.plain_text,
+  content: data.latest_version?.src || '',
+  versionId: data.latest_version?.id || 0,
+  versionDate: data.latest_version?.created_date || data.created_date,
+  plainText: data.latest_version?.plain_text || '',
 });
