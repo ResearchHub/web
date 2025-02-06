@@ -3,7 +3,7 @@ import { ContentMetrics } from './metrics';
 import { Journal } from './journal';
 import { Topic } from './topic';
 import { transformTopic } from './work';
-import { createTransformer } from './transformer';
+import { createTransformer, BaseTransformed } from './transformer';
 
 export type FeedActionType = 'repost' | 'contribute' | 'publish' | 'post';
 
@@ -129,13 +129,10 @@ export interface FeedApiResponse {
   results: FeedResponse[];
 }
 
-export const transformContentObject = createTransformer<
-  {
-    contentObject: any;
-    type: string;
-  },
-  Content
->((params) => {
+export type TransformedContent = Content & BaseTransformed;
+export type TransformedFeedEntry = FeedEntry & BaseTransformed;
+
+const baseTransformContentObject = (params: { contentObject: any; type: string }): Content => {
   const { contentObject, type } = params;
   let transformedActor;
   if (contentObject.author) {
@@ -180,7 +177,12 @@ export const transformContentObject = createTransformer<
     default:
       throw new Error(`Unknown content type: ${type}`);
   }
-});
+};
+
+export const transformContentObject = createTransformer<
+  { contentObject: any; type: string },
+  Content
+>((params) => baseTransformContentObject(params));
 
 export const transformFeedEntry = createTransformer<FeedResponse, FeedEntry>((response) => {
   const contentType = response.content_type.toLowerCase();
