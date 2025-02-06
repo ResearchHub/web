@@ -7,7 +7,7 @@ import { createTransformer, BaseTransformed } from './transformer';
 
 export type FeedActionType = 'repost' | 'contribute' | 'publish' | 'post';
 
-export type ContentType = 'paper' | 'funding_request' | 'contribution';
+export type ContentType = 'paper' | 'funding_request';
 
 interface BaseContent {
   id: string;
@@ -41,12 +41,7 @@ export interface FundingRequest extends BaseContent {
   preregistered?: boolean;
 }
 
-export interface Contribution extends BaseContent {
-  type: 'contribution';
-  amount: number;
-}
-
-export type Content = Paper | FundingRequest | Contribution;
+export type Content = Paper | FundingRequest;
 
 export interface FeedEntry {
   id: string;
