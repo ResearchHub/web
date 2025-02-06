@@ -53,7 +53,7 @@ All paths are relative to the root of the project.
 ## Main Feed
 
 - `components/Feed/Feed.tsx` is the main feed component
-- Feed item types are currently loaded from `store/feedStore.ts`
+- Feed item types are fetched from the /feed endpoint
 - actions are: publish, repost, post, contribute
 - types are: grant, paper, review, comment, contribution
 

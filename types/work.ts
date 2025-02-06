@@ -1,9 +1,8 @@
-import { AuthorProfile } from './user';
+import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { ContentMetrics } from './metrics';
 import { Journal } from './journal';
 import { Topic } from './topic';
 import { createTransformer, BaseTransformed } from './transformer';
-import { transformAuthorProfile } from './user';
 import { Hub } from './hub';
 
 export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration';

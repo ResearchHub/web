@@ -6,7 +6,7 @@ const nextConfig = {
     minimumCacheTTL: 60,
     domains: ['images.unsplash.com'],
   },
-  productionBrowserSourceMaps: false,
+  productionBrowserSourceMaps: process.env.VERCEL_ENV === 'preview',
   modularizeImports: {
     'lodash-es': {
       transform: 'lodash-es/{{member}}',

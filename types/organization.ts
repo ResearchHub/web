@@ -1,4 +1,4 @@
-import type { AuthorProfile } from './user';
+import type { AuthorProfile } from './authorProfile';
 
 export type OrganizationRole = 'ADMIN' | 'EDITOR' | 'VIEWER';
 

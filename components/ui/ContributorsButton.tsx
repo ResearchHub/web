@@ -4,8 +4,7 @@ import { useState } from 'react';
 import { Button } from './Button';
 import { AvatarStack } from './AvatarStack';
 import { ContributorModal } from '../modals/ContributorModal';
-import { AuthorProfile } from '@/types/user';
-import { cn } from '@/utils/styles';
+import type { AuthorProfile } from '@/types/authorProfile';
 
 interface ContributorsButtonProps {
   contributors: Array<{
