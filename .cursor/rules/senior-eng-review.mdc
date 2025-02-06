@@ -51,6 +51,7 @@ globs:
 
    - Use React Context for global or shared data rather than implementing multiple fetch calls or storing redundant data in each component.
    - Avoid heavy local caching or memoization beyond what React already provides; excessive caching can introduce staleness bugs and complicate the code.
+   - Avoid React Query.
    - Fetch data once (for instance, in a provider) and rely on that single source of truth across your application.
    - Keep caching boundaries small: if data is needed by multiple components, lifting it into Context makes sense; otherwise, store it locally.
    - Be mindful of Next.js server/client boundaries; avoid turning everything into a client-side component, as it diminishes server-rendering advantages.
@@ -138,3 +139,10 @@ globs:
       - ❌ `OrganizationHeader` (describes location/styling)
       - ✅ `NoteList` (describes content type)
       - ❌ `SidebarContent` (too generic/location-based)
+
+21. **Avoid Premature Library Adoption**
+
+    - Carefully evaluate third-party libraries before adoption, even popular ones like React Query. 
+    - Consider future architecture plans (e.g., potential GraphQL migration) when making library choices
+    - Prefer built-in React patterns (contexts, custom hooks) for data fetching until complexity justifies additional abstractions
+    - Development-mode double rendering (from React Strict Mode) is expected; validate actual issues in staging/production before optimizing
