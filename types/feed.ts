@@ -7,7 +7,7 @@ import { createTransformer, BaseTransformed } from './transformer';
 
 export type FeedActionType = 'repost' | 'contribute' | 'publish' | 'post';
 
-export type ContentType = 'paper' | 'comment' | 'funding_request' | 'contribution';
+export type ContentType = 'paper' | 'funding_request' | 'contribution';
 
 interface BaseContent {
   id: string;
@@ -25,12 +25,6 @@ export interface Paper extends BaseContent {
   doi?: string;
   journal?: Journal;
   authors: AuthorProfile[];
-}
-
-export interface Comment extends BaseContent {
-  type: 'comment';
-  content: string;
-  parent?: Content;
 }
 
 export type FundingRequestStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
@@ -52,7 +46,7 @@ export interface Contribution extends BaseContent {
   amount: number;
 }
 
-export type Content = Paper | Comment | FundingRequest | Contribution;
+export type Content = Paper | FundingRequest | Contribution;
 
 export interface FeedEntry {
   id: string;

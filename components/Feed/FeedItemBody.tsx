@@ -69,7 +69,6 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
     };
 
     const isCard = isTarget || item.type === 'paper';
-    const isComment = item.type === 'comment';
 
     const renderCard = (children: React.ReactNode) => {
       if (!isCard) return children;
@@ -83,60 +82,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
       return isCard ? <Link href={buildUrl(item)}>{cardContent}</Link> : cardContent;
     };
 
-    return renderCard(
-      <div>
-        {!isComment && !hideTypeLabel && (
-          <div className="flex items-center gap-2 mb-2">
-            <div className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
-              {getTypeLabel(item.type)}
-            </div>
-            {item.type === 'paper' && 'journal' in item && item.journal && (
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border border-gray-200 bg-gray-50 hover:bg-gray-200 transition-colors">
-                <Avatar
-                  src={item.journal.imageUrl}
-                  alt={item.journal.slug}
-                  size="xxs"
-                  className="ring-1 ring-gray-200"
-                />
-                <span className="text-gray-700">{item.journal.slug}</span>
-              </div>
-            )}
-          </div>
-        )}
-        {itemContent}
-      </div>
-    );
-  };
-
-  const renderComment = (comment: Content) => {
-    if (comment.type !== 'comment') return null;
-
-    const commentContent = comment.type === 'comment' ? comment.content : '';
-
-    return (
-      <div>
-        <div className="text-sm text-gray-800">{commentContent}</div>
-        {comment.parent ? (
-          <div className="mt-2 border p-2 border-gray-200 rounded-lg bg-gray-50 pl-3">
-            <div>
-              <FeedItemHeader
-                action="post"
-                timestamp={comment.parent.timestamp}
-                content={comment.parent}
-                size="xs"
-              />
-              <div className="ml-8">
-                <div className="text-sm text-gray-800">
-                  {comment.parent.type === 'comment' ? comment.parent.content : ''}
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          context && <div className="mt-2">{renderItem(context, true)}</div>
-        )}
-      </div>
-    );
+    return renderCard(<div>{itemContent}</div>);
   };
 
   const renderPaper = (paper: Content, isExpanded: boolean, onToggleExpand: () => void) => {
