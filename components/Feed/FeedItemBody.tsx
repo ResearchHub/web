@@ -14,7 +14,6 @@ interface FeedItemBodyProps {
   target?: Content;
   context?: Content;
   metrics?: FeedEntry['metrics'];
-  applicants?: FeedEntry['applicants'];
   contributors?: FeedEntry['contributors'];
   hideTypeLabel?: boolean;
 }
@@ -33,7 +32,6 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
   target,
   context,
   metrics,
-  applicants,
   contributors,
   hideTypeLabel,
 }) => {

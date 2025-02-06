@@ -95,7 +95,6 @@ export interface FeedEntry {
     profile: AuthorProfile;
     amount: number;
   }>;
-  applicants?: AuthorProfile[];
   metrics?: ContentMetrics;
 }
 

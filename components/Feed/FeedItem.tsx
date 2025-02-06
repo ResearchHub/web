@@ -32,7 +32,6 @@ export const FeedItem: FC<FeedItemProps> = ({ entry, isFirst }) => {
             context={context}
             metrics={metrics}
             contributors={entry.contributors}
-            applicants={entry.applicants}
           />
 
           <div className="pt-3">
