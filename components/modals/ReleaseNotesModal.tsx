@@ -124,6 +124,7 @@ export function ReleaseNotesModal({ isOpen, onClose }: ReleaseNotesModalProps) {
                             <li>Connected funding creation workflow to backend API</li>
                             <li>Connected bounty creation to backend API</li>
                             <li>Connected Fund Research to backend API</li>
+                            <li>Implemented feed based on user follows</li>
                           </ul>
                         </div>
 

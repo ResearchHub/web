@@ -1,4 +1,4 @@
-import { User, AuthorProfile } from '@/types/user';
+import type { AuthorProfile } from '@/types/authorProfile';
 
 export const users: Record<string, AuthorProfile> = {
   researchHub: {
@@ -10,13 +10,11 @@ export const users: Record<string, AuthorProfile> = {
     profileUrl: '/author/1',
     user: {
       id: 1,
-      username: 'researchhub',
       email: 'contact@researchhub.org',
       firstName: 'ResearchHub',
       lastName: 'Foundation',
       fullName: 'ResearchHub Foundation',
       isVerified: true,
-      isOrganization: true,
     },
   },
   dominikus: {
@@ -28,13 +26,11 @@ export const users: Record<string, AuthorProfile> = {
     profileUrl: '/author/2',
     user: {
       id: 2,
-      username: 'dominikus',
       email: 'dominikus@example.com',
       firstName: 'Dominikus',
       lastName: 'Brian',
       fullName: 'Dominikus Brian',
       isVerified: true,
-      isOrganization: false,
     },
   },
   bioRxiv: {
@@ -46,13 +42,11 @@ export const users: Record<string, AuthorProfile> = {
     profileUrl: '/author/3',
     user: {
       id: 3,
-      username: 'biorxiv',
       email: 'contact@biorxiv.org',
       firstName: 'bioRxiv',
       lastName: 'CSHL',
       fullName: 'bioRxiv (Cold Spring Harbor Laboratory)',
       isVerified: true,
-      isOrganization: true,
     },
   },
   adamDraper: {
@@ -63,13 +57,11 @@ export const users: Record<string, AuthorProfile> = {
     profileUrl: '/author/4',
     user: {
       id: 4,
-      username: 'adamdraper',
       email: 'adam@example.com',
       firstName: 'Adam',
       lastName: 'Draper',
       fullName: 'Adam Draper',
       isVerified: true,
-      isOrganization: false,
     },
   },
   elenaRodriguez: {
@@ -81,13 +73,11 @@ export const users: Record<string, AuthorProfile> = {
     profileUrl: '/author/5',
     user: {
       id: 5,
-      username: 'elenarodriguez',
       email: 'elena@example.com',
       firstName: 'Elena',
       lastName: 'Rodriguez',
       fullName: 'Dr. Elena Rodriguez',
       isVerified: true,
-      isOrganization: false,
     },
   },
   hundessaNemomssa: {
@@ -99,13 +89,11 @@ export const users: Record<string, AuthorProfile> = {
     profileUrl: '/author/6',
     user: {
       id: 6,
-      username: 'hundessa',
       email: 'hundessa@example.com',
       firstName: 'Hundessa',
       lastName: 'Nemomssa',
       fullName: 'Hundessa Nemomssa',
       isVerified: true,
-      isOrganization: false,
     },
   },
   alexThompson: {
@@ -117,13 +105,11 @@ export const users: Record<string, AuthorProfile> = {
     profileUrl: '/author/7',
     user: {
       id: 7,
-      username: 'alexthompson',
       email: 'alex@example.com',
       firstName: 'Alex',
       lastName: 'Thompson',
       fullName: 'Alex Thompson',
       isVerified: true,
-      isOrganization: false,
     },
   },
   sarahChen: {
@@ -135,13 +121,11 @@ export const users: Record<string, AuthorProfile> = {
     profileUrl: '/author/8',
     user: {
       id: 8,
-      username: 'sarahchen',
       email: 'sarah@example.com',
       firstName: 'Sarah',
       lastName: 'Chen',
       fullName: 'Sarah Chen',
       isVerified: true,
-      isOrganization: false,
     },
   },
   mariaGarcia: {
@@ -153,13 +137,11 @@ export const users: Record<string, AuthorProfile> = {
     profileUrl: '/author/9',
     user: {
       id: 9,
-      username: 'mariagarcia',
       email: 'maria@example.com',
       firstName: 'Maria',
       lastName: 'Garcia',
       fullName: 'Maria Garcia',
       isVerified: true,
-      isOrganization: false,
     },
   },
   davidKumar: {
@@ -171,13 +153,11 @@ export const users: Record<string, AuthorProfile> = {
     profileUrl: '/author/10',
     user: {
       id: 10,
-      username: 'davidkumar',
       email: 'david@example.com',
       firstName: 'David',
       lastName: 'Kumar',
       fullName: 'David Kumar',
       isVerified: true,
-      isOrganization: false,
     },
   },
   jamesWilson: {
@@ -189,13 +169,11 @@ export const users: Record<string, AuthorProfile> = {
     profileUrl: '/author/11',
     user: {
       id: 11,
-      username: 'jameswilson',
       email: 'james@example.com',
       firstName: 'James',
       lastName: 'Wilson',
       fullName: 'James Wilson',
       isVerified: false,
-      isOrganization: false,
     },
   },
   mariaPatel: {
@@ -207,13 +185,11 @@ export const users: Record<string, AuthorProfile> = {
     profileUrl: '/author/12',
     user: {
       id: 12,
-      username: 'mariapatel',
       email: 'mariap@example.com',
       firstName: 'Maria',
       lastName: 'Patel',
       fullName: 'Maria Patel',
       isVerified: true,
-      isOrganization: false,
     },
   },
   stanfordAILab: {
@@ -224,13 +200,11 @@ export const users: Record<string, AuthorProfile> = {
     profileUrl: '/author/13',
     user: {
       id: 13,
-      username: 'stanfordai',
       email: 'ai@stanford.edu',
       firstName: 'Stanford',
       lastName: 'AI Lab',
       fullName: 'Stanford AI Lab',
       isVerified: true,
-      isOrganization: true,
     },
   },
   climateResearchInstitute: {
@@ -242,13 +216,11 @@ export const users: Record<string, AuthorProfile> = {
     profileUrl: '/author/14',
     user: {
       id: 14,
-      username: 'climateresearch',
       email: 'contact@climate-research.org',
       firstName: 'Climate Research',
       lastName: 'Institute',
       fullName: 'Climate Research Institute',
       isVerified: true,
-      isOrganization: true,
     },
   },
   openBiologyInitiative: {
@@ -259,13 +231,11 @@ export const users: Record<string, AuthorProfile> = {
     profileUrl: '/author/15',
     user: {
       id: 15,
-      username: 'openbiology',
       email: 'contact@obi.org',
       firstName: 'Open Biology',
       lastName: 'Initiative',
       fullName: 'Open Biology Initiative',
       isVerified: true,
-      isOrganization: true,
     },
   },
   nationalScienceFoundation: {
@@ -276,13 +246,11 @@ export const users: Record<string, AuthorProfile> = {
     profileUrl: '/author/16',
     user: {
       id: 16,
-      username: 'nsf',
       email: 'contact@nsf.gov',
       firstName: 'National Science',
       lastName: 'Foundation',
       fullName: 'National Science Foundation',
       isVerified: true,
-      isOrganization: true,
     },
   },
 };
