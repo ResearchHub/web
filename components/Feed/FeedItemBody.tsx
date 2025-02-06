@@ -68,8 +68,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
       return type.replace('_', ' ');
     };
 
-    const isCard =
-      isTarget || item.type === 'paper' || item.type === 'review' || item.type === 'grant';
+    const isCard = isTarget || item.type === 'paper';
     const isComment = item.type === 'comment';
 
     const renderCard = (children: React.ReactNode) => {

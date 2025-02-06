@@ -7,14 +7,7 @@ import { createTransformer, BaseTransformed } from './transformer';
 
 export type FeedActionType = 'repost' | 'contribute' | 'publish' | 'post';
 
-export type ContentType =
-  | 'paper'
-  | 'comment'
-  | 'funding_request'
-  | 'bounty'
-  | 'grant'
-  | 'review'
-  | 'contribution';
+export type ContentType = 'paper' | 'comment' | 'funding_request' | 'contribution';
 
 interface BaseContent {
   id: string;
@@ -54,35 +47,12 @@ export interface FundingRequest extends BaseContent {
   preregistered?: boolean;
 }
 
-export interface Bounty extends BaseContent {
-  type: 'bounty';
-  title?: string;
-  description: string;
-  amount: number;
-  deadline: string;
-}
-
-export interface Grant extends BaseContent {
-  type: 'grant';
-  title: string;
-  abstract: string;
-  amount: number;
-  deadline: string;
-}
-
-export interface Review extends BaseContent {
-  type: 'review';
-  title?: string;
-  content: string;
-  score?: number;
-}
-
 export interface Contribution extends BaseContent {
   type: 'contribution';
   amount: number;
 }
 
-export type Content = Paper | Comment | FundingRequest | Bounty | Grant | Review | Contribution;
+export type Content = Paper | Comment | FundingRequest | Contribution;
 
 export interface FeedEntry {
   id: string;
