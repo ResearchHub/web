@@ -6,9 +6,9 @@ import { SidebarSection } from './SidebarSection';
 import { NoteList } from './NoteList';
 import { OrganizationSwitcher } from './OrganizationSwitcher';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { useOrganizationNotes } from '@/hooks/useOrganizationNotes';
-import { useParams, useRouter } from 'next/navigation';
-import { useCallback } from 'react';
+import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
+import { useRouter, useParams } from 'next/navigation';
+import { useCallback, useEffect } from 'react';
 import type { Organization } from '@/types/organization';
 
 /**
@@ -17,19 +17,26 @@ import type { Organization } from '@/types/organization';
  */
 const LeftSidebar = () => {
   const router = useRouter();
-  const { selectedOrg, organizations, isLoading: isLoadingOrgs } = useOrganizationContext();
   const params = useParams();
   const currentOrgSlug = params?.orgSlug as string;
-
-  const { notes, isLoading: isLoadingNotes } = useOrganizationNotes(selectedOrg, {
-    currentOrgSlug,
-  });
+  const { selectedOrg, organizations, isLoading: isLoadingOrgs } = useOrganizationContext();
+  const { notes, isLoading: isLoadingNotes } = useOrganizationNotesContext();
 
   const handleOrgSelect = useCallback(
     async (org: Organization) => {
-      await router.push(`/notebook/${org.slug}`);
+      // If we're already on this org's page, no need to navigate
+      if (org.slug === currentOrgSlug) {
+        return;
+      }
+
+      // If we have notes for the current org, navigate to the first note
+      // Otherwise, just navigate to the org's page
+      const targetPath =
+        notes.length > 0 ? `/notebook/${org.slug}/${notes[0].id}` : `/notebook/${org.slug}`;
+
+      await router.push(targetPath);
     },
-    [router]
+    [router, currentOrgSlug, notes]
   );
 
   return (

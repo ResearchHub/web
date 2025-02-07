@@ -7,6 +7,7 @@ import { PublishModal } from '@/components/modals/PublishModal';
 import { PublishingSidebar } from '@/components/Editor/components/Sidebar/PublishingSidebar';
 import './globals.css';
 import 'cal-sans';
+import { OrganizationNotesProvider } from '@/contexts/OrganizationNotesContext';
 
 import '@fontsource/inter/100.css';
 import '@fontsource/inter/200.css';
@@ -24,27 +25,29 @@ export default function NotebookLayout({ children }: { children: React.ReactNode
   const [articleType, setArticleType] = useState<ArticleType>('research');
 
   return (
-    <div className="flex min-h-screen">
-      <div className="hidden xl:block">
-        <LeftSidebar />
-      </div>
-      <div className="flex flex-1">
-        <div className="flex-1">
-          <TopBar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
-          <main className="min-h-[calc(100vh-64px)]">{children}</main>
+    <OrganizationNotesProvider>
+      <div className="flex min-h-screen">
+        <div className="hidden xl:block">
+          <LeftSidebar />
         </div>
-        <PublishingSidebar
-          articleType={articleType}
-          setArticleType={(type) => setArticleType(type as ArticleType)}
-          bountyAmount={null}
-          onBountyClick={() => {}}
-          onPublishClick={() => setIsPublishModalOpen(true)}
-          title=""
-          onTitleChange={() => {}}
-        />
-      </div>
+        <div className="flex flex-1">
+          <div className="flex-1">
+            <TopBar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+            <main className="min-h-[calc(100vh-64px)]">{children}</main>
+          </div>
+          <PublishingSidebar
+            articleType={articleType}
+            setArticleType={(type) => setArticleType(type as ArticleType)}
+            bountyAmount={null}
+            onBountyClick={() => {}}
+            onPublishClick={() => setIsPublishModalOpen(true)}
+            title=""
+            onTitleChange={() => {}}
+          />
+        </div>
 
-      <PublishModal isOpen={isPublishModalOpen} onClose={() => setIsPublishModalOpen(false)} />
-    </div>
+        <PublishModal isOpen={isPublishModalOpen} onClose={() => setIsPublishModalOpen(false)} />
+      </div>
+    </OrganizationNotesProvider>
   );
 }

@@ -5,9 +5,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { BlockEditor } from '@/components/Editor/components/BlockEditor/BlockEditor';
 import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { useOrganizationNotes } from '@/hooks/useOrganizationNotes';
-import { useEffect, useCallback } from 'react';
-import type { Organization } from '@/types/organization';
+import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
+import { useEffect, useState } from 'react';
+import type { NoteContent } from '@/types/note';
 
 export default function NotePage() {
   const params = useParams();
@@ -15,34 +15,26 @@ export default function NotePage() {
   const noteId = params?.noteId as string;
   const orgSlug = params?.orgSlug as string;
 
-  const { organizations, setSelectedOrg, selectedOrg } = useOrganizationContext();
-  const org = organizations.find((o) => o.slug === orgSlug);
+  const { selectedOrg } = useOrganizationContext();
+  const { notes, isLoading: isLoadingNotes } = useOrganizationNotesContext();
+  const [shouldFetchContent, setShouldFetchContent] = useState(false);
 
-  // Fetch notes for the current organization
-  const { notes, isLoading: isLoadingNotes } = useOrganizationNotes(selectedOrg, {
-    currentOrgSlug: orgSlug,
-  });
+  // Find the note in our list if available
+  const initialNote = notes.find((n) => n.id.toString() === noteId);
 
-  // Fetch the current note
-  const { note, isLoading: isLoadingNote, error } = useNote(noteId);
-
-  // Handle organization switching
-  const handleOrgSwitch = useCallback(
-    async (org: Organization) => {
-      // First, navigate to the new organization's page
-      await router.push(`/notebook/${org.slug}`);
-      // Only after navigation, update the selected org
-      setSelectedOrg(org);
-    },
-    [router, setSelectedOrg]
-  );
-
-  // Update selected org when URL changes
+  // Only fetch content after initial mount and when we have the metadata
   useEffect(() => {
-    if (org && (!selectedOrg || org.slug !== selectedOrg.slug)) {
-      setSelectedOrg(org);
+    if (initialNote) {
+      setShouldFetchContent(true);
     }
-  }, [org?.slug, selectedOrg?.slug, setSelectedOrg]);
+  }, [initialNote?.id]);
+
+  // Fetch the current note only when we need the content
+  const {
+    note,
+    isLoading: isLoadingNote,
+    error,
+  } = useNote(shouldFetchContent ? noteId : null, initialNote);
 
   // Redirect to first note if no note is selected
   useEffect(() => {
@@ -51,8 +43,27 @@ export default function NotePage() {
     }
   }, [notes, isLoadingNotes, noteId, orgSlug, router]);
 
-  // Show loading state during any data fetching
-  if (isLoadingNotes || isLoadingNote || !note || orgSlug !== selectedOrg?.slug) {
+  // Handle organization mismatch or missing data
+  if (orgSlug !== selectedOrg?.slug || !noteId) {
+    return <NotebookSkeleton />;
+  }
+
+  // Show metadata immediately while content loads
+  if (!shouldFetchContent && initialNote) {
+    return (
+      <div className="h-full">
+        <BlockEditor content="" isLoading={true} />
+      </div>
+    );
+  }
+
+  // Handle loading states
+  if (isLoadingNotes || isLoadingNote) {
+    return <NotebookSkeleton />;
+  }
+
+  // Handle missing note data
+  if (!note || !note.content) {
     return <NotebookSkeleton />;
   }
 
@@ -63,7 +74,7 @@ export default function NotePage() {
 
   return (
     <div className="h-full">
-      <BlockEditor content={note.content} />
+      <BlockEditor content={note.content} isLoading={false} />
     </div>
   );
 }

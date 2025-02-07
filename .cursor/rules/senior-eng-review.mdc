@@ -146,3 +146,229 @@ globs:
     - Consider future architecture plans (e.g., potential GraphQL migration) when making library choices
     - Prefer built-in React patterns (contexts, custom hooks) for data fetching until complexity justifies additional abstractions
     - Development-mode double rendering (from React Strict Mode) is expected; validate actual issues in staging/production before optimizing
+
+
+22. **URL as Source of Truth**
+
+    - Use URL parameters as the primary source of truth for route-dependent state
+    - Instead of managing parallel state that needs to stay in sync with the URL:
+      ```typescript
+      // ❌ Don't sync state manually
+      const [currentOrg, setCurrentOrg] = useState(null);
+      useEffect(() => {
+        setCurrentOrg(findOrgBySlug(params.orgSlug));
+      }, [params.orgSlug]);
+
+      // ✅ Derive state from URL directly
+      const params = useParams();
+      const currentOrg = organizations.find(o => o.slug === params.orgSlug);
+      ```
+    - Let the URL drive state changes rather than managing duplicate state
+    - Avoid storing URL-derived data in local state unless absolutely necessary
+
+23. **Provider-Based State Management**
+
+    - Design providers to be self-contained and autonomous:
+      ```typescript
+      // ❌ Don't expose state management methods
+      const OrgContext = {
+        selectedOrg,
+        setSelectedOrg,
+        syncWithUrl,  // Avoid external sync methods
+      };
+
+      // ✅ Handle state management internally
+      const OrgContext = {
+        selectedOrg,  // Only expose read-only state
+        organizations,
+        isLoading,
+      };
+      ```
+    - Providers should manage their own state synchronization
+    - Components should not need to know how provider state is managed
+    - Minimize the API surface of providers to prevent misuse
+
+24. **Component State Dependencies**
+
+    - Be explicit about component state dependencies:
+      ```typescript
+      // ❌ Don't depend on multiple sources of truth
+      if (isLoadingNotes || !note || orgSlug !== selectedOrg?.slug) {
+        return <Loading />;
+      }
+
+      // ✅ Use derived state from a single source
+      const isReady = selectedOrg?.slug === orgSlug && !isLoading && note;
+      if (!isReady) return <Loading />;
+      ```
+    - Avoid components having to reconcile state from multiple sources
+    - Let providers handle state reconciliation
+    - Components should consume ready-to-use state
+
+25. **Effect Dependencies in Providers**
+
+    - Keep effect dependencies minimal and stable:
+      ```typescript
+      // ❌ Don't include unnecessary dependencies
+      useEffect(() => {
+        syncOrganization(selectedOrg, currentSlug);
+      }, [selectedOrg, organizations, currentSlug]); // Too many deps
+
+      // ✅ Use minimal, stable dependencies
+      useEffect(() => {
+        if (!organizations.length || !currentSlug) return;
+        const org = organizations.find(o => o.slug === currentSlug);
+        setSelectedOrg(org);
+      }, [currentSlug, organizations]); // Only essential deps
+      ```
+    - Providers should have clear, focused effects
+    - Each effect should have a single responsibility
+    - Use early returns to prevent unnecessary state updates
+
+26. **Navigation and State Updates**
+
+    - Separate navigation from state management:
+      ```typescript
+      // ❌ Don't couple navigation with state updates
+      const handleOrgSelect = async (org) => {
+        setSelectedOrg(org);
+        await router.push(`/org/${org.slug}`);
+      };
+
+      // ✅ Handle navigation only, let providers manage state
+      const handleOrgSelect = (org) => {
+        router.push(`/org/${org.slug}`);
+      };
+      ```
+    - Let URL changes drive state updates through providers
+    - Components should focus on navigation and UI interactions
+    - Avoid mixing navigation logic with state management
+
+    These patterns help prevent:
+    - Duplicate API calls from multiple state syncs
+    - Race conditions in state updates
+    - Unnecessary component re-renders
+    - Complex state management in components
+
+
+27. **Smart Orchestration Layer**
+
+    - Use a smart orchestration layer between services and view components:
+      ```typescript
+      // ❌ Don't fetch data directly in view components
+      const NoteEditor = () => {
+        const { note } = useNote(noteId);
+        return <Editor content={note.content} />;
+      };
+
+      // ✅ Use a smart orchestrator to manage data flow
+      const NotePage = () => {
+        const { notes } = useOrganizationNotes();
+        const initialNote = notes.find(n => n.id === noteId);
+        const [shouldFetchContent, setShouldFetchContent] = useState(false);
+
+        // Control when to fetch full content
+        useEffect(() => {
+          if (initialNote) setShouldFetchContent(true);
+        }, [initialNote?.id]);
+
+        return <Editor content={note.content} />;
+      };
+      ```
+    - Orchestration layer responsibilities:
+      1. Coordinate data dependencies
+      2. Control fetch timing
+      3. Handle loading states
+      4. Transform data for view layer
+    - Benefits:
+      - Prevents duplicate API calls
+      - Provides better loading UX
+      - Keeps view components simple
+      - Makes data flow explicit
+
+28. **Progressive Data Loading**
+
+    - Load data in stages based on what the user needs immediately:
+      ```typescript
+      // ❌ Don't fetch everything upfront
+      const { fullNote } = useNote(noteId);
+
+      // ✅ Load progressively
+      const { metadata } = useNotesList();  // Quick list view
+      const { content } = useNoteContent(shouldLoad ? id : null);  // Full content when needed
+      ```
+    - Implementation patterns:
+      1. Start with minimal metadata
+      2. Show immediate UI feedback
+      3. Load full content when needed
+      4. Update UI progressively
+    - Key principles:
+      - Show something to users as quickly as possible
+      - Only fetch what's needed when it's needed
+      - Use loading states to maintain UI responsiveness
+      - Let the orchestration layer control the loading sequence
+
+29. **Data Flow Control**
+
+    - Manage data flow through clear boundaries:
+      ```typescript
+      // ❌ Don't mix concerns
+      const Component = () => {
+        const [data, setData] = useState(null);
+        useEffect(() => {
+          fetchData().then(setData);
+        }, [id]);
+      };
+
+      // ✅ Separate concerns with clear boundaries
+      // Service layer - Data fetching
+      const useNoteService = (id) => {
+        return NoteService.getNote(id);
+      };
+
+      // Orchestration layer - Flow control
+      const NotePage = () => {
+        const { initialNote } = useNotesList();
+        const { fullNote } = useNoteContent(whenReady ? id : null);
+      };
+
+      // View layer - Display only
+      const NoteEditor = ({ content, isLoading }) => {
+        return <Editor content={content} />;
+      };
+      ```
+    - Key principles:
+      - Services handle raw data fetching
+      - Orchestration controls data flow
+      - Views handle presentation only
+      - Each layer has a single responsibility
+
+  30. **URL-Driven Navigation Patterns**
+
+    - Handle navigation state changes in a predictable sequence:
+      ```typescript
+      // ❌ Don't mix navigation and data dependencies
+      const handleSwitch = async (item) => {
+        setSelected(item);
+        if (data.length) {
+          await router.push(`/${item.slug}/${data[0].id}`);
+        } else {
+          await router.push(`/${item.slug}`);
+        }
+      };
+
+      // ✅ Use conditional navigation with clear fallbacks
+      const handleSwitch = async (item) => {
+        const targetPath = data.length > 0
+          ? `/${item.slug}/${data[0].id}`
+          : `/${item.slug}`;
+        await router.push(targetPath);
+      };
+      ```
+    - Key principles:
+      - Let URL changes trigger state updates, not the other way around
+      - Handle navigation edge cases (e.g., missing data) with clear fallbacks
+      - Keep navigation logic separate from data fetching
+      - Use the URL to drive the initial state of the application
+
+

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NoteService, NoteError } from '@/services/note.service';
-import type { NoteContent } from '@/types/note';
+import type { NoteContent, Note } from '@/types/note';
 
 export interface UseNoteReturn {
   note: NoteContent | null;
@@ -10,6 +10,7 @@ export interface UseNoteReturn {
 
 /**
  * Custom hook to fetch and manage note data.
+ * Accepts an optional initialNote to prevent unnecessary fetching when data is already available.
  *
  * TODO: Future Collaboration Implementation
  * This hook will be updated to use TipTap's collaboration features:
@@ -31,9 +32,10 @@ export interface UseNoteReturn {
  * ```
  *
  * @param noteId - The ID of the note to fetch
+ * @param initialNote - Optional initial note metadata to prevent unnecessary fetching
  * @returns UseNoteReturn object containing note data and loading state
  */
-export function useNote(noteId: string | null): UseNoteReturn {
+export function useNote(noteId: string | null, initialNote?: Note): UseNoteReturn {
   const [note, setNote] = useState<NoteContent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -50,13 +52,8 @@ export function useNote(noteId: string | null): UseNoteReturn {
       }
 
       try {
-        setError(null);
         setIsLoading(true);
-
-        // In development, log mount/unmount cycles
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`[StrictMode Check] Fetching note ${noteId}`);
-        }
+        setError(null);
 
         const noteData = await NoteService.getNote(noteId);
 
