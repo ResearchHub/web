@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import {
   ArrowUp,
@@ -19,6 +19,7 @@ import { ClaimModal } from '@/components/modals/ClaimModal';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { DocumentType } from '@/types/vote';
 import { useVote } from '@/hooks/useVote';
+import { useUserVotes } from '@/hooks/useVote';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -28,25 +29,41 @@ interface WorkLineItemsProps {
 export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsProps) => {
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-  const [isUpvoted, setIsUpvoted] = useState(false);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const [{ isLoading: isVoting }, vote] = useVote();
+  const [voteCount, setVoteCount] = useState(work.metrics.votes);
+
+  const {
+    data: userVotes,
+    isLoading: isLoadingVotes,
+    refresh: refreshVotes,
+  } = useUserVotes({
+    paperIds: work.contentType === 'paper' ? [work.id] : [],
+    postIds: work.contentType === 'post' || work.contentType === 'preregistration' ? [work.id] : [],
+  });
+
+  const isUpvoted =
+    work.contentType === 'paper'
+      ? userVotes?.papers[work.id]?.voteType === 'upvote'
+      : userVotes?.posts[work.id]?.voteType === 'upvote';
 
   const handleVote = useCallback(async () => {
-    try {
-      const documentType: DocumentType = work.contentType === 'paper' ? 'paper' : 'researchhubpost';
+    const documentType: DocumentType = work.contentType === 'paper' ? 'paper' : 'researchhubpost';
+    const wasUpvoted = isUpvoted;
 
+    try {
       await vote({
         documentType,
         documentId: work.id,
-        voteType: isUpvoted ? 'neutralvote' : 'upvote',
+        voteType: wasUpvoted ? 'neutralvote' : 'upvote',
       });
-
-      setIsUpvoted(!isUpvoted);
+      await refreshVotes();
     } catch (error) {
-      console.error('Error voting:', error);
+      console.error('Error:', error);
+    } finally {
+      setVoteCount((prev) => prev + (wasUpvoted ? -1 : 1));
     }
-  }, [work.contentType, work.id, isUpvoted, vote]);
+  }, [work.contentType, work.id, isUpvoted, vote, refreshVotes]);
 
   return (
     <div>
@@ -55,15 +72,15 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
         <div className="flex items-center space-x-3">
           <button
             onClick={() => executeAuthenticatedAction(handleVote)}
-            disabled={isVoting}
+            disabled={isVoting || isLoadingVotes}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
               isUpvoted
                 ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
                 : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-            } ${isVoting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            } ${isVoting || isLoadingVotes ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <ArrowUp className={`h-4 w-4 ${isUpvoted ? 'fill-current' : ''}`} />
-            <span>{work.metrics.votes + (isUpvoted ? 1 : 0)}</span>
+            <span>{voteCount}</span>
           </button>
 
           <button

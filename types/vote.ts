@@ -42,3 +42,29 @@ function transformVoteType(voteType: number | undefined): VoteTypeString | undef
       return undefined;
   }
 }
+
+interface UserVotes {
+  papers: Record<string, Vote>;
+  posts: Record<string, Vote>;
+}
+
+export const transformVotes = createTransformer<any, UserVotes>((raw) => {
+  const votes: UserVotes = {
+    papers: {},
+    posts: {},
+  };
+
+  if (raw.paper) {
+    Object.entries(raw.paper).forEach(([docId, vote]) => {
+      votes.papers[docId] = transformVote(vote);
+    });
+  }
+
+  if (raw.posts) {
+    Object.entries(raw.posts).forEach(([docId, vote]) => {
+      votes.posts[docId] = transformVote(vote);
+    });
+  }
+
+  return votes;
+});
