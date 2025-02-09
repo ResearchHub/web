@@ -20,6 +20,8 @@ import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { DocumentType } from '@/types/vote';
 import { useVote } from '@/hooks/useVote';
 import { useUserVotes } from '@/hooks/useVote';
+import toast from 'react-hot-toast';
+import { FlagContentModal } from '@/components/modals/FlagContentModal';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -32,6 +34,7 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const [{ isLoading: isVoting }, vote] = useVote();
   const [voteCount, setVoteCount] = useState(work.metrics.votes);
+  const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
 
   const {
     data: userVotes,
@@ -59,7 +62,9 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
       });
       await refreshVotes();
     } catch (error) {
-      console.error('Error:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Unable to process your vote. Please try again.'
+      );
     } finally {
       setVoteCount((prev) => prev + (wasUpvoted ? -1 : 1));
     }
@@ -146,11 +151,7 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
               <MenuItem>
                 {({ focus }) => (
                   <button
-                    onClick={() =>
-                      executeAuthenticatedAction(() => {
-                        console.log('Flag content clicked:', work.id);
-                      })
-                    }
+                    onClick={() => executeAuthenticatedAction(() => setIsFlagModalOpen(true))}
                     className={`${
                       focus ? 'bg-gray-50' : ''
                     } flex items-center space-x-2 px-4 py-2 text-gray-700 w-full text-left`}
@@ -227,6 +228,12 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
       {showClaimButton && (
         <ClaimModal isOpen={claimModalOpen} onClose={() => setClaimModalOpen(false)} />
       )}
+
+      <FlagContentModal
+        isOpen={isFlagModalOpen}
+        onClose={() => setIsFlagModalOpen(false)}
+        documentId={work.id.toString()}
+      />
     </div>
   );
 };
