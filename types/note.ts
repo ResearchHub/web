@@ -1,5 +1,6 @@
 import type { Organization } from './organization';
 import { createTransformer, BaseTransformed } from './transformer';
+import { transformOrganization } from './organization';
 
 export type NoteAccess = 'WORKSPACE' | 'PRIVATE' | 'SHARED';
 
@@ -38,12 +39,7 @@ export type TransformedNote = Note & BaseTransformed;
 export const transformNote = (data: NoteApiItem): Note => ({
   id: data.id,
   access: data.access,
-  organization: {
-    id: data.organization.id,
-    coverImage: data.organization.cover_image,
-    name: data.organization.name,
-    slug: data.organization.slug,
-  },
+  organization: transformOrganization(data.organization),
   createdDate: data.created_date,
   updatedDate: data.updated_date,
   title: data.title,
@@ -52,12 +48,7 @@ export const transformNote = (data: NoteApiItem): Note => ({
 export const transformNoteContent = (data: any): NoteContent => ({
   id: data.id,
   access: data.access,
-  organization: {
-    id: data.organization.id,
-    coverImage: data.organization.cover_image,
-    name: data.organization.name,
-    slug: data.organization.slug,
-  },
+  organization: transformOrganization(data.organization),
   createdDate: data.created_date,
   updatedDate: data.updated_date,
   title: data.title,
