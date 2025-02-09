@@ -4,6 +4,7 @@ import localFont from 'next/font/local';
 import './globals.css';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { ExchangeRateProvider } from '@/contexts/ExchangeRateContext';
+import { OrganizationProvider } from '@/contexts/OrganizationContext';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -25,9 +26,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <NextAuthProvider>
-          <NotificationProvider>
-            <ExchangeRateProvider>{children}</ExchangeRateProvider>
-          </NotificationProvider>
+          <OrganizationProvider>
+            <NotificationProvider>
+              <ExchangeRateProvider>{children}</ExchangeRateProvider>
+            </NotificationProvider>
+          </OrganizationProvider>
         </NextAuthProvider>
         <ToasterProvider />
       </body>

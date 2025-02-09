@@ -1,39 +1,39 @@
-import type { Note } from '@/types/note';
+'use client';
+
 import { NoteListItem } from './NoteListItem';
+import { Note } from '@/types/note';
+import { NoteListSkeleton } from '@/components/skeletons/NoteListSkeleton';
 
 interface NoteListProps {
   notes: Note[];
-  isLoading: boolean;
-  error: Error | null;
-  skeletonCount?: number;
+  type: 'workspace' | 'private';
+  isLoading?: boolean;
 }
 
-/**
- * A list of notes with loading and error states
- */
-export const NoteList: React.FC<NoteListProps> = ({
-  notes,
-  isLoading,
-  error,
-  skeletonCount = 3,
-}) => {
-  if (isLoading) {
+export const NoteList: React.FC<NoteListProps> = ({ notes, type, isLoading = false }) => {
+  if (isLoading || notes.length === 0) {
+    return <NoteListSkeleton />;
+  }
+
+  const filteredNotes = notes.filter((note: Note) => {
+    if (type === 'workspace') {
+      return note.access === 'WORKSPACE' || note.access === 'SHARED';
+    } else {
+      return note.access === 'PRIVATE';
+    }
+  });
+
+  if (filteredNotes.length === 0) {
     return (
-      <div className="space-y-2 px-2.5">
-        {Array.from({ length: skeletonCount }).map((_, i) => (
-          <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />
-        ))}
+      <div className="text-sm text-gray-500 px-2.5">
+        No {type === 'workspace' ? 'workspace' : 'private'} notes
       </div>
     );
   }
 
-  if (error) {
-    return <div className="px-2.5 text-sm text-red-500">Failed to load notes</div>;
-  }
-
   return (
     <div className="space-y-0.5">
-      {notes.map((note) => (
+      {filteredNotes.map((note) => (
         <NoteListItem key={note.id} note={note} />
       ))}
     </div>

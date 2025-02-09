@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { NoteService } from '@/services/note.service';
 import type { Note } from '@/types/note';
 import type { Organization } from '@/types/organization';
@@ -9,10 +9,6 @@ import type { Organization } from '@/types/organization';
 export interface UseOrganizationNotesReturn {
   /** All notes for the organization */
   notes: Note[];
-  /** Notes with access type 'WORKSPACE' or 'SHARED' */
-  workspaceNotes: Note[];
-  /** Notes with access type 'PRIVATE' */
-  privateNotes: Note[];
   /** Whether notes are currently being fetched */
   isLoading: boolean;
   /** Error object if the fetch failed, null otherwise */
@@ -21,35 +17,21 @@ export interface UseOrganizationNotesReturn {
   totalCount: number;
 }
 
+export interface UseOrganizationNotesOptions {
+  currentOrgSlug?: string;
+}
+
 /**
- * Custom hook to fetch and manage organization notes
- *
- * This hook handles fetching notes for a given organization and provides filtered lists
- * based on note access types. Notes can have one of three access types:
- * - WORKSPACE: Visible to all organization members
- * - PRIVATE: Only visible to the note creator
- * - SHARED: Visible to specific organization members (grouped with WORKSPACE notes in UI)
- *
- * @param organization - The organization to fetch notes for. If null, notes will be cleared
- * @returns UseOrganizationNotesReturn object containing notes and loading state
- *
- * @example
- * ```tsx
- * const { workspaceNotes, privateNotes, isLoading, error } = useOrganizationNotes(selectedOrg);
- *
- * if (isLoading) return <LoadingSpinner />;
- * if (error) return <ErrorMessage error={error} />;
- *
- * return (
- *   <div>
- *     <WorkspaceNotesList notes={workspaceNotes} />
- *     <PrivateNotesList notes={privateNotes} />
- *   </div>
- * );
- * ```
+ * Custom hook to fetch notes for a given organization.
+ * Only fetches notes when the organization matches the current route.
+ * This prevents unnecessary API calls when:
+ * - The app first loads with multiple organizations
+ * - The user hasn't selected an organization yet
+ * - We're fetching notes for an organization that isn't currently viewed
  */
 export function useOrganizationNotes(
-  organization: Organization | null
+  organization: Organization | null,
+  options?: UseOrganizationNotesOptions
 ): UseOrganizationNotesReturn {
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,22 +39,24 @@ export function useOrganizationNotes(
   const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
-    const fetchNotes = async () => {
-      if (!organization) {
-        setNotes([]);
-        setIsLoading(false);
-        return;
-      }
+    // Reset state when org is null or doesn't match current route
+    if (!organization || organization.slug !== options?.currentOrgSlug) {
+      setNotes([]);
+      setTotalCount(0);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
 
+    const fetchNotes = async () => {
       try {
-        setError(null);
         setIsLoading(true);
-        const response = await NoteService.getOrganizationNotes(organization.slug);
-        setNotes(response.results);
-        setTotalCount(response.count);
+        setError(null);
+        const data = await NoteService.getOrganizationNotes(organization.slug);
+        setNotes(data.results);
+        setTotalCount(data.count);
       } catch (err) {
-        // TODO: Implement user-facing error alerts using global error handling pattern
-        setError(err instanceof Error ? err : new Error('Failed to fetch notes'));
+        setError(err instanceof Error ? err : new Error('Failed to load notes'));
         setNotes([]);
         setTotalCount(0);
       } finally {
@@ -81,21 +65,7 @@ export function useOrganizationNotes(
     };
 
     fetchNotes();
-  }, [organization]);
+  }, [organization?.slug, options?.currentOrgSlug]);
 
-  // Filter notes by access type
-  // Include both WORKSPACE and SHARED notes in the workspace section
-  const workspaceNotes = notes.filter(
-    (note) => note.access === 'WORKSPACE' || note.access === 'SHARED'
-  );
-  const privateNotes = notes.filter((note) => note.access === 'PRIVATE');
-
-  return {
-    notes,
-    workspaceNotes,
-    privateNotes,
-    isLoading,
-    error,
-    totalCount,
-  };
+  return { notes, isLoading, error, totalCount };
 }

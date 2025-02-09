@@ -1,6 +1,6 @@
 import { ApiClient } from './client';
-import { transformNote } from '@/types/note';
-import type { Note } from '@/types/note';
+import { transformNote, transformNoteContent } from '@/types/note';
+import type { Note, NoteContent } from '@/types/note';
 
 export class NoteError extends Error {
   constructor(
@@ -20,7 +20,28 @@ export interface NoteListResponse {
 }
 
 export class NoteService {
-  private static readonly BASE_PATH = '/api/organization';
+  private static readonly BASE_PATH = '/api';
+
+  /**
+   * Fetches a specific note by ID
+   * @param noteId - The ID of the note to fetch
+   * @throws {NoteError} When the request fails or parameters are invalid
+   */
+  static async getNote(noteId: string): Promise<NoteContent> {
+    if (!noteId) {
+      throw new NoteError('Missing note ID', 'INVALID_PARAMS');
+    }
+
+    try {
+      const response = await ApiClient.get<any>(`${this.BASE_PATH}/note/${noteId}/`);
+      return transformNoteContent(response);
+    } catch (error) {
+      throw new NoteError(
+        'Failed to fetch note content',
+        error instanceof Error ? error.message : 'UNKNOWN_ERROR'
+      );
+    }
+  }
 
   /**
    * Fetches notes for a specific organization
@@ -34,17 +55,23 @@ export class NoteService {
 
     try {
       const response = await ApiClient.get<any>(
-        `${this.BASE_PATH}/${orgSlug}/get_organization_notes/`
+        `${this.BASE_PATH}/organization/${orgSlug}/get_organization_notes/`
       );
 
+      if (!response || !Array.isArray(response.results)) {
+        throw new NoteError('Invalid response format', 'INVALID_RESPONSE');
+      }
+
       return {
-        count: response.count,
-        next: response.next,
-        previous: response.previous,
+        count: response.count || 0,
+        next: response.next || null,
+        previous: response.previous || null,
         results: response.results.map(transformNote),
       };
     } catch (error) {
-      // TODO: Integrate with global error handling system for user alerts on API failures
+      if (error instanceof NoteError) {
+        throw error;
+      }
       throw new NoteError(
         'Failed to fetch organization notes',
         error instanceof Error ? error.message : 'UNKNOWN_ERROR'
