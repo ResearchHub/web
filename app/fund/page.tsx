@@ -41,12 +41,7 @@ export default function FundingPage() {
                   </div>
                 )}
                 <div className="p-4">
-                  <FeedItemBody
-                    content={content}
-                    metrics={entry.metrics}
-                    contributors={entry.contributors}
-                    hideTypeLabel
-                  />
+                  <FeedItemBody content={content} metrics={entry.metrics} hideTypeLabel />
                 </div>
               </div>
             );

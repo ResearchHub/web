@@ -1,19 +1,9 @@
 'use client';
 
-import {
-  Home,
-  GraduationCap,
-  BookOpen,
-  Star,
-  Info,
-  Notebook,
-  Trophy,
-  HandCoins,
-  Coins,
-  Telescope,
-} from 'lucide-react';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { Home, BookOpen, Star, Notebook, HandCoins, Coins } from 'lucide-react';
 import Link from 'next/link';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { useRouter } from 'next/navigation';
 
 interface NavigationProps {
   currentPath: string;
@@ -21,6 +11,9 @@ interface NavigationProps {
 }
 
 export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimplementedFeature }) => {
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const router = useRouter();
+
   const navigationItems = [
     {
       label: 'Home',
@@ -65,6 +58,7 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
       href: '/notebook',
       icon: Notebook,
       description: 'Access your research notebook',
+      requiresAuth: true,
     },
   ];
 
@@ -80,21 +74,37 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
     return `h-[22px] w-[22px] mr-3.5 ${isActive ? 'text-indigo-600' : 'text-gray-600 group-hover:text-indigo-600'}`;
   };
 
+  const handleNavClick = (e: React.MouseEvent, item: (typeof navigationItems)[0]) => {
+    if (item.onClick) {
+      item.onClick(e);
+      return;
+    }
+
+    if (item.requiresAuth) {
+      e.preventDefault();
+      executeAuthenticatedAction(() => {
+        router.push(item.href);
+      });
+    }
+  };
+
   return (
-    <div className="space-y-1">
-      {navigationItems.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={getButtonStyles(item.href)}
-          onClick={item.onClick}
-        >
-          <item.icon className={getIconStyles(item.href)} />
-          <div className="flex items-center justify-between w-full min-w-0">
-            <span className="truncate">{item.label}</span>
-          </div>
-        </Link>
-      ))}
-    </div>
+    <>
+      <div className="space-y-1">
+        {navigationItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={getButtonStyles(item.href)}
+            onClick={(e) => handleNavClick(e, item)}
+          >
+            <item.icon className={getIconStyles(item.href)} />
+            <div className="flex items-center justify-between w-full min-w-0">
+              <span className="truncate">{item.label}</span>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </>
   );
 };

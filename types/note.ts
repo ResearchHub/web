@@ -1,5 +1,6 @@
-import { Organization, transformOrganization } from './organization';
+import type { Organization } from './organization';
 import { createTransformer, BaseTransformed } from './transformer';
+import { transformOrganization } from './organization';
 
 export type NoteAccess = 'WORKSPACE' | 'PRIVATE' | 'SHARED';
 
@@ -12,13 +13,47 @@ export interface Note {
   title: string;
 }
 
+export interface NoteContent extends Note {
+  content: string;
+  versionId: number;
+  versionDate: string;
+  plainText: string;
+}
+
+export interface NoteApiItem {
+  id: number;
+  access: NoteAccess;
+  organization: {
+    id: number;
+    cover_image: string | null;
+    name: string;
+    slug: string;
+  };
+  created_date: string;
+  updated_date: string;
+  title: string;
+}
+
 export type TransformedNote = Note & BaseTransformed;
 
-export const transformNote = createTransformer<any, Note>((raw) => ({
-  id: raw.id,
-  access: raw.access as NoteAccess,
-  organization: transformOrganization(raw.organization),
-  createdDate: raw.created_date,
-  updatedDate: raw.updated_date,
-  title: raw.title,
-}));
+export const transformNote = (data: NoteApiItem): Note => ({
+  id: data.id,
+  access: data.access,
+  organization: transformOrganization(data.organization),
+  createdDate: data.created_date,
+  updatedDate: data.updated_date,
+  title: data.title,
+});
+
+export const transformNoteContent = (data: any): NoteContent => ({
+  id: data.id,
+  access: data.access,
+  organization: transformOrganization(data.organization),
+  createdDate: data.created_date,
+  updatedDate: data.updated_date,
+  title: data.title,
+  content: data.latest_version?.src || '',
+  versionId: data.latest_version?.id || 0,
+  versionDate: data.latest_version?.created_date || data.created_date,
+  plainText: data.latest_version?.plain_text || '',
+});

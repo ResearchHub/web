@@ -1,49 +1,68 @@
-import { EditorContent } from '@tiptap/react';
-import React, { useRef } from 'react';
-import { LinkMenu } from '@/components/Editor/components/menus';
-import { useBlockEditor } from '@/components/Editor/hooks/useBlockEditor';
+import { EditorContent, useEditor } from '@tiptap/react';
+import React, { useEffect } from 'react';
+import { StarterKit } from '@tiptap/starter-kit';
+import { Document } from '@tiptap/extension-document';
+import { Heading } from '@tiptap/extension-heading';
+import { Link } from '@tiptap/extension-link';
+import { TextAlign } from '@tiptap/extension-text-align';
+import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
 import '@/components/Editor/styles/index.css';
-import ImageBlockMenu from '@/components/Editor/extensions/ImageBlock/components/ImageBlockMenu';
-import { ColumnsMenu } from '@/components/Editor/extensions/MultiColumn/menus';
-import { TableColumnMenu, TableRowMenu } from '@/components/Editor/extensions/Table/menus';
-import { TextMenu } from '../menus/TextMenu';
-import { ContentItemMenu } from '../menus/ContentItemMenu';
-import { useSidebar } from '@/components/Editor/hooks/useSidebar';
-import * as Y from 'yjs';
-import { TiptapCollabProvider } from '@hocuspocus/provider';
 
-export const BlockEditor = ({
-  aiToken,
-  ydoc,
-  provider,
-}: {
-  aiToken?: string;
-  ydoc: Y.Doc | null;
-  provider?: TiptapCollabProvider | null | undefined;
-}) => {
-  const menuContainerRef = useRef(null);
+interface BlockEditorProps {
+  content: string;
+  isLoading?: boolean;
+}
 
-  const leftSidebar = useSidebar();
-  const { editor, users, collabState } = useBlockEditor({ aiToken, ydoc, provider });
+// Create a simplified Document extension that only accepts blocks
+const CustomDocument = Document.extend({
+  content: 'block+',
+});
 
-  if (!editor || !users) {
+export const BlockEditor: React.FC<BlockEditorProps> = ({ content, isLoading = false }) => {
+  const editor = useEditor({
+    extensions: [
+      CustomDocument,
+      StarterKit.configure({
+        document: false, // Using custom Document extension
+      }),
+      Heading.configure({
+        levels: [1, 2, 3],
+      }),
+      Link.configure({
+        openOnClick: false,
+      }),
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+    ],
+    content: '',
+    editorProps: {
+      attributes: {
+        class:
+          'min-h-full prose prose-sm max-w-none prose-neutral dark:prose-invert prose-headings:font-display',
+      },
+    },
+  });
+
+  useEffect(() => {
+    if (editor && content) {
+      editor.commands.setContent(content);
+    }
+  }, [editor, content]);
+
+  if (isLoading) {
+    return <NotebookSkeleton />;
+  }
+
+  if (!editor) {
     return null;
   }
 
   return (
-    <div className="flex h-full" ref={menuContainerRef}>
+    <div className="flex h-full">
       <div className="relative flex flex-col flex-1 h-full overflow-hidden">
         <EditorContent editor={editor} className="flex-1 overflow-y-auto" />
-        <ContentItemMenu editor={editor} />
-        <LinkMenu editor={editor} appendTo={menuContainerRef} />
-        <TextMenu editor={editor} />
-        <ColumnsMenu editor={editor} appendTo={menuContainerRef} />
-        <TableRowMenu editor={editor} appendTo={menuContainerRef} />
-        <TableColumnMenu editor={editor} appendTo={menuContainerRef} />
-        <ImageBlockMenu editor={editor} appendTo={menuContainerRef} />
       </div>
     </div>
   );
 };
-
-export default BlockEditor;

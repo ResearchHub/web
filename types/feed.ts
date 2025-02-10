@@ -7,14 +7,7 @@ import { createTransformer, BaseTransformed } from './transformer';
 
 export type FeedActionType = 'repost' | 'contribute' | 'publish' | 'post';
 
-export type ContentType =
-  | 'paper'
-  | 'comment'
-  | 'funding_request'
-  | 'bounty'
-  | 'grant'
-  | 'review'
-  | 'contribution';
+export type ContentType = 'paper' | 'funding_request';
 
 interface BaseContent {
   id: string;
@@ -34,12 +27,6 @@ export interface Paper extends BaseContent {
   authors: AuthorProfile[];
 }
 
-export interface Comment extends BaseContent {
-  type: 'comment';
-  content: string;
-  parent?: Content;
-}
-
 export type FundingRequestStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
 
 export interface FundingRequest extends BaseContent {
@@ -54,35 +41,7 @@ export interface FundingRequest extends BaseContent {
   preregistered?: boolean;
 }
 
-export interface Bounty extends BaseContent {
-  type: 'bounty';
-  title?: string;
-  description: string;
-  amount: number;
-  deadline: string;
-}
-
-export interface Grant extends BaseContent {
-  type: 'grant';
-  title: string;
-  abstract: string;
-  amount: number;
-  deadline: string;
-}
-
-export interface Review extends BaseContent {
-  type: 'review';
-  title?: string;
-  content: string;
-  score?: number;
-}
-
-export interface Contribution extends BaseContent {
-  type: 'contribution';
-  amount: number;
-}
-
-export type Content = Paper | Comment | FundingRequest | Bounty | Grant | Review | Contribution;
+export type Content = Paper | FundingRequest;
 
 export interface FeedEntry {
   id: string;
@@ -91,11 +50,6 @@ export interface FeedEntry {
   content: Content;
   target?: Content;
   context?: Content;
-  contributors: Array<{
-    profile: AuthorProfile;
-    amount: number;
-  }>;
-  applicants?: AuthorProfile[];
   metrics?: ContentMetrics;
 }
 
