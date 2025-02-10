@@ -1,7 +1,9 @@
 import { ID } from './root';
 import { createTransformer } from './transformer';
+import { ContentType, FlagReasonKey } from './work';
 
-export type DocumentType = 'paper' | 'researchhubpost';
+//TODO: Do we need to add more document types? are they still used?
+export type DocumentType = 'paper' | 'researchhubpost'; // | 'thread' | 'comment' | 'reply' | 'rhcomment' | 'review';
 
 // DOWNVOTE is not used in the current implementation
 export enum VoteType {
@@ -68,3 +70,21 @@ export const transformVotes = createTransformer<any, UserVotes>((raw) => {
 
   return votes;
 });
+
+export const getDocumentTypeFromWorkContentType = (workContentType: ContentType): DocumentType => {
+  return workContentType === 'paper' ? 'paper' : 'researchhubpost';
+};
+
+export type Flag = {
+  id: ID;
+  createdDate: string;
+  reason: FlagReasonKey;
+  objectId: ID;
+};
+
+export const transformFlag = createTransformer<any, Flag>((raw) => ({
+  id: raw.id,
+  createdDate: raw.created_date,
+  reason: raw.reason,
+  objectId: raw.object_id,
+}));

@@ -7,23 +7,41 @@ import { getFlagOptions } from '@/constants/flags';
 import { FlagReasonKey } from '@/types/work';
 import { RadioGroup } from '@/components/ui/form/RadioGroup';
 import { toast } from 'react-hot-toast';
+import { useFlag } from '@/hooks/useReaction';
+import { DocumentType } from '@/types/reaction';
 
 interface FlagContentModalProps {
   isOpen: boolean;
   onClose: () => void;
   documentId: string;
+  documentType: DocumentType;
 }
 
 const flagOptions = getFlagOptions();
 
-export function FlagContentModal({ isOpen, onClose, documentId }: FlagContentModalProps) {
+export function FlagContentModal({
+  isOpen,
+  onClose,
+  documentId,
+  documentType,
+}: FlagContentModalProps) {
   const [selectedReason, setSelectedReason] = useState<FlagReasonKey | null>(null);
+  const [{ isLoading }, flag] = useFlag();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedReason) return;
-    console.log('Flagged content:', { documentId, reason: selectedReason });
-    toast.success('Content flagged successfully');
-    onClose();
+
+    try {
+      await flag({
+        documentType,
+        documentId,
+        reason: selectedReason,
+      });
+      toast.success('Content flagged successfully');
+      onClose();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to flag content');
+    }
   };
 
   return (
@@ -72,8 +90,12 @@ export function FlagContentModal({ isOpen, onClose, documentId }: FlagContentMod
                     <Button variant="ghost" onClick={onClose}>
                       Cancel
                     </Button>
-                    <Button variant="default" onClick={handleSubmit} disabled={!selectedReason}>
-                      Flag
+                    <Button
+                      variant="default"
+                      onClick={handleSubmit}
+                      disabled={!selectedReason || isLoading}
+                    >
+                      {isLoading ? 'Flagging...' : 'Flag'}
                     </Button>
                   </div>
                 </div>

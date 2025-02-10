@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import { VoteService } from '@/services/vote.service';
-import { Vote } from '@/types/vote';
+import { useState, useEffect } from 'react';
+import { ReactionService } from '@/services/reaction.service';
+import { Vote } from '@/types/reaction';
 import { ApiError } from '@/services/types';
-import type { VoteOptions, GetVotesOptions } from '@/services/vote.service';
+import type { VoteOptions, FlagOptions } from '@/services/reaction.service';
 
 interface UseVoteState {
   data: Vote | null;
@@ -12,19 +12,8 @@ interface UseVoteState {
   error: string | null;
 }
 
-interface UseUserVotesState {
-  data: {
-    papers: Record<string, Vote>;
-    posts: Record<string, Vote>;
-  } | null;
-  isLoading: boolean;
-  error: string | null;
-}
-
 type VoteFn = (params: VoteOptions) => Promise<void>;
-type GetVotesFn = (options: GetVotesOptions) => Promise<void>;
 type UseVoteReturn = [UseVoteState, VoteFn];
-type UseUserVotesReturn = [UseUserVotesState, GetVotesFn];
 
 interface UseUserVotesOptions {
   paperIds?: (string | number)[];
@@ -41,7 +30,7 @@ export const useVote = (): UseVoteReturn => {
     setError(null);
 
     try {
-      const response = await VoteService.vote(params);
+      const response = await ReactionService.vote(params);
       setData(response);
     } catch (err) {
       const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
@@ -71,7 +60,7 @@ export const useUserVotes = ({ paperIds, postIds }: UseUserVotesOptions) => {
     setError(null);
 
     try {
-      const response = await VoteService.getVotes({
+      const response = await ReactionService.getVotes({
         paperIds: paperIds || [],
         postIds: postIds || [],
       });
@@ -90,4 +79,35 @@ export const useUserVotes = ({ paperIds, postIds }: UseUserVotesOptions) => {
   }, [paperIds?.join(','), postIds?.join(',')]);
 
   return { data, isLoading, error, refresh: fetchVotes };
+};
+
+interface UseFlagState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type FlagFn = (params: FlagOptions) => Promise<void>;
+type UseFlagReturn = [UseFlagState, FlagFn];
+
+export const useFlag = (): UseFlagReturn => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const flag = async (params: FlagOptions) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await ReactionService.flag(params);
+    } catch (err) {
+      const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
+      const errorMsg = data?.message || 'Failed to flag content';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return [{ isLoading, error }, flag];
 };

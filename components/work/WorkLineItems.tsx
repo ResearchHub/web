@@ -17,9 +17,9 @@ import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { ClaimModal } from '@/components/modals/ClaimModal';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
-import { DocumentType } from '@/types/vote';
-import { useVote } from '@/hooks/useVote';
-import { useUserVotes } from '@/hooks/useVote';
+import { DocumentType, getDocumentTypeFromWorkContentType } from '@/types/reaction';
+import { useVote } from '@/hooks/useReaction';
+import { useUserVotes } from '@/hooks/useReaction';
 import toast from 'react-hot-toast';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 
@@ -233,6 +233,7 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
         isOpen={isFlagModalOpen}
         onClose={() => setIsFlagModalOpen(false)}
         documentId={work.id.toString()}
+        documentType={getDocumentTypeFromWorkContentType(work.contentType)}
       />
     </div>
   );

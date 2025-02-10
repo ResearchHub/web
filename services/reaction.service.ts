@@ -1,6 +1,16 @@
 import { ID } from '@/types/root';
 import { ApiClient } from './client';
-import { DocumentType, transformVote, transformVotes, Vote, VoteTypeString } from '@/types/vote';
+import {
+  DocumentType,
+  transformFlag,
+  transformVote,
+  transformVotes,
+  Vote,
+  VoteTypeString,
+  Flag,
+} from '@/types/reaction';
+import { buildWorkChainUrl } from '@/utils/url';
+import { FlagReasonKey } from '@/types/work';
 
 export interface VoteOptions {
   documentType: DocumentType;
@@ -14,7 +24,16 @@ export interface GetVotesOptions {
   postIds: (string | number)[];
 }
 
-export class VoteService {
+export interface FlagOptions {
+  documentType: DocumentType;
+  documentId: ID;
+  reason: FlagReasonKey;
+  threadId?: ID;
+  commentId?: ID;
+  replyId?: ID;
+}
+
+export class ReactionService {
   private static readonly BASE_PATH = '/api';
 
   static async getVotes(options: GetVotesOptions): Promise<{
@@ -49,5 +68,33 @@ export class VoteService {
     const response = await ApiClient.post<any>(url);
 
     return transformVote(response);
+  }
+
+  static async flag({
+    documentType,
+    documentId,
+    reason,
+    threadId,
+    commentId,
+    replyId,
+  }: FlagOptions): Promise<Flag> {
+    if (!documentId) {
+      throw new Error('Document ID is required');
+    }
+
+    const urlPath = buildWorkChainUrl({
+      documentType,
+      documentId,
+      threadId,
+      commentId,
+      replyId,
+    });
+
+    const url = `${this.BASE_PATH}/${urlPath}flag/`;
+
+    const response = await ApiClient.post(url, { reason });
+    console.log('response', transformFlag(response));
+
+    return transformFlag(response);
   }
 }
