@@ -59,9 +59,9 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ content, isLoading = f
   }
 
   return (
-    <div className="flex h-full">
-      <div className="relative flex flex-col flex-1 h-full overflow-hidden">
-        <EditorContent editor={editor} className="flex-1 overflow-y-auto" />
+    <div className="h-full">
+      <div className="h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 pr-1">
+        <EditorContent editor={editor} className="h-full" />
       </div>
     </div>
   );
