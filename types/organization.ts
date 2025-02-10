@@ -1,6 +1,8 @@
-import type { AuthorProfile } from './authorProfile';
+import type { TransformedUser } from './user';
+import { transformUser } from './user';
+import { createTransformer } from './transformer';
 
-export type OrganizationRole = 'ADMIN' | 'EDITOR' | 'VIEWER';
+export type OrganizationRole = 'ADMIN' | 'MEMBER';
 
 export interface Organization {
   id: number;
@@ -15,59 +17,40 @@ export interface Organization {
   slug: string;
 }
 
-export interface OrganizationMember {
-  id: string;
-  name: string;
+export interface OrganizationUserApiItem {
+  id: number;
+  author_profile: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    profile_image: string | null;
+  };
   email: string;
-  role: OrganizationRole;
-  avatarUrl?: string;
 }
 
-export interface OrganizationInvite {
-  id: string;
-  name: string;
-  email: string;
-  role: OrganizationRole;
-  status: 'pending';
-  expirationDate: string;
+export interface OrganizationUsersApiResponse {
+  admins: OrganizationUserApiItem[];
+  invited_users: OrganizationUserApiItem[];
+  user_count: number;
+  note_count: number;
 }
 
 export interface OrganizationUsers {
-  users: OrganizationMember[];
-  invites: OrganizationInvite[];
+  admins: TransformedUser[];
+  invitedUsers: TransformedUser[];
+  userCount: number;
+  noteCount: number;
 }
 
-export function transformOrganizationUsers(response: any): OrganizationUsers {
-  const users = [
-    // Map admins with admin role
-    ...(response.admins || []).map((admin: any) => ({
-      id: admin.id.toString(),
-      name: admin.author_profile.fullName,
-      email: admin.email,
-      role: 'ADMIN' as const,
-      avatarUrl: admin.author_profile.profileImage || undefined,
-    })),
-    // Map regular members with viewer role
-    ...(response.members || []).map((member: any) => ({
-      id: member.id.toString(),
-      name: member.author_profile.fullName,
-      email: member.email,
-      role: 'VIEWER' as const,
-      avatarUrl: member.author_profile.profileImage || undefined,
-    })),
-  ];
-
-  const invites = (response.invited_users || []).map((invite: any) => ({
-    id: `invite-${invite.recipient_email}`,
-    name: invite.recipient_email,
-    email: invite.recipient_email,
-    role: 'VIEWER' as const,
-    status: 'pending' as const,
-    expirationDate: invite.expiration_date,
-  }));
-
-  return { users, invites };
-}
+export const transformOrganizationUsers = createTransformer<
+  OrganizationUsersApiResponse,
+  OrganizationUsers
+>((data: OrganizationUsersApiResponse) => ({
+  admins: (data.admins || []).map(transformUser),
+  invitedUsers: (data.invited_users || []).map(transformUser),
+  userCount: data.user_count,
+  noteCount: data.note_count,
+}));
 
 export function transformOrganization(data: any): Organization {
   return {
@@ -75,7 +58,7 @@ export function transformOrganization(data: any): Organization {
     memberCount: data.member_count,
     userPermission: data.user_permission
       ? {
-          accessType: data.user_permission.access_type,
+          accessType: data.user_permission.access_type as OrganizationRole,
         }
       : undefined,
     createdDate: data.created_date,
