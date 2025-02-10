@@ -8,8 +8,9 @@ import { OrganizationSwitcher } from './OrganizationSwitcher';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
 import { useRouter, useParams } from 'next/navigation';
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import type { Organization } from '@/types/organization';
+import { NoteService } from '@/services/note.service';
 
 /**
  * Left sidebar component for the notebook layout
@@ -29,14 +30,22 @@ const LeftSidebar = () => {
         return;
       }
 
-      // If we have notes for the current org, navigate to the first note
-      // Otherwise, just navigate to the org's page
-      const targetPath =
-        notes.length > 0 ? `/notebook/${org.slug}/${notes[0].id}` : `/notebook/${org.slug}`;
-
-      await router.push(targetPath);
+      try {
+        // Pre-fetch notes for the new organization
+        const notesData = await NoteService.getOrganizationNotes(org.slug);
+        const firstNote = notesData.results[0];
+        // If there's at least one note for the new org, navigate to that note.
+        const targetPath = firstNote
+          ? `/notebook/${org.slug}/${firstNote.id}`
+          : `/notebook/${org.slug}`;
+        await router.push(targetPath);
+      } catch (error) {
+        console.error('Error fetching notes for organization switch:', error);
+        // Fallback: navigate to the organization page without a note id
+        await router.push(`/notebook/${org.slug}`);
+      }
     },
-    [router, currentOrgSlug, notes]
+    [router, currentOrgSlug]
   );
 
   return (
@@ -65,7 +74,7 @@ const LeftSidebar = () => {
           >
             Workspace
           </SidebarSection>
-          <NoteList type="workspace" notes={notes} isLoading={isLoadingNotes} />
+          <NoteList notes={notes} type="workspace" isLoading={isLoadingNotes} />
         </div>
 
         <div className="px-2 py-3">
@@ -84,7 +93,7 @@ const LeftSidebar = () => {
           >
             Private
           </SidebarSection>
-          <NoteList type="private" notes={notes} isLoading={isLoadingNotes} />
+          <NoteList notes={notes} type="private" isLoading={isLoadingNotes} />
         </div>
       </div>
     </div>
