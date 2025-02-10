@@ -73,15 +73,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
             delimiter={<span className="text-gray-400">•</span>}
             delimiterClassName="text-gray-900"
           />
-          {action === 'contribute' && content.type === 'contribution' ? (
-            <>
-              <span className="text-sm text-gray-600">
-                contributed {formatRSC({ amount: content.amount })} RSC towards bounty
-              </span>
-            </>
-          ) : (
-            <span className="text-sm text-gray-600">{getActionText()}</span>
-          )}
+          <span className="text-sm text-gray-600">{getActionText()}</span>
           <span className="text-sm text-gray-400">•</span>
           <span className="text-sm text-gray-400">{formatTimestamp(timestamp)}</span>
         </div>
