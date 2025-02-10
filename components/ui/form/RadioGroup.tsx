@@ -1,6 +1,6 @@
 'use client';
 
-import { RadioGroup as HeadlessRadioGroup } from '@headlessui/react';
+import { Description, RadioGroup as HeadlessRadioGroup, Label, Radio } from '@headlessui/react';
 import { cn } from '@/utils/styles';
 import { forwardRef } from 'react';
 
@@ -33,7 +33,7 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
         <HeadlessRadioGroup value={value} onChange={onChange}>
           <div className={cn('space-y-2', className)}>
             {options.map((option) => (
-              <HeadlessRadioGroup.Option
+              <Radio
                 key={option.value}
                 value={option.value}
                 className={({ checked }) =>
@@ -50,32 +50,32 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
                   <>
                     <div
                       className={cn(
-                        'flex-shrink-0',
-                        'h-4 w-4 rounded-full border flex items-center justify-center',
+                        'flex-shrink-0 self-center',
+                        'h-6 w-6 rounded-full border flex items-center justify-center',
                         checked ? 'border-indigo-600 bg-indigo-600' : 'border-gray-300 bg-white'
                       )}
                     >
-                      {checked && <div className="h-2 w-2 rounded-full bg-white" />}
+                      {checked && <div className="h-3 w-3 rounded-full bg-white" />}
                     </div>
                     <div className="flex-1">
-                      <HeadlessRadioGroup.Label
+                      <Label
                         as="p"
                         className={cn('font-medium', checked ? 'text-indigo-900' : 'text-gray-900')}
                       >
                         {option.label}
-                      </HeadlessRadioGroup.Label>
+                      </Label>
                       {option.description && (
-                        <HeadlessRadioGroup.Description
+                        <Description
                           as="p"
                           className={cn('text-sm', checked ? 'text-indigo-700' : 'text-gray-500')}
                         >
                           {option.description}
-                        </HeadlessRadioGroup.Description>
+                        </Description>
                       )}
                     </div>
                   </>
                 )}
-              </HeadlessRadioGroup.Option>
+              </Radio>
             ))}
           </div>
         </HeadlessRadioGroup>
