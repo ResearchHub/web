@@ -498,14 +498,14 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
     }
   }, [commentData, onClose]);
 
-  const handleWorkSelect = (suggestion: SearchSuggestion) => {
-    setSelectedPaper({
-      id: suggestion.id?.toString() || suggestion.openalexId,
-      title: suggestion.displayName,
-      authors: suggestion.authors || [],
-      abstract: undefined,
-    });
-    setShowSuggestions(false);
+  const handlePaperSelect = (paper: SearchSuggestion) => {
+    if (paper.entityType === 'work') {
+      setSelectedPaper({
+        id: paper.id?.toString() || paper.openalexId,
+        title: paper.displayName,
+        authors: paper.authors,
+      });
+    }
   };
 
   // Utility functions
@@ -558,7 +558,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
             </div>
             <div className="relative">
               <Search
-                onSelect={handleWorkSelect}
+                onSelect={handlePaperSelect}
                 displayMode="inline"
                 placeholder="Search for work..."
                 className="w-full [&_input]:bg-white"

@@ -17,6 +17,7 @@ import javascript from 'highlight.js/lib/languages/javascript';
 import typescript from 'highlight.js/lib/languages/typescript';
 import python from 'highlight.js/lib/languages/python';
 import 'highlight.js/styles/atom-one-dark.css';
+import { MentionExtension } from './lib/MentionExtension';
 
 const lowlight = createLowlight();
 lowlight.register('javascript', javascript);
@@ -95,6 +96,7 @@ export const CommentEditor = ({
           class: 'not-prose',
         },
       }),
+      MentionExtension,
     ],
     content: initialContent,
     editorProps: {
@@ -268,6 +270,20 @@ export const CommentEditor = ({
         .ProseMirror li > ul,
         .ProseMirror li > ol {
           margin: 0.5rem 0;
+        }
+
+        /* Mention styles */
+        .mention {
+          background: #edf2f7;
+          border-radius: 0.25rem;
+          padding: 0.125rem 0.25rem;
+          color: #4a5568;
+          text-decoration: none;
+          font-weight: 500;
+        }
+
+        .mention:hover {
+          background: #e2e8f0;
         }
       `}</style>
       <div className="border-b px-4 py-2">

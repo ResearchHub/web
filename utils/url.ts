@@ -18,3 +18,11 @@ export function buildWorkUrl(id: number | string, title?: string): string {
   const slug = title ? generateSlug(title) : '';
   return `/work/${id}${slug ? '/' + slug : ''}`;
 }
+
+/**
+ * Builds an author URL from an ID and optional name
+ */
+export function buildAuthorUrl(id: number | string, name?: string): string {
+  const slug = name ? generateSlug(name) : '';
+  return `/author/${id}${slug ? '/' + slug : ''}`;
+}

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Search } from '@/components/Search/Search';
 import { Button } from '@/components/ui/Button';
 import { SearchSuggestion } from '@/types/search';
+
 interface SubmitResearchModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -19,12 +20,22 @@ export function SubmitResearchModal({ isOpen, onClose }: SubmitResearchModalProp
   const router = useRouter();
 
   const handleSearchSelect = (suggestion: SearchSuggestion) => {
-    if (suggestion.id) {
-      router.push(`/notebook/new?paper_id=${suggestion.id}`);
-    } else if (suggestion.doi) {
-      router.push(`/notebook/new?doi=${encodeURIComponent(suggestion.doi)}`);
+    if (suggestion.entityType === 'work') {
+      if (suggestion.id) {
+        router.push(`/notebook/new?paper_id=${suggestion.id}`);
+      } else if (suggestion.doi) {
+        router.push(`/notebook/new?doi=${encodeURIComponent(suggestion.doi)}`);
+      }
+      onClose();
     }
-    onClose();
+  };
+
+  const handlePaperSelect = (paper: SearchSuggestion) => {
+    if (paper.entityType === 'work') {
+      if (paper.doi) {
+        router.push(`/work?doi=${encodeURIComponent(paper.doi)}`);
+      }
+    }
   };
 
   const handleContinueWithoutDOI = () => {

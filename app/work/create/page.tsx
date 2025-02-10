@@ -32,17 +32,21 @@ export default function WorkCreatePage() {
   const showNewBadge = true; // This can be controlled by a feature flag or other logic
 
   const handlePaperSelect = (paper: SearchSuggestion) => {
-    setSelectedPaper({
-      ...paper,
-      id: paper.id?.toString() || paper.openalexId,
-      title: paper.displayName,
-      authors: paper.authors || [],
-      abstract: undefined,
-      slug: paper.slug || paper.id?.toString() || paper.openalexId,
-      displayName: paper.displayName,
-      openalexId: paper.openalexId,
-    });
-    setShowSuggestions(false);
+    // Only handle work suggestions
+    if (paper.entityType === 'work') {
+      setSelectedPaper({
+        id: paper.id?.toString() || paper.openalexId,
+        title: paper.displayName,
+        authors: paper.authors,
+        abstract: undefined,
+        slug: paper.slug || paper.id?.toString() || paper.openalexId,
+        displayName: paper.displayName,
+        openalexId: paper.openalexId,
+      });
+      setShowSuggestions(false);
+    } else {
+      console.log('User suggestion selected:', paper);
+    }
   };
 
   const publishOptions = [

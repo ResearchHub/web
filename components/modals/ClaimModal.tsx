@@ -8,6 +8,7 @@ import { Search } from '@/components/Search/Search';
 import { Button } from '@/components/ui/Button';
 import { useSession } from 'next-auth/react';
 import { SearchSuggestion } from '@/types/search';
+
 interface ClaimModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -15,22 +16,64 @@ interface ClaimModalProps {
 
 type Step = 'search' | 'verify';
 
+interface SelectedPaper {
+  id?: string;
+  displayName: string;
+  authors: string[];
+  doi?: string;
+  authorPosition?: number;
+}
+
 export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
   const [currentStep, setCurrentStep] = useState<Step>('search');
-  const [selectedPaper, setSelectedPaper] = useState<SearchSuggestion | null>(null);
+  const [selectedPaper, setSelectedPaper] = useState<SelectedPaper | null>(null);
   const router = useRouter();
   const { data: session } = useSession();
 
   const handleSearchSelect = (suggestion: SearchSuggestion) => {
-    setSelectedPaper(suggestion);
-    setCurrentStep('verify');
+    if (suggestion.entityType === 'work') {
+      setSelectedPaper({
+        id: suggestion.id?.toString(),
+        displayName: suggestion.displayName,
+        authors: suggestion.authors,
+        doi: suggestion.doi,
+        authorPosition: suggestion.authors.findIndex(
+          (author) => author.toLowerCase() === session?.user?.fullName.toLowerCase()
+        ),
+      });
+      setCurrentStep('verify');
+    }
+  };
+
+  const handlePaperSelect = (paper: SearchSuggestion) => {
+    if (paper.entityType === 'work') {
+      if (paper.doi) {
+        router.push(`/work?doi=${encodeURIComponent(paper.doi)}`);
+      }
+    }
+  };
+
+  const handleSubmit = async (paper: SearchSuggestion) => {
+    if (paper.entityType === 'work') {
+      setSelectedPaper({
+        id: paper.id?.toString(),
+        displayName: paper.displayName,
+        authors: paper.authors,
+        doi: paper.doi,
+        authorPosition: paper.authors.findIndex(
+          (author) => author.toLowerCase() === session?.user?.fullName.toLowerCase()
+        ),
+      });
+    }
   };
 
   const handleVerifyProfile = () => {
     // TODO: Implement profile verification flow
-    if (selectedPaper?.id) {
+    if (!selectedPaper) return;
+
+    if (selectedPaper.id) {
       router.push(`/profile/verify?paper_id=${selectedPaper.id}`);
-    } else if (selectedPaper?.doi) {
+    } else if (selectedPaper.doi) {
       router.push(`/profile/verify?doi=${encodeURIComponent(selectedPaper.doi)}`);
     }
     onClose();

@@ -42,13 +42,15 @@ export function Search({
     }
 
     // Default behavior
-    if (suggestion.isRecent) {
-      router.push(`/work/${suggestion.id}/${suggestion.slug}`);
-    } else {
-      if (suggestion.id) {
+    if (suggestion.entityType === 'work') {
+      if (suggestion.isRecent) {
         router.push(`/work/${suggestion.id}/${suggestion.slug}`);
-      } else if (suggestion.doi) {
-        router.push(`/work?doi=${encodeURIComponent(suggestion.doi)}`);
+      } else {
+        if (suggestion.id) {
+          router.push(`/work/${suggestion.id}/${suggestion.slug}`);
+        } else if (suggestion.doi) {
+          router.push(`/work?doi=${encodeURIComponent(suggestion.doi)}`);
+        }
       }
     }
   };

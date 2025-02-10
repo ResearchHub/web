@@ -21,7 +21,6 @@ export function SearchHistoryTracker({ work }: SearchHistoryTrackerProps) {
       displayName: work.title,
       authors: work.authors.map((a) => a.authorProfile.fullName),
       doi: work.doi || '',
-      score: 0,
       citations: 0,
       source: 'researchhub',
       openalexId: '',
