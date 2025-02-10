@@ -12,9 +12,15 @@ interface FeedTabsProps {
   activeTab: FeedTab;
   onTabChange: (tab: FeedTab) => void;
   onCustomizeComplete?: (interests: Interest[]) => void;
+  onRefresh?: () => void;
 }
 
-export const FeedTabs: FC<FeedTabsProps> = ({ activeTab, onTabChange, onCustomizeComplete }) => {
+export const FeedTabs: FC<FeedTabsProps> = ({
+  activeTab,
+  onTabChange,
+  onCustomizeComplete,
+  onRefresh,
+}) => {
   const [isCustomizing, setIsCustomizing] = useState(false);
 
   const tabs = [
@@ -46,6 +52,13 @@ export const FeedTabs: FC<FeedTabsProps> = ({ activeTab, onTabChange, onCustomiz
     onCustomizeComplete?.(selectedInterests);
   };
 
+  const handleCustomizeClick = (isCustomizing: boolean) => {
+    setIsCustomizing(isCustomizing);
+    if (!isCustomizing) {
+      onRefresh?.();
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -53,7 +66,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({ activeTab, onTabChange, onCustomiz
         <Button
           variant={isCustomizing ? 'default' : 'ghost'}
           size="sm"
-          onClick={() => setIsCustomizing(!isCustomizing)}
+          onClick={() => handleCustomizeClick(!isCustomizing)}
           className="flex items-center gap-2"
         >
           <Settings className="w-5 h-5" />

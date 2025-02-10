@@ -9,7 +9,7 @@ import { useFeed, FeedTab } from '@/hooks/useFeed';
 
 export const Feed: FC = () => {
   const [activeTab, setActiveTab] = useState<FeedTab>('for-you');
-  const { entries, isLoading, hasMore, loadMore } = useFeed(activeTab);
+  const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(activeTab);
 
   return (
     <PageLayout>
@@ -22,7 +22,7 @@ export const Feed: FC = () => {
         </div>
 
         <div className="border-b border-gray-100">
-          <FeedTabs activeTab={activeTab} onTabChange={setActiveTab} />
+          <FeedTabs activeTab={activeTab} onTabChange={setActiveTab} onRefresh={refresh} />
         </div>
 
         <div className="mt-8 space-y-6">
