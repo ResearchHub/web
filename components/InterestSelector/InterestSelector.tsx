@@ -18,6 +18,7 @@ export interface Interest {
 
 interface InterestSelectorProps {
   mode: 'onboarding' | 'preferences';
+  onSaveComplete?: () => void;
 }
 
 const interestTypes = [
@@ -25,7 +26,7 @@ const interestTypes = [
   { id: 'topic', label: 'Topics', icon: Hash },
 ] as const;
 
-export function InterestSelector({ mode }: InterestSelectorProps) {
+export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps) {
   const [activeType, setActiveType] = useState<'journal' | 'person' | 'topic'>('journal');
   const [isLoading, setIsLoading] = useState(true);
   const [interests, setInterests] = useState<Interest[]>([]);
@@ -142,6 +143,7 @@ export function InterestSelector({ mode }: InterestSelectorProps) {
       await Promise.all(promises);
       setPendingChanges(new Map());
       toast.success('Changes saved successfully');
+      onSaveComplete?.();
     } catch (error) {
       console.error('Error saving changes:', error);
       toast.error('Failed to save some changes. Please try again.');

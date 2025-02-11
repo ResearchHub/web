@@ -11,18 +11,10 @@ type FeedTab = 'for-you' | 'following' | 'popular' | 'latest';
 interface FeedTabsProps {
   activeTab: FeedTab;
   onTabChange: (tab: FeedTab) => void;
-  onCustomizeComplete?: (interests: Interest[]) => void;
   onRefresh?: () => void;
-  onCustomizeChange?: (isCustomizing: boolean) => void;
 }
 
-export const FeedTabs: FC<FeedTabsProps> = ({
-  activeTab,
-  onTabChange,
-  onCustomizeComplete,
-  onRefresh,
-  onCustomizeChange,
-}) => {
+export const FeedTabs: FC<FeedTabsProps> = ({ activeTab, onTabChange, onRefresh }) => {
   const [isCustomizing, setIsCustomizing] = useState(false);
 
   const tabs = [
@@ -46,22 +38,16 @@ export const FeedTabs: FC<FeedTabsProps> = ({
 
   const handleTabChange = (tabId: string) => {
     setIsCustomizing(false);
-    onCustomizeChange?.(false);
     onTabChange(tabId as FeedTab);
-  };
-
-  const handleInterestSelection = (selectedInterests: Interest[]) => {
-    setIsCustomizing(false);
-    onCustomizeChange?.(false);
-    onCustomizeComplete?.(selectedInterests);
   };
 
   const handleCustomizeClick = (customizing: boolean) => {
     setIsCustomizing(customizing);
-    onCustomizeChange?.(customizing);
-    if (!customizing) {
-      onRefresh?.();
-    }
+  };
+
+  const handleSaveComplete = () => {
+    setIsCustomizing(false);
+    onRefresh?.();
   };
 
   return (
@@ -81,7 +67,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
 
       {isCustomizing && (
         <div className="mt-6">
-          <InterestSelector mode="preferences" />
+          <InterestSelector mode="preferences" onSaveComplete={handleSaveComplete} />
         </div>
       )}
     </div>
