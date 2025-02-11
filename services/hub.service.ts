@@ -33,8 +33,30 @@ export class HubService {
   private static readonly BASE_PATH = '/api/hub';
   private static readonly SEARCH_PATH = '/api/search/hub';
 
-  static async getHubs(): Promise<Hub[]> {
-    const response = await ApiClient.get<HubsApiResponse>(`${this.SEARCH_PATH}/`);
+  static async getHubs(namespace?: 'journal'): Promise<Hub[]> {
+    const params = new URLSearchParams({
+      ordering: '-paper_count',
+    });
+    if (namespace) {
+      params.append('namespace', namespace);
+    }
+
+    const response = await ApiClient.get<HubsApiResponse>(
+      `${this.BASE_PATH}/?${params.toString()}`
+    );
+    return response.results.map((hub) => ({
+      id: hub.id,
+      name: hub.name,
+      slug: hub.slug,
+      imageUrl: hub.hub_image,
+      description: hub.description,
+    }));
+  }
+
+  static async searchHubs(query: string): Promise<Hub[]> {
+    const response = await ApiClient.get<HubsApiResponse>(
+      `${this.SEARCH_PATH}/?q=${encodeURIComponent(query)}`
+    );
     return response.results.map((hub) => ({
       id: hub.id,
       name: hub.name,
