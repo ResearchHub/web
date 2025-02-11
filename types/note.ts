@@ -1,6 +1,7 @@
 import type { Organization } from './organization';
 import { createTransformer, BaseTransformed } from './transformer';
 import { transformOrganization } from './organization';
+import { ID } from './root';
 
 export type NoteAccess = 'WORKSPACE' | 'PRIVATE' | 'SHARED';
 
@@ -13,8 +14,9 @@ export interface Note {
   title: string;
 }
 
-export interface NoteContent extends Note {
+export interface NoteWithContent extends Note {
   content: string;
+  contentJson: string;
   versionId: number;
   versionDate: string;
   plainText: string;
@@ -45,7 +47,7 @@ export const transformNote = (data: NoteApiItem): Note => ({
   title: data.title,
 });
 
-export const transformNoteContent = (data: any): NoteContent => ({
+export const transformNoteWithContent = (data: any): NoteWithContent => ({
   id: data.id,
   access: data.access,
   organization: transformOrganization(data.organization),
@@ -56,4 +58,21 @@ export const transformNoteContent = (data: any): NoteContent => ({
   versionId: data.latest_version?.id || 0,
   versionDate: data.latest_version?.created_date || data.created_date,
   plainText: data.latest_version?.plain_text || '',
+  contentJson: data.latest_version?.json || '',
 });
+
+export interface NoteContent {
+  id: ID;
+  note: ID;
+  plain_text: string;
+  src: string;
+  json: string;
+}
+
+export const transformNoteContent = createTransformer<any, NoteContent>((raw) => ({
+  id: raw.id,
+  note: raw.note,
+  plain_text: raw.plain_text,
+  src: raw.src,
+  json: raw.json,
+}));

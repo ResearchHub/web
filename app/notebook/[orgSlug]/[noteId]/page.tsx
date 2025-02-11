@@ -7,7 +7,7 @@ import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
 import { useEffect, useState } from 'react';
-import type { NoteContent } from '@/types/note';
+import type { NoteWithContent } from '@/types/note';
 
 export default function NotePage() {
   const params = useParams();
