@@ -100,7 +100,11 @@ export default function FundingCreatePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await createPreregistrationPost(formData);
+      const response = await createPreregistrationPost({
+        ...formData,
+        noteId: 1, //TODO
+        renderable_text: '', //TODO
+      });
 
       router.push(`/fund/${response.id}/${response.slug}`);
     } catch (error) {

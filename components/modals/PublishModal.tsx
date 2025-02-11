@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCreatePost } from '@/hooks/useDocument';
 import { FundingFormData } from '../Editor/components/Funding/FundingForm';
 import { ArticleType } from '../Editor/components/Sidebar/PublishingSidebar';
+import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 
 interface PublishModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({
   const [publicationType, setPublicationType] = useState<PublicationType>('research');
   const router = useRouter();
   const [{ isLoading }, createPreregistrationPost] = useCreatePost();
+  const { editor } = useNotebookPublish();
 
   const steps: { id: Step; title: string }[] = [
     { id: 'type', title: 'Type' },
@@ -48,6 +50,9 @@ export const PublishModal: React.FC<PublishModalProps> = ({
   };
 
   const handlePublish = async () => {
+    if (!editor) return;
+
+    const content = editor.getHTML();
     if (articleType === 'preregistration') {
       try {
         const response = await createPreregistrationPost({

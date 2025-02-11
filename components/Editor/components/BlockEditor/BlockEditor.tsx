@@ -10,6 +10,7 @@ import { useNoteContent } from '@/hooks/useNote';
 import '@/components/Editor/styles/index.css';
 import { ID } from '@/types/root';
 import { debounce } from 'lodash';
+import { usePublish } from '@/contexts/PublishContext';
 
 // Create a simplified Document extension that only accepts blocks
 const CustomDocument = Document.extend({
@@ -30,6 +31,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   noteId,
 }) => {
   const [{ isLoading: isUpdating }, updateNoteContent] = useNoteContent();
+  const { setEditor, setTitle } = usePublish();
 
   // Create a ref for the debounced function
   const debouncedRef = useRef(
@@ -73,13 +75,11 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
       console.log('editor update');
       debouncedRef.current(editor);
 
-      // Extract title from first heading
-      // const firstHeading = editor
-      //   .getJSON()
-      //   .content?.find((node) => node.type === 'heading' && node.attrs?.level === 1);
-      // const title = firstHeading?.content?.[0]?.text || '';
-      // console.log('title', title);
-      // onTitleChange?.(title);
+      const firstHeading = editor
+        .getJSON()
+        .content?.find((node) => node.type === 'heading' && node.attrs?.level === 1);
+      const title = firstHeading?.content?.[0]?.text || '';
+      setTitle(title);
     },
   });
 
@@ -99,6 +99,10 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
       }
     }
   }, [editor, content, contentJson]);
+
+  useEffect(() => {
+    setEditor(editor);
+  }, [editor, setEditor]);
 
   if (isLoading) {
     return <NotebookSkeleton />;
