@@ -105,7 +105,7 @@ export function FundingForm({
           <div className="flex items-center gap-2">
             <Gift className="h-4 w-4 text-gray-700" />
             <h3 className="text-[15px] font-semibold tracking-tight text-gray-900">
-              Reward Funders (Free)
+              Reward Funders
             </h3>
           </div>
           <Switch
@@ -116,7 +116,7 @@ export function FundingForm({
           />
         </div>
         <p className="text-sm text-gray-600">
-          Reward your funders with a graphical memento of your research as an NFT.
+          Reward your funders with a free memento of your research as an NFT.
         </p>
       </div>
 
