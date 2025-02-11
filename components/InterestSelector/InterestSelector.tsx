@@ -37,20 +37,13 @@ export function InterestSelector({ mode }: InterestSelectorProps) {
     topic: "Choose topics you're interested in to get personalized recommendations",
   };
 
-  const capitalizeWords = (str: string) => {
-    return str
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
-  };
-
   const fetchInterests = async (type: 'journal' | 'person' | 'topic'): Promise<Interest[]> => {
     try {
       if (type === 'journal') {
         const journals = await HubService.getHubs('journal');
         return journals.map((journal) => ({
           id: journal.id,
-          name: capitalizeWords(journal.name),
+          name: journal.name,
           type: 'journal',
           imageUrl: journal.imageUrl,
           description: journal.description,
@@ -61,7 +54,7 @@ export function InterestSelector({ mode }: InterestSelectorProps) {
         const hubs = await HubService.getHubs();
         return hubs.map((hub) => ({
           id: hub.id,
-          name: capitalizeWords(hub.name),
+          name: hub.name,
           type: 'topic',
           imageUrl: hub.imageUrl,
           description: hub.description,

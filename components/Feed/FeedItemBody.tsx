@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface FeedItemBodyProps {
   content: Content;
@@ -94,6 +95,22 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
 
     return (
       <div>
+        <div className="flex items-center gap-2 mb-2">
+          <div className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
+            Paper
+          </div>
+          {paper.journal && (
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border border-gray-200 bg-gray-50 hover:bg-gray-200 transition-colors">
+              <Avatar
+                src={paper.journal.imageUrl}
+                alt={paper.journal.slug}
+                size="xxs"
+                className="ring-1 ring-gray-200"
+              />
+              <span className="text-gray-700">{paper.journal.name}</span>
+            </div>
+          )}
+        </div>
         <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
           {paper.title}
         </h3>
