@@ -4,12 +4,13 @@ import { FC, useState } from 'react';
 import { FeedTabs } from './FeedTabs';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FeedItem } from './FeedItem';
+import { FeedItemSkeleton } from './FeedItemSkeleton';
 import { Sparkles } from 'lucide-react';
 import { useFeed, FeedTab } from '@/hooks/useFeed';
 
 export const Feed: FC = () => {
   const [activeTab, setActiveTab] = useState<FeedTab>('for-you');
-  const { entries, isLoading, hasMore, loadMore } = useFeed(activeTab);
+  const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(activeTab);
 
   return (
     <PageLayout>
@@ -22,16 +23,24 @@ export const Feed: FC = () => {
         </div>
 
         <div className="border-b border-gray-100">
-          <FeedTabs activeTab={activeTab} onTabChange={setActiveTab} />
+          <FeedTabs activeTab={activeTab} onTabChange={setActiveTab} onRefresh={refresh} />
         </div>
 
         <div className="mt-8 space-y-6">
-          {entries.map((entry, index) => (
-            <FeedItem key={entry.id} entry={entry} isFirst={index === 0} />
-          ))}
+          {isLoading ? (
+            <div className="space-y-6">
+              {[...Array(3)].map((_, i) => (
+                <FeedItemSkeleton key={i} />
+              ))}
+            </div>
+          ) : (
+            entries.map((entry, index) => (
+              <FeedItem key={entry.id} entry={entry} isFirst={index === 0} />
+            ))
+          )}
         </div>
 
-        {hasMore && (
+        {!isLoading && hasMore && (
           <div className="mt-8 text-center">
             <button
               onClick={loadMore}

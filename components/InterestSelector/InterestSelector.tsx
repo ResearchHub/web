@@ -47,7 +47,7 @@ export function InterestSelector({ mode }: InterestSelectorProps) {
   const fetchInterests = async (type: 'journal' | 'person' | 'topic'): Promise<Interest[]> => {
     try {
       if (type === 'journal') {
-        const journals = await JournalService.getJournals();
+        const journals = await HubService.getHubs('journal');
         return journals.map((journal) => ({
           id: journal.id,
           name: capitalizeWords(journal.name),

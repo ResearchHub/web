@@ -32,6 +32,7 @@ export interface Author {
 
 export class AuthorService {
   private static readonly BASE_PATH = '/api/search/person';
+  private static readonly AUTHORS_PATH = '/api/author';
 
   static async getAuthors(): Promise<Author[]> {
     const response = await ApiClient.get<AuthorsApiResponse>(`${this.BASE_PATH}/`);
@@ -50,10 +51,10 @@ export class AuthorService {
   }
 
   static async followAuthor(authorId: number): Promise<void> {
-    await ApiClient.post(`${this.BASE_PATH}/${authorId}/follow/`);
+    await ApiClient.post(`${this.AUTHORS_PATH}/${authorId}/follow/`);
   }
 
   static async unfollowAuthor(authorId: number): Promise<void> {
-    await ApiClient.post(`${this.BASE_PATH}/${authorId}/unfollow/`);
+    await ApiClient.post(`${this.AUTHORS_PATH}/${authorId}/unfollow/`);
   }
 }
