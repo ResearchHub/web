@@ -31,8 +31,16 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
   const [isLoading, setIsLoading] = useState(true);
   const [interests, setInterests] = useState<Interest[]>([]);
   const [followedIds, setFollowedIds] = useState<number[]>([]);
-  const [pendingChanges, setPendingChanges] = useState<Map<number, boolean>>(new Map());
+  const [pendingChangesByType, setPendingChangesByType] = useState<
+    Record<string, Map<number, boolean>>
+  >({
+    journal: new Map(),
+    person: new Map(),
+    topic: new Map(),
+  });
   const [isSaving, setIsSaving] = useState(false);
+
+  const pendingChanges = pendingChangesByType[activeType] || new Map();
 
   const descriptions = {
     journal: 'Select journals to stay updated with the latest research in your field',
@@ -96,6 +104,8 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
         setFollowedIds(followedItems);
       } catch (error) {
         console.error('Error loading interests:', error);
+        setInterests([]);
+        setFollowedIds([]);
       } finally {
         setIsLoading(false);
       }
@@ -104,19 +114,33 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
     loadInterests();
   }, [activeType]);
 
+  const handleTypeChange = (type: typeof activeType) => {
+    setActiveType(type);
+  };
+
   const handleFollowToggle = (interestId: number, isFollowing: boolean) => {
-    setPendingChanges((prev) => {
-      const newChanges = new Map(prev);
-      newChanges.set(interestId, !isFollowing);
-      return newChanges;
+    setPendingChangesByType((prev) => {
+      const newChanges = new Map(prev[activeType] || new Map());
+      if (newChanges.has(interestId)) {
+        newChanges.delete(interestId);
+      } else {
+        newChanges.set(interestId, !isFollowing);
+      }
+      return {
+        ...prev,
+        [activeType]: newChanges,
+      };
     });
 
-    // Update UI immediately
-    if (!isFollowing) {
-      setFollowedIds((prev) => [...prev, interestId]);
-    } else {
-      setFollowedIds((prev) => prev.filter((id) => id !== interestId));
-    }
+    setFollowedIds((prev) => {
+      const newFollowedIds = new Set(prev);
+      if (isFollowing) {
+        newFollowedIds.delete(interestId);
+      } else {
+        newFollowedIds.add(interestId);
+      }
+      return Array.from(newFollowedIds);
+    });
   };
 
   const handleSaveChanges = async () => {
@@ -124,24 +148,26 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
     setIsSaving(true);
 
     try {
-      const changes = Array.from(pendingChanges.entries());
-      const promises = changes.map(([interestId, shouldFollow]) => {
-        const interest = interests.find((i) => i.id === interestId);
-        if (!interest) return Promise.resolve();
-
-        if (interest.type === 'person') {
-          return shouldFollow
-            ? AuthorService.followAuthor(interestId)
-            : AuthorService.unfollowAuthor(interestId);
-        } else {
-          return shouldFollow
-            ? HubService.followHub(interestId)
-            : HubService.unfollowHub(interestId);
-        }
+      const allPromises = Object.entries(pendingChangesByType).flatMap(([type, changes]) => {
+        return Array.from(changes.entries()).map(([interestId, shouldFollow]) => {
+          if (type === 'person') {
+            return shouldFollow
+              ? AuthorService.followAuthor(interestId)
+              : AuthorService.unfollowAuthor(interestId);
+          } else {
+            return shouldFollow
+              ? HubService.followHub(interestId)
+              : HubService.unfollowHub(interestId);
+          }
+        });
       });
 
-      await Promise.all(promises);
-      setPendingChanges(new Map());
+      await Promise.all(allPromises);
+      setPendingChangesByType({
+        journal: new Map(),
+        person: new Map(),
+        topic: new Map(),
+      });
       toast.success('Changes saved successfully');
       onSaveComplete?.();
     } catch (error) {
@@ -152,6 +178,11 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
     }
   };
 
+  const totalPendingChanges = Object.values(pendingChangesByType).reduce(
+    (total, changes) => total + changes.size,
+    0
+  );
+
   return (
     <div className="max-w-4xl relative">
       <div className="space-y-6">
@@ -161,15 +192,21 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
         <div className="flex gap-4">
           {interestTypes.map((type) => {
             const Icon = type.icon;
+            const hasPendingChanges = (pendingChangesByType[type.id]?.size || 0) > 0;
             return (
               <Button
                 key={type.id}
                 variant={activeType === type.id ? 'default' : 'secondary'}
-                onClick={() => setActiveType(type.id)}
+                onClick={() => handleTypeChange(type.id)}
                 className="flex items-center gap-2"
               >
                 <Icon className="w-4 h-4" />
                 {type.label}
+                {hasPendingChanges && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
+                    {pendingChangesByType[type.id].size}
+                  </span>
+                )}
               </Button>
             );
           })}
@@ -194,10 +231,10 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
       </div>
 
       {/* Sticky Save Bar */}
-      {pendingChanges.size > 0 && (
+      {totalPendingChanges > 0 && (
         <div className="sticky bottom-0 bg-white border-t shadow-lg p-4 mt-8 flex justify-between items-center">
           <div className="text-sm text-gray-600">
-            {pendingChanges.size} unsaved {pendingChanges.size === 1 ? 'change' : 'changes'}
+            {totalPendingChanges} unsaved {totalPendingChanges === 1 ? 'change' : 'changes'}
           </div>
           <Button
             onClick={handleSaveChanges}
