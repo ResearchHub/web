@@ -13,6 +13,7 @@ interface FeedTabsProps {
   onTabChange: (tab: FeedTab) => void;
   onCustomizeComplete?: (interests: Interest[]) => void;
   onRefresh?: () => void;
+  onCustomizeChange?: (isCustomizing: boolean) => void;
 }
 
 export const FeedTabs: FC<FeedTabsProps> = ({
@@ -20,6 +21,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   onTabChange,
   onCustomizeComplete,
   onRefresh,
+  onCustomizeChange,
 }) => {
   const [isCustomizing, setIsCustomizing] = useState(false);
 
@@ -44,17 +46,20 @@ export const FeedTabs: FC<FeedTabsProps> = ({
 
   const handleTabChange = (tabId: string) => {
     setIsCustomizing(false);
+    onCustomizeChange?.(false);
     onTabChange(tabId as FeedTab);
   };
 
   const handleInterestSelection = (selectedInterests: Interest[]) => {
     setIsCustomizing(false);
+    onCustomizeChange?.(false);
     onCustomizeComplete?.(selectedInterests);
   };
 
-  const handleCustomizeClick = (isCustomizing: boolean) => {
-    setIsCustomizing(isCustomizing);
-    if (!isCustomizing) {
+  const handleCustomizeClick = (customizing: boolean) => {
+    setIsCustomizing(customizing);
+    onCustomizeChange?.(customizing);
+    if (!customizing) {
       onRefresh?.();
     }
   };

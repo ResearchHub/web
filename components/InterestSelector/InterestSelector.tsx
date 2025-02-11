@@ -22,7 +22,6 @@ interface InterestSelectorProps {
 
 const interestTypes = [
   { id: 'journal', label: 'Journals', icon: BookOpen },
-  { id: 'person', label: 'People', icon: Users },
   { id: 'topic', label: 'Topics', icon: Hash },
 ] as const;
 
@@ -152,47 +151,49 @@ export function InterestSelector({ mode }: InterestSelectorProps) {
   };
 
   return (
-    <div className="max-w-4xl pb-20">
-      <p className="text-gray-600 mb-6">{descriptions[activeType]}</p>
+    <div className="max-w-4xl relative">
+      <div className="space-y-6">
+        <p className="text-gray-600">{descriptions[activeType]}</p>
 
-      {/* Interest type selector */}
-      <div className="flex gap-4 mb-8">
-        {interestTypes.map((type) => {
-          const Icon = type.icon;
-          return (
-            <Button
-              key={type.id}
-              variant={activeType === type.id ? 'default' : 'secondary'}
-              onClick={() => setActiveType(type.id)}
-              className="flex items-center gap-2"
-            >
-              <Icon className="w-4 h-4" />
-              {type.label}
-            </Button>
-          );
-        })}
-      </div>
+        {/* Interest type selector */}
+        <div className="flex gap-4">
+          {interestTypes.map((type) => {
+            const Icon = type.icon;
+            return (
+              <Button
+                key={type.id}
+                variant={activeType === type.id ? 'default' : 'secondary'}
+                onClick={() => setActiveType(type.id)}
+                className="flex items-center gap-2"
+              >
+                <Icon className="w-4 h-4" />
+                {type.label}
+              </Button>
+            );
+          })}
+        </div>
 
-      {/* Interest grid */}
-      <div className="mb-8">
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[...Array(6)].map((_, i) => (
-              <InterestSkeleton key={i} />
-            ))}
-          </div>
-        ) : (
-          <InterestGrid
-            interests={interests}
-            followedIds={followedIds}
-            onFollowToggle={handleFollowToggle}
-          />
-        )}
+        {/* Interest grid */}
+        <div>
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <InterestSkeleton key={i} />
+              ))}
+            </div>
+          ) : (
+            <InterestGrid
+              interests={interests}
+              followedIds={followedIds}
+              onFollowToggle={handleFollowToggle}
+            />
+          )}
+        </div>
       </div>
 
       {/* Sticky Save Bar */}
       {pendingChanges.size > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 flex justify-between items-center">
+        <div className="sticky bottom-0 bg-white border-t shadow-lg p-4 mt-8 flex justify-between items-center">
           <div className="text-sm text-gray-600">
             {pendingChanges.size} unsaved {pendingChanges.size === 1 ? 'change' : 'changes'}
           </div>
