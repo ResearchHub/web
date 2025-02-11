@@ -7,7 +7,6 @@ import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
 import { useEffect, useState } from 'react';
-import type { NoteWithContent } from '@/types/note';
 
 export default function NotePage() {
   const params = useParams();
@@ -52,7 +51,7 @@ export default function NotePage() {
   if (!shouldFetchContent && initialNote) {
     return (
       <div className="h-full">
-        <BlockEditor content="" isLoading={true} />
+        <BlockEditor content="" isLoading={true} noteId={initialNote.id} />
       </div>
     );
   }
@@ -72,9 +71,15 @@ export default function NotePage() {
     throw error;
   }
 
+  console.log({ note });
   return (
     <div className="h-full">
-      <BlockEditor content={note.content} isLoading={false} />
+      <BlockEditor
+        content={note.content}
+        contentJson={note.contentJson}
+        isLoading={false}
+        noteId={note.id}
+      />
     </div>
   );
 }

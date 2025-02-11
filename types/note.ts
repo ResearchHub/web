@@ -15,8 +15,8 @@ export interface Note {
 }
 
 export interface NoteWithContent extends Note {
-  content: string;
-  contentJson: string;
+  content?: string;
+  contentJson?: string;
   versionId: number;
   versionDate: string;
   plainText: string;
@@ -54,11 +54,11 @@ export const transformNoteWithContent = (data: any): NoteWithContent => ({
   createdDate: data.created_date,
   updatedDate: data.updated_date,
   title: data.title,
-  content: data.latest_version?.src || '',
+  content: data.latest_version?.src,
   versionId: data.latest_version?.id || 0,
   versionDate: data.latest_version?.created_date || data.created_date,
   plainText: data.latest_version?.plain_text || '',
-  contentJson: data.latest_version?.json || '',
+  contentJson: data.latest_version?.json,
 });
 
 export interface NoteContent {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NoteService, NoteError } from '@/services/note.service';
 import type { NoteWithContent, Note, NoteAccess, NoteContent } from '@/types/note';
+import { ID } from '@/types/root';
 
 export interface UseNoteReturn {
   note: NoteWithContent | null;
@@ -137,9 +138,10 @@ interface UseNoteContentState {
 }
 
 interface UpdateNoteContentInput {
-  note: number;
-  fullSrc: string;
-  plainText: string;
+  note: ID;
+  fullSrc?: string;
+  plainText?: string;
+  fullJson?: string;
 }
 
 type UpdateNoteContentFn = (params: UpdateNoteContentInput) => Promise<NoteContent>;
@@ -159,6 +161,7 @@ export const useNoteContent = (): UseNoteContentReturn => {
         note: params.note,
         full_src: params.fullSrc,
         plain_text: params.plainText,
+        full_json: params.fullJson,
       });
       setNote(response);
       return response;
