@@ -7,9 +7,10 @@ import {
   BookOpen,
   Users,
   Tag,
-  Heading,
   DollarSign,
   Wallet,
+  Plus,
+  Upload,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/menus/BaseMenu';
@@ -17,6 +18,10 @@ import { GrantIcon } from '@/components/ui/icons/GrantIcon';
 import { Switch } from '@/components/ui/Switch';
 import { useState } from 'react';
 import { cn } from '@/utils/styles';
+import {
+  FundingForm,
+  type FundingFormData,
+} from '@/components/Editor/components/Funding/FundingForm';
 
 type ArticleType = 'research' | 'preregistration' | 'other';
 
@@ -49,12 +54,16 @@ export const PublishingSidebar = ({
   onTitleChange,
 }: PublishingSidebarProps) => {
   const [isJournalEnabled, setIsJournalEnabled] = useState(false);
-  const [fundingAmount, setFundingAmount] = useState('');
-  const [nftPrice, setNftPrice] = useState('');
+  const [fundingData, setFundingData] = useState<FundingFormData>({
+    budget: '',
+    rewardFunders: false,
+    nftArt: null,
+    nftSupply: '1000',
+  });
 
   const articleTypes = {
     research: {
-      title: 'Original Research Article',
+      title: 'Original Research Work',
       description: 'Submit your original research',
     },
     preregistration: {
@@ -77,14 +86,18 @@ export const PublishingSidebar = ({
     return <FileText className="h-4 w-4 text-gray-500" />;
   };
 
+  const handleFundingSubmit = (data: FundingFormData) => {
+    setFundingData(data);
+  };
+
   return (
-    <div className="w-80 border-l flex flex-col h-screen sticky right-0 top-0 bg-white">
+    <div className="w-82 border-l flex flex-col h-screen sticky right-0 top-0 bg-white">
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300">
         <div className="pb-6">
-          {/* Article Type Section - Now First */}
+          {/* Work Type Section - Now First */}
           <div className="py-3 px-6">
-            <SectionHeader icon={FileText}>Article Type</SectionHeader>
+            <SectionHeader icon={FileText}>Work Type</SectionHeader>
             <div className="mt-2">
               <BaseMenu
                 trigger={
@@ -100,7 +113,7 @@ export const PublishingSidebar = ({
                 className="w-[300px]"
               >
                 <div className="text-[.65rem] font-semibold mb-1 uppercase text-neutral-500 px-2">
-                  Article Type
+                  Work Type
                 </div>
                 {Object.entries(articleTypes).map(([type, info]) => (
                   <BaseMenuItem
@@ -117,55 +130,27 @@ export const PublishingSidebar = ({
                 ))}
               </BaseMenu>
 
-              {articleType === 'preregistration' && (
-                <div className="mt-4 p-4 bg-indigo-50 rounded-lg text-sm text-indigo-900">
-                  <p className="mb-3">
-                    <strong>What is a preregistration?</strong> It's a detailed plan of your
-                    research before you begin, including your hypotheses, methods, and analysis
-                    plan.
-                  </p>
-                  <p>
-                    <strong>How funding works:</strong> After submitting your preregistration,
-                    funders can support your research by purchasing NFTs. Each NFT represents a
-                    stake in your research's success.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Paper Title Input */}
-          <div className="py-3 px-6">
-            <SectionHeader icon={Heading}>Title</SectionHeader>
-            <div className="mt-2">
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => onTitleChange(e.target.value)}
-                placeholder="Enter the title of your paper..."
-                className="w-full px-3 py-2 border rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              />
+              {articleType === 'preregistration'}
             </div>
           </div>
 
           {/* Authors Section */}
           <div className="py-3 px-6">
             <SectionHeader icon={Users}>Authors</SectionHeader>
-            <div className="mt-2 text-sm text-gray-500">Add authors to your article</div>
+            <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
+              <Plus className="h-4 w-4 text-gray-400" />
+              Add authors to your work
+            </div>
           </div>
 
           {/* Topics Section */}
           <div className="py-3 px-6">
             <SectionHeader icon={Tag}>Topics</SectionHeader>
             <div className="mt-2">
-              <Button
-                variant="outlined"
-                onClick={() => {}}
-                className="w-full flex items-center gap-2 justify-center"
-              >
-                <Hash className="h-4 w-4" />
-                Add Topics
-              </Button>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Plus className="h-4 w-4 text-gray-400" />
+                Add topics to your work
+              </div>
               <div className="mt-2 flex flex-wrap gap-2">
                 {/* Example topics - these should be dynamic */}
                 <div className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm">
@@ -182,49 +167,13 @@ export const PublishingSidebar = ({
 
           {/* Funding Section - Only for Preregistration */}
           {articleType === 'preregistration' && (
-            <>
-              <div className="py-3 px-6">
-                <SectionHeader icon={DollarSign}>Funding Goal</SectionHeader>
-                <div className="mt-2">
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={fundingAmount}
-                      onChange={(e) => setFundingAmount(e.target.value)}
-                      placeholder="0.00"
-                      className="w-full pl-3 pr-12 py-2 border rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                      <span className="text-sm text-gray-500">USD</span>
-                    </div>
-                  </div>
-                  <p className="mt-2 text-sm text-gray-500">
-                    Set your total funding goal for this research project
-                  </p>
-                </div>
-              </div>
-
-              <div className="py-3 px-6">
-                <SectionHeader icon={Wallet}>NFT Price</SectionHeader>
-                <div className="mt-2">
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={nftPrice}
-                      onChange={(e) => setNftPrice(e.target.value)}
-                      placeholder="0.00"
-                      className="w-full pl-3 pr-12 py-2 border rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                      <span className="text-sm text-gray-500">USD</span>
-                    </div>
-                  </div>
-                  <p className="mt-2 text-sm text-gray-500">
-                    Set the price per NFT. Each NFT represents a stake in your research
-                  </p>
-                </div>
-              </div>
-            </>
+            <div className="py-3 px-6">
+              <FundingForm
+                onSubmit={handleFundingSubmit}
+                initialData={fundingData}
+                className="mt-2"
+              />
+            </div>
           )}
 
           {/* ResearchCoin Section - Only for Research and Other */}
