@@ -17,6 +17,19 @@ export async function GET() {
   // Get the organization's notes
   const notes = await NoteService.getOrganizationNotes(defaultOrg.slug);
 
-  // Redirect to the first note
+  // Check if there are any notes
+  if (notes.results.length === 0) {
+    // If no notes exist, create a new one
+    const newNote = await NoteService.createNote({
+      organization_slug: defaultOrg.slug,
+      title: 'Untitled', //TODO: we might want to set a better default title
+      grouping: 'WORKSPACE',
+    });
+
+    // Redirect to the newly created note
+    redirect(`/notebook/${defaultOrg.slug}/${newNote.id}`);
+  }
+
+  // If notes exist, redirect to the first one
   redirect(`/notebook/${defaultOrg.slug}/${notes.results[0].id}`);
 }

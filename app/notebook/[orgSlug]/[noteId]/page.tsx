@@ -62,7 +62,8 @@ export default function NotePage() {
   }
 
   // Handle missing note data
-  if (!note || !note.content) {
+  //TODO: just created note does not have any content, so we will stuck here
+  if (!note /* || !note.content*/) {
     return <NotebookSkeleton />;
   }
 
@@ -74,7 +75,7 @@ export default function NotePage() {
   return (
     <div className="h-full">
       <BlockEditor
-        content={note.content}
+        content={note.content || ''}
         contentJson={note.contentJson}
         isLoading={false}
         noteId={note.id}
