@@ -42,7 +42,7 @@ export function Search({
     }
 
     // Default behavior
-    if (suggestion.entityType === 'work') {
+    if (suggestion.entityType === 'paper') {
       if (suggestion.isRecent) {
         router.push(`/work/${suggestion.id}/${suggestion.slug}`);
       } else {

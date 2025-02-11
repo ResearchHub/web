@@ -37,10 +37,8 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   };
 
   const handleWorkSelect = (suggestion: SearchSuggestion) => {
-    console.log('handleWorkSelect', suggestion);
-
-    // Only handle work suggestions
-    if (suggestion.entityType === 'work') {
+    // Only handle paper suggestions
+    if (suggestion.entityType === 'paper') {
       if (suggestion.id) {
         // If we have an ID, redirect to the work page with slug
         const path = suggestion.slug

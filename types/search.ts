@@ -2,8 +2,8 @@ import { createTransformer, BaseTransformed } from './transformer';
 import { buildWorkUrl, buildAuthorUrl } from '@/utils/url';
 import { AuthorProfile } from './user';
 
-export type SuggestionSource = 'api' | 'recent';
-export type EntityType = 'user' | 'paper' | 'work';
+export type SuggestionSource = 'api' | 'recent' | 'researchhub' | 'openalex';
+export type EntityType = 'user' | 'paper' | 'author' | 'post';
 
 export interface BaseSuggestion {
   entityType: EntityType;
@@ -14,7 +14,7 @@ export interface BaseSuggestion {
 }
 
 export interface WorkSuggestion extends BaseSuggestion {
-  entityType: 'work';
+  entityType: 'paper';
   doi: string;
   displayName: string;
   authors: string[];
@@ -25,15 +25,21 @@ export interface WorkSuggestion extends BaseSuggestion {
 }
 
 export interface UserSuggestion extends BaseSuggestion {
-  entityType: 'user';
-  fullName: string;
-  reputation: number;
-  createdDate: string;
-  isVerified: boolean;
+  entityType: 'user' | 'author';
+  displayName: string;
+  reputation?: number;
+  createdDate?: string;
+  isVerified?: boolean;
   authorProfile: AuthorProfile;
 }
 
-export type SearchSuggestion = WorkSuggestion | UserSuggestion;
+export interface PostSuggestion extends BaseSuggestion {
+  entityType: 'post';
+  displayName: string;
+  id: number;
+}
+
+export type SearchSuggestion = WorkSuggestion | UserSuggestion | PostSuggestion;
 
 export interface RecentPageView {
   id: number;
@@ -50,7 +56,7 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
   if (raw.lastVisited) {
     // If it's a recent suggestion
     return {
-      entityType: 'work',
+      entityType: 'paper',
       doi: raw.doi || '',
       displayName: raw.title,
       authors: raw.authors,
@@ -68,23 +74,37 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
   // Handle different entity types
   switch (raw.entity_type) {
     case 'user':
+    case 'person':
       return {
-        entityType: 'user',
+        entityType: raw.entity_type === 'person' ? 'author' : 'user',
         id: raw.id,
-        fullName: raw.full_name,
+        displayName: raw.display_name,
         reputation: raw.reputation,
         source: raw.source,
         isRecent: false,
         createdDate: raw.created_date,
         isVerified: raw.is_verified || false,
-        url: buildAuthorUrl(raw.id, raw.full_name),
-        authorProfile: raw.author_profile,
+        url: buildAuthorUrl(raw.id, raw.display_name),
+        authorProfile: raw.author_profile || {
+          id: raw.id,
+          headline: raw.headline,
+          profileImage: raw.profile_image,
+        },
       };
 
-    case 'work':
+    case 'post':
+      return {
+        entityType: 'post',
+        id: raw.id,
+        displayName: raw.display_name,
+        source: raw.source,
+        isRecent: false,
+      };
+
+    case 'paper':
     default:
       return {
-        entityType: 'work',
+        entityType: 'paper',
         doi: raw.doi,
         displayName: raw.display_name,
         authors: raw.authors,

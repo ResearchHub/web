@@ -8,7 +8,7 @@ import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 interface MentionItem {
   id: string;
   label: string;
-  entityType: 'user' | 'work';
+  entityType: 'paper' | 'user' | 'author' | 'post';
   authorProfileId?: string | null;
   firstName?: string;
   lastName?: string;
@@ -19,6 +19,9 @@ interface MentionItem {
     headline?: string;
     profileImage?: string | null;
   };
+  doi?: string;
+  citations?: number;
+  source?: string;
 }
 
 interface MentionListProps {
@@ -33,28 +36,24 @@ export const MentionList = forwardRef<
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   // Group items by type
-  const users = props.items.filter((item) => item.entityType === 'user');
-  const works = props.items.filter((item) => item.entityType === 'work');
+  const users = props.items.filter(
+    (item) => item.entityType === 'user' || item.entityType === 'author'
+  );
+  const papers = props.items.filter((item) => item.entityType === 'paper');
 
   // Get the actual item based on the selected index
   const getItemFromIndex = (index: number): MentionItem | null => {
     const userCount = users.length;
     const hasUserHeader = users.length > 0;
-    const hasWorkHeader = works.length > 0;
-    const headerCount = (hasUserHeader ? 1 : 0) + (hasWorkHeader ? 1 : 0);
+    const hasPaperHeader = papers.length > 0;
 
     // Adjust index to account for headers
-    let adjustedIndex = index;
-    if (index < userCount + (hasUserHeader ? 1 : 0)) {
-      // In users section
-      if (index === 0 && hasUserHeader) return null; // Header
-      return users[index - 1];
-    } else {
-      // In works section
-      adjustedIndex = index - userCount - (hasUserHeader ? 1 : 0);
-      if (adjustedIndex === 0 && hasWorkHeader) return null; // Header
-      return works[adjustedIndex - 1];
+    if (hasUserHeader && index === 0) return null; // User header
+    if (hasUserHeader && index <= userCount) {
+      return users[index - 1]; // User item
     }
+    if (hasPaperHeader && index === userCount + (hasUserHeader ? 1 : 0)) return null; // Paper header
+    return papers[index - userCount - (hasUserHeader ? 1 : 0) - (hasPaperHeader ? 1 : 0)]; // Paper item
   };
 
   const selectItem = (index: number) => {
@@ -62,6 +61,12 @@ export const MentionList = forwardRef<
     if (item) {
       props.command(item);
     }
+  };
+
+  const getTotalLength = () => {
+    const hasUserHeader = users.length > 0;
+    const hasPaperHeader = papers.length > 0;
+    return users.length + papers.length + (hasUserHeader ? 1 : 0) + (hasPaperHeader ? 1 : 0);
   };
 
   const upHandler = () => {
@@ -84,13 +89,11 @@ export const MentionList = forwardRef<
     selectItem(selectedIndex);
   };
 
-  const getTotalLength = () => {
-    const hasUserHeader = users.length > 0;
-    const hasWorkHeader = works.length > 0;
-    return users.length + works.length + (hasUserHeader ? 1 : 0) + (hasWorkHeader ? 1 : 0);
-  };
-
-  useEffect(() => setSelectedIndex(users.length > 0 ? 1 : 2), [props.items]);
+  useEffect(() => {
+    // Set initial selection to first non-header item
+    let initialIndex = users.length > 0 ? 1 : 2;
+    setSelectedIndex(initialIndex);
+  }, [props.items]);
 
   useImperativeHandle(ref, () => ({
     onKeyDown: ({ event }) => {
@@ -113,13 +116,13 @@ export const MentionList = forwardRef<
     },
   }));
 
-  const renderUserItem = (item: MentionItem, index: number) => (
+  const renderUserItem = (item: MentionItem) => (
     <div className="flex items-center gap-2">
       <Avatar src={item.authorProfile?.profileImage} alt={item.label} size="sm" />
       <div className="flex-grow min-w-0">
         <div className="flex items-center gap-1">
           <span className="font-medium text-gray-900">{item.label}</span>
-          {item.isVerified && <VerifiedBadge size="sm" />}
+          {item.isVerified && <VerifiedBadge size="xs" />}
         </div>
         {item.authorProfile?.headline && (
           <div className="text-xs text-gray-500 truncate">{item.authorProfile.headline}</div>
@@ -128,13 +131,15 @@ export const MentionList = forwardRef<
     </div>
   );
 
-  const renderWorkItem = (item: MentionItem, index: number) => (
+  const renderPaperItem = (item: MentionItem) => (
     <div className="flex items-start gap-2">
       <div className="flex-shrink-0 w-6 h-6 bg-gray-100 rounded flex items-center justify-center text-gray-600">
         <FontAwesomeIcon icon={faFileLines} className="h-3 w-3" />
       </div>
       <div className="flex-grow min-w-0">
-        <div className="font-medium text-gray-900 line-clamp-2">{item.displayName}</div>
+        <div className="font-medium text-gray-900 line-clamp-2">
+          {item.displayName || item.label}
+        </div>
         {item.authors && (
           <div className="text-xs text-gray-500 truncate">
             {item.authors.slice(0, 3).join(', ')}
@@ -151,7 +156,7 @@ export const MentionList = forwardRef<
     </div>
   );
 
-  let currentIndex = 0;
+  let currentIndex = -1;
 
   return (
     <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden min-w-[280px] max-w-[400px] max-h-[400px] overflow-y-auto">
@@ -161,17 +166,18 @@ export const MentionList = forwardRef<
           <div>
             {users.map((item) => {
               currentIndex++;
+              const itemIndex = currentIndex + 1; // Add 1 to account for header
               return (
                 <button
-                  key={item.id}
+                  key={`${item.entityType}-${item.id}`}
                   className={cn(
                     'w-full px-3 py-1.5 text-left transition-colors duration-150',
                     'group focus:outline-none',
-                    currentIndex === selectedIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
+                    itemIndex === selectedIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
                   )}
-                  onClick={() => selectItem(currentIndex)}
+                  onClick={() => selectItem(itemIndex)}
                 >
-                  {renderUserItem(item, currentIndex)}
+                  {renderUserItem(item)}
                 </button>
               );
             })}
@@ -179,23 +185,24 @@ export const MentionList = forwardRef<
         </div>
       )}
 
-      {works.length > 0 && (
+      {papers.length > 0 && (
         <div>
-          {renderSectionHeader('Works')}
+          {renderSectionHeader('Papers')}
           <div>
-            {works.map((item) => {
+            {papers.map((item) => {
               currentIndex++;
+              const itemIndex = currentIndex + (users.length > 0 ? 2 : 1); // Add headers
               return (
                 <button
-                  key={item.id}
+                  key={`${item.entityType}-${item.id}`}
                   className={cn(
                     'w-full px-3 py-1.5 text-left transition-colors duration-150',
                     'group focus:outline-none',
-                    currentIndex === selectedIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
+                    itemIndex === selectedIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
                   )}
-                  onClick={() => selectItem(currentIndex)}
+                  onClick={() => selectItem(itemIndex)}
                 >
-                  {renderWorkItem(item, currentIndex)}
+                  {renderPaperItem(item)}
                 </button>
               );
             })}

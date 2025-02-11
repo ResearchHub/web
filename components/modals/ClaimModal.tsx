@@ -31,7 +31,7 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
   const { data: session } = useSession();
 
   const handleSearchSelect = (suggestion: SearchSuggestion) => {
-    if (suggestion.entityType === 'work') {
+    if (suggestion.entityType === 'paper') {
       setSelectedPaper({
         id: suggestion.id?.toString(),
         displayName: suggestion.displayName,
@@ -46,7 +46,7 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
   };
 
   const handlePaperSelect = (paper: SearchSuggestion) => {
-    if (paper.entityType === 'work') {
+    if (paper.entityType === 'paper') {
       if (paper.doi) {
         router.push(`/work?doi=${encodeURIComponent(paper.doi)}`);
       }
@@ -54,7 +54,7 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
   };
 
   const handleSubmit = async (paper: SearchSuggestion) => {
-    if (paper.entityType === 'work') {
+    if (paper.entityType === 'paper') {
       setSelectedPaper({
         id: paper.id?.toString(),
         displayName: paper.displayName,

@@ -32,8 +32,8 @@ export default function WorkCreatePage() {
   const showNewBadge = true; // This can be controlled by a feature flag or other logic
 
   const handlePaperSelect = (paper: SearchSuggestion) => {
-    // Only handle work suggestions
-    if (paper.entityType === 'work') {
+    // Only handle paper suggestions
+    if (paper.entityType === 'paper') {
       setSelectedPaper({
         id: paper.id?.toString() || paper.openalexId,
         title: paper.displayName,

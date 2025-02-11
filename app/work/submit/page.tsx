@@ -82,9 +82,9 @@ export default function SubmitResearchPage() {
   const router = useRouter();
 
   const handlePaperSelect = (paper: SearchSuggestion) => {
-    if (paper.entityType === 'work') {
+    if (paper.entityType === 'paper') {
       if (paper.doi) {
-        router.push(`/work?doi=${paper.doi}`);
+        router.push(`/work?doi=${encodeURIComponent(paper.doi)}`);
       }
     }
   };

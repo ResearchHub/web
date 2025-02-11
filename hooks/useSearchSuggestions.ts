@@ -50,15 +50,18 @@ export function useSearchSuggestions({
 
     const lowerQuery = query.toLowerCase();
     return localSuggestions.filter((suggestion) => {
-      if (suggestion.entityType === 'work') {
+      if (suggestion.entityType === 'paper') {
         return (
           suggestion.displayName.toLowerCase().includes(lowerQuery) ||
           suggestion.authors.some((author) => author.toLowerCase().includes(lowerQuery)) ||
           suggestion.doi?.toLowerCase().includes(lowerQuery)
         );
-      } else {
-        return suggestion.fullName.toLowerCase().includes(lowerQuery);
+      } else if (suggestion.entityType === 'user' || suggestion.entityType === 'author') {
+        return suggestion.displayName.toLowerCase().includes(lowerQuery);
+      } else if (suggestion.entityType === 'post') {
+        return suggestion.displayName.toLowerCase().includes(lowerQuery);
       }
+      return false;
     });
   }, [localSuggestions, query, includeLocalSuggestions]);
 
@@ -120,7 +123,7 @@ export function useSearchSuggestions({
         );
 
         const uniqueApiSuggestions = apiSuggestions.filter((s) => {
-          if (s.entityType === 'work') {
+          if (s.entityType === 'paper') {
             return !existingIds.has(s.id) && !existingDois.has(s.doi);
           }
           return !existingIds.has(s.id);
@@ -133,7 +136,19 @@ export function useSearchSuggestions({
       results = apiSuggestions;
     }
 
-    return results;
+    // Group results by entity type
+    const groupedResults: SearchSuggestion[] = [];
+    const papers = results.filter((s) => s.entityType === 'paper');
+    const users = results.filter((s) => s.entityType === 'user');
+    const authors = results.filter((s) => s.entityType === 'author');
+    const posts = results.filter((s) => s.entityType === 'post');
+
+    if (papers.length) groupedResults.push(...papers);
+    if (users.length) groupedResults.push(...users);
+    if (authors.length) groupedResults.push(...authors);
+    if (posts.length) groupedResults.push(...posts);
+
+    return groupedResults;
   }, [
     isFocused,
     query,

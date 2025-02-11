@@ -20,7 +20,7 @@ export function SubmitResearchModal({ isOpen, onClose }: SubmitResearchModalProp
   const router = useRouter();
 
   const handleSearchSelect = (suggestion: SearchSuggestion) => {
-    if (suggestion.entityType === 'work') {
+    if (suggestion.entityType === 'paper') {
       if (suggestion.id) {
         router.push(`/notebook/new?paper_id=${suggestion.id}`);
       } else if (suggestion.doi) {
@@ -31,7 +31,7 @@ export function SubmitResearchModal({ isOpen, onClose }: SubmitResearchModalProp
   };
 
   const handlePaperSelect = (paper: SearchSuggestion) => {
-    if (paper.entityType === 'work') {
+    if (paper.entityType === 'paper') {
       if (paper.doi) {
         router.push(`/work?doi=${encodeURIComponent(paper.doi)}`);
       }

@@ -44,11 +44,12 @@ export function SearchSuggestions({
   }
 
   const renderSuggestion = (suggestion: SearchSuggestion) => {
-    const isWorkSuggestion = suggestion.entityType === 'work';
+    const isPaperSuggestion = suggestion.entityType === 'paper';
+    const isUserSuggestion = suggestion.entityType === 'user' || suggestion.entityType === 'author';
 
     if (displayMode === 'inline') {
       return (
-        <li key={isWorkSuggestion ? suggestion.doi : suggestion.id}>
+        <li key={isPaperSuggestion ? suggestion.id : suggestion.id}>
           <button
             type="button"
             className="w-full p-6 rounded-lg border border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm hover:translate-x-1 transition-all duration-200 flex items-start gap-4 text-left group"
@@ -64,16 +65,14 @@ export function SearchSuggestions({
               </div>
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-medium text-gray-900">
-                {isWorkSuggestion ? suggestion.displayName : suggestion.fullName}
-              </h3>
-              {isWorkSuggestion && (
+              <h3 className="font-medium text-gray-900">{suggestion.displayName}</h3>
+              {isPaperSuggestion && (
                 <p className="mt-1 text-sm text-gray-500">
                   {suggestion.authors.slice(0, 3).join(', ')}
                   {suggestion.authors.length > 3 ? ', et al.' : ''}
                 </p>
               )}
-              {isWorkSuggestion && suggestion.doi && (
+              {isPaperSuggestion && suggestion.doi && (
                 <p className="mt-1 text-xs text-gray-400">DOI: {suggestion.doi}</p>
               )}
             </div>
@@ -86,7 +85,7 @@ export function SearchSuggestions({
     }
 
     return (
-      <li key={isWorkSuggestion ? suggestion.doi : suggestion.id}>
+      <li key={isPaperSuggestion ? suggestion.id : suggestion.id}>
         <button
           type="button"
           className="w-full text-left px-4 py-2 hover:bg-gray-100"
@@ -99,10 +98,8 @@ export function SearchSuggestions({
               <FileText className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
             )}
             <div>
-              <div className="font-medium text-sm">
-                {isWorkSuggestion ? suggestion.displayName : suggestion.fullName}
-              </div>
-              {isWorkSuggestion && (
+              <div className="font-medium text-sm">{suggestion.displayName}</div>
+              {isPaperSuggestion && (
                 <div className="text-xs text-gray-500">
                   {suggestion.authors.slice(0, 3).join(', ')}
                   {suggestion.authors.length > 3 ? ', et al.' : ''}

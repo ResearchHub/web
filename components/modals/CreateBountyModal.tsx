@@ -499,7 +499,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
   }, [commentData, onClose]);
 
   const handlePaperSelect = (paper: SearchSuggestion) => {
-    if (paper.entityType === 'work') {
+    if (paper.entityType === 'paper') {
       setSelectedPaper({
         id: paper.id?.toString() || paper.openalexId,
         title: paper.displayName,

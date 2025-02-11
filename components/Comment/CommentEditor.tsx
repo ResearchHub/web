@@ -274,16 +274,73 @@ export const CommentEditor = ({
 
         /* Mention styles */
         .mention {
-          background: #edf2f7;
-          border-radius: 0.25rem;
-          padding: 0.125rem 0.25rem;
-          color: #4a5568;
-          text-decoration: none;
+          display: inline-flex;
+          align-items: center;
           font-weight: 500;
         }
 
-        .mention:hover {
+        .mention-user {
+          background: #edf2f7;
+          color: #4a5568;
+          border-radius: 0.25rem;
+          padding: 0.125rem 0.25rem;
+        }
+
+        .mention-user:hover {
           background: #e2e8f0;
+        }
+
+        .mention-work {
+          color: #3182ce;
+          text-decoration: underline;
+          gap: 0.25rem;
+          padding: 0;
+          background: none !important;
+          border-radius: 0;
+        }
+
+        .mention-work .mention-icon {
+          width: 1rem;
+          height: 1rem;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233182ce' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'%3E%3C/path%3E%3Cpolyline points='14 2 14 8 20 8'%3E%3C/polyline%3E%3Cline x1='16' y1='13' x2='8' y2='13'%3E%3C/line%3E%3Cline x1='16' y1='17' x2='8' y2='17'%3E%3C/line%3E%3Cpolyline points='10 9 9 9 8 9'%3E%3C/polyline%3E%3C/svg%3E");
+          background-size: contain;
+          background-repeat: no-repeat;
+        }
+
+        .mention-work:hover {
+          color: #2c5282;
+        }
+
+        .mention-work .mention-label {
+          text-decoration: underline;
+        }
+
+        /* Tippy mention styles */
+        .tippy-box[data-theme~='mention'] {
+          @apply bg-white border border-gray-200 shadow-lg rounded-lg;
+          max-width: 400px !important;
+        }
+
+        .tippy-box[data-theme~='mention'] .tippy-content {
+          @apply p-0;
+        }
+
+        .tippy-box[data-theme~='mention'] .tippy-arrow {
+          @apply text-white;
+        }
+
+        .tippy-box[data-theme~='mention'] .tippy-arrow:before {
+          @apply border-gray-200;
+          top: -8px;
+        }
+
+        /* Empty state tooltip */
+        .tippy-box[data-theme~='mention'] .tippy-content div {
+          @apply p-2 text-sm text-gray-600;
         }
       `}</style>
       <div className="border-b px-4 py-2">

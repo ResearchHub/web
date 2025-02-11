@@ -2,23 +2,13 @@ import { ReactRenderer } from '@tiptap/react';
 import { Mention } from '@tiptap/extension-mention';
 import { UserMention } from '@/types/comment';
 import { SearchService } from '@/services/search.service';
-import { SearchSuggestion, UserSuggestion, WorkSuggestion } from '@/types/search';
+import { SearchSuggestion, UserSuggestion, WorkSuggestion, PostSuggestion } from '@/types/search';
 import { MentionList } from './MentionList';
 import tippy, { Instance, Props } from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
 import './mention.css';
 import { DOMOutputSpec } from 'prosemirror-model';
-
-interface MentionItem {
-  id: string;
-  label: string;
-  entityType: 'user' | 'work';
-  authorProfileId?: string | null;
-  firstName?: string;
-  lastName?: string;
-  displayName?: string;
-  authors?: string[];
-}
+import { MentionItem, MentionListRef } from './types';
 
 // Create a debounced search function
 const createDebouncedSearch = () => {
@@ -48,7 +38,11 @@ const createDebouncedSearch = () => {
         }
 
         try {
-          const suggestions = await SearchService.getSuggestions(query, ['user', 'paper']);
+          const suggestions = await SearchService.getSuggestions(query, [
+            'user',
+            'paper',
+            'author',
+          ]);
           const items = suggestions.map(transformSuggestionToMentionItem);
           resolve(items);
         } catch (error) {
@@ -64,59 +58,134 @@ const createDebouncedSearch = () => {
 
 const debouncedSearch = createDebouncedSearch();
 
+const transformUserSuggestion = (userSuggestion: UserSuggestion): MentionItem => {
+  const nameParts = userSuggestion.displayName.split(' ');
+  return {
+    id: userSuggestion.id?.toString() || `user-${Date.now()}`,
+    entityType: userSuggestion.entityType,
+    firstName: nameParts[0],
+    lastName: nameParts.slice(1).join(' '),
+    label: userSuggestion.displayName,
+    authorProfileId: userSuggestion.id?.toString() || null,
+    isVerified: userSuggestion.isVerified || false,
+    authorProfile: userSuggestion.authorProfile
+      ? {
+          headline:
+            typeof userSuggestion.authorProfile.headline === 'string'
+              ? userSuggestion.authorProfile.headline
+              : userSuggestion.authorProfile.headline
+                ? (userSuggestion.authorProfile.headline as { title: string }).title
+                : '',
+          profileImage: userSuggestion.authorProfile.profileImage || null,
+        }
+      : undefined,
+  };
+};
+
+const transformPaperSuggestion = (paperSuggestion: WorkSuggestion): MentionItem => {
+  return {
+    id: paperSuggestion.doi || paperSuggestion.id?.toString() || `paper-${Date.now()}`,
+    entityType: 'paper',
+    displayName: paperSuggestion.displayName,
+    authors: paperSuggestion.authors,
+    label: paperSuggestion.displayName,
+    doi: paperSuggestion.doi,
+    citations: paperSuggestion.citations,
+    source: paperSuggestion.source,
+  };
+};
+
+const transformPostSuggestion = (postSuggestion: PostSuggestion): MentionItem => {
+  return {
+    id: postSuggestion.id.toString(),
+    entityType: 'post',
+    label: postSuggestion.displayName,
+    displayName: postSuggestion.displayName,
+  };
+};
+
 const transformSuggestionToMentionItem = (suggestion: SearchSuggestion): MentionItem => {
-  console.log('[Transform] Input suggestion:', suggestion);
-  if (suggestion.entityType === 'user') {
-    const userSuggestion = suggestion as UserSuggestion;
-    const result: MentionItem = {
-      id: userSuggestion.id?.toString() || `user-${Date.now()}`,
-      entityType: 'user' as const,
-      firstName: userSuggestion.fullName.split(' ')[0],
-      lastName: userSuggestion.fullName.split(' ').slice(1).join(' '),
-      label: userSuggestion.fullName,
-      authorProfileId: userSuggestion.id?.toString() || null,
-    };
-    console.log('[Transform] Created user mention item:', result);
-    return result;
+  if (suggestion.entityType === 'user' || suggestion.entityType === 'author') {
+    return transformUserSuggestion(suggestion as UserSuggestion);
+  } else if (suggestion.entityType === 'paper') {
+    return transformPaperSuggestion(suggestion as WorkSuggestion);
+  } else if (suggestion.entityType === 'post') {
+    return transformPostSuggestion(suggestion as PostSuggestion);
   } else {
-    const workSuggestion = suggestion as WorkSuggestion;
-    console.log('[Transform] Work suggestion displayName:', workSuggestion.displayName);
-    const mentionItem: MentionItem = {
-      id: workSuggestion.doi,
-      entityType: 'work' as const,
-      displayName: workSuggestion.displayName,
-      authors: workSuggestion.authors,
-      label: workSuggestion.displayName,
-    };
-    console.log('[Transform] Created work mention item:', mentionItem);
-    return mentionItem;
+    throw new Error(`Unsupported entity type: ${suggestion.entityType}`);
   }
 };
 
-interface MentionListRef {
-  onKeyDown: (props: { event: KeyboardEvent }) => boolean;
-}
-
-export const MentionExtension = Mention.configure({
+export const MentionExtension = Mention.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      entityType: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.getAttribute('data-entity-type'),
+        renderHTML: (attributes: { entityType: string }) => ({
+          'data-entity-type': attributes.entityType,
+        }),
+      },
+      displayName: {
+        default: null,
+      },
+    };
+  },
+}).configure({
   HTMLAttributes: {
     class: 'mention',
   },
   renderText({ node }) {
-    console.log('[renderText] Input node:', node);
-    // For work mentions, we want to show the full title without @ symbol
-    if (node.attrs.entityType === 'work') {
-      const result = node.attrs.displayName || node.attrs.label;
-      console.log('[renderText] Work mention result:', result);
-      return result;
+    // Only add @ for user and author mentions
+    if (node.attrs.entityType === 'user' || node.attrs.entityType === 'author') {
+      return `@${node.attrs.label}`;
     }
-    // For users, keep the @ symbol
-    const result = `@${node.attrs.label}`;
-    console.log('[renderText] User mention result:', result);
-    return result;
+    // For papers and posts, just return the label
+    return node.attrs.displayName || node.attrs.label;
   },
   renderHTML({ node }): DOMOutputSpec {
-    console.log('[renderHTML] Input node:', node);
-    if (node.attrs.entityType === 'work') {
+    // Paper mention rendering
+    if (node.attrs.entityType === 'paper') {
+      return [
+        'span',
+        {
+          'data-type': 'mention',
+          'data-id': node.attrs.id,
+          'data-entity-type': 'paper',
+          class: 'mention mention-paper',
+          contenteditable: 'false',
+        },
+        ['span', { class: 'mention-icon', contenteditable: 'false' }],
+        [
+          'span',
+          { class: 'mention-label', contenteditable: 'false' },
+          node.attrs.displayName || node.attrs.label,
+        ],
+      ];
+    }
+
+    // Post mention rendering
+    if (node.attrs.entityType === 'post') {
+      return [
+        'span',
+        {
+          'data-type': 'mention',
+          'data-id': node.attrs.id,
+          'data-entity-type': 'post',
+          class: 'mention mention-post',
+          contenteditable: 'false',
+        },
+        [
+          'span',
+          { class: 'mention-label', contenteditable: 'false' },
+          node.attrs.displayName || node.attrs.label,
+        ],
+      ];
+    }
+
+    // User and author mention rendering
+    if (node.attrs.entityType === 'user' || node.attrs.entityType === 'author') {
       return [
         'span',
         {
@@ -124,21 +193,13 @@ export const MentionExtension = Mention.configure({
           'data-id': node.attrs.id,
           'data-entity-type': node.attrs.entityType,
           class: `mention mention-${node.attrs.entityType}`,
+          contenteditable: 'false',
         },
-        [
-          'span',
-          { class: 'mention-icon' },
-          '', // Paper icon will be added via CSS
-        ] as DOMOutputSpec,
-        [
-          'span',
-          { class: 'mention-label' },
-          node.attrs.displayName || node.attrs.label,
-        ] as DOMOutputSpec,
-      ] as DOMOutputSpec;
+        ['span', { class: 'mention-label', contenteditable: 'false' }, `@${node.attrs.label}`],
+      ];
     }
 
-    // Default user mention rendering
+    // Default rendering for other types
     return [
       'span',
       {
@@ -146,15 +207,17 @@ export const MentionExtension = Mention.configure({
         'data-id': node.attrs.id,
         'data-entity-type': node.attrs.entityType,
         class: `mention mention-${node.attrs.entityType}`,
+        contenteditable: 'false',
       },
-      `@${node.attrs.label}`,
-    ] as DOMOutputSpec;
+      node.attrs.label,
+    ];
   },
   suggestion: {
     char: '@',
     allowSpaces: true,
     items: async ({ query }) => {
-      return debouncedSearch(query || '');
+      const items = await debouncedSearch(query || '');
+      return items;
     },
     render: () => {
       let component: ReactRenderer<MentionListRef> | null = null;
@@ -162,7 +225,6 @@ export const MentionExtension = Mention.configure({
 
       return {
         onStart: (props) => {
-          console.log('Render onStart props:', props);
           component = new ReactRenderer(MentionList, {
             props,
             editor: props.editor,
@@ -202,7 +264,6 @@ export const MentionExtension = Mention.configure({
         },
 
         onUpdate: (props) => {
-          console.log('Render onUpdate props:', props);
           component?.updateProps(props);
 
           if (!props.clientRect) {
@@ -242,21 +303,18 @@ export const MentionExtension = Mention.configure({
     },
     command: ({ editor, range, props: commandProps }) => {
       const item = commandProps as MentionItem;
-      console.log('[command] Input item:', item);
-      const attrs = {
-        id: item.id,
-        label: item.label,
-        entityType: item.entityType,
-        displayName: item.displayName,
-      };
-      console.log('[command] Attrs being inserted:', attrs);
       editor
         .chain()
         .focus()
         .insertContentAt(range, [
           {
             type: 'mention',
-            attrs,
+            attrs: {
+              id: item.id,
+              label: item.label,
+              entityType: item.entityType,
+              displayName: item.displayName || item.label,
+            },
           },
         ])
         .run();

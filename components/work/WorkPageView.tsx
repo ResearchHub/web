@@ -38,7 +38,7 @@ export function SearchHistoryTracker({ work }: SearchHistoryTrackerProps) {
     // Create new suggestion from work
     const newSuggestion: SearchSuggestion = {
       id: work.id,
-      entityType: 'work',
+      entityType: 'paper',
       displayName: work.title,
       authors: work.authors.map((a) => a.authorProfile.fullName),
       doi: work.doi || '',
