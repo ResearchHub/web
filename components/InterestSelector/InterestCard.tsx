@@ -2,6 +2,7 @@ import { Interest } from './InterestSelector';
 import { HubService } from '@/services/hub.service';
 import { AuthorService } from '@/services/author.service';
 import { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 
 interface InterestCardProps {
   interest: Interest;
@@ -25,24 +26,34 @@ export function InterestCard({
     if (isLoading || typeof interest.id !== 'number') return;
 
     setIsLoading(true);
+    // Optimistically update the UI
+    const newFollowingState = !isFollowing;
+    setIsFollowing(newFollowingState);
+    onFollowToggle(interest.id, !newFollowingState);
+
     try {
       if (interest.type === 'journal' || interest.type === 'topic') {
-        if (isFollowing) {
+        if (!newFollowingState) {
           await HubService.unfollowHub(interest.id);
         } else {
           await HubService.followHub(interest.id);
         }
       } else if (interest.type === 'person') {
-        if (isFollowing) {
+        if (!newFollowingState) {
           await AuthorService.unfollowAuthor(interest.id);
         } else {
           await AuthorService.followAuthor(interest.id);
         }
       }
-      setIsFollowing(!isFollowing);
-      onFollowToggle(interest.id, isFollowing);
     } catch (error) {
+      // Revert the optimistic update if the API call fails
+      setIsFollowing(!newFollowingState);
+      onFollowToggle(interest.id, newFollowingState);
       console.error('Error toggling follow status:', error);
+
+      // Show user-friendly error message
+      const action = newFollowingState ? 'follow' : 'unfollow';
+      toast.error(`Failed to ${action} ${interest.name}. Please try again later.`);
     } finally {
       setIsLoading(false);
     }
