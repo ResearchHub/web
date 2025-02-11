@@ -118,6 +118,15 @@ export function ReleaseNotesModal({ isOpen, onClose }: ReleaseNotesModalProps) {
                       </h3>
                       <div className="space-y-4">
                         <div>
+                          <div className="text-sm font-medium text-gray-700 mb-2">02/07/2025</div>
+                          <ul className="list-disc list-inside space-y-1 text-gray-600 text-sm pl-2">
+                            <li>Improved notebook layout with optimized 3-column grid system</li>
+                            <li>Moved preregistration funding form into the Notebook sidebar</li>
+                            <li>Refactored funding form into reusable component</li>
+                          </ul>
+                        </div>
+
+                        <div>
                           <div className="text-sm font-medium text-gray-700 mb-2">02/05/2025</div>
                           <ul className="list-disc list-inside space-y-1 text-gray-600 text-sm pl-2">
                             <li>Implemented email & password authentication</li>
