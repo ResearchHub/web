@@ -116,7 +116,7 @@ export function FundingForm({
           />
         </div>
         <p className="text-sm text-gray-600">
-          Reward your funders with a free memento of your research as an NFT.
+          Reward your funders with a memento of your research as an NFT.
         </p>
       </div>
 
