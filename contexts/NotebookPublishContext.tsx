@@ -4,12 +4,14 @@ import { createContext, useContext, ReactNode, useState } from 'react';
 import { Editor } from '@tiptap/core';
 import { FundingFormData } from '@/components/Editor/components/Funding/FundingForm';
 import { ArticleType } from '@/components/Editor/components/Sidebar/PublishingSidebar';
+import { ID } from '@/types/root';
 
 interface NotebookPublishState {
   editor: Editor | null;
   title: string;
   articleType: ArticleType;
   fundingData: FundingFormData;
+  noteId: ID;
 }
 
 interface NotebookPublishContextType extends NotebookPublishState {
@@ -17,6 +19,7 @@ interface NotebookPublishContextType extends NotebookPublishState {
   setTitle: (title: string) => void;
   setArticleType: (type: ArticleType) => void;
   setFundingData: (data: FundingFormData) => void;
+  setNoteId: (id: ID) => void;
 }
 
 const initialState: NotebookPublishState = {
@@ -29,6 +32,7 @@ const initialState: NotebookPublishState = {
     nftArt: null,
     nftSupply: '1000',
   },
+  noteId: null,
 };
 
 const NotebookPublishContext = createContext<NotebookPublishContextType | null>(null);
@@ -38,6 +42,7 @@ export function NotebookPublishProvider({ children }: { children: ReactNode }) {
   const [title, setTitle] = useState(initialState.title);
   const [articleType, setArticleType] = useState<ArticleType>(initialState.articleType);
   const [fundingData, setFundingData] = useState<FundingFormData>(initialState.fundingData);
+  const [noteId, setNoteId] = useState<ID | null>(initialState.noteId);
 
   const value = {
     editor,
@@ -48,6 +53,8 @@ export function NotebookPublishProvider({ children }: { children: ReactNode }) {
     setArticleType,
     fundingData,
     setFundingData,
+    noteId,
+    setNoteId,
   };
 
   return (

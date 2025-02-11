@@ -15,7 +15,9 @@ export interface PreregistrationFormData {
   // Document related
   title: string;
   noteId: ID;
-  renderable_text: string;
+  renderableText: string;
+  fullJSON: string;
+  fullSrc: string;
 }
 
 interface UsePostState {
@@ -41,8 +43,9 @@ export const useCreatePost = (): UseCreatePostReturn => {
 
       formDataToSubmit.append('document_type', 'PREREGISTRATION');
       formDataToSubmit.append('title', formData.title);
-      formDataToSubmit.append('renderable_text', formData.renderable_text);
-      formDataToSubmit.append('full_src', formData.renderable_text);
+      formDataToSubmit.append('renderable_text', formData.renderableText);
+      formDataToSubmit.append('full_src', formData.fullSrc);
+      formDataToSubmit.append('full_json', formData.fullJSON);
       formDataToSubmit.append('note_id', String(formData.noteId ?? ''));
       formDataToSubmit.append('reward_funders', String(formData.rewardFunders));
       formDataToSubmit.append('nft_supply', String(formData.nftSupply));

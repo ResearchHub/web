@@ -31,7 +31,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   noteId,
 }) => {
   const [{ isLoading: isUpdating }, updateNoteContent] = useNoteContent();
-  const { setEditor, setTitle } = useNotebookPublish();
+  const { setEditor, setTitle, setNoteId } = useNotebookPublish();
 
   // Create a ref for the debounced function
   const debouncedRef = useRef(
@@ -72,14 +72,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
       },
     },
     onUpdate: ({ editor }) => {
-      console.log('editor update');
       debouncedRef.current(editor);
-
-      const firstHeading = editor
-        .getJSON()
-        .content?.find((node) => node.type === 'heading' && node.attrs?.level === 1);
-      const title = firstHeading?.content?.[0]?.text || '';
-      setTitle(title);
     },
   });
 
@@ -103,6 +96,10 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   useEffect(() => {
     setEditor(editor);
   }, [editor, setEditor]);
+
+  useEffect(() => {
+    setNoteId(noteId);
+  }, [noteId, setNoteId]);
 
   if (isLoading) {
     return <NotebookSkeleton />;

@@ -102,8 +102,10 @@ export default function FundingCreatePage() {
     try {
       const response = await createPreregistrationPost({
         ...formData,
-        noteId: 1, //TODO
-        renderable_text: '', //TODO
+        noteId: 1, //TODO it looks like we will replace it with new notebook
+        renderableText: '', //TODO
+        fullJSON: '', //TODO
+        fullSrc: '', //TODO
       });
 
       router.push(`/fund/${response.id}/${response.slug}`);

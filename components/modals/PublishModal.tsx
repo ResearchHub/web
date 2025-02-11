@@ -6,6 +6,7 @@ import { useCreatePost } from '@/hooks/useDocument';
 import { FundingFormData } from '../Editor/components/Funding/FundingForm';
 import { ArticleType } from '../Editor/components/Sidebar/PublishingSidebar';
 import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
+import toast from 'react-hot-toast';
 
 interface PublishModalProps {
   isOpen: boolean;
@@ -29,7 +30,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({
   const [publicationType, setPublicationType] = useState<PublicationType>('research');
   const router = useRouter();
   const [{ isLoading }, createPreregistrationPost] = useCreatePost();
-  const { editor } = useNotebookPublish();
+  const { editor, noteId } = useNotebookPublish();
 
   const steps: { id: Step; title: string }[] = [
     { id: 'type', title: 'Type' },
@@ -50,16 +51,23 @@ export const PublishModal: React.FC<PublishModalProps> = ({
   };
 
   const handlePublish = async () => {
-    if (!editor) return;
-
-    const content = editor.getHTML();
     if (articleType === 'preregistration') {
       try {
+        const text = editor?.getText();
+        const json = editor?.getJSON();
+        const html = editor?.getHTML();
+        const firstHeading = editor
+          ?.getJSON()
+          ?.content?.find((node) => node.type === 'heading' && node.attrs?.level === 1);
+        const title = firstHeading?.content?.[0]?.text || '';
+
         const response = await createPreregistrationPost({
           ...fundingData,
           title,
-          noteId: 1, //'TODO',
-          renderable_text: 'TODO',
+          noteId: noteId,
+          renderableText: text || '',
+          fullJSON: JSON.stringify(json),
+          fullSrc: html || '',
           // Add other required fields from the form
           // background: '', // This should come from the editor
           // hypothesis: '', // This should come from the editor
@@ -70,6 +78,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({
         router.push(`/fund/${response.id}/${response.slug}`);
         onClose();
       } catch (error) {
+        toast.error('Error publishing. Please try again.');
         console.error('Error publishing:', error);
       }
     }

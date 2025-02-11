@@ -71,7 +71,6 @@ export default function NotePage() {
     throw error;
   }
 
-  console.log({ note });
   return (
     <div className="h-full">
       <BlockEditor
