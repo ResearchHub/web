@@ -141,8 +141,8 @@ export class CommentService {
   }: UpdateCommentOptions): Promise<Comment> {
     const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/`;
     const payload = {
-      comment_content: content,
-      content_format: contentFormat,
+      comment_content_json: content,
+      comment_content_type: contentFormat,
     };
 
     const response = await ApiClient.patch<any>(path, payload);

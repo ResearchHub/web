@@ -5,7 +5,7 @@ import { Bounty, transformBounty } from './bounty';
 export type CommentFilter = 'BOUNTY' | 'DISCUSSION' | 'REVIEW';
 export type CommentSort = 'BEST' | 'NEWEST' | 'TOP' | 'CREATED_DATE';
 export type CommentPrivacyType = 'PUBLIC' | 'PRIVATE';
-export type ContentFormat = 'QUILL_EDITOR' | 'HTML';
+export type ContentFormat = 'QUILL_EDITOR' | 'TIPTAP';
 export type CommentType = 'GENERIC_COMMENT' | 'REVIEW' | 'ANSWER';
 
 export interface UserMention {
