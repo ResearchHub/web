@@ -34,7 +34,6 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   // Create a ref for the debounced function
   const debouncedRef = useRef(
     debounce((editor) => {
-      console.log('onUpdate debounced');
       const json = editor.getJSON();
       const html = editor.getHTML();
 
@@ -73,6 +72,14 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
     onUpdate: ({ editor }) => {
       console.log('editor update');
       debouncedRef.current(editor);
+
+      // Extract title from first heading
+      // const firstHeading = editor
+      //   .getJSON()
+      //   .content?.find((node) => node.type === 'heading' && node.attrs?.level === 1);
+      // const title = firstHeading?.content?.[0]?.text || '';
+      // console.log('title', title);
+      // onTitleChange?.(title);
     },
   });
 

@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import LeftSidebar from '@/components/Editor/components/Sidebar/LeftSidebar';
 import { TopBar } from '@/app/layouts/TopBar';
-import { PublishModal } from '@/components/modals/PublishModal';
 import { PublishingSidebar } from '@/components/Editor/components/Sidebar/PublishingSidebar';
 import './globals.css';
 import 'cal-sans';
@@ -61,8 +60,6 @@ export default function NotebookLayout({ children }: { children: React.ReactNode
             onTitleChange={() => {}}
           />
         </div>
-
-        <PublishModal isOpen={isPublishModalOpen} onClose={() => setIsPublishModalOpen(false)} />
       </div>
     </OrganizationNotesProvider>
   );

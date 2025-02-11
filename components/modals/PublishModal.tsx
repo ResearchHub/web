@@ -2,19 +2,32 @@ import { useState } from 'react';
 import { Dialog } from '@headlessui/react';
 import { X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useCreatePost } from '@/hooks/useDocument';
+import { FundingFormData } from '../Editor/components/Funding/FundingForm';
+import { ArticleType } from '../Editor/components/Sidebar/PublishingSidebar';
 
 interface PublishModalProps {
   isOpen: boolean;
   onClose: () => void;
+  articleType: ArticleType;
+  fundingData: FundingFormData;
+  title: string;
 }
 
 type Step = 'type' | 'metadata' | 'bounty' | 'declarations' | 'preview';
 type PublicationType = 'research' | 'grant';
 
-export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) => {
+export const PublishModal: React.FC<PublishModalProps> = ({
+  isOpen,
+  onClose,
+  articleType,
+  fundingData,
+  title,
+}) => {
   const [currentStep, setCurrentStep] = useState<Step>('type');
   const [publicationType, setPublicationType] = useState<PublicationType>('research');
   const router = useRouter();
+  const [{ isLoading }, createPreregistrationPost] = useCreatePost();
 
   const steps: { id: Step; title: string }[] = [
     { id: 'type', title: 'Type' },
@@ -31,6 +44,29 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
       router.push('/notebook/new?type=grant');
     } else {
       setCurrentStep('metadata');
+    }
+  };
+
+  const handlePublish = async () => {
+    if (articleType === 'preregistration') {
+      try {
+        const response = await createPreregistrationPost({
+          ...fundingData,
+          title,
+          noteId: 1, //'TODO',
+          renderable_text: 'TODO',
+          // Add other required fields from the form
+          // background: '', // This should come from the editor
+          // hypothesis: '', // This should come from the editor
+          // methods: '', // This should come from the editor
+          // budgetUse: '', // This should come from the form
+        });
+
+        router.push(`/fund/${response.id}/${response.slug}`);
+        onClose();
+      } catch (error) {
+        console.error('Error publishing:', error);
+      }
     }
   };
 
@@ -154,15 +190,11 @@ export const PublishModal: React.FC<PublishModalProps> = ({ isOpen, onClose }) =
                   Back
                 </button>
                 <button
-                  onClick={() => {
-                    const currentIndex = steps.findIndex((s) => s.id === currentStep);
-                    if (currentIndex < steps.length - 1) {
-                      setCurrentStep(steps[currentIndex + 1].id);
-                    }
-                  }}
+                  onClick={handlePublish}
+                  disabled={isLoading}
                   className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg"
                 >
-                  {currentStep === 'preview' ? 'Publish' : 'Next'}
+                  {isLoading ? 'Publishing...' : 'Publish'}
                 </button>
               </div>
             )}
