@@ -9,10 +9,12 @@ interface Props extends BaseScreenProps {
   onBack: () => void;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
+  onSuccess?: () => void;
 }
 
 export default function Login({
   onClose,
+  onSuccess,
   email,
   isLoading,
   setIsLoading,
@@ -47,6 +49,7 @@ export default function Login({
       if (result?.error) {
         setError('Invalid email or password');
       } else {
+        onSuccess?.();
         onClose();
       }
     } catch (err) {

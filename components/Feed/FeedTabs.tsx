@@ -5,6 +5,7 @@ import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
 import { Settings } from 'lucide-react';
 import { InterestSelector, Interest } from '@/components/InterestSelector/InterestSelector';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 type FeedTab = 'for-you' | 'following' | 'popular' | 'latest';
 
@@ -22,6 +23,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   onRefresh,
 }) => {
   const [isCustomizing, setIsCustomizing] = useState(false);
+  const { withAuth } = useRequireAuth();
 
   const tabs = [
     {
@@ -53,10 +55,12 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   };
 
   const handleCustomizeClick = (isCustomizing: boolean) => {
-    setIsCustomizing(isCustomizing);
-    if (!isCustomizing) {
-      onRefresh?.();
-    }
+    withAuth(() => {
+      setIsCustomizing(isCustomizing);
+      if (!isCustomizing) {
+        onRefresh?.();
+      }
+    });
   };
 
   return (

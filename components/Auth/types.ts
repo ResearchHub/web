@@ -8,6 +8,7 @@ export type AuthScreen =
 export interface BaseScreenProps {
   onBack?: () => void;
   onClose: () => void;
+  onSuccess?: () => void;
   email: string;
   setEmail: (email: string) => void;
   isLoading: boolean;
