@@ -50,7 +50,7 @@ export function InterestSelector({ mode }: InterestSelectorProps) {
         const journals = await HubService.getHubs('journal');
         return journals.map((journal) => ({
           id: journal.id,
-          name: capitalizeWords(journal.name),
+          name: journal.name,
           type: 'journal',
           imageUrl: journal.imageUrl,
           description: journal.description,
