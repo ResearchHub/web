@@ -68,11 +68,6 @@ export const PublishModal: React.FC<PublishModalProps> = ({
           renderableText: text || '',
           fullJSON: JSON.stringify(json),
           fullSrc: html || '',
-          // Add other required fields from the form
-          // background: '', // This should come from the editor
-          // hypothesis: '', // This should come from the editor
-          // methods: '', // This should come from the editor
-          // budgetUse: '', // This should come from the form
         });
 
         router.push(`/fund/${response.id}/${response.slug}`);

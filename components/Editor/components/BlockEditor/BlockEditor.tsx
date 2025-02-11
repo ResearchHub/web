@@ -31,7 +31,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   noteId,
 }) => {
   const [{ isLoading: isUpdating }, updateNoteContent] = useNoteContent();
-  const { setEditor, setTitle, setNoteId } = useNotebookPublish();
+  const { setEditor, setNoteId } = useNotebookPublish();
 
   // Create a ref for the debounced function
   const debouncedRef = useRef(

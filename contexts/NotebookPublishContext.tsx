@@ -8,15 +8,13 @@ import { ID } from '@/types/root';
 
 interface NotebookPublishState {
   editor: Editor | null;
-  title: string;
   articleType: ArticleType;
-  fundingData: FundingFormData;
+  fundingData: FundingFormData | null;
   noteId: ID;
 }
 
 interface NotebookPublishContextType extends NotebookPublishState {
   setEditor: (editor: Editor | null) => void;
-  setTitle: (title: string) => void;
   setArticleType: (type: ArticleType) => void;
   setFundingData: (data: FundingFormData) => void;
   setNoteId: (id: ID) => void;
@@ -24,14 +22,8 @@ interface NotebookPublishContextType extends NotebookPublishState {
 
 const initialState: NotebookPublishState = {
   editor: null,
-  title: '',
   articleType: 'research',
-  fundingData: {
-    budget: '',
-    rewardFunders: false,
-    nftArt: null,
-    nftSupply: '1000',
-  },
+  fundingData: null,
   noteId: null,
 };
 
@@ -39,16 +31,13 @@ const NotebookPublishContext = createContext<NotebookPublishContextType | null>(
 
 export function NotebookPublishProvider({ children }: { children: ReactNode }) {
   const [editor, setEditor] = useState<Editor | null>(initialState.editor);
-  const [title, setTitle] = useState(initialState.title);
   const [articleType, setArticleType] = useState<ArticleType>(initialState.articleType);
-  const [fundingData, setFundingData] = useState<FundingFormData>(initialState.fundingData);
+  const [fundingData, setFundingData] = useState<FundingFormData | null>(initialState.fundingData);
   const [noteId, setNoteId] = useState<ID | null>(initialState.noteId);
 
   const value = {
     editor,
     setEditor,
-    title,
-    setTitle,
     articleType,
     setArticleType,
     fundingData,
