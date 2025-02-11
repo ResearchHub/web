@@ -5,8 +5,11 @@ import { Comment, CommentType } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
 import { CommentEditor } from './CommentEditor';
+import { CommentItemHeader } from './CommentItemHeader';
+import { CommentItemActions } from './CommentItemActions';
 import { convertQuillDeltaToTipTap } from '@/lib/convertQuillDeltaToTipTap';
-import { Coins, CheckCircle, Edit2, Trash2 } from 'lucide-react';
+import { MessageCircle, ArrowUp, Flag, Edit2, Trash2, Coins, CheckCircle } from 'lucide-react';
+import { Avatar } from '@/components/ui/Avatar';
 import 'highlight.js/styles/atom-one-dark.css';
 import hljs from 'highlight.js';
 
@@ -156,38 +159,13 @@ export const CommentItem = ({
       `}</style>
 
       {/* Author Info */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <img
-            src={comment.author.profileImage || '/default-avatar.png'}
-            alt={comment.author.fullName}
-            className="w-8 h-8 rounded-full"
-          />
-          <div>
-            <a href={comment.author.profileUrl} className="font-medium hover:text-indigo-600">
-              {comment.author.fullName}
-            </a>
-            <div className="text-sm text-gray-500">
-              {new Date(comment.createdDate).toLocaleDateString()}
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setIsEditing(true)}
-            className="text-gray-500 hover:text-indigo-600"
-            title="Edit comment"
-          >
-            <Edit2 className="h-4 w-4" />
-          </button>
-          <button
-            onClick={handleDelete}
-            className="text-gray-500 hover:text-red-600"
-            title="Delete comment"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </div>
+      <div className="flex items-center justify-between mb-4">
+        <CommentItemHeader
+          profileImage={comment.author.profileImage}
+          fullName={comment.author.fullName}
+          profileUrl={comment.author.profileUrl}
+          date={comment.createdDate}
+        />
       </div>
 
       {/* Bounties */}
@@ -249,28 +227,15 @@ export const CommentItem = ({
         </div>
       )}
 
-      {/* Comment Metadata */}
-      <div className="mt-2 text-sm text-gray-500 flex items-center gap-4">
-        <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">ID: {comment.id}</span>
-        <span>Score: {comment.score}</span>
-        {comment.replyCount > 0 && (
-          <span>
-            · {comment.replyCount} repl{comment.replyCount === 1 ? 'y' : 'ies'}
-          </span>
-        )}
-        {comment.isAcceptedAnswer && (
-          <span className="text-green-600 flex items-center gap-1">
-            <CheckCircle className="h-4 w-4" />
-            Accepted Answer
-          </span>
-        )}
-        <button
-          onClick={() => setIsReplying(!isReplying)}
-          className="text-indigo-600 hover:text-indigo-800"
-        >
-          Reply
-        </button>
-      </div>
+      {/* Comment Actions and Metadata */}
+      <CommentItemActions
+        score={comment.score || 0}
+        replyCount={comment.replyCount || 0}
+        commentId={comment.id}
+        onReply={() => setIsReplying(!isReplying)}
+        onEdit={() => setIsEditing(true)}
+        onDelete={handleDelete}
+      />
 
       {/* Reply Editor */}
       {isReplying && (
