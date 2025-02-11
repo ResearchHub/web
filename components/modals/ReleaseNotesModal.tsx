@@ -118,6 +118,13 @@ export function ReleaseNotesModal({ isOpen, onClose }: ReleaseNotesModalProps) {
                       </h3>
                       <div className="space-y-4">
                         <div>
+                          <div className="text-sm font-medium text-gray-700 mb-2">02/08/2025</div>
+                          <ul className="list-disc list-inside space-y-1 text-gray-600 text-sm pl-2">
+                            <li>Add zero balance and empty transaction states to RSC page</li>
+                          </ul>
+                        </div>
+
+                        <div>
                           <div className="text-sm font-medium text-gray-700 mb-2">02/07/2025</div>
                           <ul className="list-disc list-inside space-y-1 text-gray-600 text-sm pl-2">
                             <li>Improved notebook layout with optimized 3-column grid system</li>
