@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
-import { BookOpen, Users, Hash } from 'lucide-react';
+import { BookOpen, Users, Hash, Save } from 'lucide-react';
 import { InterestSkeleton } from '@/components/skeletons/InterestSkeleton';
 import { InterestCard } from './InterestCard';
 import { HubService } from '@/services/hub.service';
 import { AuthorService } from '@/services/author.service';
 import { JournalService } from '@/services/journal.service';
+import { toast } from 'react-hot-toast';
 
 export interface Interest {
   id: number;
@@ -30,6 +31,8 @@ export function InterestSelector({ mode }: InterestSelectorProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [interests, setInterests] = useState<Interest[]>([]);
   const [followedIds, setFollowedIds] = useState<number[]>([]);
+  const [pendingChanges, setPendingChanges] = useState<Map<number, boolean>>(new Map());
+  const [isSaving, setIsSaving] = useState(false);
 
   const descriptions = {
     journal: 'Select journals to stay updated with the latest research in your field',
@@ -101,16 +104,55 @@ export function InterestSelector({ mode }: InterestSelectorProps) {
     loadInterests();
   }, [activeType]);
 
-  const handleFollowToggle = async (interestId: number, isFollowing: boolean) => {
-    if (isFollowing) {
-      setFollowedIds((prev) => prev.filter((id) => id !== interestId));
-    } else {
+  const handleFollowToggle = (interestId: number, isFollowing: boolean) => {
+    setPendingChanges((prev) => {
+      const newChanges = new Map(prev);
+      newChanges.set(interestId, !isFollowing);
+      return newChanges;
+    });
+
+    // Update UI immediately
+    if (!isFollowing) {
       setFollowedIds((prev) => [...prev, interestId]);
+    } else {
+      setFollowedIds((prev) => prev.filter((id) => id !== interestId));
+    }
+  };
+
+  const handleSaveChanges = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+
+    try {
+      const changes = Array.from(pendingChanges.entries());
+      const promises = changes.map(([interestId, shouldFollow]) => {
+        const interest = interests.find((i) => i.id === interestId);
+        if (!interest) return Promise.resolve();
+
+        if (interest.type === 'person') {
+          return shouldFollow
+            ? AuthorService.followAuthor(interestId)
+            : AuthorService.unfollowAuthor(interestId);
+        } else {
+          return shouldFollow
+            ? HubService.followHub(interestId)
+            : HubService.unfollowHub(interestId);
+        }
+      });
+
+      await Promise.all(promises);
+      setPendingChanges(new Map());
+      toast.success('Changes saved successfully');
+    } catch (error) {
+      console.error('Error saving changes:', error);
+      toast.error('Failed to save some changes. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-4xl pb-20">
       <p className="text-gray-600 mb-6">{descriptions[activeType]}</p>
 
       {/* Interest type selector */}
@@ -147,6 +189,23 @@ export function InterestSelector({ mode }: InterestSelectorProps) {
           />
         )}
       </div>
+
+      {/* Sticky Save Bar */}
+      {pendingChanges.size > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 flex justify-between items-center">
+          <div className="text-sm text-gray-600">
+            {pendingChanges.size} unsaved {pendingChanges.size === 1 ? 'change' : 'changes'}
+          </div>
+          <Button
+            onClick={handleSaveChanges}
+            disabled={isSaving}
+            className="flex items-center gap-2"
+          >
+            <Save className="w-4 h-4" />
+            {isSaving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
