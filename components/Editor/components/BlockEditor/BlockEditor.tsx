@@ -10,7 +10,7 @@ import { useNoteContent } from '@/hooks/useNote';
 import '@/components/Editor/styles/index.css';
 import { ID } from '@/types/root';
 import { debounce } from 'lodash';
-import { usePublish } from '@/contexts/PublishContext';
+import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 
 // Create a simplified Document extension that only accepts blocks
 const CustomDocument = Document.extend({
@@ -31,7 +31,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   noteId,
 }) => {
   const [{ isLoading: isUpdating }, updateNoteContent] = useNoteContent();
-  const { setEditor, setTitle } = usePublish();
+  const { setEditor, setTitle } = useNotebookPublish();
 
   // Create a ref for the debounced function
   const debouncedRef = useRef(

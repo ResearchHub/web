@@ -195,11 +195,19 @@ export const PublishModal: React.FC<PublishModalProps> = ({
                   Back
                 </button>
                 <button
-                  onClick={handlePublish}
+                  // onClick={handlePublish}
+                  onClick={() => {
+                    const currentIndex = steps.findIndex((s) => s.id === currentStep);
+                    if (currentIndex < steps.length - 1) {
+                      setCurrentStep(steps[currentIndex + 1].id);
+                    } else {
+                      handlePublish();
+                    }
+                  }}
                   disabled={isLoading}
                   className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg"
                 >
-                  {isLoading ? 'Publishing...' : 'Publish'}
+                  {currentStep === 'preview' ? 'Publish' : 'Next'}
                 </button>
               </div>
             )}

@@ -1,3 +1,5 @@
+'use client';
+
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { Editor } from '@tiptap/core';
 import { FundingFormData } from '@/components/Editor/components/Funding/FundingForm';
