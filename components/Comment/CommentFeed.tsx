@@ -7,6 +7,15 @@ import { CommentEditor } from './CommentEditor';
 import { CommentItem } from './CommentItem';
 import { ContentType } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
+import { DropdownButton } from '@/components/Editor/components/ui/Dropdown/Dropdown';
+import { Star, Zap, ArrowUp } from 'lucide-react';
+import * as Popover from '@radix-ui/react-popover';
+
+type SortOption = {
+  label: string;
+  value: 'BEST' | 'CREATED_DATE' | 'TOP';
+  icon: typeof Star | typeof Zap | typeof ArrowUp;
+};
 
 interface CommentFeedProps {
   documentId: number;
@@ -22,6 +31,8 @@ export const CommentFeed = ({
   commentType = 'GENERIC_COMMENT',
 }: CommentFeedProps) => {
   const [commentFilter, setCommentFilter] = useState<CommentFilter>('DISCUSSION');
+  const [sortBy, setSortBy] = useState<SortOption['value']>('BEST');
+  const [isOpen, setIsOpen] = useState(false);
 
   const {
     comments,
@@ -37,6 +48,7 @@ export const CommentFeed = ({
     documentId,
     contentType,
     filter: commentFilter,
+    sort: sortBy,
   });
 
   const updateCommentTree = (newComment: Comment, parentId?: number) => {
@@ -129,35 +141,65 @@ export const CommentFeed = ({
     setCount(commentCount - 1);
   };
 
-  const handleSubmit = async (content: string) => {
+  const handleSubmit = async (content: any) => {
     const newComment = await CommentService.createComment({
       workId: documentId,
       contentType,
       content,
-      contentFormat: 'HTML',
       commentType,
       threadType: commentType,
     });
+
     updateCommentTree(newComment);
   };
+
+  const handleSortChange = (newSort: SortOption['value']) => {
+    setSortBy(newSort);
+    setIsOpen(false);
+    refresh();
+  };
+
+  const sortOptions: SortOption[] = [
+    { label: 'Best', value: 'BEST', icon: Star },
+    { label: 'Newest', value: 'CREATED_DATE', icon: Zap },
+    { label: 'Top', value: 'TOP', icon: ArrowUp },
+  ];
+
+  const selectedOption = sortOptions.find((opt) => opt.value === sortBy);
+  const SelectedIcon = selectedOption?.icon;
 
   return (
     <div className={className}>
       <div className="flex justify-between items-center mb-4">
         <div className="flex gap-2">
-          <select
-            className="rounded-md border border-gray-300 py-1 px-2"
-            value={commentFilter}
-            onChange={(e) => {
-              setCommentFilter(e.target.value as CommentFilter);
-              refresh();
-            }}
-          >
-            <option value="DISCUSSION">Discussion</option>
-            <option value="QUESTION">Questions</option>
-            <option value="PEER_REVIEW">Peer Reviews</option>
-            <option value="BOUNTY">Bounties</option>
-          </select>
+          <Popover.Root open={isOpen} onOpenChange={setIsOpen}>
+            <Popover.Trigger asChild>
+              <button className="flex items-center gap-2 px-3 py-1 rounded-md border border-gray-300 hover:bg-gray-50">
+                {SelectedIcon && <SelectedIcon className="h-4 w-4" />}
+                <span>{selectedOption?.label}</span>
+              </button>
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Content
+                className="bg-white rounded-lg shadow-lg border border-gray-200 py-1 w-48"
+                sideOffset={5}
+              >
+                {sortOptions.map((option) => {
+                  const Icon = option.icon;
+                  return (
+                    <DropdownButton
+                      key={option.value}
+                      isActive={sortBy === option.value}
+                      onClick={() => handleSortChange(option.value)}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {option.label}
+                    </DropdownButton>
+                  );
+                })}
+              </Popover.Content>
+            </Popover.Portal>
+          </Popover.Root>
         </div>
         <div className="text-sm text-gray-500">
           {commentCount} comment{commentCount !== 1 ? 's' : ''}
@@ -179,16 +221,18 @@ export const CommentFeed = ({
           </div>
         ) : (
           <>
-            {comments.map((comment) => (
-              <CommentItem
-                key={comment.id}
-                comment={comment}
-                contentType={contentType}
-                commentType={commentType}
-                onCommentUpdate={updateCommentTree}
-                onCommentDelete={handleCommentDelete}
-              />
-            ))}
+            {comments
+              .filter((comment) => comment.content && comment.content !== '')
+              .map((comment) => (
+                <CommentItem
+                  key={comment.id}
+                  comment={comment}
+                  contentType={contentType}
+                  commentType={commentType}
+                  onCommentUpdate={updateCommentTree}
+                  onCommentDelete={handleCommentDelete}
+                />
+              ))}
 
             {hasMore && (
               <button

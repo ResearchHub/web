@@ -5,7 +5,7 @@ import { Comment, CommentType } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
 import { CommentEditor } from './CommentEditor';
-import { convertDeltaToHTML } from '@/lib/convertDeltaToHTML';
+import { convertQuillDeltaToTipTap } from '@/lib/convertQuillDeltaToTipTap';
 import { Coins, CheckCircle, Edit2, Trash2 } from 'lucide-react';
 import 'highlight.js/styles/atom-one-dark.css';
 import hljs from 'highlight.js';
@@ -28,7 +28,8 @@ export const CommentItem = ({
   const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
-
+  console.log('---------------');
+  console.log('comment', comment);
   useEffect(() => {
     // Find all pre code blocks and apply highlighting
     const codeBlocks = document.querySelectorAll('pre code');
@@ -42,7 +43,6 @@ export const CommentItem = ({
       workId: comment.thread.objectId,
       contentType,
       content,
-      contentFormat: 'HTML',
       parentId: comment.id,
       commentType,
       threadType: commentType,
@@ -60,7 +60,6 @@ export const CommentItem = ({
         documentId: comment.thread.objectId,
         contentType,
         content,
-        contentFormat: 'HTML',
       });
       console.log('Received API response:', updatedComment);
       setIsEditing(false);
@@ -228,20 +227,26 @@ export const CommentItem = ({
             }}
           />
         </>
-      ) : comment.contentFormat === 'QUILL' ? (
-        <div
-          className="prose prose-sm max-w-none"
-          dangerouslySetInnerHTML={{
-            __html: convertDeltaToHTML(
-              typeof comment.content === 'string' ? { ops: [] } : comment.content
-            ),
-          }}
-        />
+      ) : comment.contentFormat === 'QUILL_EDITOR' ? (
+        <div className="border-none">
+          <CommentEditor
+            initialContent={convertQuillDeltaToTipTap(
+              typeof comment.content === 'string' ? JSON.parse(comment.content) : comment.content
+            )}
+            onSubmit={() => {}}
+            isReadOnly={true}
+          />
+        </div>
       ) : (
-        <div
-          className="prose prose-sm max-w-none"
-          dangerouslySetInnerHTML={{ __html: comment.content as string }}
-        />
+        <div className="border-none">
+          <CommentEditor
+            initialContent={
+              typeof comment.content === 'string' ? JSON.parse(comment.content) : comment.content
+            }
+            onSubmit={() => {}}
+            isReadOnly={true}
+          />
+        </div>
       )}
 
       {/* Comment Metadata */}

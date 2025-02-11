@@ -67,7 +67,6 @@ export class CommentService {
     workId,
     contentType,
     content,
-    contentFormat,
     parentId,
     bountyAmount,
     bountyType,
@@ -79,10 +78,9 @@ export class CommentService {
     const path =
       `${this.BASE_PATH}/${contentType.toLowerCase()}/${workId}/comments/` +
       (bountyAmount ? 'create_comment_with_bounty/' : 'create_rh_comment/');
-
     const payload = {
-      comment_content: content,
-      content_format: contentFormat,
+      comment_content_json: content,
+      comment_content_type: 'TIPTAP',
       privacy_type: privacyType,
       ...(bountyAmount && { amount: bountyAmount, bounty_type: bountyType }),
       ...(expirationDate && { expiration_date: expirationDate }),
@@ -114,7 +112,7 @@ export class CommentService {
       child_page_size: childPageSize.toString(),
       ascending: ascending.toString(),
       privacy_type: privacyType,
-      sort_by: sort.toLowerCase(),
+      ordering: sort,
       parent__isnull: 'true',
     });
 

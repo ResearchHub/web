@@ -3,9 +3,9 @@ import { BaseTransformer } from './transformer';
 import { Bounty, transformBounty } from './bounty';
 
 export type CommentFilter = 'BOUNTY' | 'DISCUSSION' | 'REVIEW';
-export type CommentSort = 'BEST' | 'NEWEST' | 'TOP';
+export type CommentSort = 'BEST' | 'NEWEST' | 'TOP' | 'CREATED_DATE';
 export type CommentPrivacyType = 'PUBLIC' | 'PRIVATE';
-export type ContentFormat = 'QUILL' | 'HTML';
+export type ContentFormat = 'QUILL_EDITOR' | 'HTML';
 export type CommentType = 'GENERIC_COMMENT' | 'REVIEW' | 'ANSWER';
 
 export interface UserMention {
@@ -16,11 +16,13 @@ export interface UserMention {
 }
 
 export interface QuillOperation {
-  insert: string;
+  insert: string | { user?: UserMention };
   attributes?: {
     bold?: boolean;
     italic?: boolean;
+    underline?: boolean;
     link?: string;
+    code?: boolean;
   };
 }
 
@@ -73,7 +75,7 @@ export const transformContent = (raw: any): string => {
 export const transformComment: BaseTransformer<any, Comment> = (raw) => ({
   id: raw.id,
   content: transformContent(raw),
-  contentFormat: raw.html ? 'HTML' : 'QUILL',
+  contentFormat: raw.comment_content_type,
   createdDate: raw.created_date,
   updatedDate: raw.updated_date,
   author: transformAuthorProfile(raw.created_by),

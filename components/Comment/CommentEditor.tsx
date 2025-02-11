@@ -46,10 +46,11 @@ const ExitLinkOnSpace = Extension.create({
 });
 
 interface CommentEditorProps {
-  onSubmit: (content: string) => void;
+  onSubmit: (content: any) => void;
   onCancel?: () => void;
   placeholder?: string;
-  initialContent?: string;
+  initialContent?: string | { type: 'doc'; content: any[] };
+  isReadOnly?: boolean;
 }
 
 export const CommentEditor = ({
@@ -57,6 +58,7 @@ export const CommentEditor = ({
   onCancel,
   placeholder = 'Write a comment...',
   initialContent = '',
+  isReadOnly = false,
 }: CommentEditorProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
@@ -99,11 +101,13 @@ export const CommentEditor = ({
       MentionExtension,
     ],
     content: initialContent,
+    editable: !isReadOnly,
     editorProps: {
       attributes: {
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[100px] px-4 py-2',
       },
       handleClick: (view, pos, event) => {
+        if (isReadOnly) return;
         const link = (event.target as HTMLElement).closest('a');
         if (link) {
           event.preventDefault();
@@ -134,8 +138,8 @@ export const CommentEditor = ({
 
     setIsSubmitting(true);
     try {
-      const html = editor.getHTML();
-      await onSubmit(html);
+      const json = editor.getJSON();
+      await onSubmit(json);
       editor.commands.clearContent();
     } catch (error) {
       console.error('Failed to create comment:', error);
@@ -343,85 +347,87 @@ export const CommentEditor = ({
           @apply p-2 text-sm text-gray-600;
         }
       `}</style>
-      <div className="border-b px-4 py-2">
-        <div className="flex flex-wrap gap-2">
-          <Button
-            onClick={() => editor.chain().focus().toggleBold().run()}
-            variant={editor.isActive('bold') ? 'secondary' : 'ghost'}
-            size="sm"
-          >
-            Bold
-          </Button>
-          <Button
-            onClick={() => editor.chain().focus().toggleItalic().run()}
-            variant={editor.isActive('italic') ? 'secondary' : 'ghost'}
-            size="sm"
-          >
-            Italic
-          </Button>
-          <Button
-            onClick={() => editor.chain().focus().toggleUnderline().run()}
-            variant={editor.isActive('underline') ? 'secondary' : 'ghost'}
-            size="sm"
-          >
-            Underline
-          </Button>
-          <Button
-            onClick={() => editor.chain().focus().toggleStrike().run()}
-            variant={editor.isActive('strike') ? 'secondary' : 'ghost'}
-            size="sm"
-          >
-            Strike
-          </Button>
-          <Button
-            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-            variant={editor.isActive('codeBlock') ? 'secondary' : 'ghost'}
-            size="sm"
-          >
-            Code
-          </Button>
-          <Button
-            onClick={() => editor.chain().focus().toggleBlockquote().run()}
-            variant={editor.isActive('blockquote') ? 'secondary' : 'ghost'}
-            size="sm"
-          >
-            Quote
-          </Button>
-          <Button
-            onClick={() => editor.chain().focus().toggleBulletList().run()}
-            variant={editor.isActive('bulletList') ? 'secondary' : 'ghost'}
-            size="sm"
-          >
-            Bullet List
-          </Button>
-          <Button
-            onClick={() => editor.chain().focus().toggleOrderedList().run()}
-            variant={editor.isActive('orderedList') ? 'secondary' : 'ghost'}
-            size="sm"
-          >
-            Numbered List
-          </Button>
-          <Button
-            onClick={handleLinkAdd}
-            variant={editor?.isActive('link') ? 'secondary' : 'ghost'}
-            size="sm"
-          >
-            Link
-          </Button>
-          <Button onClick={() => setIsImageModalOpen(true)} variant="ghost" size="sm">
-            Image
-          </Button>
-          <Button onClick={handleVideoEmbed} variant="ghost" size="sm">
-            Video
-          </Button>
-          <Button onClick={handleTweetEmbed} variant="ghost" size="sm">
-            Tweet
-          </Button>
+      {!isReadOnly && (
+        <div className="border-b px-4 py-2">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              onClick={() => editor.chain().focus().toggleBold().run()}
+              variant={editor.isActive('bold') ? 'secondary' : 'ghost'}
+              size="sm"
+            >
+              Bold
+            </Button>
+            <Button
+              onClick={() => editor.chain().focus().toggleItalic().run()}
+              variant={editor.isActive('italic') ? 'secondary' : 'ghost'}
+              size="sm"
+            >
+              Italic
+            </Button>
+            <Button
+              onClick={() => editor.chain().focus().toggleUnderline().run()}
+              variant={editor.isActive('underline') ? 'secondary' : 'ghost'}
+              size="sm"
+            >
+              Underline
+            </Button>
+            <Button
+              onClick={() => editor.chain().focus().toggleStrike().run()}
+              variant={editor.isActive('strike') ? 'secondary' : 'ghost'}
+              size="sm"
+            >
+              Strike
+            </Button>
+            <Button
+              onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+              variant={editor.isActive('codeBlock') ? 'secondary' : 'ghost'}
+              size="sm"
+            >
+              Code
+            </Button>
+            <Button
+              onClick={() => editor.chain().focus().toggleBlockquote().run()}
+              variant={editor.isActive('blockquote') ? 'secondary' : 'ghost'}
+              size="sm"
+            >
+              Quote
+            </Button>
+            <Button
+              onClick={() => editor.chain().focus().toggleBulletList().run()}
+              variant={editor.isActive('bulletList') ? 'secondary' : 'ghost'}
+              size="sm"
+            >
+              Bullet List
+            </Button>
+            <Button
+              onClick={() => editor.chain().focus().toggleOrderedList().run()}
+              variant={editor.isActive('orderedList') ? 'secondary' : 'ghost'}
+              size="sm"
+            >
+              Numbered List
+            </Button>
+            <Button
+              onClick={handleLinkAdd}
+              variant={editor?.isActive('link') ? 'secondary' : 'ghost'}
+              size="sm"
+            >
+              Link
+            </Button>
+            <Button onClick={() => setIsImageModalOpen(true)} variant="ghost" size="sm">
+              Image
+            </Button>
+            <Button onClick={handleVideoEmbed} variant="ghost" size="sm">
+              Video
+            </Button>
+            <Button onClick={handleTweetEmbed} variant="ghost" size="sm">
+              Tweet
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
       <div className="relative">
         <EditorContent editor={editor} />
-        {linkMenuPosition && editor && selectedLink && (
+        {!isReadOnly && linkMenuPosition && editor && selectedLink && (
           <div
             style={{
               position: 'absolute',
@@ -441,16 +447,18 @@ export const CommentEditor = ({
           </div>
         )}
       </div>
-      <div className="border-t px-4 py-2 flex justify-end gap-2">
-        {onCancel && (
-          <Button onClick={onCancel} variant="ghost" size="sm">
-            Cancel
+      {!isReadOnly && (
+        <div className="border-t px-4 py-2 flex justify-end gap-2">
+          {onCancel && (
+            <Button onClick={onCancel} variant="ghost" size="sm">
+              Cancel
+            </Button>
+          )}
+          <Button onClick={handleSubmit} disabled={!editor.getText().trim() || isSubmitting}>
+            {isSubmitting ? 'Submitting...' : 'Submit'}
           </Button>
-        )}
-        <Button onClick={handleSubmit} disabled={!editor.getText().trim() || isSubmitting}>
-          {isSubmitting ? 'Submitting...' : 'Submit'}
-        </Button>
-      </div>
+        </div>
+      )}
 
       {isLinkModalOpen && (
         <LinkEditModal
