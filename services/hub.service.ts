@@ -31,7 +31,7 @@ export interface Hub {
 
 export class HubService {
   private static readonly BASE_PATH = '/api/hub';
-  private static readonly SEARCH_PATH = '/api/search/hub';
+  private static readonly SUGGEST_PATH = '/api/search/hubs/suggest';
 
   static async getHubs(namespace?: 'journal'): Promise<Hub[]> {
     const params = new URLSearchParams({
@@ -53,9 +53,9 @@ export class HubService {
     }));
   }
 
-  static async searchHubs(query: string): Promise<Hub[]> {
+  static async suggestHubs(query: string): Promise<Hub[]> {
     const response = await ApiClient.get<HubsApiResponse>(
-      `${this.SEARCH_PATH}/?q=${encodeURIComponent(query)}`
+      `${this.SUGGEST_PATH}/?name_suggest__completion=${encodeURIComponent(query)}`
     );
     return response.results.map((hub) => ({
       id: hub.id,
