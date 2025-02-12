@@ -30,7 +30,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   const handleTabChange = (tab: typeof activeTab) => {
     setActiveTab(tab);
     // Construct the URL based on the tab
-    const baseUrl = `/work/${work.id}/${work.slug}`;
+    const baseUrl = `/paper/${work.id}/${work.slug}`;
     if (tab === 'comments') {
       router.push(`${baseUrl}/conversation`);
     } else if (tab === 'reviews') {

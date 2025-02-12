@@ -42,8 +42,8 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
       if (suggestion.id) {
         // If we have an ID, redirect to the work page with slug
         const path = suggestion.slug
-          ? `/work/${suggestion.id}/${suggestion.slug}`
-          : `/work/${suggestion.id}`;
+          ? `/paper/${suggestion.id}/${suggestion.slug}`
+          : `/paper/${suggestion.id}`;
         router.push(path);
       } else if (suggestion.doi) {
         // If we only have a DOI, redirect to the DOI route

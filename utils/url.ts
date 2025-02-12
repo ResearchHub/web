@@ -32,7 +32,7 @@ export const buildWorkUrl = ({
 
   // For papers
   if (id) {
-    return `/paper/${id}`;
+    return slug ? `/paper/${id}/${slug}` : `/paper/${id}`;
   }
 
   if (doi) {
