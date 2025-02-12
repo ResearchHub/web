@@ -175,12 +175,7 @@ export const MentionExtension = Mention.extend({
             class: 'mention mention-paper',
             contenteditable: 'false',
           },
-          ['span', { class: 'mention-icon', contenteditable: 'false' }],
-          [
-            'span',
-            { class: 'mention-label', contenteditable: 'false' },
-            node.attrs.displayName || node.attrs.label,
-          ],
+          node.attrs.displayName || node.attrs.label,
         ];
       }
 
@@ -194,12 +189,7 @@ export const MentionExtension = Mention.extend({
           href: url,
           contenteditable: 'false',
         },
-        ['span', { class: 'mention-icon', contenteditable: 'false' }],
-        [
-          'span',
-          { class: 'mention-label', contenteditable: 'false' },
-          node.attrs.displayName || node.attrs.label,
-        ],
+        node.attrs.displayName || node.attrs.label,
       ];
     }
 
@@ -215,7 +205,7 @@ export const MentionExtension = Mention.extend({
             class: `mention mention-${node.attrs.entityType}`,
             contenteditable: 'false',
           },
-          ['span', { class: 'mention-label', contenteditable: 'false' }, `@${node.attrs.label}`],
+          `@${node.attrs.label}`,
         ];
       }
 
@@ -230,7 +220,7 @@ export const MentionExtension = Mention.extend({
           href: url,
           contenteditable: 'false',
         },
-        ['span', { class: 'mention-label', contenteditable: 'false' }, `@${node.attrs.label}`],
+        `@${node.attrs.label}`,
       ];
     }
 
@@ -246,7 +236,7 @@ export const MentionExtension = Mention.extend({
             class: 'mention mention-post',
             contenteditable: 'false',
           },
-          ['span', { class: 'mention-label', contenteditable: 'false' }, node.attrs.label],
+          node.attrs.label,
         ];
       }
 
@@ -264,7 +254,7 @@ export const MentionExtension = Mention.extend({
           href: url,
           contenteditable: 'false',
         },
-        ['span', { class: 'mention-label', contenteditable: 'false' }, node.attrs.label],
+        node.attrs.label,
       ];
     }
 
@@ -317,15 +307,15 @@ export const MentionExtension = Mention.extend({
             interactive: true,
             trigger: 'manual',
             placement: 'bottom-start',
-            animation: 'scale-subtle',
-            duration: 150,
+            animation: false,
             theme: 'mention',
+            maxWidth: '400px',
           });
 
           // Add tooltip when @ is pressed with no query
           if (!props.query) {
             popup.setProps({
-              content: `<div class="p-2 text-sm text-gray-600">Mention a user or paper...</div>`,
+              content: `<div class="p-2 text-sm text-gray-600">Type to search...</div>`,
             });
           }
 
@@ -346,7 +336,7 @@ export const MentionExtension = Mention.extend({
           // Update tooltip content based on query
           if (!props.query && popup) {
             popup.setProps({
-              content: `<div class="p-2 text-sm text-gray-600">Mention a user or paper...</div>`,
+              content: `<div class="p-2 text-sm text-gray-600">Type to search...</div>`,
             });
           } else if (component) {
             popup?.setProps({

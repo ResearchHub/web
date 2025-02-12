@@ -282,55 +282,45 @@ export const CommentEditor = ({
 
         /* Mention styles */
         .mention {
-          display: inline-flex;
-          align-items: center;
+          display: inline;
           font-weight: 500;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
-        .mention-user {
-          background: #edf2f7;
-          color: #4a5568;
-          border-radius: 0.25rem;
-          padding: 0.125rem 0.25rem;
-        }
-
-        .mention-user:hover {
-          background: #e2e8f0;
-        }
-
-        .mention-work {
-          color: #3182ce;
-          text-decoration: underline;
-          gap: 0.25rem;
-          padding: 0;
-          background: none !important;
+        .mention-user,
+        .mention-author {
+          color: rgb(35, 131, 226);
+          background: transparent;
           border-radius: 0;
+          padding: 0;
         }
 
-        .mention-work .mention-icon {
-          width: 1rem;
-          height: 1rem;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233182ce' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'%3E%3C/path%3E%3Cpolyline points='14 2 14 8 20 8'%3E%3C/polyline%3E%3Cline x1='16' y1='13' x2='8' y2='13'%3E%3C/line%3E%3Cline x1='16' y1='17' x2='8' y2='17'%3E%3C/line%3E%3Cpolyline points='10 9 9 9 8 9'%3E%3C/polyline%3E%3C/svg%3E");
-          background-size: contain;
-          background-repeat: no-repeat;
+        .mention-user:hover,
+        .mention-author:hover {
+          background: transparent;
+          text-decoration: underline;
         }
 
-        .mention-work:hover {
-          color: #2c5282;
+        .mention-paper,
+        .mention-post {
+          color: rgb(35, 131, 226);
+          text-decoration: none;
         }
 
-        .mention-work .mention-label {
+        .mention-paper:hover,
+        .mention-post:hover {
           text-decoration: underline;
         }
 
         /* Tippy mention styles */
         .tippy-box[data-theme~='mention'] {
-          @apply bg-white border border-gray-200 shadow-lg rounded-lg;
-          max-width: 400px !important;
+          @apply bg-white shadow-lg rounded-lg;
+          border: 1px solid rgb(233, 233, 233);
+          box-shadow:
+            rgb(0 0 0 / 5%) 0px 2px 6px,
+            rgb(0 0 0 / 10%) 0px 0px 1px;
         }
 
         .tippy-box[data-theme~='mention'] .tippy-content {
@@ -447,7 +437,9 @@ export const CommentEditor = ({
             <div className="w-px h-8 bg-gray-200" />
 
             <Button
-              onClick={() => editor.commands.focus()}
+              onClick={() => {
+                editor.chain().focus().insertContent('@').run();
+              }}
               variant="ghost"
               size="sm"
               tooltip="Mention"

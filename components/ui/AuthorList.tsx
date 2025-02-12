@@ -4,7 +4,7 @@ import { useState, Fragment } from 'react';
 import { Plus, Minus, BadgeCheck } from 'lucide-react';
 import { cn } from 'utils/styles';
 
-interface Author {
+export interface Author {
   name: string;
   verified?: boolean;
   profileUrl?: string;
@@ -21,18 +21,25 @@ interface AuthorListProps {
   delimiterClassName?: string;
   /** Word to use as delimiter between authors (e.g. "and") */
   delimiter?: any;
+  /** Whether to show abbreviated format (first, last, et al.) */
+  abbreviated?: boolean;
 }
 
 export const AuthorList = ({
   authors,
   size = 'base',
   timestamp,
-  isNested,
   className,
   delimiterClassName,
   delimiter = '•',
+  abbreviated = false,
 }: AuthorListProps) => {
   const [showAll, setShowAll] = useState(false);
+
+  // Filter out "et al" variations
+  const filteredAuthors = authors.filter(
+    (author) => !author.name.toLowerCase().match(/^et\.?\s*al\.?$/i)
+  );
 
   const getTextSize = () => {
     switch (size) {
@@ -46,23 +53,80 @@ export const AuthorList = ({
   };
 
   const renderAuthors = () => {
-    if (authors.length <= 3 || showAll) {
+    // Handle abbreviated format
+    if (abbreviated) {
+      if (filteredAuthors.length === 1) {
+        return (
+          <AuthorItem
+            author={filteredAuthors[0]}
+            showDot={false}
+            size={size}
+            className={className}
+          />
+        );
+      }
+
+      if (filteredAuthors.length === 2) {
+        return (
+          <>
+            <AuthorItem
+              author={filteredAuthors[0]}
+              showDot={false}
+              size={size}
+              className={className}
+            />
+            <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
+            <AuthorItem
+              author={filteredAuthors[1]}
+              showDot={false}
+              size={size}
+              className={className}
+            />
+          </>
+        );
+      }
+
+      if (filteredAuthors.length > 2) {
+        return (
+          <>
+            <AuthorItem
+              author={filteredAuthors[0]}
+              showDot={false}
+              size={size}
+              className={className}
+            />
+            <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
+            <AuthorItem
+              author={filteredAuthors[filteredAuthors.length - 1]}
+              showDot={false}
+              size={size}
+              className={className}
+            />
+            <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
+            <span className={cn(getTextSize(), 'text-gray-500')}>et al.</span>
+          </>
+        );
+      }
+    }
+
+    // Original expanded format
+    if (filteredAuthors.length <= 3 || showAll) {
       return (
         <>
-          {authors.map((author, index) => (
+          {filteredAuthors.map((author, index) => (
             <Fragment key={author.name + index}>
               <AuthorItem author={author} showDot={false} size={size} className={className} />
-              {index < authors.length - 2 && (
+              {index < filteredAuthors.length - 2 && (
                 <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
               )}
-              {index === authors.length - 2 && (
+              {index === filteredAuthors.length - 2 && (
                 <span
                   className={cn('mx-1', getTextSize(), delimiterClassName)}
                 >{` ${delimiter} `}</span>
               )}
             </Fragment>
           ))}
-          {showAll && authors.length > 3 && (
+          {showAll && filteredAuthors.length > 3 && (
             <button
               onClick={() => setShowAll(false)}
               className="flex items-center text-blue-500 hover:text-blue-600 ml-2"
@@ -78,19 +142,19 @@ export const AuthorList = ({
     // Show first two authors, then CTA, then last author
     return (
       <>
-        <AuthorItem author={authors[0]} showDot={false} size={size} className={className} />
+        <AuthorItem author={filteredAuthors[0]} showDot={false} size={size} className={className} />
         <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
-        <AuthorItem author={authors[1]} showDot={false} size={size} className={className} />
+        <AuthorItem author={filteredAuthors[1]} showDot={false} size={size} className={className} />
         <button
           onClick={() => setShowAll(true)}
           className="flex items-center text-blue-500 hover:text-blue-600 mx-1"
         >
           <Plus className="w-3.5 h-3.5 mr-1" />
-          <span className={getTextSize()}>{authors.length - 3} more</span>
+          <span className={getTextSize()}>{filteredAuthors.length - 3} more</span>
         </button>
         <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
         <AuthorItem
-          author={authors[authors.length - 1]}
+          author={filteredAuthors[filteredAuthors.length - 1]}
           showDot={false}
           size={size}
           className={className}
