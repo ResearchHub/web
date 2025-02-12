@@ -2,7 +2,7 @@
 
 import { Plus, FileUp, BadgeCheck, HandCoins, PlayCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { BaseMenu, BaseMenuItem } from '@/components/menus/BaseMenu';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
 import { useState } from 'react';

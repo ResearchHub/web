@@ -12,7 +12,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { BaseMenu, BaseMenuItem } from '@/components/menus/BaseMenu';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { GrantIcon } from '@/components/ui/icons/GrantIcon';
 import { Switch } from '@/components/ui/Switch';
 import { useState } from 'react';

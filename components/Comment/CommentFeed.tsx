@@ -7,9 +7,8 @@ import { CommentEditor } from './CommentEditor';
 import { CommentItem } from './CommentItem';
 import { ContentType } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
-import { DropdownButton } from '@/components/Editor/components/ui/Dropdown/Dropdown';
-import { Star, Zap, ArrowUp } from 'lucide-react';
-import * as Popover from '@radix-ui/react-popover';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import { Star, Zap, ArrowUp, ChevronDown } from 'lucide-react';
 
 type SortOption = {
   label: string;
@@ -172,37 +171,32 @@ export const CommentFeed = ({
     <div className={className}>
       <div className="flex justify-between items-center mb-4">
         <div className="flex gap-2">
-          <Popover.Root open={isOpen} onOpenChange={setIsOpen}>
-            <Popover.Trigger asChild>
+          <BaseMenu
+            align="start"
+            trigger={
               <button className="flex items-center gap-2 px-3 py-1 rounded-md border border-gray-300 hover:bg-gray-50">
                 {SelectedIcon && <SelectedIcon className="h-4 w-4" />}
                 <span>{selectedOption?.label}</span>
+                <ChevronDown className="h-4 w-4 text-gray-500" />
               </button>
-            </Popover.Trigger>
-            <Popover.Portal>
-              <Popover.Content
-                className="bg-white rounded-lg shadow-lg border border-gray-200 py-1 w-48"
-                sideOffset={5}
-              >
-                {sortOptions.map((option) => {
-                  const Icon = option.icon;
-                  return (
-                    <DropdownButton
-                      key={option.value}
-                      isActive={sortBy === option.value}
-                      onClick={() => handleSortChange(option.value)}
-                    >
-                      <Icon className="h-4 w-4" />
-                      {option.label}
-                    </DropdownButton>
-                  );
-                })}
-              </Popover.Content>
-            </Popover.Portal>
-          </Popover.Root>
-        </div>
-        <div className="text-sm text-gray-500">
-          {commentCount} comment{commentCount !== 1 ? 's' : ''}
+            }
+          >
+            {sortOptions.map((option) => {
+              const Icon = option.icon;
+              return (
+                <BaseMenuItem
+                  key={option.value}
+                  onClick={() => handleSortChange(option.value)}
+                  className={sortBy === option.value ? 'bg-gray-100' : ''}
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon className="h-4 w-4" />
+                    <span>{option.label}</span>
+                  </div>
+                </BaseMenuItem>
+              );
+            })}
+          </BaseMenu>
         </div>
       </div>
 

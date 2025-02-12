@@ -18,6 +18,19 @@ import typescript from 'highlight.js/lib/languages/typescript';
 import python from 'highlight.js/lib/languages/python';
 import 'highlight.js/styles/atom-one-dark.css';
 import { MentionExtension } from './lib/MentionExtension';
+import {
+  Bold,
+  Italic,
+  Underline as UnderlineIcon,
+  Strikethrough,
+  Code2,
+  Quote,
+  List,
+  ListOrdered,
+  Link2,
+  ImageIcon,
+  AtSign,
+} from 'lucide-react';
 
 const lowlight = createLowlight();
 lowlight.register('javascript', javascript);
@@ -240,24 +253,6 @@ export const CommentEditor = ({
     setIsImageModalOpen(false);
   };
 
-  const handleVideoEmbed = () => {
-    const url = window.prompt('Enter video URL (YouTube, Vimeo, etc.):');
-    if (url) {
-      // Here you would typically parse the URL and create an appropriate embed
-      const embedHtml = `<div class="video-embed"><iframe src="${url}" frameborder="0" allowfullscreen></iframe></div>`;
-      editor?.chain().focus().setContent(embedHtml).run();
-    }
-  };
-
-  const handleTweetEmbed = () => {
-    const tweetUrl = window.prompt('Enter Tweet URL:');
-    if (tweetUrl) {
-      // Here you would typically use the Twitter embed API
-      const embedHtml = `<blockquote class="twitter-tweet"><a href="${tweetUrl}"></a></blockquote>`;
-      editor?.chain().focus().setContent(embedHtml).run();
-    }
-  };
-
   if (!editor) return null;
 
   return (
@@ -363,73 +358,101 @@ export const CommentEditor = ({
               onClick={() => editor.chain().focus().toggleBold().run()}
               variant={editor.isActive('bold') ? 'secondary' : 'ghost'}
               size="sm"
+              tooltip="Bold"
             >
-              Bold
+              <Bold className="h-4 w-4" />
             </Button>
             <Button
               onClick={() => editor.chain().focus().toggleItalic().run()}
               variant={editor.isActive('italic') ? 'secondary' : 'ghost'}
               size="sm"
+              tooltip="Italic"
             >
-              Italic
+              <Italic className="h-4 w-4" />
             </Button>
             <Button
               onClick={() => editor.chain().focus().toggleUnderline().run()}
               variant={editor.isActive('underline') ? 'secondary' : 'ghost'}
               size="sm"
+              tooltip="Underline"
             >
-              Underline
+              <UnderlineIcon className="h-4 w-4" />
             </Button>
             <Button
               onClick={() => editor.chain().focus().toggleStrike().run()}
               variant={editor.isActive('strike') ? 'secondary' : 'ghost'}
               size="sm"
+              tooltip="Strikethrough"
             >
-              Strike
+              <Strikethrough className="h-4 w-4" />
             </Button>
+
+            <div className="w-px h-8 bg-gray-200" />
+
             <Button
               onClick={() => editor.chain().focus().toggleCodeBlock().run()}
               variant={editor.isActive('codeBlock') ? 'secondary' : 'ghost'}
               size="sm"
+              tooltip="Code Block"
             >
-              Code
+              <Code2 className="h-4 w-4" />
             </Button>
             <Button
               onClick={() => editor.chain().focus().toggleBlockquote().run()}
               variant={editor.isActive('blockquote') ? 'secondary' : 'ghost'}
               size="sm"
+              tooltip="Quote"
             >
-              Quote
+              <Quote className="h-4 w-4" />
             </Button>
+
+            <div className="w-px h-8 bg-gray-200" />
+
             <Button
               onClick={() => editor.chain().focus().toggleBulletList().run()}
               variant={editor.isActive('bulletList') ? 'secondary' : 'ghost'}
               size="sm"
+              tooltip="Bullet List"
             >
-              Bullet List
+              <List className="h-4 w-4" />
             </Button>
             <Button
               onClick={() => editor.chain().focus().toggleOrderedList().run()}
               variant={editor.isActive('orderedList') ? 'secondary' : 'ghost'}
               size="sm"
+              tooltip="Numbered List"
             >
-              Numbered List
+              <ListOrdered className="h-4 w-4" />
             </Button>
+
+            <div className="w-px h-8 bg-gray-200" />
+
             <Button
               onClick={handleLinkAdd}
               variant={editor?.isActive('link') ? 'secondary' : 'ghost'}
               size="sm"
+              tooltip="Add Link"
             >
-              Link
+              <Link2 className="h-4 w-4" />
             </Button>
-            <Button onClick={() => setIsImageModalOpen(true)} variant="ghost" size="sm">
-              Image
+            <Button
+              onClick={() => setIsImageModalOpen(true)}
+              variant="ghost"
+              size="sm"
+              tooltip="Add Image"
+            >
+              <ImageIcon className="h-4 w-4" />
             </Button>
-            <Button onClick={handleVideoEmbed} variant="ghost" size="sm">
-              Video
-            </Button>
-            <Button onClick={handleTweetEmbed} variant="ghost" size="sm">
-              Tweet
+
+            <div className="w-px h-8 bg-gray-200" />
+
+            <Button
+              onClick={() => editor.commands.focus()}
+              variant="ghost"
+              size="sm"
+              tooltip="Mention"
+            >
+              <AtSign className="h-4 w-4" />
             </Button>
           </div>
         </div>
