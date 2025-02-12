@@ -31,8 +31,7 @@ export const CommentItem = ({
   const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
-  console.log('---------------');
-  console.log('comment', comment);
+
   useEffect(() => {
     // Find all pre code blocks and apply highlighting
     const codeBlocks = document.querySelectorAll('pre code');
@@ -55,7 +54,6 @@ export const CommentItem = ({
   };
 
   const handleEditSubmit = async (content: string) => {
-    console.log('Starting edit submit for comment:', comment.id);
     setUpdateError(null);
     try {
       const updatedComment = await CommentService.updateComment({
@@ -64,9 +62,8 @@ export const CommentItem = ({
         contentType,
         content,
       });
-      console.log('Received API response:', updatedComment);
+
       setIsEditing(false);
-      console.log('Calling onCommentUpdate with:', updatedComment);
       onCommentUpdate(updatedComment, updatedComment.parentId || undefined);
     } catch (error) {
       console.error('Failed to update comment:', error);

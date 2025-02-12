@@ -47,9 +47,12 @@ export function SearchSuggestions({
     const isPaperSuggestion = suggestion.entityType === 'paper';
     const isUserSuggestion = suggestion.entityType === 'user' || suggestion.entityType === 'author';
 
+    // Create a unique key based on entity type and identifier
+    const suggestionKey = `${suggestion.entityType}-${suggestion.id || (isPaperSuggestion ? suggestion.doi : '')}`;
+
     if (displayMode === 'inline') {
       return (
-        <li key={isPaperSuggestion ? suggestion.id : suggestion.id}>
+        <li key={suggestionKey}>
           <button
             type="button"
             className="w-full p-6 rounded-lg border border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm hover:translate-x-1 transition-all duration-200 flex items-start gap-4 text-left group"
@@ -85,7 +88,7 @@ export function SearchSuggestions({
     }
 
     return (
-      <li key={isPaperSuggestion ? suggestion.id : suggestion.id}>
+      <li key={suggestionKey}>
         <button
           type="button"
           className="w-full text-left px-4 py-2 hover:bg-gray-100"

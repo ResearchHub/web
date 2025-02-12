@@ -101,8 +101,6 @@ export function useSearchSuggestions({
 
   // Combine suggestions, prioritizing local results if enabled
   const suggestions = useMemo(() => {
-    if (!isFocused) return [];
-
     let results: SearchSuggestion[] = [];
 
     // Add local suggestions if enabled
@@ -149,14 +147,7 @@ export function useSearchSuggestions({
     if (posts.length) groupedResults.push(...posts);
 
     return groupedResults;
-  }, [
-    isFocused,
-    query,
-    filteredLocalSuggestions,
-    apiSuggestions,
-    localSuggestions,
-    includeLocalSuggestions,
-  ]);
+  }, [query, filteredLocalSuggestions, apiSuggestions, localSuggestions, includeLocalSuggestions]);
 
   // Clear all search history
   const clearSearchHistory = () => {
