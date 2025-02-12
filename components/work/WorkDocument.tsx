@@ -64,7 +64,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   return (
     <div>
       {/* Rewards Banner */}
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-t-lg border border-orange-200">
           <div className="p-4">
             <div className="flex items-center justify-between">
@@ -88,7 +88,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
       {/* Title & Actions */}
       {work.type === 'preprint' && (
         <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">

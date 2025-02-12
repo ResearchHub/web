@@ -309,9 +309,21 @@ export const CommentEditor = ({
           text-decoration: none;
         }
 
-        .mention-paper:hover,
-        .mention-post:hover {
-          text-decoration: underline;
+        /* Mention icon styles */
+        .mention-icon {
+          display: inline-flex;
+          align-items: center;
+          margin-right: 4px;
+          line-height: 1;
+          color: rgb(37 99 235);
+          position: relative;
+          top: 2px;
+        }
+
+        .mention-icon svg {
+          width: 14px;
+          height: 14px;
+          stroke-width: 2;
         }
 
         /* Tippy mention styles */
@@ -329,6 +341,7 @@ export const CommentEditor = ({
 
         .tippy-box[data-theme~='mention'] .tippy-arrow {
           @apply text-white;
+          display: none;
         }
 
         .tippy-box[data-theme~='mention'] .tippy-arrow:before {
@@ -336,9 +349,13 @@ export const CommentEditor = ({
           top: -8px;
         }
 
-        /* Empty state tooltip */
-        .tippy-box[data-theme~='mention'] .tippy-content div {
-          @apply p-2 text-sm text-gray-600;
+        /* Mention placeholder style */
+        .mention-placeholder {
+          @apply px-3 py-1.5 text-sm text-gray-500;
+          font-size: 14px;
+          line-height: 20px;
+          color: rgb(115, 115, 115);
+          padding: 5px;
         }
       `}</style>
       {!isReadOnly && (

@@ -22,14 +22,13 @@
 
 /* Paper mention styles */
 .mention.mention-paper {
-  color: #3182ce !important;
+  color: rgb(37 99 235) !important;
   padding: 0 !important;
   background: none !important;
   border-radius: 0 !important;
   display: inline-flex !important;
   align-items: center !important;
   gap: 0.25rem !important;
-  text-decoration: underline !important;
 }
 
 .mention.mention-paper .mention-icon {
@@ -50,10 +49,6 @@
   color: #2c5282 !important;
 }
 
-.mention.mention-paper .mention-label {
-  text-decoration: underline !important;
-}
-
 /* Post mention styles */
 .mention.mention-post {
   color: #3182ce !important;
@@ -63,15 +58,10 @@
   display: inline-flex !important;
   align-items: center !important;
   gap: 0.25rem !important;
-  text-decoration: underline !important;
 }
 
 .mention.mention-post:hover {
   color: #2c5282 !important;
-}
-
-.mention.mention-post .mention-label {
-  text-decoration: underline !important;
 }
 
 /* Tippy mention styles */
@@ -91,9 +81,4 @@
 .tippy-box[data-theme~='mention'] .tippy-arrow:before {
   @apply border-gray-200;
   top: -8px;
-}
-
-/* Empty state tooltip */
-.tippy-box[data-theme~='mention'] .tippy-content div {
-  @apply p-2 text-sm text-gray-600;
 }
