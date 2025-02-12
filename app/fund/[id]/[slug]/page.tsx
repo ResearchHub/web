@@ -10,7 +10,7 @@ import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import type { WorkMetadata } from '@/services/metadata.service';
 import { FundItem } from '@/components/Fund/FundItem';
 import { WorkLineItems } from '@/components/work/WorkLineItems';
-import { ClientBlockEditorWrapper } from '@/components/Editor/components/BlockEditor/ClientBlockEditorWrapper';
+import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/BlockEditorClientWrapper';
 
 interface Props {
   params: Promise<{
@@ -107,7 +107,7 @@ function FundingDocument({ work, metadata, content }: FundingDocumentProps) {
       {/* Content section */}
       {work.note?.contentJson ? (
         <div className="h-full">
-          <ClientBlockEditorWrapper contentJson={work.note?.contentJson} editable={false} />
+          <BlockEditorClientWrapper contentJson={work.note?.contentJson} editable={false} />
         </div>
       ) : content ? (
         <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content }} />
