@@ -1,8 +1,4 @@
 import { Interest } from './InterestSelector';
-import { HubService } from '@/services/hub.service';
-import { AuthorService } from '@/services/author.service';
-import { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
 
 interface InterestCardProps {
   interest: Interest;
@@ -10,53 +6,9 @@ interface InterestCardProps {
   onFollowToggle: (interestId: number, isFollowing: boolean) => void;
 }
 
-export function InterestCard({
-  interest,
-  isFollowing: initialIsFollowing,
-  onFollowToggle,
-}: InterestCardProps) {
-  const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    setIsFollowing(initialIsFollowing);
-  }, [initialIsFollowing]);
-
-  const handleClick = async () => {
-    if (isLoading || typeof interest.id !== 'number') return;
-
-    setIsLoading(true);
-    // Optimistically update the UI
-    const newFollowingState = !isFollowing;
-    setIsFollowing(newFollowingState);
-    onFollowToggle(interest.id, !newFollowingState);
-
-    try {
-      if (interest.type === 'journal' || interest.type === 'topic') {
-        if (!newFollowingState) {
-          await HubService.unfollowHub(interest.id);
-        } else {
-          await HubService.followHub(interest.id);
-        }
-      } else if (interest.type === 'person') {
-        if (!newFollowingState) {
-          await AuthorService.unfollowAuthor(interest.id);
-        } else {
-          await AuthorService.followAuthor(interest.id);
-        }
-      }
-    } catch (error) {
-      // Revert the optimistic update if the API call fails
-      setIsFollowing(!newFollowingState);
-      onFollowToggle(interest.id, newFollowingState);
-      console.error('Error toggling follow status:', error);
-
-      // Show user-friendly error message
-      const action = newFollowingState ? 'follow' : 'unfollow';
-      toast.error(`Failed to ${action} ${interest.name}. Please try again later.`);
-    } finally {
-      setIsLoading(false);
-    }
+export function InterestCard({ interest, isFollowing, onFollowToggle }: InterestCardProps) {
+  const handleClick = () => {
+    onFollowToggle(interest.id, isFollowing);
   };
 
   const getInitialBgColor = (type: string) => {
@@ -89,8 +41,11 @@ export function InterestCard({
     <button
       onClick={handleClick}
       className={`p-4 rounded-lg border-2 transition-all duration-200 text-left w-full relative
-        ${isFollowing ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:border-gray-300'}`}
-      disabled={isLoading}
+        ${
+          isFollowing
+            ? 'border-primary-600 bg-primary-50 ring-1 ring-primary-600'
+            : 'border-gray-200 hover:border-gray-300'
+        }`}
     >
       <div className="flex items-center gap-3">
         {interest.imageUrl ? (
