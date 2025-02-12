@@ -14,6 +14,7 @@ import { SearchSuggestion } from '@/types/search';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Tooltip } from '@/components/ui/Tooltip';
 import Link from 'next/link';
+import { useAuthModalContext } from '@/contexts/AuthModalContext';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -21,8 +22,7 @@ interface TopBarProps {
 
 export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const { data: session, status } = useSession();
-  const { unreadCount } = useNotifications();
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { showAuthModal } = useAuthModalContext();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -32,7 +32,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
     if (session) {
       signOut();
     } else {
-      setIsAuthModalOpen(true);
+      showAuthModal();
     }
   };
 
@@ -114,12 +114,6 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
           </div>
         </div>
       </div>
-
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        onSuccess={() => setIsAuthModalOpen(false)}
-      />
     </>
   );
 };

@@ -1,6 +1,6 @@
 import { createTransformer, BaseTransformed } from './transformer';
 import { buildWorkUrl, buildAuthorUrl } from '@/utils/url';
-import { AuthorProfile } from './user';
+import { AuthorProfile } from './authorProfile';
 
 export type SuggestionSource = 'api' | 'recent' | 'researchhub' | 'openalex';
 export type EntityType = 'user' | 'paper' | 'author' | 'post';

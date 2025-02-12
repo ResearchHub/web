@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { NotificationService } from '@/services/notification.service';
+import { useSession } from 'next-auth/react';
 import type { NotificationListResponse } from '@/services/types/notification.dto';
 
 interface NotificationContextType {
@@ -30,7 +31,7 @@ const NotificationContext = createContext<NotificationContextType>({
   setIsLoadingMore: () => {},
 });
 
-export function NotificationProvider({ children }: { children: React.ReactNode }) {
+function AuthenticatedNotificationProvider({ children }: { children: React.ReactNode }) {
   const [notificationData, setNotificationData] = useState<NotificationListResponse>({
     results: [],
     count: 0,
@@ -123,6 +124,33 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       {children}
     </NotificationContext.Provider>
   );
+}
+
+export function NotificationProvider({ children }: { children: React.ReactNode }) {
+  const { status } = useSession();
+
+  if (status !== 'authenticated') {
+    return (
+      <NotificationContext.Provider
+        value={{
+          notificationData: { results: [], count: 0, next: null, previous: null },
+          loading: false,
+          error: null,
+          unreadCount: 0,
+          refreshUnreadCount: async () => {},
+          fetchNotifications: async () => {},
+          fetchNextPage: async () => {},
+          markAllAsRead: async () => {},
+          isLoadingMore: false,
+          setIsLoadingMore: () => {},
+        }}
+      >
+        {children}
+      </NotificationContext.Provider>
+    );
+  }
+
+  return <AuthenticatedNotificationProvider>{children}</AuthenticatedNotificationProvider>;
 }
 
 export const useNotifications = () => useContext(NotificationContext);

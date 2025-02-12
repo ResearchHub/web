@@ -1,7 +1,4 @@
 import { Interest } from './InterestSelector';
-import { HubService } from '@/services/hub.service';
-import { AuthorService } from '@/services/author.service';
-import { useState, useEffect } from 'react';
 
 interface InterestCardProps {
   interest: Interest;
@@ -9,43 +6,9 @@ interface InterestCardProps {
   onFollowToggle: (interestId: number, isFollowing: boolean) => void;
 }
 
-export function InterestCard({
-  interest,
-  isFollowing: initialIsFollowing,
-  onFollowToggle,
-}: InterestCardProps) {
-  const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    setIsFollowing(initialIsFollowing);
-  }, [initialIsFollowing]);
-
-  const handleClick = async () => {
-    if (isLoading || typeof interest.id !== 'number') return;
-
-    setIsLoading(true);
-    try {
-      if (interest.type === 'journal' || interest.type === 'topic') {
-        if (isFollowing) {
-          await HubService.unfollowHub(interest.id);
-        } else {
-          await HubService.followHub(interest.id);
-        }
-      } else if (interest.type === 'person') {
-        if (isFollowing) {
-          await AuthorService.unfollowAuthor(interest.id);
-        } else {
-          await AuthorService.followAuthor(interest.id);
-        }
-      }
-      setIsFollowing(!isFollowing);
-      onFollowToggle(interest.id, isFollowing);
-    } catch (error) {
-      console.error('Error toggling follow status:', error);
-    } finally {
-      setIsLoading(false);
-    }
+export function InterestCard({ interest, isFollowing, onFollowToggle }: InterestCardProps) {
+  const handleClick = () => {
+    onFollowToggle(interest.id, isFollowing);
   };
 
   const getInitialBgColor = (type: string) => {
@@ -78,8 +41,11 @@ export function InterestCard({
     <button
       onClick={handleClick}
       className={`p-4 rounded-lg border-2 transition-all duration-200 text-left w-full relative
-        ${isFollowing ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:border-gray-300'}`}
-      disabled={isLoading}
+        ${
+          isFollowing
+            ? 'border-primary-600 bg-primary-50 ring-1 ring-primary-600'
+            : 'border-gray-200 hover:border-gray-300'
+        }`}
     >
       <div className="flex items-center gap-3">
         {interest.imageUrl ? (

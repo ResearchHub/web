@@ -1,4 +1,4 @@
-import { AuthorProfile, transformAuthorProfile } from './user';
+import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { BaseTransformer } from './transformer';
 import { Bounty, transformBounty } from './bounty';
 

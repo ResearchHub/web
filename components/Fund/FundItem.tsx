@@ -7,7 +7,7 @@ import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Clock } from 'lucide-react';
 import { formatDeadline } from '@/utils/date';
-import type { AuthorProfile } from '@/types/user';
+import type { AuthorProfile } from '@/types/authorProfile';
 import { FundResearchModal } from '@/components/modals/FundResearchModal';
 
 interface FundItemProps {
