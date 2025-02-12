@@ -5,10 +5,8 @@ import { useRouter } from 'next/navigation';
 import { BaseMenu, BaseMenuItem } from '@/components/menus/BaseMenu';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
-import { useState, useEffect } from 'react';
-import { useCreateNote, useNoteContent } from '@/hooks/useNote';
-import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
+import { useState } from 'react';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 interface PublishMenuProps {
   children?: React.ReactNode;
@@ -17,50 +15,10 @@ interface PublishMenuProps {
 export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
   const router = useRouter();
   const [isBountyModalOpen, setIsBountyModalOpen] = useState(false);
-  const [{ isLoading: isCreatingNote }, createNote] = useCreateNote();
-  const [{ isLoading: isUpdatingContent }, updateNoteContent] = useNoteContent();
-  const { selectedOrg, defaultOrg, isLoading: isLoadingOrgs } = useOrganizationContext();
-
-  // Use default org if no org is selected
-  const activeOrg = selectedOrg || defaultOrg;
-
-  // Debug logging
-  useEffect(() => {
-    console.log('Selected Org:', selectedOrg);
-    console.log('Default Org:', defaultOrg);
-    console.log('Is Loading Orgs:', isLoadingOrgs);
-    console.log('Active Org:', activeOrg);
-  }, [selectedOrg, defaultOrg, isLoadingOrgs, activeOrg]);
-
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
   const handleFundResearch = async () => {
-    if (!activeOrg?.slug) {
-      console.error('No organization available');
-      return;
-    }
-
-    try {
-      // Create a new note
-      const note = await createNote({
-        title: 'New Research Funding Proposal',
-        grouping: 'WORKSPACE',
-        organizationSlug: activeOrg.slug,
-      });
-
-      // Update the note with the preregistration template
-      await updateNoteContent({
-        note: note.id,
-        fullJson: JSON.stringify(preregistrationTemplate),
-        plainText: preregistrationTemplate.content
-          .map((block) => block.content?.map((c) => c.text).join(' '))
-          .filter(Boolean)
-          .join('\n'),
-      });
-
-      // Redirect to the new note
-      router.push(`/notebook/${activeOrg.slug}/${note.id}?newFunding=true`);
-    } catch (error) {
-      console.error('Error creating funding proposal:', error);
-    }
+    // Redirect to the new note
+    router.push(`/notebook?newFunding=true`);
   };
 
   const trigger = (
@@ -155,9 +113,8 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
               </BaseMenuItem>
 
               <BaseMenuItem
-                onClick={handleFundResearch}
+                onClick={() => executeAuthenticatedAction(handleFundResearch)}
                 className="w-full px-2"
-                disabled={isCreatingNote || isUpdatingContent || isLoadingOrgs || !activeOrg}
               >
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">

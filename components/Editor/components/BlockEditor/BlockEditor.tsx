@@ -14,7 +14,7 @@ import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 
 // Create a simplified Document extension that only accepts blocks
 const CustomDocument = Document.extend({
-  content: 'block+',
+  content: 'heading block+',
 });
 
 interface BlockEditorProps {

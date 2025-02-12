@@ -92,7 +92,7 @@ export default function NotePage() {
 
   if (!content && !contentJson) {
     const defaultTemplate = JSON.stringify(preregistrationTemplate);
-    content = defaultTemplate;
+    // content = defaultTemplate;
     contentJson = defaultTemplate;
   }
 

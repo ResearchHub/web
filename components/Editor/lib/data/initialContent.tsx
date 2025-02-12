@@ -1,9 +1,22 @@
-type ContentTemplate = {
-  type: 'doc';
-  content: any[];
-};
+interface DocumentContent {
+  type: string;
+  attrs?: {
+    textAlign?: string;
+    level?: number;
+    class?: string | null;
+  };
+  content?: Array<{
+    type: string;
+    text?: string;
+  }>;
+}
 
-const researchTemplate: ContentTemplate = {
+interface Template {
+  type: 'doc';
+  content: DocumentContent[];
+}
+
+const researchTemplate: Template = {
   type: 'doc',
   content: [
     {
@@ -152,7 +165,7 @@ const researchTemplate: ContentTemplate = {
   ],
 };
 
-const grantTemplate: ContentTemplate = {
+const grantTemplate: Template = {
   type: 'doc',
   content: [
     {
@@ -327,7 +340,7 @@ const grantTemplate: ContentTemplate = {
   ],
 };
 
-export const getInitialContent = (type: 'research' | 'grant' = 'research'): ContentTemplate => {
+export const getInitialContent = (type: 'research' | 'grant' = 'research'): Template => {
   return type === 'research' ? researchTemplate : grantTemplate;
 };
 

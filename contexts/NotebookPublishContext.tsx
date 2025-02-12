@@ -3,8 +3,9 @@
 import { createContext, useContext, ReactNode, useState } from 'react';
 import { Editor } from '@tiptap/core';
 import { FundingFormData } from '@/components/Editor/components/Funding/FundingForm';
-import { ArticleType } from '@/components/Editor/components/Sidebar/PublishingSidebar';
 import { ID } from '@/types/root';
+
+export type ArticleType = 'research' | 'preregistration' | 'other';
 
 interface NotebookPublishState {
   editor: Editor | null;
