@@ -4,6 +4,7 @@ import localFont from 'next/font/local';
 import './globals.css';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { ExchangeRateProvider } from '@/contexts/ExchangeRateContext';
+import { AuthModalProvider } from '@/contexts/AuthModalContext';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { Metadata } from 'next';
 
@@ -44,11 +45,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <NextAuthProvider>
-          <OrganizationProvider>
-            <NotificationProvider>
-              <ExchangeRateProvider>{children}</ExchangeRateProvider>
-            </NotificationProvider>
-          </OrganizationProvider>
+          <AuthModalProvider>
+            <OrganizationProvider>
+              <NotificationProvider>
+                <ExchangeRateProvider>{children}</ExchangeRateProvider>
+              </NotificationProvider>
+            </OrganizationProvider>
+          </AuthModalProvider>
         </NextAuthProvider>
         <ToasterProvider />
       </body>

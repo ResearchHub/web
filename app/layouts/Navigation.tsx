@@ -1,23 +1,9 @@
 'use client';
 
-import {
-  Home,
-  GraduationCap,
-  BookOpen,
-  Star,
-  Info,
-  Notebook,
-  Trophy,
-  HandCoins,
-  Coins,
-  Telescope,
-} from 'lucide-react';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { Home, BookOpen, Star, Notebook, HandCoins, Coins } from 'lucide-react';
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
-import { useState } from 'react';
-import AuthModal from '@/components/modals/Auth/AuthModal';
-import { createPortal } from 'react-dom';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { useRouter } from 'next/navigation';
 
 interface NavigationProps {
   currentPath: string;
@@ -25,8 +11,8 @@ interface NavigationProps {
 }
 
 export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimplementedFeature }) => {
-  const { data: session } = useSession();
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const router = useRouter();
 
   const navigationItems = [
     {
@@ -94,9 +80,11 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
       return;
     }
 
-    if (item.requiresAuth && !session) {
+    if (item.requiresAuth) {
       e.preventDefault();
-      setIsAuthModalOpen(true);
+      executeAuthenticatedAction(() => {
+        router.push(item.href);
+      });
     }
   };
 
@@ -117,16 +105,6 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
           </Link>
         ))}
       </div>
-
-      {typeof window !== 'undefined' &&
-        createPortal(
-          <AuthModal
-            isOpen={isAuthModalOpen}
-            onClose={() => setIsAuthModalOpen(false)}
-            onSuccess={() => setIsAuthModalOpen(false)}
-          />,
-          document.body
-        )}
     </>
   );
 };
