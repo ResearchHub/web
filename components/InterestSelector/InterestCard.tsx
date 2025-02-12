@@ -41,7 +41,11 @@ export function InterestCard({ interest, isFollowing, onFollowToggle }: Interest
     <button
       onClick={handleClick}
       className={`p-4 rounded-lg border-2 transition-all duration-200 text-left w-full relative
-        ${isFollowing ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:border-gray-300'}`}
+        ${
+          isFollowing
+            ? 'border-primary-600 bg-primary-50 ring-1 ring-primary-600'
+            : 'border-gray-200 hover:border-gray-300'
+        }`}
     >
       <div className="flex items-center gap-3">
         {interest.imageUrl ? (
