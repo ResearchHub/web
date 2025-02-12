@@ -12,9 +12,15 @@ interface FeedTabsProps {
   activeTab: FeedTab;
   onTabChange: (tab: FeedTab) => void;
   onRefresh?: () => void;
+  onCustomizeChange?: (isCustomizing: boolean) => void;
 }
 
-export const FeedTabs: FC<FeedTabsProps> = ({ activeTab, onTabChange, onRefresh }) => {
+export const FeedTabs: FC<FeedTabsProps> = ({
+  activeTab,
+  onTabChange,
+  onRefresh,
+  onCustomizeChange,
+}) => {
   const [isCustomizing, setIsCustomizing] = useState(false);
 
   const tabs = [
@@ -38,15 +44,18 @@ export const FeedTabs: FC<FeedTabsProps> = ({ activeTab, onTabChange, onRefresh 
 
   const handleTabChange = (tabId: string) => {
     setIsCustomizing(false);
+    onCustomizeChange?.(false);
     onTabChange(tabId as FeedTab);
   };
 
   const handleCustomizeClick = (customizing: boolean) => {
     setIsCustomizing(customizing);
+    onCustomizeChange?.(customizing);
   };
 
   const handleSaveComplete = () => {
     setIsCustomizing(false);
+    onCustomizeChange?.(false);
     onRefresh?.();
   };
 

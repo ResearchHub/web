@@ -5,7 +5,6 @@ import { InterestSkeleton } from '@/components/skeletons/InterestSkeleton';
 import { InterestCard } from './InterestCard';
 import { HubService } from '@/services/hub.service';
 import { AuthorService } from '@/services/author.service';
-import { JournalService } from '@/services/journal.service';
 import { toast } from 'react-hot-toast';
 
 export interface Interest {
@@ -192,7 +191,6 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
         <div className="flex gap-4">
           {interestTypes.map((type) => {
             const Icon = type.icon;
-            const hasPendingChanges = (pendingChangesByType[type.id]?.size || 0) > 0;
             return (
               <Button
                 key={type.id}
@@ -202,11 +200,6 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
               >
                 <Icon className="w-4 h-4" />
                 {type.label}
-                {hasPendingChanges && (
-                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
-                    {pendingChangesByType[type.id].size}
-                  </span>
-                )}
               </Button>
             );
           })}
