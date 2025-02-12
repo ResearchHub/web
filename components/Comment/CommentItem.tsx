@@ -90,7 +90,7 @@ export const CommentItem = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-4">
+    <div className="p-4">
       <style jsx global>{`
         /* Comment Content Styles */
         .prose blockquote {
@@ -239,7 +239,8 @@ export const CommentItem = ({
 
       {/* Reply Editor */}
       {isReplying && (
-        <div className="mt-4 ml-8">
+        <div className="relative mt-4 pl-8">
+          <div className="absolute left-3 top-0 h-full w-0.5 bg-gray-200" />
           <CommentEditor
             onSubmit={handleReplySubmit}
             placeholder="Write a reply..."
@@ -250,17 +251,27 @@ export const CommentItem = ({
 
       {/* Recursive Replies */}
       {comment.replies && comment.replies.length > 0 && (
-        <div className="mt-4 ml-8 space-y-4">
-          {comment.replies.map((reply) => (
-            <CommentItem
-              key={reply.id}
-              comment={reply}
-              contentType={contentType}
-              commentType={commentType}
-              onCommentUpdate={onCommentUpdate}
-              onCommentDelete={onCommentDelete}
-            />
-          ))}
+        <div className="relative mt-4 pl-8">
+          <div className="absolute left-3 top-0 h-full w-0.5 bg-gray-200" />
+          <div className="space-y-4">
+            {comment.replies.map((reply, index) => (
+              <div
+                key={reply.id}
+                className={index !== comment.replies.length - 1 ? 'relative' : undefined}
+              >
+                {index !== comment.replies.length - 1 && (
+                  <div className="absolute left-[-20px] top-0 h-full w-0.5 bg-gray-200" />
+                )}
+                <CommentItem
+                  comment={reply}
+                  contentType={contentType}
+                  commentType={commentType}
+                  onCommentUpdate={onCommentUpdate}
+                  onCommentDelete={onCommentDelete}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

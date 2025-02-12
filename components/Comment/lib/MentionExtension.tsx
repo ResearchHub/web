@@ -9,6 +9,8 @@ import 'tippy.js/dist/tippy.css';
 import './mention.css';
 import { DOMOutputSpec } from 'prosemirror-model';
 import { MentionItem, MentionListRef } from './types';
+import { buildWorkUrl } from '@/utils/url';
+import { buildAuthorUrl } from '@/utils/url';
 
 // Create a debounced search function
 const createDebouncedSearch = () => {
@@ -61,7 +63,7 @@ const debouncedSearch = createDebouncedSearch();
 const transformUserSuggestion = (userSuggestion: UserSuggestion): MentionItem => {
   const nameParts = userSuggestion.displayName.split(' ');
   return {
-    id: userSuggestion.id?.toString() || `user-${Date.now()}`,
+    id: userSuggestion.id?.toString() || null,
     entityType: userSuggestion.entityType,
     firstName: nameParts[0],
     lastName: nameParts.slice(1).join(' '),
@@ -84,7 +86,7 @@ const transformUserSuggestion = (userSuggestion: UserSuggestion): MentionItem =>
 
 const transformPaperSuggestion = (paperSuggestion: WorkSuggestion): MentionItem => {
   return {
-    id: paperSuggestion.doi || paperSuggestion.id?.toString() || `paper-${Date.now()}`,
+    id: paperSuggestion.id?.toString() || null,
     entityType: 'paper',
     displayName: paperSuggestion.displayName,
     authors: paperSuggestion.authors,
@@ -130,6 +132,15 @@ export const MentionExtension = Mention.extend({
       displayName: {
         default: null,
       },
+      id: {
+        default: null,
+      },
+      doi: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.getAttribute('data-doi'),
+        renderHTML: (attributes: { doi?: string }) =>
+          attributes.doi ? { 'data-doi': attributes.doi } : {},
+      },
     };
   },
 }).configure({
@@ -147,13 +158,40 @@ export const MentionExtension = Mention.extend({
   renderHTML({ node }): DOMOutputSpec {
     // Paper mention rendering
     if (node.attrs.entityType === 'paper') {
+      const url = buildWorkUrl({
+        id: node.attrs.id,
+        contentType: 'paper',
+        doi: node.attrs.doi,
+      });
+
+      // If we got a fallback URL, render as a span instead of a link
+      if (url === '#') {
+        return [
+          'span',
+          {
+            'data-type': 'mention',
+            'data-id': node.attrs.id,
+            'data-entity-type': 'paper',
+            class: 'mention mention-paper',
+            contenteditable: 'false',
+          },
+          ['span', { class: 'mention-icon', contenteditable: 'false' }],
+          [
+            'span',
+            { class: 'mention-label', contenteditable: 'false' },
+            node.attrs.displayName || node.attrs.label,
+          ],
+        ];
+      }
+
       return [
-        'span',
+        'a',
         {
           'data-type': 'mention',
           'data-id': node.attrs.id,
           'data-entity-type': 'paper',
           class: 'mention mention-paper',
+          href: url,
           contenteditable: 'false',
         },
         ['span', { class: 'mention-icon', contenteditable: 'false' }],
@@ -165,37 +203,68 @@ export const MentionExtension = Mention.extend({
       ];
     }
 
-    // Post mention rendering
-    if (node.attrs.entityType === 'post') {
-      return [
-        'span',
-        {
-          'data-type': 'mention',
-          'data-id': node.attrs.id,
-          'data-entity-type': 'post',
-          class: 'mention mention-post',
-          contenteditable: 'false',
-        },
-        [
-          'span',
-          { class: 'mention-label', contenteditable: 'false' },
-          node.attrs.displayName || node.attrs.label,
-        ],
-      ];
-    }
-
     // User and author mention rendering
     if (node.attrs.entityType === 'user' || node.attrs.entityType === 'author') {
+      // Only render as a link if we have an ID
+      if (!node.attrs.id) {
+        return [
+          'span',
+          {
+            'data-type': 'mention',
+            'data-entity-type': node.attrs.entityType,
+            class: `mention mention-${node.attrs.entityType}`,
+            contenteditable: 'false',
+          },
+          ['span', { class: 'mention-label', contenteditable: 'false' }, `@${node.attrs.label}`],
+        ];
+      }
+
+      const url = buildAuthorUrl(node.attrs.id);
       return [
-        'span',
+        'a',
         {
           'data-type': 'mention',
           'data-id': node.attrs.id,
           'data-entity-type': node.attrs.entityType,
           class: `mention mention-${node.attrs.entityType}`,
+          href: url,
           contenteditable: 'false',
         },
         ['span', { class: 'mention-label', contenteditable: 'false' }, `@${node.attrs.label}`],
+      ];
+    }
+
+    // Post mention rendering
+    if (node.attrs.entityType === 'post') {
+      // Only render as a link if we have an ID
+      if (!node.attrs.id) {
+        return [
+          'span',
+          {
+            'data-type': 'mention',
+            'data-entity-type': 'post',
+            class: 'mention mention-post',
+            contenteditable: 'false',
+          },
+          ['span', { class: 'mention-label', contenteditable: 'false' }, node.attrs.label],
+        ];
+      }
+
+      const url = buildWorkUrl({
+        id: node.attrs.id,
+        contentType: 'post',
+      });
+      return [
+        'a',
+        {
+          'data-type': 'mention',
+          'data-id': node.attrs.id,
+          'data-entity-type': 'post',
+          class: 'mention mention-post',
+          href: url,
+          contenteditable: 'false',
+        },
+        ['span', { class: 'mention-label', contenteditable: 'false' }, node.attrs.label],
       ];
     }
 
@@ -303,18 +372,25 @@ export const MentionExtension = Mention.extend({
     },
     command: ({ editor, range, props: commandProps }) => {
       const item = commandProps as MentionItem;
+      const attrs: any = {
+        id: item.id,
+        label: item.label,
+        entityType: item.entityType,
+        displayName: item.displayName || item.label,
+      };
+
+      // Add DOI for paper mentions if available
+      if (item.entityType === 'paper' && item.doi) {
+        attrs.doi = item.doi;
+      }
+
       editor
         .chain()
         .focus()
         .insertContentAt(range, [
           {
             type: 'mention',
-            attrs: {
-              id: item.id,
-              label: item.label,
-              entityType: item.entityType,
-              displayName: item.displayName || item.label,
-            },
+            attrs,
           },
         ])
         .run();

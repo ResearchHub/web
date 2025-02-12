@@ -107,7 +107,16 @@ export const CommentEditor = ({
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[100px] px-4 py-2',
       },
       handleClick: (view, pos, event) => {
-        if (isReadOnly) return;
+        if (isReadOnly) {
+          const mention = (event.target as HTMLElement).closest('[data-type="mention"]');
+          if (mention && mention instanceof HTMLAnchorElement) {
+            event.preventDefault();
+            window.location.href = mention.href;
+            return true;
+          }
+          return false;
+        }
+
         const link = (event.target as HTMLElement).closest('a');
         if (link) {
           event.preventDefault();

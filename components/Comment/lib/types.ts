@@ -1,20 +1,21 @@
 export interface MentionItem {
-  id: string;
+  id: string | null;
+  entityType: 'user' | 'author' | 'paper' | 'post';
   label: string;
-  entityType: 'paper' | 'user' | 'author' | 'post';
-  authorProfileId?: string | null;
+  displayName?: string;
   firstName?: string;
   lastName?: string;
-  displayName?: string;
+  authorProfileId?: string | null;
+  isVerified?: boolean;
+  authorProfile?: {
+    headline: string;
+    profileImage: string | null;
+  };
+  // Paper specific fields
   authors?: string[];
   doi?: string;
   citations?: number;
   source?: string;
-  isVerified?: boolean;
-  authorProfile?: {
-    headline?: { title: string; isPublic?: boolean } | string;
-    profileImage?: string | null;
-  };
 }
 
 export interface MentionListRef {

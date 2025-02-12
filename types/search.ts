@@ -67,7 +67,11 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
       isRecent: true,
       lastVisited: raw.lastVisited,
       slug: raw.slug,
-      url: buildWorkUrl(raw.id, raw.title),
+      url: buildWorkUrl({
+        id: raw.id,
+        contentType: 'paper',
+        doi: raw.doi,
+      }),
     };
   }
 
@@ -84,7 +88,7 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
         isRecent: false,
         createdDate: raw.created_date,
         isVerified: raw.is_verified || false,
-        url: buildAuthorUrl(raw.id, raw.display_name),
+        url: buildAuthorUrl(raw.id),
         authorProfile: raw.author_profile || {
           id: raw.id,
           headline: raw.headline,
@@ -99,6 +103,10 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
         displayName: raw.display_name,
         source: raw.source,
         isRecent: false,
+        url: buildWorkUrl({
+          id: raw.id,
+          contentType: 'post',
+        }),
       };
 
     case 'paper':
@@ -113,7 +121,11 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
         openalexId: raw.openalex_id,
         id: raw.id,
         isRecent: false,
-        url: buildWorkUrl(raw.id, raw.display_name),
+        url: buildWorkUrl({
+          id: raw.id,
+          contentType: 'paper',
+          doi: raw.doi,
+        }),
       };
   }
 });

@@ -18,7 +18,13 @@ export default async function WorkIdPage({ params }: Props) {
 
   try {
     const work = await PaperService.get(id);
-    redirect(buildWorkUrl(work.id, work.title));
+    redirect(
+      buildWorkUrl({
+        id: work.id,
+        contentType: 'paper',
+        slug: work.title,
+      })
+    );
   } catch (error: any) {
     if (!error.digest?.startsWith('NEXT_REDIRECT')) {
       console.error('Error loading work:', error);

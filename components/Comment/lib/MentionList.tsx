@@ -29,6 +29,12 @@ interface MentionListProps {
   command: (item: MentionItem) => void;
 }
 
+const generateUniqueKey = (item: MentionItem, index: number) => {
+  if (item.id) return `${item.entityType}-${item.id}`;
+  if (item.doi) return `${item.entityType}-doi-${item.doi}`;
+  return `${item.entityType}-${index}-${item.label.slice(0, 20)}`;
+};
+
 export const MentionList = forwardRef<
   { onKeyDown: ({ event }: { event: KeyboardEvent }) => boolean },
   MentionListProps
@@ -164,12 +170,12 @@ export const MentionList = forwardRef<
         <div>
           {renderSectionHeader('People')}
           <div>
-            {users.map((item) => {
+            {users.map((item, index) => {
               currentIndex++;
               const itemIndex = currentIndex + 1; // Add 1 to account for header
               return (
                 <button
-                  key={`${item.entityType}-${item.id}`}
+                  key={generateUniqueKey(item, index)}
                   className={cn(
                     'w-full px-3 py-1.5 text-left transition-colors duration-150',
                     'group focus:outline-none',
@@ -189,12 +195,12 @@ export const MentionList = forwardRef<
         <div>
           {renderSectionHeader('Papers')}
           <div>
-            {papers.map((item) => {
+            {papers.map((item, index) => {
               currentIndex++;
               const itemIndex = currentIndex + (users.length > 0 ? 2 : 1); // Add headers
               return (
                 <button
-                  key={`${item.entityType}-${item.id}`}
+                  key={generateUniqueKey(item, index)}
                   className={cn(
                     'w-full px-3 py-1.5 text-left transition-colors duration-150',
                     'group focus:outline-none',

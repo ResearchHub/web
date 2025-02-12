@@ -10,6 +10,7 @@ interface ActionButtonProps {
   onClick?: () => void;
   variant?: 'default' | 'ghost';
   showLabel?: boolean;
+  className?: string;
 }
 
 const ActionButton: FC<ActionButtonProps> = ({
@@ -20,12 +21,13 @@ const ActionButton: FC<ActionButtonProps> = ({
   onClick,
   variant = 'ghost',
   showLabel = false,
+  className,
 }) => (
   <Button
     variant={variant}
     size="sm"
     onClick={onClick}
-    className="flex items-center space-x-1.5 text-gray-900 hover:text-gray-900"
+    className={`flex items-center space-x-1.5 ${className || 'text-gray-900 hover:text-gray-900'}`}
     tooltip={tooltip}
   >
     <Icon className="w-5 h-5" />
@@ -70,8 +72,19 @@ export const CommentItemActions: FC<CommentItemActionsProps> = ({
       </div>
 
       <div className="flex items-center space-x-4">
-        <ActionButton icon={Trash2} tooltip="Delete comment" label="Delete" onClick={onDelete} />
-        <ActionButton icon={Flag} tooltip="Flag comment" label="Flag" />
+        <ActionButton
+          icon={Trash2}
+          tooltip="Delete comment"
+          label="Delete"
+          onClick={onDelete}
+          className="text-gray-400 hover:text-gray-500"
+        />
+        <ActionButton
+          icon={Flag}
+          tooltip="Flag comment"
+          label="Flag"
+          className="text-gray-400 hover:text-gray-500"
+        />
       </div>
     </div>
   );

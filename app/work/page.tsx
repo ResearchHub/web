@@ -17,7 +17,13 @@ export default async function WorkPage({ params, searchParams }: Props) {
   try {
     // This will show loading state in @loading slot while fetching
     const work = await PaperService.get(doi);
-    redirect(buildWorkUrl(work.id, work.title));
+    redirect(
+      buildWorkUrl({
+        id: work.id,
+        contentType: 'paper',
+        slug: work.title,
+      })
+    );
   } catch (error: any) {
     if (!error.digest?.startsWith('NEXT_REDIRECT')) {
       console.error('Error importing work:', error);
