@@ -32,17 +32,21 @@ export default function WorkCreatePage() {
   const showNewBadge = true; // This can be controlled by a feature flag or other logic
 
   const handlePaperSelect = (paper: SearchSuggestion) => {
-    setSelectedPaper({
-      ...paper,
-      id: paper.id?.toString() || paper.openalexId,
-      title: paper.displayName,
-      authors: paper.authors || [],
-      abstract: undefined,
-      slug: paper.slug || paper.id?.toString() || paper.openalexId,
-      displayName: paper.displayName,
-      openalexId: paper.openalexId,
-    });
-    setShowSuggestions(false);
+    // Only handle paper suggestions
+    if (paper.entityType === 'paper') {
+      setSelectedPaper({
+        id: paper.id?.toString() || paper.openalexId,
+        title: paper.displayName,
+        authors: paper.authors,
+        abstract: undefined,
+        slug: paper.slug || paper.id?.toString() || paper.openalexId,
+        displayName: paper.displayName,
+        openalexId: paper.openalexId,
+      });
+      setShowSuggestions(false);
+    } else {
+      console.log('User suggestion selected:', paper);
+    }
   };
 
   const publishOptions = [
@@ -93,14 +97,16 @@ export default function WorkCreatePage() {
                 icon={Eye}
                 title="View paper"
                 description="View paper on ResearchHub"
-                onClick={() => router.push(`/work/${selectedPaper.id}/${selectedPaper.slug}`)}
+                onClick={() => router.push(`/paper/${selectedPaper.id}/${selectedPaper.slug}`)}
               />
 
               <PaperActionCard
                 icon={BadgeCheck}
                 title="Claim paper"
                 description="Claim paper to earn ResearchCoin rewards"
-                onClick={() => router.push(`/work/${selectedPaper.id}/${selectedPaper.slug}/claim`)}
+                onClick={() =>
+                  router.push(`/paper/${selectedPaper.id}/${selectedPaper.slug}/claim`)
+                }
               />
 
               <PaperActionCard
@@ -108,7 +114,7 @@ export default function WorkCreatePage() {
                 title="Publish in ResearchHub Journal"
                 description="Fast peer-reviewed publication with 14-day decision"
                 onClick={() =>
-                  router.push(`/work/${selectedPaper.id}/${selectedPaper.slug}/publish`)
+                  router.push(`/paper/${selectedPaper.id}/${selectedPaper.slug}/publish`)
                 }
                 badge={showNewBadge ? 'NEW' : undefined}
               />
@@ -212,7 +218,7 @@ export default function WorkCreatePage() {
                 {publishOption && (
                   <div className="mt-6">
                     <Button
-                      onClick={() => router.push(`/work/create/${publishOption}`)}
+                      onClick={() => router.push(`/paper/create/${publishOption}`)}
                       variant="default"
                       className="w-full py-6 text-base"
                     >

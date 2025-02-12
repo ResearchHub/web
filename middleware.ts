@@ -6,12 +6,12 @@ const RECENT_VIEWS_KEY = 'recent_views';
 
 export function middleware(request: NextRequest) {
   // Only track work page views
-  if (!request.nextUrl.pathname.startsWith('/work/')) {
+  if (!request.nextUrl.pathname.startsWith('/paper/')) {
     return NextResponse.next();
   }
 
   // Extract work ID and slug from URL
-  const matches = request.nextUrl.pathname.match(/^\/work\/(\d+)(?:\/([^\/]+))?$/);
+  const matches = request.nextUrl.pathname.match(/^\/paper\/(\d+)(?:\/([^\/]+))?$/);
   if (!matches) {
     return NextResponse.next();
   }

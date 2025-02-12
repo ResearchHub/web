@@ -1,22 +1,45 @@
 import { createTransformer, BaseTransformed } from './transformer';
+import { buildWorkUrl, buildAuthorUrl } from '@/utils/url';
+import { AuthorProfile } from './authorProfile';
 
-export type SuggestionSource = 'api' | 'recent';
+export type SuggestionSource = 'api' | 'recent' | 'researchhub' | 'openalex';
+export type EntityType = 'user' | 'paper' | 'author' | 'post';
 
-export interface SearchSuggestion {
-  entityType: string;
+export interface BaseSuggestion {
+  entityType: EntityType;
+  source: string;
+  id?: number;
+  isRecent?: boolean;
+  url?: string;
+}
+
+export interface WorkSuggestion extends BaseSuggestion {
+  entityType: 'paper';
   doi: string;
   displayName: string;
   authors: string[];
-  score: number;
   citations: number;
-  source: string;
   openalexId: string;
-  id?: number;
-  // Additional fields for recent suggestions
-  isRecent?: boolean;
   lastVisited?: string;
   slug?: string;
 }
+
+export interface UserSuggestion extends BaseSuggestion {
+  entityType: 'user' | 'author';
+  displayName: string;
+  reputation?: number;
+  createdDate?: string;
+  isVerified?: boolean;
+  authorProfile: AuthorProfile;
+}
+
+export interface PostSuggestion extends BaseSuggestion {
+  entityType: 'post';
+  displayName: string;
+  id: number;
+}
+
+export type SearchSuggestion = WorkSuggestion | UserSuggestion | PostSuggestion;
 
 export interface RecentPageView {
   id: number;
@@ -33,11 +56,10 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
   if (raw.lastVisited) {
     // If it's a recent suggestion
     return {
-      entityType: 'work',
+      entityType: 'paper',
       doi: raw.doi || '',
       displayName: raw.title,
       authors: raw.authors,
-      score: 0,
       citations: 0,
       source: '',
       openalexId: '',
@@ -45,19 +67,65 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
       isRecent: true,
       lastVisited: raw.lastVisited,
       slug: raw.slug,
+      url: buildWorkUrl({
+        id: raw.id,
+        contentType: 'paper',
+        doi: raw.doi,
+      }),
     };
   }
 
-  return {
-    entityType: raw.entity_type,
-    doi: raw.doi,
-    displayName: raw.display_name,
-    authors: raw.authors,
-    score: raw._score,
-    citations: raw.citations,
-    source: raw.source,
-    openalexId: raw.openalex_id,
-    id: raw.id,
-    isRecent: false,
-  };
+  // Handle different entity types
+  switch (raw.entity_type) {
+    case 'user':
+    case 'person':
+      return {
+        entityType: raw.entity_type === 'person' ? 'author' : 'user',
+        id: raw.id,
+        displayName: raw.display_name,
+        reputation: raw.reputation,
+        source: raw.source,
+        isRecent: false,
+        createdDate: raw.created_date,
+        isVerified: raw.is_verified || false,
+        url: buildAuthorUrl(raw.id),
+        authorProfile: raw.author_profile || {
+          id: raw.id,
+          headline: raw.headline,
+          profileImage: raw.profile_image,
+        },
+      };
+
+    case 'post':
+      return {
+        entityType: 'post',
+        id: raw.id,
+        displayName: raw.display_name,
+        source: raw.source,
+        isRecent: false,
+        url: buildWorkUrl({
+          id: raw.id,
+          contentType: 'post',
+        }),
+      };
+
+    case 'paper':
+    default:
+      return {
+        entityType: 'paper',
+        doi: raw.doi,
+        displayName: raw.display_name,
+        authors: raw.authors,
+        citations: raw.citations,
+        source: raw.source,
+        openalexId: raw.openalex_id,
+        id: raw.id,
+        isRecent: false,
+        url: buildWorkUrl({
+          id: raw.id,
+          contentType: 'paper',
+          doi: raw.doi,
+        }),
+      };
+  }
 });

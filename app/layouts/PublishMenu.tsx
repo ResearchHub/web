@@ -2,7 +2,7 @@
 
 import { Plus, FileUp, BadgeCheck, HandCoins, PlayCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { BaseMenu, BaseMenuItem } from '@/components/menus/BaseMenu';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
 import { useState } from 'react';
@@ -42,7 +42,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
               </h3>
             </div>
             <div className="space-y-2">
-              <BaseMenuItem onClick={() => router.push('/work/create')} className="w-full px-2">
+              <BaseMenuItem onClick={() => router.push('/paper/create')} className="w-full px-2">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
                     <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
@@ -60,7 +60,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
                 </div>
               </BaseMenuItem>
 
-              <BaseMenuItem onClick={() => router.push('/work/claim')} className="w-full px-2">
+              <BaseMenuItem onClick={() => router.push('/paper/claim')} className="w-full px-2">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
                     <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">

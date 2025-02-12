@@ -14,7 +14,37 @@ export function generateSlug(text: string): string {
 /**
  * Builds a work URL from an ID and optional slug
  */
-export function buildWorkUrl(id: number | string, title?: string): string {
-  const slug = title ? generateSlug(title) : '';
-  return `/work/${id}${slug ? '/' + slug : ''}`;
-}
+export const buildWorkUrl = ({
+  id,
+  contentType,
+  doi,
+  slug,
+}: {
+  id?: string | number | null;
+  contentType: 'paper' | 'post';
+  doi?: string | null;
+  slug?: string;
+}) => {
+  if (contentType === 'post') {
+    if (!id) return '#'; // Return a safe fallback for posts without ID
+    return `/post/${id}`;
+  }
+
+  // For papers
+  if (id) {
+    return slug ? `/paper/${id}/${slug}` : `/paper/${id}`;
+  }
+
+  if (doi) {
+    return `/paper?doi=${encodeURIComponent(doi)}`;
+  }
+
+  return '#'; // Return a safe fallback URL when neither id nor doi is available
+};
+
+/**
+ * Builds an author URL from an ID and optional name
+ */
+export const buildAuthorUrl = (id: string | number) => {
+  return `/author/${id}`;
+};
