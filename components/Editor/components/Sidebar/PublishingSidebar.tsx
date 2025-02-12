@@ -52,9 +52,8 @@ export const PublishingSidebar = ({ bountyAmount, onBountyClick }: PublishingSid
     nftSupply: '1000',
   });
   const [{ isLoading: isLoadingCreatePost }, createPreregistrationPost] = useCreatePost();
-  const { editor, noteId } = useNotebookPublish();
 
-  const { articleType, setArticleType } = useNotebookPublish();
+  const { noteId, editor, articleType, setArticleType } = useNotebookPublish();
 
   const articleTypes: Record<ArticleType, { title: string; description: string }> = {
     research: {

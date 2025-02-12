@@ -10,6 +10,36 @@ export const dynamic = 'force-dynamic'; // Disable static optimization, ensuring
 export const fetchCache = 'force-no-store'; // Prevent Next.js from caching fetch requests inside this route
 export const revalidate = 0; // Disable automatic background revalidation since we want truly dynamic behavior
 
+async function createNoteWithContent(
+  orgSlug: string,
+  {
+    title,
+    template,
+    isNewFunding = false,
+  }: {
+    title: string;
+    template: typeof preregistrationTemplate | typeof initialContent;
+    isNewFunding?: boolean;
+  }
+) {
+  const newNote = await NoteService.createNote({
+    organization_slug: orgSlug,
+    title,
+    grouping: 'WORKSPACE',
+  });
+
+  await NoteService.updateNoteContent({
+    note: newNote.id,
+    full_json: JSON.stringify(template),
+    plain_text: template.content
+      .map((block) => block.content?.map((c) => c.text).join(' '))
+      .filter(Boolean)
+      .join('\n'),
+  });
+
+  return redirect(`/notebook/${orgSlug}/${newNote.id}${isNewFunding ? '?newFunding=true' : ''}`);
+}
+
 export async function GET(request: Request) {
   // Get URL and search params
   const { searchParams } = new URL(request.url);
@@ -30,58 +60,22 @@ export async function GET(request: Request) {
     throw new Error('No default organization found');
   }
 
-  // If newFunding is true, create a new note
   if (isNewFunding) {
-    const newNote = await NoteService.createNote({
-      organization_slug: defaultOrg.slug,
+    return createNoteWithContent(defaultOrg.slug, {
       title: 'New Research Funding Proposal',
-      grouping: 'WORKSPACE',
+      template: preregistrationTemplate,
+      isNewFunding: true,
     });
-
-    const note = await NoteService.createNote({
-      title: 'New Research Funding Proposal',
-      grouping: 'WORKSPACE',
-      organization_slug: defaultOrg.slug,
-    });
-
-    // Update the note with the preregistration template
-    await NoteService.updateNoteContent({
-      note: note.id,
-      full_json: JSON.stringify(preregistrationTemplate),
-      plain_text: preregistrationTemplate.content
-        .map((block) => block.content?.map((c) => c.text).join(' '))
-        .filter(Boolean)
-        .join('\n'),
-    });
-
-    redirect(`/notebook/${defaultOrg.slug}/${newNote.id}?newFunding=true`);
   }
 
-  // Otherwise, proceed with normal flow
   const notes = await NoteService.getOrganizationNotes(defaultOrg.slug);
 
-  // Check if there are any notes
   if (notes.results.length === 0) {
-    // If no notes exist, create a new one
-    const newNote = await NoteService.createNote({
-      organization_slug: defaultOrg.slug,
+    return createNoteWithContent(defaultOrg.slug, {
       title: 'Untitled',
-      grouping: 'WORKSPACE',
+      template: initialContent,
     });
-
-    // Update the note with the preregistration template
-    await NoteService.updateNoteContent({
-      note: newNote.id,
-      full_json: JSON.stringify(initialContent),
-      plain_text: getInitialContent()
-        .content.map((block) => block.content?.map((c) => c.text).join(' '))
-        .filter(Boolean)
-        .join('\n'),
-    });
-
-    redirect(`/notebook/${defaultOrg.slug}/${newNote.id}`);
   }
 
-  // If notes exist, redirect to the first one
   redirect(`/notebook/${defaultOrg.slug}/${notes.results[0].id}`);
 }

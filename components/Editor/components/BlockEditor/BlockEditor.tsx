@@ -1,15 +1,12 @@
-import { EditorContent, useEditor } from '@tiptap/react';
-import React, { useEffect, useRef } from 'react';
+import { Editor, EditorContent, useEditor } from '@tiptap/react';
+import React, { useEffect } from 'react';
 import { StarterKit } from '@tiptap/starter-kit';
 import { Document } from '@tiptap/extension-document';
 import { Heading } from '@tiptap/extension-heading';
 import { Link } from '@tiptap/extension-link';
 import { TextAlign } from '@tiptap/extension-text-align';
 import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
-import { useNoteContent } from '@/hooks/useNote';
 import '@/components/Editor/styles/index.css';
-import { ID } from '@/types/root';
-import { debounce } from 'lodash';
 import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 
 // Create a simplified Document extension that only accepts blocks
@@ -17,38 +14,26 @@ const CustomDocument = Document.extend({
   content: 'heading block+',
 });
 
-interface BlockEditorProps {
-  content: string;
+export interface BlockEditorProps {
+  content?: string;
   contentJson?: string;
   isLoading?: boolean;
-  noteId: ID;
+  onUpdate?: (editor: Editor) => void;
+  editable?: boolean;
 }
 
 export const BlockEditor: React.FC<BlockEditorProps> = ({
   content,
   contentJson,
+  onUpdate,
   isLoading = false,
-  noteId,
+  editable = true,
 }) => {
-  const [{ isLoading: isUpdating }, updateNoteContent] = useNoteContent();
-  const { setEditor, setNoteId } = useNotebookPublish();
-
-  // Create a ref for the debounced function
-  const debouncedRef = useRef(
-    debounce((editor) => {
-      const json = editor.getJSON();
-      const html = editor.getHTML();
-
-      updateNoteContent({
-        note: noteId,
-        fullSrc: html,
-        plainText: editor.getText(),
-        fullJson: JSON.stringify(json),
-      }).catch(console.error);
-    }, 2000)
-  );
+  const { setEditor } = useNotebookPublish();
 
   const editor = useEditor({
+    editable,
+    immediatelyRender: false,
     extensions: [
       CustomDocument,
       StarterKit.configure({
@@ -72,23 +57,16 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
       },
     },
     onUpdate: ({ editor }) => {
-      debouncedRef.current(editor);
+      onUpdate?.(editor);
     },
   });
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      debouncedRef.current.cancel();
-    };
-  }, []);
 
   useEffect(() => {
     if (editor && (content || contentJson)) {
       if (contentJson) {
         editor.commands.setContent(JSON.parse(contentJson));
       } else {
-        editor.commands.setContent(content);
+        editor.commands.setContent(content || '');
       }
     }
   }, [editor, content, contentJson]);
@@ -96,10 +74,6 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   useEffect(() => {
     setEditor(editor);
   }, [editor, setEditor]);
-
-  useEffect(() => {
-    setNoteId(noteId);
-  }, [noteId, setNoteId]);
 
   if (isLoading) {
     return <NotebookSkeleton />;

@@ -4,6 +4,7 @@ import { Journal } from './journal';
 import { Topic } from './topic';
 import { createTransformer, BaseTransformed } from './transformer';
 import { Hub } from './hub';
+import { NoteWithContent, transformNoteWithContent } from './note';
 
 export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration';
 
@@ -53,6 +54,7 @@ export interface Work {
   versions: Array<DocumentVersion>;
   metrics: ContentMetrics;
   unifiedDocumentId: number;
+  note?: NoteWithContent;
 }
 
 // Transformed types
@@ -141,6 +143,7 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
 export const transformPost = createTransformer<any, Work>((raw) => ({
   ...transformWork(raw),
   contentType: 'post',
+  note: raw.note ? transformNoteWithContent(raw.note) : undefined,
   publishedDate: raw.created_date, // Posts use created_date for both
   previewContent: raw.full_markdown,
   contentUrl: raw.post_src,

@@ -16,9 +16,8 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
   const router = useRouter();
   const [isBountyModalOpen, setIsBountyModalOpen] = useState(false);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
-  const handleFundResearch = async () => {
-    // Redirect to the new note
-    router.push(`/notebook?newFunding=true`);
+  const handleFundResearch = () => {
+    router.push('/notebook?newFunding=true');
   };
 
   const trigger = (
