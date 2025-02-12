@@ -120,9 +120,7 @@ export const AuthorList = ({
                 <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
               )}
               {index === filteredAuthors.length - 2 && (
-                <span
-                  className={cn('mx-1', getTextSize(), delimiterClassName)}
-                >{` ${delimiter} `}</span>
+                <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
               )}
             </Fragment>
           ))}
