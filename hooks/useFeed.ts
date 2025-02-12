@@ -11,26 +11,26 @@ export const useFeed = (activeTab: FeedTab) => {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    const loadFeed = async () => {
-      setIsLoading(true);
-      try {
-        const result = await FeedService.getFeed({
-          page: 1,
-          pageSize: 20,
-          action: activeTab === 'following' ? 'follow' : undefined,
-        });
-        setEntries(result.entries);
-        setHasMore(result.hasMore);
-        setPage(1);
-      } catch (error) {
-        console.error('Error loading feed:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadFeed();
   }, [activeTab]);
+
+  const loadFeed = async () => {
+    setIsLoading(true);
+    try {
+      const result = await FeedService.getFeed({
+        page: 1,
+        pageSize: 20,
+        action: activeTab === 'following' ? 'follow' : undefined,
+      });
+      setEntries(result.entries);
+      setHasMore(result.hasMore);
+      setPage(1);
+    } catch (error) {
+      console.error('Error loading feed:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const loadMore = async () => {
     if (!hasMore || isLoading) return;
@@ -69,10 +69,15 @@ export const useFeed = (activeTab: FeedTab) => {
     }
   };
 
+  const refresh = () => {
+    loadFeed();
+  };
+
   return {
     entries: sortEntries(entries),
     isLoading,
     hasMore,
     loadMore,
+    refresh,
   };
 };

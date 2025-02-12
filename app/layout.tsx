@@ -4,7 +4,9 @@ import localFont from 'next/font/local';
 import './globals.css';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { ExchangeRateProvider } from '@/contexts/ExchangeRateContext';
+import { AuthModalProvider } from '@/contexts/AuthModalContext';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
+import { Metadata } from 'next';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -17,6 +19,23 @@ const geistMono = localFont({
   weight: '100 900',
 });
 
+export const metadata: Metadata = {
+  icons: {
+    icon: [
+      { url: '/favicons/favicon-16x16.png', sizes: '16x16' },
+      { url: '/favicons/favicon-32x32.png', sizes: '32x32' },
+      { url: '/favicons/favicon.ico', sizes: 'any' },
+    ],
+    shortcut: '/favicons/favicon.ico',
+    apple: [{ url: '/favicons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    other: [
+      { rel: 'android-chrome', url: '/favicons/android-chrome-144x144.png', sizes: '144x144' },
+      { rel: 'mask-icon', url: '/favicons/mstile-150x150.png', color: '#da532c' },
+    ],
+  },
+  manifest: '/favicons/site.webmanifest',
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,11 +45,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <NextAuthProvider>
-          <OrganizationProvider>
-            <NotificationProvider>
-              <ExchangeRateProvider>{children}</ExchangeRateProvider>
-            </NotificationProvider>
-          </OrganizationProvider>
+          <AuthModalProvider>
+            <OrganizationProvider>
+              <NotificationProvider>
+                <ExchangeRateProvider>{children}</ExchangeRateProvider>
+              </NotificationProvider>
+            </OrganizationProvider>
+          </AuthModalProvider>
         </NextAuthProvider>
         <ToasterProvider />
       </body>

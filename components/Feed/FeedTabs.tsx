@@ -11,10 +11,16 @@ type FeedTab = 'for-you' | 'following' | 'popular' | 'latest';
 interface FeedTabsProps {
   activeTab: FeedTab;
   onTabChange: (tab: FeedTab) => void;
-  onCustomizeComplete?: (interests: Interest[]) => void;
+  onRefresh?: () => void;
+  onCustomizeChange?: (isCustomizing: boolean) => void;
 }
 
-export const FeedTabs: FC<FeedTabsProps> = ({ activeTab, onTabChange, onCustomizeComplete }) => {
+export const FeedTabs: FC<FeedTabsProps> = ({
+  activeTab,
+  onTabChange,
+  onRefresh,
+  onCustomizeChange,
+}) => {
   const [isCustomizing, setIsCustomizing] = useState(false);
 
   const tabs = [
@@ -38,12 +44,19 @@ export const FeedTabs: FC<FeedTabsProps> = ({ activeTab, onTabChange, onCustomiz
 
   const handleTabChange = (tabId: string) => {
     setIsCustomizing(false);
+    onCustomizeChange?.(false);
     onTabChange(tabId as FeedTab);
   };
 
-  const handleInterestSelection = (selectedInterests: Interest[]) => {
+  const handleCustomizeClick = (customizing: boolean) => {
+    setIsCustomizing(customizing);
+    onCustomizeChange?.(customizing);
+  };
+
+  const handleSaveComplete = () => {
     setIsCustomizing(false);
-    onCustomizeComplete?.(selectedInterests);
+    onCustomizeChange?.(false);
+    onRefresh?.();
   };
 
   return (
@@ -53,7 +66,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({ activeTab, onTabChange, onCustomiz
         <Button
           variant={isCustomizing ? 'default' : 'ghost'}
           size="sm"
-          onClick={() => setIsCustomizing(!isCustomizing)}
+          onClick={() => handleCustomizeClick(!isCustomizing)}
           className="flex items-center gap-2"
         >
           <Settings className="w-5 h-5" />
@@ -63,7 +76,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({ activeTab, onTabChange, onCustomiz
 
       {isCustomizing && (
         <div className="mt-6">
-          <InterestSelector mode="preferences" />
+          <InterestSelector mode="preferences" onSaveComplete={handleSaveComplete} />
         </div>
       )}
     </div>

@@ -1,6 +1,5 @@
 import { Fundraise, transformFundraise } from '@/types/funding';
 import { ApiClient } from './client';
-import { ApiError } from './types';
 
 export class FundraiseService {
   private static readonly BASE_PATH = '/api/fundraise';

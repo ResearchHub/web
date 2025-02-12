@@ -2,7 +2,7 @@
 
 import { FC } from 'react';
 import { Content, FeedEntry } from '@/types/feed';
-import { MessageCircle, Repeat, MoreHorizontal, ChevronUp } from 'lucide-react';
+import { MessageCircle, Repeat, MoreHorizontal, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FeedItemMenu } from '@/components/menus/FeedItemMenu';
 
@@ -35,7 +35,7 @@ interface FeedItemActionsProps {
 export const FeedItemActions: FC<FeedItemActionsProps> = ({ metrics, content, target }) => {
   return (
     <div className="flex items-center space-x-4">
-      <ActionButton icon={ChevronUp} count={metrics?.votes} tooltip="Upvote" label="Upvote" />
+      <ActionButton icon={ArrowUp} count={metrics?.votes} tooltip="Upvote" label="Upvote" />
       <ActionButton
         icon={MessageCircle}
         count={metrics?.comments}
