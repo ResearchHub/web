@@ -46,6 +46,20 @@ export interface CreateCommentOptions {
   threadType?: string;
 }
 
+export interface UpdateCommentOptions {
+  commentId: ID;
+  documentId: ID;
+  contentType: ContentType;
+  content: string | QuillContent;
+  contentFormat?: ContentFormat;
+}
+
+export interface DeleteCommentOptions {
+  commentId: ID;
+  documentId: ID;
+  contentType: ContentType;
+}
+
 export class CommentService {
   private static readonly BASE_PATH = '/api';
 
@@ -53,7 +67,6 @@ export class CommentService {
     workId,
     contentType,
     content,
-    contentFormat,
     parentId,
     bountyAmount,
     bountyType,
@@ -65,10 +78,9 @@ export class CommentService {
     const path =
       `${this.BASE_PATH}/${contentType.toLowerCase()}/${workId}/comments/` +
       (bountyAmount ? 'create_comment_with_bounty/' : 'create_rh_comment/');
-
     const payload = {
-      comment_content: content,
-      content_format: contentFormat,
+      comment_content_json: content,
+      comment_content_type: 'TIPTAP',
       privacy_type: privacyType,
       ...(bountyAmount && { amount: bountyAmount, bounty_type: bountyType }),
       ...(expirationDate && { expiration_date: expirationDate }),
@@ -100,7 +112,7 @@ export class CommentService {
       child_page_size: childPageSize.toString(),
       ascending: ascending.toString(),
       privacy_type: privacyType,
-      sort_by: sort.toLowerCase(),
+      ordering: sort,
       parent__isnull: 'true',
     });
 
@@ -118,5 +130,31 @@ export class CommentService {
       comments: response.results.map(transformComment),
       count: response.count,
     };
+  }
+
+  static async updateComment({
+    commentId,
+    documentId,
+    contentType,
+    content,
+    contentFormat,
+  }: UpdateCommentOptions): Promise<Comment> {
+    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/`;
+    const payload = {
+      comment_content_json: content,
+      comment_content_type: contentFormat,
+    };
+
+    const response = await ApiClient.patch<any>(path, payload);
+    return transformComment(response);
+  }
+
+  static async deleteComment({
+    commentId,
+    documentId,
+    contentType,
+  }: DeleteCommentOptions): Promise<void> {
+    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/censor/`;
+    await ApiClient.delete(path);
   }
 }

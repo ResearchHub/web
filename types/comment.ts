@@ -3,9 +3,9 @@ import { BaseTransformer } from './transformer';
 import { Bounty, transformBounty } from './bounty';
 
 export type CommentFilter = 'BOUNTY' | 'DISCUSSION' | 'REVIEW';
-export type CommentSort = 'BEST' | 'NEWEST' | 'TOP';
+export type CommentSort = 'BEST' | 'NEWEST' | 'TOP' | 'CREATED_DATE';
 export type CommentPrivacyType = 'PUBLIC' | 'PRIVATE';
-export type ContentFormat = 'QUILL' | 'HTML';
+export type ContentFormat = 'QUILL_EDITOR' | 'TIPTAP';
 export type CommentType = 'GENERIC_COMMENT' | 'REVIEW' | 'ANSWER';
 
 export interface UserMention {
@@ -16,11 +16,13 @@ export interface UserMention {
 }
 
 export interface QuillOperation {
-  insert: string;
+  insert: string | { user?: UserMention };
   attributes?: {
     bold?: boolean;
     italic?: boolean;
+    underline?: boolean;
     link?: string;
+    code?: boolean;
   };
 }
 
@@ -51,6 +53,7 @@ export interface Comment {
   isPublic: boolean;
   isRemoved: boolean;
   isAcceptedAnswer: boolean | null;
+  parentId: number | null;
   raw: any;
 }
 
@@ -72,7 +75,7 @@ export const transformContent = (raw: any): string => {
 export const transformComment: BaseTransformer<any, Comment> = (raw) => ({
   id: raw.id,
   content: transformContent(raw),
-  contentFormat: raw.html ? 'HTML' : 'QUILL',
+  contentFormat: raw.comment_content_type,
   createdDate: raw.created_date,
   updatedDate: raw.updated_date,
   author: transformAuthorProfile(raw.created_by),
@@ -84,5 +87,6 @@ export const transformComment: BaseTransformer<any, Comment> = (raw) => ({
   isPublic: raw.is_public,
   isRemoved: raw.is_removed,
   isAcceptedAnswer: raw.is_accepted_answer,
+  parentId: raw.parent?.id || null,
   raw,
 });

@@ -3,6 +3,13 @@ interface PeerReviewRating {
   category: string;
 }
 
+interface QuillMention {
+  id: string;
+  value: string;
+  denotationChar: string;
+  authorProfileId?: string;
+}
+
 // Utility function to convert Quill Delta to HTML
 export const convertDeltaToHTML = (delta: { ops: any[] }) => {
   // Basic conversion of Quill Delta to HTML
@@ -18,6 +25,8 @@ export const convertDeltaToHTML = (delta: { ops: any[] }) => {
         if (op.attributes.strike) text = `<s>${text}</s>`;
         if (op.attributes.code) text = `<code>${text}</code>`;
         if (op.attributes.link) text = `<a href="${op.attributes.link}">${text}</a>`;
+        if (op.attributes.list === 'bullet') text = `<li>${text}</li>`;
+        if (op.attributes.list === 'ordered') text = `<li>${text}</li>`;
       }
       return html + text;
     } else if (op.insert && typeof op.insert === 'object') {
@@ -37,8 +46,23 @@ export const convertDeltaToHTML = (delta: { ops: any[] }) => {
           <div class="rating-value">${'★'.repeat(rating.rating)}${'☆'.repeat(5 - rating.rating)}</div>
         </div>`
         );
+      } else if (op.insert.mention) {
+        const mention = op.insert.mention as QuillMention;
+        return (
+          html +
+          `<span class="mention" data-user-id="${mention.id}" data-author-profile-id="${mention.authorProfileId || ''}">${mention.denotationChar}${mention.value}</span>`
+        );
       }
     }
+
+    // Handle list wrappers
+    if (op.attributes?.list === 'bullet') {
+      return `<ul>${html}</ul>`;
+    }
+    if (op.attributes?.list === 'ordered') {
+      return `<ol>${html}</ol>`;
+    }
+
     return html;
   }, '');
 };

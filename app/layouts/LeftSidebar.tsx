@@ -1,16 +1,7 @@
 'use client';
 
-import {
-  Home,
-  Coins,
-  GraduationCap,
-  Store,
-  BookOpen,
-  Star,
-  AlertCircle,
-  Megaphone,
-} from 'lucide-react';
-import { usePathname, useRouter } from 'next/navigation';
+import { AlertCircle, Megaphone } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import { FooterLinks } from '../../components/FooterLinks';
 import { Navigation } from './Navigation';
 import { useState, useEffect } from 'react';
@@ -20,12 +11,11 @@ import { Logo } from '@/components/ui/Logo';
 import { ReleaseNotesModal } from '@/components/modals/ReleaseNotesModal';
 
 // This key should be updated whenever the release notes content changes
-const RELEASE_NOTES_VERSION = 'v1.0.1';
+const RELEASE_NOTES_VERSION = 'v1.0.2';
 const STORAGE_KEY = `rh-release-notes-${RELEASE_NOTES_VERSION}`;
 
 export const LeftSidebar: React.FC = () => {
   const pathname = usePathname();
-  const router = useRouter();
   const [isReleaseNotesOpen, setIsReleaseNotesOpen] = useState(false);
   const [hasSeenReleaseNotes, setHasSeenReleaseNotes] = useState(true); // Default to true to prevent flash
 

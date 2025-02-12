@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { CommentService, CreateCommentOptions } from '@/services/comment.service';
-import { Comment, CommentFilter } from '@/types/comment';
+import { Comment, CommentFilter, CommentSort } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { ApiError } from '@/services/types';
 
@@ -10,6 +10,7 @@ interface UseCommentsOptions {
   documentId: number;
   contentType: ContentType;
   filter?: CommentFilter;
+  sort?: CommentSort;
 }
 
 interface CommentState {
@@ -18,7 +19,12 @@ interface CommentState {
   error: string | null;
 }
 
-export const useComments = ({ documentId, contentType, filter }: UseCommentsOptions) => {
+export const useComments = ({
+  documentId,
+  contentType,
+  filter,
+  sort = 'BEST',
+}: UseCommentsOptions) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [count, setCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,6 +39,7 @@ export const useComments = ({ documentId, contentType, filter }: UseCommentsOpti
         documentId,
         contentType,
         filter,
+        sort,
         page: pageNum,
       });
 
@@ -55,7 +62,7 @@ export const useComments = ({ documentId, contentType, filter }: UseCommentsOpti
 
   useEffect(() => {
     fetchComments(1);
-  }, [documentId, contentType, filter]);
+  }, [documentId, contentType, filter, sort]);
 
   function loadMore() {
     const nextPage = page + 1;

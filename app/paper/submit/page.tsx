@@ -81,11 +81,11 @@ const RightSidebar = () => (
 export default function SubmitResearchPage() {
   const router = useRouter();
 
-  const handleSearchSelect = (suggestion: SearchSuggestion) => {
-    if (suggestion.id) {
-      router.push(`/notebook/new?paper_id=${suggestion.id}`);
-    } else if (suggestion.doi) {
-      router.push(`/notebook/new?doi=${encodeURIComponent(suggestion.doi)}`);
+  const handlePaperSelect = (paper: SearchSuggestion) => {
+    if (paper.entityType === 'paper') {
+      if (paper.doi) {
+        router.push(`/work?doi=${encodeURIComponent(paper.doi)}`);
+      }
     }
   };
 
@@ -113,7 +113,7 @@ export default function SubmitResearchPage() {
                 Search by DOI or Title
               </label>
               <div className="w-full">
-                <Search onSelect={handleSearchSelect} />
+                <Search onSelect={handlePaperSelect} />
               </div>
             </div>
           </div>

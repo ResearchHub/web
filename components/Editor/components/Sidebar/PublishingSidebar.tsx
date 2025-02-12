@@ -13,7 +13,7 @@ import {
   Upload,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { BaseMenu, BaseMenuItem } from '@/components/menus/BaseMenu';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Switch } from '@/components/ui/Switch';
 import { useState } from 'react';
 import { cn } from '@/utils/styles';

@@ -37,16 +37,21 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   };
 
   const handleWorkSelect = (suggestion: SearchSuggestion) => {
-    console.log('handleWorkSelect', suggestion);
-    if (suggestion.id) {
-      // If we have an ID, redirect to the work page with slug
-      const path = suggestion.slug
-        ? `/work/${suggestion.id}/${suggestion.slug}`
-        : `/work/${suggestion.id}`;
-      router.push(path);
-    } else if (suggestion.doi) {
-      // If we only have a DOI, redirect to the DOI route
-      router.push(`/work?doi=${suggestion.doi}`);
+    // Only handle paper suggestions
+    if (suggestion.entityType === 'paper') {
+      if (suggestion.id) {
+        // If we have an ID, redirect to the work page with slug
+        const path = suggestion.slug
+          ? `/paper/${suggestion.id}/${suggestion.slug}`
+          : `/paper/${suggestion.id}`;
+        router.push(path);
+      } else if (suggestion.doi) {
+        // If we only have a DOI, redirect to the DOI route
+        router.push(`/work?doi=${suggestion.doi}`);
+      }
+    } else {
+      // Handle user suggestions if needed
+      console.log('User suggestion selected:', suggestion);
     }
   };
 

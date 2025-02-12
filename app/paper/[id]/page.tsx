@@ -1,6 +1,7 @@
 import { PaperService } from '@/services/paper.service';
 import { redirect } from 'next/navigation';
 import { buildWorkUrl } from '@/utils/url';
+import { generateSlug } from '@/utils/url';
 
 interface Props {
   params: Promise<{
@@ -18,7 +19,20 @@ export default async function WorkIdPage({ params }: Props) {
 
   try {
     const work = await PaperService.get(id);
-    redirect(buildWorkUrl(work.id, work.title));
+    const slug = generateSlug(work.title);
+    const currentPath = `/paper/${id}`;
+    const targetPath = buildWorkUrl({
+      id: work.id,
+      contentType: 'paper',
+      slug,
+    });
+
+    // Redirect if we're not on the canonical URL (with slug)
+    if (currentPath !== targetPath) {
+      redirect(targetPath);
+    }
+
+    return null;
   } catch (error: any) {
     if (!error.digest?.startsWith('NEXT_REDIRECT')) {
       console.error('Error loading work:', error);

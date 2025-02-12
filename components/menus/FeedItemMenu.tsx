@@ -2,7 +2,7 @@
 
 import { FC, ReactNode } from 'react';
 import { Flag, Share } from 'lucide-react';
-import { BaseMenu, BaseMenuItem } from './BaseMenu';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 
 interface FeedItemMenuProps {
   children: ReactNode;

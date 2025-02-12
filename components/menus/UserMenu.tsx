@@ -6,7 +6,7 @@ import { useState } from 'react';
 import type { User } from '@/types/user';
 import VerificationBanner from '@/components/banners/VerificationBanner';
 import { Avatar } from '@/components/ui/Avatar';
-import { BaseMenu, BaseMenuItem } from './BaseMenu';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 
 interface UserMenuProps {
   user: User;
