@@ -17,12 +17,9 @@ import '@fontsource/inter/500.css';
 import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 
-type ArticleType = 'research';
-
 export default function NotebookLayout({ children }: { children: React.ReactNode }) {
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [articleType, setArticleType] = useState<ArticleType>('research');
 
   return (
     <OrganizationNotesProvider>
@@ -53,8 +50,6 @@ export default function NotebookLayout({ children }: { children: React.ReactNode
           {/* Right Sidebar - 20% */}
           <div className="border-l border-gray-200 w-full">
             <PublishingSidebar
-              articleType={articleType}
-              setArticleType={(type) => setArticleType(type as ArticleType)}
               bountyAmount={null}
               onBountyClick={() => {}}
               onPublishClick={() => setIsPublishModalOpen(true)}

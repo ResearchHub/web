@@ -1,22 +1,37 @@
 'use client';
 
 import { useNote } from '@/hooks/useNote';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { BlockEditor } from '@/components/Editor/components/BlockEditor/BlockEditor';
 import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
 import { useEffect, useState } from 'react';
+import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
+import { FundingTimelineModal } from '@/components/modals/FundingTimelineModal';
+import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 
 export default function NotePage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const noteId = params?.noteId as string;
   const orgSlug = params?.orgSlug as string;
+  const isNewFunding = searchParams?.get('newFunding') === 'true';
+  const [showFundingModal, setShowFundingModal] = useState(false);
 
   const { selectedOrg } = useOrganizationContext();
   const { notes, isLoading: isLoadingNotes } = useOrganizationNotesContext();
+  const { setArticleType } = useNotebookPublish();
   const [shouldFetchContent, setShouldFetchContent] = useState(false);
+
+  // Show funding modal and set article type when landing on a new funding note
+  useEffect(() => {
+    if (isNewFunding) {
+      setShowFundingModal(true);
+      setArticleType('preregistration');
+    }
+  }, [isNewFunding, setArticleType]);
 
   // Find the note in our list if available
   const initialNote = notes.find((n) => n.id.toString() === noteId);
@@ -62,8 +77,7 @@ export default function NotePage() {
   }
 
   // Handle missing note data
-  //TODO: just created note does not have any content, so we will stuck here
-  if (!note /* || !note.content*/) {
+  if (!note) {
     return <NotebookSkeleton />;
   }
 
@@ -72,14 +86,28 @@ export default function NotePage() {
     throw error;
   }
 
+  // If the note exists but has no content, use the preregistration template
+  let content = note.content;
+  let contentJson = note.contentJson;
+
+  if (!content && !contentJson) {
+    const defaultTemplate = JSON.stringify(preregistrationTemplate);
+    content = defaultTemplate;
+    contentJson = defaultTemplate;
+  }
+
   return (
-    <div className="h-full">
-      <BlockEditor
-        content={note.content || ''}
-        contentJson={note.contentJson}
-        isLoading={false}
-        noteId={note.id}
-      />
-    </div>
+    <>
+      <div className="h-full">
+        <BlockEditor
+          content={content || ''}
+          contentJson={contentJson}
+          isLoading={false}
+          noteId={note.id}
+        />
+      </div>
+
+      <FundingTimelineModal isOpen={showFundingModal} onClose={() => setShowFundingModal(false)} />
+    </>
   );
 }

@@ -23,12 +23,11 @@ import {
   type FundingFormData,
 } from '@/components/Editor/components/Funding/FundingForm';
 import { PublishModal } from '@/components/modals/PublishModal';
+import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 
 export type ArticleType = 'research' | 'preregistration' | 'other';
 
 interface PublishingSidebarProps {
-  articleType: ArticleType;
-  setArticleType: (type: ArticleType) => void;
   bountyAmount: number | null;
   onBountyClick: () => void;
   onPublishClick: () => void;
@@ -46,8 +45,6 @@ const SectionHeader = ({ icon: Icon, children }: { icon: any; children: React.Re
 );
 
 export const PublishingSidebar = ({
-  articleType,
-  setArticleType,
   bountyAmount,
   onBountyClick,
   onPublishClick,
@@ -62,6 +59,8 @@ export const PublishingSidebar = ({
     nftArt: null,
     nftSupply: '1000',
   });
+
+  const { articleType, setArticleType } = useNotebookPublish();
 
   const articleTypes = {
     research: {

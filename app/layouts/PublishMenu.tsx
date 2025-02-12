@@ -5,7 +5,10 @@ import { useRouter } from 'next/navigation';
 import { BaseMenu, BaseMenuItem } from '@/components/menus/BaseMenu';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useCreateNote, useNoteContent } from '@/hooks/useNote';
+import { useOrganizationContext } from '@/contexts/OrganizationContext';
+import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
 
 interface PublishMenuProps {
   children?: React.ReactNode;
@@ -14,6 +17,51 @@ interface PublishMenuProps {
 export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
   const router = useRouter();
   const [isBountyModalOpen, setIsBountyModalOpen] = useState(false);
+  const [{ isLoading: isCreatingNote }, createNote] = useCreateNote();
+  const [{ isLoading: isUpdatingContent }, updateNoteContent] = useNoteContent();
+  const { selectedOrg, defaultOrg, isLoading: isLoadingOrgs } = useOrganizationContext();
+
+  // Use default org if no org is selected
+  const activeOrg = selectedOrg || defaultOrg;
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Selected Org:', selectedOrg);
+    console.log('Default Org:', defaultOrg);
+    console.log('Is Loading Orgs:', isLoadingOrgs);
+    console.log('Active Org:', activeOrg);
+  }, [selectedOrg, defaultOrg, isLoadingOrgs, activeOrg]);
+
+  const handleFundResearch = async () => {
+    if (!activeOrg?.slug) {
+      console.error('No organization available');
+      return;
+    }
+
+    try {
+      // Create a new note
+      const note = await createNote({
+        title: 'New Research Funding Proposal',
+        grouping: 'WORKSPACE',
+        organizationSlug: activeOrg.slug,
+      });
+
+      // Update the note with the preregistration template
+      await updateNoteContent({
+        note: note.id,
+        fullJson: JSON.stringify(preregistrationTemplate),
+        plainText: preregistrationTemplate.content
+          .map((block) => block.content?.map((c) => c.text).join(' '))
+          .filter(Boolean)
+          .join('\n'),
+      });
+
+      // Redirect to the new note
+      router.push(`/notebook/${activeOrg.slug}/${note.id}?newFunding=true`);
+    } catch (error) {
+      console.error('Error creating funding proposal:', error);
+    }
+  };
 
   const trigger = (
     <button className="flex items-center px-5 py-3.5 gap-2.5 text-[15px] font-medium rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px]">
@@ -106,7 +154,11 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
                 </div>
               </BaseMenuItem>
 
-              <BaseMenuItem onClick={() => router.push('/fund/create')} className="w-full px-2">
+              <BaseMenuItem
+                onClick={handleFundResearch}
+                className="w-full px-2"
+                disabled={isCreatingNote || isUpdatingContent || isLoadingOrgs || !activeOrg}
+              >
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
                     <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
