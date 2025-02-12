@@ -15,6 +15,13 @@ export const Feed: FC = () => {
 
   return (
     <PageLayout>
+      <div className="pt-4 pb-7">
+        <h2 className="text-xl text-gray-600 flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-indigo-500" />
+          Discover the latest research, earning, and funding opportunities
+        </h2>
+      </div>
+
       <div className="max-w-4xl mx-auto">
         <FeedTabs
           activeTab={activeTab}
@@ -25,13 +32,6 @@ export const Feed: FC = () => {
 
         {!isCustomizing && (
           <>
-            <div className="pt-4 pb-7">
-              <h2 className="text-xl text-gray-600 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-indigo-500" />
-                Discover the latest research, earning, and funding opportunities
-              </h2>
-            </div>
-
             <div className="mt-8 space-y-6">
               {isLoading ? (
                 <div className="space-y-6">
