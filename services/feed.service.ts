@@ -1,5 +1,5 @@
 import { ApiClient } from './client';
-import { FeedEntry, FeedApiResponse, transformFeedEntry } from '@/types/feed';
+import { FeedEntry, FeedApiResponse, transformFeedEntry, FeedResponse } from '@/types/feed';
 
 export class FeedService {
   private static readonly BASE_PATH = '/api/feed';
@@ -19,8 +19,17 @@ export class FeedService {
     const url = `${this.BASE_PATH}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     const response = await ApiClient.get<FeedApiResponse>(url);
 
+    const safeTransform = (entry: FeedResponse) => {
+      try {
+        return transformFeedEntry(entry);
+      } catch (e) {
+        console.error('Failed to transform feed entry:', entry);
+        return null;
+      }
+    };
+
     return {
-      entries: response.results.map(transformFeedEntry),
+      entries: response.results.flatMap((entry) => safeTransform(entry) ?? []),
       hasMore: !!response.next,
     };
   }
