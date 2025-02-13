@@ -177,3 +177,35 @@ export const useNoteContent = (): UseNoteContentReturn => {
 
   return [{ note, isLoading, error }, updateNoteContent];
 };
+
+interface UseDeleteNoteState {
+  isLoading: boolean;
+  error: Error | null;
+}
+
+type DeleteNoteFn = (noteId: ID) => Promise<Note>;
+type UseDeleteNoteReturn = [UseDeleteNoteState, DeleteNoteFn];
+
+export const useDeleteNote = (): UseDeleteNoteReturn => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const deleteNote = async (noteId: ID) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await NoteService.deleteNote(noteId);
+      return response;
+    } catch (err) {
+      const errorMsg = err instanceof NoteError ? err.message : 'Failed to delete note';
+      const error = new Error(errorMsg);
+      setError(error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return [{ isLoading, error }, deleteNote];
+};

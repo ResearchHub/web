@@ -12,6 +12,7 @@ export interface Note {
   createdDate: string;
   updatedDate: string;
   title: string;
+  isRemoved: boolean;
 }
 
 export interface NoteWithContent extends Note {
@@ -38,28 +39,24 @@ export interface NoteApiItem {
 
 export type TransformedNote = Note & BaseTransformed;
 
-export const transformNote = (data: NoteApiItem): Note => ({
-  id: data.id,
-  access: data.access,
-  organization: transformOrganization(data.organization),
-  createdDate: data.created_date,
-  updatedDate: data.updated_date,
-  title: data.title,
-});
+export const transformNote = createTransformer<any, Note>((raw) => ({
+  id: raw.id,
+  access: raw.access,
+  organization: transformOrganization(raw.organization),
+  createdDate: raw.created_date,
+  updatedDate: raw.updated_date,
+  title: raw.title,
+  isRemoved: raw.unifiedDocument?.isRemoved || false,
+}));
 
-export const transformNoteWithContent = (data: any): NoteWithContent => ({
-  id: data.id,
-  access: data.access,
-  organization: transformOrganization(data.organization),
-  createdDate: data.created_date,
-  updatedDate: data.updated_date,
-  title: data.title,
-  content: data.latest_version?.src,
-  versionId: data.latest_version?.id || 0,
-  versionDate: data.latest_version?.created_date || data.created_date,
-  plainText: data.latest_version?.plain_text || '',
-  contentJson: data.latest_version?.json,
-});
+export const transformNoteWithContent = createTransformer<any, NoteWithContent>((raw) => ({
+  ...transformNote(raw),
+  content: raw.latest_version?.src,
+  versionId: raw.latest_version?.id || 0,
+  versionDate: raw.latest_version?.created_date || raw.created_date,
+  plainText: raw.latest_version?.plain_text || '',
+  contentJson: raw.latest_version?.json,
+}));
 
 export interface NoteContent {
   id: ID;

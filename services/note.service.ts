@@ -134,4 +134,25 @@ export class NoteService {
       );
     }
   }
+
+  /**
+   * Deletes a note by ID
+   * @param noteId - The ID of the note to delete
+   * @throws {NoteError} When the request fails or parameters are invalid
+   */
+  static async deleteNote(noteId: ID): Promise<Note> {
+    if (!noteId) {
+      throw new NoteError('Missing note ID', 'INVALID_PARAMS');
+    }
+
+    try {
+      const response = await ApiClient.post<any>(`${this.BASE_PATH}/note/${noteId}/delete/`);
+      return transformNote(response);
+    } catch (error) {
+      throw new NoteError(
+        'Failed to delete note',
+        error instanceof Error ? error.message : 'UNKNOWN_ERROR'
+      );
+    }
+  }
 }
