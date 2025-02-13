@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { AuthService } from '@/services/auth.service';
-import { ApiError } from '@/services/types/api';
 import { BaseScreenProps } from '../types';
 import { Eye, EyeOff } from 'lucide-react';
 import { signIn } from 'next-auth/react';
@@ -24,6 +22,7 @@ export default function Login({
 }: Props) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,13 +48,17 @@ export default function Login({
       if (result?.error) {
         setError('Invalid email or password');
       } else {
+        setIsRedirecting(true); // Set redirecting state before navigation
         onSuccess?.();
         onClose();
       }
     } catch (err) {
       setError('Login failed');
     } finally {
-      setIsLoading(false);
+      if (!isRedirecting) {
+        // Only reset loading if we're not redirecting
+        setIsLoading(false);
+      }
     }
   };
 
@@ -93,14 +96,18 @@ export default function Login({
 
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || isRedirecting}
           className="w-full bg-blue-600 text-white p-3 rounded mb-4 hover:bg-blue-700 disabled:opacity-50"
         >
           {isLoading ? 'Logging in...' : 'Log in'}
         </button>
       </form>
 
-      <button onClick={onBack} className="w-full text-gray-600 hover:text-gray-800">
+      <button
+        onClick={onBack}
+        disabled={isLoading || isRedirecting}
+        className="w-full text-gray-600 hover:text-gray-800 disabled:opacity-50"
+      >
         ← Back
       </button>
     </div>

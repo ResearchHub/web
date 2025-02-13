@@ -10,6 +10,7 @@ function SignInContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const error = searchParams?.get('error');
+  const callbackUrl = searchParams?.get('callbackUrl') || '/';
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -34,7 +35,11 @@ function SignInContent() {
           </div>
         )}
 
-        <AuthContent initialError={error} onSuccess={() => router.push('/')} showHeader={false} />
+        <AuthContent
+          initialError={error}
+          onSuccess={() => router.push(callbackUrl)}
+          showHeader={false}
+        />
       </div>
 
       <div className="mt-8 text-center text-sm text-gray-500">

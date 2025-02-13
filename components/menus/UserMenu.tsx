@@ -65,7 +65,7 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
           </div>
         </BaseMenuItem>
 
-        <BaseMenuItem onClick={() => signOut()} className="w-full px-4 py-2">
+        <BaseMenuItem onClick={() => signOut({ callbackUrl: '/' })} className="w-full px-4 py-2">
           <div className="flex items-center">
             <LogOut className="h-4 w-4 mr-3 text-gray-500" />
             <span className="text-sm text-gray-700">Sign Out</span>
