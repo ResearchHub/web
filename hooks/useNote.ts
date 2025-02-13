@@ -36,7 +36,7 @@ export interface UseNoteReturn {
  * @param initialNote - Optional initial note metadata to prevent unnecessary fetching
  * @returns UseNoteReturn object containing note data and loading state
  */
-export function useNote(noteId: string | null, initialNote?: Note): UseNoteReturn {
+export function useNote(noteId: string): UseNoteReturn {
   const [note, setNote] = useState<NoteWithContent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -46,12 +46,6 @@ export function useNote(noteId: string | null, initialNote?: Note): UseNoteRetur
     const controller = new AbortController();
 
     async function fetchNote() {
-      if (!noteId) {
-        setNote(null);
-        setIsLoading(false);
-        return;
-      }
-
       try {
         setIsLoading(true);
         setError(null);

@@ -23,9 +23,7 @@ export default function NotePage() {
   const [showFundingModal, setShowFundingModal] = useState(false);
 
   const { selectedOrg } = useOrganizationContext();
-  const { notes, isLoading: isLoadingNotes } = useOrganizationNotesContext();
   const { setArticleType, setNoteId } = useNotebookPublish();
-  const [shouldFetchContent, setShouldFetchContent] = useState(false);
   const [{ isLoading: isUpdating }, updateNoteContent] = useNoteContent();
 
   // Show funding modal and set article type when landing on a new funding note
@@ -36,29 +34,7 @@ export default function NotePage() {
     }
   }, [isNewFunding, setArticleType]);
 
-  // Find the note in our list if available
-  const initialNote = notes.find((n) => n.id.toString() === noteId);
-
-  // Only fetch content after initial mount and when we have the metadata
-  useEffect(() => {
-    if (initialNote) {
-      setShouldFetchContent(true);
-    }
-  }, [initialNote?.id]);
-
-  // Fetch the current note only when we need the content
-  const {
-    note,
-    isLoading: isLoadingNote,
-    error,
-  } = useNote(shouldFetchContent ? noteId : null, initialNote);
-
-  // Redirect to first note if no note is selected
-  useEffect(() => {
-    if (!isLoadingNotes && notes.length > 0 && !noteId) {
-      router.push(`/notebook/${orgSlug}/${notes[0].id}`);
-    }
-  }, [notes, isLoadingNotes, noteId, orgSlug, router]);
+  const { note, isLoading: isLoadingNote, error } = useNote(noteId);
 
   const debouncedRef = useRef(
     debounce((editor: Editor) => {
@@ -89,23 +65,15 @@ export default function NotePage() {
     return <NotebookSkeleton />;
   }
 
-  // Show metadata immediately while content loads
-  if (!shouldFetchContent && initialNote) {
-    return (
-      <div className="h-full">
-        <BlockEditor content="" isLoading={true} />
-      </div>
-    );
-  }
-
   // Handle loading states
-  if (isLoadingNotes || isLoadingNote) {
+  if (isLoadingNote) {
     return <NotebookSkeleton />;
   }
 
   // Handle missing note data
   if (!note) {
-    return <NotebookSkeleton />;
+    // return <NotebookSkeleton />;
+    throw new Error('Note not found');
   }
 
   // Let error boundary handle any errors

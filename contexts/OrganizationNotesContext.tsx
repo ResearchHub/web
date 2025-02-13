@@ -22,9 +22,6 @@ export function OrganizationNotesProvider({ children }: { children: ReactNode })
   const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-
     const fetchNotes = async () => {
       if (!selectedOrg) {
         setNotes([]);
@@ -38,28 +35,18 @@ export function OrganizationNotesProvider({ children }: { children: ReactNode })
         setIsLoading(true);
         setError(null);
         const data = await NoteService.getOrganizationNotes(selectedOrg.slug);
-
-        if (!isMounted) return;
-
         setNotes(data.results);
         setTotalCount(data.count);
       } catch (err) {
-        if (!isMounted) return;
         setError(err instanceof Error ? err : new Error('Failed to load notes'));
         setNotes([]);
         setTotalCount(0);
       } finally {
-        if (!isMounted) return;
         setIsLoading(false);
       }
     };
 
     fetchNotes();
-
-    return () => {
-      isMounted = false;
-      controller.abort();
-    };
   }, [selectedOrg?.slug]);
 
   const value = {

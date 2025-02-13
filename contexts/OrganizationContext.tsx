@@ -2,7 +2,7 @@
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { OrganizationService } from '@/services/organization.service';
 import type { Organization } from '@/types/organization';
 
@@ -19,6 +19,7 @@ const OrganizationContext = createContext<OrganizationContextType | null>(null);
 export function OrganizationProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
   const params = useParams();
+  const router = useRouter();
   const currentOrgSlug = params?.orgSlug as string;
 
   const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -78,15 +79,17 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     // Find the organization that matches the current URL
     const orgFromUrl = organizations.find((o) => o.slug === currentOrgSlug);
 
-    // If we found a matching org and it's different from the current selection
-    if (orgFromUrl && (!selectedOrg || orgFromUrl.slug !== selectedOrg.slug)) {
-      setSelectedOrg(orgFromUrl);
+    if (orgFromUrl) {
+      // Valid org found, update selection if needed
+      if (!selectedOrg || orgFromUrl.slug !== selectedOrg.slug) {
+        setSelectedOrg(orgFromUrl);
+      }
+    } else {
+      // Invalid org slug, redirect to main notebook page
+      // TODO: Redirect to the Error page
+      router.replace('/notebook');
     }
-    // If we can't find the org in the URL and we have a default, use that
-    else if (!orgFromUrl && defaultOrg && !selectedOrg) {
-      setSelectedOrg(defaultOrg);
-    }
-  }, [currentOrgSlug, organizations, defaultOrg]);
+  }, [currentOrgSlug, organizations, router]);
 
   const value = {
     organizations,
