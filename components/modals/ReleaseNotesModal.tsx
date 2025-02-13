@@ -74,42 +74,6 @@ export function ReleaseNotesModal({ isOpen, onClose }: ReleaseNotesModalProps) {
                       </a>
                     </div>
 
-                    {/* Next Up Section */}
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                        <Hammer className="w-4 h-4 text-gray-600" />
-                        Next Up
-                      </h3>
-                      <div className="space-y-2">
-                        <div className="flex items-start gap-2">
-                          <input type="checkbox" className="mt-1" disabled />
-                          <span className="text-gray-700">Lab Notebook V2</span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <input type="checkbox" className="mt-1" disabled />
-                          <span className="text-gray-700">Dynamic Feed</span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <input type="checkbox" className="mt-1" disabled />
-                          <span className="text-gray-700">Preregistration posting</span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <input type="checkbox" className="mt-1" disabled />
-                          <span className="text-gray-700">
-                            Wire up bounty creation w/added functionality
-                          </span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <input type="checkbox" className="mt-1" disabled />
-                          <span className="text-gray-700">Profile page UX</span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <input type="checkbox" className="mt-1" disabled />
-                          <span className="text-gray-700">Comments + New editor</span>
-                        </div>
-                      </div>
-                    </div>
-
                     {/* Shipped Section */}
                     <div>
                       <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
@@ -117,6 +81,24 @@ export function ReleaseNotesModal({ isOpen, onClose }: ReleaseNotesModalProps) {
                         Shipped
                       </h3>
                       <div className="space-y-4">
+                        <div>
+                          <div className="text-sm font-medium text-gray-700 mb-2">02/13/2025</div>
+                          <ul className="list-disc list-inside space-y-1 text-gray-600 text-sm pl-2">
+                            <li>Add zero balance and empty transaction states to RSC page</li>
+                            <li>
+                              Integrated funding proposal creation with preregistration template
+                            </li>
+                            <li>Added funding timeline modal for new proposals</li>
+                            <li>Improved organization context handling</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-700 mb-2">02/12/2025</div>
+                          <ul className="list-disc list-inside space-y-1 text-gray-600 text-sm pl-2">
+                            <li>Working comments (replies, edits, etc.)</li>
+                            <li>Be able to mention users, authors and papers in comment section</li>
+                          </ul>
+                        </div>
                         <div>
                           <div className="text-sm font-medium text-gray-700 mb-2">02/07/2025</div>
                           <ul className="list-disc list-inside space-y-1 text-gray-600 text-sm pl-2">
