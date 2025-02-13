@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { GrantIcon } from '@/components/ui/icons/GrantIcon';
 import { Switch } from '@/components/ui/Switch';
 import { useState } from 'react';
 import { cn } from '@/utils/styles';
@@ -22,12 +21,12 @@ import {
   FundingForm,
   type FundingFormData,
 } from '@/components/Editor/components/Funding/FundingForm';
-
-type ArticleType = 'research' | 'preregistration' | 'other';
+import { ArticleType, useNotebookPublish } from '@/contexts/NotebookPublishContext';
+import { useRouter } from 'next/navigation';
+import { useCreatePost } from '@/hooks/useDocument';
+import toast from 'react-hot-toast';
 
 interface PublishingSidebarProps {
-  articleType: ArticleType;
-  setArticleType: (type: ArticleType) => void;
   bountyAmount: number | null;
   onBountyClick: () => void;
   onPublishClick: () => void;
@@ -44,15 +43,7 @@ const SectionHeader = ({ icon: Icon, children }: { icon: any; children: React.Re
   </div>
 );
 
-export const PublishingSidebar = ({
-  articleType,
-  setArticleType,
-  bountyAmount,
-  onBountyClick,
-  onPublishClick,
-  title,
-  onTitleChange,
-}: PublishingSidebarProps) => {
+export const PublishingSidebar = ({ bountyAmount, onBountyClick }: PublishingSidebarProps) => {
   const [isJournalEnabled, setIsJournalEnabled] = useState(false);
   const [fundingData, setFundingData] = useState<FundingFormData>({
     budget: '',
@@ -60,8 +51,11 @@ export const PublishingSidebar = ({
     nftArt: null,
     nftSupply: '1000',
   });
+  const [{ isLoading: isLoadingCreatePost }, createPreregistrationPost] = useCreatePost();
 
-  const articleTypes = {
+  const { noteId, editor, articleType, setArticleType } = useNotebookPublish();
+
+  const articleTypes: Record<ArticleType, { title: string; description: string }> = {
     research: {
       title: 'Original Research Work',
       description: 'Submit your original research',
@@ -88,6 +82,42 @@ export const PublishingSidebar = ({
 
   const handleFundingSubmit = (data: FundingFormData) => {
     setFundingData(data);
+  };
+
+  const router = useRouter();
+
+  const handlePublishClick = async () => {
+    if (articleType !== 'preregistration') {
+      console.log('Publishing clicked for type:', articleType);
+      return;
+    }
+
+    const confirmed = window.confirm('Are you sure you want to publish this preregistration?');
+    if (!confirmed) return;
+
+    try {
+      const text = editor?.getText();
+      const json = editor?.getJSON();
+      const html = editor?.getHTML();
+      const firstHeading = editor
+        ?.getJSON()
+        ?.content?.find((node) => node.type === 'heading' && node.attrs?.level === 1);
+      const title = firstHeading?.content?.[0]?.text || '';
+
+      const response = await createPreregistrationPost({
+        ...fundingData,
+        title,
+        noteId: noteId,
+        renderableText: text || '',
+        fullJSON: JSON.stringify(json),
+        fullSrc: html || '',
+      });
+
+      router.push(`/fund/${response.id}/${response.slug}`);
+    } catch (error) {
+      toast.error('Error publishing. Please try again.');
+      console.error('Error publishing:', error);
+    }
   };
 
   return (
@@ -255,8 +285,12 @@ export const PublishingSidebar = ({
             <span className="font-medium text-gray-900">$1,000 USD</span>
           </div>
         )}
-        <Button variant="default" onClick={onPublishClick} className="w-full">
-          {articleType === 'research' && isJournalEnabled ? 'Pay & Publish' : 'Publish'}
+        <Button variant="default" onClick={handlePublishClick} className="w-full">
+          {isLoadingCreatePost
+            ? 'Publishing...'
+            : articleType === 'research' && isJournalEnabled
+              ? 'Pay & Publish'
+              : 'Publish'}
         </Button>
       </div>
     </div>

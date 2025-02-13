@@ -2,8 +2,23 @@
 import { useState } from 'react';
 import { PostService } from '@/services/post.service';
 import { Work } from '@/types/work';
-import { FormData as FundingFormData } from '@/app/fund/create/page';
+import { ID } from '@/types/root';
 import { ApiError } from '@/services/types';
+
+export interface PreregistrationFormData {
+  // Funding related
+  budget: string;
+  rewardFunders: boolean;
+  nftArt: File | null;
+  nftSupply: string;
+
+  // Document related
+  title: string;
+  noteId: ID;
+  renderableText: string;
+  fullJSON: string;
+  fullSrc: string;
+}
 
 interface UsePostState {
   data: Work | null;
@@ -11,7 +26,7 @@ interface UsePostState {
   error: string | null;
 }
 
-type CreatePostFn = (formData: FundingFormData) => Promise<Work>;
+type CreatePostFn = (formData: PreregistrationFormData) => Promise<Work>;
 type UseCreatePostReturn = [UsePostState, CreatePostFn];
 
 export const useCreatePost = (): UseCreatePostReturn => {
@@ -19,7 +34,7 @@ export const useCreatePost = (): UseCreatePostReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createPreregistrationPost = async (formData: FundingFormData) => {
+  const createPreregistrationPost = async (formData: PreregistrationFormData) => {
     setIsLoading(true);
     setError(null);
 
@@ -28,13 +43,12 @@ export const useCreatePost = (): UseCreatePostReturn => {
 
       formDataToSubmit.append('document_type', 'PREREGISTRATION');
       formDataToSubmit.append('title', formData.title);
-      formDataToSubmit.append('renderable_text', formData.background);
-      formDataToSubmit.append('full_src', formData.background);
-      formDataToSubmit.append('hypothesis', formData.hypothesis);
-      formDataToSubmit.append('methods', formData.methods);
-      formDataToSubmit.append('budget_use', formData.budgetUse);
+      formDataToSubmit.append('renderable_text', formData.renderableText);
+      formDataToSubmit.append('full_src', formData.fullSrc);
+      formDataToSubmit.append('full_json', formData.fullJSON);
+      formDataToSubmit.append('note_id', String(formData.noteId ?? ''));
       formDataToSubmit.append('reward_funders', String(formData.rewardFunders));
-      formDataToSubmit.append('nft_supply', formData.nftSupply);
+      formDataToSubmit.append('nft_supply', String(formData.nftSupply));
       formDataToSubmit.append('fundraise_goal_currency', 'USD');
       formDataToSubmit.append(
         'fundraise_goal_amount',
@@ -43,6 +57,7 @@ export const useCreatePost = (): UseCreatePostReturn => {
       if (formData.nftArt) {
         formDataToSubmit.append('nft_art', formData.nftArt);
       }
+
       const response = await PostService.post({ formData: formDataToSubmit });
       setData(response);
 

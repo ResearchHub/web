@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { AuthService } from '@/services/auth.service';
-import { ApiError } from '@/services/types/api';
 import { BaseScreenProps } from '../types';
 import { Eye, EyeOff } from 'lucide-react';
 import { signIn } from 'next-auth/react';
+import { Button } from '@/components/ui/Button';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
@@ -24,6 +23,7 @@ export default function Login({
 }: Props) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,13 +49,17 @@ export default function Login({
       if (result?.error) {
         setError('Invalid email or password');
       } else {
+        setIsRedirecting(true); // Set redirecting state before navigation
         onSuccess?.();
         onClose();
       }
     } catch (err) {
       setError('Login failed');
     } finally {
-      setIsLoading(false);
+      if (!isRedirecting) {
+        // Only reset loading if we're not redirecting
+        setIsLoading(false);
+      }
     }
   };
 
@@ -82,27 +86,30 @@ export default function Login({
             className="w-full p-3 border rounded pr-12"
             autoFocus
           />
-          <button
+          <Button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
+            variant="ghost"
+            size="icon"
             className="absolute right-3 top-[50%] -translate-y-[50%] text-gray-500 hover:text-gray-700"
           >
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-          </button>
+          </Button>
         </div>
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full bg-blue-600 text-white p-3 rounded mb-4 hover:bg-blue-700 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isLoading || isRedirecting} className="w-full mb-4">
           {isLoading ? 'Logging in...' : 'Log in'}
-        </button>
+        </Button>
       </form>
 
-      <button onClick={onBack} className="w-full text-gray-600 hover:text-gray-800">
+      <Button
+        onClick={onBack}
+        disabled={isLoading || isRedirecting}
+        variant="ghost"
+        className="w-full text-gray-600 hover:text-gray-800"
+      >
         ← Back
-      </button>
+      </Button>
     </div>
   );
 }

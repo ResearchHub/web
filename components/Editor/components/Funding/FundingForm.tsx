@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Upload, Image as ImageIcon, Wallet, Gift } from 'lucide-react';
 import { Input } from '@/components/ui/form/Input';
 import { Button } from '@/components/ui/Button';
@@ -72,6 +72,11 @@ export function FundingForm({
     e.preventDefault();
     onSubmit(formData);
   };
+
+  //it look slike we never submit the form, so. let's update the state manually on eve
+  useEffect(() => {
+    onSubmit(formData);
+  }, [formData]);
 
   const calculateMinDonation = () => {
     const funding = parseFloat(formData.budget.replace(/[^0-9.]/g, ''));

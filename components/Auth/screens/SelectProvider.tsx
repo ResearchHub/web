@@ -57,7 +57,11 @@ export default function SelectProvider({
   };
 
   const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl: window.location.origin });
+    // Get the current URL's search params to extract callbackUrl
+    const searchParams = new URLSearchParams(window.location.search);
+    const callbackUrl = searchParams.get('callbackUrl') || '/';
+
+    signIn('google', { callbackUrl });
   };
 
   return (

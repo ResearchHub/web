@@ -1,4 +1,4 @@
-import { EditorContent, useEditor } from '@tiptap/react';
+import { Editor, EditorContent, useEditor } from '@tiptap/react';
 import React, { useEffect } from 'react';
 import { StarterKit } from '@tiptap/starter-kit';
 import { Document } from '@tiptap/extension-document';
@@ -7,23 +7,37 @@ import { Link } from '@tiptap/extension-link';
 import { TextAlign } from '@tiptap/extension-text-align';
 import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
 import '@/components/Editor/styles/index.css';
-
-interface BlockEditorProps {
-  content: string;
-  isLoading?: boolean;
-}
+import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 
 // Create a simplified Document extension that only accepts blocks
 const CustomDocument = Document.extend({
-  content: 'block+',
+  content: 'heading block+',
 });
 
-export const BlockEditor: React.FC<BlockEditorProps> = ({ content, isLoading = false }) => {
+export interface BlockEditorProps {
+  content?: string;
+  contentJson?: string;
+  isLoading?: boolean;
+  onUpdate?: (editor: Editor) => void;
+  editable?: boolean;
+}
+
+export const BlockEditor: React.FC<BlockEditorProps> = ({
+  content,
+  contentJson,
+  onUpdate,
+  isLoading = false,
+  editable = true,
+}) => {
+  const { setEditor } = useNotebookPublish();
+
   const editor = useEditor({
+    editable,
+    immediatelyRender: false,
     extensions: [
       CustomDocument,
       StarterKit.configure({
-        document: false, // Using custom Document extension
+        document: false,
       }),
       Heading.configure({
         levels: [1, 2, 3],
@@ -42,13 +56,24 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ content, isLoading = f
           'min-h-full prose prose-sm max-w-none prose-neutral dark:prose-invert prose-headings:font-display',
       },
     },
+    onUpdate: ({ editor }) => {
+      onUpdate?.(editor);
+    },
   });
 
   useEffect(() => {
-    if (editor && content) {
-      editor.commands.setContent(content);
+    if (editor && (content || contentJson)) {
+      if (contentJson) {
+        editor.commands.setContent(JSON.parse(contentJson));
+      } else {
+        editor.commands.setContent(content || '');
+      }
     }
-  }, [editor, content]);
+  }, [editor, content, contentJson]);
+
+  useEffect(() => {
+    setEditor(editor);
+  }, [editor, setEditor]);
 
   if (isLoading) {
     return <NotebookSkeleton />;

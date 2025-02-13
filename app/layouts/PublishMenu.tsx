@@ -6,6 +6,7 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
 import { useState } from 'react';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 interface PublishMenuProps {
   children?: React.ReactNode;
@@ -14,6 +15,10 @@ interface PublishMenuProps {
 export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
   const router = useRouter();
   const [isBountyModalOpen, setIsBountyModalOpen] = useState(false);
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const handleFundResearch = () => {
+    router.push('/notebook?newFunding=true');
+  };
 
   const trigger = (
     <button className="flex items-center px-5 py-3.5 gap-2.5 text-[15px] font-medium rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px]">
@@ -106,7 +111,10 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
                 </div>
               </BaseMenuItem>
 
-              <BaseMenuItem onClick={() => router.push('/fund/create')} className="w-full px-2">
+              <BaseMenuItem
+                onClick={() => executeAuthenticatedAction(handleFundResearch)}
+                className="w-full px-2"
+              >
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
                     <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">

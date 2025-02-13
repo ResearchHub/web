@@ -16,7 +16,7 @@ interface Template {
   content: DocumentContent[];
 }
 
-const researchTemplate: Template = {
+const preregistrationTemplate: Template = {
   type: 'doc',
   content: [
     {
@@ -28,7 +28,33 @@ const researchTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Research Article Title',
+          text: 'ResearchHub Preregistration Template',
+        },
+      ],
+    },
+    {
+      type: 'heading',
+      attrs: {
+        textAlign: 'left',
+        level: 2,
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Authors & Affiliations',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      attrs: {
+        class: null,
+        textAlign: 'left',
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'List authors and their affiliations (e.g., First Last [1], ..., Author N [Institution])',
         },
       ],
     },
@@ -54,7 +80,7 @@ const researchTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Summarize your research findings here...',
+          text: 'Provide a concise abstract (max 300 words) summarizing the significance, innovation, and approach.',
         },
       ],
     },
@@ -80,7 +106,33 @@ const researchTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Provide background and context for your research...',
+          text: 'Briefly describe the research problem and its potential impact or significance.',
+        },
+      ],
+    },
+    {
+      type: 'heading',
+      attrs: {
+        textAlign: 'left',
+        level: 3,
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Hypotheses/Aims',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      attrs: {
+        class: null,
+        textAlign: 'left',
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'State your specific, testable hypotheses or research aims.',
         },
       ],
     },
@@ -106,7 +158,7 @@ const researchTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Describe your research methodology...',
+          text: 'Describe your study design, including participant recruitment (if applicable), data collection, and analysis methods.',
         },
       ],
     },
@@ -119,7 +171,7 @@ const researchTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Results',
+          text: 'Study type',
         },
       ],
     },
@@ -132,7 +184,7 @@ const researchTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Present your research findings...',
+          text: 'Briefly describe your study type (e.g., Experiment, Observational Study, Meta-Analysis).',
         },
       ],
     },
@@ -145,7 +197,7 @@ const researchTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Discussion',
+          text: 'Existing data',
         },
       ],
     },
@@ -158,26 +210,7 @@ const researchTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Interpret and discuss your findings...',
-        },
-      ],
-    },
-  ],
-};
-
-const grantTemplate: Template = {
-  type: 'doc',
-  content: [
-    {
-      type: 'heading',
-      attrs: {
-        textAlign: 'left',
-        level: 1,
-      },
-      content: [
-        {
-          type: 'text',
-          text: 'Grant Proposal Title',
+          text: 'Indicate if you are using existing data and, if so, describe its status (e.g., data not yet created, data exists but not accessed).',
         },
       ],
     },
@@ -190,7 +223,7 @@ const grantTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Executive Summary',
+          text: 'Data collection procedures',
         },
       ],
     },
@@ -203,7 +236,7 @@ const grantTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Brief overview of your proposal...',
+          text: 'Describe your data collection process, including population, recruitment, and timeline.',
         },
       ],
     },
@@ -216,7 +249,7 @@ const grantTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Project Description',
+          text: 'Sample size',
         },
       ],
     },
@@ -229,7 +262,7 @@ const grantTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Detailed description of your proposed project...',
+          text: 'Specify your target sample size and units of analysis (e.g., number of participants, samples).',
         },
       ],
     },
@@ -242,7 +275,7 @@ const grantTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Goals and Objectives',
+          text: 'Analysis Plan',
         },
       ],
     },
@@ -255,7 +288,7 @@ const grantTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'List your project goals and objectives...',
+          text: 'Describe your planned statistical analyses, including models and inference criteria (e.g., p-values, Bayes factors).',
         },
       ],
     },
@@ -268,7 +301,7 @@ const grantTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Methodology',
+          text: 'Data exclusion (optional)',
         },
       ],
     },
@@ -281,7 +314,7 @@ const grantTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Describe your approach and methods...',
+          text: 'Specify any criteria for data exclusion or outlier handling.',
         },
       ],
     },
@@ -307,7 +340,7 @@ const grantTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Detailed budget breakdown...',
+          text: 'Provide an itemized list of anticipated costs (materials, personnel, etc.).',
         },
       ],
     },
@@ -320,7 +353,7 @@ const grantTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Timeline',
+          text: 'Other (optional)',
         },
       ],
     },
@@ -333,15 +366,12 @@ const grantTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Project timeline and milestones...',
+          text: 'Include any additional information, such as references or disclosures.',
         },
       ],
     },
   ],
 };
 
-export const getInitialContent = (type: 'research' | 'grant' = 'research'): Template => {
-  return type === 'research' ? researchTemplate : grantTemplate;
-};
-
-export const initialContent = researchTemplate; // Default export for backward compatibility
+export type PreregistrationTemplate = typeof preregistrationTemplate;
+export default preregistrationTemplate;
