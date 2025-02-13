@@ -41,14 +41,15 @@ async function createNoteWithContent(
 }
 
 export async function GET(request: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    return redirect('/auth/signin');
+  }
+
   // Get URL and search params
   const { searchParams } = new URL(request.url);
   const isNewFunding = searchParams.get('newFunding') === 'true';
-
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    throw new Error('You must be signed in to access this page');
-  }
 
   const organizations = await OrganizationService.getUserOrganizations(session);
   if (!organizations || organizations.length === 0) {
