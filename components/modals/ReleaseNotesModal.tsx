@@ -89,6 +89,7 @@ export function ReleaseNotesModal({ isOpen, onClose }: ReleaseNotesModalProps) {
                             </li>
                             <li>Added funding timeline modal for new proposals</li>
                             <li>Improved organization context handling</li>
+                            <li>Add zero balance and empty transaction states to RSC page</li>
                           </ul>
                         </div>
                         <div>

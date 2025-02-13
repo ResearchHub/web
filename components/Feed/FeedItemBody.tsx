@@ -22,7 +22,7 @@ const buildUrl = (item: Content) => {
     .toLowerCase()
     .replace(/ /g, '-')
     .replace(/[^\w-]/g, '');
-  return `/work/${item.id}/${slug}`;
+  return `/${item.type}/${item.id}/${slug}`;
 };
 
 export const FeedItemBody: FC<FeedItemBodyProps> = ({
