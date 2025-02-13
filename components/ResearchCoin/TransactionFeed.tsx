@@ -6,7 +6,7 @@ import type { TransactionAPIRequest } from '@/services/types/transaction.dto';
 import { formatTransaction } from './lib/types';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
-import { FileDown, LogIn, Coins, HelpCircle } from 'lucide-react';
+import { FileDown, LogIn, Coins, HelpCircle, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const INITIAL_PAGE = 1;
@@ -211,6 +211,8 @@ export function TransactionFeed({
     );
   }
 
+  const userHasNoTransactions = transactions.length === 0 && !isLoading && !error;
+
   return (
     <div className="bg-white">
       <div className="flex items-center justify-between mb-4">
@@ -245,25 +247,56 @@ export function TransactionFeed({
         </Button>
       </div>
 
-      <div className="space-y-1">
-        {transactions.map((transaction) => (
-          <TransactionFeedItem
-            key={transaction.id}
-            transaction={formatTransaction(transaction, exchangeRate)}
-          />
-        ))}
-
-        {/* Infinite scroll trigger and loading feedback */}
-        <div ref={observerTarget} className="min-h-[20px]" aria-hidden="true" />
-      </div>
-
-      {/* Loading more feedback */}
-      {isLoadingMore && hasNextPage && (
-        <div className="space-y-1 animate-fadeIn mt-1">
-          {[...Array(LOADING_SKELETON_COUNT)].map((_, index) => (
-            <TransactionSkeleton key={index} />
-          ))}
+      {userHasNoTransactions ? (
+        <div className="flex flex-col items-center justify-center min-h-[400px] -mt-8">
+          <div className="bg-gray-50 rounded-full p-4 mb-6">
+            <Coins className="h-8 w-8 text-gray-400" />
+          </div>
+          <div className="text-center max-w-md">
+            <h3 className="text-2xl font-semibold text-gray-900 mb-3">No Transactions Yet</h3>
+            <p className="text-base text-gray-600 mb-8">
+              Get started by depositing ResearchCoin or earning RSC by contributing to the
+              community.
+            </p>
+            <Button
+              onClick={() => {
+                const depositButton = document.querySelector('[data-action="deposit"]');
+                if (depositButton instanceof HTMLElement) {
+                  depositButton.click();
+                }
+              }}
+              variant="secondary"
+              size="lg"
+              className="gap-2"
+            >
+              <Plus className="h-5 w-5" />
+              Make Your First Deposit
+            </Button>
+          </div>
         </div>
+      ) : (
+        <>
+          <div className="space-y-1">
+            {transactions.map((transaction) => (
+              <TransactionFeedItem
+                key={transaction.id}
+                transaction={formatTransaction(transaction, exchangeRate)}
+              />
+            ))}
+
+            {/* Infinite scroll trigger and loading feedback */}
+            <div ref={observerTarget} className="min-h-[20px]" aria-hidden="true" />
+          </div>
+
+          {/* Loading more feedback */}
+          {isLoadingMore && hasNextPage && (
+            <div className="space-y-1 animate-fadeIn mt-1">
+              {[...Array(LOADING_SKELETON_COUNT)].map((_, index) => (
+                <TransactionSkeleton key={index} />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

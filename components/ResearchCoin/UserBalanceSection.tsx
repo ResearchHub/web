@@ -14,8 +14,9 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
 
-  // Consider balance as not ready if we're fetching exchange rate or balance is null
-  const isBalanceReady = !isFetchingExchangeRate && balance !== null;
+  // Only consider balance as not ready if we're fetching exchange rate
+  // Zero balance (balance = 0) should be treated as a valid state
+  const isBalanceReady = !isFetchingExchangeRate;
 
   return (
     <>
@@ -37,13 +38,13 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
                         <ResearchCoinIcon size={28} />
                         <div className="flex items-baseline">
                           <span className="text-4xl font-semibold text-gray-900">
-                            {balance.formatted}
+                            {balance?.formatted || '0.00'}
                           </span>
                           <span className="text-xl font-medium text-gray-600 ml-2">RSC</span>
                         </div>
                       </div>
                       <div className="text-sm font-medium text-gray-600">
-                        ≈ {balance.formattedUsd}
+                        ≈ {balance?.formattedUsd || '$0.00'}
                       </div>
                     </>
                   )}
@@ -57,6 +58,7 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
                     size="lg"
                     className="gap-2"
                     disabled={!isBalanceReady}
+                    data-action="deposit"
                   >
                     <ArrowDownToLine className="h-5 w-5" />
                     Deposit
@@ -67,7 +69,7 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
                     variant="outlined"
                     size="lg"
                     className="gap-2"
-                    disabled={!isBalanceReady}
+                    disabled={!isBalanceReady || !balance?.raw}
                   >
                     <ArrowUpFromLine className="h-5 w-5" />
                     Withdraw
@@ -86,12 +88,12 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
           <DepositModal
             isOpen={isDepositModalOpen}
             onClose={() => setIsDepositModalOpen(false)}
-            currentBalance={balance.raw}
+            currentBalance={balance?.raw || 0}
           />
           <WithdrawModal
             isOpen={isWithdrawModalOpen}
             onClose={() => setIsWithdrawModalOpen(false)}
-            availableBalance={balance.raw}
+            availableBalance={balance?.raw || 0}
           />
         </>
       )}
