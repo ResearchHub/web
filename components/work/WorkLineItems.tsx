@@ -17,8 +17,10 @@ import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { ClaimModal } from '@/components/modals/ClaimModal';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
-import { DocumentType } from '@/types/vote';
-import { useVote } from '@/hooks/useVote';
+import { useVote } from '@/hooks/useReaction';
+import { useUserVotes } from '@/hooks/useReaction';
+import toast from 'react-hot-toast';
+import { FlagContentModal } from '@/components/modals/FlagContentModal';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -28,25 +30,43 @@ interface WorkLineItemsProps {
 export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsProps) => {
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-  const [isUpvoted, setIsUpvoted] = useState(false);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const [{ isLoading: isVoting }, vote] = useVote();
+  const [voteCount, setVoteCount] = useState(work.metrics.votes);
+  const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
+
+  const {
+    data: userVotes,
+    isLoading: isLoadingVotes,
+    refresh: refreshVotes,
+  } = useUserVotes({
+    paperIds: work.contentType === 'paper' ? [work.id] : [],
+    postIds: work.contentType === 'post' || work.contentType === 'preregistration' ? [work.id] : [],
+  });
+
+  const isUpvoted =
+    work.contentType === 'paper'
+      ? userVotes?.papers[work.id]?.voteType === 'upvote'
+      : userVotes?.posts[work.id]?.voteType === 'upvote';
 
   const handleVote = useCallback(async () => {
+    const wasUpvoted = isUpvoted;
+
     try {
-      const documentType: DocumentType = work.contentType === 'paper' ? 'paper' : 'researchhubpost';
-
       await vote({
-        documentType,
+        documentType: work.contentType === 'paper' ? 'paper' : 'researchhubpost',
         documentId: work.id,
-        voteType: isUpvoted ? 'neutralvote' : 'upvote',
+        voteType: wasUpvoted ? 'neutralvote' : 'upvote',
       });
-
-      setIsUpvoted(!isUpvoted);
+      await refreshVotes();
     } catch (error) {
-      console.error('Error voting:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Unable to process your vote. Please try again.'
+      );
+    } finally {
+      setVoteCount((prev) => prev + (wasUpvoted ? -1 : 1));
     }
-  }, [work.contentType, work.id, isUpvoted, vote]);
+  }, [work.contentType, work.id, isUpvoted, vote, refreshVotes]);
 
   return (
     <div>
@@ -55,15 +75,15 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
         <div className="flex items-center space-x-3">
           <button
             onClick={() => executeAuthenticatedAction(handleVote)}
-            disabled={isVoting}
+            disabled={isVoting || isLoadingVotes}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
               isUpvoted
                 ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
                 : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-            } ${isVoting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            } ${isVoting || isLoadingVotes ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <ArrowUp className={`h-4 w-4 ${isUpvoted ? 'fill-current' : ''}`} />
-            <span>{work.metrics.votes + (isUpvoted ? 1 : 0)}</span>
+            <span>{voteCount}</span>
           </button>
 
           <button
@@ -129,11 +149,7 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
               <MenuItem>
                 {({ focus }) => (
                   <button
-                    onClick={() =>
-                      executeAuthenticatedAction(() => {
-                        console.log('Flag content clicked:', work.id);
-                      })
-                    }
+                    onClick={() => executeAuthenticatedAction(() => setIsFlagModalOpen(true))}
                     className={`${
                       focus ? 'bg-gray-50' : ''
                     } flex items-center space-x-2 px-4 py-2 text-gray-700 w-full text-left`}
@@ -210,6 +226,13 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
       {showClaimButton && (
         <ClaimModal isOpen={claimModalOpen} onClose={() => setClaimModalOpen(false)} />
       )}
+
+      <FlagContentModal
+        isOpen={isFlagModalOpen}
+        onClose={() => setIsFlagModalOpen(false)}
+        documentId={work.id.toString()}
+        workType={work.contentType}
+      />
     </div>
   );
 };

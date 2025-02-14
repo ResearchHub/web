@@ -12,6 +12,14 @@ export type AuthorPosition = 'first' | 'middle' | 'last';
 
 export type ContentType = 'post' | 'paper' | 'preregistration';
 
+export type FlagReasonKey =
+  | 'LOW_QUALITY'
+  | 'COPYRIGHT'
+  | 'NOT_CONSTRUCTIVE'
+  | 'PLAGIARISM'
+  | 'ABUSIVE_OR_RUDE'
+  | 'SPAM';
+
 export interface Authorship {
   authorProfile: AuthorProfile;
   isCorresponding: boolean;
