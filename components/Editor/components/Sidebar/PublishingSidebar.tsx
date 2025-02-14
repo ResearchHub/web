@@ -25,6 +25,7 @@ import { ArticleType, useNotebookPublish } from '@/contexts/NotebookPublishConte
 import { useRouter } from 'next/navigation';
 import { useCreatePost } from '@/hooks/useDocument';
 import toast from 'react-hot-toast';
+import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
 
 interface PublishingSidebarProps {
   bountyAmount: number | null;
@@ -86,15 +87,18 @@ export const PublishingSidebar = ({ bountyAmount, onBountyClick }: PublishingSid
 
   const router = useRouter();
 
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
   const handlePublishClick = async () => {
     if (articleType !== 'preregistration') {
       console.log('Publishing clicked for type:', articleType);
       return;
     }
 
-    const confirmed = window.confirm('Are you sure you want to publish this preregistration?');
-    if (!confirmed) return;
+    setShowConfirmModal(true);
+  };
 
+  const handleConfirmPublish = async () => {
     try {
       const text = editor?.getText();
       const json = editor?.getJSON();
@@ -117,6 +121,8 @@ export const PublishingSidebar = ({ bountyAmount, onBountyClick }: PublishingSid
     } catch (error) {
       toast.error('Error publishing. Please try again.');
       console.error('Error publishing:', error);
+    } finally {
+      setShowConfirmModal(false);
     }
   };
 
@@ -293,6 +299,19 @@ export const PublishingSidebar = ({ bountyAmount, onBountyClick }: PublishingSid
               : 'Publish'}
         </Button>
       </div>
+
+      <ConfirmPublishModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmPublish}
+        title={
+          editor
+            ?.getJSON()
+            ?.content?.find((node) => node.type === 'heading' && node.attrs?.level === 1)
+            ?.content?.[0]?.text || 'Untitled Research'
+        }
+        isLoading={isLoadingCreatePost}
+      />
     </div>
   );
 };
