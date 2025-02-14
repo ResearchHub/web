@@ -1,7 +1,6 @@
 import { ID } from '@/types/root';
 import { ApiClient } from './client';
 import {
-  DocumentType,
   transformFlag,
   transformVote,
   transformVotes,
@@ -9,8 +8,9 @@ import {
   VoteTypeString,
   Flag,
 } from '@/types/reaction';
-import { buildWorkChainUrl } from '@/utils/url';
 import { FlagReasonKey } from '@/types/work';
+
+export type DocumentType = 'paper' | 'researchhubpost';
 
 export interface VoteOptions {
   documentType: DocumentType;
@@ -70,30 +70,16 @@ export class ReactionService {
     return transformVote(response);
   }
 
-  static async flag({
-    documentType,
-    documentId,
-    reason,
-    threadId,
-    commentId,
-    replyId,
-  }: FlagOptions): Promise<Flag> {
+  static async flag({ documentType, documentId, reason, commentId }: FlagOptions): Promise<Flag> {
     if (!documentId) {
       throw new Error('Document ID is required');
     }
 
-    const urlPath = buildWorkChainUrl({
-      documentType,
-      documentId,
-      threadId,
-      commentId,
-      replyId,
-    });
-
-    const url = `${this.BASE_PATH}/${urlPath}flag/`;
+    const baseUrl = `${documentType}/${documentId}`;
+    const commentPart = commentId ? `/comments/${commentId}` : '';
+    const url = `${this.BASE_PATH}/${baseUrl}${commentPart}/flag/`;
 
     const response = await ApiClient.post(url, { reason });
-    console.log('response', transformFlag(response));
 
     return transformFlag(response);
   }

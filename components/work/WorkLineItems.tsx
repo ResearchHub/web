@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import {
   ArrowUp,
@@ -17,7 +17,6 @@ import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { ClaimModal } from '@/components/modals/ClaimModal';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
-import { DocumentType, getDocumentTypeFromWorkContentType } from '@/types/reaction';
 import { useVote } from '@/hooks/useReaction';
 import { useUserVotes } from '@/hooks/useReaction';
 import toast from 'react-hot-toast';
@@ -51,12 +50,11 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
       : userVotes?.posts[work.id]?.voteType === 'upvote';
 
   const handleVote = useCallback(async () => {
-    const documentType: DocumentType = work.contentType === 'paper' ? 'paper' : 'researchhubpost';
     const wasUpvoted = isUpvoted;
 
     try {
       await vote({
-        documentType,
+        documentType: work.contentType === 'paper' ? 'paper' : 'researchhubpost',
         documentId: work.id,
         voteType: wasUpvoted ? 'neutralvote' : 'upvote',
       });
@@ -233,7 +231,7 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
         isOpen={isFlagModalOpen}
         onClose={() => setIsFlagModalOpen(false)}
         documentId={work.id.toString()}
-        documentType={getDocumentTypeFromWorkContentType(work.contentType)}
+        workType={work.contentType}
       />
     </div>
   );

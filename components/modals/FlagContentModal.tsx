@@ -8,23 +8,18 @@ import { FlagReasonKey } from '@/types/work';
 import { RadioGroup } from '@/components/ui/form/RadioGroup';
 import { toast } from 'react-hot-toast';
 import { useFlag } from '@/hooks/useReaction';
-import { DocumentType } from '@/types/reaction';
+import { ContentType } from '@/types/work';
 
 interface FlagContentModalProps {
   isOpen: boolean;
   onClose: () => void;
   documentId: string;
-  documentType: DocumentType;
+  workType: ContentType;
 }
 
 const flagOptions = getFlagOptions();
 
-export function FlagContentModal({
-  isOpen,
-  onClose,
-  documentId,
-  documentType,
-}: FlagContentModalProps) {
+export function FlagContentModal({ isOpen, onClose, documentId, workType }: FlagContentModalProps) {
   const [selectedReason, setSelectedReason] = useState<FlagReasonKey | null>(null);
   const [{ isLoading }, flag] = useFlag();
 
@@ -33,7 +28,7 @@ export function FlagContentModal({
 
     try {
       await flag({
-        documentType,
+        documentType: workType === 'paper' ? 'paper' : 'researchhubpost',
         documentId,
         reason: selectedReason,
       });
