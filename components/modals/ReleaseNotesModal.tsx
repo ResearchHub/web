@@ -84,6 +84,7 @@ export function ReleaseNotesModal({ isOpen, onClose }: ReleaseNotesModalProps) {
                         <div>
                           <div className="text-sm font-medium text-gray-700 mb-2">02/13/2025</div>
                           <ul className="list-disc list-inside space-y-1 text-gray-600 text-sm pl-2">
+                            <li>Add zero balance and empty transaction states to RSC page</li>
                             <li>
                               Integrated funding proposal creation with preregistration template
                             </li>
