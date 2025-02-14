@@ -121,6 +121,7 @@ export class ApiClient {
         errorData = await response.json();
       } catch (e) {
         errorData = { message: 'Invalid JSON response from server' };
+        throw new Error(JSON.stringify({ data: errorData, status: response.status }));
       }
       throw new ApiError(JSON.stringify({ data: errorData, status: response.status }));
     }

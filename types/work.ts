@@ -11,6 +11,14 @@ export type AuthorPosition = 'first' | 'middle' | 'last';
 
 export type ContentType = 'post' | 'paper' | 'preregistration';
 
+export type FlagReasonKey =
+  | 'LOW_QUALITY'
+  | 'COPYRIGHT'
+  | 'NOT_CONSTRUCTIVE'
+  | 'PLAGIARISM'
+  | 'ABUSIVE_OR_RUDE'
+  | 'SPAM';
+
 export interface Authorship {
   authorProfile: AuthorProfile;
   isCorresponding: boolean;
@@ -136,7 +144,6 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
     views: raw.views_count || 0,
   },
   unifiedDocumentId: raw.unified_document.id,
-  raw: raw,
 }));
 
 export const transformPost = createTransformer<any, Work>((raw) => ({

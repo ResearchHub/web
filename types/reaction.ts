@@ -1,7 +1,6 @@
 import { ID } from './root';
 import { createTransformer } from './transformer';
-
-export type DocumentType = 'paper' | 'researchhubpost';
+import { ContentType, FlagReasonKey } from './work';
 
 // DOWNVOTE is not used in the current implementation
 export enum VoteType {
@@ -68,3 +67,17 @@ export const transformVotes = createTransformer<any, UserVotes>((raw) => {
 
   return votes;
 });
+
+export type Flag = {
+  id: ID;
+  createdDate: string;
+  reason: FlagReasonKey;
+  objectId: ID;
+};
+
+export const transformFlag = createTransformer<any, Flag>((raw) => ({
+  id: raw.id,
+  createdDate: raw.created_date,
+  reason: raw.reason,
+  objectId: raw.object_id,
+}));

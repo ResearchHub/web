@@ -1,6 +1,16 @@
 import { ID } from '@/types/root';
 import { ApiClient } from './client';
-import { DocumentType, transformVote, transformVotes, Vote, VoteTypeString } from '@/types/vote';
+import {
+  transformFlag,
+  transformVote,
+  transformVotes,
+  Vote,
+  VoteTypeString,
+  Flag,
+} from '@/types/reaction';
+import { FlagReasonKey } from '@/types/work';
+
+export type DocumentType = 'paper' | 'researchhubpost';
 
 export interface VoteOptions {
   documentType: DocumentType;
@@ -14,7 +24,16 @@ export interface GetVotesOptions {
   postIds: (string | number)[];
 }
 
-export class VoteService {
+export interface FlagOptions {
+  documentType: DocumentType;
+  documentId: ID;
+  reason: FlagReasonKey;
+  threadId?: ID;
+  commentId?: ID;
+  replyId?: ID;
+}
+
+export class ReactionService {
   private static readonly BASE_PATH = '/api';
 
   static async getVotes(options: GetVotesOptions): Promise<{
@@ -49,5 +68,19 @@ export class VoteService {
     const response = await ApiClient.post<any>(url);
 
     return transformVote(response);
+  }
+
+  static async flag({ documentType, documentId, reason, commentId }: FlagOptions): Promise<Flag> {
+    if (!documentId) {
+      throw new Error('Document ID is required');
+    }
+
+    const baseUrl = `${documentType}/${documentId}`;
+    const commentPart = commentId ? `/comments/${commentId}` : '';
+    const url = `${this.BASE_PATH}/${baseUrl}${commentPart}/flag/`;
+
+    const response = await ApiClient.post(url, { reason });
+
+    return transformFlag(response);
   }
 }
