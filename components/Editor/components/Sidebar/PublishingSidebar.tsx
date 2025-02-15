@@ -95,6 +95,16 @@ export const PublishingSidebar = ({ bountyAmount, onBountyClick }: PublishingSid
       return;
     }
 
+    const firstHeading = editor
+      ?.getJSON()
+      ?.content?.find((node) => node.type === 'heading' && node.attrs?.level === 1);
+    const title = firstHeading?.content?.[0]?.text;
+
+    if (!title?.trim()) {
+      toast.error('Please provide a title for your research');
+      return;
+    }
+
     setShowConfirmModal(true);
   };
 

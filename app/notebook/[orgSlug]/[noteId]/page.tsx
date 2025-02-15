@@ -5,17 +5,16 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { BlockEditor } from '@/components/Editor/components/BlockEditor/BlockEditor';
 import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
 import { useEffect, useState, useRef } from 'react';
 import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
 import { FundingTimelineModal } from '@/components/modals/FundingTimelineModal';
 import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 import { debounce } from 'lodash';
 import { Editor } from '@tiptap/core';
+import { NoteService } from '@/services/note.service';
 
 export default function NotePage() {
   const params = useParams();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const noteId = params?.noteId as string;
   const orgSlug = params?.orgSlug as string;
@@ -36,17 +35,45 @@ export default function NotePage() {
 
   const { note, isLoading: isLoadingNote, error } = useNote(noteId);
 
+  const titleRef = useRef<string>('');
+
   const debouncedRef = useRef(
     debounce((editor: Editor) => {
       const json = editor.getJSON();
       const html = editor.getHTML();
 
-      updateNoteContent({
-        note: noteId,
-        fullSrc: html,
-        plainText: editor.getText(),
-        fullJson: JSON.stringify(json),
-      }).catch(console.error);
+      // Extract title from the first h1 heading
+      const firstHeading = json?.content?.find(
+        (node) => node.type === 'heading' && node.attrs?.level === 1
+      );
+      const newTitle = firstHeading?.content?.[0]?.text || '';
+
+      // Create an array of promises to execute
+      const promises = [];
+
+      // Only update title if it changed
+      if (newTitle !== titleRef.current) {
+        titleRef.current = newTitle;
+        promises.push(
+          NoteService.updateNoteTitle({
+            noteId,
+            title: newTitle,
+          })
+        );
+      }
+
+      // Always update content
+      promises.push(
+        updateNoteContent({
+          note: noteId,
+          fullSrc: html,
+          plainText: editor.getText(),
+          fullJson: JSON.stringify(json),
+        })
+      );
+
+      // Execute all necessary updates
+      Promise.all(promises).catch(console.error);
     }, 2000)
   );
 
