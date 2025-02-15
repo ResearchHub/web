@@ -19,6 +19,7 @@ const LeftSidebar = () => {
   const router = useRouter();
   const params = useParams();
   const currentOrgSlug = params?.orgSlug as string;
+  const noteId = params?.noteId as string;
   const { selectedOrg, organizations, isLoading: isLoadingOrgs } = useOrganizationContext();
   const { notes, isLoading: isLoadingNotes } = useOrganizationNotesContext();
 
@@ -65,7 +66,12 @@ const LeftSidebar = () => {
           >
             Workspace
           </SidebarSection>
-          <NoteList type="workspace" notes={notes} isLoading={isLoadingNotes} />
+          <NoteList
+            type="workspace"
+            notes={notes}
+            isLoading={isLoadingNotes}
+            selectedNoteId={noteId}
+          />
         </div>
 
         <div className="px-2 py-3">
@@ -84,7 +90,12 @@ const LeftSidebar = () => {
           >
             Private
           </SidebarSection>
-          <NoteList type="private" notes={notes} isLoading={isLoadingNotes} />
+          <NoteList
+            type="private"
+            notes={notes}
+            isLoading={isLoadingNotes}
+            selectedNoteId={noteId}
+          />
         </div>
       </div>
     </div>

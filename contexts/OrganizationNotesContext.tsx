@@ -7,6 +7,7 @@ import { useOrganizationContext } from './OrganizationContext';
 
 interface OrganizationNotesContextType {
   notes: Note[];
+  setNotes: React.Dispatch<React.SetStateAction<Note[]>>;
   isLoading: boolean;
   error: Error | null;
   totalCount: number;
@@ -51,6 +52,7 @@ export function OrganizationNotesProvider({ children }: { children: ReactNode })
 
   const value = {
     notes,
+    setNotes,
     isLoading,
     error,
     totalCount,

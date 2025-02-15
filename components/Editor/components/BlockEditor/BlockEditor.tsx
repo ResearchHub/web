@@ -11,6 +11,7 @@ import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 import { Placeholder } from '@tiptap/extension-placeholder';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import { Plugin } from '@tiptap/pm/state';
+import { Underline } from '@tiptap/extension-underline';
 
 // Modify the CustomDocument extension
 const CustomDocument = Document.extend({
@@ -113,6 +114,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
+      Underline,
       Placeholder.configure({
         includeChildren: true,
         placeholder: ({ node }) => {

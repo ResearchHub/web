@@ -12,6 +12,7 @@ import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 import { debounce } from 'lodash';
 import { Editor } from '@tiptap/core';
 import { NoteService } from '@/services/note.service';
+import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
 
 export default function NotePage() {
   const params = useParams();
@@ -24,6 +25,7 @@ export default function NotePage() {
   const { selectedOrg } = useOrganizationContext();
   const { setArticleType, setNoteId } = useNotebookPublish();
   const [{ isLoading: isUpdating }, updateNoteContent] = useNoteContent();
+  const { setNotes } = useOrganizationNotesContext();
 
   // Show funding modal and set article type when landing on a new funding note
   useEffect(() => {
@@ -58,6 +60,18 @@ export default function NotePage() {
           NoteService.updateNoteTitle({
             noteId,
             title: newTitle,
+          }).then(() => {
+            // Update the notes in context after successful title update
+            setNotes((prevNotes) =>
+              prevNotes.map((note) =>
+                note.id.toString() === noteId
+                  ? {
+                      ...note,
+                      title: newTitle,
+                    }
+                  : note
+              )
+            );
           })
         );
       }
@@ -97,15 +111,15 @@ export default function NotePage() {
     return <NotebookSkeleton />;
   }
 
+  // Let error boundary handle any errors
+  if (error) {
+    throw error;
+  }
+
   // Handle missing note data
   if (!note) {
     // return <NotebookSkeleton />;
     throw new Error('Note not found');
-  }
-
-  // Let error boundary handle any errors
-  if (error) {
-    throw error;
   }
 
   // If the note exists but has no content, use the preregistration template

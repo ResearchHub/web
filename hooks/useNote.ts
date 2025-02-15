@@ -33,7 +33,6 @@ export interface UseNoteReturn {
  * ```
  *
  * @param noteId - The ID of the note to fetch
- * @param initialNote - Optional initial note metadata to prevent unnecessary fetching
  * @returns UseNoteReturn object containing note data and loading state
  */
 export function useNote(noteId: string): UseNoteReturn {
@@ -42,35 +41,22 @@ export function useNote(noteId: string): UseNoteReturn {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-
     async function fetchNote() {
       try {
         setIsLoading(true);
         setError(null);
 
         const noteData = await NoteService.getNote(noteId);
-
-        if (!isMounted) return;
-
         setNote(noteData);
       } catch (err) {
-        if (!isMounted) return;
         setError(err instanceof Error ? err : new Error('Failed to fetch note'));
         setNote(null);
       } finally {
-        if (!isMounted) return;
         setIsLoading(false);
       }
     }
 
     fetchNote();
-
-    return () => {
-      isMounted = false;
-      controller.abort();
-    };
   }, [noteId]);
 
   return {
