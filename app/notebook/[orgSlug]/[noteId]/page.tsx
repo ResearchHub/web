@@ -22,10 +22,13 @@ export default function NotePage() {
   const isNewFunding = searchParams?.get('newFunding') === 'true';
   const [showFundingModal, setShowFundingModal] = useState(false);
 
-  const { selectedOrg } = useOrganizationContext();
+  const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
+  const { setNotes, isLoading: isLoadingOrgNotes } = useOrganizationNotesContext();
   const { setArticleType, setNoteId } = useNotebookPublish();
+  const [{ note, isLoading: isLoadingNote, error }, fetchNote] = useNote(noteId, {
+    sendImmediately: false,
+  });
   const [{ isLoading: isUpdating }, updateNoteContent] = useNoteContent();
-  const { setNotes } = useOrganizationNotesContext();
 
   // Show funding modal and set article type when landing on a new funding note
   useEffect(() => {
@@ -34,8 +37,6 @@ export default function NotePage() {
       setArticleType('preregistration');
     }
   }, [isNewFunding, setArticleType]);
-
-  const { note, isLoading: isLoadingNote, error } = useNote(noteId);
 
   const titleRef = useRef<string>('');
 
@@ -101,13 +102,19 @@ export default function NotePage() {
     setNoteId(noteId);
   }, [noteId, setNoteId]);
 
-  // Handle organization mismatch or missing data
-  if (orgSlug !== selectedOrg?.slug || !noteId) {
+  useEffect(() => {
+    if (!isLoadingOrg && selectedOrg) {
+      fetchNote().catch(console.error);
+    }
+  }, [isLoadingOrg, selectedOrg]);
+
+  // Handle loading states
+  if (isLoadingNote || isLoadingOrgNotes) {
     return <NotebookSkeleton />;
   }
 
-  // Handle loading states
-  if (isLoadingNote) {
+  // Handle organization mismatch or missing data
+  if (orgSlug !== selectedOrg?.slug || !noteId) {
     return <NotebookSkeleton />;
   }
 
@@ -118,8 +125,7 @@ export default function NotePage() {
 
   // Handle missing note data
   if (!note) {
-    // return <NotebookSkeleton />;
-    throw new Error('Note not found');
+    return <NotebookSkeleton />;
   }
 
   // If the note exists but has no content, use the preregistration template
@@ -128,7 +134,6 @@ export default function NotePage() {
 
   if (!content && !contentJson) {
     const defaultTemplate = JSON.stringify(preregistrationTemplate);
-    // content = defaultTemplate;
     contentJson = defaultTemplate;
   }
 

@@ -1,13 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { NoteService, NoteError } from '@/services/note.service';
 import type { NoteWithContent, Note, NoteAccess, NoteContent } from '@/types/note';
 import { ID } from '@/types/root';
 
-export interface UseNoteReturn {
+export interface UseNoteOptions {
+  sendImmediately?: boolean;
+}
+
+interface UseNoteState {
   note: NoteWithContent | null;
   isLoading: boolean;
   error: Error | null;
 }
+
+type FetchNoteFn = () => Promise<void>;
+type UseNoteReturn = [UseNoteState, FetchNoteFn];
 
 /**
  * Custom hook to fetch and manage note data.
@@ -35,35 +42,36 @@ export interface UseNoteReturn {
  * @param noteId - The ID of the note to fetch
  * @returns UseNoteReturn object containing note data and loading state
  */
-export function useNote(noteId: string): UseNoteReturn {
+export function useNote(
+  noteId: string,
+  options: UseNoteOptions = { sendImmediately: true }
+): UseNoteReturn {
   const [note, setNote] = useState<NoteWithContent | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    async function fetchNote() {
-      try {
-        setIsLoading(true);
-        setError(null);
+  const fetch = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-        const noteData = await NoteService.getNote(noteId);
-        setNote(noteData);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Failed to fetch note'));
-        setNote(null);
-      } finally {
-        setIsLoading(false);
-      }
+      const noteData = await NoteService.getNote(noteId);
+      setNote(noteData);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to fetch note'));
+      setNote(null);
+    } finally {
+      setIsLoading(false);
     }
-
-    fetchNote();
   }, [noteId]);
 
-  return {
-    note,
-    isLoading,
-    error,
-  };
+  useEffect(() => {
+    if (options.sendImmediately !== false) {
+      fetch();
+    }
+  }, [fetch, options.sendImmediately]);
+
+  return [{ note, isLoading, error }, fetch];
 }
 
 interface CreateNoteInput {

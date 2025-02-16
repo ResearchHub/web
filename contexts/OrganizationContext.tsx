@@ -28,56 +28,18 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Load organizations
-  useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-
-    const fetchOrganizations = async () => {
-      if (!session || status !== 'authenticated') {
-        setIsLoading(false);
-        return;
+  const syncOrganizationWithUrl = (orgs: Organization[]) => {
+    if (!orgs.length) {
+      return;
+    } else if (!currentOrgSlug) {
+      if (defaultOrg) {
+        router.replace(`/notebook/${defaultOrg.slug}`);
       }
-
-      try {
-        setError(null);
-        const orgs = await OrganizationService.getUserOrganizations(session);
-
-        if (!isMounted) return;
-
-        setOrganizations(orgs);
-
-        // Set default org if needed
-        if (orgs.length > 0 && !defaultOrg) {
-          const newDefaultOrg = orgs[0];
-          setDefaultOrg(newDefaultOrg);
-        }
-      } catch (err) {
-        if (!isMounted) return;
-        setError(err instanceof Error ? err : new Error('Failed to fetch organizations'));
-      } finally {
-        if (!isMounted) return;
-        setIsLoading(false);
-      }
-    };
-
-    fetchOrganizations();
-
-    return () => {
-      isMounted = false;
-      controller.abort();
-    };
-  }, [session?.user?.id, status]);
-
-  // Sync organization with URL
-  useEffect(() => {
-    // Don't sync if we don't have the necessary data
-    if (!organizations.length || !currentOrgSlug) {
       return;
     }
 
     // Find the organization that matches the current URL
-    const orgFromUrl = organizations.find((o) => o.slug === currentOrgSlug);
+    const orgFromUrl = orgs.find((o) => o.slug === currentOrgSlug);
 
     if (orgFromUrl) {
       // Valid org found, update selection if needed
@@ -89,7 +51,41 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
       // TODO: Redirect to the Error page
       router.replace('/notebook');
     }
-  }, [currentOrgSlug, organizations, router]);
+  };
+
+  const fetchOrganizations = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const orgs = await OrganizationService.getUserOrganizations(session);
+
+      setOrganizations(orgs);
+
+      if (orgs.length > 0 && !defaultOrg) {
+        setDefaultOrg(orgs[0]);
+      }
+
+      syncOrganizationWithUrl(orgs);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to fetch organizations'));
+      setOrganizations([]);
+      setDefaultOrg(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (status === 'loading') {
+      setIsLoading(true);
+      return;
+    } else if (!session || status !== 'authenticated') {
+      setIsLoading(false);
+      return;
+    }
+
+    fetchOrganizations();
+  }, [session?.user?.id, status]);
 
   const value = {
     organizations,

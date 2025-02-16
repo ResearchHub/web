@@ -16,39 +16,47 @@ interface OrganizationNotesContextType {
 const OrganizationNotesContext = createContext<OrganizationNotesContextType | null>(null);
 
 export function OrganizationNotesProvider({ children }: { children: ReactNode }) {
-  const { selectedOrg } = useOrganizationContext();
+  const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [totalCount, setTotalCount] = useState(0);
 
+  const fetchNotes = async (slug?: string) => {
+    try {
+      if (!slug) {
+        throw new Error('No organization slug provided');
+      }
+
+      setIsLoading(true);
+      setError(null);
+      console.log('fetching org notes!!!');
+      const data = await NoteService.getOrganizationNotes(slug);
+      setNotes(data.results);
+      setTotalCount(data.count);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to load notes'));
+      setNotes([]);
+      setTotalCount(0);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchNotes = async () => {
-      if (!selectedOrg) {
-        setNotes([]);
-        setTotalCount(0);
-        setError(null);
-        setIsLoading(false);
-        return;
-      }
+    if (isLoadingOrg) {
+      setIsLoading(true);
+      return;
+    } else if (!selectedOrg) {
+      setNotes([]);
+      setTotalCount(0);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
 
-      try {
-        setIsLoading(true);
-        setError(null);
-        const data = await NoteService.getOrganizationNotes(selectedOrg.slug);
-        setNotes(data.results);
-        setTotalCount(data.count);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Failed to load notes'));
-        setNotes([]);
-        setTotalCount(0);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchNotes();
-  }, [selectedOrg?.slug]);
+    fetchNotes(selectedOrg.slug);
+  }, [selectedOrg?.slug, isLoadingOrg]);
 
   const value = {
     notes,
