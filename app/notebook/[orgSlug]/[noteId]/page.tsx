@@ -13,6 +13,7 @@ import { debounce } from 'lodash';
 import { Editor } from '@tiptap/core';
 import { NoteService } from '@/services/note.service';
 import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
+import { getDocumentTitleFromEditor } from '@/components/Editor/lib/utils/documentTitle';
 
 export default function NotePage() {
   const params = useParams();
@@ -23,7 +24,7 @@ export default function NotePage() {
   const [showFundingModal, setShowFundingModal] = useState(false);
 
   const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
-  const { setNotes, isLoading: isLoadingOrgNotes } = useOrganizationNotesContext();
+  const { setNotes } = useOrganizationNotesContext();
   const { setArticleType, setNoteId } = useNotebookPublish();
   const [{ note, isLoading: isLoadingNote, error }, fetchNote] = useNote(noteId, {
     sendImmediately: false,
@@ -46,10 +47,7 @@ export default function NotePage() {
       const html = editor.getHTML();
 
       // Extract title from the first h1 heading
-      const firstHeading = json?.content?.find(
-        (node) => node.type === 'heading' && node.attrs?.level === 1
-      );
-      const newTitle = firstHeading?.content?.[0]?.text || '';
+      const newTitle = getDocumentTitleFromEditor(editor) || '';
 
       // Create an array of promises to execute
       const promises = [];
@@ -109,7 +107,7 @@ export default function NotePage() {
   }, [isLoadingOrg, selectedOrg, fetchNote]);
 
   // Handle loading states
-  if (isLoadingNote || isLoadingOrgNotes) {
+  if (isLoadingNote) {
     return <NotebookSkeleton />;
   }
 

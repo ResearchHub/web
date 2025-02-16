@@ -26,6 +26,8 @@ import { useRouter } from 'next/navigation';
 import { useCreatePost } from '@/hooks/useDocument';
 import toast from 'react-hot-toast';
 import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
+import { validatePreregistration } from '@/utils/validation';
+import { getDocumentTitleFromEditor } from '@/components/Editor/lib/utils/documentTitle';
 
 interface PublishingSidebarProps {
   bountyAmount: number | null;
@@ -88,10 +90,29 @@ export const PublishingSidebar = ({ bountyAmount, onBountyClick }: PublishingSid
   const router = useRouter();
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<{
+    budget?: string;
+    nftSupply?: string;
+    nftArt?: string;
+  }>({});
 
   const handlePublishClick = async () => {
+    // Clear any previous validation errors
+    setValidationErrors([]);
+    setFieldErrors({});
+
     if (articleType !== 'preregistration') {
       console.log('Publishing clicked for type:', articleType);
+      return;
+    }
+
+    const title = getDocumentTitleFromEditor(editor);
+    const validation = validatePreregistration(title, fundingData);
+
+    if (!validation.isValid) {
+      // Field errors are now directly mapped
+      setFieldErrors(validation.errors);
       return;
     }
 
@@ -103,10 +124,7 @@ export const PublishingSidebar = ({ bountyAmount, onBountyClick }: PublishingSid
       const text = editor?.getText();
       const json = editor?.getJSON();
       const html = editor?.getHTML();
-      const firstHeading = editor
-        ?.getJSON()
-        ?.content?.find((node) => node.type === 'heading' && node.attrs?.level === 1);
-      const title = firstHeading?.content?.[0]?.text || '';
+      const title = getDocumentTitleFromEditor(editor);
 
       const response = await createPreregistrationPost({
         ...fundingData,
@@ -208,6 +226,7 @@ export const PublishingSidebar = ({ bountyAmount, onBountyClick }: PublishingSid
                 onSubmit={handleFundingSubmit}
                 initialData={fundingData}
                 className="mt-2"
+                fieldErrors={fieldErrors}
               />
             </div>
           )}
@@ -304,12 +323,7 @@ export const PublishingSidebar = ({ bountyAmount, onBountyClick }: PublishingSid
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
         onConfirm={handleConfirmPublish}
-        title={
-          editor
-            ?.getJSON()
-            ?.content?.find((node) => node.type === 'heading' && node.attrs?.level === 1)
-            ?.content?.[0]?.text || 'Untitled Research'
-        }
+        title={getDocumentTitleFromEditor(editor) || 'Untitled Research'}
         isLoading={isLoadingCreatePost}
       />
     </div>

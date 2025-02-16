@@ -5,6 +5,7 @@ import { OrganizationService } from '@/services/organization.service';
 import { NoteService } from '@/services/note.service';
 import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
 import { initialContent } from '@/components/Editor/lib/data/initialContent';
+import { getDocumentTitle } from '@/components/Editor/lib/utils/documentTitle';
 // These settings ensure our notebook route always gets fresh data and never uses cached responses.
 export const dynamic = 'force-dynamic'; // Disable static optimization, ensuring fresh data on every request
 export const fetchCache = 'force-no-store'; // Prevent Next.js from caching fetch requests inside this route
@@ -21,10 +22,7 @@ async function createNoteWithContent(
   }
 ) {
   // Extract title from the first h1 heading in the template
-  const firstHeading = template.content?.find(
-    (node) => node.type === 'heading' && node.attrs?.level === 1
-  );
-  const title = firstHeading?.content?.[0]?.text || 'Untitled';
+  const title = getDocumentTitle(template) || 'Untitled';
 
   const newNote = await NoteService.createNote({
     organization_slug: orgSlug,
