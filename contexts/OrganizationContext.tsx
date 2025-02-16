@@ -27,66 +27,46 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Load organizations
-  useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
+  const fetchOrganizations = async () => {
+    try {
+      const orgs = await OrganizationService.getUserOrganizations(session);
+      setOrganizations(orgs);
 
-    const fetchOrganizations = async () => {
-      if (!session || status !== 'authenticated') {
-        setIsLoading(false);
-        return;
+      const newDefaultOrg = orgs[0];
+      if (newDefaultOrg) {
+        setDefaultOrg(newDefaultOrg);
       }
 
-      try {
-        setError(null);
-        const orgs = await OrganizationService.getUserOrganizations(session);
+      // Find the organization that matches the current URL
+      const orgFromUrl = organizations.find((o) => o.slug === currentOrgSlug);
 
-        if (!isMounted) return;
-
-        setOrganizations(orgs);
-
-        // Set default org if needed
-        if (orgs.length > 0 && !defaultOrg) {
-          const newDefaultOrg = orgs[0];
-          setDefaultOrg(newDefaultOrg);
-        }
-      } catch (err) {
-        if (!isMounted) return;
-        setError(err instanceof Error ? err : new Error('Failed to fetch organizations'));
-      } finally {
-        if (!isMounted) return;
-        setIsLoading(false);
+      // If we found a matching org and it's different from the current selection
+      if (orgFromUrl && (!selectedOrg || orgFromUrl.slug !== selectedOrg.slug)) {
+        setSelectedOrg(orgFromUrl);
       }
-    };
+      // If we can't find the org in the URL and we have a default, use that
+      else if (!orgFromUrl && newDefaultOrg && !selectedOrg) {
+        setSelectedOrg(newDefaultOrg);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to load organizations'));
+      setOrganizations([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchOrganizations();
-
-    return () => {
-      isMounted = false;
-      controller.abort();
-    };
-  }, [session?.user?.id, status]);
-
-  // Sync organization with URL
   useEffect(() => {
-    // Don't sync if we don't have the necessary data
-    if (!organizations.length || !currentOrgSlug) {
+    if (status === 'loading') {
+      setIsLoading(true);
+      return;
+    } else if (!session || status !== 'authenticated') {
+      setIsLoading(false);
       return;
     }
 
-    // Find the organization that matches the current URL
-    const orgFromUrl = organizations.find((o) => o.slug === currentOrgSlug);
-
-    // If we found a matching org and it's different from the current selection
-    if (orgFromUrl && (!selectedOrg || orgFromUrl.slug !== selectedOrg.slug)) {
-      setSelectedOrg(orgFromUrl);
-    }
-    // If we can't find the org in the URL and we have a default, use that
-    else if (!orgFromUrl && defaultOrg && !selectedOrg) {
-      setSelectedOrg(defaultOrg);
-    }
-  }, [currentOrgSlug, organizations, defaultOrg]);
+    fetchOrganizations();
+  }, [session?.user?.id, status]);
 
   const value = {
     organizations,

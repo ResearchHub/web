@@ -104,9 +104,9 @@ export default function NotePage() {
 
   useEffect(() => {
     if (!isLoadingOrg && selectedOrg) {
-      fetchNote().catch(console.error);
+      fetchNote();
     }
-  }, [isLoadingOrg, selectedOrg]);
+  }, [isLoadingOrg, selectedOrg, fetchNote]);
 
   // Handle loading states
   if (isLoadingNote || isLoadingOrgNotes) {
