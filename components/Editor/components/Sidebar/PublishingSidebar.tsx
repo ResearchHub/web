@@ -111,7 +111,6 @@ export const PublishingSidebar = ({ bountyAmount, onBountyClick }: PublishingSid
     const validation = validatePreregistration(title, fundingData);
 
     if (!validation.isValid) {
-      // Field errors are now directly mapped
       setFieldErrors(validation.errors);
       return;
     }

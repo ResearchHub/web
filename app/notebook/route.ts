@@ -21,7 +21,6 @@ async function createNoteWithContent(
     isNewFunding?: boolean;
   }
 ) {
-  // Extract title from the first h1 heading in the template
   const title = getDocumentTitle(template) || 'Untitled';
 
   const newNote = await NoteService.createNote({

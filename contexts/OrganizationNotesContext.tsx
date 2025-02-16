@@ -30,7 +30,6 @@ export function OrganizationNotesProvider({ children }: { children: ReactNode })
 
       setIsLoading(true);
       setError(null);
-      console.log('fetching org notes!!!');
       const data = await NoteService.getOrganizationNotes(slug);
       setNotes(data.results);
       setTotalCount(data.count);
