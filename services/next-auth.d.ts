@@ -19,5 +19,6 @@ declare module 'next-auth' {
 
   interface User {
     authToken?: string;
+    userData?: RHUser;
   }
 }

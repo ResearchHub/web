@@ -2,6 +2,7 @@ import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { AuthService } from '@/services/auth.service';
+import { isUser } from '@/types/user';
 
 const promptInvalidCredentials = () => null;
 
@@ -42,6 +43,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.fullName,
             authToken: loginResponse.key,
+            userData: user,
           };
         } catch (error) {
           return promptInvalidCredentials();
@@ -79,13 +81,44 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
 
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger }) {
+      // Handle initial sign in
       if (account && user) {
-        return {
-          ...token,
-          authToken: account.type === 'credentials' ? user.authToken : account.authToken,
-        };
+        if (account.type === 'credentials') {
+          return {
+            ...token,
+            authToken: user.authToken,
+            userData: user.userData,
+          };
+        } else if (account.type === 'oauth') {
+          const userData = await AuthService.fetchUserData(account.authToken as string);
+          return {
+            ...token,
+            authToken: account.authToken,
+            userData: userData.results[0],
+          };
+        }
       }
+
+      // The `useSession()` hook exposes a `update(data?: any): Promise<Session | null>` method that can be used to update the session
+      // the `update()` method will trigger a jwt callback with the `trigger: "update"` option.
+      // Handle token updates
+      if (trigger === 'update') {
+        try {
+          const userData = await AuthService.fetchUserData(token.authToken as string);
+          return {
+            ...token,
+            userData: userData.results[0],
+          };
+        } catch (error) {
+          console.error('Token update failed:', error);
+          return {
+            ...token,
+            error: 'RefreshAccessTokenError',
+          };
+        }
+      }
+
       return token;
     },
 
@@ -99,27 +132,17 @@ export const authOptions: NextAuthOptions = {
       }
 
       try {
-        const userData = await AuthService.fetchUserData(token.authToken as string);
-        // The API returns an array of results, but for user data we only expect
-        // and need the first element since it represents the current authenticated user
-        const isAuthenticated = Boolean(userData.results.length > 0 && userData.results[0]);
-
-        if (isAuthenticated) {
-          return {
-            ...session,
-            authToken: token.authToken,
-            isLoggedIn: true,
-            user: userData.results[0],
-          };
-        } else {
-          return {
-            ...session,
-            isLoggedIn: false,
-            error: 'AccessDenied',
-          };
+        if (!token.userData || !isUser(token.userData)) {
+          throw new Error('Invalid user data structure');
         }
+
+        return {
+          ...session,
+          authToken: token.authToken,
+          isLoggedIn: true,
+          user: token.userData,
+        };
       } catch (error) {
-        console.error('Session callback failed:', error);
         return {
           ...session,
           user: undefined,

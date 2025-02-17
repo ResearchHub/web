@@ -33,3 +33,25 @@ export const transformUser = (raw: any): TransformedUser => {
   }
   return base;
 };
+
+// Create a type-safe checker that will automatically update with RHUser changes
+const requiredUserProperties: Record<keyof User, (value: any) => boolean> = {
+  id: (v) => typeof v === 'number',
+  email: (v) => typeof v === 'string',
+  firstName: (v) => typeof v === 'string',
+  lastName: (v) => typeof v === 'string',
+  fullName: (v) => typeof v === 'string',
+  isVerified: (v) => typeof v === 'boolean',
+  authorProfile: (v) => v === undefined || typeof v === 'object',
+};
+
+export function isUser(user: any): user is User {
+  if (typeof user !== 'object' || user === null) {
+    return false;
+  }
+
+  // This will automatically check all required properties
+  return Object.entries(requiredUserProperties).every(([key, validator]) => {
+    return validator(user[key]);
+  });
+}
