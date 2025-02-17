@@ -102,7 +102,6 @@ export const authOptions: NextAuthOptions = {
 
       // The `useSession()` hook exposes a `update(data?: any): Promise<Session | null>` method that can be used to update the session
       // the `update()` method will trigger a jwt callback with the `trigger: "update"` option.
-      // Handle token updates
       if (trigger === 'update') {
         try {
           const userData = await AuthService.fetchUserData(token.authToken as string);
