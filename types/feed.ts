@@ -5,9 +5,9 @@ import { Topic } from './topic';
 import { transformTopic } from './work';
 import { createTransformer, BaseTransformed } from './transformer';
 
-export type FeedActionType = 'repost' | 'contribute' | 'publish' | 'post';
+export type FeedActionType = 'repost' | 'contribute' | 'open' | 'publish' | 'post';
 
-export type ContentType = 'paper' | 'funding_request';
+export type ContentType = 'bounty' | 'funding_request' | 'paper';
 
 interface BaseContent {
   id: string;
@@ -17,6 +17,14 @@ interface BaseContent {
   slug: string;
   title?: string;
   actor?: AuthorProfile;
+}
+
+export interface Bounty extends BaseContent {
+  type: 'bounty';
+  abstract: string;
+  amount: number;
+  paper?: Paper;
+  title: string;
 }
 
 export interface Paper extends BaseContent {
@@ -41,7 +49,7 @@ export interface FundingRequest extends BaseContent {
   preregistered?: boolean;
 }
 
-export type Content = Paper | FundingRequest;
+export type Content = Bounty | FundingRequest | Paper;
 
 export interface FeedEntry {
   id: string;
