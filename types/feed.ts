@@ -94,13 +94,17 @@ export interface FeedApiResponse {
 export type TransformedContent = Content & BaseTransformed;
 export type TransformedFeedEntry = FeedEntry & BaseTransformed;
 
-const baseTransformContentObject = (params: { contentObject: any; type: string }): Content => {
-  const { contentObject, type } = params;
+const baseTransformContentObject = (params: { response: FeedResponse; type: string }): Content => {
+  const { response, type } = params;
+  const contentObject = response.content_object;
+
   let transformedActor;
   if (contentObject.author) {
     transformedActor = transformAuthorProfile(contentObject.author);
   } else if (contentObject.authors?.length > 0) {
     transformedActor = transformAuthorProfile(contentObject.authors[0]);
+  } else if (response.author) {
+    transformedActor = transformAuthorProfile(response.author);
   }
 
   const baseContent = {
@@ -119,6 +123,17 @@ const baseTransformContentObject = (params: { contentObject: any; type: string }
   };
 
   switch (type.toLowerCase()) {
+    case 'bounty': {
+      const bounty: Bounty = {
+        ...baseContent,
+        type: 'bounty',
+        abstract: contentObject.abstract,
+        amount: contentObject.amount,
+        paper: contentObject.paper,
+        title: contentObject.title,
+      };
+      return bounty;
+    }
     case 'paper': {
       const paper: Paper = {
         ...baseContent,
@@ -142,7 +157,7 @@ const baseTransformContentObject = (params: { contentObject: any; type: string }
 };
 
 export const transformContentObject = createTransformer<
-  { contentObject: any; type: string },
+  { response: FeedResponse; type: string },
   Content
 >((params) => baseTransformContentObject(params));
 
@@ -154,7 +169,7 @@ export const transformFeedEntry = createTransformer<FeedResponse, FeedEntry>((re
     id: response.id.toString(),
     timestamp: response.action_date,
     action: response.action.toLowerCase() as FeedActionType,
-    content: transformContentObject({ contentObject, type: contentType }),
+    content: transformContentObject({ response, type: contentType }),
     metrics: {
       votes: contentObject.metrics?.votes || 0,
       comments: contentObject.metrics?.comments || 0,
