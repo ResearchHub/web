@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Settings } from 'lucide-react';
 import { InterestSelector, Interest } from '@/components/InterestSelector/InterestSelector';
 
-type FeedTab = 'for-you' | 'following' | 'popular' | 'latest';
+type FeedTab = 'following' | 'latest';
 
 interface FeedTabsProps {
   activeTab: FeedTab;
@@ -25,16 +25,8 @@ export const FeedTabs: FC<FeedTabsProps> = ({
 
   const tabs = [
     {
-      id: 'for-you',
-      label: 'For You',
-    },
-    {
       id: 'following',
       label: 'Following',
-    },
-    {
-      id: 'popular',
-      label: 'Popular',
     },
     {
       id: 'latest',

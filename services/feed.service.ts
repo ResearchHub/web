@@ -7,14 +7,12 @@ export class FeedService {
   static async getFeed(params?: {
     page?: number;
     pageSize?: number;
-    action?: string;
-    contentType?: string;
+    feed_view?: string;
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.pageSize) queryParams.append('page_size', params.pageSize.toString());
-    if (params?.action) queryParams.append('action', params.action);
-    if (params?.contentType) queryParams.append('content_type', params.contentType);
+    if (params?.feed_view) queryParams.append('feed_view', params.feed_view);
 
     const url = `${this.BASE_PATH}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     const response = await ApiClient.get<FeedApiResponse>(url);
