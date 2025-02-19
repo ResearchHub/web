@@ -8,17 +8,55 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   helperText?: string;
   label?: string;
   required?: boolean;
+  inputSize?: 'sm' | 'md' | 'lg';
+  labelClassName?: string;
 }
 
+const sizeClasses = {
+  sm: {
+    input: 'px-3 py-1.5 text-sm',
+    label: 'text-xs',
+    iconPadding: 'pl-9',
+    iconPosition: 'left-3',
+  },
+  md: {
+    input: 'px-4 py-2 text-sm',
+    label: 'text-sm',
+    iconPadding: 'pl-11',
+    iconPosition: 'left-4',
+  },
+  lg: {
+    input: 'px-4 py-3 text-base',
+    label: 'text-base',
+    iconPadding: 'pl-12',
+    iconPosition: 'left-4',
+  },
+};
+
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, icon, error, rightElement, helperText, label, required, ...props }, ref) => {
+  (
+    {
+      className,
+      icon,
+      error,
+      rightElement,
+      helperText,
+      label,
+      required,
+      inputSize = 'md',
+      labelClassName,
+      ...props
+    },
+    ref
+  ) => {
     const isRoundedFull = className?.includes('rounded-full');
     const roundedClass = isRoundedFull ? 'rounded-full' : 'rounded-lg';
+    const sizeClass = sizeClasses[inputSize];
 
     return (
       <div>
         {label && (
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
+          <label className={cn('block mb-1 text-gray-700', sizeClass.label, labelClassName)}>
             {label} {required && <span className="text-gray-700">*</span>}
           </label>
         )}
@@ -30,13 +68,18 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             className
           )}
         >
-          {icon && <div className="absolute left-4 top-1/2 -translate-y-1/2">{icon}</div>}
+          {icon && (
+            <div className={cn('absolute top-1/2 -translate-y-1/2', sizeClass.iconPosition)}>
+              {icon}
+            </div>
+          )}
           <input
             className={cn(
-              'w-full px-4 py-2 text-sm outline-none border-none',
+              'w-full outline-none border-none',
               roundedClass,
               'placeholder:text-gray-500',
-              icon && 'pl-11',
+              sizeClass.input,
+              icon && sizeClass.iconPadding,
               className?.includes('bg-') ? className : 'bg-white'
             )}
             ref={ref}

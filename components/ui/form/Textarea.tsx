@@ -6,14 +6,15 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
   label?: string;
   helperText?: string;
   required?: boolean;
+  labelClassName?: string;
 }
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, error, label, helperText, required, ...props }, ref) => {
+  ({ className, error, label, helperText, required, labelClassName, ...props }, ref) => {
     return (
       <div>
         {label && (
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
+          <label className={cn('block text-sm text-gray-700 mb-1', labelClassName)}>
             {label} {required && <span className="text-gray-700">*</span>}
           </label>
         )}
@@ -26,8 +27,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         >
           <textarea
             className={cn(
-              'w-full px-4 py-2 text-sm outline-none border-none rounded-lg resize-none',
-              'placeholder:text-gray-500 min-h-[100px]',
+              'w-full outline-none border-none rounded-lg',
+              'placeholder:text-gray-500',
               className?.includes('bg-') ? className : 'bg-white'
             )}
             ref={ref}

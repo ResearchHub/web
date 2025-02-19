@@ -42,7 +42,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
               </h3>
             </div>
             <div className="space-y-2">
-              <BaseMenuItem onClick={() => router.push('/paper/create')} className="w-full px-2">
+              <BaseMenuItem onClick={() => router.push('/paper/new')} className="w-full px-2">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
                     <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">

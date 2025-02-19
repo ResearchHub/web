@@ -8,9 +8,10 @@ interface AvatarProps {
   alt: string;
   size?: 'xxs' | 'xs' | 'sm' | 'md';
   className?: string;
+  ring?: boolean;
 }
 
-export const Avatar: FC<AvatarProps> = ({ src, alt, size = 'md', className }) => {
+export const Avatar: FC<AvatarProps> = ({ src, alt, size = 'md', className, ring = false }) => {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -38,10 +39,10 @@ export const Avatar: FC<AvatarProps> = ({ src, alt, size = 'md', className }) =>
   };
 
   const sizeClasses = {
-    xxs: 'h-5 w-5 text-[8px]',
-    xs: 'h-6 w-6 text-[10px]',
-    sm: 'h-8 w-8 text-xs',
-    md: 'h-10 w-10 text-sm',
+    xxs: 'h-[20px] w-[20px] text-[8px]',
+    xs: 'h-[24px] w-[24px] text-[10px]',
+    sm: 'h-[32px] w-[32px] text-xs',
+    md: 'h-[40px] w-[40px] text-sm',
   };
 
   const handleImageError = () => {
@@ -56,6 +57,7 @@ export const Avatar: FC<AvatarProps> = ({ src, alt, size = 'md', className }) =>
       className={cn(
         'relative inline-flex rounded-full bg-gray-100 overflow-hidden',
         'flex items-center justify-center',
+        ring && 'ring-2 ring-gray-200',
         sizeClasses[size],
         className
       )}
