@@ -57,13 +57,13 @@ export function FundingSection() {
           }
           helperText="Set your total funding goal for this research project"
           onChange={(e) => {
-            const formatted = formatNumberWithCommas(e.target.value);
-            setValue('budget', formatted, { shouldValidate: true });
+            const value = e.target.value.replace(/[^0-9.]/g, '');
+            setValue('budget', value, { shouldValidate: true });
           }}
         />
       </div>
 
-      <div className="space-y-3 pt-4 border-t border-gray-200">
+      {/* <div className="space-y-3 pt-4 border-t border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Gift className="h-4 w-4 text-gray-700" />
@@ -83,7 +83,7 @@ export function FundingSection() {
 
       {rewardFunders && (
         <>
-          {/* NFT Art Upload Section */}
+NFT Art Upload Section
           <div className="pt-2">
             <label className="block text-sm font-medium text-gray-900 mb-2">NFT Art</label>
             <div
@@ -125,7 +125,7 @@ export function FundingSection() {
             />
           </div>
 
-          {/* NFT Supply Section */}
+NFT Supply Section
           <div>
             <Input
               {...register('nftSupply')}
@@ -143,7 +143,7 @@ export function FundingSection() {
             />
           </div>
 
-          {/* Donation Rewards Section */}
+Donation Rewards Section
           <div className="pt-2">
             <div className="flex items-center gap-2 mb-2">
               <Gift className="h-4 w-4 text-gray-700" />
@@ -169,7 +169,7 @@ export function FundingSection() {
             </p>
           </div>
         </>
-      )}
+      )} */}
     </div>
   );
 }

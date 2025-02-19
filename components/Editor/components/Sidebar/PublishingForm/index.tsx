@@ -2,7 +2,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { publishingFormSchema } from './schema';
 import type { PublishingFormData } from './schema';
-import { ArticleType, useNotebookPublish } from '@/contexts/NotebookPublishContext';
+import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 import { WorkTypeSection } from './components/WorkTypeSection';
 import { FundingSection } from './components/FundingSection';
 import { AuthorsSection } from './components/AuthorsSection';
@@ -10,12 +10,17 @@ import { TopicsSection } from './components/TopicsSection';
 import { JournalSection } from './components/JournalSection';
 import { Button } from '@/components/ui/Button';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCreatePost } from '@/hooks/useDocument';
 import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
 import { getDocumentTitleFromEditor } from '@/components/Editor/lib/utils/documentTitle';
 import { ResearchCoinSection } from './components/ResearchCoinSection';
 import { toast } from 'react-hot-toast';
+import {
+  loadPublishingFormFromStorage,
+  savePublishingFormToStorage,
+} from '@/components/Editor/lib/utils/publishingFormStorage';
+import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSkeleton';
 
 interface PublishingFormProps {
   bountyAmount: number | null;
@@ -23,6 +28,8 @@ interface PublishingFormProps {
 }
 
 export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormProps) {
+  const { noteId, editor } = useNotebookPublish();
+
   const methods = useForm<PublishingFormData>({
     defaultValues: {
       articleType: 'research',
@@ -31,18 +38,53 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       rewardFunders: false,
       nftSupply: '1000',
       isJournalEnabled: false,
+      budget: '',
     },
     resolver: zodResolver(publishingFormSchema),
     mode: 'onChange',
   });
 
-  const { watch, clearErrors } = methods;
+  // Load stored data after component mounts
+  useEffect(() => {
+    if (noteId) {
+      const data = loadPublishingFormFromStorage(noteId.toString());
+      if (data) {
+        Object.entries(data).forEach(([key, value]) => {
+          methods.setValue(
+            key as keyof PublishingFormData,
+            key === 'budget' ? parseFloat(value.toString()) || 0 : value
+          );
+        });
+      }
+    }
+  }, [noteId, methods]);
+
+  // Add effect to save form data when it changes
+  useEffect(() => {
+    if (!noteId) return;
+
+    const subscription = methods.watch((data) => {
+      savePublishingFormToStorage(noteId.toString(), data as Partial<PublishingFormData>);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [methods, noteId]);
+
+  const { watch, clearErrors, setValue } = methods;
   const articleType = watch('articleType');
   const isJournalEnabled = watch('isJournalEnabled');
   const [{ isLoading: isLoadingCreatePost }, createPreregistrationPost] = useCreatePost();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const router = useRouter();
-  const { noteId, editor } = useNotebookPublish();
+  const searchParams = useSearchParams();
+
+  const isNewFunding = searchParams?.get('newFunding') === 'true';
+
+  useEffect(() => {
+    if (isNewFunding) {
+      setValue('articleType', 'preregistration');
+    }
+  }, [isNewFunding, setValue]);
 
   // Reset form errors when article type changes
   useEffect(() => {
@@ -82,7 +124,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       const formData = methods.getValues();
 
       const response = await createPreregistrationPost({
-        budget: formData.budget || '',
+        budget: formData.budget.toString(),
         rewardFunders: formData.rewardFunders || false,
         nftArt: formData.nftArt || null,
         nftSupply: formData.nftSupply || '1000',
@@ -101,6 +143,10 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       setShowConfirmModal(false);
     }
   };
+
+  if (!noteId) {
+    return <PublishingFormSkeleton />;
+  }
 
   return (
     <FormProvider {...methods}>

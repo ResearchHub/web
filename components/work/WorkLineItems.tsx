@@ -63,8 +63,6 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
       toast.error(
         error instanceof Error ? error.message : 'Unable to process your vote. Please try again.'
       );
-    } finally {
-      setVoteCount((prev) => prev + (wasUpvoted ? -1 : 1));
     }
   }, [work.contentType, work.id, isUpvoted, vote, refreshVotes]);
 
@@ -82,7 +80,7 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
                 : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
             } ${isVoting || isLoadingVotes ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            <ArrowUp className={`h-4 w-4 ${isUpvoted ? 'fill-current' : ''}`} />
+            <ArrowUp className={`h-4 w-4`} />
             <span>{voteCount}</span>
           </button>
 

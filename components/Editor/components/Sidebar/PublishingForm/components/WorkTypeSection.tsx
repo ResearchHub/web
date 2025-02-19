@@ -3,7 +3,8 @@ import { FileText, ChevronDown, Wallet } from 'lucide-react';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { cn } from '@/utils/styles';
 import { SectionHeader } from './SectionHeader';
-import { ArticleType } from '@/contexts/NotebookPublishContext';
+
+export type ArticleType = 'research' | 'preregistration' | 'other';
 
 const articleTypes: Record<ArticleType, { title: string; description: string }> = {
   research: {

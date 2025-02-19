@@ -18,7 +18,6 @@ import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 
 export default function NotebookLayout({ children }: { children: React.ReactNode }) {
-  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (

@@ -1,7 +1,7 @@
 'use client';
 
 import { useNote, useUpdateNote } from '@/hooks/useNote';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { BlockEditor } from '@/components/Editor/components/BlockEditor/BlockEditor';
 import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
@@ -9,11 +9,7 @@ import { useEffect, useState, useRef } from 'react';
 import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
 import { FundingTimelineModal } from '@/components/modals/FundingTimelineModal';
 import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
-import { debounce } from 'lodash';
-import { Editor } from '@tiptap/core';
-import { NoteService } from '@/services/note.service';
 import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
-import { getDocumentTitleFromEditor } from '@/components/Editor/lib/utils/documentTitle';
 
 export default function NotePage() {
   const params = useParams();
@@ -25,7 +21,7 @@ export default function NotePage() {
 
   const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
   const { setNotes } = useOrganizationNotesContext();
-  const { setArticleType, setNoteId } = useNotebookPublish();
+  const { setNoteId } = useNotebookPublish();
   const [{ note, isLoading: isLoadingNote, error }, fetchNote] = useNote(noteId, {
     sendImmediately: false,
   });
@@ -49,9 +45,8 @@ export default function NotePage() {
   useEffect(() => {
     if (isNewFunding) {
       setShowFundingModal(true);
-      setArticleType('preregistration');
     }
-  }, [isNewFunding, setArticleType]);
+  }, [isNewFunding]);
 
   useEffect(() => {
     setNoteId(noteId);
