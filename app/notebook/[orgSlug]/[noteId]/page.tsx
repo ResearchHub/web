@@ -21,7 +21,7 @@ export default function NotePage() {
 
   const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
   const { setNotes } = useOrganizationNotesContext();
-  const { setNoteId } = useNotebookPublish();
+  const { setNoteId, setNote } = useNotebookPublish();
   const [{ note, isLoading: isLoadingNote, error }, fetchNote] = useNote(noteId, {
     sendImmediately: false,
   });
@@ -57,6 +57,12 @@ export default function NotePage() {
       fetchNote();
     }
   }, [isLoadingOrg, selectedOrg, fetchNote]);
+
+  useEffect(() => {
+    if (note) {
+      setNote(note);
+    }
+  }, [note, setNote]);
 
   // Handle loading states
   if (isLoadingNote) {

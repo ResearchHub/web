@@ -50,10 +50,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       const data = loadPublishingFormFromStorage(noteId.toString());
       if (data) {
         Object.entries(data).forEach(([key, value]) => {
-          methods.setValue(
-            key as keyof PublishingFormData,
-            key === 'budget' ? parseFloat(value.toString()) || 0 : value
-          );
+          methods.setValue(key as keyof PublishingFormData, value);
         });
       }
     }

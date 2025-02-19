@@ -15,6 +15,8 @@ interface BaseMenuProps {
   sideOffset?: number;
   animate?: boolean;
   onOpenChange?: (open: boolean) => void;
+  disabled?: boolean;
+  sameWidth?: boolean;
 }
 
 export const BaseMenu: FC<BaseMenuProps> = ({
@@ -26,6 +28,8 @@ export const BaseMenu: FC<BaseMenuProps> = ({
   sideOffset = 5,
   animate = false,
   onOpenChange,
+  disabled = false,
+  sameWidth = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -52,11 +56,15 @@ export const BaseMenu: FC<BaseMenuProps> = ({
       )}
       <DropdownMenu.Root
         onOpenChange={(open) => {
-          setIsOpen(open);
-          onOpenChange?.(open);
+          if (!disabled) {
+            setIsOpen(open);
+            onOpenChange?.(open);
+          }
         }}
       >
-        <DropdownMenu.Trigger asChild>{trigger}</DropdownMenu.Trigger>
+        <DropdownMenu.Trigger disabled={disabled} asChild>
+          {trigger}
+        </DropdownMenu.Trigger>
 
         <DropdownMenu.Portal>
           <DropdownMenu.Content
@@ -67,7 +75,10 @@ export const BaseMenu: FC<BaseMenuProps> = ({
               animate && 'animate-in fade-in-0 slide-in-from-top-8 duration-200',
               className
             )}
-            style={{ zIndex: 100000 }}
+            style={{
+              zIndex: 100000,
+              ...(sameWidth && { width: 'var(--radix-dropdown-menu-trigger-width)' }),
+            }}
           >
             {children}
           </DropdownMenu.Content>

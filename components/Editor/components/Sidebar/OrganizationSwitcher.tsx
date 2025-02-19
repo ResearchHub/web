@@ -3,9 +3,9 @@
 import { ChevronDown, Settings } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
-import { useState } from 'react';
 import type { Organization } from '@/types/organization';
 import { OrganizationSwitcherSkeleton } from '@/components/skeletons/OrganizationSwitcherSkeleton';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 
 interface OrganizationSwitcherProps {
   /** List of available organizations */
@@ -31,8 +31,6 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
   onOrgSelect,
   isLoading = false,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
   if (isLoading || !selectedOrg) {
     return <OrganizationSwitcherSkeleton />;
   }
@@ -40,46 +38,35 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
   const handleOrgSelect = async (org: Organization) => {
     // If the selected organization is already active, just close the list
     if (org.slug === selectedOrg?.slug) {
-      setIsOpen(false);
       return;
     }
 
     // Trigger callback to inform parent container about the organization change
     await onOrgSelect(org);
-    setIsOpen(false);
   };
+
+  const trigger = (
+    <button className="w-full flex items-center justify-between px-2 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+      <div className="flex items-center gap-2">
+        <Avatar
+          src={selectedOrg.coverImage}
+          alt={selectedOrg.name}
+          size="sm"
+          className="bg-gradient-to-br from-indigo-500 to-purple-500"
+        />
+        <span className="font-medium truncate">{selectedOrg.name}</span>
+      </div>
+      <ChevronDown className="h-4 w-4 text-gray-500" />
+    </button>
+  );
 
   return (
     <div className="p-4 border-b border-gray-200">
       <div className="relative">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between px-2 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-        >
-          <div className="flex items-center gap-2">
-            <Avatar
-              src={selectedOrg.coverImage}
-              alt={selectedOrg.name}
-              size="sm"
-              className="bg-gradient-to-br from-indigo-500 to-purple-500"
-            />
-            <span className="font-medium truncate">{selectedOrg.name}</span>
-          </div>
-          <ChevronDown
-            className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
-              isOpen ? 'transform rotate-180' : ''
-            }`}
-          />
-        </button>
-
-        {isOpen && organizations.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-            {organizations.map((org) => (
-              <button
-                key={org.id}
-                onClick={() => handleOrgSelect(org)}
-                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-left"
-              >
+        <BaseMenu trigger={trigger} align="start" className="w-full" sameWidth>
+          {organizations.map((org) => (
+            <BaseMenuItem key={org.id} onClick={() => handleOrgSelect(org)}>
+              <div className="flex items-center gap-2 w-full">
                 <Avatar
                   src={org.coverImage}
                   alt={org.name}
@@ -87,10 +74,10 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
                   className="bg-gradient-to-br from-indigo-500 to-purple-500"
                 />
                 <span className="font-medium truncate">{org.name}</span>
-              </button>
-            ))}
-          </div>
-        )}
+              </div>
+            </BaseMenuItem>
+          ))}
+        </BaseMenu>
       </div>
 
       <div className="mt-3 space-y-1">
