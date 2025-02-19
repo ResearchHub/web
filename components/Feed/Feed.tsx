@@ -28,6 +28,7 @@ export const Feed: FC = () => {
           onTabChange={setActiveTab}
           onRefresh={refresh}
           onCustomizeChange={setIsCustomizing}
+          isLoading={isLoading}
         />
 
         {!isCustomizing && (
