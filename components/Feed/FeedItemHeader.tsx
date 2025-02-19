@@ -24,36 +24,56 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   size = 'sm',
 }) => {
   const getActionText = () => {
-    switch (action) {
-      case 'publish':
-        return `published a ${content.type.replace('_', ' ')}`;
+    switch (content.type) {
+      case 'bounty':
+        return `${action}ed a bounty for ${formatRSC({ amount: content.amount, shorten: true })} RSC`;
+      case 'paper':
+        return `${action}ed a ${content.type.replace('_', ' ')}`;
       default:
         return action;
     }
   };
 
   const getAvatarItems = () => {
-    if (content.type === 'paper') {
-      return content.authors.map((author: AuthorProfile) => ({
-        src: author.profileImage,
-        alt: author.fullName,
-        tooltip: author.fullName,
-      }));
+    switch (content.type) {
+      case 'bounty':
+        return [
+          {
+            src: content.actor?.profileImage ?? '',
+            alt: content.actor?.fullName ?? '',
+            tooltip: content.actor?.fullName,
+          },
+        ];
+      case 'paper':
+        return content.authors.map((author: AuthorProfile) => ({
+          src: author.profileImage ?? '',
+          alt: author.fullName ?? '',
+          tooltip: author.fullName,
+        }));
+      default:
+        return [];
     }
-
-    return [];
   };
 
   const getAuthors = () => {
-    if (content.type === 'paper') {
-      return content.authors.map((author: AuthorProfile) => ({
-        name: author.fullName,
-        verified: author.user?.isVerified,
-        profileUrl: author.profileUrl,
-      }));
+    switch (content.type) {
+      case 'bounty':
+        return [
+          {
+            name: content.actor?.fullName ?? '',
+            verified: content.actor?.user?.isVerified ?? false,
+            profileUrl: content.actor?.profileUrl ?? '',
+          },
+        ];
+      case 'paper':
+        return content.authors.map((author: AuthorProfile) => ({
+          name: author.fullName ?? '',
+          verified: author.user?.isVerified ?? false,
+          profileUrl: author.profileUrl ?? '',
+        }));
+      default:
+        return [];
     }
-
-    return [];
   };
 
   return (

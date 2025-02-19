@@ -5,9 +5,9 @@ import { Topic } from './topic';
 import { transformTopic } from './work';
 import { createTransformer, BaseTransformed } from './transformer';
 
-export type FeedActionType = 'repost' | 'contribute' | 'publish' | 'post';
+export type FeedActionType = 'repost' | 'contribute' | 'open' | 'publish' | 'post';
 
-export type ContentType = 'paper' | 'funding_request';
+export type ContentType = 'bounty' | 'funding_request' | 'paper';
 
 interface BaseContent {
   id: string;
@@ -17,6 +17,14 @@ interface BaseContent {
   slug: string;
   title?: string;
   actor?: AuthorProfile;
+}
+
+export interface Bounty extends BaseContent {
+  type: 'bounty';
+  abstract: string;
+  amount: number;
+  paper?: Paper;
+  title: string;
 }
 
 export interface Paper extends BaseContent {
@@ -41,7 +49,7 @@ export interface FundingRequest extends BaseContent {
   preregistered?: boolean;
 }
 
-export type Content = Paper | FundingRequest;
+export type Content = Bounty | FundingRequest | Paper;
 
 export interface FeedEntry {
   id: string;
@@ -86,13 +94,17 @@ export interface FeedApiResponse {
 export type TransformedContent = Content & BaseTransformed;
 export type TransformedFeedEntry = FeedEntry & BaseTransformed;
 
-const baseTransformContentObject = (params: { contentObject: any; type: string }): Content => {
-  const { contentObject, type } = params;
+const baseTransformContentObject = (params: { response: FeedResponse; type: string }): Content => {
+  const { response, type } = params;
+  const contentObject = response.content_object;
+
   let transformedActor;
   if (contentObject.author) {
     transformedActor = transformAuthorProfile(contentObject.author);
   } else if (contentObject.authors?.length > 0) {
     transformedActor = transformAuthorProfile(contentObject.authors[0]);
+  } else if (response.author) {
+    transformedActor = transformAuthorProfile(response.author);
   }
 
   const baseContent = {
@@ -111,6 +123,17 @@ const baseTransformContentObject = (params: { contentObject: any; type: string }
   };
 
   switch (type.toLowerCase()) {
+    case 'bounty': {
+      const bounty: Bounty = {
+        ...baseContent,
+        type: 'bounty',
+        abstract: contentObject.abstract,
+        amount: contentObject.amount,
+        paper: contentObject.paper,
+        title: contentObject.title,
+      };
+      return bounty;
+    }
     case 'paper': {
       const paper: Paper = {
         ...baseContent,
@@ -134,7 +157,7 @@ const baseTransformContentObject = (params: { contentObject: any; type: string }
 };
 
 export const transformContentObject = createTransformer<
-  { contentObject: any; type: string },
+  { response: FeedResponse; type: string },
   Content
 >((params) => baseTransformContentObject(params));
 
@@ -146,7 +169,7 @@ export const transformFeedEntry = createTransformer<FeedResponse, FeedEntry>((re
     id: response.id.toString(),
     timestamp: response.action_date,
     action: response.action.toLowerCase() as FeedActionType,
-    content: transformContentObject({ contentObject, type: contentType }),
+    content: transformContentObject({ response, type: contentType }),
     metrics: {
       votes: contentObject.metrics?.votes || 0,
       comments: contentObject.metrics?.comments || 0,

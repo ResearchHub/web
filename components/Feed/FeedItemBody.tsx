@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, useState } from 'react';
-import { Content, FeedEntry } from '@/types/feed';
+import { Bounty, Content, FeedEntry, Paper } from '@/types/feed';
 import { Button } from '@/components/ui/Button';
 import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
@@ -50,6 +50,8 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
 
     const itemContent = (() => {
       switch (item.type) {
+        case 'bounty':
+          return renderBounty(item, expandedPaperIds.has(item.id), () => toggleExpanded(item.id));
         case 'paper':
           return renderPaper(item, expandedPaperIds.has(item.id), () => toggleExpanded(item.id));
         default:
@@ -59,13 +61,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
 
     if (!itemContent) return null;
 
-    const getTypeLabel = (type: string) => {
-      if (type === 'funding_request') return 'Preregistration';
-      else if (type === 'review') return 'Peer Review';
-      return type.replace('_', ' ');
-    };
-
-    const isCard = isTarget || item.type === 'paper';
+    const isCard = isTarget || item.type === 'bounty' || item.type === 'paper';
 
     const renderCard = (children: React.ReactNode) => {
       if (!isCard) return children;
@@ -82,9 +78,14 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
     return renderCard(<div>{itemContent}</div>);
   };
 
-  const renderPaper = (paper: Content, isExpanded: boolean, onToggleExpand: () => void) => {
-    if (paper.type !== 'paper') return null;
+  const renderBounty = (bounty: Bounty, isExpanded: boolean, onToggleExpand: () => void) => {
+    if (bounty.paper) {
+      return renderPaper(bounty.paper, isExpanded, onToggleExpand);
+    }
+    return <div>An amount of {bounty.amount} has been added to the bounty.</div>;
+  };
 
+  const renderPaper = (paper: Paper, isExpanded: boolean, onToggleExpand: () => void) => {
     const truncateAbstract = (text: string, limit: number = 200) => {
       if (text.length <= limit) return text;
       return text.slice(0, limit).trim() + '...';
