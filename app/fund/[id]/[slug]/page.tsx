@@ -10,7 +10,7 @@ import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import type { WorkMetadata } from '@/services/metadata.service';
 import { FundItem } from '@/components/Fund/FundItem';
 import { WorkLineItems } from '@/components/work/WorkLineItems';
-import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/BlockEditorClientWrapper';
+import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
 
 interface Props {
   params: Promise<{

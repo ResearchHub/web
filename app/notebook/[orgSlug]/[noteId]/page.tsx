@@ -1,6 +1,6 @@
 'use client';
 
-import { useNote, useNoteContent } from '@/hooks/useNote';
+import { useNote, useUpdateNote } from '@/hooks/useNote';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { BlockEditor } from '@/components/Editor/components/BlockEditor/BlockEditor';
 import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
@@ -29,7 +29,21 @@ export default function NotePage() {
   const [{ note, isLoading: isLoadingNote, error }, fetchNote] = useNote(noteId, {
     sendImmediately: false,
   });
-  const [{ isLoading: isUpdating }, updateNoteContent] = useNoteContent();
+
+  const [{ isLoading: isUpdating }, updateNote] = useUpdateNote(noteId, {
+    onTitleUpdate: (newTitle) => {
+      setNotes((prevNotes) =>
+        prevNotes.map((note) =>
+          note.id.toString() === noteId
+            ? {
+                ...note,
+                title: newTitle,
+              }
+            : note
+        )
+      );
+    },
+  });
 
   // Show funding modal and set article type when landing on a new funding note
   useEffect(() => {
@@ -38,63 +52,6 @@ export default function NotePage() {
       setArticleType('preregistration');
     }
   }, [isNewFunding, setArticleType]);
-
-  const titleRef = useRef<string>('');
-
-  const debouncedRef = useRef(
-    debounce((editor: Editor) => {
-      const json = editor.getJSON();
-      const html = editor.getHTML();
-
-      // Extract title from the first h1 heading
-      const newTitle = getDocumentTitleFromEditor(editor) || '';
-
-      // Create an array of promises to execute
-      const promises = [];
-
-      // Only update title if it changed
-      if (newTitle !== titleRef.current) {
-        titleRef.current = newTitle;
-        promises.push(
-          NoteService.updateNoteTitle({
-            noteId,
-            title: newTitle,
-          }).then(() => {
-            // Update the notes in context after successful title update
-            setNotes((prevNotes) =>
-              prevNotes.map((note) =>
-                note.id.toString() === noteId
-                  ? {
-                      ...note,
-                      title: newTitle,
-                    }
-                  : note
-              )
-            );
-          })
-        );
-      }
-
-      // Always update content
-      promises.push(
-        updateNoteContent({
-          note: noteId,
-          fullSrc: html,
-          plainText: editor.getText(),
-          fullJson: JSON.stringify(json),
-        })
-      );
-
-      // Execute all necessary updates
-      Promise.all(promises).catch(console.error);
-    }, 2000)
-  );
-
-  useEffect(() => {
-    return () => {
-      debouncedRef.current.cancel();
-    };
-  }, []);
 
   useEffect(() => {
     setNoteId(noteId);
@@ -142,7 +99,7 @@ export default function NotePage() {
           content={content || ''}
           contentJson={contentJson}
           isLoading={false}
-          onUpdate={debouncedRef.current}
+          onUpdate={updateNote}
         />
       </div>
 

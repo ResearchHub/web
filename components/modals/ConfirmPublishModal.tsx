@@ -1,22 +1,60 @@
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
-import { Fragment } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { useUpdateNote } from '@/hooks/useNote';
+import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 
 interface ConfirmPublishModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
   title: string;
-  isLoading?: boolean;
+  isPublishing: boolean;
 }
 
 export function ConfirmPublishModal({
   isOpen,
   onClose,
   onConfirm,
-  title,
-  isLoading = false,
+  title: initialTitle,
+  isPublishing,
 }: ConfirmPublishModalProps) {
+  const [title, setTitle] = useState(initialTitle);
+  const { editor, noteId } = useNotebookPublish();
+  const [{ isLoading: isUpdating }, updateNote] = useUpdateNote(noteId, {
+    onTitleUpdate: (newTitle) => {
+      setTitle(newTitle);
+    },
+  });
+
+  // Sync with initial title when modal opens
+  useEffect(() => {
+    setTitle(initialTitle);
+  }, [initialTitle, isOpen]);
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value;
+    setTitle(newTitle);
+
+    // Update the editor's title (first heading)
+    if (editor) {
+      editor
+        .chain()
+        .command(({ tr }) => {
+          const pos = 0;
+          const node = tr.doc.nodeAt(pos);
+          if (node && node.type.name === 'heading') {
+            tr.insertText(newTitle, pos + 1, pos + node.nodeSize - 1);
+            return true;
+          }
+          return false;
+        })
+        .run();
+
+      updateNote(editor);
+    }
+  };
+
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
@@ -51,16 +89,24 @@ export function ConfirmPublishModal({
                   <p className="text-sm text-gray-600 mb-4">
                     You are about to publish your research preregistration:
                   </p>
-                  <p className="text-sm font-medium text-gray-900 p-3 bg-gray-50 rounded-lg mb-6">
-                    {title}
-                  </p>
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={handleTitleChange}
+                    className="w-full p-3 text-sm font-medium text-gray-900 bg-gray-50 rounded-lg mb-6 border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    placeholder="Enter title..."
+                  />
 
                   <div className="mt-6 flex justify-end gap-3">
                     <Button variant="ghost" onClick={onClose}>
                       Cancel
                     </Button>
-                    <Button variant="default" onClick={onConfirm} disabled={isLoading}>
-                      {isLoading ? 'Publishing...' : 'Confirm & Publish'}
+                    <Button
+                      variant="default"
+                      onClick={onConfirm}
+                      disabled={isUpdating || isPublishing}
+                    >
+                      {isPublishing ? 'Publishing...' : 'Confirm & Publish'}
                     </Button>
                   </div>
                 </div>

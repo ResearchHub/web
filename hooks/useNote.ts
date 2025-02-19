@@ -1,7 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { NoteService, NoteError } from '@/services/note.service';
 import type { NoteWithContent, Note, NoteAccess, NoteContent } from '@/types/note';
 import { ID } from '@/types/root';
+import { Editor } from '@tiptap/react';
+import { debounce, DebouncedFunc } from 'lodash';
+import { getDocumentTitleFromEditor } from '@/components/Editor/lib/utils/documentTitle';
 
 export interface UseNoteOptions {
   sendImmediately?: boolean;
@@ -196,4 +199,86 @@ export const useDeleteNote = (): UseDeleteNoteReturn => {
   };
 
   return [{ isLoading, error }, deleteNote];
+};
+
+interface UseUpdateNoteState {
+  isLoading: boolean;
+  error: Error | null;
+}
+
+interface UpdateNoteOptions {
+  onTitleUpdate?: (newTitle: string) => void;
+  debounceMs?: number;
+}
+
+type UpdateNoteFn = (editor: Editor) => void;
+type UseUpdateNoteReturn = [UseUpdateNoteState, UpdateNoteFn];
+
+export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseUpdateNoteReturn => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const titleRef = useRef<string>('');
+
+  const debouncedUpdate = useRef<DebouncedFunc<(editor: Editor) => Promise<void>>>(
+    debounce(async (editor: Editor) => {
+      const json = editor.getJSON();
+      const html = editor.getHTML();
+      const newTitle = getDocumentTitleFromEditor(editor) || '';
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const promises: Promise<any>[] = [];
+
+        // Only update title if it changed
+        if (newTitle !== titleRef.current) {
+          titleRef.current = newTitle;
+          promises.push(
+            NoteService.updateNoteTitle({
+              noteId,
+              title: newTitle,
+            }).then(() => {
+              options.onTitleUpdate?.(newTitle);
+            })
+          );
+        }
+
+        // Always update content
+        promises.push(
+          NoteService.updateNoteContent({
+            note: noteId,
+            full_src: html,
+            plain_text: editor.getText(),
+            full_json: JSON.stringify(json),
+          })
+        );
+
+        await Promise.all(promises);
+      } catch (err) {
+        const errorMsg = err instanceof NoteError ? err.message : 'Failed to update note';
+        const error = new Error(errorMsg);
+        setError(error);
+        console.error('Error updating note:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }, options.debounceMs ?? 2000)
+  );
+
+  const updateNote = useCallback(
+    (editor: Editor) => {
+      debouncedUpdate.current(editor);
+    },
+    [noteId]
+  );
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      debouncedUpdate.current.cancel();
+    };
+  }, []);
+
+  return [{ isLoading, error }, updateNote];
 };
