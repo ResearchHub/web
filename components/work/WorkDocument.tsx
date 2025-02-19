@@ -197,7 +197,12 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
           </>
         )}
 
-        {activeTab === 'reviews' && <WorkReviews workId={work.id} />}
+        {activeTab === 'reviews' && (
+          <div className="space-y-6">
+            <WorkReviews workId={work.id} />
+            <CommentFeed documentId={work.id} contentType={work.contentType} commentType="REVIEW" />
+          </div>
+        )}
         {activeTab === 'bounties' && <WorkBounties workId={work.id.toString()} />}
         {activeTab === 'comments' && (
           <div className="space-y-6">
