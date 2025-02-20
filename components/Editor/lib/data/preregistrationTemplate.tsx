@@ -28,7 +28,7 @@ const preregistrationTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'ResearchHub Preregistration Template',
+          text: 'Preregistration Template',
         },
       ],
     },
@@ -41,7 +41,7 @@ const preregistrationTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Authors & Affiliations',
+          text: '1. Overview',
         },
       ],
     },
@@ -54,7 +54,7 @@ const preregistrationTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'List authors and their affiliations (e.g., First Last [1], ..., Author N [Institution])',
+          text: 'Provide a brief overview of: (1) scientific rationale and importance, (2) confirmation of funding/facilities/ethics approvals, (3) estimated timeline, and (4) data sharing commitment.',
         },
       ],
     },
@@ -67,7 +67,7 @@ const preregistrationTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Abstract',
+          text: '2. Introduction',
         },
       ],
     },
@@ -80,7 +80,7 @@ const preregistrationTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Provide a concise abstract (max 300 words) summarizing the significance, innovation, and approach.',
+          text: "Summarize theoretical background, key literature, research questions, and numbered hypotheses (H1, H2, etc.). Explain the study's importance  with an impact statement, regardless of potential outcomes.",
         },
       ],
     },
@@ -93,20 +93,7 @@ const preregistrationTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Introduction',
-        },
-      ],
-    },
-    {
-      type: 'paragraph',
-      attrs: {
-        class: null,
-        textAlign: 'left',
-      },
-      content: [
-        {
-          type: 'text',
-          text: 'Briefly describe the research problem and its potential impact or significance.',
+          text: '3. Methods',
         },
       ],
     },
@@ -119,7 +106,7 @@ const preregistrationTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Hypotheses/Aims',
+          text: 'Participants/Sample',
         },
       ],
     },
@@ -132,7 +119,85 @@ const preregistrationTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'State your specific, testable hypotheses or research aims.',
+          text: 'Define target sample, inclusion/exclusion criteria, recruitment strategy, and sample size justification (including power analysis).',
+        },
+      ],
+    },
+    {
+      type: 'heading',
+      attrs: {
+        textAlign: 'left',
+        level: 3,
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Materials and Procedures',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      attrs: {
+        class: null,
+        textAlign: 'left',
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Describe experimental/observational procedures, stimuli, tasks, equipment, and data collection settings with sufficient detail for replication.',
+        },
+      ],
+    },
+    {
+      type: 'heading',
+      attrs: {
+        textAlign: 'left',
+        level: 3,
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Planned Analyses',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      attrs: {
+        class: null,
+        textAlign: 'left',
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Outline analysis pipeline, preprocessing steps, statistical tests, and hypothesis-specific predictions. Include any contingent analysis decisions as IF-THEN statements.',
+        },
+      ],
+    },
+    {
+      type: 'heading',
+      attrs: {
+        textAlign: 'left',
+        level: 3,
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Ethics and Data Management',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      attrs: {
+        class: null,
+        textAlign: 'left',
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'State ethical approval status or plan, confidentiality measures, and data sharing/archiving plan.',
         },
       ],
     },
@@ -145,7 +210,7 @@ const preregistrationTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Methods',
+          text: '4. Pilot Data (Optional)',
         },
       ],
     },
@@ -158,7 +223,7 @@ const preregistrationTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Describe your study design, including participant recruitment (if applicable), data collection, and analysis methods.',
+          text: 'Summarize any pilot data or simulations that demonstrate method feasibility and inform power analysis. Clearly distinguish from main study.',
         },
       ],
     },
@@ -171,7 +236,7 @@ const preregistrationTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Study type',
+          text: '5. Budget',
         },
       ],
     },
@@ -184,7 +249,7 @@ const preregistrationTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Briefly describe your study type (e.g., Experiment, Observational Study, Meta-Analysis).',
+          text: 'Provide an itemized list of anticipated costs (materials, personnel, etc.). These are not binding and are able to be adjusted based on the results of the pilot data.',
         },
       ],
     },
@@ -197,7 +262,7 @@ const preregistrationTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Existing data',
+          text: '6. References',
         },
       ],
     },
@@ -210,163 +275,7 @@ const preregistrationTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Indicate if you are using existing data and, if so, describe its status (e.g., data not yet created, data exists but not accessed).',
-        },
-      ],
-    },
-    {
-      type: 'heading',
-      attrs: {
-        textAlign: 'left',
-        level: 2,
-      },
-      content: [
-        {
-          type: 'text',
-          text: 'Data collection procedures',
-        },
-      ],
-    },
-    {
-      type: 'paragraph',
-      attrs: {
-        class: null,
-        textAlign: 'left',
-      },
-      content: [
-        {
-          type: 'text',
-          text: 'Describe your data collection process, including population, recruitment, and timeline.',
-        },
-      ],
-    },
-    {
-      type: 'heading',
-      attrs: {
-        textAlign: 'left',
-        level: 2,
-      },
-      content: [
-        {
-          type: 'text',
-          text: 'Sample size',
-        },
-      ],
-    },
-    {
-      type: 'paragraph',
-      attrs: {
-        class: null,
-        textAlign: 'left',
-      },
-      content: [
-        {
-          type: 'text',
-          text: 'Specify your target sample size and units of analysis (e.g., number of participants, samples).',
-        },
-      ],
-    },
-    {
-      type: 'heading',
-      attrs: {
-        textAlign: 'left',
-        level: 2,
-      },
-      content: [
-        {
-          type: 'text',
-          text: 'Analysis Plan',
-        },
-      ],
-    },
-    {
-      type: 'paragraph',
-      attrs: {
-        class: null,
-        textAlign: 'left',
-      },
-      content: [
-        {
-          type: 'text',
-          text: 'Describe your planned statistical analyses, including models and inference criteria (e.g., p-values, Bayes factors).',
-        },
-      ],
-    },
-    {
-      type: 'heading',
-      attrs: {
-        textAlign: 'left',
-        level: 2,
-      },
-      content: [
-        {
-          type: 'text',
-          text: 'Data exclusion (optional)',
-        },
-      ],
-    },
-    {
-      type: 'paragraph',
-      attrs: {
-        class: null,
-        textAlign: 'left',
-      },
-      content: [
-        {
-          type: 'text',
-          text: 'Specify any criteria for data exclusion or outlier handling.',
-        },
-      ],
-    },
-    {
-      type: 'heading',
-      attrs: {
-        textAlign: 'left',
-        level: 2,
-      },
-      content: [
-        {
-          type: 'text',
-          text: 'Budget',
-        },
-      ],
-    },
-    {
-      type: 'paragraph',
-      attrs: {
-        class: null,
-        textAlign: 'left',
-      },
-      content: [
-        {
-          type: 'text',
-          text: 'Provide an itemized list of anticipated costs (materials, personnel, etc.).',
-        },
-      ],
-    },
-    {
-      type: 'heading',
-      attrs: {
-        textAlign: 'left',
-        level: 2,
-      },
-      content: [
-        {
-          type: 'text',
-          text: 'Other (optional)',
-        },
-      ],
-    },
-    {
-      type: 'paragraph',
-      attrs: {
-        class: null,
-        textAlign: 'left',
-      },
-      content: [
-        {
-          type: 'text',
-          text: 'Include any additional information, such as references or disclosures.',
+          text: 'List all references used in the manuscript using Nature style (e.g. numbered in-text citations and alphabetical references at the end of the manuscript).',
         },
       ],
     },
