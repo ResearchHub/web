@@ -6,11 +6,15 @@ import type { NextRequestWithAuth } from 'next-auth/middleware';
 // Auth middleware for protected routes
 const authMiddleware = withAuth(
   function middleware(request: NextRequest) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.headers.set('Cache-Control', 'no-store, max-age=0');
+    return response;
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token,
+      authorized: ({ token }) => {
+        return !!token && !!token.authToken;
+      },
     },
     pages: {
       signIn: '/auth/signin',
@@ -19,8 +23,15 @@ const authMiddleware = withAuth(
 );
 
 // Export the middleware handler
-export default function middleware(request: NextRequest) {
-  return authMiddleware(request as NextRequestWithAuth, request.nextUrl.pathname as any);
+export default async function middleware(request: NextRequest) {
+  const response = await authMiddleware(
+    request as NextRequestWithAuth,
+    request.nextUrl.pathname as any
+  );
+  if (response instanceof Response) {
+    response.headers.set('Cache-Control', 'no-store, max-age=0');
+  }
+  return response;
 }
 
 export const config = {
