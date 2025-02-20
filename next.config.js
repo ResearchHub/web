@@ -49,6 +49,30 @@ const nextConfig = {
 
     return config;
   },
+  async headers() {
+    return [
+      {
+        // Protected page routes
+        source: '/notebook/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, max-age=0',
+          },
+        ],
+      },
+      {
+        // Protected API routes
+        source: '/notebook/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, max-age=0',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
