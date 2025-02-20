@@ -44,9 +44,9 @@ async function createNoteWithContent(
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
 
-  if (!session) {
-    return redirect('/auth/signin');
-  }
+  // if (!session) {
+  //   return redirect('/auth/signin');
+  // }
 
   // Get URL and search params
   const { searchParams } = new URL(request.url);
