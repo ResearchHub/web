@@ -7,7 +7,7 @@ import { createTransformer, BaseTransformed } from './transformer';
 
 export type FeedActionType = 'repost' | 'contribute' | 'open' | 'publish' | 'post';
 
-export type ContentType = 'bounty' | 'funding_request' | 'paper';
+export type ContentType = 'bounty' | 'funding_request' | 'paper' | 'post';
 
 interface BaseContent {
   id: string;
@@ -35,6 +35,11 @@ export interface Paper extends BaseContent {
   authors: AuthorProfile[];
 }
 
+export interface Post extends BaseContent {
+  type: 'post';
+  summary: string;
+}
+
 export type FundingRequestStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
 
 export interface FundingRequest extends BaseContent {
@@ -49,7 +54,7 @@ export interface FundingRequest extends BaseContent {
   preregistered?: boolean;
 }
 
-export type Content = Bounty | FundingRequest | Paper;
+export type Content = Bounty | FundingRequest | Paper | Post;
 
 export interface FeedEntry {
   id: string;
@@ -150,6 +155,15 @@ const baseTransformContentObject = (params: { response: FeedResponse; type: stri
         authors: contentObject.authors.map(transformAuthorProfile),
       };
       return paper;
+    }
+    case 'researchhubpost': {
+      const post: Post = {
+        ...baseContent,
+        type: 'post',
+        title: contentObject.title,
+        summary: contentObject.renderable_text,
+      };
+      return post;
     }
     default:
       throw new Error(`Unknown content type: ${type}`);
