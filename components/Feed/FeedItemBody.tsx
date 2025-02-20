@@ -7,6 +7,7 @@ import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
 import { Avatar } from '@/components/ui/Avatar';
+import { Journal } from '@/types/journal';
 
 interface FeedItemBodyProps {
   content: Content;
@@ -89,84 +90,65 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
   };
 
   const renderPost = (post: Post, isExpanded: boolean, onToggleExpand: () => void) => {
-    const truncateSummary = (text: string, limit: number = 200) => {
-      if (text.length <= limit) return text;
-      return text.slice(0, limit).trim() + '...';
+    return renderExpandableContent(
+      post.type,
+      post.title ?? '',
+      post.summary || '',
+      isExpanded,
+      onToggleExpand
+    );
+  };
+
+  const renderPaper = (paper: Paper, isExpanded: boolean, onToggleExpand: () => void) => {
+    return renderExpandableContent(
+      paper.type,
+      paper.title ?? '',
+      paper.abstract || '',
+      isExpanded,
+      onToggleExpand,
+      paper.journal
+    );
+  };
+
+  const renderExpandableContent = (
+    type: 'post' | 'paper',
+    title: string,
+    summary: string,
+    isExpanded: boolean,
+    onToggleExpand: () => void,
+    journal?: Journal
+  ) => {
+    const truncateSummary = (summary: string, limit: number = 200) => {
+      if (summary.length <= limit) return summary;
+      return summary.slice(0, limit).trim() + '...';
     };
 
-    const summary = post.summary || '';
     const isSummaryTruncated = summary.length > 200;
 
     return (
       <div>
         <div className="flex items-center gap-2 mb-2">
           <div className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
-            Post
+            {type}
           </div>
-        </div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
-          {post.title}
-        </h3>
-        <div className="text-sm text-gray-800">
-          <p>{isExpanded ? summary : truncateSummary(summary)}</p>
-          {isSummaryTruncated && (
-            <Button
-              variant="link"
-              size="sm"
-              onClick={(e) => {
-                e.preventDefault();
-                onToggleExpand();
-              }}
-              className="flex items-center gap-0.5 mt-1"
-            >
-              {isExpanded ? 'Show less' : 'Read more'}
-              <ChevronDown
-                size={14}
-                className={cn(
-                  'transition-transform duration-200',
-                  isExpanded && 'transform rotate-180'
-                )}
-              />
-            </Button>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const renderPaper = (paper: Paper, isExpanded: boolean, onToggleExpand: () => void) => {
-    const truncateAbstract = (text: string, limit: number = 200) => {
-      if (text.length <= limit) return text;
-      return text.slice(0, limit).trim() + '...';
-    };
-
-    const abstract = paper.abstract || '';
-    const isAbstractTruncated = abstract.length > 200;
-
-    return (
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <div className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
-            Paper
-          </div>
-          {paper.journal && (
+          {journal && (
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border border-gray-200 bg-gray-50 hover:bg-gray-200 transition-colors">
               <Avatar
-                src={paper.journal.imageUrl}
-                alt={paper.journal.slug}
+                src={journal.imageUrl}
+                alt={journal.slug}
                 size="xxs"
                 className="ring-1 ring-gray-200"
               />
-              <span className="text-gray-700">{paper.journal.name}</span>
+              <span className="text-gray-700">{journal.name}</span>
             </div>
           )}
         </div>
         <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
-          {paper.title}
+          {title}
         </h3>
         <div className="text-sm text-gray-800">
-          <p>{isExpanded ? abstract : truncateAbstract(abstract)}</p>
-          {isAbstractTruncated && (
+          <p>{isExpanded ? summary : truncateSummary(summary)}</p>
+          {isSummaryTruncated && (
             <Button
               variant="link"
               size="sm"
