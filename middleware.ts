@@ -10,9 +10,7 @@ const authMiddleware = withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => {
-        return !!token;
-      },
+      authorized: ({ token }) => !!token,
     },
     pages: {
       signIn: '/auth/signin',
@@ -21,16 +19,8 @@ const authMiddleware = withAuth(
 );
 
 // Export the middleware handler
-export default async function middleware(request: NextRequest) {
-  const response = await authMiddleware(
-    request as NextRequestWithAuth,
-    request.nextUrl.pathname as any
-  );
-
-  if (response instanceof Response) {
-    response.headers.set('Cache-Control', 'no-store, max-age=0');
-  }
-  return response;
+export default function middleware(request: NextRequest) {
+  return authMiddleware(request as NextRequestWithAuth, request.nextUrl.pathname as any);
 }
 
 export const config = {

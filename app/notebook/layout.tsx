@@ -31,7 +31,7 @@ export default function NotebookLayout({ children }: { children: React.ReactNode
           }}
         >
           {/* Left Sidebar - 16% */}
-          <div className="hidden xl:block border-r border-gray-200 w-full">
+          <div className="hidden xl:block w-full">
             <LeftSidebar />
           </div>
 
