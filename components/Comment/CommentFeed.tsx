@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Comment, CommentFilter, CommentType } from '@/types/comment';
 import { useComments } from '@/hooks/useComments';
-import { CommentEditor } from './CommentEditor';
+import { CommentEditor, CommentEditorProps } from './CommentEditor';
 import { CommentItem } from './CommentItem';
 import { ContentType } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
@@ -21,6 +21,7 @@ interface CommentFeedProps {
   contentType: ContentType;
   className?: string;
   commentType?: CommentType;
+  editorProps?: Partial<CommentEditorProps>;
 }
 
 export const CommentFeed = ({
@@ -28,6 +29,7 @@ export const CommentFeed = ({
   contentType,
   className,
   commentType = 'GENERIC_COMMENT',
+  editorProps = {},
 }: CommentFeedProps) => {
   const [commentFilter, setCommentFilter] = useState<CommentFilter>('DISCUSSION');
   const [sortBy, setSortBy] = useState<SortOption['value']>('BEST');
@@ -201,7 +203,7 @@ export const CommentFeed = ({
       </div>
 
       <div className="space-y-4">
-        <CommentEditor onSubmit={handleSubmit} />
+        <CommentEditor onSubmit={handleSubmit} {...editorProps} />
 
         {error && (
           <div className="text-red-600 p-4 rounded-md bg-red-50">

@@ -31,6 +31,9 @@ import {
   ImageIcon,
   AtSign,
 } from 'lucide-react';
+import { ReviewExtension, ReviewStars } from './lib/ReviewExtension';
+import { ReviewCategories, ReviewCategory } from './lib/ReviewCategories';
+import { createRoot } from 'react-dom/client';
 
 const lowlight = createLowlight();
 lowlight.register('javascript', javascript);
@@ -58,12 +61,14 @@ const ExitLinkOnSpace = Extension.create({
   },
 });
 
-interface CommentEditorProps {
+export interface CommentEditorProps {
   onSubmit: (content: any) => void;
   onCancel?: () => void;
   placeholder?: string;
   initialContent?: string | { type: 'doc'; content: any[] };
   isReadOnly?: boolean;
+  isReview?: boolean;
+  initialRating?: number;
 }
 
 export const CommentEditor = ({
@@ -72,12 +77,16 @@ export const CommentEditor = ({
   placeholder = 'Write a comment...',
   initialContent = '',
   isReadOnly = false,
+  isReview = false,
+  initialRating = 0,
 }: CommentEditorProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [linkMenuPosition, setLinkMenuPosition] = useState<{ x: number; y: number } | null>(null);
   const [selectedLink, setSelectedLink] = useState<{ url: string; text: string } | null>(null);
+  const [rating, setRating] = useState(initialRating);
+  const [sectionRatings, setSectionRatings] = useState<Record<string, number>>({});
   const editorRef = useRef<HTMLDivElement>(null);
 
   const editor = useEditor({
@@ -112,6 +121,14 @@ export const CommentEditor = ({
         },
       }),
       MentionExtension,
+      ...(isReview
+        ? [
+            ReviewExtension.configure({
+              rating,
+              onRatingChange: setRating,
+            }),
+          ]
+        : []),
     ],
     content: initialContent,
     editable: !isReadOnly,
@@ -155,14 +172,45 @@ export const CommentEditor = ({
     }
   }, [editor, initialContent]);
 
+  const handleSectionRatingChange = (rating: number, sectionId: string) => {
+    setSectionRatings((prev) => ({
+      ...prev,
+      [sectionId]: rating,
+    }));
+  };
+
   const handleSubmit = async () => {
     if (!editor || !editor.getText().trim()) return;
+    if (isReview && rating === 0) return;
+
+    // Collect all section ratings from the editor content
+    const sectionRatings: Record<string, number> = {};
+    editor.state.doc.descendants((node) => {
+      if (node.type.name === 'sectionHeader') {
+        sectionRatings[node.attrs.sectionId] = node.attrs.rating;
+      }
+    });
+
+    // Check if all sections have ratings
+    const hasUnratedSections = Object.values(sectionRatings).some((rating) => rating === 0);
+    if (hasUnratedSections) {
+      alert('Please rate all sections before submitting.');
+      return;
+    }
 
     setIsSubmitting(true);
     try {
       const json = editor.getJSON();
-      await onSubmit(json);
+      await onSubmit({
+        ...json,
+        rating: isReview ? rating : undefined,
+        sectionRatings: Object.keys(sectionRatings).length > 0 ? sectionRatings : undefined,
+      });
       editor.commands.clearContent();
+      if (isReview) {
+        setRating(0);
+        setSectionRatings({});
+      }
     } catch (error) {
       console.error('Failed to create comment:', error);
       // TODO: Add error handling UI
@@ -251,6 +299,43 @@ export const CommentEditor = ({
   const handleImageEmbed = (imageUrl: string) => {
     editor?.chain().focus().setImage({ src: imageUrl }).run();
     setIsImageModalOpen(false);
+  };
+
+  const handleAddReviewCategory = (category: ReviewCategory) => {
+    if (!editor) return;
+
+    // Add a line break if we're not at the start of the document
+    if (editor.getText().length > 0) {
+      editor.chain().focus().setHardBreak().run();
+    }
+
+    // Create the document fragment with proper order
+    const content = {
+      type: 'doc',
+      content: [
+        {
+          type: 'sectionHeader',
+          attrs: {
+            sectionId: category.id,
+            title: category.title,
+            description: category.description,
+            rating: 0,
+          },
+        },
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: category.description,
+              marks: [{ type: 'italic' }],
+            },
+          ],
+        },
+      ],
+    };
+
+    editor.chain().focus().insertContent(content).run();
   };
 
   if (!editor) return null;
@@ -463,7 +548,27 @@ export const CommentEditor = ({
             >
               <AtSign className="h-4 w-4" />
             </Button>
+
+            {isReview && (
+              <>
+                <div className="w-px h-8 bg-gray-200" />
+                <ReviewCategories
+                  onSelectCategory={handleAddReviewCategory}
+                  disabled={isReadOnly}
+                />
+              </>
+            )}
           </div>
+        </div>
+      )}
+      {!isReadOnly && isReview && (
+        <div className="px-4 py-3 border-b">
+          <ReviewStars
+            rating={rating}
+            onRatingChange={setRating}
+            isRequired={true}
+            isReadOnly={isReadOnly}
+          />
         </div>
       )}
       <div className="relative">
