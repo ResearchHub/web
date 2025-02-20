@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, useState } from 'react';
-import { Bounty, Content, FeedEntry, Paper } from '@/types/feed';
+import { Bounty, Content, FeedEntry, Paper, Post } from '@/types/feed';
 import { Button } from '@/components/ui/Button';
 import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
@@ -54,6 +54,8 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
           return renderBounty(item, expandedPaperIds.has(item.id), () => toggleExpanded(item.id));
         case 'paper':
           return renderPaper(item, expandedPaperIds.has(item.id), () => toggleExpanded(item.id));
+        case 'post':
+          return renderPost(item, expandedPaperIds.has(item.id), () => toggleExpanded(item.id));
         default:
           return null;
       }
@@ -61,7 +63,8 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
 
     if (!itemContent) return null;
 
-    const isCard = isTarget || item.type === 'bounty' || item.type === 'paper';
+    const isCard =
+      isTarget || item.type === 'bounty' || item.type === 'paper' || item.type === 'post';
 
     const renderCard = (children: React.ReactNode) => {
       if (!isCard) return children;
@@ -83,6 +86,52 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
       return renderPaper(bounty.paper, isExpanded, onToggleExpand);
     }
     return <div>An amount of {bounty.amount} has been added to the bounty.</div>;
+  };
+
+  const renderPost = (post: Post, isExpanded: boolean, onToggleExpand: () => void) => {
+    const truncateSummary = (text: string, limit: number = 200) => {
+      if (text.length <= limit) return text;
+      return text.slice(0, limit).trim() + '...';
+    };
+
+    const summary = post.summary || '';
+    const isSummaryTruncated = summary.length > 200;
+
+    return (
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <div className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
+            Post
+          </div>
+        </div>
+        <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
+          {post.title}
+        </h3>
+        <div className="text-sm text-gray-800">
+          <p>{isExpanded ? summary : truncateSummary(summary)}</p>
+          {isSummaryTruncated && (
+            <Button
+              variant="link"
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                onToggleExpand();
+              }}
+              className="flex items-center gap-0.5 mt-1"
+            >
+              {isExpanded ? 'Show less' : 'Read more'}
+              <ChevronDown
+                size={14}
+                className={cn(
+                  'transition-transform duration-200',
+                  isExpanded && 'transform rotate-180'
+                )}
+              />
+            </Button>
+          )}
+        </div>
+      </div>
+    );
   };
 
   const renderPaper = (paper: Paper, isExpanded: boolean, onToggleExpand: () => void) => {
