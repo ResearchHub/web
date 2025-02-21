@@ -80,8 +80,20 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   useEffect(() => {
     if (isNewFunding) {
       setValue('articleType', 'preregistration');
+    } else {
+      const template = searchParams?.get('template');
+      if (template) {
+        // Map template to articleType
+        const articleType =
+          template === 'preregistration'
+            ? 'preregistration'
+            : template === 'grant'
+              ? 'other'
+              : 'research';
+        setValue('articleType', articleType);
+      }
     }
-  }, [isNewFunding, setValue]);
+  }, [isNewFunding, setValue, searchParams]);
 
   // Reset form errors when article type changes
   useEffect(() => {
