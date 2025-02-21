@@ -4,6 +4,7 @@ import { Home, BookOpen, Star, Notebook, HandCoins, Coins } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useRouter } from 'next/navigation';
+import { useCallback } from 'react';
 
 interface NavigationItem {
   label: string;
@@ -22,6 +23,33 @@ interface NavigationProps {
 export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimplementedFeature }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const router = useRouter();
+
+  // Define the navigation callback outside the handler
+  const handleNavigate = useCallback(
+    (href: string) => {
+      router.push(href);
+    },
+    [router]
+  );
+
+  const handleNavClick = useCallback(
+    (e: React.MouseEvent, item: NavigationItem) => {
+      e.preventDefault();
+
+      if (item.isUnimplemented) {
+        onUnimplementedFeature(item.label);
+        return;
+      }
+
+      if (item.requiresAuth) {
+        executeAuthenticatedAction(() => handleNavigate(item.href));
+        return;
+      }
+
+      handleNavigate(item.href);
+    },
+    [executeAuthenticatedAction, handleNavigate, onUnimplementedFeature]
+  );
 
   const navigationItems: NavigationItem[] = [
     {
@@ -64,22 +92,6 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
       requiresAuth: true,
     },
   ];
-
-  const handleNavClick = (e: React.MouseEvent, item: NavigationItem) => {
-    e.preventDefault();
-
-    if (item.isUnimplemented) {
-      onUnimplementedFeature(item.label);
-      return;
-    }
-
-    if (item.requiresAuth) {
-      executeAuthenticatedAction(() => router.push(item.href));
-      return;
-    }
-
-    router.push(item.href);
-  };
 
   const getButtonStyles = (path: string) => {
     const isActive = currentPath === path;
