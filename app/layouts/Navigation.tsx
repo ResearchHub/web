@@ -5,6 +5,15 @@ import Link from 'next/link';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useRouter } from 'next/navigation';
 
+interface NavigationItem {
+  label: string;
+  href: string;
+  icon: React.FC<{ className?: string }>;
+  description: string;
+  requiresAuth?: boolean;
+  isUnimplemented?: boolean;
+}
+
 interface NavigationProps {
   currentPath: string;
   onUnimplementedFeature: (featureName: string) => void;
@@ -14,7 +23,7 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const router = useRouter();
 
-  const navigationItems = [
+  const navigationItems: NavigationItem[] = [
     {
       label: 'Home',
       href: '/',
@@ -38,20 +47,14 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
       href: '/rhjournal',
       icon: BookOpen,
       description: 'Read and publish research papers',
-      onClick: (e: React.MouseEvent) => {
-        e.preventDefault();
-        onUnimplementedFeature('RH Journal');
-      },
+      isUnimplemented: true,
     },
     {
       label: 'Peer Reviews',
       href: '/peerreviews',
       icon: Star,
       description: 'Review and rate research papers',
-      onClick: (e: React.MouseEvent) => {
-        e.preventDefault();
-        onUnimplementedFeature('Peer Reviews');
-      },
+      isUnimplemented: true,
     },
     {
       label: 'Lab Notebook',
@@ -61,6 +64,22 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
       requiresAuth: true,
     },
   ];
+
+  const handleNavClick = (e: React.MouseEvent, item: NavigationItem) => {
+    e.preventDefault();
+
+    if (item.isUnimplemented) {
+      onUnimplementedFeature(item.label);
+      return;
+    }
+
+    if (item.requiresAuth) {
+      executeAuthenticatedAction(() => router.push(item.href));
+      return;
+    }
+
+    router.push(item.href);
+  };
 
   const getButtonStyles = (path: string) => {
     const isActive = currentPath === path;
@@ -74,18 +93,6 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
     return `h-[22px] w-[22px] mr-3.5 ${isActive ? 'text-indigo-600' : 'text-gray-600 group-hover:text-indigo-600'}`;
   };
 
-  const handleNavClick = (e: React.MouseEvent, item: (typeof navigationItems)[0]) => {
-    if (item.onClick) {
-      item.onClick(e);
-      return;
-    }
-
-    if (item.requiresAuth) {
-      e.preventDefault();
-      router.push(item.href);
-    }
-  };
-
   return (
     <>
       <div className="space-y-1">
@@ -94,7 +101,7 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
             key={item.href}
             href={item.href}
             className={getButtonStyles(item.href)}
-            onClick={(e) => executeAuthenticatedAction(() => handleNavClick(e, item))}
+            onClick={(e) => handleNavClick(e, item)}
           >
             <item.icon className={getIconStyles(item.href)} />
             <div className="flex items-center justify-between w-full min-w-0">
