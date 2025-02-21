@@ -74,7 +74,7 @@ export const transformContent = (raw: any): string => {
 
 export const transformComment: BaseTransformer<any, Comment> = (raw) => ({
   id: raw.id,
-  content: transformContent(raw),
+  content: raw.comment_content_json,
   contentFormat: raw.comment_content_type,
   createdDate: raw.created_date,
   updatedDate: raw.updated_date,
