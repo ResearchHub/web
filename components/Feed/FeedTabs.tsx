@@ -38,14 +38,12 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   ];
 
   const handleTabChange = (tabId: string) => {
-    if (isLoading) return;
     setIsCustomizing(false);
     onCustomizeChange?.(false);
     onTabChange(tabId as FeedTab);
   };
 
   const handleCustomizeClick = (customizing: boolean) => {
-    if (isLoading) return;
     setIsCustomizing(customizing);
     onCustomizeChange?.(customizing);
   };
