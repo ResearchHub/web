@@ -83,13 +83,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     } else {
       const template = searchParams?.get('template');
       if (template) {
-        // Map template to articleType
-        const articleType =
-          template === 'preregistration'
-            ? 'preregistration'
-            : template === 'grant'
-              ? 'other'
-              : 'research';
+        const articleType = template === 'preregistration' ? 'preregistration' : 'research';
         setValue('articleType', articleType);
       }
     }
@@ -133,7 +127,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       const formData = methods.getValues();
 
       const response = await createPreregistrationPost({
-        budget: formData.budget.toString(),
+        budget: formData.budget?.toString() || '',
         rewardFunders: formData.rewardFunders || false,
         nftArt: formData.nftArt || null,
         nftSupply: formData.nftSupply || '1000',

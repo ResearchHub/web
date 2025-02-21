@@ -8,7 +8,7 @@ import { OrganizationSwitcher } from './OrganizationSwitcher';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
 import { useRouter, useParams } from 'next/navigation';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useState } from 'react';
 import type { Organization } from '@/types/organization';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { FileText, Wallet } from 'lucide-react';
@@ -30,6 +30,7 @@ const LeftSidebar = () => {
   const { notes, isLoading: isLoadingNotes, refresh: refreshNotes } = useOrganizationNotesContext();
   const [{ isLoading: isCreatingNote }, createNote] = useCreateNote();
   const [{ isLoading: isUpdatingContent }, updateNoteContent] = useNoteContent();
+  const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false);
 
   const handleOrgSelect = useCallback(
     async (org: Organization) => {
@@ -106,7 +107,9 @@ const LeftSidebar = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity"
+          className={`w-6 h-6 ${
+            isTemplateMenuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+          } transition-opacity`}
           disabled={isCreatingNote || isUpdatingContent}
         >
           {isCreatingNote || isUpdatingContent ? (
@@ -118,6 +121,7 @@ const LeftSidebar = () => {
       }
       align="start"
       className="w-56 p-1.5"
+      onOpenChange={setIsTemplateMenuOpen}
     >
       <div className="text-[.65rem] font-semibold mb-1 uppercase text-neutral-500 px-2">
         Select Template

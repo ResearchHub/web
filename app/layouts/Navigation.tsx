@@ -24,7 +24,6 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const router = useRouter();
 
-  // Define the navigation callback outside the handler
   const handleNavigate = useCallback(
     (href: string) => {
       router.push(href);
