@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { BaseScreenProps } from '../types';
 import { Eye, EyeOff } from 'lucide-react';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 
 interface Props extends BaseScreenProps {
@@ -36,10 +36,6 @@ export default function Login({
     setError(null);
 
     try {
-      // This endpoint will return a CredentialsSignin error with no description.
-      // Currently we try to login with email and password + fetch the user's data separately,
-      // because the current endpoint only returns a token
-      // So, we show "Invalid email or password" error
       const result = await signIn('credentials', {
         email,
         password,
@@ -49,15 +45,20 @@ export default function Login({
       if (result?.error) {
         setError('Invalid email or password');
       } else {
-        setIsRedirecting(true); // Set redirecting state before navigation
-        onSuccess?.();
-        onClose();
+        setIsRedirecting(true);
+        const session = await getSession();
+        if (session) {
+          onSuccess?.();
+          onClose();
+        } else {
+          setError('Session initialization failed');
+          setIsRedirecting(false);
+        }
       }
     } catch (err) {
       setError('Login failed');
     } finally {
       if (!isRedirecting) {
-        // Only reset loading if we're not redirecting
         setIsLoading(false);
       }
     }
