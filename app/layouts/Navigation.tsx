@@ -82,9 +82,7 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
 
     if (item.requiresAuth) {
       e.preventDefault();
-      executeAuthenticatedAction(() => {
-        router.push(item.href);
-      });
+      router.push(item.href);
     }
   };
 
@@ -96,7 +94,7 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
             key={item.href}
             href={item.href}
             className={getButtonStyles(item.href)}
-            onClick={(e) => handleNavClick(e, item)}
+            onClick={(e) => executeAuthenticatedAction(() => handleNavClick(e, item))}
           >
             <item.icon className={getIconStyles(item.href)} />
             <div className="flex items-center justify-between w-full min-w-0">
