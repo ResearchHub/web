@@ -27,7 +27,7 @@ const LeftSidebar = () => {
   const currentOrgSlug = params?.orgSlug as string;
   const noteId = params?.noteId as string;
   const { selectedOrg, organizations, isLoading: isLoadingOrgs } = useOrganizationContext();
-  const { notes, isLoading: isLoadingNotes } = useOrganizationNotesContext();
+  const { notes, isLoading: isLoadingNotes, refresh: refreshNotes } = useOrganizationNotesContext();
   const [{ isLoading: isCreatingNote }, createNote] = useCreateNote();
   const [{ isLoading: isUpdatingContent }, updateNoteContent] = useNoteContent();
 
@@ -87,8 +87,9 @@ const LeftSidebar = () => {
             .join('\n'),
         });
 
-        // Navigate to the new note
         router.push(`/notebook/${selectedOrg.slug}/${newNote.id}?template=${template}`);
+
+        refreshNotes();
       } catch (error) {
         console.error('Error creating note:', error);
         toast.error('Failed to create note. Please try again.', {
@@ -96,7 +97,7 @@ const LeftSidebar = () => {
         });
       }
     },
-    [createNote, updateNoteContent, router, selectedOrg]
+    [createNote, updateNoteContent, router, selectedOrg, refreshNotes]
   );
 
   const renderTemplateMenu = (type: 'workspace' | 'private') => (
