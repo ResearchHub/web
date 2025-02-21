@@ -18,6 +18,7 @@ import typescript from 'highlight.js/lib/languages/typescript';
 import python from 'highlight.js/lib/languages/python';
 import 'highlight.js/styles/atom-one-dark.css';
 import { MentionExtension } from './lib/MentionExtension';
+import { CommentType } from '@/types/comment';
 import {
   Bold,
   Italic,
@@ -34,6 +35,7 @@ import {
 import { ReviewExtension, ReviewStars } from './lib/ReviewExtension';
 import { ReviewCategories, ReviewCategory } from './lib/ReviewCategories';
 import { createRoot } from 'react-dom/client';
+import { toast } from 'react-hot-toast';
 
 const lowlight = createLowlight();
 lowlight.register('javascript', javascript);
@@ -64,20 +66,22 @@ const ExitLinkOnSpace = Extension.create({
 export interface CommentEditorProps {
   onSubmit: (content: any) => void;
   onCancel?: () => void;
+  onReset?: () => void;
   placeholder?: string;
   initialContent?: string | { type: 'doc'; content: any[] };
   isReadOnly?: boolean;
-  isReview?: boolean;
+  commentType?: CommentType;
   initialRating?: number;
 }
 
 export const CommentEditor = ({
   onSubmit,
   onCancel,
+  onReset,
   placeholder = 'Write a comment...',
   initialContent = '',
   isReadOnly = false,
-  isReview = false,
+  commentType = 'GENERIC_COMMENT',
   initialRating = 0,
 }: CommentEditorProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -88,6 +92,8 @@ export const CommentEditor = ({
   const [rating, setRating] = useState(initialRating);
   const [sectionRatings, setSectionRatings] = useState<Record<string, number>>({});
   const editorRef = useRef<HTMLDivElement>(null);
+
+  const isReview = commentType === 'REVIEW';
 
   const editor = useEditor({
     extensions: [
@@ -185,26 +191,34 @@ export const CommentEditor = ({
 
     // Collect all section ratings from the editor content
     const sectionRatings: Record<string, number> = {};
-    editor.state.doc.descendants((node) => {
-      if (node.type.name === 'sectionHeader') {
-        sectionRatings[node.attrs.sectionId] = node.attrs.rating;
-      }
-    });
+    let overallRating = rating;
 
-    // Check if all sections have ratings
-    const hasUnratedSections = Object.values(sectionRatings).some((rating) => rating === 0);
-    if (hasUnratedSections) {
-      alert('Please rate all sections before submitting.');
-      return;
+    if (isReview) {
+      editor.state.doc.descendants((node) => {
+        if (node.type.name === 'sectionHeader') {
+          sectionRatings[node.attrs.sectionId] = node.attrs.rating;
+          if (node.attrs.sectionId === 'overall') {
+            overallRating = node.attrs.rating;
+          }
+        }
+      });
+
+      // Check if all sections have ratings
+      const hasUnratedSections = Object.values(sectionRatings).some((rating) => rating === 0);
+      if (hasUnratedSections) {
+        toast.error('Please rate all sections before submitting.');
+        return;
+      }
     }
 
     setIsSubmitting(true);
     try {
       const json = editor.getJSON();
       await onSubmit({
-        ...json,
-        rating: isReview ? rating : undefined,
-        sectionRatings: Object.keys(sectionRatings).length > 0 ? sectionRatings : undefined,
+        content: json,
+        rating: isReview ? overallRating : undefined,
+        sectionRatings:
+          isReview && Object.keys(sectionRatings).length > 0 ? sectionRatings : undefined,
       });
       editor.commands.clearContent();
       if (isReview) {
@@ -213,7 +227,7 @@ export const CommentEditor = ({
       }
     } catch (error) {
       console.error('Failed to create comment:', error);
-      // TODO: Add error handling UI
+      toast.error('Failed to submit comment. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

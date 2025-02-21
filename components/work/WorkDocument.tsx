@@ -205,9 +205,9 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
               contentType={work.contentType}
               commentType="REVIEW"
               editorProps={{
-                isReview: true,
                 placeholder: 'Write your review...',
                 initialRating: 0,
+                commentType: 'REVIEW',
               }}
             />
           </div>

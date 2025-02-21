@@ -9,6 +9,7 @@ import { ContentType } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Star, Zap, ArrowUp, ChevronDown } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 type SortOption = {
   label: string;
@@ -34,18 +35,13 @@ export const CommentFeed = ({
   const [commentFilter, setCommentFilter] = useState<CommentFilter>('DISCUSSION');
   const [sortBy, setSortBy] = useState<SortOption['value']>('BEST');
   const [isOpen, setIsOpen] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [count, setCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [hasMore, setHasMore] = useState(false);
 
-  const {
-    comments,
-    count: commentCount,
-    isLoading,
-    error,
-    hasMore,
-    loadMore,
-    refresh,
-    setComments,
-    setCount,
-  } = useComments({
+  const { loadMore, refresh } = useComments({
     documentId,
     contentType,
     filter: commentFilter,
@@ -113,7 +109,7 @@ export const CommentFeed = ({
       } else {
         // It's a new top-level comment
         setComments([newComment, ...comments]);
-        setCount(commentCount + 1);
+        setCount(count + 1);
       }
       return;
     }
@@ -139,19 +135,61 @@ export const CommentFeed = ({
     };
 
     setComments(deleteComment(comments));
-    setCount(commentCount - 1);
+    setCount(count - 1);
   };
 
-  const handleSubmit = async (content: any) => {
-    const newComment = await CommentService.createComment({
-      workId: documentId,
-      contentType,
-      content,
-      commentType,
-      threadType: commentType,
-    });
+  const handleSubmit = async ({
+    content,
+    rating: overallRating,
+  }: {
+    content: any;
+    rating?: number;
+  }) => {
+    // Check if content exists and has text
+    if (!content || !content.content || content.content.length === 0) {
+      toast.error('Please enter some content before submitting');
+      return;
+    }
 
-    updateCommentTree(newComment);
+    setIsLoading(true);
+    try {
+      // Create the comment first
+      const comment = await CommentService.createComment({
+        workId: documentId,
+        contentType,
+        content,
+        commentType,
+        threadType: commentType,
+      });
+
+      // If this is a review, create the community review
+      if (commentType === 'REVIEW') {
+        if (!overallRating) {
+          toast.error('Please provide an overall rating before submitting the review');
+          return;
+        }
+
+        // Create the community review
+        await CommentService.createCommunityReview({
+          unifiedDocumentId: documentId,
+          commentId: comment.id,
+          score: overallRating,
+        });
+      }
+
+      updateCommentTree(comment);
+      toast.success('Comment submitted successfully');
+
+      // Only reset the editor after successful submission
+      if (editorProps.onReset) {
+        editorProps.onReset();
+      }
+    } catch (error) {
+      console.error('Failed to create comment:', error);
+      toast.error('Failed to submit comment. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSortChange = (newSort: SortOption['value']) => {
@@ -203,7 +241,7 @@ export const CommentFeed = ({
       </div>
 
       <div className="space-y-4">
-        <CommentEditor onSubmit={handleSubmit} {...editorProps} />
+        <CommentEditor onSubmit={handleSubmit} {...editorProps} commentType={commentType} />
 
         {error && (
           <div className="text-red-600 p-4 rounded-md bg-red-50">

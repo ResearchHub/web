@@ -60,6 +60,12 @@ export interface DeleteCommentOptions {
   contentType: ContentType;
 }
 
+export interface CreateCommunityReviewOptions {
+  unifiedDocumentId: ID;
+  commentId: ID;
+  score: number;
+}
+
 export class CommentService {
   private static readonly BASE_PATH = '/api';
 
@@ -156,5 +162,21 @@ export class CommentService {
   }: DeleteCommentOptions): Promise<void> {
     const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/censor/`;
     await ApiClient.delete(path);
+  }
+
+  static async createCommunityReview({
+    unifiedDocumentId,
+    commentId,
+    score,
+  }: CreateCommunityReviewOptions): Promise<any> {
+    const path = `${this.BASE_PATH}/researchhub_unified_document/${unifiedDocumentId}/review/`;
+    const payload = {
+      score,
+      object_id: commentId,
+      content_type: 'rhcommentmodel',
+    };
+
+    const response = await ApiClient.post<any>(path, payload);
+    return response;
   }
 }
