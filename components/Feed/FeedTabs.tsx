@@ -63,7 +63,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
           tabs={tabs}
           activeTab={activeTab}
           onTabChange={handleTabChange}
-          className={cn(isLoading && 'opacity-50 pointer-events-none')}
+          disabled={isLoading}
         />
         <Button
           variant={isCustomizing ? 'default' : 'ghost'}
