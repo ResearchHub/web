@@ -37,6 +37,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   const getAvatarItems = () => {
     switch (content.type) {
       case 'bounty':
+      case 'post':
         return [
           {
             src: content.actor?.profileImage ?? '',
@@ -58,6 +59,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   const getAuthors = () => {
     switch (content.type) {
       case 'bounty':
+      case 'post':
         return [
           {
             name: content.actor?.fullName ?? '',
