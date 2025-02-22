@@ -5,27 +5,30 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { BlockEditor } from '@/components/Editor/components/BlockEditor/BlockEditor';
 import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
 import { useEffect, useState, useRef } from 'react';
 import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
 import { FundingTimelineModal } from '@/components/modals/FundingTimelineModal';
 import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 import { debounce } from 'lodash';
 import { Editor } from '@tiptap/core';
+import { NoteService } from '@/services/note.service';
+import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
+import { getDocumentTitleFromEditor } from '@/components/Editor/lib/utils/documentTitle';
 
 export default function NotePage() {
   const params = useParams();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const noteId = params?.noteId as string;
   const orgSlug = params?.orgSlug as string;
   const isNewFunding = searchParams?.get('newFunding') === 'true';
   const [showFundingModal, setShowFundingModal] = useState(false);
 
-  const { selectedOrg } = useOrganizationContext();
-  const { notes, isLoading: isLoadingNotes } = useOrganizationNotesContext();
+  const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
+  const { setNotes } = useOrganizationNotesContext();
   const { setArticleType, setNoteId } = useNotebookPublish();
-  const [shouldFetchContent, setShouldFetchContent] = useState(false);
+  const [{ note, isLoading: isLoadingNote, error }, fetchNote] = useNote(noteId, {
+    sendImmediately: false,
+  });
   const [{ isLoading: isUpdating }, updateNoteContent] = useNoteContent();
 
   // Show funding modal and set article type when landing on a new funding note
@@ -36,41 +39,54 @@ export default function NotePage() {
     }
   }, [isNewFunding, setArticleType]);
 
-  // Find the note in our list if available
-  const initialNote = notes.find((n) => n.id.toString() === noteId);
-
-  // Only fetch content after initial mount and when we have the metadata
-  useEffect(() => {
-    if (initialNote) {
-      setShouldFetchContent(true);
-    }
-  }, [initialNote?.id]);
-
-  // Fetch the current note only when we need the content
-  const {
-    note,
-    isLoading: isLoadingNote,
-    error,
-  } = useNote(shouldFetchContent ? noteId : null, initialNote);
-
-  // Redirect to first note if no note is selected
-  useEffect(() => {
-    if (!isLoadingNotes && notes.length > 0 && !noteId) {
-      router.push(`/notebook/${orgSlug}/${notes[0].id}`);
-    }
-  }, [notes, isLoadingNotes, noteId, orgSlug, router]);
+  const titleRef = useRef<string>('');
 
   const debouncedRef = useRef(
     debounce((editor: Editor) => {
       const json = editor.getJSON();
       const html = editor.getHTML();
 
-      updateNoteContent({
-        note: noteId,
-        fullSrc: html,
-        plainText: editor.getText(),
-        fullJson: JSON.stringify(json),
-      }).catch(console.error);
+      // Extract title from the first h1 heading
+      const newTitle = getDocumentTitleFromEditor(editor) || '';
+
+      // Create an array of promises to execute
+      const promises = [];
+
+      // Only update title if it changed
+      if (newTitle !== titleRef.current) {
+        titleRef.current = newTitle;
+        promises.push(
+          NoteService.updateNoteTitle({
+            noteId,
+            title: newTitle,
+          }).then(() => {
+            // Update the notes in context after successful title update
+            setNotes((prevNotes) =>
+              prevNotes.map((note) =>
+                note.id.toString() === noteId
+                  ? {
+                      ...note,
+                      title: newTitle,
+                    }
+                  : note
+              )
+            );
+          })
+        );
+      }
+
+      // Always update content
+      promises.push(
+        updateNoteContent({
+          note: noteId,
+          fullSrc: html,
+          plainText: editor.getText(),
+          fullJson: JSON.stringify(json),
+        })
+      );
+
+      // Execute all necessary updates
+      Promise.all(promises).catch(console.error);
     }, 2000)
   );
 
@@ -84,27 +100,19 @@ export default function NotePage() {
     setNoteId(noteId);
   }, [noteId, setNoteId]);
 
-  // Handle organization mismatch or missing data
-  if (orgSlug !== selectedOrg?.slug || !noteId) {
-    return <NotebookSkeleton />;
-  }
-
-  // Show metadata immediately while content loads
-  if (!shouldFetchContent && initialNote) {
-    return (
-      <div className="h-full">
-        <BlockEditor content="" isLoading={true} />
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!isLoadingOrg && selectedOrg) {
+      fetchNote();
+    }
+  }, [isLoadingOrg, selectedOrg, fetchNote]);
 
   // Handle loading states
-  if (isLoadingNotes || isLoadingNote) {
+  if (isLoadingNote) {
     return <NotebookSkeleton />;
   }
 
-  // Handle missing note data
-  if (!note) {
+  // Handle organization mismatch or missing data
+  if (orgSlug !== selectedOrg?.slug || !noteId) {
     return <NotebookSkeleton />;
   }
 
@@ -113,13 +121,17 @@ export default function NotePage() {
     throw error;
   }
 
+  // Handle missing note data
+  if (!note) {
+    return <NotebookSkeleton />;
+  }
+
   // If the note exists but has no content, use the preregistration template
   let content = note.content;
   let contentJson = note.contentJson;
 
   if (!content && !contentJson) {
     const defaultTemplate = JSON.stringify(preregistrationTemplate);
-    // content = defaultTemplate;
     contentJson = defaultTemplate;
   }
 

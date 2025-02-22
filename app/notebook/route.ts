@@ -4,7 +4,8 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/auth.config';
 import { OrganizationService } from '@/services/organization.service';
 import { NoteService } from '@/services/note.service';
 import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
-import { getInitialContent, initialContent } from '@/components/Editor/lib/data/initialContent';
+import { initialContent } from '@/components/Editor/lib/data/initialContent';
+import { getDocumentTitle } from '@/components/Editor/lib/utils/documentTitle';
 // These settings ensure our notebook route always gets fresh data and never uses cached responses.
 export const dynamic = 'force-dynamic'; // Disable static optimization, ensuring fresh data on every request
 export const fetchCache = 'force-no-store'; // Prevent Next.js from caching fetch requests inside this route
@@ -13,15 +14,15 @@ export const revalidate = 0; // Disable automatic background revalidation since 
 async function createNoteWithContent(
   orgSlug: string,
   {
-    title,
     template,
     isNewFunding = false,
   }: {
-    title: string;
     template: typeof preregistrationTemplate | typeof initialContent;
     isNewFunding?: boolean;
   }
 ) {
+  const title = getDocumentTitle(template) || 'Untitled';
+
   const newNote = await NoteService.createNote({
     organization_slug: orgSlug,
     title,
@@ -63,7 +64,6 @@ export async function GET(request: Request) {
 
   if (isNewFunding) {
     return createNoteWithContent(defaultOrg.slug, {
-      title: 'New Research Funding Proposal',
       template: preregistrationTemplate,
       isNewFunding: true,
     });
@@ -73,7 +73,6 @@ export async function GET(request: Request) {
 
   if (notes.results.length === 0) {
     return createNoteWithContent(defaultOrg.slug, {
-      title: 'Untitled',
       template: initialContent,
     });
   }

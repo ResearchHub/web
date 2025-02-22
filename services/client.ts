@@ -68,10 +68,14 @@ export class ApiClient {
       const response = await fetch(`${this.baseURL}${path}`, this.getFetchOptions('GET', headers));
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(
-          `HTTP error! status: ${response.status}, message: ${JSON.stringify(errorData)}`
-        );
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { message: 'Invalid JSON response from server' };
+          throw new Error(JSON.stringify({ data: errorData, status: response.status }));
+        }
+        throw new ApiError(JSON.stringify({ data: errorData, status: response.status }));
       }
 
       return response.json();

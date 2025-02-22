@@ -14,6 +14,7 @@ interface BaseMenuProps {
   withOverlay?: boolean;
   sideOffset?: number;
   animate?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export const BaseMenu: FC<BaseMenuProps> = ({
@@ -24,6 +25,7 @@ export const BaseMenu: FC<BaseMenuProps> = ({
   withOverlay = false,
   sideOffset = 5,
   animate = false,
+  onOpenChange,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -48,7 +50,12 @@ export const BaseMenu: FC<BaseMenuProps> = ({
           </Transition>
         </Portal.Root>
       )}
-      <DropdownMenu.Root onOpenChange={setIsOpen}>
+      <DropdownMenu.Root
+        onOpenChange={(open) => {
+          setIsOpen(open);
+          onOpenChange?.(open);
+        }}
+      >
         <DropdownMenu.Trigger asChild>{trigger}</DropdownMenu.Trigger>
 
         <DropdownMenu.Portal>

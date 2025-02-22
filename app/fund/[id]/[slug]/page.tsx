@@ -58,6 +58,24 @@ interface FundingDocumentProps {
   content?: string;
 }
 
+function removeTitle(contentJson: string): string {
+  try {
+    const content = JSON.parse(contentJson);
+    const titleIndex = content.content.findIndex(
+      (node: any) => node.type === 'heading' && node.attrs?.level === 1
+    );
+
+    if (titleIndex !== -1) {
+      content.content.splice(titleIndex, 1);
+    }
+
+    return JSON.stringify(content);
+  } catch (error) {
+    console.error('Error processing content JSON:', error);
+    return contentJson;
+  }
+}
+
 function FundingDocument({ work, metadata, content }: FundingDocumentProps) {
   console.log('metadata', metadata);
 
@@ -107,7 +125,10 @@ function FundingDocument({ work, metadata, content }: FundingDocumentProps) {
       {/* Content section */}
       {work.note?.contentJson ? (
         <div className="h-full">
-          <BlockEditorClientWrapper contentJson={work.note?.contentJson} editable={false} />
+          <BlockEditorClientWrapper
+            contentJson={removeTitle(work.note.contentJson)}
+            editable={false}
+          />
         </div>
       ) : content ? (
         <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content }} />

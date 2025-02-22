@@ -24,6 +24,11 @@ export interface FundingFormProps {
   submitButtonText?: string;
   isSubmitting?: boolean;
   error?: string | null;
+  fieldErrors?: {
+    budget?: string;
+    nftSupply?: string;
+    nftArt?: string;
+  };
 }
 
 export function FundingForm({
@@ -34,6 +39,7 @@ export function FundingForm({
   submitButtonText = 'Submit',
   isSubmitting = false,
   error = null,
+  fieldErrors = {},
 }: FundingFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<FundingFormData>({
@@ -102,6 +108,7 @@ export function FundingForm({
             <div className="flex items-center pr-4 font-medium text-sm text-gray-900">USD</div>
           }
           helperText="Set your total funding goal for this research project"
+          error={fieldErrors.budget}
         />
       </div>
 
@@ -213,6 +220,12 @@ export function FundingForm({
           </div>
         </>
       )}
+
+      {Object.entries(fieldErrors).map(([field, message]) => (
+        <Alert key={field} variant="error" className="mt-4">
+          {message}
+        </Alert>
+      ))}
 
       {error && (
         <Alert variant="error" className="mt-4">

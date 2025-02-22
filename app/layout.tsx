@@ -47,9 +47,9 @@ export default function RootLayout({
         <NextAuthProvider>
           <AuthModalProvider>
             <OrganizationProvider>
-              <NotificationProvider>
-                <ExchangeRateProvider>{children}</ExchangeRateProvider>
-              </NotificationProvider>
+              <ExchangeRateProvider>
+                <NotificationProvider>{children}</NotificationProvider>
+              </ExchangeRateProvider>
             </OrganizationProvider>
           </AuthModalProvider>
         </NextAuthProvider>

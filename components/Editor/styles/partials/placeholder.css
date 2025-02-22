@@ -47,3 +47,11 @@
     content: 'Enter details';
   }
 }
+
+.ProseMirror h1.is-empty:first-child::before {
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}

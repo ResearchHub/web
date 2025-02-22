@@ -8,9 +8,15 @@ interface NoteListProps {
   notes: Note[];
   type: 'workspace' | 'private';
   isLoading?: boolean;
+  selectedNoteId?: string;
 }
 
-export const NoteList: React.FC<NoteListProps> = ({ notes, type, isLoading = false }) => {
+export const NoteList: React.FC<NoteListProps> = ({
+  notes,
+  type,
+  isLoading = false,
+  selectedNoteId,
+}) => {
   if (isLoading || notes.length === 0) {
     return <NoteListSkeleton />;
   }
@@ -34,7 +40,11 @@ export const NoteList: React.FC<NoteListProps> = ({ notes, type, isLoading = fal
   return (
     <div className="space-y-0.5">
       {filteredNotes.map((note) => (
-        <NoteListItem key={note.id} note={note} />
+        <NoteListItem
+          key={note.id}
+          note={note}
+          isSelected={selectedNoteId === note.id.toString()}
+        />
       ))}
     </div>
   );
