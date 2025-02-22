@@ -3,31 +3,13 @@ import { Topic } from '@/types/topic';
 import type { AuthorProfile } from '@/types/authorProfile';
 import { transformAuthorProfile } from '@/types/authorProfile';
 import { ContentMetrics } from '@/types/metrics';
-
+import { Fundraise, transformFundraise } from '@/types/funding';
 export interface WorkMetadata {
   id: number;
   score: number;
   topics: Topic[];
   metrics: ContentMetrics;
-  fundraising?: {
-    id: number;
-    amountRaised: {
-      usd: number;
-      rsc: number;
-    };
-    goalAmount: {
-      usd: number;
-      rsc: number;
-    };
-    status: 'OPEN' | 'COMPLETED' | 'CLOSED';
-    goalCurrency: string;
-    startDate: string;
-    endDate: string;
-    contributors: {
-      numContributors: number;
-      topContributors: AuthorProfile[];
-    };
-  };
+  fundraising?: Fundraise;
 }
 
 function transformWorkMetadata(response: any): WorkMetadata {
@@ -49,23 +31,7 @@ function transformWorkMetadata(response: any): WorkMetadata {
       reviewScore: response.reviews.avg,
       reviews: response.reviews.count,
     },
-    fundraising: response.fundraise
-      ? {
-          id: response.fundraise.id,
-          amountRaised: response.fundraise.amount_raised,
-          goalAmount: response.fundraise.goal_amount,
-          status: response.fundraise.status,
-          goalCurrency: response.fundraise.goal_currency,
-          startDate: response.fundraise.start_date,
-          endDate: response.fundraise.end_date,
-          contributors: {
-            numContributors: response.fundraise.contributors.total,
-            topContributors: response.fundraise.contributors.top.map((contributor: any) =>
-              transformAuthorProfile(contributor.author_profile)
-            ),
-          },
-        }
-      : undefined,
+    fundraising: response.fundraise ? transformFundraise(response.fundraise) : undefined,
   };
 }
 

@@ -11,7 +11,7 @@ import { JournalSection } from './components/JournalSection';
 import { Button } from '@/components/ui/Button';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCreatePost } from '@/hooks/useDocument';
+import { useUpsertPost } from '@/hooks/useDocument';
 import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
 import { getDocumentTitleFromEditor } from '@/components/Editor/lib/utils/documentTitle';
 import { ResearchCoinSection } from './components/ResearchCoinSection';
@@ -28,7 +28,8 @@ interface PublishingFormProps {
 }
 
 export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormProps) {
-  const { noteId, editor } = useNotebookPublish();
+  const { noteId, editor, note } = useNotebookPublish();
+  const searchParams = useSearchParams();
 
   const methods = useForm<PublishingFormData>({
     defaultValues: {
@@ -44,17 +45,47 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     mode: 'onChange',
   });
 
-  // Load stored data after component mounts
+  // Load data with priority:
+  // 1. note.post data
+  // 2. localStorage data
+  // 3. URL search params
   useEffect(() => {
-    if (noteId) {
-      const data = loadPublishingFormFromStorage(noteId.toString());
-      if (data) {
-        Object.entries(data).forEach(([key, value]) => {
-          methods.setValue(key as keyof PublishingFormData, value);
-        });
+    if (!noteId) return;
+    console.log('note', note);
+
+    // Priority 1: Check for existing post data
+    if (note?.post) {
+      methods.setValue('workId', note.post.id.toString());
+      methods.setValue(
+        'articleType',
+        note.post.contentType === 'preregistration' ? 'preregistration' : 'research'
+      );
+      methods.setValue('budget', note.post.fundraise?.goalAmount.usd.toString());
+      // Set other relevant post data
+      return;
+    }
+
+    // Priority 2: Check localStorage
+    const storedData = loadPublishingFormFromStorage(noteId.toString());
+    if (storedData) {
+      Object.entries(storedData).forEach(([key, value]) => {
+        methods.setValue(key as keyof PublishingFormData, value);
+      });
+    }
+
+    // Priority 3: Check URL params
+    const isNewFunding = searchParams?.get('newFunding') === 'true';
+    const template = searchParams?.get('template');
+
+    if (!note?.post && !storedData) {
+      if (isNewFunding) {
+        methods.setValue('articleType', 'preregistration');
+      } else if (template) {
+        const articleType = template === 'preregistration' ? 'preregistration' : 'research';
+        methods.setValue('articleType', articleType);
       }
     }
-  }, [noteId, methods]);
+  }, [noteId, note, methods, searchParams]);
 
   // Add effect to save form data when it changes
   useEffect(() => {
@@ -70,24 +101,9 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   const { watch, clearErrors, setValue } = methods;
   const articleType = watch('articleType');
   const isJournalEnabled = watch('isJournalEnabled');
-  const [{ isLoading: isLoadingCreatePost }, createPreregistrationPost] = useCreatePost();
+  const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const isNewFunding = searchParams?.get('newFunding') === 'true';
-
-  useEffect(() => {
-    if (isNewFunding) {
-      setValue('articleType', 'preregistration');
-    } else {
-      const template = searchParams?.get('template');
-      if (template) {
-        const articleType = template === 'preregistration' ? 'preregistration' : 'research';
-        setValue('articleType', articleType);
-      }
-    }
-  }, [isNewFunding, setValue, searchParams]);
 
   // Reset form errors when article type changes
   useEffect(() => {
@@ -126,17 +142,20 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       const title = getDocumentTitleFromEditor(editor);
       const formData = methods.getValues();
 
-      const response = await createPreregistrationPost({
-        budget: formData.budget?.toString() || '',
-        rewardFunders: formData.rewardFunders || false,
-        nftArt: formData.nftArt || null,
-        nftSupply: formData.nftSupply || '1000',
-        title,
-        noteId: noteId,
-        renderableText: text || '',
-        fullJSON: JSON.stringify(json),
-        fullSrc: html || '',
-      });
+      const response = await upsertPost(
+        {
+          budget: formData.budget || '0',
+          rewardFunders: formData.rewardFunders,
+          nftArt: formData.nftArt || null,
+          nftSupply: formData.nftSupply || '1000',
+          title,
+          noteId: noteId,
+          renderableText: text || '',
+          fullJSON: JSON.stringify(json),
+          fullSrc: html || '',
+        },
+        formData.workId
+      );
 
       router.push(`/fund/${response.id}/${response.slug}`);
     } catch (error) {
@@ -147,7 +166,8 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     }
   };
 
-  if (!noteId) {
+  // Show skeleton while note is loading
+  if (!note) {
     return <PublishingFormSkeleton />;
   }
 
@@ -161,7 +181,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             <AuthorsSection />
             <TopicsSection />
 
-            {articleType === 'preregistration' && <FundingSection />}
+            {articleType === 'preregistration' && <FundingSection note={note} />}
             {articleType !== 'preregistration' && (
               <ResearchCoinSection bountyAmount={bountyAmount} onBountyClick={onBountyClick} />
             )}
@@ -177,23 +197,33 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
               <span className="font-medium text-gray-900">$1,000 USD</span>
             </div>
           )}
-          <Button variant="default" onClick={handlePublishClick} className="w-full">
-            {isLoadingCreatePost
+          <Button
+            variant="default"
+            onClick={handlePublishClick}
+            className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLoadingUpsert}
+          >
+            {isLoadingUpsert
               ? 'Publishing...'
               : articleType === 'research' && isJournalEnabled
                 ? 'Pay & Publish'
-                : 'Publish'}
+                : Boolean(methods.watch('workId'))
+                  ? 'Re-publish'
+                  : 'Publish'}
           </Button>
         </div>
       </div>
 
-      <ConfirmPublishModal
-        isOpen={showConfirmModal}
-        onClose={() => setShowConfirmModal(false)}
-        onConfirm={handleConfirmPublish}
-        title={getDocumentTitleFromEditor(editor) || 'Untitled Research'}
-        isPublishing={isLoadingCreatePost}
-      />
+      {showConfirmModal && (
+        <ConfirmPublishModal
+          isOpen={showConfirmModal}
+          onClose={() => setShowConfirmModal(false)}
+          onConfirm={handleConfirmPublish}
+          title={getDocumentTitleFromEditor(editor) || 'Untitled Research'}
+          isPublishing={isLoadingUpsert}
+          isUpdate={Boolean(methods.watch('workId'))}
+        />
+      )}
     </FormProvider>
   );
 }

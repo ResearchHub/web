@@ -103,31 +103,13 @@ function FundingDocument({ work, metadata, content }: FundingDocumentProps) {
         />
       )}
 
-      {/* Debug section */}
-      <details className="mb-8">
-        <summary className="cursor-pointer text-gray-600">Debug Info</summary>
-        <div className="space-y-4">
-          <div>
-            <h3 className="font-semibold mb-2">Work Data:</h3>
-            <pre className="bg-gray-100 p-4 rounded-lg overflow-auto">
-              {JSON.stringify(work, null, 2)}
-            </pre>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2">Metadata:</h3>
-            <pre className="bg-gray-100 p-4 rounded-lg overflow-auto">
-              {JSON.stringify(metadata, null, 2)}
-            </pre>
-          </div>
-        </div>
-      </details>
-
       {/* Content section */}
       {work.note?.contentJson ? (
         <div className="h-full">
           <BlockEditorClientWrapper
             contentJson={removeTitle(work.note.contentJson)}
             editable={false}
+            hideTitle={true}
           />
         </div>
       ) : content ? (

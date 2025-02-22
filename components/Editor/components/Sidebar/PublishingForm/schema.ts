@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const publishingFormSchema = z
   .object({
+    workId: z.string().optional(),
     articleType: z.enum(['research', 'preregistration', 'other'] as const),
     authors: z.array(z.string()),
     topics: z.array(z.string()),

@@ -13,6 +13,7 @@ interface ConfirmPublishModalProps {
   onConfirm: () => void;
   title: string;
   isPublishing: boolean;
+  isUpdate?: boolean;
 }
 
 export function ConfirmPublishModal({
@@ -21,19 +22,19 @@ export function ConfirmPublishModal({
   onConfirm,
   title: initialTitle,
   isPublishing,
+  isUpdate,
 }: ConfirmPublishModalProps) {
   const [title, setTitle] = useState(initialTitle);
   const [hasAgreed, setHasAgreed] = useState(false);
   const { editor } = useNotebookPublish();
 
   const isTitleValid = title.trim().length >= 20;
-  const isPublishEnabled = isTitleValid && hasAgreed && !isPublishing;
+  const isPublishEnabled = isTitleValid && hasAgreed;
 
-  // Reset state when modal opens
   useEffect(() => {
     setTitle(initialTitle);
     setHasAgreed(false);
-  }, [isOpen]);
+  }, []);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
@@ -84,10 +85,11 @@ export function ConfirmPublishModal({
               <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
                 <div className="p-6">
                   <DialogTitle as="h3" className="text-lg font-semibold text-gray-900 mb-4">
-                    Confirm Publication
+                    {isUpdate ? 'Confirm Re-publication' : 'Confirm Publication'}
                   </DialogTitle>
                   <p className="text-sm text-gray-600 mb-4">
-                    You are about to publish your research preregistration:
+                    You are about to {isUpdate ? 're-publish' : 'publish'} your research
+                    preregistration:
                   </p>
                   <input
                     type="text"
@@ -174,10 +176,14 @@ export function ConfirmPublishModal({
                     <Button
                       variant="default"
                       onClick={onConfirm}
-                      disabled={!isPublishEnabled}
+                      disabled={!isPublishEnabled || isPublishing}
                       className="disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isPublishing ? 'Publishing...' : 'Confirm & Publish'}
+                      {isPublishing
+                        ? 'Publishing...'
+                        : isUpdate
+                          ? 'Confirm & Re-publish'
+                          : 'Confirm & Publish'}
                     </Button>
                   </div>
                 </div>

@@ -21,6 +21,9 @@ import { useVote } from '@/hooks/useReaction';
 import { useUserVotes } from '@/hooks/useReaction';
 import toast from 'react-hot-toast';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
+import { useOrganizationContext } from '@/contexts/OrganizationContext';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/Button';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -34,6 +37,8 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
   const [{ isLoading: isVoting }, vote] = useVote();
   const [voteCount, setVoteCount] = useState(work.metrics.votes);
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
+  const router = useRouter();
+  const { selectedOrg } = useOrganizationContext();
 
   const {
     data: userVotes,
@@ -65,6 +70,14 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
       );
     }
   }, [work.contentType, work.id, isUpvoted, vote, refreshVotes]);
+
+  const handleEdit = useCallback(() => {
+    if (selectedOrg && work.note) {
+      router.push(`/notebook/${selectedOrg.slug}/${work.note.id}`);
+    } else {
+      toast.error('Unable to edit');
+    }
+  }, [work.contentType, work.note, selectedOrg, router]);
 
   return (
     <div>
@@ -133,16 +146,15 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
                 )}
               </MenuItem>
               <MenuItem>
-                {({ focus }) => (
-                  <button
-                    className={`${
-                      focus ? 'bg-gray-50' : ''
-                    } flex items-center space-x-2 px-4 py-2 text-gray-700 w-full text-left`}
-                  >
-                    <Edit className="h-4 w-4" />
-                    <span>Edit</span>
-                  </button>
-                )}
+                <Button
+                  variant="ghost"
+                  disabled={!selectedOrg || !work.note}
+                  onClick={handleEdit}
+                  className="w-full justify-start"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  <span>Edit</span>
+                </Button>
               </MenuItem>
               <MenuItem>
                 {({ focus }) => (

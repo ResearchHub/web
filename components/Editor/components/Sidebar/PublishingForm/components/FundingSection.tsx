@@ -5,63 +5,78 @@ import { Switch } from '@/components/ui/Switch';
 import Image from 'next/image';
 import { cn } from '@/utils/styles';
 import { useRef, useState } from 'react';
+import { Note } from '@/types/note';
+import { FundraiseStats } from '@/components/FundraiseStats';
 
-export function FundingSection() {
+interface FundingSectionProps {
+  note: Note;
+}
+
+export function FundingSection({ note }: FundingSectionProps) {
   const {
     register,
     watch,
     setValue,
     formState: { errors },
   } = useFormContext();
-  const rewardFunders = watch('rewardFunders');
-  const budget = watch('budget');
-  const nftSupply = watch('nftSupply');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  // const rewardFunders = watch('rewardFunders');
+  // const budget = watch('budget');
+  // const nftSupply = watch('nftSupply');
+  // const fileInputRef = useRef<HTMLInputElement>(null);
+  // const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setValue('nftArt', file);
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
-    }
-  };
+  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
+  //   if (file) {
+  //     setValue('nftArt', file);
+  //     const url = URL.createObjectURL(file);
+  //     setPreviewUrl(url);
+  //   }
+  // };
 
-  const formatNumberWithCommas = (value: string) => {
-    const numericValue = value.replace(/[^0-9]/g, '');
-    return numericValue ? parseInt(numericValue).toLocaleString() : '';
-  };
+  // const formatNumberWithCommas = (value: string) => {
+  //   const numericValue = value.replace(/[^0-9]/g, '');
+  //   return numericValue ? parseInt(numericValue).toLocaleString() : '';
+  // };
 
-  const calculateMinDonation = () => {
-    const funding = parseFloat(budget?.replace(/[^0-9.]/g, '') || '0');
-    const supply = parseInt(nftSupply?.replace(/[^0-9]/g, '') || '0');
-    if (!funding || !supply) return '0.00';
-    return (funding / supply).toFixed(2);
-  };
+  // const calculateMinDonation = () => {
+  //   const funding = parseFloat(budget?.replace(/[^0-9.]/g, '') || '0');
+  //   const supply = parseInt(nftSupply?.replace(/[^0-9]/g, '') || '0');
+  //   if (!funding || !supply) return '0.00';
+  //   return (funding / supply).toFixed(2);
+  // };
+
+  const fundraise = note.post?.fundraise;
 
   return (
     <div className="py-3 px-6 space-y-6">
-      <div>
-        <Input
-          {...register('budget')}
-          label="Funding Goal"
-          required
-          placeholder="0.00"
-          type="text"
-          inputMode="numeric"
-          className="w-full"
-          error={errors.budget?.message?.toString()}
-          rightElement={
-            <div className="flex items-center pr-4 font-medium text-sm text-gray-900">USD</div>
-          }
-          helperText="Set your total funding goal for this research project"
-          onChange={(e) => {
-            const value = e.target.value.replace(/[^0-9.]/g, '');
-            setValue('budget', value, { shouldValidate: true });
-          }}
-        />
-      </div>
+      {fundraise ? (
+        <>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">Funding Progress</h3>
+          <FundraiseStats fundraise={fundraise} />
+        </>
+      ) : (
+        <div>
+          <Input
+            {...register('budget')}
+            label="Funding Goal"
+            required
+            placeholder="0.00"
+            type="text"
+            inputMode="numeric"
+            className="w-full"
+            error={errors.budget?.message?.toString()}
+            rightElement={
+              <div className="flex items-center pr-4 font-medium text-sm text-gray-900">USD</div>
+            }
+            helperText="Set your total funding goal for this research project"
+            onChange={(e) => {
+              const value = e.target.value.replace(/[^0-9.]/g, '');
+              setValue('budget', value, { shouldValidate: true });
+            }}
+          />
+        </div>
+      )}
 
       {/* <div className="space-y-3 pt-4 border-t border-gray-200">
         <div className="flex items-center justify-between">

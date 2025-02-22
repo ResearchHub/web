@@ -13,18 +13,6 @@ import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import { Plugin } from '@tiptap/pm/state';
 import { Underline } from '@tiptap/extension-underline';
 
-// Modify the CustomDocument extension
-const CustomDocument = Document.extend({
-  content: 'heading block+',
-  parseHTML() {
-    return [
-      {
-        tag: 'div[class="editor-content"]',
-      },
-    ];
-  },
-});
-
 // Create a custom Heading extension that enforces h1 at the start
 const CustomHeading = Heading.extend({
   addProseMirrorPlugins() {
@@ -85,7 +73,22 @@ export interface BlockEditorProps {
   isLoading?: boolean;
   onUpdate?: (editor: Editor) => void;
   editable?: boolean;
+  hideTitle?: boolean;
 }
+
+// Modify the CustomDocument extension to be configurable
+const createCustomDocument = (hideTitle: boolean) => {
+  return Document.extend({
+    content: hideTitle ? 'block+' : 'heading block+',
+    parseHTML() {
+      return [
+        {
+          tag: 'div[class="editor-content"]',
+        },
+      ];
+    },
+  });
+};
 
 export const BlockEditor: React.FC<BlockEditorProps> = ({
   content,
@@ -93,8 +96,10 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   onUpdate,
   isLoading = false,
   editable = true,
+  hideTitle = false,
 }) => {
   const { setEditor } = useNotebookPublish();
+  const CustomDocument = createCustomDocument(hideTitle);
 
   const editor = useEditor({
     editable,

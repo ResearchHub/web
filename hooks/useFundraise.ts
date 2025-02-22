@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { FundraiseService } from '@/services/fundraise.service';
 import { Fundraise } from '@/types/funding';
 import { ApiError } from '@/services/types';
+import { ID } from '@/types/root';
 
 interface UseFundraiseState {
   data: Fundraise | null;
@@ -11,7 +12,7 @@ interface UseFundraiseState {
   error: string | null;
 }
 
-type CreateContributionFn = (id: number, payload: any) => Promise<void>;
+type CreateContributionFn = (id: ID, payload: any) => Promise<void>;
 type UseCreateContributionReturn = [UseFundraiseState, CreateContributionFn];
 
 export const useCreateContribution = (): UseCreateContributionReturn => {
@@ -19,7 +20,7 @@ export const useCreateContribution = (): UseCreateContributionReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createContribution = async (id: number, payload: any) => {
+  const createContribution = async (id: ID, payload: any) => {
     setIsLoading(true);
     setError(null);
 

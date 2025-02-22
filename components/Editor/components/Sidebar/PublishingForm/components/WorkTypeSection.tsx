@@ -38,9 +38,11 @@ const renderSelectedIcon = (articleType: ArticleType) => {
 export function WorkTypeSection() {
   const { watch, setValue } = useFormContext();
   const articleType = watch('articleType') as ArticleType;
+  const workId = watch('workId');
   const { note } = useNotebookPublish();
+  const slug = note?.post?.slug;
 
-  const isPublished = Boolean(note?.post);
+  const isPublished = Boolean(workId);
 
   return (
     <div className="py-3 px-6">
@@ -53,10 +55,10 @@ export function WorkTypeSection() {
             <Badge variant="success" size="sm">
               Published
             </Badge>
-            {articleType === 'preregistration' && (
+            {articleType === 'preregistration' && slug && (
               <Tooltip content="View funding page">
                 <Link
-                  href={`/fund/${note.post?.id}/${note.post?.slug}`}
+                  href={`/fund/${workId}/${slug}`}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                   target="_blank"
                 >
