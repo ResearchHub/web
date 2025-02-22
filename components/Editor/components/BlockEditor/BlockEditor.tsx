@@ -70,6 +70,7 @@ const CustomHeading = Heading.extend({
 export interface BlockEditorProps {
   content?: string;
   contentJson?: string;
+  contentHtml?: string;
   isLoading?: boolean;
   onUpdate?: (editor: Editor) => void;
   editable?: boolean;
@@ -93,6 +94,7 @@ const createCustomDocument = (hideTitle: boolean) => {
 export const BlockEditor: React.FC<BlockEditorProps> = ({
   content,
   contentJson,
+  contentHtml,
   onUpdate,
   isLoading = false,
   editable = true,
@@ -130,18 +132,20 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
         },
       }),
     ],
-    content: contentJson
-      ? JSON.parse(contentJson)
-      : {
-          type: 'doc',
-          content: [
-            {
-              type: 'heading',
-              attrs: { level: 1 },
-              content: [{ type: 'text', text: '' }],
-            },
-          ],
-        },
+    content: contentHtml
+      ? contentHtml
+      : contentJson
+        ? JSON.parse(contentJson)
+        : {
+            type: 'doc',
+            content: [
+              {
+                type: 'heading',
+                attrs: { level: 1 },
+                content: [{ type: 'text', text: '' }],
+              },
+            ],
+          },
     editorProps: {
       attributes: {
         class:
@@ -154,14 +158,16 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   });
 
   useEffect(() => {
-    if (editor && (content || contentJson)) {
-      if (contentJson) {
+    if (editor && (content || contentJson || contentHtml)) {
+      if (contentHtml) {
+        editor.commands.setContent(contentHtml);
+      } else if (contentJson) {
         editor.commands.setContent(JSON.parse(contentJson));
       } else {
         editor.commands.setContent(content || '');
       }
     }
-  }, [editor, content, contentJson]);
+  }, [editor, content, contentJson, contentHtml]);
 
   useEffect(() => {
     setEditor(editor);

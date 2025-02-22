@@ -18,6 +18,7 @@ export interface PreregistrationFormData {
   renderableText: string;
   fullJSON: string;
   fullSrc: string;
+  assignDOI?: boolean;
 }
 
 interface UsePostState {
@@ -50,7 +51,7 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
       formDataToSubmit.append('full_src', formData.fullSrc);
       formDataToSubmit.append('full_json', formData.fullJSON);
       formDataToSubmit.append('note_id', String(formData.noteId ?? ''));
-
+      formDataToSubmit.append('assign_doi', String(formData.assignDOI ?? false));
       // Only append fundraise-related fields for creation
       if (!postId) {
         formDataToSubmit.append('reward_funders', String(formData.rewardFunders));

@@ -76,6 +76,11 @@ function removeTitle(contentJson: string): string {
   }
 }
 
+function removeHtmlTitle(html: string): string {
+  // Remove H1 tags and their content
+  return html.replace(/<h1[^>]*>.*?<\/h1>/i, '');
+}
+
 function FundingDocument({ work, metadata, content }: FundingDocumentProps) {
   console.log('metadata', metadata);
 
@@ -104,21 +109,31 @@ function FundingDocument({ work, metadata, content }: FundingDocumentProps) {
       )}
 
       {/* Content section */}
-      {work.note?.contentJson ? (
-        <div className="h-full">
-          <BlockEditorClientWrapper
-            contentJson={removeTitle(work.note.contentJson)}
-            editable={false}
-            hideTitle={true}
-          />
-        </div>
-      ) : content ? (
-        <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content }} />
-      ) : work.previewContent ? (
-        <div className="prose max-w-none whitespace-pre-wrap">{work.previewContent}</div>
-      ) : (
-        <p className="text-gray-500">No content available</p>
-      )}
+      {
+        // this is currently commented out because we do not want to show unpublished notes
+        // work.note?.contentJson ? (
+        //   <div className="h-full">
+        //     <BlockEditorClientWrapper
+        //       contentJson={removeTitle(work.note.contentJson)}
+        //       editable={false}
+        //       hideTitle={true}
+        //     />
+        //   </div>
+        // ) :
+        work.previewContent ? (
+          <div className="h-full">
+            <BlockEditorClientWrapper
+              contentHtml={removeHtmlTitle(work.previewContent)}
+              editable={false}
+              hideTitle={true}
+            />
+          </div>
+        ) : content ? (
+          <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content }} />
+        ) : (
+          <p className="text-gray-500">No content available</p>
+        )
+      }
     </div>
   );
 }
@@ -129,6 +144,7 @@ export default async function FundingProjectPage({ params }: Props) {
 
   // First fetch the work to get the unifiedDocumentId
   const work = await getFundingProject(id);
+  console.log('work', work);
 
   // Then fetch metadata using unifiedDocumentId
   const metadata = await MetadataService.get(work.unifiedDocumentId.toString());
@@ -139,7 +155,7 @@ export default async function FundingProjectPage({ params }: Props) {
   return (
     <PageLayout rightSidebar={<FundingRightSidebar work={work} metadata={metadata} />}>
       <Suspense>
-        <FundingDocument work={work} metadata={metadata} content={content} />
+        <FundingDocument work={work} metadata={metadata} content={undefined} />
         <SearchHistoryTracker work={work} />
       </Suspense>
     </PageLayout>

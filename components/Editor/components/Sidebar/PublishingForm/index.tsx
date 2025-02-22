@@ -153,6 +153,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           renderableText: text || '',
           fullJSON: JSON.stringify(json),
           fullSrc: html || '',
+          assignDOI: formData.workId ? false : true,
         },
         formData.workId
       );
