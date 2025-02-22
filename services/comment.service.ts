@@ -123,8 +123,9 @@ export class CommentService {
     });
 
     if (filter) {
-      queryParams.append('filter', filter.toLowerCase());
+      queryParams.append('filtering', filter);
     }
+
     if (page) {
       queryParams.append('page', page.toString());
     }

@@ -1,7 +1,7 @@
 import { BaseTransformer } from './transformer';
-import { AuthorProfile, transformAuthorProfile } from './authorProfile';
+import { User, transformUser } from './user';
 
-export type BountyType = 'REVIEW' | 'ANSWER' | 'GENERIC_COMMENT';
+export type BountyType = 'REVIEW' | 'BOUNTY' | 'GENERIC_COMMENT';
 
 export interface Bounty {
   id: number;
@@ -9,7 +9,8 @@ export interface Bounty {
   status: 'OPEN' | 'CLOSED';
   expirationDate: string;
   bountyType: BountyType;
-  createdBy: AuthorProfile;
+  createdBy: User;
+  isContribution: boolean;
   raw: any;
 }
 
@@ -19,6 +20,7 @@ export const transformBounty: BaseTransformer<any, Bounty> = (raw) => ({
   status: raw.status,
   expirationDate: raw.expiration_date,
   bountyType: raw.bounty_type,
-  createdBy: transformAuthorProfile(raw.created_by),
+  createdBy: transformUser(raw.created_by),
+  isContribution: !!raw.parent,
   raw,
 });

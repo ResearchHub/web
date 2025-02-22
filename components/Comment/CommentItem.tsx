@@ -12,6 +12,8 @@ import { MessageCircle, ArrowUp, Flag, Edit2, Trash2, Coins, CheckCircle } from 
 import { Avatar } from '@/components/ui/Avatar';
 import 'highlight.js/styles/atom-one-dark.css';
 import hljs from 'highlight.js';
+import { CommentReadOnly } from './CommentReadOnly';
+import { BountyItem } from './BountyItem';
 
 interface CommentItemProps {
   comment: Comment;
@@ -31,6 +33,13 @@ export const CommentItem = ({
   const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
+
+  console.log('CommentItem rendering', {
+    author: comment.author,
+    commentType,
+    hasBounties: comment.bounties?.length,
+    isEditing,
+  });
 
   useEffect(() => {
     // Find all pre code blocks and apply highlighting
@@ -84,6 +93,38 @@ export const CommentItem = ({
         console.error('Failed to delete comment:', error);
       }
     }
+  };
+
+  const renderContent = () => {
+    console.log('renderContent called', {
+      hasBounties: comment.bounties?.length > 0,
+      openNonContributionBounty: comment.bounties?.some(
+        (b) => b.status === 'OPEN' && !b.isContribution
+      ),
+      bounties: comment.bounties,
+    });
+
+    const hasBounty =
+      comment.bounties?.length > 0 &&
+      comment.bounties.some((b) => b.status === 'OPEN' && !b.isContribution);
+
+    if (hasBounty) {
+      return (
+        <div className="border border-gray-200 rounded-lg p-4 mb-4">
+          <BountyItem
+            comment={comment}
+            contentType={contentType}
+            onSubmitSolution={() => setIsReplying(true)}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className="border border-gray-200 rounded-lg p-4 mb-4">
+        <CommentReadOnly comment={comment} contentType={contentType} />
+      </div>
+    );
   };
 
   return (
@@ -156,38 +197,14 @@ export const CommentItem = ({
       `}</style>
 
       {/* Author Info */}
-      <div className="flex items-center justify-between mb-4">
-        <CommentItemHeader
-          profileImage={comment.author.profileImage}
-          fullName={comment.author.fullName}
-          profileUrl={comment.author.profileUrl}
-          date={comment.createdDate}
-        />
-      </div>
+      <CommentItemHeader
+        profileImage={comment.author.profileImage}
+        fullName={comment.author.fullName}
+        profileUrl={comment.author.profileUrl}
+        date={comment.createdDate}
+        className="mb-4"
+      />
 
-      {/* Bounties */}
-      {comment.bounties.length > 0 && (
-        <div className="mb-4">
-          {comment.bounties.map((bounty) => (
-            <div
-              key={bounty.id}
-              className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-2"
-            >
-              <div className="flex items-center gap-2">
-                <Coins className="h-4 w-4 text-orange-600" />
-                <span className="font-medium text-orange-900">
-                  {parseFloat(bounty.amount).toFixed(0)} RSC Bounty
-                </span>
-                <span className="text-orange-700 text-sm">
-                  · Expires {new Date(bounty.expirationDate).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Comment Content */}
       {isEditing ? (
         <>
           {updateError && (
@@ -202,37 +219,21 @@ export const CommentItem = ({
             }}
           />
         </>
-      ) : comment.contentFormat === 'QUILL_EDITOR' ? (
-        <div className="border-none">
-          <CommentEditor
-            initialContent={convertQuillDeltaToTipTap(
-              typeof comment.content === 'string' ? JSON.parse(comment.content) : comment.content
-            )}
-            onSubmit={() => {}}
-            isReadOnly={true}
-          />
-        </div>
       ) : (
-        <div className="border-none">
-          <CommentEditor
-            initialContent={
-              typeof comment.content === 'string' ? JSON.parse(comment.content) : comment.content
-            }
-            onSubmit={() => {}}
-            isReadOnly={true}
-          />
-        </div>
-      )}
+        <>
+          {renderContent()}
 
-      {/* Comment Actions and Metadata */}
-      <CommentItemActions
-        score={comment.score || 0}
-        replyCount={comment.replyCount || 0}
-        commentId={comment.id}
-        onReply={() => setIsReplying(!isReplying)}
-        onEdit={() => setIsEditing(true)}
-        onDelete={handleDelete}
-      />
+          {/* Comment Actions and Metadata */}
+          <CommentItemActions
+            score={comment.score}
+            replyCount={comment.replyCount || 0}
+            commentId={comment.id}
+            onReply={() => setIsReplying(!isReplying)}
+            onEdit={() => setIsEditing(true)}
+            onDelete={handleDelete}
+          />
+        </>
+      )}
 
       {/* Reply Editor */}
       {isReplying && (

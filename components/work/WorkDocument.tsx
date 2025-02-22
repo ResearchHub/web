@@ -6,7 +6,6 @@ import { Work } from '@/types/work';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { WorkRightSidebar } from './WorkRightSidebar';
 import { WorkReviews } from './WorkReviews';
-import { WorkBounties } from './WorkBounties';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { WorkLineItems } from './WorkLineItems';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -41,25 +40,6 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
       router.push(baseUrl);
     }
   };
-
-  // Mock data - would come from API
-  const openBounties = [
-    {
-      id: 1,
-      title: 'Comprehensive Methodology Review',
-      description:
-        'Looking for an expert review focusing on the methodology and statistical analysis.',
-      amount: 500,
-      deadline: '7 days',
-    },
-    {
-      id: 2,
-      title: 'Replication Study',
-      description: 'Seeking researchers to replicate key findings from Figure 3.',
-      amount: 1500,
-      deadline: '30 days',
-    },
-  ];
 
   return (
     <div>
@@ -212,7 +192,19 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
             />
           </div>
         )}
-        {activeTab === 'bounties' && <WorkBounties workId={work.id.toString()} />}
+        {activeTab === 'bounties' && (
+          <div className="space-y-6">
+            <CommentFeed
+              documentId={work.id}
+              contentType={work.contentType}
+              commentType="BOUNTY"
+              editorProps={{
+                placeholder: 'Create a new bounty...',
+                commentType: 'BOUNTY',
+              }}
+            />
+          </div>
+        )}
         {activeTab === 'comments' && (
           <div className="space-y-6">
             <CommentFeed

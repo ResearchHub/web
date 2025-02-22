@@ -10,11 +10,18 @@ import { CommentService } from '@/services/comment.service';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Star, Zap, ArrowUp, ChevronDown } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { BountyItem } from './BountyItem';
 
 type SortOption = {
   label: string;
   value: 'BEST' | 'CREATED_DATE' | 'TOP';
   icon: typeof Star | typeof Zap | typeof ArrowUp;
+};
+
+const commentTypeToFilter: Record<CommentType, CommentFilter | undefined> = {
+  GENERIC_COMMENT: undefined,
+  REVIEW: 'REVIEW',
+  BOUNTY: 'BOUNTY',
 };
 
 interface CommentFeedProps {
@@ -32,111 +39,26 @@ export const CommentFeed = ({
   commentType = 'GENERIC_COMMENT',
   editorProps = {},
 }: CommentFeedProps) => {
-  const [commentFilter, setCommentFilter] = useState<CommentFilter>('DISCUSSION');
   const [sortBy, setSortBy] = useState<SortOption['value']>('BEST');
   const [isOpen, setIsOpen] = useState(false);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [count, setCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [hasMore, setHasMore] = useState(false);
 
-  const { loadMore, refresh } = useComments({
+  const {
+    comments,
+    setComments,
+    count,
+    isLoading: isLoadingComments,
+    error: commentsError,
+    hasMore,
+    loadMore,
+    refresh,
+  } = useComments({
     documentId,
     contentType,
-    filter: commentFilter,
+    filter: commentTypeToFilter[commentType],
     sort: sortBy,
   });
-
-  const updateCommentTree = (newComment: Comment, parentId?: number) => {
-    console.log('updateCommentTree called with:', {
-      newComment,
-      parentId,
-      currentComments: comments,
-    });
-
-    // Helper function to update a comment in a list
-    const updateCommentInList = (commentList: Comment[]): Comment[] => {
-      console.log('Processing comment list:', {
-        commentIds: commentList.map((c) => c.id),
-        lookingForCommentId: newComment.id,
-        lookingForParentId: parentId,
-      });
-
-      return commentList.map((comment) => {
-        // If this is the comment being updated
-        if (comment.id === newComment.id) {
-          console.log('Found and updating comment:', comment.id);
-          return {
-            ...newComment,
-            replies: comment.replies, // Preserve existing replies
-          };
-        }
-
-        // If this is the parent comment and we're adding a new reply
-        if (comment.id === parentId) {
-          console.log('Adding new reply to parent:', parentId);
-          return {
-            ...comment,
-            replies: [newComment, ...(comment.replies || [])],
-            replyCount: (comment.replyCount || 0) + 1,
-          };
-        }
-
-        // If this comment has replies, recursively search them
-        if (comment.replies?.length > 0) {
-          console.log('Checking replies for comment:', comment.id);
-          const updatedReplies = updateCommentInList(comment.replies);
-          if (updatedReplies !== comment.replies) {
-            console.log('Found and updated nested reply in comment:', comment.id);
-            return {
-              ...comment,
-              replies: updatedReplies,
-            };
-          }
-        }
-
-        return comment;
-      });
-    };
-
-    // If this is a new top-level comment (no parent ID)
-    if (!parentId) {
-      console.log('Adding/updating top-level comment');
-      // If it's an existing comment being updated
-      if (comments.some((c) => c.id === newComment.id)) {
-        setComments(updateCommentInList(comments));
-      } else {
-        // It's a new top-level comment
-        setComments([newComment, ...comments]);
-        setCount(count + 1);
-      }
-      return;
-    }
-
-    // Handle replies (new or updates)
-    console.log('Starting recursive update for reply');
-    const updatedComments = updateCommentInList(comments);
-    console.log('Finished recursive update:', updatedComments);
-    setComments(updatedComments);
-  };
-
-  const handleCommentDelete = (commentId: number) => {
-    const deleteComment = (commentList: Comment[]): Comment[] => {
-      return commentList.filter((comment) => {
-        if (comment.id === commentId) {
-          return false;
-        }
-        if (comment.replies?.length > 0) {
-          comment.replies = deleteComment(comment.replies);
-        }
-        return true;
-      });
-    };
-
-    setComments(deleteComment(comments));
-    setCount(count - 1);
-  };
 
   const handleSubmit = async ({
     content,
@@ -177,7 +99,8 @@ export const CommentFeed = ({
         });
       }
 
-      updateCommentTree(comment);
+      // Add the new comment to the list
+      setComments([comment, ...comments]);
       toast.success('Comment submitted successfully');
 
       // Only reset the editor after successful submission
@@ -207,6 +130,11 @@ export const CommentFeed = ({
   const selectedOption = sortOptions.find((opt) => opt.value === sortBy);
   const SelectedIcon = selectedOption?.icon;
 
+  const handleSubmitSolution = (bountyId: number) => {
+    // TODO: Implement bounty solution submission
+    console.log('Submit solution for bounty:', bountyId);
+  };
+  console.log('comments', comments);
   return (
     <div className={className}>
       <div className="flex justify-between items-center mb-4">
@@ -241,32 +169,45 @@ export const CommentFeed = ({
       </div>
 
       <div className="space-y-4">
-        <CommentEditor onSubmit={handleSubmit} {...editorProps} commentType={commentType} />
+        {!isLoading && commentType === 'BOUNTY' && (
+          <CommentEditor
+            onSubmit={handleSubmit}
+            {...editorProps}
+            commentType={commentType}
+            placeholder="Create a new bounty..."
+          />
+        )}
 
-        {error && (
+        {(error || commentsError) && (
           <div className="text-red-600 p-4 rounded-md bg-red-50">
             Failed to load comments. Please try again.
           </div>
         )}
 
-        {isLoading ? (
+        {isLoadingComments ? (
           <div className="text-center py-4">
             <div className="animate-pulse">Loading comments...</div>
           </div>
         ) : (
           <>
-            {comments
-              .filter((comment) => comment.content && comment.content !== '')
-              .map((comment) => (
-                <CommentItem
-                  key={comment.id}
-                  comment={comment}
-                  contentType={contentType}
-                  commentType={commentType}
-                  onCommentUpdate={updateCommentTree}
-                  onCommentDelete={handleCommentDelete}
-                />
-              ))}
+            {comments.map((comment) => (
+              <CommentItem
+                key={comment.id}
+                comment={comment}
+                contentType={contentType}
+                commentType={commentType}
+                onCommentUpdate={(newComment, parentId) => {
+                  const updatedComments = comments.map((c) =>
+                    c.id === newComment.id ? newComment : c
+                  );
+                  setComments(updatedComments);
+                }}
+                onCommentDelete={(commentId) => {
+                  const updatedComments = comments.filter((c) => c.id !== commentId);
+                  setComments(updatedComments);
+                }}
+              />
+            ))}
 
             {hasMore && (
               <button
