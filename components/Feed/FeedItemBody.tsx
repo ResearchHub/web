@@ -1,12 +1,13 @@
 'use client';
 
 import { FC, useState } from 'react';
-import { Content, FeedEntry } from '@/types/feed';
+import { Bounty, Content, FeedEntry, Paper, Post } from '@/types/feed';
 import { Button } from '@/components/ui/Button';
 import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
 import { Avatar } from '@/components/ui/Avatar';
+import { Journal } from '@/types/journal';
 
 interface FeedItemBodyProps {
   content: Content;
@@ -50,8 +51,12 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
 
     const itemContent = (() => {
       switch (item.type) {
+        case 'bounty':
+          return renderBounty(item, expandedPaperIds.has(item.id), () => toggleExpanded(item.id));
         case 'paper':
           return renderPaper(item, expandedPaperIds.has(item.id), () => toggleExpanded(item.id));
+        case 'post':
+          return renderPost(item, expandedPaperIds.has(item.id), () => toggleExpanded(item.id));
         default:
           return null;
       }
@@ -59,13 +64,8 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
 
     if (!itemContent) return null;
 
-    const getTypeLabel = (type: string) => {
-      if (type === 'funding_request') return 'Preregistration';
-      else if (type === 'review') return 'Peer Review';
-      return type.replace('_', ' ');
-    };
-
-    const isCard = isTarget || item.type === 'paper';
+    const isCard =
+      isTarget || item.type === 'bounty' || item.type === 'paper' || item.type === 'post';
 
     const renderCard = (children: React.ReactNode) => {
       if (!isCard) return children;
@@ -82,41 +82,73 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
     return renderCard(<div>{itemContent}</div>);
   };
 
-  const renderPaper = (paper: Content, isExpanded: boolean, onToggleExpand: () => void) => {
-    if (paper.type !== 'paper') return null;
+  const renderBounty = (bounty: Bounty, isExpanded: boolean, onToggleExpand: () => void) => {
+    if (bounty.paper) {
+      return renderPaper(bounty.paper, isExpanded, onToggleExpand);
+    }
+    return <div>An amount of {bounty.amount} has been added to the bounty.</div>;
+  };
 
-    const truncateAbstract = (text: string, limit: number = 200) => {
-      if (text.length <= limit) return text;
-      return text.slice(0, limit).trim() + '...';
+  const renderPost = (post: Post, isExpanded: boolean, onToggleExpand: () => void) => {
+    return renderExpandableContent(
+      post.type,
+      post.title ?? '',
+      post.summary || '',
+      isExpanded,
+      onToggleExpand
+    );
+  };
+
+  const renderPaper = (paper: Paper, isExpanded: boolean, onToggleExpand: () => void) => {
+    return renderExpandableContent(
+      paper.type,
+      paper.title ?? '',
+      paper.abstract || '',
+      isExpanded,
+      onToggleExpand,
+      paper.journal
+    );
+  };
+
+  const renderExpandableContent = (
+    type: 'post' | 'paper',
+    title: string,
+    summary: string,
+    isExpanded: boolean,
+    onToggleExpand: () => void,
+    journal?: Journal
+  ) => {
+    const truncateSummary = (summary: string, limit: number = 200) => {
+      if (summary.length <= limit) return summary;
+      return summary.slice(0, limit).trim() + '...';
     };
 
-    const abstract = paper.abstract || '';
-    const isAbstractTruncated = abstract.length > 200;
+    const isSummaryTruncated = summary.length > 200;
 
     return (
       <div>
         <div className="flex items-center gap-2 mb-2">
           <div className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
-            Paper
+            {type}
           </div>
-          {paper.journal && (
+          {journal && (
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border border-gray-200 bg-gray-50 hover:bg-gray-200 transition-colors">
               <Avatar
-                src={paper.journal.imageUrl}
-                alt={paper.journal.slug}
+                src={journal.imageUrl}
+                alt={journal.slug}
                 size="xxs"
                 className="ring-1 ring-gray-200"
               />
-              <span className="text-gray-700">{paper.journal.name}</span>
+              <span className="text-gray-700">{journal.name}</span>
             </div>
           )}
         </div>
         <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
-          {paper.title}
+          {title}
         </h3>
         <div className="text-sm text-gray-800">
-          <p>{isExpanded ? abstract : truncateAbstract(abstract)}</p>
-          {isAbstractTruncated && (
+          <p>{isExpanded ? summary : truncateSummary(summary)}</p>
+          {isSummaryTruncated && (
             <Button
               variant="link"
               size="sm"

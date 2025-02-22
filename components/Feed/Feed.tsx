@@ -9,7 +9,7 @@ import { Sparkles } from 'lucide-react';
 import { useFeed, FeedTab } from '@/hooks/useFeed';
 
 export const Feed: FC = () => {
-  const [activeTab, setActiveTab] = useState<FeedTab>('for-you');
+  const [activeTab, setActiveTab] = useState<FeedTab>('following');
   const [isCustomizing, setIsCustomizing] = useState(false);
   const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(activeTab);
 
@@ -28,6 +28,7 @@ export const Feed: FC = () => {
           onTabChange={setActiveTab}
           onRefresh={refresh}
           onCustomizeChange={setIsCustomizing}
+          isLoading={isLoading}
         />
 
         {!isCustomizing && (
