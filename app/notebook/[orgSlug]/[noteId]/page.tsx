@@ -84,7 +84,6 @@ export default function NotePage() {
     return <NotebookSkeleton />;
   }
 
-  // If the note exists but has no content, use the preregistration template
   let content = note.content;
   let contentJson = note.contentJson;
 

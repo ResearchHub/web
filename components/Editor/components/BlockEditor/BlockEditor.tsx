@@ -70,17 +70,21 @@ const CustomHeading = Heading.extend({
 export interface BlockEditorProps {
   content?: string;
   contentJson?: string;
-  contentHtml?: string;
   isLoading?: boolean;
   onUpdate?: (editor: Editor) => void;
   editable?: boolean;
-  hideTitle?: boolean;
 }
 
-// Modify the CustomDocument extension to be configurable
-const createCustomDocument = (hideTitle: boolean) => {
-  return Document.extend({
-    content: hideTitle ? 'block+' : 'heading block+',
+export const BlockEditor: React.FC<BlockEditorProps> = ({
+  content,
+  contentJson,
+  onUpdate,
+  isLoading = false,
+  editable = true,
+}) => {
+  const { setEditor } = useNotebookPublish();
+  const CustomDocument = Document.extend({
+    content: 'heading block+',
     parseHTML() {
       return [
         {
@@ -89,19 +93,6 @@ const createCustomDocument = (hideTitle: boolean) => {
       ];
     },
   });
-};
-
-export const BlockEditor: React.FC<BlockEditorProps> = ({
-  content,
-  contentJson,
-  contentHtml,
-  onUpdate,
-  isLoading = false,
-  editable = true,
-  hideTitle = false,
-}) => {
-  const { setEditor } = useNotebookPublish();
-  const CustomDocument = createCustomDocument(hideTitle);
 
   const editor = useEditor({
     editable,
@@ -132,20 +123,18 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
         },
       }),
     ],
-    content: contentHtml
-      ? contentHtml
-      : contentJson
-        ? JSON.parse(contentJson)
-        : {
-            type: 'doc',
-            content: [
-              {
-                type: 'heading',
-                attrs: { level: 1 },
-                content: [{ type: 'text', text: '' }],
-              },
-            ],
-          },
+    content: contentJson
+      ? JSON.parse(contentJson)
+      : {
+          type: 'doc',
+          content: [
+            {
+              type: 'heading',
+              attrs: { level: 1 },
+              content: [{ type: 'text', text: '' }],
+            },
+          ],
+        },
     editorProps: {
       attributes: {
         class:
@@ -158,16 +147,14 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   });
 
   useEffect(() => {
-    if (editor && (content || contentJson || contentHtml)) {
-      if (contentHtml) {
-        editor.commands.setContent(contentHtml);
-      } else if (contentJson) {
+    if (editor && (content || contentJson)) {
+      if (contentJson) {
         editor.commands.setContent(JSON.parse(contentJson));
       } else {
         editor.commands.setContent(content || '');
       }
     }
-  }, [editor, content, contentJson, contentHtml]);
+  }, [editor, content, contentJson]);
 
   useEffect(() => {
     setEditor(editor);

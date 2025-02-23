@@ -89,11 +89,7 @@ function FundingDocument({ work, metadata, content }: FundingDocumentProps) {
       {/* Content section */}
       {work.previewContent ? (
         <div className="h-full">
-          <BlockEditorClientWrapper
-            contentHtml={work.previewContent}
-            editable={false}
-            hideTitle={true}
-          />
+          <BlockEditorClientWrapper content={work.previewContent} editable={false} />
         </div>
       ) : content ? (
         <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content }} />
