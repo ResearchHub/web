@@ -144,6 +144,7 @@ export default async function FundingProjectPage({ params }: Props) {
 
   // First fetch the work to get the unifiedDocumentId
   const work = await getFundingProject(id);
+  console.log('work', work);
 
   // Then fetch metadata using unifiedDocumentId
   const metadata = await MetadataService.get(work.unifiedDocumentId.toString());

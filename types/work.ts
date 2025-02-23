@@ -150,7 +150,8 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
 
 export const transformPost = createTransformer<any, Work>((raw) => ({
   ...transformWork(raw),
-  contentType: 'post',
+  contentType:
+    raw.unified_document?.document_type === 'PREREGISTRATION' ? 'preregistration' : 'post',
   note: raw.note ? transformNoteWithContent(raw.note) : undefined,
   publishedDate: raw.created_date, // Posts use created_date for both
   previewContent: raw.full_markdown,
@@ -162,5 +163,5 @@ export const transformPost = createTransformer<any, Work>((raw) => ({
 
 export const transformPaper = createTransformer<any, Work>((raw) => ({
   ...transformWork(raw),
-  contentType: raw.work_type === 'preregistration' ? 'preregistration' : 'paper',
+  contentType: 'paper',
 }));
