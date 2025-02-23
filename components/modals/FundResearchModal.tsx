@@ -12,6 +12,8 @@ import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import { useCreateContribution } from '@/hooks/useFundraise';
+import { useSession } from 'next-auth/react';
+import { BalanceInfo } from './BalanceInfo';
 interface FundResearchModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -126,24 +128,6 @@ const PaymentIcons = {
   deposit: <ArrowDownToLine className="w-6 h-6" />,
 };
 
-const BalanceInfo = ({
-  currentBalance,
-  requiredAmount,
-}: {
-  currentBalance: string;
-  requiredAmount: string;
-}) => (
-  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-    <div className="flex justify-between items-center">
-      <span className="text-sm text-gray-600">Current RSC Balance:</span>
-      <span className="text-sm font-medium">{currentBalance}</span>
-    </div>
-    <div className="mt-1 text-sm text-orange-600">
-      You need {requiredAmount} more RSC for this contribution
-    </div>
-  </div>
-);
-
 const FeeBreakdown = ({
   totalAmount,
   platformFee,
@@ -250,6 +234,8 @@ export function FundResearchModal({
   nftImageSrc,
   fundraiseId,
 }: FundResearchModalProps) {
+  const { data: session } = useSession();
+  const userBalance = session?.user?.balance || 0;
   const [step, setStep] = useState<Step>('amount');
   const [inputAmount, setInputAmount] = useState(0);
   const [currency, setCurrency] = useState<Currency>('RSC');
@@ -383,6 +369,8 @@ export function FundResearchModal({
 
   const renderPaymentStep = () => {
     const rscAmount = getRscAmount();
+    const insufficientBalance = userBalance < rscAmount;
+
     const platformFee = Math.floor(rscAmount * 0.09);
     const daoFee = Math.floor(rscAmount * 0.02);
     const incFee = Math.floor(rscAmount * 0.07);
@@ -392,12 +380,6 @@ export function FundResearchModal({
     return (
       <div className="p-6">
         <ModalHeader title="Fund Research" onClose={onClose} onBack={() => setStep('amount')} />
-
-        <BalanceInfo
-          currentBalance="0 RSC"
-          requiredAmount={`${getRscAmount().toLocaleString()} RSC`}
-        />
-
         <div className="mt-6 mb-6">
           <FeeBreakdown
             totalAmount={rscAmount}
@@ -422,16 +404,21 @@ export function FundResearchModal({
           </Alert>
         )}
 
+        <div className="mt-6">
+          <BalanceInfo amount={rscAmount} showWarning={insufficientBalance} />
+        </div>
+
         {contributionError && (
           <Alert className="mt-4" variant="error">
             {contributionError}
           </Alert>
         )}
+
         <Button
           type="button"
           variant="default"
-          disabled={isContributing}
-          className="w-full h-12 text-base mt-6"
+          disabled={isContributing || insufficientBalance}
+          className="w-full h-12 text-base mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleCreateContribution}
         >
           {isContributing ? 'Processing...' : 'Confirm Payment'}

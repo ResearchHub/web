@@ -1,118 +1,69 @@
-'use client';
-
-import { useState, useRef, useEffect } from 'react';
-import { Upload, Image as ImageIcon, Wallet, Gift } from 'lucide-react';
+import { useFormContext } from 'react-hook-form';
+import { Upload, Image as ImageIcon, Gift } from 'lucide-react';
 import { Input } from '@/components/ui/form/Input';
-import { Button } from '@/components/ui/Button';
-import { Alert } from '@/components/ui/Alert';
 import { Switch } from '@/components/ui/Switch';
 import Image from 'next/image';
 import { cn } from '@/utils/styles';
+import { useRef, useState } from 'react';
 
-export interface FundingFormData {
-  budget: string;
-  rewardFunders: boolean;
-  nftArt: File | null;
-  nftSupply: string;
-}
-
-export interface FundingFormProps {
-  onSubmit: (data: FundingFormData) => void;
-  initialData?: Partial<FundingFormData>;
-  className?: string;
-  showSubmitButton?: boolean;
-  submitButtonText?: string;
-  isSubmitting?: boolean;
-  error?: string | null;
-  fieldErrors?: {
-    budget?: string;
-    nftSupply?: string;
-    nftArt?: string;
-  };
-}
-
-export function FundingForm({
-  onSubmit,
-  initialData,
-  className,
-  showSubmitButton = false,
-  submitButtonText = 'Submit',
-  isSubmitting = false,
-  error = null,
-  fieldErrors = {},
-}: FundingFormProps) {
+export function FundingSection() {
+  const {
+    register,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormContext();
+  const rewardFunders = watch('rewardFunders');
+  const budget = watch('budget');
+  const nftSupply = watch('nftSupply');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [formData, setFormData] = useState<FundingFormData>({
-    budget: initialData?.budget || '',
-    rewardFunders: initialData?.rewardFunders || false,
-    nftArt: initialData?.nftArt || null,
-    nftSupply: initialData?.nftSupply || '1000',
-  });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    // Format numbers with commas for display
-    if (name === 'budget' || name === 'nftSupply') {
-      // Remove any non-digit characters from the input
-      const numericValue = value.replace(/[^0-9]/g, '');
-      // Format with commas
-      const formattedValue = numericValue ? parseInt(numericValue).toLocaleString() : '';
-      setFormData((prev) => ({ ...prev, [name]: formattedValue }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFormData((prev) => ({ ...prev, nftArt: file }));
+      setValue('nftArt', file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
+  const formatNumberWithCommas = (value: string) => {
+    const numericValue = value.replace(/[^0-9]/g, '');
+    return numericValue ? parseInt(numericValue).toLocaleString() : '';
   };
 
-  //it look slike we never submit the form, so. let's update the state manually on eve
-  useEffect(() => {
-    onSubmit(formData);
-  }, [formData]);
-
   const calculateMinDonation = () => {
-    const funding = parseFloat(formData.budget.replace(/[^0-9.]/g, ''));
-    const supply = parseInt(formData.nftSupply.replace(/[^0-9]/g, ''));
+    const funding = parseFloat(budget?.replace(/[^0-9.]/g, '') || '0');
+    const supply = parseInt(nftSupply?.replace(/[^0-9]/g, '') || '0');
     if (!funding || !supply) return '0.00';
     return (funding / supply).toFixed(2);
   };
 
   return (
-    <form onSubmit={handleSubmit} className={cn('space-y-6', className)}>
+    <div className="py-3 px-6 space-y-6">
       <div>
         <Input
-          name="budget"
-          value={formData.budget}
-          onChange={handleInputChange}
+          {...register('budget')}
           label="Funding Goal"
           required
           placeholder="0.00"
           type="text"
           inputMode="numeric"
           className="w-full"
+          error={errors.budget?.message?.toString()}
           rightElement={
             <div className="flex items-center pr-4 font-medium text-sm text-gray-900">USD</div>
           }
           helperText="Set your total funding goal for this research project"
-          error={fieldErrors.budget}
+          onChange={(e) => {
+            const value = e.target.value.replace(/[^0-9.]/g, '');
+            setValue('budget', value, { shouldValidate: true });
+          }}
         />
       </div>
 
-      <div className="space-y-3 pt-4 border-t border-gray-200">
+      {/* <div className="space-y-3 pt-4 border-t border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Gift className="h-4 w-4 text-gray-700" />
@@ -121,10 +72,8 @@ export function FundingForm({
             </h3>
           </div>
           <Switch
-            checked={formData.rewardFunders}
-            onCheckedChange={(checked) =>
-              setFormData((prev) => ({ ...prev, rewardFunders: checked }))
-            }
+            checked={rewardFunders}
+            onCheckedChange={(checked) => setValue('rewardFunders', checked)}
           />
         </div>
         <p className="text-sm text-gray-600">
@@ -132,8 +81,9 @@ export function FundingForm({
         </p>
       </div>
 
-      {formData.rewardFunders && (
+      {rewardFunders && (
         <>
+NFT Art Upload Section
           <div className="pt-2">
             <label className="block text-sm font-medium text-gray-900 mb-2">NFT Art</label>
             <div
@@ -166,9 +116,6 @@ export function FundingForm({
                 </div>
               )}
             </div>
-            <p className="mt-2 text-xs text-gray-600">
-              This can be a graphical abstract, a figure in the paper or something else
-            </p>
             <input
               ref={fileInputRef}
               type="file"
@@ -178,11 +125,10 @@ export function FundingForm({
             />
           </div>
 
+NFT Supply Section
           <div>
             <Input
-              name="nftSupply"
-              value={formData.nftSupply}
-              onChange={handleInputChange}
+              {...register('nftSupply')}
               label="NFT Supply"
               required
               placeholder="1000"
@@ -190,9 +136,14 @@ export function FundingForm({
               inputMode="numeric"
               className="w-full"
               helperText="The number of NFTs you are offering to funders"
+              onChange={(e) => {
+                const formatted = formatNumberWithCommas(e.target.value);
+                setValue('nftSupply', formatted, { shouldValidate: true });
+              }}
             />
           </div>
 
+Donation Rewards Section
           <div className="pt-2">
             <div className="flex items-center gap-2 mb-2">
               <Gift className="h-4 w-4 text-gray-700" />
@@ -210,7 +161,6 @@ export function FundingForm({
                 }
                 className="w-full pl-3 pr-12 py-2 text-sm text-gray-900 bg-transparent border-0 cursor-default focus:outline-none focus:ring-0"
               />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"></div>
             </div>
             <p className="mt-2 text-xs text-gray-600">
               {parseFloat(calculateMinDonation()) > 0
@@ -219,25 +169,7 @@ export function FundingForm({
             </p>
           </div>
         </>
-      )}
-
-      {Object.entries(fieldErrors).map(([field, message]) => (
-        <Alert key={field} variant="error" className="mt-4">
-          {message}
-        </Alert>
-      ))}
-
-      {error && (
-        <Alert variant="error" className="mt-4">
-          {error}
-        </Alert>
-      )}
-
-      {showSubmitButton && (
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? 'Submitting...' : submitButtonText}
-        </Button>
-      )}
-    </form>
+      )} */}
+    </div>
   );
 }

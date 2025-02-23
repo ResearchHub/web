@@ -34,9 +34,9 @@ export const useVote = (): UseVoteReturn => {
       setData(response);
     } catch (err) {
       const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
-      const errorMsg = data?.message || 'Failed to vote';
+      const errorMsg = data?.detail || 'Failed to vote';
       setError(errorMsg);
-      throw err;
+      throw new Error(errorMsg);
     } finally {
       setIsLoading(false);
     }

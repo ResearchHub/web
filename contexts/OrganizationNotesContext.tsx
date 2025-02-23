@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import { createContext, useContext, ReactNode, useState, useEffect, useCallback } from 'react';
 import { NoteService } from '@/services/note.service';
 import type { Note } from '@/types/note';
 import { useOrganizationContext } from './OrganizationContext';
@@ -11,6 +11,7 @@ interface OrganizationNotesContextType {
   isLoading: boolean;
   error: Error | null;
   totalCount: number;
+  refresh: () => Promise<void>;
 }
 
 const OrganizationNotesContext = createContext<OrganizationNotesContextType | null>(null);
@@ -42,6 +43,14 @@ export function OrganizationNotesProvider({ children }: { children: ReactNode })
     }
   };
 
+  const refresh = useCallback(async () => {
+    if (!selectedOrg?.slug) {
+      setError(new Error('No organization slug provided'));
+      return;
+    }
+    await fetchNotes(selectedOrg.slug);
+  }, [selectedOrg?.slug, fetchNotes]);
+
   useEffect(() => {
     if (isLoadingOrg) {
       setIsLoading(true);
@@ -63,6 +72,7 @@ export function OrganizationNotesProvider({ children }: { children: ReactNode })
     isLoading,
     error,
     totalCount,
+    refresh,
   };
 
   return (

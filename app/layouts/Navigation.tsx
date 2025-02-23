@@ -4,6 +4,16 @@ import { Home, BookOpen, Star, Notebook, HandCoins, Coins } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useRouter } from 'next/navigation';
+import { useCallback } from 'react';
+
+interface NavigationItem {
+  label: string;
+  href: string;
+  icon: React.FC<{ className?: string }>;
+  description: string;
+  requiresAuth?: boolean;
+  isUnimplemented?: boolean;
+}
 
 interface NavigationProps {
   currentPath: string;
@@ -14,7 +24,33 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const router = useRouter();
 
-  const navigationItems = [
+  const handleNavigate = useCallback(
+    (href: string) => {
+      router.push(href);
+    },
+    [router]
+  );
+
+  const handleNavClick = useCallback(
+    (e: React.MouseEvent, item: NavigationItem) => {
+      e.preventDefault();
+
+      if (item.isUnimplemented) {
+        onUnimplementedFeature(item.label);
+        return;
+      }
+
+      if (item.requiresAuth) {
+        executeAuthenticatedAction(() => handleNavigate(item.href));
+        return;
+      }
+
+      handleNavigate(item.href);
+    },
+    [executeAuthenticatedAction, handleNavigate, onUnimplementedFeature]
+  );
+
+  const navigationItems: NavigationItem[] = [
     {
       label: 'Home',
       href: '/',
@@ -38,20 +74,14 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
       href: '/rhjournal',
       icon: BookOpen,
       description: 'Read and publish research papers',
-      onClick: (e: React.MouseEvent) => {
-        e.preventDefault();
-        onUnimplementedFeature('RH Journal');
-      },
+      isUnimplemented: true,
     },
     {
       label: 'Peer Reviews',
       href: '/peerreviews',
       icon: Star,
       description: 'Review and rate research papers',
-      onClick: (e: React.MouseEvent) => {
-        e.preventDefault();
-        onUnimplementedFeature('Peer Reviews');
-      },
+      isUnimplemented: true,
     },
     {
       label: 'Lab Notebook',
@@ -72,20 +102,6 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
   const getIconStyles = (path: string) => {
     const isActive = currentPath === path;
     return `h-[22px] w-[22px] mr-3.5 ${isActive ? 'text-indigo-600' : 'text-gray-600 group-hover:text-indigo-600'}`;
-  };
-
-  const handleNavClick = (e: React.MouseEvent, item: (typeof navigationItems)[0]) => {
-    if (item.onClick) {
-      item.onClick(e);
-      return;
-    }
-
-    if (item.requiresAuth) {
-      e.preventDefault();
-      executeAuthenticatedAction(() => {
-        router.push(item.href);
-      });
-    }
   };
 
   return (

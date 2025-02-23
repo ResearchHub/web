@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import LeftSidebar from '@/components/Editor/components/Sidebar/LeftSidebar';
 import { TopBar } from '@/app/layouts/TopBar';
-import { PublishingSidebar } from '@/components/Editor/components/Sidebar/PublishingSidebar';
+import { PublishingForm } from '@/components/Editor/components/Sidebar/PublishingForm';
 import './globals.css';
 import 'cal-sans';
 import { OrganizationNotesProvider } from '@/contexts/OrganizationNotesContext';
@@ -18,7 +18,6 @@ import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 
 export default function NotebookLayout({ children }: { children: React.ReactNode }) {
-  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
@@ -32,7 +31,7 @@ export default function NotebookLayout({ children }: { children: React.ReactNode
           }}
         >
           {/* Left Sidebar - 16% */}
-          <div className="hidden xl:block border-r border-gray-200 w-full">
+          <div className="hidden xl:block w-full">
             <LeftSidebar />
           </div>
 
@@ -49,13 +48,7 @@ export default function NotebookLayout({ children }: { children: React.ReactNode
 
           {/* Right Sidebar - 20% */}
           <div className="border-l border-gray-200 w-full">
-            <PublishingSidebar
-              bountyAmount={null}
-              onBountyClick={() => {}}
-              onPublishClick={() => setIsPublishModalOpen(true)}
-              title=""
-              onTitleChange={() => {}}
-            />
+            <PublishingForm bountyAmount={null} onBountyClick={() => {}} />
           </div>
         </div>
       </NotebookPublishProvider>

@@ -1,7 +1,7 @@
 'use client';
 
-import { useNote, useNoteContent } from '@/hooks/useNote';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useNote, useUpdateNote } from '@/hooks/useNote';
+import { useParams, useSearchParams } from 'next/navigation';
 import { BlockEditor } from '@/components/Editor/components/BlockEditor/BlockEditor';
 import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
@@ -9,11 +9,7 @@ import { useEffect, useState, useRef } from 'react';
 import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
 import { FundingTimelineModal } from '@/components/modals/FundingTimelineModal';
 import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
-import { debounce } from 'lodash';
-import { Editor } from '@tiptap/core';
-import { NoteService } from '@/services/note.service';
 import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
-import { getDocumentTitleFromEditor } from '@/components/Editor/lib/utils/documentTitle';
 
 export default function NotePage() {
   const params = useParams();
@@ -25,76 +21,32 @@ export default function NotePage() {
 
   const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
   const { setNotes } = useOrganizationNotesContext();
-  const { setArticleType, setNoteId } = useNotebookPublish();
+  const { setNoteId, setNote } = useNotebookPublish();
   const [{ note, isLoading: isLoadingNote, error }, fetchNote] = useNote(noteId, {
     sendImmediately: false,
   });
-  const [{ isLoading: isUpdating }, updateNoteContent] = useNoteContent();
+
+  const [{ isLoading: isUpdating }, updateNote] = useUpdateNote(noteId, {
+    onTitleUpdate: (newTitle) => {
+      setNotes((prevNotes) =>
+        prevNotes.map((note) =>
+          note.id.toString() === noteId
+            ? {
+                ...note,
+                title: newTitle,
+              }
+            : note
+        )
+      );
+    },
+  });
 
   // Show funding modal and set article type when landing on a new funding note
   useEffect(() => {
     if (isNewFunding) {
       setShowFundingModal(true);
-      setArticleType('preregistration');
     }
-  }, [isNewFunding, setArticleType]);
-
-  const titleRef = useRef<string>('');
-
-  const debouncedRef = useRef(
-    debounce((editor: Editor) => {
-      const json = editor.getJSON();
-      const html = editor.getHTML();
-
-      // Extract title from the first h1 heading
-      const newTitle = getDocumentTitleFromEditor(editor) || '';
-
-      // Create an array of promises to execute
-      const promises = [];
-
-      // Only update title if it changed
-      if (newTitle !== titleRef.current) {
-        titleRef.current = newTitle;
-        promises.push(
-          NoteService.updateNoteTitle({
-            noteId,
-            title: newTitle,
-          }).then(() => {
-            // Update the notes in context after successful title update
-            setNotes((prevNotes) =>
-              prevNotes.map((note) =>
-                note.id.toString() === noteId
-                  ? {
-                      ...note,
-                      title: newTitle,
-                    }
-                  : note
-              )
-            );
-          })
-        );
-      }
-
-      // Always update content
-      promises.push(
-        updateNoteContent({
-          note: noteId,
-          fullSrc: html,
-          plainText: editor.getText(),
-          fullJson: JSON.stringify(json),
-        })
-      );
-
-      // Execute all necessary updates
-      Promise.all(promises).catch(console.error);
-    }, 2000)
-  );
-
-  useEffect(() => {
-    return () => {
-      debouncedRef.current.cancel();
-    };
-  }, []);
+  }, [isNewFunding]);
 
   useEffect(() => {
     setNoteId(noteId);
@@ -105,6 +57,12 @@ export default function NotePage() {
       fetchNote();
     }
   }, [isLoadingOrg, selectedOrg, fetchNote]);
+
+  useEffect(() => {
+    if (note) {
+      setNote(note);
+    }
+  }, [note, setNote]);
 
   // Handle loading states
   if (isLoadingNote) {
@@ -142,7 +100,7 @@ export default function NotePage() {
           content={content || ''}
           contentJson={contentJson}
           isLoading={false}
-          onUpdate={debouncedRef.current}
+          onUpdate={updateNote}
         />
       </div>
 

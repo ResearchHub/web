@@ -2,49 +2,40 @@
 
 import { createContext, useContext, ReactNode, useState } from 'react';
 import { Editor } from '@tiptap/core';
-import { FundingFormData } from '@/components/Editor/components/Funding/FundingForm';
 import { ID } from '@/types/root';
-
-export type ArticleType = 'research' | 'preregistration' | 'other';
-
+import { Note } from '@/types/note';
 interface NotebookPublishState {
   editor: Editor | null;
-  articleType: ArticleType;
-  fundingData: FundingFormData | null;
   noteId: ID;
+  note: Note | null;
 }
 
 interface NotebookPublishContextType extends NotebookPublishState {
   setEditor: (editor: Editor | null) => void;
-  setArticleType: (type: ArticleType) => void;
-  setFundingData: (data: FundingFormData) => void;
   setNoteId: (id: ID) => void;
+  setNote: (note: Note | null) => void;
 }
 
 const initialState: NotebookPublishState = {
   editor: null,
-  articleType: 'research',
-  fundingData: null,
   noteId: null,
+  note: null,
 };
 
 const NotebookPublishContext = createContext<NotebookPublishContextType | null>(null);
 
 export function NotebookPublishProvider({ children }: { children: ReactNode }) {
   const [editor, setEditor] = useState<Editor | null>(initialState.editor);
-  const [articleType, setArticleType] = useState<ArticleType>(initialState.articleType);
-  const [fundingData, setFundingData] = useState<FundingFormData | null>(initialState.fundingData);
   const [noteId, setNoteId] = useState<ID | null>(initialState.noteId);
+  const [note, setNote] = useState<Note | null>(initialState.note);
 
   const value = {
     editor,
     setEditor,
-    articleType,
-    setArticleType,
-    fundingData,
-    setFundingData,
     noteId,
     setNoteId,
+    note,
+    setNote,
   };
 
   return (

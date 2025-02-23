@@ -23,6 +23,8 @@ import { cn } from '@/utils/styles';
 import { useCreateComment } from '@/hooks/useComments';
 import { Currency } from '@/types/root';
 import { BountyType } from '@/types/bounty';
+import { BalanceInfo } from './BalanceInfo';
+import { useSession } from 'next-auth/react';
 
 interface CreateBountyModalProps {
   isOpen: boolean;
@@ -423,26 +425,8 @@ const AddRscSection = () => (
   </div>
 );
 
-// Update BalanceInfo component
-const BalanceInfo = ({
-  currentBalance,
-  requiredAmount,
-}: {
-  currentBalance: string;
-  requiredAmount: string;
-}) => (
-  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-    <div className="flex justify-between items-center">
-      <span className="text-sm text-gray-600">Current RSC Balance:</span>
-      <span className="text-sm font-medium">{currentBalance}</span>
-    </div>
-    <div className="mt-1 text-sm text-orange-600">
-      You need {requiredAmount} more RSC for this bounty
-    </div>
-  </div>
-);
-
 export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModalProps) {
+  const { data: session } = useSession();
   const [step, setStep] = useState<Step>('details');
   const [selectedPaper, setSelectedPaper] = useState<SelectedPaper | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(true);
@@ -454,6 +438,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
   const [isFeesExpanded, setIsFeesExpanded] = useState(false);
   const [customDate, setCustomDate] = useState('');
   const RSC_TO_USD = 1;
+  const userBalance = session?.user?.balance || 0;
 
   const [{ data: commentData, isLoading: isCreatingBounty, error: bountyError }, createComment] =
     useCreateComment();
@@ -668,6 +653,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
     const daoFee = Math.floor(rscAmount * 0.02);
     const incFee = Math.floor(rscAmount * 0.07);
     const baseAmount = rscAmount - platformFee;
+    const insufficientBalance = userBalance < rscAmount;
 
     return (
       <div className="p-6">
@@ -679,11 +665,6 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
         />
 
         <div className="space-y-6">
-          <BalanceInfo
-            currentBalance="0 RSC"
-            requiredAmount={`${rscAmount.toLocaleString()} RSC`}
-          />
-
           <AddRscSection />
 
           <div>
@@ -699,6 +680,10 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
               isFeesExpanded={isFeesExpanded}
               onToggleExpand={() => setIsFeesExpanded(!isFeesExpanded)}
             />
+          </div>
+
+          <div className="mt-6">
+            <BalanceInfo amount={rscAmount} showWarning={insufficientBalance} />
           </div>
 
           {bountyError && <Alert variant="error">{bountyError}</Alert>}
