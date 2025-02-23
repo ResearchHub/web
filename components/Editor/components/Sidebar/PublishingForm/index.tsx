@@ -27,13 +27,35 @@ interface PublishingFormProps {
   onBountyClick: () => void;
 }
 
+const getButtonText = ({
+  isLoadingUpsert,
+  articleType,
+  isJournalEnabled,
+  hasWorkId,
+}: {
+  isLoadingUpsert: boolean;
+  articleType: string;
+  isJournalEnabled: boolean;
+  hasWorkId: boolean;
+}) => {
+  switch (true) {
+    case isLoadingUpsert:
+      return 'Publishing...';
+    case hasWorkId:
+      return 'Re-publish';
+    case articleType === 'discussion' && isJournalEnabled:
+      return 'Pay & Publish';
+    default:
+      return 'Publish';
+  }
+};
+
 export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormProps) {
   const { noteId, editor, note } = useNotebookPublish();
   const searchParams = useSearchParams();
 
   const methods = useForm<PublishingFormData>({
     defaultValues: {
-      articleType: 'research',
       authors: [],
       topics: [],
       rewardFunders: false,
@@ -51,14 +73,13 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   // 3. URL search params
   useEffect(() => {
     if (!noteId) return;
-    console.log('note', note);
 
     // Priority 1: Check for existing post data
     if (note?.post) {
       methods.setValue('workId', note.post.id.toString());
       methods.setValue(
         'articleType',
-        note.post.contentType === 'preregistration' ? 'preregistration' : 'research'
+        note.post.contentType === 'preregistration' ? 'preregistration' : 'discussion'
       );
       methods.setValue('budget', note.post.fundraise?.goalAmount.usd.toString());
       // Set other relevant post data
@@ -81,7 +102,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       if (isNewFunding) {
         methods.setValue('articleType', 'preregistration');
       } else if (template) {
-        const articleType = template === 'preregistration' ? 'preregistration' : 'research';
+        const articleType = template === 'preregistration' ? 'preregistration' : 'discussion';
         methods.setValue('articleType', articleType);
       }
     }
@@ -186,13 +207,13 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             {articleType !== 'preregistration' && (
               <ResearchCoinSection bountyAmount={bountyAmount} onBountyClick={onBountyClick} />
             )}
-            {articleType === 'research' && <JournalSection />}
+            {articleType === 'discussion' && <JournalSection />}
           </div>
         </div>
 
         {/* Sticky bottom section */}
         <div className="border-t bg-white p-6 space-y-3 sticky bottom-0">
-          {articleType === 'research' && isJournalEnabled && (
+          {articleType === 'discussion' && isJournalEnabled && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">Payment due:</span>
               <span className="font-medium text-gray-900">$1,000 USD</span>
@@ -204,13 +225,12 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isLoadingUpsert}
           >
-            {isLoadingUpsert
-              ? 'Publishing...'
-              : articleType === 'research' && isJournalEnabled
-                ? 'Pay & Publish'
-                : Boolean(methods.watch('workId'))
-                  ? 'Re-publish'
-                  : 'Publish'}
+            {getButtonText({
+              isLoadingUpsert,
+              articleType,
+              isJournalEnabled: isJournalEnabled ?? false,
+              hasWorkId: Boolean(methods.watch('workId')),
+            })}
           </Button>
         </div>
       </div>

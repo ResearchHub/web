@@ -10,7 +10,7 @@ export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration';
 
 export type AuthorPosition = 'first' | 'middle' | 'last';
 
-export type ContentType = 'post' | 'paper' | 'preregistration';
+export type ContentType = 'post' | 'paper' | 'preregistration' | 'question' | 'discussion';
 
 export type FlagReasonKey =
   | 'LOW_QUALITY'
