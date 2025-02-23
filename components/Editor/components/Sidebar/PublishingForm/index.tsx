@@ -13,7 +13,10 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUpsertPost } from '@/hooks/useDocument';
 import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
-import { getDocumentTitleFromEditor } from '@/components/Editor/lib/utils/documentTitle';
+import {
+  getDocumentTitleFromEditor,
+  removeTitleFromHTML,
+} from '@/components/Editor/lib/utils/documentTitle';
 import { ResearchCoinSection } from './components/ResearchCoinSection';
 import { toast } from 'react-hot-toast';
 import {
@@ -160,6 +163,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       const text = editor?.getText();
       const json = editor?.getJSON();
       const html = editor?.getHTML();
+      const previewContent = removeTitleFromHTML(html || '');
       const title = getDocumentTitleFromEditor(editor);
       const formData = methods.getValues();
 
@@ -173,7 +177,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           noteId: noteId,
           renderableText: text || '',
           fullJSON: JSON.stringify(json),
-          fullSrc: html || '',
+          fullSrc: previewContent || '',
           assignDOI: formData.workId ? false : true,
         },
         formData.workId

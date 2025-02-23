@@ -11,6 +11,7 @@ import type { WorkMetadata } from '@/services/metadata.service';
 import { FundItem } from '@/components/Fund/FundItem';
 import { WorkLineItems } from '@/components/work/WorkLineItems';
 import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
+import { removeTitleFromHTML } from '@/components/Editor/lib/utils/documentTitle';
 
 interface Props {
   params: Promise<{
@@ -58,29 +59,6 @@ interface FundingDocumentProps {
   content?: string;
 }
 
-function removeTitle(contentJson: string): string {
-  try {
-    const content = JSON.parse(contentJson);
-    const titleIndex = content.content.findIndex(
-      (node: any) => node.type === 'heading' && node.attrs?.level === 1
-    );
-
-    if (titleIndex !== -1) {
-      content.content.splice(titleIndex, 1);
-    }
-
-    return JSON.stringify(content);
-  } catch (error) {
-    console.error('Error processing content JSON:', error);
-    return contentJson;
-  }
-}
-
-function removeHtmlTitle(html: string): string {
-  // Remove H1 tags and their content
-  return html.replace(/<h1[^>]*>.*?<\/h1>/i, '');
-}
-
 function FundingDocument({ work, metadata, content }: FundingDocumentProps) {
   console.log('metadata', metadata);
 
@@ -109,31 +87,19 @@ function FundingDocument({ work, metadata, content }: FundingDocumentProps) {
       )}
 
       {/* Content section */}
-      {
-        // this is currently commented out because we do not want to show unpublished notes
-        // work.note?.contentJson ? (
-        //   <div className="h-full">
-        //     <BlockEditorClientWrapper
-        //       contentJson={removeTitle(work.note.contentJson)}
-        //       editable={false}
-        //       hideTitle={true}
-        //     />
-        //   </div>
-        // ) :
-        work.previewContent ? (
-          <div className="h-full">
-            <BlockEditorClientWrapper
-              contentHtml={removeHtmlTitle(work.previewContent)}
-              editable={false}
-              hideTitle={true}
-            />
-          </div>
-        ) : content ? (
-          <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content }} />
-        ) : (
-          <p className="text-gray-500">No content available</p>
-        )
-      }
+      {work.previewContent ? (
+        <div className="h-full">
+          <BlockEditorClientWrapper
+            contentHtml={work.previewContent}
+            editable={false}
+            hideTitle={true}
+          />
+        </div>
+      ) : content ? (
+        <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content }} />
+      ) : (
+        <p className="text-gray-500">No content available</p>
+      )}
     </div>
   );
 }

@@ -12,3 +12,7 @@ export const getDocumentTitleFromEditor = (editor: Editor | null): string => {
   if (!editor) return '';
   return getDocumentTitle(editor.getJSON());
 };
+
+export function removeTitleFromHTML(html: string): string {
+  return html.replace(/<h1[^>]*>.*?<\/h1>/i, '');
+}
