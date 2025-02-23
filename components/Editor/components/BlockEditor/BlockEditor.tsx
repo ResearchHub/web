@@ -8,63 +8,10 @@ import { TextAlign } from '@tiptap/extension-text-align';
 import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
 import '@/components/Editor/styles/index.css';
 import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
-import { Placeholder } from '@tiptap/extension-placeholder';
-import { Decoration, DecorationSet } from '@tiptap/pm/view';
-import { Plugin } from '@tiptap/pm/state';
-import { Underline } from '@tiptap/extension-underline';
 
-// Create a custom Heading extension that enforces h1 at the start
-const CustomHeading = Heading.extend({
-  addProseMirrorPlugins() {
-    const plugins = this.parent?.() || [];
-
-    return [
-      ...plugins,
-      new Plugin({
-        props: {
-          decorations: (state) => {
-            const { doc, selection } = state;
-            const decorations: Decoration[] = [];
-
-            doc.descendants((node, pos) => {
-              if (
-                node.type.name === 'heading' &&
-                node.attrs.level === 1 &&
-                node.content.size === 0
-              ) {
-                decorations.push(
-                  Decoration.node(pos, pos + node.nodeSize, {
-                    class: 'is-empty',
-                    'data-placeholder': 'Enter your title here...',
-                  })
-                );
-              }
-            });
-
-            return DecorationSet.create(doc, decorations);
-          },
-        },
-      }),
-    ];
-  },
-  addKeyboardShortcuts() {
-    return {
-      ...this.parent?.(),
-      // Prevent deleting the title if it's empty
-      Backspace: ({ editor }) => {
-        const { empty, $anchor } = editor.state.selection;
-        const isTitle = $anchor.node().type.name === 'heading' && $anchor.node().attrs.level === 1;
-
-        if (empty && isTitle && $anchor.pos === 1) {
-          return true;
-        }
-        return false;
-      },
-      'Mod-b': ({ editor }) => editor.commands.toggleBold(),
-      'Mod-i': ({ editor }) => editor.commands.toggleItalic(),
-      'Mod-u': ({ editor }) => editor.commands.toggleUnderline(),
-    };
-  },
+// Create a simplified Document extension that only accepts blocks
+const CustomDocument = Document.extend({
+  content: 'heading block+',
 });
 
 export interface BlockEditorProps {
@@ -83,16 +30,6 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   editable = true,
 }) => {
   const { setEditor } = useNotebookPublish();
-  const CustomDocument = Document.extend({
-    content: 'heading block+',
-    parseHTML() {
-      return [
-        {
-          tag: 'div[class="editor-content"]',
-        },
-      ];
-    },
-  });
 
   const editor = useEditor({
     editable,
@@ -101,9 +38,8 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
       CustomDocument,
       StarterKit.configure({
         document: false,
-        heading: false,
       }),
-      CustomHeading.configure({
+      Heading.configure({
         levels: [1, 2, 3],
       }),
       Link.configure({
@@ -112,29 +48,8 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
-      Underline,
-      Placeholder.configure({
-        includeChildren: true,
-        placeholder: ({ node }) => {
-          if (node.type.name === 'heading' && node.attrs.level === 1) {
-            return 'Enter your title here...';
-          }
-          return '';
-        },
-      }),
     ],
-    content: contentJson
-      ? JSON.parse(contentJson)
-      : {
-          type: 'doc',
-          content: [
-            {
-              type: 'heading',
-              attrs: { level: 1 },
-              content: [{ type: 'text', text: '' }],
-            },
-          ],
-        },
+    content: '',
     editorProps: {
       attributes: {
         class:
