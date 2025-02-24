@@ -14,25 +14,29 @@ import 'highlight.js/styles/atom-one-dark.css';
 import hljs from 'highlight.js';
 import { CommentReadOnly } from './CommentReadOnly';
 import { BountyItem } from './BountyItem';
+import { useSession } from 'next-auth/react';
 
 interface CommentItemProps {
   comment: Comment;
   contentType: ContentType;
-  commentType: CommentType;
+  commentType?: CommentType;
   onCommentUpdate: (newComment: Comment, parentId?: number) => void;
   onCommentDelete: (commentId: number) => void;
+  renderCommentActions?: boolean;
 }
 
 export const CommentItem = ({
   comment,
   contentType,
-  commentType,
+  commentType = 'GENERIC_COMMENT',
   onCommentUpdate,
   onCommentDelete,
+  renderCommentActions = true,
 }: CommentItemProps) => {
   const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
+  const { data: session } = useSession();
 
   console.log('CommentItem rendering', {
     author: comment.author,
@@ -109,12 +113,19 @@ export const CommentItem = ({
       comment.bounties.some((b) => b.status === 'OPEN' && !b.isContribution);
 
     if (hasBounty) {
+      // Find the active bounty to check creator
+      const activeBounty = comment.bounties.find((b) => b.status === 'OPEN' && !b.isContribution);
+
+      // Check if current user is the bounty creator
+      const isCreator = session?.user?.id === activeBounty?.createdBy?.id;
+
       return (
         <div className="border border-gray-200 rounded-lg p-4 mb-4">
           <BountyItem
             comment={comment}
             contentType={contentType}
             onSubmitSolution={() => setIsReplying(true)}
+            isCreator={isCreator}
           />
         </div>
       );
@@ -128,7 +139,7 @@ export const CommentItem = ({
   };
 
   return (
-    <div className="p-4">
+    <div className="py-4">
       <style jsx global>{`
         /* Comment Content Styles */
         .prose blockquote {
@@ -224,14 +235,16 @@ export const CommentItem = ({
           {renderContent()}
 
           {/* Comment Actions and Metadata */}
-          <CommentItemActions
-            score={comment.score}
-            replyCount={comment.replyCount || 0}
-            commentId={comment.id}
-            onReply={() => setIsReplying(!isReplying)}
-            onEdit={() => setIsEditing(true)}
-            onDelete={handleDelete}
-          />
+          {renderCommentActions && (
+            <CommentItemActions
+              score={comment.score}
+              replyCount={comment.replyCount || 0}
+              commentId={comment.id}
+              onReply={() => setIsReplying(!isReplying)}
+              onEdit={() => setIsEditing(true)}
+              onDelete={handleDelete}
+            />
+          )}
         </>
       )}
 

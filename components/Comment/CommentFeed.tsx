@@ -10,7 +10,6 @@ import { CommentService } from '@/services/comment.service';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Star, Zap, ArrowUp, ChevronDown } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { BountyItem } from './BountyItem';
 
 type SortOption = {
   label: string;
@@ -30,6 +29,8 @@ interface CommentFeedProps {
   className?: string;
   commentType?: CommentType;
   editorProps?: Partial<CommentEditorProps>;
+  renderBountyAwardActions?: (comment: Comment) => React.ReactNode;
+  renderCommentActions?: boolean;
 }
 
 export const CommentFeed = ({
@@ -38,6 +39,8 @@ export const CommentFeed = ({
   className,
   commentType = 'GENERIC_COMMENT',
   editorProps = {},
+  renderBountyAwardActions,
+  renderCommentActions = true,
 }: CommentFeedProps) => {
   const [sortBy, setSortBy] = useState<SortOption['value']>('BEST');
   const [isOpen, setIsOpen] = useState(false);
@@ -130,11 +133,6 @@ export const CommentFeed = ({
   const selectedOption = sortOptions.find((opt) => opt.value === sortBy);
   const SelectedIcon = selectedOption?.icon;
 
-  const handleSubmitSolution = (bountyId: number) => {
-    // TODO: Implement bounty solution submission
-    console.log('Submit solution for bounty:', bountyId);
-  };
-  console.log('comments', comments);
   return (
     <div className={className}>
       <div className="flex justify-between items-center mb-4">
@@ -191,22 +189,25 @@ export const CommentFeed = ({
         ) : (
           <>
             {comments.map((comment) => (
-              <CommentItem
-                key={comment.id}
-                comment={comment}
-                contentType={contentType}
-                commentType={commentType}
-                onCommentUpdate={(newComment, parentId) => {
-                  const updatedComments = comments.map((c) =>
-                    c.id === newComment.id ? newComment : c
-                  );
-                  setComments(updatedComments);
-                }}
-                onCommentDelete={(commentId) => {
-                  const updatedComments = comments.filter((c) => c.id !== commentId);
-                  setComments(updatedComments);
-                }}
-              />
+              <div key={comment.id}>
+                <CommentItem
+                  comment={comment}
+                  contentType={contentType}
+                  commentType={commentType}
+                  onCommentUpdate={(newComment, parentId) => {
+                    const updatedComments = comments.map((c) =>
+                      c.id === newComment.id ? newComment : c
+                    );
+                    setComments(updatedComments);
+                  }}
+                  onCommentDelete={(commentId) => {
+                    const updatedComments = comments.filter((c) => c.id !== commentId);
+                    setComments(updatedComments);
+                  }}
+                  renderCommentActions={renderCommentActions}
+                />
+                {renderBountyAwardActions && renderBountyAwardActions(comment)}
+              </div>
             ))}
 
             {hasMore && (
