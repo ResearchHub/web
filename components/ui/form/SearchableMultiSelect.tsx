@@ -57,7 +57,11 @@ export function SearchableMultiSelect({
   // Debounced search function
   const debouncedSearch = useCallback(
     debounce(async (query: string) => {
-      if (!onSearch || query.length < minSearchLength) return;
+      if (!onSearch || query.length < minSearchLength) {
+        setIsLoading(false);
+        setOptions(staticOptions || []);
+        return;
+      }
 
       try {
         const results = await onSearch(query);
@@ -69,22 +73,20 @@ export function SearchableMultiSelect({
         setIsLoading(false);
       }
     }, debounceMs),
-    [onSearch, debounceMs, minSearchLength]
+    [onSearch, debounceMs, minSearchLength, staticOptions]
   );
 
   useEffect(() => {
-    if (onSearch && query.length >= minSearchLength) {
+    // Only trigger loading and search if we have a meaningful query
+    if (query && query.length >= minSearchLength) {
       setIsLoading(true);
       debouncedSearch(query);
-    } else {
-      setIsLoading(false);
-      setOptions(staticOptions || []);
     }
 
     return () => {
       debouncedSearch.cancel();
     };
-  }, [query, onSearch, staticOptions, debouncedSearch, minSearchLength]);
+  }, [query, minSearchLength]); // Removed unnecessary dependencies
 
   // Reset query after selection
   const handleChange = (newValue: MultiSelectOption[]) => {
