@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { SearchService } from '@/services/search.service';
 import { SearchSuggestion } from '@/types/search';
 import { getSearchHistory, saveSearchHistory, SEARCH_HISTORY_KEY } from '@/utils/searchHistory';
 import { EntityType } from '@/types/search';
+import { HubService, Hub } from '@/services/hub.service';
 
 interface UseSearchSuggestionsConfig {
   query: string;
@@ -164,4 +165,26 @@ export function useSearchSuggestions({
     hasLocalSuggestions: includeLocalSuggestions && localSuggestions.length > 0,
     clearSearchHistory,
   };
+}
+
+export function useHubSuggestions() {
+  const [data, setData] = useState<Hub[]>([]);
+  const [error, setError] = useState<Error | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetch = useCallback(async (query: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const results = await HubService.suggestHubs(query);
+      setData(results);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to fetch hub suggestions'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return { data, error, isLoading, fetch };
 }

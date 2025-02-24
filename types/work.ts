@@ -90,12 +90,6 @@ export const transformJournal = (raw: any): TransformedJournal | undefined => {
   }))(raw);
 };
 
-export const transformTopic = createTransformer<any, Topic>((raw) => ({
-  id: raw.id,
-  name: raw.name,
-  slug: raw.slug,
-}));
-
 export const transformDocumentVersion = createTransformer<any, DocumentVersion>((raw) => ({
   workId: raw.paper_id,
   version: raw.version,

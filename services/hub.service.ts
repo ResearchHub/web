@@ -1,3 +1,4 @@
+import { transformTopic } from '@/types/topic';
 import { ApiClient } from './client';
 
 interface HubResponse {
@@ -44,13 +45,7 @@ export class HubService {
     const response = await ApiClient.get<HubsApiResponse>(
       `${this.BASE_PATH}/?${params.toString()}`
     );
-    return response.results.map((hub) => ({
-      id: hub.id,
-      name: hub.name,
-      slug: hub.slug,
-      imageUrl: hub.hub_image,
-      description: hub.description,
-    }));
+    return response.results.map((hub) => transformTopic(hub));
   }
 
   static async suggestHubs(query: string): Promise<Hub[]> {
