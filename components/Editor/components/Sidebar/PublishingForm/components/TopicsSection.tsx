@@ -1,21 +1,21 @@
 import { useFormContext } from 'react-hook-form';
-import { Tag, Plus, Hash } from 'lucide-react';
+import { Tag } from 'lucide-react';
 import { SectionHeader } from './SectionHeader';
 import { SearchableMultiSelect } from '@/components/ui/form/SearchableMultiSelect';
-import { useHubSuggestions } from '@/hooks/useSearchSuggestions';
+import { useTopicSuggestions } from '@/hooks/useSearchSuggestions';
 import { useCallback } from 'react';
 
 export function TopicsSection() {
   const { register, watch, setValue } = useFormContext();
   const topics = watch('topics') || [];
-  const { data, isLoading, fetch } = useHubSuggestions();
+  const { data, isLoading, fetch } = useTopicSuggestions();
 
   const handleSearch = useCallback(
     async (query: string) => {
       await fetch(query);
-      return data.map((hub) => ({
-        value: hub.id.toString(),
-        label: hub.name,
+      return data.map((topic) => ({
+        value: topic.id.toString(),
+        label: topic.name,
       }));
     },
     [fetch, data]

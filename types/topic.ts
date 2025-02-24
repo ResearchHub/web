@@ -15,3 +15,17 @@ export const transformTopic = createTransformer<any, Topic>((raw: any) => ({
   imageUrl: raw.hub_image,
   description: raw.description,
 }));
+
+export const transformTopics = (raw: any): Topic[] => {
+  const topicSuggestions: Topic[] = [];
+  const suggestions = raw.name_suggest__completion;
+
+  suggestions.forEach((suggestion: any) => {
+    suggestion.options.forEach((option: any) => {
+      const parsed = transformTopic(option._source);
+      topicSuggestions.push(parsed);
+    });
+  });
+
+  return topicSuggestions;
+};

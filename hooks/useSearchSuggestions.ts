@@ -4,6 +4,7 @@ import { SearchSuggestion } from '@/types/search';
 import { getSearchHistory, saveSearchHistory, SEARCH_HISTORY_KEY } from '@/utils/searchHistory';
 import { EntityType } from '@/types/search';
 import { HubService, Hub } from '@/services/hub.service';
+import { Topic } from '@/types/topic';
 
 interface UseSearchSuggestionsConfig {
   query: string;
@@ -167,8 +168,8 @@ export function useSearchSuggestions({
   };
 }
 
-export function useHubSuggestions() {
-  const [data, setData] = useState<Hub[]>([]);
+export function useTopicSuggestions() {
+  const [data, setData] = useState<Topic[]>([]);
   const [error, setError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -177,10 +178,10 @@ export function useHubSuggestions() {
     setError(null);
 
     try {
-      const results = await HubService.suggestHubs(query);
+      const results = await HubService.suggestTopics(query);
       setData(results);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to fetch hub suggestions'));
+      setError(err instanceof Error ? err : new Error('Failed to fetch topic suggestions'));
     } finally {
       setIsLoading(false);
     }
