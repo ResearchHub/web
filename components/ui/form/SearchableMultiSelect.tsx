@@ -73,12 +73,11 @@ export function SearchableMultiSelect({
         setIsLoading(false);
       }
     }, debounceMs),
-    [onSearch, debounceMs, minSearchLength, staticOptions]
+    [onSearch, debounceMs, minSearchLength, staticOptions, setIsLoading, setOptions]
   );
 
   useEffect(() => {
-    // Only trigger loading and search if we have a meaningful query
-    if (query && query.length >= minSearchLength) {
+    if (query) {
       setIsLoading(true);
       debouncedSearch(query);
     }
@@ -86,7 +85,7 @@ export function SearchableMultiSelect({
     return () => {
       debouncedSearch.cancel();
     };
-  }, [query, minSearchLength]); // Removed unnecessary dependencies
+  }, [query]);
 
   // Reset query after selection
   const handleChange = (newValue: MultiSelectOption[]) => {
