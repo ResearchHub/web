@@ -8,6 +8,11 @@ interface HubResponse {
   description?: string;
 }
 
+interface GetHubsOptions {
+  namespace?: 'journal';
+  excludeJournals?: boolean;
+}
+
 interface HubsApiResponse {
   results: HubResponse[];
 }
@@ -19,6 +24,13 @@ interface FollowResponse {
   object_id: number;
   created_date: string;
   updated_date: string;
+}
+
+interface HubDetailResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: HubResponse[];
 }
 
 export interface Hub {
@@ -33,12 +45,15 @@ export class HubService {
   private static readonly BASE_PATH = '/api/hub';
   private static readonly SUGGEST_PATH = '/api/search/hubs/suggest';
 
-  static async getHubs(namespace?: 'journal'): Promise<Hub[]> {
+  static async getHubs(options: GetHubsOptions = {}): Promise<Hub[]> {
     const params = new URLSearchParams({
       ordering: '-paper_count',
     });
-    if (namespace) {
-      params.append('namespace', namespace);
+    if (options.namespace) {
+      params.append('namespace', options.namespace);
+    }
+    if (options.excludeJournals) {
+      params.append('exclude_journals', 'true');
     }
 
     const response = await ApiClient.get<HubsApiResponse>(
@@ -77,5 +92,24 @@ export class HubService {
 
   static async unfollowHub(hubId: number): Promise<void> {
     await ApiClient.post(`${this.BASE_PATH}/${hubId}/unfollow/`);
+  }
+
+  static async getHubBySlug(slug: string): Promise<Hub> {
+    const response = await ApiClient.get<HubDetailResponse>(
+      `${this.BASE_PATH}?slug=${encodeURIComponent(slug)}`
+    );
+
+    if (!response.results.length) {
+      throw new Error(`Hub with slug "${slug}" not found`);
+    }
+
+    const hub = response.results[0];
+    return {
+      id: hub.id,
+      name: hub.name,
+      slug: hub.slug,
+      imageUrl: hub.hub_image,
+      description: hub.description,
+    };
   }
 }

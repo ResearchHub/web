@@ -50,7 +50,7 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
   const fetchInterests = async (type: 'journal' | 'person' | 'topic'): Promise<Interest[]> => {
     try {
       if (type === 'journal') {
-        const journals = await HubService.getHubs('journal');
+        const journals = await HubService.getHubs({ namespace: 'journal' });
         return journals.map((journal) => ({
           id: journal.id,
           name: journal.name,
@@ -61,7 +61,7 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
       }
 
       if (type === 'topic') {
-        const hubs = await HubService.getHubs();
+        const hubs = await HubService.getHubs({ excludeJournals: true });
         return hubs.map((hub) => ({
           id: hub.id,
           name: hub.name,
