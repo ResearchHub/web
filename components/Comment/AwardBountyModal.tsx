@@ -10,6 +10,8 @@ import { Progress } from '@/components/ui/Progress';
 import { formatRSC } from '@/utils/number';
 import { Alert } from '@/components/ui/Alert';
 import { cn } from '@/utils/styles';
+import { BountyService } from '@/services/bounty.service';
+import { toast } from 'react-hot-toast';
 
 interface AwardBountyModalProps {
   isOpen: boolean;
@@ -51,11 +53,26 @@ export const AwardBountyModal = ({
 
     setIsSubmitting(true);
     try {
-      // TODO: Implement the API call to submit all awards at once
-      console.log('Submitting awards:', awardAmounts);
+      if (!activeBounty) {
+        throw new Error('No active bounty found');
+      }
+
+      // Convert award amounts to the expected format
+      const awards = Object.entries(awardAmounts).map(([commentId, amount]) => ({
+        commentId: parseInt(commentId),
+        amount,
+      }));
+
+      await BountyService.awardBounty(activeBounty.id, awards);
+      toast.success('Bounty awards submitted successfully');
       onClose();
     } catch (error) {
       console.error('Failed to submit awards:', error);
+      if (error instanceof Error && error.message.includes('No valid awards found')) {
+        toast.error('Please ensure at least one award has an amount greater than 0');
+      } else {
+        toast.error('Failed to submit awards. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
