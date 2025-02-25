@@ -133,13 +133,19 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
           </div>
           {journal && (
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border border-gray-200 bg-gray-50 hover:bg-gray-200 transition-colors">
-              <Avatar
-                src={journal.imageUrl}
-                alt={journal.slug}
-                size="xxs"
-                className="ring-1 ring-gray-200"
-              />
-              <span className="text-gray-700">{journal.name}</span>
+              <a
+                href={`/journal/${journal.slug}`}
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center gap-1.5"
+              >
+                <Avatar
+                  src={journal.imageUrl}
+                  alt={journal.slug}
+                  size="xxs"
+                  className="ring-1 ring-gray-200"
+                />
+                <span className="text-gray-700">{journal.name}</span>
+              </a>
             </div>
           )}
         </div>
