@@ -10,7 +10,7 @@ import { useFeed, FeedTab } from '@/hooks/useFeed';
 import { useHub } from '@/hooks/useHub';
 import { BookOpen } from 'lucide-react';
 
-type JournalFeedTab = Extract<FeedTab, 'latest' | 'popular'>;
+type JournalFeedTab = Extract<FeedTab, 'latest'>;
 
 export default function JournalFeedPage() {
   const { slug } = useParams();
