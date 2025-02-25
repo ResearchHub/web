@@ -1,0 +1,224 @@
+---
+description: This document outlines the architectural patterns and best practices for custom React hooks in the ResearchHub codebase.
+globs: 
+alwaysApply: false
+---
+ # ResearchHub Hooks Architecture
+
+This document outlines the architectural patterns and best practices for custom React hooks in the ResearchHub codebase.
+
+## Hook Structure
+
+1. **Naming Convention**:
+   - Prefix all hooks with `use` (e.g., `useVote`, `useFeed`, `useNote`)
+   - Use camelCase for hook names
+   - Name hooks based on their primary functionality or domain
+
+2. **Client Components**:
+   - Add the 'use client' directive at the top of client hooks
+   - Hooks that use browser-specific APIs should always have 'use client'
+
+   ```typescript
+   'use client';
+   
+   import { useState } from 'react';
+   
+   export const useFeature = () => {
+     // Hook implementation
+   };
+   ```
+
+3. **Hook Return Types**:
+   - For simple hooks, return an object with named properties
+   - For hooks with actions, use tuple pattern: `[state, action]`
+   - Explicitly define return types with TypeScript interfaces
+
+   ```typescript
+   // Object return pattern
+   interface UseFeatureReturn {
+     data: Data[];
+     isLoading: boolean;
+     error: Error | null;
+     refresh: () => void;
+   }
+   
+   // Tuple return pattern
+   type UseFeatureState = { data: Data | null; isLoading: boolean; error: Error | null };
+   type UseFeatureAction = (params: ActionParams) => Promise<void>;
+   type UseFeatureReturn = [UseFeatureState, UseFeatureAction];
+   ```
+
+## State Management
+
+1. **State Organization**:
+   - Group related state variables in a state object
+   - Manage loading, error, and data states consistently
+   - Use descriptive state variable names
+
+   ```typescript
+   const useFeature = () => {
+     const [data, setData] = useState<Data | null>(null);
+     const [isLoading, setIsLoading] = useState(false);
+     const [error, setError] = useState<Error | null>(null);
+     
+     // Hook implementation
+     
+     return { data, isLoading, error };
+   };
+   ```
+
+2. **Error Handling**:
+   - Always include error state in hooks that make API calls
+   - Parse and transform API errors to meaningful user-facing messages
+   - Implement consistent error handling patterns across hooks
+
+   ```typescript
+   try {
+     const response = await ServiceName.method(params);
+     setData(response);
+   } catch (err) {
+     const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
+     const errorMsg = data?.detail || 'Default error message';
+     setError(errorMsg);
+   } finally {
+     setIsLoading(false);
+   }
+   ```
+
+## Hook Composition
+
+1. **Separation of Concerns**:
+   - Create single-purpose hooks that handle one specific feature
+   - Compose multiple hooks together for complex functionality
+   - Keep each hook focused on a specific domain
+
+   ```typescript
+   // In a component:
+   const { data: user } = useUser(userId);
+   const { posts, isLoading: postsLoading } = usePosts(userId);
+   const { comments, isLoading: commentsLoading } = useComments(userId);
+   ```
+
+2. **Data Fetching Patterns**:
+   - Initialize data fetching in `useEffect`
+   - Provide refetch/refresh functions for manual updates
+   - Handle loading and error states consistently
+
+   ```typescript
+   const [data, setData] = useState<Data[]>([]);
+   const [isLoading, setIsLoading] = useState(true);
+   const [error, setError] = useState<Error | null>(null);
+   
+   useEffect(() => {
+     fetchData();
+   }, [dependencies]);
+   
+   const fetchData = async () => {
+     setIsLoading(true);
+     setError(null);
+     try {
+       const result = await ServiceName.getData(params);
+       setData(result);
+     } catch (error) {
+       setError(error);
+     } finally {
+       setIsLoading(false);
+     }
+   };
+   ```
+
+3. **Pagination and Infinite Scrolling**:
+   - Implement consistent pagination patterns
+   - Track page number, hasMore flag, and loading states
+   - Append to existing data rather than replacing on loadMore
+
+   ```typescript
+   const loadMore = async () => {
+     if (!hasMore || isLoading) return;
+     
+     try {
+       const nextPage = page + 1;
+       const result = await Service.getData({ page: nextPage, ...otherParams });
+       setData((prev) => [...prev, ...result.items]);
+       setHasMore(result.hasMore);
+       setPage(nextPage);
+     } catch (error) {
+       console.error('Error loading more:', error);
+     }
+   };
+   ```
+
+## Performance Optimization
+
+1. **Memoization**:
+   - Use `useMemo` for expensive calculations
+   - Use `useCallback` for functions passed to child components
+   - Properly manage dependency arrays to prevent unnecessary re-renders
+
+   ```typescript
+   const handleProcess = useCallback((id: string) => {
+     // Process implementation
+   }, [dependency1, dependency2]);
+   ```
+
+2. **Debouncing and Throttling**:
+   - Debounce input handlers and search functions
+   - Implement throttling for scroll events and frequent updates
+   - Clean up debounced/throttled functions in `useEffect` return
+
+   ```typescript
+   const debouncedSave = useRef(
+     debounce((content: string) => {
+       saveToServer(content);
+     }, 500)
+   ).current;
+   
+   useEffect(() => {
+     return () => {
+       debouncedSave.cancel();
+     };
+   }, [debouncedSave]);
+   ```
+
+## API Integration
+
+1. **Service Integration**:
+   - Use service classes for API calls (never make direct fetch calls in hooks)
+   - Abstract API interaction details away from component logic
+   - Transform API responses to match the expected UI data structure
+
+   ```typescript
+   // Good
+   const data = await NoteService.getNote(noteId);
+   
+   // Avoid
+   const data = await fetch(`/api/notes/${noteId}`).then(res => res.json());
+   ```
+
+2. **Optimistic Updates**:
+   - Implement optimistic updates for better user experience
+   - Store previous state for rollback in case of errors
+   - Update UI immediately, then confirm with API response
+
+   ```typescript
+   const addItem = async (newItem: Item) => {
+     // Optimistically update UI
+     const previousItems = [...items];
+     setItems((prev) => [...prev, { ...newItem, id: 'temp-id' }]);
+     
+     try {
+       // Actual API call
+       const savedItem = await ItemService.addItem(newItem);
+       // Update with real data from server
+       setItems((prev) => prev.map(item => 
+         item.id === 'temp-id' ? savedItem : item
+       ));
+     } catch (error) {
+       // Rollback on error
+       setItems(previousItems);
+       setError(error);
+     }
+   };
+   ```
+
+These patterns ensure consistent, maintainable, and performant hooks throughout the ResearchHub application.
