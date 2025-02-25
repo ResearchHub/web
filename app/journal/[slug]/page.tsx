@@ -41,17 +41,7 @@ export default function JournalFeedPage() {
     );
   }
 
-  if (hubError) {
-    return (
-      <PageLayout>
-        <div className="pt-4 pb-7">
-          <h2 className="text-xl text-gray-600">Error loading journal: {hubError.message}</h2>
-        </div>
-      </PageLayout>
-    );
-  }
-
-  if (!isHubLoading && !hub) {
+  if (hubError || !hub) {
     return (
       <PageLayout>
         <div className="pt-4 pb-7">
