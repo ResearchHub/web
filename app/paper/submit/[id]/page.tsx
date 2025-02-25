@@ -7,9 +7,7 @@ import { Input } from '@/components/ui/form/Input';
 import { Textarea } from '@/components/ui/form/Textarea';
 import { Button } from '@/components/ui/Button';
 import { ArrowRight } from 'lucide-react';
-import clsx from 'clsx';
-
-type Step = 'select' | 'metadata' | 'declarations' | 'preview';
+import { ProgressStepper, Step } from '@/components/ui/ProgressStepper';
 
 // Sample pre-populated data - will be replaced with dynamic data later
 const SAMPLE_PAPER_DATA = {
@@ -28,7 +26,7 @@ export default function PaperSubmitPage({ params }: { params: { id: string } }) 
   const [currentStep] = useState<Step>('metadata');
 
   const steps: { id: Step; name: string }[] = [
-    { id: 'select', name: 'Select paper' },
+    { id: 'select', name: 'Paper' },
     { id: 'metadata', name: 'Metadata' },
     { id: 'declarations', name: 'Declarations' },
     { id: 'preview', name: 'Preview' },
@@ -66,46 +64,7 @@ export default function PaperSubmitPage({ params }: { params: { id: string } }) 
 
         {/* Progress Steps */}
         <div className="mb-12">
-          <div className="flex flex-col space-y-2">
-            <div className="flex w-full gap-2">
-              {steps.map((step, stepIdx) => {
-                const isCurrentStep = currentStep === step.id;
-                const isCompleted = steps.findIndex((s) => s.id === currentStep) > stepIdx;
-                return (
-                  <div key={step.name} className="flex-1">
-                    <div
-                      className={clsx(
-                        'h-2 rounded-full',
-                        isCompleted
-                          ? 'bg-indigo-600'
-                          : isCurrentStep
-                            ? 'bg-indigo-600'
-                            : 'bg-gray-200',
-                        'transition-colors duration-300'
-                      )}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex w-full gap-2">
-              {steps.map((step, stepIdx) => {
-                const isCurrentStep = currentStep === step.id;
-                const isCompleted = steps.findIndex((s) => s.id === currentStep) > stepIdx;
-                return (
-                  <div
-                    key={step.name}
-                    className={clsx(
-                      'text-sm font-medium flex-1 text-center',
-                      isCompleted || isCurrentStep ? 'text-indigo-600' : 'text-gray-500'
-                    )}
-                  >
-                    {step.name}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <ProgressStepper steps={steps} currentStep={currentStep} />
         </div>
 
         <div className="pb-8">

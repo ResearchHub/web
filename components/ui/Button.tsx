@@ -5,7 +5,7 @@ import { cn } from '@/utils/styles';
 import { PlayCircle, Plus } from 'lucide-react';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
@@ -23,12 +23,12 @@ const buttonVariants = cva(
           'bg-white bg-orange-100 text-orange-600 border border-orange-100 hover:bg-orange-200 hover:border-orange-200',
       },
       size: {
-        default: 'h-10 px-4 py-2',
-        sm: 'h-8 px-3 text-xs',
-        md: 'h-9 px-3 text-sm',
-        lg: 'h-12 px-8',
-        icon: 'h-10 w-10',
-        metric: 'h-9 px-3',
+        default: 'h-10 px-4 py-2 text-sm',
+        sm: 'h-8 px-3 py-1.5 text-xs',
+        md: 'h-9 px-3 py-1.5 text-sm',
+        lg: 'h-12 px-8 py-3 text-base',
+        icon: 'h-10 w-10 text-sm',
+        metric: 'h-9 px-3 py-1.5 text-sm',
       },
     },
     defaultVariants: {

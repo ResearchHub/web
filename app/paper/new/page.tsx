@@ -4,20 +4,21 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { FileText, Upload } from 'lucide-react';
+import { FileText, Upload, X, ArrowRight } from 'lucide-react';
 import { Search } from '@/components/Search/Search';
-import { SearchSuggestion } from '@/types/search';
+import { SearchSuggestion, WorkSuggestion } from '@/types/search';
 import { RadioGroup } from '@headlessui/react';
 import clsx from 'clsx';
-
-type Step = 'select' | 'metadata' | 'declarations' | 'preview';
+import { Button } from '@/components/ui/Button';
+import { ProgressStepper, Step } from '@/components/ui/ProgressStepper';
 
 export default function WorkCreatePage() {
   const router = useRouter();
   const [currentStep] = useState<Step>('select');
+  const [selectedPaper, setSelectedPaper] = useState<WorkSuggestion | null>(null);
 
   const steps: { id: Step; name: string }[] = [
-    { id: 'select', name: 'Select paper' },
+    { id: 'select', name: 'Paper' },
     { id: 'metadata', name: 'Metadata' },
     { id: 'declarations', name: 'Declarations' },
     { id: 'preview', name: 'Preview' },
@@ -25,12 +26,22 @@ export default function WorkCreatePage() {
 
   const handleSearchSelect = (suggestion: SearchSuggestion) => {
     if (suggestion.entityType === 'paper') {
-      if (suggestion.id) {
-        router.push(`/paper/submit/${suggestion.id}`);
-      } else if (suggestion.doi) {
-        router.push(`/paper/submit?doi=${encodeURIComponent(suggestion.doi)}`);
+      setSelectedPaper(suggestion as WorkSuggestion);
+    }
+  };
+
+  const handleContinue = () => {
+    if (selectedPaper) {
+      if (selectedPaper.id) {
+        router.push(`/paper/submit/${selectedPaper.id}`);
+      } else if (selectedPaper.doi) {
+        router.push(`/paper/submit?doi=${encodeURIComponent(selectedPaper.doi)}`);
       }
     }
+  };
+
+  const clearSelection = () => {
+    setSelectedPaper(null);
   };
 
   const submissionOptions = [
@@ -68,46 +79,7 @@ export default function WorkCreatePage() {
 
         {/* Progress Steps */}
         <div className="mb-12">
-          <div className="flex flex-col space-y-2">
-            <div className="flex w-full gap-2">
-              {steps.map((step, stepIdx) => {
-                const isCurrentStep = currentStep === step.id;
-                const isCompleted = steps.findIndex((s) => s.id === currentStep) > stepIdx;
-                return (
-                  <div key={step.name} className="flex-1">
-                    <div
-                      className={clsx(
-                        'h-2 rounded-full',
-                        isCompleted
-                          ? 'bg-indigo-600'
-                          : isCurrentStep
-                            ? 'bg-indigo-600'
-                            : 'bg-gray-200',
-                        'transition-colors duration-300'
-                      )}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex w-full gap-2">
-              {steps.map((step, stepIdx) => {
-                const isCurrentStep = currentStep === step.id;
-                const isCompleted = steps.findIndex((s) => s.id === currentStep) > stepIdx;
-                return (
-                  <div
-                    key={step.name}
-                    className={clsx(
-                      'text-sm font-medium flex-1',
-                      isCompleted || isCurrentStep ? 'text-indigo-600' : 'text-gray-500'
-                    )}
-                  >
-                    {step.name}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <ProgressStepper steps={steps} currentStep={currentStep} />
         </div>
 
         {/* Search Section */}
@@ -117,12 +89,42 @@ export default function WorkCreatePage() {
             <p className="text-base text-gray-600 mb-4">
               Already published a preprint? Search for it here to speed up the process
             </p>
-            <Search
-              onSelect={handleSearchSelect}
-              placeholder="Search by title or DOI"
-              className="w-full"
-              displayMode="inline"
-            />
+
+            {!selectedPaper ? (
+              <Search
+                onSelect={handleSearchSelect}
+                placeholder="Search by title or DOI"
+                className="w-full"
+                displayMode="inline"
+              />
+            ) : (
+              <div className="flex flex-col md:flex-row md:items-stretch gap-4">
+                <div className="flex-grow p-4 border border-indigo-200 bg-indigo-50 rounded-lg overflow-hidden">
+                  <div className="flex justify-between items-center h-full w-full">
+                    <div className="min-w-0 flex-1 pr-2">
+                      <p className="font-medium text-gray-900 truncate">
+                        Selected paper: {selectedPaper.displayName || selectedPaper.doi}
+                      </p>
+                    </div>
+                    <button
+                      onClick={clearSelection}
+                      className="ml-2 flex-shrink-0 text-gray-500 hover:text-gray-700 transition-colors"
+                      aria-label="Clear selection"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                </div>
+                <Button
+                  onClick={handleContinue}
+                  className="flex-shrink-0 h-auto flex items-center gap-2 whitespace-nowrap"
+                  variant="default"
+                  size="lg"
+                >
+                  Continue <ArrowRight size={18} />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
