@@ -1,10 +1,8 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { SearchService } from '@/services/search.service';
 import { SearchSuggestion } from '@/types/search';
-import { getSearchHistory, saveSearchHistory, SEARCH_HISTORY_KEY } from '@/utils/searchHistory';
+import { getSearchHistory, SEARCH_HISTORY_KEY } from '@/utils/searchHistory';
 import { EntityType } from '@/types/search';
-import { HubService, Hub } from '@/services/hub.service';
-import { Topic } from '@/types/topic';
 
 interface UseSearchSuggestionsConfig {
   query: string;
@@ -166,26 +164,4 @@ export function useSearchSuggestions({
     hasLocalSuggestions: includeLocalSuggestions && localSuggestions.length > 0,
     clearSearchHistory,
   };
-}
-
-export function useTopicSuggestions() {
-  const [data, setData] = useState<Topic[]>([]);
-  const [error, setError] = useState<Error | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const fetch = useCallback(async (query: string) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const results = await HubService.suggestTopics(query);
-      setData(results);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to fetch topic suggestions'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  return { data, error, isLoading, fetch };
 }

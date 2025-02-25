@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useState, useId } from 'react';
+import { Fragment, useEffect, useState, useId, useCallback } from 'react';
 import {
   Combobox,
   ComboboxButton,
@@ -54,17 +54,17 @@ export function SearchableMultiSelect({
   const [options, setOptions] = useState<MultiSelectOption[]>(staticOptions || []);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Debounced search function
   const debouncedSearch = useCallback(
-    debounce(async (query: string) => {
-      if (!onSearch || query.length < minSearchLength) {
-        setIsLoading(false);
+    debounce(async (searchQuery: string) => {
+      if (!onSearch || searchQuery.length < minSearchLength) {
         setOptions(staticOptions || []);
+        setIsLoading(false);
         return;
       }
 
       try {
-        const results = await onSearch(query);
+        setIsLoading(true);
+        const results = await onSearch(searchQuery);
         setOptions(results);
       } catch (error) {
         console.error('Search failed:', error);
@@ -73,23 +73,22 @@ export function SearchableMultiSelect({
         setIsLoading(false);
       }
     }, debounceMs),
-    [onSearch, debounceMs, minSearchLength, staticOptions, setIsLoading, setOptions]
+    [onSearch, staticOptions, minSearchLength, debounceMs, setOptions, setIsLoading]
   );
 
   useEffect(() => {
     if (query) {
-      setIsLoading(true);
       debouncedSearch(query);
+    } else {
+      setOptions(staticOptions || []);
     }
 
     return () => {
       debouncedSearch.cancel();
     };
-  }, [query]);
+  }, [query, debouncedSearch, staticOptions]);
 
-  // Reset query after selection
   const handleChange = (newValue: MultiSelectOption[]) => {
-    // Filter out duplicates by value
     const uniqueValues = newValue.filter(
       (option, index, self) => index === self.findIndex((o) => o.value === option.value)
     );
@@ -107,15 +106,12 @@ export function SearchableMultiSelect({
       if (value.length === 0) return;
 
       if (focusedValueIndex === null) {
-        // First backspace - focus the last item
         setFocusedValueIndex(value.length - 1);
       } else {
-        // Second backspace - remove the focused item
         removeOption(value[focusedValueIndex]);
         setFocusedValueIndex(null);
       }
     } else {
-      // Any other key press removes the focus
       setFocusedValueIndex(null);
     }
   };
@@ -186,13 +182,13 @@ export function SearchableMultiSelect({
                   return <div className="px-4 py-2 text-sm text-gray-500">Type to search...</div>;
                 }
 
-                if (isLoading && options.length === 0) {
-                  return <div className="px-4 py-2 text-sm text-gray-500">Searching...</div>;
-                }
-
                 const filteredOptions = options.filter(
                   (option) => !value.some((v) => v.value === option.value)
                 );
+
+                if (isLoading && filteredOptions.length === 0) {
+                  return <div className="px-4 py-2 text-sm text-gray-500">Searching...</div>;
+                }
 
                 if (!isLoading && filteredOptions.length === 0) {
                   return <div className="px-4 py-2 text-sm text-gray-500">No options found</div>;
