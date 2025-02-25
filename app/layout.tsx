@@ -1,3 +1,4 @@
+import '@coinbase/onchainkit/styles.css';
 import NextAuthProvider from '@/components/providers/NextAuthProvider';
 import ToasterProvider from '@/components/providers/ToasterProvider';
 import localFont from 'next/font/local';
@@ -7,6 +8,7 @@ import { ExchangeRateProvider } from '@/contexts/ExchangeRateContext';
 import { AuthModalProvider } from '@/contexts/AuthModalContext';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { Metadata } from 'next';
+import { Providers } from './providers';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -44,16 +46,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <NextAuthProvider>
-          <AuthModalProvider>
-            <OrganizationProvider>
-              <ExchangeRateProvider>
-                <NotificationProvider>{children}</NotificationProvider>
-              </ExchangeRateProvider>
-            </OrganizationProvider>
-          </AuthModalProvider>
-        </NextAuthProvider>
-        <ToasterProvider />
+        <Providers>
+          <NextAuthProvider>
+            <AuthModalProvider>
+              <OrganizationProvider>
+                <ExchangeRateProvider>
+                  <NotificationProvider>{children}</NotificationProvider>
+                </ExchangeRateProvider>
+              </OrganizationProvider>
+            </AuthModalProvider>
+          </NextAuthProvider>
+          <ToasterProvider />
+        </Providers>
       </body>
     </html>
   );
