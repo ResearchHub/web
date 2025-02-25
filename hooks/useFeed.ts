@@ -24,8 +24,7 @@ export const useFeed = (activeTab: FeedTab, options: UseFeedOptions = {}) => {
       const result = await FeedService.getFeed({
         page: 1,
         pageSize: 20,
-        feedView:
-          activeTab === 'following' ? 'following' : activeTab === 'latest' ? 'latest' : undefined,
+        feedView: activeTab,
         hubSlug: options.hubSlug,
       });
       setEntries(result.entries);
@@ -46,8 +45,7 @@ export const useFeed = (activeTab: FeedTab, options: UseFeedOptions = {}) => {
       const result = await FeedService.getFeed({
         page: nextPage,
         pageSize: 20,
-        feedView:
-          activeTab === 'following' ? 'following' : activeTab === 'latest' ? 'latest' : undefined,
+        feedView: activeTab,
         hubSlug: options.hubSlug,
       });
       setEntries((prev) => [...prev, ...result.entries]);
