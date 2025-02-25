@@ -7,11 +7,14 @@ import { Badge } from '@/components/ui/Badge';
 import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 import Link from 'next/link';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { PublishingFormData } from '../schema';
+import { Button } from '@/components/ui/Button';
 
-export type ArticleType = 'research' | 'preregistration' | 'other';
-
-const articleTypes: Record<ArticleType, { title: string; description: string }> = {
-  research: {
+const articleTypes: Record<
+  PublishingFormData['articleType'],
+  { title: string; description: string }
+> = {
+  discussion: {
     title: 'Original Research Work',
     description: 'Submit your original research',
   },
@@ -19,14 +22,14 @@ const articleTypes: Record<ArticleType, { title: string; description: string }> 
     title: 'Preregistration',
     description: 'Get funding by sharing your research plan',
   },
-  other: {
-    title: 'Other',
-    description: 'Literature review, hypothesis, question, etc.',
+  question: {
+    title: 'Question',
+    description: 'Ask a research question to the community',
   },
 };
 
-const renderSelectedIcon = (articleType: ArticleType) => {
-  if (articleType === 'research') {
+const renderSelectedIcon = (articleType: PublishingFormData['articleType'] | undefined) => {
+  if (articleType === 'discussion') {
     return <FileText className="h-4 w-4 text-gray-500" />;
   }
   if (articleType === 'preregistration') {
@@ -36,11 +39,17 @@ const renderSelectedIcon = (articleType: ArticleType) => {
 };
 
 export function WorkTypeSection() {
-  const { watch, setValue } = useFormContext();
-  const articleType = watch('articleType') as ArticleType;
+  const {
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormContext();
+  const articleType = watch('articleType') as PublishingFormData['articleType'] | undefined;
+  const workId = watch('workId');
   const { note } = useNotebookPublish();
+  const slug = note?.post?.slug;
 
-  const isPublished = Boolean(note?.post);
+  const isPublished = Boolean(workId);
 
   return (
     <div className="py-3 px-6">
@@ -53,10 +62,10 @@ export function WorkTypeSection() {
             <Badge variant="success" size="sm">
               Published
             </Badge>
-            {articleType === 'preregistration' && (
+            {articleType === 'preregistration' && slug && (
               <Tooltip content="View funding page">
                 <Link
-                  href={`/fund/${note.post?.id}/${note.post?.slug}`}
+                  href={`/fund/${workId}/${slug}`}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                   target="_blank"
                 >
@@ -76,18 +85,21 @@ export function WorkTypeSection() {
           disabled={isPublished}
           sameWidth
           trigger={
-            <button
+            <Button
+              variant="outlined"
               className={cn(
-                'border w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg',
-                note?.post && 'opacity-50 cursor-not-allowed hover:bg-white'
+                'w-full justify-start',
+                note?.post && 'opacity-50 cursor-not-allowed hover:bg-white',
+                errors.articleType && 'border-red-500'
               )}
+              disabled={isPublished}
             >
               <div className="flex items-center gap-2">
                 {renderSelectedIcon(articleType)}
-                <span>{articleTypes[articleType].title}</span>
+                <span>{articleType ? articleTypes[articleType].title : 'Select work type'}</span>
               </div>
               <ChevronDown className="h-4 w-4 ml-auto" />
-            </button>
+            </Button>
           }
           align="start"
           className="w-[300px]"
@@ -98,7 +110,7 @@ export function WorkTypeSection() {
           {Object.entries(articleTypes).map(([type, info]) => (
             <BaseMenuItem
               key={type}
-              onClick={() => setValue('articleType', type as ArticleType)}
+              onClick={() => setValue('articleType', type as PublishingFormData['articleType'])}
               className={cn(
                 'flex flex-col items-start py-3',
                 articleType === type ? 'bg-gray-100' : ''
@@ -109,6 +121,11 @@ export function WorkTypeSection() {
             </BaseMenuItem>
           ))}
         </BaseMenu>
+        {errors.articleType && (
+          <div className="mt-1.5 text-sm text-red-500">
+            {errors.articleType.message?.toString()}
+          </div>
+        )}
       </div>
     </div>
   );

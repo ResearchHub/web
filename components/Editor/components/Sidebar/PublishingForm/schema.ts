@@ -2,7 +2,11 @@ import { z } from 'zod';
 
 export const publishingFormSchema = z
   .object({
-    articleType: z.enum(['research', 'preregistration', 'other'] as const),
+    workId: z.string().optional(),
+    articleType: z.enum(['discussion', 'preregistration', 'question'] as const, {
+      required_error: 'Please select a work type',
+      invalid_type_error: 'Please select a valid work type',
+    }),
     authors: z.array(z.string()),
     topics: z.array(z.string()),
     budget: z.string().optional(),

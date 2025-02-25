@@ -14,13 +14,14 @@ import { cn } from '@/utils/styles';
 import { useCreateContribution } from '@/hooks/useFundraise';
 import { useSession } from 'next-auth/react';
 import { BalanceInfo } from './BalanceInfo';
+import { ID } from '@/types/root';
 interface FundResearchModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   nftRewardsEnabled?: boolean;
   nftImageSrc?: string;
-  fundraiseId: number;
+  fundraiseId: ID;
 }
 
 type Currency = 'RSC' | 'USD';

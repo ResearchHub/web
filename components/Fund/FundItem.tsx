@@ -9,13 +9,14 @@ import { Clock } from 'lucide-react';
 import { formatDeadline } from '@/utils/date';
 import type { AuthorProfile } from '@/types/authorProfile';
 import { FundResearchModal } from '@/components/modals/FundResearchModal';
+import { ID } from '@/types/root';
 
 interface FundItemProps {
-  id: number;
+  id: ID;
   status: 'OPEN' | 'COMPLETED' | 'CLOSED';
   amount: number;
   goalAmount: number;
-  deadline: string;
+  deadline?: string;
   contributors?: Array<{
     profile: AuthorProfile;
     amount: number;
@@ -41,7 +42,7 @@ export function FundItem({
   nftImageSrc,
 }: FundItemProps) {
   const [showFundModal, setShowFundModal] = useState(false);
-  const deadlineText = formatDeadline(deadline);
+  const deadlineText = deadline ? formatDeadline(deadline) : undefined;
   const isCompact = variant === 'compact';
 
   const handleContribute = () => {
@@ -67,12 +68,12 @@ export function FundItem({
           <span className={`${isCompact ? 'text-xs' : 'text-sm'} text-gray-500 font-medium`}>
             Fundraise Ended
           </span>
-        ) : (
+        ) : deadlineText ? (
           <div className="flex items-center gap-1.5 text-gray-800">
             <Clock className={isCompact ? 'h-3 w-3' : 'h-4 w-4'} />
             <span className={isCompact ? 'text-xs' : 'text-sm'}>{deadlineText}</span>
           </div>
-        );
+        ) : null;
       default:
         return null;
     }
@@ -80,7 +81,7 @@ export function FundItem({
 
   const containerClasses = isCompact
     ? 'p-4 bg-white rounded-lg border border-gray-200'
-    : 'mb-8 bg-white rounded-lg border border-gray-200 p-6';
+    : 'bg-white rounded-lg border border-gray-200 p-6';
 
   return (
     <>

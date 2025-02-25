@@ -13,6 +13,7 @@ interface ConfirmPublishModalProps {
   onConfirm: () => void;
   title: string;
   isPublishing: boolean;
+  isUpdate?: boolean;
 }
 
 export function ConfirmPublishModal({
@@ -21,19 +22,19 @@ export function ConfirmPublishModal({
   onConfirm,
   title: initialTitle,
   isPublishing,
+  isUpdate,
 }: ConfirmPublishModalProps) {
   const [title, setTitle] = useState(initialTitle);
   const [hasAgreed, setHasAgreed] = useState(false);
   const { editor } = useNotebookPublish();
 
   const isTitleValid = title.trim().length >= 20;
-  const isPublishEnabled = isTitleValid && hasAgreed && !isPublishing;
+  const isPublishEnabled = isTitleValid && (!isUpdate ? hasAgreed : true);
 
-  // Reset state when modal opens
   useEffect(() => {
     setTitle(initialTitle);
     setHasAgreed(false);
-  }, [isOpen]);
+  }, []);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
@@ -84,10 +85,11 @@ export function ConfirmPublishModal({
               <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
                 <div className="p-6">
                   <DialogTitle as="h3" className="text-lg font-semibold text-gray-900 mb-4">
-                    Confirm Publication
+                    {isUpdate ? 'Confirm Re-publication' : 'Confirm Publication'}
                   </DialogTitle>
                   <p className="text-sm text-gray-600 mb-4">
-                    You are about to publish your research preregistration:
+                    You are about to {isUpdate ? 're-publish' : 'publish'} your research
+                    preregistration:
                   </p>
                   <input
                     type="text"
@@ -96,70 +98,78 @@ export function ConfirmPublishModal({
                     className="w-full p-3 text-sm font-medium text-gray-900 bg-gray-50 rounded-lg mb-6 border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     placeholder="Enter title..."
                   />
-                  <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                    <h4 className="font-medium text-sm text-gray-900 mb-3">Guidelines for posts</h4>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-2">
-                        <GraduationCap
-                          className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
-                          strokeWidth={2}
-                        />
-                        <span className="text-sm text-gray-600">
-                          Stick to academically appropriate topics
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <Scale
-                          className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
-                          strokeWidth={2}
-                        />
-                        <span className="text-sm text-gray-600">
-                          Focus on presenting objective results and remain unbiased in your
-                          commentary
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <Users
-                          className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
-                          strokeWidth={2}
-                        />
-                        <span className="text-sm text-gray-600">
-                          Be respectful of differing opinions, viewpoints, and experiences
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <FileText
-                          className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
-                          strokeWidth={2}
-                        />
-                        <span className="text-sm text-gray-600">
-                          Do not plagiarize any content, keep it original
-                        </span>
-                      </li>
-                    </ul>
-                  </div>
 
-                  <div className="mt-3 mb-6">
-                    <span className="text-sm text-primary-600 bg-primary-50 rounded-lg px-3 py-2 inline-block">
-                      <span className="font-medium">
-                        Your preregistration will be assigned a DOI for permanent citation
-                      </span>
-                      (5 RSC{' '}
-                      <ResearchCoinIcon size={16} className="text-primary-600 -mt-0.5 inline" />)
-                    </span>
-                  </div>
+                  {!isUpdate && (
+                    <>
+                      <div className="bg-gray-50 p-4 rounded-lg mb-6">
+                        <h4 className="font-medium text-sm text-gray-900 mb-3">
+                          Guidelines for posts
+                        </h4>
+                        <ul className="space-y-3">
+                          <li className="flex items-start gap-2">
+                            <GraduationCap
+                              className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
+                              strokeWidth={2}
+                            />
+                            <span className="text-sm text-gray-600">
+                              Stick to academically appropriate topics
+                            </span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <Scale
+                              className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
+                              strokeWidth={2}
+                            />
+                            <span className="text-sm text-gray-600">
+                              Focus on presenting objective results and remain unbiased in your
+                              commentary
+                            </span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <Users
+                              className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
+                              strokeWidth={2}
+                            />
+                            <span className="text-sm text-gray-600">
+                              Be respectful of differing opinions, viewpoints, and experiences
+                            </span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <FileText
+                              className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
+                              strokeWidth={2}
+                            />
+                            <span className="text-sm text-gray-600">
+                              Do not plagiarize any content, keep it original
+                            </span>
+                          </li>
+                        </ul>
+                      </div>
 
-                  <div className="flex items-start gap-2 mb-6">
-                    <Checkbox
-                      id="guidelines"
-                      checked={hasAgreed}
-                      disabled={isPublishing}
-                      onCheckedChange={(checked) => setHasAgreed(checked as boolean)}
-                    />
-                    <label htmlFor="guidelines" className="text-sm text-gray-600">
-                      I have adhered to the ResearchHub posting guidelines
-                    </label>
-                  </div>
+                      <div className="mt-3 mb-6">
+                        <span className="text-sm text-primary-600 bg-primary-50 rounded-lg px-3 py-2 inline-block">
+                          <span className="font-medium">
+                            Your preregistration will be assigned a DOI for permanent citation
+                          </span>
+                          (5 RSC{' '}
+                          <ResearchCoinIcon size={16} className="text-primary-600 -mt-0.5 inline" />
+                          )
+                        </span>
+                      </div>
+
+                      <div className="flex items-start gap-2 mb-6">
+                        <Checkbox
+                          id="guidelines"
+                          checked={hasAgreed}
+                          disabled={isPublishing}
+                          onCheckedChange={(checked) => setHasAgreed(checked as boolean)}
+                        />
+                        <label htmlFor="guidelines" className="text-sm text-gray-600">
+                          I have adhered to the ResearchHub posting guidelines
+                        </label>
+                      </div>
+                    </>
+                  )}
 
                   {!isTitleValid && (
                     <Alert variant="error" className="mb-6">
@@ -174,10 +184,14 @@ export function ConfirmPublishModal({
                     <Button
                       variant="default"
                       onClick={onConfirm}
-                      disabled={!isPublishEnabled}
+                      disabled={!isPublishEnabled || isPublishing}
                       className="disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isPublishing ? 'Publishing...' : 'Confirm & Publish'}
+                      {isPublishing
+                        ? 'Publishing...'
+                        : isUpdate
+                          ? 'Confirm & Re-publish'
+                          : 'Confirm & Publish'}
                     </Button>
                   </div>
                 </div>
