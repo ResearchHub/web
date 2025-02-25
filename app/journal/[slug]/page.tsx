@@ -3,13 +3,11 @@
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { JournalFeedTabs } from '@/components/Feed/JournalFeedTabs';
-import { useFeed, FeedTab } from '@/hooks/useFeed';
+import { JournalFeedTabs, JournalFeedTab } from '@/components/Feed/JournalFeedTabs';
+import { useFeed } from '@/hooks/useFeed';
 import { useHub } from '@/hooks/useHub';
 import { BookOpen } from 'lucide-react';
 import { FeedContent } from '@/components/Feed/FeedContent';
-
-type JournalFeedTab = Extract<FeedTab, 'latest'>;
 
 export default function JournalFeedPage() {
   const { slug } = useParams();

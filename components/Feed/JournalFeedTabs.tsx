@@ -4,7 +4,7 @@ import { FC } from 'react';
 import { Tabs } from '@/components/ui/Tabs';
 import { FeedTab } from '@/hooks/useFeed';
 
-type JournalFeedTab = Extract<FeedTab, 'latest'>;
+export type JournalFeedTab = Extract<FeedTab, 'latest'>;
 
 interface JournalFeedTabsProps {
   activeTab: JournalFeedTab;
