@@ -4,17 +4,23 @@ import type { AuthorProfile } from '@/types/authorProfile';
 import { transformAuthorProfile } from '@/types/authorProfile';
 import { ContentMetrics } from '@/types/metrics';
 import { Fundraise, transformFundraise } from '@/types/funding';
+import { Bounty, transformBounty } from '@/types/bounty';
+
 export interface WorkMetadata {
   id: number;
   score: number;
   topics: Topic[];
   metrics: ContentMetrics;
   fundraising?: Fundraise;
+  bounties: Bounty[];
 }
 
 function transformWorkMetadata(response: any): WorkMetadata {
   // Handle both array and object document structures
   const document = Array.isArray(response.documents) ? response.documents[0] : response.documents;
+
+  // Transform bounties if they exist using the existing transformer
+  const bounties = document.bounties?.map((bounty: any) => transformBounty(bounty)) || [];
 
   return {
     id: response.id,
@@ -32,6 +38,7 @@ function transformWorkMetadata(response: any): WorkMetadata {
       reviews: response.reviews.count,
     },
     fundraising: response.fundraise ? transformFundraise(response.fundraise) : undefined,
+    bounties: bounties,
   };
 }
 

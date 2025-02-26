@@ -45,6 +45,17 @@ export const CommentItem = ({
     isEditing,
   });
 
+  // Check if there are any open bounties
+  const hasOpenBounty =
+    comment.bounties?.length > 0 &&
+    comment.bounties.some((b) => b.status === 'OPEN' && !b.isContribution);
+
+  // If this is a bounty comment and there are no open bounties, don't render anything
+  if (commentType === 'BOUNTY' && !hasOpenBounty) {
+    console.log('Skipping rendering bounty comment with no open bounties', comment.id);
+    return null;
+  }
+
   useEffect(() => {
     // Find all pre code blocks and apply highlighting
     const codeBlocks = document.querySelectorAll('pre code');
@@ -108,11 +119,16 @@ export const CommentItem = ({
       bounties: comment.bounties,
     });
 
-    const hasBounty =
-      comment.bounties?.length > 0 &&
-      comment.bounties.some((b) => b.status === 'OPEN' && !b.isContribution);
+    // For bounty comments, only render if there's an open bounty
+    if (commentType === 'BOUNTY') {
+      const hasBounty =
+        comment.bounties?.length > 0 &&
+        comment.bounties.some((b) => b.status === 'OPEN' && !b.isContribution);
 
-    if (hasBounty) {
+      if (!hasBounty) {
+        return null;
+      }
+
       // Find the active bounty to check creator
       const activeBounty = comment.bounties.find((b) => b.status === 'OPEN' && !b.isContribution);
 
@@ -131,6 +147,7 @@ export const CommentItem = ({
       );
     }
 
+    // For non-bounty comments, render the regular content
     return (
       <div className="border border-gray-200 rounded-lg p-4 mb-4">
         <CommentReadOnly comment={comment} contentType={contentType} />
@@ -214,6 +231,7 @@ export const CommentItem = ({
         profileUrl={comment.author.profileUrl}
         date={comment.createdDate}
         className="mb-4"
+        commentType={commentType}
       />
 
       {isEditing ? (

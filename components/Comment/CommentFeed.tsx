@@ -8,8 +8,10 @@ import { CommentItem } from './CommentItem';
 import { ContentType } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { Star, Zap, ArrowUp, ChevronDown } from 'lucide-react';
+import { Star, Zap, ArrowUp, ChevronDown, Plus } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { Button } from '@/components/ui/Button';
+import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
 
 type SortOption = {
   label: string;
@@ -31,6 +33,7 @@ interface CommentFeedProps {
   editorProps?: Partial<CommentEditorProps>;
   renderBountyAwardActions?: (comment: Comment) => React.ReactNode;
   renderCommentActions?: boolean;
+  hideEditor?: boolean;
 }
 
 export const CommentFeed = ({
@@ -41,11 +44,13 @@ export const CommentFeed = ({
   editorProps = {},
   renderBountyAwardActions,
   renderCommentActions = true,
+  hideEditor = false,
 }: CommentFeedProps) => {
   const [sortBy, setSortBy] = useState<SortOption['value']>('BEST');
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [isCreateBountyModalOpen, setIsCreateBountyModalOpen] = useState(false);
 
   const {
     comments,
@@ -164,15 +169,22 @@ export const CommentFeed = ({
             })}
           </BaseMenu>
         </div>
+
+        {commentType === 'BOUNTY' && (
+          <Button onClick={() => setIsCreateBountyModalOpen(true)} size="md" variant="default">
+            <Plus className="h-4 w-4 mr-1" /> Create Bounty
+          </Button>
+        )}
       </div>
 
       <div className="space-y-4">
-        {!isLoading && commentType === 'BOUNTY' && (
+        {!isLoading && commentType === 'REVIEW' && !hideEditor && (
           <CommentEditor
             onSubmit={handleSubmit}
             {...editorProps}
             commentType={commentType}
-            placeholder="Create a new bounty..."
+            placeholder="Write your review..."
+            initialRating={0}
           />
         )}
 
@@ -221,6 +233,14 @@ export const CommentFeed = ({
           </>
         )}
       </div>
+
+      {commentType === 'BOUNTY' && (
+        <CreateBountyModal
+          isOpen={isCreateBountyModalOpen}
+          onClose={() => setIsCreateBountyModalOpen(false)}
+          workId={documentId.toString()}
+        />
+      )}
     </div>
   );
 };

@@ -9,6 +9,8 @@ import { Clock } from 'lucide-react';
 import { CommentReadOnly } from './CommentReadOnly';
 import { useState } from 'react';
 import { AwardBountyModal } from './AwardBountyModal';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrophy } from '@fortawesome/free-solid-svg-icons';
 
 interface BountyItemProps {
   comment: Comment;
@@ -51,6 +53,9 @@ export const BountyItem = ({
       amount: Number(bounty.amount),
     }));
 
+  // Calculate total amount including contributions
+  const totalAmount = comment.bounties.reduce((sum, bounty) => sum + parseFloat(bounty.amount), 0);
+
   const getBountyTitle = () => {
     if (activeBounty.bountyType === 'REVIEW') {
       return 'Bounty: Peer Review';
@@ -65,13 +70,13 @@ export const BountyItem = ({
         <h3 className="text-lg font-semibold text-gray-900">{getBountyTitle()}</h3>
 
         {/* Top row with amount and expiration */}
-        <div className="flex items-center">
+        <div className="space-y-3">
           <div className="flex items-center gap-2">
             <ResearchCoinIcon />
             <span className="text-base font-medium text-orange-600">
-              {formatRSC({ amount: Number(activeBounty.amount), shorten: true })} RSC
+              {formatRSC({ amount: totalAmount, shorten: true })} RSC
             </span>
-            <span className="text-gray-400 mx-2">•</span>
+            <span className="text-gray-400 mx-1">•</span>
             <div className="flex items-center gap-1.5 text-gray-600">
               <Clock className="h-4 w-4" />
               <span className="text-sm">
@@ -89,11 +94,11 @@ export const BountyItem = ({
           <div className="flex gap-3">
             {isCreator ? (
               <Button
-                variant="outlined"
+                variant="default"
                 onClick={() => setShowAwardModal(true)}
                 className="flex items-center gap-2"
               >
-                <ResearchCoinIcon size={16} />
+                <FontAwesomeIcon icon={faTrophy} className="text-white h-4 w-4" />
                 Award
               </Button>
             ) : (

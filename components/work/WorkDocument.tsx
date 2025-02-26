@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { BarChart2, Coins, CheckCircle } from 'lucide-react';
+import { BarChart2, Coins, CheckCircle, FileText, MessageCircle, Play, Star } from 'lucide-react';
 import { Work } from '@/types/work';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { WorkRightSidebar } from './WorkRightSidebar';
@@ -12,6 +12,8 @@ import { WorkMetadata } from '@/services/metadata.service';
 import { DocumentViewer } from './DocumentViewer';
 import { CommentEditor } from '@/components/Comment/CommentEditor';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
+import { formatRSC } from '@/utils/number';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 
 interface WorkDocumentProps {
   work: Work;
@@ -43,32 +45,44 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
 
   return (
     <div>
-      {/* Rewards Banner */}
-      {/* <div className="mb-6">
-        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-t-lg border border-orange-200">
-          <div className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="bg-orange-100 p-2 rounded-lg">
-                  <Coins className="h-5 w-5 text-orange-600" />
-                </div>
-                <div>
-                  <h2 className="text-sm font-medium text-orange-900">RSC Bounties Available</h2>
-                  <p className="mt-1 text-sm text-orange-700">
-                    Earn ResearchCoin by completing bounties on this paper
-                  </p>
+      {/* Rewards Banner - Show when there are open bounties */}
+      {metadata.bounties &&
+        metadata.bounties.some((bounty) => bounty.status === 'OPEN' && !bounty.isContribution) && (
+          <div className="mb-6">
+            <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg border border-orange-200">
+              <div className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-orange-100 p-2 rounded-lg">
+                      <Coins className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-medium text-orange-900">
+                        {(() => {
+                          // Calculate total amount from all bounties (including contributions)
+                          const totalAmount = metadata.bounties.reduce(
+                            (sum, bounty) => sum + parseFloat(bounty.amount),
+                            0
+                          );
+                          return `${formatRSC({ amount: totalAmount })} RSC Bounties Available`;
+                        })()}
+                      </h2>
+                      <p className="mt-1 text-sm text-orange-700">
+                        Earn ResearchCoin by completing bounties on this paper
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleTabChange('bounties')}
+                    className="px-4 py-1.5 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600"
+                  >
+                    View Bounties
+                  </button>
                 </div>
               </div>
-              <button
-                onClick={() => setRewardModalOpen(true)}
-                className="px-4 py-1.5 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600"
-              >
-                View Bounties
-              </button>
             </div>
           </div>
-        </div>
-      </div> */}
+        )}
       {/* Title & Actions */}
       {work.type === 'preprint' && (
         <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -86,7 +100,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
       <WorkLineItems work={work} />
       {/* Navigation */}
       <div className="border-b mb-6">
-        <nav className="flex space-x-8">
+        <nav className="flex space-x-8 mt-6">
           <button
             className={`px-1 py-4 text-sm font-medium border-b-2 ${
               activeTab === 'paper'
@@ -95,7 +109,10 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
             }`}
             onClick={() => handleTabChange('paper')}
           >
-            Paper
+            <div className="flex items-center">
+              <FileText className="h-4 w-4 mr-2" />
+              Paper
+            </div>
           </button>
           <button
             className={`px-1 py-4 text-sm font-medium ${
@@ -105,16 +122,19 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
             }`}
             onClick={() => handleTabChange('reviews')}
           >
-            Reviews
-            <span
-              className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                activeTab === 'reviews'
-                  ? 'bg-indigo-100 text-indigo-600'
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              {work.metrics.reviews}
-            </span>
+            <div className="flex items-center">
+              <Star className="h-4 w-4 mr-2" />
+              Reviews
+              <span
+                className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                  activeTab === 'reviews'
+                    ? 'bg-indigo-100 text-indigo-600'
+                    : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {work.metrics.reviews}
+              </span>
+            </div>
           </button>
           <button
             className={`px-1 py-4 text-sm font-medium ${
@@ -124,16 +144,27 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
             }`}
             onClick={() => handleTabChange('bounties')}
           >
-            Bounties
-            <span
-              className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                activeTab === 'bounties'
-                  ? 'bg-indigo-100 text-indigo-600'
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              2
-            </span>
+            <div className="flex items-center">
+              <Coins
+                className={`h-4 w-4 mr-2 ${
+                  activeTab === 'bounties' ? 'text-indigo-600' : 'text-gray-500'
+                }`}
+              />
+              Bounties
+              <span
+                className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                  activeTab === 'bounties'
+                    ? 'bg-indigo-100 text-indigo-600'
+                    : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {
+                  metadata.bounties.filter(
+                    (bounty) => bounty.status === 'OPEN' && !bounty.isContribution
+                  ).length
+                }
+              </span>
+            </div>
           </button>
           <button
             className={`px-1 py-4 text-sm font-medium ${
@@ -143,16 +174,19 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
             }`}
             onClick={() => handleTabChange('comments')}
           >
-            Comments
-            <span
-              className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                activeTab === 'comments'
-                  ? 'bg-indigo-100 text-indigo-600'
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              {work.metrics.comments}
-            </span>
+            <div className="flex items-center">
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Comments
+              <span
+                className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                  activeTab === 'comments'
+                    ? 'bg-indigo-100 text-indigo-600'
+                    : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {work.metrics.comments}
+              </span>
+            </div>
           </button>
         </nav>
       </div>
@@ -198,10 +232,8 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
               documentId={work.id}
               contentType={work.contentType}
               commentType="BOUNTY"
-              editorProps={{
-                placeholder: 'Create a new bounty...',
-                commentType: 'BOUNTY',
-              }}
+              renderCommentActions={false}
+              hideEditor={true}
             />
           </div>
         )}
