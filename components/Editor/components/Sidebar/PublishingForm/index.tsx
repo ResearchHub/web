@@ -9,7 +9,7 @@ import { AuthorsSection } from './components/AuthorsSection';
 import { TopicsSection } from './components/TopicsSection';
 import { JournalSection } from './components/JournalSection';
 import { Button } from '@/components/ui/Button';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUpsertPost } from '@/hooks/useDocument';
 import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
@@ -24,6 +24,7 @@ import {
   savePublishingFormToStorage,
 } from '@/components/Editor/lib/utils/publishingFormStorage';
 import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSkeleton';
+import { Loader2 } from 'lucide-react';
 
 interface PublishingFormProps {
   bountyAmount: number | null;
@@ -32,11 +33,13 @@ interface PublishingFormProps {
 
 const getButtonText = ({
   isLoadingUpsert,
+  isPending,
   articleType,
   isJournalEnabled,
   hasWorkId,
 }: {
   isLoadingUpsert: boolean;
+  isPending: boolean;
   articleType: string;
   isJournalEnabled: boolean;
   hasWorkId: boolean;
@@ -44,6 +47,8 @@ const getButtonText = ({
   switch (true) {
     case isLoadingUpsert:
       return 'Publishing...';
+    case isPending:
+      return 'Redirecting...';
     case hasWorkId:
       return 'Re-publish';
     case articleType === 'discussion' && isJournalEnabled:
@@ -56,6 +61,7 @@ const getButtonText = ({
 export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormProps) {
   const { noteId, editor, note } = useNotebookPublish();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
   const methods = useForm<PublishingFormData>({
     defaultValues: {
@@ -75,7 +81,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   // 2. localStorage data
   // 3. URL search params
   useEffect(() => {
-    if (!noteId) return;
+    if (!noteId || !note) return;
 
     // Priority 1: Check for existing post data
     if (note?.post) {
@@ -85,6 +91,14 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         note.post.contentType === 'preregistration' ? 'preregistration' : 'discussion'
       );
       methods.setValue('budget', note.post.fundraise?.goalAmount.usd.toString());
+      if (note.post.topics && note.post.topics.length > 0) {
+        const topicOptions = note.post.topics.map((topic) => ({
+          value: topic.id.toString(),
+          label: topic.name,
+        }));
+        methods.setValue('topics', topicOptions);
+      }
+
       // Set other relevant post data
       return;
     }
@@ -122,7 +136,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     return () => subscription.unsubscribe();
   }, [methods, noteId]);
 
-  const { watch, clearErrors, setValue } = methods;
+  const { watch, clearErrors } = methods;
   const articleType = watch('articleType');
   const isJournalEnabled = watch('isJournalEnabled');
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
@@ -142,7 +156,6 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       Object.entries(errors).forEach(([_, error]) => {
         if (error?.message) {
           toast.error(error.message.toString(), {
-            position: 'bottom-right',
             style: { width: '300px' },
           });
         }
@@ -179,11 +192,15 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           fullJSON: JSON.stringify(json),
           fullSrc: previewContent || '',
           assignDOI: formData.workId ? false : true,
+          topics: formData.topics.map((topic) => topic.value),
         },
         formData.workId
       );
 
-      router.push(`/fund/${response.id}/${response.slug}`);
+      // Use startTransition to mark the navigation as a transition
+      startTransition(() => {
+        router.push(`/fund/${response.id}/${response.slug}`);
+      });
     } catch (error) {
       toast.error('Error publishing. Please try again.');
       console.error('Error publishing:', error);
@@ -199,9 +216,18 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
 
   return (
     <FormProvider {...methods}>
-      <div className="w-82 border-l flex flex-col h-screen sticky right-0 top-0 bg-white">
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300">
+      <div className="w-82 border-l flex flex-col h-screen sticky right-0 top-0 bg-white relative">
+        {/* Processing overlay */}
+        {(isLoadingUpsert || isPending) && (
+          <div className="absolute inset-0 bg-white/50 z-50 flex flex-col items-center justify-center">
+            <Loader2 className="h-8 w-8 text-indigo-600 animate-spin mb-2" />
+          </div>
+        )}
+
+        {/* Scrollable content - conditionally disable scrolling */}
+        <div
+          className={`flex-1 ${isPending ? 'overflow-hidden' : 'overflow-y-auto'} scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 relative`}
+        >
           <div className="pb-6">
             <WorkTypeSection />
             <AuthorsSection />
@@ -227,10 +253,11 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             variant="default"
             onClick={handlePublishClick}
             className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isLoadingUpsert}
+            disabled={isLoadingUpsert || isPending}
           >
             {getButtonText({
               isLoadingUpsert,
+              isPending,
               articleType,
               isJournalEnabled: isJournalEnabled ?? false,
               hasWorkId: Boolean(methods.watch('workId')),
@@ -245,7 +272,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           onClose={() => setShowConfirmModal(false)}
           onConfirm={handleConfirmPublish}
           title={getDocumentTitleFromEditor(editor) || 'Untitled Research'}
-          isPublishing={isLoadingUpsert}
+          isPublishing={isLoadingUpsert || isPending}
           isUpdate={Boolean(methods.watch('workId'))}
         />
       )}

@@ -4,6 +4,7 @@ import { transformOrganization } from './organization';
 import { ID } from './root';
 import { ContentType } from './work';
 import { Fundraise, transformFundraise } from './funding';
+import { Topic } from './topic';
 export type NoteAccess = 'WORKSPACE' | 'PRIVATE' | 'SHARED';
 
 export type Post = {
@@ -11,6 +12,7 @@ export type Post = {
   slug: string;
   contentType: ContentType;
   fundraise?: Fundraise;
+  topics?: Topic[];
 };
 
 export interface Note {
