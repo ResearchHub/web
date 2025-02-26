@@ -28,6 +28,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
       case 'bounty':
         return `${action}ed a bounty for ${formatRSC({ amount: content.amount, shorten: true })} RSC`;
       case 'paper':
+      case 'post':
         return `${action}ed a ${content.type.replace('_', ' ')}`;
       default:
         return action;
