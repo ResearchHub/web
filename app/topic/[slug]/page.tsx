@@ -29,10 +29,10 @@ export default function TopicFeedPage() {
     return (
       <PageLayout>
         <div className="pt-4 pb-7">
-          <h2 className="text-xl text-gray-600 flex items-center gap-2">
+          <h1 className="text-xl text-gray-600 flex items-center gap-2">
             <Hash className="w-5 h-5 text-indigo-500" />
             Loading topic...
-          </h2>
+          </h1>
         </div>
       </PageLayout>
     );
@@ -42,17 +42,17 @@ export default function TopicFeedPage() {
     return (
       <PageLayout>
         <div className="pt-4 pb-7">
-          <h2 className="text-xl text-gray-600">Topic not found</h2>
+          <h1 className="text-xl text-gray-600">Topic not found</h1>
         </div>
       </PageLayout>
     );
   }
 
   const header = (
-    <h2 className="text-xl text-gray-600 flex items-center gap-2">
+    <h1 className="text-xl text-gray-600 flex items-center gap-2">
       <Hash className="w-5 h-5 text-indigo-500" />
       Latest Research in {hub.name}
-    </h2>
+    </h1>
   );
 
   const tabs = (

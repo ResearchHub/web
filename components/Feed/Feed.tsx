@@ -13,10 +13,10 @@ export const Feed: FC = () => {
   const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(activeTab);
 
   const header = (
-    <h2 className="text-xl text-gray-600 flex items-center gap-2">
+    <h1 className="text-xl text-gray-600 flex items-center gap-2">
       <Sparkles className="w-5 h-5 text-indigo-500" />
       Discover the latest research, earning, and funding opportunities
-    </h2>
+    </h1>
   );
 
   const tabs = (
