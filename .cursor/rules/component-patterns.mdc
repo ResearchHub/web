@@ -1,0 +1,184 @@
+---
+description: This document outlines the component patterns and best practices used in the ResearchHub codebase.
+globs: 
+alwaysApply: false
+---
+ # ResearchHub Component Patterns
+
+This document outlines the component patterns and best practices used in the ResearchHub codebase.
+
+## Component Structure
+
+All React components in ResearchHub should follow these guidelines:
+
+1. **Use Functional Components**:
+   - Always use functional components with hooks, not class components
+   - Use arrow function syntax for component definitions
+
+   ```tsx
+   const MyComponent = () => {
+     // Component logic here
+     return <div>Component content</div>;
+   };
+   ```
+
+2. **Type Definitions**:
+   - Define prop types using TypeScript interfaces
+   - Place the interface directly above the component
+   - Use descriptive names for interfaces (e.g., `ButtonProps`, `UserProfileProps`)
+
+   ```tsx
+   interface MyComponentProps {
+     title: string;
+     isActive?: boolean;
+     onClick: () => void;
+   }
+
+   const MyComponent = ({ title, isActive = false, onClick }: MyComponentProps) => {
+     // Component logic here
+   };
+   ```
+
+3. **Client Components**:
+   - Add the 'use client' directive at the top of client components
+   - Keep server components as the default when possible for better performance
+
+   ```tsx
+   'use client';
+
+   import { useState } from 'react';
+
+   const ClientComponent = () => {
+     const [state, setState] = useState(false);
+     // Component logic here
+   };
+   ```
+
+## Component Organization
+
+1. **Order within components**:
+   - Imports
+   - Type definitions
+   - Helper functions/constants
+   - Main component
+   - Exports
+
+2. **Props destructuring**:
+   - Always destructure props in the function parameters
+   - Provide default values inline when appropriate
+
+   ```tsx
+   const Button = ({ 
+     variant = 'default',
+     size = 'md',
+     children,
+     ...props
+   }: ButtonProps) => {
+     // Component logic
+   };
+   ```
+
+## Styling Approach
+
+1. **Tailwind CSS**:
+   - Use Tailwind CSS utility classes for styling
+   - For complex components, use Tailwind's composition patterns
+   - Use the `cn()` utility for conditional class names
+
+   ```tsx
+   import { cn } from '@/utils/styles';
+
+   const Button = ({ className, variant }: ButtonProps) => {
+     return (
+       <button 
+         className={cn(
+           "px-4 py-2 rounded-md",
+           variant === 'primary' ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-800',
+           className
+         )}
+       >
+         {children}
+       </button>
+     );
+   };
+   ```
+
+2. **Variants with class-variance-authority**:
+   - Use `class-variance-authority` (cva) for components with multiple variants
+   - Define all variants in a single `cva` call
+   - Reference the variant styles in the component
+
+   ```tsx
+   const buttonVariants = cva(
+     'rounded-md font-medium transition-colors',
+     {
+       variants: {
+         variant: {
+           default: 'bg-primary-600 text-white hover:bg-primary-700',
+           secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300',
+         },
+         size: {
+           sm: 'px-2 py-1 text-sm',
+           md: 'px-4 py-2',
+           lg: 'px-6 py-3 text-lg',
+         },
+       },
+       defaultVariants: {
+         variant: 'default',
+         size: 'md',
+       },
+     }
+   );
+   ```
+
+## State Management
+
+1. **Local State**:
+   - Use `useState` for component-specific state
+   - Use `useReducer` for complex state logic
+
+2. **Shared State**:
+   - Use React Context for state that needs to be shared across multiple components
+   - Create dedicated context providers in the `contexts/` directory
+
+3. **Derived State**:
+   - Use `useMemo` for expensive computations
+   - Use `useCallback` for functions that are passed as props to prevent unnecessary re-renders
+
+## Component Composition
+
+1. **Component Props**:
+   - Accept a `className` prop for styling customization
+   - Use the spread operator for passing additional props
+
+   ```tsx
+   const Button = ({ className, children, ...props }: ButtonProps) => {
+     return (
+       <button className={cn("default-styles", className)} {...props}>
+         {children}
+       </button>
+     );
+   };
+   ```
+
+2. **Composition Patterns**:
+   - Use the children prop for component composition
+   - Use render props for complex rendering logic
+   - Use compound components for related UI elements
+
+## Performance Optimization
+
+1. **Memoization**:
+   - Use `React.memo` for pure functional components that render often
+   - Use `useMemo` for expensive calculations
+   - Use `useCallback` for event handlers that are passed to child components
+
+2. **Code Splitting**:
+   - Use dynamic imports for large components
+   - Use Next.js's built-in code splitting features
+
+3. **Rendering Optimization**:
+   - Avoid unnecessary re-renders by using proper dependency arrays in hooks
+   - Implement virtualization for long lists with many items
+
+These patterns ensure consistent, maintainable, and performant components throughout the ResearchHub application.
