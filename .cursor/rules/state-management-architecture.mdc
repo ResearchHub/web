@@ -1,0 +1,391 @@
+---
+description: This document outlines the architectural patterns and best practices for state management in the ResearchHub codebase.
+globs: 
+alwaysApply: false
+---
+ # ResearchHub State Management Architecture
+
+This document outlines the architectural patterns and best practices for state management in the ResearchHub codebase.
+
+## State Management Hierarchy
+
+1. **Tiered State Strategy**:
+   - **Local Component State**: For UI-specific, ephemeral state
+   - **Custom Hooks**: For reusable, domain-specific state logic
+   - **Context Providers**: For shared, application-wide state
+   - **URL/Router State**: For navigation and shareable state
+
+   ```typescript
+   // Local component state
+   const [isOpen, setIsOpen] = useState(false);
+   
+   // Custom hook for domain logic
+   const { data, isLoading, error } = useDocument(documentId);
+   
+   // Global context
+   const { notificationData, unreadCount } = useNotifications();
+   
+   // Router state
+   const { params } = useParams();
+   ```
+
+## React Context
+
+1. **When to Use Context**:
+   - Use for state that needs to be accessed by multiple components across different parts of the component tree
+   - Appropriate for authentication, theme, notifications, and user preferences
+   - Not recommended for state that changes frequently (can cause re-renders)
+   - Avoid nesting too many contexts to prevent "wrapper hell"
+
+   ```typescript
+   // Good use case for context: authentication state
+   const { status, data: session } = useSession();
+   const { showAuthModal } = useAuthModalContext();
+   
+   // Good use case for context: notifications
+   const { unreadCount } = useNotifications();
+   ```
+
+2. **Context Structure**:
+   - Create a dedicated file for each context (`contexts/FeatureContext.tsx`)
+   - Define a clear interface for the context value
+   - Include both state and actions that modify that state
+   - Provide meaningful default values
+
+   ```typescript
+   interface FeatureContextType {
+     data: DataType[];
+     isLoading: boolean;
+     error: Error | null;
+     actions: {
+       fetchData: () => Promise<void>;
+       updateItem: (id: string, data: Partial<DataType>) => Promise<void>;
+       deleteItem: (id: string) => Promise<void>;
+     };
+   }
+   
+   const FeatureContext = createContext<FeatureContextType>({
+     data: [],
+     isLoading: false,
+     error: null,
+     actions: {
+       fetchData: async () => {},
+       updateItem: async () => {},
+       deleteItem: async () => {},
+     },
+   });
+   ```
+
+## Context Providers
+
+1. **Provider Implementation**:
+   - Use the 'use client' directive for client-side contexts
+   - Implement useState or useReducer for state management
+   - Use useCallback for functions passed to children
+   - Handle loading and error states consistently
+
+   ```typescript
+   'use client';
+   
+   export function FeatureProvider({ children }: { children: ReactNode }) {
+     const [data, setData] = useState<DataType[]>([]);
+     const [isLoading, setIsLoading] = useState(false);
+     const [error, setError] = useState<Error | null>(null);
+     
+     const fetchData = useCallback(async () => {
+       setIsLoading(true);
+       setError(null);
+       try {
+         const result = await FeatureService.getData();
+         setData(result);
+       } catch (err) {
+         setError(err instanceof Error ? err : new Error('Failed to fetch data'));
+       } finally {
+         setIsLoading(false);
+       }
+     }, []);
+     
+     // Additional action functions using useCallback
+     
+     const value = {
+       data,
+       isLoading,
+       error,
+       actions: {
+         fetchData,
+         // Other actions
+       },
+     };
+     
+     return (
+       <FeatureContext.Provider value={value}>
+         {children}
+       </FeatureContext.Provider>
+     );
+   }
+   ```
+
+2. **Context Consumer Hooks**:
+   - Create a custom hook for accessing each context
+   - Include type checking and error handling
+   - Use descriptive names for hooks (`useFeatureContext`)
+
+   ```typescript
+   export function useFeatureContext() {
+     const context = useContext(FeatureContext);
+     if (!context) {
+       throw new Error('useFeatureContext must be used within a FeatureProvider');
+     }
+     return context;
+   }
+   ```
+
+## State Modeling
+
+1. **State Object Patterns**:
+   - Group related state in a single object
+   - Include loading, error, and data states for async operations
+   - Define clear interfaces for state objects
+
+   ```typescript
+   interface FeatureState {
+     data: DataType[];
+     isLoading: boolean;
+     error: Error | null;
+     page: number;
+     hasMore: boolean;
+   }
+   
+   const [state, setState] = useState<FeatureState>({
+     data: [],
+     isLoading: false,
+     error: null,
+     page: 1,
+     hasMore: true,
+   });
+   
+   // Update state immutably
+   setState((prev) => ({
+     ...prev,
+     data: [...prev.data, newItem],
+   }));
+   ```
+
+2. **State Updates**:
+   - Use functional updates for state that depends on previous state
+   - Maintain immutability in all state updates
+   - Group related state updates where possible
+
+   ```typescript
+   // Prefer this functional update pattern
+   setData((prevData) => [...prevData, newItem]);
+   
+   // For multiple related state updates
+   const handleSuccess = (result) => {
+     setData(result.data);
+     setHasMore(result.hasMore);
+     setPage(result.page);
+     setError(null);
+     setIsLoading(false);
+   };
+   ```
+
+## Server State Integration
+
+1. **Data Fetching Pattern**:
+   - Separate service layer for API calls
+   - Custom hooks for specific data fetching operations
+   - Consistent loading, error, and data state management
+
+   ```typescript
+   export const useDocument = (documentId: string) => {
+     const [data, setData] = useState<Document | null>(null);
+     const [isLoading, setIsLoading] = useState(true);
+     const [error, setError] = useState<Error | null>(null);
+     
+     const fetchDocument = useCallback(async () => {
+       if (!documentId) return;
+       
+       setIsLoading(true);
+       setError(null);
+       try {
+         const result = await DocumentService.getDocument(documentId);
+         setData(result);
+       } catch (err) {
+         setError(err instanceof Error ? err : new Error('Failed to fetch document'));
+       } finally {
+         setIsLoading(false);
+       }
+     }, [documentId]);
+     
+     useEffect(() => {
+       fetchDocument();
+     }, [fetchDocument]);
+     
+     return { data, isLoading, error, refetch: fetchDocument };
+   };
+   ```
+
+2. **Pagination and Infinite Scrolling**:
+   - Maintain page number or cursor in state
+   - Track loading state for initial load vs. loading more
+   - Append to existing data instead of replacing
+
+   ```typescript
+   const loadMore = async () => {
+     if (!hasMore || isLoading) return;
+     
+     setIsLoadingMore(true);
+     try {
+       const nextPage = page + 1;
+       const result = await Service.getData({ page: nextPage, ...otherParams });
+       setData((prev) => [...prev, ...result.items]);
+       setHasMore(result.hasMore);
+       setPage(nextPage);
+     } catch (error) {
+       console.error('Error loading more items:', error);
+     } finally {
+       setIsLoadingMore(false);
+     }
+   };
+   ```
+
+## Optimizing Context Performance
+
+1. **Context Splitting**:
+   - Split large contexts into smaller, more focused ones
+   - Separate frequently changing state from stable state
+   - Group related state and functions together
+
+   ```typescript
+   // Instead of one large context
+   const AppContext = createContext({/* too many properties */});
+   
+   // Split into focused contexts
+   const UserContext = createContext({/* user-related state */});
+   const PreferencesContext = createContext({/* user preferences */});
+   const NotificationsContext = createContext({/* notifications state */});
+   ```
+
+2. **Memoization**:
+   - Use React.memo for context provider components when absolutely needed
+   - Memoize context values with useMemo when absolutely needed
+   - Use useCallback for functions in context value when absolutely needed
+
+   ```typescript
+   export function FeatureProvider({ children }: { children: ReactNode }) {
+     // State declarations
+     
+     // Memoize expensive functions
+     const processData = useCallback((data) => {
+       // Process data
+     }, [dependencies]);
+     
+     // Memoize the context value
+     const value = useMemo(() => ({
+       data,
+       isLoading,
+       error,
+       processData,
+     }), [data, isLoading, error, processData]);
+     
+     return (
+       <FeatureContext.Provider value={value}>
+         {children}
+       </FeatureContext.Provider>
+     );
+   }
+   ```
+
+## State Selectors
+
+1. **Selector Patterns**:
+   - Create custom hooks that select specific pieces of context
+   - Avoid re-renders by consuming only needed context parts
+   - Use memoization for derived state when absolutely needed
+
+   ```typescript
+   // Main context hook
+   export const useFeatureContext = () => useContext(FeatureContext);
+   
+   // Selector hooks
+   export const useFeatureData = () => {
+     const { data } = useFeatureContext();
+     return data;
+   };
+   
+   export const useFeatureStatus = () => {
+     const { isLoading, error } = useFeatureContext();
+     return { isLoading, error };
+   };
+   
+   export const useFeatureActions = () => {
+     const { actions } = useFeatureContext();
+     return actions;
+   };
+   ```
+
+2. **Derived State**:
+   - Use useMemo for computed values based on state  when absolutely needed
+   - Keep computations close to where the state is used
+   - Memoize selectors that perform expensive calculations
+
+   ```typescript
+   const useFilteredItems = (filter) => {
+     const { data } = useFeatureContext();
+     
+     // Memoized derived state
+     const filteredItems = useMemo(() => {
+       return data.filter(item => item.category === filter);
+     }, [data, filter]);
+     
+     return filteredItems;
+   };
+   ```
+
+## Local vs. Global State Guidelines
+
+1. **When to Use Local State**:
+   - UI state (modal open/closed, tabs, accordions)
+   - Form input values during editing
+   - Temporary visual states (hover, focus)
+   - Component-specific loading and error states
+
+   ```typescript
+   // Good local state examples
+   const [isOpen, setIsOpen] = useState(false);
+   const [activeTab, setActiveTab] = useState('details');
+   const [formValues, setFormValues] = useState({ name: '', email: '' });
+   ```
+
+2. **When to Use Context (Global State)**:
+   - User authentication and profile
+   - Theme and preferences
+   - Notifications
+   - Shopping cart or multi-step wizards
+   - Feature flags and configuration
+
+   ```typescript
+   // Examples using context appropriately
+   const { user, status } = useAuthContext();
+   const { theme, toggleTheme } = useThemeContext();
+   const { notifications, markAsRead } = useNotifications();
+   ```
+
+3. **When to Use URL State**:
+   - Current view or page
+   - Filters and sorting options
+   - Search queries
+   - Detail item IDs
+   - Anything that should be shareable or bookmarkable
+
+   ```typescript
+   // URL state examples
+   const router = useRouter();
+   const { tab, sort, filter } = useSearchParams();
+   
+   // Update URL state
+   router.push(`/dashboard?tab=${newTab}&sort=${sort}`);
+   ```
+
+These patterns ensure consistent, maintainable, and performant state management throughout the ResearchHub application.

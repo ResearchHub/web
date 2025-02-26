@@ -1,0 +1,70 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+ # ResearchHub Project Structure Guidelines
+
+This document outlines the structure and organization of the ResearchHub codebase to help ensure consistency and maintainability.
+
+## Directory Structure
+
+The project follows a standard Next.js 15 application structure with TypeScript:
+
+- `app/` - Contains the App Router and related components (Next.js 15 page structure)
+- `pages/` - Contains the legacy Pages Router components
+- `components/` - Contains reusable UI components
+  - `ui/` - Contains base UI components (buttons, inputs, etc.)
+  - `[Feature]/` - Feature-specific components (organized by domain)
+- `hooks/` - Custom React hooks
+- `utils/` - Helper functions and utilities
+- `services/` - API service functions
+- `contexts/` - React context providers
+- `public/` - Static assets
+- `store/` - State management
+- `types/` - TypeScript type definitions
+- `constants/` - Application constants and configuration
+
+## Naming Conventions
+
+Follow these naming conventions throughout the codebase:
+
+1. **Files and Directories**:
+   - React components: PascalCase (e.g., `Button.tsx`, `UserProfile.tsx`)
+   - Utility files: camelCase (e.g., `formatDate.ts`, `apiHelpers.ts`)
+   - Test files: Same name as the file being tested with `.test` or `.spec` (e.g., `Button.test.tsx`)
+
+2. **Component Organization**:
+   - Group related components in feature-specific directories
+   - Place shared/generic UI components in the `components/ui/` directory
+   - Create index files for easier imports
+
+## Import Order
+
+Maintain a consistent import order in all files:
+
+1. React and Next.js imports
+2. Third-party library imports
+3. Component imports
+4. Hook imports
+5. Utility/helper imports
+6. Type imports
+7. Asset imports (styles, images, etc.)
+
+## Code Organization
+
+- Keep files reasonably sized (aim for <300 lines where possible)
+- Extract reusable logic into custom hooks
+- Extract complex or reusable UI elements into dedicated components
+
+## Path Aliases
+
+Use the configured path aliases to maintain clean imports:
+
+- `@/components` - For component imports
+- `@/hooks` - For hook imports
+- `@/utils` - For utility imports
+- `@/types` - For type imports
+- etc.
+
+This structure ensures code is organized logically and consistently throughout the project.

@@ -3,64 +3,49 @@
 import { FC, useState } from 'react';
 import { FeedTabs } from './FeedTabs';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { FeedItem } from './FeedItem';
-import { FeedItemSkeleton } from './FeedItemSkeleton';
 import { Sparkles } from 'lucide-react';
 import { useFeed, FeedTab } from '@/hooks/useFeed';
+import { FeedContent } from './FeedContent';
 
 export const Feed: FC = () => {
   const [activeTab, setActiveTab] = useState<FeedTab>('following');
   const [isCustomizing, setIsCustomizing] = useState(false);
   const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(activeTab);
 
+  const header = (
+    <h1 className="text-xl text-gray-600 flex items-center gap-2">
+      <Sparkles className="w-5 h-5 text-indigo-500" />
+      Discover the latest research, earning, and funding opportunities
+    </h1>
+  );
+
+  const tabs = (
+    <FeedTabs
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      onRefresh={refresh}
+      onCustomizeChange={setIsCustomizing}
+      isLoading={isLoading}
+    />
+  );
+
   return (
     <PageLayout>
-      <div className="pt-4 pb-7">
-        <h2 className="text-xl text-gray-600 flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-indigo-500" />
-          Discover the latest research, earning, and funding opportunities
-        </h2>
-      </div>
-
-      <div className="max-w-4xl mx-auto">
-        <FeedTabs
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          onRefresh={refresh}
-          onCustomizeChange={setIsCustomizing}
+      {!isCustomizing ? (
+        <FeedContent
+          entries={entries}
           isLoading={isLoading}
+          hasMore={hasMore}
+          loadMore={loadMore}
+          header={header}
+          tabs={tabs}
         />
-
-        {!isCustomizing && (
-          <>
-            <div className="mt-8 space-y-6">
-              {isLoading ? (
-                <div className="space-y-6">
-                  {[...Array(3)].map((_, i) => (
-                    <FeedItemSkeleton key={i} />
-                  ))}
-                </div>
-              ) : (
-                entries.map((entry, index) => (
-                  <FeedItem key={entry.id} entry={entry} isFirst={index === 0} />
-                ))
-              )}
-            </div>
-
-            {!isLoading && hasMore && (
-              <div className="mt-8 text-center">
-                <button
-                  onClick={loadMore}
-                  disabled={isLoading}
-                  className="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                >
-                  Load More
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+      ) : (
+        <>
+          <div className="pt-4 pb-7">{header}</div>
+          <div className="max-w-4xl mx-auto">{tabs}</div>
+        </>
+      )}
     </PageLayout>
   );
 };

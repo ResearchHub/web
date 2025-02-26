@@ -1,0 +1,320 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+ # ResearchHub Testing Standards
+
+This document outlines the testing standards and best practices used in the ResearchHub codebase.
+
+## Testing Framework
+
+ResearchHub uses the following testing stack:
+
+1. **Jest** - For test running and assertions
+2. **React Testing Library** - For testing React components
+3. **MSW (Mock Service Worker)** - For mocking API requests
+4. **Cypress** - For end-to-end testing
+
+## Test Types
+
+1. **Unit Tests**:
+   - Test individual functions and components in isolation
+   - Mock all external dependencies
+   - Focus on testing the logic rather than implementation details
+
+2. **Integration Tests**:
+   - Test multiple components or functions working together
+   - Test interactions between components
+   - Test API calls with mocked responses using MSW
+
+3. **End-to-End Tests**:
+   - Test entire workflows from the user's perspective
+   - Use Cypress to interact with the application
+   - Focus on critical user paths
+
+## Test File Organization
+
+1. **File Naming**:
+   - Unit and integration tests: `ComponentName.test.tsx` or `functionName.test.ts`
+   - End-to-end tests: `feature-name.spec.ts`
+
+2. **File Location**:
+   - Co-locate unit and integration tests with the code they're testing
+   - Place end-to-end tests in a dedicated `cypress/integration` directory
+
+   ```
+   components/
+   ├── Button/
+   │   ├── Button.tsx
+   │   └── Button.test.tsx
+   utils/
+   ├── formatDate.ts
+   └── formatDate.test.ts
+   ```
+
+## Unit Testing Standards
+
+1. **Component Testing**:
+   - Focus on testing behavior, not implementation details
+   - Test user interactions (clicks, input changes, etc.)
+   - Test rendering logic and conditional rendering
+   - Test accessibility features
+
+   ```tsx
+   import { render, screen, fireEvent } from '@testing-library/react';
+   import { Button } from './Button';
+
+   describe('Button', () => {
+     it('renders with correct text', () => {
+       render(<Button>Click me</Button>);
+       expect(screen.getByRole('button', { name: /click me/i })).toBeInTheDocument();
+     });
+
+     it('calls onClick when clicked', () => {
+       const handleClick = jest.fn();
+       render(<Button onClick={handleClick}>Click me</Button>);
+       fireEvent.click(screen.getByRole('button'));
+       expect(handleClick).toHaveBeenCalledTimes(1);
+     });
+
+     it('is disabled when disabled prop is true', () => {
+       render(<Button disabled>Click me</Button>);
+       expect(screen.getByRole('button')).toBeDisabled();
+     });
+   });
+   ```
+
+2. **Utility Function Testing**:
+   - Test all edge cases
+   - Test with a variety of inputs
+   - Test error handling
+
+   ```tsx
+   import { formatCurrency } from './formatCurrency';
+
+   describe('formatCurrency', () => {
+     it('formats positive numbers correctly', () => {
+       expect(formatCurrency(1000)).toBe('$1,000.00');
+       expect(formatCurrency(1000.5)).toBe('$1,000.50');
+     });
+
+     it('formats negative numbers correctly', () => {
+       expect(formatCurrency(-1000)).toBe('-$1,000.00');
+     });
+
+     it('handles zero correctly', () => {
+       expect(formatCurrency(0)).toBe('$0.00');
+     });
+
+     it('throws an error for non-numeric input', () => {
+       expect(() => formatCurrency('abc' as any)).toThrow();
+     });
+   });
+   ```
+
+3. **Hook Testing**:
+   - Use `renderHook` from `@testing-library/react-hooks`
+   - Test initial values, updates, and edge cases
+
+   ```tsx
+   import { renderHook, act } from '@testing-library/react-hooks';
+   import { useCounter } from './useCounter';
+
+   describe('useCounter', () => {
+     it('initializes with default value', () => {
+       const { result } = renderHook(() => useCounter());
+       expect(result.current.count).toBe(0);
+     });
+
+     it('initializes with provided value', () => {
+       const { result } = renderHook(() => useCounter(10));
+       expect(result.current.count).toBe(10);
+     });
+
+     it('increments the counter', () => {
+       const { result } = renderHook(() => useCounter());
+       act(() => {
+         result.current.increment();
+       });
+       expect(result.current.count).toBe(1);
+     });
+   });
+   ```
+
+## Integration Testing Standards
+
+1. **Component Integration**:
+   - Test groups of components working together
+   - Test state changes and their effects on the UI
+   - Use context providers when necessary
+
+   ```tsx
+   import { render, screen, fireEvent } from '@testing-library/react';
+   import { TodoList } from './TodoList';
+   import { TodoProvider } from '@/contexts/TodoContext';
+
+   describe('TodoList', () => {
+     it('adds a new todo when form is submitted', () => {
+       render(
+         <TodoProvider>
+           <TodoList />
+         </TodoProvider>
+       );
+
+       // Fill in the form
+       fireEvent.change(screen.getByLabelText(/new todo/i), {
+         target: { value: 'Test todo' },
+       });
+
+       // Submit the form
+       fireEvent.click(screen.getByRole('button', { name: /add/i }));
+
+       // Check that the todo was added
+       expect(screen.getByText('Test todo')).toBeInTheDocument();
+     });
+   });
+   ```
+
+2. **API Mocking**:
+   - Use MSW to mock API requests
+   - Test success and error scenarios
+   - Test loading states
+
+   ```tsx
+   import { rest } from 'msw';
+   import { setupServer } from 'msw/node';
+   import { render, screen, waitFor } from '@testing-library/react';
+   import { UserProfile } from './UserProfile';
+
+   const server = setupServer(
+     rest.get('/api/user/:id', (req, res, ctx) => {
+       return res(
+         ctx.json({
+           id: '123',
+           name: 'John Doe',
+           email: 'john@example.com',
+         })
+       );
+     })
+   );
+
+   beforeAll(() => server.listen());
+   afterEach(() => server.resetHandlers());
+   afterAll(() => server.close());
+
+   describe('UserProfile', () => {
+     it('renders user data after loading', async () => {
+       render(<UserProfile userId="123" />);
+
+       // Initially shows loading state
+       expect(screen.getByText(/loading/i)).toBeInTheDocument();
+
+       // After loading, shows user data
+       await waitFor(() => {
+         expect(screen.getByText('John Doe')).toBeInTheDocument();
+         expect(screen.getByText('john@example.com')).toBeInTheDocument();
+       });
+     });
+
+     it('handles error state', async () => {
+       server.use(
+         rest.get('/api/user/:id', (req, res, ctx) => {
+           return res(ctx.status(500));
+         })
+       );
+
+       render(<UserProfile userId="123" />);
+
+       await waitFor(() => {
+         expect(screen.getByText(/error/i)).toBeInTheDocument();
+       });
+     });
+   });
+   ```
+
+## End-to-End Testing Standards
+
+1. **Test Coverage**:
+   - Test critical user flows
+   - Test authentication and authorization
+   - Test form submissions and validations
+
+   ```tsx
+   describe('Authentication', () => {
+     beforeEach(() => {
+       cy.visit('/login');
+     });
+
+     it('allows users to log in', () => {
+       cy.intercept('POST', '/api/login', {
+         body: {
+           token: 'fake-token',
+           user: { id: '123', name: 'Test User' },
+         },
+       }).as('loginRequest');
+
+       cy.get('input[name="email"]').type('user@example.com');
+       cy.get('input[name="password"]').type('password123');
+       cy.get('button[type="submit"]').click();
+
+       cy.wait('@loginRequest');
+       cy.url().should('include', '/dashboard');
+       cy.contains('Welcome, Test User');
+     });
+
+     it('shows error messages for invalid login', () => {
+       cy.intercept('POST', '/api/login', {
+         statusCode: 401,
+         body: { message: 'Invalid credentials' },
+       }).as('loginRequest');
+
+       cy.get('input[name="email"]').type('user@example.com');
+       cy.get('input[name="password"]').type('wrong-password');
+       cy.get('button[type="submit"]').click();
+
+       cy.wait('@loginRequest');
+       cy.contains('Invalid credentials');
+       cy.url().should('include', '/login');
+     });
+   });
+   ```
+
+2. **Test Isolation**:
+   - Reset state between tests
+   - Use fixtures for test data
+   - Clean up after tests
+
+## Test Coverage Requirements
+
+1. **Coverage Targets**:
+   - Unit tests: 85% code coverage
+   - Integration tests: Critical user flows
+   - End-to-end tests: Core user journeys
+
+2. **Critical Areas**:
+   - Authentication and authorization
+   - Form validation and submission
+   - Data fetching and error handling
+   - Complex business logic
+
+## Testing Best Practices
+
+1. **General Best Practices**:
+   - Write tests before or alongside code (TDD where appropriate)
+   - Keep tests simple and focused
+   - Don't test implementation details
+   - Test behavior, not functions
+
+2. **Maintainability**:
+   - Use descriptive test names
+   - Organize tests logically
+   - Extract common test setup into helper functions
+   - Keep tests independent of each other
+
+3. **Performance**:
+   - Keep unit tests fast
+   - Run slow tests (integration, e2e) in CI only
+   - Use mocks for external services
+
+These testing standards ensure code quality, prevent regressions, and provide confidence when refactoring or adding new features to the ResearchHub application.
