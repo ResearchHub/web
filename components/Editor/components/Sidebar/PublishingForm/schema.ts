@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-// Define the topic option schema
 const topicOptionSchema = z.object({
   value: z.string(),
   label: z.string(),

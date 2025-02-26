@@ -53,7 +53,12 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
       formDataToSubmit.append('full_json', formData.fullJSON);
       formDataToSubmit.append('note_id', String(formData.noteId ?? ''));
       formDataToSubmit.append('assign_doi', String(formData.assignDOI ?? false));
-      formDataToSubmit.append('hubs', JSON.stringify(formData.topics));
+
+      // Extract topic IDs and append them individually
+      formData.topics.forEach((topic) => {
+        formDataToSubmit.append('hubs', topic);
+      });
+
       // Only append fundraise-related fields for creation
       if (!postId) {
         formDataToSubmit.append('reward_funders', String(formData.rewardFunders));

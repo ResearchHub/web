@@ -16,21 +16,8 @@ export function TopicsSection() {
     setValue,
     formState: { errors },
   } = useFormContext();
-  // const { note } = useNotebookPublish();
 
-  // Now topics directly contains the objects with value and label
   const topics = watch('topics') || [];
-
-  // // Initialize from note data when available
-  // useEffect(() => {
-  //   if (note?.post?.topics && note.post.topics.length > 0 && topics.length === 0) {
-  //     const topicOptions = note.post.topics.map((topic) => ({
-  //       value: topic.id.toString(),
-  //       label: topic.name,
-  //     }));
-  //     setValue('topics', topicOptions);
-  //   }
-  // }, [note?.post?.topics, topics.length, setValue]);
 
   const handleSearch = useCallback(async (query: string) => {
     const results = await HubService.suggestTopics(query);

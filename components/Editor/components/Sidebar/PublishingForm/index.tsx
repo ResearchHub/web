@@ -24,7 +24,8 @@ import {
   savePublishingFormToStorage,
 } from '@/components/Editor/lib/utils/publishingFormStorage';
 import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSkeleton';
-import { Loader2 } from 'lucide-react';
+import { Link2, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 
 interface PublishingFormProps {
   bountyAmount: number | null;
@@ -232,7 +233,26 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             <WorkTypeSection />
             <AuthorsSection />
             <TopicsSection />
-
+            {/* TODO: Should not we reuse the existing WorkRightSidebar? adding DOI here manually */}
+            {/* DOI Section */}
+            {note.post?.doi && (
+              <div className="py-3 px-6 space-y-6">
+                <section>
+                  <div className="flex items-center space-x-2 mb-4">
+                    <Link2 className="h-5 w-5 text-gray-500" />
+                    <h2 className="text-base font-semibold text-gray-900">DOI</h2>
+                  </div>
+                  <Link
+                    href={`https://doi.org/${note.post?.doi}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    <span>{note.post?.doi}</span>
+                  </Link>
+                </section>
+              </div>
+            )}
             {articleType === 'preregistration' && <FundingSection note={note} />}
             {articleType !== 'preregistration' && (
               <ResearchCoinSection bountyAmount={bountyAmount} onBountyClick={onBountyClick} />
