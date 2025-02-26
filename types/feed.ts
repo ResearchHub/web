@@ -1,8 +1,7 @@
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { ContentMetrics } from './metrics';
 import { Journal } from './journal';
-import { Topic } from './topic';
-import { transformTopic } from './work';
+import { Topic, transformTopic } from './topic';
 import { createTransformer, BaseTransformed } from './transformer';
 
 export type FeedActionType = 'repost' | 'contribute' | 'open' | 'publish' | 'post';

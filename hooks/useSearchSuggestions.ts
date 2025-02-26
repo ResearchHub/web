@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { SearchService } from '@/services/search.service';
 import { SearchSuggestion } from '@/types/search';
-import { getSearchHistory, saveSearchHistory, SEARCH_HISTORY_KEY } from '@/utils/searchHistory';
+import { getSearchHistory, SEARCH_HISTORY_KEY } from '@/utils/searchHistory';
 import { EntityType } from '@/types/search';
 
 interface UseSearchSuggestionsConfig {

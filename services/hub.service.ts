@@ -1,3 +1,4 @@
+import { Topic, transformTopics } from '@/types/topic';
 import { ApiClient } from './client';
 import { createTransformer, BaseTransformed } from '@/types/transformer';
 
@@ -74,11 +75,12 @@ export class HubService {
     return response.results.map(transformHub);
   }
 
-  static async suggestHubs(query: string): Promise<Hub[]> {
-    const response = await ApiClient.get<HubsApiResponse>(
+  static async suggestTopics(query: string): Promise<Topic[]> {
+    const response = await ApiClient.get<any>(
       `${this.SUGGEST_PATH}/?name_suggest__completion=${encodeURIComponent(query)}`
     );
-    return response.results.map(transformHub);
+
+    return transformTopics(response);
   }
 
   static async getFollowedHubs(): Promise<number[]> {
