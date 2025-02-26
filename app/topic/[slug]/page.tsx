@@ -23,8 +23,6 @@ export default function TopicFeedPage() {
     hubSlug: decodedSlug || '',
   });
 
-  const isLoading = isHubLoading || isFeedLoading;
-
   if (isHubLoading) {
     return (
       <PageLayout>
