@@ -91,7 +91,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
 
   const renderPost = (post: Post, isExpanded: boolean, onToggleExpand: () => void) => {
     return renderExpandableContent(
-      post.type,
+      'post',
       post.title ?? '',
       post.summary || '',
       isExpanded,
@@ -101,7 +101,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
 
   const renderPaper = (paper: Paper, isExpanded: boolean, onToggleExpand: () => void) => {
     return renderExpandableContent(
-      paper.type,
+      'paper',
       paper.title ?? '',
       paper.abstract || '',
       isExpanded,
