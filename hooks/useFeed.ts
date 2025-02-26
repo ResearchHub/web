@@ -4,7 +4,11 @@ import { FeedService } from '@/services/feed.service';
 
 export type FeedTab = 'following' | 'latest';
 
-export const useFeed = (activeTab: FeedTab) => {
+interface UseFeedOptions {
+  hubSlug?: string;
+}
+
+export const useFeed = (activeTab: FeedTab, options: UseFeedOptions = {}) => {
   const [entries, setEntries] = useState<FeedEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(false);
@@ -12,7 +16,7 @@ export const useFeed = (activeTab: FeedTab) => {
 
   useEffect(() => {
     loadFeed();
-  }, [activeTab]);
+  }, [activeTab, options.hubSlug]);
 
   const loadFeed = async () => {
     setIsLoading(true);
@@ -20,8 +24,9 @@ export const useFeed = (activeTab: FeedTab) => {
       const result = await FeedService.getFeed({
         page: 1,
         pageSize: 20,
-        feed_view:
+        feedView:
           activeTab === 'following' ? 'following' : activeTab === 'latest' ? 'latest' : undefined,
+        hubSlug: options.hubSlug,
       });
       setEntries(result.entries);
       setHasMore(result.hasMore);
@@ -41,8 +46,9 @@ export const useFeed = (activeTab: FeedTab) => {
       const result = await FeedService.getFeed({
         page: nextPage,
         pageSize: 20,
-        feed_view:
+        feedView:
           activeTab === 'following' ? 'following' : activeTab === 'latest' ? 'latest' : undefined,
+        hubSlug: options.hubSlug,
       });
       setEntries((prev) => [...prev, ...result.entries]);
       setHasMore(result.hasMore);
