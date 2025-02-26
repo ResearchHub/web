@@ -1,0 +1,244 @@
+---
+description: This document outlines the performance optimization strategies used in the ResearchHub codebase.
+globs: 
+alwaysApply: false
+---
+ # ResearchHub Performance Optimization
+
+This document outlines the performance optimization strategies used in the ResearchHub codebase.
+
+## React Optimization
+
+
+2. **Hook Optimization**:
+   - Use `useCallback()` for functions passed as props
+   - Always specify dependencies correctly in dependency arrays
+
+   ```tsx
+
+   // Event handler passed as prop
+   const handleEdit = useCallback((id: string) => {
+     // Edit logic
+   }, [/* dependencies */]);
+   ```
+
+3. **State Management**:
+   - Split large state objects into smaller, more focused pieces
+   - Use context selectors to prevent unnecessary re-renders
+   - Consider using libraries like Zustand or Jotai for complex state management
+
+## Next.js Optimization
+
+1. **Image Optimization**:
+   - Use Next.js `Image` component for all images
+   - Specify width and height to prevent layout shifts
+   - Use appropriate loading strategies (`lazy` for below-the-fold content)
+
+   ```tsx
+   import Image from 'next/image';
+
+   // Good usage
+   <Image 
+     src="/profile.jpg" 
+     width={640} 
+     height={480} 
+     alt="User profile" 
+     loading="lazy" 
+   />
+   ```
+
+2. **Code Splitting**:
+   - Use dynamic imports for large components and libraries
+   - Implement page-level code splitting with Next.js's built-in features
+
+   ```tsx
+   // Dynamic import for a large component
+   const HeavyChart = dynamic(() => import('@/components/HeavyChart'), {
+     loading: () => <LoadingSpinner />,
+     ssr: false, // If not needed on the server
+   });
+   ```
+
+3. **Server Components**:
+   - Use React Server Components for data fetching and rendering static content
+   - Keep client components small and focused on interactive elements
+
+4. **Font Optimization**:
+   - Use Next.js font optimization to reduce CLS
+   - Preload critical fonts
+
+   ```tsx
+   import { Inter } from 'next/font/google';
+
+   const inter = Inter({
+     subsets: ['latin'],
+     display: 'swap',
+   });
+   ```
+
+## Rendering Optimization
+
+1. **List Virtualization**:
+   - Implement virtualization for long lists (>50 items)
+   - Consider using libraries like `react-window` or `react-virtualized`
+
+   ```tsx
+   import { FixedSizeList } from 'react-window';
+
+   const VirtualizedList = ({ items }) => (
+     <FixedSizeList
+       height={500}
+       width="100%"
+       itemCount={items.length}
+       itemSize={50}
+     >
+       {({ index, style }) => (
+         <div style={style}>
+           {items[index].name}
+         </div>
+       )}
+     </FixedSizeList>
+   );
+   ```
+
+2. **Debouncing and Throttling**:
+   - Debounce search inputs and form fields that trigger API calls
+   - Throttle scroll and resize event handlers
+
+   ```tsx
+   import { useState, useEffect } from 'react';
+   import { debounce } from 'lodash-es';
+
+   const SearchInput = () => {
+     const [value, setValue] = useState('');
+     
+     useEffect(() => {
+       const handleSearch = debounce((term: string) => {
+         // Perform search
+       }, 300);
+       
+       if (value) handleSearch(value);
+       
+       return () => {
+         handleSearch.cancel();
+       };
+     }, [value]);
+     
+     return (
+       <input 
+         type="text" 
+         value={value} 
+         onChange={(e) => setValue(e.target.value)} 
+       />
+     );
+   };
+   ```
+
+3. **Lazy Loading**:
+   - Implement lazy loading for below-the-fold content
+   - Use intersection observer for efficient detection
+
+   ```tsx
+   import { useEffect, useRef, useState } from 'react';
+
+   const LazyLoadedComponent = () => {
+     const [isVisible, setIsVisible] = useState(false);
+     const ref = useRef(null);
+     
+     useEffect(() => {
+       const observer = new IntersectionObserver(
+         ([entry]) => {
+           if (entry.isIntersecting) {
+             setIsVisible(true);
+             observer.disconnect();
+           }
+         },
+         { rootMargin: '100px' }
+       );
+       
+       if (ref.current) {
+         observer.observe(ref.current);
+       }
+       
+       return () => {
+         observer.disconnect();
+       };
+     }, []);
+     
+     return (
+       <div ref={ref}>
+         {isVisible ? <HeavyComponent /> : <Placeholder />}
+       </div>
+     );
+   };
+   ```
+
+## Network Optimization
+
+
+1. **Optimistic Updates**:
+   - Implement optimistic UI updates for better user experience
+   - Always handle failure cases gracefully
+
+   ```tsx
+   import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+   const UpdateButton = ({ user }) => {
+     const queryClient = useQueryClient();
+     
+     const mutation = useMutation({
+       mutationFn: updateUser,
+       onMutate: async (newUser) => {
+         await queryClient.cancelQueries(['user', user.id]);
+         const previousUser = queryClient.getQueryData(['user', user.id]);
+         queryClient.setQueryData(['user', user.id], newUser);
+         return { previousUser };
+       },
+       onError: (err, newUser, context) => {
+         queryClient.setQueryData(
+           ['user', user.id], 
+           context.previousUser
+         );
+       },
+       onSettled: () => {
+         queryClient.invalidateQueries(['user', user.id]);
+       },
+     });
+     
+     return (
+       <button onClick={() => mutation.mutate({ ...user, name: 'New Name' })}>
+         Update Name
+       </button>
+     );
+   };
+   ```
+
+3. **API Response Size**:
+   - Request only necessary data from APIs
+   - Implement pagination for large datasets
+
+## Bundle Optimization
+
+1. **Tree Shaking**:
+   - Import only what you need from libraries
+   - Use selective imports for large libraries
+
+   ```tsx
+   // Good - only imports what's needed
+   import { Button } from '@/components/ui';
+   import { formatDate } from '@/utils/date';
+   
+   // Bad - imports the entire library
+   import * as UI from '@/components/ui';
+   import * as Utils from '@/utils';
+   ```
+
+2. **Bundle Analysis**:
+   - Regularly analyze bundle size with tools like `@next/bundle-analyzer`
+   - Optimize or replace large dependencies
+
+3. **Code Splitting**:
+   - Split code at the route level
+   - Use dynamic imports for features not needed on initial load
+
+These performance optimization guidelines ensure that the ResearchHub application provides a smooth and responsive user experience.

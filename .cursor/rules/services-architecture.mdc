@@ -1,0 +1,227 @@
+---
+description: This document outlines the architectural patterns and best practices for services in the ResearchHub codebase.
+globs: 
+alwaysApply: false
+---
+ # ResearchHub Services Architecture
+
+This document outlines the architectural patterns and best practices for services in the ResearchHub codebase.
+
+## Service Structure
+
+1. **Class-based Organization**:
+   - Organize services as static TypeScript classes
+   - Group related API endpoints in domain-specific services
+   - Name services with the `Service` suffix (e.g., `NoteService`, `ReactionService`)
+
+   ```typescript
+   export class FeatureService {
+     private static readonly BASE_PATH = '/api';
+     
+     static async getItem(id: string): Promise<Item> {
+       // Implementation
+     }
+     
+     static async createItem(params: CreateItemParams): Promise<Item> {
+       // Implementation
+     }
+   }
+   ```
+
+2. **API Client Pattern**:
+   - Use the central `ApiClient` for all HTTP requests
+   - Abstract HTTP methods (GET, POST, PATCH, DELETE) behind ApiClient methods
+   - Handle authentication, headers, and base URL configuration in ApiClient
+
+   ```typescript
+   static async getItem(id: string): Promise<Item> {
+     const response = await ApiClient.get<ItemResponse>(`${this.BASE_PATH}/items/${id}`);
+     return transformItem(response);
+   }
+   ```
+
+3. **Method Naming**:
+   - Use descriptive, action-based names for service methods
+   - Follow CRUD naming conventions: get, create, update, delete
+   - Use domain-specific verbs for specialized actions (e.g., `publish`, `flag`, `vote`)
+
+## Type Definitions
+
+1. **Request/Response Types**:
+   - Define clear interface types for API request parameters
+   - Name request parameter interfaces with `Params` suffix (e.g., `CreateNoteParams`)
+   - Use descriptive interface names that indicate the action
+
+   ```typescript
+   export interface CreateItemParams {
+     title: string;
+     description: string;
+     categoryId: number;
+     tags?: string[];
+   }
+   ```
+
+2. **API Path Variables**:
+   - Store API path variables as private static readonly class properties
+   - Use uppercase for constant path variables
+   - Keep path construction logic inside service methods
+
+   ```typescript
+   private static readonly BASE_PATH = '/api';
+   private static readonly ITEMS_PATH = `${this.BASE_PATH}/items`;
+   ```
+
+## Error Handling
+
+1. **Service-specific Errors**:
+   - Define service-specific error classes
+   - Extend the base Error class with additional properties
+   - Provide meaningful error messages and error codes
+
+   ```typescript
+   export class ServiceNameError extends Error {
+     constructor(
+       message: string,
+       public readonly code?: string
+     ) {
+       super(message);
+       this.name = 'ServiceNameError';
+     }
+   }
+   ```
+
+2. **Error Propagation**:
+   - Catch and transform HTTP errors within service methods
+   - Provide consistent error formats for consumers
+   - Include relevant error details and status codes
+
+   ```typescript
+   try {
+     return await ApiClient.post<ItemResponse>(
+       `${this.BASE_PATH}/items`,
+       params
+     );
+   } catch (error) {
+     if (error instanceof ApiError) {
+       throw new ServiceNameError(
+         `Failed to create item: ${error.message}`,
+         error.status.toString()
+       );
+     }
+     throw new ServiceNameError('An unexpected error occurred');
+   }
+   ```
+
+## Data Transformation
+
+1. **Transformation Pattern**:
+   - Transform API responses to match client-side data models
+   - Use transformer functions to convert snake_case to camelCase
+   - Ensure all transformed data includes proper TypeScript types
+
+   ```typescript
+   static async getItem(id: string): Promise<Item> {
+     const response = await ApiClient.get<ItemResponse>(`${this.BASE_PATH}/items/${id}`);
+     return transformItem(response);
+   }
+   ```
+
+2. **Transformer Organization**:
+   - Keep transformer functions with relevant type definitions
+   - Maintain consistent transformation patterns across services
+   - Preserve raw response data for debugging purposes
+
+## Request Parameters
+
+1. **Parameter Formatting**:
+   - Accept camelCase parameters in service methods
+   - Convert camelCase to snake_case for API requests when needed
+   - Handle URL parameter encoding for GET requests
+
+   ```typescript
+   static async getItems(params: GetItemsParams): Promise<ItemsResponse> {
+     const queryParams = new URLSearchParams();
+     
+     if (params.categoryId) {
+       queryParams.append('category_id', params.categoryId.toString());
+     }
+     
+     if (params.sortBy) {
+       queryParams.append('sort_by', params.sortBy);
+     }
+     
+     const url = `${this.ITEMS_PATH}?${queryParams.toString()}`;
+     const response = await ApiClient.get<ItemsApiResponse>(url);
+     return transformItemsResponse(response);
+   }
+   ```
+
+2. **Optional Parameters**:
+   - Use optional parameters with sensible defaults
+   - Validate required parameters before making API calls
+   - Provide clear error messages for missing required parameters
+
+   ```typescript
+   static async searchItems(query: string, options: SearchOptions = {}): Promise<SearchResults> {
+     if (!query) {
+       throw new ServiceNameError('Search query is required');
+     }
+     
+     const queryParams = new URLSearchParams({
+       q: query,
+       page: (options.page || 1).toString(),
+       limit: (options.limit || 20).toString(),
+     });
+     
+     // Implementation
+   }
+   ```
+
+## Documentation
+
+1. **JSDoc Comments**:
+   - Document all public service methods with JSDoc
+   - Include parameter descriptions, return types, and thrown exceptions
+   - Add examples for complex methods
+
+   ```typescript
+   /**
+    * Fetches a specific item by ID
+    * @param id - The unique identifier of the item to fetch
+    * @returns A promise that resolves to the item
+    * @throws {ServiceNameError} When the request fails or the item doesn't exist
+    * @example
+    * const item = await FeatureService.getItem('123');
+    */
+   static async getItem(id: string): Promise<Item> {
+     // Implementation
+   }
+   ```
+
+2. **Method Descriptions**:
+   - Describe the purpose of each method
+   - Document any side effects or special behaviors
+   - Include any authorization requirements
+
+## Service Composition
+
+1. **Service Boundaries**:
+   - Keep services focused on specific domains
+   - Avoid cross-service dependencies where possible
+   - Use composition when services need to work together
+
+   ```typescript
+   // Good: Services focused on specific domains
+   await UserService.getProfile(userId);
+   await ContentService.getUserContent(userId);
+   
+   // Avoid: Services directly depending on each other
+   // Prefer composition at the hook or component level
+   ```
+
+2. **File Organization**:
+   - One service class per file
+   - Group related interfaces and types with the service
+   - Export types needed by consumers
+
+These patterns ensure consistent, maintainable, and reliable services throughout the ResearchHub application.
