@@ -1,4 +1,5 @@
 import { ApiClient } from './client';
+import { createTransformer, BaseTransformed } from '@/types/transformer';
 
 interface HubResponse {
   id: number;
@@ -41,6 +42,17 @@ export interface Hub {
   description?: string;
 }
 
+export type TransformedHub = Hub & BaseTransformed;
+
+// Transform the API response to our internal Hub model
+export const transformHub = createTransformer<HubResponse, Hub>((hub) => ({
+  id: hub.id,
+  name: hub.name,
+  slug: hub.slug,
+  imageUrl: hub.hub_image,
+  description: hub.description,
+}));
+
 export class HubService {
   private static readonly BASE_PATH = '/api/hub';
   private static readonly SUGGEST_PATH = '/api/search/hubs/suggest';
@@ -59,26 +71,14 @@ export class HubService {
     const response = await ApiClient.get<HubsApiResponse>(
       `${this.BASE_PATH}/?${params.toString()}`
     );
-    return response.results.map((hub) => ({
-      id: hub.id,
-      name: hub.name,
-      slug: hub.slug,
-      imageUrl: hub.hub_image,
-      description: hub.description,
-    }));
+    return response.results.map(transformHub);
   }
 
   static async suggestHubs(query: string): Promise<Hub[]> {
     const response = await ApiClient.get<HubsApiResponse>(
       `${this.SUGGEST_PATH}/?name_suggest__completion=${encodeURIComponent(query)}`
     );
-    return response.results.map((hub) => ({
-      id: hub.id,
-      name: hub.name,
-      slug: hub.slug,
-      imageUrl: hub.hub_image,
-      description: hub.description,
-    }));
+    return response.results.map(transformHub);
   }
 
   static async getFollowedHubs(): Promise<number[]> {
@@ -103,13 +103,6 @@ export class HubService {
       throw new Error(`Hub with slug "${slug}" not found`);
     }
 
-    const hub = response.results[0];
-    return {
-      id: hub.id,
-      name: hub.name,
-      slug: hub.slug,
-      imageUrl: hub.hub_image,
-      description: hub.description,
-    };
+    return transformHub(response.results[0]);
   }
 }
