@@ -27,6 +27,7 @@ import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSke
 import { Link2, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { DOISection } from '@/components/work/components/DOISection';
+import { getFieldErrorMessage } from '@/utils/form';
 
 interface PublishingFormProps {
   bountyAmount: number | null;
@@ -155,13 +156,31 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
 
     if (!result) {
       const errors = methods.formState.errors;
-      Object.entries(errors).forEach(([_, error]) => {
-        if (error?.message) {
-          toast.error(error.message.toString(), {
-            style: { width: '300px' },
-          });
-        }
-      });
+
+      if (Object.keys(errors).length > 0) {
+        toast.error('Please fix the form errors before publishing', {
+          style: { width: '300px' },
+        });
+
+        Object.entries(errors).forEach(([field, error]) => {
+          // Cast the error to any to bypass the type checking issue
+          const errorMessage = getFieldErrorMessage(error as any, `Invalid ${field}`);
+          if (errorMessage) {
+            toast.error(`${field}: ${errorMessage}`, {
+              style: { width: '300px' },
+            });
+          }
+        });
+
+        // Log errors to console for debugging
+        console.error('Form validation errors:', errors);
+      } else {
+        // Should never happen but wondering if we should log this somewhere for visibility
+        console.error('Unable to publish.');
+        toast.error('Unable to publish. Please check all fields and try again.', {
+          style: { width: '300px' },
+        });
+      }
       return;
     }
 
