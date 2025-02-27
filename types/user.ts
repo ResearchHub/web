@@ -44,6 +44,7 @@ const requiredUserProperties: Record<keyof User, (value: any) => boolean> = {
   fullName: (v) => typeof v === 'string',
   isVerified: (v) => typeof v === 'boolean',
   authorProfile: (v) => v === undefined || typeof v === 'object',
+  balance: (v) => typeof v === 'number',
 };
 
 export function isUser(user: any): user is User {
