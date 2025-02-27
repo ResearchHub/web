@@ -66,6 +66,12 @@ export interface CreateCommunityReviewOptions {
   score: number;
 }
 
+export interface FetchCommentOptions {
+  commentId: ID;
+  documentId: ID;
+  contentType: ContentType;
+}
+
 export class CommentService {
   private static readonly BASE_PATH = '/api';
 
@@ -179,5 +185,15 @@ export class CommentService {
 
     const response = await ApiClient.post<any>(path, payload);
     return response;
+  }
+
+  static async fetchComment({
+    commentId,
+    documentId,
+    contentType,
+  }: FetchCommentOptions): Promise<Comment> {
+    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/`;
+    const response = await ApiClient.get<any>(path);
+    return transformComment(response);
   }
 }

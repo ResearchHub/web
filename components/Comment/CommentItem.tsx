@@ -50,9 +50,14 @@ export const CommentItem = ({
     comment.bounties?.length > 0 &&
     comment.bounties.some((b) => b.status === 'OPEN' && !b.isContribution);
 
-  // If this is a bounty comment and there are no open bounties, don't render anything
-  if (commentType === 'BOUNTY' && !hasOpenBounty) {
-    console.log('Skipping rendering bounty comment with no open bounties', comment.id);
+  // Check if there are any closed bounties
+  const hasClosedBounty =
+    comment.bounties?.length > 0 &&
+    comment.bounties.some((b) => b.status === 'CLOSED' && !b.isContribution);
+
+  // If this is a bounty comment and there are no bounties at all, don't render anything
+  if (commentType === 'BOUNTY' && !hasOpenBounty && !hasClosedBounty) {
+    console.log('Skipping rendering bounty comment with no bounties', comment.id);
     return null;
   }
 
@@ -116,14 +121,19 @@ export const CommentItem = ({
       openNonContributionBounty: comment.bounties?.some(
         (b) => b.status === 'OPEN' && !b.isContribution
       ),
+      closedNonContributionBounty: comment.bounties?.some(
+        (b) => b.status === 'CLOSED' && !b.isContribution
+      ),
       bounties: comment.bounties,
     });
 
-    // For bounty comments, only render if there's an open bounty
+    // For bounty comments, render regardless of bounty status
     if (commentType === 'BOUNTY') {
       const hasBounty =
         comment.bounties?.length > 0 &&
-        comment.bounties.some((b) => b.status === 'OPEN' && !b.isContribution);
+        comment.bounties.some(
+          (b) => (b.status === 'OPEN' || b.status === 'CLOSED') && !b.isContribution
+        );
 
       if (!hasBounty) {
         return null;
@@ -131,9 +141,11 @@ export const CommentItem = ({
 
       // Find the active bounty to check creator
       const activeBounty = comment.bounties.find((b) => b.status === 'OPEN' && !b.isContribution);
+      const closedBounty = comment.bounties.find((b) => b.status === 'CLOSED' && !b.isContribution);
+      const displayBounty = activeBounty || closedBounty;
 
       // Check if current user is the bounty creator
-      const isCreator = session?.user?.id === activeBounty?.createdBy?.id;
+      const isCreator = session?.user?.id === displayBounty?.createdBy?.id;
 
       return (
         <div className="border border-gray-200 rounded-lg p-4 mb-4">
@@ -224,15 +236,17 @@ export const CommentItem = ({
         @import 'highlight.js/styles/atom-one-dark.css';
       `}</style>
 
-      {/* Author Info */}
-      <CommentItemHeader
-        profileImage={comment.author.profileImage}
-        fullName={comment.author.fullName}
-        profileUrl={comment.author.profileUrl}
-        date={comment.createdDate}
-        className="mb-4"
-        commentType={commentType}
-      />
+      {/* Author Info - Only show for non-bounty comments */}
+      {commentType !== 'BOUNTY' && (
+        <CommentItemHeader
+          profileImage={comment.author.profileImage}
+          fullName={comment.author.fullName}
+          profileUrl={comment.author.profileUrl}
+          date={comment.createdDate}
+          className="mb-4"
+          commentType={commentType}
+        />
+      )}
 
       {isEditing ? (
         <>

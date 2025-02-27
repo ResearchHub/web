@@ -5,7 +5,6 @@ import { BarChart2, Coins, CheckCircle, FileText, MessageCircle, Play, Star } fr
 import { Work } from '@/types/work';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { WorkRightSidebar } from './WorkRightSidebar';
-import { WorkReviews } from './WorkReviews';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { WorkLineItems } from './WorkLineItems';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -213,7 +212,6 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
 
         {activeTab === 'reviews' && (
           <div className="space-y-6">
-            <WorkReviews workId={work.id} />
             <CommentFeed
               documentId={work.id}
               contentType={work.contentType}
