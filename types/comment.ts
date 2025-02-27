@@ -50,6 +50,7 @@ export interface Comment {
   replyCount?: number;
   commentType: CommentType;
   bountyAmount?: number;
+  awardedBountyAmount?: number;
   expirationDate?: string;
   isPublic?: boolean;
   isRemoved?: boolean;
@@ -75,6 +76,9 @@ export const transformContent = (raw: any): string => {
 };
 
 export const transformComment = (raw: any): Comment => {
+  // Extract review score if available
+  const reviewScore = raw.review?.score;
+
   return {
     id: raw.id,
     content: raw.comment_content_json || raw.comment_content,
@@ -82,11 +86,12 @@ export const transformComment = (raw: any): Comment => {
     createdDate: raw.created_date,
     updatedDate: raw.updated_date,
     author: transformAuthorProfile(raw.created_by),
-    score: raw.score || 0,
+    score: reviewScore !== undefined ? reviewScore : 0,
     replyCount: raw.reply_count || 0,
     replies: (raw.replies || []).map(transformComment),
     commentType: raw.comment_type || 'GENERIC_COMMENT',
     bountyAmount: raw.amount,
+    awardedBountyAmount: raw.awarded_bounty_amount,
     expirationDate: raw.expiration_date,
     isPublic: raw.is_public,
     isRemoved: raw.is_removed,

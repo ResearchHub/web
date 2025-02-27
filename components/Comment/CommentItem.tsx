@@ -15,6 +15,9 @@ import hljs from 'highlight.js';
 import { CommentReadOnly } from './CommentReadOnly';
 import { BountyItem } from './BountyItem';
 import { useSession } from 'next-auth/react';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { formatRSC } from '@/utils/number';
+import { RSCBadge } from '@/components/ui/RSCBadge';
 
 interface CommentItemProps {
   comment: Comment;
@@ -37,14 +40,7 @@ export const CommentItem = ({
   const [isEditing, setIsEditing] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
   const { data: session } = useSession();
-
-  console.log('CommentItem rendering', {
-    author: comment.author,
-    commentType,
-    hasBounties: comment.bounties?.length,
-    isEditing,
-  });
-
+  console.log('comment', comment);
   // Check if there are any open bounties
   const hasOpenBounty =
     comment.bounties?.length > 0 &&
@@ -116,17 +112,6 @@ export const CommentItem = ({
   };
 
   const renderContent = () => {
-    console.log('renderContent called', {
-      hasBounties: comment.bounties?.length > 0,
-      openNonContributionBounty: comment.bounties?.some(
-        (b) => b.status === 'OPEN' && !b.isContribution
-      ),
-      closedNonContributionBounty: comment.bounties?.some(
-        (b) => b.status === 'CLOSED' && !b.isContribution
-      ),
-      bounties: comment.bounties,
-    });
-
     // For bounty comments, render regardless of bounty status
     if (commentType === 'BOUNTY') {
       const hasBounty =
@@ -238,14 +223,25 @@ export const CommentItem = ({
 
       {/* Author Info - Only show for non-bounty comments */}
       {commentType !== 'BOUNTY' && (
-        <CommentItemHeader
-          profileImage={comment.author.profileImage}
-          fullName={comment.author.fullName}
-          profileUrl={comment.author.profileUrl}
-          date={comment.createdDate}
-          className="mb-4"
-          commentType={commentType}
-        />
+        <div className="flex items-center justify-between mb-4">
+          <CommentItemHeader
+            profileImage={comment.author.profileImage}
+            fullName={comment.author.fullName}
+            profileUrl={comment.author.profileUrl}
+            date={comment.createdDate}
+            commentType={commentType}
+            score={commentType === 'REVIEW' ? comment.score : undefined}
+          />
+
+          {/* Awarded Bounty Badge */}
+          {comment.awardedBountyAmount && comment.awardedBountyAmount > 0 && (
+            <RSCBadge
+              amount={Number(comment.awardedBountyAmount)}
+              inverted={true}
+              label="awarded"
+            />
+          )}
+        </div>
       )}
 
       {isEditing ? (

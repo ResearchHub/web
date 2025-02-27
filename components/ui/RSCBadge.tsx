@@ -14,6 +14,10 @@ interface RSCBadgeProps {
   showText?: boolean;
   /** Whether to show the RSC icon */
   showIcon?: boolean;
+  /** Whether to invert colors between amount and RSC text */
+  inverted?: boolean;
+  /** Custom label to show after "RSC" (e.g., "awarded") */
+  label?: string;
 }
 
 export const RSCBadge: FC<RSCBadgeProps> = ({
@@ -23,6 +27,8 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
   variant = 'badge',
   showText = true,
   showIcon = true,
+  inverted = false,
+  label,
 }) => {
   const sizeClasses = {
     xs: 'text-xs gap-1',
@@ -31,10 +37,10 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
   };
 
   const variantClasses = {
-    badge: 'rounded-full border border-orange-200 bg-orange-50 py-1 px-2',
+    badge: 'rounded-md border border-orange-200 bg-orange-50 py-1.5 px-3',
     inline: '',
     contribute:
-      'rounded-full border border-orange-200 hover:border-orange-300 hover:bg-orange-50 py-1 px-2',
+      'rounded-md border border-orange-200 hover:border-orange-300 hover:bg-orange-50 py-1.5 px-3',
   };
 
   const iconSizes = {
@@ -46,10 +52,19 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
   return (
     <div className={cn('flex items-center', sizeClasses[size], variantClasses[variant], className)}>
       {showIcon && <ResearchCoinIcon size={iconSizes[size]} outlined={variant === 'inline'} />}
-      <span className="text-orange-500">
-        {amount.toLocaleString()}
-        {showText && ' RSC'}
-      </span>
+      {inverted ? (
+        <div className="flex items-center">
+          <span className="text-orange-800 mr-1">{amount.toLocaleString()}</span>
+          {showText && (
+            <span className="text-orange-600 text-xs">RSC{label ? ` ${label}` : ''}</span>
+          )}
+        </div>
+      ) : (
+        <span className="text-orange-500">
+          {amount.toLocaleString()}
+          {showText && ` RSC${label ? ` ${label}` : ''}`}
+        </span>
+      )}
     </div>
   );
 };

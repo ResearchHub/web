@@ -5,7 +5,7 @@ import hljs from 'highlight.js';
 import React, { useEffect, ReactNode, useState } from 'react';
 import { convertQuillDeltaToTipTap } from '@/lib/convertQuillDeltaToTipTap';
 import { Button } from '@/components/ui/Button';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Star } from 'lucide-react';
 import { cn } from '@/utils/styles';
 
 interface CommentReadOnlyProps {
@@ -15,6 +15,43 @@ interface CommentReadOnlyProps {
   contentType?: ContentType;
 }
 
+// Simple read-only stars component for displaying review score
+const ReadOnlyStars = ({ rating }: { rating: number }) => {
+  return (
+    <div className="flex space-x-0.5">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          className={`h-4 w-4 ${
+            star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+          }`}
+        />
+      ))}
+    </div>
+  );
+};
+
+// Review section header component
+const ReviewSectionHeader = ({
+  title,
+  description,
+  rating,
+}: {
+  title: string;
+  description: string;
+  rating: number;
+}) => {
+  return (
+    <div className="mb-4 border-b pb-2">
+      <div className="flex items-center justify-between mb-1">
+        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+        <ReadOnlyStars rating={rating} />
+      </div>
+      {description && <p className="text-sm text-gray-600 italic">{description}</p>}
+    </div>
+  );
+};
+
 export const CommentReadOnly = ({
   content,
   comment,
@@ -23,7 +60,7 @@ export const CommentReadOnly = ({
 }: CommentReadOnlyProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Use comment.content if content prop is not provided
+  // Use content prop if provided, otherwise safely access comment?.content
   const contentToRender = content || comment?.content;
   const formatToUse = contentFormat || comment?.contentFormat || 'TIPTAP';
 
@@ -159,7 +196,17 @@ export const CommentReadOnly = ({
     for (let i = 0; i < tipTapContent.content.length; i++) {
       const node = tipTapContent.content[i];
 
-      if (node.type === 'paragraph') {
+      if (node.type === 'sectionHeader') {
+        // Render review section header
+        result.push(
+          <ReviewSectionHeader
+            key={`section-${i}`}
+            title={node.attrs.title}
+            description={node.attrs.description}
+            rating={node.attrs.rating}
+          />
+        );
+      } else if (node.type === 'paragraph') {
         if (isInList) {
           // End current list
           result.push(

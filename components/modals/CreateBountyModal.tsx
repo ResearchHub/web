@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, Transition, Listbox } from '@headlessui/react';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Search } from '@/components/Search/Search';
@@ -16,6 +16,7 @@ import {
   Sparkles,
   Star,
   Calendar,
+  MessageCircle,
 } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -25,6 +26,7 @@ import { Currency } from '@/types/root';
 import { BountyType } from '@/types/bounty';
 import { BalanceInfo } from './BalanceInfo';
 import { useSession } from 'next-auth/react';
+import { CommentEditor } from '@/components/Comment/CommentEditor';
 
 interface CreateBountyModalProps {
   isOpen: boolean;
@@ -218,7 +220,7 @@ const BountyTypeSelector = ({
 }) => {
   const options = [
     {
-      value: 'peer_review',
+      value: 'REVIEW',
       label: 'Peer Review',
       icon: <Star className="w-5 h-5" />,
       description: 'Get expert feedback on methodology and findings',
@@ -437,6 +439,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
   const [otherDescription, setOtherDescription] = useState('');
   const [isFeesExpanded, setIsFeesExpanded] = useState(false);
   const [customDate, setCustomDate] = useState('');
+  const [editorContent, setEditorContent] = useState<any>(null);
   const RSC_TO_USD = 1;
   const userBalance = session?.user?.balance || 0;
 
@@ -460,6 +463,9 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
         return date.toISOString();
       })();
 
+      // Log the editor content before submitting
+      console.log('Submitting bounty with editor content:', editorContent);
+
       await createComment({
         commentType: 'GENERIC_COMMENT',
         workId: workId || selectedPaper?.id || '',
@@ -468,6 +474,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
         privacyType: 'PUBLIC',
         expirationDate: expirationDate,
         contentType: 'paper', // TODO. what type do we want to use here?
+        content: editorContent?.content,
       });
     } catch (error) {
       // Error is handled by the hook
@@ -482,6 +489,13 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
       // TODO: Add success toast notification if needed
     }
   }, [commentData, onClose]);
+
+  // Add a useEffect to log the editor content whenever it changes
+  useEffect(() => {
+    if (editorContent) {
+      console.log('Editor content state updated:', editorContent);
+    }
+  }, [editorContent]);
 
   const handlePaperSelect = (paper: SearchSuggestion) => {
     if (paper.entityType === 'paper') {
@@ -523,6 +537,21 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
 
   const getRscAmount = () => {
     return currency === 'RSC' ? inputAmount : inputAmount / RSC_TO_USD;
+  };
+
+  const handleEditorContent = (content: any) => {
+    setEditorContent(content);
+    // Don't actually submit the form when the editor's submit button is clicked
+  };
+
+  const handleEditorUpdate = (content: any) => {
+    console.log('Editor content updated:', content);
+    // Update the state with the latest content
+    setEditorContent(content);
+  };
+
+  const handleContinue = () => {
+    setStep('payment');
   };
 
   const renderDetailsStep = () => (
@@ -621,6 +650,41 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
           </div>
         </div>
 
+        {/* Additional Information Section */}
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <MessageCircle className="w-5 h-5 text-gray-500" />
+            <label className="block text-sm font-semibold text-gray-700">
+              Additional Information
+            </label>
+            <span className="text-sm text-gray-500">(Optional)</span>
+          </div>
+          <p className="text-sm text-gray-600 mb-3">
+            Provide more details about what you're looking for in the bounty submissions.
+          </p>
+          <div className="border border-gray-200 rounded-lg bounty-editor">
+            <style jsx>{`
+              /* Hide the submit button in the editor */
+              :global(.bounty-editor .border-t) {
+                display: none;
+              }
+            `}</style>
+            <CommentEditor
+              onSubmit={handleEditorContent}
+              onUpdate={handleEditorUpdate}
+              placeholder="Add more details about your bounty requirements..."
+              commentType="GENERIC_COMMENT"
+              onCancel={() => {}} // Empty function as we don't want to cancel
+            />
+          </div>
+          {editorContent && editorContent.content && (
+            <div className="mt-2 text-xs text-green-600 flex items-center">
+              <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+              Content saved - {new Date().toLocaleTimeString()}
+            </div>
+          )}
+        </div>
+
         <Button
           type="button"
           variant="default"
@@ -630,7 +694,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
             (bountyType === 'GENERIC_COMMENT' && !otherDescription)
           }
           className="w-full h-12 text-base"
-          onClick={() => setStep('payment')}
+          onClick={handleContinue}
         >
           Continue
         </Button>
@@ -654,6 +718,8 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
     const incFee = Math.floor(rscAmount * 0.07);
     const baseAmount = rscAmount - platformFee;
     const insufficientBalance = userBalance < rscAmount;
+    const hasAdditionalInfo =
+      editorContent && editorContent.content && Object.keys(editorContent.content).length > 0;
 
     return (
       <div className="p-6">
@@ -665,6 +731,40 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
         />
 
         <div className="space-y-6">
+          {/* Bounty Summary */}
+          <div>
+            <div className="mb-2">
+              <h3 className="text-sm font-semibold text-gray-900">Bounty Summary</h3>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4 space-y-3 border border-gray-200">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-700">Type:</span>
+                <span className="text-gray-900 font-medium">
+                  {bountyType === 'REVIEW' ? 'Peer Review' : 'Other'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-700">Amount:</span>
+                <span className="text-gray-900 font-medium">{rscAmount.toLocaleString()} RSC</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-700">Duration:</span>
+                <span className="text-gray-900 font-medium">
+                  {bountyLength === 'custom' ? customDate : `${bountyLength} days`}
+                </span>
+              </div>
+              {hasAdditionalInfo && (
+                <div className="pt-2 border-t border-gray-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MessageCircle className="w-4 h-4 text-gray-500" />
+                    <span className="text-gray-700">Additional Information:</span>
+                  </div>
+                  <div className="text-sm text-gray-600 italic">Additional details provided</div>
+                </div>
+              )}
+            </div>
+          </div>
+
           <AddRscSection />
 
           <div>

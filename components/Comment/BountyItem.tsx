@@ -5,6 +5,8 @@ import { formatDeadline, formatTimestamp } from '@/utils/date';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { RSCBadge } from '@/components/ui/RSCBadge';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
   Clock,
   Calendar,
@@ -14,6 +16,8 @@ import {
   Users,
   CheckCircle,
   MessageCircle,
+  Plus,
+  FileText,
 } from 'lucide-react';
 import { CommentReadOnly } from './CommentReadOnly';
 import { useState } from 'react';
@@ -24,6 +28,7 @@ import {
   faCheckCircle,
   faEye,
   faCommentDots,
+  faFileLines,
 } from '@fortawesome/free-solid-svg-icons';
 import { faTrophy } from '@fortawesome/pro-light-svg-icons';
 import { Avatar } from '@/components/ui/Avatar';
@@ -127,22 +132,10 @@ export const BountyItem = ({
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">{getBountyTitle()}</h3>
           <div className="flex items-center gap-2">
-            {!isOpen && (
-              <div className="flex items-center gap-1.5 text-green-700 bg-green-50 border border-green-100 px-3 py-1.5 rounded-md text-sm">
-                <div className="w-2 h-2 rounded-full bg-green-500 mr-1.5"></div>
-                <span>Awarded</span>
-              </div>
-            )}
+            {/* Status badge - show for both open and closed bounties */}
+            <StatusBadge status={isOpen ? 'open' : 'closed'} />
             {/* RSC Amount */}
-            <div className="flex items-center border border-orange-100 bg-orange-50 rounded-md px-3 py-1.5">
-              <div className="flex items-center">
-                <ResearchCoinIcon size={16} />
-                <span className="ml-1 text-orange-800 text-sm mr-1">
-                  {formatRSC({ amount: totalAmount })}
-                </span>
-                <span className="text-orange-600 text-xs">RSC</span>
-              </div>
-            </div>
+            <RSCBadge amount={totalAmount} inverted={true} />
           </div>
         </div>
 
@@ -152,7 +145,7 @@ export const BountyItem = ({
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="flex items-center gap-2">
               <FontAwesomeIcon icon={faTrophy} className="h-3.5 w-3.5 text-gray-500" />
-              <div className="text-sm font-medium text-gray-500">Awarded by</div>
+              <div className="text-sm font-medium text-gray-500">Created by</div>
             </div>
             <div className="mt-2">
               <div className="flex items-center gap-2">
@@ -231,9 +224,17 @@ export const BountyItem = ({
         </div>
 
         {/* Content */}
-        <div className="pt-0">
-          <CommentReadOnly content={comment.content} contentFormat={comment.contentFormat} />
-        </div>
+        {comment.content && Object.keys(comment.content).length > 0 && (
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center gap-2">
+              <FontAwesomeIcon icon={faFileLines} className="h-3.5 w-3.5 text-gray-500" />
+              <div className="text-sm font-medium text-gray-500">Details</div>
+            </div>
+            <div className="mt-2">
+              <CommentReadOnly content={comment.content} contentFormat={comment.contentFormat} />
+            </div>
+          </div>
+        )}
 
         {/* Action buttons */}
         <div className="flex items-center justify-between">
@@ -246,12 +247,22 @@ export const BountyItem = ({
                   className="flex items-center gap-2"
                 >
                   <FontAwesomeIcon icon={faTrophy} className="text-white h-4 w-4" />
-                  Award
+                  Award bounty
                 </Button>
               ) : (
-                <Button variant="start-task" onClick={onSubmitSolution}>
-                  Start
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="start-task" onClick={onSubmitSolution}>
+                    Start
+                  </Button>
+                  <Button
+                    variant="contribute"
+                    onClick={() => setShowContributorsModal(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Contribute
+                  </Button>
+                </div>
               )
             ) : (
               hasSolutions && (
@@ -299,13 +310,13 @@ export const BountyItem = ({
                   </div>
                   <div className="flex items-center gap-3">
                     {solution.awardedAmount && (
-                      <div className="flex items-center gap-1.5">
-                        <ResearchCoinIcon className="h-4 w-4" />
-                        <span className="text-sm font-medium text-orange-600">
-                          {formatRSC({ amount: parseFloat(solution.awardedAmount), shorten: true })}{' '}
-                          RSC
-                        </span>
-                      </div>
+                      <RSCBadge
+                        amount={parseFloat(solution.awardedAmount)}
+                        size="xs"
+                        variant="inline"
+                        inverted={true}
+                        label="awarded"
+                      />
                     )}
                     <Button
                       variant="ghost"
@@ -331,9 +342,13 @@ export const BountyItem = ({
                 <div className="flex justify-end mt-2">
                   <div className="text-sm text-gray-600">
                     Total awarded:{' '}
-                    <span className="font-medium text-orange-600">
-                      {formatRSC({ amount: totalAwardedAmount, shorten: true })} RSC
-                    </span>
+                    <RSCBadge
+                      amount={totalAwardedAmount}
+                      size="xs"
+                      variant="inline"
+                      inverted={true}
+                      label="awarded"
+                    />
                   </div>
                 </div>
               )}

@@ -67,6 +67,7 @@ export interface CommentEditorProps {
   onSubmit: (content: any) => void;
   onCancel?: () => void;
   onReset?: () => void;
+  onUpdate?: (content: any) => void;
   placeholder?: string;
   initialContent?: string | { type: 'doc'; content: any[] };
   isReadOnly?: boolean;
@@ -78,6 +79,7 @@ export const CommentEditor = ({
   onSubmit,
   onCancel,
   onReset,
+  onUpdate,
   placeholder = 'Write a comment...',
   initialContent = '',
   isReadOnly = false,
@@ -136,7 +138,7 @@ export const CommentEditor = ({
           ]
         : []),
     ],
-    content: initialContent,
+    content: typeof initialContent === 'string' ? undefined : initialContent,
     editable: !isReadOnly,
     editorProps: {
       attributes: {
@@ -167,7 +169,13 @@ export const CommentEditor = ({
       },
     },
     onUpdate: ({ editor }) => {
-      // Optional: Add any update handlers here
+      if (onUpdate) {
+        const json = editor.getJSON();
+        onUpdate({
+          content: json,
+          rating: isReview ? rating : undefined,
+        });
+      }
     },
     immediatelyRender: false,
   });
