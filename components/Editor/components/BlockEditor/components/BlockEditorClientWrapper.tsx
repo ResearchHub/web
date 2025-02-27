@@ -3,7 +3,7 @@
 import { NotebookPublishProvider } from '@/contexts/NotebookPublishContext';
 import { BlockEditor } from '@/components/Editor/components/BlockEditor/BlockEditor';
 import { useEffect, useState } from 'react';
-import { BlockEditorProps } from './BlockEditor';
+import { BlockEditorProps } from '../BlockEditor';
 export function BlockEditorClientWrapper(props: BlockEditorProps) {
   const [isMounted, setIsMounted] = useState(false);
 

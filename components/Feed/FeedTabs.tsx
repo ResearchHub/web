@@ -5,14 +5,16 @@ import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
 import { Settings } from 'lucide-react';
 import { InterestSelector, Interest } from '@/components/InterestSelector/InterestSelector';
+import { cn } from '@/utils/styles';
 
-type FeedTab = 'for-you' | 'following' | 'popular' | 'latest';
+type FeedTab = 'following' | 'latest';
 
 interface FeedTabsProps {
   activeTab: FeedTab;
   onTabChange: (tab: FeedTab) => void;
   onRefresh?: () => void;
   onCustomizeChange?: (isCustomizing: boolean) => void;
+  isLoading?: boolean;
 }
 
 export const FeedTabs: FC<FeedTabsProps> = ({
@@ -20,21 +22,14 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   onTabChange,
   onRefresh,
   onCustomizeChange,
+  isLoading,
 }) => {
   const [isCustomizing, setIsCustomizing] = useState(false);
 
   const tabs = [
     {
-      id: 'for-you',
-      label: 'For You',
-    },
-    {
       id: 'following',
       label: 'Following',
-    },
-    {
-      id: 'popular',
-      label: 'Popular',
     },
     {
       id: 'latest',
@@ -62,12 +57,18 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   return (
     <div>
       <div className="flex items-center justify-between">
-        <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
+        <Tabs
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          disabled={isLoading}
+        />
         <Button
           variant={isCustomizing ? 'default' : 'ghost'}
           size="sm"
           onClick={() => handleCustomizeClick(!isCustomizing)}
           className="flex items-center gap-2"
+          disabled={isLoading}
         >
           <Settings className="w-5 h-5" />
           Customize

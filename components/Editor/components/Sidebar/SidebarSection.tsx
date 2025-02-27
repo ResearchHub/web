@@ -17,7 +17,7 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
   iconPosition = 'before',
 }) => {
   return (
-    <div className="flex items-center justify-between px-2 mb-1">
+    <div className="flex items-center justify-between px-2 mb-1 group">
       <div className="flex items-center gap-2">
         {Icon && iconPosition === 'before' && <Icon className="w-3.5 h-3.5 text-gray-400" />}
         <span className="text-[11px] font-medium tracking-wider text-gray-500 uppercase">

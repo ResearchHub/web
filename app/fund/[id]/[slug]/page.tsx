@@ -10,7 +10,8 @@ import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import type { WorkMetadata } from '@/services/metadata.service';
 import { FundItem } from '@/components/Fund/FundItem';
 import { WorkLineItems } from '@/components/work/WorkLineItems';
-import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/BlockEditorClientWrapper';
+import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
+import { removeTitleFromHTML } from '@/components/Editor/lib/utils/documentTitle';
 
 interface Props {
   params: Promise<{
@@ -85,34 +86,13 @@ function FundingDocument({ work, metadata, content }: FundingDocumentProps) {
         />
       )}
 
-      {/* Debug section */}
-      <details className="mb-8">
-        <summary className="cursor-pointer text-gray-600">Debug Info</summary>
-        <div className="space-y-4">
-          <div>
-            <h3 className="font-semibold mb-2">Work Data:</h3>
-            <pre className="bg-gray-100 p-4 rounded-lg overflow-auto">
-              {JSON.stringify(work, null, 2)}
-            </pre>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2">Metadata:</h3>
-            <pre className="bg-gray-100 p-4 rounded-lg overflow-auto">
-              {JSON.stringify(metadata, null, 2)}
-            </pre>
-          </div>
-        </div>
-      </details>
-
       {/* Content section */}
-      {work.note?.contentJson ? (
+      {work.previewContent ? (
         <div className="h-full">
-          <BlockEditorClientWrapper contentJson={work.note?.contentJson} editable={false} />
+          <BlockEditorClientWrapper content={work.previewContent} editable={false} />
         </div>
       ) : content ? (
         <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content }} />
-      ) : work.previewContent ? (
-        <div className="prose max-w-none whitespace-pre-wrap">{work.previewContent}</div>
       ) : (
         <p className="text-gray-500">No content available</p>
       )}

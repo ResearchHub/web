@@ -1,13 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { NoteService, NoteError } from '@/services/note.service';
 import type { NoteWithContent, Note, NoteAccess, NoteContent } from '@/types/note';
 import { ID } from '@/types/root';
+import { Editor } from '@tiptap/react';
+import { debounce, DebouncedFunc } from 'lodash';
+import { getDocumentTitleFromEditor } from '@/components/Editor/lib/utils/documentTitle';
 
-export interface UseNoteReturn {
+export interface UseNoteOptions {
+  sendImmediately?: boolean;
+}
+
+interface UseNoteState {
   note: NoteWithContent | null;
   isLoading: boolean;
   error: Error | null;
 }
+
+type FetchNoteFn = () => Promise<void>;
+type UseNoteReturn = [UseNoteState, FetchNoteFn];
 
 /**
  * Custom hook to fetch and manage note data.
@@ -33,57 +43,38 @@ export interface UseNoteReturn {
  * ```
  *
  * @param noteId - The ID of the note to fetch
- * @param initialNote - Optional initial note metadata to prevent unnecessary fetching
  * @returns UseNoteReturn object containing note data and loading state
  */
-export function useNote(noteId: string | null, initialNote?: Note): UseNoteReturn {
+export function useNote(
+  noteId: string,
+  options: UseNoteOptions = { sendImmediately: true }
+): UseNoteReturn {
   const [note, setNote] = useState<NoteWithContent | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
+  const fetch = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-    async function fetchNote() {
-      if (!noteId) {
-        setNote(null);
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const noteData = await NoteService.getNote(noteId);
-
-        if (!isMounted) return;
-
-        setNote(noteData);
-      } catch (err) {
-        if (!isMounted) return;
-        setError(err instanceof Error ? err : new Error('Failed to fetch note'));
-        setNote(null);
-      } finally {
-        if (!isMounted) return;
-        setIsLoading(false);
-      }
+      const noteData = await NoteService.getNote(noteId);
+      setNote(noteData);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to fetch note'));
+      setNote(null);
+    } finally {
+      setIsLoading(false);
     }
-
-    fetchNote();
-
-    return () => {
-      isMounted = false;
-      controller.abort();
-    };
   }, [noteId]);
 
-  return {
-    note,
-    isLoading,
-    error,
-  };
+  useEffect(() => {
+    if (options.sendImmediately !== false) {
+      fetch();
+    }
+  }, [fetch, options.sendImmediately]);
+
+  return [{ note, isLoading, error }, fetch];
 }
 
 interface CreateNoteInput {
@@ -208,4 +199,86 @@ export const useDeleteNote = (): UseDeleteNoteReturn => {
   };
 
   return [{ isLoading, error }, deleteNote];
+};
+
+interface UseUpdateNoteState {
+  isLoading: boolean;
+  error: Error | null;
+}
+
+interface UpdateNoteOptions {
+  onTitleUpdate?: (newTitle: string) => void;
+  debounceMs?: number;
+}
+
+type UpdateNoteFn = (editor: Editor) => void;
+type UseUpdateNoteReturn = [UseUpdateNoteState, UpdateNoteFn];
+
+export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseUpdateNoteReturn => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const titleRef = useRef<string>('');
+
+  const debouncedUpdate = useRef<DebouncedFunc<(editor: Editor) => Promise<void>>>(
+    debounce(async (editor: Editor) => {
+      const json = editor.getJSON();
+      const html = editor.getHTML();
+      const newTitle = getDocumentTitleFromEditor(editor) || '';
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const promises: Promise<any>[] = [];
+
+        // Only update title if it changed
+        if (newTitle !== titleRef.current) {
+          titleRef.current = newTitle;
+          promises.push(
+            NoteService.updateNoteTitle({
+              noteId,
+              title: newTitle,
+            }).then(() => {
+              options.onTitleUpdate?.(newTitle);
+            })
+          );
+        }
+
+        // Always update content
+        promises.push(
+          NoteService.updateNoteContent({
+            note: noteId,
+            full_src: html,
+            plain_text: editor.getText(),
+            full_json: JSON.stringify(json),
+          })
+        );
+
+        await Promise.all(promises);
+      } catch (err) {
+        const errorMsg = err instanceof NoteError ? err.message : 'Failed to update note';
+        const error = new Error(errorMsg);
+        setError(error);
+        console.error('Error updating note:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }, options.debounceMs ?? 2000)
+  );
+
+  const updateNote = useCallback(
+    (editor: Editor) => {
+      debouncedUpdate.current(editor);
+    },
+    [noteId]
+  );
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      debouncedUpdate.current.cancel();
+    };
+  }, []);
+
+  return [{ isLoading, error }, updateNote];
 };

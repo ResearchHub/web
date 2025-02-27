@@ -57,13 +57,16 @@ export function useAuthenticatedAction() {
     throw new Error('useAuthenticatedAction must be used within AuthModalProvider');
   }
 
-  const executeAuthenticatedAction = (action: () => void) => {
-    if (session) {
-      action();
-    } else {
-      authModal.showAuthModal(action);
-    }
-  };
+  const executeAuthenticatedAction = useCallback(
+    (action: () => void) => {
+      if (session) {
+        action();
+      } else {
+        authModal.showAuthModal(action);
+      }
+    },
+    [session, authModal]
+  );
 
   return { executeAuthenticatedAction };
 }

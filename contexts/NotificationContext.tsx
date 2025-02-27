@@ -75,13 +75,17 @@ function AuthenticatedNotificationProvider({ children }: { children: React.React
     }
   }, [notificationData.next, loading]);
 
-  const refreshUnreadCount = useCallback(async () => {
+  const refreshUnreadCount = async () => {
     try {
       const response = await NotificationService.getUnreadCount();
       setUnreadCount(response.count);
     } catch (error) {
       console.error('Failed to fetch unread count:', error);
     }
+  };
+
+  useEffect(() => {
+    refreshUnreadCount();
   }, []);
 
   const markAllAsRead = useCallback(async () => {
@@ -102,10 +106,6 @@ function AuthenticatedNotificationProvider({ children }: { children: React.React
     }
   }, []);
 
-  useEffect(() => {
-    refreshUnreadCount();
-  }, [refreshUnreadCount]);
-
   return (
     <NotificationContext.Provider
       value={{
@@ -113,11 +113,11 @@ function AuthenticatedNotificationProvider({ children }: { children: React.React
         loading,
         error,
         unreadCount,
+        isLoadingMore,
         refreshUnreadCount,
         fetchNotifications,
         fetchNextPage,
         markAllAsRead,
-        isLoadingMore,
         setIsLoadingMore,
       }}
     >
@@ -137,11 +137,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           loading: false,
           error: null,
           unreadCount: 0,
+          isLoadingMore: false,
           refreshUnreadCount: async () => {},
           fetchNotifications: async () => {},
           fetchNextPage: async () => {},
           markAllAsRead: async () => {},
-          isLoadingMore: false,
           setIsLoadingMore: () => {},
         }}
       >
@@ -152,5 +152,4 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   return <AuthenticatedNotificationProvider>{children}</AuthenticatedNotificationProvider>;
 }
-
 export const useNotifications = () => useContext(NotificationContext);

@@ -10,7 +10,7 @@ export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration';
 
 export type AuthorPosition = 'first' | 'middle' | 'last';
 
-export type ContentType = 'post' | 'paper' | 'preregistration';
+export type ContentType = 'post' | 'paper' | 'preregistration' | 'question' | 'discussion';
 
 export type FlagReasonKey =
   | 'LOW_QUALITY'
@@ -90,12 +90,6 @@ export const transformJournal = (raw: any): TransformedJournal | undefined => {
   }))(raw);
 };
 
-export const transformTopic = createTransformer<any, Topic>((raw) => ({
-  id: raw.id,
-  name: raw.name,
-  slug: raw.slug,
-}));
-
 export const transformDocumentVersion = createTransformer<any, DocumentVersion>((raw) => ({
   workId: raw.paper_id,
   version: raw.version,
@@ -150,7 +144,8 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
 
 export const transformPost = createTransformer<any, Work>((raw) => ({
   ...transformWork(raw),
-  contentType: 'post',
+  contentType:
+    raw.unified_document?.document_type === 'PREREGISTRATION' ? 'preregistration' : 'post',
   note: raw.note ? transformNoteWithContent(raw.note) : undefined,
   publishedDate: raw.created_date, // Posts use created_date for both
   previewContent: raw.full_markdown,
@@ -162,5 +157,5 @@ export const transformPost = createTransformer<any, Work>((raw) => ({
 
 export const transformPaper = createTransformer<any, Work>((raw) => ({
   ...transformWork(raw),
-  contentType: raw.work_type === 'preregistration' ? 'preregistration' : 'paper',
+  contentType: 'paper',
 }));

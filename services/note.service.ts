@@ -2,6 +2,7 @@ import { ApiClient } from './client';
 import { transformNote, transformNoteContent, transformNoteWithContent } from '@/types/note';
 import type { Note, NoteAccess, NoteContent, NoteWithContent } from '@/types/note';
 import { ID } from '@/types/root';
+import { ApiError } from './types';
 
 export class NoteError extends Error {
   constructor(
@@ -33,6 +34,11 @@ export interface UpdateNoteContentParams {
   full_json?: string;
 }
 
+export interface UpdateNoteTitleParams {
+  noteId: ID;
+  title: string;
+}
+
 export class NoteService {
   private static readonly BASE_PATH = '/api';
 
@@ -50,10 +56,9 @@ export class NoteService {
       const response = await ApiClient.get<any>(`${this.BASE_PATH}/note/${noteId}/`);
       return transformNoteWithContent(response);
     } catch (error) {
-      throw new NoteError(
-        'Failed to fetch note content',
-        error instanceof Error ? error.message : 'UNKNOWN_ERROR'
-      );
+      const { data = {} } = error instanceof ApiError ? JSON.parse(error.message) : {};
+      const errorMsg = data?.detail || 'Failed to fetch note content';
+      throw new NoteError(errorMsg);
     }
   }
 
@@ -151,6 +156,29 @@ export class NoteService {
     } catch (error) {
       throw new NoteError(
         'Failed to delete note',
+        error instanceof Error ? error.message : 'UNKNOWN_ERROR'
+      );
+    }
+  }
+
+  /**
+   * Updates a note's title
+   * @param params - The note title update parameters
+   * @throws {NoteError} When the request fails or parameters are invalid
+   */
+  static async updateNoteTitle(params: UpdateNoteTitleParams): Promise<NoteWithContent> {
+    if (!params.noteId || !params.title) {
+      throw new NoteError('Missing required parameters', 'INVALID_PARAMS');
+    }
+
+    try {
+      const response = await ApiClient.patch<any>(`${this.BASE_PATH}/note/${params.noteId}/`, {
+        title: params.title,
+      });
+      return transformNoteWithContent(response);
+    } catch (error) {
+      throw new NoteError(
+        'Failed to update note title',
         error instanceof Error ? error.message : 'UNKNOWN_ERROR'
       );
     }

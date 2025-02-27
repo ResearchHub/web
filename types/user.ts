@@ -10,6 +10,7 @@ export interface User {
   fullName: string;
   isVerified: boolean;
   authorProfile?: AuthorProfile;
+  balance: number;
 }
 
 export type TransformedUser = User & BaseTransformed;
@@ -23,6 +24,7 @@ const baseTransformUser = (raw: any): User => ({
   fullName: raw.first_name + (raw.last_name ? ' ' + raw.last_name : ''),
   isVerified: raw.is_verified || false,
   authorProfile: undefined,
+  balance: raw.balance || 0,
 });
 
 // Export the wrapped transformer that handles circular references

@@ -15,6 +15,7 @@ export const users: Record<string, AuthorProfile> = {
       lastName: 'Foundation',
       fullName: 'ResearchHub Foundation',
       isVerified: true,
+      balance: 1000,
     },
   },
   dominikus: {
@@ -31,6 +32,7 @@ export const users: Record<string, AuthorProfile> = {
       lastName: 'Brian',
       fullName: 'Dominikus Brian',
       isVerified: true,
+      balance: 1000,
     },
   },
   bioRxiv: {
@@ -47,6 +49,7 @@ export const users: Record<string, AuthorProfile> = {
       lastName: 'CSHL',
       fullName: 'bioRxiv (Cold Spring Harbor Laboratory)',
       isVerified: true,
+      balance: 1000,
     },
   },
   adamDraper: {
@@ -62,6 +65,7 @@ export const users: Record<string, AuthorProfile> = {
       lastName: 'Draper',
       fullName: 'Adam Draper',
       isVerified: true,
+      balance: 1000,
     },
   },
   elenaRodriguez: {
@@ -78,6 +82,7 @@ export const users: Record<string, AuthorProfile> = {
       lastName: 'Rodriguez',
       fullName: 'Dr. Elena Rodriguez',
       isVerified: true,
+      balance: 1000,
     },
   },
   hundessaNemomssa: {
@@ -94,6 +99,7 @@ export const users: Record<string, AuthorProfile> = {
       lastName: 'Nemomssa',
       fullName: 'Hundessa Nemomssa',
       isVerified: true,
+      balance: 1000,
     },
   },
   alexThompson: {
@@ -110,6 +116,7 @@ export const users: Record<string, AuthorProfile> = {
       lastName: 'Thompson',
       fullName: 'Alex Thompson',
       isVerified: true,
+      balance: 1000,
     },
   },
   sarahChen: {
@@ -126,6 +133,7 @@ export const users: Record<string, AuthorProfile> = {
       lastName: 'Chen',
       fullName: 'Sarah Chen',
       isVerified: true,
+      balance: 1000,
     },
   },
   mariaGarcia: {
@@ -142,6 +150,7 @@ export const users: Record<string, AuthorProfile> = {
       lastName: 'Garcia',
       fullName: 'Maria Garcia',
       isVerified: true,
+      balance: 1000,
     },
   },
   davidKumar: {
@@ -158,6 +167,7 @@ export const users: Record<string, AuthorProfile> = {
       lastName: 'Kumar',
       fullName: 'David Kumar',
       isVerified: true,
+      balance: 1000,
     },
   },
   jamesWilson: {
@@ -174,6 +184,7 @@ export const users: Record<string, AuthorProfile> = {
       lastName: 'Wilson',
       fullName: 'James Wilson',
       isVerified: false,
+      balance: 1000,
     },
   },
   mariaPatel: {
@@ -190,6 +201,7 @@ export const users: Record<string, AuthorProfile> = {
       lastName: 'Patel',
       fullName: 'Maria Patel',
       isVerified: true,
+      balance: 1000,
     },
   },
   stanfordAILab: {
@@ -205,6 +217,7 @@ export const users: Record<string, AuthorProfile> = {
       lastName: 'AI Lab',
       fullName: 'Stanford AI Lab',
       isVerified: true,
+      balance: 1000,
     },
   },
   climateResearchInstitute: {
@@ -221,6 +234,7 @@ export const users: Record<string, AuthorProfile> = {
       lastName: 'Institute',
       fullName: 'Climate Research Institute',
       isVerified: true,
+      balance: 1000,
     },
   },
   openBiologyInitiative: {
@@ -236,6 +250,7 @@ export const users: Record<string, AuthorProfile> = {
       lastName: 'Initiative',
       fullName: 'Open Biology Initiative',
       isVerified: true,
+      balance: 1000,
     },
   },
   nationalScienceFoundation: {
@@ -251,6 +266,7 @@ export const users: Record<string, AuthorProfile> = {
       lastName: 'Foundation',
       fullName: 'National Science Foundation',
       isVerified: true,
+      balance: 1000,
     },
   },
 };

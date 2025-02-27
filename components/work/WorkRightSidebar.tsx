@@ -120,12 +120,13 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
               {displayedTopics.map((topic) => (
-                <div
+                <Link
                   key={topic.id}
-                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                  href={`/topic/${topic.slug}`}
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors"
                 >
                   {topic.name}
-                </div>
+                </Link>
               ))}
             </div>
             {hasMoreTopics && (

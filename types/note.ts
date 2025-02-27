@@ -2,8 +2,16 @@ import type { Organization } from './organization';
 import { createTransformer, BaseTransformed } from './transformer';
 import { transformOrganization } from './organization';
 import { ID } from './root';
-
+import { ContentType } from './work';
+import { Fundraise, transformFundraise } from './funding';
 export type NoteAccess = 'WORKSPACE' | 'PRIVATE' | 'SHARED';
+
+export type Post = {
+  id: number;
+  slug: string;
+  contentType: ContentType;
+  fundraise?: Fundraise;
+};
 
 export interface Note {
   id: number;
@@ -13,6 +21,7 @@ export interface Note {
   updatedDate: string;
   title: string;
   isRemoved: boolean;
+  post: Post | null;
 }
 
 export interface NoteWithContent extends Note {
@@ -39,6 +48,15 @@ export interface NoteApiItem {
 
 export type TransformedNote = Note & BaseTransformed;
 
+export const transformPost = createTransformer<any, Post>((raw) => ({
+  id: raw.id,
+  slug: raw.slug,
+  contentType: raw.document_type.toLowerCase() === 'preregistration' ? 'preregistration' : 'post',
+  fundraise: raw.unified_document?.fundraise
+    ? transformFundraise(raw.unified_document.fundraise)
+    : undefined,
+}));
+
 export const transformNote = createTransformer<any, Note>((raw) => ({
   id: raw.id,
   access: raw.access,
@@ -47,6 +65,7 @@ export const transformNote = createTransformer<any, Note>((raw) => ({
   updatedDate: raw.updated_date,
   title: raw.title,
   isRemoved: raw.unifiedDocument?.isRemoved || false,
+  post: raw.post ? transformPost(raw.post) : null,
 }));
 
 export const transformNoteWithContent = createTransformer<any, NoteWithContent>((raw) => ({
