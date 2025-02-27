@@ -63,6 +63,9 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
         documentId: work.id,
         voteType: wasUpvoted ? 'neutralvote' : 'upvote',
       });
+
+      setVoteCount((prevCount) => (wasUpvoted ? prevCount - 1 : prevCount + 1));
+
       await refreshVotes();
     } catch (error) {
       toast.error(
