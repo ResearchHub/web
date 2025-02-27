@@ -60,8 +60,6 @@ interface FundingDocumentProps {
 }
 
 function FundingDocument({ work, metadata, content }: FundingDocumentProps) {
-  console.log('metadata', metadata);
-
   return (
     <div className="p-8">
       <div className="mb-8">
@@ -106,7 +104,6 @@ export default async function FundingProjectPage({ params }: Props) {
 
   // First fetch the work to get the unifiedDocumentId
   const work = await getFundingProject(id);
-  console.log('work', work);
 
   // Then fetch metadata using unifiedDocumentId
   const metadata = await MetadataService.get(work.unifiedDocumentId.toString());
