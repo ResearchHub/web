@@ -6,7 +6,7 @@ import { createTransformer, BaseTransformed } from './transformer';
 
 export type FeedActionType = 'repost' | 'contribute' | 'open' | 'publish' | 'post';
 
-export type ContentType = 'bounty' | 'funding_request' | 'paper' | 'post';
+export type ContentType = 'bounty' | 'comment' | 'funding_request' | 'paper' | 'post';
 
 interface BaseContent {
   id: string;
@@ -24,6 +24,15 @@ export interface Bounty extends BaseContent {
   amount: number;
   paper?: Paper;
   title: string;
+}
+
+export interface Comment extends BaseContent {
+  type: 'comment';
+  contentJson: string;
+  contentType: string;
+  commentType: string;
+  parentId: number;
+  threadId: number;
 }
 
 export interface Paper extends BaseContent {
@@ -53,7 +62,7 @@ export interface FundingRequest extends BaseContent {
   preregistered?: boolean;
 }
 
-export type Content = Bounty | FundingRequest | Paper | Post;
+export type Content = Bounty | Comment | FundingRequest | Paper | Post;
 
 export interface FeedEntry {
   id: string;
@@ -137,6 +146,18 @@ const baseTransformContentObject = (params: { response: FeedResponse; type: stri
         title: contentObject.title,
       };
       return bounty;
+    }
+    case 'rhcommentmodel': {
+      const comment: Comment = {
+        ...baseContent,
+        type: 'comment',
+        contentJson: contentObject.comment_content_json,
+        contentType: contentObject.comment_content_type,
+        commentType: contentObject.comment_type,
+        parentId: contentObject.parent_id,
+        threadId: contentObject.thread_id,
+      };
+      return comment;
     }
     case 'paper': {
       const paper: Paper = {
