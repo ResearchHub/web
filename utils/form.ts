@@ -9,7 +9,7 @@ import { FieldError, FieldErrors } from 'react-hook-form';
  * @returns A string error message or undefined if no error
  */
 export function getFieldErrorMessage(
-  error: FieldError | FieldErrors | undefined,
+  error: any,
   fallbackMessage = 'Invalid input'
 ): string | undefined {
   if (!error) return undefined;
@@ -34,7 +34,7 @@ export function getFieldErrorMessage(
     for (const key in error) {
       const nestedError = error[key as keyof typeof error];
       const nestedMessage = getFieldErrorMessage(
-        nestedError as FieldError | FieldErrors,
+        nestedError,
         undefined // Don't use fallback for nested calls to avoid duplicates
       );
       if (nestedMessage) return nestedMessage;

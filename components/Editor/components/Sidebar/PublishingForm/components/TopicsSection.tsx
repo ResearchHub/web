@@ -1,14 +1,10 @@
 import { useFormContext } from 'react-hook-form';
 import { Tag } from 'lucide-react';
 import { SectionHeader } from './SectionHeader';
-import {
-  MultiSelectOption,
-  SearchableMultiSelect,
-} from '@/components/ui/form/SearchableMultiSelect';
-import { useCallback, useEffect } from 'react';
+import { SearchableMultiSelect } from '@/components/ui/form/SearchableMultiSelect';
+import { useCallback } from 'react';
 import { HubService } from '@/services/hub.service';
 import { getFieldErrorMessage } from '@/utils/form';
-import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 
 export function TopicsSection() {
   const {
@@ -32,7 +28,7 @@ export function TopicsSection() {
       <SectionHeader icon={Tag}>Topics</SectionHeader>
       <SearchableMultiSelect
         value={topics}
-        onChange={(newTopics) => setValue('topics', newTopics)}
+        onChange={(newTopics) => setValue('topics', newTopics, { shouldValidate: true })}
         onSearch={handleSearch}
         placeholder="Search topics..."
         debounceMs={500}
