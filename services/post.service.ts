@@ -1,14 +1,9 @@
 import { ApiClient } from './client';
 import { Work, transformPost } from '@/types/work';
 import sanitizeHtml, { Attributes } from 'sanitize-html';
-import { ApiError } from './types';
 
 interface GetContentOptions {
   cleanIntroEmptyContent?: boolean;
-}
-
-interface PostOptions {
-  formData: FormData;
 }
 
 export class PostService {
@@ -19,8 +14,8 @@ export class PostService {
     return transformPost(response);
   }
 
-  static async post({ formData }: PostOptions): Promise<Work> {
-    const response = await ApiClient.post<any>(`${this.BASE_PATH}/`, formData);
+  static async upsert(payload: any): Promise<Work> {
+    const response = await ApiClient.post<any>(`${this.BASE_PATH}/`, payload);
 
     return transformPost(response);
   }

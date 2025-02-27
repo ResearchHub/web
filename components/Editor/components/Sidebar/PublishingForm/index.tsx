@@ -185,7 +185,6 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         {
           budget: formData.budget || '0',
           rewardFunders: formData.rewardFunders,
-          nftArt: formData.nftArt || null,
           nftSupply: formData.nftSupply || '1000',
           title,
           noteId: noteId,
