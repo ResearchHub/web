@@ -27,6 +27,8 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
     switch (content.type) {
       case 'bounty':
         return `${action}ed a bounty for ${formatRSC({ amount: content.amount, shorten: true })} RSC`;
+      case 'comment':
+        return `posted a comment`;
       case 'paper':
       case 'post':
         return `${action}ed a ${content.type.replace('_', ' ')}`;
@@ -38,6 +40,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   const getAvatarItems = () => {
     switch (content.type) {
       case 'bounty':
+      case 'comment':
       case 'post':
         return [
           {
@@ -60,6 +63,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   const getAuthors = () => {
     switch (content.type) {
       case 'bounty':
+      case 'comment':
       case 'post':
         return [
           {

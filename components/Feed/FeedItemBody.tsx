@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, useState } from 'react';
-import { Bounty, Content, FeedEntry, Paper, Post } from '@/types/feed';
+import { Bounty, Comment, Content, FeedEntry, Paper, Post } from '@/types/feed';
 import { Button } from '@/components/ui/Button';
 import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
@@ -55,6 +55,8 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
       switch (item.type) {
         case 'bounty':
           return renderBounty(item, expandedPaperIds.has(item.id), () => toggleExpanded(item.id));
+        case 'comment':
+          return renderComment(item, expandedPaperIds.has(item.id), () => toggleExpanded(item.id));
         case 'paper':
           return renderPaper(item, expandedPaperIds.has(item.id), () => toggleExpanded(item.id));
         case 'post':
@@ -67,7 +69,11 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
     if (!itemContent) return null;
 
     const isCard =
-      isTarget || item.type === 'bounty' || item.type === 'paper' || item.type === 'post';
+      isTarget ||
+      item.type === 'bounty' ||
+      item.type === 'comment' ||
+      item.type === 'paper' ||
+      item.type === 'post';
 
     const renderCard = (children: React.ReactNode) => {
       if (!isCard) return children;
@@ -89,6 +95,13 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
       return renderPaper(bounty.paper, isExpanded, onToggleExpand);
     }
     return <div>An amount of {bounty.amount} has been added to the bounty.</div>;
+  };
+  const renderComment = (comment: Comment, isExpanded: boolean, onToggleExpand: () => void) => {
+    const jsonContent =
+      comment.contentType === 'QUILL_EDITOR'
+        ? (comment.contentJson as any)?.ops?.[0]?.insert
+        : 'FIXME';
+    return renderExpandableContent('comment', null, jsonContent || '', isExpanded, onToggleExpand);
   };
 
   const renderPost = (post: Post, isExpanded: boolean, onToggleExpand: () => void) => {
@@ -113,8 +126,8 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
   };
 
   const renderExpandableContent = (
-    type: 'post' | 'paper',
-    title: string,
+    type: 'comment' | 'post' | 'paper',
+    title: string | null,
     summary: string,
     isExpanded: boolean,
     onToggleExpand: () => void,
@@ -154,9 +167,11 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
             </div>
           )}
         </div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
-          {title}
-        </h3>
+        {title && (
+          <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
+            {title}
+          </h3>
+        )}
         <div className="text-sm text-gray-800">
           <p>{isExpanded ? summary : truncateSummary(summary)}</p>
           {isSummaryTruncated && (
