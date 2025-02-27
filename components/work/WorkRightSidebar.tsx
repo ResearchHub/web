@@ -1,11 +1,7 @@
 'use client';
 
 import { Work } from '@/types/work';
-import { Settings, X, User } from 'lucide-react';
 import type { WorkMetadata } from '@/services/metadata.service';
-import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { ResearchCoinIcon } from '../ui/icons/ResearchCoinIcon';
 import { HaveYouPublishedBanner } from '@/components/banners/HaveYouPublishedBanner';
 import { PublishInJournalBanner } from '@/components/banners/PublishInJournalBanner';
 import { MetricsSection } from './components/MetricsSection';
@@ -28,7 +24,7 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
       <MetricsSection metrics={metadata.metrics} />
       <TopicsSection topics={metadata.topics || []} />
       {work.doi && <DOISection doi={work.doi} />}
-      {work.license && <LicenseSection license={work.license} />}
+      <LicenseSection license={work.license} />
       <FormatsSection formats={work.formats} />
     </div>
   );

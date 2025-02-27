@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { cn } from '@/utils/styles';
 import { Avatar } from '@/components/ui/Avatar';
 import { Journal } from '@/types/journal';
+import { useRouter } from 'next/navigation';
 
 interface FeedItemBodyProps {
   content: Content;
@@ -33,6 +34,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
   metrics,
   hideTypeLabel,
 }) => {
+  const router = useRouter();
   const [showFundModal, setShowFundModal] = useState(false);
   const [expandedPaperIds, setExpandedPaperIds] = useState<Set<string | number>>(new Set());
 
@@ -132,12 +134,15 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
             {type}
           </div>
           {journal && (
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border border-gray-200 bg-gray-50 hover:bg-gray-200 transition-colors">
-              <a
-                href={`/journal/${journal.slug}`}
-                onClick={(e) => e.stopPropagation()}
-                className="flex items-center gap-1.5"
-              >
+            <div
+              className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border border-gray-200 bg-gray-50 hover:bg-gray-200 transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                router.push(`/journal/${journal.slug}`);
+              }}
+            >
+              <div className="flex items-center gap-1.5">
                 <Avatar
                   src={journal.imageUrl}
                   alt={journal.slug}
@@ -145,7 +150,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
                   className="ring-1 ring-gray-200"
                 />
                 <span className="text-gray-700">{journal.name}</span>
-              </a>
+              </div>
             </div>
           )}
         </div>

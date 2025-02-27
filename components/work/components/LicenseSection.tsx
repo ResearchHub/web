@@ -1,7 +1,7 @@
 import { Scale } from 'lucide-react';
 
 interface LicenseSectionProps {
-  license: string;
+  license?: string;
 }
 
 export const LicenseSection = ({ license }: LicenseSectionProps) => {
