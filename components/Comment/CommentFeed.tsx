@@ -12,6 +12,7 @@ import { Star, Zap, ArrowUp, ChevronDown, Plus, Filter } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
+import { CommentSkeleton } from '@/components/skeletons/CommentSkeleton';
 
 type SortOption = {
   label: string;
@@ -257,8 +258,11 @@ export const CommentFeed = ({
         )}
 
         {isLoadingComments ? (
-          <div className="text-center py-4">
-            <div className="animate-pulse">Loading comments...</div>
+          <div className="space-y-4">
+            {/* Render multiple skeleton items based on comment type */}
+            {Array.from({ length: 3 }).map((_, index) => (
+              <CommentSkeleton key={index} commentType={commentType} />
+            ))}
           </div>
         ) : (
           <>

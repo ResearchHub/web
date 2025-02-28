@@ -58,11 +58,10 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
                     <div>
                       <h2 className="text-sm font-medium text-orange-900">
                         {(() => {
-                          // Calculate total amount from all bounties (including contributions)
-                          const totalAmount = metadata.bounties.reduce(
-                            (sum, bounty) => sum + parseFloat(bounty.amount),
-                            0
-                          );
+                          // Calculate total amount from only OPEN bounties
+                          const totalAmount = metadata.bounties
+                            .filter((bounty) => bounty.status === 'OPEN' && !bounty.isContribution)
+                            .reduce((sum, bounty) => sum + parseFloat(bounty.amount), 0);
                           return `${formatRSC({ amount: totalAmount })} RSC Bounties Available`;
                         })()}
                       </h2>

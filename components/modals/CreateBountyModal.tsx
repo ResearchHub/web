@@ -1,6 +1,6 @@
 'use client';
 
-import { Dialog, Transition, Listbox } from '@headlessui/react';
+import { Dialog, Transition, Listbox, RadioGroup as HeadlessRadioGroup } from '@headlessui/react';
 import { Fragment, useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
@@ -9,8 +9,6 @@ import { SearchSuggestion } from '@/types/search';
 import {
   ArrowLeft,
   ChevronDown,
-  CreditCard,
-  ArrowDownToLine,
   Users,
   MessageCircleQuestion,
   Sparkles,
@@ -27,6 +25,7 @@ import { BountyType } from '@/types/bounty';
 import { BalanceInfo } from './BalanceInfo';
 import { useSession } from 'next-auth/react';
 import { CommentEditor } from '@/components/Comment/CommentEditor';
+import { Switch } from '@headlessui/react';
 
 interface CreateBountyModalProps {
   isOpen: boolean;
@@ -210,105 +209,6 @@ const DatePicker = ({ value, onChange }: { value: string; onChange: (value: stri
   );
 };
 
-// Bounty Type Selector
-const BountyTypeSelector = ({
-  selected,
-  onChange,
-}: {
-  selected: BountyType;
-  onChange: (value: BountyType) => void;
-}) => {
-  const options = [
-    {
-      value: 'REVIEW',
-      label: 'Peer Review',
-      icon: <Star className="w-5 h-5" />,
-      description: 'Get expert feedback on methodology and findings',
-    },
-    {
-      value: 'question',
-      label: 'Answer to Question',
-      icon: <MessageCircleQuestion className="w-5 h-5" />,
-      description: 'Ask a specific question about the research',
-    },
-    {
-      value: 'other',
-      label: 'Other',
-      icon: <Sparkles className="w-5 h-5" />,
-      description: 'Custom bounty for other research tasks',
-    },
-  ];
-
-  const selectedOption = options.find((option) => option.value === selected) || options[0];
-
-  return (
-    <div className="relative">
-      <Listbox value={selected} onChange={onChange}>
-        <Listbox.Button className="relative w-full cursor-pointer rounded-lg border border-gray-200 bg-white py-3 pl-4 pr-10 text-left focus:outline-none focus:ring-2 focus:ring-indigo-400 sm:text-sm">
-          <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 text-indigo-500">{selectedOption.icon}</div>
-            <div>
-              <span className="block font-medium text-gray-900">{selectedOption.label}</span>
-              <span className="block text-sm text-gray-500">{selectedOption.description}</span>
-            </div>
-          </div>
-          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
-            <ChevronDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
-          </span>
-        </Listbox.Button>
-
-        <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-          {options.map((option) => (
-            <Listbox.Option
-              key={option.value}
-              value={option.value}
-              className={({ active, selected }) =>
-                cn(
-                  'relative cursor-pointer select-none py-3 pl-4 pr-9',
-                  active ? 'bg-indigo-50' : 'bg-white',
-                  'hover:bg-indigo-50'
-                )
-              }
-            >
-              {({ selected }) => (
-                <div className="flex items-center gap-3">
-                  <div
-                    className={cn('flex-shrink-0', selected ? 'text-indigo-500' : 'text-gray-400')}
-                  >
-                    {option.icon}
-                  </div>
-                  <div>
-                    <span
-                      className={cn(
-                        'block font-medium text-gray-900',
-                        selected && 'text-indigo-600'
-                      )}
-                    >
-                      {option.label}
-                    </span>
-                    <span className="block text-sm text-gray-500">{option.description}</span>
-                  </div>
-                  {selected && (
-                    <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-indigo-500">
-                      <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </span>
-                  )}
-                </div>
-              )}
-            </Listbox.Option>
-          ))}
-        </Listbox.Options>
-      </Listbox>
-    </div>
-  );
-};
-
 // Fee Breakdown Component (reused from FundResearchModal)
 const FeeBreakdown = ({
   totalAmount,
@@ -389,44 +289,6 @@ const FeeBreakdown = ({
   </div>
 );
 
-// Payment Option Button component
-const PaymentOption = ({
-  icon,
-  title,
-  subtitle,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  subtitle?: string;
-}) => (
-  <button className="flex flex-col items-center justify-center p-4 border border-gray-200 rounded-lg hover:border-gray-300 w-full">
-    <div className="text-gray-700 mb-2">{icon}</div>
-    <span className="text-sm font-medium text-gray-900">{title}</span>
-    {subtitle && <span className="text-xs text-gray-500">{subtitle}</span>}
-  </button>
-);
-
-// Add RSC Section component
-const AddRscSection = () => (
-  <div>
-    <div className="mb-2">
-      <span className="text-sm font-semibold text-gray-700">Add more ResearchCoin</span>
-    </div>
-    <div className="grid grid-cols-2 gap-2">
-      <PaymentOption
-        icon={<CreditCard className="w-5 h-5" />}
-        title="Buy or Swap"
-        subtitle="Card, ETH, Apple Pay"
-      />
-      <PaymentOption
-        icon={<ArrowDownToLine className="w-5 h-5" />}
-        title="Deposit"
-        subtitle="From an external wallet"
-      />
-    </div>
-  </div>
-);
-
 export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModalProps) {
   const { data: session } = useSession();
   const [step, setStep] = useState<Step>('details');
@@ -434,12 +296,13 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [inputAmount, setInputAmount] = useState(0);
   const [currency, setCurrency] = useState<Currency>('RSC');
-  const [bountyLength, setBountyLength] = useState<BountyLength>('14');
+  const [bountyLength, setBountyLength] = useState<BountyLength>('30');
   const [bountyType, setBountyType] = useState<BountyType>('REVIEW');
   const [otherDescription, setOtherDescription] = useState('');
   const [isFeesExpanded, setIsFeesExpanded] = useState(false);
   const [customDate, setCustomDate] = useState('');
   const [editorContent, setEditorContent] = useState<any>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const RSC_TO_USD = 1;
   const userBalance = session?.user?.balance || 0;
 
@@ -595,14 +458,101 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
           </div>
         )}
 
-        {/* Bounty Type Section */}
+        {/* Bounty Type Section - Using Headless UI RadioGroup directly */}
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <label className="block text-sm font-semibold text-gray-700">
-              What is this bounty for?
-            </label>
-          </div>
-          <BountyTypeSelector selected={bountyType} onChange={setBountyType} />
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            What is this bounty for?
+          </label>
+          <HeadlessRadioGroup
+            value={bountyType}
+            onChange={(value) => setBountyType(value as BountyType)}
+          >
+            <div className="space-y-2">
+              <HeadlessRadioGroup.Option
+                value="REVIEW"
+                className={({ checked }) =>
+                  cn(
+                    'relative flex cursor-pointer rounded-lg border p-4 focus:outline-none',
+                    checked
+                      ? 'border-indigo-600 bg-indigo-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  )
+                }
+              >
+                {({ checked }) => (
+                  <div className="flex w-full items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="text-sm">
+                        <HeadlessRadioGroup.Label
+                          as="p"
+                          className={cn(
+                            'font-medium',
+                            checked ? 'text-indigo-900' : 'text-gray-900'
+                          )}
+                        >
+                          Peer Review
+                        </HeadlessRadioGroup.Label>
+                        <HeadlessRadioGroup.Description
+                          as="span"
+                          className={cn(
+                            'inline text-sm',
+                            checked ? 'text-indigo-700' : 'text-gray-500'
+                          )}
+                        >
+                          Get expert feedback on methodology and findings
+                        </HeadlessRadioGroup.Description>
+                      </div>
+                    </div>
+                    <div className={cn('shrink-0 text-indigo-500', !checked && 'invisible')}>
+                      <Star className="h-5 w-5" />
+                    </div>
+                  </div>
+                )}
+              </HeadlessRadioGroup.Option>
+
+              <HeadlessRadioGroup.Option
+                value="question"
+                className={({ checked }) =>
+                  cn(
+                    'relative flex cursor-pointer rounded-lg border p-4 focus:outline-none',
+                    checked
+                      ? 'border-indigo-600 bg-indigo-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  )
+                }
+              >
+                {({ checked }) => (
+                  <div className="flex w-full items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="text-sm">
+                        <HeadlessRadioGroup.Label
+                          as="p"
+                          className={cn(
+                            'font-medium',
+                            checked ? 'text-indigo-900' : 'text-gray-900'
+                          )}
+                        >
+                          Answer to Question
+                        </HeadlessRadioGroup.Label>
+                        <HeadlessRadioGroup.Description
+                          as="span"
+                          className={cn(
+                            'inline text-sm',
+                            checked ? 'text-indigo-700' : 'text-gray-500'
+                          )}
+                        >
+                          Ask a specific question about the research
+                        </HeadlessRadioGroup.Description>
+                      </div>
+                    </div>
+                    <div className={cn('shrink-0 text-indigo-500', !checked && 'invisible')}>
+                      <MessageCircleQuestion className="h-5 w-5" />
+                    </div>
+                  </div>
+                )}
+              </HeadlessRadioGroup.Option>
+            </div>
+          </HeadlessRadioGroup>
           {bountyType === 'GENERIC_COMMENT' && (
             <div className="mt-3">
               <Input
@@ -628,29 +578,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
           />
         </div>
 
-        {/* Bounty Length Section */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Bounty Length</label>
-          <BountyLengthSelector selected={bountyLength} onChange={setBountyLength} />
-          {bountyLength === 'custom' && <DatePicker value={customDate} onChange={setCustomDate} />}
-        </div>
-
-        {/* Target Audience Section */}
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Users className="w-5 h-5 text-gray-500" />
-            <label className="block text-sm font-semibold text-gray-700">Target Audience</label>
-            <span className="text-sm text-gray-500">(Optional)</span>
-          </div>
-          <p className="text-sm text-gray-600 mb-3">
-            Target specific users for your grant. If none selected, we'll auto-match relevant users.
-          </p>
-          <div className="relative">
-            <Input placeholder="Search for research fields..." className="w-full" />
-          </div>
-        </div>
-
-        {/* Additional Information Section */}
+        {/* Additional Information Section - Moved up */}
         <div>
           <div className="flex items-center gap-2 mb-2">
             <MessageCircle className="w-5 h-5 text-gray-500" />
@@ -685,6 +613,60 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
           )}
         </div>
 
+        {/* Advanced Options Toggle */}
+        <div className="border-t border-gray-200 pt-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700">Advanced options</span>
+            </div>
+            <Switch
+              checked={showAdvanced}
+              onChange={setShowAdvanced}
+              className={`${
+                showAdvanced ? 'bg-indigo-600' : 'bg-gray-200'
+              } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2`}
+            >
+              <span
+                className={`${
+                  showAdvanced ? 'translate-x-6' : 'translate-x-1'
+                } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+              />
+            </Switch>
+          </div>
+        </div>
+
+        {/* Advanced Options Section - Hidden by default */}
+        {showAdvanced && (
+          <div className="space-y-6 pt-2">
+            {/* Bounty Length Section */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Bounty Length
+              </label>
+              <BountyLengthSelector selected={bountyLength} onChange={setBountyLength} />
+              {bountyLength === 'custom' && (
+                <DatePicker value={customDate} onChange={setCustomDate} />
+              )}
+            </div>
+
+            {/* Target Audience Section */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Users className="w-5 h-5 text-gray-500" />
+                <label className="block text-sm font-semibold text-gray-700">Target Audience</label>
+                <span className="text-sm text-gray-500">(Optional)</span>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">
+                Target specific users for your grant. If none selected, we'll auto-match relevant
+                users.
+              </p>
+              <div className="relative">
+                <Input placeholder="Search for research fields..." className="w-full" />
+              </div>
+            </div>
+          </div>
+        )}
+
         <Button
           type="button"
           variant="default"
@@ -698,15 +680,6 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
         >
           Continue
         </Button>
-
-        <Alert variant="info">
-          <div className="flex items-center gap-3">
-            <span>
-              If no solution satisfies your request, the full bounty amount (excluding platform fee)
-              will be refunded to you
-            </span>
-          </div>
-        </Alert>
       </div>
     </div>
   );
@@ -740,7 +713,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
               <div className="flex justify-between items-center">
                 <span className="text-gray-700">Type:</span>
                 <span className="text-gray-900 font-medium">
-                  {bountyType === 'REVIEW' ? 'Peer Review' : 'Other'}
+                  {bountyType === 'REVIEW' ? 'Peer Review' : 'Answer to Question'}
                 </span>
               </div>
               <div className="flex justify-between items-center">
@@ -764,8 +737,6 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
               )}
             </div>
           </div>
-
-          <AddRscSection />
 
           <div>
             <div className="mb-2">
@@ -797,6 +768,16 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
           >
             {isCreatingBounty ? 'Creating Bounty...' : 'Create Bounty'}
           </Button>
+
+          {/* Moved refund banner below the CTA button */}
+          <Alert variant="info">
+            <div className="flex items-center gap-3">
+              <span>
+                If no solution satisfies your request, the full bounty amount (excluding platform
+                fee) will be refunded to you
+              </span>
+            </div>
+          </Alert>
         </div>
       </div>
     );
