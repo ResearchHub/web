@@ -31,11 +31,13 @@ import {
   Link2,
   ImageIcon,
   AtSign,
+  Save,
 } from 'lucide-react';
 import { ReviewExtension, ReviewStars } from './lib/ReviewExtension';
 import { ReviewCategories, ReviewCategory } from './lib/ReviewCategories';
 import { createRoot } from 'react-dom/client';
 import { toast } from 'react-hot-toast';
+import { useCommentDraft } from './lib/useCommentDraft';
 
 const lowlight = createLowlight();
 lowlight.register('javascript', javascript);
@@ -73,6 +75,7 @@ export interface CommentEditorProps {
   isReadOnly?: boolean;
   commentType?: CommentType;
   initialRating?: number;
+  storageKey?: string;
 }
 
 export const CommentEditor = ({
@@ -85,6 +88,7 @@ export const CommentEditor = ({
   isReadOnly = false,
   commentType = 'GENERIC_COMMENT',
   initialRating = 0,
+  storageKey = 'comment-editor-draft',
 }: CommentEditorProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
@@ -94,8 +98,25 @@ export const CommentEditor = ({
   const [rating, setRating] = useState(initialRating);
   const [sectionRatings, setSectionRatings] = useState<Record<string, number>>({});
   const editorRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<any>(null);
+  const isFirstRender = useRef(true);
 
   const isReview = commentType === 'REVIEW';
+
+  const { lastSaved, saveStatus, formatLastSaved, saveDraft, clearDraft, loadedContent } =
+    useCommentDraft({
+      storageKey,
+      isReadOnly,
+      initialContent,
+      isReview,
+      initialRating,
+      onRatingLoaded: (loadedRating) => {
+        setRating(loadedRating);
+      },
+      onSectionRatingsLoaded: (loadedSectionRatings) => {
+        setSectionRatings(loadedSectionRatings);
+      },
+    });
 
   const editor = useEditor({
     extensions: [
@@ -169,35 +190,70 @@ export const CommentEditor = ({
       },
     },
     onUpdate: ({ editor }) => {
-      if (onUpdate) {
+      if (!isReadOnly) {
         const json = editor.getJSON();
-        onUpdate({
-          content: json,
-          rating: isReview ? rating : undefined,
-        });
+        contentRef.current = json;
+
+        // Save draft using the hook
+        saveDraft(json, rating, sectionRatings);
+
+        // Call the original onUpdate if provided
+        if (onUpdate) {
+          onUpdate({
+            content: json,
+            rating: isReview ? rating : undefined,
+          });
+        }
       }
     },
     immediatelyRender: false,
   });
 
+  // Set initial content if provided or load from localStorage
   useEffect(() => {
-    if (editor && initialContent) {
-      editor.commands.setContent(initialContent);
+    if (!editor || isReadOnly) return;
+
+    // Only run this effect once after editor is initialized
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+
+      if (loadedContent && (!initialContent || initialContent === '')) {
+        // Load content from localStorage
+        editor.commands.setContent(loadedContent);
+      } else if (initialContent) {
+        // Set initial content if provided
+        editor.commands.setContent(initialContent);
+      }
     }
-  }, [editor, initialContent]);
+  }, [editor, initialContent, loadedContent, isReadOnly]);
+
+  // Update draft when rating changes, but only if content exists
+  useEffect(() => {
+    if (editor && !isReadOnly && isReview && contentRef.current) {
+      saveDraft(contentRef.current, rating, sectionRatings);
+    }
+  }, [rating, sectionRatings]); // Removed dependencies that could cause loops
 
   const handleSectionRatingChange = (rating: number, sectionId: string) => {
-    setSectionRatings((prev) => ({
-      ...prev,
-      [sectionId]: rating,
-    }));
+    setSectionRatings((prev) => {
+      const newRatings = {
+        ...prev,
+        [sectionId]: rating,
+      };
+
+      // If we have content, save the draft with updated ratings
+      if (editor && contentRef.current) {
+        saveDraft(contentRef.current, rating, newRatings);
+      }
+
+      return newRatings;
+    });
   };
 
   const handleSubmit = async () => {
     if (!editor || !editor.getText().trim()) return;
     if (isReview && rating === 0) return;
 
-    // Collect all section ratings from the editor content
     const sectionRatings: Record<string, number> = {};
     let overallRating = rating;
 
@@ -211,7 +267,6 @@ export const CommentEditor = ({
         }
       });
 
-      // Check if all sections have ratings
       const hasUnratedSections = Object.values(sectionRatings).some((rating) => rating === 0);
       if (hasUnratedSections) {
         toast.error('Please rate all sections before submitting.');
@@ -228,6 +283,9 @@ export const CommentEditor = ({
         sectionRatings:
           isReview && Object.keys(sectionRatings).length > 0 ? sectionRatings : undefined,
       });
+
+      clearDraft();
+
       editor.commands.clearContent();
       if (isReview) {
         setRating(0);
@@ -259,7 +317,6 @@ export const CommentEditor = ({
     if (!editor) return;
 
     if (selectedLink && editor.isActive('link')) {
-      // We're editing an existing link
       editor
         .chain()
         .focus()
@@ -274,9 +331,7 @@ export const CommentEditor = ({
         })
         .run();
     } else if (text) {
-      // Creating a new link with text (either provided or selected)
       if (editor.state.selection.empty) {
-        // No text selected, insert new
         editor
           .chain()
           .focus()
@@ -292,7 +347,6 @@ export const CommentEditor = ({
           })
           .run();
       } else {
-        // Text is selected, convert to link
         editor
           .chain()
           .focus()
@@ -309,7 +363,6 @@ export const CommentEditor = ({
           .run();
       }
     } else {
-      // Just updating the URL of selected text
       editor.chain().focus().setLink({ href: url }).run();
     }
 
@@ -326,12 +379,10 @@ export const CommentEditor = ({
   const handleAddReviewCategory = (category: ReviewCategory) => {
     if (!editor) return;
 
-    // Add a line break if we're not at the start of the document
     if (editor.getText().length > 0) {
       editor.chain().focus().setHardBreak().run();
     }
 
-    // Create the document fragment with proper order
     const content = {
       type: 'doc',
       content: [
@@ -616,15 +667,32 @@ export const CommentEditor = ({
         )}
       </div>
       {!isReadOnly && (
-        <div className="border-t px-4 py-2 flex justify-end gap-2">
-          {onCancel && (
-            <Button onClick={onCancel} variant="ghost" size="sm">
-              Cancel
+        <div className="border-t px-4 py-2 flex justify-between items-center">
+          <div className="text-sm text-gray-500 flex items-center">
+            {saveStatus === 'saving' && (
+              <>
+                <Save className="h-3 w-3 mr-1 animate-pulse" />
+                <span>Saving...</span>
+              </>
+            )}
+            {saveStatus === 'saved' && lastSaved && (
+              <>
+                <Save className="h-3 w-3 mr-1" />
+                <span>Last saved: {formatLastSaved()}</span>
+              </>
+            )}
+          </div>
+
+          <div className="flex gap-2">
+            {onCancel && (
+              <Button onClick={onCancel} variant="ghost" size="sm">
+                Cancel
+              </Button>
+            )}
+            <Button onClick={handleSubmit} disabled={!editor?.getText().trim() || isSubmitting}>
+              {isSubmitting ? 'Submitting...' : 'Submit'}
             </Button>
-          )}
-          <Button onClick={handleSubmit} disabled={!editor.getText().trim() || isSubmitting}>
-            {isSubmitting ? 'Submitting...' : 'Submit'}
-          </Button>
+          </div>
         </div>
       )}
 
