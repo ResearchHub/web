@@ -596,6 +596,15 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
               :global(.bounty-editor .border-t) {
                 display: none;
               }
+
+              /* Add custom scrollbar styling for the toolbar */
+              :global(.scrollbar-hide) {
+                -ms-overflow-style: none; /* IE and Edge */
+                scrollbar-width: none; /* Firefox */
+              }
+              :global(.scrollbar-hide::-webkit-scrollbar) {
+                display: none; /* Chrome, Safari and Opera */
+              }
             `}</style>
             <CommentEditor
               onSubmit={handleEditorContent}
@@ -603,6 +612,8 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
               placeholder="Add more details about your bounty requirements..."
               commentType="GENERIC_COMMENT"
               onCancel={() => {}} // Empty function as we don't want to cancel
+              compactToolbar={true} // Enable compact toolbar mode
+              storageKey={`bounty-editor-draft-${workId || 'new'}`} // Unique storage key
             />
           </div>
           {editorContent && editorContent.content && (

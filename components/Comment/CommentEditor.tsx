@@ -32,6 +32,9 @@ import {
   ImageIcon,
   AtSign,
   Save,
+  MoreHorizontal,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { ReviewExtension, ReviewStars } from './lib/ReviewExtension';
 import { ReviewCategories, ReviewCategory } from './lib/ReviewCategories';
@@ -76,6 +79,7 @@ export interface CommentEditorProps {
   commentType?: CommentType;
   initialRating?: number;
   storageKey?: string;
+  compactToolbar?: boolean;
 }
 
 export const CommentEditor = ({
@@ -89,6 +93,7 @@ export const CommentEditor = ({
   commentType = 'GENERIC_COMMENT',
   initialRating = 0,
   storageKey = 'comment-editor-draft',
+  compactToolbar = false,
 }: CommentEditorProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
@@ -100,6 +105,25 @@ export const CommentEditor = ({
   const editorRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<any>(null);
   const isFirstRender = useRef(true);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close more menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(event.target as Node)) {
+        setShowMoreMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const isReview = commentType === 'REVIEW';
 
@@ -234,21 +258,68 @@ export const CommentEditor = ({
     }
   }, [rating, sectionRatings]); // Removed dependencies that could cause loops
 
-  const handleSectionRatingChange = (rating: number, sectionId: string) => {
-    setSectionRatings((prev) => {
-      const newRatings = {
-        ...prev,
-        [sectionId]: rating,
-      };
+  // Check if toolbar can scroll
+  const checkToolbarScroll = useCallback(() => {
+    if (toolbarRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = toolbarRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth);
+    }
+  }, []);
 
-      // If we have content, save the draft with updated ratings
-      if (editor && contentRef.current) {
-        saveDraft(contentRef.current, rating, newRatings);
-      }
+  // Scroll toolbar left or right
+  const scrollToolbar = useCallback((direction: 'left' | 'right') => {
+    if (toolbarRef.current) {
+      const scrollAmount = 150; // Adjust as needed
+      const currentScroll = toolbarRef.current.scrollLeft;
+      toolbarRef.current.scrollTo({
+        left: direction === 'left' ? currentScroll - scrollAmount : currentScroll + scrollAmount,
+        behavior: 'smooth',
+      });
+    }
+  }, []);
 
-      return newRatings;
+  // Update scroll indicators when toolbar content changes
+  useEffect(() => {
+    checkToolbarScroll();
+
+    // Add resize observer to check scroll when window resizes
+    const resizeObserver = new ResizeObserver(() => {
+      checkToolbarScroll();
     });
-  };
+
+    if (toolbarRef.current) {
+      resizeObserver.observe(toolbarRef.current);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [checkToolbarScroll]);
+
+  // Add scroll event listener to toolbar
+  useEffect(() => {
+    const toolbar = toolbarRef.current;
+    if (toolbar) {
+      toolbar.addEventListener('scroll', checkToolbarScroll);
+      return () => {
+        toolbar.removeEventListener('scroll', checkToolbarScroll);
+      };
+    }
+  }, [checkToolbarScroll]);
+
+  // Add a useEffect to ensure editor is properly initialized
+  useEffect(() => {
+    if (!editor) return;
+
+    // Force editor to update after mounting to ensure styles are applied
+    const timeoutId = setTimeout(() => {
+      editor.commands.focus();
+      editor.commands.blur();
+    }, 50);
+
+    return () => clearTimeout(timeoutId);
+  }, [editor]);
 
   const handleSubmit = async () => {
     if (!editor || !editor.getText().trim()) return;
@@ -411,6 +482,150 @@ export const CommentEditor = ({
     editor.chain().focus().insertContent(content).run();
   };
 
+  // Group toolbar buttons for the dropdown menu
+  const renderToolbarButtons = (inDropdown = false) => {
+    const buttonClasses = inDropdown ? 'w-full justify-start px-3 py-2' : '';
+
+    // Only render buttons if editor exists
+    if (!editor) return null;
+
+    return (
+      <>
+        <Button
+          onClick={() => editor.chain().focus().toggleBold().run()}
+          variant={editor.isActive('bold') ? 'secondary' : 'ghost'}
+          size="sm"
+          tooltip="Bold"
+          className={buttonClasses}
+        >
+          <Bold className="h-4 w-4" />
+          {inDropdown && <span className="ml-2">Bold</span>}
+        </Button>
+        <Button
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+          variant={editor.isActive('italic') ? 'secondary' : 'ghost'}
+          size="sm"
+          tooltip="Italic"
+          className={buttonClasses}
+        >
+          <Italic className="h-4 w-4" />
+          {inDropdown && <span className="ml-2">Italic</span>}
+        </Button>
+        <Button
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+          variant={editor.isActive('underline') ? 'secondary' : 'ghost'}
+          size="sm"
+          tooltip="Underline"
+          className={buttonClasses}
+        >
+          <UnderlineIcon className="h-4 w-4" />
+          {inDropdown && <span className="ml-2">Underline</span>}
+        </Button>
+        <Button
+          onClick={() => editor.chain().focus().toggleStrike().run()}
+          variant={editor.isActive('strike') ? 'secondary' : 'ghost'}
+          size="sm"
+          tooltip="Strikethrough"
+          className={buttonClasses}
+        >
+          <Strikethrough className="h-4 w-4" />
+          {inDropdown && <span className="ml-2">Strikethrough</span>}
+        </Button>
+
+        {!inDropdown && <div className="w-px h-8 bg-gray-200 shrink-0" />}
+
+        <Button
+          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+          variant={editor.isActive('codeBlock') ? 'secondary' : 'ghost'}
+          size="sm"
+          tooltip="Code Block"
+          className={buttonClasses}
+        >
+          <Code2 className="h-4 w-4" />
+          {inDropdown && <span className="ml-2">Code Block</span>}
+        </Button>
+        <Button
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          variant={editor.isActive('blockquote') ? 'secondary' : 'ghost'}
+          size="sm"
+          tooltip="Quote"
+          className={buttonClasses}
+        >
+          <Quote className="h-4 w-4" />
+          {inDropdown && <span className="ml-2">Quote</span>}
+        </Button>
+
+        {!inDropdown && <div className="w-px h-8 bg-gray-200 shrink-0" />}
+
+        <Button
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          variant={editor.isActive('bulletList') ? 'secondary' : 'ghost'}
+          size="sm"
+          tooltip="Bullet List"
+          className={buttonClasses}
+        >
+          <List className="h-4 w-4" />
+          {inDropdown && <span className="ml-2">Bullet List</span>}
+        </Button>
+        <Button
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          variant={editor.isActive('orderedList') ? 'secondary' : 'ghost'}
+          size="sm"
+          tooltip="Numbered List"
+          className={buttonClasses}
+        >
+          <ListOrdered className="h-4 w-4" />
+          {inDropdown && <span className="ml-2">Numbered List</span>}
+        </Button>
+
+        {!inDropdown && <div className="w-px h-8 bg-gray-200 shrink-0" />}
+
+        <Button
+          onClick={handleLinkAdd}
+          variant={editor?.isActive('link') ? 'secondary' : 'ghost'}
+          size="sm"
+          tooltip="Add Link"
+          className={buttonClasses}
+        >
+          <Link2 className="h-4 w-4" />
+          {inDropdown && <span className="ml-2">Add Link</span>}
+        </Button>
+        <Button
+          onClick={() => setIsImageModalOpen(true)}
+          variant="ghost"
+          size="sm"
+          tooltip="Add Image"
+          className={buttonClasses}
+        >
+          <ImageIcon className="h-4 w-4" />
+          {inDropdown && <span className="ml-2">Add Image</span>}
+        </Button>
+
+        {!inDropdown && <div className="w-px h-8 bg-gray-200 shrink-0" />}
+
+        <Button
+          onClick={() => {
+            editor.chain().focus().insertContent('@').run();
+          }}
+          variant="ghost"
+          size="sm"
+          tooltip="Mention"
+          className={buttonClasses}
+        >
+          <AtSign className="h-4 w-4" />
+          {inDropdown && <span className="ml-2">Mention</span>}
+        </Button>
+
+        {isReview && !inDropdown && (
+          <>
+            <div className="w-px h-8 bg-gray-200 shrink-0" />
+            <ReviewCategories onSelectCategory={handleAddReviewCategory} disabled={isReadOnly} />
+          </>
+        )}
+      </>
+    );
+  };
+
   if (!editor) return null;
 
   return (
@@ -436,6 +651,12 @@ export const CommentEditor = ({
         .ProseMirror li > ul,
         .ProseMirror li > ol {
           margin: 0.5rem 0;
+        }
+
+        /* Force styles to be applied immediately */
+        .editor-initialized .ProseMirror {
+          opacity: 1 !important;
+          visibility: visible !important;
         }
 
         /* Mention styles */
@@ -518,118 +739,66 @@ export const CommentEditor = ({
       `}</style>
       {!isReadOnly && (
         <div className="border-b px-4 py-2">
-          <div className="flex flex-wrap gap-2">
-            <Button
-              onClick={() => editor.chain().focus().toggleBold().run()}
-              variant={editor.isActive('bold') ? 'secondary' : 'ghost'}
-              size="sm"
-              tooltip="Bold"
-            >
-              <Bold className="h-4 w-4" />
-            </Button>
-            <Button
-              onClick={() => editor.chain().focus().toggleItalic().run()}
-              variant={editor.isActive('italic') ? 'secondary' : 'ghost'}
-              size="sm"
-              tooltip="Italic"
-            >
-              <Italic className="h-4 w-4" />
-            </Button>
-            <Button
-              onClick={() => editor.chain().focus().toggleUnderline().run()}
-              variant={editor.isActive('underline') ? 'secondary' : 'ghost'}
-              size="sm"
-              tooltip="Underline"
-            >
-              <UnderlineIcon className="h-4 w-4" />
-            </Button>
-            <Button
-              onClick={() => editor.chain().focus().toggleStrike().run()}
-              variant={editor.isActive('strike') ? 'secondary' : 'ghost'}
-              size="sm"
-              tooltip="Strikethrough"
-            >
-              <Strikethrough className="h-4 w-4" />
-            </Button>
+          <div className="flex items-center">
+            {/* Scroll left button */}
+            {compactToolbar && (
+              <button
+                type="button"
+                onClick={() => scrollToolbar('left')}
+                className={`flex-shrink-0 p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 ${
+                  !canScrollLeft ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                disabled={!canScrollLeft}
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+            )}
 
-            <div className="w-px h-8 bg-gray-200" />
-
-            <Button
-              onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-              variant={editor.isActive('codeBlock') ? 'secondary' : 'ghost'}
-              size="sm"
-              tooltip="Code Block"
+            {/* Scrollable toolbar */}
+            <div
+              ref={toolbarRef}
+              className={`flex gap-2 ${
+                compactToolbar ? 'overflow-x-auto scrollbar-hide' : 'flex-wrap'
+              }`}
+              onScroll={checkToolbarScroll}
             >
-              <Code2 className="h-4 w-4" />
-            </Button>
-            <Button
-              onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              variant={editor.isActive('blockquote') ? 'secondary' : 'ghost'}
-              size="sm"
-              tooltip="Quote"
-            >
-              <Quote className="h-4 w-4" />
-            </Button>
+              {renderToolbarButtons()}
+            </div>
 
-            <div className="w-px h-8 bg-gray-200" />
+            {/* Scroll right button */}
+            {compactToolbar && (
+              <button
+                type="button"
+                onClick={() => scrollToolbar('right')}
+                className={`flex-shrink-0 p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 ${
+                  !canScrollRight ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                disabled={!canScrollRight}
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            )}
 
-            <Button
-              onClick={() => editor.chain().focus().toggleBulletList().run()}
-              variant={editor.isActive('bulletList') ? 'secondary' : 'ghost'}
-              size="sm"
-              tooltip="Bullet List"
-            >
-              <List className="h-4 w-4" />
-            </Button>
-            <Button
-              onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              variant={editor.isActive('orderedList') ? 'secondary' : 'ghost'}
-              size="sm"
-              tooltip="Numbered List"
-            >
-              <ListOrdered className="h-4 w-4" />
-            </Button>
+            {/* More menu button for very small screens */}
+            {compactToolbar && (
+              <div className="relative ml-1" ref={moreMenuRef}>
+                <Button
+                  onClick={() => setShowMoreMenu(!showMoreMenu)}
+                  variant="ghost"
+                  size="sm"
+                  className="flex-shrink-0"
+                >
+                  <MoreHorizontal className="h-5 w-5" />
+                </Button>
 
-            <div className="w-px h-8 bg-gray-200" />
-
-            <Button
-              onClick={handleLinkAdd}
-              variant={editor?.isActive('link') ? 'secondary' : 'ghost'}
-              size="sm"
-              tooltip="Add Link"
-            >
-              <Link2 className="h-4 w-4" />
-            </Button>
-            <Button
-              onClick={() => setIsImageModalOpen(true)}
-              variant="ghost"
-              size="sm"
-              tooltip="Add Image"
-            >
-              <ImageIcon className="h-4 w-4" />
-            </Button>
-
-            <div className="w-px h-8 bg-gray-200" />
-
-            <Button
-              onClick={() => {
-                editor.chain().focus().insertContent('@').run();
-              }}
-              variant="ghost"
-              size="sm"
-              tooltip="Mention"
-            >
-              <AtSign className="h-4 w-4" />
-            </Button>
-
-            {isReview && (
-              <>
-                <div className="w-px h-8 bg-gray-200" />
-                <ReviewCategories
-                  onSelectCategory={handleAddReviewCategory}
-                  disabled={isReadOnly}
-                />
-              </>
+                {showMoreMenu && (
+                  <div className="absolute right-0 mt-1 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                    <div className="py-1 divide-y divide-gray-100">
+                      {renderToolbarButtons(true)}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -644,7 +813,7 @@ export const CommentEditor = ({
           />
         </div>
       )}
-      <div className="relative">
+      <div className={`relative editor-initialized ${compactToolbar ? 'compact-toolbar' : ''}`}>
         <EditorContent editor={editor} />
         {!isReadOnly && linkMenuPosition && editor && selectedLink && (
           <div
