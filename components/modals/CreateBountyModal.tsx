@@ -26,6 +26,7 @@ import { BalanceInfo } from './BalanceInfo';
 import { useSession } from 'next-auth/react';
 import { CommentEditor } from '@/components/Comment/CommentEditor';
 import { Switch } from '@headlessui/react';
+import { toast } from 'react-hot-toast';
 
 interface CreateBountyModalProps {
   isOpen: boolean;
@@ -95,38 +96,61 @@ const CurrencyInput = ({
   currency,
   onCurrencyToggle,
   convertedAmount,
+  suggestedAmount,
 }: {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   currency: Currency;
   onCurrencyToggle: () => void;
   convertedAmount?: string;
-}) => (
-  <div className="relative">
-    <Input
-      name="amount"
-      value={value}
-      onChange={onChange}
-      required
-      label="I am offering"
-      placeholder="0.00"
-      type="text"
-      inputMode="numeric"
-      className="w-full text-left h-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-      rightElement={
-        <button
-          type="button"
-          onClick={onCurrencyToggle}
-          className="flex items-center gap-1 pr-3 text-gray-900 hover:text-gray-600"
-        >
-          <span className="font-medium">{currency}</span>
-          <ChevronDown className="w-4 h-4" />
-        </button>
-      }
-    />
-    {convertedAmount && <div className="mt-1.5 text-sm text-gray-500">{convertedAmount}</div>}
-  </div>
-);
+  suggestedAmount?: string;
+}) => {
+  // Parse the current input amount and suggested amount for comparison
+  const currentAmount = parseFloat(value.replace(/,/g, '')) || 0;
+  const suggestedAmountValue = suggestedAmount
+    ? parseFloat(suggestedAmount.replace(/[^0-9.]/g, ''))
+    : 0;
+
+  // Determine the color based on the comparison
+  const isBelowSuggested = currentAmount < suggestedAmountValue;
+  const suggestedTextColor = !currentAmount
+    ? 'text-gray-500' // Default color when no amount entered
+    : isBelowSuggested
+      ? 'text-orange-500' // Orange if below suggested
+      : 'text-green-500'; // Green if equal or above suggested
+
+  return (
+    <div className="relative">
+      <Input
+        name="amount"
+        value={value}
+        onChange={onChange}
+        required
+        label="I am offering"
+        placeholder="0.00"
+        type="text"
+        inputMode="numeric"
+        className="w-full text-left h-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        rightElement={
+          <button
+            type="button"
+            onClick={onCurrencyToggle}
+            className="flex items-center gap-1 pr-3 text-gray-900 hover:text-gray-600"
+          >
+            <span className="font-medium">{currency}</span>
+            <ChevronDown className="w-4 h-4" />
+          </button>
+        }
+      />
+      {suggestedAmount && (
+        <p className={`mt-1.5 text-xs ${suggestedTextColor}`}>
+          Suggested amount for peer review: {suggestedAmount}
+        </p>
+      )}
+      {convertedAmount && <div className="mt-1.5 text-sm text-gray-500">{convertedAmount}</div>}
+    </div>
+  );
+};
 
 // Bounty Length Selector
 const BountyLengthSelector = ({
@@ -140,7 +164,6 @@ const BountyLengthSelector = ({
     { value: '14', label: '14 days' },
     { value: '30', label: '30 days' },
     { value: '60', label: '60 days' },
-    { value: 'custom', label: 'Custom' },
   ];
 
   const selectedOption = options.find((option) => option.value === selected) || options[0];
@@ -314,11 +337,6 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
       const rscAmount = getRscAmount();
 
       const expirationDate = (() => {
-        if (bountyLength === 'custom' && customDate) {
-          // For custom dates, use the selected date
-          return new Date(customDate).toISOString();
-        }
-
         // For preset lengths (14, 30, 60 days)
         const days = parseInt(bountyLength);
         const date = new Date();
@@ -329,7 +347,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
       // Log the editor content before submitting
       console.log('Submitting bounty with editor content:', editorContent);
 
-      await createComment({
+      const createdComment = await createComment({
         commentType: 'GENERIC_COMMENT',
         workId: workId || selectedPaper?.id || '',
         bountyAmount: rscAmount,
@@ -339,6 +357,11 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
         contentType: 'paper', // TODO. what type do we want to use here?
         content: editorContent?.content,
       });
+
+      if (createdComment) {
+        toast.success('Your bounty has been successfully created.');
+        onClose();
+      }
     } catch (error) {
       // Error is handled by the hook
       console.error('Failed to create bounty:', error);
@@ -347,9 +370,9 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
 
   useEffect(() => {
     if (commentData) {
-      // Bounty was successfully created
+      // This effect is now redundant since we handle success in the handleCreateBounty function
+      // but we'll keep it for backward compatibility
       onClose();
-      // TODO: Add success toast notification if needed
     }
   }, [commentData, onClose]);
 
@@ -575,6 +598,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
             currency={currency}
             onCurrencyToggle={toggleCurrency}
             convertedAmount={getConvertedAmount()}
+            suggestedAmount={bountyType === 'REVIEW' ? '150 USD' : undefined}
           />
         </div>
 
@@ -616,12 +640,6 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
               storageKey={`bounty-editor-draft-${workId || 'new'}`} // Unique storage key
             />
           </div>
-          {editorContent && editorContent.content && (
-            <div className="mt-2 text-xs text-green-600 flex items-center">
-              <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-              Content saved - {new Date().toLocaleTimeString()}
-            </div>
-          )}
         </div>
 
         {/* Advanced Options Toggle */}
@@ -655,9 +673,6 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
                 Bounty Length
               </label>
               <BountyLengthSelector selected={bountyLength} onChange={setBountyLength} />
-              {bountyLength === 'custom' && (
-                <DatePicker value={customDate} onChange={setCustomDate} />
-              )}
             </div>
 
             {/* Target Audience Section */}

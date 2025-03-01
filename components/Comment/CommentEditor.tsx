@@ -466,16 +466,6 @@ export const CommentEditor = ({
             rating: 0,
           },
         },
-        {
-          type: 'paragraph',
-          content: [
-            {
-              type: 'text',
-              text: category.description,
-              marks: [{ type: 'italic' }],
-            },
-          ],
-        },
       ],
     };
 
@@ -657,6 +647,19 @@ export const CommentEditor = ({
         .editor-initialized .ProseMirror {
           opacity: 1 !important;
           visibility: visible !important;
+        }
+
+        /* Review category dropdown styles */
+        [data-radix-popper-content-wrapper] {
+          z-index: 100 !important;
+        }
+
+        /* Ensure line-clamp works */
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
 
         /* Mention styles */

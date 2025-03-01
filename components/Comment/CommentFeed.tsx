@@ -62,7 +62,6 @@ export const CommentFeed = ({
 
   const {
     comments,
-    setComments,
     count,
     isLoading: isLoadingComments,
     error: commentsError,
@@ -133,7 +132,7 @@ export const CommentFeed = ({
       }
 
       // Add the new comment to the list
-      setComments([comment, ...comments]);
+      refresh();
       toast.success('Comment submitted successfully');
 
       // Only reset the editor after successful submission
@@ -275,14 +274,10 @@ export const CommentFeed = ({
                       contentType={contentType}
                       commentType={commentType}
                       onCommentUpdate={(newComment, parentId) => {
-                        const updatedComments = comments.map((c) =>
-                          c.id === newComment.id ? newComment : c
-                        );
-                        setComments(updatedComments);
+                        refresh();
                       }}
                       onCommentDelete={(commentId) => {
-                        const updatedComments = comments.filter((c) => c.id !== commentId);
-                        setComments(updatedComments);
+                        refresh();
                       }}
                       renderCommentActions={renderCommentActions}
                     />

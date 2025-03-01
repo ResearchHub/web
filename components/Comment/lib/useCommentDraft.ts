@@ -146,8 +146,6 @@ export const useCommentDraft = ({
           setLastSaved(new Date(parsedData.timestamp));
           setSaveStatus('saved');
         }
-
-        toast.success('Restored your draft from local storage');
       }
     } catch (error) {
       console.error('Failed to load from localStorage:', error);

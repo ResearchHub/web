@@ -45,12 +45,20 @@ export const ReviewCategories = ({ onSelectCategory, disabled = false }: ReviewC
     <BaseMenu
       align="start"
       trigger={
-        <Button variant="ghost" size="sm" disabled={disabled} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          <span>Add Review Category</span>
-          <ChevronDown className="h-4 w-4 text-gray-500" />
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={disabled}
+          className="flex items-center gap-2 min-w-[160px] justify-between"
+        >
+          <div className="flex items-center gap-1">
+            <Plus className="h-4 w-4" />
+            <span>Add Review Category</span>
+          </div>
+          <ChevronDown className="h-4 w-4 text-gray-500 ml-1" />
         </Button>
       }
+      className="w-[350px] max-h-[400px] overflow-y-auto"
     >
       {REVIEW_CATEGORIES.map((category) => (
         <BaseMenuItem
@@ -59,7 +67,7 @@ export const ReviewCategories = ({ onSelectCategory, disabled = false }: ReviewC
           className="flex flex-col items-start p-3 hover:bg-gray-50"
         >
           <div className="font-medium">{category.title}</div>
-          <div className="text-sm text-gray-600 mt-1">{category.description}</div>
+          <div className="text-sm text-gray-600 mt-1 line-clamp-2">{category.description}</div>
         </BaseMenuItem>
       ))}
     </BaseMenu>

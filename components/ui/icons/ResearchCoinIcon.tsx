@@ -126,15 +126,15 @@ export function ResearchCoinIcon({
     <svg width={size} height={size} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14">
       <defs>
         <linearGradient id="coinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#F97316" />
-          <stop offset="100%" stop-color="#EA580C" />
+          <stop offset="0%" stopColor="#F97316" />
+          <stop offset="100%" stopColor="#EA580C" />
         </linearGradient>
         <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
           <feGaussianBlur stdDeviation="0.3" />
         </filter>
         <radialGradient id="highlightGradient" cx="30%" cy="30%" r="60%" fx="30%" fy="30%">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.4)" />
-          <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+          <stop offset="0%" stopColor="rgba(255,255,255,0.4)" />
+          <stop offset="100%" stopColor="rgba(255,255,255,0)" />
         </radialGradient>
       </defs>
 
@@ -166,7 +166,7 @@ export function ResearchCoinIcon({
         clipRule="evenodd"
         d="M7.96539 1.07912C11.2355 1.61221 13.4541 4.6951 12.9209 7.96525C12.3877 11.2355 9.30472 13.454 6.03461 12.9209C2.7645 12.3876 0.545902 9.30493 1.07911 6.03456C1.61231 2.7643 4.69517 0.545903 7.96539 1.07912Z"
         stroke="rgba(255,255,255,0.6)"
-        stroke-width="0.1"
+        strokeWidth="0.1"
         fill="none"
       />
 
