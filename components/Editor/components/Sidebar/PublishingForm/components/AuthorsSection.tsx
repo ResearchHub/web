@@ -1,23 +1,12 @@
-import { useFormContext } from 'react-hook-form';
-import { Users, Check } from 'lucide-react';
+import { Users, Check, Calendar, GraduationCap, Award } from 'lucide-react';
 import { SectionHeader } from './SectionHeader';
-import { SearchableSelect, SelectOption } from '@/components/ui/form/SearchableSelect';
+import { AutocompleteSelect, SelectOption } from '@/components/ui/form/AutocompleteSelect';
 import { useCallback, useState } from 'react';
 import { SearchService } from '@/services/search.service';
-import { getFieldErrorMessage } from '@/utils/form';
 import { SuggestedAuthor } from '@/types/authorProfile';
 import { cn } from '@/utils/styles';
-import Image from 'next/image';
 
 export function AuthorsSection() {
-  // const {
-  //   watch,
-  //   setValue,
-  //   formState: { errors },
-  // } = useFormContext();
-
-  // const author = watch('author') || null;
-
   const [author, setAuthor] = useState<SuggestedAuthor | null>(null);
 
   const handleSearch = useCallback(async (query: string) => {
@@ -29,24 +18,52 @@ export function AuthorsSection() {
     }));
   }, []);
 
+  // Mock function to create a new author
+  const handleCreateNewAuthor = useCallback(async (name: string) => {
+    console.log(`Creating new author: ${name}`);
+
+    // Mock a 1-second delay to simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Create a mock author object
+    const newAuthor: SuggestedAuthor = {
+      id: `new-${Date.now()}`, // Generate a temporary ID
+      fullName: name,
+      headline: 'New Author',
+      institutions: [{ id: 'new-institution', name: 'Add institution details' }],
+      reputationHubs: [],
+      education: [],
+      createdDate: new Date().toLocaleDateString(),
+    };
+
+    // Return the new author as a SelectOption
+    return {
+      value: newAuthor.id?.toString() || '',
+      label: newAuthor.fullName || '',
+      data: newAuthor,
+    };
+  }, []);
+
   const renderAuthorOption = (
     option: SelectOption,
-    { selected, focus }: { selected: boolean; focus: boolean }
+    { focus, selected }: { selected: boolean; focus: boolean }
   ) => {
     const authorData = option.data as SuggestedAuthor;
+    const isSelected = author?.id === authorData.id;
 
     return (
       <li
         className={cn(
-          'relative cursor-pointer select-none py-3 px-3 rounded-md',
-          focus ? 'bg-gray-100' : 'text-gray-900'
+          'relative cursor-pointer select-none py-3 px-3 rounded-md list-none',
+          focus ? 'bg-gray-100' : 'text-gray-900',
+          isSelected && 'bg-blue-50'
         )}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-start gap-3">
           {/* Author Avatar */}
           <div className="flex-shrink-0">
             {authorData.profileImage ? (
-              <div className="h-10 w-10 rounded-full overflow-hidden">
+              <div className="h-12 w-12 rounded-full overflow-hidden">
                 <img
                   src={authorData.profileImage}
                   alt={authorData.fullName || ''}
@@ -54,31 +71,54 @@ export function AuthorsSection() {
                 />
               </div>
             ) : (
-              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                <Users className="h-5 w-5 text-gray-500" />
+              <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
+                <Users className="h-6 w-6 text-gray-500" />
               </div>
             )}
           </div>
 
           {/* Author Info */}
           <div className="flex-1 min-w-0">
-            <p className={cn('text-sm font-medium truncate', selected && 'font-semibold')}>
+            <p className={cn('text-sm font-medium truncate', isSelected && 'font-semibold')}>
               {authorData.fullName}
             </p>
 
             {authorData.headline && (
-              <p className="text-xs text-gray-500 truncate">{authorData.headline}</p>
+              <p className="text-xs text-gray-600 truncate mb-1">{authorData.headline}</p>
             )}
 
-            {authorData.institutions && authorData.institutions.length > 0 && (
-              <p className="text-xs text-gray-500 truncate">
-                {authorData.institutions.map((inst) => inst.name).join(', ')}
-              </p>
+            {/* User Since */}
+            {authorData.createdDate && (
+              <div className="flex items-center text-xs text-gray-500 mb-1">
+                <Calendar className="h-3 w-3 mr-1 flex-shrink-0" />
+                <span>Member since {authorData.createdDate}</span>
+              </div>
+            )}
+
+            {/* Education & Institutions */}
+            {(authorData.education?.length > 0 || authorData.institutions?.length > 0) && (
+              <div className="flex items-center text-xs text-gray-500 mb-1">
+                <GraduationCap className="h-3 w-3 mr-1 flex-shrink-0" />
+                <span className="truncate">
+                  {[
+                    ...(authorData.education || []),
+                    ...(authorData.institutions?.map((inst) => inst.name) || []),
+                  ].join(', ')}
+                </span>
+              </div>
+            )}
+
+            {/* Reputation Hubs */}
+            {authorData.reputationHubs?.length > 0 && (
+              <div className="flex items-center text-xs text-gray-500">
+                <Award className="h-3 w-3 mr-1 flex-shrink-0" />
+                <span className="truncate">{authorData.reputationHubs.join(', ')}</span>
+              </div>
             )}
           </div>
 
           {/* Selected checkmark */}
-          {selected && (
+          {isSelected && (
             <div className="flex-shrink-0">
               <Check className="h-4 w-4 text-blue-500" />
             </div>
@@ -88,10 +128,40 @@ export function AuthorsSection() {
     );
   };
 
+  const renderSelectedAuthor = (option: SelectOption<SuggestedAuthor>) => {
+    const authorData = option.data as SuggestedAuthor;
+
+    return (
+      <div className="flex items-center gap-2">
+        {/* Author Avatar */}
+        <div className="flex-shrink-0">
+          {authorData.profileImage ? (
+            <div className="h-10 w-10 rounded-full overflow-hidden">
+              <img
+                src={authorData.profileImage}
+                alt={authorData.fullName || ''}
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+              <Users className="h-5 w-5 text-gray-500" />
+            </div>
+          )}
+        </div>
+
+        {/* Author Info */}
+        <div className="flex-1 min-w-0">
+          <p className="text-base font-semibold truncate">{authorData.fullName}</p>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="py-3 px-6">
       <SectionHeader icon={Users}>Authors</SectionHeader>
-      <SearchableSelect<SuggestedAuthor>
+      <AutocompleteSelect<SuggestedAuthor>
         value={
           author
             ? { value: author.id?.toString() || '', label: author.fullName || '', data: author }
@@ -104,6 +174,10 @@ export function AuthorsSection() {
         placeholder="Search for an author..."
         debounceMs={500}
         renderOption={renderAuthorOption}
+        renderSelectedValue={renderSelectedAuthor}
+        allowCreatingNew={true}
+        onCreateNew={handleCreateNewAuthor}
+        createNewLabel="Create new author"
       />
     </div>
   );

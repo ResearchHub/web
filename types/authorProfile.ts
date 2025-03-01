@@ -27,7 +27,7 @@ export interface SuggestedAuthor {
   id: ID;
   fullName?: string;
   profileImage?: string;
-  institutions?: Array<{
+  institutions: Array<{
     id: ID;
     name: string;
   }>;
