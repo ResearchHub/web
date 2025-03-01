@@ -22,6 +22,22 @@ export default {
         large: '550',
         semibold: '600',
       },
+      keyframes: {
+        'pulse-dot': {
+          '0%, 100%': { opacity: '0.3', transform: 'scale(1)' },
+          '50%': { opacity: '0.6', transform: 'scale(1.3)' },
+        },
+        'radiate-circle': {
+          '0%': { opacity: '0.6', transform: 'scale(1)' },
+          '50%': { opacity: '0.3', transform: 'scale(2)' },
+          '100%': { opacity: '0', transform: 'scale(3)' },
+        },
+      },
+      animation: {
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'pulse-dot': 'pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        radiate: 'radiate-circle 2.5s cubic-bezier(0, 0, 0.2, 1) infinite',
+      },
     },
   },
   plugins: [],

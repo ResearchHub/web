@@ -2,11 +2,22 @@
 
 import { FC } from 'react';
 import { cn } from '@/utils/styles';
+import { RadiatingDot } from './RadiatingDot';
 
 interface StatusBadgeProps {
   status: 'open' | 'closed' | 'pending' | 'completed';
   className?: string;
   size?: 'xs' | 'sm' | 'md';
+}
+
+interface StatusConfig {
+  dotColor: string;
+  radiateColor: string;
+  ringColor: string;
+  textColor: string;
+  bgColor: string;
+  borderColor: string;
+  label: string;
 }
 
 export const StatusBadge: FC<StatusBadgeProps> = ({ status, className, size = 'sm' }) => {
@@ -16,9 +27,11 @@ export const StatusBadge: FC<StatusBadgeProps> = ({ status, className, size = 's
     md: 'text-base gap-2 py-2 px-4',
   };
 
-  const statusConfig = {
+  const statusConfig: Record<string, StatusConfig> = {
     open: {
       dotColor: 'bg-blue-500',
+      radiateColor: 'bg-blue-400',
+      ringColor: 'border-blue-200',
       textColor: 'text-blue-700',
       bgColor: 'bg-blue-50',
       borderColor: 'border-blue-100',
@@ -26,6 +39,8 @@ export const StatusBadge: FC<StatusBadgeProps> = ({ status, className, size = 's
     },
     closed: {
       dotColor: 'bg-gray-500',
+      radiateColor: 'bg-gray-400',
+      ringColor: 'border-gray-200',
       textColor: 'text-gray-700',
       bgColor: 'bg-gray-50',
       borderColor: 'border-gray-200',
@@ -33,6 +48,8 @@ export const StatusBadge: FC<StatusBadgeProps> = ({ status, className, size = 's
     },
     pending: {
       dotColor: 'bg-yellow-500',
+      radiateColor: 'bg-yellow-400',
+      ringColor: 'border-yellow-200',
       textColor: 'text-yellow-700',
       bgColor: 'bg-yellow-50',
       borderColor: 'border-yellow-100',
@@ -40,6 +57,8 @@ export const StatusBadge: FC<StatusBadgeProps> = ({ status, className, size = 's
     },
     completed: {
       dotColor: 'bg-green-500',
+      radiateColor: 'bg-green-400',
+      ringColor: 'border-green-200',
       textColor: 'text-green-700',
       bgColor: 'bg-green-50',
       borderColor: 'border-green-100',
@@ -60,7 +79,16 @@ export const StatusBadge: FC<StatusBadgeProps> = ({ status, className, size = 's
         className
       )}
     >
-      <div className={cn('w-2 h-2 rounded-full', config.dotColor)}></div>
+      {status === 'open' ? (
+        <RadiatingDot
+          color={config.dotColor}
+          radiateColor={config.radiateColor}
+          ringColor={config.ringColor}
+          isRadiating={true}
+        />
+      ) : (
+        <RadiatingDot color={config.dotColor} isRadiating={false} />
+      )}
       <span>{config.label}</span>
     </div>
   );
