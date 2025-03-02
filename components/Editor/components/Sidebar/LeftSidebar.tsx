@@ -107,9 +107,7 @@ const LeftSidebar = () => {
         <Button
           variant="ghost"
           size="icon"
-          className={`w-6 h-6 ${
-            isTemplateMenuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-          } transition-opacity`}
+          className="w-6 h-6 transition-opacity"
           disabled={isCreatingNote || isUpdatingContent}
         >
           {isCreatingNote || isUpdatingContent ? (
@@ -176,7 +174,7 @@ const LeftSidebar = () => {
 
   return (
     <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col sticky top-0 left-0">
-      <div className="flex-none border-b border-gray-200">
+      <div className="flex-none">
         <OrganizationSwitcher
           organizations={organizations}
           selectedOrg={selectedOrg}
@@ -187,25 +185,30 @@ const LeftSidebar = () => {
 
       <div className="flex-1 overflow-y-auto">
         <div className="px-2 py-3">
-          <SidebarSection action={renderTemplateMenu('workspace')}>Workspace</SidebarSection>
-          <NoteList
-            type="workspace"
-            notes={notes}
-            isLoading={isLoadingNotes}
-            selectedNoteId={noteId}
-          />
+          <SidebarSection action={renderTemplateMenu('workspace')} title="Workspace">
+            <NoteList
+              type="workspace"
+              notes={notes}
+              isLoading={isLoadingNotes}
+              selectedNoteId={noteId}
+            />
+          </SidebarSection>
         </div>
 
         <div className="px-2 py-3">
-          <SidebarSection icon={Lock} iconPosition="after" action={renderTemplateMenu('private')}>
-            Private
+          <SidebarSection
+            icon={Lock}
+            iconPosition="after"
+            action={renderTemplateMenu('private')}
+            title="Private"
+          >
+            <NoteList
+              type="private"
+              notes={notes}
+              isLoading={isLoadingNotes}
+              selectedNoteId={noteId}
+            />
           </SidebarSection>
-          <NoteList
-            type="private"
-            notes={notes}
-            isLoading={isLoadingNotes}
-            selectedNoteId={noteId}
-          />
         </div>
       </div>
     </div>

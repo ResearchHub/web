@@ -236,7 +236,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
 
   return (
     <FormProvider {...methods}>
-      <div className="w-82 border-l flex flex-col h-screen sticky right-0 top-0 bg-white relative">
+      <div className="w-82 flex flex-col h-screen sticky right-0 top-0 bg-white relative">
         {/* Processing overlay */}
         {(isLoadingUpsert || isPending) && (
           <div className="absolute inset-0 bg-white/50 z-50 flex flex-col items-center justify-center">

@@ -61,15 +61,13 @@ export function WorkTypeSection() {
             <Badge variant="success" size="sm">
               <span className="mr-1 text-sm">Published</span>
               {articleType === 'preregistration' && slug && (
-                <Tooltip content="View funding page">
-                  <Link
-                    href={`/fund/${workId}/${slug}`}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                    target="_blank"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </Link>
-                </Tooltip>
+                <Link
+                  href={`/fund/${workId}/${slug}`}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  target="_blank"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </Link>
               )}
             </Badge>
           </div>
