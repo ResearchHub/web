@@ -8,32 +8,68 @@ interface TooltipProps {
   children: React.ReactNode;
   content: React.ReactNode;
   className?: string;
+  delay?: number; // Delay before showing tooltip in ms
+  position?: 'top' | 'bottom' | 'left' | 'right';
 }
 
 const TooltipContent = ({
   content,
   triggerRect,
   className,
+  isVisible,
+  position = 'bottom',
 }: {
   content: React.ReactNode;
   triggerRect: DOMRect | null;
   className?: string;
+  isVisible: boolean;
+  position?: 'top' | 'bottom' | 'left' | 'right';
 }) => {
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
+  const [mounted, setMounted] = useState(false);
 
+  // Position the tooltip based on the trigger element
   useEffect(() => {
     if (!tooltipRef.current || !triggerRect) return;
 
     const tooltip = tooltipRef.current;
     const tooltipRect = tooltip.getBoundingClientRect();
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
 
-    // Center horizontally and position below the trigger
-    const left = triggerRect.left + (triggerRect.width - tooltipRect.width) / 2;
-    const top = triggerRect.bottom + 8; // 8px gap below the trigger
+    let top = 0;
+    let left = 0;
 
-    tooltip.style.left = `${left}px`;
-    tooltip.style.top = `${top}px`;
-  }, [triggerRect]);
+    // Calculate position based on specified position
+    switch (position) {
+      case 'top':
+        top = triggerRect.top - tooltipRect.height - 8;
+        left = triggerRect.left + (triggerRect.width - tooltipRect.width) / 2;
+        break;
+      case 'bottom':
+        top = triggerRect.bottom + 8;
+        left = triggerRect.left + (triggerRect.width - tooltipRect.width) / 2;
+        break;
+      case 'left':
+        top = triggerRect.top + (triggerRect.height - tooltipRect.height) / 2;
+        left = triggerRect.left - tooltipRect.width - 8;
+        break;
+      case 'right':
+        top = triggerRect.top + (triggerRect.height - tooltipRect.height) / 2;
+        left = triggerRect.right + 8;
+        break;
+    }
+
+    // Adjust if tooltip would go off screen
+    if (left < 10) left = 10;
+    if (left + tooltipRect.width > windowWidth - 10) left = windowWidth - tooltipRect.width - 10;
+    if (top < 10) top = 10;
+    if (top + tooltipRect.height > windowHeight - 10) top = windowHeight - tooltipRect.height - 10;
+
+    setTooltipPosition({ top, left });
+    setMounted(true);
+  }, [triggerRect, position]);
 
   if (!triggerRect) return null;
 
@@ -41,9 +77,18 @@ const TooltipContent = ({
     <div
       ref={tooltipRef}
       className={cn(
-        'fixed z-50 px-2 py-1 text-sm text-gray-700 bg-white border border-gray-100 rounded shadow-sm transition-opacity duration-150',
+        'fixed z-50 px-3 py-2 text-sm bg-white border border-gray-200 rounded-md shadow-md',
+        'transform transition-all duration-150',
+        {
+          'opacity-0 scale-95': !isVisible || !mounted,
+          'opacity-100 scale-100': isVisible && mounted,
+        },
         className
       )}
+      style={{
+        top: `${tooltipPosition.top}px`,
+        left: `${tooltipPosition.left}px`,
+      }}
     >
       {content}
     </div>,
@@ -51,22 +96,47 @@ const TooltipContent = ({
   );
 };
 
-export function Tooltip({ children, content, className }: TooltipProps) {
+export function Tooltip({
+  children,
+  content,
+  className,
+  delay = 100,
+  position = 'bottom',
+}: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const showTooltip = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
     if (triggerRef.current) {
       setTriggerRect(triggerRef.current.getBoundingClientRect());
-      setIsVisible(true);
+      timeoutRef.current = setTimeout(() => {
+        setIsVisible(true);
+      }, delay);
     }
   };
 
   const hideTooltip = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
     setIsVisible(false);
-    setTriggerRect(null);
   };
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <>
@@ -74,12 +144,20 @@ export function Tooltip({ children, content, className }: TooltipProps) {
         ref={triggerRef}
         onMouseEnter={showTooltip}
         onMouseLeave={hideTooltip}
+        onFocus={showTooltip}
+        onBlur={hideTooltip}
         className="inline-block"
       >
         {children}
       </div>
-      {isVisible && (
-        <TooltipContent content={content} triggerRect={triggerRect} className={className} />
+      {triggerRect && (
+        <TooltipContent
+          content={content}
+          triggerRect={triggerRect}
+          className={className}
+          isVisible={isVisible}
+          position={position}
+        />
       )}
     </>
   );

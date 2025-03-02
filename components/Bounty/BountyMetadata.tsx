@@ -24,12 +24,12 @@ export const BountyMetadata = ({
   return (
     <div className="grid grid-cols-2 gap-4">
       {/* Left column - Created by */}
-      <div className="bg-gray-50 p-4 rounded-lg">
+      <div className="bg-gray-50/70 p-4 rounded-lg shadow-sm border border-gray-100">
         <div className="flex items-center gap-2">
-          <FontAwesomeIcon icon={faTrophy} className="h-3.5 w-3.5 text-gray-600" />
-          <div className="text-sm font-semibold text-gray-600">Created by</div>
+          <FontAwesomeIcon icon={faTrophy} className="h-4 w-4 text-gray-600" />
+          <div className="text-sm font-semibold text-gray-700">Created by</div>
         </div>
-        <div className="mt-2">
+        <div className="mt-3">
           <div className="flex items-center gap-2">
             <AvatarStack
               items={contributors.map(({ profile }) => ({
@@ -53,17 +53,19 @@ export const BountyMetadata = ({
 
       {/* Right column - Deadline */}
       <div
-        className={`bg-gray-50 p-4 rounded-lg ${expiringSoon ? 'border border-orange-300' : ''}`}
+        className={`bg-gray-50/70 p-4 rounded-lg shadow-sm border ${
+          expiringSoon ? 'border-orange-200' : 'border-gray-100'
+        }`}
       >
         <div className="flex items-center gap-2">
-          <Clock className={`h-3.5 w-3.5 ${expiringSoon ? 'text-orange-500' : 'text-gray-600'}`} />
+          <Clock className={`h-4 w-4 ${expiringSoon ? 'text-orange-500' : 'text-gray-600'}`} />
           <div
-            className={`text-sm font-semibold ${expiringSoon ? 'text-orange-700' : 'text-gray-600'}`}
+            className={`text-sm font-semibold ${expiringSoon ? 'text-orange-700' : 'text-gray-700'}`}
           >
             Deadline
           </div>
         </div>
-        <div className="mt-2 flex items-center gap-1.5 text-gray-700">
+        <div className="mt-3 flex items-center gap-1.5 text-gray-700">
           <span className={`text-sm ${expiringSoon ? 'font-medium text-orange-600' : ''}`}>
             {isOpen
               ? expirationDate
