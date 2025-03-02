@@ -88,9 +88,8 @@ const LeftSidebar = () => {
             .join('\n'),
         });
 
-        router.push(`/notebook/${selectedOrg.slug}/${newNote.id}?template=${template}`);
-
         refreshNotes();
+        router.push(`/notebook/${selectedOrg.slug}/${newNote.id}?template=${template}`);
       } catch (error) {
         console.error('Error creating note:', error);
         toast.error('Failed to create note. Please try again.', {
