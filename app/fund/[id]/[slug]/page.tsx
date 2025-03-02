@@ -60,8 +60,6 @@ interface FundingDocumentProps {
 }
 
 function FundingDocument({ work, metadata, content }: FundingDocumentProps) {
-  console.log('metadata', metadata);
-
   return (
     <div className="p-8">
       <div className="mb-8">

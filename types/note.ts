@@ -4,6 +4,7 @@ import { transformOrganization } from './organization';
 import { ID } from './root';
 import { ContentType } from './work';
 import { Fundraise, transformFundraise } from './funding';
+import { Topic, transformTopic, transformTopicSuggestions } from './topic';
 export type NoteAccess = 'WORKSPACE' | 'PRIVATE' | 'SHARED';
 
 export type Post = {
@@ -11,6 +12,8 @@ export type Post = {
   slug: string;
   contentType: ContentType;
   fundraise?: Fundraise;
+  topics?: Topic[];
+  doi?: string;
 };
 
 export interface Note {
@@ -55,6 +58,8 @@ export const transformPost = createTransformer<any, Post>((raw) => ({
   fundraise: raw.unified_document?.fundraise
     ? transformFundraise(raw.unified_document.fundraise)
     : undefined,
+  doi: raw.doi,
+  topics: Array.isArray(raw.hubs) ? raw.hubs.map((hub: any) => transformTopic(hub)) : undefined,
 }));
 
 export const transformNote = createTransformer<any, Note>((raw) => ({

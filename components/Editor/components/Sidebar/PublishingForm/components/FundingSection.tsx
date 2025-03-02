@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { cn } from '@/utils/styles';
 import { useRef, useState } from 'react';
 import { Note } from '@/types/note';
-import { FundraiseStats } from '@/components/FundraiseStats';
+import { FundraiseSection } from '@/components/work/components/FundraiseSection';
 
 interface FundingSectionProps {
   note: Note;
@@ -55,8 +55,7 @@ export function FundingSection({ note }: FundingSectionProps) {
     <div className="py-3 px-6 space-y-6">
       {fundraise ? (
         <>
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">Funding Progress</h3>
-          <FundraiseStats fundraise={fundraise} />
+          <FundraiseSection fundraise={fundraise} />
         </>
       ) : (
         <div>

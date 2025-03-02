@@ -16,7 +16,7 @@ export const transformTopic = createTransformer<any, Topic>((raw: any) => ({
   description: raw.description,
 }));
 
-export const transformTopics = (raw: any): Topic[] => {
+export const transformTopicSuggestions = (raw: any): Topic[] => {
   const topicSuggestions: Topic[] = [];
   const suggestions = raw.name_suggest__completion;
 

@@ -4,9 +4,15 @@ import { SectionHeader } from './SectionHeader';
 import { SearchableMultiSelect } from '@/components/ui/form/SearchableMultiSelect';
 import { useCallback } from 'react';
 import { HubService } from '@/services/hub.service';
+import { getFieldErrorMessage } from '@/utils/form';
 
 export function TopicsSection() {
-  const { register, watch, setValue } = useFormContext();
+  const {
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormContext();
+
   const topics = watch('topics') || [];
 
   const handleSearch = useCallback(async (query: string) => {
@@ -22,10 +28,11 @@ export function TopicsSection() {
       <SectionHeader icon={Tag}>Topics</SectionHeader>
       <SearchableMultiSelect
         value={topics}
-        onChange={(newTopics) => setValue('topics', newTopics)}
+        onChange={(newTopics) => setValue('topics', newTopics, { shouldValidate: true })}
         onSearch={handleSearch}
         placeholder="Search topics..."
         debounceMs={500}
+        error={getFieldErrorMessage(errors.topics, 'Invalid topics')}
       />
     </div>
   );

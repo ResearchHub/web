@@ -1,4 +1,4 @@
-import { Topic, transformTopics } from '@/types/topic';
+import { Topic, transformTopicSuggestions } from '@/types/topic';
 import { ApiClient } from './client';
 import { createTransformer, BaseTransformed } from '@/types/transformer';
 
@@ -80,7 +80,7 @@ export class HubService {
       `${this.SUGGEST_PATH}/?name_suggest__completion=${encodeURIComponent(query)}`
     );
 
-    return transformTopics(response);
+    return transformTopicSuggestions(response);
   }
 
   static async getFollowedHubs(): Promise<number[]> {

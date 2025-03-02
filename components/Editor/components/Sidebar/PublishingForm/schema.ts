@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+const topicOptionSchema = z.object({
+  value: z.string(),
+  label: z.string(),
+});
+
 export const publishingFormSchema = z
   .object({
     workId: z.string().optional(),
@@ -8,7 +13,7 @@ export const publishingFormSchema = z
       invalid_type_error: 'Please select a valid work type',
     }),
     authors: z.array(z.string()),
-    topics: z.array(z.string()),
+    topics: z.array(topicOptionSchema),
     budget: z.string().optional(),
     rewardFunders: z.boolean(),
     nftArt: z.any().nullable(),
@@ -21,18 +26,29 @@ export const publishingFormSchema = z
     ),
     isJournalEnabled: z.boolean().optional(),
   })
-  .refine(
-    (data) => {
-      if (data.articleType === 'preregistration') {
-        const num = parseFloat(data.budget?.replace(/[^0-9.]/g, '') || '0');
-        return num > 0;
+  .superRefine((data, ctx) => {
+    // Preregistration-specific validations
+    if (data.articleType === 'preregistration') {
+      // Validate budget
+      const num = parseFloat(data.budget?.replace(/[^0-9.]/g, '') || '0');
+      if (num <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Funding goal must be greater than 0',
+          path: ['budget'],
+        });
       }
-      return true;
-    },
-    {
-      message: 'Funding goal must be greater than 0 for preregistration',
-      path: ['budget'],
+
+      // Validate topics
+      if (data.topics.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'At least one topic is required',
+          path: ['topics'],
+        });
+      }
     }
-  );
+  });
 
 export type PublishingFormData = z.infer<typeof publishingFormSchema>;
+export type TopicOption = z.infer<typeof topicOptionSchema>;

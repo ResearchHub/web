@@ -29,7 +29,7 @@ export function ConfirmPublishModal({
   const { editor } = useNotebookPublish();
 
   const isTitleValid = title.trim().length >= 20;
-  const isPublishEnabled = isTitleValid && (!isUpdate ? hasAgreed : true);
+  const isPublishEnabled = isTitleValid && hasAgreed;
 
   useEffect(() => {
     setTitle(initialTitle);
@@ -99,77 +99,59 @@ export function ConfirmPublishModal({
                     placeholder="Enter title..."
                   />
 
-                  {!isUpdate && (
-                    <>
-                      <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                        <h4 className="font-medium text-sm text-gray-900 mb-3">
-                          Guidelines for posts
-                        </h4>
-                        <ul className="space-y-3">
-                          <li className="flex items-start gap-2">
-                            <GraduationCap
-                              className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
-                              strokeWidth={2}
-                            />
-                            <span className="text-sm text-gray-600">
-                              Stick to academically appropriate topics
-                            </span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <Scale
-                              className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
-                              strokeWidth={2}
-                            />
-                            <span className="text-sm text-gray-600">
-                              Focus on presenting objective results and remain unbiased in your
-                              commentary
-                            </span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <Users
-                              className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
-                              strokeWidth={2}
-                            />
-                            <span className="text-sm text-gray-600">
-                              Be respectful of differing opinions, viewpoints, and experiences
-                            </span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <FileText
-                              className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
-                              strokeWidth={2}
-                            />
-                            <span className="text-sm text-gray-600">
-                              Do not plagiarize any content, keep it original
-                            </span>
-                          </li>
-                        </ul>
-                      </div>
-
-                      <div className="mt-3 mb-6">
-                        <span className="text-sm text-primary-600 bg-primary-50 rounded-lg px-3 py-2 inline-block">
-                          <span className="font-medium">
-                            Your preregistration will be assigned a DOI for permanent citation
-                          </span>
-                          (5 RSC{' '}
-                          <ResearchCoinIcon size={16} className="text-primary-600 -mt-0.5 inline" />
-                          )
-                        </span>
-                      </div>
-
-                      <div className="flex items-start gap-2 mb-6">
-                        <Checkbox
-                          id="guidelines"
-                          checked={hasAgreed}
-                          disabled={isPublishing}
-                          onCheckedChange={(checked) => setHasAgreed(checked as boolean)}
+                  <div className="bg-gray-50 p-4 rounded-lg mb-6">
+                    <h4 className="font-medium text-sm text-gray-900 mb-3">Guidelines for posts</h4>
+                    <ul className="space-y-3">
+                      <li className="flex items-start gap-2">
+                        <GraduationCap
+                          className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
+                          strokeWidth={2}
                         />
-                        <label htmlFor="guidelines" className="text-sm text-gray-600">
-                          I have adhered to the ResearchHub posting guidelines
-                        </label>
-                      </div>
-                    </>
-                  )}
+                        <span className="text-sm text-gray-600">
+                          Stick to academically appropriate topics
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Scale
+                          className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
+                          strokeWidth={2}
+                        />
+                        <span className="text-sm text-gray-600">
+                          Focus on presenting objective results and remain unbiased in your
+                          commentary
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Users
+                          className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
+                          strokeWidth={2}
+                        />
+                        <span className="text-sm text-gray-600">
+                          Be respectful of differing opinions, viewpoints, and experiences
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <FileText
+                          className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
+                          strokeWidth={2}
+                        />
+                        <span className="text-sm text-gray-600">
+                          Do not plagiarize any content, keep it original
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="flex items-start gap-2 mb-6">
+                    <Checkbox
+                      id="guidelines"
+                      checked={hasAgreed}
+                      disabled={isPublishing}
+                      onCheckedChange={(checked) => setHasAgreed(checked as boolean)}
+                    />
+                    <label htmlFor="guidelines" className="text-sm text-gray-600">
+                      I have adhered to the ResearchHub posting guidelines
+                    </label>
+                  </div>
 
                   {!isTitleValid && (
                     <Alert variant="error" className="mb-6">

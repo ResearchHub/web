@@ -9,7 +9,7 @@ import { AuthorsSection } from './components/AuthorsSection';
 import { TopicsSection } from './components/TopicsSection';
 import { JournalSection } from './components/JournalSection';
 import { Button } from '@/components/ui/Button';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUpsertPost } from '@/hooks/useDocument';
 import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
@@ -24,6 +24,9 @@ import {
   savePublishingFormToStorage,
 } from '@/components/Editor/lib/utils/publishingFormStorage';
 import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSkeleton';
+import { Loader2 } from 'lucide-react';
+import { DOISection } from '@/components/work/components/DOISection';
+import { getFieldErrorMessage } from '@/utils/form';
 
 interface PublishingFormProps {
   bountyAmount: number | null;
@@ -32,11 +35,13 @@ interface PublishingFormProps {
 
 const getButtonText = ({
   isLoadingUpsert,
+  isRedirecting,
   articleType,
   isJournalEnabled,
   hasWorkId,
 }: {
   isLoadingUpsert: boolean;
+  isRedirecting: boolean;
   articleType: string;
   isJournalEnabled: boolean;
   hasWorkId: boolean;
@@ -44,6 +49,8 @@ const getButtonText = ({
   switch (true) {
     case isLoadingUpsert:
       return 'Publishing...';
+    case isRedirecting:
+      return 'Redirecting...';
     case hasWorkId:
       return 'Re-publish';
     case articleType === 'discussion' && isJournalEnabled:
@@ -56,6 +63,7 @@ const getButtonText = ({
 export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormProps) {
   const { noteId, editor, note } = useNotebookPublish();
   const searchParams = useSearchParams();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const methods = useForm<PublishingFormData>({
     defaultValues: {
@@ -75,7 +83,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   // 2. localStorage data
   // 3. URL search params
   useEffect(() => {
-    if (!noteId) return;
+    if (!noteId || !note) return;
 
     // Priority 1: Check for existing post data
     if (note?.post) {
@@ -85,6 +93,14 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         note.post.contentType === 'preregistration' ? 'preregistration' : 'discussion'
       );
       methods.setValue('budget', note.post.fundraise?.goalAmount.usd.toString());
+      if (note.post.topics && note.post.topics.length > 0) {
+        const topicOptions = note.post.topics.map((topic) => ({
+          value: topic.id.toString(),
+          label: topic.name,
+        }));
+        methods.setValue('topics', topicOptions);
+      }
+
       // Set other relevant post data
       return;
     }
@@ -122,7 +138,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     return () => subscription.unsubscribe();
   }, [methods, noteId]);
 
-  const { watch, clearErrors, setValue } = methods;
+  const { watch, clearErrors } = methods;
   const articleType = watch('articleType');
   const isJournalEnabled = watch('isJournalEnabled');
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
@@ -139,14 +155,31 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
 
     if (!result) {
       const errors = methods.formState.errors;
-      Object.entries(errors).forEach(([_, error]) => {
-        if (error?.message) {
-          toast.error(error.message.toString(), {
-            position: 'bottom-right',
-            style: { width: '300px' },
-          });
-        }
-      });
+
+      if (Object.keys(errors).length > 0) {
+        toast.error('Please fix the form errors before publishing', {
+          style: { width: '300px' },
+        });
+
+        Object.entries(errors).forEach(([field, error]) => {
+          // Cast the error to any to bypass the type checking issue
+          const errorMessage = getFieldErrorMessage(error, `Invalid ${field}`);
+          if (errorMessage) {
+            toast.error(`${field}: ${errorMessage}`, {
+              style: { width: '300px' },
+            });
+          }
+        });
+
+        // Log errors to console for debugging
+        console.error('Form validation errors:', errors);
+      } else {
+        // Should never happen but wondering if we should log this somewhere for visibility
+        console.error('Unable to publish.');
+        toast.error('Unable to publish. Please check all fields and try again.', {
+          style: { width: '300px' },
+        });
+      }
       return;
     }
 
@@ -171,7 +204,6 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         {
           budget: formData.budget || '0',
           rewardFunders: formData.rewardFunders,
-          nftArt: formData.nftArt || null,
           nftSupply: formData.nftSupply || '1000',
           title,
           noteId: noteId,
@@ -179,9 +211,12 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           fullJSON: JSON.stringify(json),
           fullSrc: previewContent || '',
           assignDOI: formData.workId ? false : true,
+          topics: formData.topics.map((topic) => topic.value),
         },
         formData.workId
       );
+
+      setIsRedirecting(true);
 
       router.push(`/fund/${response.id}/${response.slug}`);
     } catch (error) {
@@ -199,14 +234,27 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
 
   return (
     <FormProvider {...methods}>
-      <div className="w-82 border-l flex flex-col h-screen sticky right-0 top-0 bg-white">
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300">
+      <div className="w-82 border-l flex flex-col h-screen sticky right-0 top-0 bg-white relative">
+        {/* Processing overlay */}
+        {(isLoadingUpsert || isRedirecting) && (
+          <div className="absolute inset-0 bg-white/50 z-50 flex flex-col items-center justify-center">
+            <Loader2 className="h-8 w-8 text-indigo-600 animate-spin mb-2" />
+          </div>
+        )}
+
+        {/* Scrollable content - conditionally disable scrolling */}
+        <div
+          className={`flex-1 ${isRedirecting ? 'overflow-hidden' : 'overflow-y-auto'} scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 relative`}
+        >
           <div className="pb-6">
             <WorkTypeSection />
             <AuthorsSection />
             <TopicsSection />
-
+            {note.post?.doi && (
+              <div className="py-3 px-6 space-y-6">
+                <DOISection doi={note.post.doi} />
+              </div>
+            )}
             {articleType === 'preregistration' && <FundingSection note={note} />}
             {articleType !== 'preregistration' && (
               <ResearchCoinSection bountyAmount={bountyAmount} onBountyClick={onBountyClick} />
@@ -227,10 +275,11 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             variant="default"
             onClick={handlePublishClick}
             className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isLoadingUpsert}
+            disabled={isLoadingUpsert || isRedirecting}
           >
             {getButtonText({
               isLoadingUpsert,
+              isRedirecting,
               articleType,
               isJournalEnabled: isJournalEnabled ?? false,
               hasWorkId: Boolean(methods.watch('workId')),
@@ -245,7 +294,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           onClose={() => setShowConfirmModal(false)}
           onConfirm={handleConfirmPublish}
           title={getDocumentTitleFromEditor(editor) || 'Untitled Research'}
-          isPublishing={isLoadingUpsert}
+          isPublishing={isLoadingUpsert || isRedirecting}
           isUpdate={Boolean(methods.watch('workId'))}
         />
       )}
