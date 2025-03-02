@@ -8,7 +8,7 @@ import { Badge } from './Badge';
 interface RSCBadgeProps {
   amount: number;
   className?: string;
-  size?: 'xs' | 'sm' | 'md';
+  size?: 'xxs' | 'xs' | 'sm' | 'md';
   variant?: 'inline' | 'badge' | 'contribute';
   /** Whether to show "RSC" text after the amount */
   showText?: boolean;
@@ -32,6 +32,7 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
 }) => {
   // Custom size classes that override Badge's default sizes
   const sizeClasses = {
+    xxs: 'text-[10px] gap-0.5 py-0 px-1',
     xs: 'text-xs gap-1',
     sm: 'text-sm gap-1.5',
     md: 'text-base gap-2',
@@ -57,9 +58,10 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
   };
 
   // Map our size to Badge size
-  const badgeSize = size === 'xs' ? 'sm' : size === 'sm' ? 'default' : 'lg';
+  const badgeSize = size === 'xxs' || size === 'xs' ? 'sm' : size === 'sm' ? 'default' : 'lg';
 
   const iconSizes = {
+    xxs: 12,
     xs: 16,
     sm: 18,
     md: 20,
@@ -74,19 +76,19 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
         )}
         {inverted ? (
           <div className="flex items-center">
-            <span className={cn(colors.textDark, 'mr-1')}>{amount.toLocaleString()}</span>
-            {showText && (
-              <span className={cn(colors.textMedium, 'text-xs')}>
-                RSC{label ? ` ${label}` : ''}
-              </span>
+            {label && (
+              <span className={cn(colors.textDark, 'mr-0.5 text-[10px] font-bold')}>{label}</span>
             )}
+            <span className={cn(colors.textDark)}>{amount.toLocaleString()}</span>
+            {showText && <span className={cn(colors.textMedium, 'text-xs ml-1')}>RSC</span>}
           </div>
         ) : (
           <div className="flex items-center">
-            <span className={colors.text}>{amount.toLocaleString()}</span>
-            {showText && (
-              <span className={cn(colors.textMedium, 'ml-1')}>RSC{label ? ` ${label}` : ''}</span>
+            {label && (
+              <span className={cn(colors.textDark, 'mr-0.5 text-[10px] font-bold')}>{label}</span>
             )}
+            <span className={colors.text}>{amount.toLocaleString()}</span>
+            {showText && <span className={cn(colors.textMedium, 'ml-1')}>RSC</span>}
           </div>
         )}
       </div>
@@ -102,6 +104,7 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
         sizeClasses[size],
         variantClasses[variant],
         variant === 'badge' || variant === 'contribute' ? 'py-1.5 px-3' : '',
+        size === 'xxs' && 'py-0.5 px-1.5',
         className
       )}
     >
@@ -110,16 +113,38 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
       )}
       {inverted ? (
         <div className="flex items-center">
-          <span className={cn(colors.textDark, 'mr-1')}>{amount.toLocaleString()}</span>
+          {label && (
+            <span className={cn(colors.textDark, 'mr-0.5 text-[10px] font-bold')}>{label}</span>
+          )}
+          <span className={cn(colors.textDark)}>{amount.toLocaleString()}</span>
           {showText && (
-            <span className={cn(colors.textMedium, 'text-xs')}>RSC{label ? ` ${label}` : ''}</span>
+            <span
+              className={cn(
+                colors.textMedium,
+                size === 'xxs' || size === 'xs' ? 'text-[10px]' : 'text-xs',
+                'ml-1'
+              )}
+            >
+              RSC
+            </span>
           )}
         </div>
       ) : (
         <div className="flex items-center">
+          {label && (
+            <span className={cn(colors.textDark, 'mr-0.5 text-[10px] font-bold')}>{label}</span>
+          )}
           <span className={colors.text}>{amount.toLocaleString()}</span>
           {showText && (
-            <span className={cn(colors.textMedium, 'ml-1')}>RSC{label ? ` ${label}` : ''}</span>
+            <span
+              className={cn(
+                colors.textMedium,
+                size === 'xxs' || size === 'xs' ? 'text-[10px]' : 'text-xs',
+                'ml-1'
+              )}
+            >
+              RSC
+            </span>
           )}
         </div>
       )}

@@ -13,7 +13,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import 'highlight.js/styles/atom-one-dark.css';
 import hljs from 'highlight.js';
 import { CommentReadOnly } from './CommentReadOnly';
-import { BountyItem } from './BountyItem';
+import { BountyItem } from '@/components/Bounty/BountyItem';
 import { useSession } from 'next-auth/react';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { formatRSC } from '@/utils/number';

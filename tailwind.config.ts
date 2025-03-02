@@ -32,11 +32,16 @@ export default {
           '50%': { opacity: '0.3', transform: 'scale(2)' },
           '100%': { opacity: '0', transform: 'scale(3)' },
         },
+        fadeIn: {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'pulse-dot': 'pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         radiate: 'radiate-circle 2.5s cubic-bezier(0, 0, 0.2, 1) infinite',
+        fadeIn: 'fadeIn 0.3s ease-out',
       },
     },
   },
