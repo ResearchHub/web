@@ -13,6 +13,7 @@ import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
 import { CommentSkeleton } from '@/components/skeletons/CommentSkeleton';
+import { isOpenBounty, isClosedBounty } from '@/utils/bountyUtil';
 
 type SortOption = {
   label: string;
@@ -79,12 +80,8 @@ export const CommentFeed = ({
   const filteredComments =
     commentType === 'BOUNTY' && bountyFilter !== 'ALL'
       ? comments.filter((comment) => {
-          const hasOpenBounty = comment.bounties?.some(
-            (b) => b.status === 'OPEN' && !b.isContribution
-          );
-          const hasClosedBounty = comment.bounties?.some(
-            (b) => b.status === 'CLOSED' && !b.isContribution
-          );
+          const hasOpenBounty = comment.bounties?.some(isOpenBounty);
+          const hasClosedBounty = comment.bounties?.some(isClosedBounty);
 
           if (bountyFilter === 'OPEN') return hasOpenBounty;
           if (bountyFilter === 'CLOSED') return hasClosedBounty;

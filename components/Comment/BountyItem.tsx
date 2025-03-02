@@ -18,9 +18,10 @@ import {
   MessageCircle,
   Plus,
   FileText,
+  ClipboardCheck,
 } from 'lucide-react';
 import { CommentReadOnly } from './CommentReadOnly';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AwardBountyModal } from './AwardBountyModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -36,6 +37,9 @@ import { SolutionModal } from './SolutionModal';
 import { ID } from '@/types/root';
 import { ContributorModal } from '@/components/modals/ContributorModal';
 import { AvatarStack } from '@/components/ui/AvatarStack';
+import { findActiveBounty, findClosedBounty, calculateTotalBountyAmount } from '@/utils/bountyUtil';
+import { buildWorkUrl } from '@/utils/url';
+import { useRouter } from 'next/navigation';
 
 interface BountyItemProps {
   comment: Comment;
@@ -58,6 +62,16 @@ export const BountyItem = ({
     authorName: string;
     awardedAmount?: string;
   } | null>(null);
+  const router = useRouter();
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+
+  // Handle navigation in useEffect to ensure it only runs client-side
+  useEffect(() => {
+    if (pendingNavigation) {
+      router.push(pendingNavigation);
+      setPendingNavigation(null);
+    }
+  }, [pendingNavigation, router]);
 
   console.log('BountyItem rendering', {
     commentType: comment.commentType,
@@ -67,15 +81,11 @@ export const BountyItem = ({
     ),
   });
 
-  // Find the first open, non-contribution bounty
-  const activeBounty = comment.bounties.find(
-    (bounty) => bounty.status === 'OPEN' && !bounty.isContribution
-  );
+  // Find the first open, non-contribution bounty using utility function
+  const activeBounty = findActiveBounty(comment.bounties);
 
-  // Find the first closed, non-contribution bounty if there's no active one
-  const closedBounty = !activeBounty
-    ? comment.bounties.find((bounty) => bounty.status === 'CLOSED' && !bounty.isContribution)
-    : null;
+  // Find the first closed, non-contribution bounty if there's no active one using utility function
+  const closedBounty = !activeBounty ? findClosedBounty(comment.bounties) : null;
 
   // If there's neither an active nor a closed bounty, don't render anything
   if (!activeBounty && !closedBounty) {
@@ -83,9 +93,28 @@ export const BountyItem = ({
     return null;
   }
 
+  // Check if the bounty is expiring soon (within 3 days)
+  const isExpiringSoon = (expirationDate?: string): boolean => {
+    if (!expirationDate) return false;
+
+    const expiration = new Date(expirationDate);
+    const now = new Date();
+
+    // Calculate the difference in milliseconds
+    const diffTime = expiration.getTime() - now.getTime();
+
+    // Convert to days
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+    // Return true if less than 3 days remaining
+    return diffDays > 0 && diffDays < 3;
+  };
+
   // Use either the active or closed bounty for display
   const displayBounty = activeBounty || closedBounty;
   const isOpen = !!activeBounty;
+  const isPeerReviewBounty = displayBounty?.bountyType === 'REVIEW';
+  const expiringSoon = isOpen && isExpiringSoon(displayBounty?.expirationDate);
 
   // Get all contributors including the main bounty creator
   const allContributors = comment.bounties
@@ -96,8 +125,8 @@ export const BountyItem = ({
       isCreator: bounty.id === displayBounty?.id && !bounty.isContribution,
     }));
 
-  // Calculate total amount including contributions
-  const totalAmount = comment.bounties.reduce((sum, bounty) => sum + parseFloat(bounty.amount), 0);
+  // Calculate total amount including contributions using utility function
+  const totalAmount = calculateTotalBountyAmount(comment.bounties);
 
   // Check if there are any solutions for the closed bounty
   const hasSolutions = !isOpen && displayBounty?.solutions && displayBounty.solutions.length > 0;
@@ -125,6 +154,19 @@ export const BountyItem = ({
     });
   };
 
+  const handleReviewClick = () => {
+    // Get the document ID from the thread
+    const documentId = comment.thread.objectId;
+
+    // Set the pending navigation URL based on content type
+    if (contentType === 'paper') {
+      setPendingNavigation(`/paper/${documentId}/reviews`);
+    } else {
+      // For posts, navigate to the post page
+      setPendingNavigation(`/post/${documentId}`);
+    }
+  };
+
   return (
     <>
       <div className={`space-y-4 ${!isOpen ? '' : ''}`}>
@@ -133,9 +175,19 @@ export const BountyItem = ({
           <h3 className="text-lg font-semibold text-gray-900">{getBountyTitle()}</h3>
           <div className="flex items-center gap-2">
             {/* Status badge - show for both open and closed bounties */}
-            <StatusBadge status={isOpen ? 'open' : 'closed'} />
+            <StatusBadge
+              status={expiringSoon ? 'expiring' : isOpen ? 'open' : 'closed'}
+              className="shadow-sm rounded-full"
+              size="xs"
+            />
             {/* RSC Amount */}
-            <RSCBadge amount={totalAmount} inverted={true} />
+            <RSCBadge
+              amount={totalAmount}
+              inverted={true}
+              variant="badge"
+              className="shadow-sm rounded-full h-[26px] flex items-center"
+              size="xs"
+            />
           </div>
         </div>
 
@@ -193,31 +245,31 @@ export const BountyItem = ({
           </div>
 
           {/* Right column */}
-          <div className="bg-gray-50 p-4 rounded-lg">
+          <div
+            className={`bg-gray-50 p-4 rounded-lg ${expiringSoon ? 'border border-orange-300' : ''}`}
+          >
             <div className="flex items-center gap-2">
-              {isOpen ? (
-                <Clock className="h-3.5 w-3.5 text-gray-500" />
-              ) : (
-                <Calendar className="h-3.5 w-3.5 text-gray-500" />
-              )}
-              <div className="text-sm font-medium text-gray-500">
-                {isOpen ? 'Date' : 'Awarded date'}
+              <Clock
+                className={`h-3.5 w-3.5 ${expiringSoon ? 'text-orange-500' : 'text-gray-500'}`}
+              />
+              <div
+                className={`text-sm font-medium ${expiringSoon ? 'text-orange-700' : 'text-gray-500'}`}
+              >
+                Deadline
               </div>
             </div>
             <div className="mt-2 flex items-center gap-1.5 text-gray-700">
-              {isOpen ? (
-                <>
-                  <Clock className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm">
-                    {displayBounty?.expirationDate
-                      ? `Deadline: ${formatDeadline(displayBounty.expirationDate)}`
-                      : 'No deadline'}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span className="text-sm">{formatTimestamp(comment.updatedDate)}</span>
-                </>
+              <span className={`text-sm ${expiringSoon ? 'font-medium text-orange-600' : ''}`}>
+                {isOpen
+                  ? displayBounty?.expirationDate
+                    ? formatDeadline(displayBounty.expirationDate)
+                    : 'No deadline'
+                  : 'Completed'}
+              </span>
+              {expiringSoon && (
+                <span className="ml-1 text-xs font-medium bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full">
+                  Expiring Soon
+                </span>
               )}
             </div>
           </div>
@@ -238,26 +290,87 @@ export const BountyItem = ({
 
         {/* Action buttons */}
         <div className="flex items-center justify-between">
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 w-full">
             {isOpen ? (
               isCreator ? (
-                <Button
-                  variant="default"
-                  onClick={() => setShowAwardModal(true)}
-                  className="flex items-center gap-2"
-                >
-                  <FontAwesomeIcon icon={faTrophy} className="text-white h-4 w-4" />
-                  Award bounty
-                </Button>
+                <>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-500">You created this bounty</div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="flex gap-2">
+                      <Button
+                        variant="default"
+                        onClick={() => setShowAwardModal(true)}
+                        className="flex items-center gap-2 shadow-sm"
+                        size="sm"
+                      >
+                        <FontAwesomeIcon icon={faTrophy} className="text-white h-4 w-4" />
+                        Award bounty
+                      </Button>
+                    </div>
+
+                    <div className="h-6 border-r border-gray-200"></div>
+
+                    <div className="flex gap-2">
+                      {isPeerReviewBounty ? (
+                        <Button
+                          onClick={handleReviewClick}
+                          size="sm"
+                          className="shadow-sm flex items-center gap-2 hover:bg-indigo-700 hover:text-white transition-colors duration-200"
+                        >
+                          <ClipboardCheck className="h-4 w-4" />
+                          Review
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={onSubmitSolution}
+                          size="sm"
+                          className="shadow-sm flex items-center gap-2"
+                        >
+                          Start
+                        </Button>
+                      )}
+                      <Button
+                        variant="contribute"
+                        onClick={() => setShowContributorsModal(true)}
+                        className="flex items-center gap-2 shadow-sm"
+                        size="sm"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Contribute
+                      </Button>
+                    </div>
+                  </div>
+                </>
               ) : (
                 <div className="flex gap-2">
-                  <Button variant="start-task" onClick={onSubmitSolution}>
-                    Start
-                  </Button>
+                  {isPeerReviewBounty ? (
+                    <Button
+                      variant="secondary"
+                      onClick={handleReviewClick}
+                      size="sm"
+                      className="shadow-sm flex items-center gap-2 hover:bg-indigo-700 hover:text-white transition-colors duration-200"
+                    >
+                      <ClipboardCheck className="h-4 w-4" />
+                      Review
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="secondary"
+                      onClick={onSubmitSolution}
+                      size="sm"
+                      className="shadow-sm flex items-center gap-2"
+                    >
+                      Start
+                    </Button>
+                  )}
                   <Button
                     variant="contribute"
                     onClick={() => setShowContributorsModal(true)}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 shadow-sm"
+                    size="sm"
                   >
                     <Plus className="h-4 w-4" />
                     Contribute
@@ -316,6 +429,7 @@ export const BountyItem = ({
                         variant="inline"
                         inverted={true}
                         label="awarded"
+                        className="flex items-center h-[24px]"
                       />
                     )}
                     <Button
@@ -348,6 +462,7 @@ export const BountyItem = ({
                       variant="inline"
                       inverted={true}
                       label="awarded"
+                      className="flex items-center h-[24px]"
                     />
                   </div>
                 </div>

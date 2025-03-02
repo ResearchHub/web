@@ -3,9 +3,10 @@
 import { FC } from 'react';
 import { cn } from '@/utils/styles';
 import { RadiatingDot } from './RadiatingDot';
+import { Badge } from './Badge';
 
 interface StatusBadgeProps {
-  status: 'open' | 'closed' | 'pending' | 'completed';
+  status: 'open' | 'closed' | 'pending' | 'completed' | 'expiring';
   className?: string;
   size?: 'xs' | 'sm' | 'md';
 }
@@ -36,6 +37,15 @@ export const StatusBadge: FC<StatusBadgeProps> = ({ status, className, size = 's
       bgColor: 'bg-blue-50',
       borderColor: 'border-blue-100',
       label: 'Open',
+    },
+    expiring: {
+      dotColor: 'bg-orange-500',
+      radiateColor: 'bg-orange-400',
+      ringColor: 'border-orange-200',
+      textColor: 'text-orange-700',
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-200',
+      label: 'Expiring Soon',
     },
     closed: {
       dotColor: 'bg-gray-500',
@@ -68,18 +78,21 @@ export const StatusBadge: FC<StatusBadgeProps> = ({ status, className, size = 's
 
   const config = statusConfig[status];
 
+  const badgeSize = size === 'xs' ? 'sm' : size === 'sm' ? 'default' : 'lg';
+
   return (
-    <div
+    <Badge
       className={cn(
-        'flex items-center gap-1.5 rounded-md border',
+        'flex items-center gap-1.5',
         sizeClasses[size],
         config.textColor,
         config.bgColor,
         config.borderColor,
         className
       )}
+      size={badgeSize}
     >
-      {status === 'open' ? (
+      {status === 'open' || status === 'expiring' ? (
         <RadiatingDot
           color={config.dotColor}
           radiateColor={config.radiateColor}
@@ -90,6 +103,6 @@ export const StatusBadge: FC<StatusBadgeProps> = ({ status, className, size = 's
         <RadiatingDot color={config.dotColor} isRadiating={false} />
       )}
       <span>{config.label}</span>
-    </div>
+    </Badge>
   );
 };

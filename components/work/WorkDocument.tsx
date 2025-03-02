@@ -13,6 +13,7 @@ import { CommentEditor } from '@/components/Comment/CommentEditor';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { calculateOpenBountiesAmount } from '@/utils/bountyUtil';
 
 interface WorkDocumentProps {
   work: Work;
@@ -25,7 +26,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [rewardModalOpen, setRewardModalOpen] = useState(false);
   const [showMobileMetrics, setShowMobileMetrics] = useState(false);
-
+  console.log('metadata', metadata);
   // Update URL when tab changes
   const handleTabChange = (tab: typeof activeTab) => {
     setActiveTab(tab);
@@ -45,42 +46,39 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   return (
     <div>
       {/* Rewards Banner - Show when there are open bounties */}
-      {metadata.bounties &&
-        metadata.bounties.some((bounty) => bounty.status === 'OPEN' && !bounty.isContribution) && (
-          <div className="mb-6">
-            <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg border border-orange-200">
-              <div className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-orange-100 p-2 rounded-lg">
-                      <Coins className="h-5 w-5 text-orange-600" />
-                    </div>
-                    <div>
-                      <h2 className="text-sm font-medium text-orange-900">
-                        {(() => {
-                          // Calculate total amount from only OPEN bounties
-                          const totalAmount = metadata.bounties
-                            .filter((bounty) => bounty.status === 'OPEN' && !bounty.isContribution)
-                            .reduce((sum, bounty) => sum + parseFloat(bounty.amount), 0);
-                          return `${formatRSC({ amount: totalAmount })} RSC Bounties Available`;
-                        })()}
-                      </h2>
-                      <p className="mt-1 text-sm text-orange-700">
-                        Earn ResearchCoin by completing bounties on this paper
-                      </p>
-                    </div>
+      {metadata.bounties && metadata.openBounties > 0 && (
+        <div className="mb-6">
+          <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg border border-orange-200">
+            <div className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-orange-100 p-2 rounded-lg">
+                    <Coins className="h-5 w-5 text-orange-600" />
                   </div>
-                  <button
-                    onClick={() => handleTabChange('bounties')}
-                    className="px-4 py-1.5 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600"
-                  >
-                    View Bounties
-                  </button>
+                  <div>
+                    <h2 className="text-sm font-medium text-orange-900">
+                      {(() => {
+                        // Calculate total amount from only OPEN bounties using utility function
+                        const totalAmount = calculateOpenBountiesAmount(metadata.bounties);
+                        return `${formatRSC({ amount: totalAmount })} RSC Bounties Available`;
+                      })()}
+                    </h2>
+                    <p className="mt-1 text-sm text-orange-700">
+                      Earn ResearchCoin by completing bounties on this paper
+                    </p>
+                  </div>
                 </div>
+                <button
+                  onClick={() => handleTabChange('bounties')}
+                  className="px-4 py-1.5 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600"
+                >
+                  View Bounties
+                </button>
               </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
       {/* Title & Actions */}
       {work.type === 'preprint' && (
         <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -130,7 +128,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
                     : 'bg-gray-100 text-gray-600'
                 }`}
               >
-                {work.metrics.reviews}
+                {metadata.metrics.reviews}
               </span>
             </div>
           </button>
@@ -156,11 +154,10 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
                     : 'bg-gray-100 text-gray-600'
                 }`}
               >
-                {
-                  metadata.bounties.filter(
-                    (bounty) => bounty.status === 'OPEN' && !bounty.isContribution
-                  ).length
-                }
+                <span className="text-green-600">{metadata.openBounties}</span>
+                {metadata.closedBounties > 0 && (
+                  <span className="text-gray-500 ml-1">/ {metadata.closedBounties}</span>
+                )}
               </span>
             </div>
           </button>
