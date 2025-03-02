@@ -4,7 +4,12 @@ const nextConfig = {
   images: {
     unoptimized: false,
     minimumCacheTTL: 60,
-    domains: ['images.unsplash.com'],
+    domains: [
+      'images.unsplash.com',
+      'storage.prod.researchhub.com',
+      'pbs.twimg.com',
+      'lh3.googleusercontent.com',
+    ],
   },
   productionBrowserSourceMaps: process.env.VERCEL_ENV === 'preview',
   modularizeImports: {
