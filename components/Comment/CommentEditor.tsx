@@ -19,6 +19,7 @@ import python from 'highlight.js/lib/languages/python';
 import 'highlight.js/styles/atom-one-dark.css';
 import { MentionExtension } from './lib/MentionExtension';
 import { CommentType } from '@/types/comment';
+import { Placeholder } from '@tiptap/extension-placeholder';
 import {
   Bold,
   Italic,
@@ -102,6 +103,7 @@ export const CommentEditor = ({
   const [selectedLink, setSelectedLink] = useState<{ url: string; text: string } | null>(null);
   const [rating, setRating] = useState(initialRating);
   const [sectionRatings, setSectionRatings] = useState<Record<string, number>>({});
+  const [isFocused, setIsFocused] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<any>(null);
   const isFirstRender = useRef(true);
@@ -174,6 +176,10 @@ export const CommentEditor = ({
         },
       }),
       MentionExtension,
+      Placeholder.configure({
+        placeholder,
+        emptyEditorClass: 'is-editor-empty',
+      }),
       ...(isReview
         ? [
             ReviewExtension.configure({
@@ -229,6 +235,12 @@ export const CommentEditor = ({
           });
         }
       }
+    },
+    onFocus: () => {
+      setIsFocused(true);
+    },
+    onBlur: () => {
+      setIsFocused(false);
     },
     immediatelyRender: false,
   });
@@ -619,7 +631,12 @@ export const CommentEditor = ({
   if (!editor) return null;
 
   return (
-    <div className="border rounded-lg bg-white" ref={editorRef}>
+    <div
+      className={`border rounded-lg bg-white transition-all duration-300 ease-in-out ${
+        isFocused && !isReadOnly ? 'ring-2 ring-blue-500 shadow-lg' : ''
+      }`}
+      ref={editorRef}
+    >
       <style jsx global>{`
         /* Editor list styles */
         .ProseMirror ul {
@@ -647,6 +664,23 @@ export const CommentEditor = ({
         .editor-initialized .ProseMirror {
           opacity: 1 !important;
           visibility: visible !important;
+          transition: background-color 0.2s ease;
+        }
+
+        /* Placeholder styles */
+        .ProseMirror p.is-editor-empty:first-child::before {
+          color: #adb5bd;
+          content: attr(data-placeholder);
+          float: left;
+          height: 0;
+          pointer-events: none;
+          transition: color 0.2s ease;
+        }
+
+        /* Focused placeholder styles - now using a class that will be added based on the isFocused state */
+        .editor-focused .ProseMirror p.is-editor-empty:first-child::before {
+          color: #6b7280;
+          font-weight: 500;
         }
 
         /* Review category dropdown styles */
@@ -816,7 +850,11 @@ export const CommentEditor = ({
           />
         </div>
       )}
-      <div className={`relative editor-initialized ${compactToolbar ? 'compact-toolbar' : ''}`}>
+      <div
+        className={`relative editor-initialized ${compactToolbar ? 'compact-toolbar' : ''} 
+        ${isFocused && !isReadOnly ? 'editor-focused' : ''}
+        transition-colors duration-300 ease-in-out`}
+      >
         <EditorContent editor={editor} />
         {!isReadOnly && linkMenuPosition && editor && selectedLink && (
           <div

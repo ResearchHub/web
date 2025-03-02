@@ -149,7 +149,7 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
         'flex items-center',
         sizeClasses[size],
         variantClasses[variant],
-        variant === 'badge' || variant === 'contribute' ? 'py-1.5 px-3' : '',
+        variant === 'badge' || variant === 'contribute' ? 'py-1.5' : '',
         size === 'xxs' && 'py-0.5 px-1.5',
         className
       )}
