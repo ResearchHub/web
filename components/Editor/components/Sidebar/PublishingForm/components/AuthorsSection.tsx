@@ -3,18 +3,18 @@ import { SectionHeader } from './SectionHeader';
 import { AutocompleteSelect, SelectOption } from '@/components/ui/form/AutocompleteSelect';
 import { useCallback, useState } from 'react';
 import { SearchService } from '@/services/search.service';
-import { SuggestedAuthor } from '@/types/authorProfile';
+import { AuthorSuggestion } from '@/types/search';
 import { cn } from '@/utils/styles';
 
 export function AuthorsSection() {
-  const [author, setAuthor] = useState<SuggestedAuthor | null>(null);
+  const [author, setAuthor] = useState<AuthorSuggestion | null>(null);
 
   const handleSearch = useCallback(async (query: string) => {
     const results = await SearchService.suggestPeople(query);
     return results.map((author) => ({
       value: author.id?.toString() || '',
       label: author.fullName || '',
-      data: author, // This will now be typed as SuggestedAuthor
+      data: author,
     }));
   }, []);
 
@@ -26,7 +26,7 @@ export function AuthorsSection() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Create a mock author object
-    const newAuthor: SuggestedAuthor = {
+    const newAuthor: AuthorSuggestion = {
       id: `new-${Date.now()}`, // Generate a temporary ID
       fullName: name,
       headline: 'New Author',
@@ -48,7 +48,7 @@ export function AuthorsSection() {
     option: SelectOption,
     { focus, selected }: { selected: boolean; focus: boolean }
   ) => {
-    const authorData = option.data as SuggestedAuthor;
+    const authorData = option.data as AuthorSuggestion;
     const isSelected = author?.id === authorData.id;
 
     return (
@@ -128,8 +128,8 @@ export function AuthorsSection() {
     );
   };
 
-  const renderSelectedAuthor = (option: SelectOption<SuggestedAuthor>) => {
-    const authorData = option.data as SuggestedAuthor;
+  const renderSelectedAuthor = (option: SelectOption<AuthorSuggestion>) => {
+    const authorData = option.data as AuthorSuggestion;
 
     return (
       <div className="flex items-center gap-2">
@@ -161,7 +161,7 @@ export function AuthorsSection() {
   return (
     <div className="py-3 px-6">
       <SectionHeader icon={Users}>Authors</SectionHeader>
-      <AutocompleteSelect<SuggestedAuthor>
+      <AutocompleteSelect<AuthorSuggestion>
         value={
           author
             ? { value: author.id?.toString() || '', label: author.fullName || '', data: author }
