@@ -24,8 +24,7 @@ import {
   savePublishingFormToStorage,
 } from '@/components/Editor/lib/utils/publishingFormStorage';
 import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSkeleton';
-import { Link2, Loader2 } from 'lucide-react';
-import Link from 'next/link';
+import { Loader2 } from 'lucide-react';
 import { DOISection } from '@/components/work/components/DOISection';
 import { getFieldErrorMessage } from '@/utils/form';
 
@@ -36,13 +35,13 @@ interface PublishingFormProps {
 
 const getButtonText = ({
   isLoadingUpsert,
-  isPending,
+  isRedirecting,
   articleType,
   isJournalEnabled,
   hasWorkId,
 }: {
   isLoadingUpsert: boolean;
-  isPending: boolean;
+  isRedirecting: boolean;
   articleType: string;
   isJournalEnabled: boolean;
   hasWorkId: boolean;
@@ -50,7 +49,7 @@ const getButtonText = ({
   switch (true) {
     case isLoadingUpsert:
       return 'Publishing...';
-    case isPending:
+    case isRedirecting:
       return 'Redirecting...';
     case hasWorkId:
       return 'Re-publish';
@@ -64,7 +63,7 @@ const getButtonText = ({
 export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormProps) {
   const { noteId, editor, note } = useNotebookPublish();
   const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const methods = useForm<PublishingFormData>({
     defaultValues: {
@@ -217,10 +216,9 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         formData.workId
       );
 
-      // Use startTransition to mark the navigation as a transition
-      startTransition(() => {
-        router.push(`/fund/${response.id}/${response.slug}`);
-      });
+      setIsRedirecting(true);
+
+      router.push(`/fund/${response.id}/${response.slug}`);
     } catch (error) {
       toast.error('Error publishing. Please try again.');
       console.error('Error publishing:', error);
@@ -238,7 +236,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     <FormProvider {...methods}>
       <div className="w-82 flex flex-col h-screen sticky right-0 top-0 bg-white relative">
         {/* Processing overlay */}
-        {(isLoadingUpsert || isPending) && (
+        {(isLoadingUpsert || isRedirecting) && (
           <div className="absolute inset-0 bg-white/50 z-50 flex flex-col items-center justify-center">
             <Loader2 className="h-8 w-8 text-indigo-600 animate-spin mb-2" />
           </div>
@@ -246,7 +244,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
 
         {/* Scrollable content - conditionally disable scrolling */}
         <div
-          className={`flex-1 ${isPending ? 'overflow-hidden' : 'overflow-y-auto'} scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 relative`}
+          className={`flex-1 ${isRedirecting ? 'overflow-hidden' : 'overflow-y-auto'} scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 relative`}
         >
           <div className="pb-6">
             <WorkTypeSection />
@@ -277,11 +275,11 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             variant="default"
             onClick={handlePublishClick}
             className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isLoadingUpsert || isPending}
+            disabled={isLoadingUpsert || isRedirecting}
           >
             {getButtonText({
               isLoadingUpsert,
-              isPending,
+              isRedirecting,
               articleType,
               isJournalEnabled: isJournalEnabled ?? false,
               hasWorkId: Boolean(methods.watch('workId')),
@@ -296,7 +294,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           onClose={() => setShowConfirmModal(false)}
           onConfirm={handleConfirmPublish}
           title={getDocumentTitleFromEditor(editor) || 'Untitled Research'}
-          isPublishing={isLoadingUpsert || isPending}
+          isPublishing={isLoadingUpsert || isRedirecting}
           isUpdate={Boolean(methods.watch('workId'))}
         />
       )}
