@@ -139,6 +139,7 @@ export const CommentItem = ({
             contentType={contentType}
             onSubmitSolution={() => setIsReplying(true)}
             isCreator={isCreator}
+            onBountyUpdated={() => onCommentUpdate(comment)}
           />
         </div>
       );

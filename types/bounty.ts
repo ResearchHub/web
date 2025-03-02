@@ -1,7 +1,7 @@
 import { BaseTransformer } from './transformer';
 import { User, transformUser } from './user';
 
-export type BountyType = 'REVIEW' | 'BOUNTY' | 'GENERIC_COMMENT';
+export type BountyType = 'REVIEW' | 'ANSWER' | 'BOUNTY' | 'GENERIC_COMMENT';
 export type SolutionStatus = 'AWARDED' | 'PENDING';
 
 export interface BountySolution {

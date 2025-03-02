@@ -120,6 +120,33 @@ export const useComments = ({
     return unsubscribe;
   }, [documentId, contentType, fetchComments]);
 
+  // Listen for updated comments/bounties
+  useEffect(() => {
+    const unsubscribe = commentEvents.on('comment_updated', (data) => {
+      // Only refresh if the updated comment belongs to this document and content type
+      if (data.documentId === documentId && data.contentType === contentType) {
+        // For updates, we do a full refresh to ensure data consistency
+        fetchComments(1);
+      }
+    });
+
+    return unsubscribe;
+  }, [documentId, contentType, fetchComments]);
+
+  // Listen for deleted comments
+  useEffect(() => {
+    const unsubscribe = commentEvents.on('comment_deleted', (data) => {
+      // Only refresh if the deleted comment belongs to this document and content type
+      if (data.documentId === documentId && data.contentType === contentType) {
+        // Remove the deleted comment from the list
+        setComments((prev) => prev.filter((comment) => comment.id !== data.comment.id));
+        setCount((prev) => prev - 1);
+      }
+    });
+
+    return unsubscribe;
+  }, [documentId, contentType]);
+
   function loadMore() {
     const nextPage = page + 1;
     setPage(nextPage);

@@ -19,6 +19,7 @@ import {
   Plus,
   FileText,
   ClipboardCheck,
+  MessageSquare,
 } from 'lucide-react';
 import { CommentReadOnly } from './CommentReadOnly';
 import { useState, useEffect } from 'react';
@@ -36,16 +37,21 @@ import { Avatar } from '@/components/ui/Avatar';
 import { SolutionModal } from './SolutionModal';
 import { ID } from '@/types/root';
 import { ContributorModal } from '@/components/modals/ContributorModal';
+import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { findActiveBounty, findClosedBounty, calculateTotalBountyAmount } from '@/utils/bountyUtil';
 import { buildWorkUrl } from '@/utils/url';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
+import { BountyType } from '@/types/bounty';
+import { commentEvents } from '@/hooks/useComments';
+import { CommentService } from '@/services/comment.service';
 
 interface BountyItemProps {
   comment: Comment;
   contentType: ContentType;
   onSubmitSolution: () => void;
   isCreator?: boolean;
+  onBountyUpdated?: () => void;
 }
 
 export const BountyItem = ({
@@ -53,16 +59,19 @@ export const BountyItem = ({
   contentType,
   onSubmitSolution,
   isCreator = false,
+  onBountyUpdated,
 }: BountyItemProps) => {
   const [showAwardModal, setShowAwardModal] = useState(false);
   const [showSolutions, setShowSolutions] = useState(false);
   const [showContributorsModal, setShowContributorsModal] = useState(false);
+  const [showContributeModal, setShowContributeModal] = useState(false);
   const [selectedSolution, setSelectedSolution] = useState<{
     id: ID;
     authorName: string;
     awardedAmount?: string;
   } | null>(null);
   const router = useRouter();
+  const params = useParams();
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
 
   // Handle navigation in useEffect to ensure it only runs client-side
@@ -154,18 +163,60 @@ export const BountyItem = ({
     });
   };
 
-  const handleReviewClick = () => {
+  const handleNavigationClick = (tab: 'reviews' | 'conversation') => {
     // Get the document ID from the thread
     const documentId = comment.thread.objectId;
 
     // Set the pending navigation URL based on content type
     if (contentType === 'paper') {
-      setPendingNavigation(`/paper/${documentId}/reviews`);
+      // For papers, use the buildWorkUrl function to get the base URL with slug
+      const baseUrl = buildWorkUrl({
+        id: documentId,
+        contentType: 'paper',
+        slug: params.slug as string,
+      });
+
+      // Navigate to the specified tab
+      setPendingNavigation(`${baseUrl}/${tab}`);
     } else {
-      // For posts, navigate to the post page
-      setPendingNavigation(`/post/${documentId}`);
+      // For posts, navigate to the post page with optional tab
+      setPendingNavigation(`/post/${documentId}${tab === 'conversation' ? '/conversation' : ''}`);
     }
   };
+
+  const handleContributeClick = () => {
+    setShowContributeModal(true);
+  };
+
+  // Add an effect to listen for the comment_updated event
+  useEffect(() => {
+    const unsubscribe = commentEvents.on('comment_updated', (data) => {
+      if (data.comment.id === comment.id) {
+        // Refresh the bounty data
+        console.log('Bounty updated, refreshing data');
+
+        // Fetch the updated comment data
+        CommentService.fetchComment({
+          commentId: comment.id,
+          documentId: comment.thread.objectId,
+          contentType: contentType,
+        })
+          .then((updatedComment) => {
+            // Update the UI with the new data
+            // Since we can't directly update the comment prop, we can force a re-render
+            // by toggling a state variable
+            setShowContributeModal(false);
+            // You might want to add a callback to the parent component to refresh the entire list
+            onBountyUpdated?.();
+          })
+          .catch((error) => {
+            console.error('Failed to fetch updated comment:', error);
+          });
+      }
+    });
+
+    return unsubscribe;
+  }, [comment.id, comment.thread.objectId, contentType, onBountyUpdated]);
 
   return (
     <>
@@ -316,7 +367,7 @@ export const BountyItem = ({
                     <div className="flex gap-2">
                       {isPeerReviewBounty ? (
                         <Button
-                          onClick={handleReviewClick}
+                          onClick={() => handleNavigationClick('reviews')}
                           size="sm"
                           className="shadow-sm flex items-center gap-2 hover:bg-indigo-700 hover:text-white transition-colors duration-200"
                         >
@@ -325,16 +376,17 @@ export const BountyItem = ({
                         </Button>
                       ) : (
                         <Button
-                          onClick={onSubmitSolution}
+                          onClick={() => handleNavigationClick('conversation')}
                           size="sm"
                           className="shadow-sm flex items-center gap-2"
                         >
-                          Start
+                          <MessageSquare className="h-4 w-4" />
+                          Answer
                         </Button>
                       )}
                       <Button
                         variant="contribute"
-                        onClick={() => setShowContributorsModal(true)}
+                        onClick={handleContributeClick}
                         className="flex items-center gap-2 shadow-sm"
                         size="sm"
                       >
@@ -349,7 +401,7 @@ export const BountyItem = ({
                   {isPeerReviewBounty ? (
                     <Button
                       variant="secondary"
-                      onClick={handleReviewClick}
+                      onClick={() => handleNavigationClick('reviews')}
                       size="sm"
                       className="shadow-sm flex items-center gap-2 hover:bg-indigo-700 hover:text-white transition-colors duration-200"
                     >
@@ -359,16 +411,17 @@ export const BountyItem = ({
                   ) : (
                     <Button
                       variant="secondary"
-                      onClick={onSubmitSolution}
+                      onClick={() => handleNavigationClick('conversation')}
                       size="sm"
                       className="shadow-sm flex items-center gap-2"
                     >
-                      Start
+                      <MessageSquare className="h-4 w-4" />
+                      Answer
                     </Button>
                   )}
                   <Button
                     variant="contribute"
-                    onClick={() => setShowContributorsModal(true)}
+                    onClick={handleContributeClick}
                     className="flex items-center gap-2 shadow-sm"
                     size="sm"
                   >
@@ -500,8 +553,25 @@ export const BountyItem = ({
         isOpen={showContributorsModal}
         onClose={() => setShowContributorsModal(false)}
         contributors={allContributors.map(({ profile, amount }) => ({ profile, amount }))}
-        onContribute={isOpen ? onSubmitSolution : undefined}
+        onContribute={handleContributeClick}
       />
+
+      {/* Contribute Modal */}
+      {isOpen && displayBounty && (
+        <ContributeBountyModal
+          isOpen={showContributeModal}
+          onClose={() => setShowContributeModal(false)}
+          commentId={comment.id}
+          documentId={Number(comment.thread.objectId)}
+          contentType={contentType}
+          bountyTitle={getBountyTitle()}
+          bountyType={displayBounty.bountyType as BountyType}
+          expirationDate={
+            displayBounty.expirationDate ||
+            new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        />
+      )}
     </>
   );
 };

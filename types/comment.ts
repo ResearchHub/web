@@ -6,7 +6,7 @@ export type CommentFilter = 'BOUNTY' | 'DISCUSSION' | 'REVIEW';
 export type CommentSort = 'BEST' | 'NEWEST' | 'TOP' | 'CREATED_DATE';
 export type CommentPrivacyType = 'PUBLIC' | 'PRIVATE';
 export type ContentFormat = 'QUILL_EDITOR' | 'TIPTAP';
-export type CommentType = 'GENERIC_COMMENT' | 'REVIEW' | 'BOUNTY';
+export type CommentType = 'GENERIC_COMMENT' | 'REVIEW' | 'BOUNTY' | 'ANSWER';
 
 export interface UserMention {
   userId: string | null;

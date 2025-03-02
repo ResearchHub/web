@@ -30,6 +30,7 @@ const commentTypeToFilter: Record<CommentType, CommentFilter | undefined> = {
   GENERIC_COMMENT: undefined,
   REVIEW: 'REVIEW',
   BOUNTY: 'BOUNTY',
+  ANSWER: 'DISCUSSION',
 };
 
 interface CommentFeedProps {
@@ -257,7 +258,10 @@ export const CommentFeed = ({
           <div className="space-y-4">
             {/* Render multiple skeleton items based on comment type */}
             {Array.from({ length: 3 }).map((_, index) => (
-              <CommentSkeleton key={index} commentType={commentType} />
+              <CommentSkeleton
+                key={index}
+                commentType={commentType as 'GENERIC_COMMENT' | 'REVIEW' | 'BOUNTY' | 'ANSWER'}
+              />
             ))}
           </div>
         ) : (
