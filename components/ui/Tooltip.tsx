@@ -146,7 +146,7 @@ export function Tooltip({
         onMouseLeave={hideTooltip}
         onFocus={showTooltip}
         onBlur={hideTooltip}
-        className="inline-block"
+        className="inline-flex"
       >
         {children}
       </div>

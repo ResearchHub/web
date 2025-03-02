@@ -30,7 +30,7 @@ interface RSCBadgeProps {
 export const RSCBadge: FC<RSCBadgeProps> = ({
   amount,
   className,
-  size = 'sm',
+  size = 'xs',
   variant = 'badge',
   showText = true,
   showIcon = true,
@@ -43,10 +43,10 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
 
   // Custom size classes that override Badge's default sizes
   const sizeClasses = {
-    xxs: 'text-[10px] gap-0.5 py-0 px-1',
-    xs: 'text-xs gap-1',
-    sm: 'text-sm gap-1.5',
-    md: 'text-base gap-2',
+    xxs: 'text-[9px] gap-0.5 py-0 px-1',
+    xs: 'text-xs gap-0.5 py-0.5 px-1.5',
+    sm: 'text-xs gap-1 py-0.5 px-2',
+    md: 'text-sm gap-1 py-1 px-2.5',
   };
 
   // Define orange theme colors
@@ -72,10 +72,10 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
   const badgeSize = size === 'xxs' || size === 'xs' ? 'sm' : size === 'sm' ? 'default' : 'lg';
 
   const iconSizes = {
-    xxs: 12,
-    xs: 16,
-    sm: 18,
-    md: 20,
+    xxs: 10,
+    xs: 12,
+    sm: 14,
+    md: 16,
   };
 
   // Calculate USD value
@@ -104,7 +104,7 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
           content={tooltipContent}
           position={tooltipPosition}
           className="bg-orange-50 border-orange-200 shadow-md"
-          delay={100}
+          delay={50}
         >
           {content}
         </Tooltip>
@@ -122,19 +122,13 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
         )}
         {inverted ? (
           <div className="flex items-center">
-            {label && (
-              <span className={cn(colors.textDark, 'mr-0.5 text-[10px] font-bold')}>{label}</span>
-            )}
             <span className={cn(colors.textDark)}>{amount.toLocaleString()}</span>
-            {showText && <span className={cn(colors.textMedium, 'text-xs ml-1')}>RSC</span>}
+            {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>}
           </div>
         ) : (
           <div className="flex items-center">
-            {label && (
-              <span className={cn(colors.textDark, 'mr-0.5 text-[10px] font-bold')}>{label}</span>
-            )}
             <span className={colors.text}>{amount.toLocaleString()}</span>
-            {showText && <span className={cn(colors.textMedium, 'ml-1')}>RSC</span>}
+            {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>}
           </div>
         )}
       </div>
@@ -149,8 +143,8 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
         'flex items-center',
         sizeClasses[size],
         variantClasses[variant],
-        variant === 'badge' || variant === 'contribute' ? 'py-1.5' : '',
-        size === 'xxs' && 'py-0.5 px-1.5',
+        variant === 'badge' || variant === 'contribute' ? 'py-0.5 px-2' : '',
+        size === 'xxs' && 'py-0 px-1',
         className
       )}
     >
@@ -159,39 +153,13 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
       )}
       {inverted ? (
         <div className="flex items-center">
-          {label && (
-            <span className={cn(colors.textDark, 'mr-0.5 text-[10px] font-bold')}>{label}</span>
-          )}
           <span className={cn(colors.textDark)}>{amount.toLocaleString()}</span>
-          {showText && (
-            <span
-              className={cn(
-                colors.textMedium,
-                size === 'xxs' || size === 'xs' ? 'text-[10px]' : 'text-xs',
-                'ml-1'
-              )}
-            >
-              RSC
-            </span>
-          )}
+          {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>}
         </div>
       ) : (
         <div className="flex items-center">
-          {label && (
-            <span className={cn(colors.textDark, 'mr-0.5 text-[10px] font-bold')}>{label}</span>
-          )}
           <span className={colors.text}>{amount.toLocaleString()}</span>
-          {showText && (
-            <span
-              className={cn(
-                colors.textMedium,
-                size === 'xxs' || size === 'xs' ? 'text-[10px]' : 'text-xs',
-                'ml-1'
-              )}
-            >
-              RSC
-            </span>
-          )}
+          {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>}
         </div>
       )}
     </Badge>

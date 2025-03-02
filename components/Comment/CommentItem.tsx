@@ -240,6 +240,7 @@ export const CommentItem = ({
               amount={Number(comment.awardedBountyAmount)}
               inverted={true}
               label="awarded"
+              size="md"
             />
           )}
         </div>
