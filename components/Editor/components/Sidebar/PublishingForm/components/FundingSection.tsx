@@ -63,7 +63,7 @@ export function FundingSection({ note }: FundingSectionProps) {
             {...register('budget')}
             label="Funding Goal"
             required
-            placeholder="0.00"
+            placeholder="1,000"
             type="text"
             inputMode="numeric"
             className="w-full"
@@ -73,8 +73,14 @@ export function FundingSection({ note }: FundingSectionProps) {
             }
             helperText="Set your total funding goal for this research project"
             onChange={(e) => {
-              const value = e.target.value.replace(/[^0-9.]/g, '');
-              setValue('budget', value, { shouldValidate: true });
+              const numericValue = e.target.value.replace(/[^0-9]/g, '');
+              setValue('budget', numericValue, { shouldValidate: true });
+
+              if (numericValue) {
+                e.target.value = new Intl.NumberFormat('en-US').format(parseInt(numericValue));
+              } else {
+                e.target.value = '';
+              }
             }}
           />
         </div>
