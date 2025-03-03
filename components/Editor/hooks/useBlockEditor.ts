@@ -64,7 +64,7 @@ export const useBlockEditor = ({
       extensions: [
         ...ExtensionKit({
           provider,
-          customDocument: CustomDocument,
+          customDocument: editable ? CustomDocument : undefined,
           placeholderConfig: {
             includeChildren: true,
             showOnlyCurrent: false,
@@ -161,6 +161,7 @@ export const useBlockEditor = ({
     });
   }, [provider]);
 
+  //TODO there is a bug where SSR
   window.editor = editor;
 
   return { editor, users, collabState };

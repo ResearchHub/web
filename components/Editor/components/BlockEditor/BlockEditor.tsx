@@ -58,57 +58,6 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
     editable,
   });
 
-  const editorOld = useEditor({
-    editable,
-    immediatelyRender: false,
-    extensions: [
-      CustomDocument,
-      StarterKit.configure({
-        document: false,
-      }),
-      Heading.configure({
-        levels: [1, 2, 3],
-      }),
-      Link.configure({
-        openOnClick: false,
-      }),
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
-      Placeholder.configure({
-        includeChildren: true,
-        showOnlyCurrent: false,
-        placeholder: ({ node }) => {
-          if (node.type.name === 'heading' && node.attrs.level === 1) {
-            return 'Enter a title...';
-          }
-          return '';
-        },
-      }),
-    ],
-    content: contentJson
-      ? JSON.parse(contentJson)
-      : {
-          type: 'doc',
-          content: [
-            {
-              type: 'heading',
-              attrs: { level: 1 },
-              content: [{ type: 'text', text: '' }],
-            },
-          ],
-        },
-    editorProps: {
-      attributes: {
-        class:
-          'min-h-full prose prose-sm max-w-none prose-neutral dark:prose-invert prose-headings:font-display',
-      },
-    },
-    onUpdate: ({ editor }) => {
-      onUpdate?.(editor);
-    },
-  });
-
   useEffect(() => {
     if (editor && (content || contentJson)) {
       if (contentJson) {
@@ -135,13 +84,17 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
     <div className="h-full" ref={menuContainerRef}>
       <div className="h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 pr-1">
         <EditorContent editor={editor} className="h-full" />
-        <ContentItemMenu editor={editor} />
-        <LinkMenu editor={editor} appendTo={menuContainerRef} />
-        <TextMenu editor={editor} />
-        <ColumnsMenu editor={editor} appendTo={menuContainerRef} />
-        <TableRowMenu editor={editor} appendTo={menuContainerRef} />
-        <TableColumnMenu editor={editor} appendTo={menuContainerRef} />
-        <ImageBlockMenu editor={editor} appendTo={menuContainerRef} />
+        {editable && (
+          <>
+            <ContentItemMenu editor={editor} />
+            <LinkMenu editor={editor} appendTo={menuContainerRef} />
+            <TextMenu editor={editor} />
+            <ColumnsMenu editor={editor} appendTo={menuContainerRef} />
+            <TableRowMenu editor={editor} appendTo={menuContainerRef} />
+            <TableColumnMenu editor={editor} appendTo={menuContainerRef} />
+            <ImageBlockMenu editor={editor} appendTo={menuContainerRef} />
+          </>
+        )}
       </div>
     </div>
   );
