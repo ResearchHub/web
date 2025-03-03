@@ -167,7 +167,7 @@ export class NoteService {
    * @throws {NoteError} When the request fails or parameters are invalid
    */
   static async updateNoteTitle(params: UpdateNoteTitleParams): Promise<NoteWithContent> {
-    if (!params.noteId || !params.title) {
+    if (!params.noteId) {
       throw new NoteError('Missing required parameters', 'INVALID_PARAMS');
     }
 

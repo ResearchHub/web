@@ -18,6 +18,7 @@ export default function NotePage() {
   const orgSlug = params?.orgSlug as string;
   const isNewFunding = searchParams?.get('newFunding') === 'true';
   const [showFundingModal, setShowFundingModal] = useState(false);
+  const [aiToken, setAiToken] = useState<string | null>(null);
 
   const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
   const { setNotes } = useOrganizationNotesContext();
@@ -64,6 +65,33 @@ export default function NotePage() {
     }
   }, [note, setNote]);
 
+  useEffect(() => {
+    const fetchAiToken = async () => {
+      try {
+        const response = await fetch('/notebook/api/ai', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            'Failed to fetch AI token. Please set TIPTAP_AI_SECRET in your environment.'
+          );
+        }
+
+        const data = await response.json();
+        setAiToken(data.token);
+      } catch (error) {
+        console.error((error as Error).message);
+        setAiToken(null);
+      }
+    };
+
+    fetchAiToken();
+  }, []);
+
   // Handle loading states
   if (isLoadingNote) {
     return <NotebookSkeleton />;
@@ -96,6 +124,9 @@ export default function NotePage() {
     <>
       <div className="h-full">
         <BlockEditor
+          aiToken={aiToken ?? undefined}
+          ydoc={null} // TODO: Add ydoc and provider
+          provider={null} // TODO: Add ydoc and provider
           content={content || ''}
           contentJson={contentJson}
           isLoading={false}
