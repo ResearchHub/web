@@ -72,6 +72,12 @@ export interface FetchCommentOptions {
   contentType: ContentType;
 }
 
+export interface VoteCommentOptions {
+  commentId: ID;
+  documentId: ID;
+  voteType: 'UPVOTE' | 'DOWNVOTE' | 'NEUTRAL';
+}
+
 export class CommentService {
   private static readonly BASE_PATH = '/api';
 
@@ -195,5 +201,19 @@ export class CommentService {
     const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/`;
     const response = await ApiClient.get<any>(path);
     return transformComment(response);
+  }
+
+  static async voteComment({ commentId, documentId, voteType }: VoteCommentOptions): Promise<any> {
+    let endpoint = '';
+
+    if (voteType === 'UPVOTE') {
+      endpoint = `/paper/${documentId}/comments/${commentId}/upvote/`;
+    } else if (voteType === 'DOWNVOTE') {
+      endpoint = `/paper/${documentId}/comments/${commentId}/downvote/`;
+    } else {
+      endpoint = `/paper/${documentId}/comments/${commentId}/neutralvote/`;
+    }
+
+    return ApiClient.post(this.BASE_PATH + endpoint);
   }
 }

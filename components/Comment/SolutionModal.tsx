@@ -11,7 +11,8 @@ import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Avatar } from '@/components/ui/Avatar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrophy } from '@fortawesome/free-solid-svg-icons';
+import { faTrophy } from '@fortawesome/pro-light-svg-icons';
+import { CommentSkeleton } from '@/components/skeletons/CommentSkeleton';
 
 interface SolutionModalProps {
   isOpen: boolean;
@@ -64,9 +65,7 @@ export const SolutionModal = ({
     <Modal isOpen={isOpen} onClose={onClose} title={`Solution by ${solutionAuthorName}`}>
       <div className="space-y-6">
         {loading ? (
-          <div className="flex justify-center py-8">
-            <Loader size="md" />
-          </div>
+          <CommentSkeleton commentType="ANSWER" />
         ) : error ? (
           <div className="text-red-500 text-center py-4">{error}</div>
         ) : comment ? (
@@ -101,7 +100,11 @@ export const SolutionModal = ({
 
             {/* Solution content */}
             <div className="pt-2">
-              <CommentReadOnly comment={comment} />
+              <CommentReadOnly
+                content={comment.content}
+                contentFormat={comment.contentFormat}
+                debug={false}
+              />
             </div>
           </>
         ) : (

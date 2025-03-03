@@ -8,6 +8,8 @@ export type CommentPrivacyType = 'PUBLIC' | 'PRIVATE';
 export type ContentFormat = 'QUILL_EDITOR' | 'TIPTAP';
 export type CommentType = 'GENERIC_COMMENT' | 'REVIEW' | 'BOUNTY' | 'ANSWER';
 
+export type UserVoteType = 'UPVOTE' | 'NEUTRAL' | 'DOWNVOTE';
+
 export interface UserMention {
   userId: string | null;
   firstName: string | null;
@@ -58,6 +60,11 @@ export interface Comment {
   raw: any;
   bounties: Bounty[];
   thread: Thread;
+  userVote?: UserVoteType;
+  metadata?: {
+    isVoteUpdate?: boolean;
+    [key: string]: any;
+  };
 }
 
 export const transformThread: BaseTransformer<any, Thread> = (raw) => ({
@@ -76,8 +83,35 @@ export const transformContent = (raw: any): string => {
 };
 
 export const transformComment = (raw: any): Comment => {
-  // Extract review score if available
   const reviewScore = raw.review?.score;
+
+  // Transform user_vote from API
+  // It can be either an object with vote_type or a direct numeric value
+  let userVote: UserVoteType | undefined;
+
+  if (raw.user_vote) {
+    // If user_vote is an object with vote_type property
+    if (typeof raw.user_vote === 'object' && raw.user_vote.vote_type !== undefined) {
+      const voteType = raw.user_vote.vote_type;
+      if (voteType === 1) {
+        userVote = 'UPVOTE';
+      } else if (voteType === -1) {
+        userVote = 'DOWNVOTE';
+      } else if (voteType === 0) {
+        userVote = 'NEUTRAL';
+      }
+    }
+    // If user_vote is a direct numeric value (for backward compatibility)
+    else if (typeof raw.user_vote === 'number') {
+      if (raw.user_vote === 1) {
+        userVote = 'UPVOTE';
+      } else if (raw.user_vote === -1) {
+        userVote = 'DOWNVOTE';
+      } else if (raw.user_vote === 0) {
+        userVote = 'NEUTRAL';
+      }
+    }
+  }
 
   return {
     id: raw.id,
@@ -86,9 +120,9 @@ export const transformComment = (raw: any): Comment => {
     createdDate: raw.created_date,
     updatedDate: raw.updated_date,
     author: transformAuthorProfile(raw.created_by),
-    score: reviewScore !== undefined ? reviewScore : 0,
-    replyCount: raw.reply_count || 0,
-    replies: (raw.replies || []).map(transformComment),
+    score: reviewScore !== undefined ? reviewScore : raw.score || 0,
+    replyCount: raw.reply_count || raw.children_count || 0,
+    replies: (raw.replies || raw.children || []).map(transformComment),
     commentType: raw.comment_type || 'GENERIC_COMMENT',
     bountyAmount: raw.amount,
     awardedBountyAmount: raw.awarded_bounty_amount,
@@ -98,6 +132,8 @@ export const transformComment = (raw: any): Comment => {
     parentId: raw.parent?.id || raw.parent_id,
     bounties: (raw.bounties || []).map(transformBounty),
     thread: transformThread(raw.thread),
+    userVote,
     raw,
+    metadata: raw.metadata,
   };
 };

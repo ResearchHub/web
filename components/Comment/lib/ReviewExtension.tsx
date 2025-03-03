@@ -21,8 +21,8 @@ export const ReviewStars = ({
   const [hoverRating, setHoverRating] = useState(0);
 
   return (
-    <div className="flex items-center space-x-1 mb-4">
-      {label && <div className="text-sm text-gray-700 mr-2">{label}</div>}
+    <div className="flex items-center space-x-1">
+      {label && <div className="text-sm text-gray-700 mr-2 flex items-center">{label}</div>}
       <div className="flex space-x-1">
         {[1, 2, 3, 4, 5].map((star) => (
           <button

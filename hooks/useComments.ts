@@ -7,7 +7,7 @@ import { ContentType } from '@/types/work';
 import { ApiError } from '@/services/types';
 
 // Create a simple event emitter for comment-related events
-type CommentEventType = 'comment_created' | 'comment_updated' | 'comment_deleted';
+type CommentEventType = 'comment_created' | 'comment_updated' | 'comment_deleted' | 'comment_voted';
 type CommentEventListener = (data: {
   comment: Comment;
   contentType: ContentType;
@@ -19,6 +19,7 @@ class CommentEventEmitter {
     comment_created: [],
     comment_updated: [],
     comment_deleted: [],
+    comment_voted: [],
   };
 
   on(event: CommentEventType, callback: CommentEventListener) {
@@ -106,8 +107,11 @@ export const useComments = ({
   // Listen for new comments/bounties
   useEffect(() => {
     const unsubscribe = commentEvents.on('comment_created', (data) => {
-      // Only refresh if the new comment belongs to this document and content type
-      if (data.documentId === documentId && data.contentType === contentType) {
+      // Check if this event is relevant to the current feed
+      const isRelevantToCurrentFeed =
+        data.documentId === documentId && data.contentType === contentType;
+
+      if (isRelevantToCurrentFeed) {
         // Option 1: Optimistic update - add the new comment to the list without a full refresh
         setComments((prev) => [data.comment, ...prev]);
         setCount((prev) => prev + 1);
@@ -123,8 +127,11 @@ export const useComments = ({
   // Listen for updated comments/bounties
   useEffect(() => {
     const unsubscribe = commentEvents.on('comment_updated', (data) => {
-      // Only refresh if the updated comment belongs to this document and content type
-      if (data.documentId === documentId && data.contentType === contentType) {
+      // Check if this event is relevant to the current feed
+      const isRelevantToCurrentFeed =
+        data.documentId === documentId && data.contentType === contentType;
+
+      if (isRelevantToCurrentFeed) {
         // For updates, we do a full refresh to ensure data consistency
         fetchComments(1);
       }
@@ -133,11 +140,65 @@ export const useComments = ({
     return unsubscribe;
   }, [documentId, contentType, fetchComments]);
 
+  // Listen for vote updates - handle them optimistically without full refresh
+  useEffect(() => {
+    const unsubscribe = commentEvents.on('comment_voted', (data) => {
+      // Check if this event is relevant to the current feed
+      const isRelevantToCurrentFeed =
+        data.documentId === documentId && data.contentType === contentType;
+
+      if (isRelevantToCurrentFeed) {
+        setComments((prevComments) => {
+          return prevComments.map((comment) => {
+            // Update the top-level comment if it matches
+            if (comment.id === data.comment.id) {
+              // Reset the isVoteUpdate flag when storing in state
+              const updatedComment = {
+                ...data.comment,
+                metadata: data.comment.metadata
+                  ? { ...data.comment.metadata, isVoteUpdate: undefined }
+                  : undefined,
+              };
+              return updatedComment;
+            }
+
+            // Check if the voted comment is a reply
+            if (comment.replies && comment.replies.length > 0) {
+              return {
+                ...comment,
+                replies: comment.replies.map((reply) => {
+                  if (reply.id === data.comment.id) {
+                    // Reset the isVoteUpdate flag when storing in state
+                    const updatedReply = {
+                      ...data.comment,
+                      metadata: data.comment.metadata
+                        ? { ...data.comment.metadata, isVoteUpdate: undefined }
+                        : undefined,
+                    };
+                    return updatedReply;
+                  }
+                  return reply;
+                }),
+              };
+            }
+
+            return comment;
+          });
+        });
+      }
+    });
+
+    return unsubscribe;
+  }, [documentId, contentType]);
+
   // Listen for deleted comments
   useEffect(() => {
     const unsubscribe = commentEvents.on('comment_deleted', (data) => {
-      // Only refresh if the deleted comment belongs to this document and content type
-      if (data.documentId === documentId && data.contentType === contentType) {
+      // Check if this event is relevant to the current feed
+      const isRelevantToCurrentFeed =
+        data.documentId === documentId && data.contentType === contentType;
+
+      if (isRelevantToCurrentFeed) {
         // Remove the deleted comment from the list
         setComments((prev) => prev.filter((comment) => comment.id !== data.comment.id));
         setCount((prev) => prev - 1);

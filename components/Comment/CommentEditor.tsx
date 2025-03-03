@@ -42,6 +42,7 @@ import { ReviewCategories, ReviewCategory } from './lib/ReviewCategories';
 import { createRoot } from 'react-dom/client';
 import { toast } from 'react-hot-toast';
 import { useCommentDraft } from './lib/useCommentDraft';
+import { parseContent } from './lib/commentContentUtils';
 
 const lowlight = createLowlight();
 lowlight.register('javascript', javascript);
@@ -75,12 +76,13 @@ export interface CommentEditorProps {
   onReset?: () => void;
   onUpdate?: (content: any) => void;
   placeholder?: string;
-  initialContent?: string | { type: 'doc'; content: any[] };
+  initialContent?: string | { type: 'doc'; content: any[] } | any;
   isReadOnly?: boolean;
   commentType?: CommentType;
   initialRating?: number;
   storageKey?: string;
   compactToolbar?: boolean;
+  debug?: boolean;
 }
 
 export const CommentEditor = ({
@@ -95,6 +97,7 @@ export const CommentEditor = ({
   initialRating = 0,
   storageKey = 'comment-editor-draft',
   compactToolbar = false,
+  debug = false,
 }: CommentEditorProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
@@ -255,13 +258,19 @@ export const CommentEditor = ({
 
       if (loadedContent && (!initialContent || initialContent === '')) {
         // Load content from localStorage
+        if (debug) console.log('Loading content from localStorage:', loadedContent);
         editor.commands.setContent(loadedContent);
       } else if (initialContent) {
+        // Parse the initial content to ensure it's in the correct format
+        const parsedContent = parseContent(initialContent, 'TIPTAP', debug);
+        if (debug)
+          console.log('Setting initial content:', initialContent, 'Parsed:', parsedContent);
+
         // Set initial content if provided
-        editor.commands.setContent(initialContent);
+        editor.commands.setContent(parsedContent);
       }
     }
-  }, [editor, initialContent, loadedContent, isReadOnly]);
+  }, [editor, initialContent, loadedContent, isReadOnly, debug]);
 
   // Update draft when rating changes, but only if content exists
   useEffect(() => {
@@ -841,7 +850,7 @@ export const CommentEditor = ({
         </div>
       )}
       {!isReadOnly && isReview && (
-        <div className="px-4 py-3 border-b">
+        <div className="px-4 flex items-center border-b h-14">
           <ReviewStars
             rating={rating}
             onRatingChange={setRating}

@@ -1,37 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { Comment, CommentFilter, CommentType } from '@/types/comment';
-import { useComments } from '@/hooks/useComments';
-import { CommentEditor, CommentEditorProps } from './CommentEditor';
-import { CommentItem } from './CommentItem';
+import { useCallback, useState } from 'react';
+import { Comment, CommentType } from '@/types/comment';
 import { ContentType } from '@/types/work';
-import { CommentService } from '@/services/comment.service';
-import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { Star, Zap, ArrowUp, ChevronDown, Plus, Filter } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { CommentItem } from './CommentItem';
+import { CommentEditor, CommentEditorProps } from './CommentEditor';
 import { Button } from '@/components/ui/Button';
-import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
-import { CommentSkeleton } from '@/components/skeletons/CommentSkeleton';
-import { isOpenBounty, isClosedBounty } from '@/utils/bountyUtil';
-
-type SortOption = {
-  label: string;
-  value: 'BEST' | 'CREATED_DATE' | 'TOP';
-  icon: typeof Star | typeof Zap | typeof ArrowUp;
-};
-
-type BountyFilterOption = {
-  label: string;
-  value: 'ALL' | 'OPEN' | 'CLOSED';
-};
-
-const commentTypeToFilter: Record<CommentType, CommentFilter | undefined> = {
-  GENERIC_COMMENT: undefined,
-  REVIEW: 'REVIEW',
-  BOUNTY: 'BOUNTY',
-  ANSWER: 'DISCUSSION',
-};
+import { CommentProvider, useComments as useCommentsContext } from '@/contexts/CommentContext';
+import { cn } from '@/utils/styles';
+import { CommentSortAndFilters } from './CommentSortAndFilters';
+import { CommentLoader } from './CommentLoader';
 
 interface CommentFeedProps {
   documentId: number;
@@ -42,6 +20,7 @@ interface CommentFeedProps {
   renderBountyAwardActions?: (comment: Comment) => React.ReactNode;
   renderCommentActions?: boolean;
   hideEditor?: boolean;
+  debug?: boolean;
 }
 
 export const CommentFeed = ({
@@ -53,42 +32,47 @@ export const CommentFeed = ({
   renderBountyAwardActions,
   renderCommentActions = true,
   hideEditor = false,
+  debug = false,
 }: CommentFeedProps) => {
-  const [sortBy, setSortBy] = useState<SortOption['value']>('BEST');
-  const [bountyFilter, setBountyFilter] = useState<BountyFilterOption['value']>('ALL');
-  const [isOpen, setIsOpen] = useState(false);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [isCreateBountyModalOpen, setIsCreateBountyModalOpen] = useState(false);
+  return (
+    <CommentProvider documentId={documentId} contentType={contentType} commentType={commentType}>
+      <CommentFeedContent
+        className={className}
+        editorProps={editorProps}
+        renderBountyAwardActions={renderBountyAwardActions}
+        renderCommentActions={renderCommentActions}
+        hideEditor={hideEditor}
+        commentType={commentType}
+        contentType={contentType}
+        debug={debug}
+      />
+    </CommentProvider>
+  );
+};
 
+const CommentFeedContent = ({
+  className,
+  editorProps = {},
+  renderBountyAwardActions,
+  renderCommentActions = true,
+  hideEditor = false,
+  commentType,
+  contentType,
+  debug = false,
+}: Omit<CommentFeedProps, 'documentId'>) => {
   const {
     comments,
     count,
-    isLoading: isLoadingComments,
-    error: commentsError,
-    hasMore,
+    loading,
+    error,
+    createComment,
     loadMore,
-    refresh,
-  } = useComments({
-    documentId,
-    contentType,
-    filter: commentTypeToFilter[commentType],
-    sort: sortBy,
-  });
+    updateComment,
+    deleteComment,
+    filteredComments,
+  } = useCommentsContext();
 
-  // Filter comments based on bounty status if this is a bounty feed
-  const filteredComments =
-    commentType === 'BOUNTY' && bountyFilter !== 'ALL'
-      ? comments.filter((comment) => {
-          const hasOpenBounty = comment.bounties?.some(isOpenBounty);
-          const hasClosedBounty = comment.bounties?.some(isClosedBounty);
-
-          if (bountyFilter === 'OPEN') return hasOpenBounty;
-          if (bountyFilter === 'CLOSED') return hasClosedBounty;
-          return true;
-        })
-      : comments;
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const handleSubmit = async ({
     content,
@@ -97,237 +81,116 @@ export const CommentFeed = ({
     content: any;
     rating?: number;
   }) => {
-    // Check if content exists and has text
-    if (!content || !content.content || content.content.length === 0) {
-      toast.error('Please enter some content before submitting');
-      return;
-    }
-
-    setIsLoading(true);
     try {
-      // Create the comment first
-      const comment = await CommentService.createComment({
-        workId: documentId,
-        contentType,
-        content,
-        commentType,
-        threadType: commentType,
-      });
-
-      // If this is a review, create the community review
-      if (commentType === 'REVIEW') {
-        if (!overallRating) {
-          toast.error('Please provide an overall rating before submitting the review');
-          return;
-        }
-
-        // Create the community review
-        await CommentService.createCommunityReview({
-          unifiedDocumentId: documentId,
-          commentId: comment.id,
-          score: overallRating,
-        });
-      }
-
-      // Add the new comment to the list
-      refresh();
-      toast.success('Comment submitted successfully');
-
-      // Only reset the editor after successful submission
-      if (editorProps.onReset) {
-        editorProps.onReset();
-      }
+      await createComment(content, overallRating);
     } catch (error) {
-      console.error('Failed to create comment:', error);
-      toast.error('Failed to submit comment. Please try again.');
-    } finally {
-      setIsLoading(false);
+      console.error('Error creating comment:', error);
     }
   };
 
-  const handleSortChange = (newSort: SortOption['value']) => {
-    setSortBy(newSort);
-    setIsOpen(false);
-    refresh();
+  const handleCommentUpdate = useCallback(
+    async (newComment: Comment, parentId?: number) => {
+      try {
+        await updateComment(newComment.id, newComment.content, parentId);
+      } catch (error) {
+        console.error('Error updating comment:', error);
+      }
+    },
+    [updateComment]
+  );
+
+  const handleCommentDelete = useCallback(
+    async (commentId: number) => {
+      try {
+        await deleteComment(commentId);
+      } catch (error) {
+        console.error('Error deleting comment:', error);
+      }
+    },
+    [deleteComment]
+  );
+
+  const handleLoadMore = async () => {
+    setLoadingMore(true);
+    try {
+      await loadMore();
+    } catch (error) {
+      console.error('Error loading more comments:', error);
+    } finally {
+      setLoadingMore(false);
+    }
   };
-
-  const handleBountyFilterChange = (newFilter: BountyFilterOption['value']) => {
-    setBountyFilter(newFilter);
-    setIsFilterOpen(false);
-  };
-
-  const sortOptions: SortOption[] = [
-    { label: 'Best', value: 'BEST', icon: Star },
-    { label: 'Newest', value: 'CREATED_DATE', icon: Zap },
-    { label: 'Top', value: 'TOP', icon: ArrowUp },
-  ];
-
-  const bountyFilterOptions: BountyFilterOption[] = [
-    { label: 'All Bounties', value: 'ALL' },
-    { label: 'Open Bounties', value: 'OPEN' },
-    { label: 'Closed Bounties', value: 'CLOSED' },
-  ];
-
-  const selectedOption = sortOptions.find((opt) => opt.value === sortBy);
-  const selectedFilterOption = bountyFilterOptions.find((opt) => opt.value === bountyFilter);
-  const SelectedIcon = selectedOption?.icon;
 
   return (
-    <div className={className}>
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex gap-2">
-          <BaseMenu
-            align="start"
-            trigger={
-              <button className="flex items-center gap-2 px-3 py-1 rounded-md border border-gray-300 hover:bg-gray-50">
-                {SelectedIcon && <SelectedIcon className="h-4 w-4" />}
-                <span>{selectedOption?.label}</span>
-                <ChevronDown className="h-4 w-4 text-gray-500" />
-              </button>
-            }
-          >
-            {sortOptions.map((option) => {
-              const Icon = option.icon;
-              return (
-                <BaseMenuItem
-                  key={option.value}
-                  onClick={() => handleSortChange(option.value)}
-                  className={sortBy === option.value ? 'bg-gray-100' : ''}
-                >
-                  <div className="flex items-center gap-2">
-                    <Icon className="h-4 w-4" />
-                    <span>{option.label}</span>
-                  </div>
-                </BaseMenuItem>
-              );
-            })}
-          </BaseMenu>
+    <div className={cn('space-y-6', className)}>
+      <CommentSortAndFilters commentType={commentType} commentCount={count} />
 
-          {/* Bounty Filter - Only show for bounty comments */}
-          {commentType === 'BOUNTY' && (
-            <BaseMenu
-              align="start"
-              trigger={
-                <button className="flex items-center gap-2 px-3 py-1 rounded-md border border-gray-300 hover:bg-gray-50">
-                  <Filter className="h-4 w-4" />
-                  <span>{selectedFilterOption?.label}</span>
-                  <ChevronDown className="h-4 w-4 text-gray-500" />
-                </button>
-              }
-            >
-              {bountyFilterOptions.map((option) => (
-                <BaseMenuItem
-                  key={option.value}
-                  onClick={() => handleBountyFilterChange(option.value)}
-                  className={bountyFilter === option.value ? 'bg-gray-100' : ''}
-                >
-                  <div className="flex items-center gap-2">
-                    <span>{option.label}</span>
-                  </div>
-                </BaseMenuItem>
-              ))}
-            </BaseMenu>
+      {!hideEditor && (
+        <CommentEditor
+          onSubmit={handleSubmit}
+          placeholder={
+            commentType === 'BOUNTY'
+              ? 'Post a bounty to get answers to your questions...'
+              : commentType === 'REVIEW'
+                ? 'Write a review...'
+                : 'Write a comment...'
+          }
+          commentType={commentType}
+          {...editorProps}
+        />
+      )}
+
+      {loading && comments.length === 0 ? (
+        <CommentLoader commentType={commentType} />
+      ) : error ? (
+        <div className="text-center py-8 text-red-500">
+          <p>Error loading comments: {error}</p>
+          {debug && <pre className="mt-2 text-xs text-left">{JSON.stringify(error, null, 2)}</pre>}
+        </div>
+      ) : filteredComments.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          <p>
+            {commentType === 'BOUNTY'
+              ? 'No bounties yet. Be the first to post a bounty!'
+              : commentType === 'REVIEW'
+                ? 'No reviews yet. Be the first to write a review!'
+                : 'No comments yet. Be the first to comment!'}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {filteredComments.map((comment) => (
+            <CommentItem
+              key={comment.id}
+              comment={comment}
+              contentType={contentType}
+              commentType={commentType}
+              onCommentUpdate={handleCommentUpdate}
+              onCommentDelete={handleCommentDelete}
+              renderCommentActions={renderCommentActions}
+              debug={debug}
+            />
+          ))}
+
+          {comments.length < count && (
+            <>
+              {loadingMore ? (
+                <CommentLoader count={1} commentType={commentType} />
+              ) : (
+                <div className="flex justify-center mt-4">
+                  <Button
+                    variant="outlined"
+                    onClick={handleLoadMore}
+                    disabled={loading}
+                    className="flex items-center gap-1"
+                  >
+                    <span>Load More</span>
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </div>
-
-        {commentType === 'BOUNTY' && (
-          <Button onClick={() => setIsCreateBountyModalOpen(true)} size="md" variant="default">
-            <Plus className="h-4 w-4 mr-1" /> Create Bounty
-          </Button>
-        )}
-      </div>
-
-      <div className="space-y-4">
-        {!isLoading && commentType === 'REVIEW' && !hideEditor && (
-          <CommentEditor
-            onSubmit={handleSubmit}
-            {...editorProps}
-            commentType={commentType}
-            placeholder="Write your review..."
-            initialRating={0}
-          />
-        )}
-
-        {(error || commentsError) && (
-          <div className="text-red-600 p-4 rounded-md bg-red-50">
-            Failed to load comments. Please try again.
-          </div>
-        )}
-
-        {isLoadingComments ? (
-          <div className="space-y-4">
-            {/* Render multiple skeleton items based on comment type */}
-            {Array.from({ length: 3 }).map((_, index) => (
-              <CommentSkeleton
-                key={index}
-                commentType={commentType as 'GENERIC_COMMENT' | 'REVIEW' | 'BOUNTY' | 'ANSWER'}
-              />
-            ))}
-          </div>
-        ) : (
-          <>
-            {filteredComments.length > 0 ? (
-              <>
-                {filteredComments.map((comment) => (
-                  <div key={comment.id}>
-                    <CommentItem
-                      comment={comment}
-                      contentType={contentType}
-                      commentType={commentType}
-                      onCommentUpdate={(newComment, parentId) => {
-                        refresh();
-                      }}
-                      onCommentDelete={(commentId) => {
-                        refresh();
-                      }}
-                      renderCommentActions={renderCommentActions}
-                    />
-                    {renderBountyAwardActions && renderBountyAwardActions(comment)}
-                  </div>
-                ))}
-
-                {hasMore && (
-                  <button
-                    onClick={loadMore}
-                    className="w-full py-2 text-sm text-gray-600 hover:text-gray-900"
-                  >
-                    Load more comments
-                  </button>
-                )}
-              </>
-            ) : (
-              <>
-                {/* Show "No reviews yet" message only for the REVIEW comment type */}
-                {commentType === 'REVIEW' && (
-                  <div className="bg-white rounded-lg shadow-sm border p-6">
-                    <div className="text-center text-gray-500">
-                      No reviews yet. Be the first to review this work.
-                    </div>
-                  </div>
-                )}
-
-                {/* Show appropriate message for bounty filters */}
-                {commentType === 'BOUNTY' && (
-                  <div className="bg-white rounded-lg shadow-sm border p-6">
-                    <div className="text-center text-gray-500">
-                      {bountyFilter === 'OPEN' && 'No open bounties available.'}
-                      {bountyFilter === 'CLOSED' && 'No closed bounties found.'}
-                      {bountyFilter === 'ALL' && 'No bounties available for this work.'}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </>
-        )}
-      </div>
-
-      {commentType === 'BOUNTY' && (
-        <CreateBountyModal
-          isOpen={isCreateBountyModalOpen}
-          onClose={() => setIsCreateBountyModalOpen(false)}
-          workId={documentId.toString()}
-        />
       )}
     </div>
   );
