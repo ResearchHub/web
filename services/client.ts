@@ -147,12 +147,12 @@ export class ApiClient {
     return response.json();
   }
 
-  static async delete<T>(path: string): Promise<T> {
+  static async delete<T>(path: string, body?: any): Promise<T> {
+    const headers = await this.getHeaders();
     const response = await fetch(path, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
       credentials: 'include',
     });
 

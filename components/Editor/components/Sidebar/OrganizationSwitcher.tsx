@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/Button';
 import type { Organization } from '@/types/organization';
 import { OrganizationSwitcherSkeleton } from '@/components/skeletons/OrganizationSwitcherSkeleton';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import { useState } from 'react';
+import { OrganizationSettingsModal } from '@/components/modals/OrganizationSettingsModal';
 
 interface OrganizationSwitcherProps {
   /** List of available organizations */
@@ -31,6 +33,8 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
   onOrgSelect,
   isLoading = false,
 }) => {
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+
   if (isLoading || !selectedOrg) {
     return <OrganizationSwitcherSkeleton />;
   }
@@ -81,7 +85,11 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
       </div>
 
       <div className="mt-3 space-y-1">
-        <Button variant="ghost" className="w-full justify-between px-3 py-2 h-auto">
+        <Button
+          variant="ghost"
+          className="w-full justify-between px-3 py-2 h-auto"
+          onClick={() => setIsSettingsModalOpen(true)}
+        >
           <div className="flex items-center gap-2">
             <Settings className="h-4 w-4 text-gray-500 group-hover:text-gray-900" />
             <span className="text-gray-600 group-hover:text-gray-900">Manage</span>
@@ -91,6 +99,29 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
           </span>
         </Button>
       </div>
+
+      {selectedOrg && (
+        <OrganizationSettingsModal
+          isOpen={isSettingsModalOpen}
+          onClose={() => setIsSettingsModalOpen(false)}
+          organization={selectedOrg}
+          members={[
+            // This is mock data - you would fetch real members from an API
+            {
+              id: '1',
+              fullName: 'Nick Tytarenko',
+              email: 'nicktytarenko+1@gmail.com',
+              role: 'Admin',
+            },
+            {
+              id: '2',
+              fullName: 'Nick Tytarenko',
+              email: 'nicktytarenko@gmail.com',
+              role: 'Admin',
+            },
+          ]}
+        />
+      )}
     </div>
   );
 };
