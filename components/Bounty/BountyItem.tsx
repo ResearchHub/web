@@ -25,12 +25,12 @@ import {
 import { buildWorkUrl } from '@/utils/url';
 import { useRouter, useParams } from 'next/navigation';
 import { BountyType } from '@/types/bounty';
-import { commentEvents } from '@/hooks/useComments';
 import { CommentService } from '@/services/comment.service';
 import { BountyMetadata } from '@/components/Bounty/BountyMetadata';
 import { BountyDetails } from '@/components/Bounty/BountyDetails';
 import { BountyActions } from '@/components/Bounty/BountyActions';
 import { BountySolutions } from '@/components/Bounty/BountySolutions';
+import { useComments } from '@/contexts/CommentContext';
 
 interface BountyItemProps {
   comment: Comment;
@@ -48,16 +48,18 @@ export const BountyItem = ({
   onBountyUpdated,
 }: BountyItemProps) => {
   const [showAwardModal, setShowAwardModal] = useState(false);
+  const [showSolutionModal, setShowSolutionModal] = useState(false);
   const [showContributorsModal, setShowContributorsModal] = useState(false);
   const [showContributeModal, setShowContributeModal] = useState(false);
-  const [selectedSolution, setSelectedSolution] = useState<{
-    id: ID;
-    authorName: string;
-    awardedAmount?: string;
-  } | null>(null);
+  const [selectedSolutionId, setSelectedSolutionId] = useState<ID | null>(null);
+  const [selectedSolutionAuthor, setSelectedSolutionAuthor] = useState<string>('');
+  const [selectedSolutionAwardedAmount, setSelectedSolutionAwardedAmount] = useState<string>('');
   const router = useRouter();
   const params = useParams();
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+
+  // Get the refresh function from CommentContext
+  const { refresh } = useComments();
 
   // Handle navigation in useEffect to ensure it only runs client-side
   useEffect(() => {
@@ -102,11 +104,9 @@ export const BountyItem = ({
   const totalAwardedAmount = calculateTotalAwardedAmount(displayBounty || undefined);
 
   const handleViewSolution = (solutionId: ID, authorName: string, awardedAmount?: string) => {
-    setSelectedSolution({
-      id: solutionId,
-      authorName,
-      awardedAmount,
-    });
+    setSelectedSolutionId(solutionId);
+    setSelectedSolutionAuthor(authorName);
+    setSelectedSolutionAwardedAmount(awardedAmount || '');
   };
 
   const handleNavigationClick = (tab: 'reviews' | 'conversation') => {
@@ -134,33 +134,36 @@ export const BountyItem = ({
     setShowContributeModal(true);
   };
 
-  // Add an effect to listen for the comment_updated event
+  // Update the effect to use the refresh function from CommentContext
   useEffect(() => {
-    const unsubscribe = commentEvents.on('comment_updated', (data) => {
-      if (data.comment.id === comment.id) {
-        // Refresh the bounty data
-        console.log('Bounty updated, refreshing data');
-
-        // Fetch the updated comment data
-        CommentService.fetchComment({
+    // We'll fetch the updated comment when the component mounts
+    // and when any of the dependencies change
+    const fetchUpdatedComment = async () => {
+      try {
+        await CommentService.fetchComment({
           commentId: comment.id,
           documentId: comment.thread.objectId,
-          contentType: contentType,
-        })
-          .then(() => {
-            // Update the UI with the new data
-            setShowContributeModal(false);
-            // You might want to add a callback to the parent component to refresh the entire list
-            onBountyUpdated?.();
-          })
-          .catch((error) => {
-            console.error('Failed to fetch updated comment:', error);
-          });
-      }
-    });
+          contentType,
+        });
 
-    return unsubscribe;
-  }, [comment.id, comment.thread.objectId, contentType, onBountyUpdated]);
+        // Refresh the comments list to get the updated data
+        refresh();
+
+        // Call the onBountyUpdated callback if provided
+        if (onBountyUpdated) {
+          onBountyUpdated();
+        }
+      } catch (error) {
+        console.error('Error fetching updated comment:', error);
+      }
+    };
+
+    // Fetch the updated comment when the component mounts
+    fetchUpdatedComment();
+
+    // No cleanup needed
+    return () => {};
+  }, [comment.id, comment.thread.objectId, contentType, onBountyUpdated, refresh]);
 
   return (
     <>
@@ -237,15 +240,19 @@ export const BountyItem = ({
       )}
 
       {/* Solution Modal */}
-      {selectedSolution && (
+      {selectedSolutionId && (
         <SolutionModal
-          isOpen={!!selectedSolution}
-          onClose={() => setSelectedSolution(null)}
-          commentId={selectedSolution.id}
+          isOpen={!!selectedSolutionId}
+          onClose={() => {
+            setSelectedSolutionId(null);
+            setSelectedSolutionAuthor('');
+            setSelectedSolutionAwardedAmount('');
+          }}
+          commentId={selectedSolutionId}
           documentId={comment.thread.objectId}
           contentType={contentType}
-          solutionAuthorName={selectedSolution.authorName}
-          awardedAmount={selectedSolution.awardedAmount}
+          solutionAuthorName={selectedSolutionAuthor}
+          awardedAmount={selectedSolutionAwardedAmount}
         />
       )}
 

@@ -6,41 +6,7 @@ import { Comment, CommentFilter, CommentSort } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { ApiError } from '@/services/types';
 
-// Create a simple event emitter for comment-related events
-type CommentEventType = 'comment_created' | 'comment_updated' | 'comment_deleted' | 'comment_voted';
-type CommentEventListener = (data: {
-  comment: Comment;
-  contentType: ContentType;
-  documentId: number;
-}) => void;
-
-class CommentEventEmitter {
-  private listeners: Record<CommentEventType, CommentEventListener[]> = {
-    comment_created: [],
-    comment_updated: [],
-    comment_deleted: [],
-    comment_voted: [],
-  };
-
-  on(event: CommentEventType, callback: CommentEventListener) {
-    this.listeners[event].push(callback);
-
-    // Return unsubscribe function
-    return () => {
-      this.listeners[event] = this.listeners[event].filter((cb) => cb !== callback);
-    };
-  }
-
-  emit(
-    event: CommentEventType,
-    data: { comment: Comment; contentType: ContentType; documentId: number }
-  ) {
-    this.listeners[event].forEach((callback) => callback(data));
-  }
-}
-
-// Create a singleton instance
-export const commentEvents = new CommentEventEmitter();
+// Comment event types removed as they're now handled by CommentContext
 
 interface UseCommentsOptions {
   documentId: number;
@@ -63,37 +29,40 @@ export const useComments = ({
 }: UseCommentsOptions) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [count, setCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
+  // Fetch comments
   const fetchComments = useCallback(
-    async (pageNum: number = 1) => {
+    async (pageToFetch = 1) => {
       try {
-        setIsLoading(true);
+        setLoading(true);
+        setError(null);
+
         const response = await CommentService.fetchComments({
           documentId,
           contentType,
+          page: pageToFetch,
           filter,
           sort,
-          page: pageNum,
         });
 
-        if (pageNum === 1) {
+        if (pageToFetch === 1) {
           setComments(response.comments);
         } else {
           setComments((prev) => [...prev, ...response.comments]);
         }
 
         setCount(response.count);
-        setHasMore(response.comments.length === 15); // pageSize is 15
-        setError(null);
+        setHasMore(response.comments.length > 0); // If we got comments, there might be more
+        setPage(pageToFetch);
       } catch (err) {
-        console.error(err);
-        setError(err instanceof Error ? err : new Error('Failed to fetch comments'));
+        console.error('Error fetching comments:', err);
+        setError('Failed to load comments');
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     },
     [documentId, contentType, filter, sort]
@@ -102,132 +71,27 @@ export const useComments = ({
   // Initial fetch
   useEffect(() => {
     fetchComments(1);
-  }, [documentId, contentType, filter, sort, fetchComments]);
+  }, [fetchComments]);
 
-  // Listen for new comments/bounties
-  useEffect(() => {
-    const unsubscribe = commentEvents.on('comment_created', (data) => {
-      // Check if this event is relevant to the current feed
-      const isRelevantToCurrentFeed =
-        data.documentId === documentId && data.contentType === contentType;
-
-      if (isRelevantToCurrentFeed) {
-        // Option 1: Optimistic update - add the new comment to the list without a full refresh
-        setComments((prev) => [data.comment, ...prev]);
-        setCount((prev) => prev + 1);
-
-        // Option 2: Full refresh - uncomment if you need to ensure data consistency
-        // fetchComments(1);
-      }
-    });
-
-    return unsubscribe;
-  }, [documentId, contentType, fetchComments]);
-
-  // Listen for updated comments/bounties
-  useEffect(() => {
-    const unsubscribe = commentEvents.on('comment_updated', (data) => {
-      // Check if this event is relevant to the current feed
-      const isRelevantToCurrentFeed =
-        data.documentId === documentId && data.contentType === contentType;
-
-      if (isRelevantToCurrentFeed) {
-        // For updates, we do a full refresh to ensure data consistency
-        fetchComments(1);
-      }
-    });
-
-    return unsubscribe;
-  }, [documentId, contentType, fetchComments]);
-
-  // Listen for vote updates - handle them optimistically without full refresh
-  useEffect(() => {
-    const unsubscribe = commentEvents.on('comment_voted', (data) => {
-      // Check if this event is relevant to the current feed
-      const isRelevantToCurrentFeed =
-        data.documentId === documentId && data.contentType === contentType;
-
-      if (isRelevantToCurrentFeed) {
-        setComments((prevComments) => {
-          return prevComments.map((comment) => {
-            // Update the top-level comment if it matches
-            if (comment.id === data.comment.id) {
-              // Reset the isVoteUpdate flag when storing in state
-              const updatedComment = {
-                ...data.comment,
-                metadata: data.comment.metadata
-                  ? { ...data.comment.metadata, isVoteUpdate: undefined }
-                  : undefined,
-              };
-              return updatedComment;
-            }
-
-            // Check if the voted comment is a reply
-            if (comment.replies && comment.replies.length > 0) {
-              return {
-                ...comment,
-                replies: comment.replies.map((reply) => {
-                  if (reply.id === data.comment.id) {
-                    // Reset the isVoteUpdate flag when storing in state
-                    const updatedReply = {
-                      ...data.comment,
-                      metadata: data.comment.metadata
-                        ? { ...data.comment.metadata, isVoteUpdate: undefined }
-                        : undefined,
-                    };
-                    return updatedReply;
-                  }
-                  return reply;
-                }),
-              };
-            }
-
-            return comment;
-          });
-        });
-      }
-    });
-
-    return unsubscribe;
-  }, [documentId, contentType]);
-
-  // Listen for deleted comments
-  useEffect(() => {
-    const unsubscribe = commentEvents.on('comment_deleted', (data) => {
-      // Check if this event is relevant to the current feed
-      const isRelevantToCurrentFeed =
-        data.documentId === documentId && data.contentType === contentType;
-
-      if (isRelevantToCurrentFeed) {
-        // Remove the deleted comment from the list
-        setComments((prev) => prev.filter((comment) => comment.id !== data.comment.id));
-        setCount((prev) => prev - 1);
-      }
-    });
-
-    return unsubscribe;
-  }, [documentId, contentType]);
-
+  // Load more comments
   function loadMore() {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    fetchComments(nextPage);
+    if (hasMore && !loading) {
+      fetchComments(page + 1);
+    }
   }
 
+  // Refresh comments
   function refresh() {
-    setPage(1);
     fetchComments(1);
   }
 
   return {
     comments,
-    setComments,
     count,
-    setCount,
-    isLoading,
+    loading,
     error,
-    hasMore,
     loadMore,
+    hasMore,
     refresh,
   };
 };
@@ -236,36 +100,27 @@ type CreateCommentFn = (input: CreateCommentOptions) => Promise<Comment | null>;
 type UseCommentReturn = [CommentState, CreateCommentFn];
 
 export const useCreateComment = (): UseCommentReturn => {
-  const [data, setData] = useState<Comment | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [state, setState] = useState<CommentState>({
+    data: null,
+    isLoading: false,
+    error: null,
+  });
 
   const createComment = async (input: CreateCommentOptions): Promise<Comment | null> => {
-    setIsLoading(true);
-    setError(null);
-
     try {
-      const response = await CommentService.createComment(input);
-      setData(response);
+      setState({ ...state, isLoading: true, error: null });
+      const comment = await CommentService.createComment(input);
+      setState({ data: comment, isLoading: false, error: null });
 
-      // Emit event to notify other components about the new comment
-      commentEvents.emit('comment_created', {
-        comment: response,
-        contentType: input.contentType,
-        documentId:
-          typeof input.workId === 'string' ? parseInt(input.workId, 10) : Number(input.workId) || 0,
-      });
+      // Comment event emission removed - now handled by CommentContext
 
-      return response;
-    } catch (err) {
-      const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
-      const errorMsg = data?.detail || 'Failed to create comment';
-      setError(errorMsg);
+      return comment;
+    } catch (error) {
+      const errorMessage = error instanceof ApiError ? error.message : 'Failed to create comment';
+      setState({ data: null, isLoading: false, error: errorMessage });
       return null;
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  return [{ data, isLoading, error }, createComment];
+  return [state, createComment];
 };

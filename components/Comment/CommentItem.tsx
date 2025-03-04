@@ -18,7 +18,6 @@ import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { formatRSC } from '@/utils/number';
 import { RSCBadge } from '@/components/ui/RSCBadge';
 import { toast } from 'react-hot-toast';
-import { commentEvents } from '@/hooks/useComments';
 import { useComments } from '@/contexts/CommentContext';
 import { parseContent } from './lib/commentContentUtils';
 import TipTapRenderer from './lib/TipTapRenderer';

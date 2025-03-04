@@ -4,7 +4,6 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo } 
 import { Comment, CommentFilter, CommentSort, CommentType, UserVoteType } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
-import { commentEvents } from '@/hooks/useComments';
 import {
   findCommentById,
   updateReplyDeep,
@@ -21,6 +20,13 @@ import {
 import { useSession } from 'next-auth/react';
 
 export type BountyFilterType = 'ALL' | 'OPEN' | 'CLOSED';
+
+// Define event types that were previously in commentEvents
+export type CommentEventType =
+  | 'comment_created'
+  | 'comment_updated'
+  | 'comment_deleted'
+  | 'comment_voted';
 
 interface CommentContextType {
   comments: Comment[];
@@ -51,6 +57,12 @@ interface CommentContextType {
   setSortBy: (sort: CommentSort) => void;
   setFilter: (filter?: CommentFilter) => void;
   setBountyFilter: (filter: BountyFilterType) => void;
+
+  // Event handling
+  emitCommentEvent: (
+    eventType: CommentEventType,
+    data: { comment: Comment; contentType: ContentType; documentId: number }
+  ) => void;
 
   // New function
   forceRefresh: () => Promise<void>;
@@ -159,6 +171,11 @@ export const CommentProvider = ({
     setPage(nextPage);
     return fetchComments(nextPage);
   }, [page, fetchComments]);
+
+  // Initial fetch effect - fetch comments when the component mounts
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   // Force a refresh of the comments from the server
   const forceRefresh = useCallback(async () => {
@@ -355,19 +372,6 @@ export const CommentProvider = ({
         // Update with real data
         updateWithRealData(realData);
 
-        // We're removing this event emission to prevent duplicate comments
-        // The comment is already added to the state through the optimistic update
-        // and then updated with the real data
-        /* 
-        if (realData && typeof realData === 'object' && 'id' in realData) {
-          commentEvents.emit('comment_created', {
-            comment: realData as unknown as Comment,
-            contentType,
-            documentId,
-          });
-        }
-        */
-
         return realData;
       } catch (err) {
         console.error('Error in comment API call:', err);
@@ -381,7 +385,34 @@ export const CommentProvider = ({
     [contentType, documentId]
   );
 
-  // Create a new comment
+  // Create a function to emit comment events within the context
+  const emitCommentEvent = useCallback(
+    (
+      eventType: CommentEventType,
+      data: { comment: Comment; contentType: ContentType; documentId: number }
+    ) => {
+      // Handle the event based on its type
+      switch (eventType) {
+        case 'comment_created':
+          handleCommentCreated(data);
+          break;
+        case 'comment_updated':
+          handleCommentUpdated(data);
+          break;
+        case 'comment_deleted':
+          handleCommentDeleted(data);
+          break;
+        case 'comment_voted':
+          handleCommentVoted(data);
+          break;
+        default:
+          console.warn('Unknown event type:', eventType);
+      }
+    },
+    [documentId, contentType]
+  );
+
+  // Replace commentEvents.emit with direct function calls
   const createComment = useCallback(
     async (content: any, rating?: number): Promise<Comment | null> => {
       setLoading(true);
@@ -413,6 +444,13 @@ export const CommentProvider = ({
           setCount((prev) => prev + 1);
         }
 
+        // Emit the comment_created event directly
+        emitCommentEvent('comment_created', {
+          comment: response,
+          contentType,
+          documentId,
+        });
+
         setLoading(false);
         return response;
       } catch (err) {
@@ -422,7 +460,7 @@ export const CommentProvider = ({
         return null;
       }
     },
-    [documentId, contentType, commentType]
+    [documentId, contentType, commentType, emitCommentEvent]
   );
 
   /**
@@ -576,65 +614,69 @@ export const CommentProvider = ({
           return false;
         }
 
-        // Create an optimistic update for the deleted comment
-        const optimisticComment = {
-          ...commentToDelete,
-          isRemoved: true,
-          metadata: {
-            ...commentToDelete.metadata,
-            isOptimistic: true,
-            isDeleted: true,
-          },
-        };
+        // Check if this is a reply (has a parentId)
+        const isReply = !!commentToDelete.parentId;
 
-        // Define the API call
-        const apiCall = () =>
-          CommentService.deleteComment({
+        // Set loading state
+        setLoading(true);
+
+        try {
+          // Make the API call first - no optimistic updates for deletion
+          await CommentService.deleteComment({
             commentId,
             documentId,
             contentType,
           });
 
-        // Define how to add the optimistic update
-        const addOptimisticUpdate = () => {
-          // Remove the comment from the list
-          setComments((prev) => prev.filter((comment) => comment.id !== commentId));
-          setCount((prev) => prev - 1);
-        };
+          // Only update the UI after successful API response
+          if (isReply) {
+            // For replies, we need to update the parent's replies array
+            setComments((prev) => {
+              return traverseCommentTree(prev, (comment) => {
+                if (comment.replies && comment.replies.length > 0) {
+                  // Filter out the deleted reply
+                  const originalLength = comment.replies.length;
+                  comment.replies = comment.replies.filter((reply) => reply.id !== commentId);
 
-        // Define how to update with real data (nothing to do after deletion)
-        const updateWithRealData = () => {
+                  // If we removed a reply, update the reply count
+                  if (comment.replies.length < originalLength) {
+                    comment.replyCount = (comment.replyCount || 0) - 1;
+                    comment.childrenCount = (comment.childrenCount || 0) - 1;
+                  }
+                }
+                return comment;
+              });
+            });
+          } else {
+            // For top-level comments, filter them out from the list
+            setComments((prev) => prev.filter((comment) => comment.id !== commentId));
+          }
+
+          // Update the total count
+          setCount((prev) => prev - 1);
+
           // Emit the event for backward compatibility
-          commentEvents.emit('comment_deleted', {
+          emitCommentEvent('comment_deleted', {
             comment: commentToDelete,
             contentType,
             documentId,
           });
-        };
 
-        // Define how to remove the optimistic update on error
-        const removeOptimisticUpdate = () => {
-          // Add the comment back to the list
-          setComments((prev) => [commentToDelete, ...prev.filter((c) => c.id !== commentId)]);
-          setCount((prev) => prev + 1);
-        };
-
-        // Handle the API call with optimistic updates
-        const result = await handleCommentApiCall(
-          apiCall,
-          optimisticComment,
-          addOptimisticUpdate,
-          updateWithRealData,
-          removeOptimisticUpdate
-        );
-
-        return result !== null;
+          return true;
+        } catch (error) {
+          console.error('Error deleting comment:', error);
+          setError('Failed to delete comment');
+          return false;
+        } finally {
+          setLoading(false);
+        }
       } catch (err) {
-        console.error('Error deleting comment:', err);
+        console.error('Error in deleteComment:', err);
+        setError('Failed to delete comment');
         return false;
       }
     },
-    [documentId, contentType, comments, handleCommentApiCall]
+    [documentId, contentType, comments, emitCommentEvent]
   );
 
   // Vote on a comment
@@ -670,8 +712,8 @@ export const CommentProvider = ({
           voteType,
         });
 
-        // Emit the event for backward compatibility
-        commentEvents.emit('comment_voted', {
+        // Emit the comment_voted event directly
+        emitCommentEvent('comment_voted', {
           comment: { ...comment, ...updatedCommentData },
           contentType,
           documentId,
@@ -682,55 +724,87 @@ export const CommentProvider = ({
         refresh();
       }
     },
-    [documentId, contentType, refresh]
+    [documentId, contentType, refresh, emitCommentEvent]
   );
 
-  // Initial fetch
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  // Listen for comment events from other components
-  useEffect(() => {
-    const handleCommentCreated = (data: {
-      comment: Comment;
-      contentType: ContentType;
-      documentId: number;
-    }) => {
+  // Event handlers
+  const handleCommentCreated = useCallback(
+    (data: { comment: Comment; contentType: ContentType; documentId: number }) => {
+      // Check if this event is relevant to the current feed
       if (data.documentId === documentId && data.contentType === contentType) {
-        setComments((prev) => {
-          // Check if the comment already exists in the state to prevent duplicates
-          const commentExists = prev.some((comment) => comment.id === data.comment.id);
-          if (commentExists) {
-            console.log(`Comment ${data.comment.id} already exists in state, skipping addition`);
-            return prev;
-          }
-          return [data.comment, ...prev];
-        });
+        // Add the new comment to the list
+        setComments((prev) => [data.comment, ...prev]);
         setCount((prev) => prev + 1);
       }
-    };
+    },
+    [documentId, contentType]
+  );
 
-    const handleCommentUpdated = (data: {
-      comment: Comment;
-      contentType: ContentType;
-      documentId: number;
-    }) => {
+  const handleCommentUpdated = useCallback(
+    (data: { comment: Comment; contentType: ContentType; documentId: number }) => {
+      // Check if this event is relevant to the current feed
       if (data.documentId === documentId && data.contentType === contentType) {
-        setComments((prevComments) => {
-          return prevComments.map((comment) => {
-            // Update top-level comment
+        // Update the comment in the list
+        setComments((prev) =>
+          prev.map((comment) => {
             if (comment.id === data.comment.id) {
               return data.comment;
             }
+            return comment;
+          })
+        );
+      }
+    },
+    [documentId, contentType]
+  );
 
-            // Check if the updated comment is a reply
+  const handleCommentDeleted = useCallback(
+    (data: { comment: Comment; contentType: ContentType; documentId: number }) => {
+      // Check if this event is relevant to the current feed
+      if (data.documentId === documentId && data.contentType === contentType) {
+        // Remove the deleted comment from the list
+        setComments((prev) => prev.filter((comment) => comment.id !== data.comment.id));
+        setCount((prev) => prev - 1);
+      }
+    },
+    [documentId, contentType]
+  );
+
+  const handleCommentVoted = useCallback(
+    (data: { comment: Comment; contentType: ContentType; documentId: number }) => {
+      // Check if this event is relevant to the current feed
+      if (data.documentId === documentId && data.contentType === contentType) {
+        setComments((prevComments) => {
+          return prevComments.map((comment) => {
+            // Update the top-level comment if it matches
+            if (comment.id === data.comment.id) {
+              // Reset the isVoteUpdate flag when storing in state
+              const updatedComment = {
+                ...data.comment,
+                metadata: data.comment.metadata
+                  ? { ...data.comment.metadata, isVoteUpdate: undefined }
+                  : undefined,
+              };
+              return updatedComment;
+            }
+
+            // Check if the voted comment is a reply
             if (comment.replies && comment.replies.length > 0) {
               return {
                 ...comment,
-                replies: comment.replies.map((reply) =>
-                  reply.id === data.comment.id ? data.comment : reply
-                ),
+                replies: comment.replies.map((reply) => {
+                  if (reply.id === data.comment.id) {
+                    // Reset the isVoteUpdate flag when storing in state
+                    const updatedReply = {
+                      ...data.comment,
+                      metadata: data.comment.metadata
+                        ? { ...data.comment.metadata, isVoteUpdate: undefined }
+                        : undefined,
+                    };
+                    return updatedReply;
+                  }
+                  return reply;
+                }),
               };
             }
 
@@ -738,32 +812,9 @@ export const CommentProvider = ({
           });
         });
       }
-    };
-
-    const handleCommentDeleted = (data: {
-      comment: Comment;
-      contentType: ContentType;
-      documentId: number;
-    }) => {
-      if (data.documentId === documentId && data.contentType === contentType) {
-        setComments((prev) => prev.filter((comment) => comment.id !== data.comment.id));
-        setCount((prev) => prev - 1);
-      }
-    };
-
-    // Subscribe to events
-    const unsubscribeCreated = commentEvents.on('comment_created', handleCommentCreated);
-    const unsubscribeUpdated = commentEvents.on('comment_updated', handleCommentUpdated);
-    const unsubscribeDeleted = commentEvents.on('comment_deleted', handleCommentDeleted);
-
-    // No need to subscribe to comment_voted as we handle it internally
-
-    return () => {
-      unsubscribeCreated();
-      unsubscribeUpdated();
-      unsubscribeDeleted();
-    };
-  }, [documentId, contentType]);
+    },
+    [documentId, contentType]
+  );
 
   // Helper function to set editing comment ID
   const handleSetEditingCommentId = useCallback((commentId: number | null) => {
@@ -800,7 +851,6 @@ export const CommentProvider = ({
     replyingToCommentId,
     fetchComments,
     refresh,
-    forceRefresh,
     loadMore,
     loadMoreReplies,
     createComment,
@@ -813,6 +863,8 @@ export const CommentProvider = ({
     setSortBy,
     setFilter,
     setBountyFilter,
+    forceRefresh,
+    emitCommentEvent,
   };
 
   return <CommentContext.Provider value={value}>{children}</CommentContext.Provider>;

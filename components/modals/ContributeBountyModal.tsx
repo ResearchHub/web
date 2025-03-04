@@ -13,10 +13,10 @@ import { BalanceInfo } from './BalanceInfo';
 import { useSession } from 'next-auth/react';
 import { BountyService } from '@/services/bounty.service';
 import { toast } from 'react-hot-toast';
-import { commentEvents } from '@/hooks/useComments';
 import { ContentType } from '@/types/work';
 import { BountyType } from '@/types/bounty';
 import { Comment } from '@/types/comment';
+import { useComments } from '@/contexts/CommentContext';
 
 interface ContributeBountyModalProps {
   isOpen: boolean;
@@ -202,6 +202,9 @@ export function ContributeBountyModal({
   const RSC_TO_USD = 1;
   const userBalance = session?.user?.balance || 0;
 
+  // Get the emitCommentEvent function from CommentContext
+  const { emitCommentEvent } = useComments();
+
   // Utility functions
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/[^0-9.]/g, '');
@@ -249,8 +252,8 @@ export function ContributeBountyModal({
         expirationDate
       );
 
-      // Emit an event to refresh the bounties
-      commentEvents.emit('comment_updated', {
+      // Use emitCommentEvent instead of commentEvents.emit
+      emitCommentEvent('comment_updated', {
         comment: { id: commentId } as Comment,
         contentType,
         documentId,
