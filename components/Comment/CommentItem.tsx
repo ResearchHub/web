@@ -22,13 +22,15 @@ import { commentEvents } from '@/hooks/useComments';
 import { useComments } from '@/contexts/CommentContext';
 import { parseContent } from './lib/commentContentUtils';
 import TipTapRenderer from './lib/TipTapRenderer';
+import LoadMoreReplies from './LoadMoreReplies';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
 
 interface CommentItemProps {
   comment: Comment;
   contentType: ContentType;
   commentType?: CommentType;
-  onCommentUpdate: (newComment: Comment, parentId?: number) => void;
-  onCommentDelete: (commentId: number) => void;
+  onCommentUpdate?: (newComment: Comment, parentId?: number) => void;
+  onCommentDelete?: (commentId: number) => void;
   renderCommentActions?: boolean;
   debug?: boolean;
 }
@@ -54,7 +56,10 @@ export const CommentItem = ({
     setEditingCommentId,
     setReplyingToCommentId,
     forceRefresh,
+    loading,
   } = useComments();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Log component lifecycle
   useEffect(() => {
@@ -127,37 +132,43 @@ export const CommentItem = ({
 
       if (debug) {
         console.log(`Editing comment ${comment.id} with content:`, data.content);
-        console.log(`Comment parentId: ${comment.parentId}`);
       }
 
       // Make the API call through the context
-      // Pass the parentId if this is a reply (has a parentId)
       const updatedComment = await updateComment(
         comment.id,
         data.content,
         typeof comment.parentId === 'number' ? comment.parentId : undefined
       );
 
-      if (updatedComment) {
-        // Clear the editing state
-        setEditingCommentId(null);
+      // Only clear the editing state after the API call completes
+      setEditingCommentId(null);
 
-        // Call the onCommentUpdate callback
-        onCommentUpdate(
-          updatedComment,
-          typeof comment.parentId === 'number' ? comment.parentId : undefined
-        );
+      if (updatedComment) {
+        // Call the onCommentUpdate callback if provided
+        if (onCommentUpdate) {
+          onCommentUpdate(
+            updatedComment,
+            typeof comment.parentId === 'number' ? comment.parentId : undefined
+          );
+        }
 
         // Show success toast
         toast.success('Comment updated successfully!', { id: loadingToastId });
+        return true; // Return true if comment was updated successfully
       } else {
         // Show error toast if no comment returned
         toast.error('Failed to update comment. Please try again.', { id: loadingToastId });
+        return false; // Return false if there was an error
       }
     } catch (error) {
       console.error('Error updating comment:', error);
       setUpdateError('Failed to update comment');
       toast.error('Failed to update comment. Please try again.');
+
+      // Also clear the editing state on error
+      setEditingCommentId(null);
+      return false; // Return false if there was an error
     }
   };
 
@@ -182,9 +193,11 @@ export const CommentItem = ({
       if (newReply) {
         // Show success toast
         toast.success('Reply saved successfully!', { id: loadingToastId });
+        return true; // Return true if reply was created successfully
       } else {
         // Show error toast if no comment returned
         toast.error('Failed to save reply. Please try again.', { id: loadingToastId });
+        return false; // Return false if there was an error
       }
     } catch (error) {
       console.error('Error replying to comment:', error);
@@ -193,11 +206,16 @@ export const CommentItem = ({
 
       // Also clear the replying state on error
       setReplyingToCommentId(null);
+      return false; // Return false if there was an error
     }
   };
 
   // Handle deleting a comment
   const handleDelete = async () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
     try {
       // Show loading toast
       const loadingToastId = toast.loading('Deleting comment...');
@@ -206,7 +224,9 @@ export const CommentItem = ({
       await deleteComment(comment.id);
 
       // Call the onCommentDelete callback
-      onCommentDelete(comment.id);
+      if (onCommentDelete) {
+        onCommentDelete(comment.id);
+      }
 
       // Show success toast
       toast.success('Comment deleted successfully!', { id: loadingToastId });
@@ -272,7 +292,7 @@ export const CommentItem = ({
               contentType={contentType}
               onSubmitSolution={() => setReplyingToCommentId(comment.id)}
               isCreator={session?.user?.id === displayBounty?.createdBy?.id}
-              onBountyUpdated={() => onCommentUpdate(comment)}
+              onBountyUpdated={() => onCommentUpdate && onCommentUpdate(comment)}
             />
             <div className="mt-4">
               <CommentReadOnly
@@ -324,7 +344,7 @@ export const CommentItem = ({
   };
 
   return (
-    <div className="py-4 mb-2">
+    <div className="py-4 mb-2" id={`comment-${comment.id}`}>
       <style jsx global>{`
         /* Comment Content Styles */
         .prose blockquote {
@@ -466,8 +486,8 @@ export const CommentItem = ({
         />
       )}
 
-      {/* Replies */}
-      {comment.replies && comment.replies.length > 0 && (
+      {/* Replies section */}
+      {comment.replies && comment.replies.length > 0 ? (
         <div className="mt-4 pl-6 border-l border-gray-200">
           {debug && (
             <div className="bg-blue-50 p-2 mb-2 rounded text-xs font-mono">
@@ -482,11 +502,18 @@ export const CommentItem = ({
               <div>
                 <strong>Parent ID:</strong> {comment.id}
               </div>
+              <div>
+                <strong>Children Count:</strong> {comment.childrenCount}
+              </div>
+              <div>
+                <strong>Should Show Load More:</strong>{' '}
+                {comment.childrenCount > comment.replies.length ? 'Yes' : 'No'}
+              </div>
             </div>
           )}
           {comment.replies.map((reply) => (
             <CommentItem
-              key={`reply-${reply.id}-parent-${comment.id}`}
+              key={`reply-${reply.id}`}
               comment={{
                 ...reply,
                 parentId: comment.id, // Ensure the parentId is explicitly set
@@ -499,8 +526,64 @@ export const CommentItem = ({
               debug={debug}
             />
           ))}
+
+          {/* Load More Replies button */}
+          {comment.childrenCount > comment.replies.length && (
+            <div className="mt-2">
+              {debug && (
+                <div className="bg-green-50 p-2 mb-2 rounded text-xs font-mono">
+                  <div>
+                    <strong>Load More Button Debug:</strong>
+                  </div>
+                  <div>Comment ID: {comment.id}</div>
+                  <div>Children Count: {comment.childrenCount}</div>
+                  <div>Replies Length: {comment.replies.length}</div>
+                  <div>Remaining: {comment.childrenCount - comment.replies.length}</div>
+                </div>
+              )}
+              <LoadMoreReplies
+                commentId={comment.id}
+                remainingCount={comment.childrenCount - comment.replies.length}
+                isLoading={loading}
+                debug={debug}
+              />
+            </div>
+          )}
         </div>
-      )}
+      ) : comment.childrenCount > 0 ? (
+        // No replies loaded yet, but there are replies to load
+        <div className="mt-4 pl-6 border-l border-gray-200">
+          {debug && (
+            <div className="bg-orange-50 p-2 mb-2 rounded text-xs font-mono">
+              <div>
+                <strong>No replies loaded yet</strong>
+              </div>
+              <div>Comment ID: {comment.id}</div>
+              <div>Children Count: {comment.childrenCount}</div>
+              <div>Should Show Load More: Yes</div>
+            </div>
+          )}
+          <div className="mt-2">
+            <LoadMoreReplies
+              commentId={comment.id}
+              remainingCount={comment.childrenCount}
+              isLoading={loading}
+              debug={debug}
+            />
+          </div>
+        </div>
+      ) : null}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={confirmDelete}
+        title="Delete Comment"
+        message="Are you sure you want to delete this comment? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

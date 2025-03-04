@@ -50,6 +50,7 @@ export interface Comment {
   score: number;
   replies: Comment[];
   replyCount?: number;
+  childrenCount: number;
   commentType: CommentType;
   bountyAmount?: number;
   awardedBountyAmount?: number;
@@ -122,6 +123,7 @@ export const transformComment = (raw: any): Comment => {
     author: transformAuthorProfile(raw.created_by),
     score: reviewScore !== undefined ? reviewScore : raw.score || 0,
     replyCount: raw.reply_count || raw.children_count || 0,
+    childrenCount: raw.children_count || 0,
     replies: (raw.replies || raw.children || []).map(transformComment),
     commentType: raw.comment_type || 'GENERIC_COMMENT',
     bountyAmount: raw.amount,

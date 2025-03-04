@@ -78,6 +78,16 @@ export interface VoteCommentOptions {
   voteType: 'UPVOTE' | 'DOWNVOTE' | 'NEUTRAL';
 }
 
+export interface FetchCommentRepliesOptions {
+  commentId: ID;
+  documentId: ID;
+  contentType: ContentType;
+  page?: number;
+  pageSize?: number;
+  sort?: CommentSort;
+  ascending?: boolean;
+}
+
 export class CommentService {
   private static readonly BASE_PATH = '/api';
 
@@ -174,7 +184,7 @@ export class CommentService {
     contentType,
   }: DeleteCommentOptions): Promise<void> {
     const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/censor/`;
-    await ApiClient.delete(path);
+    await ApiClient.patch(path);
   }
 
   static async createCommunityReview({
@@ -215,5 +225,42 @@ export class CommentService {
     }
 
     return ApiClient.post(this.BASE_PATH + endpoint);
+  }
+
+  static async fetchCommentReplies({
+    commentId,
+    documentId,
+    contentType,
+    page = 1,
+    pageSize = 10,
+    sort = 'BEST',
+    ascending = false,
+  }: FetchCommentRepliesOptions): Promise<{ replies: Comment[]; count: number }> {
+    // Calculate child_offset based on page and pageSize
+    const childOffset = (page - 1) * pageSize;
+
+    const queryParams = new URLSearchParams({
+      ordering: sort,
+      child_count: pageSize.toString(),
+      child_offset: childOffset.toString(),
+      ascending: ascending.toString(),
+    });
+
+    // Note: The URL format is different - we're getting the comment itself with its replies
+    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/?${queryParams}`;
+
+    console.log(`[CommentService] Fetching more replies with URL: ${path}`);
+
+    const response = await ApiClient.get<any>(path);
+
+    if (!response) {
+      return { replies: [], count: 0 };
+    }
+
+    // The response structure is different - the replies are in the children field of the comment
+    const replies = (response.children || []).map(transformComment);
+    const count = response.children_count || 0;
+
+    return { replies, count };
   }
 }

@@ -10,6 +10,8 @@ import { CommentProvider, useComments as useCommentsContext } from '@/contexts/C
 import { cn } from '@/utils/styles';
 import { CommentSortAndFilters } from './CommentSortAndFilters';
 import { CommentLoader } from './CommentLoader';
+import CommentList from './CommentList';
+import { toast } from 'react-hot-toast';
 
 interface CommentFeedProps {
   documentId: number;
@@ -66,7 +68,7 @@ const CommentFeedContent = ({
   debug = false,
 }: Omit<CommentFeedProps, 'documentId'>) => {
   const {
-    comments,
+    filteredComments,
     count,
     loading,
     error,
@@ -74,10 +76,15 @@ const CommentFeedContent = ({
     loadMore,
     updateComment,
     deleteComment,
-    filteredComments,
+    sortBy,
+    setSortBy,
+    filter,
+    setFilter,
+    bountyFilter,
+    setBountyFilter,
   } = useCommentsContext();
 
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async ({
     content,
@@ -86,114 +93,88 @@ const CommentFeedContent = ({
     content: any;
     rating?: number;
   }) => {
+    setIsSubmitting(true);
+    // Show loading toast
+    const toastId = toast.loading('Submitting comment...');
+
     try {
-      await createComment(content, overallRating);
+      const result = await createComment(content, overallRating);
+      if (result !== null) {
+        toast.success('Comment submitted successfully!', { id: toastId });
+        return true; // Return true if comment was created successfully
+      } else {
+        toast.error('Failed to submit comment. Please try again.', { id: toastId });
+        return false; // Return false if there was an error
+      }
     } catch (error) {
       console.error('Error creating comment:', error);
+      toast.error('Failed to submit comment. Please try again.', { id: toastId });
+      return false; // Return false if there was an error
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleCommentUpdate = useCallback(async (newComment: Comment, parentId?: number) => {
-    try {
-      console.log('Comment updated:', newComment.id);
-    } catch (error) {
-      console.error('Error handling comment update:', error);
-    }
-  }, []);
+  const handleCommentUpdate = (newComment: Comment, parentId?: number) => {
+    updateComment(newComment.id, newComment.content, parentId);
+  };
 
-  const handleCommentDelete = useCallback(
-    async (commentId: number) => {
-      try {
-        await deleteComment(commentId);
-      } catch (error) {
-        console.error('Error deleting comment:', error);
-      }
-    },
-    [deleteComment]
-  );
+  const handleCommentDelete = (commentId: number) => {
+    deleteComment(commentId);
+  };
 
   const handleLoadMore = async () => {
-    setLoadingMore(true);
     try {
       await loadMore();
     } catch (error) {
       console.error('Error loading more comments:', error);
-    } finally {
-      setLoadingMore(false);
     }
   };
-
+  console.log('filteredComments', filteredComments);
   return (
-    <div className={cn('space-y-6', className)}>
+    <div className={cn('comment-feed', className)}>
+      {!hideEditor && (
+        <div className="mb-6">
+          <CommentEditor
+            onSubmit={handleSubmit}
+            placeholder="Add a comment..."
+            commentType={commentType}
+            {...editorProps}
+          />
+        </div>
+      )}
+
       <CommentSortAndFilters commentType={commentType} commentCount={count} />
 
-      {!hideEditor && (
-        <CommentEditor
-          onSubmit={handleSubmit}
-          placeholder={
-            commentType === 'BOUNTY'
-              ? 'Post a bounty to get answers to your questions...'
-              : commentType === 'REVIEW'
-                ? 'Write a review...'
-                : 'Write a comment...'
-          }
-          commentType={commentType}
-          {...editorProps}
-        />
-      )}
-
-      {loading && comments.length === 0 ? (
-        <CommentLoader commentType={commentType} />
-      ) : error ? (
-        <div className="text-center py-8 text-red-500">
-          <p>Error loading comments: {error}</p>
-          {debug && <pre className="mt-2 text-xs text-left">{JSON.stringify(error, null, 2)}</pre>}
-        </div>
-      ) : filteredComments.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          <p>
-            {commentType === 'BOUNTY'
-              ? 'No bounties yet. Be the first to post a bounty!'
-              : commentType === 'REVIEW'
-                ? 'No reviews yet. Be the first to write a review!'
-                : 'No comments yet. Be the first to comment!'}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {filteredComments.map((comment) => (
-            <CommentItem
-              key={`comment-${comment.id}`}
-              comment={comment}
+      <div className="comment-list-container">
+        {loading && filteredComments.length === 0 ? (
+          <CommentLoader count={3} />
+        ) : (
+          <>
+            <CommentList
+              comments={filteredComments}
+              isRootList={true}
               contentType={contentType}
-              commentType={commentType}
-              onCommentUpdate={handleCommentUpdate}
-              onCommentDelete={handleCommentDelete}
-              renderCommentActions={renderCommentActions}
               debug={debug}
             />
-          ))}
 
-          {comments.length < count && (
-            <>
-              {loadingMore ? (
-                <CommentLoader count={1} commentType={commentType} />
-              ) : (
-                <div className="flex justify-center mt-4">
-                  <Button
-                    variant="outlined"
-                    onClick={handleLoadMore}
-                    disabled={loading}
-                    className="flex items-center gap-1"
-                  >
-                    <span>Load More</span>
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
+            {filteredComments.length < count && (
+              <div className="flex justify-center mt-4">
+                <Button
+                  variant="outlined"
+                  onClick={handleLoadMore}
+                  disabled={loading}
+                  className="w-full md:w-auto"
+                >
+                  {loading
+                    ? 'Loading...'
+                    : `Load More (${count - filteredComments.length} remaining)`}
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 };

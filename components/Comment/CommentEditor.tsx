@@ -71,7 +71,7 @@ const ExitLinkOnSpace = Extension.create({
 });
 
 export interface CommentEditorProps {
-  onSubmit: (content: any) => void;
+  onSubmit: (content: any) => Promise<boolean | void> | void;
   onCancel?: () => void;
   onReset?: () => void;
   onUpdate?: (content: any) => void;
@@ -367,25 +367,27 @@ export const CommentEditor = ({
     }
 
     setIsSubmitting(true);
+
     try {
       const json = editor.getJSON();
-      await onSubmit({
+      const result = await onSubmit({
         content: json,
         rating: isReview ? overallRating : undefined,
         sectionRatings:
           isReview && Object.keys(sectionRatings).length > 0 ? sectionRatings : undefined,
       });
 
-      clearDraft();
-
-      editor.commands.clearContent();
-      if (isReview) {
-        setRating(0);
-        setSectionRatings({});
+      // Only clear the editor if submission was successful
+      if (result !== false) {
+        clearDraft();
+        editor.commands.clearContent();
+        if (isReview) {
+          setRating(0);
+          setSectionRatings({});
+        }
       }
     } catch (error) {
       console.error('Failed to create comment:', error);
-      toast.error('Failed to submit comment. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

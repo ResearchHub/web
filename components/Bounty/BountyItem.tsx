@@ -119,7 +119,7 @@ export const BountyItem = ({
       const baseUrl = buildWorkUrl({
         id: documentId,
         contentType: 'paper',
-        slug: params.slug as string,
+        slug: (params?.slug as string) || '',
       });
 
       // Navigate to the specified tab

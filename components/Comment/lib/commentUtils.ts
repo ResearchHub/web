@@ -70,38 +70,56 @@ export const getParentId = (id: number): number | null => {
 };
 
 /**
- * Recursively traverses a comment tree and applies a transformation function
- * @param comments The comment tree to traverse
+ * Traverses a comment tree and applies a transform function to each comment
+ * @param comments The array of comments to traverse
  * @param transformFn The function to apply to each comment
- * @param parent Optional parent comment for context
- * @returns The transformed comment tree
+ * @param parent Optional parent comment
+ * @returns A new array of comments with the transform function applied
  */
 export const traverseCommentTree = (
   comments: Comment[],
   transformFn: (comment: Comment, parent?: Comment) => Comment | null,
   parent?: Comment
 ): Comment[] => {
-  // Make a deep copy to avoid mutation issues
-  const result: Comment[] = [];
-
-  for (const comment of comments) {
-    const transformedComment = transformFn(comment, parent);
-
-    if (transformedComment) {
-      // Process replies recursively if they exist
-      if (comment.replies && comment.replies.length > 0) {
-        transformedComment.replies = traverseCommentTree(
-          comment.replies,
-          transformFn,
-          transformedComment
-        );
-      }
-
-      result.push(transformedComment);
-    }
+  if (!comments || !Array.isArray(comments)) {
+    console.warn('traverseCommentTree called with invalid comments:', comments);
+    return [];
   }
 
-  return result;
+  console.log(
+    `[traverseCommentTree] Processing ${comments.length} comments${parent ? ` under parent ${parent.id}` : ''}`
+  );
+
+  return comments
+    .map((comment) => {
+      // Apply the transform function to the current comment
+      const transformedComment = transformFn(comment, parent);
+
+      // If the transform function returns null, filter out this comment
+      if (transformedComment === null) {
+        console.log(`[traverseCommentTree] Comment ${comment.id} was filtered out`);
+        return null;
+      }
+
+      // If the comment has replies, recursively traverse them
+      if (transformedComment.replies && transformedComment.replies.length > 0) {
+        console.log(
+          `[traverseCommentTree] Processing ${transformedComment.replies.length} replies of comment ${transformedComment.id}`
+        );
+
+        // Create a new comment object with transformed replies
+        const commentWithTransformedReplies = {
+          ...transformedComment,
+          replies: traverseCommentTree(transformedComment.replies, transformFn, transformedComment),
+        };
+
+        return commentWithTransformedReplies;
+      }
+
+      // If the comment has no replies, return it as is
+      return transformedComment;
+    })
+    .filter(Boolean) as Comment[]; // Filter out null comments
 };
 
 /**

@@ -38,6 +38,7 @@ interface CommentContextType {
   fetchComments: (page?: number) => Promise<void>;
   refresh: () => Promise<void>;
   loadMore: () => Promise<void>;
+  loadMoreReplies: (commentId: number) => Promise<void>;
   createComment: (content: any, rating?: number) => Promise<Comment | null>;
   createReply: (parentId: number, content: any) => Promise<Comment | null>;
   updateComment: (commentId: number, content: any, parentId?: number) => Promise<Comment | null>;
@@ -196,37 +197,128 @@ export const CommentProvider = ({
     }
   }, [documentId, contentType, sortBy, filter, debug]);
 
+  // Function to load more replies for a specific comment
+  const loadMoreReplies = useCallback(
+    async (commentId: number) => {
+      console.log(`[loadMoreReplies] Starting to load more replies for comment ${commentId}`);
+
+      try {
+        setLoading(true);
+
+        // Find the comment in the tree
+        const comment = findCommentById(comments, commentId);
+
+        if (!comment) {
+          console.error(`[loadMoreReplies] Comment with ID ${commentId} not found`);
+          setLoading(false);
+          return;
+        }
+
+        console.log(
+          `[loadMoreReplies] Found comment ${commentId}, loaded replies: ${comment.replies.length}, total children: ${comment.childrenCount}`
+        );
+
+        // Calculate the page number based on already loaded replies
+        const page = Math.floor(comment.replies.length / 10) + 1;
+        const childOffset = comment.replies.length;
+        console.log(
+          `[loadMoreReplies] Fetching more replies for comment ${commentId}, page: ${page}, childOffset: ${childOffset}`
+        );
+
+        // Fetch more replies
+        const { replies, count } = await CommentService.fetchCommentReplies({
+          commentId,
+          documentId,
+          contentType,
+          page,
+          pageSize: 10,
+          sort: sortBy,
+        });
+
+        console.log(
+          `[loadMoreReplies] Fetched ${replies.length} more replies for comment ${commentId}, total children count: ${count}`
+        );
+
+        if (replies.length > 0) {
+          // Update the comments state with the new replies
+          setComments((prevComments) => {
+            // Use traverseCommentTree to find and update the comment at any level in the tree
+            return traverseCommentTree(prevComments, (currentComment) => {
+              if (currentComment.id === commentId) {
+                console.log(
+                  `[loadMoreReplies] Adding ${replies.length} new replies to comment ${commentId}`
+                );
+
+                // Filter out any replies that are already in the comment's replies array
+                const existingReplyIds = new Set(currentComment.replies.map((reply) => reply.id));
+                const newReplies = replies.filter((reply) => !existingReplyIds.has(reply.id));
+
+                console.log(
+                  `[loadMoreReplies] After filtering duplicates, adding ${newReplies.length} new replies`
+                );
+
+                if (newReplies.length === 0) {
+                  console.log(`[loadMoreReplies] No new replies to add after filtering duplicates`);
+                  return currentComment;
+                }
+
+                // Create a new comment object with the updated replies
+                return {
+                  ...currentComment,
+                  replies: [...currentComment.replies, ...newReplies],
+                };
+              }
+
+              // Return the comment unchanged if it's not the one we're looking for
+              return currentComment;
+            });
+          });
+
+          // Log the updated state for debugging
+          setTimeout(() => {
+            const updatedComment = findCommentById(comments, commentId);
+            if (updatedComment) {
+              console.log(
+                `[loadMoreReplies] After update, comment ${commentId} now has ${updatedComment.replies.length} replies`
+              );
+            }
+          }, 100);
+        } else {
+          console.log(`[loadMoreReplies] No more replies to load for comment ${commentId}`);
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error('[loadMoreReplies] Error loading more replies:', error);
+        setError('Failed to load more replies');
+        setLoading(false);
+      }
+    },
+    [comments, documentId, contentType, sortBy]
+  );
+
   // Helper function to create an optimistic comment
   const createOptimisticComment = useCallback(
-    (content: any, parentId: number | null = null): Comment => {
-      const optimisticId = Date.now(); // Temporary ID for the optimistic comment
-      const currentUser = session?.user
-        ? {
-            id: session.user.id,
-            fullName: session.user.fullName || 'Current User',
-            profileImage: session.user.authorProfile?.profileImage || '',
-          }
-        : {
-            id: 'optimistic-user',
-            fullName: 'Current User',
-            profileImage: '',
-          };
-
+    (content: any): Comment => {
+      const optimisticId = -Date.now();
       return {
         id: optimisticId,
         content,
         contentFormat: 'TIPTAP',
         createdDate: new Date().toISOString(),
         updatedDate: new Date().toISOString(),
-        author: currentUser,
+        author: {
+          id: session?.user?.id || 0,
+          fullName: session?.user?.firstName + ' ' + session?.user?.lastName || 'Current User',
+          profileImage: session?.user?.authorProfile?.profileImage || '',
+        },
         score: 0,
         replies: [],
         replyCount: 0,
-        commentType: parentId ? 'GENERIC_COMMENT' : commentType,
+        childrenCount: 0,
+        commentType: 'GENERIC_COMMENT',
         isPublic: true,
         isRemoved: false,
-        parentId,
-        raw: {},
         bounties: [],
         thread: {
           id: 0,
@@ -235,14 +327,13 @@ export const CommentProvider = ({
           objectId: documentId,
           raw: {},
         },
+        raw: {},
         metadata: {
           isOptimistic: true,
-          optimisticId,
-          parentId,
         },
       };
     },
-    [session, documentId, commentType]
+    [session, documentId]
   );
 
   // Helper function to handle API calls with optimistic updates
@@ -264,7 +355,10 @@ export const CommentProvider = ({
         // Update with real data
         updateWithRealData(realData);
 
-        // Emit the event for backward compatibility if it's a Comment
+        // We're removing this event emission to prevent duplicate comments
+        // The comment is already added to the state through the optimistic update
+        // and then updated with the real data
+        /* 
         if (realData && typeof realData === 'object' && 'id' in realData) {
           commentEvents.emit('comment_created', {
             comment: realData as unknown as Comment,
@@ -272,6 +366,7 @@ export const CommentProvider = ({
             documentId,
           });
         }
+        */
 
         return realData;
       } catch (err) {
@@ -289,51 +384,45 @@ export const CommentProvider = ({
   // Create a new comment
   const createComment = useCallback(
     async (content: any, rating?: number): Promise<Comment | null> => {
-      // Create an optimistic comment
-      const optimisticComment = createOptimisticComment(content);
+      setLoading(true);
+      setError(null);
 
-      // Define the API call
-      const apiCall = () =>
-        CommentService.createComment({
+      try {
+        // Make the API call directly without optimistic update
+        const response = await CommentService.createComment({
           workId: documentId,
           contentType,
           content,
           commentType,
         });
 
-      // Define how to add the optimistic update
-      const addOptimisticUpdate = () => {
-        setComments((prev) => [optimisticComment, ...prev]);
-        setCount((prev) => prev + 1);
-      };
+        // Only update the UI after successful API response
+        if (response) {
+          console.log(`Comment created successfully with ID: ${response.id}`);
 
-      // Define how to update with real data
-      const updateWithRealData = (realComment: Comment) => {
-        setComments((prev) =>
-          prev.map((comment) =>
-            comment.metadata?.isOptimistic && comment.id === optimisticComment.id
-              ? realComment
-              : comment
-          )
-        );
-      };
+          // Check if this comment already exists in the state to prevent duplicates
+          setComments((prev) => {
+            const commentExists = prev.some((comment) => comment.id === response.id);
+            if (commentExists) {
+              console.log(`Comment ${response.id} already exists in state, skipping addition`);
+              return prev;
+            }
+            return [response, ...prev];
+          });
 
-      // Define how to remove the optimistic update on error
-      const removeOptimisticUpdate = () => {
-        setComments((prev) => prev.filter((comment) => !comment.metadata?.isOptimistic));
-        setCount((prev) => prev - 1);
-      };
+          setCount((prev) => prev + 1);
+        }
 
-      // Handle the API call with optimistic updates
-      return handleCommentApiCall(
-        apiCall,
-        optimisticComment,
-        addOptimisticUpdate,
-        updateWithRealData,
-        removeOptimisticUpdate
-      );
+        setLoading(false);
+        return response;
+      } catch (err) {
+        console.error('Error creating comment:', err);
+        setError('Failed to create comment');
+        setLoading(false);
+        return null;
+      }
     },
-    [documentId, contentType, commentType, createOptimisticComment, handleCommentApiCall]
+    [documentId, contentType, commentType]
   );
 
   /**
@@ -363,35 +452,22 @@ export const CommentProvider = ({
         });
         console.log(`API response for reply creation:`, response);
 
-        if (response) {
-          // Only add the reply to the UI after the API call succeeds
-          setComments((prevComments) => {
-            console.log(`Adding reply ${response.id} to parent ${realParentId}`);
-            console.log(`Current comment tree has ${prevComments.length} top-level comments`);
-
-            // Check if this reply already exists to prevent duplicates
-            const found = findCommentById(prevComments, response.id);
-            if (found) {
-              console.log(`Reply ${response.id} already exists, skipping addition`);
-              return prevComments;
-            }
-
-            // Record the parent-child relationship for future reference
-            recordParentChildRelationship(response.id, realParentId);
-
-            const updatedComments = addReplyDeep(prevComments, realParentId, response);
-            console.log(
-              `After adding reply, comment tree has ${updatedComments.length} top-level comments`
-            );
-            return updatedComments;
-          });
-
+        // Check if this reply already exists in the comment tree
+        const existingReply = findCommentById(comments, response.id);
+        if (existingReply) {
+          console.log(`Reply ${response.id} already exists in the tree, skipping addition`);
           return response;
-        } else {
-          console.error('API call failed to create reply');
-          setError('Failed to create reply');
-          return null;
         }
+
+        // Update the state with the new reply
+        setComments((prevComments) => {
+          return addReplyDeep(prevComments, realParentId, response);
+        });
+
+        // Clear the replying state
+        setReplyingToCommentId(null);
+
+        return response;
       } catch (error) {
         console.error('Error creating reply:', error);
         setError('Failed to create reply');
@@ -622,7 +698,15 @@ export const CommentProvider = ({
       documentId: number;
     }) => {
       if (data.documentId === documentId && data.contentType === contentType) {
-        setComments((prev) => [data.comment, ...prev]);
+        setComments((prev) => {
+          // Check if the comment already exists in the state to prevent duplicates
+          const commentExists = prev.some((comment) => comment.id === data.comment.id);
+          if (commentExists) {
+            console.log(`Comment ${data.comment.id} already exists in state, skipping addition`);
+            return prev;
+          }
+          return [data.comment, ...prev];
+        });
         setCount((prev) => prev + 1);
       }
     };
@@ -718,6 +802,7 @@ export const CommentProvider = ({
     refresh,
     forceRefresh,
     loadMore,
+    loadMoreReplies,
     createComment,
     createReply,
     updateComment,
