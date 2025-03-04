@@ -6,14 +6,25 @@ import { FeedTab } from '@/hooks/useFeed';
 
 export type TopicFeedTab = Extract<FeedTab, 'latest' | 'popular'>;
 
+interface TabItem {
+  id: string;
+  label: string;
+}
+
 interface TopicFeedTabsProps {
   activeTab: TopicFeedTab;
+  tabs?: TabItem[];
   onTabChange: (tab: TopicFeedTab) => void;
   isLoading?: boolean;
 }
 
-export const TopicFeedTabs: FC<TopicFeedTabsProps> = ({ activeTab, onTabChange, isLoading }) => {
-  const tabs = [
+export const TopicFeedTabs: FC<TopicFeedTabsProps> = ({
+  activeTab,
+  tabs: propTabs,
+  onTabChange,
+  isLoading,
+}) => {
+  const defaultTabs = [
     {
       id: 'latest',
       label: 'Latest',
@@ -23,6 +34,8 @@ export const TopicFeedTabs: FC<TopicFeedTabsProps> = ({ activeTab, onTabChange, 
       label: 'Popular',
     },
   ];
+
+  const tabs = propTabs || defaultTabs;
 
   const handleTabChange = (tabId: string) => {
     onTabChange(tabId as TopicFeedTab);

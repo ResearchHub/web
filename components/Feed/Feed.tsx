@@ -6,9 +6,7 @@ import { Sparkles } from 'lucide-react';
 import { useFeed, FeedTab } from '@/hooks/useFeed';
 import { FeedContent } from './FeedContent';
 import { InterestSelector } from '@/components/InterestSelector/InterestSelector';
-import { Button } from '@/components/ui/Button';
-import { Settings } from 'lucide-react';
-import { Tabs } from '@/components/ui/Tabs';
+import { FeedTabs } from './FeedTabs';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 export const Feed: FC = () => {
@@ -17,12 +15,8 @@ export const Feed: FC = () => {
   const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(activeTab);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
 
-  const handleTabChange = (tabId: string) => {
-    setActiveTab(tabId as FeedTab);
-  };
-
-  const handleCustomizeClick = () => {
-    setIsCustomizing(!isCustomizing);
+  const handleCustomizeChange = (value: boolean) => {
+    setIsCustomizing(value);
   };
 
   const handleSaveComplete = () => {
@@ -53,26 +47,14 @@ export const Feed: FC = () => {
   );
 
   const feedTabs = (
-    <div>
-      <div className="flex items-center justify-between">
-        <Tabs
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          disabled={isLoading}
-        />
-        <Button
-          variant={isCustomizing ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => executeAuthenticatedAction(handleCustomizeClick)}
-          className="flex items-center gap-2"
-          disabled={isLoading}
-        >
-          <Settings className="w-5 h-5" />
-          Customize
-        </Button>
-      </div>
-    </div>
+    <FeedTabs
+      activeTab={activeTab}
+      tabs={tabs}
+      isCustomizing={isCustomizing}
+      onTabChange={setActiveTab}
+      onCustomizeChange={handleCustomizeChange}
+      isLoading={isLoading}
+    />
   );
 
   return (

@@ -23,6 +23,17 @@ export default function JournalFeedPage() {
     hubSlug: decodedSlug || '',
   });
 
+  const journalTabs = [
+    {
+      id: 'latest',
+      label: 'Latest',
+    },
+    {
+      id: 'popular',
+      label: 'Popular',
+    },
+  ];
+
   if (isHubLoading) {
     return (
       <PageLayout>
@@ -53,7 +64,9 @@ export default function JournalFeedPage() {
     </h1>
   );
 
-  const tabs = <JournalFeedTabs activeTab={activeTab} onTabChange={setActiveTab} />;
+  const tabs = (
+    <JournalFeedTabs activeTab={activeTab} tabs={journalTabs} onTabChange={setActiveTab} />
+  );
 
   return (
     <PageLayout>

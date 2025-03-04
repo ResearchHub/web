@@ -6,13 +6,23 @@ import { FeedTab } from '@/hooks/useFeed';
 
 export type JournalFeedTab = Extract<FeedTab, 'latest' | 'popular'>;
 
+interface TabItem {
+  id: string;
+  label: string;
+}
+
 interface JournalFeedTabsProps {
   activeTab: JournalFeedTab;
+  tabs?: TabItem[];
   onTabChange: (tab: JournalFeedTab) => void;
 }
 
-export const JournalFeedTabs: FC<JournalFeedTabsProps> = ({ activeTab, onTabChange }) => {
-  const tabs = [
+export const JournalFeedTabs: FC<JournalFeedTabsProps> = ({
+  activeTab,
+  tabs: propTabs,
+  onTabChange,
+}) => {
+  const defaultTabs = [
     {
       id: 'latest',
       label: 'Latest',
@@ -22,6 +32,8 @@ export const JournalFeedTabs: FC<JournalFeedTabsProps> = ({ activeTab, onTabChan
       label: 'Popular',
     },
   ];
+
+  const tabs = propTabs || defaultTabs;
 
   const handleTabChange = (tabId: string) => {
     onTabChange(tabId as JournalFeedTab);

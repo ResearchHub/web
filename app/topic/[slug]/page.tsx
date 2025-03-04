@@ -23,6 +23,17 @@ export default function TopicFeedPage() {
     hubSlug: decodedSlug || '',
   });
 
+  const topicTabs = [
+    {
+      id: 'latest',
+      label: 'Latest',
+    },
+    {
+      id: 'popular',
+      label: 'Popular',
+    },
+  ];
+
   if (isHubLoading) {
     return (
       <PageLayout>
@@ -54,7 +65,12 @@ export default function TopicFeedPage() {
   );
 
   const tabs = (
-    <TopicFeedTabs activeTab={activeTab} onTabChange={setActiveTab} isLoading={isFeedLoading} />
+    <TopicFeedTabs
+      activeTab={activeTab}
+      tabs={topicTabs}
+      onTabChange={setActiveTab}
+      isLoading={isFeedLoading}
+    />
   );
 
   return (
