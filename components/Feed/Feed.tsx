@@ -7,16 +7,14 @@ import { useFeed, FeedTab } from '@/hooks/useFeed';
 import { FeedContent } from './FeedContent';
 import { InterestSelector } from '@/components/InterestSelector/InterestSelector';
 import { FeedTabs } from './FeedTabs';
-import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 export const Feed: FC = () => {
   const [activeTab, setActiveTab] = useState<FeedTab>('following');
   const [isCustomizing, setIsCustomizing] = useState(false);
   const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(activeTab);
-  const { executeAuthenticatedAction } = useAuthenticatedAction();
 
-  const handleCustomizeChange = (value: boolean) => {
-    setIsCustomizing(value);
+  const handleCustomizeChange = () => {
+    setIsCustomizing(!isCustomizing);
   };
 
   const handleSaveComplete = () => {

@@ -3,17 +3,17 @@
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { JournalFeedTabs, JournalFeedTab } from '@/components/Feed/JournalFeedTabs';
-import { useFeed } from '@/hooks/useFeed';
+import { useFeed, FeedTab } from '@/hooks/useFeed';
 import { useHub } from '@/hooks/useHub';
 import { BookOpen } from 'lucide-react';
 import { FeedContent } from '@/components/Feed/FeedContent';
+import { FeedTabs } from '@/components/Feed/FeedTabs';
 
 export default function JournalFeedPage() {
   const { slug } = useParams();
   const decodedSlug = typeof slug === 'string' ? decodeURIComponent(slug) : null;
   const { hub, isLoading: isHubLoading, error: hubError } = useHub(decodedSlug);
-  const [activeTab, setActiveTab] = useState<JournalFeedTab>('latest');
+  const [activeTab, setActiveTab] = useState<FeedTab>('latest');
   const {
     entries,
     isLoading: isFeedLoading,
@@ -65,7 +65,12 @@ export default function JournalFeedPage() {
   );
 
   const tabs = (
-    <JournalFeedTabs activeTab={activeTab} tabs={journalTabs} onTabChange={setActiveTab} />
+    <FeedTabs
+      activeTab={activeTab}
+      tabs={journalTabs}
+      onTabChange={setActiveTab}
+      isLoading={isFeedLoading}
+    />
   );
 
   return (

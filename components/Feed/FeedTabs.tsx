@@ -15,16 +15,16 @@ interface TabItem {
 interface FeedTabsProps {
   activeTab: FeedTab;
   tabs: TabItem[];
-  isCustomizing: boolean;
+  isCustomizing?: boolean;
   onTabChange: (tab: FeedTab) => void;
-  onCustomizeChange?: (isCustomizing: boolean) => void;
+  onCustomizeChange?: () => void;
   isLoading?: boolean;
 }
 
 export const FeedTabs: FC<FeedTabsProps> = ({
   activeTab,
   tabs,
-  isCustomizing,
+  isCustomizing = false,
   onTabChange,
   onCustomizeChange,
   isLoading,
@@ -32,12 +32,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   const { executeAuthenticatedAction } = useAuthenticatedAction();
 
   const handleTabChange = (tabId: string) => {
-    onCustomizeChange?.(false);
     onTabChange(tabId as FeedTab);
-  };
-
-  const handleCustomizeClick = () => {
-    onCustomizeChange?.(!isCustomizing);
   };
 
   return (
@@ -49,16 +44,18 @@ export const FeedTabs: FC<FeedTabsProps> = ({
           onTabChange={handleTabChange}
           disabled={isLoading}
         />
-        <Button
-          variant={isCustomizing ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => executeAuthenticatedAction(handleCustomizeClick)}
-          className="flex items-center gap-2"
-          disabled={isLoading}
-        >
-          <Settings className="w-5 h-5" />
-          Customize
-        </Button>
+        {onCustomizeChange && (
+          <Button
+            variant={isCustomizing ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => executeAuthenticatedAction(onCustomizeChange)}
+            className="flex items-center gap-2"
+            disabled={isLoading}
+          >
+            <Settings className="w-5 h-5" />
+            Customize
+          </Button>
+        )}
       </div>
     </div>
   );

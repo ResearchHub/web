@@ -3,17 +3,17 @@
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { useFeed } from '@/hooks/useFeed';
+import { useFeed, FeedTab } from '@/hooks/useFeed';
 import { useHub } from '@/hooks/useHub';
 import { Hash } from 'lucide-react';
 import { FeedContent } from '@/components/Feed/FeedContent';
-import { TopicFeedTabs, TopicFeedTab } from '@/components/Feed/TopicFeedTabs';
+import { FeedTabs } from '@/components/Feed/FeedTabs';
 
 export default function TopicFeedPage() {
   const { slug } = useParams();
   const decodedSlug = typeof slug === 'string' ? decodeURIComponent(slug) : null;
   const { hub, isLoading: isHubLoading, error: hubError } = useHub(decodedSlug);
-  const [activeTab, setActiveTab] = useState<TopicFeedTab>('latest');
+  const [activeTab, setActiveTab] = useState<FeedTab>('latest');
   const {
     entries,
     isLoading: isFeedLoading,
@@ -65,7 +65,7 @@ export default function TopicFeedPage() {
   );
 
   const tabs = (
-    <TopicFeedTabs
+    <FeedTabs
       activeTab={activeTab}
       tabs={topicTabs}
       onTabChange={setActiveTab}
