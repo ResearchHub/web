@@ -35,7 +35,12 @@ export const CommentFeed = ({
   debug = false,
 }: CommentFeedProps) => {
   return (
-    <CommentProvider documentId={documentId} contentType={contentType} commentType={commentType}>
+    <CommentProvider
+      documentId={documentId}
+      contentType={contentType}
+      commentType={commentType}
+      debug={debug}
+    >
       <CommentFeedContent
         className={className}
         editorProps={editorProps}
@@ -88,16 +93,13 @@ const CommentFeedContent = ({
     }
   };
 
-  const handleCommentUpdate = useCallback(
-    async (newComment: Comment, parentId?: number) => {
-      try {
-        await updateComment(newComment.id, newComment.content, parentId);
-      } catch (error) {
-        console.error('Error updating comment:', error);
-      }
-    },
-    [updateComment]
-  );
+  const handleCommentUpdate = useCallback(async (newComment: Comment, parentId?: number) => {
+    try {
+      console.log('Comment updated:', newComment.id);
+    } catch (error) {
+      console.error('Error handling comment update:', error);
+    }
+  }, []);
 
   const handleCommentDelete = useCallback(
     async (commentId: number) => {
@@ -161,7 +163,7 @@ const CommentFeedContent = ({
         <div className="space-y-6">
           {filteredComments.map((comment) => (
             <CommentItem
-              key={comment.id}
+              key={`comment-${comment.id}`}
               comment={comment}
               contentType={contentType}
               commentType={commentType}

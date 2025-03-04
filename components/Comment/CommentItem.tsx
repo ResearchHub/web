@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Comment, CommentType, UserVoteType } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
@@ -42,11 +42,39 @@ export const CommentItem = ({
   renderCommentActions = true,
   debug = false,
 }: CommentItemProps) => {
-  const [isReplying, setIsReplying] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
   const { data: session } = useSession();
-  const { updateComment, deleteComment, voteComment } = useComments();
+  const {
+    updateComment,
+    deleteComment,
+    voteComment,
+    createReply,
+    editingCommentId,
+    replyingToCommentId,
+    setEditingCommentId,
+    setReplyingToCommentId,
+    forceRefresh,
+  } = useComments();
+
+  // Log component lifecycle
+  useEffect(() => {
+    if (debug) {
+      console.log(`CommentItem ${comment.id} - MOUNTED`);
+    }
+    return () => {
+      if (debug) {
+        console.log(`CommentItem ${comment.id} - UNMOUNTED`);
+      }
+    };
+  }, [comment.id, debug]);
+
+  // Add debug logging
+  useEffect(() => {
+    if (debug) {
+      console.log(`CommentItem ${comment.id} - isReplying: ${replyingToCommentId === comment.id}`);
+      console.log(`CommentItem ${comment.id} - isEditing: ${editingCommentId === comment.id}`);
+    }
+  }, [comment.id, replyingToCommentId, editingCommentId, debug]);
 
   if (debug) console.log('Rendering comment:', comment);
 
@@ -66,6 +94,18 @@ export const CommentItem = ({
   // Check if the current user has voted on the comment
   const hasVoted = comment.userVote !== 'NEUTRAL';
 
+  // Determine if this comment is being edited or replied to
+  const isEditing = editingCommentId === comment.id;
+  const isReplying = replyingToCommentId === comment.id;
+
+  if (debug) {
+    console.log(`CommentItem ${comment.id} - isEditing: ${isEditing}, isReplying: ${isReplying}`);
+    console.log(`CommentItem ${comment.id} - parentId: ${comment.parentId}`);
+    if (comment.replies) {
+      console.log(`CommentItem ${comment.id} - replies: ${comment.replies.length}`);
+    }
+  }
+
   // Handle voting on a comment
   const handleVote = async (voteType: UserVoteType) => {
     try {
@@ -80,91 +120,111 @@ export const CommentItem = ({
   };
 
   // Handle editing a comment
-  const handleEdit = async (content: any) => {
+  const handleEdit = async (data: { content: any; rating?: number }) => {
     try {
-      setUpdateError(null);
+      // Show loading toast
+      const loadingToastId = toast.loading('Saving your changes...');
 
       if (debug) {
-        console.log('Original content for edit:', content);
+        console.log(`Editing comment ${comment.id} with content:`, data.content);
+        console.log(`Comment parentId: ${comment.parentId}`);
       }
 
-      // Ensure we're passing the correct content format for TipTap
-      let formattedContent = content;
+      // Make the API call through the context
+      // Pass the parentId if this is a reply (has a parentId)
+      const updatedComment = await updateComment(
+        comment.id,
+        data.content,
+        typeof comment.parentId === 'number' ? comment.parentId : undefined
+      );
 
-      // For TipTap content, ensure it has the proper structure
-      if (comment.contentFormat === 'TIPTAP' && content) {
-        // If it's not already a valid TipTap document, create one
-        if (!content.type || content.type !== 'doc') {
-          formattedContent = {
-            type: 'doc',
-            content: Array.isArray(content) ? content : [content],
-          };
-        } else if (content.type === 'doc' && !Array.isArray(content.content)) {
-          // Fix invalid content structure
-          formattedContent = {
-            type: 'doc',
-            content: [],
-          };
-        }
-
-        if (debug) {
-          console.log('Formatted content for edit:', formattedContent);
-        }
-      }
-
-      const updatedComment = await updateComment(comment.id, formattedContent);
       if (updatedComment) {
-        onCommentUpdate(updatedComment);
-        setIsEditing(false);
+        // Clear the editing state
+        setEditingCommentId(null);
+
+        // Call the onCommentUpdate callback
+        onCommentUpdate(
+          updatedComment,
+          typeof comment.parentId === 'number' ? comment.parentId : undefined
+        );
+
+        // Show success toast
+        toast.success('Comment updated successfully!', { id: loadingToastId });
+      } else {
+        // Show error toast if no comment returned
+        toast.error('Failed to update comment. Please try again.', { id: loadingToastId });
       }
     } catch (error) {
       console.error('Error updating comment:', error);
       setUpdateError('Failed to update comment');
+      toast.error('Failed to update comment. Please try again.');
+    }
+  };
+
+  // Handle replying to a comment
+  const handleReply = async (data: { content: any; rating?: number }) => {
+    try {
+      // Show loading toast
+      const loadingToastId = toast.loading('Saving your reply...');
+
+      if (debug) {
+        console.log(`Replying to comment ${comment.id} with content:`, data.content);
+        console.log(`Comment parentId: ${comment.parentId}`);
+        console.log(`Comment metadata:`, comment.metadata);
+      }
+
+      // Make the API call through the context
+      const newReply = await createReply(comment.id, data.content);
+
+      // Only clear the replying state after the API call completes
+      setReplyingToCommentId(null);
+
+      if (newReply) {
+        // Show success toast
+        toast.success('Reply saved successfully!', { id: loadingToastId });
+      } else {
+        // Show error toast if no comment returned
+        toast.error('Failed to save reply. Please try again.', { id: loadingToastId });
+      }
+    } catch (error) {
+      console.error('Error replying to comment:', error);
+      setUpdateError('Failed to reply to comment');
+      toast.error('Failed to save reply. Please try again.');
+
+      // Also clear the replying state on error
+      setReplyingToCommentId(null);
     }
   };
 
   // Handle deleting a comment
   const handleDelete = async () => {
     try {
+      // Show loading toast
+      const loadingToastId = toast.loading('Deleting comment...');
+
+      // Make the API call through the context
       await deleteComment(comment.id);
+
+      // Call the onCommentDelete callback
       onCommentDelete(comment.id);
+
+      // Show success toast
+      toast.success('Comment deleted successfully!', { id: loadingToastId });
     } catch (error) {
       console.error('Error deleting comment:', error);
-      toast.error('Failed to delete comment');
-    }
-  };
-
-  // Handle submitting a reply
-  const handleReply = async (content: any) => {
-    try {
-      setUpdateError(null);
-      const newComment = await CommentService.createComment({
-        workId: comment.thread.objectId,
-        content,
-        contentType,
-        commentType,
-        parentId: comment.id,
-        threadType: commentType,
-      });
-
-      // Emit the comment created event
-      commentEvents.emit('comment_created' as any, {
-        comment: newComment,
-        contentType,
-        documentId: comment.thread.objectId,
-      });
-
-      // Update the parent comment with the new reply
-      onCommentUpdate(newComment, comment.id);
-      setIsReplying(false);
-    } catch (error) {
-      console.error('Error creating reply:', error);
-      setUpdateError('Failed to create reply');
+      toast.error('Failed to delete comment. Please try again.');
     }
   };
 
   // Render the comment content based on whether it's being edited
   const renderContent = () => {
+    if (debug) {
+      console.log(`renderContent for comment ${comment.id}:`);
+      console.log(`- isEditing: ${isEditing}`);
+      console.log(`- isReplying: ${isReplying}`);
+    }
+
+    // If editing, show the editor
     if (isEditing) {
       // Extract the actual content from the comment to avoid nested content structures
       // This fixes the "Invalid input for Fragment.fromJSON" error
@@ -189,7 +249,7 @@ export const CommentItem = ({
           <CommentEditor
             initialContent={parsedContent}
             onSubmit={handleEdit}
-            onCancel={() => setIsEditing(false)}
+            onCancel={() => setEditingCommentId(null)}
             placeholder="Edit your comment..."
             debug={debug}
           />
@@ -199,19 +259,6 @@ export const CommentItem = ({
 
     // For bounty comments, render the bounty component
     if (commentType === 'BOUNTY' && comment.bounties && comment.bounties.length > 0) {
-      // If the user is replying, show the editor
-      if (isReplying) {
-        return (
-          <div className="mt-4 border border-gray-200 rounded-lg p-4">
-            <CommentEditor
-              onSubmit={handleReply}
-              onCancel={() => setIsReplying(false)}
-              placeholder="Write your solution..."
-            />
-          </div>
-        );
-      }
-
       // Find the active bounty to check creator
       const activeBounty = comment.bounties.find((b) => b.status === 'OPEN' && !b.isContribution);
       const closedBounty = comment.bounties.find((b) => b.status === 'CLOSED' && !b.isContribution);
@@ -223,7 +270,7 @@ export const CommentItem = ({
             <BountyItem
               comment={comment}
               contentType={contentType}
-              onSubmitSolution={() => setIsReplying(true)}
+              onSubmitSolution={() => setReplyingToCommentId(comment.id)}
               isCreator={session?.user?.id === displayBounty?.createdBy?.id}
               onBountyUpdated={() => onCommentUpdate(comment)}
             />
@@ -234,25 +281,24 @@ export const CommentItem = ({
                 debug={debug}
               />
             </div>
+
+            {/* Show reply editor below the bounty content if replying */}
+            {isReplying && (
+              <div className="mt-4 border-t pt-4">
+                <h4 className="text-sm font-medium mb-2">Your reply:</h4>
+                <CommentEditor
+                  onSubmit={handleReply}
+                  onCancel={() => setReplyingToCommentId(null)}
+                  placeholder="Write your solution..."
+                />
+              </div>
+            )}
           </div>
         );
       }
     }
 
-    // If the user is replying, show the editor
-    if (isReplying) {
-      return (
-        <div className="mt-4 border border-gray-200 rounded-lg p-4">
-          <CommentEditor
-            onSubmit={handleReply}
-            onCancel={() => setIsReplying(false)}
-            placeholder="Write your reply..."
-          />
-        </div>
-      );
-    }
-
-    // For regular comments, render the content
+    // For regular comments, render the content and optionally the reply editor
     return (
       <div className="border border-gray-200 rounded-lg p-4">
         <CommentReadOnly
@@ -261,6 +307,18 @@ export const CommentItem = ({
           contentType={contentType}
           debug={debug}
         />
+
+        {/* Show reply editor below the comment content if replying */}
+        {isReplying && (
+          <div className="mt-4 border-t pt-4">
+            <h4 className="text-sm font-medium mb-2">Your reply:</h4>
+            <CommentEditor
+              onSubmit={handleReply}
+              onCancel={() => setReplyingToCommentId(null)}
+              placeholder="Write your reply..."
+            />
+          </div>
+        )}
       </div>
     );
   };
@@ -341,6 +399,9 @@ export const CommentItem = ({
             <strong>Comment ID:</strong> {comment.id}
           </div>
           <div>
+            <strong>Parent ID:</strong> {comment.parentId || 'none'}
+          </div>
+          <div>
             <strong>Format:</strong> {comment.contentFormat}
           </div>
           <div>
@@ -352,6 +413,20 @@ export const CommentItem = ({
           <div>
             <strong>Created:</strong> {comment.createdDate?.toString()}
           </div>
+          <div>
+            <strong>isEditing:</strong> {isEditing ? 'true' : 'false'}
+          </div>
+          <div>
+            <strong>isReplying:</strong> {isReplying ? 'true' : 'false'}
+          </div>
+          <div>
+            <strong>Replies:</strong> {comment.replies?.length || 0}
+          </div>
+          {comment.metadata && (
+            <div>
+              <strong>Metadata:</strong> {JSON.stringify(comment.metadata)}
+            </div>
+          )}
         </div>
       )}
 
@@ -377,36 +452,50 @@ export const CommentItem = ({
           commentId={comment.id}
           documentId={Number(comment.thread.objectId)}
           userVote={comment.userVote}
-          onReply={() => setIsReplying(true)}
-          onEdit={() => setIsEditing(true)}
+          onReply={() => {
+            if (debug) console.log(`Setting replyingToCommentId to ${comment.id}`);
+            setReplyingToCommentId(comment.id);
+          }}
+          onEdit={() => {
+            if (debug) console.log(`Setting editingCommentId to ${comment.id}`);
+            setEditingCommentId(comment.id);
+          }}
           onDelete={handleDelete}
           onVote={handleVote}
           className="mt-3"
         />
       )}
 
-      {/* Reply editor */}
-      {isReplying && !isEditing && (
-        <div className="mt-4">
-          <CommentEditor
-            onSubmit={handleReply}
-            onCancel={() => setIsReplying(false)}
-            placeholder="Write your reply..."
-          />
-        </div>
-      )}
-
       {/* Replies */}
       {comment.replies && comment.replies.length > 0 && (
-        <div className="ml-8 mt-4 border-l-2 border-gray-200 pl-4">
+        <div className="mt-4 pl-6 border-l border-gray-200">
+          {debug && (
+            <div className="bg-blue-50 p-2 mb-2 rounded text-xs font-mono">
+              <div>
+                <strong>
+                  Rendering {comment.replies.length} replies for comment {comment.id}
+                </strong>
+              </div>
+              <div>
+                <strong>Reply IDs:</strong> {comment.replies.map((r) => r.id).join(', ')}
+              </div>
+              <div>
+                <strong>Parent ID:</strong> {comment.id}
+              </div>
+            </div>
+          )}
           {comment.replies.map((reply) => (
             <CommentItem
-              key={reply.id}
-              comment={reply}
+              key={`reply-${reply.id}-parent-${comment.id}`}
+              comment={{
+                ...reply,
+                parentId: comment.id, // Ensure the parentId is explicitly set
+              }}
               contentType={contentType}
               commentType={commentType}
               onCommentUpdate={onCommentUpdate}
               onCommentDelete={onCommentDelete}
+              renderCommentActions={renderCommentActions}
               debug={debug}
             />
           ))}
