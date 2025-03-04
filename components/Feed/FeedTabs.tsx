@@ -4,10 +4,8 @@ import { FC, useState } from 'react';
 import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
 import { Settings } from 'lucide-react';
-import { InterestSelector, Interest } from '@/components/InterestSelector/InterestSelector';
-import { cn } from '@/utils/styles';
-
-type FeedTab = 'following' | 'latest';
+import { InterestSelector } from '@/components/InterestSelector/InterestSelector';
+import { FeedTab } from '@/hooks/useFeed';
 
 interface FeedTabsProps {
   activeTab: FeedTab;
@@ -34,6 +32,10 @@ export const FeedTabs: FC<FeedTabsProps> = ({
     {
       id: 'latest',
       label: 'Latest',
+    },
+    {
+      id: 'popular',
+      label: 'Popular',
     },
   ];
 

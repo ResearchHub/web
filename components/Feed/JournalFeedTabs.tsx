@@ -4,7 +4,7 @@ import { FC } from 'react';
 import { Tabs } from '@/components/ui/Tabs';
 import { FeedTab } from '@/hooks/useFeed';
 
-export type JournalFeedTab = Extract<FeedTab, 'latest'>;
+export type JournalFeedTab = Extract<FeedTab, 'latest' | 'popular'>;
 
 interface JournalFeedTabsProps {
   activeTab: JournalFeedTab;
@@ -16,6 +16,10 @@ export const JournalFeedTabs: FC<JournalFeedTabsProps> = ({ activeTab, onTabChan
     {
       id: 'latest',
       label: 'Latest',
+    },
+    {
+      id: 'popular',
+      label: 'Popular',
     },
   ];
 

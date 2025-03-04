@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { FeedService } from '@/services/feed.service';
 
-export type FeedTab = 'following' | 'latest';
+export type FeedTab = 'following' | 'latest' | 'popular';
 
 interface UseFeedOptions {
   hubSlug?: string;
