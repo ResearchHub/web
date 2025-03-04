@@ -1,17 +1,9 @@
-import { Editor, EditorContent, useEditor } from '@tiptap/react';
+import { Editor, EditorContent } from '@tiptap/react';
 import React, { useEffect, useRef } from 'react';
-import { StarterKit } from '@tiptap/starter-kit';
-import { Document } from '@tiptap/extension-document';
-import { Heading } from '@tiptap/extension-heading';
-import { Link } from '@tiptap/extension-link';
-import { TextAlign } from '@tiptap/extension-text-align';
-import { Placeholder } from '@tiptap/extension-placeholder';
 import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
 import '@/components/Editor/styles/index.css';
 import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 import { useBlockEditor } from '../../hooks/useBlockEditor';
-import { TiptapCollabProvider } from '@hocuspocus/provider';
-import * as Y from 'yjs';
 import { ContentItemMenu } from '../menus/ContentItemMenu';
 import { LinkMenu } from '../menus/LinkMenu';
 import { TextMenu } from '../menus/TextMenu';
@@ -19,10 +11,6 @@ import ColumnsMenu from '../../extensions/MultiColumn/menus/ColumnsMenu';
 import TableRowMenu from '../../extensions/Table/menus/TableRow';
 import ImageBlockMenu from '../../extensions/ImageBlock/components/ImageBlockMenu';
 import TableColumnMenu from '../../extensions/Table/menus/TableColumn';
-// Create a simplified Document extension that only accepts blocks
-const CustomDocument = Document.extend({
-  content: 'heading block+',
-});
 
 export interface BlockEditorProps {
   content?: string;
@@ -30,28 +18,19 @@ export interface BlockEditorProps {
   isLoading?: boolean;
   onUpdate?: (editor: Editor) => void;
   editable?: boolean;
-  aiToken?: string;
-  ydoc: Y.Doc | null;
-  provider?: TiptapCollabProvider | null | undefined;
 }
 
 export const BlockEditor: React.FC<BlockEditorProps> = ({
   content,
   contentJson,
   onUpdate,
-  aiToken,
-  ydoc,
-  provider,
   isLoading = false,
   editable = true,
 }) => {
   const menuContainerRef = useRef(null);
   const { setEditor } = useNotebookPublish();
 
-  const { editor, users, collabState } = useBlockEditor({
-    aiToken,
-    ydoc,
-    provider,
+  const { editor } = useBlockEditor({
     content,
     contentJson,
     onUpdate,

@@ -236,8 +236,6 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
       try {
         const promises: Promise<any>[] = [];
 
-        console.log('newTitle', newTitle);
-        console.log('titleRef.current', titleRef.current);
         // Only update title if it changed
         if (newTitle !== titleRef.current) {
           titleRef.current = newTitle;
@@ -250,7 +248,6 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
             })
           );
         }
-        console.log('html', html);
 
         // Always update content
         promises.push(

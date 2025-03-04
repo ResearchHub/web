@@ -6,14 +6,12 @@ import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
 import { TiptapCollabProvider, WebSocketStatus } from '@hocuspocus/provider';
 import type { Doc as YDoc } from 'yjs';
 import { Document } from '@tiptap/extension-document';
-import { Placeholder } from '@tiptap/extension-placeholder';
 import { TextAlign } from '@tiptap/extension-text-align';
 
 import { ExtensionKit } from '@/components/Editor/extensions/extension-kit';
 import { userColors, userNames } from '../lib/constants';
 import { randomElement } from '../lib/utils';
 import type { EditorUser } from '../components/BlockEditor/types';
-import { getInitialContent } from '@/components/Editor/lib/data/initialContent';
 import { Ai } from '@/components/Editor/extensions/Ai';
 import { AiImage, AiWriter } from '@/components/Editor/extensions';
 
@@ -41,7 +39,7 @@ export const useBlockEditor = ({
   customClass,
 }: {
   aiToken?: string;
-  ydoc: YDoc | null;
+  ydoc?: YDoc | null;
   provider?: TiptapCollabProvider | null | undefined;
   userId?: string;
   userName?: string;
@@ -70,7 +68,7 @@ export const useBlockEditor = ({
             showOnlyCurrent: false,
             showOnlyWhenEditable: true,
             placeholder: ({ node }) => {
-              if (node.type.name === 'heading' && node.attrs.level === 1) {
+              if (node.type.name === 'heading') {
                 return 'Enter a title...';
               }
               return '';
