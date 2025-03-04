@@ -1,11 +1,11 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
 import { Settings } from 'lucide-react';
-import { InterestSelector } from '@/components/InterestSelector/InterestSelector';
 import { FeedTab } from '@/hooks/useFeed';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 interface FeedTabsProps {
   activeTab: FeedTab;
@@ -22,7 +22,27 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   onCustomizeChange,
   isLoading,
 }) => {
-  const [isCustomizing, setIsCustomizing] = useState(false);
+  const [localIsCustomizing, setLocalIsCustomizing] = useState(false);
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
+
+  const [parentIsCustomizing, setParentIsCustomizing] = useState(false);
+
+  useEffect(() => {
+    const handleCustomizeChange = (value: boolean) => {
+      if (value !== parentIsCustomizing) {
+        setParentIsCustomizing(value);
+        setLocalIsCustomizing(value);
+      }
+    };
+
+    if (onCustomizeChange) {
+      const originalOnCustomizeChange = onCustomizeChange;
+      onCustomizeChange = (value: boolean) => {
+        handleCustomizeChange(value);
+        originalOnCustomizeChange(value);
+      };
+    }
+  }, [onCustomizeChange, parentIsCustomizing]);
 
   const tabs = [
     {
@@ -40,18 +60,21 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   ];
 
   const handleTabChange = (tabId: string) => {
-    setIsCustomizing(false);
+    setLocalIsCustomizing(false);
     onCustomizeChange?.(false);
     onTabChange(tabId as FeedTab);
   };
 
-  const handleCustomizeClick = (customizing: boolean) => {
-    setIsCustomizing(customizing);
-    onCustomizeChange?.(customizing);
+  const handleCustomizeClick = () => {
+    const newValue = !localIsCustomizing;
+    setLocalIsCustomizing(newValue);
+    if (onCustomizeChange) {
+      onCustomizeChange(newValue);
+    }
   };
 
   const handleSaveComplete = () => {
-    setIsCustomizing(false);
+    setLocalIsCustomizing(false);
     onCustomizeChange?.(false);
     onRefresh?.();
   };
@@ -66,9 +89,9 @@ export const FeedTabs: FC<FeedTabsProps> = ({
           disabled={isLoading}
         />
         <Button
-          variant={isCustomizing ? 'default' : 'ghost'}
+          variant={localIsCustomizing ? 'default' : 'ghost'}
           size="sm"
-          onClick={() => handleCustomizeClick(!isCustomizing)}
+          onClick={() => executeAuthenticatedAction(handleCustomizeClick)}
           className="flex items-center gap-2"
           disabled={isLoading}
         >
@@ -76,12 +99,6 @@ export const FeedTabs: FC<FeedTabsProps> = ({
           Customize
         </Button>
       </div>
-
-      {isCustomizing && (
-        <div className="mt-6">
-          <InterestSelector mode="preferences" onSaveComplete={handleSaveComplete} />
-        </div>
-      )}
     </div>
   );
 };
