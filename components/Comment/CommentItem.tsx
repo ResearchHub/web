@@ -311,6 +311,7 @@ export const CommentItem = ({
                   onSubmit={handleReply}
                   onCancel={() => setReplyingToCommentId(null)}
                   placeholder="Write your solution..."
+                  autoFocus={true}
                 />
               </div>
             )}
@@ -337,6 +338,7 @@ export const CommentItem = ({
               onSubmit={handleReply}
               onCancel={() => setReplyingToCommentId(null)}
               placeholder="Write your reply..."
+              autoFocus={true}
             />
           </div>
         )}

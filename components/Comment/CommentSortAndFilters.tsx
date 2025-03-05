@@ -49,19 +49,18 @@ export const CommentSortAndFilters: FC<CommentSortAndFiltersProps> = ({
   };
 
   return (
-    <div className="flex justify-between items-center">
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-gray-500">
-          {commentCount} {commentCount === 1 ? 'Comment' : 'Comments'}
-        </span>
-      </div>
-
+    <div className="flex items-center">
       <div className="flex items-center gap-2">
         {/* Sort Options */}
         <BaseMenu
           align="start"
           trigger={
             <Button variant="outlined" size="sm" className="flex items-center gap-1">
+              {(() => {
+                const currentOption = sortOptions.find((option) => option.value === sortBy);
+                const Icon = currentOption?.icon || Star;
+                return <Icon className="h-4 w-4 mr-1" />;
+              })()}
               <span>{sortOptions.find((option) => option.value === sortBy)?.label || 'Sort'}</span>
               <ChevronDown className="h-4 w-4" />
             </Button>

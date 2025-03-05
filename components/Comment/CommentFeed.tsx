@@ -133,7 +133,7 @@ const CommentFeedContent = ({
       console.error('Error loading more comments:', error);
     }
   };
-  console.log('filteredComments', filteredComments);
+
   return (
     <div className={cn('comment-feed', className)}>
       {!hideEditor && (
@@ -144,10 +144,12 @@ const CommentFeedContent = ({
             commentType={commentType}
             {...editorProps}
           />
+          <div className="mt-12 mb-2">
+            <CommentSortAndFilters commentType={commentType} commentCount={0} />
+          </div>
+          <div className="h-px bg-gray-200 my-4"></div>
         </div>
       )}
-
-      <CommentSortAndFilters commentType={commentType} commentCount={count} />
 
       <div className="comment-list-container">
         {loading && filteredComments.length === 0 ? (

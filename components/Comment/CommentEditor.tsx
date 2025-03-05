@@ -30,6 +30,7 @@ export interface CommentEditorProps {
   storageKey?: string;
   compactToolbar?: boolean;
   debug?: boolean;
+  autoFocus?: boolean;
 }
 
 export const CommentEditor = ({
@@ -45,6 +46,7 @@ export const CommentEditor = ({
   storageKey = 'comment-editor-draft',
   compactToolbar = false,
   debug = false,
+  autoFocus = false,
 }: CommentEditorProps) => {
   const { data: session } = useSession();
   const editorRef = useRef<HTMLDivElement>(null);
@@ -92,6 +94,7 @@ export const CommentEditor = ({
     initialRating,
     storageKey,
     debug,
+    autoFocus,
   });
 
   // Initialize the editor handlers with our custom hook
@@ -158,7 +161,7 @@ export const CommentEditor = ({
   if (!editor) return null;
 
   return (
-    <div className="relative border border-gray-200 rounded-lg overflow-hidden bg-white">
+    <div className="relative border border-gray-200 rounded-lg overflow-hidden bg-white focus-within:ring-blue-500 focus-within:border-blue-500 transition-all duration-200">
       {/* User info header */}
       <EditorHeader
         session={session}

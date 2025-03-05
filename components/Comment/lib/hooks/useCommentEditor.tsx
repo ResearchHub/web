@@ -38,6 +38,7 @@ export interface UseCommentEditorProps {
   initialRating?: number;
   storageKey?: string;
   debug?: boolean;
+  autoFocus?: boolean;
 }
 
 export const useCommentEditor = ({
@@ -49,6 +50,7 @@ export const useCommentEditor = ({
   initialRating = 0,
   storageKey = 'comment-editor-draft',
   debug = false,
+  autoFocus = false,
 }: UseCommentEditorProps) => {
   const [rating, setRating] = useState(initialRating);
   const [sectionRatings, setSectionRatings] = useState<Record<string, number>>({});
@@ -216,12 +218,16 @@ export const useCommentEditor = ({
 
     // Force editor to update after mounting to ensure styles are applied
     const timeoutId = setTimeout(() => {
-      editor.commands.focus();
-      editor.commands.blur();
+      if (autoFocus && !isReadOnly) {
+        editor.commands.focus('end');
+      } else {
+        editor.commands.focus();
+        editor.commands.blur();
+      }
     }, 50);
 
     return () => clearTimeout(timeoutId);
-  }, [editor]);
+  }, [editor, autoFocus, isReadOnly]);
 
   return {
     editor,
