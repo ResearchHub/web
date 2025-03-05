@@ -56,6 +56,7 @@ interface CommentItemActionsProps {
   onShare?: () => void;
   onVote: (voteType: UserVoteType) => void;
   className?: string;
+  isAuthor?: boolean;
 }
 
 export const CommentItemActions: FC<CommentItemActionsProps> = ({
@@ -70,6 +71,7 @@ export const CommentItemActions: FC<CommentItemActionsProps> = ({
   onShare,
   onVote,
   className,
+  isAuthor = false,
 }) => {
   const handleVote = () => {
     // Toggle between upvote and neutral
@@ -96,17 +98,21 @@ export const CommentItemActions: FC<CommentItemActionsProps> = ({
           showLabel
         />
         <ActionButton icon={Forward} tooltip="Share" label="Share" onClick={onShare} showLabel />
-        <ActionButton icon={Edit2} tooltip="Edit" label="Edit" onClick={onEdit} showLabel />
+        {isAuthor && (
+          <ActionButton icon={Edit2} tooltip="Edit" label="Edit" onClick={onEdit} showLabel />
+        )}
       </div>
 
       <div className="flex items-center space-x-4">
-        <ActionButton
-          icon={Trash2}
-          tooltip="Delete comment"
-          label="Delete"
-          onClick={onDelete}
-          className="text-gray-400 hover:text-gray-500"
-        />
+        {isAuthor && (
+          <ActionButton
+            icon={Trash2}
+            tooltip="Delete comment"
+            label="Delete"
+            onClick={onDelete}
+            className="text-gray-400 hover:text-gray-500"
+          />
+        )}
         <ActionButton
           icon={Flag}
           tooltip="Flag comment"

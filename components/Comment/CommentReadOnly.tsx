@@ -8,9 +8,10 @@ import { cn } from '@/utils/styles';
 import { parseContent, extractTextFromTipTap } from './lib/commentContentUtils';
 import { renderQuillContent, truncateContent, SectionHeaderProps } from './lib/renderUtils';
 import TipTapRenderer from './lib/TipTapRenderer';
+import { CommentContent } from './lib/types';
 
 interface CommentReadOnlyProps {
-  content: any;
+  content: CommentContent;
   contentFormat?: ContentFormat;
   contentType?: ContentType;
   debug?: boolean;

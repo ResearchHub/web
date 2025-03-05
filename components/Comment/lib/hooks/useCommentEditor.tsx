@@ -1,4 +1,4 @@
-import { useEditor } from '@tiptap/react';
+import { useEditor, Content, JSONContent } from '@tiptap/react';
 import { StarterKit } from '@tiptap/starter-kit';
 import { Underline } from '@tiptap/extension-underline';
 import { Link } from '@tiptap/extension-link';
@@ -16,6 +16,7 @@ import { ReviewExtension } from '../ReviewExtension';
 import { parseContent } from '../commentContentUtils';
 import { CommentType } from '@/types/comment';
 import { useCommentDraft } from '../useCommentDraft';
+import { CommentContent, TipTapDocument } from '../types';
 
 // Initialize lowlight with supported languages
 const lowlight = createLowlight();
@@ -24,10 +25,14 @@ lowlight.register('typescript', typescript);
 lowlight.register('python', python);
 
 export interface UseCommentEditorProps {
-  onSubmit: (content: any) => Promise<boolean | void> | void;
-  onUpdate?: (content: any) => void;
+  onSubmit: (content: {
+    content: CommentContent;
+    rating?: number;
+    sectionRatings?: Record<string, number>;
+  }) => Promise<boolean | void> | void;
+  onUpdate?: (content: CommentContent) => void;
   placeholder?: string;
-  initialContent?: string | { type: 'doc'; content: any[] } | any;
+  initialContent?: CommentContent;
   isReadOnly?: boolean;
   commentType?: CommentType;
   initialRating?: number;
@@ -48,9 +53,17 @@ export const useCommentEditor = ({
   const [rating, setRating] = useState(initialRating);
   const [sectionRatings, setSectionRatings] = useState<Record<string, number>>({});
   const [isFocused, setIsFocused] = useState(false);
-  const contentRef = useRef<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [showCodeModal, setShowCodeModal] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [codeLanguage, setCodeLanguage] = useState('javascript');
+  const [codeContent, setCodeContent] = useState('');
+  const contentRef = useRef<JSONContent | null>(null);
   const isFirstRender = useRef(true);
-
   const isReview = commentType === 'REVIEW';
 
   // Initialize the draft hook
@@ -69,7 +82,27 @@ export const useCommentEditor = ({
       },
     });
 
-  // Initialize the editor
+  // Convert initialContent to a format compatible with TipTap's Content type
+  const getTipTapContent = (): Content | undefined => {
+    if (typeof initialContent === 'string') {
+      return undefined;
+    }
+
+    // Handle different CommentContent types
+    if ('type' in initialContent && initialContent.type === 'doc') {
+      return initialContent as unknown as Content;
+    }
+
+    if ('content' in initialContent) {
+      if ('type' in initialContent.content && initialContent.content.type === 'doc') {
+        return initialContent.content as unknown as Content;
+      }
+      return { type: 'doc', content: initialContent.content } as unknown as Content;
+    }
+
+    return undefined;
+  };
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -115,7 +148,7 @@ export const useCommentEditor = ({
           ]
         : []),
     ],
-    content: typeof initialContent === 'string' ? undefined : initialContent,
+    content: getTipTapContent(),
     editable: !isReadOnly,
     editorProps: {
       attributes: {
@@ -132,10 +165,8 @@ export const useCommentEditor = ({
 
         // Call the original onUpdate if provided
         if (onUpdate) {
-          onUpdate({
-            content: json,
-            rating: isReview ? rating : undefined,
-          });
+          // Use the JSON directly as CommentContent
+          onUpdate(json as CommentContent);
         }
       }
     },

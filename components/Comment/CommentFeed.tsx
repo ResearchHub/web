@@ -12,6 +12,7 @@ import { CommentSortAndFilters } from './CommentSortAndFilters';
 import { CommentLoader } from './CommentLoader';
 import CommentList from './CommentList';
 import { toast } from 'react-hot-toast';
+import { CommentContent } from './lib/types';
 
 interface CommentFeedProps {
   documentId: number;
@@ -89,9 +90,11 @@ const CommentFeedContent = ({
   const handleSubmit = async ({
     content,
     rating: overallRating,
+    sectionRatings,
   }: {
-    content: any;
+    content: CommentContent;
     rating?: number;
+    sectionRatings?: Record<string, number>;
   }) => {
     setIsSubmitting(true);
     // Show loading toast

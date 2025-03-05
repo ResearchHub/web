@@ -1,7 +1,7 @@
 'use client';
 
 import { EditorContent } from '@tiptap/react';
-import { useRef } from 'react';
+import { useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import 'highlight.js/styles/atom-one-dark.css';
 import { CommentType } from '@/types/comment';
@@ -11,14 +11,19 @@ import { EditorHeader } from './components/EditorHeader';
 import { EditorToolbar } from './components/EditorToolbar';
 import { EditorFooter } from './components/EditorFooter';
 import { EditorModals } from './components/EditorModals';
+import { CommentContent } from './lib/types';
 
 export interface CommentEditorProps {
-  onSubmit: (content: any) => Promise<boolean | void> | void;
+  onSubmit: (content: {
+    content: CommentContent;
+    rating?: number;
+    sectionRatings?: Record<string, number>;
+  }) => Promise<boolean | void> | void;
   onCancel?: () => void;
   onReset?: () => void;
-  onUpdate?: (content: any) => void;
+  onUpdate?: (content: CommentContent) => void;
   placeholder?: string;
-  initialContent?: string | { type: 'doc'; content: any[] } | any;
+  initialContent?: CommentContent;
   isReadOnly?: boolean;
   commentType?: CommentType;
   initialRating?: number;
@@ -44,21 +49,41 @@ export const CommentEditor = ({
   const { data: session } = useSession();
   const editorRef = useRef<HTMLDivElement>(null);
 
+  // Adapt the onSubmit function to the format expected by useEditorHandlers
+  const adaptedOnSubmit = useCallback(
+    async ({
+      content,
+      rating,
+      sectionRatings,
+    }: {
+      content: CommentContent;
+      rating?: number;
+      sectionRatings?: Record<string, number>;
+    }) => {
+      return onSubmit({
+        content,
+        rating,
+        sectionRatings,
+      });
+    },
+    [onSubmit]
+  );
+
   // Initialize the editor with our custom hook
   const {
     editor,
-    rating,
-    setRating,
-    sectionRatings,
-    setSectionRatings,
     isReview,
+    rating,
+    sectionRatings,
+    setRating,
+    setSectionRatings,
     lastSaved,
     saveStatus,
     formatLastSaved,
     clearDraft,
     contentRef,
   } = useCommentEditor({
-    onSubmit,
+    onSubmit: adaptedOnSubmit,
     onUpdate,
     placeholder,
     initialContent,
@@ -88,7 +113,7 @@ export const CommentEditor = ({
     handleLinkClick,
   } = useEditorHandlers({
     editor,
-    onSubmit,
+    onSubmit: adaptedOnSubmit,
     isReview,
     rating,
     sectionRatings,

@@ -23,6 +23,7 @@ import { parseContent } from './lib/commentContentUtils';
 import TipTapRenderer from './lib/TipTapRenderer';
 import LoadMoreReplies from './LoadMoreReplies';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
+import { CommentContent } from './lib/types';
 
 interface CommentItemProps {
   comment: Comment;
@@ -124,19 +125,23 @@ export const CommentItem = ({
   };
 
   // Handle editing a comment
-  const handleEdit = async (data: { content: any; rating?: number }) => {
+  const handleEdit = async (params: {
+    content: CommentContent;
+    rating?: number;
+    sectionRatings?: Record<string, number>;
+  }): Promise<boolean> => {
     try {
       // Show loading toast
       const loadingToastId = toast.loading('Saving your changes...');
 
       if (debug) {
-        console.log(`Editing comment ${comment.id} with content:`, data.content);
+        console.log(`Editing comment ${comment.id} with content:`, params.content);
       }
 
       // Make the API call through the context
       const updatedComment = await updateComment(
         comment.id,
-        data.content,
+        params.content,
         typeof comment.parentId === 'number' ? comment.parentId : undefined
       );
 
@@ -153,59 +158,58 @@ export const CommentItem = ({
         }
 
         // Show success toast
-        toast.success('Comment updated successfully!', { id: loadingToastId });
-        return true; // Return true if comment was updated successfully
+        toast.success('Comment updated successfully', { id: loadingToastId });
+        return true;
       } else {
-        // Show error toast if no comment returned
-        toast.error('Failed to update comment. Please try again.', { id: loadingToastId });
-        return false; // Return false if there was an error
+        // Show error toast
+        toast.error('Failed to update comment', { id: loadingToastId });
+        return false;
       }
     } catch (error) {
       console.error('Error updating comment:', error);
-      setUpdateError('Failed to update comment');
-      toast.error('Failed to update comment. Please try again.');
-
-      // Also clear the editing state on error
-      setEditingCommentId(null);
-      return false; // Return false if there was an error
+      toast.error('Failed to update comment');
+      return false;
     }
   };
 
   // Handle replying to a comment
-  const handleReply = async (data: { content: any; rating?: number }) => {
+  const handleReply = async (params: {
+    content: CommentContent;
+    rating?: number;
+    sectionRatings?: Record<string, number>;
+  }): Promise<boolean> => {
     try {
       // Show loading toast
-      const loadingToastId = toast.loading('Saving your reply...');
+      const loadingToastId = toast.loading('Posting your reply...');
 
       if (debug) {
-        console.log(`Replying to comment ${comment.id} with content:`, data.content);
-        console.log(`Comment parentId: ${comment.parentId}`);
-        console.log(`Comment metadata:`, comment.metadata);
+        console.log(`Replying to comment ${comment.id} with content:`, params.content);
       }
 
       // Make the API call through the context
-      const newReply = await createReply(comment.id, data.content);
+      const newReply = await createReply(comment.id, params.content);
 
       // Only clear the replying state after the API call completes
       setReplyingToCommentId(null);
 
       if (newReply) {
+        // Call the onCommentUpdate callback if provided
+        if (onCommentUpdate) {
+          onCommentUpdate(newReply, comment.id);
+        }
+
         // Show success toast
-        toast.success('Reply saved successfully!', { id: loadingToastId });
-        return true; // Return true if reply was created successfully
+        toast.success('Reply posted successfully', { id: loadingToastId });
+        return true;
       } else {
-        // Show error toast if no comment returned
-        toast.error('Failed to save reply. Please try again.', { id: loadingToastId });
-        return false; // Return false if there was an error
+        // Show error toast
+        toast.error('Failed to post reply', { id: loadingToastId });
+        return false;
       }
     } catch (error) {
-      console.error('Error replying to comment:', error);
-      setUpdateError('Failed to reply to comment');
-      toast.error('Failed to save reply. Please try again.');
-
-      // Also clear the replying state on error
-      setReplyingToCommentId(null);
-      return false; // Return false if there was an error
+      console.error('Error posting reply:', error);
+      toast.error('Failed to post reply');
+      return false;
     }
   };
 
@@ -482,6 +486,7 @@ export const CommentItem = ({
           onDelete={handleDelete}
           onVote={handleVote}
           className="mt-3"
+          isAuthor={isAuthor}
         />
       )}
 

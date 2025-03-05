@@ -2,10 +2,15 @@ import { useState } from 'react';
 import { Editor } from '@tiptap/react';
 import { toast } from 'react-hot-toast';
 import { ReviewCategory } from '../ReviewCategories';
+import { CommentContent } from '../types';
 
 interface UseEditorHandlersProps {
   editor: Editor | null;
-  onSubmit: (content: any) => Promise<boolean | void> | void;
+  onSubmit: (content: {
+    content: CommentContent;
+    rating?: number;
+    sectionRatings?: Record<string, number>;
+  }) => Promise<boolean | void> | void;
   isReview: boolean;
   rating: number;
   sectionRatings: Record<string, number>;
@@ -75,8 +80,9 @@ export const useEditorHandlers = ({
 
     try {
       const json = editor.getJSON();
+
       const result = await onSubmit({
-        content: json,
+        content: json as CommentContent,
         rating: isReview ? overallRating : undefined,
         sectionRatings:
           isReview && Object.keys(currentSectionRatings).length > 0
