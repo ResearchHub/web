@@ -9,7 +9,7 @@ import { InterestSelector } from '@/components/InterestSelector/InterestSelector
 import { FeedTabs } from './FeedTabs';
 
 export const Feed: FC = () => {
-  const [activeTab, setActiveTab] = useState<FeedTab>('following');
+  const [activeTab, setActiveTab] = useState<FeedTab>('popular');
   const [isCustomizing, setIsCustomizing] = useState(false);
   const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(activeTab);
 
@@ -24,16 +24,16 @@ export const Feed: FC = () => {
 
   const tabs = [
     {
+      id: 'popular',
+      label: 'Popular',
+    },
+    {
       id: 'following',
       label: 'Following',
     },
     {
       id: 'latest',
       label: 'Latest',
-    },
-    {
-      id: 'popular',
-      label: 'Popular',
     },
   ];
 
