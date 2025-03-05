@@ -14,6 +14,7 @@ import CommentList from './CommentList';
 import { toast } from 'react-hot-toast';
 import { CommentContent } from './lib/types';
 import { CommentService } from '@/services/comment.service';
+import { MessageSquare } from 'lucide-react';
 
 interface CommentFeedProps {
   documentId: number;
@@ -164,6 +165,26 @@ const CommentFeedContent = ({
     }
   };
 
+  // Empty state component for when there are no comments
+  const EmptyCommentState = ({ commentType }: { commentType: CommentType }) => {
+    const message =
+      commentType === 'REVIEW'
+        ? 'No reviews yet.'
+        : commentType === 'BOUNTY'
+          ? 'No bounties yet.'
+          : 'No comments yet. Start the conversation!';
+
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="mb-4 rounded-full bg-gray-100 p-3">
+          <MessageSquare className="h-6 w-6 text-gray-400" />
+        </div>
+        <h3 className="mb-2 text-lg font-medium text-gray-900">{message}</h3>
+        <p className="text-sm text-gray-500">Your contribution could help open science.</p>
+      </div>
+    );
+  };
+
   return (
     <div className={cn('comment-feed', className)}>
       {!hideEditor && (
@@ -175,7 +196,7 @@ const CommentFeedContent = ({
             {...editorProps}
           />
           <div className="mt-12 mb-2">
-            <CommentSortAndFilters commentType={commentType} commentCount={0} />
+            <CommentSortAndFilters commentType={commentType} commentCount={count} />
           </div>
           <div className="h-px bg-gray-200 my-4"></div>
         </div>
@@ -184,6 +205,8 @@ const CommentFeedContent = ({
       <div className="comment-list-container">
         {loading && filteredComments.length === 0 ? (
           <CommentLoader count={3} />
+        ) : filteredComments.length === 0 ? (
+          <EmptyCommentState commentType={commentType || 'GENERIC_COMMENT'} />
         ) : (
           <>
             <CommentList

@@ -30,7 +30,7 @@ export const EditorHeader = ({
         <div className="flex flex-col">
           <div className="flex items-center gap-1.5 text-[15px]">
             <span className="font-semibold text-gray-800">{session.user.fullName || 'User'}</span>
-            <span className="text-gray-600">commenting</span>
+            <span className="text-gray-600">{isReview ? 'reviewing' : 'commenting'}</span>
           </div>
         </div>
       </div>
