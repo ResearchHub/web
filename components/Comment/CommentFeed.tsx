@@ -14,7 +14,7 @@ import CommentList from './CommentList';
 import { toast } from 'react-hot-toast';
 import { CommentContent } from './lib/types';
 import { CommentService } from '@/services/comment.service';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Plus } from 'lucide-react';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useSession } from 'next-auth/react';
 import { CommentEmptyState } from './CommentEmptyState';
@@ -267,6 +267,20 @@ function CommentFeedContent({
           />
         ) : (
           <>
+            {commentType === 'BOUNTY' && (
+              <div className="flex justify-end mb-4">
+                <Button
+                  onClick={() => executeAuthenticatedAction(handleCreateBounty)}
+                  variant="default"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Create Bounty
+                </Button>
+              </div>
+            )}
+
             <CommentList
               comments={filteredComments}
               isRootList={true}

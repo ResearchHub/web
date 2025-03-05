@@ -281,8 +281,16 @@ export const CommentItem = ({
 
     // For bounty comments, render the bounty component
     if (comment.bounties && comment.bounties.length > 0) {
+      if (debug) {
+        console.log(`Comment ${comment.id} has bounties:`, comment.bounties);
+      }
+
       // Use the getDisplayBounty utility function to find the display bounty
       const displayBounty = getDisplayBounty(comment.bounties);
+
+      if (debug) {
+        console.log(`Display bounty for comment ${comment.id}:`, displayBounty);
+      }
 
       if (displayBounty) {
         return (
@@ -321,27 +329,38 @@ export const CommentItem = ({
 
     // For regular comments, render the content and optionally the reply editor
     return (
-      <div className="border border-gray-200 rounded-lg p-4">
-        <CommentReadOnly
-          content={comment.content}
-          contentFormat={comment.contentFormat}
-          contentType={contentType}
-          debug={debug}
+      <>
+        <CommentItemHeader
+          profileImage={comment.author?.profileImage}
+          fullName={comment.author?.fullName || 'Unknown User'}
+          profileUrl={comment.author?.profileUrl || '#'}
+          date={comment.createdDate}
+          commentType={comment.commentType}
+          score={comment.score}
+          className="mb-3"
         />
+        <div className="border border-gray-200 rounded-lg p-4">
+          <CommentReadOnly
+            content={comment.content}
+            contentFormat={comment.contentFormat}
+            contentType={contentType}
+            debug={debug}
+          />
 
-        {/* Show reply editor below the comment content if replying */}
-        {isReplying && (
-          <div className="mt-4 border-t pt-4">
-            <h4 className="text-sm font-medium mb-2">Your reply:</h4>
-            <CommentEditor
-              onSubmit={handleReply}
-              onCancel={() => setReplyingToCommentId(null)}
-              placeholder="Write your reply..."
-              autoFocus={true}
-            />
-          </div>
-        )}
-      </div>
+          {/* Show reply editor below the comment content if replying */}
+          {isReplying && (
+            <div className="mt-4 border-t pt-4">
+              <h4 className="text-sm font-medium mb-2">Your reply:</h4>
+              <CommentEditor
+                onSubmit={handleReply}
+                onCancel={() => setReplyingToCommentId(null)}
+                placeholder="Write your reply..."
+                autoFocus={true}
+              />
+            </div>
+          )}
+        </div>
+      </>
     );
   };
 
@@ -451,17 +470,6 @@ export const CommentItem = ({
           )}
         </div>
       )}
-
-      {/* Comment header with author info and timestamp */}
-      <CommentItemHeader
-        profileImage={comment.author?.profileImage}
-        fullName={comment.author?.fullName || 'Unknown User'}
-        profileUrl={comment.author?.profileUrl || '#'}
-        date={comment.createdDate}
-        commentType={comment.commentType}
-        score={comment.score}
-        className="mb-3"
-      />
 
       {/* Comment content */}
       {renderContent()}

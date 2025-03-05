@@ -19,7 +19,6 @@ import {
 import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
-import { useCreateComment } from '@/hooks/useComments';
 import { Currency } from '@/types/root';
 import { BountyType } from '@/types/bounty';
 import { BalanceInfo } from './BalanceInfo';
@@ -27,6 +26,8 @@ import { useSession } from 'next-auth/react';
 import { CommentEditor } from '@/components/Comment/CommentEditor';
 import { Switch } from '@headlessui/react';
 import { toast } from 'react-hot-toast';
+import { useComments } from '@/contexts/CommentContext';
+import { CommentService } from '@/services/comment.service';
 
 interface CreateBountyModalProps {
   isOpen: boolean;
@@ -326,13 +327,26 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
   const [customDate, setCustomDate] = useState('');
   const [editorContent, setEditorContent] = useState<any>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const RSC_TO_USD = 1;
   const userBalance = session?.user?.balance || 0;
 
-  const [{ data: commentData, isLoading: isCreatingBounty, error: bountyError }, createComment] =
-    useCreateComment();
+  // Make useComments optional to handle cases when the component is not wrapped with a CommentProvider
+  let commentContext;
+  try {
+    commentContext = useComments();
+  } catch (error) {
+    // If useComments throws an error, it means the component is not wrapped with a CommentProvider
+    // In this case, we'll use a direct approach without the context
+    commentContext = null;
+  }
 
   const handleCreateBounty = async () => {
+    if (isSubmitting) return; // Prevent multiple submissions
+
+    setIsSubmitting(true);
+    const toastId = toast.loading('Creating bounty...');
+
     try {
       const rscAmount = getRscAmount();
 
@@ -347,36 +361,63 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
       // Log the editor content before submitting
       console.log('Submitting bounty with editor content:', editorContent);
 
-      const createdComment = await createComment({
-        commentType: 'GENERIC_COMMENT',
-        workId: workId || selectedPaper?.id || '',
-        bountyAmount: rscAmount,
-        bountyType: bountyType,
-        privacyType: 'PUBLIC',
-        expirationDate: expirationDate,
-        contentType: 'paper', // TODO. what type do we want to use here?
-        content: editorContent?.content,
-      });
+      // Create a proper CommentContent object from the editor content
+      const commentContent = {
+        type: 'doc',
+        content: editorContent?.content || [],
+      };
+
+      let createdComment;
+
+      // Use the context if available, otherwise use the direct approach
+      if (commentContext?.createBounty) {
+        // Use the createBounty function from CommentContext
+        // This will automatically update the UI through the reducer
+        createdComment = await commentContext.createBounty(
+          commentContent,
+          rscAmount,
+          bountyType,
+          expirationDate,
+          workId || selectedPaper?.id
+        );
+      } else {
+        // Direct approach using CommentService
+        const apiContent = {
+          type: 'doc',
+          content: editorContent?.content || [],
+        };
+
+        // Map bountyType to a valid commentType that the API accepts
+        const commentType = bountyType === 'ANSWER' ? 'ANSWER' : 'REVIEW';
+
+        createdComment = await CommentService.createComment({
+          workId: workId || selectedPaper?.id,
+          contentType: 'paper',
+          content: JSON.stringify(apiContent),
+          contentFormat: 'TIPTAP',
+          commentType: commentType,
+          bountyAmount: rscAmount,
+          bountyType,
+          expirationDate,
+          privacyType: 'PUBLIC',
+        });
+      }
 
       if (createdComment) {
-        toast.success('Your bounty has been successfully created.');
+        toast.success('Bounty created successfully!', { id: toastId });
         onClose();
+      } else {
+        toast.error('Failed to create bounty. Please try again.', { id: toastId });
       }
     } catch (error) {
       // Error is handled by the hook
       console.error('Failed to create bounty:', error);
+      toast.error('Failed to create bounty. Please try again.', { id: toastId });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  useEffect(() => {
-    if (commentData) {
-      // This effect is now redundant since we handle success in the handleCreateBounty function
-      // but we'll keep it for backward compatibility
-      onClose();
-    }
-  }, [commentData, onClose]);
-
-  // Add a useEffect to log the editor content whenever it changes
   useEffect(() => {
     if (editorContent) {
       console.log('Editor content state updated:', editorContent);
@@ -749,21 +790,31 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
               <div className="flex justify-between items-center">
                 <span className="text-gray-700">Duration:</span>
                 <span className="text-gray-900 font-medium">
-                  {bountyLength === 'custom' ? customDate : `${bountyLength} days`}
+                  {bountyLength === 'custom'
+                    ? `Until ${new Date(customDate).toLocaleDateString()}`
+                    : `${bountyLength} days`}
                 </span>
               </div>
+              {selectedPaper && (
+                <div className="flex justify-between items-start">
+                  <span className="text-gray-700">Paper:</span>
+                  <span className="text-gray-900 font-medium text-right max-w-[70%]">
+                    {selectedPaper.title}
+                  </span>
+                </div>
+              )}
               {hasAdditionalInfo && (
-                <div className="pt-2 border-t border-gray-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MessageCircle className="w-4 h-4 text-gray-500" />
-                    <span className="text-gray-700">Additional Information:</span>
-                  </div>
-                  <div className="text-sm text-gray-600 italic">Additional details provided</div>
+                <div className="flex justify-between items-start">
+                  <span className="text-gray-700">Additional Info:</span>
+                  <span className="text-gray-900 font-medium text-right max-w-[70%]">
+                    {editorContent ? 'Provided' : 'None'}
+                  </span>
                 </div>
               )}
             </div>
           </div>
 
+          {/* Fees Breakdown */}
           <div>
             <div className="mb-2">
               <h3 className="text-sm font-semibold text-gray-900">Fees Breakdown</h3>
@@ -783,16 +834,14 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
             <BalanceInfo amount={rscAmount} showWarning={insufficientBalance} />
           </div>
 
-          {bountyError && <Alert variant="error">{bountyError}</Alert>}
-
           <Button
             type="button"
             variant="default"
-            disabled={isCreatingBounty}
             className="w-full h-12 text-base"
             onClick={handleCreateBounty}
+            disabled={isSubmitting || insufficientBalance}
           >
-            {isCreatingBounty ? 'Creating Bounty...' : 'Create Bounty'}
+            {isSubmitting ? 'Creating Bounty...' : 'Create Bounty'}
           </Button>
 
           {/* Moved refund banner below the CTA button */}

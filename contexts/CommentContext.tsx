@@ -58,6 +58,13 @@ interface CommentContextType {
   loadMore: () => Promise<void>;
   loadMoreReplies: (commentId: number) => Promise<void>;
   createComment: (content: CommentContent, rating?: number) => Promise<Comment | null>;
+  createBounty: (
+    content: CommentContent,
+    bountyAmount: number,
+    bountyType: CommentType,
+    expirationDate: string,
+    customWorkId?: string
+  ) => Promise<Comment | null>;
   createReply: (parentId: number, content: CommentContent) => Promise<Comment | null>;
   updateComment: (
     commentId: number,
@@ -453,6 +460,61 @@ export const CommentProvider = ({
     [documentId, contentType, commentType, state.count]
   );
 
+  // Create a new bounty
+  const createBounty = useCallback(
+    async (
+      content: CommentContent,
+      bountyAmount: number,
+      bountyType: CommentType,
+      expirationDate: string,
+      customWorkId?: string
+    ): Promise<Comment | null> => {
+      dispatch({ type: CommentActionType.CREATE_COMMENT_START });
+      dispatch({ type: CommentActionType.SET_ERROR, payload: null });
+
+      try {
+        const apiContent = convertToApiFormat(content);
+
+        // Map bountyType to a valid commentType that the API accepts
+        // The API only accepts 'ANSWER' or 'REVIEW' as valid comment types
+        const commentType = bountyType === 'ANSWER' ? 'ANSWER' : 'REVIEW';
+
+        const newBounty = await CommentService.createComment({
+          workId: customWorkId || documentId.toString(),
+          contentType,
+          content: apiContent,
+          contentFormat: 'TIPTAP',
+          commentType: commentType,
+          bountyAmount,
+          bountyType,
+          expirationDate,
+          privacyType: 'PUBLIC',
+        });
+
+        // Only update the UI after successful API response
+        if (newBounty) {
+          console.log(`Bounty created successfully with ID: ${newBounty.id}`);
+
+          // Update the state with the new bounty
+          dispatch({
+            type: CommentActionType.CREATE_COMMENT_SUCCESS,
+            payload: { comment: newBounty },
+          });
+
+          // Update the count
+          dispatch({ type: CommentActionType.SET_COUNT, payload: state.count + 1 });
+        }
+
+        return newBounty;
+      } catch (err) {
+        console.error('Error creating bounty:', err);
+        dispatch({ type: CommentActionType.SET_ERROR, payload: 'Failed to create bounty' });
+        return null;
+      }
+    },
+    [documentId, contentType, state.count]
+  );
+
   /**
    * Creates a reply to an existing comment
    * @param parentId ID of the parent comment
@@ -775,6 +837,7 @@ export const CommentProvider = ({
     loadMore,
     loadMoreReplies,
     createComment,
+    createBounty,
     createReply,
     updateComment,
     deleteComment,
