@@ -18,17 +18,6 @@ const sortOptions: SortOption[] = [
   { label: 'Top', value: 'TOP', icon: ArrowUp },
 ];
 
-type BountyFilterOption = {
-  label: string;
-  value: BountyFilterType;
-};
-
-const bountyFilterOptions: BountyFilterOption[] = [
-  { label: 'All Bounties', value: 'ALL' },
-  { label: 'Open Bounties', value: 'OPEN' },
-  { label: 'Closed Bounties', value: 'CLOSED' },
-];
-
 interface CommentSortAndFiltersProps {
   commentType?: CommentType;
   commentCount: number;
@@ -82,45 +71,6 @@ export const CommentSortAndFilters: FC<CommentSortAndFiltersProps> = ({
             );
           })}
         </BaseMenu>
-
-        {/* Bounty Filter (only for bounty comments) */}
-        {commentType === 'BOUNTY' && (
-          <BaseMenu
-            align="start"
-            trigger={
-              <Button variant="outlined" size="sm" className="flex items-center gap-1">
-                <Filter className="h-4 w-4 mr-1" />
-                <span>
-                  {bountyFilterOptions.find((option) => option.value === bountyFilter)?.label ||
-                    'Filter'}
-                </span>
-              </Button>
-            }
-          >
-            {bountyFilterOptions.map((option) => (
-              <BaseMenuItem
-                key={option.value}
-                onClick={() => handleBountyFilterChange(option.value)}
-                className={bountyFilter === option.value ? 'bg-gray-100' : ''}
-              >
-                <div className="flex items-center gap-2">
-                  {option.value === 'OPEN' && (
-                    <div className="h-4 w-4 flex items-center justify-center">
-                      <span className="text-xs font-bold">$</span>
-                    </div>
-                  )}
-                  {option.value === 'CLOSED' && (
-                    <div className="h-4 w-4 flex items-center justify-center">
-                      <span className="text-xs">✓</span>
-                    </div>
-                  )}
-                  {option.value === 'ALL' && <MessageCircle className="h-4 w-4" />}
-                  <span>{option.label}</span>
-                </div>
-              </BaseMenuItem>
-            ))}
-          </BaseMenu>
-        )}
       </div>
     </div>
   );

@@ -846,13 +846,16 @@ export const CommentProvider = ({
     setReplyingToCommentId: handleSetReplyingToCommentId,
     setSortBy: (sort: CommentSort) => {
       dispatch({ type: CommentActionType.SET_SORT_BY, payload: sort });
+      // Set loading to true to show loading skeleton
+      dispatch({ type: CommentActionType.SET_LOADING, payload: true });
     },
     setFilter: (filter?: CommentFilter) => {
       dispatch({ type: CommentActionType.SET_FILTER, payload: filter });
     },
     setBountyFilter: (filter: BountyFilterType) => {
       dispatch({ type: CommentActionType.SET_BOUNTY_FILTER, payload: filter });
-      // For bounty filter, we don't need to refresh as it's client-side filtering
+      // Set loading to true to show loading skeleton
+      dispatch({ type: CommentActionType.SET_LOADING, payload: true });
     },
     forceRefresh,
     emitCommentEvent,

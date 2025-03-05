@@ -302,13 +302,6 @@ export const CommentItem = ({
               isCreator={session?.user?.id === displayBounty?.createdBy?.id}
               onBountyUpdated={() => onCommentUpdate && onCommentUpdate(comment)}
             />
-            <div className="mt-4">
-              <CommentReadOnly
-                content={comment.content}
-                contentFormat={comment.contentFormat}
-                debug={debug}
-              />
-            </div>
 
             {/* Show reply editor below the bounty content if replying */}
             {isReplying && (
@@ -475,7 +468,7 @@ export const CommentItem = ({
       {renderContent()}
 
       {/* Comment actions (reply, edit, delete, etc.) */}
-      {renderCommentActions && !isEditing && !isReplying && (
+      {renderCommentActions && !isEditing && !isReplying && !comment.bounties?.length && (
         <CommentItemActions
           score={comment.score}
           replyCount={comment.replyCount || 0}

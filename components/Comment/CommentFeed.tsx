@@ -251,14 +251,16 @@ function CommentFeedContent({
             {...editorProps}
           />
           <div className="mt-12 mb-2">
-            <CommentSortAndFilters commentType={commentType} commentCount={count} />
+            {commentType !== 'BOUNTY' && (
+              <CommentSortAndFilters commentType={commentType} commentCount={count} />
+            )}
           </div>
           <div className="h-px bg-gray-200 my-4"></div>
         </div>
       )}
 
       <div className="comment-list-container">
-        {loading && filteredComments.length === 0 ? (
+        {loading ? (
           <CommentLoader count={3} commentType={commentType} />
         ) : filteredComments.length === 0 ? (
           <CommentEmptyState
@@ -268,7 +270,8 @@ function CommentFeedContent({
         ) : (
           <>
             {commentType === 'BOUNTY' && (
-              <div className="flex justify-end mb-4">
+              <div className="flex justify-between items-center mb-4">
+                <CommentSortAndFilters commentType={commentType} commentCount={count} />
                 <Button
                   onClick={() => executeAuthenticatedAction(handleCreateBounty)}
                   variant="default"
