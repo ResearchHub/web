@@ -78,7 +78,13 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
         </div>
       );
 
-      return isCard ? <Link href={buildUrl(item)}>{cardContent}</Link> : cardContent;
+      return isCard ? (
+        <Link href={buildUrl(item)} prefetch={false}>
+          {cardContent}
+        </Link>
+      ) : (
+        cardContent
+      );
     };
 
     return renderCard(<div>{itemContent}</div>);
