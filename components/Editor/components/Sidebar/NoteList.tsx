@@ -38,7 +38,7 @@ export const NoteList: React.FC<NoteListProps> = ({
   }
 
   return (
-    <div className="space-y-0.5">
+    <div className="space-y-0.5 max-h-[300px] overflow-y-auto pr-1">
       {filteredNotes.map((note) => (
         <NoteListItem
           key={note.id}
