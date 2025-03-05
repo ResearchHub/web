@@ -18,6 +18,7 @@ import { MessageSquare } from 'lucide-react';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useSession } from 'next-auth/react';
 import { CommentEmptyState } from './CommentEmptyState';
+import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
 
 interface CommentFeedProps {
   documentId: number;
@@ -31,7 +32,6 @@ interface CommentFeedProps {
   debug?: boolean;
 }
 
-// Remove memo wrapper from CommentFeed
 function CommentFeed({
   documentId,
   contentType,
@@ -53,6 +53,16 @@ function CommentFeed({
     };
   }, [commentType, documentId]);
 
+  const [isBountyModalOpen, setIsBountyModalOpen] = useState(false);
+
+  const handleCreateBounty = useCallback(() => {
+    setIsBountyModalOpen(true);
+  }, []);
+
+  const handleCloseBountyModal = useCallback(() => {
+    setIsBountyModalOpen(false);
+  }, []);
+
   return (
     <CommentProvider
       documentId={documentId}
@@ -69,6 +79,12 @@ function CommentFeed({
         commentType={commentType}
         contentType={contentType}
         debug={debug}
+        onCreateBounty={handleCreateBounty}
+      />
+      <CreateBountyModal
+        isOpen={isBountyModalOpen}
+        onClose={handleCloseBountyModal}
+        workId={documentId.toString()}
       />
     </CommentProvider>
   );
@@ -84,7 +100,8 @@ function CommentFeedContent({
   commentType,
   contentType,
   debug = false,
-}: Omit<CommentFeedProps, 'documentId'>) {
+  onCreateBounty,
+}: Omit<CommentFeedProps, 'documentId'> & { onCreateBounty: () => void }) {
   // Add debugging for content component
   useEffect(() => {
     console.log(`CommentFeedContent MOUNTED - type: ${commentType}`);
@@ -185,10 +202,8 @@ function CommentFeedContent({
 
   // Handle bounty creation
   const handleCreateBounty = useCallback(() => {
-    // This is a placeholder function for the onCreateBounty prop
-    console.log('Create bounty clicked');
-    // You can implement the actual bounty creation logic here or pass it from props
-  }, []);
+    onCreateBounty();
+  }, [onCreateBounty]);
 
   // AuthenticatedCommentEditor component
   const AuthenticatedCommentEditor = useCallback(
