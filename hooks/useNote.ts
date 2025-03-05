@@ -221,6 +221,11 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
 
   const debouncedUpdate = useRef<DebouncedFunc<(editor: Editor) => Promise<void>>>(
     debounce(async (editor: Editor) => {
+      if (!editor || !noteId) {
+        console.error('Editor or noteId is undefined in debouncedUpdate', { editor, noteId });
+        return;
+      }
+
       const json = editor.getJSON();
       const html = editor.getHTML();
       const newTitle = getDocumentTitleFromEditor(editor) || '';
@@ -248,8 +253,8 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
         promises.push(
           NoteService.updateNoteContent({
             note: noteId,
-            full_src: html,
-            plain_text: editor.getText(),
+            full_src: html || '',
+            plain_text: editor.getText() || '',
             full_json: JSON.stringify(json),
           })
         );
@@ -268,12 +273,15 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
 
   const updateNote = useCallback(
     (editor: Editor) => {
+      if (!editor) {
+        console.error('Editor is undefined in updateNote');
+        return;
+      }
       debouncedUpdate.current(editor);
     },
     [noteId]
   );
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       debouncedUpdate.current.cancel();

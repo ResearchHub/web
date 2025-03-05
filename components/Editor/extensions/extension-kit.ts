@@ -52,13 +52,21 @@ import {
 import { ImageUpload } from './ImageUpload';
 import { TableOfContentsNode } from './TableOfContentsNode';
 import { isChangeOrigin } from '@tiptap/extension-collaboration';
+import { AnyExtension } from '@tiptap/core';
+import { PlaceholderOptions } from '@tiptap/extension-placeholder';
 
 interface ExtensionKitProps {
   provider?: HocuspocusProvider | null;
+  customDocument?: AnyExtension;
+  placeholderConfig?: Partial<PlaceholderOptions>;
 }
 
-export const ExtensionKit = ({ provider }: ExtensionKitProps) => [
-  Document,
+export const ExtensionKit = ({
+  provider,
+  customDocument,
+  placeholderConfig,
+}: ExtensionKitProps) => [
+  customDocument || Document,
   Columns,
   TaskList,
   TaskItem.configure({
@@ -148,11 +156,13 @@ export const ExtensionKit = ({ provider }: ExtensionKitProps) => [
   TableHeader,
   TableRow,
   Typography,
-  Placeholder.configure({
-    includeChildren: true,
-    showOnlyCurrent: false,
-    placeholder: () => '',
-  }),
+  Placeholder.configure(
+    placeholderConfig || {
+      includeChildren: true,
+      showOnlyCurrent: false,
+      placeholder: () => '',
+    }
+  ),
   SlashCommand,
   Focus,
   Figcaption,

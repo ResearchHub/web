@@ -21,15 +21,19 @@ export const NoteList: React.FC<NoteListProps> = ({
     return <NoteListSkeleton />;
   }
 
-  const filteredNotes = notes.filter((note: Note) => {
-    if (type === 'workspace') {
-      return note.access === 'WORKSPACE' || note.access === 'SHARED';
-    } else {
-      return note.access === 'PRIVATE';
-    }
-  });
+  const filteredAndSortedNotes = notes
+    .filter((note: Note) => {
+      if (type === 'workspace') {
+        return note.access === 'WORKSPACE' || note.access === 'SHARED';
+      } else {
+        return note.access === 'PRIVATE';
+      }
+    })
+    .sort((a, b) => {
+      return new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime();
+    });
 
-  if (filteredNotes.length === 0) {
+  if (filteredAndSortedNotes.length === 0) {
     return (
       <div className="text-sm text-gray-500 px-2.5">
         No {type === 'workspace' ? 'workspace' : 'private'} notes
@@ -39,7 +43,7 @@ export const NoteList: React.FC<NoteListProps> = ({
 
   return (
     <div className="space-y-0.5 max-h-[300px] overflow-y-auto pr-1">
-      {filteredNotes.map((note) => (
+      {filteredAndSortedNotes.map((note) => (
         <NoteListItem
           key={note.id}
           note={note}
