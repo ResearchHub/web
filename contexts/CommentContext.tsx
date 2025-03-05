@@ -218,6 +218,14 @@ export const CommentProvider = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Effect to refresh comments when sort or filter changes
+  useEffect(() => {
+    // Skip the initial render
+    if (state.comments.length > 0) {
+      refresh();
+    }
+  }, [state.sortBy, state.filter, refresh]);
+
   // Function to force refresh comments from the server
   const forceRefresh = useCallback(async () => {
     if (debug) {
@@ -770,12 +778,16 @@ export const CommentProvider = ({
     voteComment,
     setEditingCommentId: handleSetEditingCommentId,
     setReplyingToCommentId: handleSetReplyingToCommentId,
-    setSortBy: (sort: CommentSort) =>
-      dispatch({ type: CommentActionType.SET_SORT_BY, payload: sort }),
-    setFilter: (filter?: CommentFilter) =>
-      dispatch({ type: CommentActionType.SET_FILTER, payload: filter }),
-    setBountyFilter: (filter: BountyFilterType) =>
-      dispatch({ type: CommentActionType.SET_BOUNTY_FILTER, payload: filter }),
+    setSortBy: (sort: CommentSort) => {
+      dispatch({ type: CommentActionType.SET_SORT_BY, payload: sort });
+    },
+    setFilter: (filter?: CommentFilter) => {
+      dispatch({ type: CommentActionType.SET_FILTER, payload: filter });
+    },
+    setBountyFilter: (filter: BountyFilterType) => {
+      dispatch({ type: CommentActionType.SET_BOUNTY_FILTER, payload: filter });
+      // For bounty filter, we don't need to refresh as it's client-side filtering
+    },
     forceRefresh,
     emitCommentEvent,
   };
