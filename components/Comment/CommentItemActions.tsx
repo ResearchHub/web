@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { MessageCircle, ArrowUp, Flag, Edit2, Trash2, Forward } from 'lucide-react';
+import { MessageCircle, ArrowUp, Flag, Edit2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { UserVoteType } from '@/types/comment';
 
@@ -53,7 +53,6 @@ interface CommentItemActionsProps {
   onReply: () => void;
   onEdit: () => void;
   onDelete: () => void;
-  onShare?: () => void;
   onVote: (voteType: UserVoteType) => void;
   className?: string;
   isAuthor?: boolean;
@@ -68,7 +67,6 @@ export const CommentItemActions: FC<CommentItemActionsProps> = ({
   onReply,
   onEdit,
   onDelete,
-  onShare,
   onVote,
   className,
   isAuthor = false,
@@ -97,7 +95,6 @@ export const CommentItemActions: FC<CommentItemActionsProps> = ({
           onClick={onReply}
           showLabel
         />
-        <ActionButton icon={Forward} tooltip="Share" label="Share" onClick={onShare} showLabel />
         {isAuthor && (
           <ActionButton icon={Edit2} tooltip="Edit" label="Edit" onClick={onEdit} showLabel />
         )}

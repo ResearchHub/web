@@ -15,6 +15,8 @@ import { toast } from 'react-hot-toast';
 import { CommentContent } from './lib/types';
 import { CommentService } from '@/services/comment.service';
 import { MessageSquare } from 'lucide-react';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { useSession } from 'next-auth/react';
 
 interface CommentFeedProps {
   documentId: number;
@@ -90,6 +92,8 @@ const CommentFeedContent = ({
   } = useCommentsContext();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { status } = useSession();
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
 
   const handleSubmit = async ({
     content,
@@ -185,11 +189,45 @@ const CommentFeedContent = ({
     );
   };
 
+  // AuthenticatedCommentEditor component that shows a placeholder for unauthenticated users
+  const AuthenticatedCommentEditor = ({ onSubmit, commentType, ...props }: CommentEditorProps) => {
+    const { status } = useSession();
+
+    // If user is authenticated, render the normal editor
+    if (status === 'authenticated') {
+      return <CommentEditor onSubmit={onSubmit} commentType={commentType} {...props} />;
+    }
+
+    // For unauthenticated users, show a placeholder that triggers auth modal when clicked
+    return (
+      <div
+        className="border border-gray-200 rounded-lg overflow-hidden bg-white hover:border-blue-500 transition-all duration-200 cursor-pointer"
+        onClick={() => executeAuthenticatedAction(() => {})}
+      >
+        <div className="px-4 py-3 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-gray-200"></div>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5 text-[15px]">
+                <span className="text-gray-600">
+                  Sign in to {commentType === 'REVIEW' ? 'review' : 'comment'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="px-4 py-3 text-gray-500">
+          {commentType === 'REVIEW' ? 'Share your thoughts on this paper...' : 'Add a comment...'}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className={cn('comment-feed', className)}>
       {!hideEditor && (
         <div className="mb-6">
-          <CommentEditor
+          <AuthenticatedCommentEditor
             onSubmit={handleSubmit}
             placeholder="Add a comment..."
             commentType={commentType}
