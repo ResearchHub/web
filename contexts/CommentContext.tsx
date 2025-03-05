@@ -214,9 +214,12 @@ export const CommentProvider = ({
 
   // Initial fetch effect - fetch comments when the component mounts
   useEffect(() => {
+    console.log(
+      `CommentContext - Initial fetch for documentId=${documentId}, commentType=${commentType}`
+    );
     refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [documentId, contentType, commentType]);
 
   // Effect to refresh comments when sort or filter changes
   useEffect(() => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect, memo } from 'react';
 import { Comment, CommentType } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { CommentItem } from './CommentItem';
@@ -17,6 +17,7 @@ import { CommentService } from '@/services/comment.service';
 import { MessageSquare } from 'lucide-react';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useSession } from 'next-auth/react';
+import { CommentEmptyState } from './CommentEmptyState';
 
 interface CommentFeedProps {
   documentId: number;
@@ -30,7 +31,8 @@ interface CommentFeedProps {
   debug?: boolean;
 }
 
-export const CommentFeed = ({
+// Remove memo wrapper from CommentFeed
+function CommentFeed({
   documentId,
   contentType,
   className,
@@ -40,8 +42,16 @@ export const CommentFeed = ({
   renderCommentActions = true,
   hideEditor = false,
   debug = false,
-}: CommentFeedProps) => {
-  console.log('commentType', commentType);
+}: CommentFeedProps) {
+  console.log(`CommentFeed RENDER - type: ${commentType}, docId: ${documentId}`);
+
+  // Add debugging for mount/unmount
+  useEffect(() => {
+    console.log(`CommentFeed MOUNTED - type: ${commentType}, docId: ${documentId}`);
+    return () => {
+      console.log(`CommentFeed UNMOUNTED - type: ${commentType}, docId: ${documentId}`);
+    };
+  }, [commentType, documentId]);
 
   return (
     <CommentProvider
@@ -62,9 +72,10 @@ export const CommentFeed = ({
       />
     </CommentProvider>
   );
-};
+}
 
-const CommentFeedContent = ({
+// Remove memo wrapper but keep useCallback optimizations
+function CommentFeedContent({
   className,
   editorProps = {},
   renderBountyAwardActions,
@@ -73,7 +84,15 @@ const CommentFeedContent = ({
   commentType,
   contentType,
   debug = false,
-}: Omit<CommentFeedProps, 'documentId'>) => {
+}: Omit<CommentFeedProps, 'documentId'>) {
+  // Add debugging for content component
+  useEffect(() => {
+    console.log(`CommentFeedContent MOUNTED - type: ${commentType}`);
+    return () => {
+      console.log(`CommentFeedContent UNMOUNTED - type: ${commentType}`);
+    };
+  }, [commentType]);
+
   const {
     filteredComments,
     count,
@@ -83,145 +102,128 @@ const CommentFeedContent = ({
     loadMore,
     updateComment,
     deleteComment,
-    sortBy,
-    setSortBy,
-    filter,
-    setFilter,
-    bountyFilter,
-    setBountyFilter,
   } = useCommentsContext();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { status } = useSession();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
 
-  const handleSubmit = async ({
-    content,
-    rating: overallRating,
-    sectionRatings,
-  }: {
-    content: CommentContent;
-    rating?: number;
-    sectionRatings?: Record<string, number>;
-  }) => {
-    setIsSubmitting(true);
-    // Show loading toast
-    const toastId = toast.loading('Submitting comment...');
+  const handleSubmit = useCallback(
+    async ({
+      content,
+      rating: overallRating,
+      sectionRatings,
+    }: {
+      content: CommentContent;
+      rating?: number;
+      sectionRatings?: Record<string, number>;
+    }) => {
+      setIsSubmitting(true);
+      const toastId = toast.loading('Submitting comment...');
 
-    try {
-      // Step 1: Create the comment
-      const result = await createComment(content, overallRating);
+      try {
+        const result = await createComment(content, overallRating);
 
-      if (!result) {
+        if (!result) {
+          toast.error('Failed to submit comment. Please try again.', { id: toastId });
+          return false;
+        }
+
+        if (commentType === 'REVIEW' && overallRating !== undefined && result) {
+          try {
+            await CommentService.createCommunityReview({
+              unifiedDocumentId: result.thread.objectId,
+              commentId: result.id,
+              score: overallRating,
+            });
+
+            result.score = overallRating;
+            toast.success('Review submitted successfully!', { id: toastId });
+          } catch (reviewError) {
+            console.error('Error creating community review:', reviewError);
+            toast.success('Comment submitted, but review data could not be saved.', {
+              id: toastId,
+            });
+          }
+        } else {
+          toast.success('Comment submitted successfully!', { id: toastId });
+        }
+
+        return true;
+      } catch (error) {
+        console.error('Error creating comment:', error);
         toast.error('Failed to submit comment. Please try again.', { id: toastId });
         return false;
+      } finally {
+        setIsSubmitting(false);
       }
+    },
+    [commentType, createComment]
+  );
 
-      // Step 2: If this is a review, create the community review
-      if (commentType === 'REVIEW' && overallRating !== undefined && result) {
-        try {
-          // Call the createCommunityReview function
-          await CommentService.createCommunityReview({
-            unifiedDocumentId: result.thread.objectId,
-            commentId: result.id,
-            score: overallRating,
-          });
+  const handleCommentUpdate = useCallback(
+    (newComment: Comment, parentId?: number) => {
+      updateComment(newComment.id, newComment.content, parentId);
+    },
+    [updateComment]
+  );
 
-          // Instead of immediately updating the comment, we'll set the score directly on the result
-          // This ensures the comment is displayed with the correct score from the beginning
-          result.score = overallRating;
+  const handleCommentDelete = useCallback(
+    (commentId: number) => {
+      deleteComment(commentId);
+    },
+    [deleteComment]
+  );
 
-          toast.success('Review submitted successfully!', { id: toastId });
-        } catch (reviewError) {
-          console.error('Error creating community review:', reviewError);
-          // We don't want to fail the whole operation if just the review part fails
-          // The comment was still created successfully
-          toast.success('Comment submitted, but review data could not be saved.', { id: toastId });
-        }
-      } else {
-        // Regular comment was created successfully
-        toast.success('Comment submitted successfully!', { id: toastId });
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error creating comment:', error);
-      toast.error('Failed to submit comment. Please try again.', { id: toastId });
-      return false;
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleCommentUpdate = (newComment: Comment, parentId?: number) => {
-    updateComment(newComment.id, newComment.content, parentId);
-  };
-
-  const handleCommentDelete = (commentId: number) => {
-    deleteComment(commentId);
-  };
-
-  const handleLoadMore = async () => {
+  const handleLoadMore = useCallback(async () => {
     try {
       await loadMore();
     } catch (error) {
       console.error('Error loading more comments:', error);
     }
-  };
+  }, [loadMore]);
 
-  // Empty state component for when there are no comments
-  const EmptyCommentState = ({ commentType }: { commentType: CommentType }) => {
-    const message =
-      commentType === 'REVIEW'
-        ? 'No reviews yet.'
-        : commentType === 'BOUNTY'
-          ? 'No bounties yet.'
-          : 'No comments yet. Start the conversation!';
+  // Handle bounty creation
+  const handleCreateBounty = useCallback(() => {
+    // This is a placeholder function for the onCreateBounty prop
+    console.log('Create bounty clicked');
+    // You can implement the actual bounty creation logic here or pass it from props
+  }, []);
 
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="mb-4 rounded-full bg-gray-100 p-3">
-          <MessageSquare className="h-6 w-6 text-gray-400" />
-        </div>
-        <h3 className="mb-2 text-lg font-medium text-gray-900">{message}</h3>
-        <p className="text-sm text-gray-500">Your contribution could help open science.</p>
-      </div>
-    );
-  };
+  // AuthenticatedCommentEditor component
+  const AuthenticatedCommentEditor = useCallback(
+    ({ onSubmit, commentType, ...props }: CommentEditorProps) => {
+      const { status } = useSession();
 
-  // AuthenticatedCommentEditor component that shows a placeholder for unauthenticated users
-  const AuthenticatedCommentEditor = ({ onSubmit, commentType, ...props }: CommentEditorProps) => {
-    const { status } = useSession();
+      if (status === 'authenticated') {
+        return <CommentEditor onSubmit={onSubmit} commentType={commentType} {...props} />;
+      }
 
-    // If user is authenticated, render the normal editor
-    if (status === 'authenticated') {
-      return <CommentEditor onSubmit={onSubmit} commentType={commentType} {...props} />;
-    }
-
-    // For unauthenticated users, show a placeholder that triggers auth modal when clicked
-    return (
-      <div
-        className="border border-gray-200 rounded-lg overflow-hidden bg-white hover:border-blue-500 transition-all duration-200 cursor-pointer"
-        onClick={() => executeAuthenticatedAction(() => {})}
-      >
-        <div className="px-4 py-3 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gray-200"></div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5 text-[15px]">
-                <span className="text-gray-600">
-                  Sign in to {commentType === 'REVIEW' ? 'review' : 'comment'}
-                </span>
+      return (
+        <div
+          className="border border-gray-200 rounded-lg overflow-hidden bg-white hover:border-blue-500 transition-all duration-200 cursor-pointer"
+          onClick={() => executeAuthenticatedAction(() => {})}
+        >
+          <div className="px-4 py-3 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-gray-200"></div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-1.5 text-[15px]">
+                  <span className="text-gray-600">
+                    Sign in to {commentType === 'REVIEW' ? 'review' : 'comment'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
+          <div className="px-4 py-3 text-gray-500">
+            {commentType === 'REVIEW' ? 'Share your thoughts on this paper...' : 'Add a comment...'}
+          </div>
         </div>
-        <div className="px-4 py-3 text-gray-500">
-          {commentType === 'REVIEW' ? 'Share your thoughts on this paper...' : 'Add a comment...'}
-        </div>
-      </div>
-    );
-  };
+      );
+    },
+    [executeAuthenticatedAction]
+  );
 
   return (
     <div className={cn('comment-feed', className)}>
@@ -244,7 +246,10 @@ const CommentFeedContent = ({
         {loading && filteredComments.length === 0 ? (
           <CommentLoader count={3} />
         ) : filteredComments.length === 0 ? (
-          <EmptyCommentState commentType={commentType || 'GENERIC_COMMENT'} />
+          <CommentEmptyState
+            commentType={commentType || 'GENERIC_COMMENT'}
+            onCreateBounty={handleCreateBounty}
+          />
         ) : (
           <>
             <CommentList
@@ -273,4 +278,6 @@ const CommentFeedContent = ({
       </div>
     </div>
   );
-};
+}
+
+export { CommentFeed };

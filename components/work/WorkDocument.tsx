@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { BarChart2, Coins, CheckCircle, FileText, MessageCircle, Play, Star } from 'lucide-react';
 import { Work } from '@/types/work';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -23,25 +23,122 @@ interface WorkDocumentProps {
 
 export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocumentProps) => {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  const searchParams = useSearchParams();
+
+  // Initialize activeTab from URL or props
+  const [activeTab, setActiveTab] = useState(() => {
+    // Check if URL contains a tab indicator
+    const path = window.location.pathname;
+    if (path.includes('/conversation')) return 'comments';
+    if (path.includes('/reviews')) return 'reviews';
+    if (path.includes('/bounties')) return 'bounties';
+    return defaultTab;
+  });
+
   const [rewardModalOpen, setRewardModalOpen] = useState(false);
   const [showMobileMetrics, setShowMobileMetrics] = useState(false);
-  console.log('metadata', metadata);
-  // Update URL when tab changes
+
+  // Only log metadata once to reduce console noise
+  useEffect(() => {
+    console.log('metadata', metadata);
+  }, [metadata]);
+
+  // Add debugging for component rendering
+  useEffect(() => {
+    console.log(`WorkDocument RENDERED - activeTab: ${activeTab}`);
+  });
+
+  // Update URL when tab changes, but without causing a navigation
   const handleTabChange = (tab: typeof activeTab) => {
+    // Only update if the tab is actually changing
+    if (tab === activeTab) return;
+
+    console.log(`Tab changing from ${activeTab} to ${tab}`);
     setActiveTab(tab);
-    // Construct the URL based on the tab
+
+    // Update the URL without triggering a navigation
     const baseUrl = `/paper/${work.id}/${work.slug}`;
-    if (tab === 'comments') {
-      router.push(`${baseUrl}/conversation`);
-    } else if (tab === 'reviews') {
-      router.push(`${baseUrl}/reviews`);
-    } else if (tab === 'bounties') {
-      router.push(`${baseUrl}/bounties`);
-    } else {
-      router.push(baseUrl);
-    }
+    const newUrl =
+      tab === 'comments'
+        ? `${baseUrl}/conversation`
+        : tab === 'reviews'
+          ? `${baseUrl}/reviews`
+          : tab === 'bounties'
+            ? `${baseUrl}/bounties`
+            : baseUrl;
+
+    // Use history.replaceState to update URL without navigation
+    window.history.replaceState(null, '', newUrl);
   };
+
+  // Render tab content based on activeTab - memoized to prevent unnecessary re-renders
+  const renderTabContent = useMemo(() => {
+    console.log(`Rendering tab content for: ${activeTab}`);
+
+    switch (activeTab) {
+      case 'paper':
+        return (
+          <>
+            <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+              <h2 className="text-xl font-semibold mb-4">Abstract</h2>
+              <p className="text-gray-700">{work.abstract}</p>
+            </div>
+
+            {/* PDF Viewer */}
+            {work.formats.find((format) => format.type === 'PDF')?.url && (
+              <div className="bg-white rounded-lg shadow-sm border mb-6">
+                <DocumentViewer
+                  url={work.formats.find((format) => format.type === 'PDF')?.url || ''}
+                  className="min-h-[800px]"
+                />
+              </div>
+            )}
+          </>
+        );
+      case 'reviews':
+        return (
+          <div className="space-y-6" key="reviews-tab">
+            <CommentFeed
+              documentId={work.id}
+              contentType={work.contentType}
+              commentType="REVIEW"
+              editorProps={{
+                placeholder: 'Write your review...',
+                initialRating: 0,
+                commentType: 'REVIEW',
+              }}
+              key={`review-feed-${work.id}`}
+            />
+          </div>
+        );
+      case 'bounties':
+        return (
+          <div className="space-y-6" key="bounties-tab">
+            <CommentFeed
+              documentId={work.id}
+              contentType={work.contentType}
+              commentType="BOUNTY"
+              renderCommentActions={false}
+              hideEditor={true}
+              key={`bounty-feed-${work.id}`}
+            />
+          </div>
+        );
+      case 'comments':
+        return (
+          <div className="space-y-6" key="comments-tab">
+            <CommentFeed
+              documentId={work.id}
+              contentType={work.contentType}
+              commentType="GENERIC_COMMENT"
+              key={`comment-feed-${work.id}`}
+            />
+          </div>
+        );
+      default:
+        return null;
+    }
+  }, [activeTab, work.id, work.contentType, work.abstract, work.formats]);
 
   return (
     <div>
@@ -186,61 +283,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
         </nav>
       </div>
       {/* Content */}
-      <div>
-        {activeTab === 'paper' && (
-          <>
-            <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4">Abstract</h2>
-              <p className="text-gray-700">{work.abstract}</p>
-            </div>
-
-            {/* PDF Viewer */}
-            {work.formats.find((format) => format.type === 'PDF')?.url && (
-              <div className="bg-white rounded-lg shadow-sm border mb-6">
-                <DocumentViewer
-                  url={work.formats.find((format) => format.type === 'PDF')?.url || ''}
-                  className="min-h-[800px]"
-                />
-              </div>
-            )}
-          </>
-        )}
-
-        {activeTab === 'reviews' && (
-          <div className="space-y-6">
-            <CommentFeed
-              documentId={work.id}
-              contentType={work.contentType}
-              commentType="REVIEW"
-              editorProps={{
-                placeholder: 'Write your review...',
-                initialRating: 0,
-                commentType: 'REVIEW',
-              }}
-            />
-          </div>
-        )}
-        {activeTab === 'bounties' && (
-          <div className="space-y-6">
-            <CommentFeed
-              documentId={work.id}
-              contentType={work.contentType}
-              commentType="BOUNTY"
-              renderCommentActions={false}
-              hideEditor={true}
-            />
-          </div>
-        )}
-        {activeTab === 'comments' && (
-          <div className="space-y-6">
-            <CommentFeed
-              documentId={work.id}
-              contentType={work.contentType}
-              commentType="GENERIC_COMMENT"
-            />
-          </div>
-        )}
-      </div>
+      <div>{renderTabContent}</div>
       {/* Mobile sidebar overlay */}
       <div
         className={`fixed inset-0 bg-black/50 z-30 z-50 lg:hidden ${
