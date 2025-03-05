@@ -55,10 +55,8 @@ export const CommentItem = ({
     replyingToCommentId,
     setEditingCommentId,
     setReplyingToCommentId,
-    forceRefresh,
     loading,
   } = useComments();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Log component lifecycle
@@ -110,7 +108,7 @@ export const CommentItem = ({
       console.log(`CommentItem ${comment.id} - replies: ${comment.replies.length}`);
     }
   }
-
+  console.log('comment', comment);
   // Handle voting on a comment
   const handleVote = async (voteType: UserVoteType) => {
     try {
@@ -459,7 +457,7 @@ export const CommentItem = ({
         fullName={comment.author?.fullName || 'Unknown User'}
         profileUrl={comment.author?.profileUrl || '#'}
         date={comment.createdDate}
-        commentType={commentType}
+        commentType={comment.commentType}
         score={comment.score}
         className="mb-3"
       />

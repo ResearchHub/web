@@ -157,12 +157,22 @@ export const CommentProvider = ({
     async (pageToFetch = 1) => {
       try {
         dispatch({ type: CommentActionType.FETCH_COMMENTS_START });
+
+        // Determine the filter to use based on commentType and user selection
+        let filterToUse = state.filter;
+
+        // Map commentType to valid CommentFilter values
+        // Only use commentType as filter if it's a valid CommentFilter value
+        if (commentType === 'REVIEW' || commentType === 'BOUNTY') {
+          filterToUse = state.filter || commentType;
+        }
+
         const { comments: fetchedComments, count: totalCount } = await CommentService.fetchComments(
           {
             documentId,
             contentType,
             sort: state.sortBy,
-            filter: state.filter,
+            filter: filterToUse,
             page: pageToFetch,
           }
         );
@@ -186,7 +196,7 @@ export const CommentProvider = ({
         console.error('Error fetching comments:', err);
       }
     },
-    [documentId, contentType, state.sortBy, state.filter]
+    [documentId, contentType, state.sortBy, state.filter, commentType]
   );
 
   // Refresh comments (fetch page 1)
