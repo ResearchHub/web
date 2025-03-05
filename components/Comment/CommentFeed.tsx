@@ -13,6 +13,7 @@ import { CommentLoader } from './CommentLoader';
 import CommentList from './CommentList';
 import { toast } from 'react-hot-toast';
 import { CommentContent } from './lib/types';
+import { CommentService } from '@/services/comment.service';
 
 interface CommentFeedProps {
   documentId: number;
@@ -37,6 +38,8 @@ export const CommentFeed = ({
   hideEditor = false,
   debug = false,
 }: CommentFeedProps) => {
+  console.log('commentType', commentType);
+
   return (
     <CommentProvider
       documentId={documentId}
@@ -101,18 +104,45 @@ const CommentFeedContent = ({
     const toastId = toast.loading('Submitting comment...');
 
     try {
+      // Step 1: Create the comment
       const result = await createComment(content, overallRating);
-      if (result !== null) {
-        toast.success('Comment submitted successfully!', { id: toastId });
-        return true; // Return true if comment was created successfully
-      } else {
+
+      if (!result) {
         toast.error('Failed to submit comment. Please try again.', { id: toastId });
-        return false; // Return false if there was an error
+        return false;
       }
+
+      // Step 2: If this is a review, create the community review
+      if (commentType === 'REVIEW' && overallRating !== undefined && result) {
+        try {
+          // Call the createCommunityReview function
+          await CommentService.createCommunityReview({
+            unifiedDocumentId: result.thread.objectId,
+            commentId: result.id,
+            score: overallRating,
+          });
+
+          // Instead of immediately updating the comment, we'll set the score directly on the result
+          // This ensures the comment is displayed with the correct score from the beginning
+          result.score = overallRating;
+
+          toast.success('Review submitted successfully!', { id: toastId });
+        } catch (reviewError) {
+          console.error('Error creating community review:', reviewError);
+          // We don't want to fail the whole operation if just the review part fails
+          // The comment was still created successfully
+          toast.success('Comment submitted, but review data could not be saved.', { id: toastId });
+        }
+      } else {
+        // Regular comment was created successfully
+        toast.success('Comment submitted successfully!', { id: toastId });
+      }
+
+      return true;
     } catch (error) {
       console.error('Error creating comment:', error);
       toast.error('Failed to submit comment. Please try again.', { id: toastId });
-      return false; // Return false if there was an error
+      return false;
     } finally {
       setIsSubmitting(false);
     }
