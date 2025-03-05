@@ -13,7 +13,7 @@ import { CommentEditor } from '@/components/Comment/CommentEditor';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { calculateOpenBountiesAmount } from '@/utils/bountyUtil';
+import { calculateOpenBountiesAmount } from '@/components/Bounty/lib/bountyUtil';
 
 interface WorkDocumentProps {
   work: Work;

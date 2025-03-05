@@ -5,7 +5,7 @@ import { transformAuthorProfile } from '@/types/authorProfile';
 import { ContentMetrics } from '@/types/metrics';
 import { Fundraise, transformFundraise } from '@/types/funding';
 import { Bounty, transformBounty } from '@/types/bounty';
-import { countOpenBounties, countClosedBounties } from '@/utils/bountyUtil';
+import { countOpenBounties, countClosedBounties } from '@/components/Bounty/lib/bountyUtil';
 
 export interface WorkMetadata {
   id: number;

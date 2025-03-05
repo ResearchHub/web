@@ -259,7 +259,7 @@ function CommentFeedContent({
 
       <div className="comment-list-container">
         {loading && filteredComments.length === 0 ? (
-          <CommentLoader count={3} />
+          <CommentLoader count={3} commentType={commentType} />
         ) : filteredComments.length === 0 ? (
           <CommentEmptyState
             commentType={commentType || 'GENERIC_COMMENT'}

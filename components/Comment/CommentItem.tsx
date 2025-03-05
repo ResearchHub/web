@@ -24,6 +24,7 @@ import TipTapRenderer from './lib/TipTapRenderer';
 import LoadMoreReplies from './LoadMoreReplies';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { CommentContent } from './lib/types';
+import { getDisplayBounty } from '@/components/Bounty/lib/bountyUtil';
 
 interface CommentItemProps {
   comment: Comment;
@@ -279,11 +280,9 @@ export const CommentItem = ({
     }
 
     // For bounty comments, render the bounty component
-    if (commentType === 'BOUNTY' && comment.bounties && comment.bounties.length > 0) {
-      // Find the active bounty to check creator
-      const activeBounty = comment.bounties.find((b) => b.status === 'OPEN' && !b.isContribution);
-      const closedBounty = comment.bounties.find((b) => b.status === 'CLOSED' && !b.isContribution);
-      const displayBounty = activeBounty || closedBounty;
+    if (comment.bounties && comment.bounties.length > 0) {
+      // Use the getDisplayBounty utility function to find the display bounty
+      const displayBounty = getDisplayBounty(comment.bounties);
 
       if (displayBounty) {
         return (

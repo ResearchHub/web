@@ -25,12 +25,10 @@ import {
 import { buildWorkUrl } from '@/utils/url';
 import { useRouter, useParams } from 'next/navigation';
 import { BountyType } from '@/types/bounty';
-import { CommentService } from '@/services/comment.service';
 import { BountyMetadata } from '@/components/Bounty/BountyMetadata';
 import { BountyDetails } from '@/components/Bounty/BountyDetails';
 import { BountyActions } from '@/components/Bounty/BountyActions';
 import { BountySolutions } from '@/components/Bounty/BountySolutions';
-import { useComments } from '@/contexts/CommentContext';
 
 interface BountyItemProps {
   comment: Comment;
@@ -58,9 +56,6 @@ export const BountyItem = ({
   const params = useParams();
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
 
-  // Get the refresh function from CommentContext
-  const { refresh } = useComments();
-
   // Handle navigation in useEffect to ensure it only runs client-side
   useEffect(() => {
     if (pendingNavigation) {
@@ -68,8 +63,6 @@ export const BountyItem = ({
       setPendingNavigation(null);
     }
   }, [pendingNavigation, router]);
-
-  console.log('bounties', comment.bounties);
 
   // Find the first open, non-contribution bounty using utility function
   const activeBounty = findActiveBounty(comment.bounties);
@@ -79,7 +72,6 @@ export const BountyItem = ({
 
   // If there's neither an active nor a closed bounty, don't render anything
   if (!activeBounty && !closedBounty) {
-    console.log('No bounty found, returning null');
     return null;
   }
 
@@ -91,8 +83,6 @@ export const BountyItem = ({
 
   // Get all contributors including the main bounty creator using utility function
   const allContributors = extractContributors(comment.bounties, displayBounty || undefined);
-
-  console.log('All contributors:', allContributors);
 
   // Calculate total amount including contributions using utility function
   const totalAmount = calculateTotalBountyAmount(comment.bounties);
@@ -133,37 +123,6 @@ export const BountyItem = ({
   const handleContributeClick = () => {
     setShowContributeModal(true);
   };
-
-  // Update the effect to use the refresh function from CommentContext
-  useEffect(() => {
-    // We'll fetch the updated comment when the component mounts
-    // and when any of the dependencies change
-    const fetchUpdatedComment = async () => {
-      try {
-        await CommentService.fetchComment({
-          commentId: comment.id,
-          documentId: comment.thread.objectId,
-          contentType,
-        });
-
-        // Refresh the comments list to get the updated data
-        refresh();
-
-        // Call the onBountyUpdated callback if provided
-        if (onBountyUpdated) {
-          onBountyUpdated();
-        }
-      } catch (error) {
-        console.error('Error fetching updated comment:', error);
-      }
-    };
-
-    // Fetch the updated comment when the component mounts
-    fetchUpdatedComment();
-
-    // No cleanup needed
-    return () => {};
-  }, [comment.id, comment.thread.objectId, contentType, onBountyUpdated, refresh]);
 
   return (
     <>
