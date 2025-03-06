@@ -14,7 +14,7 @@ export default function TopicFeedPage() {
   const slug = params?.slug;
   const decodedSlug = typeof slug === 'string' ? decodeURIComponent(slug) : null;
   const { hub, isLoading: isHubLoading, error: hubError } = useHub(decodedSlug);
-  const [activeTab, setActiveTab] = useState<FeedTab>('latest');
+  const [activeTab, setActiveTab] = useState<FeedTab>('popular');
   const {
     entries,
     isLoading: isFeedLoading,
@@ -26,12 +26,12 @@ export default function TopicFeedPage() {
 
   const topicTabs = [
     {
-      id: 'latest',
-      label: 'Latest',
-    },
-    {
       id: 'popular',
       label: 'Popular',
+    },
+    {
+      id: 'latest',
+      label: 'Latest',
     },
   ];
 

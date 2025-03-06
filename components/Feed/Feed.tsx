@@ -7,9 +7,12 @@ import { useFeed, FeedTab } from '@/hooks/useFeed';
 import { FeedContent } from './FeedContent';
 import { InterestSelector } from '@/components/InterestSelector/InterestSelector';
 import { FeedTabs } from './FeedTabs';
+import { useSession } from 'next-auth/react';
 
 export const Feed: FC = () => {
-  const [activeTab, setActiveTab] = useState<FeedTab>('following');
+  const { status } = useSession();
+  const isAuthenticated = status === 'authenticated';
+  const [activeTab, setActiveTab] = useState<FeedTab>('popular');
   const [isCustomizing, setIsCustomizing] = useState(false);
   const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(activeTab);
 
@@ -24,16 +27,20 @@ export const Feed: FC = () => {
 
   const tabs = [
     {
-      id: 'following',
-      label: 'Following',
+      id: 'popular',
+      label: 'Popular',
     },
+    ...(isAuthenticated
+      ? [
+          {
+            id: 'following',
+            label: 'Following',
+          },
+        ]
+      : []),
     {
       id: 'latest',
       label: 'Latest',
-    },
-    {
-      id: 'popular',
-      label: 'Popular',
     },
   ];
 
