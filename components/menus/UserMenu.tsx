@@ -1,12 +1,13 @@
 'use client';
 
-import { User as UserIcon, LogOut, BadgeCheck } from 'lucide-react';
+import { User as UserIcon, LogOut, BadgeCheck, Wallet } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { useState } from 'react';
 import type { User } from '@/types/user';
 import VerificationBanner from '@/components/banners/VerificationBanner';
 import { Avatar } from '@/components/ui/Avatar';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import { useConnect, useDisconnect, useAccount } from 'wagmi';
 
 interface UserMenuProps {
   user: User;
@@ -14,11 +15,25 @@ interface UserMenuProps {
   onVerifyAccount: () => void;
 }
 
+function truncateWalletAddress(address: string): string {
+  return `${address.slice(0, 4)}...${address.slice(-4)}`;
+}
+
 export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserMenuProps) {
   const [showVerificationBanner, setShowVerificationBanner] = useState(true);
+  const [walletOptionsOpen, setWalletOptionsOpen] = useState(false);
+  const { connect, connectors } = useConnect();
+  const { disconnect } = useDisconnect();
+  const { address, isConnected } = useAccount();
 
   const handleLearnMore = () => {
     onVerifyAccount();
+  };
+
+  // Trigger the wallet connection flow using the first available connector
+  const handleConnectWallet = () => {
+    if (!connectors || connectors.length === 0) return;
+    connect({ connector: connectors[0] });
   };
 
   const trigger = (
@@ -64,6 +79,65 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
             </div>
           </div>
         </BaseMenuItem>
+
+        {/* Wallet Menu Items */}
+        {isConnected ? (
+          <>
+            {/* Truncated wallet address toggles extra options on click */}
+            <BaseMenuItem
+              onSelect={(e) => e.preventDefault()}
+              onClick={(e) => {
+                e.stopPropagation();
+                setWalletOptionsOpen((prev) => !prev);
+              }}
+              className="w-full px-4 py-2"
+            >
+              <div className="flex items-center">
+                <Wallet className="h-4 w-4 mr-3 text-gray-500" />
+                <span className="text-sm text-gray-700">
+                  {truncateWalletAddress(address as string)}
+                </span>
+              </div>
+            </BaseMenuItem>
+
+            {walletOptionsOpen && (
+              <>
+                <BaseMenuItem
+                  onSelect={(e) => e.preventDefault()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (address) navigator.clipboard.writeText(address);
+                  }}
+                  className="w-full px-4 py-2"
+                >
+                  <div className="flex items-center">
+                    <span className="ml-8 text-xs text-gray-500">Copy Address</span>
+                  </div>
+                </BaseMenuItem>
+                <BaseMenuItem
+                  onSelect={(e) => e.preventDefault()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    disconnect();
+                    setWalletOptionsOpen(false);
+                  }}
+                  className="w-full px-4 py-2"
+                >
+                  <div className="flex items-center">
+                    <span className="ml-8 text-xs text-gray-500">Disconnect Wallet</span>
+                  </div>
+                </BaseMenuItem>
+              </>
+            )}
+          </>
+        ) : (
+          <BaseMenuItem onClick={handleConnectWallet} className="w-full px-4 py-2">
+            <div className="flex items-center">
+              <Wallet className="h-4 w-4 mr-3 text-gray-500" />
+              <span className="text-sm text-gray-700">Connect Wallet</span>
+            </div>
+          </BaseMenuItem>
+        )}
 
         <BaseMenuItem onClick={() => signOut({ callbackUrl: '/' })} className="w-full px-4 py-2">
           <div className="flex items-center">
