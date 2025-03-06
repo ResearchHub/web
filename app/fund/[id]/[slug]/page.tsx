@@ -12,6 +12,7 @@ import { FundItem } from '@/components/Fund/FundItem';
 import { WorkLineItems } from '@/components/work/WorkLineItems';
 import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
 import { removeTitleFromHTML } from '@/components/Editor/lib/utils/documentTitle';
+import { PostBlockEditor } from '@/components/work/PostBlockEditor';
 
 interface Props {
   params: Promise<{
@@ -87,7 +88,7 @@ function FundingDocument({ work, metadata, content }: FundingDocumentProps) {
       {/* Content section */}
       {work.previewContent ? (
         <div className="h-full">
-          <BlockEditorClientWrapper content={work.previewContent} editable={false} />
+          <PostBlockEditor content={work.previewContent} />
         </div>
       ) : content ? (
         <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content }} />

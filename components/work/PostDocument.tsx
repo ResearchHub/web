@@ -8,6 +8,7 @@ import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEd
 import { PageHeader } from '@/components/ui/PageHeader';
 import { WorkTabs, TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
+import { PostBlockEditor } from './PostBlockEditor';
 
 interface PostDocumentProps {
   work: Work;
@@ -36,9 +37,7 @@ export const PostDocument = ({
         return (
           <div className="mt-6">
             {work.previewContent ? (
-              <div className="h-full">
-                <BlockEditorClientWrapper content={work.previewContent} editable={false} />
-              </div>
+              <PostBlockEditor content={work.previewContent} />
             ) : content ? (
               <div
                 className="prose max-w-none bg-white rounded-lg shadow-sm border p-6 mb-6"
