@@ -1,13 +1,13 @@
 import { Suspense } from 'react';
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import { PostService } from '@/services/post.service';
 import { MetadataService } from '@/services/metadata.service';
 import { Work } from '@/types/work';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
+import { FundDocument } from '@/components/work/FundDocument';
 import { FundingRightSidebar } from '@/components/work/FundingRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
-import { FundDocument } from '@/components/work/FundDocument';
 
 interface Props {
   params: Promise<{
@@ -44,12 +44,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const project = await getFundingProject(resolvedParams.id);
   return {
-    title: project.title,
+    title: `${project.title} - Reviews`,
     description: project.abstract || '',
   };
 }
 
-export default async function FundingProjectPage({ params }: Props) {
+export default async function FundReviewsPage({ params }: Props) {
   const resolvedParams = await params;
   const id = resolvedParams.id;
 
@@ -65,7 +65,7 @@ export default async function FundingProjectPage({ params }: Props) {
   return (
     <PageLayout rightSidebar={<FundingRightSidebar work={work} metadata={metadata} />}>
       <Suspense>
-        <FundDocument work={work} metadata={metadata} content={content} defaultTab="paper" />
+        <FundDocument work={work} metadata={metadata} content={content} defaultTab="reviews" />
         <SearchHistoryTracker work={work} />
       </Suspense>
     </PageLayout>

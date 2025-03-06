@@ -11,7 +11,7 @@ interface WorkTabsProps {
   work: Work;
   metadata: WorkMetadata;
   defaultTab?: TabType;
-  contentType?: 'paper' | 'post'; // To customize tab labels based on content type
+  contentType?: 'paper' | 'post' | 'fund'; // To customize tab labels based on content type
   onTabChange: (tab: TabType) => void;
 }
 
@@ -47,7 +47,9 @@ export const WorkTabs = ({
       const baseUrl =
         contentType === 'paper'
           ? `/paper/${work.id}/${work.slug}`
-          : `/post/${work.id}/${work.slug}`;
+          : contentType === 'fund'
+            ? `/fund/${work.id}/${work.slug}`
+            : `/post/${work.id}/${work.slug}`;
 
       const newUrl =
         tab === 'comments'
@@ -65,7 +67,9 @@ export const WorkTabs = ({
 
   // Get the appropriate label for the main content tab
   const getMainTabLabel = () => {
-    return 'Paper';
+    if (contentType === 'paper') return 'Paper';
+    if (contentType === 'fund') return 'Project';
+    return 'Post';
   };
 
   return (
