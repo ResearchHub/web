@@ -10,7 +10,8 @@ import { BookOpen } from 'lucide-react';
 import { FeedContent } from '@/components/Feed/FeedContent';
 
 export default function JournalFeedPage() {
-  const { slug } = useParams();
+  const params = useParams();
+  const slug = params?.slug;
   const decodedSlug = typeof slug === 'string' ? decodeURIComponent(slug) : null;
   const { hub, isLoading: isHubLoading, error: hubError } = useHub(decodedSlug);
   const [activeTab, setActiveTab] = useState<JournalFeedTab>('latest');
