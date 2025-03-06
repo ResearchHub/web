@@ -11,6 +11,7 @@ import {
   transformComment,
 } from '@/types/comment';
 import { ID } from '@/types/root';
+import { getContentTypePath } from '@/utils/contentTypeMapping';
 
 interface FetchCommentsOptions {
   documentId: number;
@@ -76,6 +77,7 @@ export interface VoteCommentOptions {
   commentId: ID;
   documentId: ID;
   voteType: 'UPVOTE' | 'DOWNVOTE' | 'NEUTRAL';
+  contentType: ContentType;
 }
 
 export interface FetchCommentRepliesOptions {
@@ -103,8 +105,9 @@ export class CommentService {
     commentType = 'GENERIC_COMMENT',
     threadType = 'GENERIC_COMMENT',
   }: CreateCommentOptions): Promise<Comment> {
+    const contentTypePath = getContentTypePath(contentType);
     const path =
-      `${this.BASE_PATH}/${contentType.toLowerCase()}/${workId}/comments/` +
+      `${this.BASE_PATH}/${contentTypePath}/${workId}/comments/` +
       (bountyAmount ? 'create_comment_with_bounty/' : 'create_rh_comment/');
     const payload = {
       comment_content_json: content,
@@ -135,6 +138,7 @@ export class CommentService {
     ascending = false,
     privacyType = 'PUBLIC',
   }: FetchCommentsOptions): Promise<{ comments: Comment[]; count: number }> {
+    const contentTypePath = getContentTypePath(contentType);
     const queryParams = new URLSearchParams({
       page_size: pageSize.toString(),
       child_page_size: childPageSize.toString(),
@@ -152,7 +156,7 @@ export class CommentService {
       queryParams.append('page', page.toString());
     }
 
-    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/?${queryParams.toString()}`;
+    const path = `${this.BASE_PATH}/${contentTypePath}/${documentId}/comments/?${queryParams.toString()}`;
     const response = await ApiClient.get<CommentResponse>(path);
 
     return {
@@ -168,7 +172,8 @@ export class CommentService {
     content,
     contentFormat,
   }: UpdateCommentOptions): Promise<Comment> {
-    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/`;
+    const contentTypePath = getContentTypePath(contentType);
+    const path = `${this.BASE_PATH}/${contentTypePath}/${documentId}/comments/${commentId}/`;
     const payload = {
       comment_content_json: content,
       comment_content_type: contentFormat,
@@ -183,7 +188,8 @@ export class CommentService {
     documentId,
     contentType,
   }: DeleteCommentOptions): Promise<void> {
-    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/censor/`;
+    const contentTypePath = getContentTypePath(contentType);
+    const path = `${this.BASE_PATH}/${contentTypePath}/${documentId}/comments/${commentId}/censor/`;
     await ApiClient.patch(path);
   }
 
@@ -208,20 +214,27 @@ export class CommentService {
     documentId,
     contentType,
   }: FetchCommentOptions): Promise<Comment> {
-    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/`;
+    const contentTypePath = getContentTypePath(contentType);
+    const path = `${this.BASE_PATH}/${contentTypePath}/${documentId}/comments/${commentId}/`;
     const response = await ApiClient.get<any>(path);
     return transformComment(response);
   }
 
-  static async voteComment({ commentId, documentId, voteType }: VoteCommentOptions): Promise<any> {
+  static async voteComment({
+    commentId,
+    documentId,
+    voteType,
+    contentType,
+  }: VoteCommentOptions): Promise<any> {
+    const contentTypePath = getContentTypePath(contentType);
     let endpoint = '';
 
     if (voteType === 'UPVOTE') {
-      endpoint = `/paper/${documentId}/comments/${commentId}/upvote/`;
+      endpoint = `/${contentTypePath}/${documentId}/comments/${commentId}/upvote/`;
     } else if (voteType === 'DOWNVOTE') {
-      endpoint = `/paper/${documentId}/comments/${commentId}/downvote/`;
+      endpoint = `/${contentTypePath}/${documentId}/comments/${commentId}/downvote/`;
     } else {
-      endpoint = `/paper/${documentId}/comments/${commentId}/neutralvote/`;
+      endpoint = `/${contentTypePath}/${documentId}/comments/${commentId}/neutralvote/`;
     }
 
     return ApiClient.post(this.BASE_PATH + endpoint);
@@ -236,6 +249,7 @@ export class CommentService {
     sort = 'BEST',
     ascending = false,
   }: FetchCommentRepliesOptions): Promise<{ replies: Comment[]; count: number }> {
+    const contentTypePath = getContentTypePath(contentType);
     // Calculate child_offset based on page and pageSize
     const childOffset = (page - 1) * pageSize;
 
@@ -247,7 +261,7 @@ export class CommentService {
     });
 
     // Note: The URL format is different - we're getting the comment itself with its replies
-    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/?${queryParams}`;
+    const path = `${this.BASE_PATH}/${contentTypePath}/${documentId}/comments/${commentId}/?${queryParams}`;
 
     console.log(`[CommentService] Fetching more replies with URL: ${path}`);
 

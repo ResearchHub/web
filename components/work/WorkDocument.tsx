@@ -14,11 +14,12 @@ import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { calculateOpenBountiesAmount } from '@/components/Bounty/lib/bountyUtil';
+import { WorkTabs, TabType } from './WorkTabs';
 
 interface WorkDocumentProps {
   work: Work;
   metadata: WorkMetadata;
-  defaultTab?: 'paper' | 'reviews' | 'bounties' | 'comments';
+  defaultTab?: TabType;
 }
 
 export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocumentProps) => {
@@ -26,7 +27,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   const searchParams = useSearchParams();
 
   // Initialize activeTab from URL or props
-  const [activeTab, setActiveTab] = useState(() => {
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
     // Check if URL contains a tab indicator
     const path = window.location.pathname;
     if (path.includes('/conversation')) return 'comments';
@@ -48,27 +49,9 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
     console.log(`WorkDocument RENDERED - activeTab: ${activeTab}`);
   });
 
-  // Update URL when tab changes, but without causing a navigation
-  const handleTabChange = (tab: typeof activeTab) => {
-    // Only update if the tab is actually changing
-    if (tab === activeTab) return;
-
-    console.log(`Tab changing from ${activeTab} to ${tab}`);
+  // Handle tab change
+  const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
-
-    // Update the URL without triggering a navigation
-    const baseUrl = `/paper/${work.id}/${work.slug}`;
-    const newUrl =
-      tab === 'comments'
-        ? `${baseUrl}/conversation`
-        : tab === 'reviews'
-          ? `${baseUrl}/reviews`
-          : tab === 'bounties'
-            ? `${baseUrl}/bounties`
-            : baseUrl;
-
-    // Use history.replaceState to update URL without navigation
-    window.history.replaceState(null, '', newUrl);
   };
 
   // Render tab content based on activeTab - memoized to prevent unnecessary re-renders
@@ -191,99 +174,19 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
         <span>Insights</span>
       </button>
       <WorkLineItems work={work} />
+
       {/* Navigation */}
-      <div className="border-b mb-6">
-        <nav className="flex space-x-8 mt-6">
-          <button
-            className={`px-1 py-4 text-sm font-medium border-b-2 ${
-              activeTab === 'paper'
-                ? 'text-indigo-600 border-indigo-600'
-                : 'text-gray-500 border-transparent hover:text-gray-700'
-            }`}
-            onClick={() => handleTabChange('paper')}
-          >
-            <div className="flex items-center">
-              <FileText className="h-4 w-4 mr-2" />
-              Paper
-            </div>
-          </button>
-          <button
-            className={`px-1 py-4 text-sm font-medium ${
-              activeTab === 'reviews'
-                ? 'text-indigo-600 border-b-2 border-indigo-600'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-            onClick={() => handleTabChange('reviews')}
-          >
-            <div className="flex items-center">
-              <Star className="h-4 w-4 mr-2" />
-              Reviews
-              <span
-                className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                  activeTab === 'reviews'
-                    ? 'bg-indigo-100 text-indigo-600'
-                    : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                {metadata.metrics.reviews}
-              </span>
-            </div>
-          </button>
-          <button
-            className={`px-1 py-4 text-sm font-medium ${
-              activeTab === 'bounties'
-                ? 'text-indigo-600 border-b-2 border-indigo-600'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-            onClick={() => handleTabChange('bounties')}
-          >
-            <div className="flex items-center">
-              <Coins
-                className={`h-4 w-4 mr-2 ${
-                  activeTab === 'bounties' ? 'text-indigo-600' : 'text-gray-500'
-                }`}
-              />
-              Bounties
-              <span
-                className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                  activeTab === 'bounties'
-                    ? 'bg-indigo-100 text-indigo-600'
-                    : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                <span className="text-green-600">{metadata.openBounties}</span>
-                {metadata.closedBounties > 0 && (
-                  <span className="text-gray-500 ml-1">/ {metadata.closedBounties}</span>
-                )}
-              </span>
-            </div>
-          </button>
-          <button
-            className={`px-1 py-4 text-sm font-medium ${
-              activeTab === 'comments'
-                ? 'text-indigo-600 border-b-2 border-indigo-600'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-            onClick={() => handleTabChange('comments')}
-          >
-            <div className="flex items-center">
-              <MessageCircle className="h-4 w-4 mr-2" />
-              Comments
-              <span
-                className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                  activeTab === 'comments'
-                    ? 'bg-indigo-100 text-indigo-600'
-                    : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                {work.metrics.comments}
-              </span>
-            </div>
-          </button>
-        </nav>
-      </div>
-      {/* Content */}
-      <div>{renderTabContent}</div>
+      <WorkTabs
+        work={work}
+        metadata={metadata}
+        defaultTab={defaultTab}
+        contentType="paper"
+        onTabChange={handleTabChange}
+      />
+
+      {/* Tab Content */}
+      {renderTabContent}
+
       {/* Mobile sidebar overlay */}
       <div
         className={`fixed inset-0 bg-black/50 z-30 z-50 lg:hidden ${
