@@ -659,9 +659,6 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
 
         {/* Amount Section */}
         <div>
-          <div className="mb-2">
-            <label className="block text-sm font-semibold text-gray-700">Bounty Amount</label>
-          </div>
           <CurrencyInput
             value={getFormattedInputValue()}
             onChange={handleAmountChange}
