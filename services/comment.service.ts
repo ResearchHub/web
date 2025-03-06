@@ -60,6 +60,34 @@ export interface DeleteCommentOptions {
   contentType: ContentType;
 }
 
+export interface CreateCommunityReviewOptions {
+  unifiedDocumentId: ID;
+  commentId: ID;
+  score: number;
+}
+
+export interface FetchCommentOptions {
+  commentId: ID;
+  documentId: ID;
+  contentType: ContentType;
+}
+
+export interface VoteCommentOptions {
+  commentId: ID;
+  documentId: ID;
+  voteType: 'UPVOTE' | 'DOWNVOTE' | 'NEUTRAL';
+}
+
+export interface FetchCommentRepliesOptions {
+  commentId: ID;
+  documentId: ID;
+  contentType: ContentType;
+  page?: number;
+  pageSize?: number;
+  sort?: CommentSort;
+  ascending?: boolean;
+}
+
 export class CommentService {
   private static readonly BASE_PATH = '/api';
 
@@ -117,8 +145,9 @@ export class CommentService {
     });
 
     if (filter) {
-      queryParams.append('filter', filter.toLowerCase());
+      queryParams.append('filtering', filter);
     }
+
     if (page) {
       queryParams.append('page', page.toString());
     }
@@ -155,6 +184,83 @@ export class CommentService {
     contentType,
   }: DeleteCommentOptions): Promise<void> {
     const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/censor/`;
-    await ApiClient.delete(path);
+    await ApiClient.patch(path);
+  }
+
+  static async createCommunityReview({
+    unifiedDocumentId,
+    commentId,
+    score,
+  }: CreateCommunityReviewOptions): Promise<any> {
+    const path = `${this.BASE_PATH}/researchhub_unified_document/${unifiedDocumentId}/review/`;
+    const payload = {
+      score,
+      object_id: commentId,
+      content_type: 'rhcommentmodel',
+    };
+
+    const response = await ApiClient.post<any>(path, payload);
+    return response;
+  }
+
+  static async fetchComment({
+    commentId,
+    documentId,
+    contentType,
+  }: FetchCommentOptions): Promise<Comment> {
+    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/`;
+    const response = await ApiClient.get<any>(path);
+    return transformComment(response);
+  }
+
+  static async voteComment({ commentId, documentId, voteType }: VoteCommentOptions): Promise<any> {
+    let endpoint = '';
+
+    if (voteType === 'UPVOTE') {
+      endpoint = `/paper/${documentId}/comments/${commentId}/upvote/`;
+    } else if (voteType === 'DOWNVOTE') {
+      endpoint = `/paper/${documentId}/comments/${commentId}/downvote/`;
+    } else {
+      endpoint = `/paper/${documentId}/comments/${commentId}/neutralvote/`;
+    }
+
+    return ApiClient.post(this.BASE_PATH + endpoint);
+  }
+
+  static async fetchCommentReplies({
+    commentId,
+    documentId,
+    contentType,
+    page = 1,
+    pageSize = 10,
+    sort = 'BEST',
+    ascending = false,
+  }: FetchCommentRepliesOptions): Promise<{ replies: Comment[]; count: number }> {
+    // Calculate child_offset based on page and pageSize
+    const childOffset = (page - 1) * pageSize;
+
+    const queryParams = new URLSearchParams({
+      ordering: sort,
+      child_count: pageSize.toString(),
+      child_offset: childOffset.toString(),
+      ascending: ascending.toString(),
+    });
+
+    // Note: The URL format is different - we're getting the comment itself with its replies
+    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/?${queryParams}`;
+
+    console.log(`[CommentService] Fetching more replies with URL: ${path}`);
+
+    const response = await ApiClient.get<any>(path);
+
+    if (!response) {
+      return { replies: [], count: 0 };
+    }
+
+    // The response structure is different - the replies are in the children field of the comment
+    const replies = (response.children || []).map(transformComment);
+    const count = response.children_count || 0;
+
+    return { replies, count };
   }
 }

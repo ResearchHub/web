@@ -10,7 +10,8 @@ import { FeedContent } from '@/components/Feed/FeedContent';
 import { FeedTabs } from '@/components/Feed/FeedTabs';
 
 export default function TopicFeedPage() {
-  const { slug } = useParams();
+  const params = useParams();
+  const slug = params?.slug;
   const decodedSlug = typeof slug === 'string' ? decodeURIComponent(slug) : null;
   const { hub, isLoading: isHubLoading, error: hubError } = useHub(decodedSlug);
   const [activeTab, setActiveTab] = useState<FeedTab>('latest');
