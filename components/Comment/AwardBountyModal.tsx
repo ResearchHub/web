@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Comment } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { CommentFeed } from './CommentFeed';
@@ -12,23 +12,76 @@ import { Alert } from '@/components/ui/Alert';
 import { cn } from '@/utils/styles';
 import { BountyService } from '@/services/bounty.service';
 import { toast } from 'react-hot-toast';
+import { hasBounties } from '@/components/Bounty/lib/bountyUtil';
+import { CommentProvider, useComments } from '@/contexts/CommentContext';
+import CommentList from './CommentList';
+import { CommentItem } from './CommentItem';
 
 interface AwardBountyModalProps {
   isOpen: boolean;
   onClose: () => void;
   comment: Comment;
   contentType: ContentType;
+  onBountyUpdated?: () => void;
 }
+
+// Custom component to filter out comments with bounties
+const FilteredCommentFeed = ({
+  documentId,
+  contentType,
+  renderBountyAwardActions,
+}: {
+  documentId: number;
+  contentType: ContentType;
+  renderBountyAwardActions: (comment: Comment) => React.ReactNode | null;
+}) => {
+  const { filteredComments, loading, count } = useComments();
+
+  // Filter out comments that have bounties
+  const commentsWithoutBounties = useMemo(() => {
+    return filteredComments.filter((comment) => !hasBounties(comment));
+  }, [filteredComments]);
+
+  // Log when comments are refreshed
+  useEffect(() => {
+    console.log('Comments refreshed in AwardBountyModal:', commentsWithoutBounties.length);
+  }, [commentsWithoutBounties]);
+
+  if (loading) {
+    return <div className="py-4 text-center text-gray-500">Loading comments...</div>;
+  }
+
+  if (commentsWithoutBounties.length === 0) {
+    return (
+      <div className="py-8 text-center">
+        <p className="text-gray-500">No comments available to award.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {commentsWithoutBounties.map((comment) => (
+        <div key={comment.id} className="space-y-4">
+          <CommentItem comment={comment} contentType={contentType} renderCommentActions={false} />
+          {renderBountyAwardActions(comment)}
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export const AwardBountyModal = ({
   isOpen,
   onClose,
   comment,
   contentType,
+  onBountyUpdated,
 }: AwardBountyModalProps) => {
   const [awardAmounts, setAwardAmounts] = useState<Record<number, number>>({});
   const [selectedPercentages, setSelectedPercentages] = useState<Record<number, number>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { forceRefresh } = useComments();
 
   // Get the total bounty amount available to award
   const activeBounty = comment.bounties.find(
@@ -65,6 +118,25 @@ export const AwardBountyModal = ({
 
       await BountyService.awardBounty(activeBounty.id, awards);
       toast.success('Bounty awards submitted successfully');
+
+      // Force refresh the comments to update the UI
+      try {
+        // Try to use the context's forceRefresh if available
+        await forceRefresh?.();
+
+        // Also call the onBountyUpdated callback if provided
+        if (onBountyUpdated) {
+          onBountyUpdated();
+        }
+      } catch (refreshError) {
+        console.error('Failed to refresh comments:', refreshError);
+
+        // Fall back to the callback if the context refresh fails
+        if (onBountyUpdated) {
+          onBountyUpdated();
+        }
+      }
+
       onClose();
     } catch (error) {
       console.error('Failed to submit awards:', error);
@@ -163,13 +235,17 @@ export const AwardBountyModal = ({
           </div>
 
           {/* Comments with award inputs */}
-          <CommentFeed
+          <CommentProvider
             documentId={comment.thread.objectId}
             contentType={contentType}
             commentType="GENERIC_COMMENT"
-            renderBountyAwardActions={renderBountyAwardActions}
-            renderCommentActions={false}
-          />
+          >
+            <FilteredCommentFeed
+              documentId={comment.thread.objectId}
+              contentType={contentType}
+              renderBountyAwardActions={renderBountyAwardActions}
+            />
+          </CommentProvider>
         </div>
 
         {/* Award summary bar */}

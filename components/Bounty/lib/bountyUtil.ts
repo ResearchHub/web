@@ -213,3 +213,12 @@ export const extractContributors = (bounties: Bounty[], displayBounty?: Bounty):
       isCreator: bounty.id === displayBounty?.id && !bounty.isContribution,
     }));
 };
+
+/**
+ * Checks if a comment has any bounties
+ * @param comment The comment object to check
+ * @returns Boolean indicating if the comment has any bounties
+ */
+export const hasBounties = (comment?: any): boolean => {
+  return !!(comment?.bounties && comment.bounties.length > 0);
+};

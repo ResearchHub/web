@@ -206,6 +206,15 @@ export const BountyItem = ({
           onClose={() => setShowAwardModal(false)}
           comment={comment}
           contentType={contentType}
+          onBountyUpdated={() => {
+            // Refresh the comments using the context
+            forceRefresh();
+
+            // Also call the parent's onBountyUpdated if provided
+            if (onBountyUpdated) {
+              onBountyUpdated();
+            }
+          }}
         />
       )}
 
