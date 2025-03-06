@@ -8,7 +8,7 @@ import { ExchangeRateProvider } from '@/contexts/ExchangeRateContext';
 import { AuthModalProvider } from '@/contexts/AuthModalContext';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { Metadata } from 'next';
-import { Providers } from './providers';
+import { OnchainProvider } from '@/contexts/OnchainContext';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -46,7 +46,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <Providers>
+        <OnchainProvider>
           <NextAuthProvider>
             <AuthModalProvider>
               <OrganizationProvider>
@@ -57,7 +57,7 @@ export default function RootLayout({
             </AuthModalProvider>
           </NextAuthProvider>
           <ToasterProvider />
-        </Providers>
+        </OnchainProvider>
       </body>
     </html>
   );
