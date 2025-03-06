@@ -121,7 +121,7 @@ export class OrganizationService {
     }
 
     try {
-      await ApiClient.delete<any>(`${this.BASE_PATH}/${orgId}/remove_invited_user/`, { email });
+      await ApiClient.patch<any>(`${this.BASE_PATH}/${orgId}/remove_invited_user/`, { email });
       return true;
     } catch (error) {
       throw new OrganizationError(

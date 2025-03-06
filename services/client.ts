@@ -148,18 +148,28 @@ export class ApiClient {
   }
 
   static async delete<T>(path: string, body?: any): Promise<T> {
-    const headers = await this.getHeaders();
-    const response = await fetch(path, {
-      method: 'DELETE',
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-      credentials: 'include',
-    });
+    try {
+      const headers = await this.getHeaders();
+      const response = await fetch(
+        `${this.baseURL}${path}`,
+        this.getFetchOptions('DELETE', headers, body)
+      );
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { message: 'Invalid JSON response from server' };
+          throw new Error(JSON.stringify({ data: errorData, status: response.status }));
+        }
+        throw new ApiError(JSON.stringify({ data: errorData, status: response.status }));
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('API request failed:', error);
+      throw error;
     }
-
-    return response.json();
   }
 }

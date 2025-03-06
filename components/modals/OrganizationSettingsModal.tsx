@@ -17,6 +17,7 @@ import {
   useInviteUserToOrg,
   useRemoveUserFromOrg,
   useUpdateUserPermissions,
+  useRemoveInvitedUserFromOrg,
 } from '@/hooks/useOrganization';
 import { useSession } from 'next-auth/react';
 import { User } from '@/types/user';
@@ -215,6 +216,8 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
   const [{ isLoading: isInvitingUser }, inviteUserToOrg] = useInviteUserToOrg();
   const [{ isLoading: isRemovingUser }, removeUserFromOrg] = useRemoveUserFromOrg();
   const [{ isLoading: isUpdatingPermissions }, updateUserPermissions] = useUpdateUserPermissions();
+  const [{ isLoading: isRemovingInvitedUser }, removeInvitedUserFromOrg] =
+    useRemoveInvitedUserFromOrg();
   const [orgName, setOrgName] = useState(organization?.name || '');
   const [inviteEmail, setInviteEmail] = useState('');
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
@@ -300,7 +303,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
       if (isInvite) {
         const email = invites.find((invite) => invite.id === userId)?.email;
         if (email) {
-          await inviteUserToOrg(organization.id, email);
+          await removeInvitedUserFromOrg(organization.id, email);
           toast.success('Invitation cancelled successfully');
         }
       } else {
@@ -513,7 +516,9 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
                             totalCount={allUsers.length}
                             onRoleChange={user.type === 'member' ? handleRoleChange : undefined}
                             onRemove={handleRemoveMember}
-                            isRemovingUser={isRemovingUser && activeUserId === user.id}
+                            isRemovingUser={
+                              (isRemovingUser || isRemovingInvitedUser) && activeUserId === user.id
+                            }
                             isUpdatingPermissions={
                               isUpdatingPermissions && activeUserId === user.id
                             }
