@@ -131,6 +131,9 @@ export const getBountyTitle = (bounty?: Bounty, isOpen?: boolean): string => {
   if (bounty?.bountyType === 'REVIEW') {
     return isOpen ? 'Bounty: Peer Review' : 'Awarded Bounty: Peer Review';
   }
+  if (bounty?.bountyType === 'ANSWER') {
+    return isOpen ? 'Bounty: Answer to Question' : 'Awarded Bounty: Answer to Question';
+  }
   return isOpen ? 'Bounty' : 'Awarded Bounty';
 };
 

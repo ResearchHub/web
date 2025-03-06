@@ -601,7 +601,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
               </HeadlessRadioGroup.Option>
 
               <HeadlessRadioGroup.Option
-                value="question"
+                value="ANSWER"
                 className={({ checked }) =>
                   cn(
                     'relative flex cursor-pointer rounded-lg border p-4 focus:outline-none',
