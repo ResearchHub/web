@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { OrganizationService, OrganizationError } from '@/services/organization.service';
 import { Organization } from '@/types/organization';
 
@@ -267,7 +267,7 @@ export const useFetchOrgByInviteToken = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchOrgByInviteToken = async (token: string): Promise<Organization> => {
+  const fetchOrgByInviteToken = useCallback(async (token: string): Promise<Organization> => {
     setIsLoading(true);
     setError(null);
 
@@ -285,7 +285,7 @@ export const useFetchOrgByInviteToken = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   return [{ data, isLoading, error }, fetchOrgByInviteToken] as const;
 };

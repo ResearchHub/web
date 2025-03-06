@@ -33,10 +33,8 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
 
   const fetchOrganizations = async (fetchOrgUsers = true) => {
     try {
-      console.log('fetching organizations');
       const orgs = await OrganizationService.getUserOrganizations(session);
       setOrganizations(orgs);
-      console.log('organizations fetched', orgs);
 
       const newDefaultOrg = orgs[0];
       if (newDefaultOrg) {
