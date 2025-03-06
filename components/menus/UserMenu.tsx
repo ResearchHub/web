@@ -23,7 +23,7 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
 
   const trigger = (
     <button className="hover:ring-2 hover:ring-gray-200 rounded-full p-1">
-      <Avatar src={user.authorProfile?.profileImage} alt={user.fullName} size="md" />
+      <Avatar src={user.authorProfile?.profileImage || null} alt={user.fullName} size="md" />
     </button>
   );
 
@@ -39,7 +39,7 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
       {/* User info section */}
       <div className="px-4 py-3 border-b border-gray-200">
         <div className="flex items-center">
-          <Avatar src={user.authorProfile?.profileImage} alt={user.fullName} size="md" />
+          <Avatar src={user.authorProfile?.profileImage || null} alt={user.fullName} size="md" />
           <div className="ml-3">
             <p className="text-sm font-medium text-gray-900">{user.fullName}</p>
             <p className="text-xs text-gray-500">{user.email}</p>

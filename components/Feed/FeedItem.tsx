@@ -10,26 +10,26 @@ import { cn } from '@/utils/styles';
 interface FeedItemProps {
   entry: FeedEntry;
   isFirst?: boolean;
+  customBody?: React.ReactNode;
 }
 
-export const FeedItem: FC<FeedItemProps> = ({ entry, isFirst }) => {
-  const { content, target, context, metrics } = entry;
+export const FeedItem: FC<FeedItemProps> = ({ entry, isFirst, customBody }) => {
+  const { content, metrics } = entry;
 
   return (
     <div className={cn('relative', !isFirst && 'mt-6')}>
       <div>
         <FeedItemHeader
-          action={entry.action}
+          action={entry.action || 'shared'}
           timestamp={entry.timestamp}
           content={content}
-          target={target}
         />
 
         <div className="mt-2">
-          <FeedItemBody content={content} target={target} context={context} metrics={metrics} />
+          {customBody ? customBody : <FeedItemBody content={content} metrics={metrics} />}
 
           <div className="pt-3">
-            <FeedItemActions metrics={metrics} content={content} target={target} />
+            <FeedItemActions metrics={metrics} content={content} />
           </div>
         </div>
       </div>

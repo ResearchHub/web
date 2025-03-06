@@ -1,12 +1,15 @@
 'use client';
 
 import { FC } from 'react';
-import { Content, FeedActionType } from '@/types/feed';
+import { Content } from '@/types/feed';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { formatTimestamp } from '@/utils/date';
 import { formatRSC } from '@/utils/number';
 import { AuthorProfile } from '@/types/authorProfile';
+
+// Define the action type
+export type FeedActionType = 'publish' | 'repost' | 'comment' | 'vote' | string;
 
 interface FeedItemHeaderProps {
   action: FeedActionType;
@@ -26,10 +29,12 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   const getActionText = () => {
     switch (content.type) {
       case 'bounty':
-        return `${action}ed a bounty for ${formatRSC({ amount: content.amount, shorten: true })} RSC`;
+        return `${action}ed a bounty for ${formatRSC({ amount: content.amount || 0, shorten: true })} RSC`;
       case 'paper':
       case 'post':
         return `${action}ed a ${content.type.replace('_', ' ')}`;
+      case 'funding_request':
+        return `${action}ed a funding request for ${formatRSC({ amount: content.amount || 0, shorten: true })} RSC`;
       default:
         return action;
     }
@@ -39,6 +44,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
     switch (content.type) {
       case 'bounty':
       case 'post':
+      case 'funding_request':
         return [
           {
             src: content.actor?.profileImage ?? '',
@@ -47,11 +53,13 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
           },
         ];
       case 'paper':
-        return content.authors.map((author: AuthorProfile) => ({
-          src: author.profileImage ?? '',
-          alt: author.fullName ?? '',
-          tooltip: author.fullName,
-        }));
+        return (
+          content.authors?.map((author: AuthorProfile) => ({
+            src: author.profileImage ?? '',
+            alt: author.fullName ?? '',
+            tooltip: author.fullName,
+          })) || []
+        );
       default:
         return [];
     }
@@ -61,6 +69,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
     switch (content.type) {
       case 'bounty':
       case 'post':
+      case 'funding_request':
         return [
           {
             name: content.actor?.fullName ?? '',
@@ -69,11 +78,13 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
           },
         ];
       case 'paper':
-        return content.authors.map((author: AuthorProfile) => ({
-          name: author.fullName ?? '',
-          verified: author.user?.isVerified ?? false,
-          profileUrl: author.profileUrl ?? '',
-        }));
+        return (
+          content.authors?.map((author: AuthorProfile) => ({
+            name: author.fullName ?? '',
+            verified: author.user?.isVerified ?? false,
+            profileUrl: author.profileUrl ?? '',
+          })) || []
+        );
       default:
         return [];
     }

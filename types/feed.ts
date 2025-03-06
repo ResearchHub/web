@@ -4,195 +4,105 @@ import { Journal } from './journal';
 import { Topic, transformTopic } from './topic';
 import { createTransformer, BaseTransformed } from './transformer';
 
-export type FeedActionType = 'repost' | 'contribute' | 'open' | 'publish' | 'post';
+export type FundingRequestStatus = 'OPEN' | 'FUNDED' | 'CLOSED';
 
-export type ContentType = 'bounty' | 'funding_request' | 'paper' | 'post';
-
-interface BaseContent {
+// We're keeping the RequestForProposal interface but commenting it out for future reference
+/*
+export interface RequestForProposal {
   id: string;
-  type: ContentType;
-  timestamp: string;
-  topic: Topic;
-  slug: string;
-  title?: string;
-  actor?: AuthorProfile;
-}
-
-export interface Bounty extends BaseContent {
-  type: 'bounty';
-  abstract: string;
-  amount: number;
-  paper?: Paper;
+  type: 'rfp';
   title: string;
+  description: string;
+  status: FundingRequestStatus;
+  fundingAmount: number;
+  distributedAmount?: number;
+  requirements: string[];
+  image?: string;
+  topic: Topic;
+  actor?: AuthorProfile;
+  slug?: string;
 }
+*/
 
-export interface Paper extends BaseContent {
-  type: 'paper';
-  abstract: string;
-  doi?: string;
+export interface Content {
+  id: string | number;
+  type: string;
+  title?: string;
+  abstract?: string;
+  summary?: string;
   journal?: Journal;
-  authors: AuthorProfile[];
+  paper?: any;
+  image?: string;
+  topic?: any;
+  status?: string;
+  amount?: number;
+  actor?: AuthorProfile;
+  authors?: AuthorProfile[];
+  profileUrl?: string;
 }
 
-export interface Post extends BaseContent {
-  type: 'post';
-  summary: string;
-}
-
-export type FundingRequestStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
-
-export interface FundingRequest extends BaseContent {
+export interface FundingRequest {
+  id: string;
   type: 'funding_request';
   title: string;
   abstract: string;
-  status: 'OPEN' | 'CLOSED' | 'COMPLETED';
   amount: number;
   goalAmount: number;
-  deadline: string;
   image?: string;
+  status: FundingRequestStatus;
+  actor?: AuthorProfile;
+  topic: Topic;
+  offersMementos?: boolean;
+  isTaxDeductible?: boolean;
+  slug?: string;
+  deadline: string;
   preregistered?: boolean;
 }
-
-export type Content = Bounty | FundingRequest | Paper | Post;
 
 export interface FeedEntry {
   id: string;
   timestamp: string;
-  action: FeedActionType;
-  content: Content;
-  target?: Content;
-  context?: Content;
+  content: FundingRequest | Content;
   metrics?: ContentMetrics;
+  action?: string;
 }
 
-export interface FeedResponse {
-  id: number;
-  content_type: string;
-  content_object: any;
-  created_date: string;
-  action: string;
-  action_date: string;
-  author: {
-    id: number;
-    first_name: string;
-    last_name: string;
-    description: string;
-    profile_image: string;
-    user?: {
-      id: number;
-      first_name: string;
-      last_name: string;
-      email: string;
-      is_verified: boolean;
-    };
-  };
-}
-
-export interface FeedApiResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: FeedResponse[];
-}
-
-export type TransformedContent = Content & BaseTransformed;
-export type TransformedFeedEntry = FeedEntry & BaseTransformed;
-
-const baseTransformContentObject = (params: { response: FeedResponse; type: string }): Content => {
-  const { response, type } = params;
-  const contentObject = response.content_object;
-
-  let transformedActor;
-  if (contentObject.author) {
-    transformedActor = transformAuthorProfile(contentObject.author);
-  } else if (contentObject.authors?.length > 0) {
-    transformedActor = transformAuthorProfile(contentObject.authors[0]);
-  } else if (response.author) {
-    transformedActor = transformAuthorProfile(response.author);
-  }
+export const transformFeedEntry = createTransformer<any, FeedEntry>((response) => {
+  const type = response.content_type.toLowerCase();
+  const content = response.content_object;
 
   const baseContent = {
-    id: contentObject.id.toString(),
-    type: type.toLowerCase() as Content['type'],
-    timestamp: contentObject.created_date,
-    topic: contentObject.topic
-      ? transformTopic(contentObject.topic)
-      : {
-          id: 0,
-          name: '',
-          slug: '',
-        },
-    slug: contentObject.slug,
-    actor: transformedActor,
+    id: content.id.toString(),
+    type,
+    title: content.title,
+    status: content.status,
+    deadline: content.deadline,
+    topic: transformTopic(content.topic),
+    actor: content.author ? transformAuthorProfile(content.author) : undefined,
+    image: content.image,
   };
 
-  switch (type.toLowerCase()) {
-    case 'bounty': {
-      const bounty: Bounty = {
-        ...baseContent,
-        type: 'bounty',
-        abstract: contentObject.abstract,
-        amount: contentObject.amount,
-        paper: contentObject.paper,
-        title: contentObject.title,
-      };
-      return bounty;
-    }
-    case 'paper': {
-      const paper: Paper = {
-        ...baseContent,
-        type: 'paper',
-        title: contentObject.title,
-        abstract: contentObject.abstract,
-        doi: contentObject.doi,
-        journal: contentObject.journal && {
-          id: contentObject.journal.id,
-          name: contentObject.journal.name,
-          slug: contentObject.journal.slug,
-          imageUrl: contentObject.journal.image,
-        },
-        authors: contentObject.authors.map(transformAuthorProfile),
-      };
-      return paper;
-    }
-    case 'researchhubpost': {
-      const post: Post = {
-        ...baseContent,
-        type: 'post',
-        title: contentObject.title,
-        summary: contentObject.renderable_text,
-      };
-      return post;
-    }
-    default:
-      throw new Error(`Unknown content type: ${type}`);
-  }
-};
-
-export const transformContentObject = createTransformer<
-  { response: FeedResponse; type: string },
-  Content
->((params) => baseTransformContentObject(params));
-
-export const transformFeedEntry = createTransformer<FeedResponse, FeedEntry>((response) => {
-  const contentType = response.content_type.toLowerCase();
-  const contentObject = response.content_object;
+  // We're only handling FundingRequest now
+  const transformedContent = {
+    ...baseContent,
+    abstract: content.abstract,
+    amount: content.amount || 0,
+    goalAmount: content.goal_amount || 0,
+    preregistered: content.preregistered,
+    offersMementos: content.offers_mementos,
+    isTaxDeductible: content.is_tax_deductible,
+  } as FundingRequest;
 
   return {
     id: response.id.toString(),
     timestamp: response.action_date,
-    action: response.action.toLowerCase() as FeedActionType,
-    content: transformContentObject({ response, type: contentType }),
+    content: transformedContent,
     metrics: {
-      votes: contentObject.metrics?.votes || 0,
-      comments: contentObject.metrics?.comments || 0,
-      reposts: contentObject.metrics?.reposts || 0,
-      saves: contentObject.metrics?.saves || 0,
+      votes: content.metrics?.votes || 0,
+      comments: content.metrics?.comments || 0,
+      reposts: content.metrics?.reposts || 0,
+      saves: content.metrics?.saves || 0,
     },
-    contributors:
-      contentObject.contributors?.map((contributor: any) => ({
-        profile: transformAuthorProfile(contributor.profile),
-        amount: contributor.amount,
-      })) || [],
+    action: response.action,
   };
 });
