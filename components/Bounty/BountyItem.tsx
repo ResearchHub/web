@@ -29,6 +29,7 @@ import { BountyMetadata } from '@/components/Bounty/BountyMetadata';
 import { BountyDetails } from '@/components/Bounty/BountyDetails';
 import { BountyActions } from '@/components/Bounty/BountyActions';
 import { BountySolutions } from '@/components/Bounty/BountySolutions';
+import { useComments } from '@/contexts/CommentContext';
 
 interface BountyItemProps {
   comment: Comment;
@@ -55,6 +56,7 @@ export const BountyItem = ({
   const router = useRouter();
   const params = useParams();
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const { forceRefresh } = useComments();
 
   // Handle navigation in useEffect to ensure it only runs client-side
   useEffect(() => {
@@ -122,6 +124,15 @@ export const BountyItem = ({
 
   const handleContributeClick = () => {
     setShowContributeModal(true);
+  };
+
+  const handleContributeComplete = () => {
+    // Refresh the view after contribution is complete
+    forceRefresh();
+    // Call the parent's onBountyUpdated callback if provided
+    if (onBountyUpdated) {
+      onBountyUpdated();
+    }
   };
 
   return (
@@ -227,7 +238,10 @@ export const BountyItem = ({
       {isOpen && displayBounty && (
         <ContributeBountyModal
           isOpen={showContributeModal}
-          onClose={() => setShowContributeModal(false)}
+          onClose={() => {
+            setShowContributeModal(false);
+          }}
+          onContributeSuccess={handleContributeComplete}
           commentId={comment.id}
           documentId={Number(comment.thread.objectId)}
           contentType={contentType}

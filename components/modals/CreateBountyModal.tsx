@@ -98,6 +98,7 @@ const CurrencyInput = ({
   onCurrencyToggle,
   convertedAmount,
   suggestedAmount,
+  error,
 }: {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -105,6 +106,7 @@ const CurrencyInput = ({
   onCurrencyToggle: () => void;
   convertedAmount?: string;
   suggestedAmount?: string;
+  error?: string;
 }) => {
   // Parse the current input amount and suggested amount for comparison
   const currentAmount = parseFloat(value.replace(/,/g, '')) || 0;
@@ -131,7 +133,7 @@ const CurrencyInput = ({
         placeholder="0.00"
         type="text"
         inputMode="numeric"
-        className="w-full text-left h-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        className={`w-full text-left h-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${error ? 'border-red-500' : ''}`}
         rightElement={
           <button
             type="button"
@@ -143,7 +145,8 @@ const CurrencyInput = ({
           </button>
         }
       />
-      {suggestedAmount && (
+      {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
+      {suggestedAmount && !error && (
         <p className={`mt-1.5 text-xs ${suggestedTextColor}`}>
           Suggested amount for peer review: {suggestedAmount}
         </p>
@@ -330,6 +333,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
   const [isSubmitting, setIsSubmitting] = useState(false);
   const RSC_TO_USD = 1;
   const userBalance = session?.user?.balance || 0;
+  const [amountError, setAmountError] = useState<string | undefined>(undefined);
 
   // Make useComments optional to handle cases when the component is not wrapped with a CommentProvider
   let commentContext;
@@ -344,12 +348,19 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
   const handleCreateBounty = async () => {
     if (isSubmitting) return; // Prevent multiple submissions
 
+    const rscAmount = getRscAmount();
+
+    // Validate minimum amount
+    if (rscAmount < 10) {
+      toast.error('Minimum bounty amount is 10 RSC');
+      setAmountError('Minimum bounty amount is 10 RSC');
+      return;
+    }
+
     setIsSubmitting(true);
     const toastId = toast.loading('Creating bounty...');
 
     try {
-      const rscAmount = getRscAmount();
-
       const expirationDate = (() => {
         // For preset lengths (14, 30, 60 days)
         const days = parseInt(bountyLength);
@@ -387,15 +398,13 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
           content: editorContent?.content || [],
         };
 
-        // Map bountyType to a valid commentType that the API accepts
-        const commentType = bountyType === 'ANSWER' ? 'ANSWER' : 'REVIEW';
-
+        // Always use GENERIC_COMMENT for commentType, but keep the bountyType as selected
         createdComment = await CommentService.createComment({
           workId: workId || selectedPaper?.id,
           contentType: 'paper',
           content: JSON.stringify(apiContent),
           contentFormat: 'TIPTAP',
-          commentType: commentType,
+          commentType: 'GENERIC_COMMENT',
           bountyAmount: rscAmount,
           bountyType,
           expirationDate,
@@ -441,8 +450,17 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
 
     if (!isNaN(numValue)) {
       setInputAmount(numValue);
+
+      // Validate minimum amount
+      const rscAmount = currency === 'RSC' ? numValue : numValue / RSC_TO_USD;
+      if (rscAmount < 10) {
+        setAmountError('Minimum bounty amount is 10 RSC');
+      } else {
+        setAmountError(undefined);
+      }
     } else {
       setInputAmount(0);
+      setAmountError('Please enter a valid amount');
     }
   };
 
@@ -478,6 +496,14 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
   };
 
   const handleContinue = () => {
+    const rscAmount = getRscAmount();
+
+    // Validate minimum amount before proceeding
+    if (rscAmount < 10) {
+      setAmountError('Minimum bounty amount is 10 RSC');
+      return;
+    }
+
     setStep('payment');
   };
 
@@ -633,13 +659,17 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
 
         {/* Amount Section */}
         <div>
+          <div className="mb-2">
+            <label className="block text-sm font-semibold text-gray-700">Bounty Amount</label>
+          </div>
           <CurrencyInput
             value={getFormattedInputValue()}
             onChange={handleAmountChange}
             currency={currency}
             onCurrencyToggle={toggleCurrency}
             convertedAmount={getConvertedAmount()}
-            suggestedAmount={bountyType === 'REVIEW' ? '150 USD' : undefined}
+            suggestedAmount={currency === 'USD' ? '150 USD' : '150 RSC'}
+            error={amountError}
           />
         </div>
 
@@ -716,8 +746,8 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
               <BountyLengthSelector selected={bountyLength} onChange={setBountyLength} />
             </div>
 
-            {/* Target Audience Section */}
-            <div>
+            {/* Target Audience Section - Commented out for now */}
+            {/* <div>
               <div className="flex items-center gap-2 mb-2">
                 <Users className="w-5 h-5 text-gray-500" />
                 <label className="block text-sm font-semibold text-gray-700">Target Audience</label>
@@ -730,20 +760,18 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
               <div className="relative">
                 <Input placeholder="Search for research fields..." className="w-full" />
               </div>
-            </div>
+            </div> */}
           </div>
         )}
 
         <Button
           type="button"
           variant="default"
-          disabled={
-            !(selectedPaper || workId) ||
-            !inputAmount ||
-            (bountyType === 'GENERIC_COMMENT' && !otherDescription)
-          }
           className="w-full h-12 text-base"
           onClick={handleContinue}
+          disabled={
+            (!workId && !selectedPaper) || inputAmount === 0 || getRscAmount() < 10 || !!amountError
+          }
         >
           Continue
         </Button>
@@ -758,8 +786,14 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
     const incFee = Math.floor(rscAmount * 0.07);
     const baseAmount = rscAmount - platformFee;
     const insufficientBalance = userBalance < rscAmount;
-    const hasAdditionalInfo =
-      editorContent && editorContent.content && Object.keys(editorContent.content).length > 0;
+    const hasAdditionalInfo = !!(
+      editorContent &&
+      editorContent.content &&
+      (Array.isArray(editorContent.content)
+        ? editorContent.content.length > 0
+        : Object.keys(editorContent.content).length > 0)
+    );
+    const isAmountTooLow = rscAmount < 10;
 
     return (
       <div className="p-6">
@@ -834,12 +868,20 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
             <BalanceInfo amount={rscAmount} showWarning={insufficientBalance} />
           </div>
 
+          {isAmountTooLow && (
+            <Alert variant="error">
+              <div className="flex items-center gap-3">
+                <span>Minimum bounty amount is 10 RSC</span>
+              </div>
+            </Alert>
+          )}
+
           <Button
             type="button"
             variant="default"
             className="w-full h-12 text-base"
             onClick={handleCreateBounty}
-            disabled={isSubmitting || insufficientBalance}
+            disabled={isSubmitting || insufficientBalance || isAmountTooLow}
           >
             {isSubmitting ? 'Creating Bounty...' : 'Create Bounty'}
           </Button>

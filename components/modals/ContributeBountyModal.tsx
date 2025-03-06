@@ -21,6 +21,7 @@ import { useComments } from '@/contexts/CommentContext';
 interface ContributeBountyModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onContributeSuccess?: () => void;
   commentId: ID;
   documentId: number;
   contentType: ContentType;
@@ -185,6 +186,7 @@ const ModalHeader = ({
 export function ContributeBountyModal({
   isOpen,
   onClose,
+  onContributeSuccess,
   commentId,
   documentId,
   contentType,
@@ -198,6 +200,7 @@ export function ContributeBountyModal({
   const [isFeesExpanded, setIsFeesExpanded] = useState(false);
   const [isContributing, setIsContributing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const RSC_TO_USD = 1;
   const userBalance = session?.user?.balance || 0;
@@ -261,6 +264,14 @@ export function ContributeBountyModal({
 
       toast.success('Your contribution has been successfully added to the bounty.');
 
+      // Set success flag
+      setIsSuccess(true);
+
+      // Call onContributeSuccess if provided
+      if (onContributeSuccess) {
+        onContributeSuccess();
+      }
+
       // Close the modal
       onClose();
     } catch (error) {
@@ -280,7 +291,17 @@ export function ContributeBountyModal({
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
+      <Dialog
+        as="div"
+        className="relative z-50"
+        onClose={() => {
+          // Reset success flag when modal is closed without contribution
+          if (!isSuccess) {
+            setIsSuccess(false);
+          }
+          onClose();
+        }}
+      >
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"

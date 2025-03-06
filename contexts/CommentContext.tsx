@@ -475,18 +475,17 @@ export const CommentProvider = ({
       try {
         const apiContent = convertToApiFormat(content);
 
-        // Map bountyType to a valid commentType that the API accepts
-        // The API only accepts 'ANSWER' or 'REVIEW' as valid comment types
-        const commentType = bountyType === 'ANSWER' ? 'ANSWER' : 'REVIEW';
+        // Always use GENERIC_COMMENT as the commentType
+        const commentType = 'GENERIC_COMMENT';
 
         const newBounty = await CommentService.createComment({
           workId: customWorkId || documentId.toString(),
           contentType,
           content: apiContent,
           contentFormat: 'TIPTAP',
-          commentType: commentType,
+          commentType, // Always GENERIC_COMMENT
           bountyAmount,
-          bountyType,
+          bountyType, // Keep the bountyType as provided
           expirationDate,
           privacyType: 'PUBLIC',
         });

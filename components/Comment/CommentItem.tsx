@@ -468,7 +468,7 @@ export const CommentItem = ({
       {renderContent()}
 
       {/* Comment actions (reply, edit, delete, etc.) */}
-      {renderCommentActions && !isEditing && !isReplying && !comment.bounties?.length && (
+      {renderCommentActions && !isEditing && !isReplying && (
         <CommentItemActions
           score={comment.score}
           replyCount={comment.replyCount || 0}
