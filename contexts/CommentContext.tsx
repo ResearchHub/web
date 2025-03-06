@@ -778,6 +778,7 @@ export const CommentProvider = ({
           commentId: comment.id,
           documentId,
           voteType,
+          contentType,
         });
 
         // Emit the comment_voted event directly
