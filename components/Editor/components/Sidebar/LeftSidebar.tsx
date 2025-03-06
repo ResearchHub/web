@@ -32,6 +32,7 @@ const LeftSidebar = () => {
   const [{ isLoading: isUpdatingContent }, updateNoteContent] = useNoteContent();
   const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false);
 
+  //TODO: we might just update the selected org from the @organizationContext
   const handleOrgSelect = useCallback(
     async (org: Organization) => {
       // If we're already on this org's page, no need to navigate

@@ -104,22 +104,6 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
         <OrganizationSettingsModal
           isOpen={isSettingsModalOpen}
           onClose={() => setIsSettingsModalOpen(false)}
-          organization={selectedOrg}
-          members={[
-            // This is mock data - you would fetch real members from an API
-            {
-              id: '1',
-              fullName: 'Nick Tytarenko',
-              email: 'nicktytarenko+1@gmail.com',
-              role: 'Admin',
-            },
-            {
-              id: '2',
-              fullName: 'Nick Tytarenko',
-              email: 'nicktytarenko@gmail.com',
-              role: 'Admin',
-            },
-          ]}
         />
       )}
     </div>

@@ -41,12 +41,11 @@ export class OrganizationService {
 
   /**
    * Fetches users and invites for a specific organization
-   * @param userId - The ID of the current user
    * @param orgId - The ID of the organization
    * @throws {OrganizationError} When the request fails or parameters are invalid
    */
-  static async getOrganizationUsers(userId: string, orgId: string): Promise<OrganizationUsers> {
-    if (!userId || !orgId) {
+  static async getOrganizationUsers(orgId: string): Promise<OrganizationUsers> {
+    if (!orgId) {
       throw new OrganizationError('Missing required parameters', 'INVALID_PARAMS');
     }
 
