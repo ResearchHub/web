@@ -26,7 +26,13 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   const getActionText = () => {
     switch (content.type) {
       case 'bounty':
-        return `${action}ed a bounty for ${formatRSC({ amount: content.amount, shorten: true })} RSC`;
+        if (content.bountyType === 'review') {
+          return `${action}ed a peer review bounty for ${formatRSC({ amount: content.amount, shorten: true })} RSC`;
+        } else if (content.bountyType === 'answer') {
+          return `${action}ed an answer bounty for ${formatRSC({ amount: content.amount, shorten: true })} RSC`;
+        } else {
+          return `${action}ed a bounty for ${formatRSC({ amount: content.amount, shorten: true })} RSC`;
+        }
       case 'paper':
       case 'post':
         return `${action}ed a ${content.type.replace('_', ' ')}`;
