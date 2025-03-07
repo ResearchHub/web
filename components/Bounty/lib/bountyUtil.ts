@@ -82,18 +82,13 @@ export const calculateOpenBountiesAmount = (bounties: Bounty[]): number => {
  * @returns The first active bounty or undefined if none found
  */
 export const findActiveBounty = (bounties: Bounty[]): Bounty | undefined => {
-  console.log('findActiveBounty input:', {
-    bounties,
-    isArray: Array.isArray(bounties),
-    length: bounties?.length || 0,
-  });
-
-  if (!bounties || bounties.length === 0) {
+  if (!bounties || !Array.isArray(bounties) || bounties.length === 0) {
     return undefined;
   }
 
-  const activeBounty = bounties.find(isOpenBounty);
-  console.log('findActiveBounty result:', activeBounty?.id);
+  // Find the first active bounty that is not a contribution
+  const activeBounty = bounties.find((b) => isOpenBounty(b));
+
   return activeBounty;
 };
 
@@ -103,18 +98,13 @@ export const findActiveBounty = (bounties: Bounty[]): Bounty | undefined => {
  * @returns The first closed bounty or undefined if none found
  */
 export const findClosedBounty = (bounties: Bounty[]): Bounty | undefined => {
-  console.log('findClosedBounty input:', {
-    bounties,
-    isArray: Array.isArray(bounties),
-    length: bounties?.length || 0,
-  });
-
-  if (!bounties || bounties.length === 0) {
+  if (!bounties || !Array.isArray(bounties) || bounties.length === 0) {
     return undefined;
   }
 
-  const closedBounty = bounties.find(isClosedBounty);
-  console.log('findClosedBounty result:', closedBounty?.id);
+  // Find the first closed bounty that is not a contribution
+  const closedBounty = bounties.find((b) => isClosedBounty(b));
+
   return closedBounty;
 };
 
@@ -124,29 +114,12 @@ export const findClosedBounty = (bounties: Bounty[]): Bounty | undefined => {
  * @returns The display bounty or undefined if none found
  */
 export const getDisplayBounty = (bounties: Bounty[]): Bounty | undefined => {
-  console.log('getDisplayBounty input:', {
-    bounties,
-    isArray: Array.isArray(bounties),
-    length: bounties?.length || 0,
-  });
-
-  if (!bounties || bounties.length === 0) {
-    console.log('getDisplayBounty: No bounties provided');
+  if (!bounties || !Array.isArray(bounties) || bounties.length === 0) {
     return undefined;
   }
 
-  // Since we've restructured bounties to group contributions with their parent bounties,
-  // we should now have only main bounties in the array. We can simply find the first open one,
-  // or fall back to the first closed one.
   const activeBounty = findActiveBounty(bounties);
   const closedBounty = findClosedBounty(bounties);
-
-  console.log('getDisplayBounty results:', {
-    hasActiveBounty: !!activeBounty,
-    hasClosedBounty: !!closedBounty,
-    activeBountyId: activeBounty?.id,
-    closedBountyId: closedBounty?.id,
-  });
 
   return activeBounty || closedBounty;
 };

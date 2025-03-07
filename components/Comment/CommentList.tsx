@@ -23,6 +23,7 @@ const CommentList: React.FC<CommentListProps> = ({
 }) => {
   const { loading } = useComments();
 
+  // Log debug information if debug is enabled
   useEffect(() => {
     if (debug) {
       console.log('CommentList rendered with:', {

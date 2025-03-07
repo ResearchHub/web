@@ -100,30 +100,14 @@ export const BountyCard = ({
 }: BountyCardProps) => {
   const [showContributorsModal, setShowContributorsModal] = useState(false);
   const [showContributeModal, setShowContributeModal] = useState(false);
-  const [showAwardModal, setShowAwardModal] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const { data: session } = useSession();
 
   // Check if the current user is the author of the bounty
   const isAuthor = session?.user?.id === bounty?.createdBy?.id;
 
-  console.log('BountyCard props:', {
-    bountyId: bounty?.id,
-    bountyStatus: bounty?.status,
-    bountyType: bounty?.bountyType,
-    totalAmount: bounty?.totalAmount,
-    solutionsCount: bounty?.solutions?.length || 0,
-    contributionsCount: bounty?.contributions?.length || 0,
-    documentId,
-    contentType,
-    commentId,
-    showHeader,
-    showFooter,
-  });
-
   // If no valid bounty is provided, don't render anything
   if (!bounty) {
-    console.log('No valid bounty provided to BountyCard');
     return null;
   }
 

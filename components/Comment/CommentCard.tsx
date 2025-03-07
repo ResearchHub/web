@@ -48,14 +48,6 @@ export const CommentCard: FC<CommentCardProps> = ({
   // Check if the current user is the author of the comment
   const isAuthor = session?.user?.id === comment.author?.id;
 
-  if (debug) {
-    console.log('CommentCard:', {
-      id: comment.id,
-      commentType: comment.commentType,
-      hasBounties: !!comment.bounties && comment.bounties.length > 0,
-    });
-  }
-
   // Use the registry pattern to render the comment
   const renderer =
     contentRenderers[comment.commentType?.toLowerCase() || 'comment'] ||

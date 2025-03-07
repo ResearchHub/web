@@ -5,7 +5,7 @@ import { ID } from '@/types/root';
 import { ContentFormat } from '@/types/comment';
 import { BountyCard, SolutionViewEvent } from './BountyCard';
 import { SolutionModal } from '@/components/Comment/SolutionModal';
-import { findActiveBounty, findClosedBounty, getDisplayBounty } from './lib/bountyUtil';
+import { getDisplayBounty } from './lib/bountyUtil';
 import { useRouter } from 'next/navigation';
 import { buildWorkUrl } from '@/utils/url';
 
@@ -73,38 +73,11 @@ export const BountyCardWrapper = ({
   const [selectedSolution, setSelectedSolution] = useState<SolutionViewEvent | null>(null);
   const router = useRouter();
 
-  // Add debugging for bounty data
-  console.log('BountyCardWrapper props:', {
-    hasBounty: !!bounty,
-    hasBounties: !!bounties && Array.isArray(bounties) && bounties.length > 0,
-    bountyCount: bounties?.length || 0,
-    firstBountyId: bounties?.[0]?.id,
-    firstBountyStatus: bounties?.[0]?.status,
-    commentId,
-    documentId,
-    contentType,
-    showHeader,
-    showFooter,
-  });
-
   // Determine which bounty to display
   const displayBounty = useBountyToDisplay(bounty, bounties);
 
-  console.log(
-    'Display bounty:',
-    displayBounty
-      ? {
-          id: displayBounty.id,
-          status: displayBounty.status,
-          bountyType: displayBounty.bountyType,
-          totalAmount: displayBounty.totalAmount,
-        }
-      : 'None'
-  );
-
   // If no valid bounty is found, don't render anything
   if (!displayBounty) {
-    console.log('No valid bounty found, not rendering BountyCardWrapper');
     return null;
   }
 
@@ -172,15 +145,8 @@ export const BountyCardWrapper = ({
  * Helper function to determine which bounty to display
  */
 function useBountyToDisplay(bounty?: Bounty, bounties?: Bounty[]): Bounty | null {
-  console.log('useBountyToDisplay input:', {
-    hasBounty: !!bounty,
-    hasBounties: !!bounties && Array.isArray(bounties) && bounties.length > 0,
-    bountyCount: bounties?.length || 0,
-  });
-
   // If a single bounty is provided, use it
   if (bounty) {
-    console.log('Using single bounty:', bounty.id);
     return bounty;
   }
 
@@ -188,12 +154,9 @@ function useBountyToDisplay(bounty?: Bounty, bounties?: Bounty[]): Bounty | null
   if (bounties && bounties.length > 0) {
     // Since we've restructured bounties to group contributions with their parent bounties,
     // we can simply use getDisplayBounty which will find the first open or closed bounty
-    const displayBounty = getDisplayBounty(bounties) || null;
-    console.log('Using display bounty from array:', displayBounty?.id);
-    return displayBounty;
+    return getDisplayBounty(bounties) || null;
   }
 
   // If no valid bounty is found, return null
-  console.log('No valid bounty found');
   return null;
 }

@@ -44,11 +44,6 @@ const FilteredCommentFeed = ({
     return filteredComments.filter((comment) => !hasBounties(comment));
   }, [filteredComments]);
 
-  // Log when comments are refreshed
-  useEffect(() => {
-    console.log('Comments refreshed in AwardBountyModal:', commentsWithoutBounties.length);
-  }, [commentsWithoutBounties]);
-
   if (loading) {
     return <div className="py-4 text-center text-gray-500">Loading comments...</div>;
   }
@@ -96,18 +91,8 @@ export const AwardBountyModal = ({
   const { forceRefresh } = useComments();
 
   // Get the total bounty amount available to award
-  console.log('AwardBountyModal bounties:', {
-    commentId: comment.id,
-    commentType: comment.commentType,
-    bounties: comment.bounties,
-    hasBounties:
-      !!comment.bounties && Array.isArray(comment.bounties) && comment.bounties.length > 0,
-  });
-
-  const activeBounty = comment.bounties.find(isOpenBounty);
-  console.log('Active bounty:', activeBounty);
-
-  const totalBountyAmount = activeBounty ? Number(activeBounty.totalAmount) : 0;
+  const activeBounty = comment.bounties?.find(isOpenBounty);
+  const totalBountyAmount = activeBounty ? parseFloat(activeBounty.totalAmount) : 0;
 
   // Calculate total amount awarded and remaining
   const totalAwarded = useMemo(() => {

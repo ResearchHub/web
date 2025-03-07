@@ -41,15 +41,15 @@ function CommentFeed({
   hideEditor = false,
   debug = false,
 }: CommentFeedProps) {
-  console.log(`CommentFeed RENDER - type: ${commentType}, docId: ${documentId}`);
-
-  // Add debugging for mount/unmount
+  // Add debugging for mount/unmount if debug is enabled
   useEffect(() => {
-    console.log(`CommentFeed MOUNTED - type: ${commentType}, docId: ${documentId}`);
-    return () => {
-      console.log(`CommentFeed UNMOUNTED - type: ${commentType}, docId: ${documentId}`);
-    };
-  }, [commentType, documentId]);
+    if (debug) {
+      console.log(`CommentFeed MOUNTED - type: ${commentType}, docId: ${documentId}`);
+      return () => {
+        console.log(`CommentFeed UNMOUNTED - type: ${commentType}, docId: ${documentId}`);
+      };
+    }
+  }, [commentType, documentId, debug]);
 
   const [isBountyModalOpen, setIsBountyModalOpen] = useState(false);
 
@@ -100,13 +100,15 @@ function CommentFeedContent({
   debug = false,
   onCreateBounty,
 }: Omit<CommentFeedProps, 'documentId'> & { onCreateBounty: () => void }) {
-  // Add debugging for content component
+  // Add debugging for content component if debug is enabled
   useEffect(() => {
-    console.log(`CommentFeedContent MOUNTED - type: ${commentType}`);
-    return () => {
-      console.log(`CommentFeedContent UNMOUNTED - type: ${commentType}`);
-    };
-  }, [commentType]);
+    if (debug) {
+      console.log(`CommentFeedContent MOUNTED - type: ${commentType}`);
+      return () => {
+        console.log(`CommentFeedContent UNMOUNTED - type: ${commentType}`);
+      };
+    }
+  }, [commentType, debug]);
 
   const {
     filteredComments,

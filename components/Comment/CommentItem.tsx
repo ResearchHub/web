@@ -53,7 +53,6 @@ export const CommentItem = ({
   renderCommentActions = true,
   debug = false,
 }: CommentItemProps) => {
-  const [updateError, setUpdateError] = useState<string | null>(null);
   const { data: session } = useSession();
   const {
     updateComment,
@@ -70,19 +69,17 @@ export const CommentItem = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAwardModal, setShowAwardModal] = useState(false);
 
-  // Log component lifecycle
+  // Log component lifecycle if debug is enabled
   useEffect(() => {
     if (debug) {
       console.log(`CommentItem ${comment.id} - MOUNTED`);
-    }
-    return () => {
-      if (debug) {
+      return () => {
         console.log(`CommentItem ${comment.id} - UNMOUNTED`);
-      }
-    };
+      };
+    }
   }, [comment.id, debug]);
 
-  // Add debug logging
+  // Add debug logging if debug is enabled
   useEffect(() => {
     if (debug) {
       console.log(`CommentItem ${comment.id} - isReplying: ${replyingToCommentId === comment.id}`);
@@ -90,45 +87,17 @@ export const CommentItem = ({
     }
   }, [comment.id, replyingToCommentId, editingCommentId, debug]);
 
-  // Set up event listeners for reply events
-  useEffect(() => {
-    if (debug) {
-      console.log(`CommentItem ${comment.id} mounted`);
-    }
-    return () => {
-      if (debug) {
-        console.log(`CommentItem ${comment.id} unmounted`);
-      }
-    };
-  }, [comment.id, debug]);
-
-  if (debug) console.log('Rendering comment:', comment);
-
-  // Check if the comment has an open or closed bounty
+  // Check if the comment has an open bounty
   const hasOpenBounty =
     comment.bounties && comment.bounties.length > 0 && comment.bounties.some(isOpenBounty);
 
-  const hasClosedBounty =
-    comment.bounties && comment.bounties.length > 0 && comment.bounties.some(isClosedBounty);
-
   // Check if the current user is the author of the comment
   const isAuthor = session?.user?.id === comment.author?.id;
-
-  // Check if the current user has voted on the comment
-  const hasVoted = comment.userVote !== 'NEUTRAL';
 
   // Determine if this comment is being edited or replied to
   const isEditing = editingCommentId === comment.id;
   const isReplying = replyingToCommentId === comment.id;
 
-  if (debug) {
-    console.log(`CommentItem ${comment.id} - isEditing: ${isEditing}, isReplying: ${isReplying}`);
-    console.log(`CommentItem ${comment.id} - parentId: ${comment.parentId}`);
-    if (comment.replies) {
-      console.log(`CommentItem ${comment.id} - replies: ${comment.replies.length}`);
-    }
-  }
-  console.log('comment', comment);
   // Handle voting on a comment
   const handleVote = async (voteType: UserVoteType) => {
     try {
@@ -263,10 +232,6 @@ export const CommentItem = ({
       console.log(`renderContent for comment ${comment.id}:`);
       console.log(`- isEditing: ${isEditing}`);
       console.log(`- isReplying: ${isReplying}`);
-    }
-
-    // Log comment data for debugging
-    if (debug) {
       console.log('CommentItem renderContent:', {
         id: comment.id,
         commentType: comment.commentType,
@@ -282,13 +247,6 @@ export const CommentItem = ({
       comment.commentType === 'BOUNTY' ||
       (!!comment.bounties && Array.isArray(comment.bounties) && comment.bounties.length > 0);
 
-    // Always log this for debugging
-    console.log(`CommentItem ${comment.id} isBountyComment:`, isBountyComment, {
-      commentType: comment.commentType,
-      hasBounties:
-        !!comment.bounties && Array.isArray(comment.bounties) && comment.bounties.length > 0,
-    });
-
     // If we're editing, show the editor
     if (isEditing) {
       return (
@@ -303,7 +261,9 @@ export const CommentItem = ({
 
     // For bounty comments, use BountyCardWrapper directly
     if (isBountyComment && comment.bounties) {
-      console.log('Rendering bounty comment with BountyCardWrapper');
+      if (debug) {
+        console.log('Rendering bounty comment with BountyCardWrapper');
+      }
       return (
         <div className="space-y-4">
           <BountyCardWrapper
@@ -337,7 +297,9 @@ export const CommentItem = ({
     }
 
     // For regular comments, use CommentCard
-    console.log('Rendering regular comment with CommentCard');
+    if (debug) {
+      console.log('Rendering regular comment with CommentCard');
+    }
     return (
       <div className="space-y-4">
         {/* Render the comment card with all necessary callbacks */}
@@ -349,7 +311,9 @@ export const CommentItem = ({
           onSubmitReply={handleReply}
           onUpvote={() => handleVote('UPVOTE')}
           onReply={() => setReplyingToCommentId(comment.id)}
-          onReport={() => console.log('Report clicked for comment:', comment.id)}
+          onReport={() => {
+            if (debug) console.log('Report clicked for comment:', comment.id);
+          }}
           onShare={() => {
             // Copy the link to the clipboard
             const url =
@@ -375,13 +339,15 @@ export const CommentItem = ({
     // Check if this is a bounty comment - either by type or by having bounties
     const isBountyComment = comment.commentType === 'BOUNTY' || hasBounties(comment);
 
-    console.log('renderAwardBountyButton:', {
-      commentId: comment.id,
-      commentType: comment.commentType,
-      hasBounties: hasBounties(comment),
-      isBountyComment,
-      hasOpenBounty: comment.bounties?.some(isOpenBounty),
-    });
+    if (debug) {
+      console.log('renderAwardBountyButton:', {
+        commentId: comment.id,
+        commentType: comment.commentType,
+        hasBounties: hasBounties(comment),
+        isBountyComment,
+        hasOpenBounty: comment.bounties?.some(isOpenBounty),
+      });
+    }
 
     if (isBountyComment && comment.bounties?.some(isOpenBounty)) {
       return (
