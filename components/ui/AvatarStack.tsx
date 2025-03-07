@@ -20,6 +20,8 @@ interface AvatarStackProps {
   reverseOrder?: boolean;
   /** When true, disables individual avatar tooltips */
   disableTooltip?: boolean;
+  /** Custom ring color class for avatars */
+  ringColorClass?: string;
 }
 
 export const AvatarStack: FC<AvatarStackProps> = ({
@@ -30,6 +32,7 @@ export const AvatarStack: FC<AvatarStackProps> = ({
   spacing = -8,
   reverseOrder = false,
   disableTooltip = false,
+  ringColorClass = 'ring-gray-300',
 }) => {
   const displayItems = items.slice(0, maxItems);
 
@@ -42,7 +45,7 @@ export const AvatarStack: FC<AvatarStackProps> = ({
           zIndex: reverseOrder ? displayItems.length - index : index,
         }}
       >
-        <Avatar src={item.src} alt={item.alt} size={size} className="ring-1 ring-gray-300" />
+        <Avatar src={item.src} alt={item.alt} size={size} className={`ring-2 ${ringColorClass}`} />
       </div>
     );
 

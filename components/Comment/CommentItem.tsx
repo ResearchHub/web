@@ -24,7 +24,12 @@ import TipTapRenderer from './lib/TipTapRenderer';
 import LoadMoreReplies from './LoadMoreReplies';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { CommentContent } from './lib/types';
-import { getDisplayBounty } from '@/components/Bounty/lib/bountyUtil';
+import {
+  getDisplayBounty,
+  calculateTotalBountyAmount,
+  isExpiringSoon,
+} from '@/components/Bounty/lib/bountyUtil';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 
 interface CommentItemProps {
   comment: Comment;
@@ -293,29 +298,64 @@ export const CommentItem = ({
       }
 
       if (displayBounty) {
-        return (
-          <div className="border border-gray-200 rounded-lg p-4">
-            <BountyItem
-              comment={comment}
-              contentType={contentType}
-              onSubmitSolution={() => setReplyingToCommentId(comment.id)}
-              isCreator={session?.user?.id === displayBounty?.createdBy?.id}
-              onBountyUpdated={() => onCommentUpdate && onCommentUpdate(comment)}
-            />
+        // Calculate total amount
+        const totalAmount = calculateTotalBountyAmount(comment.bounties);
+        const isOpen = displayBounty.status === 'OPEN';
+        const expiringSoon = isOpen && isExpiringSoon(displayBounty.expirationDate);
 
-            {/* Show reply editor below the bounty content if replying */}
-            {isReplying && (
-              <div className="mt-4 border-t pt-4">
-                <h4 className="text-sm font-medium mb-2">Your reply:</h4>
-                <CommentEditor
-                  onSubmit={handleReply}
-                  onCancel={() => setReplyingToCommentId(null)}
-                  placeholder="Write your solution..."
-                  autoFocus={true}
+        return (
+          <>
+            {/* Header with badges for bounty */}
+            <div className="flex items-center justify-between w-full mb-3">
+              <CommentItemHeader
+                profileImage={displayBounty.createdBy?.authorProfile?.profileImage || null}
+                fullName={displayBounty.createdBy?.authorProfile?.fullName || 'Unknown User'}
+                profileUrl={displayBounty.createdBy?.authorProfile?.profileUrl || '#'}
+                date={comment.createdDate}
+                commentType="BOUNTY"
+                className="flex-grow"
+              />
+              <div className="flex items-center gap-2 ml-2">
+                {/* Status badge - show for both open and closed bounties */}
+                <StatusBadge
+                  status={expiringSoon ? 'expiring' : isOpen ? 'open' : 'closed'}
+                  className="shadow-sm rounded-full"
+                  size="xs"
+                />
+                {/* RSC Amount */}
+                <RSCBadge
+                  amount={totalAmount}
+                  inverted={true}
+                  variant="badge"
+                  className="shadow-sm rounded-full h-[26px] flex items-center"
+                  size="xs"
                 />
               </div>
-            )}
-          </div>
+            </div>
+
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <BountyItem
+                comment={comment}
+                contentType={contentType}
+                onSubmitSolution={() => setReplyingToCommentId(comment.id)}
+                isCreator={session?.user?.id === displayBounty?.createdBy?.id}
+                onBountyUpdated={() => onCommentUpdate && onCommentUpdate(comment)}
+              />
+
+              {/* Show reply editor below the bounty content if replying */}
+              {isReplying && (
+                <div className="mt-4 border-t pt-4 px-4 pb-4">
+                  <h4 className="text-sm font-medium mb-2">Your reply:</h4>
+                  <CommentEditor
+                    onSubmit={handleReply}
+                    onCancel={() => setReplyingToCommentId(null)}
+                    placeholder="Write your solution..."
+                    autoFocus={true}
+                  />
+                </div>
+              )}
+            </div>
+          </>
         );
       }
     }

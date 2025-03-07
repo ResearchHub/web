@@ -28,19 +28,15 @@ export const BountyActions = ({
     <div className="flex flex-col gap-3 w-full">
       {isCreator ? (
         <>
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-500">You created this bounty</div>
-          </div>
-
           <div className="flex items-center gap-4">
             <div className="flex gap-2">
               <Button
-                variant="default"
+                variant="secondary"
                 onClick={onAwardClick}
-                className="flex items-center gap-2 shadow-sm"
+                className="flex items-center gap-2 shadow-sm bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
                 size="sm"
               >
-                <FontAwesomeIcon icon={faTrophy} className="text-white h-4 w-4" />
+                <FontAwesomeIcon icon={faTrophy} className="h-4 w-4" />
                 Award bounty
               </Button>
             </div>
@@ -52,7 +48,8 @@ export const BountyActions = ({
                 <Button
                   onClick={() => onNavigationClick('reviews')}
                   size="sm"
-                  className="shadow-sm flex items-center gap-2 hover:bg-indigo-700 hover:text-white transition-colors duration-200"
+                  variant="secondary"
+                  className="shadow-sm flex items-center gap-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
                 >
                   <ClipboardCheck className="h-4 w-4" />
                   Review
@@ -61,16 +58,17 @@ export const BountyActions = ({
                 <Button
                   onClick={() => onNavigationClick('conversation')}
                   size="sm"
-                  className="shadow-sm flex items-center gap-2"
+                  variant="secondary"
+                  className="shadow-sm flex items-center gap-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
                 >
                   <MessageSquare className="h-4 w-4" />
                   Answer
                 </Button>
               )}
               <Button
-                variant="contribute"
+                variant="secondary"
                 onClick={onContributeClick}
-                className="flex items-center gap-2 shadow-sm"
+                className="flex items-center gap-2 shadow-sm bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-700"
                 size="sm"
               >
                 <Plus className="h-4 w-4" />
@@ -86,7 +84,7 @@ export const BountyActions = ({
               variant="secondary"
               onClick={() => onNavigationClick('reviews')}
               size="sm"
-              className="shadow-sm flex items-center gap-2 hover:bg-indigo-700 hover:text-white transition-colors duration-200"
+              className="shadow-sm flex items-center gap-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
             >
               <ClipboardCheck className="h-4 w-4" />
               Review
@@ -96,16 +94,16 @@ export const BountyActions = ({
               variant="secondary"
               onClick={() => onNavigationClick('conversation')}
               size="sm"
-              className="shadow-sm flex items-center gap-2"
+              className="shadow-sm flex items-center gap-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
             >
               <MessageSquare className="h-4 w-4" />
               Answer
             </Button>
           )}
           <Button
-            variant="contribute"
+            variant="secondary"
             onClick={onContributeClick}
-            className="flex items-center gap-2 shadow-sm"
+            className="flex items-center gap-2 shadow-sm bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-700"
             size="sm"
           >
             <Plus className="h-4 w-4" />

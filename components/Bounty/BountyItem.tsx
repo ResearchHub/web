@@ -21,15 +21,20 @@ import {
   getBountyTitle,
   calculateTotalAwardedAmount,
   extractContributors,
+  formatContributorNames,
+  filterOutCreator,
 } from '@/components/Bounty/lib/bountyUtil';
 import { buildWorkUrl } from '@/utils/url';
 import { useRouter, useParams } from 'next/navigation';
 import { BountyType } from '@/types/bounty';
-import { BountyMetadata } from '@/components/Bounty/BountyMetadata';
 import { BountyDetails } from '@/components/Bounty/BountyDetails';
 import { BountyActions } from '@/components/Bounty/BountyActions';
 import { BountySolutions } from '@/components/Bounty/BountySolutions';
 import { useComments } from '@/contexts/CommentContext';
+import { AvatarStack } from '@/components/ui/AvatarStack';
+import { Info, Clock } from 'lucide-react';
+import { BountyMetadataLine } from './BountyMetadataLine';
+import { ContributorsButton } from '@/components/ui/ContributorsButton';
 
 interface BountyItemProps {
   comment: Comment;
@@ -86,6 +91,9 @@ export const BountyItem = ({
   // Get all contributors including the main bounty creator using utility function
   const allContributors = extractContributors(comment.bounties, displayBounty || undefined);
 
+  // Filter out the creator from the contributors list for display
+  const contributorsWithoutCreator = filterOutCreator(allContributors);
+
   // Calculate total amount including contributions using utility function
   const totalAmount = calculateTotalBountyAmount(comment.bounties);
 
@@ -137,55 +145,45 @@ export const BountyItem = ({
 
   return (
     <>
-      <div className="space-y-4">
-        {/* Title with status indicator */}
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">
-            {getBountyTitle(displayBounty || undefined, isOpen)}
-          </h3>
-          <div className="flex items-center gap-2">
-            {/* Status badge - show for both open and closed bounties */}
-            <StatusBadge
-              status={expiringSoon ? 'expiring' : isOpen ? 'open' : 'closed'}
-              className="shadow-sm rounded-full"
-              size="xs"
-            />
-            {/* RSC Amount */}
-            <RSCBadge
-              amount={totalAmount}
-              inverted={true}
-              variant="badge"
-              className="shadow-sm rounded-full h-[26px] flex items-center"
-              size="xs"
-            />
-          </div>
-        </div>
-
-        {/* Metadata section (Created by and Deadline) */}
-        <BountyMetadata
-          contributors={allContributors}
+      <div className="space-y-4 p-4">
+        {/* Bounty metadata in a single line */}
+        <BountyMetadataLine
+          bountyType={displayBounty?.bountyType}
+          amount={totalAmount}
           expirationDate={displayBounty?.expirationDate}
           isOpen={isOpen}
           expiringSoon={expiringSoon}
-          onShowContributors={() => setShowContributorsModal(true)}
         />
 
         {/* Details section */}
         {comment.content && (
-          <BountyDetails content={comment.content} contentFormat={comment.contentFormat} />
+          <div className="mt-6 pt-4 border-t border-gray-100">
+            <BountyDetails content={comment.content} contentFormat={comment.contentFormat} />
+          </div>
         )}
 
-        {/* Action buttons */}
-        <div className={`${isOpen ? 'flex items-center justify-between' : 'w-full'}`}>
+        {/* Action buttons with contributors */}
+        <div className={`mt-6 ${isOpen ? 'flex items-center justify-between' : 'w-full'}`}>
           {isOpen ? (
-            <BountyActions
-              isOpen={isOpen}
-              isCreator={isCreator}
-              isPeerReviewBounty={isPeerReviewBounty}
-              onAwardClick={() => setShowAwardModal(true)}
-              onNavigationClick={handleNavigationClick}
-              onContributeClick={handleContributeClick}
-            />
+            <div className="flex items-center justify-between w-full">
+              <BountyActions
+                isOpen={isOpen}
+                isCreator={isCreator}
+                isPeerReviewBounty={isPeerReviewBounty}
+                onAwardClick={() => setShowAwardModal(true)}
+                onNavigationClick={handleNavigationClick}
+                onContributeClick={handleContributeClick}
+              />
+
+              {/* Contributors display */}
+              <div className="ml-4">
+                <ContributorsButton
+                  contributors={allContributors}
+                  onContribute={handleContributeClick}
+                  label="Contributors"
+                />
+              </div>
+            </div>
           ) : (
             hasSolutions && (
               <BountySolutions

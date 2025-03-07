@@ -218,6 +218,15 @@ export const extractContributors = (bounties: Bounty[], displayBounty?: Bounty):
 };
 
 /**
+ * Filters out the creator from the contributors list
+ * @param contributors Array of contributors
+ * @returns Array of contributors without the creator
+ */
+export const filterOutCreator = (contributors: Contributor[]): Contributor[] => {
+  return contributors.filter((contributor) => !contributor.isCreator);
+};
+
+/**
  * Checks if a comment has any bounties
  * @param comment The comment object to check
  * @returns Boolean indicating if the comment has any bounties
