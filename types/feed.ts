@@ -157,15 +157,14 @@ const baseTransformContentObject = (params: { response: FeedResponse; type: stri
       return paper;
     }
     case 'researchhubpost': {
+      const postType = contentObject.post_type && contentObject.post_type.toLowerCase();
       const post: Post = {
         ...baseContent,
         type: 'post',
         title: contentObject.title,
         summary: contentObject.renderable_text,
-        postType: ['discussion', 'question', 'preregistration'].includes(
-          contentObject.post_type && contentObject.post_type.toLowerCase()
-        )
-          ? contentObject.post_type.toLowerCase()
+        postType: ['discussion', 'question', 'preregistration'].includes(postType)
+          ? postType
           : 'discussion',
       };
       return post;
