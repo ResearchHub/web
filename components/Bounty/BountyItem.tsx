@@ -165,7 +165,7 @@ export const BountyItem = ({
         {/* Action buttons with contributors */}
         <div className={`mt-6 ${isOpen ? 'flex items-center justify-between' : 'w-full'}`}>
           {isOpen ? (
-            <div className="flex items-center justify-between w-full">
+            <div className="flex items-center justify-between w-full pt-4 border-t border-gray-200">
               <BountyActions
                 isOpen={isOpen}
                 isCreator={isCreator}
