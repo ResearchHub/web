@@ -37,6 +37,7 @@ export interface Paper extends BaseContent {
 export interface Post extends BaseContent {
   type: 'post';
   summary: string;
+  postType: 'discussion' | 'question' | 'preregistration';
 }
 
 export type FundingRequestStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
@@ -161,6 +162,11 @@ const baseTransformContentObject = (params: { response: FeedResponse; type: stri
         type: 'post',
         title: contentObject.title,
         summary: contentObject.renderable_text,
+        postType: ['discussion', 'question', 'preregistration'].includes(
+          contentObject.post_type && contentObject.post_type.toLowerCase()
+        )
+          ? contentObject.post_type.toLowerCase()
+          : 'discussion',
       };
       return post;
     }
