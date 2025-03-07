@@ -24,6 +24,7 @@ export interface Bounty extends BaseContent {
   amount: number;
   paper?: Paper;
   title: string;
+  bountyType: 'review' | 'answer' | string;
 }
 
 export interface Paper extends BaseContent {
@@ -135,6 +136,9 @@ const baseTransformContentObject = (params: { response: FeedResponse; type: stri
         amount: contentObject.amount,
         paper: contentObject.paper,
         title: contentObject.title,
+        bountyType: contentObject.bounty_type
+          ? contentObject.bounty_type.toLowerCase()
+          : 'generic_comment',
       };
       return bounty;
     }
