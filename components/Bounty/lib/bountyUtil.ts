@@ -6,7 +6,9 @@ import { Bounty, BountyType } from '@/types/bounty';
  * @returns True if the bounty is open and not a contribution
  */
 export const isOpenBounty = (bounty: Bounty): boolean => {
-  return bounty.status === 'OPEN' && !bounty.isContribution;
+  // A bounty is not a contribution if it doesn't have a parent bounty
+  const isContribution = bounty.raw && !!bounty.raw.parent;
+  return bounty.status === 'OPEN' && !isContribution;
 };
 
 /**
@@ -15,7 +17,9 @@ export const isOpenBounty = (bounty: Bounty): boolean => {
  * @returns True if the bounty is closed and not a contribution
  */
 export const isClosedBounty = (bounty: Bounty): boolean => {
-  return bounty.status === 'CLOSED' && !bounty.isContribution;
+  // A bounty is not a contribution if it doesn't have a parent bounty
+  const isContribution = bounty.raw && !!bounty.raw.parent;
+  return bounty.status === 'CLOSED' && !isContribution;
 };
 
 /**
@@ -73,30 +77,78 @@ export const calculateOpenBountiesAmount = (bounties: Bounty[]): number => {
 };
 
 /**
- * Finds the first active (open and not a contribution) bounty in an array
+ * Finds the first active (open) bounty in an array
  * @param bounties Array of bounties to search
  * @returns The first active bounty or undefined if none found
  */
 export const findActiveBounty = (bounties: Bounty[]): Bounty | undefined => {
-  return bounties.find(isOpenBounty);
+  console.log('findActiveBounty input:', {
+    bounties,
+    isArray: Array.isArray(bounties),
+    length: bounties?.length || 0,
+  });
+
+  if (!bounties || bounties.length === 0) {
+    return undefined;
+  }
+
+  const activeBounty = bounties.find(isOpenBounty);
+  console.log('findActiveBounty result:', activeBounty?.id);
+  return activeBounty;
 };
 
 /**
- * Finds the first closed (not a contribution) bounty in an array
+ * Finds the first closed bounty in an array
  * @param bounties Array of bounties to search
  * @returns The first closed bounty or undefined if none found
  */
 export const findClosedBounty = (bounties: Bounty[]): Bounty | undefined => {
-  return bounties.find(isClosedBounty);
+  console.log('findClosedBounty input:', {
+    bounties,
+    isArray: Array.isArray(bounties),
+    length: bounties?.length || 0,
+  });
+
+  if (!bounties || bounties.length === 0) {
+    return undefined;
+  }
+
+  const closedBounty = bounties.find(isClosedBounty);
+  console.log('findClosedBounty result:', closedBounty?.id);
+  return closedBounty;
 };
 
 /**
- * Gets a display bounty - either the first active bounty or the first closed bounty if no active bounty exists
- * @param bounties Array of bounties to search
+ * Gets the bounty to display from an array of bounties
+ * @param bounties Array of bounties
  * @returns The display bounty or undefined if none found
  */
 export const getDisplayBounty = (bounties: Bounty[]): Bounty | undefined => {
-  return findActiveBounty(bounties) || findClosedBounty(bounties);
+  console.log('getDisplayBounty input:', {
+    bounties,
+    isArray: Array.isArray(bounties),
+    length: bounties?.length || 0,
+  });
+
+  if (!bounties || bounties.length === 0) {
+    console.log('getDisplayBounty: No bounties provided');
+    return undefined;
+  }
+
+  // Since we've restructured bounties to group contributions with their parent bounties,
+  // we should now have only main bounties in the array. We can simply find the first open one,
+  // or fall back to the first closed one.
+  const activeBounty = findActiveBounty(bounties);
+  const closedBounty = findClosedBounty(bounties);
+
+  console.log('getDisplayBounty results:', {
+    hasActiveBounty: !!activeBounty,
+    hasClosedBounty: !!closedBounty,
+    activeBountyId: activeBounty?.id,
+    closedBountyId: closedBounty?.id,
+  });
+
+  return activeBounty || closedBounty;
 };
 
 /**
@@ -210,11 +262,16 @@ export const formatContributorNames = (contributors: Contributor[]): string => {
 export const extractContributors = (bounties: Bounty[], displayBounty?: Bounty): Contributor[] => {
   return bounties
     .filter((bounty) => bounty.createdBy.authorProfile)
-    .map((bounty) => ({
-      profile: bounty.createdBy.authorProfile!,
-      amount: Number(bounty.amount),
-      isCreator: bounty.id === displayBounty?.id && !bounty.isContribution,
-    }));
+    .map((bounty) => {
+      // A bounty is not a contribution if it doesn't have a parent bounty
+      const isContribution = bounty.raw && !!bounty.raw.parent;
+
+      return {
+        profile: bounty.createdBy.authorProfile!,
+        amount: Number(bounty.amount),
+        isCreator: bounty.id === displayBounty?.id && !isContribution,
+      };
+    });
 };
 
 /**

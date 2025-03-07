@@ -1,6 +1,6 @@
-// Main components
+// Core components
 export { BountyCard } from './BountyCard';
-export { BountyCardAdapter } from './BountyCardAdapter';
+export { BountyCardWrapper } from './BountyCardWrapper';
 
 // Sub-components
 export { BountyActions } from './BountyActions';
@@ -8,5 +8,5 @@ export { BountyDetails } from './BountyDetails';
 export { BountyMetadataLine } from './BountyMetadataLine';
 export { BountySolutions } from './BountySolutions';
 
-// Utilities
+// Utils
 export * from './lib/bountyUtil';

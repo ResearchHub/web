@@ -1,75 +1,74 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ContentType } from '@/types/work';
 import { Bounty, BountyType } from '@/types/bounty';
 import { ID } from '@/types/root';
 import { ContentFormat } from '@/types/comment';
-import { useRouter } from 'next/navigation';
 
 // Components
-import { Button } from '@/components/ui/Button';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrophy } from '@fortawesome/pro-light-svg-icons';
 import { BountyDetails } from '@/components/Bounty/BountyDetails';
 import { BountyActions } from '@/components/Bounty/BountyActions';
 import { BountySolutions } from '@/components/Bounty/BountySolutions';
 import { BountyMetadataLine } from './BountyMetadataLine';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
-import { SolutionModal } from '@/components/Comment/SolutionModal';
 import { ContributorModal } from '@/components/modals/ContributorModal';
 import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
+import { contentRenderers } from '@/components/Feed/registry';
+import { useSession } from 'next-auth/react';
 
 // Utils
-import { buildWorkUrl } from '@/utils/url';
 import {
   isExpiringSoon,
   getBountyTitle,
-  calculateTotalBountyAmount,
-  calculateTotalAwardedAmount,
   extractContributors,
   filterOutCreator,
-  Contributor,
+  isOpenBounty,
 } from '@/components/Bounty/lib/bountyUtil';
 
-interface BountyCardProps {
-  // Core bounty data
-  bountyType?: BountyType;
-  totalBountyAmount: number;
-  expirationDate?: string;
-  isOpen: boolean;
-  isPeerReviewBounty?: boolean;
+import { ArrowUp, MessageCircle, Share, Edit2, Trash2, Flag } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+
+export interface SolutionViewEvent {
+  solutionId: ID;
+  authorName: string;
+  awardedAmount?: string;
+}
+
+export interface BountyCardProps {
+  // Bounty data
+  bounty: Bounty;
 
   // Content data
   content?: any;
   contentFormat?: ContentFormat;
 
   // Document data
-  documentId: number;
-  contentType: ContentType;
+  documentId?: number;
+  contentType?: ContentType;
   commentId?: number;
 
-  // Solutions data
-  solutions?: any[];
-  totalAwardedAmount?: number;
-
-  // Contributors data
-  contributors: Contributor[];
-
   // Callbacks
-  onSubmitSolution?: () => void;
   isCreator?: boolean;
   onBountyUpdated?: () => void;
+  onViewSolution?: (event: SolutionViewEvent) => void;
+  onNavigationClick?: (tab: 'reviews' | 'conversation') => void;
+  onUpvote?: (bountyId: number) => void;
+  onReply?: (bountyId: number) => void;
+  onShare?: (bountyId: number) => void;
+  onEdit?: (bountyId: number) => void;
+  onDelete?: (bountyId: number) => void;
 
   // Navigation
   slug?: string;
+
+  // Rendering options
+  showHeader?: boolean;
+  showFooter?: boolean;
+  showActions?: boolean;
 }
 
 export const BountyCard = ({
-  // Core bounty data
-  bountyType,
-  totalBountyAmount,
-  expirationDate,
-  isOpen,
-  isPeerReviewBounty = false,
+  // Bounty data
+  bounty,
 
   // Content data
   content,
@@ -80,64 +79,78 @@ export const BountyCard = ({
   contentType,
   commentId,
 
-  // Solutions data
-  solutions = [],
-  totalAwardedAmount = 0,
-
-  // Contributors data
-  contributors,
-
   // Callbacks
-  onSubmitSolution,
   isCreator = false,
   onBountyUpdated,
+  onViewSolution,
+  onNavigationClick,
+  onUpvote,
+  onReply,
+  onShare,
+  onEdit,
+  onDelete,
 
   // Navigation
   slug,
+
+  // Rendering options
+  showHeader = true,
+  showFooter = true,
+  showActions = true,
 }: BountyCardProps) => {
-  const [showAwardModal, setShowAwardModal] = useState(false);
   const [showContributorsModal, setShowContributorsModal] = useState(false);
   const [showContributeModal, setShowContributeModal] = useState(false);
-  const [selectedSolutionId, setSelectedSolutionId] = useState<ID | null>(null);
-  const [selectedSolutionAuthor, setSelectedSolutionAuthor] = useState<string>('');
-  const [selectedSolutionAwardedAmount, setSelectedSolutionAwardedAmount] = useState<string>('');
-  const router = useRouter();
-  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const [showAwardModal, setShowAwardModal] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const { data: session } = useSession();
 
-  // Handle navigation in useEffect to ensure it only runs client-side
-  useEffect(() => {
-    if (pendingNavigation) {
-      router.push(pendingNavigation);
-      setPendingNavigation(null);
-    }
-  }, [pendingNavigation, router]);
+  // Check if the current user is the author of the bounty
+  const isAuthor = session?.user?.id === bounty?.createdBy?.id;
 
-  const expiringSoon = isOpen && isExpiringSoon(expirationDate);
+  console.log('BountyCard props:', {
+    bountyId: bounty?.id,
+    bountyStatus: bounty?.status,
+    bountyType: bounty?.bountyType,
+    totalAmount: bounty?.totalAmount,
+    solutionsCount: bounty?.solutions?.length || 0,
+    contributionsCount: bounty?.contributions?.length || 0,
+    documentId,
+    contentType,
+    commentId,
+    showHeader,
+    showFooter,
+  });
 
-  // Check if there are any solutions for the closed bounty
-  const hasSolutions = !isOpen && solutions && solutions.length > 0;
+  // If no valid bounty is provided, don't render anything
+  if (!bounty) {
+    console.log('No valid bounty provided to BountyCard');
+    return null;
+  }
+
+  // Get the appropriate renderer from the registry
+  const renderer = contentRenderers.bounty || contentRenderers.default;
+
+  // Extract key properties from the bounty
+  const isOpen = bounty.status === 'OPEN';
+  const isPeerReviewBounty = bounty.bountyType === 'REVIEW';
+  const expiringSoon = isExpiringSoon(bounty.expirationDate);
+  const hasSolutions = bounty.solutions.length > 0;
+
+  // Get all contributors including the main bounty creator
+  const contributors = extractContributors([bounty], bounty);
+
+  // Get total amount from the bounty
+  const totalBountyAmount = parseFloat(bounty.totalAmount);
+
+  // Calculate total awarded amount
+  const totalAwardedAmount = bounty.solutions.reduce(
+    (total, solution) => total + (solution.awardedAmount ? parseFloat(solution.awardedAmount) : 0),
+    0
+  );
 
   const handleViewSolution = (solutionId: ID, authorName: string, awardedAmount?: string) => {
-    setSelectedSolutionId(solutionId);
-    setSelectedSolutionAuthor(authorName);
-    setSelectedSolutionAwardedAmount(awardedAmount || '');
-  };
-
-  const handleNavigationClick = (tab: 'reviews' | 'conversation') => {
-    // Set the pending navigation URL based on content type
-    if (contentType === 'paper') {
-      // For papers, use the buildWorkUrl function to get the base URL with slug
-      const baseUrl = buildWorkUrl({
-        id: documentId,
-        contentType: 'paper',
-        slug: slug || '',
-      });
-
-      // Navigate to the specified tab
-      setPendingNavigation(`${baseUrl}/${tab}`);
-    } else {
-      // For posts, navigate to the post page with optional tab
-      setPendingNavigation(`/post/${documentId}${tab === 'conversation' ? '/conversation' : ''}`);
+    if (onViewSolution) {
+      onViewSolution({ solutionId, authorName, awardedAmount });
     }
   };
 
@@ -146,109 +159,137 @@ export const BountyCard = ({
   };
 
   const handleContributeComplete = () => {
-    // Call the parent's onBountyUpdated callback if provided
+    setShowContributeModal(false);
     if (onBountyUpdated) {
       onBountyUpdated();
     }
   };
 
-  return (
-    <>
-      <div className="space-y-4 p-4">
-        {/* Bounty metadata in a single line */}
-        <BountyMetadataLine
-          bountyType={bountyType}
-          amount={totalBountyAmount}
-          expirationDate={expirationDate}
-          isOpen={isOpen}
-          expiringSoon={expiringSoon}
-        />
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
 
-        {/* Details section */}
-        {content && (
-          <div className="mt-6 pt-4 border-t border-gray-100">
-            <BountyDetails content={content} contentFormat={contentFormat} />
+  // Render the footer actions
+  const renderFooterActions = () => {
+    if (!showActions) return null;
+
+    return (
+      <div className="flex items-center justify-between mt-3">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-1.5"
+            onClick={() => onUpvote && onUpvote(bounty.id)}
+          >
+            <ArrowUp className="h-4 w-4" />
+            <span>Upvote</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-1.5"
+            onClick={() => onReply && onReply(bounty.id)}
+          >
+            <MessageCircle className="h-4 w-4" />
+            <span>Reply</span>
+          </Button>
+
+          {isAuthor && onEdit && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-1.5"
+              onClick={() => onEdit(bounty.id)}
+            >
+              <Edit2 className="h-4 w-4" />
+              <span>Edit</span>
+            </Button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          {isAuthor && onDelete && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-1.5 text-gray-500"
+              onClick={() => onDelete(bounty.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="sr-only">Delete</span>
+            </Button>
+          )}
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-1.5 text-gray-500"
+            onClick={() => onShare && onShare(bounty.id)}
+          >
+            <Share className="h-4 w-4" />
+            <span className="sr-only">Share</span>
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        {/* Header - only show if requested */}
+        {showHeader && (
+          <div className="p-4 border-b border-gray-200">
+            {renderer.renderHeader(bounty, { expiringSoon })}
           </div>
         )}
 
-        {/* Action buttons with contributors */}
-        <div className={`mt-6 ${isOpen ? 'flex items-center justify-between' : 'w-full'}`}>
-          {isOpen ? (
-            <div className="flex items-center justify-between w-full pt-4 border-t border-gray-200">
-              <BountyActions
-                isOpen={isOpen}
-                isCreator={isCreator}
-                isPeerReviewBounty={isPeerReviewBounty}
-                onAwardClick={() => setShowAwardModal(true)}
-                onNavigationClick={handleNavigationClick}
-                onContributeClick={handleContributeClick}
-              />
+        {/* Body - always show */}
+        <div className="p-4">
+          {/* Main content */}
+          {renderer.renderBody(bounty, {
+            isExpanded,
+            onToggleExpand: toggleExpand,
+          })}
 
-              {/* Contributors display */}
-              <div className="ml-4">
-                <ContributorsButton
-                  contributors={contributors}
-                  onContribute={handleContributeClick}
-                  label="Contributors"
-                />
-              </div>
-            </div>
-          ) : (
-            hasSolutions && (
-              <BountySolutions
-                solutions={solutions}
-                isPeerReviewBounty={isPeerReviewBounty}
-                totalAwardedAmount={totalAwardedAmount}
-                onViewSolution={handleViewSolution}
-              />
-            )
-          )}
+          {/* Content-specific actions */}
+          {renderer.renderContentActions(bounty, {
+            isExpanded,
+            onToggleExpand: toggleExpand,
+          })}
         </div>
       </div>
 
-      {/* Solution Modal */}
-      {selectedSolutionId && (
-        <SolutionModal
-          isOpen={!!selectedSolutionId}
-          onClose={() => {
-            setSelectedSolutionId(null);
-            setSelectedSolutionAuthor('');
-            setSelectedSolutionAwardedAmount('');
-          }}
-          commentId={selectedSolutionId}
-          documentId={documentId}
-          contentType={contentType}
-          solutionAuthorName={selectedSolutionAuthor}
-          awardedAmount={selectedSolutionAwardedAmount}
+      {/* Footer actions - moved outside the card */}
+      {showFooter && renderFooterActions()}
+
+      {/* Modals */}
+      {showContributorsModal && (
+        <ContributorModal
+          isOpen={showContributorsModal}
+          onClose={() => setShowContributorsModal(false)}
+          contributors={filterOutCreator(contributors)}
+          onContribute={handleContributeClick}
         />
       )}
 
-      {/* Contributors Modal */}
-      <ContributorModal
-        isOpen={showContributorsModal}
-        onClose={() => setShowContributorsModal(false)}
-        contributors={contributors.map(({ profile, amount }) => ({ profile, amount }))}
-        onContribute={handleContributeClick}
-      />
-
-      {/* Contribute Modal */}
-      {isOpen && commentId && (
+      {showContributeModal && (
         <ContributeBountyModal
           isOpen={showContributeModal}
-          onClose={() => {
-            setShowContributeModal(false);
-          }}
+          onClose={() => setShowContributeModal(false)}
           onContributeSuccess={handleContributeComplete}
-          commentId={commentId}
-          documentId={documentId}
-          contentType={contentType}
-          bountyTitle={getBountyTitle({ bountyType } as any, isOpen)}
-          bountyType={bountyType as BountyType}
+          commentId={commentId || 0}
+          documentId={documentId || 0}
+          contentType={contentType || 'paper'}
+          bountyTitle={getBountyTitle(bounty, isOpen)}
+          bountyType={bounty.bountyType}
           expirationDate={
-            expirationDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+            bounty.expirationDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
           }
         />
       )}
-    </>
+    </div>
   );
 };
