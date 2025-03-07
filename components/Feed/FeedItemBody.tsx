@@ -103,7 +103,9 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
       post.title ?? '',
       post.summary || '',
       isExpanded,
-      onToggleExpand
+      onToggleExpand,
+      undefined,
+      post.postType
     );
   };
 
@@ -124,7 +126,8 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
     summary: string,
     isExpanded: boolean,
     onToggleExpand: () => void,
-    journal?: Journal
+    journal?: Journal,
+    postType?: Post['postType']
   ) => {
     const truncateSummary = (summary: string, limit: number = 200) => {
       if (summary.length <= limit) return summary;
@@ -137,7 +140,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
       <div>
         <div className="flex items-center gap-2 mb-2">
           <div className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
-            {type}
+            {type === 'post' ? postType : type}
           </div>
           {journal && (
             <div
