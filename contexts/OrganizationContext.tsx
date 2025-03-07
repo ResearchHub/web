@@ -109,14 +109,6 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     fetchOrganizations();
   }, [session?.user?.id, status]);
 
-  useEffect(() => {
-    if (selectedOrg) {
-      fetchOrgUsers();
-    } else {
-      setOrgUsers(null);
-    }
-  }, [selectedOrg?.id]);
-
   const value = {
     organizations,
     selectedOrg,

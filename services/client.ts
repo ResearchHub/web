@@ -5,17 +5,41 @@ import { ApiError } from './types';
 
 export class ApiClient {
   private static readonly baseURL = process.env.NEXT_PUBLIC_API_URL;
+  private static globalAuthToken: string | null = null;
+
+  static setGlobalAuthToken(token: string | null) {
+    this.globalAuthToken = token;
+  }
+
+  static getGlobalAuthToken(): string | null {
+    return this.globalAuthToken;
+  }
 
   private static async getAuthToken() {
+    // First check if there's a global token set
+    if (this.globalAuthToken) {
+      return this.globalAuthToken;
+    }
+
     // For server-side requests
     if (typeof window === 'undefined') {
       const session = await getServerSession(authOptions);
-      return session?.authToken;
+      if (session?.authToken) {
+        // Set the global token when we first retrieve it from server session
+        this.globalAuthToken = session.authToken;
+        return session.authToken;
+      }
+    } else {
+      // For client-side requests
+      const session = await getSession();
+      if (session?.authToken) {
+        // Set the global token when we first retrieve it from client session
+        this.globalAuthToken = session.authToken;
+        return session.authToken;
+      }
     }
 
-    // For client-side requests
-    const session = await getSession();
-    return session?.authToken;
+    return null;
   }
 
   private static async getHeaders() {

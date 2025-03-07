@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState, useCallback, useEffect } from 'react';
+import { Fragment, useState, useCallback, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Avatar } from '@/components/ui/Avatar';
@@ -47,6 +47,7 @@ const UserRow = ({
   isRemovingUser,
   isUpdatingPermissions,
   currentUser,
+  isCurrentUserAdmin,
 }: {
   user: UserItem;
   index: number;
@@ -56,12 +57,12 @@ const UserRow = ({
   isRemovingUser: boolean;
   isUpdatingPermissions: boolean;
   currentUser: User | undefined;
+  isCurrentUserAdmin: boolean;
 }) => {
   const isCurrentUser = () => {
     if (!currentUser || user.type === 'invite') return false;
     return currentUser.id && currentUser.id.toString() === user.id.toString();
   };
-  console.log({ user, currentUser, 'isCurrentUser()': isCurrentUser() });
 
   return (
     <div key={user.id} className="flex items-center justify-between py-3 border-b border-gray-100">
@@ -84,7 +85,7 @@ const UserRow = ({
         {user.type === 'member' ? (
           isCurrentUser() ? (
             <div className="text-sm font-bold px-3">{user.role}</div>
-          ) : (
+          ) : isCurrentUserAdmin ? (
             <Dropdown
               anchor={index === totalCount - 1 ? 'top end' : 'bottom end'}
               trigger={
@@ -180,8 +181,10 @@ const UserRow = ({
                 </div>
               </DropdownItem>
             </Dropdown>
+          ) : (
+            <div className="text-sm font-medium px-3">{user.role}</div>
           )
-        ) : (
+        ) : isCurrentUserAdmin ? (
           <Button
             variant="ghost"
             size="sm"
@@ -198,6 +201,8 @@ const UserRow = ({
               'Cancel invitation'
             )}
           </Button>
+        ) : (
+          <div className="text-sm text-gray-500 px-3">Pending</div>
         )}
       </div>
     </div>
@@ -221,6 +226,16 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
   const [orgName, setOrgName] = useState(organization?.name || '');
   const [inviteEmail, setInviteEmail] = useState('');
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
+
+  const isCurrentUserAdmin = (() => {
+    if (!session?.user?.id || !orgUsers?.users) return false;
+
+    const currentUser = orgUsers.users.find(
+      (user) => user.id.toString() === session.user.id.toString()
+    );
+
+    return currentUser?.role === 'ADMIN';
+  })();
 
   useEffect(() => {
     setOrgName(organization?.name || '');
@@ -261,13 +276,15 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
   const handleUpdateOrganization = useCallback(async () => {
     try {
       if (!organization) throw new Error('Organization not found');
+      if (!isCurrentUserAdmin) throw new Error('Only admins can update organization details');
+
       await updateOrgDetails(organization.id.toString(), orgName);
       toast.success('Organization updated successfully');
       refreshOrganizationsSilently();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'An unknown error occurred');
     }
-  }, [updateOrgDetails, organization?.id, orgName]);
+  }, [updateOrgDetails, organization?.id, orgName, isCurrentUserAdmin]);
 
   const handleInviteUser = async () => {
     if (!isValidEmail(inviteEmail)) {
@@ -277,6 +294,11 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
 
     if (!organization) {
       toast.error('Organization not found');
+      return;
+    }
+
+    if (!isCurrentUserAdmin) {
+      toast.error('Only admins can invite users');
       return;
     }
 
@@ -293,6 +315,10 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
 
   const handleRemoveMember = async (userId: string) => {
     if (!organization) return;
+    if (!isCurrentUserAdmin) {
+      toast.error('Only admins can remove members');
+      return;
+    }
 
     setActiveUserId(userId);
 
@@ -321,6 +347,10 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
 
   const handleRoleChange = async (memberId: string, newRole: 'Admin' | 'Member') => {
     if (!organization) return;
+    if (!isCurrentUserAdmin) {
+      toast.error('Only admins can change user roles');
+      return;
+    }
 
     setActiveUserId(memberId);
 
@@ -405,7 +435,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
                           className="flex items-stretch gap-2"
                           onSubmit={(e) => {
                             e.preventDefault();
-                            if (!isUpdatingOrgName) {
+                            if (!isUpdatingOrgName && isCurrentUserAdmin) {
                               handleUpdateOrganization();
                             }
                           }}
@@ -416,6 +446,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
                             onChange={(e) => setOrgName(e.target.value)}
                             className="h-9"
                             wrapperClassName="w-full"
+                            disabled={!isCurrentUserAdmin}
                             error={orgName === '' ? 'Organization name is required' : ''}
                           />
                           <Button
@@ -423,7 +454,10 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
                             size="sm"
                             variant="secondary"
                             disabled={
-                              isUpdatingOrgName || !orgName.trim() || orgName === organization.name
+                              !isCurrentUserAdmin ||
+                              isUpdatingOrgName ||
+                              !orgName.trim() ||
+                              orgName === organization.name
                             }
                             className="flex-shrink-0 h-9 px-2"
                           >
@@ -466,40 +500,44 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
                   </div>
 
                   {/* Invite Users */}
-                  <div className="mb-8">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">
-                      Invite users (optional)
-                    </h3>
-                    <form
-                      className="flex gap-2"
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        handleInviteUser();
-                      }}
-                    >
-                      <Input
-                        placeholder="User's email"
-                        value={inviteEmail}
-                        onChange={(e) => setInviteEmail(e.target.value)}
-                        className="flex-grow min-w-[400px] h-9"
-                        disabled={isInvitingUser}
-                      />
-                      <Button
-                        type="submit"
-                        disabled={!inviteEmail.trim() || isInvitingUser}
-                        className="h-9"
+                  {isCurrentUserAdmin && (
+                    <div className="mb-8">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">
+                        Invite users (optional)
+                      </h3>
+                      <form
+                        className="flex gap-2"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          if (isCurrentUserAdmin) {
+                            handleInviteUser();
+                          }
+                        }}
                       >
-                        {isInvitingUser ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Inviting...
-                          </>
-                        ) : (
-                          'Invite'
-                        )}
-                      </Button>
-                    </form>
-                  </div>
+                        <Input
+                          placeholder="User's email"
+                          value={inviteEmail}
+                          onChange={(e) => setInviteEmail(e.target.value)}
+                          className="flex-grow min-w-[400px] h-9"
+                          disabled={isInvitingUser || !isCurrentUserAdmin}
+                        />
+                        <Button
+                          type="submit"
+                          disabled={!isCurrentUserAdmin || !inviteEmail.trim() || isInvitingUser}
+                          className="h-9"
+                        >
+                          {isInvitingUser ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Inviting...
+                            </>
+                          ) : (
+                            'Invite'
+                          )}
+                        </Button>
+                      </form>
+                    </div>
+                  )}
 
                   {/* Organization Users */}
                   <div>
@@ -514,7 +552,11 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
                             user={user}
                             index={index}
                             totalCount={allUsers.length}
-                            onRoleChange={user.type === 'member' ? handleRoleChange : undefined}
+                            onRoleChange={
+                              user.type === 'member' && isCurrentUserAdmin
+                                ? handleRoleChange
+                                : undefined
+                            }
                             onRemove={handleRemoveMember}
                             isRemovingUser={
                               (isRemovingUser || isRemovingInvitedUser) && activeUserId === user.id
@@ -523,6 +565,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
                               isUpdatingPermissions && activeUserId === user.id
                             }
                             currentUser={session?.user}
+                            isCurrentUserAdmin={isCurrentUserAdmin}
                           />
                         ))
                       ) : (

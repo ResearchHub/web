@@ -46,7 +46,7 @@ export default function JoinOrganizationPage() {
       toast.success(`Successfully joined ${organization.name}`);
 
       // Redirect to the organization page
-      router.push(`/organization/${organization.slug}`);
+      router.push(`/notebook/${organization.slug}`);
     } catch (error) {
       toast.error('Failed to join organization. The invitation may be invalid or expired.');
     }

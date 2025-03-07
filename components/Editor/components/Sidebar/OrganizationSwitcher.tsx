@@ -51,16 +51,18 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
 
   const trigger = (
     <button className="w-full flex items-center justify-between px-2 py-2 rounded-lg hover:bg-gray-100 transition-colors">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 min-w-0 flex-1">
         <Avatar
           src={selectedOrg.coverImage}
           alt={selectedOrg.name}
           size="sm"
-          className="bg-gradient-to-br from-indigo-500 to-purple-500"
+          className="bg-gradient-to-br from-indigo-500 to-purple-500 flex-shrink-0"
         />
-        <span className="font-medium truncate">{selectedOrg.name}</span>
+        <span className="font-medium truncate overflow-hidden text-ellipsis max-w-[150px]">
+          {selectedOrg.name}
+        </span>
       </div>
-      <ChevronDown className="h-4 w-4 text-gray-500" />
+      <ChevronDown className="h-4 w-4 text-gray-500 flex-shrink-0 ml-1" />
     </button>
   );
 
