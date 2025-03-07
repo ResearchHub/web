@@ -5,14 +5,14 @@ import { Comment, CommentType, UserVoteType } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
 import { CommentEditor } from './CommentEditor';
-import { CommentItemHeader } from './CommentItemHeader';
+import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { CommentItemActions } from './CommentItemActions';
 import { MessageCircle, ArrowUp, Flag, Edit2, Trash2 } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import 'highlight.js/styles/atom-one-dark.css';
 import hljs from 'highlight.js';
 import { CommentReadOnly } from './CommentReadOnly';
-import { BountyItem } from '@/components/Bounty/BountyItem';
+import { BountyCardAdapter } from '@/components/Bounty/BountyCardAdapter';
 import { useSession } from 'next-auth/react';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { formatRSC } from '@/utils/number';
@@ -30,6 +30,7 @@ import {
   isExpiringSoon,
 } from '@/components/Bounty/lib/bountyUtil';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { AwardBountyModal } from '@/components/Comment/AwardBountyModal';
 
 interface CommentItemProps {
   comment: Comment;
@@ -62,8 +63,10 @@ export const CommentItem = ({
     setEditingCommentId,
     setReplyingToCommentId,
     loading,
+    forceRefresh,
   } = useComments();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showAwardModal, setShowAwardModal] = useState(false);
 
   // Log component lifecycle
   useEffect(() => {
@@ -307,39 +310,32 @@ export const CommentItem = ({
           <>
             {/* Header with badges for bounty */}
             <div className="flex items-center justify-between w-full mb-3">
-              <CommentItemHeader
-                profileImage={displayBounty.createdBy?.authorProfile?.profileImage || null}
-                fullName={displayBounty.createdBy?.authorProfile?.fullName || 'Unknown User'}
-                profileUrl={displayBounty.createdBy?.authorProfile?.profileUrl || '#'}
-                date={comment.createdDate}
-                commentType="BOUNTY"
+              <FeedItemHeader
+                contentType="bounty"
+                timestamp={comment.createdDate}
+                author={{
+                  fullName: displayBounty.createdBy?.authorProfile?.fullName || 'Unknown User',
+                  profileImage: displayBounty.createdBy?.authorProfile?.profileImage || null,
+                  profileUrl: displayBounty.createdBy?.authorProfile?.profileUrl || '#',
+                }}
+                bountyAmount={totalAmount}
+                bountyStatus={expiringSoon ? 'expiring' : isOpen ? 'open' : 'closed'}
                 className="flex-grow"
               />
-              <div className="flex items-center gap-2 ml-2">
-                {/* Status badge - show for both open and closed bounties */}
-                <StatusBadge
-                  status={expiringSoon ? 'expiring' : isOpen ? 'open' : 'closed'}
-                  className="shadow-sm rounded-full"
-                  size="xs"
-                />
-                {/* RSC Amount */}
-                <RSCBadge
-                  amount={totalAmount}
-                  inverted={true}
-                  variant="badge"
-                  className="shadow-sm rounded-full h-[26px] flex items-center"
-                  size="xs"
-                />
-              </div>
             </div>
 
             <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <BountyItem
-                comment={comment}
+              <BountyCardAdapter
+                bounties={comment.bounties}
+                content={comment.content}
+                contentFormat={comment.contentFormat}
+                documentId={comment.thread.objectId}
                 contentType={contentType}
+                commentId={comment.id}
                 onSubmitSolution={() => setReplyingToCommentId(comment.id)}
                 isCreator={session?.user?.id === displayBounty?.createdBy?.id}
                 onBountyUpdated={() => onCommentUpdate && onCommentUpdate(comment)}
+                slug=""
               />
 
               {/* Show reply editor below the bounty content if replying */}
@@ -355,6 +351,25 @@ export const CommentItem = ({
                 </div>
               )}
             </div>
+
+            {/* Award Modal - only show for open bounties */}
+            {isOpen && (
+              <AwardBountyModal
+                isOpen={showAwardModal}
+                onClose={() => setShowAwardModal(false)}
+                comment={comment}
+                contentType={contentType}
+                onBountyUpdated={() => {
+                  // Refresh the comments using the context
+                  forceRefresh();
+
+                  // Also call the parent's onCommentUpdate if provided
+                  if (onCommentUpdate) {
+                    onCommentUpdate(comment);
+                  }
+                }}
+              />
+            )}
           </>
         );
       }
@@ -363,12 +378,14 @@ export const CommentItem = ({
     // For regular comments, render the content and optionally the reply editor
     return (
       <>
-        <CommentItemHeader
-          profileImage={comment.author?.profileImage}
-          fullName={comment.author?.fullName || 'Unknown User'}
-          profileUrl={comment.author?.profileUrl || '#'}
-          date={comment.createdDate}
-          commentType={comment.commentType}
+        <FeedItemHeader
+          contentType={comment.commentType?.toLowerCase() || 'comment'}
+          timestamp={comment.createdDate}
+          author={{
+            fullName: comment.author?.fullName || 'Unknown User',
+            profileImage: comment.author?.profileImage,
+            profileUrl: comment.author?.profileUrl || '#',
+          }}
           score={comment.score}
           className="mb-3"
         />

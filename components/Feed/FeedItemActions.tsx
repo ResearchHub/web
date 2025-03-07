@@ -42,7 +42,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({ metrics, content, ta
         tooltip="Comment"
         label="Comment"
       />
-      <ActionButton icon={Repeat} count={metrics?.reposts} tooltip="Repost" label="Repost" />
       <FeedItemMenu>
         <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
           <MoreHorizontal className="w-5 h-5" />
