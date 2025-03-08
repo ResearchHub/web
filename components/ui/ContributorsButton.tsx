@@ -12,6 +12,25 @@ type FlexibleProfile = {
   [key: string]: any; // Allow any additional properties
 };
 
+interface LabelBadgeProps {
+  count: number;
+  label: string;
+}
+
+// Extract the label badge as a separate component
+export function LabelBadge({ count, label }: LabelBadgeProps) {
+  // Use singular form if there's only one
+  const displayLabel = count === 1 ? label.replace(/s$/, '') : label;
+
+  return (
+    <div className="bg-indigo-100 rounded-full px-3 -ml-[11px] ring-2 ring-white shadow-sm z-10">
+      <span className="text-xs text-indigo-600 font-normal whitespace-nowrap">
+        {count} {displayLabel}
+      </span>
+    </div>
+  );
+}
+
 interface ContributorsButtonProps {
   contributors: Array<{
     profile: FlexibleProfile;
@@ -47,11 +66,7 @@ export function ContributorsButton({
           spacing={-10}
           ringColorClass="ring-white"
         />
-        <div className="bg-gray-100 rounded-full px-3 -ml-[11px] ring-2 ring-white shadow-sm z-10">
-          <span className="text-xs text-gray-500 font-normal whitespace-nowrap">
-            {contributors.length} {label}
-          </span>
-        </div>
+        <LabelBadge count={contributors.length} label={label} />
       </button>
 
       <ContributorModal

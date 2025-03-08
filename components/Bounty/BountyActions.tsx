@@ -25,7 +25,7 @@ export const BountyActions = ({
   }
 
   return (
-    <div className="flex flex-col gap-3 w-full">
+    <div className="flex flex-col gap-3">
       {isCreator ? (
         <>
           <div className="flex items-center gap-4">

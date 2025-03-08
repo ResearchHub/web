@@ -170,9 +170,6 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   // Determine if we should show the review stars
   const shouldShowReviewStars = contentType === 'review' && typeof score === 'number' && score > 0;
 
-  // Determine if we should show bounty metadata
-  const shouldShowBountyMetadata = contentType === 'bounty' && (bountyAmount || bountyStatus);
-
   return (
     <div className={cn('flex items-center justify-between w-full', className)}>
       <div className="flex items-center gap-3">
@@ -226,24 +223,6 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
       <div className="flex items-center gap-2">
         {/* Show review stars if applicable */}
         {shouldShowReviewStars && <ReadOnlyStars rating={score!} />}
-
-        {/* Show bounty metadata if applicable */}
-        {shouldShowBountyMetadata && (
-          <div className="flex items-center gap-2">
-            {bountyStatus && (
-              <StatusBadge status={bountyStatus} className="shadow-sm rounded-full" size="xs" />
-            )}
-            {bountyAmount && (
-              <RSCBadge
-                amount={bountyAmount}
-                inverted={true}
-                variant="badge"
-                className="shadow-sm rounded-full h-[26px] flex items-center"
-                size="xs"
-              />
-            )}
-          </div>
-        )}
 
         {/* Custom right element if provided */}
         {rightElement}

@@ -257,6 +257,37 @@ export const filterOutCreator = (contributors: Contributor[]): Contributor[] => 
 };
 
 /**
+ * Extracts contributors for display in the UI based on the following rules:
+ * 1. If there are no contributors (other than the creator), return an empty array
+ * 2. If there are one or more contributors, return both the creator and the contributors
+ *
+ * @param bounty The bounty to extract contributors from
+ * @returns Array of contributors for display
+ */
+export const extractContributorsForDisplay = (bounty: Bounty): Contributor[] => {
+  // Get all contributors including the main bounty creator
+  const allContributors = extractContributors([bounty], bounty);
+
+  // Find the creator
+  const creator = allContributors.find((c) => c.isCreator);
+
+  // Get contributors without the creator
+  const contributorsWithoutCreator = filterOutCreator(allContributors);
+
+  // Determine which contributors to display based on the rules
+  if (contributorsWithoutCreator.length > 0 && creator) {
+    // If there are contributors and a creator, show both
+    return [...contributorsWithoutCreator, creator];
+  } else if (contributorsWithoutCreator.length > 0) {
+    // If there are contributors but no creator, show just the contributors
+    return contributorsWithoutCreator;
+  }
+
+  // If there are no contributors besides the creator, return an empty array
+  return [];
+};
+
+/**
  * Checks if a comment has any bounties
  * @param comment The comment object to check
  * @returns Boolean indicating if the comment has any bounties

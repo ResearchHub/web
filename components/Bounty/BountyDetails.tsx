@@ -14,7 +14,7 @@ export const BountyDetails = ({ content, contentFormat }: BountyDetailsProps) =>
   return (
     <div>
       <div className="mb-3">
-        <div className="text-base font-semibold text-gray-600">Details</div>
+        <div className="text-md font-semibold text-gray-900">Bounty Details</div>
       </div>
       <div className="text-gray-600">
         <CommentReadOnly content={content} contentFormat={contentFormat} />

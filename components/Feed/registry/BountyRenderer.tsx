@@ -8,6 +8,20 @@ import { RSCBadge } from '@/components/ui/RSCBadge';
 import { ExpandableContent } from '../shared';
 import { ArrowUp, MessageCircle, Edit2, Trash2, Share } from 'lucide-react';
 
+// Import specialized Bounty components
+import { BountyDetails } from '@/components/Bounty/BountyDetails';
+import { BountyMetadataLine } from '@/components/Bounty/BountyMetadataLine';
+import { BountySolutions } from '@/components/Bounty/BountySolutions';
+import { BountyActions } from '@/components/Bounty/BountyActions';
+import { ContributorsButton } from '@/components/ui/ContributorsButton';
+import {
+  calculateTotalAwardedAmount,
+  extractContributors,
+  filterOutCreator,
+  isExpiringSoon,
+  extractContributorsForDisplay,
+} from '@/components/Bounty/lib/bountyUtil';
+
 /**
  * Format currency for display
  */
@@ -76,18 +90,6 @@ export const BountyRenderer: ContentRenderer<Bounty> = {
     // Create badges
     const badges = [];
 
-    // Add bounty type badge
-    if (bounty.bountyType) {
-      badges.push(
-        <div
-          key="type"
-          className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-        >
-          {bounty.bountyType}
-        </div>
-      );
-    }
-
     // Add contributions badge if there are any
     if (bounty.contributions && bounty.contributions.length > 0) {
       badges.push(
@@ -118,62 +120,53 @@ export const BountyRenderer: ContentRenderer<Bounty> = {
     const description = context?.commentContent || bounty.raw?.description || '';
     const contentFormat = context?.commentContentFormat;
 
+    // Determine bounty status
+    const isOpen = bounty.status === 'OPEN';
+    const expiringSoon = isExpiringSoon(bounty.expirationDate);
+
+    // Calculate total awarded amount for solutions
+    const totalAwardedAmount = calculateTotalAwardedAmount(bounty);
+
+    // Check if this is a peer review bounty
+    const isPeerReviewBounty = bounty.bountyType === 'REVIEW';
+
+    // Check if there are solutions
+    const hasSolutions = !isOpen && bounty.solutions && bounty.solutions.length > 0;
+
     return (
-      <div className="space-y-3">
-        {/* Badges */}
-        {badges.length > 0 && <div className="flex flex-wrap gap-2 mb-2">{badges}</div>}
+      <div className="space-y-4">
+        {/* Metadata Line with bounty type, deadline, and amount */}
+        <BountyMetadataLine
+          bountyType={bounty.bountyType}
+          amount={parseFloat(bounty.totalAmount)}
+          expirationDate={bounty.expirationDate}
+          isOpen={isOpen}
+          expiringSoon={expiringSoon}
+        />
 
-        {/* Expandable content */}
-        {description && (
-          <ExpandableContent
-            content={description}
-            isExpanded={isExpanded}
-            onToggleExpand={onToggleExpand}
-            maxLength={200}
-          />
-        )}
+        {/* Additional badges if any */}
+        {badges.length > 0 && <div className="flex flex-wrap gap-2 mt-3">{badges}</div>}
 
-        {/* Bounty amount */}
-        <div className="text-lg font-semibold text-green-600">
-          {formatCurrency(bounty.totalAmount)}
-        </div>
-
-        {/* Expiration date */}
-        {bounty.expirationDate && (
-          <div className="text-sm text-gray-500">
-            Expires: {new Date(bounty.expirationDate).toLocaleDateString()}
+        {/* Details section with bounty content */}
+        {description && contentFormat && (
+          <div className="mt-4">
+            <BountyDetails content={description} contentFormat={contentFormat} />
           </div>
         )}
 
-        {/* Contributions list */}
-        {bounty.contributions && bounty.contributions.length > 0 && (
-          <div className="mt-3 border-t pt-3">
-            <h4 className="text-sm font-medium mb-2">Contributions:</h4>
-            <ul className="space-y-2">
-              {bounty.contributions.map((contribution) => {
-                const contributor = extractContributorData(contribution);
-                return (
-                  <li
-                    key={contribution.id.toString()}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center">
-                      {contributor.profileImage && (
-                        <img
-                          src={contributor.profileImage}
-                          alt={contributor.fullName}
-                          className="w-6 h-6 rounded-full mr-2"
-                        />
-                      )}
-                      <span className="text-sm">{contributor.fullName}</span>
-                    </div>
-                    <span className="text-sm font-medium">
-                      {formatCurrency(contribution.amount)}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+        {/* Solutions section for closed bounties */}
+        {!isOpen && hasSolutions && (
+          <div className="mt-4">
+            <BountySolutions
+              solutions={bounty.solutions}
+              isPeerReviewBounty={isPeerReviewBounty}
+              totalAwardedAmount={totalAwardedAmount}
+              onViewSolution={(solutionId, authorName, awardedAmount) => {
+                if (options.onViewSolution) {
+                  options.onViewSolution(solutionId, authorName, awardedAmount);
+                }
+              }}
+            />
           </div>
         )}
       </div>
@@ -186,32 +179,46 @@ export const BountyRenderer: ContentRenderer<Bounty> = {
    */
   renderContentActions: (bounty, options = {}) => {
     const isOpen = bounty.status === 'OPEN';
-    const { onContribute, onViewSolution } = options;
+    const { onContribute, onViewSolution, onNavigationClick, isAuthor = false } = options;
+    const isPeerReviewBounty = bounty.bountyType === 'REVIEW';
+
+    // Get contributors for display using the helper function
+    const displayContributors = extractContributorsForDisplay(bounty);
+
+    // If the bounty is closed and has solutions, we'll show them in the body
+    if (!isOpen && bounty.solutions && bounty.solutions.length > 0) {
+      return null; // Solutions are rendered in the body
+    }
 
     return (
-      <div className="flex flex-wrap gap-2 mt-4">
-        {isOpen && (
-          <Button variant="default" size="sm" onClick={onContribute}>
-            Contribute
-          </Button>
-        )}
-
-        <Button
-          variant={isOpen ? 'secondary' : 'default'}
-          size="sm"
-          onClick={() => {
-            if (onViewSolution && bounty.solutions.length > 0) {
-              const solution = bounty.solutions[0];
-              onViewSolution(
-                solution.id,
-                solution.createdBy?.authorProfile?.fullName || 'Unknown',
-                solution.awardedAmount
-              );
+      <div className="mt-4 flex items-center justify-between">
+        <BountyActions
+          isOpen={isOpen}
+          isCreator={isAuthor}
+          isPeerReviewBounty={isPeerReviewBounty}
+          onAwardClick={() => {
+            if (options.onAward) {
+              options.onAward(bounty.id);
             }
           }}
-        >
-          {isOpen ? 'Submit Solution' : 'View Solutions'}
-        </Button>
+          onNavigationClick={(tab) => {
+            if (onNavigationClick) {
+              onNavigationClick(tab);
+            }
+          }}
+          onContributeClick={() => {
+            if (onContribute) {
+              onContribute();
+            }
+          }}
+        />
+
+        {/* Contributors Button - positioned all the way to the right */}
+        {displayContributors.length > 0 && (
+          <div className="flex-shrink-0">
+            <ContributorsButton contributors={displayContributors} onContribute={onContribute} />
+          </div>
+        )}
       </div>
     );
   },

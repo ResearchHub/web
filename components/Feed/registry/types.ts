@@ -26,6 +26,8 @@ export interface RenderOptions {
   expiringSoon?: boolean;
   onContribute?: () => void;
   onViewSolution?: (solutionId: any, authorName: string, awardedAmount?: string) => void;
+  onNavigationClick?: (tab: 'reviews' | 'conversation') => void;
+  onAward?: (id: number) => void;
 
   // Footer action callbacks
   onUpvote?: (id: number) => void;

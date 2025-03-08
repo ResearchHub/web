@@ -145,6 +145,10 @@ export const BountyCard = ({
           {renderer.renderBody(bounty, {
             isExpanded,
             onToggleExpand: toggleExpand,
+            context: {
+              commentContent: content,
+              commentContentFormat: contentFormat,
+            },
           })}
 
           {/* Content-specific actions */}
@@ -153,6 +157,14 @@ export const BountyCard = ({
             onToggleExpand: toggleExpand,
             onContribute: handleContributeClick,
             onViewSolution: handleViewSolution,
+            onNavigationClick,
+            isAuthor,
+            onAward: (id) => {
+              // Handle award action if needed
+              if (onBountyUpdated) {
+                onBountyUpdated();
+              }
+            },
           })}
         </div>
       </div>
