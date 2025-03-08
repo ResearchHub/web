@@ -24,6 +24,17 @@ export interface RenderOptions {
   context?: any;
   metrics?: any;
   expiringSoon?: boolean;
+  onContribute?: () => void;
+  onViewSolution?: (solutionId: any, authorName: string, awardedAmount?: string) => void;
+
+  // Footer action callbacks
+  onUpvote?: (id: number) => void;
+  onReply?: (id: number) => void;
+  onEdit?: (id: number) => void;
+  onDelete?: (id: number) => void;
+  onShare?: (id: number) => void;
+  onReport?: (id: number) => void;
+  isAuthor?: boolean;
 }
 
 /**

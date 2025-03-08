@@ -6,6 +6,7 @@ import { DefaultRenderer } from './DefaultRenderer';
 import Link from 'next/link';
 import { RSCBadge } from '@/components/ui/RSCBadge';
 import { ExpandableContent } from '../shared';
+import { ArrowUp, MessageCircle, Edit2, Trash2, Share } from 'lucide-react';
 
 /**
  * Format currency for display
@@ -185,16 +186,30 @@ export const BountyRenderer: ContentRenderer<Bounty> = {
    */
   renderContentActions: (bounty, options = {}) => {
     const isOpen = bounty.status === 'OPEN';
+    const { onContribute, onViewSolution } = options;
 
     return (
       <div className="flex flex-wrap gap-2 mt-4">
         {isOpen && (
-          <Button variant="default" size="sm">
+          <Button variant="default" size="sm" onClick={onContribute}>
             Contribute
           </Button>
         )}
 
-        <Button variant={isOpen ? 'secondary' : 'default'} size="sm">
+        <Button
+          variant={isOpen ? 'secondary' : 'default'}
+          size="sm"
+          onClick={() => {
+            if (onViewSolution && bounty.solutions.length > 0) {
+              const solution = bounty.solutions[0];
+              onViewSolution(
+                solution.id,
+                solution.createdBy?.authorProfile?.fullName || 'Unknown',
+                solution.awardedAmount
+              );
+            }
+          }}
+        >
           {isOpen ? 'Submit Solution' : 'View Solutions'}
         </Button>
       </div>
@@ -206,9 +221,79 @@ export const BountyRenderer: ContentRenderer<Bounty> = {
    * (e.g., "Upvote", "Reply", "Share" for all content types)
    */
   renderFooterActions: (bounty, options = {}) => {
-    // We're now handling footer actions in CommentRenderer for consistency
-    // This prevents duplicate footer actions
-    return null;
+    const {
+      showActions = true,
+      onUpvote,
+      onReply,
+      onEdit,
+      onDelete,
+      onShare,
+      isAuthor = false,
+    } = options;
+
+    if (!showActions) return null;
+
+    return (
+      <div className="flex items-center justify-between mt-3">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-1.5"
+            onClick={() => onUpvote && onUpvote(bounty.id)}
+          >
+            <ArrowUp className="h-4 w-4" />
+            <span>Upvote</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-1.5"
+            onClick={() => onReply && onReply(bounty.id)}
+          >
+            <MessageCircle className="h-4 w-4" />
+            <span>Reply</span>
+          </Button>
+
+          {isAuthor && onEdit && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-1.5"
+              onClick={() => onEdit(bounty.id)}
+            >
+              <Edit2 className="h-4 w-4" />
+              <span>Edit</span>
+            </Button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          {isAuthor && onDelete && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-1.5 text-gray-500"
+              onClick={() => onDelete(bounty.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="sr-only">Delete</span>
+            </Button>
+          )}
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-1.5 text-gray-500"
+            onClick={() => onShare && onShare(bounty.id)}
+          >
+            <Share className="h-4 w-4" />
+            <span className="sr-only">Share</span>
+          </Button>
+        </div>
+      </div>
+    );
   },
 
   getUrl: (bounty) => {

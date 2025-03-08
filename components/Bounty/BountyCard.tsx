@@ -1,15 +1,10 @@
 import { useState } from 'react';
 import { ContentType } from '@/types/work';
-import { Bounty, BountyType } from '@/types/bounty';
+import { Bounty } from '@/types/bounty';
 import { ID } from '@/types/root';
 import { ContentFormat } from '@/types/comment';
 
 // Components
-import { BountyDetails } from '@/components/Bounty/BountyDetails';
-import { BountyActions } from '@/components/Bounty/BountyActions';
-import { BountySolutions } from '@/components/Bounty/BountySolutions';
-import { BountyMetadataLine } from './BountyMetadataLine';
-import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { ContributorModal } from '@/components/modals/ContributorModal';
 import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
 import { contentRenderers } from '@/components/Feed/registry';
@@ -21,10 +16,8 @@ import {
   getBountyTitle,
   extractContributors,
   filterOutCreator,
-  isOpenBounty,
 } from '@/components/Bounty/lib/bountyUtil';
 
-import { ArrowUp, MessageCircle, Share, Edit2, Trash2, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 export interface SolutionViewEvent {
@@ -61,7 +54,6 @@ export interface BountyCardProps {
   slug?: string;
 
   // Rendering options
-  showHeader?: boolean;
   showFooter?: boolean;
   showActions?: boolean;
 }
@@ -94,7 +86,6 @@ export const BountyCard = ({
   slug,
 
   // Rendering options
-  showHeader = true,
   showFooter = true,
   showActions = true,
 }: BountyCardProps) => {
@@ -116,27 +107,10 @@ export const BountyCard = ({
 
   // Extract key properties from the bounty
   const isOpen = bounty.status === 'OPEN';
-  const isPeerReviewBounty = bounty.bountyType === 'REVIEW';
   const expiringSoon = isExpiringSoon(bounty.expirationDate);
-  const hasSolutions = bounty.solutions.length > 0;
 
   // Get all contributors including the main bounty creator
   const contributors = extractContributors([bounty], bounty);
-
-  // Get total amount from the bounty
-  const totalBountyAmount = parseFloat(bounty.totalAmount);
-
-  // Calculate total awarded amount
-  const totalAwardedAmount = bounty.solutions.reduce(
-    (total, solution) => total + (solution.awardedAmount ? parseFloat(solution.awardedAmount) : 0),
-    0
-  );
-
-  const handleViewSolution = (solutionId: ID, authorName: string, awardedAmount?: string) => {
-    if (onViewSolution) {
-      onViewSolution({ solutionId, authorName, awardedAmount });
-    }
-  };
 
   const handleContributeClick = () => {
     setShowContributeModal(true);
@@ -149,87 +123,22 @@ export const BountyCard = ({
     }
   };
 
+  const handleViewSolution = (solutionId: ID, authorName: string, awardedAmount?: string) => {
+    if (onViewSolution) {
+      onViewSolution({ solutionId, authorName, awardedAmount });
+    }
+  };
+
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
   };
 
-  // Render the footer actions
-  const renderFooterActions = () => {
-    if (!showActions) return null;
-
-    return (
-      <div className="flex items-center justify-between mt-3">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex items-center gap-1.5"
-            onClick={() => onUpvote && onUpvote(bounty.id)}
-          >
-            <ArrowUp className="h-4 w-4" />
-            <span>Upvote</span>
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex items-center gap-1.5"
-            onClick={() => onReply && onReply(bounty.id)}
-          >
-            <MessageCircle className="h-4 w-4" />
-            <span>Reply</span>
-          </Button>
-
-          {isAuthor && onEdit && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-1.5"
-              onClick={() => onEdit(bounty.id)}
-            >
-              <Edit2 className="h-4 w-4" />
-              <span>Edit</span>
-            </Button>
-          )}
-        </div>
-
-        <div className="flex items-center gap-3">
-          {isAuthor && onDelete && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-1.5 text-gray-500"
-              onClick={() => onDelete(bounty.id)}
-            >
-              <Trash2 className="h-4 w-4" />
-              <span className="sr-only">Delete</span>
-            </Button>
-          )}
-
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex items-center gap-1.5 text-gray-500"
-            onClick={() => onShare && onShare(bounty.id)}
-          >
-            <Share className="h-4 w-4" />
-            <span className="sr-only">Share</span>
-          </Button>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-3">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        {/* Header - only show if requested */}
-        {showHeader && (
-          <div className="p-4 border-b border-gray-200">
-            {renderer.renderHeader(bounty, { expiringSoon })}
-          </div>
-        )}
+      {/* Header - always shown */}
+      <div className="mb-2">{renderer.renderHeader(bounty, { expiringSoon })}</div>
 
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         {/* Body - always show */}
         <div className="p-4">
           {/* Main content */}
@@ -242,12 +151,23 @@ export const BountyCard = ({
           {renderer.renderContentActions(bounty, {
             isExpanded,
             onToggleExpand: toggleExpand,
+            onContribute: handleContributeClick,
+            onViewSolution: handleViewSolution,
           })}
         </div>
       </div>
 
-      {/* Footer actions - moved outside the card */}
-      {showFooter && renderFooterActions()}
+      {/* Footer actions - outside the card */}
+      {showFooter &&
+        renderer.renderFooterActions(bounty, {
+          showActions,
+          onUpvote,
+          onReply,
+          onEdit,
+          onDelete,
+          onShare,
+          isAuthor,
+        })}
 
       {/* Modals */}
       {showContributorsModal && (

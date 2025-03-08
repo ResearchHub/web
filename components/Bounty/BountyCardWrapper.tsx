@@ -38,7 +38,6 @@ interface BountyCardWrapperProps {
   slug?: string;
 
   // Rendering options
-  showHeader?: boolean;
   showFooter?: boolean;
   showActions?: boolean;
 }
@@ -66,7 +65,6 @@ export const BountyCardWrapper = ({
   onEdit,
   onDelete,
   slug,
-  showHeader = true,
   showFooter = true,
   showActions = true,
 }: BountyCardWrapperProps) => {
@@ -121,7 +119,6 @@ export const BountyCardWrapper = ({
         onEdit={onEdit}
         onDelete={onDelete}
         slug={slug}
-        showHeader={showHeader}
         showFooter={showFooter}
         showActions={showActions}
       />

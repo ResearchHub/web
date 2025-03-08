@@ -273,7 +273,6 @@ export const CommentItem = ({
             documentId={comment.thread?.objectId}
             contentType={contentType || 'paper'}
             commentId={comment.id}
-            showHeader={true}
             showFooter={true}
             showActions={renderCommentActions}
             onUpvote={() => handleVote('UPVOTE')}

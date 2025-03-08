@@ -3,8 +3,6 @@ import { Comment } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { contentRenderers } from '@/components/Feed/registry';
 import { CommentEditor } from './CommentEditor';
-import { ArrowUp, MessageCircle, Flag, Share, Edit2, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 import { useSession } from 'next-auth/react';
 
 interface CommentCardProps {
@@ -56,97 +54,17 @@ export const CommentCard: FC<CommentCardProps> = ({
 
   // Custom actions handler that includes reply functionality
   const renderFooterActionsWithReply = () => {
-    // Create a custom renderer that uses our callbacks
-    const customRenderer = {
-      ...renderer,
-      renderFooterActions: (commentData: Comment, options: { showActions?: boolean } = {}) => {
-        const { showActions = true } = options;
-
-        if (!showActions) return null;
-
-        const isBountyComment =
-          commentData.commentType === 'BOUNTY' ||
-          (commentData.bounties && commentData.bounties.length > 0);
-
-        // We now handle both regular and bounty comments here
-        return (
-          <div className="flex items-center justify-between mt-2">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex items-center gap-1.5"
-                onClick={() => onUpvote && onUpvote(commentData.id)}
-              >
-                <ArrowUp className="h-4 w-4" />
-                <span>Upvote</span>
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex items-center gap-1.5"
-                onClick={() => onReply && onReply(commentData.id)}
-              >
-                <MessageCircle className="h-4 w-4" />
-                <span>Reply</span>
-              </Button>
-
-              {isAuthor && onEdit && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="flex items-center gap-1.5"
-                  onClick={() => onEdit(commentData.id)}
-                >
-                  <Edit2 className="h-4 w-4" />
-                  <span>Edit</span>
-                </Button>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              {isAuthor && onDelete && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="flex items-center gap-1.5 text-gray-500"
-                  onClick={() => onDelete(commentData.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  <span className="sr-only">Delete</span>
-                </Button>
-              )}
-
-              {isBountyComment ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="flex items-center gap-1.5 text-gray-500"
-                  onClick={() => onShare && onShare(commentData.id)}
-                >
-                  <Share className="h-4 w-4" />
-                  <span className="sr-only">Share</span>
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="flex items-center gap-1.5 text-gray-500"
-                  onClick={() => onReport && onReport(commentData.id)}
-                >
-                  <Flag className="h-4 w-4" />
-                  <span className="sr-only">Report</span>
-                </Button>
-              )}
-            </div>
-          </div>
-        );
-      },
-    };
-
-    // First render the footer actions from the custom renderer
-    const footerActions = customRenderer.renderFooterActions(comment, { showActions });
+    // First render the footer actions from the renderer
+    const footerActions = renderer.renderFooterActions(comment, {
+      showActions,
+      onUpvote,
+      onReply,
+      onEdit,
+      onDelete,
+      onReport,
+      onShare,
+      isAuthor,
+    });
 
     // If we're in reply mode, add the reply editor
     if (isReplying && onSubmitReply) {
@@ -172,24 +90,27 @@ export const CommentCard: FC<CommentCardProps> = ({
   return (
     <div className="space-y-4">
       {/* Render the header */}
-      {renderer.renderHeader(comment)}
+      <div className="mb-2">{renderer.renderHeader(comment, {})}</div>
 
-      <div className="mt-2">
-        {/* Render the body */}
-        {renderer.renderBody(comment, {
-          isExpanded,
-          onToggleExpand: () => setIsExpanded(!isExpanded),
-        })}
+      {/* Render the card */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="p-4">
+          {/* Render the body */}
+          {renderer.renderBody(comment, {
+            isExpanded,
+            onToggleExpand: () => setIsExpanded(!isExpanded),
+          })}
 
-        {/* Render content actions */}
-        {renderer.renderContentActions(comment, {
-          isExpanded,
-          onToggleExpand: () => setIsExpanded(!isExpanded),
-        })}
-
-        {/* Render the footer actions with reply functionality */}
-        {showActions && <div className="mt-2">{renderFooterActionsWithReply()}</div>}
+          {/* Render content-specific actions */}
+          {renderer.renderContentActions(comment, {
+            isExpanded,
+            onToggleExpand: () => setIsExpanded(!isExpanded),
+          })}
+        </div>
       </div>
+
+      {/* Render footer actions with reply functionality */}
+      {renderFooterActionsWithReply()}
     </div>
   );
 };

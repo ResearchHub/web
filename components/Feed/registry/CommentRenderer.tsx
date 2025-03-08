@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { DefaultRenderer } from './DefaultRenderer';
 import { ExpandableContent } from '../shared';
 import { useState } from 'react';
-import { MessageCircle, ArrowUp, Flag, Edit2, Trash2 } from 'lucide-react';
+import { MessageCircle, ArrowUp, Flag, Edit2, Trash2, Share } from 'lucide-react';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { BountyRenderer } from './BountyRenderer';
 import { RSCBadge } from '@/components/ui/RSCBadge';
@@ -19,6 +19,7 @@ import {
 } from '@/components/Bounty/lib/bountyUtil';
 import { BountyCardWrapper } from '@/components/Bounty';
 import { contentRenderers } from '.';
+import { ReactNode } from 'react';
 
 /**
  * Renderer for comment content
@@ -63,7 +64,9 @@ export const CommentRenderer: ContentRenderer<Comment> = {
       <FeedItemHeader
         contentType={comment.commentType?.toLowerCase() || 'comment'}
         timestamp={comment.createdDate}
-        author={Array.isArray(authorData) ? authorData[0] : authorData}
+        author={
+          typeof authorData === 'object' && !Array.isArray(authorData) ? authorData : undefined
+        }
         score={score}
         action={metadata.action}
       />
@@ -80,14 +83,57 @@ export const CommentRenderer: ContentRenderer<Comment> = {
       return null;
     }
 
-    // For regular comments, render the content
+    // Helper function to safely render rating content
+    const renderRating = (): ReactNode => {
+      if (!('rating' in comment) || !comment.rating) {
+        return null;
+      }
+
+      return (
+        <div className="text-sm text-gray-700">
+          <span className="font-medium">Rating:</span> {String(comment.rating)}/5
+        </div>
+      );
+    };
+
+    // Helper function to safely render section ratings
+    const renderSectionRatings = (): ReactNode => {
+      if (
+        !('sectionRatings' in comment) ||
+        !comment.sectionRatings ||
+        typeof comment.sectionRatings !== 'object' ||
+        Object.keys(comment.sectionRatings).length === 0
+      ) {
+        return null;
+      }
+
+      return (
+        <div className="text-sm text-gray-700">
+          <h4 className="font-medium mb-1">Section Ratings:</h4>
+          <ul className="space-y-1">
+            {Object.entries(comment.sectionRatings).map(([section, rating]) => (
+              <li key={section}>
+                {section}: {String(rating)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    };
+
     return (
-      <div className="p-4 border border-gray-200 rounded-lg">
+      <div className="space-y-4">
         <CommentReadOnly
           content={comment.content}
           contentFormat={comment.contentFormat}
           contentType="paper" // Default content type
         />
+
+        {/* Rating if available */}
+        {renderRating()}
+
+        {/* Section ratings if available */}
+        {renderSectionRatings()}
       </div>
     );
   },
@@ -122,9 +168,95 @@ export const CommentRenderer: ContentRenderer<Comment> = {
    * (e.g., "Upvote", "Reply", "Flag" for comments)
    */
   renderFooterActions: (comment, options = {}) => {
-    // We're now handling footer actions in the cards themselves
-    // This prevents duplicate footer actions and ensures consistent behavior
-    return null;
+    const {
+      showActions = true,
+      onUpvote,
+      onReply,
+      onEdit,
+      onDelete,
+      onReport,
+      onShare,
+      isAuthor = false,
+    } = options;
+
+    if (!showActions) return null;
+
+    const isBountyComment =
+      comment.commentType === 'BOUNTY' || (comment.bounties && comment.bounties.length > 0);
+
+    return (
+      <div className="flex items-center justify-between mt-2">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-1.5"
+            onClick={() => onUpvote && onUpvote(comment.id)}
+          >
+            <ArrowUp className="h-4 w-4" />
+            <span>Upvote</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-1.5"
+            onClick={() => onReply && onReply(comment.id)}
+          >
+            <MessageCircle className="h-4 w-4" />
+            <span>Reply</span>
+          </Button>
+
+          {isAuthor && onEdit && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-1.5"
+              onClick={() => onEdit(comment.id)}
+            >
+              <Edit2 className="h-4 w-4" />
+              <span>Edit</span>
+            </Button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          {isAuthor && onDelete && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-1.5 text-gray-500"
+              onClick={() => onDelete(comment.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="sr-only">Delete</span>
+            </Button>
+          )}
+
+          {isBountyComment ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-1.5 text-gray-500"
+              onClick={() => onShare && onShare(comment.id)}
+            >
+              <Share className="h-4 w-4" />
+              <span className="sr-only">Share</span>
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-1.5 text-gray-500"
+              onClick={() => onReport && onReport(comment.id)}
+            >
+              <Flag className="h-4 w-4" />
+              <span className="sr-only">Report</span>
+            </Button>
+          )}
+        </div>
+      </div>
+    );
   },
 
   getUrl: (comment) => {
