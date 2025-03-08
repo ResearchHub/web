@@ -17,11 +17,11 @@ import {
   useRemoveUserFromOrg,
   useUpdateUserPermissions,
   useRemoveInvitedUserFromOrg,
+  useUpdateOrgCoverImage,
 } from '@/hooks/useOrganization';
 import { useSession } from 'next-auth/react';
 import { User } from '@/types/user';
-import { OrgCoverImgModal } from '@/components/modals/OrgCoverImgModal';
-import { Organization } from '@/types/organization';
+import { ImageUploadModal } from '@/components/modals/ImageUploadModal';
 
 interface OrganizationSettingsModalProps {
   isOpen: boolean;
@@ -229,6 +229,11 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
   const [{ isLoading: isUpdatingPermissions }, updateUserPermissions] = useUpdateUserPermissions();
   const [{ isLoading: isRemovingInvitedUser }, removeInvitedUserFromOrg] =
     useRemoveInvitedUserFromOrg();
+  const [
+    { isLoading: isUpdatingOrgCoverImage, error: updateOrgCoverImageError },
+    updateOrgCoverImage,
+  ] = useUpdateOrgCoverImage();
+
   const [orgName, setOrgName] = useState(organization?.name || '');
   const [inviteEmail, setInviteEmail] = useState('');
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
@@ -375,9 +380,17 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
     }
   };
 
-  const handleCoverImageSuccess = (updatedOrg: Organization) => {
-    refreshOrganizationsSilently();
-    setIsAvatarUploadOpen(false);
+  const handleUpdateOrgCoverImage = async (blob: Blob) => {
+    if (!organization) return Promise.reject(new Error('Organization not found'));
+
+    try {
+      const updatedOrg = await updateOrgCoverImage(organization.id.toString(), blob);
+      refreshOrganizationsSilently();
+      return updatedOrg;
+    } catch (error) {
+      console.error('Error updating cover image:', error);
+      throw error;
+    }
   };
 
   if (!organization) return null; // TODO render some loading state
@@ -612,11 +625,12 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
         </div>
       </Dialog>
       {isAvatarUploadOpen && (
-        <OrgCoverImgModal
+        <ImageUploadModal
           isOpen={isAvatarUploadOpen}
           onClose={() => setIsAvatarUploadOpen(false)}
-          orgId={organization.id.toString()}
-          onSuccess={handleCoverImageSuccess}
+          onSave={handleUpdateOrgCoverImage}
+          isLoading={isUpdatingOrgCoverImage}
+          error={updateOrgCoverImageError}
         />
       )}
     </Transition>

@@ -1,31 +1,28 @@
 'use client';
 
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState } from 'react';
+import { Dialog } from '@headlessui/react';
 import { X } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 import { toast } from 'react-hot-toast';
 import { AvatarUpload } from '@/components/AvatarUpload';
-import { OrganizationService } from '@/services/organization.service';
 
-// Add this at the top of the file to fix the TypeScript error
-declare module 'react-avatar-editor';
-
-interface OrgCoverImgModalProps {
+interface ImageUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  orgId: string;
-  onSuccess?: (updatedOrg: any) => void;
+  onSave: (imageBlob: Blob) => Promise<any>;
+  isLoading?: boolean;
+  error?: string | null;
+  title?: string;
 }
 
-export function OrgCoverImgModal({ isOpen, onClose, orgId, onSuccess }: OrgCoverImgModalProps) {
-  const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
+export function ImageUploadModal({
+  isOpen,
+  onClose,
+  onSave,
+  isLoading = false,
+  error = null,
+  title = 'Upload Image',
+}: ImageUploadModalProps) {
   const saveCoverImage = async (imageDataUrl: string) => {
-    setIsUploading(true);
-    setError(null);
-
     try {
       // Convert base64 to blob
       let byteCharacters;
@@ -43,22 +40,13 @@ export function OrgCoverImgModal({ isOpen, onClose, orgId, onSuccess }: OrgCover
       const byteArray = new Uint8Array(byteNumbers);
       const blob = new Blob([byteArray], { type: 'image/png' });
 
-      // Use the service to update the organization cover image
-      const updatedOrg = await OrganizationService.updateOrgCoverImage(orgId, blob);
+      await onSave(blob);
 
-      // Call onSuccess callback if provided
-      if (onSuccess) {
-        onSuccess(updatedOrg);
-      }
-
-      toast.success('Cover image updated successfully');
+      toast.success('Image updated successfully');
       onClose();
     } catch (error) {
-      console.error('Error updating cover image:', error);
-      setError(error instanceof Error ? error.message : 'Failed to update cover image');
-      toast.error('Failed to update cover image');
-    } finally {
-      setIsUploading(false);
+      console.error('Error updating image:', error);
+      toast.error('Failed to update image');
     }
   };
 
@@ -69,9 +57,7 @@ export function OrgCoverImgModal({ isOpen, onClose, orgId, onSuccess }: OrgCover
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <Dialog.Panel className="mx-auto max-w-md w-full rounded-lg bg-white shadow-lg">
           <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-            <Dialog.Title className="text-lg font-semibold text-gray-900">
-              Update Organization Cover Image
-            </Dialog.Title>
+            <Dialog.Title className="text-lg font-semibold text-gray-900">{title}</Dialog.Title>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-500"

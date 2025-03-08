@@ -10,7 +10,7 @@ import { Slider } from '@/components/ui/Slider';
 interface AvatarUploadProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (imageDataUrl: string) => void;
+  onSave: (imageDataUrl: string) => Promise<any>;
   initialImage?: string | null;
   className?: string;
 }
@@ -46,13 +46,13 @@ export const AvatarUpload = ({
     }
   };
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (editorRef.current && image) {
       setIsSaving(true);
       try {
         const canvas = editorRef.current.getImageScaledToCanvas();
         const dataUrl = canvas.toDataURL('image/png');
-        onSave(dataUrl);
+        await onSave(dataUrl);
       } catch (error) {
         console.error('Error saving image:', error);
       } finally {
@@ -61,14 +61,6 @@ export const AvatarUpload = ({
       }
     }
   }, [image, onSave, onClose]);
-
-  const handleZoomIn = () => {
-    setScale((prevScale) => Math.min(prevScale + 0.1, 2));
-  };
-
-  const handleZoomOut = () => {
-    setScale((prevScale) => Math.max(prevScale - 0.1, 1));
-  };
 
   const handleRotate = () => {
     setRotate((prevRotate) => prevRotate + 90);
@@ -80,7 +72,7 @@ export const AvatarUpload = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className={cn('bg-white rounded-lg p-6 max-w-md w-full', className)}>
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium">Upload Profile Picture</h3>
+          <h3 className="text-lg font-medium">Upload Picture</h3>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             <X className="h-5 w-5" />
           </button>
@@ -121,7 +113,7 @@ export const AvatarUpload = ({
                   onValueChange={(values) => setScale(values[0])}
                   className="w-full"
                 />
-                <div className="flex justify-center">
+                <div className="flex justify-center space-x-3">
                   <Button
                     onClick={handleRotate}
                     variant="outlined"
@@ -130,6 +122,15 @@ export const AvatarUpload = ({
                     tooltip="Rotate"
                   >
                     <RotateCw className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    variant="outlined"
+                    size="icon"
+                    className="rounded-full"
+                    tooltip="Change Image"
+                  >
+                    <Upload className="h-4 w-4" />
                   </Button>
                 </div>
               </div>

@@ -259,7 +259,7 @@ export class OrganizationService {
 
       const response = await ApiClient.patch<any>(`${this.BASE_PATH}/${orgId}/`, formData);
 
-      return transformOrganization(response.data);
+      return transformOrganization(response);
     } catch (error) {
       throw new OrganizationError(
         'Failed to update organization cover image',
