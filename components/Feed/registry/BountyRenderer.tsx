@@ -90,19 +90,6 @@ export const BountyRenderer: ContentRenderer<Bounty> = {
     // Create badges
     const badges = [];
 
-    // Add contributions badge if there are any
-    if (bounty.contributions && bounty.contributions.length > 0) {
-      badges.push(
-        <div
-          key="contributions"
-          className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
-        >
-          {bounty.contributions.length} Contribution
-          {bounty.contributions.length !== 1 ? 's' : ''}
-        </div>
-      );
-    }
-
     // Add solutions badge if there are any
     if (bounty.solutions && bounty.solutions.length > 0) {
       badges.push(
@@ -190,6 +177,38 @@ export const BountyRenderer: ContentRenderer<Bounty> = {
       return null; // Solutions are rendered in the body
     }
 
+    // Check if we have contributions to display
+    const hasContributions = bounty.contributions && bounty.contributions.length > 0;
+
+    // Debug log to help diagnose issues
+    console.log('BountyRenderer contributors:', {
+      bountyId: bounty.id,
+      hasContributions,
+      contributionsCount: bounty.contributions?.length || 0,
+      displayContributorsCount: displayContributors.length,
+    });
+
+    // Prepare contributors for display
+    const contributorsForDisplay =
+      displayContributors.length > 0
+        ? displayContributors
+        : hasContributions
+          ? bounty.contributions.map((contribution) => ({
+              profile: {
+                fullName:
+                  contribution.createdBy.authorProfile?.fullName ||
+                  (contribution.raw?.created_by?.author_profile
+                    ? `${contribution.raw.created_by.author_profile.first_name || ''} ${contribution.raw.created_by.author_profile.last_name || ''}`.trim()
+                    : 'Unknown'),
+                profileImage:
+                  contribution.createdBy.authorProfile?.profileImage ||
+                  contribution.raw?.created_by?.author_profile?.profile_image ||
+                  undefined,
+              },
+              amount: Number(contribution.amount),
+            }))
+          : [];
+
     return (
       <div className="mt-4 flex items-center justify-between">
         <BountyActions
@@ -214,9 +233,9 @@ export const BountyRenderer: ContentRenderer<Bounty> = {
         />
 
         {/* Contributors Button - positioned all the way to the right */}
-        {displayContributors.length > 0 && (
+        {hasContributions && contributorsForDisplay.length > 0 && (
           <div className="flex-shrink-0">
-            <ContributorsButton contributors={displayContributors} onContribute={onContribute} />
+            <ContributorsButton contributors={contributorsForDisplay} onContribute={onContribute} />
           </div>
         )}
       </div>

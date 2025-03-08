@@ -23,8 +23,8 @@ export function LabelBadge({ count, label }: LabelBadgeProps) {
   const displayLabel = count === 1 ? label.replace(/s$/, '') : label;
 
   return (
-    <div className="bg-indigo-100 rounded-full px-3 -ml-[11px] ring-2 ring-white shadow-sm z-10">
-      <span className="text-xs text-indigo-600 font-normal whitespace-nowrap">
+    <div className="bg-gray-100 rounded-full px-3 -ml-[11px] ring-2 ring-white shadow-sm z-10">
+      <span className="text-xs text-gray-900 font-normal whitespace-nowrap">
         {count} {displayLabel}
       </span>
     </div>
@@ -63,7 +63,7 @@ export function ContributorsButton({
           items={avatarItems}
           size="xs"
           maxItems={3}
-          spacing={-10}
+          spacing={-9}
           ringColorClass="ring-white"
         />
         <LabelBadge count={contributors.length} label={label} />

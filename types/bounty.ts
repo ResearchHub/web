@@ -85,7 +85,7 @@ export const groupBountiesWithContributions = (bounties: any[]): Bounty[] => {
 
     if (bounty.parent) {
       // This is a contribution
-      const parentId = bounty.parent;
+      const parentId = typeof bounty.parent === 'object' ? bounty.parent.id : bounty.parent;
       if (!contributions[parentId]) {
         contributions[parentId] = [];
       }

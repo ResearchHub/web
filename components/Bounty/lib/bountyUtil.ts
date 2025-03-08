@@ -265,26 +265,100 @@ export const filterOutCreator = (contributors: Contributor[]): Contributor[] => 
  * @returns Array of contributors for display
  */
 export const extractContributorsForDisplay = (bounty: Bounty): Contributor[] => {
-  // Get all contributors including the main bounty creator
-  const allContributors = extractContributors([bounty], bounty);
+  // Debug log to help diagnose issues
+  console.log('extractContributorsForDisplay input:', {
+    bountyId: bounty.id,
+    hasContributions: !!bounty.contributions && bounty.contributions.length > 0,
+    contributionsCount: bounty.contributions?.length || 0,
+    contributionsData: bounty.contributions?.map((c) => ({
+      id: c.id,
+      amount: c.amount,
+      createdById: c.createdBy?.id,
+      hasAuthorProfile: !!c.createdBy?.authorProfile,
+    })),
+  });
 
-  // Find the creator
-  const creator = allContributors.find((c) => c.isCreator);
-
-  // Get contributors without the creator
-  const contributorsWithoutCreator = filterOutCreator(allContributors);
-
-  // Determine which contributors to display based on the rules
-  if (contributorsWithoutCreator.length > 0 && creator) {
-    // If there are contributors and a creator, show both
-    return [...contributorsWithoutCreator, creator];
-  } else if (contributorsWithoutCreator.length > 0) {
-    // If there are contributors but no creator, show just the contributors
-    return contributorsWithoutCreator;
+  // If there are no contributions, return an empty array
+  if (!bounty.contributions || bounty.contributions.length === 0) {
+    return [];
   }
 
-  // If there are no contributors besides the creator, return an empty array
-  return [];
+  // Process contributions directly from the bounty.contributions array
+  const contributorsFromContributions = bounty.contributions.map((contribution) => {
+    // Get the name from the contribution's createdBy
+    let fullName = 'Unknown';
+    let profileImage: string | undefined = undefined;
+
+    // Try to get profile info from authorProfile if it exists
+    if (contribution.createdBy.authorProfile) {
+      fullName = contribution.createdBy.authorProfile.fullName || 'Unknown';
+      profileImage = contribution.createdBy.authorProfile.profileImage;
+    }
+    // Fallback to raw data if available
+    else if (contribution.raw?.created_by?.author_profile) {
+      const rawProfile = contribution.raw.created_by.author_profile;
+      fullName = `${rawProfile.first_name || ''} ${rawProfile.last_name || ''}`.trim() || 'Unknown';
+      profileImage = rawProfile.profile_image;
+    }
+
+    return {
+      profile: {
+        fullName,
+        profileImage,
+      },
+      amount: Number(contribution.amount),
+      isCreator: false,
+    };
+  });
+
+  // Add the creator as a contributor if not already included
+  let creatorFullName = 'Unknown';
+  let creatorProfileImage: string | undefined = undefined;
+
+  // Try to get creator profile info from authorProfile if it exists
+  if (bounty.createdBy.authorProfile) {
+    creatorFullName = bounty.createdBy.authorProfile.fullName || 'Unknown';
+    creatorProfileImage = bounty.createdBy.authorProfile.profileImage;
+  }
+  // Fallback to raw data if available
+  else if (bounty.raw?.created_by?.author_profile) {
+    const rawProfile = bounty.raw.created_by.author_profile;
+    creatorFullName =
+      `${rawProfile.first_name || ''} ${rawProfile.last_name || ''}`.trim() || 'Unknown';
+    creatorProfileImage = rawProfile.profile_image;
+  }
+
+  const creator: Contributor = {
+    profile: {
+      fullName: creatorFullName,
+      profileImage: creatorProfileImage,
+    },
+    amount: Number(bounty.amount),
+    isCreator: true,
+  };
+
+  // Check if the creator is already in the contributors list
+  const creatorAlreadyIncluded = contributorsFromContributions.some(
+    (c) => c.profile.fullName === creator.profile.fullName
+  );
+
+  // Return all contributors including the creator (if not already included)
+  const result = creatorAlreadyIncluded
+    ? contributorsFromContributions
+    : [...contributorsFromContributions, creator];
+
+  // Debug log the result
+  console.log('extractContributorsForDisplay result:', {
+    bountyId: bounty.id,
+    contributorsCount: result.length,
+    contributors: result.map((c) => ({
+      fullName: c.profile.fullName,
+      amount: c.amount,
+      isCreator: c.isCreator,
+    })),
+  });
+
+  return result;
 };
 
 /**
