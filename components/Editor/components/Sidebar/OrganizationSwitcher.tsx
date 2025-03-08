@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronDown, Settings, Check } from 'lucide-react';
+import { ChevronDown, Settings, Check, Lock } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import type { Organization } from '@/types/organization';
@@ -34,6 +34,7 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
   isLoading = false,
 }) => {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const isCurrentUserAdmin = selectedOrg?.userPermission?.accessType === 'ADMIN';
 
   if (isLoading || !selectedOrg) {
     return <OrganizationSwitcherSkeleton />;
@@ -103,10 +104,20 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
           variant="ghost"
           className="w-full justify-between px-3 py-2 h-auto"
           onClick={() => setIsSettingsModalOpen(true)}
+          disabled={!isCurrentUserAdmin}
+          title={!isCurrentUserAdmin ? 'Only admins can manage organization settings' : ''}
         >
           <div className="flex items-center gap-2">
-            <Settings className="h-4 w-4 text-gray-500 group-hover:text-gray-900" />
-            <span className="text-gray-600 group-hover:text-gray-900">Manage</span>
+            {isCurrentUserAdmin ? (
+              <Settings className="h-4 w-4 text-gray-500 group-hover:text-gray-900" />
+            ) : (
+              <Lock className="h-4 w-4 text-gray-400" />
+            )}
+            <span
+              className={`${isCurrentUserAdmin ? 'text-gray-600 group-hover:text-gray-900' : 'text-gray-400'}`}
+            >
+              Manage
+            </span>
           </div>
           <span className="text-xs text-gray-500 group-hover:text-gray-600 whitespace-nowrap">
             {selectedOrg.memberCount} {selectedOrg.memberCount === 1 ? 'member' : 'members'}
@@ -114,7 +125,7 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
         </Button>
       </div>
 
-      {selectedOrg && (
+      {selectedOrg && isCurrentUserAdmin && (
         <OrganizationSettingsModal
           isOpen={isSettingsModalOpen}
           onClose={() => setIsSettingsModalOpen(false)}

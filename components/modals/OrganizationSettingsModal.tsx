@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Avatar } from '@/components/ui/Avatar';
 import Image from 'next/image';
-import { Loader2, X } from 'lucide-react';
+import { Loader2, X, Camera } from 'lucide-react';
 import { isValidEmail } from '@/utils/validation';
 import { toast } from 'react-hot-toast';
 import { Dropdown, DropdownItem } from '../ui/form/Dropdown';
@@ -20,6 +20,8 @@ import {
 } from '@/hooks/useOrganization';
 import { useSession } from 'next-auth/react';
 import { User } from '@/types/user';
+import { OrgCoverImgModal } from '@/components/modals/OrgCoverImgModal';
+import { Organization } from '@/types/organization';
 
 interface OrganizationSettingsModalProps {
   isOpen: boolean;
@@ -230,6 +232,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
   const [orgName, setOrgName] = useState(organization?.name || '');
   const [inviteEmail, setInviteEmail] = useState('');
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
+  const [isAvatarUploadOpen, setIsAvatarUploadOpen] = useState(false);
 
   const isCurrentUserAdmin = (() => {
     if (!session?.user?.id || !orgUsers?.users) return false;
@@ -372,6 +375,11 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
     }
   };
 
+  const handleCoverImageSuccess = (updatedOrg: Organization) => {
+    refreshOrganizationsSilently();
+    setIsAvatarUploadOpen(false);
+  };
+
   if (!organization) return null; // TODO render some loading state
 
   return (
@@ -486,18 +494,35 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
                           </Button>
                         </form>
                       </div>
-                      <div className="w-40 h-40 bg-gray-100 rounded-lg border border-gray-200 overflow-hidden flex-shrink-0">
+                      <div
+                        className="w-40 h-40 bg-gray-100 rounded-full border border-gray-200 overflow-hidden flex-shrink-0 relative group cursor-pointer"
+                        onClick={() => isCurrentUserAdmin && setIsAvatarUploadOpen(true)}
+                      >
                         {organization.coverImage ? (
-                          <Image
-                            src={organization.coverImage}
-                            alt={organization.name}
-                            width={100}
-                            height={100}
-                            className="object-cover w-full h-full"
-                          />
+                          <>
+                            <Image
+                              src={organization.coverImage}
+                              alt={organization.name}
+                              width={100}
+                              height={100}
+                              className="object-cover w-full h-full"
+                            />
+                            {isCurrentUserAdmin && (
+                              <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-full">
+                                <Camera className="h-6 w-6 text-white" />
+                              </div>
+                            )}
+                          </>
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            <span>No Image</span>
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 rounded-full">
+                            {isCurrentUserAdmin ? (
+                              <div className="flex flex-col items-center">
+                                <Camera className="h-6 w-6 mb-1" />
+                                <span className="text-xs">Add Image</span>
+                              </div>
+                            ) : (
+                              <span>No Image</span>
+                            )}
                           </div>
                         )}
                       </div>
@@ -586,6 +611,14 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
           </div>
         </div>
       </Dialog>
+      {isAvatarUploadOpen && (
+        <OrgCoverImgModal
+          isOpen={isAvatarUploadOpen}
+          onClose={() => setIsAvatarUploadOpen(false)}
+          orgId={organization.id.toString()}
+          onSuccess={handleCoverImageSuccess}
+        />
+      )}
     </Transition>
   );
 }

@@ -237,4 +237,34 @@ export class OrganizationService {
       );
     }
   }
+
+  /**
+   * Updates an organization's cover image
+   * @param orgId - The ID of the organization
+   * @param coverImage - The cover image file to upload
+   * @returns The updated organization
+   * @throws {OrganizationError} When the request fails
+   */
+  static async updateOrgCoverImage(
+    orgId: string | number,
+    coverImage: File | Blob
+  ): Promise<Organization> {
+    if (!orgId || !coverImage) {
+      throw new OrganizationError('Missing required parameters', 'INVALID_PARAMS');
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('cover_image', coverImage);
+
+      const response = await ApiClient.patch<any>(`${this.BASE_PATH}/${orgId}/`, formData);
+
+      return transformOrganization(response.data);
+    } catch (error) {
+      throw new OrganizationError(
+        'Failed to update organization cover image',
+        error instanceof Error ? error.message : 'UNKNOWN_ERROR'
+      );
+    }
+  }
 }
