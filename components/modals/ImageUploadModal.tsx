@@ -73,6 +73,7 @@ export function ImageUploadModal({
               onClose={onClose}
               onSave={saveCoverImage}
               initialImage={null}
+              isLoading={isLoading}
             />
 
             {error && (

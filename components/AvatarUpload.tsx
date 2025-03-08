@@ -13,6 +13,7 @@ interface AvatarUploadProps {
   onSave: (imageDataUrl: string) => Promise<any>;
   initialImage?: string | null;
   className?: string;
+  isLoading?: boolean;
 }
 
 export const AvatarUpload = ({
@@ -21,11 +22,11 @@ export const AvatarUpload = ({
   onSave,
   initialImage,
   className,
+  isLoading,
 }: AvatarUploadProps) => {
   const [image, setImage] = useState<File | string | null>(initialImage || null);
   const [scale, setScale] = useState(1);
   const [rotate, setRotate] = useState(0);
-  const [isSaving, setIsSaving] = useState(false);
   const editorRef = useRef<AvatarEditor | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -48,7 +49,6 @@ export const AvatarUpload = ({
 
   const handleSave = useCallback(async () => {
     if (editorRef.current && image) {
-      setIsSaving(true);
       try {
         const canvas = editorRef.current.getImageScaledToCanvas();
         const dataUrl = canvas.toDataURL('image/png');
@@ -56,7 +56,6 @@ export const AvatarUpload = ({
       } catch (error) {
         console.error('Error saving image:', error);
       } finally {
-        setIsSaving(false);
         onClose();
       }
     }
@@ -163,10 +162,10 @@ export const AvatarUpload = ({
           </Button>
           <Button
             onClick={handleSave}
-            disabled={!image || isSaving}
+            disabled={!image || isLoading}
             className="bg-indigo-600 hover:bg-indigo-700 text-white"
           >
-            {isSaving ? 'Saving...' : 'Save'}
+            {isLoading ? 'Saving...' : 'Save'}
           </Button>
         </div>
       </div>
