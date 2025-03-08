@@ -52,6 +52,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
       }
       // If we can't find the org in the URL and we have a default, use that
       else if (!orgFromUrl && newDefaultOrg && !selectedOrg) {
+        //TODO: we need to redirect client to the new default org
         orgToSelect = newDefaultOrg;
       }
 

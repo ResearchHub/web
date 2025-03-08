@@ -11,6 +11,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { useTransition } from 'react';
 
 export default function JoinOrganizationPage() {
   const params = useParams();
@@ -19,6 +21,8 @@ export default function JoinOrganizationPage() {
   const [{ isLoading: isAccepting }, acceptOrgInvite] = useAcceptOrgInvite();
   const [{ data: organization, isLoading: isFetching, error }, fetchOrgByInviteToken] =
     useFetchOrgByInviteToken();
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const [isPending, startTransition] = useTransition();
 
   const token = params.token as string;
 
@@ -45,8 +49,10 @@ export default function JoinOrganizationPage() {
       await acceptOrgInvite(token);
       toast.success(`Successfully joined ${organization.name}`);
 
-      // Redirect to the organization page
-      router.push(`/notebook/${organization.slug}`);
+      // Use startTransition for the navigation
+      startTransition(() => {
+        router.push(`/notebook/${organization.slug}`);
+      });
     } catch (error) {
       toast.error('Failed to join organization. The invitation may be invalid or expired.');
     }
@@ -117,16 +123,16 @@ export default function JoinOrganizationPage() {
 
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Join {organization.name}</h1>
         <p className="text-gray-600 mb-8">
-          You have been invited to join <strong>{organization.name}</strong>. Click the button below
-          to accept the invitation.
+          You have been invited to join <strong>{organization.name}</strong>.
+          {status === 'authenticated' && <>Click the button below to accept the invitation.</>}
         </p>
 
         {status === 'authenticated' ? (
-          <Button onClick={handleJoinOrg} disabled={isAccepting} className="w-full">
-            {isAccepting ? (
+          <Button onClick={handleJoinOrg} disabled={isAccepting || isPending} className="w-full">
+            {isAccepting || isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Joining...
+                {isAccepting ? 'Joining...' : 'Loading...'}
               </>
             ) : (
               'Join Organization'
@@ -134,10 +140,12 @@ export default function JoinOrganizationPage() {
           </Button>
         ) : (
           <div className="space-y-4 w-full">
-            <p className="text-sm text-gray-500">You need to sign in to join this organization</p>
-            <Link href={`/auth/signin?callbackUrl=${encodeURIComponent(`/org/join/${token}`)}`}>
-              <Button className="w-full">Sign in to join</Button>
-            </Link>
+            <p className="text-sm text-gray-500 mb-4">
+              You need to sign in to join this organization
+            </p>
+            <Button onClick={() => executeAuthenticatedAction(handleJoinOrg)} className="w-full">
+              Sign in to join
+            </Button>
           </div>
         )}
       </div>

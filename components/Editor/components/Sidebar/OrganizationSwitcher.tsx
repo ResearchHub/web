@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronDown, Settings } from 'lucide-react';
+import { ChevronDown, Settings, Check } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import type { Organization } from '@/types/organization';
@@ -70,19 +70,31 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
     <div className="p-4 border-b border-gray-200">
       <div className="relative">
         <BaseMenu trigger={trigger} align="start" className="w-full" sameWidth>
-          {organizations.map((org) => (
-            <BaseMenuItem key={org.id} onClick={() => handleOrgSelect(org)}>
-              <div className="flex items-center gap-2 w-full">
-                <Avatar
-                  src={org.coverImage}
-                  alt={org.name}
-                  size="sm"
-                  className="bg-gradient-to-br from-indigo-500 to-purple-500"
-                />
-                <span className="font-medium truncate">{org.name}</span>
-              </div>
-            </BaseMenuItem>
-          ))}
+          {organizations.map((org) => {
+            const isSelected = org.slug === selectedOrg?.slug;
+            return (
+              <BaseMenuItem
+                key={org.id}
+                onClick={() => handleOrgSelect(org)}
+                className={isSelected ? 'bg-gray-50 cursor-default' : ''}
+              >
+                <div className="flex items-center gap-2 w-full justify-between">
+                  <div className="flex items-center gap-2 w-full">
+                    <Avatar
+                      src={org.coverImage}
+                      alt={org.name}
+                      size="sm"
+                      className="bg-gradient-to-br from-indigo-500 to-purple-500 flex-shrink-0"
+                    />
+                    <span className={`font-medium truncate ${isSelected ? 'text-indigo-600' : ''}`}>
+                      {org.name}
+                    </span>
+                    {isSelected && <Check className="h-4 w-4 text-indigo-600" />}
+                  </div>
+                </div>
+              </BaseMenuItem>
+            );
+          })}
         </BaseMenu>
       </div>
 

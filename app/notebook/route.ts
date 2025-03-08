@@ -51,31 +51,40 @@ export async function GET(request: Request) {
   // Get URL and search params
   const { searchParams } = new URL(request.url);
   const isNewFunding = searchParams.get('newFunding') === 'true';
+  const requestedOrgSlug = searchParams.get('orgSlug');
 
   const organizations = await OrganizationService.getUserOrganizations(session);
   if (!organizations || organizations.length === 0) {
     throw new Error('No organizations found. Please create or join an organization first.');
   }
 
-  const defaultOrg = organizations[0];
-  if (!defaultOrg) {
-    throw new Error('No default organization found');
+  let selectedOrg = organizations[0];
+  if (requestedOrgSlug) {
+    const matchingOrg = organizations.find((org) => org.slug === requestedOrgSlug);
+    if (matchingOrg) {
+      selectedOrg = matchingOrg;
+    }
+  }
+
+  if (!selectedOrg) {
+    throw new Error('No organization found');
   }
 
   if (isNewFunding) {
-    return createNoteWithContent(defaultOrg.slug, {
+    return createNoteWithContent(selectedOrg.slug, {
       template: preregistrationTemplate,
       isNewFunding: true,
     });
   }
 
-  const notes = await NoteService.getOrganizationNotes(defaultOrg.slug);
+  console.log('selectedOrg', selectedOrg);
+  const notes = await NoteService.getOrganizationNotes(selectedOrg.slug);
 
   if (notes.results.length === 0) {
-    return createNoteWithContent(defaultOrg.slug, {
+    return createNoteWithContent(selectedOrg.slug, {
       template: initialContent,
     });
   }
 
-  redirect(`/notebook/${defaultOrg.slug}/${notes.results[0].id}`);
+  redirect(`/notebook/${selectedOrg.slug}/${notes.results[0].id}`);
 }

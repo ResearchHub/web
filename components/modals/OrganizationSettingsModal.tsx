@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/form/Input';
 import { Avatar } from '@/components/ui/Avatar';
 import Image from 'next/image';
 import { Loader2, X } from 'lucide-react';
-import type { Organization } from '@/types/organization';
 import { isValidEmail } from '@/utils/validation';
 import { toast } from 'react-hot-toast';
 import { Dropdown, DropdownItem } from '../ui/form/Dropdown';
@@ -74,7 +73,12 @@ const UserRow = ({
           className="bg-gradient-to-br from-indigo-500 to-purple-500"
         />
         <div>
-          <div className="font-medium">{`${user.fullName}${isCurrentUser() ? ' (You)' : ''}`}</div>
+          <div className="font-medium">
+            {user.fullName}
+            {isCurrentUser() && (
+              <span className="ml-1 text-indigo-600 font-semibold italic text-sm">(You)</span>
+            )}
+          </div>
           <div className="text-sm text-gray-500">{user.email}</div>
           {user.type === 'invite' && (
             <div className="text-xs text-amber-600 mt-1">Pending invitation</div>
@@ -313,7 +317,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
     }
   };
 
-  const handleRemoveMember = async (userId: string) => {
+  const handleRemove = async (userId: string) => {
     if (!organization) return;
     if (!isCurrentUserAdmin) {
       toast.error('Only admins can remove members');
@@ -442,6 +446,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
                         >
                           <Input
                             id="orgName"
+                            autoComplete="off"
                             value={orgName}
                             onChange={(e) => setOrgName(e.target.value)}
                             className="h-9"
@@ -557,7 +562,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
                                 ? handleRoleChange
                                 : undefined
                             }
-                            onRemove={handleRemoveMember}
+                            onRemove={handleRemove}
                             isRemovingUser={
                               (isRemovingUser || isRemovingInvitedUser) && activeUserId === user.id
                             }
