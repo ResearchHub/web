@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrophy, faClock } from '@fortawesome/pro-light-svg-icons';
 import { Badge } from '@/components/ui/Badge';
 import { RSCBadge } from '@/components/ui/RSCBadge';
+import { RadiatingDot } from '@/components/ui/RadiatingDot';
 
 interface BountyMetadataLineProps {
   bountyType?: string;
@@ -84,12 +85,9 @@ export const BountyMetadataLine = ({
 
       {/* Deadline and RSC amount */}
       <div className="flex items-center gap-3">
-        {/* Deadline */}
+        {/* Deadline with RadiatingDot */}
         <div className="flex items-center gap-2">
-          <FontAwesomeIcon
-            icon={faClock}
-            className={`h-4 w-4 ${expiringSoon ? 'text-orange-600' : 'text-gray-600'}`}
-          />
+          <RadiatingDot size={16} dotSize={8} isRadiating={isOpen} className="flex-shrink-0" />
           <span className={`${expiringSoon ? 'text-orange-600 font-medium' : 'text-gray-700'}`}>
             {deadlineText}
           </span>
