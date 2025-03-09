@@ -289,3 +289,50 @@ export const useFetchOrgByInviteToken = () => {
 
   return [{ data, isLoading, error }, fetchOrgByInviteToken] as const;
 };
+
+interface UseUpdateOrgCoverImageState {
+  data: Organization | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+type UpdateOrgCoverImageFn = (
+  orgId: string | number,
+  coverImage: File | Blob
+) => Promise<Organization>;
+type UseUpdateOrgCoverImageReturn = [UseUpdateOrgCoverImageState, UpdateOrgCoverImageFn];
+
+/**
+ * Hook for updating an organization's cover image
+ * @returns A tuple containing the state and update function
+ */
+export const useUpdateOrgCoverImage = (): UseUpdateOrgCoverImageReturn => {
+  const [data, setData] = useState<Organization | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const updateOrgCoverImage = async (
+    orgId: string | number,
+    coverImage: File | Blob
+  ): Promise<Organization> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await OrganizationService.updateOrgCoverImage(orgId, coverImage);
+      setData(response);
+      return response;
+    } catch (err) {
+      const errorMsg =
+        err instanceof OrganizationError
+          ? err.message
+          : 'Failed to update organization cover image';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return [{ data, isLoading, error }, updateOrgCoverImage];
+};

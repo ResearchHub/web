@@ -9,6 +9,7 @@ const nextConfig = {
       'storage.prod.researchhub.com',
       'pbs.twimg.com',
       'lh3.googleusercontent.com',
+      'storage.staging.researchhub.com',
     ],
   },
   productionBrowserSourceMaps: process.env.VERCEL_ENV === 'preview',

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Avatar } from '@/components/ui/Avatar';
 import Image from 'next/image';
-import { Loader2, X } from 'lucide-react';
+import { Loader2, X, Camera, ChevronDown, Check } from 'lucide-react';
 import { isValidEmail } from '@/utils/validation';
 import { toast } from 'react-hot-toast';
 import { Dropdown, DropdownItem } from '../ui/form/Dropdown';
@@ -17,16 +17,17 @@ import {
   useRemoveUserFromOrg,
   useUpdateUserPermissions,
   useRemoveInvitedUserFromOrg,
+  useUpdateOrgCoverImage,
 } from '@/hooks/useOrganization';
 import { useSession } from 'next-auth/react';
 import { User } from '@/types/user';
+import { ImageUploadModal } from '@/components/modals/ImageUploadModal';
 
 interface OrganizationSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-// First, let's define a type for our user items
 type UserItem = {
   id: string;
   fullName: string;
@@ -36,7 +37,6 @@ type UserItem = {
   type: 'member' | 'invite';
 };
 
-// Create a component for rendering a user row
 const UserRow = ({
   user,
   index,
@@ -107,13 +107,7 @@ const UserRow = ({
                   ) : (
                     <>
                       {user.role}
-                      <svg
-                        className="ml-2 h-4 w-4 fill-current"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                      </svg>
+                      <ChevronDown className="ml-2 h-4 w-4" />
                     </>
                   )}
                 </Button>
@@ -127,21 +121,7 @@ const UserRow = ({
               >
                 <div className="flex items-center gap-2">
                   <span>Admin</span>
-                  {user.role === 'Admin' && (
-                    <svg
-                      className="h-4 w-4 text-indigo-500"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  )}
+                  {user.role === 'Admin' && <Check className="h-4 w-4 text-indigo-500" />}
                 </div>
               </DropdownItem>
               <DropdownItem
@@ -151,21 +131,7 @@ const UserRow = ({
               >
                 <div className="flex items-center gap-2">
                   <span>Member</span>
-                  {user.role === 'Member' && (
-                    <svg
-                      className="h-4 w-4 text-indigo-500"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  )}
+                  {user.role === 'Member' && <Check className="h-4 w-4 text-indigo-500" />}
                 </div>
               </DropdownItem>
               <div className="border-t border-gray-100 my-1"></div>
@@ -227,9 +193,15 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
   const [{ isLoading: isUpdatingPermissions }, updateUserPermissions] = useUpdateUserPermissions();
   const [{ isLoading: isRemovingInvitedUser }, removeInvitedUserFromOrg] =
     useRemoveInvitedUserFromOrg();
+  const [
+    { isLoading: isUpdatingOrgCoverImage, error: updateOrgCoverImageError },
+    updateOrgCoverImage,
+  ] = useUpdateOrgCoverImage();
+
   const [orgName, setOrgName] = useState(organization?.name || '');
   const [inviteEmail, setInviteEmail] = useState('');
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
+  const [isAvatarUploadOpen, setIsAvatarUploadOpen] = useState(false);
 
   const isCurrentUserAdmin = (() => {
     if (!session?.user?.id || !orgUsers?.users) return false;
@@ -372,6 +344,19 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
     }
   };
 
+  const handleUpdateOrgCoverImage = async (blob: Blob) => {
+    if (!organization) return Promise.reject(new Error('Organization not found'));
+
+    try {
+      const updatedOrg = await updateOrgCoverImage(organization.id.toString(), blob);
+      refreshOrganizationsSilently();
+      return updatedOrg;
+    } catch (error) {
+      console.error('Error updating cover image:', error);
+      throw error;
+    }
+  };
+
   if (!organization) return null; // TODO render some loading state
 
   return (
@@ -486,18 +471,35 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
                           </Button>
                         </form>
                       </div>
-                      <div className="w-40 h-40 bg-gray-100 rounded-lg border border-gray-200 overflow-hidden flex-shrink-0">
+                      <div
+                        className="w-40 h-40 bg-gray-100 rounded-full border border-gray-200 overflow-hidden flex-shrink-0 relative group cursor-pointer"
+                        onClick={() => isCurrentUserAdmin && setIsAvatarUploadOpen(true)}
+                      >
                         {organization.coverImage ? (
-                          <Image
-                            src={organization.coverImage}
-                            alt={organization.name}
-                            width={100}
-                            height={100}
-                            className="object-cover w-full h-full"
-                          />
+                          <>
+                            <Image
+                              src={organization.coverImage}
+                              alt={organization.name}
+                              width={100}
+                              height={100}
+                              className="object-cover w-full h-full"
+                            />
+                            {isCurrentUserAdmin && (
+                              <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-full">
+                                <Camera className="h-6 w-6 text-white" />
+                              </div>
+                            )}
+                          </>
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            <span>No Image</span>
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 rounded-full">
+                            {isCurrentUserAdmin ? (
+                              <div className="flex flex-col items-center">
+                                <Camera className="h-6 w-6 mb-1" />
+                                <span className="text-xs">Add Image</span>
+                              </div>
+                            ) : (
+                              <span>No Image</span>
+                            )}
                           </div>
                         )}
                       </div>
@@ -586,6 +588,15 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
           </div>
         </div>
       </Dialog>
+      {isAvatarUploadOpen && (
+        <ImageUploadModal
+          isOpen={isAvatarUploadOpen}
+          onClose={() => setIsAvatarUploadOpen(false)}
+          onSave={handleUpdateOrgCoverImage}
+          isLoading={isUpdatingOrgCoverImage}
+          error={updateOrgCoverImageError}
+        />
+      )}
     </Transition>
   );
 }

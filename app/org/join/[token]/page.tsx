@@ -13,6 +13,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useTransition } from 'react';
+import { Avatar } from '@/components/ui/Avatar';
 
 export default function JoinOrganizationPage() {
   const params = useParams();
@@ -106,19 +107,12 @@ export default function JoinOrganizationPage() {
       <PageHeader title={`Join ${organization.name}`} />
       <div className="flex flex-col items-center justify-center min-h-[60vh] max-w-md mx-auto text-center px-4">
         <div className="mb-8">
-          {organization.coverImage ? (
-            <Image
-              src={organization.coverImage}
-              alt={organization.name}
-              width={120}
-              height={120}
-              className="rounded-lg mx-auto"
-            />
-          ) : (
-            <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center text-white text-2xl font-bold mx-auto">
-              {organization.name.charAt(0).toUpperCase()}
-            </div>
-          )}
+          <Avatar
+            src={organization.coverImage}
+            alt={organization.name}
+            size="md"
+            className="bg-gradient-to-br from-indigo-500 to-purple-500 mx-auto"
+          />
         </div>
 
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Join {organization.name}</h1>
