@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Avatar } from '@/components/ui/Avatar';
 import Image from 'next/image';
-import { Loader2, X, Camera } from 'lucide-react';
+import { Loader2, X, Camera, ChevronDown, Check } from 'lucide-react';
 import { isValidEmail } from '@/utils/validation';
 import { toast } from 'react-hot-toast';
 import { Dropdown, DropdownItem } from '../ui/form/Dropdown';
@@ -28,7 +28,6 @@ interface OrganizationSettingsModalProps {
   onClose: () => void;
 }
 
-// First, let's define a type for our user items
 type UserItem = {
   id: string;
   fullName: string;
@@ -38,7 +37,6 @@ type UserItem = {
   type: 'member' | 'invite';
 };
 
-// Create a component for rendering a user row
 const UserRow = ({
   user,
   index,
@@ -109,13 +107,7 @@ const UserRow = ({
                   ) : (
                     <>
                       {user.role}
-                      <svg
-                        className="ml-2 h-4 w-4 fill-current"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                      </svg>
+                      <ChevronDown className="ml-2 h-4 w-4" />
                     </>
                   )}
                 </Button>
@@ -129,21 +121,7 @@ const UserRow = ({
               >
                 <div className="flex items-center gap-2">
                   <span>Admin</span>
-                  {user.role === 'Admin' && (
-                    <svg
-                      className="h-4 w-4 text-indigo-500"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  )}
+                  {user.role === 'Admin' && <Check className="h-4 w-4 text-indigo-500" />}
                 </div>
               </DropdownItem>
               <DropdownItem
@@ -153,21 +131,7 @@ const UserRow = ({
               >
                 <div className="flex items-center gap-2">
                   <span>Member</span>
-                  {user.role === 'Member' && (
-                    <svg
-                      className="h-4 w-4 text-indigo-500"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  )}
+                  {user.role === 'Member' && <Check className="h-4 w-4 text-indigo-500" />}
                 </div>
               </DropdownItem>
               <div className="border-t border-gray-100 my-1"></div>

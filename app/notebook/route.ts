@@ -51,7 +51,7 @@ export async function GET(request: Request) {
   // Get URL and search params
   const { searchParams } = new URL(request.url);
   const isNewFunding = searchParams.get('newFunding') === 'true';
-  const requestedOrgSlug = searchParams.get('orgSlug');
+  const targetOrgSlug = searchParams.get('orgSlug');
 
   const organizations = await OrganizationService.getUserOrganizations(session);
   if (!organizations || organizations.length === 0) {
@@ -59,8 +59,8 @@ export async function GET(request: Request) {
   }
 
   let selectedOrg = organizations[0];
-  if (requestedOrgSlug) {
-    const matchingOrg = organizations.find((org) => org.slug === requestedOrgSlug);
+  if (targetOrgSlug) {
+    const matchingOrg = organizations.find((org) => org.slug === targetOrgSlug);
     if (matchingOrg) {
       selectedOrg = matchingOrg;
     }
@@ -77,7 +77,6 @@ export async function GET(request: Request) {
     });
   }
 
-  console.log('selectedOrg', selectedOrg);
   const notes = await NoteService.getOrganizationNotes(selectedOrg.slug);
 
   if (notes.results.length === 0) {
