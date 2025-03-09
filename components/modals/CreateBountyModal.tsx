@@ -25,6 +25,7 @@ import { Currency } from '@/types/root';
 import { BountyType } from '@/types/bounty';
 import { BalanceInfo } from './BalanceInfo';
 import { useSession } from 'next-auth/react';
+import { useUser } from '@/contexts/UserContext';
 
 interface CreateBountyModalProps {
   isOpen: boolean;
@@ -426,7 +427,7 @@ const AddRscSection = () => (
 );
 
 export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModalProps) {
-  const { data: session } = useSession();
+  const { user } = useUser();
   const [step, setStep] = useState<Step>('details');
   const [selectedPaper, setSelectedPaper] = useState<SelectedPaper | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(true);
@@ -438,7 +439,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
   const [isFeesExpanded, setIsFeesExpanded] = useState(false);
   const [customDate, setCustomDate] = useState('');
   const RSC_TO_USD = 1;
-  const userBalance = session?.user?.balance || 0;
+  const userBalance = user?.balance || 0;
 
   const [{ data: commentData, isLoading: isCreatingBounty, error: bountyError }, createComment] =
     useCreateComment();

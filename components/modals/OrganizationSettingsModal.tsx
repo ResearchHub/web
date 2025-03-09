@@ -45,7 +45,7 @@ const UserRow = ({
   onRemove,
   isRemovingUser,
   isUpdatingPermissions,
-  currentUser,
+  sessionUserId,
   isCurrentUserAdmin,
 }: {
   user: UserItem;
@@ -55,12 +55,12 @@ const UserRow = ({
   onRemove: (id: string) => void;
   isRemovingUser: boolean;
   isUpdatingPermissions: boolean;
-  currentUser: User | undefined;
+  sessionUserId?: string;
   isCurrentUserAdmin: boolean;
 }) => {
   const isCurrentUser = () => {
-    if (!currentUser || user.type === 'invite') return false;
-    return currentUser.id && currentUser.id.toString() === user.id.toString();
+    if (!sessionUserId || user.type === 'invite') return false;
+    return sessionUserId === user.id.toString();
   };
 
   return (
@@ -204,11 +204,9 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
   const [isAvatarUploadOpen, setIsAvatarUploadOpen] = useState(false);
 
   const isCurrentUserAdmin = (() => {
-    if (!session?.user?.id || !orgUsers?.users) return false;
+    if (!session?.userId || !orgUsers?.users) return false;
 
-    const currentUser = orgUsers.users.find(
-      (user) => user.id.toString() === session.user.id.toString()
-    );
+    const currentUser = orgUsers.users.find((user) => user.id.toString() === session.userId);
 
     return currentUser?.role === 'ADMIN';
   })();
@@ -570,7 +568,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
                             isUpdatingPermissions={
                               isUpdatingPermissions && activeUserId === user.id
                             }
-                            currentUser={session?.user}
+                            sessionUserId={session?.userId}
                             isCurrentUserAdmin={isCurrentUserAdmin}
                           />
                         ))

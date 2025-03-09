@@ -94,35 +94,23 @@ export const authOptions: NextAuthOptions = {
         return {
           ...session,
           isLoggedIn: false,
+          userId: undefined,
           error: 'AuthenticationFailed',
         };
       }
 
       try {
-        const userData = await AuthService.fetchUserData(token.authToken as string);
-        // The API returns an array of results, but for user data we only expect
-        // and need the first element since it represents the current authenticated user
-        const isAuthenticated = Boolean(userData.results.length > 0 && userData.results[0]);
-
-        if (isAuthenticated) {
-          return {
-            ...session,
-            authToken: token.authToken,
-            isLoggedIn: true,
-            user: userData.results[0],
-          };
-        } else {
-          return {
-            ...session,
-            isLoggedIn: false,
-            error: 'AccessDenied',
-          };
-        }
+        return {
+          ...session,
+          authToken: token.authToken,
+          isLoggedIn: true,
+          userId: token.sub,
+        };
       } catch (error) {
         console.error('Session callback failed:', error);
         return {
           ...session,
-          user: undefined,
+          userId: undefined,
           isLoggedIn: false,
           error: 'SessionExpired',
         };

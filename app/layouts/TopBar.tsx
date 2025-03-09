@@ -15,13 +15,13 @@ import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Tooltip } from '@/components/ui/Tooltip';
 import Link from 'next/link';
 import { useAuthModalContext } from '@/contexts/AuthModalContext';
-
+import { useUser } from '@/contexts/UserContext';
 interface TopBarProps {
   onMenuClick: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
-  const { data: session, status } = useSession();
+  const { user, isLoading, error } = useUser();
   const { showAuthModal } = useAuthModalContext();
   const router = useRouter();
   const pathname = usePathname();
@@ -29,7 +29,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const isNotificationsPage = pathname === '/notifications';
 
   const handleAuthClick = () => {
-    if (session) {
+    if (user) {
       signOut();
     } else {
       showAuthModal();
@@ -76,8 +76,8 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
           <div className="lg:block w-80 bg-white">
             {/* Right-aligned buttons */}
             <div className="flex items-center justify-end h-full px-6 gap-6">
-              {status !== 'loading' ? (
-                session ? (
+              {!isLoading ? (
+                user ? (
                   <>
                     <Tooltip content="View ResearchCoin balance and transactions">
                       <Link
@@ -91,11 +91,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                       </Link>
                     </Tooltip>
                     <NotificationBell filled={isNotificationsPage} />
-                    <UserMenu
-                      user={session.user}
-                      onViewProfile={() => null}
-                      onVerifyAccount={() => null}
-                    />
+                    <UserMenu user={user} onViewProfile={() => null} onVerifyAccount={() => null} />
                   </>
                 ) : (
                   <button

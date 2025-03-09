@@ -15,6 +15,7 @@ import { useCreateContribution } from '@/hooks/useFundraise';
 import { useSession } from 'next-auth/react';
 import { BalanceInfo } from './BalanceInfo';
 import { ID } from '@/types/root';
+import { useUser } from '@/contexts/UserContext';
 interface FundResearchModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -235,8 +236,8 @@ export function FundResearchModal({
   nftImageSrc,
   fundraiseId,
 }: FundResearchModalProps) {
-  const { data: session } = useSession();
-  const userBalance = session?.user?.balance || 0;
+  const { user } = useUser();
+  const userBalance = user?.balance || 0;
   const [step, setStep] = useState<Step>('amount');
   const [inputAmount, setInputAmount] = useState(0);
   const [currency, setCurrency] = useState<Currency>('RSC');

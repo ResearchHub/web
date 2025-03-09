@@ -108,7 +108,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     }
 
     fetchOrganizations();
-  }, [session?.user?.id, status]);
+  }, [session?.userId, status]);
 
   const value = {
     organizations,
