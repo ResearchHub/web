@@ -330,7 +330,6 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
 
     setActiveUserId(memberId);
 
-    // Map UI role to API role
     const accessType = newRole === 'Admin' ? 'ADMIN' : 'VIEWER';
 
     try {
@@ -357,7 +356,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
     }
   };
 
-  if (!organization) return null; // TODO render some loading state
+  if (!organization) return null;
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
