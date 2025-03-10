@@ -137,6 +137,7 @@ const baseTransformContentObject = (params: { response: FeedResponse; type: stri
         abstract: contentObject.abstract,
         amount: contentObject.amount,
         paper: contentObject.paper,
+        post: contentObject.post,
         title: contentObject.title,
         bountyType: contentObject.bounty_type
           ? contentObject.bounty_type.toLowerCase()
