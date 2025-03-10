@@ -101,6 +101,36 @@ export interface FeedApiResponse {
 export type TransformedContent = Content & BaseTransformed;
 export type TransformedFeedEntry = FeedEntry & BaseTransformed;
 
+const transformPaper = (baseContent: BaseContent, contentObject: any): Paper => {
+  return {
+    ...baseContent,
+    type: 'paper',
+    title: contentObject.title,
+    abstract: contentObject.abstract,
+    doi: contentObject.doi,
+    journal: contentObject.journal && {
+      id: contentObject.journal.id,
+      name: contentObject.journal.name,
+      slug: contentObject.journal.slug,
+      imageUrl: contentObject.journal.image,
+    },
+    authors: contentObject.authors.map(transformAuthorProfile),
+  };
+};
+
+const transformPost = (baseContent: BaseContent, contentObject: any): Post => {
+  const postType = contentObject.type && contentObject.type.toLowerCase();
+  return {
+    ...baseContent,
+    type: 'post',
+    title: contentObject.title,
+    summary: contentObject.renderable_text,
+    postType: ['discussion', 'question', 'preregistration'].includes(postType)
+      ? postType
+      : 'discussion',
+  };
+};
+
 const baseTransformContentObject = (params: { response: FeedResponse; type: string }): Content => {
   const { response, type } = params;
   const contentObject = response.content_object;
@@ -136,44 +166,29 @@ const baseTransformContentObject = (params: { response: FeedResponse; type: stri
         type: 'bounty',
         abstract: contentObject.abstract,
         amount: contentObject.amount,
-        paper: contentObject.paper,
-        post: contentObject.post,
         title: contentObject.title,
         bountyType: contentObject.bounty_type
           ? contentObject.bounty_type.toLowerCase()
           : 'generic_comment',
       };
+
+      // Transform paper if it exists
+      if (contentObject.paper) {
+        bounty.paper = transformPaper(baseContent, contentObject.paper);
+      }
+
+      // Transform post if it exists
+      if (contentObject.post) {
+        bounty.post = transformPost(baseContent, contentObject.post);
+      }
+
       return bounty;
     }
     case 'paper': {
-      const paper: Paper = {
-        ...baseContent,
-        type: 'paper',
-        title: contentObject.title,
-        abstract: contentObject.abstract,
-        doi: contentObject.doi,
-        journal: contentObject.journal && {
-          id: contentObject.journal.id,
-          name: contentObject.journal.name,
-          slug: contentObject.journal.slug,
-          imageUrl: contentObject.journal.image,
-        },
-        authors: contentObject.authors.map(transformAuthorProfile),
-      };
-      return paper;
+      return transformPaper(baseContent, contentObject);
     }
     case 'researchhubpost': {
-      const postType = contentObject.type && contentObject.type.toLowerCase();
-      const post: Post = {
-        ...baseContent,
-        type: 'post',
-        title: contentObject.title,
-        summary: contentObject.renderable_text,
-        postType: ['discussion', 'question', 'preregistration'].includes(postType)
-          ? postType
-          : 'discussion',
-      };
-      return post;
+      return transformPost(baseContent, contentObject);
     }
     default:
       throw new Error(`Unknown content type: ${type}`);
