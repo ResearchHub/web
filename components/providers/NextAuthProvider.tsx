@@ -18,5 +18,9 @@ export default function NextAuthProvider({
     }
   }, [session?.authToken]);
 
-  return <SessionProvider session={session}>{children}</SessionProvider>;
+  return (
+    <SessionProvider session={session} refetchOnWindowFocus={false}>
+      {children}
+    </SessionProvider>
+  );
 }
