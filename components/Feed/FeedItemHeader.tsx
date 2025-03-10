@@ -34,7 +34,10 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
       case 'post':
         return `${action}ed a ${content.type.replace('_', ' ')}`;
       case 'funding_request':
-        return `${action}ed a funding request for ${formatRSC({ amount: content.amount || 0, shorten: true })} RSC`;
+        const fundingRequest = content as any; // Cast to access goalAmount
+        const goalAmount =
+          formatRSC({ amount: fundingRequest.goalAmount || 0, shorten: true }) + ' RSC';
+        return `${action}ed a funding request for ${goalAmount}`;
       default:
         return action;
     }

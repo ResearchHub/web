@@ -1,6 +1,6 @@
 'use client';
 
-import { FundingRequestCard } from '@/components/Feed/FundingRequestCard';
+import { FundingRequestFeedAdapter } from '@/components/Feed/FundingRequestFeedAdapter';
 import { FeedPreregistrationSkeleton } from '@/components/skeletons/FeedPreregistrationSkeleton';
 import { FundingRequest, FeedEntry } from '@/types/feed';
 import { ContentMetrics } from '@/types/metrics';
@@ -17,7 +17,10 @@ import { useFundingFeed } from '@/hooks/useFundingFeed';
 export default function FundingPage() {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const router = useRouter();
-  const { entries, isLoading, hasMore, loadMore } = useFundingFeed();
+  const { entries, isLoading, hasMore, loadMore, total } = useFundingFeed({
+    ordering: 'hot',
+    time: 'today',
+  });
 
   const handleNavigate = useCallback(() => {
     router.push('/notebook');
@@ -52,7 +55,7 @@ export default function FundingPage() {
                 <ArrowUpFromLine className="w-4 h-4" />
                 <span className="font-medium">Research Grants</span>
                 <Badge variant="default" size="sm" className="ml-1 bg-gray-100 text-gray-700">
-                  {entries.length}
+                  {total}
                 </Badge>
               </div>
             </div>
@@ -78,7 +81,7 @@ export default function FundingPage() {
           ) : (
             <div className="space-y-6">
               {entries.map((entry: FeedEntry) => (
-                <FundingRequestCard
+                <FundingRequestFeedAdapter
                   key={entry.id}
                   content={entry.content as FundingRequest}
                   metrics={entry.metrics || { votes: 0, comments: 0, reposts: 0, saves: 0 }}

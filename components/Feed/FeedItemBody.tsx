@@ -11,6 +11,7 @@ import { Journal } from '@/types/journal';
 import { useRouter } from 'next/navigation';
 import { Progress } from '@/components/ui/Progress';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { formatRSC } from '@/utils/number';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/Badge';
 import { FundResearchModal } from '@/components/modals/FundResearchModal';
@@ -160,15 +161,26 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
     isExpanded: boolean,
     onToggleExpand: (e: React.MouseEvent) => void
   ) => {
-    const imageUrl = fundingRequest.image || '/placeholders/default-cover.jpg';
-    const progressPercentage = (fundingRequest.amount / fundingRequest.goalAmount) * 100;
+    const imageUrl = fundingRequest.image || '/Animated-Logo-v4.gif';
+    const progressPercentage =
+      fundingRequest.goalAmount > 0
+        ? Math.min(100, (fundingRequest.amount / fundingRequest.goalAmount) * 100)
+        : 0;
 
     const truncateSummary = (summary: string, limit: number = 180) => {
+      if (!summary) return '';
       if (summary.length <= limit) return summary;
       return summary.slice(0, limit).trim() + '...';
     };
 
     const isSummaryTruncated = fundingRequest.abstract && fundingRequest.abstract.length > 180;
+
+    // Format goal amount with RSC
+    const goalAmountDisplay =
+      formatRSC({ amount: fundingRequest.goalAmount || 0, shorten: true }) + ' RSC';
+
+    // Format current amount
+    const currentAmountDisplay = formatRSC({ amount: fundingRequest.amount || 0, shorten: true });
 
     return (
       <div className="flex overflow-hidden">
@@ -258,12 +270,10 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
               {/* Funding Amount */}
               <div className="flex items-center">
                 <span className="text-[15px] font-medium text-gray-900">
-                  {fundingRequest.amount.toLocaleString()}
+                  {currentAmountDisplay}
                 </span>
                 <span className="text-[15px] text-gray-900 mx-1">/</span>
-                <span className="text-[15px] font-medium text-gray-900">
-                  {fundingRequest.goalAmount.toLocaleString()}
-                </span>
+                <span className="text-[15px] font-medium text-gray-900">{goalAmountDisplay}</span>
                 <ResearchCoinIcon size={16} className="text-orange-500 ml-1.5 mr-0.5" />
               </div>
             </div>
@@ -289,7 +299,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
             title={fundingRequest.title}
             nftRewardsEnabled={fundingRequest.offersMementos || false}
             nftImageSrc={fundingRequest.image}
-            fundraiseId={Number(fundingRequest.id)}
+            fundraiseId={Number(fundingRequest.fundraiseId || fundingRequest.id)}
           />
         )}
       </div>

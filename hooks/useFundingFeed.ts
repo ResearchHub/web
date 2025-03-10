@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FeedEntry } from '@/types/feed';
-import { FeedService } from '@/services/feed.service';
+import { UnifiedDocumentService } from '@/services/unifiedDocument.service';
 
 interface UseFundingFeedOptions {
   hubSlug?: string;
+  ordering?: string;
+  time?: string;
 }
 
 export const useFundingFeed = (options: UseFundingFeedOptions = {}) => {
@@ -11,26 +13,28 @@ export const useFundingFeed = (options: UseFundingFeedOptions = {}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(false);
   const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
   const loadFeed = useCallback(async () => {
     setIsLoading(true);
     try {
-      const result = await FeedService.getFeed({
+      const result = await UnifiedDocumentService.getPreregistrations({
         page: 1,
         pageSize: 20,
-        feedView: 'latest',
+        ordering: options.ordering || 'hot',
+        time: options.time || 'today',
         hubSlug: options.hubSlug,
-        contentType: 'preregistration', // Filter for preregistrations only
       });
       setEntries(result.entries);
       setHasMore(result.hasMore);
+      setTotal(result.total);
       setPage(1);
     } catch (error) {
       console.error('Error loading funding feed:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [options.hubSlug]);
+  }, [options.hubSlug, options.ordering, options.time]);
 
   const loadMore = useCallback(async () => {
     if (!hasMore || isLoading) return;
@@ -38,12 +42,12 @@ export const useFundingFeed = (options: UseFundingFeedOptions = {}) => {
     setIsLoading(true);
     try {
       const nextPage = page + 1;
-      const result = await FeedService.getFeed({
+      const result = await UnifiedDocumentService.getPreregistrations({
         page: nextPage,
         pageSize: 20,
-        feedView: 'latest',
+        ordering: options.ordering || 'hot',
+        time: options.time || 'today',
         hubSlug: options.hubSlug,
-        contentType: 'preregistration', // Filter for preregistrations only
       });
       setEntries((prev) => [...prev, ...result.entries]);
       setHasMore(result.hasMore);
@@ -53,7 +57,7 @@ export const useFundingFeed = (options: UseFundingFeedOptions = {}) => {
     } finally {
       setIsLoading(false);
     }
-  }, [hasMore, isLoading, page, options.hubSlug]);
+  }, [hasMore, isLoading, page, options.hubSlug, options.ordering, options.time]);
 
   useEffect(() => {
     loadFeed();
@@ -65,5 +69,6 @@ export const useFundingFeed = (options: UseFundingFeedOptions = {}) => {
     hasMore,
     loadMore,
     refresh: loadFeed,
+    total,
   };
 };

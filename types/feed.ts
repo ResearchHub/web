@@ -48,6 +48,7 @@ export interface FundingRequest {
   abstract: string;
   amount: number;
   goalAmount: number;
+  goalAmountUsd?: number;
   image?: string;
   status: FundingRequestStatus;
   actor?: AuthorProfile;
@@ -57,6 +58,7 @@ export interface FundingRequest {
   slug?: string;
   deadline: string;
   preregistered?: boolean;
+  fundraiseId?: number;
 }
 
 export interface FeedEntry {
