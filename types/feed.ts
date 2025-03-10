@@ -162,7 +162,7 @@ const baseTransformContentObject = (params: { response: FeedResponse; type: stri
       return paper;
     }
     case 'researchhubpost': {
-      const postType = contentObject.post_type && contentObject.post_type.toLowerCase();
+      const postType = contentObject.type && contentObject.type.toLowerCase();
       const post: Post = {
         ...baseContent,
         type: 'post',
