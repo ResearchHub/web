@@ -75,10 +75,10 @@ export function NonprofitSearchSection() {
     // Get the position of the clicked element
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
 
-    // Position the popover above the info icon
+    // Position the popover above the info icon, but shifted more to the right
     setPopoverPosition({
       top: rect.top - 10, // Position above with a small gap
-      left: rect.left - 320 + rect.width / 2, // Position centered on the icon, adjusted for popover width
+      left: rect.left - 295 + rect.width / 2, // Position more to the right (reduced the offset from 320 to 280)
     });
 
     setSelectedInfoOrg(nonprofit);
@@ -271,7 +271,7 @@ function NonprofitInfoPopover({ nonprofit, position, onClose }: NonprofitInfoPop
           </div>
         </div>
       </div>
-      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[8px] rotate-45 w-4 h-4 bg-white border-r border-b border-gray-200"></div>
+      <div className="absolute bottom-0 right-4 transform translate-y-[8px] rotate-45 w-4 h-4 bg-white border-r border-b border-gray-200"></div>
     </div>
   );
 }
