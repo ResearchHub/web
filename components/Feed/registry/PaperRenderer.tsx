@@ -1,6 +1,6 @@
 import { ContentRenderer, AuthorData, RenderOptions } from './types';
 import { FeedItemHeader } from '../FeedItemHeader';
-import { Paper } from '@/types/feed';
+import { Work } from '@/types/work';
 import { Button } from '@/components/ui/Button';
 import { DefaultRenderer } from './DefaultRenderer';
 import { Avatar } from '@/components/ui/Avatar';
@@ -9,7 +9,7 @@ import { ExpandableContent } from '../shared';
 /**
  * Renderer for paper content
  */
-export const PaperRenderer: ContentRenderer<Paper> = {
+export const PaperRenderer: ContentRenderer<Work> = {
   renderHeader: (paper, options = {}) => {
     const authorData = PaperRenderer.getAuthorData(paper);
     const metadata = PaperRenderer.getMetadata(paper);
@@ -17,9 +17,9 @@ export const PaperRenderer: ContentRenderer<Paper> = {
     return (
       <FeedItemHeader
         contentType="paper"
-        timestamp={paper.timestamp}
+        timestamp={paper.createdDate}
         authors={Array.isArray(authorData) ? authorData : [authorData]}
-        action={metadata.action}
+        action="published"
       />
     );
   },
@@ -122,18 +122,18 @@ export const PaperRenderer: ContentRenderer<Paper> = {
     }
 
     return paper.authors.map((author) => ({
-      id: author.id,
-      fullName: author.fullName || 'Unknown',
-      profileImage: author.profileImage,
-      profileUrl: author.profileUrl || '#',
-      isVerified: author.user?.isVerified,
+      id: author.authorProfile.id,
+      fullName: author.authorProfile.fullName || 'Unknown',
+      profileImage: author.authorProfile.profileImage,
+      profileUrl: author.authorProfile.profileUrl || '#',
+      isVerified: author.authorProfile.user?.isVerified,
     }));
   },
 
   getMetadata: (paper) => {
     return {
       action: 'published',
-      timestamp: paper.timestamp,
+      timestamp: paper.createdDate,
       type: 'paper',
       doi: paper.doi,
       journal: paper.journal?.name,

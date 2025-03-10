@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ContentType } from '@/types/work';
+import { ContentType, Work } from '@/types/work';
 import { Bounty } from '@/types/bounty';
 import { ID } from '@/types/root';
 import { ContentFormat } from '@/types/comment';
@@ -9,6 +9,7 @@ import { ContributorModal } from '@/components/modals/ContributorModal';
 import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
 import { contentRenderers } from '@/components/Feed/registry';
 import { useSession } from 'next-auth/react';
+import { ExpandableContent } from '@/components/Feed/shared';
 
 // Utils
 import {
@@ -29,6 +30,9 @@ export interface SolutionViewEvent {
 export interface BountyCardProps {
   // Bounty data
   bounty: Bounty;
+
+  // Related work data
+  relatedWork?: Work;
 
   // Content data
   content?: any;
@@ -61,6 +65,9 @@ export interface BountyCardProps {
 export const BountyCard = ({
   // Bounty data
   bounty,
+
+  // Related work data
+  relatedWork,
 
   // Content data
   content,
@@ -133,6 +140,13 @@ export const BountyCard = ({
     setIsExpanded(!isExpanded);
   };
 
+  // Handle navigation to the related work
+  const handleRelatedWorkClick = () => {
+    if (relatedWork?.id && relatedWork?.slug) {
+      window.open(`/paper/${relatedWork.id}/${relatedWork.slug}`, '_blank');
+    }
+  };
+
   return (
     <div className="space-y-3">
       {/* Header - always shown */}
@@ -148,6 +162,8 @@ export const BountyCard = ({
             context: {
               commentContent: content,
               commentContentFormat: contentFormat,
+              relatedWork: relatedWork,
+              onRelatedWorkClick: handleRelatedWorkClick,
             },
           })}
 

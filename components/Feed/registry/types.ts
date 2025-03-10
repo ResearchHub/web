@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { ContentType } from '@/types/feed';
+import { Work, ContentType } from '@/types/work';
 
 /**
  * Common interface for author data across different content types
@@ -37,6 +37,13 @@ export interface RenderOptions {
   onShare?: (id: number) => void;
   onReport?: (id: number) => void;
   isAuthor?: boolean;
+}
+
+/**
+ * Options for rendering related papers
+ */
+export interface RelatedPaperOptions {
+  onClick?: () => void;
 }
 
 /**

@@ -57,7 +57,7 @@ export default async function FundReviewsPage({ params }: Props) {
   const work = await getFundingProject(id);
 
   // Then fetch metadata using unifiedDocumentId
-  const metadata = await MetadataService.get(work.unifiedDocumentId.toString());
+  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
   // Only fetch content after we have the work object with contentUrl
   const content = await getWorkHTMLContent(work);

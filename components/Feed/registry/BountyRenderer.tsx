@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { RSCBadge } from '@/components/ui/RSCBadge';
 import { ExpandableContent } from '../shared';
 import { ArrowUp, MessageCircle, Edit2, Trash2, Share } from 'lucide-react';
+import { Work } from '@/types/work';
+import { AuthorList } from '@/components/ui/AuthorList';
 
 // Import specialized Bounty components
 import { BountyDetails } from '@/components/Bounty/BountyDetails';
@@ -57,6 +59,56 @@ const extractContributorData = (contribution: BountyContribution): AuthorData =>
 };
 
 /**
+ * Private helper function to render a related paper
+ */
+const renderRelatedPaper = (work: Work, options: { onClick?: () => void } = {}) => {
+  if (!work) return null;
+
+  // Convert work authors to the format expected by AuthorList
+  const authors =
+    work.authors?.map((author) => ({
+      name: author.authorProfile.fullName,
+      verified: author.authorProfile.user?.isVerified,
+      profileUrl: author.authorProfile.profileUrl,
+    })) || [];
+
+  // Handle click on the paper card
+  const handleClick = () => {
+    if (options.onClick) {
+      options.onClick();
+    } else if (work.id && work.slug) {
+      // Default behavior: open the paper in a new tab
+      window.open(`/paper/${work.id}/${work.slug}`, '_blank');
+    }
+  };
+
+  return (
+    <>
+      <h4 className="text-sm font-medium text-gray-500 mb-2">Related Paper</h4>
+      <div
+        className={`bg-gray-50 rounded-lg border border-gray-200 p-4 ${options.onClick ? 'cursor-pointer hover:bg-gray-100' : ''}`}
+        onClick={handleClick}
+      >
+        {/* Paper title */}
+        <h3 className="text-base font-medium text-gray-900">{work.title}</h3>
+
+        {/* Authors using AuthorList component */}
+        {authors.length > 0 && (
+          <div className="mt-1">
+            <AuthorList
+              authors={authors}
+              size="xs"
+              className="text-gray-600 font-normal"
+              delimiter="•"
+            />
+          </div>
+        )}
+      </div>
+    </>
+  );
+};
+
+/**
  * Renderer for bounty content
  */
 export const BountyRenderer: ContentRenderer<Bounty> = {
@@ -103,9 +155,18 @@ export const BountyRenderer: ContentRenderer<Bounty> = {
       );
     }
 
-    // Get the description from the bounty or context
-    const description = context?.commentContent || bounty.raw?.description || '';
-    const contentFormat = context?.commentContentFormat;
+    // Get the description from the bounty or context, or use default based on bounty type
+    let description = context?.commentContent || bounty.raw?.description || '';
+    const contentFormat = context?.commentContentFormat || 'text';
+
+    // If no description is provided, use default based on bounty type
+    if (!description) {
+      if (bounty.bountyType === 'REVIEW') {
+        description = 'Please provide a peer review of this paper';
+      } else {
+        description = 'No information provided';
+      }
+    }
 
     // Determine bounty status
     const isOpen = bounty.status === 'OPEN';
@@ -119,6 +180,10 @@ export const BountyRenderer: ContentRenderer<Bounty> = {
 
     // Check if there are solutions
     const hasSolutions = !isOpen && bounty.solutions && bounty.solutions.length > 0;
+
+    // Check if there's a related work
+    const relatedWork = context?.relatedWork;
+    const handleRelatedWorkClick = context?.onRelatedWorkClick;
 
     return (
       <div className="space-y-4">
@@ -134,10 +199,15 @@ export const BountyRenderer: ContentRenderer<Bounty> = {
         {/* Additional badges if any */}
         {badges.length > 0 && <div className="flex flex-wrap gap-2 mt-3">{badges}</div>}
 
-        {/* Details section with bounty content */}
-        {description && contentFormat && (
-          <div className="mt-4">
-            <BountyDetails content={description} contentFormat={contentFormat} />
+        {/* Details section with bounty content - always show, using default content if needed */}
+        <div className="mt-4">
+          <BountyDetails content={description} contentFormat={contentFormat} />
+        </div>
+
+        {/* Related Work - show if available */}
+        {relatedWork && (
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            {renderRelatedPaper(relatedWork, { onClick: handleRelatedWorkClick })}
           </div>
         )}
 

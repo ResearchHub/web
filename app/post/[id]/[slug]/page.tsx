@@ -57,7 +57,7 @@ export default async function PostPage({ params }: Props) {
   const post = await getPost(id);
 
   // Then fetch metadata using unifiedDocumentId
-  const metadata = await MetadataService.get(post.unifiedDocumentId.toString());
+  const metadata = await MetadataService.get(post.unifiedDocumentId?.toString() || '');
 
   // Fetch content if available
   const content = await getPostContent(post);

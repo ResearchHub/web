@@ -6,11 +6,17 @@ import { createTransformer, BaseTransformed } from './transformer';
 import { Hub } from './hub';
 import { NoteWithContent, transformNoteWithContent } from './note';
 
-export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration';
+export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration' | 'funding_request';
 
 export type AuthorPosition = 'first' | 'middle' | 'last';
 
-export type ContentType = 'post' | 'paper' | 'preregistration' | 'question' | 'discussion';
+export type ContentType =
+  | 'post'
+  | 'paper'
+  | 'preregistration'
+  | 'question'
+  | 'discussion'
+  | 'funding_request';
 
 export type FlagReasonKey =
   | 'LOW_QUALITY'
@@ -61,8 +67,19 @@ export interface Work {
   }>;
   versions: Array<DocumentVersion>;
   metrics: ContentMetrics;
-  unifiedDocumentId: number;
+  unifiedDocumentId: number | null;
   note?: NoteWithContent;
+}
+
+export interface FundingRequest extends Work {
+  type: 'funding_request';
+  contentType: 'funding_request';
+  status: 'OPEN' | 'CLOSED' | 'FUNDED';
+  amount: number;
+  goalAmount: number;
+  deadline: string;
+  preregistered?: boolean;
+  image?: string;
 }
 
 // Transformed types
@@ -131,15 +148,15 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
     : [],
   versions: Array.isArray(raw.version_list) ? raw.version_list.map(transformDocumentVersion) : [],
   metrics: {
-    votes: raw.score || 0,
-    comments: raw.discussion_count || 0,
-    saves: raw.saves_count || 0,
-    reviewScore: raw.unified_document?.reviews?.avg || 0,
-    reviews: raw.unified_document?.reviews?.count || 0,
+    votes: raw.metrics?.votes || raw.score || 0,
+    comments: raw.metrics?.comments || raw.discussion_count || 0,
+    saves: raw.metrics?.saves || raw.saves_count || 0,
+    reviewScore: raw?.unified_document?.reviews?.avg || 0,
+    reviews: raw?.unified_document?.reviews?.count || 0,
     earned: raw.earned || 0,
-    views: raw.views_count || 0,
+    views: raw.metrics?.views || raw.views_count || 0,
   },
-  unifiedDocumentId: raw.unified_document.id,
+  unifiedDocumentId: raw?.unified_document?.id || null,
 }));
 
 export const transformPost = createTransformer<any, Work>((raw) => ({

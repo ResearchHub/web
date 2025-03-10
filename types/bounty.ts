@@ -121,16 +121,7 @@ export const groupBountiesWithContributions = (bounties: any[]): Bounty[] => {
 };
 
 export const transformBounty: BaseTransformer<any, Bounty> = (raw) => {
-  console.log('transformBounty input:', {
-    id: raw.id,
-    status: raw.status,
-    bountyType: raw.bounty_type,
-    amount: raw.amount,
-    hasContributions: !!raw.contributions && Array.isArray(raw.contributions),
-    contributionsCount: raw.contributions?.length || 0,
-    hasSolutions: !!raw.solutions && Array.isArray(raw.solutions),
-    solutionsCount: raw.solutions?.length || 0,
-  });
+  console.log('transformBounty input:', raw);
 
   // Transform contributions if they exist
   const contributions = Array.isArray(raw.contributions)
@@ -159,16 +150,6 @@ export const transformBounty: BaseTransformer<any, Bounty> = (raw) => {
     totalAmount,
     raw,
   };
-
-  console.log('transformBounty result:', {
-    id: result.id,
-    status: result.status,
-    bountyType: result.bountyType,
-    amount: result.amount,
-    totalAmount: result.totalAmount,
-    contributionsCount: result.contributions.length,
-    solutionsCount: result.solutions.length,
-  });
 
   return result;
 };
