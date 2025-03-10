@@ -9,7 +9,7 @@ import { Content, FeedActionType } from '@/types/feed';
 >>>>>>> 94ba447 (Refactor bounty cards by decoupling from comment)
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorList } from '@/components/ui/AuthorList';
-import { formatTimestamp } from '@/utils/date';
+import { formatTimestamp, formatTimeAgo } from '@/utils/date';
 import { formatRSC } from '@/utils/number';
 import { AuthorProfile } from '@/types/authorProfile';
 import { Avatar } from '@/components/ui/Avatar';
@@ -90,11 +90,11 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   // Combine single author with authors array if provided
   const allAuthors = author ? [author, ...authors] : authors;
 
-  // Format date consistently
-  const formattedDate = timestamp instanceof Date ? timestamp : new Date(timestamp);
+  // Get the primary author (first in the list)
+  const primaryAuthor = allAuthors.length > 0 ? allAuthors[0] : null;
 
-  // Determine if we should show multiple authors or just one
-  const showMultipleAuthors = allAuthors.length > 1;
+  // Format date consistently
+  const formattedDate = timestamp instanceof Date ? timestamp.toISOString() : timestamp;
 
   // Get default action text based on content type if not provided
   const getDefaultActionText = (): string => {
@@ -147,75 +147,54 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
     }
   };
 
-  // Get avatar items for AvatarStack
-  const getAvatarItems = () => {
-    return allAuthors
-      .map((author) => ({
-        src: author.profileImage ?? '',
-        alt: author.fullName ?? '',
-        tooltip: author.fullName,
-      }))
-      .filter((item) => !!item.src); // Filter out items with empty src
-  };
-
-  // Get authors for AuthorList
-  const getAuthorsForList = () => {
-    return allAuthors.map((author) => ({
-      name: author.fullName ?? '',
-      verified: author.isVerified ?? false,
-      profileUrl: author.profileUrl ?? '',
-    }));
-  };
-
   // Determine if we should show the review stars
   const shouldShowReviewStars = contentType === 'review' && typeof score === 'number' && score > 0;
+
+  // Get the number of additional authors
+  const additionalAuthorsCount = allAuthors.length - 1;
 
   return (
     <div className={cn('flex items-center justify-between w-full', className)}>
       <div className="flex items-center gap-3">
-        {showMultipleAuthors ? (
-          <AvatarStack
-            items={getAvatarItems()}
-            size={size}
-            maxItems={contentType === 'paper' ? 3 : allAuthors.length > 3 ? 3 : allAuthors.length}
-            spacing={-12}
-          />
-        ) : allAuthors.length === 1 ? (
-          <Avatar
-            src={allAuthors[0].profileImage ?? ''}
-            alt={allAuthors[0].fullName}
-            size={size === 'xs' ? 'xs' : size === 'md' ? 'md' : 'sm'}
-          />
-        ) : (
-          // Fallback avatar if no authors
-          <Avatar src="" alt="Unknown" size={size === 'xs' ? 'xs' : size === 'md' ? 'md' : 'sm'} />
-        )}
+        {/* Always show a single avatar for the primary author */}
+        <Avatar
+          src={primaryAuthor?.profileImage || ''}
+          alt={primaryAuthor?.fullName || 'Unknown'}
+          size={size === 'xs' ? 'xs' : size === 'md' ? 'md' : 'sm'}
+        />
 
         <div className="flex flex-col">
           <div className="flex items-center gap-1.5 text-[15px]">
-            {showMultipleAuthors ? (
-              <AuthorList
-                authors={getAuthorsForList()}
-                size={size === 'xs' ? 'xs' : 'sm'}
-                className="font-semibold"
-                delimiter={<span className="text-gray-400">•</span>}
-                delimiterClassName="text-gray-900"
-              />
-            ) : allAuthors.length === 1 ? (
-              <a href={allAuthors[0].profileUrl} className="font-semibold hover:text-indigo-600">
-                {allAuthors[0].fullName}
+            {/* Show primary author name */}
+            {primaryAuthor && (
+              <a
+                href={primaryAuthor.profileUrl || '#'}
+                className="font-semibold hover:text-indigo-600"
+              >
+                {primaryAuthor.fullName}
+                {primaryAuthor.isVerified && (
+                  <span className="inline-block ml-1 text-blue-500">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="w-3.5 h-3.5 inline-block -mt-0.5"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </span>
+                )}
               </a>
-            ) : null}
+            )}
 
+            <span className="text-gray-400">•</span>
             <span className="text-gray-600">{getDefaultActionText()}</span>
             <span className="text-gray-400">•</span>
-            <span className="text-gray-500">
-              {formattedDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </span>
+            <span className="text-gray-500">{formatTimeAgo(formattedDate)}</span>
           </div>
         </div>
       </div>

@@ -24,14 +24,21 @@ export interface RenderOptions {
   context?: any;
   metrics?: any;
   expiringSoon?: boolean;
+
+  // Bounty-specific callbacks
   onContribute?: () => void;
   onViewSolution?: (solutionId: any, authorName: string, awardedAmount?: string) => void;
   onNavigationClick?: (tab: 'reviews' | 'conversation') => void;
   onAward?: (id: number) => void;
 
+  // Paper-specific callbacks
+  onViewPaper?: () => void;
+  onAddToLibrary?: () => void;
+
   // Footer action callbacks
   onUpvote?: (id: number) => void;
   onReply?: (id: number) => void;
+  onComment?: (id: number) => void;
   onEdit?: (id: number) => void;
   onDelete?: (id: number) => void;
   onShare?: (id: number) => void;

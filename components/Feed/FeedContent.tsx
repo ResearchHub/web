@@ -3,12 +3,13 @@
 import { FC, ReactNode, useEffect, useState } from 'react';
 import { FeedItemSkeleton } from './FeedItemSkeleton';
 import { BountyCard, SolutionViewEvent } from '@/components/Bounty/BountyCard';
+import { PaperCard, PaperViewEvent } from '@/components/Paper/PaperCard';
 import { Bounty } from '@/types/bounty';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { FeedService } from '@/services/feed.service';
 import { FeedEntry } from '@/types/feed';
-import { Work } from '@/types/work';
+import { Work, WorkType } from '@/types/work';
 
 interface FeedContentProps {
   entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry
@@ -83,6 +84,117 @@ const createTestBounty = (): Bounty => {
         slug: 'test-hub',
       },
     },
+  };
+};
+
+// Create a test paper for debugging
+const createTestPaper = (): Work => {
+  return {
+    id: 888,
+    type: 'paper' as WorkType,
+    contentType: 'paper',
+    title: 'Test Paper: Advances in AI Research',
+    slug: 'test-paper-advances-in-ai-research',
+    createdDate: new Date().toISOString(),
+    publishedDate: new Date().toISOString(),
+    authors: [
+      {
+        authorProfile: {
+          id: 1,
+          fullName: 'Jane Smith',
+          profileImage: '',
+          headline: 'AI Researcher',
+          profileUrl: '/profile/1',
+          user: {
+            id: 1,
+            email: 'jane@example.com',
+            firstName: 'Jane',
+            lastName: 'Smith',
+            fullName: 'Jane Smith',
+            isVerified: true,
+            balance: 0,
+          },
+        },
+        isCorresponding: true,
+        position: 'first',
+      },
+      {
+        authorProfile: {
+          id: 2,
+          fullName: 'John Doe',
+          profileImage: '',
+          headline: 'Data Scientist',
+          profileUrl: '/profile/2',
+          user: {
+            id: 2,
+            email: 'john@example.com',
+            firstName: 'John',
+            lastName: 'Doe',
+            fullName: 'John Doe',
+            isVerified: false,
+            balance: 0,
+          },
+        },
+        isCorresponding: false,
+        position: 'middle',
+      },
+      {
+        authorProfile: {
+          id: 3,
+          fullName: 'Alice Johnson',
+          profileImage: '',
+          headline: 'Professor',
+          profileUrl: '/profile/3',
+          user: {
+            id: 3,
+            email: 'alice@example.com',
+            firstName: 'Alice',
+            lastName: 'Johnson',
+            fullName: 'Alice Johnson',
+            isVerified: true,
+            balance: 0,
+          },
+        },
+        isCorresponding: false,
+        position: 'last',
+      },
+    ],
+    abstract:
+      'This is a test paper abstract that discusses recent advances in artificial intelligence research. The paper explores various machine learning techniques and their applications in real-world scenarios. It also addresses ethical considerations and future directions for AI development.',
+    doi: '10.1234/test.2023.001',
+    journal: {
+      id: 1,
+      name: 'Journal of AI Research',
+      imageUrl: '',
+      slug: 'journal-of-ai-research',
+    },
+    topics: [
+      {
+        id: 1,
+        name: 'Artificial Intelligence',
+        slug: 'ai',
+      },
+      {
+        id: 2,
+        name: 'Machine Learning',
+        slug: 'machine-learning',
+      },
+    ],
+    formats: [
+      {
+        type: 'pdf',
+        url: '/test-paper.pdf',
+      },
+    ],
+    figures: [],
+    versions: [],
+    metrics: {
+      views: 100,
+      votes: 25,
+      comments: 10,
+      saves: 15,
+    },
+    unifiedDocumentId: 123,
   };
 };
 
@@ -193,25 +305,30 @@ export const FeedContent: FC<FeedContentProps> = ({
         // Render based on the work's contentType
         switch (work.contentType) {
           case 'paper':
+            // Handle viewing a paper
+            const handleViewPaper = (event: PaperViewEvent) => {
+              router.push(`/paper/${event.paperId}/${work.slug || 'details'}`);
+            };
+
+            // Check if the current user is the author
+            const isAuthor = session?.user?.id === work.authors?.[0]?.authorProfile?.user?.id;
+
             return (
               <div key={entry.id} className={spacingClass}>
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                  <h3 className="text-lg font-medium">{work.title}</h3>
-                  <p className="text-gray-600 mt-2 line-clamp-3">{work.abstract}</p>
-                  <div className="mt-4 flex items-center text-sm text-gray-500">
-                    <span>
-                      {work.authors?.length > 0
-                        ? work.authors.map((a) => a.authorProfile.fullName).join(', ')
-                        : 'Unknown authors'}
-                    </span>
-                    {work.doi && (
-                      <>
-                        <span className="mx-2">•</span>
-                        <span>DOI: {work.doi}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
+                <PaperCard
+                  paper={work}
+                  slug={work.slug}
+                  isCreator={isAuthor}
+                  onViewPaper={handleViewPaper}
+                  onUpvote={(id) => console.log('Upvote paper:', id)}
+                  onComment={(id) =>
+                    router.push(`/paper/${id}/${work.slug || 'details'}?tab=conversation`)
+                  }
+                  onShare={(id) => console.log('Share paper:', id)}
+                  onAddToLibrary={(id) => console.log('Add paper to library:', id)}
+                  showFooter={true}
+                  showActions={true}
+                />
               </div>
             );
 
@@ -304,6 +421,11 @@ export const FeedContent: FC<FeedContentProps> = ({
     console.log('Navigate to tab:', tab);
   };
 
+  // Handle test paper actions
+  const handleTestViewPaper = (event: PaperViewEvent) => {
+    console.log('View paper:', event);
+  };
+
   return (
     <>
       {header && <div className="pt-4 pb-7">{header}</div>}
@@ -336,6 +458,23 @@ export const FeedContent: FC<FeedContentProps> = ({
               </label>
             </div>
           </div>
+        </div>
+
+        {/* Test Paper Card */}
+        <div className="mt-4 mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <h2 className="text-lg font-medium mb-4">Test Paper Card</h2>
+          <PaperCard
+            paper={createTestPaper()}
+            slug="test-paper"
+            isCreator={false}
+            onViewPaper={handleTestViewPaper}
+            onUpvote={(id) => console.log('Upvote test paper:', id)}
+            onComment={(id) => console.log('Comment on test paper:', id)}
+            onShare={(id) => console.log('Share test paper:', id)}
+            onAddToLibrary={(id) => console.log('Add test paper to library:', id)}
+            showFooter={true}
+            showActions={true}
+          />
         </div>
 
         {/* Test Bounty Card */}
