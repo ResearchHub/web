@@ -233,6 +233,12 @@ export class UnifiedDocumentService {
           image: document.preview_img || DEFAULT_PLACEHOLDER_IMAGE,
           slug: document.slug,
           fundraiseId: item.fundraise?.id,
+          documents: item.documents.map((doc) => ({
+            id: doc.id,
+            title: doc.title || '',
+            abstract: doc.abstract || doc.renderable_text || '',
+            slug: doc.slug || '',
+          })),
         };
 
         // Create metrics from available data

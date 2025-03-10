@@ -39,6 +39,12 @@ export interface Content {
   actor?: AuthorProfile;
   authors?: AuthorProfile[];
   profileUrl?: string;
+  documents?: Array<{
+    id: number;
+    title: string;
+    abstract: string;
+    slug: string;
+  }>;
 }
 
 export interface FundingRequest {
@@ -59,6 +65,12 @@ export interface FundingRequest {
   deadline: string;
   preregistered?: boolean;
   fundraiseId?: number;
+  documents?: Array<{
+    id: number;
+    title: string;
+    abstract: string;
+    slug: string;
+  }>;
 }
 
 export interface FeedEntry {

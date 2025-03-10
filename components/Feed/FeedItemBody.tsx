@@ -30,6 +30,20 @@ const buildUrl = (item: Content) => {
     .toLowerCase()
     .replace(/ /g, '-')
     .replace(/[^\w-]/g, '');
+
+  // For funding requests, use the document ID if available
+  if (item.type === 'funding_request') {
+    // Check if documents property exists and has at least one item
+    if (item.documents && Array.isArray(item.documents) && item.documents.length > 0) {
+      const documentId = item.documents[0].id;
+      const documentSlug = item.documents[0].slug || slug;
+      return `/fund/${documentId}/${documentSlug}`;
+    }
+    // Fallback to using the item ID
+    return `/fund/${item.id}/${slug}`;
+  }
+
+  // For non-funding requests, use the default URL pattern
   return `/${item.type}/${item.id}/${slug}`;
 };
 
@@ -60,7 +74,11 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
   };
 
   const toggleFundingRequestExpanded = (id: string | number, e: React.MouseEvent) => {
-    e.preventDefault();
+    // Only prevent default if the click is on a specific element with data-prevent-navigation attribute
+    if (e.target instanceof HTMLElement && e.target.getAttribute('data-prevent-navigation')) {
+      e.preventDefault();
+    }
+
     setExpandedFundingRequests((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) {
@@ -116,11 +134,9 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
         </div>
       );
 
-      return isCard && item.type !== 'funding_request' ? (
-        <Link href={buildUrl(item)}>{cardContent}</Link>
-      ) : (
-        cardContent
-      );
+      let url = buildUrl(item);
+
+      return isCard ? <Link href={url}>{cardContent}</Link> : cardContent;
     };
 
     return renderCard(
@@ -227,6 +243,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
                   onToggleExpand(e);
                 }}
                 className="flex items-center gap-0.5 mt-1"
+                data-prevent-navigation="true"
               >
                 {isExpanded ? 'Show less' : 'Read more'}
                 <ChevronDown
@@ -252,6 +269,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
                 e.preventDefault(); // Prevent link navigation
                 setShowFundModal(true);
               }}
+              data-prevent-navigation="true"
             >
               Contribute
             </Button>
@@ -364,6 +382,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
                 onToggleExpand();
               }}
               className="flex items-center gap-0.5 mt-1"
+              data-prevent-navigation="true"
             >
               {isExpanded ? 'Show less' : 'Read more'}
               <ChevronDown
