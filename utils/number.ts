@@ -33,7 +33,10 @@ export function formatRSC({ amount, shorten = false }: FormatRSCOptions): string
     return `${formatted}K`;
   }
 
-  return amount.toString();
+  // For small numbers when shortening is true but amount < 1000
+  return amount.toLocaleString('en-US', {
+    maximumFractionDigits: 1,
+  });
 }
 
 /**
