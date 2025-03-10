@@ -1,8 +1,34 @@
 import { z } from 'zod';
+import { NonprofitOrg } from '@/types/nonprofit';
 
 const topicOptionSchema = z.object({
   value: z.string(),
   label: z.string(),
+});
+
+// Schema for nonprofit organization to be used in the form
+const nonprofitOrgSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  ein: z.string(),
+  deployments: z.array(
+    z.object({
+      isDeployed: z.boolean(),
+      chainId: z.number(),
+      address: z.string(),
+    })
+  ),
+  logoUrl: z.string().optional(),
+  nteeCode: z.string(),
+  nteeDescription: z.string(),
+  description: z.string(),
+  address: z.object({
+    region: z.string(),
+    country: z.string(),
+  }),
+  endaomentUrl: z.string(),
+  contibutionCount: z.number(),
+  contibutionTotal: z.string(),
 });
 
 export const publishingFormSchema = z
@@ -25,6 +51,7 @@ export const publishingFormSchema = z
       { message: 'NFT supply must be at least 100' }
     ),
     isJournalEnabled: z.boolean().optional(),
+    selectedNonprofit: nonprofitOrgSchema.nullable().optional(),
   })
   .superRefine((data, ctx) => {
     // Preregistration-specific validations

@@ -27,6 +27,7 @@ import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSke
 import { Loader2 } from 'lucide-react';
 import { DOISection } from '@/components/work/components/DOISection';
 import { getFieldErrorMessage } from '@/utils/form';
+import { NonprofitSearchSection } from './components/NonprofitSearchSection';
 
 interface PublishingFormProps {
   bountyAmount: number | null;
@@ -248,17 +249,27 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         >
           <div className="pb-6">
             <WorkTypeSection />
+
+            {articleType === 'preregistration' && (
+              <>
+                <FundingSection note={note} />
+                <NonprofitSearchSection />
+              </>
+            )}
+
             <AuthorsSection />
             <TopicsSection />
+
             {note.post?.doi && (
               <div className="py-3 px-6 space-y-6">
                 <DOISection doi={note.post.doi} />
               </div>
             )}
-            {articleType === 'preregistration' && <FundingSection note={note} />}
+
             {articleType !== 'preregistration' && (
               <ResearchCoinSection bountyAmount={bountyAmount} onBountyClick={onBountyClick} />
             )}
+
             {articleType === 'discussion' && <JournalSection />}
           </div>
         </div>
