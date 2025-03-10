@@ -101,10 +101,25 @@ export interface FeedApiResponse {
 export type TransformedContent = Content & BaseTransformed;
 export type TransformedFeedEntry = FeedEntry & BaseTransformed;
 
-const transformPaper = (baseContent: BaseContent, contentObject: any): Paper => {
+type PaperSpecificProps = {
+  type: 'paper';
+  abstract: string;
+  doi?: string;
+  journal?: Journal;
+  authors: AuthorProfile[];
+  title?: string;
+};
+
+type PostSpecificProps = {
+  type: 'post';
+  summary: string;
+  postType: 'discussion' | 'question' | 'preregistration';
+  title?: string;
+};
+
+export const transformPaper = createTransformer<any, PaperSpecificProps>((contentObject) => {
   return {
-    ...baseContent,
-    type: 'paper',
+    type: 'paper' as const,
     title: contentObject.title,
     abstract: contentObject.abstract,
     doi: contentObject.doi,
@@ -116,20 +131,19 @@ const transformPaper = (baseContent: BaseContent, contentObject: any): Paper => 
     },
     authors: contentObject.authors.map(transformAuthorProfile),
   };
-};
+});
 
-const transformPost = (baseContent: BaseContent, contentObject: any): Post => {
+export const transformPost = createTransformer<any, PostSpecificProps>((contentObject) => {
   const postType = contentObject.type && contentObject.type.toLowerCase();
   return {
-    ...baseContent,
-    type: 'post',
+    type: 'post' as const,
     title: contentObject.title,
     summary: contentObject.renderable_text,
     postType: ['discussion', 'question', 'preregistration'].includes(postType)
       ? postType
       : 'discussion',
   };
-};
+});
 
 const baseTransformContentObject = (params: { response: FeedResponse; type: string }): Content => {
   const { response, type } = params;
@@ -174,21 +188,37 @@ const baseTransformContentObject = (params: { response: FeedResponse; type: stri
 
       // Transform paper if it exists
       if (contentObject.paper) {
-        bounty.paper = transformPaper(baseContent, contentObject.paper);
+        const paperTransformed = transformPaper(contentObject.paper);
+        bounty.paper = {
+          ...baseContent,
+          ...paperTransformed,
+        };
       }
 
       // Transform post if it exists
       if (contentObject.post) {
-        bounty.post = transformPost(baseContent, contentObject.post);
+        const postTransformed = transformPost(contentObject.post);
+        bounty.post = {
+          ...baseContent,
+          ...postTransformed,
+        };
       }
 
       return bounty;
     }
     case 'paper': {
-      return transformPaper(baseContent, contentObject);
+      const paperTransformed = transformPaper(contentObject);
+      return {
+        ...baseContent,
+        ...paperTransformed,
+      };
     }
     case 'researchhubpost': {
-      return transformPost(baseContent, contentObject);
+      const postTransformed = transformPost(contentObject);
+      return {
+        ...baseContent,
+        ...postTransformed,
+      };
     }
     default:
       throw new Error(`Unknown content type: ${type}`);
