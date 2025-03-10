@@ -280,15 +280,17 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
           </div>
         </div>
 
-        {/* Image - Right Side - No padding, fills to edge with rounded corners */}
-        <div className="relative w-1/4 min-w-[150px]">
-          <Image
-            src={imageUrl}
-            alt={fundingRequest.title}
-            fill
-            className="object-cover rounded-r-lg"
-            sizes="(max-width: 768px) 100vw, 25vw"
-          />
+        {/* Image - Right Side - Fixed size regardless of content expansion */}
+        <div className="w-1/4 min-w-[150px] shrink-0">
+          <div className="relative" style={{ paddingBottom: '104%' }}>
+            <Image
+              src={imageUrl}
+              alt={fundingRequest.title}
+              fill
+              className="rounded-r-lg object-cover"
+              sizes="(max-width: 768px) 100vw, 25vw"
+            />
+          </div>
         </div>
 
         {/* Fund Research Modal */}
