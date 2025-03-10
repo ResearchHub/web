@@ -23,6 +23,7 @@ export interface Bounty extends BaseContent {
   abstract: string;
   amount: number;
   paper?: Paper;
+  post?: Post;
   title: string;
   bountyType: 'review' | 'answer' | string;
 }

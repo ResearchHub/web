@@ -94,6 +94,9 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
     if (bounty.paper) {
       return renderPaper(bounty.paper, isExpanded, onToggleExpand);
     }
+    if (bounty.post) {
+      return renderPost(bounty.post, isExpanded, onToggleExpand);
+    }
     return <div>An amount of {bounty.amount} has been added to the bounty.</div>;
   };
 
