@@ -97,14 +97,27 @@ export const transformAuthorship = createTransformer<any, Authorship>((raw) => (
 }));
 
 export const transformJournal = (raw: any): TransformedJournal | undefined => {
-  if (!raw.external_source) return undefined;
+  // Check for external_source first (legacy format)
+  if (raw.external_source) {
+    return createTransformer<any, Journal>((raw) => ({
+      id: raw.external_source_id || 0,
+      name: raw.external_source,
+      slug: raw.external_source_slug || '',
+      imageUrl: raw.external_source_image || '',
+    }))(raw);
+  }
 
-  return createTransformer<any, Journal>((raw) => ({
-    id: raw.external_source_id || 0,
-    name: raw.external_source,
-    slug: raw.external_source_slug || '',
-    image: raw.external_source_image || '',
-  }))(raw);
+  // Check for journal property (new format)
+  if (raw.journal) {
+    return createTransformer<any, Journal>((raw) => ({
+      id: raw.journal.id || 0,
+      name: raw.journal.name,
+      slug: raw.journal.slug || '',
+      imageUrl: raw.journal.image || '',
+    }))(raw);
+  }
+
+  return undefined;
 };
 
 export const transformDocumentVersion = createTransformer<any, DocumentVersion>((raw) => ({
@@ -126,14 +139,22 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
   authors: Array.isArray(raw.authors) ? raw.authors.map(transformAuthorship) : [],
   abstract: raw.abstract,
   doi: raw.doi,
-  journal: raw.external_source ? transformJournal(raw) : undefined,
+  journal: transformJournal(raw),
   topics: Array.isArray(raw.hubs)
     ? raw.hubs.map((hub: Hub) => ({
         id: hub.id,
         name: hub.name,
         slug: hub.slug,
       }))
-    : [],
+    : raw.hub
+      ? [
+          {
+            id: raw.hub.id || 0,
+            name: raw.hub.name,
+            slug: raw.hub.slug,
+          },
+        ]
+      : [],
   formats: raw.pdf_url
     ? [...(raw.formats || []), { type: 'PDF', url: raw.pdf_url }]
     : raw.formats || [],

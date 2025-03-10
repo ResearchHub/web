@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { DefaultRenderer } from './DefaultRenderer';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorList } from '@/components/ui/AuthorList';
+import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 
 /**
  * Renderer for paper content
@@ -31,26 +32,46 @@ export const PaperRenderer: ContentRenderer<Work> = {
     const authors = context.authors || [];
     const onViewPaper = context.onViewPaper;
 
-    // Create paper badge
+    // Create paper badge with a different icon and styling
     const paperBadge = (
-      <div className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 inline-block mb-2">
-        Paper
+      <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="w-3.5 h-3.5 text-gray-600"
+        >
+          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+          <polyline points="14 2 14 8 20 8" />
+        </svg>
+        <span>Paper</span>
       </div>
     );
 
-    // Create journal badge if available
+    // Create journal badge if available using the new component
     const journalBadge = paper.journal && (
-      <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border border-gray-200 bg-gray-50 ml-2">
-        {paper.journal.imageUrl && (
-          <Avatar
-            src={paper.journal.imageUrl || ''}
-            alt={paper.journal.name}
-            size="xxs"
-            className="ring-1 ring-gray-200"
-          />
-        )}
-        <span className="text-gray-700">{paper.journal.name}</span>
-      </div>
+      <TopicAndJournalBadge
+        type="journal"
+        name={paper.journal.name}
+        slug={paper.journal.slug}
+        imageUrl={paper.journal.imageUrl}
+        className="ml-2"
+      />
+    );
+
+    // Create topic badge if available using the new component
+    const topicBadge = paper.topics && paper.topics.length > 0 && (
+      <TopicAndJournalBadge
+        type="topic"
+        name={paper.topics[0].name}
+        slug={paper.topics[0].slug}
+        imageUrl={paper.topics[0].imageUrl}
+        className="ml-2"
+      />
     );
 
     // Function to truncate abstract to approximately 100 characters
@@ -66,9 +87,10 @@ export const PaperRenderer: ContentRenderer<Work> = {
     return (
       <div className="space-y-3">
         {/* Paper badge above title */}
-        <div className="flex items-center">
+        <div className="flex items-center flex-wrap gap-2">
           {paperBadge}
           {journalBadge}
+          {topicBadge}
         </div>
 
         {/* Paper title */}

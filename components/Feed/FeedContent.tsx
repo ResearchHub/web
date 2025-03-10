@@ -206,28 +206,10 @@ export const FeedContent: FC<FeedContentProps> = ({
   header,
   tabs,
 }) => {
-  console.log('entries', entries);
-
   const router = useRouter();
   const { data: session } = useSession();
   const [showDebug, setShowDebug] = useState(true);
   const [useRawData, setUseRawData] = useState(true);
-
-  // Add debugging to check what entries we're receiving
-  useEffect(() => {
-    if (entries && entries.length > 0) {
-      console.log('Feed entries count:', entries.length);
-      console.log('First entry:', entries[0]);
-
-      // Count bounty entries - check if content has a bountyType property
-      const bountyEntries = entries.filter((entry) => 'bountyType' in entry.content);
-      console.log('Bounty entries count:', bountyEntries.length);
-
-      if (bountyEntries.length > 0) {
-        console.log('First bounty entry:', bountyEntries[0]);
-      }
-    }
-  }, [entries]);
 
   // Render a feed entry based on its content type
   const renderFeedEntry = (entry: FeedEntry, isFirst: boolean) => {
@@ -236,7 +218,7 @@ export const FeedContent: FC<FeedContentProps> = ({
       return null;
     }
 
-    console.log('entry---------', entry);
+    console.log('entry', entry);
 
     // Apply appropriate spacing based on position
     const spacingClass = !isFirst ? 'mt-6' : '';
