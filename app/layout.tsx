@@ -7,6 +7,8 @@ import { ExchangeRateProvider } from '@/contexts/ExchangeRateContext';
 import { AuthModalProvider } from '@/contexts/AuthModalContext';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { Metadata } from 'next';
+import { getServerSession } from 'next-auth';
+import { authOptions } from './api/auth/[...nextauth]/auth.config';
 import { UserProvider } from '@/contexts/UserContext';
 
 const geistSans = localFont({
@@ -42,10 +44,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <NextAuthProvider>
+        <NextAuthProvider session={session}>
           <AuthModalProvider>
             <OrganizationProvider>
               <UserProvider>
