@@ -21,6 +21,7 @@ import { BountyCardWrapper } from '@/components/Bounty';
 import { contentRenderers } from '.';
 import { ReactNode } from 'react';
 import { Badge } from '@/components/ui/Badge';
+import { ActionButton } from '../ActionButton';
 
 /**
  * Renderer for comment content
@@ -250,71 +251,63 @@ export const CommentRenderer: ContentRenderer<Comment> = {
     return (
       <div className="flex items-center justify-between mt-2">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex items-center gap-1.5"
+          <ActionButton
+            icon={ArrowUp}
+            count={comment.score}
+            tooltip="Upvote"
+            label="Upvote"
             onClick={() => onUpvote && onUpvote(comment.id)}
-          >
-            <ArrowUp className="h-4 w-4" />
-            <span>Upvote</span>
-          </Button>
+            showLabel={true}
+          />
 
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex items-center gap-1.5"
+          <ActionButton
+            icon={MessageCircle}
+            count={comment.replyCount}
+            tooltip="Comment"
+            label="Comment"
             onClick={() => onReply && onReply(comment.id)}
-          >
-            <MessageCircle className="h-4 w-4" />
-            <span>Reply</span>
-          </Button>
+            showLabel={true}
+          />
 
           {isAuthor && onEdit && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-1.5"
+            <ActionButton
+              icon={Edit2}
+              tooltip="Edit"
+              label="Edit"
               onClick={() => onEdit(comment.id)}
-            >
-              <Edit2 className="h-4 w-4" />
-              <span>Edit</span>
-            </Button>
+            />
           )}
         </div>
 
         <div className="flex items-center gap-3">
           {isAuthor && onDelete && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-1.5 text-gray-500"
+            <ActionButton
+              icon={Trash2}
+              tooltip="Delete"
+              label="Delete"
               onClick={() => onDelete(comment.id)}
-            >
-              <Trash2 className="h-4 w-4" />
-              <span className="sr-only">Delete</span>
-            </Button>
+              className="text-gray-500"
+            />
           )}
 
           {isBountyComment ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-1.5 text-gray-500"
+            <ActionButton
+              icon={Share}
+              tooltip="Share"
+              label="Share"
               onClick={() => onShare && onShare(comment.id)}
-            >
-              <Share className="h-4 w-4" />
-              <span className="sr-only">Share</span>
-            </Button>
+              className="text-gray-500"
+            />
           ) : (
             <Button
               variant="ghost"
               size="sm"
-              className="flex items-center gap-1.5 text-gray-500"
               onClick={() => onReport && onReport(comment.id)}
+              className="text-gray-500"
+              tooltip="Flag"
             >
-              <Flag className="h-4 w-4" />
-              <span className="sr-only">Report</span>
+              <Flag className="w-5 h-5 text-gray-800" strokeWidth={2} />
+              <span className="sr-only">Flag</span>
             </Button>
           )}
         </div>

@@ -6,9 +6,10 @@ import { DefaultRenderer } from './DefaultRenderer';
 import Link from 'next/link';
 import { RSCBadge } from '@/components/ui/RSCBadge';
 import { ExpandableContent } from '../shared';
-import { ArrowUp, MessageCircle, Edit2, Trash2, Share } from 'lucide-react';
+import { ArrowUp, MessageCircle, Edit2, Trash2, Flag } from 'lucide-react';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
+import { ActionButton } from '../ActionButton';
 
 // Import specialized Bounty components
 import { BountyDetails } from '@/components/Bounty/BountyDetails';
@@ -322,7 +323,7 @@ export const BountyRenderer: ContentRenderer<Bounty> = {
       onReply,
       onEdit,
       onDelete,
-      onShare,
+      onReport,
       isAuthor = false,
     } = options;
 
@@ -331,60 +332,52 @@ export const BountyRenderer: ContentRenderer<Bounty> = {
     return (
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex items-center gap-1.5"
+          <ActionButton
+            icon={ArrowUp}
+            tooltip="Upvote"
+            label="Upvote"
             onClick={() => onUpvote && onUpvote(bounty.id)}
-          >
-            <ArrowUp className="h-4 w-4" />
-            <span>Upvote</span>
-          </Button>
+            showLabel={true}
+          />
 
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex items-center gap-1.5"
+          <ActionButton
+            icon={MessageCircle}
+            tooltip="Comment"
+            label="Comment"
             onClick={() => onReply && onReply(bounty.id)}
-          >
-            <MessageCircle className="h-4 w-4" />
-            <span>Reply</span>
-          </Button>
+            showLabel={true}
+          />
 
           {isAuthor && onEdit && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-1.5"
+            <ActionButton
+              icon={Edit2}
+              tooltip="Edit"
+              label="Edit"
               onClick={() => onEdit(bounty.id)}
-            >
-              <Edit2 className="h-4 w-4" />
-              <span>Edit</span>
-            </Button>
+            />
           )}
         </div>
 
         <div className="flex items-center gap-3">
           {isAuthor && onDelete && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-1.5 text-gray-500"
+            <ActionButton
+              icon={Trash2}
+              tooltip="Delete"
+              label="Delete"
               onClick={() => onDelete(bounty.id)}
-            >
-              <Trash2 className="h-4 w-4" />
-              <span className="sr-only">Delete</span>
-            </Button>
+              className="text-gray-500"
+            />
           )}
 
           <Button
             variant="ghost"
             size="sm"
-            className="flex items-center gap-1.5 text-gray-500"
-            onClick={() => onShare && onShare(bounty.id)}
+            onClick={() => onReport && onReport(bounty.id)}
+            className="text-gray-500"
+            tooltip="Flag"
           >
-            <Share className="h-4 w-4" />
-            <span className="sr-only">Share</span>
+            <Flag className="w-5 h-5 text-gray-800" strokeWidth={2} />
+            <span className="sr-only">Flag</span>
           </Button>
         </div>
       </div>

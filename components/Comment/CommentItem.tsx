@@ -277,13 +277,9 @@ export const CommentItem = ({
             showActions={renderCommentActions}
             onUpvote={() => handleVote('UPVOTE')}
             onReply={() => setReplyingToCommentId(comment.id)}
-            onShare={() => {
-              // Copy the link to the clipboard
-              const url =
-                window.location.origin + `/comment/${comment.thread?.objectId}/${comment.id}`;
-              navigator.clipboard.writeText(url).then(() => {
-                toast.success('Link copied to clipboard');
-              });
+            onReport={() => {
+              // Report functionality
+              toast.success('Comment reported');
             }}
             onEdit={() => {
               if (debug) console.log(`Setting editingCommentId to ${comment.id}`);

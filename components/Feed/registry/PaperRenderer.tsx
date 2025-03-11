@@ -7,6 +7,8 @@ import { Avatar } from '@/components/ui/Avatar';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { PaperIcon } from '@/components/ui/icons';
+import { ArrowUp, MessageCircle, Share } from 'lucide-react';
+import { ActionButton } from '../ActionButton';
 
 /**
  * Renderer for paper content
@@ -126,22 +128,37 @@ export const PaperRenderer: ContentRenderer<Work> = {
     if (!showActions) return null;
 
     return (
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={onUpvote ? () => onUpvote(paper.id) : undefined}>
-          Upvote
-        </Button>
+      <div className="flex items-center justify-between mt-3">
+        <div className="flex items-center gap-3">
+          <ActionButton
+            icon={ArrowUp}
+            tooltip="Upvote"
+            label="Upvote"
+            onClick={onUpvote ? () => onUpvote(paper.id) : undefined}
+            showLabel={true}
+          />
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onComment ? () => onComment(paper.id) : undefined}
-        >
-          Comment
-        </Button>
+          <ActionButton
+            icon={MessageCircle}
+            tooltip="Comment"
+            label="Comment"
+            onClick={onComment ? () => onComment(paper.id) : undefined}
+            showLabel={true}
+          />
+        </div>
 
-        <Button variant="ghost" size="sm" onClick={onShare ? () => onShare(paper.id) : undefined}>
-          Share
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onShare ? () => onShare(paper.id) : undefined}
+            className="text-gray-500"
+            tooltip="Share"
+          >
+            <Share className="w-5 h-5 text-gray-800" strokeWidth={2} />
+            <span className="sr-only">Share</span>
+          </Button>
+        </div>
       </div>
     );
   },

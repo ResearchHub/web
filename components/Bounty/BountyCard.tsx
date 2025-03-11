@@ -50,7 +50,7 @@ export interface BountyCardProps {
   onNavigationClick?: (tab: 'reviews' | 'conversation') => void;
   onUpvote?: (bountyId: number) => void;
   onReply?: (bountyId: number) => void;
-  onShare?: (bountyId: number) => void;
+  onReport?: (bountyId: number) => void;
   onEdit?: (bountyId: number) => void;
   onDelete?: (bountyId: number) => void;
 
@@ -85,7 +85,7 @@ export const BountyCard = ({
   onNavigationClick,
   onUpvote,
   onReply,
-  onShare,
+  onReport,
   onEdit,
   onDelete,
 
@@ -193,7 +193,7 @@ export const BountyCard = ({
           onReply,
           onEdit,
           onDelete,
-          onShare,
+          onReport,
           isAuthor,
         })}
 

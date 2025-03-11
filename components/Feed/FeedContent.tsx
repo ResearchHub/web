@@ -270,7 +270,7 @@ export const FeedContent: FC<FeedContentProps> = ({
               onNavigationClick={handleNavigationClick}
               onUpvote={(id) => console.log('Upvote bounty:', id)}
               onReply={(id) => router.push(`/${slug}?reply=true`)}
-              onShare={(id) => console.log('Share bounty:', id)}
+              onReport={(id) => console.log('Report bounty:', id)}
               showFooter={true}
               showActions={true}
             />

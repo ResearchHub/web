@@ -30,7 +30,7 @@ interface BountyCardWrapperProps {
   onBountyUpdated?: () => void;
   onUpvote?: (bountyId: number) => void;
   onReply?: (bountyId: number) => void;
-  onShare?: (bountyId: number) => void;
+  onReport?: (bountyId: number) => void;
   onEdit?: (bountyId: number) => void;
   onDelete?: (bountyId: number) => void;
 
@@ -61,7 +61,7 @@ export const BountyCardWrapper = ({
   onBountyUpdated,
   onUpvote,
   onReply,
-  onShare,
+  onReport,
   onEdit,
   onDelete,
   slug,
@@ -115,7 +115,7 @@ export const BountyCardWrapper = ({
         onNavigationClick={handleNavigationClick}
         onUpvote={onUpvote}
         onReply={onReply}
-        onShare={onShare}
+        onReport={onReport}
         onEdit={onEdit}
         onDelete={onDelete}
         slug={slug}
