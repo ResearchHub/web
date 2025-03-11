@@ -52,7 +52,6 @@ interface FeedItemHeaderProps {
   authors?: Author[];
 
   // Action props
-  action?: FeedActionType | string;
   actionText?: string;
 
   // Content-specific props
@@ -73,7 +72,6 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   author,
   authors = [],
 
-  action,
   actionText,
 
   score,
@@ -91,38 +89,40 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   // Determine if we should show multiple authors or just one
   const showMultipleAuthors = allAuthors.length > 1;
 
-  // Get default action text based on content type if not provided
+  // Get default action text based on content type and other props
   const getDefaultActionText = (): string => {
+    // If explicit actionText is provided, use it
     if (actionText) return actionText;
 
-    if (action) {
-      switch (contentType) {
-        case 'bounty':
-          return `${action}ed a bounty${bountyAmount ? ` for ${formatRSC({ amount: bountyAmount, shorten: true })} RSC` : ''}`;
-        case 'paper':
-        case 'post':
-          return `${action}ed a ${contentType.replace('_', ' ')}`;
-        case 'comment':
-          return `${action}ed`;
-        case 'review':
-          return `peer reviewed`;
-        case 'answer':
-          return `answered`;
-        default:
-          return `${action}ed`;
+    // Handle bounties with special cases based on status
+    if (contentType === 'bounty') {
+      if (bountyStatus === 'closed') {
+        return `Awarded a bounty${bountyAmount ? ` of ${formatRSC({ amount: bountyAmount, shorten: true })} RSC` : ''}`;
+      } else if (bountyStatus === 'expiring') {
+        return `Bounty expiring soon${bountyAmount ? ` (${formatRSC({ amount: bountyAmount, shorten: true })} RSC)` : ''}`;
+      } else {
+        // Default for open bounties
+        return `Opened a bounty${bountyAmount ? ` for ${formatRSC({ amount: bountyAmount, shorten: true })} RSC` : ''}`;
       }
     }
 
-    // Fallbacks if no action provided
+    // Handle reviews with score if available
+    if (contentType === 'review') {
+      return score !== undefined ? `Peer reviewed with ${score}/5 rating` : `Peer reviewed`;
+    }
+
+    // For other content types
     switch (contentType) {
-      case 'bounty':
-        return 'opened bounty';
-      case 'review':
-        return 'peer reviewed';
+      case 'paper':
+        return 'Published a paper';
+      case 'post':
+        return 'Published a post';
+      case 'comment':
+        return 'Commented';
       case 'answer':
-        return 'answered';
+        return 'Answered a question';
       default:
-        return 'commented';
+        return `Shared a ${contentType}`;
     }
   };
 

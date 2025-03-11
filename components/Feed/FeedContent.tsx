@@ -9,7 +9,9 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { FeedService } from '@/services/feed.service';
 import { FeedEntry } from '@/types/feed';
-import { Work, WorkType } from '@/types/work';
+import { Work, WorkType, ContentType } from '@/types/work';
+import { Comment } from '@/types/comment';
+import { CommentCard } from '@/components/Comment/CommentCard';
 
 interface FeedContentProps {
   entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry
@@ -222,8 +224,9 @@ export const FeedContent: FC<FeedContentProps> = ({
     const spacingClass = !isFirst ? 'mt-6' : '';
 
     try {
-      // Check if this is a bounty (has bountyType property) or a work
+      // Check if this is a bounty (has bountyType property), a comment, or a work
       const isBounty = 'bountyType' in entry.content;
+      const isComment = 'commentType' in entry.content;
 
       if (isBounty) {
         // For bounties, we need to use the raw data to create a Bounty object
@@ -269,6 +272,37 @@ export const FeedContent: FC<FeedContentProps> = ({
               onReply={(id) => router.push(`/${slug}?reply=true`)}
               onShare={(id) => console.log('Share bounty:', id)}
               showFooter={true}
+              showActions={true}
+            />
+          </div>
+        );
+      } else if (isComment) {
+        // This is a Comment
+        const comment = entry.content as Comment;
+
+        // Determine the content type based on the thread type or document type
+        const contentType: ContentType =
+          comment.thread?.threadType?.toLowerCase() === 'paper' ? 'paper' : 'post';
+
+        // Generate a slug for the comment
+        let slug = '';
+        if (entry.relatedWork?.slug) {
+          slug = `papers/${entry.relatedWork.slug}`;
+        } else {
+          slug = `comment/${comment.id}`;
+        }
+
+        return (
+          <div key={entry.id} className={spacingClass}>
+            <CommentCard
+              comment={comment}
+              contentType={contentType}
+              onUpvote={(id) => console.log('Upvote comment:', id)}
+              onReply={(id) => console.log('Reply to comment:', id)}
+              onReport={(id) => console.log('Report comment:', id)}
+              onShare={(id) => console.log('Share comment:', id)}
+              onEdit={(id) => console.log('Edit comment:', id)}
+              onDelete={(id) => console.log('Delete comment:', id)}
               showActions={true}
             />
           </div>

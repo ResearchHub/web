@@ -19,9 +19,8 @@ export const PaperRenderer: ContentRenderer<Work> = {
     return (
       <FeedItemHeader
         contentType="paper"
-        timestamp={paper.createdDate}
+        timestamp={paper.createdDate || paper.publishedDate}
         authors={Array.isArray(authorData) ? authorData : [authorData]}
-        action="published"
       />
     );
   },
@@ -167,11 +166,15 @@ export const PaperRenderer: ContentRenderer<Work> = {
 
   getMetadata: (paper) => {
     return {
-      action: 'published',
-      timestamp: paper.createdDate,
+      timestamp: paper.createdDate || paper.publishedDate,
       type: 'paper',
       doi: paper.doi,
       journal: paper.journal?.name,
+      hasAbstract: !!paper.abstract && paper.abstract.length > 0,
+      hasAuthors: paper.authors && paper.authors.length > 0,
+      authorCount: paper.authors?.length || 0,
+      hasTopic: paper.topics && paper.topics.length > 0,
+      topicName: paper.topics && paper.topics.length > 0 ? paper.topics[0].name : undefined,
     };
   },
 };

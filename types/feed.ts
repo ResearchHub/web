@@ -4,14 +4,15 @@ import { Topic, transformTopic } from './topic';
 import { createTransformer, BaseTransformed } from './transformer';
 import { Work, transformPaper, FundingRequest } from './work';
 import { Bounty, transformBounty } from './bounty';
+import { Comment, transformComment } from './comment';
 
 export type FeedActionType = 'repost' | 'contribute' | 'open' | 'publish' | 'post';
 
 // Re-export FundingRequest for backward compatibility
 export type { FundingRequest };
 
-// Simplified Content type - now just Work or Bounty
-export type Content = Work | Bounty;
+// Simplified Content type - now Work, Bounty, or Comment
+export type Content = Work | Bounty | Comment;
 
 export interface FeedEntry {
   id: string;
@@ -109,6 +110,55 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       break;
 
     case 'RHCOMMENTMODEL':
+      // For comments, use the transformComment function
+      try {
+        // Prepare the comment data for transformation
+        const commentData = {
+          id: content_object.id,
+          comment_content_json: content_object.comment_content_json,
+          comment_content_type: content_object.comment_content_type,
+          comment_type: content_object.comment_type,
+          created_date: content_object.created_date || created_date,
+          updated_date: content_object.updated_date || created_date,
+          created_by: author,
+          score: content_object.score || 0,
+          children_count: content_object.children_count || 0,
+          reply_count: content_object.reply_count || 0,
+          children: content_object.children || [],
+          replies: content_object.replies || [],
+          parent_id: content_object.parent_id,
+          thread: content_object.thread_id
+            ? {
+                id: content_object.thread_id,
+                thread_type: content_object.document_type || 'PAPER',
+                privacy_type: 'PUBLIC',
+                object_id: content_object.id,
+              }
+            : null,
+          is_public: true,
+          is_removed: false,
+          metadata: content_object.metadata || {},
+        };
+        console.log('&1111');
+        content = transformComment(commentData);
+
+        console.log('&content_object', content_object);
+
+        // If the comment is associated with a paper, transform it to a Work and set as relatedWork
+        if (content_object?.paper?.id) {
+          console.log('content_object.paper', content_object.paper);
+          try {
+            relatedWork = transformPaper(content_object.paper);
+          } catch (paperError) {
+            console.error('Error transforming paper for comment:', paperError);
+          }
+        }
+      } catch (error) {
+        console.error('Error transforming comment:', error);
+        throw new Error(`Failed to transform comment: ${error}`);
+      }
+      break;
+
     case 'RESEARCHHUBPOST':
       // For comments and posts, transform to Work with contentType 'post'
       try {

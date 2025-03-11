@@ -113,25 +113,24 @@ const renderRelatedPaper = (work: Work, options: { onClick?: () => void } = {}) 
  */
 export const BountyRenderer: ContentRenderer<Bounty> = {
   renderHeader: (bounty, options = {}) => {
-    // Extract author data
-    const authorData = extractAuthorData(bounty);
+    const authorData = BountyRenderer.getAuthorData(bounty);
+    const metadata = BountyRenderer.getMetadata(bounty);
 
     // Determine bounty status
-    const expiringSoon = options.expiringSoon || false;
-    const isOpen = bounty.status === 'OPEN';
-    const bountyStatus = isOpen ? (expiringSoon ? 'expiring' : 'open') : 'closed';
+    const isActive = bounty.status === 'OPEN';
+    const isExpiring = isActive && isExpiringSoon(bounty.expirationDate);
+    const bountyStatus = isExpiring ? 'expiring' : isActive ? 'open' : 'closed';
 
-    // Format the amount
-    const formattedAmount = formatCurrency(bounty.totalAmount);
+    // Ensure authorData is of the correct type
+    const author = Array.isArray(authorData) ? authorData[0] : authorData;
 
     return (
       <FeedItemHeader
-        author={authorData}
-        timestamp={bounty.raw?.created_date || new Date().toISOString()}
         contentType="bounty"
+        timestamp={bounty.raw?.created_date}
+        author={author}
+        bountyAmount={parseFloat(bounty.amount)}
         bountyStatus={bountyStatus}
-        bountyAmount={parseFloat(bounty.totalAmount)}
-        action={isOpen ? 'opened' : 'awarded'}
       />
     );
   },
@@ -402,14 +401,28 @@ export const BountyRenderer: ContentRenderer<Bounty> = {
   },
 
   getMetadata: (bounty) => {
+    // Determine the bounty status
+    const isActive = bounty.status === 'OPEN';
+    const isExpiring = isActive && isExpiringSoon(bounty.expirationDate);
+    const bountyStatus = isExpiring ? 'expiring' : isActive ? 'open' : 'closed';
+
+    // Get paper information if available
+    const paperTitle = bounty.raw?.paper?.title;
+    const paperSlug = bounty.raw?.paper?.slug;
+
     return {
+      timestamp: bounty.raw?.created_date,
+      type: 'bounty',
       amount: bounty.amount,
       totalAmount: bounty.totalAmount,
-      status: bounty.status,
+      bountyStatus,
       expirationDate: bounty.expirationDate,
       bountyType: bounty.bountyType,
       solutionsCount: bounty.solutions.length,
       contributionsCount: bounty.contributions.length,
+      // Include paper information if this bounty is for a paper
+      paperTitle,
+      paperSlug,
     };
   },
 };

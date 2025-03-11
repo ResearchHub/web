@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { DefaultRenderer } from './DefaultRenderer';
 import { ExpandableContent } from '../shared';
 import { useState } from 'react';
-import { MessageCircle, ArrowUp, Flag, Edit2, Trash2, Share } from 'lucide-react';
+import { MessageCircle, ArrowUp, Flag, Edit2, Trash2, Share, Star } from 'lucide-react';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { BountyRenderer } from './BountyRenderer';
 import { RSCBadge } from '@/components/ui/RSCBadge';
@@ -20,6 +20,7 @@ import {
 import { BountyCardWrapper } from '@/components/Bounty';
 import { contentRenderers } from '.';
 import { ReactNode } from 'react';
+import { Badge } from '@/components/ui/Badge';
 
 /**
  * Renderer for comment content
@@ -51,7 +52,6 @@ export const CommentRenderer: ContentRenderer<Comment> = {
             }}
             bountyAmount={totalAmount}
             bountyStatus={expiringSoon ? 'expiring' : isOpen ? 'open' : 'closed'}
-            action={isOpen ? 'opened' : 'awarded'}
           />
         );
       }
@@ -62,13 +62,12 @@ export const CommentRenderer: ContentRenderer<Comment> = {
 
     return (
       <FeedItemHeader
-        contentType={comment.commentType?.toLowerCase() || 'comment'}
+        contentType={'comment'}
         timestamp={comment.createdDate}
         author={
           typeof authorData === 'object' && !Array.isArray(authorData) ? authorData : undefined
         }
         score={score}
-        action={metadata.action}
       />
     );
   },
@@ -81,6 +80,67 @@ export const CommentRenderer: ContentRenderer<Comment> = {
     if ((comment.commentType === 'BOUNTY' || comment.bounties?.length > 0) && comment.bounties) {
       console.warn('CommentRenderer should not be used for bounty comments');
       return null;
+    }
+
+    // Helper function to create a badge
+    const createBadge = (
+      key: string,
+      text: string,
+      extraContent?: ReactNode,
+      variant: 'purple' | 'green' | 'blue' | 'gray' = 'blue',
+      icon?: ReactNode
+    ) => {
+      // Define color classes based on variant
+      const colorClasses = {
+        purple: 'bg-purple-100 text-purple-800',
+        green: 'bg-green-100 text-green-800',
+        blue: 'bg-blue-100 text-blue-800',
+        gray: 'bg-gray-100 text-gray-700 border border-gray-200',
+      };
+
+      return (
+        <div
+          key={key}
+          className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 ${colorClasses[variant]}`}
+        >
+          {icon}
+          <span>{text}</span>
+          {extraContent}
+        </div>
+      );
+    };
+
+    // Create badges
+    const badges = [];
+
+    // Add peer review badge if this is a review comment
+    if (comment.commentType === 'REVIEW') {
+      // Check if we have a score to display
+      const hasScore = 'score' in comment && typeof comment.score === 'number';
+
+      const scoreContent = hasScore ? (
+        <>
+          <span className="mx-0.5">•</span>
+          <span>{comment.score}/5</span>
+        </>
+      ) : null;
+
+      badges.push(
+        createBadge(
+          'peer-review',
+          'Peer Review',
+          scoreContent,
+          'gray',
+          <Star className="h-3 w-3" />
+        )
+      );
+    }
+
+    // Add answer badge if this is an answer comment
+    if (comment.commentType === 'ANSWER') {
+      badges.push(
+        createBadge('answer', 'Answer', null, 'gray', <MessageCircle className="h-3 w-3" />)
+      );
     }
 
     // Helper function to safely render rating content
@@ -123,6 +183,9 @@ export const CommentRenderer: ContentRenderer<Comment> = {
 
     return (
       <div className="space-y-4">
+        {/* Display badges if any */}
+        {badges.length > 0 && <div className="flex flex-wrap gap-2 mb-3">{badges}</div>}
+
         <CommentReadOnly
           content={comment.content}
           contentFormat={comment.contentFormat}
@@ -285,25 +348,27 @@ export const CommentRenderer: ContentRenderer<Comment> = {
   },
 
   getMetadata: (comment) => {
-    let action = 'commented';
-
-    switch (comment.commentType) {
-      case 'BOUNTY':
-        action = 'opened bounty';
-        break;
-      case 'REVIEW':
-        action = 'peer reviewed';
-        break;
-      case 'ANSWER':
-        action = 'answered';
-        break;
-    }
+    // Determine the appropriate comment type
+    const commentType = comment.commentType?.toLowerCase() || 'comment';
 
     return {
-      action,
       timestamp: comment.createdDate,
-      type: comment.commentType?.toLowerCase() || 'comment',
+      type: commentType,
       score: comment.score,
+      // Include additional metadata that might be useful
+      isReply: !!comment.parentId,
+      hasReplies: (comment.replies?.length || 0) > 0,
+      replyCount: comment.replyCount || comment.childrenCount || 0,
+      // For bounty comments, include bounty information
+      bountyAmount: comment.bountyAmount,
+      bountyStatus:
+        comment.bounties?.length > 0
+          ? findActiveBounty(comment.bounties)
+            ? isExpiringSoon(findActiveBounty(comment.bounties)?.expirationDate)
+              ? 'expiring'
+              : 'open'
+            : 'closed'
+          : undefined,
     };
   },
 };

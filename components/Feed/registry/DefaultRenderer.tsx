@@ -17,7 +17,6 @@ export const DefaultRenderer: ContentRenderer = {
         timestamp={content.timestamp || new Date().toISOString()}
         author={Array.isArray(authorData) ? authorData[0] : authorData}
         authors={Array.isArray(authorData) ? authorData : undefined}
-        action={metadata.action}
       />
     );
   },
@@ -99,7 +98,6 @@ export const DefaultRenderer: ContentRenderer = {
   getMetadata: (content) => {
     return {
       type: content.type || 'unknown',
-      action: content.action || 'created',
       timestamp: content.timestamp || new Date().toISOString(),
     };
   },
