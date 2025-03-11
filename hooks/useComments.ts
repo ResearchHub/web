@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { CommentService, CreateCommentOptions } from '@/services/comment.service';
 import { Comment, CommentFilter, CommentSort } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { ApiError } from '@/services/types';
+
+// Comment event types removed as they're now handled by CommentContext
 
 interface UseCommentsOptions {
   documentId: number;
@@ -27,90 +29,98 @@ export const useComments = ({
 }: UseCommentsOptions) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [count, setCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
-  async function fetchComments(pageNum: number = 1) {
-    try {
-      setIsLoading(true);
-      const response = await CommentService.fetchComments({
-        documentId,
-        contentType,
-        filter,
-        sort,
-        page: pageNum,
-      });
+  // Fetch comments
+  const fetchComments = useCallback(
+    async (pageToFetch = 1) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      if (pageNum === 1) {
-        setComments(response.comments);
-      } else {
-        setComments((prev) => [...prev, ...response.comments]);
+        const response = await CommentService.fetchComments({
+          documentId,
+          contentType,
+          page: pageToFetch,
+          filter,
+          sort,
+        });
+
+        if (pageToFetch === 1) {
+          setComments(response.comments);
+        } else {
+          setComments((prev) => [...prev, ...response.comments]);
+        }
+
+        setCount(response.count);
+        setHasMore(response.comments.length > 0); // If we got comments, there might be more
+        setPage(pageToFetch);
+      } catch (err) {
+        console.error('Error fetching comments:', err);
+        setError('Failed to load comments');
+      } finally {
+        setLoading(false);
       }
+    },
+    [documentId, contentType, filter, sort]
+  );
 
-      setCount(response.count);
-      setHasMore(response.comments.length === 15); // pageSize is 15
-      setError(null);
-    } catch (err) {
-      console.error(err);
-      setError(err instanceof Error ? err : new Error('Failed to fetch comments'));
-    } finally {
-      setIsLoading(false);
+  // Initial fetch
+  useEffect(() => {
+    fetchComments(1);
+  }, [fetchComments]);
+
+  // Load more comments
+  function loadMore() {
+    if (hasMore && !loading) {
+      fetchComments(page + 1);
     }
   }
 
-  useEffect(() => {
-    fetchComments(1);
-  }, [documentId, contentType, filter, sort]);
-
-  function loadMore() {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    fetchComments(nextPage);
-  }
-
+  // Refresh comments
   function refresh() {
-    setPage(1);
     fetchComments(1);
   }
 
   return {
     comments,
-    setComments,
     count,
-    setCount,
-    isLoading,
+    loading,
     error,
-    hasMore,
     loadMore,
+    hasMore,
     refresh,
   };
 };
 
-type CreateCommentFn = (input: CreateCommentOptions) => Promise<void>;
+type CreateCommentFn = (input: CreateCommentOptions) => Promise<Comment | null>;
 type UseCommentReturn = [CommentState, CreateCommentFn];
 
 export const useCreateComment = (): UseCommentReturn => {
-  const [data, setData] = useState<Comment | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [state, setState] = useState<CommentState>({
+    data: null,
+    isLoading: false,
+    error: null,
+  });
 
-  const createComment = async (input: CreateCommentOptions) => {
-    setIsLoading(true);
-    setError(null);
-
+  const createComment = async (input: CreateCommentOptions): Promise<Comment | null> => {
     try {
-      const response = await CommentService.createComment(input);
-      setData(response);
-    } catch (err) {
-      const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
-      const errorMsg = data?.detail || 'Failed to create comment';
-      setError(errorMsg);
-    } finally {
-      setIsLoading(false);
+      setState({ ...state, isLoading: true, error: null });
+      const comment = await CommentService.createComment(input);
+      setState({ data: comment, isLoading: false, error: null });
+
+      // Comment event emission removed - now handled by CommentContext
+
+      return comment;
+    } catch (error) {
+      const errorMessage = error instanceof ApiError ? error.message : 'Failed to create comment';
+      setState({ data: null, isLoading: false, error: errorMessage });
+      return null;
     }
   };
 
-  return [{ data, isLoading, error }, createComment];
+  return [state, createComment];
 };

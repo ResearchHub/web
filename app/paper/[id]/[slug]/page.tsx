@@ -8,7 +8,6 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkDocument } from '@/components/work/WorkDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
-import type { WorkMetadata } from '@/services/metadata.service';
 
 interface Props {
   params: Promise<{

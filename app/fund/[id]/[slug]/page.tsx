@@ -7,11 +7,7 @@ import { Work } from '@/types/work';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundingRightSidebar } from '@/components/work/FundingRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
-import type { WorkMetadata } from '@/services/metadata.service';
-import { FundItem } from '@/components/Fund/FundItem';
-import { WorkLineItems } from '@/components/work/WorkLineItems';
-import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
-import { removeTitleFromHTML } from '@/components/Editor/lib/utils/documentTitle';
+import { FundDocument } from '@/components/work/FundDocument';
 
 interface Props {
   params: Promise<{
@@ -53,51 +49,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-interface FundingDocumentProps {
-  work: Work;
-  metadata: WorkMetadata;
-  content?: string;
-}
-
-function FundingDocument({ work, metadata, content }: FundingDocumentProps) {
-  return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-4">{work.title}</h1>
-        <WorkLineItems work={work} showClaimButton={false} />
-      </div>
-
-      {metadata.fundraising && (
-        <FundItem
-          id={metadata.fundraising.id}
-          title={work.title}
-          status={metadata.fundraising.status}
-          amount={metadata.fundraising.amountRaised.rsc}
-          goalAmount={metadata.fundraising.goalAmount.rsc}
-          deadline={metadata.fundraising.endDate}
-          contributors={metadata.fundraising.contributors.topContributors.map((profile) => ({
-            profile,
-            amount: 0, // Individual contribution amounts not available in metadata
-          }))}
-          nftRewardsEnabled={work.figures.length > 0}
-          nftImageSrc={work.figures[0]?.url}
-        />
-      )}
-
-      {/* Content section */}
-      {work.previewContent ? (
-        <div className="h-full">
-          <BlockEditorClientWrapper content={work.previewContent} editable={false} />
-        </div>
-      ) : content ? (
-        <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content }} />
-      ) : (
-        <p className="text-gray-500">No content available</p>
-      )}
-    </div>
-  );
-}
-
 export default async function FundingProjectPage({ params }: Props) {
   const resolvedParams = await params;
   const id = resolvedParams.id;
@@ -114,7 +65,7 @@ export default async function FundingProjectPage({ params }: Props) {
   return (
     <PageLayout rightSidebar={<FundingRightSidebar work={work} metadata={metadata} />}>
       <Suspense>
-        <FundingDocument work={work} metadata={metadata} content={content} />
+        <FundDocument work={work} metadata={metadata} content={content} defaultTab="paper" />
         <SearchHistoryTracker work={work} />
       </Suspense>
     </PageLayout>

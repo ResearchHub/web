@@ -4,17 +4,30 @@ import type { AuthorProfile } from '@/types/authorProfile';
 import { transformAuthorProfile } from '@/types/authorProfile';
 import { ContentMetrics } from '@/types/metrics';
 import { Fundraise, transformFundraise } from '@/types/funding';
+import { Bounty, transformBounty } from '@/types/bounty';
+import { countOpenBounties, countClosedBounties } from '@/components/Bounty/lib/bountyUtil';
+
 export interface WorkMetadata {
   id: number;
   score: number;
   topics: Topic[];
   metrics: ContentMetrics;
   fundraising?: Fundraise;
+  bounties: Bounty[];
+  openBounties: number;
+  closedBounties: number;
 }
 
 function transformWorkMetadata(response: any): WorkMetadata {
   // Handle both array and object document structures
   const document = Array.isArray(response.documents) ? response.documents[0] : response.documents;
+
+  // Transform bounties if they exist using the existing transformer
+  const bounties = document.bounties?.map((bounty: any) => transformBounty(bounty)) || [];
+
+  // Calculate open and closed bounty counts using utility functions
+  const openBounties = countOpenBounties(bounties);
+  const closedBounties = countClosedBounties(bounties);
 
   return {
     id: response.id,
@@ -29,9 +42,12 @@ function transformWorkMetadata(response: any): WorkMetadata {
       comments: document.discussion_aggregates.discussion_count,
       saves: 0, // Not provided in metadata response
       reviewScore: response.reviews.avg,
-      reviews: response.reviews.count,
+      reviews: response.reviews.count, // Properly mapping from the response
     },
     fundraising: response.fundraise ? transformFundraise(response.fundraise) : undefined,
+    bounties: bounties,
+    openBounties,
+    closedBounties,
   };
 }
 

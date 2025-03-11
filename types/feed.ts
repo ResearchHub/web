@@ -24,6 +24,7 @@ export interface Bounty extends BaseContent {
   amount: number;
   paper?: Paper;
   title: string;
+  bountyType: 'review' | 'answer' | string;
 }
 
 export interface Paper extends BaseContent {
@@ -37,6 +38,7 @@ export interface Paper extends BaseContent {
 export interface Post extends BaseContent {
   type: 'post';
   summary: string;
+  postType: 'discussion' | 'question' | 'preregistration';
 }
 
 export type FundingRequestStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
@@ -135,6 +137,9 @@ const baseTransformContentObject = (params: { response: FeedResponse; type: stri
         amount: contentObject.amount,
         paper: contentObject.paper,
         title: contentObject.title,
+        bountyType: contentObject.bounty_type
+          ? contentObject.bounty_type.toLowerCase()
+          : 'generic_comment',
       };
       return bounty;
     }
@@ -156,11 +161,15 @@ const baseTransformContentObject = (params: { response: FeedResponse; type: stri
       return paper;
     }
     case 'researchhubpost': {
+      const postType = contentObject.post_type && contentObject.post_type.toLowerCase();
       const post: Post = {
         ...baseContent,
         type: 'post',
         title: contentObject.title,
         summary: contentObject.renderable_text,
+        postType: ['discussion', 'question', 'preregistration'].includes(postType)
+          ? postType
+          : 'discussion',
       };
       return post;
     }

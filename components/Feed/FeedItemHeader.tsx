@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { Content, FeedActionType } from '@/types/feed';
+import { Content, FeedActionType, Post } from '@/types/feed';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { formatTimestamp } from '@/utils/date';
@@ -26,10 +26,18 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   const getActionText = () => {
     switch (content.type) {
       case 'bounty':
-        return `${action}ed a bounty for ${formatRSC({ amount: content.amount, shorten: true })} RSC`;
+        if (content.bountyType === 'review') {
+          return `${action}ed a peer review bounty for ${formatRSC({ amount: content.amount, shorten: true })} RSC`;
+        } else if (content.bountyType === 'answer') {
+          return `${action}ed an answer bounty for ${formatRSC({ amount: content.amount, shorten: true })} RSC`;
+        } else {
+          return `${action}ed a bounty for ${formatRSC({ amount: content.amount, shorten: true })} RSC`;
+        }
       case 'paper':
-      case 'post':
         return `${action}ed a ${content.type.replace('_', ' ')}`;
+      case 'post':
+        const post = content as Post;
+        return `${action}ed a ${post.postType}`;
       default:
         return action;
     }

@@ -11,6 +11,7 @@ import {
   transformComment,
 } from '@/types/comment';
 import { ID } from '@/types/root';
+import { getContentTypePath } from '@/utils/contentTypeMapping';
 
 interface FetchCommentsOptions {
   documentId: number;
@@ -60,6 +61,35 @@ export interface DeleteCommentOptions {
   contentType: ContentType;
 }
 
+export interface CreateCommunityReviewOptions {
+  unifiedDocumentId: ID;
+  commentId: ID;
+  score: number;
+}
+
+export interface FetchCommentOptions {
+  commentId: ID;
+  documentId: ID;
+  contentType: ContentType;
+}
+
+export interface VoteCommentOptions {
+  commentId: ID;
+  documentId: ID;
+  voteType: 'UPVOTE' | 'DOWNVOTE' | 'NEUTRAL';
+  contentType: ContentType;
+}
+
+export interface FetchCommentRepliesOptions {
+  commentId: ID;
+  documentId: ID;
+  contentType: ContentType;
+  page?: number;
+  pageSize?: number;
+  sort?: CommentSort;
+  ascending?: boolean;
+}
+
 export class CommentService {
   private static readonly BASE_PATH = '/api';
 
@@ -75,8 +105,9 @@ export class CommentService {
     commentType = 'GENERIC_COMMENT',
     threadType = 'GENERIC_COMMENT',
   }: CreateCommentOptions): Promise<Comment> {
+    const contentTypePath = getContentTypePath(contentType);
     const path =
-      `${this.BASE_PATH}/${contentType.toLowerCase()}/${workId}/comments/` +
+      `${this.BASE_PATH}/${contentTypePath}/${workId}/comments/` +
       (bountyAmount ? 'create_comment_with_bounty/' : 'create_rh_comment/');
     const payload = {
       comment_content_json: content,
@@ -107,6 +138,7 @@ export class CommentService {
     ascending = false,
     privacyType = 'PUBLIC',
   }: FetchCommentsOptions): Promise<{ comments: Comment[]; count: number }> {
+    const contentTypePath = getContentTypePath(contentType);
     const queryParams = new URLSearchParams({
       page_size: pageSize.toString(),
       child_page_size: childPageSize.toString(),
@@ -117,13 +149,14 @@ export class CommentService {
     });
 
     if (filter) {
-      queryParams.append('filter', filter.toLowerCase());
+      queryParams.append('filtering', filter);
     }
+
     if (page) {
       queryParams.append('page', page.toString());
     }
 
-    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/?${queryParams.toString()}`;
+    const path = `${this.BASE_PATH}/${contentTypePath}/${documentId}/comments/?${queryParams.toString()}`;
     const response = await ApiClient.get<CommentResponse>(path);
 
     return {
@@ -139,7 +172,8 @@ export class CommentService {
     content,
     contentFormat,
   }: UpdateCommentOptions): Promise<Comment> {
-    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/`;
+    const contentTypePath = getContentTypePath(contentType);
+    const path = `${this.BASE_PATH}/${contentTypePath}/${documentId}/comments/${commentId}/`;
     const payload = {
       comment_content_json: content,
       comment_content_type: contentFormat,
@@ -154,7 +188,93 @@ export class CommentService {
     documentId,
     contentType,
   }: DeleteCommentOptions): Promise<void> {
-    const path = `${this.BASE_PATH}/${contentType.toLowerCase()}/${documentId}/comments/${commentId}/censor/`;
-    await ApiClient.delete(path);
+    const contentTypePath = getContentTypePath(contentType);
+    const path = `${this.BASE_PATH}/${contentTypePath}/${documentId}/comments/${commentId}/censor/`;
+    await ApiClient.patch(path);
+  }
+
+  static async createCommunityReview({
+    unifiedDocumentId,
+    commentId,
+    score,
+  }: CreateCommunityReviewOptions): Promise<any> {
+    const path = `${this.BASE_PATH}/researchhub_unified_document/${unifiedDocumentId}/review/`;
+    const payload = {
+      score,
+      object_id: commentId,
+      content_type: 'rhcommentmodel',
+    };
+
+    const response = await ApiClient.post<any>(path, payload);
+    return response;
+  }
+
+  static async fetchComment({
+    commentId,
+    documentId,
+    contentType,
+  }: FetchCommentOptions): Promise<Comment> {
+    const contentTypePath = getContentTypePath(contentType);
+    const path = `${this.BASE_PATH}/${contentTypePath}/${documentId}/comments/${commentId}/`;
+    const response = await ApiClient.get<any>(path);
+    return transformComment(response);
+  }
+
+  static async voteComment({
+    commentId,
+    documentId,
+    voteType,
+    contentType,
+  }: VoteCommentOptions): Promise<any> {
+    const contentTypePath = getContentTypePath(contentType);
+    let endpoint = '';
+
+    if (voteType === 'UPVOTE') {
+      endpoint = `/${contentTypePath}/${documentId}/comments/${commentId}/upvote/`;
+    } else if (voteType === 'DOWNVOTE') {
+      endpoint = `/${contentTypePath}/${documentId}/comments/${commentId}/downvote/`;
+    } else {
+      endpoint = `/${contentTypePath}/${documentId}/comments/${commentId}/neutralvote/`;
+    }
+
+    return ApiClient.post(this.BASE_PATH + endpoint);
+  }
+
+  static async fetchCommentReplies({
+    commentId,
+    documentId,
+    contentType,
+    page = 1,
+    pageSize = 10,
+    sort = 'BEST',
+    ascending = false,
+  }: FetchCommentRepliesOptions): Promise<{ replies: Comment[]; count: number }> {
+    const contentTypePath = getContentTypePath(contentType);
+    // Calculate child_offset based on page and pageSize
+    const childOffset = (page - 1) * pageSize;
+
+    const queryParams = new URLSearchParams({
+      ordering: sort,
+      child_count: pageSize.toString(),
+      child_offset: childOffset.toString(),
+      ascending: ascending.toString(),
+    });
+
+    // Note: The URL format is different - we're getting the comment itself with its replies
+    const path = `${this.BASE_PATH}/${contentTypePath}/${documentId}/comments/${commentId}/?${queryParams}`;
+
+    console.log(`[CommentService] Fetching more replies with URL: ${path}`);
+
+    const response = await ApiClient.get<any>(path);
+
+    if (!response) {
+      return { replies: [], count: 0 };
+    }
+
+    // The response structure is different - the replies are in the children field of the comment
+    const replies = (response.children || []).map(transformComment);
+    const count = response.children_count || 0;
+
+    return { replies, count };
   }
 }

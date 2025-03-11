@@ -3,17 +3,18 @@
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { JournalFeedTabs, JournalFeedTab } from '@/components/Feed/JournalFeedTabs';
-import { useFeed } from '@/hooks/useFeed';
+import { useFeed, FeedTab } from '@/hooks/useFeed';
 import { useHub } from '@/hooks/useHub';
 import { BookOpen } from 'lucide-react';
 import { FeedContent } from '@/components/Feed/FeedContent';
+import { FeedTabs } from '@/components/Feed/FeedTabs';
 
 export default function JournalFeedPage() {
-  const { slug } = useParams();
+  const params = useParams();
+  const slug = params?.slug;
   const decodedSlug = typeof slug === 'string' ? decodeURIComponent(slug) : null;
   const { hub, isLoading: isHubLoading, error: hubError } = useHub(decodedSlug);
-  const [activeTab, setActiveTab] = useState<JournalFeedTab>('latest');
+  const [activeTab, setActiveTab] = useState<FeedTab>('popular');
   const {
     entries,
     isLoading: isFeedLoading,
@@ -22,6 +23,17 @@ export default function JournalFeedPage() {
   } = useFeed(activeTab, {
     hubSlug: decodedSlug || '',
   });
+
+  const journalTabs = [
+    {
+      id: 'popular',
+      label: 'Popular',
+    },
+    {
+      id: 'latest',
+      label: 'Latest',
+    },
+  ];
 
   if (isHubLoading) {
     return (
@@ -53,7 +65,14 @@ export default function JournalFeedPage() {
     </h1>
   );
 
-  const tabs = <JournalFeedTabs activeTab={activeTab} onTabChange={setActiveTab} />;
+  const tabs = (
+    <FeedTabs
+      activeTab={activeTab}
+      tabs={journalTabs}
+      onTabChange={setActiveTab}
+      isLoading={isFeedLoading}
+    />
+  );
 
   return (
     <PageLayout>
