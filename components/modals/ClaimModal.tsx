@@ -8,6 +8,7 @@ import { Search } from '@/components/Search/Search';
 import { Button } from '@/components/ui/Button';
 import { useSession } from 'next-auth/react';
 import { SearchSuggestion } from '@/types/search';
+import { useUser } from '@/contexts/UserContext';
 
 interface ClaimModalProps {
   isOpen: boolean;
@@ -28,7 +29,7 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
   const [currentStep, setCurrentStep] = useState<Step>('search');
   const [selectedPaper, setSelectedPaper] = useState<SelectedPaper | null>(null);
   const router = useRouter();
-  const { data: session } = useSession();
+  const { user } = useUser();
 
   const handleSearchSelect = (suggestion: SearchSuggestion) => {
     if (suggestion.entityType === 'paper') {
@@ -38,7 +39,7 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
         authors: suggestion.authors,
         doi: suggestion.doi,
         authorPosition: suggestion.authors.findIndex(
-          (author) => author.toLowerCase() === session?.user?.fullName.toLowerCase()
+          (author) => author.toLowerCase() === user?.fullName.toLowerCase()
         ),
       });
       setCurrentStep('verify');
@@ -61,7 +62,7 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
         authors: paper.authors,
         doi: paper.doi,
         authorPosition: paper.authors.findIndex(
-          (author) => author.toLowerCase() === session?.user?.fullName.toLowerCase()
+          (author) => author.toLowerCase() === user?.fullName.toLowerCase()
         ),
       });
     }

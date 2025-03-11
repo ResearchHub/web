@@ -5,17 +5,50 @@ import { ApiError } from './types';
 
 export class ApiClient {
   private static readonly baseURL = process.env.NEXT_PUBLIC_API_URL;
+  private static globalAuthToken: string | null = null;
+  private static tokenInitPromise: Promise<string | null> | null = null;
+
+  static setGlobalAuthToken(token: string | null) {
+    this.globalAuthToken = token;
+    this.tokenInitPromise = null;
+  }
+
+  static getGlobalAuthToken(): string | null {
+    return this.globalAuthToken;
+  }
 
   private static async getAuthToken() {
-    // For server-side requests
-    if (typeof window === 'undefined') {
-      const session = await getServerSession(authOptions);
-      return session?.authToken;
+    if (this.globalAuthToken) {
+      return this.globalAuthToken;
     }
 
-    // For client-side requests
-    const session = await getSession();
-    return session?.authToken;
+    if (this.tokenInitPromise) {
+      return this.tokenInitPromise;
+    }
+
+    this.tokenInitPromise = this.initializeToken();
+    return this.tokenInitPromise;
+  }
+
+  private static async initializeToken(): Promise<string | null> {
+    try {
+      if (typeof window === 'undefined') {
+        const session = await getServerSession(authOptions);
+        if (session?.authToken) {
+          this.globalAuthToken = session.authToken;
+          return session.authToken;
+        }
+      } else {
+        const session = await getSession();
+        if (session?.authToken) {
+          this.globalAuthToken = session.authToken;
+          return session.authToken;
+        }
+      }
+      return null;
+    } finally {
+      this.tokenInitPromise = null;
+    }
   }
 
   private static async getHeaders() {
@@ -147,19 +180,29 @@ export class ApiClient {
     return response.json();
   }
 
-  static async delete<T>(path: string): Promise<T> {
-    const response = await fetch(path, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-    });
+  static async delete<T>(path: string, body?: any): Promise<T> {
+    try {
+      const headers = await this.getHeaders();
+      const response = await fetch(
+        `${this.baseURL}${path}`,
+        this.getFetchOptions('DELETE', headers, body)
+      );
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { message: 'Invalid JSON response from server' };
+          throw new Error(JSON.stringify({ data: errorData, status: response.status }));
+        }
+        throw new ApiError(JSON.stringify({ data: errorData, status: response.status }));
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('API request failed:', error);
+      throw error;
     }
-
-    return response.json();
   }
 }

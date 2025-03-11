@@ -1,5 +1,3 @@
-import type { AuthorProfile } from './authorProfile';
-
 export type OrganizationRole = 'ADMIN' | 'EDITOR' | 'VIEWER';
 
 export interface Organization {
@@ -37,24 +35,22 @@ export interface OrganizationUsers {
   invites: OrganizationInvite[];
 }
 
+function transformOrganizationUser(raw: any, role: OrganizationRole): OrganizationMember {
+  return {
+    id: raw.id.toString(),
+    name: `${raw.author_profile?.first_name} ${raw.author_profile?.last_name}`.trim(),
+    email: raw.email,
+    role,
+    avatarUrl: raw.author_profile?.profileImage || undefined,
+  };
+}
+
 export function transformOrganizationUsers(response: any): OrganizationUsers {
   const users = [
     // Map admins with admin role
-    ...(response.admins || []).map((admin: any) => ({
-      id: admin.id.toString(),
-      name: admin.author_profile.fullName,
-      email: admin.email,
-      role: 'ADMIN' as const,
-      avatarUrl: admin.author_profile.profileImage || undefined,
-    })),
+    ...(response.admins || []).map((admin: any) => transformOrganizationUser(admin, 'ADMIN')),
     // Map regular members with viewer role
-    ...(response.members || []).map((member: any) => ({
-      id: member.id.toString(),
-      name: member.author_profile.fullName,
-      email: member.email,
-      role: 'VIEWER' as const,
-      avatarUrl: member.author_profile.profileImage || undefined,
-    })),
+    ...(response.members || []).map((member: any) => transformOrganizationUser(member, 'VIEWER')),
   ];
 
   const invites = (response.invited_users || []).map((invite: any) => ({

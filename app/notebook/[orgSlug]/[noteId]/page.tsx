@@ -56,7 +56,7 @@ export default function NotePage() {
     if (!isLoadingOrg && selectedOrg) {
       fetchNote();
     }
-  }, [isLoadingOrg, selectedOrg, fetchNote]);
+  }, [isLoadingOrg, selectedOrg?.id, fetchNote]);
 
   useEffect(() => {
     if (note) {

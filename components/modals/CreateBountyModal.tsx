@@ -23,6 +23,7 @@ import { Currency } from '@/types/root';
 import { BountyType } from '@/types/bounty';
 import { BalanceInfo } from './BalanceInfo';
 import { useSession } from 'next-auth/react';
+import { useUser } from '@/contexts/UserContext';
 import { CommentEditor } from '@/components/Comment/CommentEditor';
 import { Switch } from '@headlessui/react';
 import { toast } from 'react-hot-toast';
@@ -317,7 +318,7 @@ const FeeBreakdown = ({
 );
 
 export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModalProps) {
-  const { data: session } = useSession();
+  const { user } = useUser();
   const [step, setStep] = useState<Step>('details');
   const [selectedPaper, setSelectedPaper] = useState<SelectedPaper | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(true);
@@ -332,6 +333,11 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const RSC_TO_USD = 1;
+  const userBalance = user?.balance || 0;
+
+  const [{ data: commentData, isLoading: isCreatingBounty, error: bountyError }, createComment] =
+    useCreateComment();
+
   const userBalance = session?.user?.balance || 0;
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
 
@@ -344,6 +350,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
     // In this case, we'll use a direct approach without the context
     commentContext = null;
   }
+
 
   const handleCreateBounty = async () => {
     if (isSubmitting) return; // Prevent multiple submissions
