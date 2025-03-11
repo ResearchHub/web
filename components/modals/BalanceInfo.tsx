@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useUser } from '@/contexts/UserContext';
 
 interface BalanceInfoProps {
   amount: number;
@@ -8,8 +8,8 @@ interface BalanceInfoProps {
 }
 
 export function BalanceInfo({ amount, showWarning }: BalanceInfoProps) {
-  const { data: session } = useSession();
-  const userBalance = session?.user?.balance || 0;
+  const { user } = useUser();
+  const userBalance = user?.balance || 0;
 
   return (
     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">

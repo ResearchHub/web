@@ -6,9 +6,11 @@ import { ApiError } from './types';
 export class ApiClient {
   private static readonly baseURL = process.env.NEXT_PUBLIC_API_URL;
   private static globalAuthToken: string | null = null;
+  private static tokenInitPromise: Promise<string | null> | null = null;
 
   static setGlobalAuthToken(token: string | null) {
     this.globalAuthToken = token;
+    this.tokenInitPromise = null;
   }
 
   static getGlobalAuthToken(): string | null {
@@ -16,30 +18,37 @@ export class ApiClient {
   }
 
   private static async getAuthToken() {
-    // First check if there's a global token set
     if (this.globalAuthToken) {
       return this.globalAuthToken;
     }
 
-    // For server-side requests
-    if (typeof window === 'undefined') {
-      const session = await getServerSession(authOptions);
-      if (session?.authToken) {
-        // Set the global token when we first retrieve it from server session
-        this.globalAuthToken = session.authToken;
-        return session.authToken;
-      }
-    } else {
-      // For client-side requests
-      const session = await getSession();
-      if (session?.authToken) {
-        // Set the global token when we first retrieve it from client session
-        this.globalAuthToken = session.authToken;
-        return session.authToken;
-      }
+    if (this.tokenInitPromise) {
+      return this.tokenInitPromise;
     }
 
-    return null;
+    this.tokenInitPromise = this.initializeToken();
+    return this.tokenInitPromise;
+  }
+
+  private static async initializeToken(): Promise<string | null> {
+    try {
+      if (typeof window === 'undefined') {
+        const session = await getServerSession(authOptions);
+        if (session?.authToken) {
+          this.globalAuthToken = session.authToken;
+          return session.authToken;
+        }
+      } else {
+        const session = await getSession();
+        if (session?.authToken) {
+          this.globalAuthToken = session.authToken;
+          return session.authToken;
+        }
+      }
+      return null;
+    } finally {
+      this.tokenInitPromise = null;
+    }
   }
 
   private static async getHeaders() {

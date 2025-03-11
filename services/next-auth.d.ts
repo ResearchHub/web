@@ -4,7 +4,7 @@ import type { User as RHUser } from '@/types/user';
 
 declare module 'next-auth' {
   interface Session {
-    user: RHUser;
+    userId: string;
     authToken?: string;
     isLoggedIn?: boolean;
     error?: string;
@@ -14,7 +14,7 @@ declare module 'next-auth' {
     authToken?: string;
     isLoggedIn?: boolean;
     error?: string;
-    user?: RHUser;
+    userId: string;
   }
 
   interface User {

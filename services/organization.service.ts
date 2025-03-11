@@ -22,13 +22,13 @@ export class OrganizationService {
    * @throws {OrganizationError} When the user is not authenticated or the request fails
    */
   static async getUserOrganizations(session: Session | null): Promise<Organization[]> {
-    if (!session?.user?.id) {
+    if (!session?.userId) {
       throw new OrganizationError('User not authenticated', 'UNAUTHENTICATED');
     }
 
     try {
       const response = await ApiClient.get<any>(
-        `${this.BASE_PATH}/${session.user.id}/get_user_organizations/`
+        `${this.BASE_PATH}/${session.userId}/get_user_organizations/`
       );
       return Array.isArray(response) ? response.map(transformOrganization) : [];
     } catch (error) {
