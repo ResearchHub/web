@@ -94,18 +94,6 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
     // If explicit actionText is provided, use it
     if (actionText) return actionText;
 
-    // Handle bounties with special cases based on status
-    if (contentType === 'bounty') {
-      if (bountyStatus === 'closed') {
-        return `Awarded a bounty${bountyAmount ? ` of ${formatRSC({ amount: bountyAmount, shorten: true })} RSC` : ''}`;
-      } else if (bountyStatus === 'expiring') {
-        return `Bounty expiring soon${bountyAmount ? ` (${formatRSC({ amount: bountyAmount, shorten: true })} RSC)` : ''}`;
-      } else {
-        // Default for open bounties
-        return `Opened a bounty${bountyAmount ? ` for ${formatRSC({ amount: bountyAmount, shorten: true })} RSC` : ''}`;
-      }
-    }
-
     // Handle reviews with score if available
     if (contentType === 'review') {
       return score !== undefined ? `Peer reviewed with ${score}/5 rating` : `Peer reviewed`;
@@ -146,11 +134,8 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
     }));
   };
 
-  // Determine if we should show the review stars
-  const shouldShowReviewStars = contentType === 'review' && typeof score === 'number' && score > 0;
-
-  // Determine if we should show bounty metadata
-  const shouldShowBountyMetadata = contentType === 'bounty' && (bountyAmount || bountyStatus);
+  // Determine if we should show review stars
+  const shouldShowReviewStars = contentType === 'review' && score !== undefined;
 
   return (
     <div className={cn('flex items-center justify-between w-full', className)}>
@@ -205,24 +190,6 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
       <div className="flex items-center gap-2">
         {/* Show review stars if applicable */}
         {shouldShowReviewStars && <ReadOnlyStars rating={score!} />}
-
-        {/* Show bounty metadata if applicable */}
-        {shouldShowBountyMetadata && (
-          <div className="flex items-center gap-2">
-            {bountyStatus && (
-              <StatusBadge status={bountyStatus} className="shadow-sm rounded-full" size="xs" />
-            )}
-            {bountyAmount && (
-              <RSCBadge
-                amount={bountyAmount}
-                inverted={true}
-                variant="badge"
-                className="shadow-sm rounded-full h-[26px] flex items-center"
-                size="xs"
-              />
-            )}
-          </div>
-        )}
 
         {/* Custom right element if provided */}
         {rightElement}

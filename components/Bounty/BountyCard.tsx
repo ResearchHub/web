@@ -175,6 +175,10 @@ export const BountyCard = ({
             onViewSolution: handleViewSolution,
             onNavigationClick,
             isAuthor,
+            context: {
+              relatedWork: relatedWork,
+              onRelatedWorkClick: handleRelatedWorkClick,
+            },
             onAward: (id) => {
               // Handle award action if needed
               if (onBountyUpdated) {

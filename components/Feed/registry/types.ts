@@ -47,9 +47,9 @@ export interface RenderOptions {
 }
 
 /**
- * Options for rendering related papers
+ * Options for rendering related works
  */
-export interface RelatedPaperOptions {
+export interface RelatedWorkCardOptions {
   onClick?: () => void;
 }
 

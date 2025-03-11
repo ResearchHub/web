@@ -9,6 +9,7 @@ import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { PaperIcon } from '@/components/ui/icons';
 import { ArrowUp, MessageCircle, Share } from 'lucide-react';
 import { ActionButton } from '../ActionButton';
+import { PaperBadge } from '@/components/ui/PaperBadge';
 
 /**
  * Renderer for paper content
@@ -33,14 +34,6 @@ export const PaperRenderer: ContentRenderer<Work> = {
     // Get authors from context if available
     const authors = context.authors || [];
     const onViewPaper = context.onViewPaper;
-
-    // Create paper badge with a different icon and styling
-    const paperBadge = (
-      <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-        <PaperIcon width={12} height={14} className="text-gray-600" />
-        <span>Paper</span>
-      </div>
-    );
 
     // Create journal badge if available using the new component
     const journalBadge = paper.journal && (
@@ -78,7 +71,7 @@ export const PaperRenderer: ContentRenderer<Work> = {
       <div className="space-y-3">
         {/* Paper badge above title */}
         <div className="flex items-center flex-wrap gap-2">
-          {paperBadge}
+          <PaperBadge />
           {journalBadge}
           {topicBadge}
         </div>
