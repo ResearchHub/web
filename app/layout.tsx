@@ -1,4 +1,3 @@
-import '@coinbase/onchainkit/styles.css';
 import NextAuthProvider from '@/components/providers/NextAuthProvider';
 import ToasterProvider from '@/components/providers/ToasterProvider';
 import localFont from 'next/font/local';
@@ -9,6 +8,7 @@ import { AuthModalProvider } from '@/contexts/AuthModalContext';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { Metadata } from 'next';
 import { OnchainProvider } from '@/contexts/OnchainContext';
+import '@coinbase/onchainkit/styles.css';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
