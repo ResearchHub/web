@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useRef, useState } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { Sparkles } from 'lucide-react';
 import { useFeed, FeedTab } from '@/hooks/useFeed';
@@ -9,10 +9,14 @@ import { InterestSelector } from '@/components/InterestSelector/InterestSelector
 import { FeedTabs } from './FeedTabs';
 import { useSession } from 'next-auth/react';
 
-export const Feed: FC = () => {
+interface FeedProps {
+  defaultTab: FeedTab;
+}
+
+export const Feed: FC<FeedProps> = ({ defaultTab }) => {
   const { status } = useSession();
   const isAuthenticated = status === 'authenticated';
-  const [activeTab, setActiveTab] = useState<FeedTab>('popular');
+  const [activeTab, setActiveTab] = useState<FeedTab>(defaultTab);
   const [isCustomizing, setIsCustomizing] = useState(false);
   const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(activeTab);
 

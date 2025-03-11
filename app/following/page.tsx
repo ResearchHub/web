@@ -3,7 +3,7 @@
 import Feed from '@/components/Feed/Feed';
 import { FeedTab } from '@/hooks/useFeed';
 
-export default function Home() {
-  const defaultTab: FeedTab = 'popular';
+export default function FollowingFeed() {
+  const defaultTab: FeedTab = 'following';
   return <Feed defaultTab={defaultTab} />;
 }

@@ -20,19 +20,31 @@ export class FeedService {
     if (params?.hubSlug) queryParams.append('hub_slug', params.hubSlug);
 
     const url = `${this.BASE_PATH}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    const response = await ApiClient.get<FeedApiResponse>(url);
+    console.log(`Fetching feed from URL: ${url}`);
 
-    // For debugging - log the raw response
-    console.log('Raw feed response:', response);
+    try {
+      const response = await ApiClient.get<FeedApiResponse>(url);
 
-    // Transform the raw entries into FeedEntry objects
-    const transformedEntries = response.results.map(transformFeedEntry);
+      // For debugging - log the raw response
+      console.log('Raw feed response:', response);
 
-    // Return the transformed entries
-    return {
-      entries: transformedEntries,
-      hasMore: !!response.next,
-    };
+      // Transform the raw entries into FeedEntry objects
+      const transformedEntries = response.results.map(transformFeedEntry);
+      console.log(`Transformed ${transformedEntries.length} feed entries`);
+
+      // Return the transformed entries
+      return {
+        entries: transformedEntries,
+        hasMore: !!response.next,
+      };
+    } catch (error) {
+      console.error('Error fetching feed:', error);
+      // Return empty entries on error
+      return {
+        entries: [],
+        hasMore: false,
+      };
+    }
   }
 
   // Helper function to transform a raw bounty from the feed API to a Bounty object

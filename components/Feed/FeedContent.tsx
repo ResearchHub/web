@@ -208,8 +208,6 @@ export const FeedContent: FC<FeedContentProps> = ({
 }) => {
   const router = useRouter();
   const { data: session } = useSession();
-  const [showDebug, setShowDebug] = useState(true);
-  const [useRawData, setUseRawData] = useState(true);
 
   // Render a feed entry based on its content type
   const renderFeedEntry = (entry: FeedEntry, isFirst: boolean) => {
@@ -227,11 +225,6 @@ export const FeedContent: FC<FeedContentProps> = ({
       // Check if this is a bounty (has bountyType property) or a work
       const isBounty = 'bountyType' in entry.content;
 
-      if (showDebug) {
-        console.log(`Entry ${entry.id}: isBounty=${isBounty}`, entry);
-      }
-
-      // Render based on content type
       if (isBounty) {
         // For bounties, we need to use the raw data to create a Bounty object
         // that's compatible with the BountyCard component
@@ -354,7 +347,7 @@ export const FeedContent: FC<FeedContentProps> = ({
                   <p className="text-gray-600 mt-2">
                     This content type is not yet supported in the feed.
                   </p>
-                  {showDebug && (
+                  {isBounty && (
                     <div className="mt-4">
                       <h4 className="font-medium">Data:</h4>
                       <pre className="text-xs mt-2 bg-gray-100 p-2 rounded overflow-auto">
@@ -377,14 +370,6 @@ export const FeedContent: FC<FeedContentProps> = ({
             <pre className="text-xs mt-2 bg-gray-100 p-2 rounded overflow-auto">
               {JSON.stringify(error, null, 2)}
             </pre>
-            {showDebug && (
-              <div className="mt-4">
-                <h4 className="font-medium">Data:</h4>
-                <pre className="text-xs mt-2 bg-gray-100 p-2 rounded overflow-auto">
-                  {JSON.stringify(entry, null, 2)}
-                </pre>
-              </div>
-            )}
           </div>
         </div>
       );
@@ -415,75 +400,8 @@ export const FeedContent: FC<FeedContentProps> = ({
       <div className="max-w-4xl mx-auto">
         {tabs}
 
-        {/* Debug Controls */}
-        <div className="mt-4 mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium">Debug Controls</h2>
-            <div className="flex space-x-4">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={showDebug}
-                  onChange={() => setShowDebug(!showDebug)}
-                  className="mr-2"
-                />
-                Show Debug Logs
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={useRawData}
-                  onChange={() => setUseRawData(!useRawData)}
-                  className="mr-2"
-                />
-                Use Raw Data
-              </label>
-            </div>
-          </div>
-        </div>
-
-        {/* Test Paper Card */}
-        <div className="mt-4 mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <h2 className="text-lg font-medium mb-4">Test Paper Card</h2>
-          <PaperCard
-            paper={createTestPaper()}
-            slug="test-paper"
-            isCreator={false}
-            onViewPaper={handleTestViewPaper}
-            onUpvote={(id) => console.log('Upvote test paper:', id)}
-            onComment={(id) => console.log('Comment on test paper:', id)}
-            onShare={(id) => console.log('Share test paper:', id)}
-            onAddToLibrary={(id) => console.log('Add test paper to library:', id)}
-            showFooter={true}
-            showActions={true}
-          />
-        </div>
-
-        {/* Test Bounty Card */}
-        <div className="mt-4 mb-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-          <h2 className="text-lg font-medium mb-4">Test Bounty Card</h2>
-          <BountyCard
-            bounty={testBounty}
-            slug="test-bounty"
-            isCreator={false}
-            onViewSolution={handleTestViewSolution}
-            onNavigationClick={handleTestNavigationClick}
-            onUpvote={(id) => console.log('Upvote test bounty:', id)}
-            onReply={(id) => console.log('Reply to test bounty:', id)}
-            onShare={(id) => console.log('Share test bounty:', id)}
-            showFooter={true}
-            showActions={true}
-          />
-        </div>
-
-        <div className="mt-8 space-y-6">
-          {isLoading ? (
-            <div className="space-y-6">
-              {[...Array(3)].map((_, i) => (
-                <FeedItemSkeleton key={i} />
-              ))}
-            </div>
-          ) : entries.length === 0 ? (
+        <div className="mt-4">
+          {entries.length === 0 && !isLoading ? (
             <div className="text-center py-8">
               <p className="text-gray-500">No feed entries found</p>
             </div>
