@@ -6,6 +6,7 @@ import { useConnect } from 'wagmi';
 import { X as XIcon } from 'lucide-react';
 import Image from 'next/image';
 import { coinbaseWallet, metaMask } from 'wagmi/connectors';
+import toast from 'react-hot-toast';
 
 interface WalletModalProps {
   isOpen: boolean;
@@ -13,24 +14,34 @@ interface WalletModalProps {
   onError?: (error: Error) => void;
 }
 
-export function WalletModal({ isOpen, onClose, onError }: WalletModalProps) {
-  const { connect, error } = useConnect();
+function truncateWalletAddress(address: string): string {
+  return `${address.slice(0, 4)}...${address.slice(-4)}`;
+}
 
-  const handleCoinbaseWalletConnection = useCallback(() => {
+export function WalletModal({ isOpen, onClose, onError }: WalletModalProps) {
+  const { connectAsync, error } = useConnect();
+
+  const handleCoinbaseWalletConnection = useCallback(async () => {
     try {
       const cbConnector = coinbaseWallet({
         preference: 'all',
         appName: 'ResearchHub',
       });
-      connect({ connector: cbConnector });
+      const data = await connectAsync({ connector: cbConnector });
+      if (data?.accounts && data.accounts.length > 0) {
+        toast.success(`Wallet Connected (${truncateWalletAddress(data.accounts[0])})`);
+        onClose();
+      } else {
+        throw new Error('No accounts returned');
+      }
     } catch (err) {
       const errorObj = err instanceof Error ? err : new Error('Failed to connect wallet');
       console.error('Coinbase Wallet connection error:', errorObj);
       onError?.(errorObj);
     }
-  }, [connect, onClose, onError]);
+  }, [connectAsync, onClose, onError]);
 
-  const handleMetaMaskConnection = useCallback(() => {
+  const handleMetaMaskConnection = useCallback(async () => {
     try {
       const mmConnector = metaMask({
         dappMetadata: {
@@ -38,17 +49,23 @@ export function WalletModal({ isOpen, onClose, onError }: WalletModalProps) {
           url: window.location.origin,
         },
       });
-      connect({ connector: mmConnector });
+      const data = await connectAsync({ connector: mmConnector });
+      if (data?.accounts && data.accounts.length > 0) {
+        toast.success(`Wallet Connected (${truncateWalletAddress(data.accounts[0])})`);
+        onClose();
+      } else {
+        throw new Error('No accounts returned');
+      }
     } catch (err) {
       const errorObj = err instanceof Error ? err : new Error('Failed to connect wallet');
       console.error('MetaMask connection error:', errorObj);
       onError?.(errorObj);
     }
-  }, [connect, onClose, onError]);
+  }, [connectAsync, onClose, onError]);
 
   const handleCoinbaseSignUp = useCallback(() => {
     window.open('https://wallet.coinbase.com/smart-wallet', '_blank');
-  }, [onClose]);
+  }, []);
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -159,7 +176,7 @@ export function WalletModal({ isOpen, onClose, onError }: WalletModalProps) {
                   </button>
                 </div>
 
-                {/* Error message shown at least during development and testing */}
+                {/* Error Message */}
                 {error && (
                   <div className="mt-4 p-4 rounded-lg bg-red-50 border border-red-100">
                     <p className="text-sm text-red-600">{error.message}</p>
