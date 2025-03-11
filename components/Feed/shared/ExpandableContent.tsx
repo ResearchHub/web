@@ -2,6 +2,7 @@ import { FC, ReactNode, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/utils/styles';
+import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 
 interface ExpandableContentProps {
   title?: string;
@@ -15,6 +16,7 @@ interface ExpandableContentProps {
   badges?: ReactNode;
   footer?: ReactNode;
   controlled?: boolean;
+  isLoading?: boolean;
 }
 
 /**
@@ -33,6 +35,7 @@ export const ExpandableContent: FC<ExpandableContentProps> = ({
   badges,
   footer,
   controlled = false,
+  isLoading = false,
 }) => {
   const [internalIsExpanded, setInternalIsExpanded] = useState(false);
 
@@ -48,6 +51,11 @@ export const ExpandableContent: FC<ExpandableContentProps> = ({
   };
 
   const isTextTruncated = content.length > maxLength;
+
+  // Show skeleton when loading
+  if (isLoading) {
+    return <FeedItemSkeleton />;
+  }
 
   return (
     <div className={cn('', className)}>

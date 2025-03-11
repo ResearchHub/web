@@ -25,7 +25,7 @@ export default function JoinOrganizationPage() {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const [isPending, startTransition] = useTransition();
 
-  const token = params.token as string;
+  const token = params?.token as string;
 
   useEffect(() => {
     const fetchOrganization = async () => {

@@ -401,7 +401,16 @@ export const FeedContent: FC<FeedContentProps> = ({
         {tabs}
 
         <div className="mt-4">
-          {entries.length === 0 && !isLoading ? (
+          {isLoading ? (
+            // Show skeletons when loading
+            <>
+              {[...Array(3)].map((_, index) => (
+                <div key={`skeleton-${index}`} className={index > 0 ? 'mt-6' : ''}>
+                  <FeedItemSkeleton />
+                </div>
+              ))}
+            </>
+          ) : entries.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-500">No feed entries found</p>
             </div>

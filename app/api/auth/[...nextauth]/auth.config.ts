@@ -17,7 +17,7 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         try {
           if (!credentials?.email || !credentials?.password) {
             return promptInvalidCredentials();
@@ -38,10 +38,13 @@ export const authOptions: NextAuthOptions = {
           const user = userData.results[0];
 
           return {
-            id: String(user.id),
+            id: Number(user.id),
             email: user.email,
             name: user.fullName,
             authToken: loginResponse.key,
+            fullName: user.fullName,
+            authorProfile: user.authorProfile,
+            balance: user.balance,
           };
         } catch (error) {
           return promptInvalidCredentials();

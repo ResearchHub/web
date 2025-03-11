@@ -3,7 +3,7 @@
 import { FC, useState } from 'react';
 import { Content, FeedEntry } from '@/types/feed';
 import { Bounty } from '@/types/bounty';
-import { Work } from '@/types/work';
+import { Work, WorkType } from '@/types/work';
 import { Button } from '@/components/ui/Button';
 import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
@@ -11,6 +11,8 @@ import { cn } from '@/utils/styles';
 import { Avatar } from '@/components/ui/Avatar';
 import { Journal } from '@/types/journal';
 import { useRouter } from 'next/navigation';
+import { ExpandableContent } from '@/components/Feed/shared/ExpandableContent';
+import { Post } from '@/types/note';
 
 // Type guards to check content type
 const isBounty = (content: Content): content is Bounty => {
@@ -27,6 +29,7 @@ interface FeedItemBodyProps {
   context?: Content;
   metrics?: FeedEntry['metrics'];
   hideTypeLabel?: boolean;
+  isLoading?: boolean;
 }
 
 const buildUrl = (item: Content) => {
@@ -44,6 +47,7 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
   context,
   metrics,
   hideTypeLabel,
+  isLoading,
 }) => {
   const router = useRouter();
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
@@ -124,18 +128,11 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
     summary: string,
     isExpanded: boolean,
     onToggleExpand: () => void,
-    journal?: Journal,
-    postType?: Post['postType']
+    journal?: Journal
   ) => {
-    const truncateSummary = (summary: string, limit: number = 200) => {
-      if (!summary) return '';
-      if (summary.length <= limit) return summary;
-      return summary.slice(0, limit) + '...';
-    };
-
+    // Use the ExpandableContent component
     return (
       <div>
-        <h3 className="text-lg font-medium">{title}</h3>
         {journal && (
           <div className="flex items-center mt-1 mb-2">
             {journal.imageUrl && (
@@ -149,25 +146,15 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
             <span className="text-sm text-gray-600">{journal.name}</span>
           </div>
         )}
-        <div className="mt-2">
-          <p className="text-gray-700">{isExpanded ? summary : truncateSummary(summary)}</p>
-          {summary.length > 200 && (
-            <Button
-              variant="link"
-              size="sm"
-              onClick={onToggleExpand}
-              className="mt-1 text-indigo-600 p-0 flex items-center"
-            >
-              {isExpanded ? 'Show less' : 'Read more'}
-              <ChevronDown
-                className={cn(
-                  'ml-1 h-4 w-4 transition-transform',
-                  isExpanded && 'transform rotate-180'
-                )}
-              />
-            </Button>
-          )}
-        </div>
+        <ExpandableContent
+          title={title}
+          content={summary || ''}
+          isExpanded={isExpanded}
+          onToggleExpand={onToggleExpand}
+          controlled={true}
+          isLoading={isLoading}
+          titleClassName="text-lg font-medium"
+        />
       </div>
     );
   };

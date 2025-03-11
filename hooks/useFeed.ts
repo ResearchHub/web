@@ -15,14 +15,24 @@ export const useFeed = (activeTab: FeedTab, options: UseFeedOptions = {}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(false);
   const [page, setPage] = useState(1);
+  const [currentTab, setCurrentTab] = useState<FeedTab>(activeTab);
 
+  // Only load the feed when the component mounts or when the session status changes
+  // We no longer reload when activeTab changes, as that will be handled by page navigation
   useEffect(() => {
     if (status === 'loading') {
       return;
     }
 
-    loadFeed();
-  }, [activeTab, options.hubSlug, status]);
+    // Only load the feed if the tab has changed
+    if (currentTab !== activeTab) {
+      setCurrentTab(activeTab);
+      loadFeed();
+    } else if (entries.length === 0) {
+      // Initial load
+      loadFeed();
+    }
+  }, [status, activeTab]);
 
   const loadFeed = async () => {
     setIsLoading(true);

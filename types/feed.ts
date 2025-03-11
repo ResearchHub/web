@@ -10,59 +10,8 @@ export type FeedActionType = 'repost' | 'contribute' | 'open' | 'publish' | 'pos
 // Re-export FundingRequest for backward compatibility
 export type { FundingRequest };
 
-<<<<<<< HEAD
-interface BaseContent {
-  id: string;
-  type: ContentType;
-  timestamp: string;
-  topic: Topic;
-  slug: string;
-  title?: string;
-  actor?: AuthorProfile;
-}
-
-export interface Bounty extends BaseContent {
-  type: 'bounty';
-  abstract: string;
-  amount: number;
-  paper?: Paper;
-  title: string;
-  bountyType: 'review' | 'answer' | string;
-}
-
-export interface Paper extends BaseContent {
-  type: 'paper';
-  abstract: string;
-  doi?: string;
-  journal?: Journal;
-  authors: AuthorProfile[];
-}
-
-export interface Post extends BaseContent {
-  type: 'post';
-  summary: string;
-  postType: 'discussion' | 'question' | 'preregistration';
-}
-
-export type FundingRequestStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
-
-export interface FundingRequest extends BaseContent {
-  type: 'funding_request';
-  title: string;
-  abstract: string;
-  status: 'OPEN' | 'CLOSED' | 'COMPLETED';
-  amount: number;
-  goalAmount: number;
-  deadline: string;
-  image?: string;
-  preregistered?: boolean;
-}
-
-export type Content = Bounty | FundingRequest | Paper | Post;
-=======
 // Simplified Content type - now just Work or Bounty
 export type Content = Work | Bounty;
->>>>>>> 89455c6 (Refactor feed items)
 
 export interface FeedEntry {
   id: string;
