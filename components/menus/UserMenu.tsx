@@ -32,12 +32,6 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
     onVerifyAccount();
   };
 
-  // Trigger the wallet connection flow using the first available connector
-  const handleConnectWallet = () => {
-    if (!connectors || connectors.length === 0) return;
-    connect({ connector: connectors[0] });
-  };
-
   const handleOpenWalletModal = () => {
     setIsWalletModalOpen(true);
   };
