@@ -12,11 +12,13 @@ const badgeVariants = cva(
         warning: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
         error: 'bg-red-100 text-red-800 border border-red-200',
         orange: 'bg-orange-50 text-orange-800 border border-orange-200',
+        bounty: 'bg-gray-100 text-gray-700 border border-gray-200',
       },
       size: {
         default: 'text-xs',
         sm: 'text-[10px] px-1.5 py-0.5',
         lg: 'text-sm px-2.5 py-0.5',
+        xs: 'text-[9px] px-1.5 py-0.5',
       },
     },
     defaultVariants: {

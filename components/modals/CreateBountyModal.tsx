@@ -28,6 +28,7 @@ import { CommentEditor } from '@/components/Comment/CommentEditor';
 import { Switch } from '@headlessui/react';
 import { toast } from 'react-hot-toast';
 import { useComments } from '@/contexts/CommentContext';
+import { useCreateComment } from '@/hooks/useComments';
 import { CommentService } from '@/services/comment.service';
 
 interface CreateBountyModalProps {
@@ -338,7 +339,6 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
   const [{ data: commentData, isLoading: isCreatingBounty, error: bountyError }, createComment] =
     useCreateComment();
 
-  const userBalance = session?.user?.balance || 0;
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
 
   // Make useComments optional to handle cases when the component is not wrapped with a CommentProvider
@@ -350,7 +350,6 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
     // In this case, we'll use a direct approach without the context
     commentContext = null;
   }
-
 
   const handleCreateBounty = async () => {
     if (isSubmitting) return; // Prevent multiple submissions

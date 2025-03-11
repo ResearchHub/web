@@ -1,6 +1,7 @@
 // services/next-auth.d.ts
 import 'next-auth';
 import type { User as RHUser } from '@/types/user';
+import type { AuthorProfile } from '@/types/authorProfile';
 
 declare module 'next-auth' {
   interface Session {
@@ -19,5 +20,9 @@ declare module 'next-auth' {
 
   interface User {
     authToken?: string;
+    id?: number;
+    fullName?: string;
+    authorProfile?: AuthorProfile;
+    balance?: number;
   }
 }

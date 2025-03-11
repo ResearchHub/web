@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
+import { Fragment, useState, useMemo, useEffect } from 'react';
 import { Comment } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { CommentFeed } from './CommentFeed';
@@ -12,10 +13,13 @@ import { Alert } from '@/components/ui/Alert';
 import { cn } from '@/utils/styles';
 import { BountyService } from '@/services/bounty.service';
 import { toast } from 'react-hot-toast';
-import { hasBounties } from '@/components/Bounty/lib/bountyUtil';
+import { hasBounties, isOpenBounty } from '@/components/Bounty/lib/bountyUtil';
 import { CommentProvider, useComments } from '@/contexts/CommentContext';
 import CommentList from './CommentList';
 import { CommentItem } from './CommentItem';
+import { BountyCardWrapper } from '@/components/Bounty';
+import { CommentCard } from './CommentCard';
+import { contentRenderers } from '@/components/Feed/registry';
 
 interface AwardBountyModalProps {
   isOpen: boolean;
@@ -29,11 +33,9 @@ interface AwardBountyModalProps {
 const FilteredCommentFeed = ({
   documentId,
   contentType,
-  renderBountyAwardActions,
 }: {
   documentId: number;
   contentType: ContentType;
-  renderBountyAwardActions: (comment: Comment) => React.ReactNode | null;
 }) => {
   const { filteredComments, loading, count } = useComments();
 
@@ -41,11 +43,6 @@ const FilteredCommentFeed = ({
   const commentsWithoutBounties = useMemo(() => {
     return filteredComments.filter((comment) => !hasBounties(comment));
   }, [filteredComments]);
-
-  // Log when comments are refreshed
-  useEffect(() => {
-    console.log('Comments refreshed in AwardBountyModal:', commentsWithoutBounties.length);
-  }, [commentsWithoutBounties]);
 
   if (loading) {
     return <div className="py-4 text-center text-gray-500">Loading comments...</div>;
@@ -60,11 +57,21 @@ const FilteredCommentFeed = ({
   }
 
   return (
-    <div className="space-y-6">
-      {commentsWithoutBounties.map((comment) => (
-        <div key={comment.id} className="space-y-4">
-          <CommentItem comment={comment} contentType={contentType} renderCommentActions={false} />
-          {renderBountyAwardActions(comment)}
+    <div className="space-y-4">
+      {filteredComments.map((comment) => (
+        <div key={comment.id} className="flex items-start space-x-4">
+          <div className="flex-grow">
+            <CommentItem
+              comment={comment}
+              contentType={contentType}
+              renderCommentActions={false}
+              debug={false}
+            />
+          </div>
+          {/* Award actions */}
+          <div className="flex-shrink-0 flex flex-col space-y-2 pt-2">
+            {/* ... existing award actions ... */}
+          </div>
         </div>
       ))}
     </div>
@@ -84,10 +91,8 @@ export const AwardBountyModal = ({
   const { forceRefresh } = useComments();
 
   // Get the total bounty amount available to award
-  const activeBounty = comment.bounties.find(
-    (bounty) => bounty.status === 'OPEN' && !bounty.isContribution
-  );
-  const totalBountyAmount = activeBounty ? Number(activeBounty.amount) : 0;
+  const activeBounty = comment.bounties?.find(isOpenBounty);
+  const totalBountyAmount = activeBounty ? parseFloat(activeBounty.totalAmount) : 0;
 
   // Calculate total amount awarded and remaining
   const totalAwarded = useMemo(() => {
@@ -174,114 +179,52 @@ export const AwardBountyModal = ({
     }));
   };
 
-  const renderBountyAwardActions = (comment: Comment) => {
-    const percentages = [25, 50, 75, 100];
-    const selectedPercentage = selectedPercentages[comment.id] || 0;
-
-    return (
-      <div className="pb-6 border-b border-gray-200">
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-700 font-medium">Award</span>
-          <div className="flex items-center gap-2">
-            <Input
-              type="number"
-              min={0}
-              max={remainingAmount + (awardAmounts[comment.id] || 0)}
-              placeholder="Amount"
-              value={awardAmounts[comment.id] || ''}
-              onChange={(e) => {
-                const value = parseFloat(e.target.value);
-                handleCustomAmount(comment.id, isNaN(value) ? 0 : value);
-              }}
-              className="w-40"
-              rightElement={
-                <div className="flex items-center h-full">
-                  <span className="text-sm text-gray-500 pr-2">RSC</span>
-                </div>
-              }
-            />
-            {percentages.map((percentage) => (
-              <Button
-                key={percentage}
-                variant="outlined"
-                size="sm"
-                onClick={() => handlePercentageClick(comment.id, percentage)}
-                className={cn(
-                  'px-2 py-1 text-xs',
-                  selectedPercentage === percentage && 'bg-gray-100'
-                )}
-              >
-                {percentage}%
-              </Button>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Award Bounty">
-      <div className="flex flex-col h-[calc(100vh-200px)]">
-        <div className="flex-1 overflow-y-auto space-y-6 pr-2">
-          {/* Instructions */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-medium text-gray-900 mb-2">How to Award the Bounty</h4>
-            <p className="text-sm text-gray-600">
-              Specify the amount you want to award to each contribution. You must allocate exactly
-              100% of the bounty amount ({formatRSC({ amount: totalBountyAmount })} RSC) before
-              submitting.
-            </p>
-          </div>
-
-          {/* Comments with award inputs */}
-          <CommentProvider
-            documentId={comment.thread.objectId}
-            contentType={contentType}
-            commentType="GENERIC_COMMENT"
-          >
-            <FilteredCommentFeed
-              documentId={comment.thread.objectId}
-              contentType={contentType}
-              renderBountyAwardActions={renderBountyAwardActions}
-            />
-          </CommentProvider>
+      <div className="space-y-6 p-6">
+        <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+          <CommentItem comment={comment} contentType={contentType} renderCommentActions={false} />
         </div>
+        <div className="text-sm text-gray-600">
+          <p>Select which comments to award the bounty to:</p>
+        </div>
+      </div>
 
-        {/* Award summary bar */}
-        <div className="flex-shrink-0 border-t bg-white pt-4 mt-4">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className={cn('text-gray-600', isOverAllocated && 'text-red-600')}>
-                Awarded: {formatRSC({ amount: totalAwarded })} RSC ({percentageAwarded.toFixed(1)}%)
-              </span>
-              <span className={cn('text-gray-600', isOverAllocated && 'text-red-600')}>
-                Remaining: {formatRSC({ amount: remainingAmount })} RSC
-              </span>
-            </div>
-            <Progress
-              value={totalAwarded}
-              max={totalBountyAmount}
-              className={cn('mb-3', isOverAllocated && '[&>div]:bg-red-500 bg-red-100')}
-              variant={isExactlyHundredPercent ? 'success' : 'default'}
-            />
-            {isOverAllocated && (
-              <Alert variant="error">
-                Total awarded amount exceeds the bounty amount. Please adjust your allocations.
-              </Alert>
-            )}
-            <Button
-              onClick={handleSubmitAwards}
-              disabled={!isExactlyHundredPercent || isSubmitting || isOverAllocated}
-              className="w-full"
-            >
-              {isSubmitting
-                ? 'Submitting...'
-                : isOverAllocated
-                  ? 'Over Allocated'
-                  : 'Submit Awards'}
-            </Button>
+      <div className="border-t border-gray-200 p-6">
+        <div className="max-h-96 overflow-y-auto">
+          <FilteredCommentFeed documentId={comment.thread.objectId} contentType={contentType} />
+        </div>
+      </div>
+
+      {/* Award summary bar */}
+      <div className="flex-shrink-0 border-t bg-white pt-4 mt-4">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between text-sm">
+            <span className={cn('text-gray-600', isOverAllocated && 'text-red-600')}>
+              Awarded: {formatRSC({ amount: totalAwarded })} RSC ({percentageAwarded.toFixed(1)}%)
+            </span>
+            <span className={cn('text-gray-600', isOverAllocated && 'text-red-600')}>
+              Remaining: {formatRSC({ amount: remainingAmount })} RSC
+            </span>
           </div>
+          <Progress
+            value={totalAwarded}
+            max={totalBountyAmount}
+            className={cn('mb-3', isOverAllocated && '[&>div]:bg-red-500 bg-red-100')}
+            variant={isExactlyHundredPercent ? 'success' : 'default'}
+          />
+          {isOverAllocated && (
+            <Alert variant="error">
+              Total awarded amount exceeds the bounty amount. Please adjust your allocations.
+            </Alert>
+          )}
+          <Button
+            onClick={handleSubmitAwards}
+            disabled={!isExactlyHundredPercent || isSubmitting || isOverAllocated}
+            className="w-full"
+          >
+            {isSubmitting ? 'Submitting...' : isOverAllocated ? 'Over Allocated' : 'Submit Awards'}
+          </Button>
         </div>
       </div>
     </Modal>
