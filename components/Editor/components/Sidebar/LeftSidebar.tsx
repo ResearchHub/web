@@ -8,7 +8,7 @@ import { OrganizationSwitcher } from './OrganizationSwitcher';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
 import { useRouter, useParams } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useTransition } from 'react';
 import type { Organization } from '@/types/organization';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { FileText, Wallet } from 'lucide-react';
@@ -30,7 +30,7 @@ const LeftSidebar = () => {
   const { notes, isLoading: isLoadingNotes, refresh: refreshNotes } = useOrganizationNotesContext();
   const [{ isLoading: isCreatingNote }, createNote] = useCreateNote();
   const [{ isLoading: isUpdatingContent }, updateNoteContent] = useNoteContent();
-  const [isLoadingNavigation, setIsLoadingNavigation] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   //TODO: we might just update the selected org from the @organizationContext
   const handleOrgSelect = useCallback(
@@ -41,19 +41,14 @@ const LeftSidebar = () => {
       }
 
       try {
-        // Set a loading state
-        setIsLoadingNavigation(true);
-
-        // If we have notes for the current org, navigate to the first note
-        // Otherwise, just navigate to the org's page
-        const targetPath = `/notebook/${org.slug}`;
-
-        await router.push(targetPath);
+        // Use startTransition to mark this as a non-urgent update
+        startTransition(() => {
+          const targetPath = `/notebook/${org.slug}`;
+          router.push(targetPath);
+        });
       } catch (error) {
         console.error('Error navigating to organization:', error);
         toast.error('Failed to switch organization. Please try again.');
-      } finally {
-        setIsLoadingNavigation(false);
       }
     },
     [router, currentOrgSlug]
@@ -187,7 +182,7 @@ const LeftSidebar = () => {
           organizations={organizations}
           selectedOrg={selectedOrg}
           onOrgSelect={handleOrgSelect}
-          isLoading={isLoadingOrgs || isLoadingNavigation}
+          isLoading={isLoadingOrgs || isPending}
         />
       </div>
 
@@ -197,7 +192,7 @@ const LeftSidebar = () => {
             <NoteList
               type="workspace"
               notes={notes}
-              isLoading={isLoadingNotes || isLoadingNavigation}
+              isLoading={isLoadingNotes || isPending}
               selectedNoteId={noteId}
             />
           </SidebarSection>
