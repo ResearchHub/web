@@ -64,6 +64,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   const { noteId, editor, note } = useNotebookPublish();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [previousNoteId, setPreviousNoteId] = useState<string | null>(null);
 
   const methods = useForm<PublishingFormData>({
     defaultValues: {
@@ -78,12 +79,28 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     mode: 'onChange',
   });
 
+  // Reset form when switching between notes
+  useEffect(() => {
+    if (noteId && noteId !== previousNoteId) {
+      // Reset form to default values when switching notes
+      methods.reset({
+        authors: [],
+        topics: [],
+        rewardFunders: false,
+        nftSupply: '1000',
+        isJournalEnabled: false,
+        budget: '',
+      });
+      setPreviousNoteId(noteId.toString());
+    }
+  }, [noteId, previousNoteId, methods]);
+
   // Load data with priority:
   // 1. note.post data
   // 2. localStorage data
   // 3. URL search params
   useEffect(() => {
-    if (!noteId || !note) return;
+    if (!noteId || !note || noteId !== note?.id) return;
 
     // Priority 1: Check for existing post data
     if (note?.post) {

@@ -30,7 +30,7 @@ const LeftSidebar = () => {
   const { notes, isLoading: isLoadingNotes, refresh: refreshNotes } = useOrganizationNotesContext();
   const [{ isLoading: isCreatingNote }, createNote] = useCreateNote();
   const [{ isLoading: isUpdatingContent }, updateNoteContent] = useNoteContent();
-  const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false);
+  const [isLoadingNavigation, setIsLoadingNavigation] = useState(false);
 
   //TODO: we might just update the selected org from the @organizationContext
   const handleOrgSelect = useCallback(
@@ -40,11 +40,21 @@ const LeftSidebar = () => {
         return;
       }
 
-      // If we have notes for the current org, navigate to the first note
-      // Otherwise, just navigate to the org's page
-      const targetPath = `/notebook/${org.slug}`;
+      try {
+        // Set a loading state
+        setIsLoadingNavigation(true);
 
-      await router.push(targetPath);
+        // If we have notes for the current org, navigate to the first note
+        // Otherwise, just navigate to the org's page
+        const targetPath = `/notebook/${org.slug}`;
+
+        await router.push(targetPath);
+      } catch (error) {
+        console.error('Error navigating to organization:', error);
+        toast.error('Failed to switch organization. Please try again.');
+      } finally {
+        setIsLoadingNavigation(false);
+      }
     },
     [router, currentOrgSlug]
   );
@@ -118,7 +128,6 @@ const LeftSidebar = () => {
       }
       align="start"
       className="w-56 p-1.5"
-      onOpenChange={setIsTemplateMenuOpen}
     >
       <div className="text-[.65rem] font-semibold mb-1 uppercase text-neutral-500 px-2">
         Select Template
@@ -178,7 +187,7 @@ const LeftSidebar = () => {
           organizations={organizations}
           selectedOrg={selectedOrg}
           onOrgSelect={handleOrgSelect}
-          isLoading={isLoadingOrgs}
+          isLoading={isLoadingOrgs || isLoadingNavigation}
         />
       </div>
 
@@ -188,7 +197,7 @@ const LeftSidebar = () => {
             <NoteList
               type="workspace"
               notes={notes}
-              isLoading={isLoadingNotes}
+              isLoading={isLoadingNotes || isLoadingNavigation}
               selectedNoteId={noteId}
             />
           </SidebarSection>
