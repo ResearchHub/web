@@ -100,7 +100,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   // 2. localStorage data
   // 3. URL search params
   useEffect(() => {
-    if (!noteId || !note || noteId !== note?.id) return;
+    if (!noteId || !note || noteId.toString() !== note?.id.toString()) return;
 
     // Priority 1: Check for existing post data
     if (note?.post) {
