@@ -6,7 +6,9 @@ import { Bounty, BountyType } from '@/types/bounty';
  * @returns True if the bounty is open and not a contribution
  */
 export const isOpenBounty = (bounty: Bounty): boolean => {
-  return bounty.status === 'OPEN' && !bounty.isContribution;
+  // A bounty is not a contribution if it doesn't have a parent bounty
+  const isContribution = bounty.raw && !!bounty.raw.parent;
+  return bounty.status === 'OPEN' && !isContribution;
 };
 
 /**
@@ -15,7 +17,9 @@ export const isOpenBounty = (bounty: Bounty): boolean => {
  * @returns True if the bounty is closed and not a contribution
  */
 export const isClosedBounty = (bounty: Bounty): boolean => {
-  return bounty.status === 'CLOSED' && !bounty.isContribution;
+  // A bounty is not a contribution if it doesn't have a parent bounty
+  const isContribution = bounty.raw && !!bounty.raw.parent;
+  return bounty.status === 'CLOSED' && !isContribution;
 };
 
 /**
@@ -73,30 +77,51 @@ export const calculateOpenBountiesAmount = (bounties: Bounty[]): number => {
 };
 
 /**
- * Finds the first active (open and not a contribution) bounty in an array
+ * Finds the first active (open) bounty in an array
  * @param bounties Array of bounties to search
  * @returns The first active bounty or undefined if none found
  */
 export const findActiveBounty = (bounties: Bounty[]): Bounty | undefined => {
-  return bounties.find(isOpenBounty);
+  if (!bounties || !Array.isArray(bounties) || bounties.length === 0) {
+    return undefined;
+  }
+
+  // Find the first active bounty that is not a contribution
+  const activeBounty = bounties.find((b) => isOpenBounty(b));
+
+  return activeBounty;
 };
 
 /**
- * Finds the first closed (not a contribution) bounty in an array
+ * Finds the first closed bounty in an array
  * @param bounties Array of bounties to search
  * @returns The first closed bounty or undefined if none found
  */
 export const findClosedBounty = (bounties: Bounty[]): Bounty | undefined => {
-  return bounties.find(isClosedBounty);
+  if (!bounties || !Array.isArray(bounties) || bounties.length === 0) {
+    return undefined;
+  }
+
+  // Find the first closed bounty that is not a contribution
+  const closedBounty = bounties.find((b) => isClosedBounty(b));
+
+  return closedBounty;
 };
 
 /**
- * Gets a display bounty - either the first active bounty or the first closed bounty if no active bounty exists
- * @param bounties Array of bounties to search
+ * Gets the bounty to display from an array of bounties
+ * @param bounties Array of bounties
  * @returns The display bounty or undefined if none found
  */
 export const getDisplayBounty = (bounties: Bounty[]): Bounty | undefined => {
-  return findActiveBounty(bounties) || findClosedBounty(bounties);
+  if (!bounties || !Array.isArray(bounties) || bounties.length === 0) {
+    return undefined;
+  }
+
+  const activeBounty = findActiveBounty(bounties);
+  const closedBounty = findClosedBounty(bounties);
+
+  return activeBounty || closedBounty;
 };
 
 /**
@@ -210,11 +235,130 @@ export const formatContributorNames = (contributors: Contributor[]): string => {
 export const extractContributors = (bounties: Bounty[], displayBounty?: Bounty): Contributor[] => {
   return bounties
     .filter((bounty) => bounty.createdBy.authorProfile)
-    .map((bounty) => ({
-      profile: bounty.createdBy.authorProfile!,
-      amount: Number(bounty.amount),
-      isCreator: bounty.id === displayBounty?.id && !bounty.isContribution,
-    }));
+    .map((bounty) => {
+      // A bounty is not a contribution if it doesn't have a parent bounty
+      const isContribution = bounty.raw && !!bounty.raw.parent;
+
+      return {
+        profile: bounty.createdBy.authorProfile!,
+        amount: Number(bounty.amount),
+        isCreator: bounty.id === displayBounty?.id && !isContribution,
+      };
+    });
+};
+
+/**
+ * Filters out the creator from the contributors list
+ * @param contributors Array of contributors
+ * @returns Array of contributors without the creator
+ */
+export const filterOutCreator = (contributors: Contributor[]): Contributor[] => {
+  return contributors.filter((contributor) => !contributor.isCreator);
+};
+
+/**
+ * Extracts contributors for display in the UI based on the following rules:
+ * 1. If there are no contributors (other than the creator), return an empty array
+ * 2. If there are one or more contributors, return both the creator and the contributors
+ *
+ * @param bounty The bounty to extract contributors from
+ * @returns Array of contributors for display
+ */
+export const extractContributorsForDisplay = (bounty: Bounty): Contributor[] => {
+  // Debug log to help diagnose issues
+  console.log('extractContributorsForDisplay input:', {
+    bountyId: bounty.id,
+    hasContributions: !!bounty.contributions && bounty.contributions.length > 0,
+    contributionsCount: bounty.contributions?.length || 0,
+    contributionsData: bounty.contributions?.map((c) => ({
+      id: c.id,
+      amount: c.amount,
+      createdById: c.createdBy?.id,
+      hasAuthorProfile: !!c.createdBy?.authorProfile,
+    })),
+  });
+
+  // If there are no contributions, return an empty array
+  if (!bounty.contributions || bounty.contributions.length === 0) {
+    return [];
+  }
+
+  // Process contributions directly from the bounty.contributions array
+  const contributorsFromContributions = bounty.contributions.map((contribution) => {
+    // Get the name from the contribution's createdBy
+    let fullName = 'Unknown';
+    let profileImage: string | undefined = undefined;
+
+    // Try to get profile info from authorProfile if it exists
+    if (contribution.createdBy.authorProfile) {
+      fullName = contribution.createdBy.authorProfile.fullName || 'Unknown';
+      profileImage = contribution.createdBy.authorProfile.profileImage;
+    }
+    // Fallback to raw data if available
+    else if (contribution.raw?.created_by?.author_profile) {
+      const rawProfile = contribution.raw.created_by.author_profile;
+      fullName = `${rawProfile.first_name || ''} ${rawProfile.last_name || ''}`.trim() || 'Unknown';
+      profileImage = rawProfile.profile_image;
+    }
+
+    return {
+      profile: {
+        fullName,
+        profileImage,
+      },
+      amount: Number(contribution.amount),
+      isCreator: false,
+    };
+  });
+
+  // Add the creator as a contributor if not already included
+  let creatorFullName = 'Unknown';
+  let creatorProfileImage: string | undefined = undefined;
+
+  // Try to get creator profile info from authorProfile if it exists
+  if (bounty.createdBy.authorProfile) {
+    creatorFullName = bounty.createdBy.authorProfile.fullName || 'Unknown';
+    creatorProfileImage = bounty.createdBy.authorProfile.profileImage;
+  }
+  // Fallback to raw data if available
+  else if (bounty.raw?.created_by?.author_profile) {
+    const rawProfile = bounty.raw.created_by.author_profile;
+    creatorFullName =
+      `${rawProfile.first_name || ''} ${rawProfile.last_name || ''}`.trim() || 'Unknown';
+    creatorProfileImage = rawProfile.profile_image;
+  }
+
+  const creator: Contributor = {
+    profile: {
+      fullName: creatorFullName,
+      profileImage: creatorProfileImage,
+    },
+    amount: Number(bounty.amount),
+    isCreator: true,
+  };
+
+  // Check if the creator is already in the contributors list
+  const creatorAlreadyIncluded = contributorsFromContributions.some(
+    (c) => c.profile.fullName === creator.profile.fullName
+  );
+
+  // Return all contributors including the creator (if not already included)
+  const result = creatorAlreadyIncluded
+    ? contributorsFromContributions
+    : [...contributorsFromContributions, creator];
+
+  // Debug log the result
+  console.log('extractContributorsForDisplay result:', {
+    bountyId: bounty.id,
+    contributorsCount: result.length,
+    contributors: result.map((c) => ({
+      fullName: c.profile.fullName,
+      amount: c.amount,
+      isCreator: c.isCreator,
+    })),
+  });
+
+  return result;
 };
 
 /**

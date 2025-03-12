@@ -26,7 +26,6 @@ interface CommentFeedProps {
   className?: string;
   commentType?: CommentType;
   editorProps?: Partial<CommentEditorProps>;
-  renderBountyAwardActions?: (comment: Comment) => React.ReactNode;
   renderCommentActions?: boolean;
   hideEditor?: boolean;
   debug?: boolean;
@@ -38,20 +37,19 @@ function CommentFeed({
   className,
   commentType = 'GENERIC_COMMENT',
   editorProps = {},
-  renderBountyAwardActions,
   renderCommentActions = true,
   hideEditor = false,
   debug = false,
 }: CommentFeedProps) {
-  console.log(`CommentFeed RENDER - type: ${commentType}, docId: ${documentId}`);
-
-  // Add debugging for mount/unmount
+  // Add debugging for mount/unmount if debug is enabled
   useEffect(() => {
-    console.log(`CommentFeed MOUNTED - type: ${commentType}, docId: ${documentId}`);
-    return () => {
-      console.log(`CommentFeed UNMOUNTED - type: ${commentType}, docId: ${documentId}`);
-    };
-  }, [commentType, documentId]);
+    if (debug) {
+      console.log(`CommentFeed MOUNTED - type: ${commentType}, docId: ${documentId}`);
+      return () => {
+        console.log(`CommentFeed UNMOUNTED - type: ${commentType}, docId: ${documentId}`);
+      };
+    }
+  }, [commentType, documentId, debug]);
 
   const [isBountyModalOpen, setIsBountyModalOpen] = useState(false);
 
@@ -70,17 +68,18 @@ function CommentFeed({
       commentType={commentType}
       debug={debug}
     >
-      <CommentFeedContent
-        className={className}
-        editorProps={editorProps}
-        renderBountyAwardActions={renderBountyAwardActions}
-        renderCommentActions={renderCommentActions}
-        hideEditor={hideEditor}
-        commentType={commentType}
-        contentType={contentType}
-        debug={debug}
-        onCreateBounty={handleCreateBounty}
-      />
+      <div className={cn('space-y-6', className)}>
+        <CommentFeedContent
+          className={className}
+          editorProps={editorProps}
+          renderCommentActions={renderCommentActions}
+          hideEditor={hideEditor}
+          commentType={commentType}
+          contentType={contentType}
+          debug={debug}
+          onCreateBounty={handleCreateBounty}
+        />
+      </div>
       <CreateBountyModal
         isOpen={isBountyModalOpen}
         onClose={handleCloseBountyModal}
@@ -94,7 +93,6 @@ function CommentFeed({
 function CommentFeedContent({
   className,
   editorProps = {},
-  renderBountyAwardActions,
   renderCommentActions = true,
   hideEditor = false,
   commentType,
@@ -102,13 +100,15 @@ function CommentFeedContent({
   debug = false,
   onCreateBounty,
 }: Omit<CommentFeedProps, 'documentId'> & { onCreateBounty: () => void }) {
-  // Add debugging for content component
+  // Add debugging for content component if debug is enabled
   useEffect(() => {
-    console.log(`CommentFeedContent MOUNTED - type: ${commentType}`);
-    return () => {
-      console.log(`CommentFeedContent UNMOUNTED - type: ${commentType}`);
-    };
-  }, [commentType]);
+    if (debug) {
+      console.log(`CommentFeedContent MOUNTED - type: ${commentType}`);
+      return () => {
+        console.log(`CommentFeedContent UNMOUNTED - type: ${commentType}`);
+      };
+    }
+  }, [commentType, debug]);
 
   const {
     filteredComments,
@@ -241,7 +241,7 @@ function CommentFeedContent({
   );
 
   return (
-    <div className={cn('comment-feed', className)}>
+    <div className={cn('space-y-6', className)}>
       {!hideEditor && (
         <div className="mb-6">
           <AuthenticatedCommentEditor
@@ -288,6 +288,7 @@ function CommentFeedContent({
               comments={filteredComments}
               isRootList={true}
               contentType={contentType}
+              renderCommentActions={renderCommentActions}
               debug={debug}
             />
 

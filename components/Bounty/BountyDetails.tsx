@@ -1,4 +1,3 @@
-import { Info } from 'lucide-react';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { ContentFormat } from '@/types/comment';
 
@@ -13,12 +12,11 @@ export const BountyDetails = ({ content, contentFormat }: BountyDetailsProps) =>
   }
 
   return (
-    <div className="bg-gray-50/70 p-4 rounded-lg shadow-sm border border-gray-100">
-      <div className="flex items-center gap-2">
-        <Info className="h-4 w-4 text-gray-600" />
-        <div className="text-sm font-semibold text-gray-700">Details</div>
+    <div>
+      <div className="mb-3">
+        <div className="text-md font-semibold text-gray-900">Bounty Details</div>
       </div>
-      <div className="mt-3">
+      <div className="text-gray-600">
         <CommentReadOnly content={content} contentFormat={contentFormat} />
       </div>
     </div>

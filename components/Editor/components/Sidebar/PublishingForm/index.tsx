@@ -158,15 +158,11 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       const errors = methods.formState.errors;
 
       if (Object.keys(errors).length > 0) {
-        toast.error('Please fix the form errors before publishing', {
-          style: { width: '300px' },
-        });
-
         Object.entries(errors).forEach(([field, error]) => {
           // Cast the error to any to bypass the type checking issue
           const errorMessage = getFieldErrorMessage(error, `Invalid ${field}`);
           if (errorMessage) {
-            toast.error(`${field}: ${errorMessage}`, {
+            toast.error(errorMessage, {
               style: { width: '300px' },
             });
           }

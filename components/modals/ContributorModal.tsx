@@ -41,7 +41,8 @@ export const ContributorModal: FC<ContributorModalProps> = ({
           <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
             <div className="flex flex-col">
               <Dialog.Title className="text-lg font-semibold text-gray-900">
-                Contributors ({sortedContributors.length})
+                {sortedContributors.length === 1 ? 'Contributor' : 'Contributors'} (
+                {sortedContributors.length})
               </Dialog.Title>
               <div className="text-sm text-gray-500">
                 Total: {formatRSC({ amount: totalAmount })} RSC

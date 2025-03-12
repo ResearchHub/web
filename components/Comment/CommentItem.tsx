@@ -5,18 +5,14 @@ import { Comment, CommentType, UserVoteType } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
 import { CommentEditor } from './CommentEditor';
-import { CommentItemHeader } from './CommentItemHeader';
-import { CommentItemActions } from './CommentItemActions';
+import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { MessageCircle, ArrowUp, Flag, Edit2, Trash2 } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import 'highlight.js/styles/atom-one-dark.css';
 import hljs from 'highlight.js';
 import { CommentReadOnly } from './CommentReadOnly';
-import { BountyItem } from '@/components/Bounty/BountyItem';
+import { CommentCard } from './CommentCard';
 import { useSession } from 'next-auth/react';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { formatRSC } from '@/utils/number';
-import { RSCBadge } from '@/components/ui/RSCBadge';
 import { toast } from 'react-hot-toast';
 import { useComments } from '@/contexts/CommentContext';
 import { parseContent } from './lib/commentContentUtils';
@@ -24,7 +20,19 @@ import TipTapRenderer from './lib/TipTapRenderer';
 import LoadMoreReplies from './LoadMoreReplies';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { CommentContent } from './lib/types';
-import { getDisplayBounty } from '@/components/Bounty/lib/bountyUtil';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { AwardBountyModal } from '@/components/Comment/AwardBountyModal';
+import { Button } from '@/components/ui/Button';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrophy } from '@fortawesome/free-solid-svg-icons';
+import {
+  getDisplayBounty,
+  isOpenBounty,
+  isClosedBounty,
+  hasBounties,
+} from '@/components/Bounty/lib/bountyUtil';
+import { BountyCardWrapper } from '@/components/Bounty/BountyCardWrapper';
+import { contentRenderers } from '@/components/Feed/registry';
 
 interface CommentItemProps {
   comment: Comment;
@@ -45,7 +53,6 @@ export const CommentItem = ({
   renderCommentActions = true,
   debug = false,
 }: CommentItemProps) => {
-  const [updateError, setUpdateError] = useState<string | null>(null);
   const { data: session } = useSession();
   const {
     updateComment,
@@ -57,22 +64,22 @@ export const CommentItem = ({
     setEditingCommentId,
     setReplyingToCommentId,
     loading,
+    forceRefresh,
   } = useComments();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showAwardModal, setShowAwardModal] = useState(false);
 
-  // Log component lifecycle
+  // Log component lifecycle if debug is enabled
   useEffect(() => {
     if (debug) {
       console.log(`CommentItem ${comment.id} - MOUNTED`);
-    }
-    return () => {
-      if (debug) {
+      return () => {
         console.log(`CommentItem ${comment.id} - UNMOUNTED`);
-      }
-    };
+      };
+    }
   }, [comment.id, debug]);
 
-  // Add debug logging
+  // Add debug logging if debug is enabled
   useEffect(() => {
     if (debug) {
       console.log(`CommentItem ${comment.id} - isReplying: ${replyingToCommentId === comment.id}`);
@@ -80,36 +87,17 @@ export const CommentItem = ({
     }
   }, [comment.id, replyingToCommentId, editingCommentId, debug]);
 
-  if (debug) console.log('Rendering comment:', comment);
-
-  // Check if there are any open bounties
+  // Check if the comment has an open bounty
   const hasOpenBounty =
-    comment.bounties?.length > 0 &&
-    comment.bounties.some((b) => b.status === 'OPEN' && !b.isContribution);
-
-  // Check if the comment has been solved
-  const isSolved =
-    comment.bounties?.length > 0 &&
-    comment.bounties.some((b) => b.status === 'CLOSED' && !b.isContribution);
+    comment.bounties && comment.bounties.length > 0 && comment.bounties.some(isOpenBounty);
 
   // Check if the current user is the author of the comment
   const isAuthor = session?.user?.id === comment.author?.id;
-
-  // Check if the current user has voted on the comment
-  const hasVoted = comment.userVote !== 'NEUTRAL';
 
   // Determine if this comment is being edited or replied to
   const isEditing = editingCommentId === comment.id;
   const isReplying = replyingToCommentId === comment.id;
 
-  if (debug) {
-    console.log(`CommentItem ${comment.id} - isEditing: ${isEditing}, isReplying: ${isReplying}`);
-    console.log(`CommentItem ${comment.id} - parentId: ${comment.parentId}`);
-    if (comment.replies) {
-      console.log(`CommentItem ${comment.id} - replies: ${comment.replies.length}`);
-    }
-  }
-  console.log('comment', comment);
   // Handle voting on a comment
   const handleVote = async (voteType: UserVoteType) => {
     try {
@@ -244,117 +232,136 @@ export const CommentItem = ({
       console.log(`renderContent for comment ${comment.id}:`);
       console.log(`- isEditing: ${isEditing}`);
       console.log(`- isReplying: ${isReplying}`);
+      console.log('CommentItem renderContent:', {
+        id: comment.id,
+        commentType: comment.commentType,
+        hasBounties:
+          !!comment.bounties && Array.isArray(comment.bounties) && comment.bounties.length > 0,
+        bountyCount: comment.bounties?.length || 0,
+        firstBountyId: comment.bounties?.[0]?.id,
+      });
     }
 
-    // If editing, show the editor
+    // Check if this is a bounty comment
+    const isBountyComment =
+      comment.commentType === 'BOUNTY' ||
+      (!!comment.bounties && Array.isArray(comment.bounties) && comment.bounties.length > 0);
+
+    // If we're editing, show the editor
     if (isEditing) {
-      // Extract the actual content from the comment to avoid nested content structures
-      // This fixes the "Invalid input for Fragment.fromJSON" error
-      const editorContent =
-        comment.content?.content &&
-        typeof comment.content.content === 'object' &&
-        comment.content.content.type === 'doc'
-          ? comment.content.content
-          : comment.content;
-
-      // Parse the content to ensure we're passing the correct format to the editor
-      const parsedContent = parseContent(editorContent, comment.contentFormat, debug);
-
-      if (debug) {
-        console.log('Comment content for editor:', comment.content);
-        console.log('Extracted editor content:', editorContent);
-        console.log('Parsed content for editor:', parsedContent);
-      }
-
       return (
-        <div className="border border-gray-200 rounded-lg p-4">
-          <CommentEditor
-            initialContent={parsedContent}
-            onSubmit={handleEdit}
-            onCancel={() => setEditingCommentId(null)}
-            placeholder="Edit your comment..."
-            debug={debug}
+        <CommentEditor
+          initialContent={comment.content}
+          onSubmit={handleEdit}
+          onCancel={() => setEditingCommentId(null)}
+          autoFocus={true}
+        />
+      );
+    }
+
+    // For bounty comments, use BountyCardWrapper directly
+    if (isBountyComment && comment.bounties) {
+      if (debug) {
+        console.log('Rendering bounty comment with BountyCardWrapper');
+      }
+      return (
+        <div className="space-y-4">
+          <BountyCardWrapper
+            bounties={comment.bounties}
+            content={comment.content}
+            contentFormat={comment.contentFormat}
+            documentId={comment.thread?.objectId}
+            contentType={contentType || 'paper'}
+            commentId={comment.id}
+            showFooter={true}
+            showActions={renderCommentActions}
+            onUpvote={() => handleVote('UPVOTE')}
+            onReply={() => setReplyingToCommentId(comment.id)}
+            onShare={() => {
+              // Copy the link to the clipboard
+              const url =
+                window.location.origin + `/comment/${comment.thread?.objectId}/${comment.id}`;
+              navigator.clipboard.writeText(url).then(() => {
+                toast.success('Link copied to clipboard');
+              });
+            }}
+            onEdit={() => {
+              if (debug) console.log(`Setting editingCommentId to ${comment.id}`);
+              setEditingCommentId(comment.id);
+            }}
+            onDelete={() => handleDelete()}
           />
         </div>
       );
     }
 
-    // For bounty comments, render the bounty component
-    if (comment.bounties && comment.bounties.length > 0) {
-      if (debug) {
-        console.log(`Comment ${comment.id} has bounties:`, comment.bounties);
-      }
+    // For regular comments, use CommentCard
+    if (debug) {
+      console.log('Rendering regular comment with CommentCard');
+    }
+    return (
+      <div className="space-y-4">
+        {/* Render the comment card with all necessary callbacks */}
+        <CommentCard
+          comment={comment}
+          contentType={contentType}
+          isReplying={isReplying}
+          onCancelReply={() => setReplyingToCommentId(null)}
+          onSubmitReply={handleReply}
+          onUpvote={() => handleVote('UPVOTE')}
+          onReply={() => setReplyingToCommentId(comment.id)}
+          onReport={() => {
+            if (debug) console.log('Report clicked for comment:', comment.id);
+          }}
+          onShare={() => {
+            // Copy the link to the clipboard
+            const url =
+              window.location.origin + `/comment/${comment.thread?.objectId}/${comment.id}`;
+            navigator.clipboard.writeText(url).then(() => {
+              toast.success('Link copied to clipboard');
+            });
+          }}
+          onEdit={() => {
+            if (debug) console.log(`Setting editingCommentId to ${comment.id}`);
+            setEditingCommentId(comment.id);
+          }}
+          onDelete={() => handleDelete()}
+          showActions={renderCommentActions}
+          debug={debug}
+        />
+      </div>
+    );
+  };
 
-      // Use the getDisplayBounty utility function to find the display bounty
-      const displayBounty = getDisplayBounty(comment.bounties);
+  // Render the award bounty modal if this is a bounty comment
+  const renderAwardBountyButton = (comment: Comment) => {
+    // Check if this is a bounty comment - either by type or by having bounties
+    const isBountyComment = comment.commentType === 'BOUNTY' || hasBounties(comment);
 
-      if (debug) {
-        console.log(`Display bounty for comment ${comment.id}:`, displayBounty);
-      }
-
-      if (displayBounty) {
-        return (
-          <div className="border border-gray-200 rounded-lg p-4">
-            <BountyItem
-              comment={comment}
-              contentType={contentType}
-              onSubmitSolution={() => setReplyingToCommentId(comment.id)}
-              isCreator={session?.user?.id === displayBounty?.createdBy?.id}
-              onBountyUpdated={() => onCommentUpdate && onCommentUpdate(comment)}
-            />
-
-            {/* Show reply editor below the bounty content if replying */}
-            {isReplying && (
-              <div className="mt-4 border-t pt-4">
-                <h4 className="text-sm font-medium mb-2">Your reply:</h4>
-                <CommentEditor
-                  onSubmit={handleReply}
-                  onCancel={() => setReplyingToCommentId(null)}
-                  placeholder="Write your solution..."
-                  autoFocus={true}
-                />
-              </div>
-            )}
-          </div>
-        );
-      }
+    if (debug) {
+      console.log('renderAwardBountyButton:', {
+        commentId: comment.id,
+        commentType: comment.commentType,
+        hasBounties: hasBounties(comment),
+        isBountyComment,
+        hasOpenBounty: comment.bounties?.some(isOpenBounty),
+      });
     }
 
-    // For regular comments, render the content and optionally the reply editor
-    return (
-      <>
-        <CommentItemHeader
-          profileImage={comment.author?.profileImage}
-          fullName={comment.author?.fullName || 'Unknown User'}
-          profileUrl={comment.author?.profileUrl || '#'}
-          date={comment.createdDate}
-          commentType={comment.commentType}
-          score={comment.score}
-          className="mb-3"
-        />
-        <div className="border border-gray-200 rounded-lg p-4">
-          <CommentReadOnly
-            content={comment.content}
-            contentFormat={comment.contentFormat}
-            contentType={contentType}
-            debug={debug}
-          />
-
-          {/* Show reply editor below the comment content if replying */}
-          {isReplying && (
-            <div className="mt-4 border-t pt-4">
-              <h4 className="text-sm font-medium mb-2">Your reply:</h4>
-              <CommentEditor
-                onSubmit={handleReply}
-                onCancel={() => setReplyingToCommentId(null)}
-                placeholder="Write your reply..."
-                autoFocus={true}
-              />
-            </div>
-          )}
-        </div>
-      </>
-    );
+    if (isBountyComment && comment.bounties?.some(isOpenBounty)) {
+      return (
+        <Button
+          variant="secondary"
+          onClick={() => setShowAwardModal(true)}
+          className="flex items-center gap-2 shadow-sm"
+          size="sm"
+        >
+          <FontAwesomeIcon icon={faTrophy} className="h-4 w-4" />
+          Award bounty
+        </Button>
+      );
+    }
+    return null;
   };
 
   return (
@@ -467,29 +474,6 @@ export const CommentItem = ({
       {/* Comment content */}
       {renderContent()}
 
-      {/* Comment actions (reply, edit, delete, etc.) */}
-      {renderCommentActions && !isEditing && !isReplying && (
-        <CommentItemActions
-          score={comment.score}
-          replyCount={comment.replyCount || 0}
-          commentId={comment.id}
-          documentId={Number(comment.thread.objectId)}
-          userVote={comment.userVote}
-          onReply={() => {
-            if (debug) console.log(`Setting replyingToCommentId to ${comment.id}`);
-            setReplyingToCommentId(comment.id);
-          }}
-          onEdit={() => {
-            if (debug) console.log(`Setting editingCommentId to ${comment.id}`);
-            setEditingCommentId(comment.id);
-          }}
-          onDelete={handleDelete}
-          onVote={handleVote}
-          className="mt-3"
-          isAuthor={isAuthor}
-        />
-      )}
-
       {/* Replies section */}
       {comment.replies && comment.replies.length > 0 ? (
         <div className="mt-4 pl-6 border-l border-gray-200">
@@ -588,6 +572,28 @@ export const CommentItem = ({
         confirmText="Delete"
         cancelText="Cancel"
       />
+
+      {/* Award Bounty Modal for bounty comments */}
+      {comment.commentType === 'BOUNTY' &&
+        comment.bounties &&
+        comment.bounties.length > 0 &&
+        !!getDisplayBounty(comment.bounties) && (
+          <AwardBountyModal
+            isOpen={showAwardModal}
+            onClose={() => setShowAwardModal(false)}
+            comment={comment}
+            contentType={contentType}
+            onBountyUpdated={() => {
+              // Refresh the comments using the context
+              forceRefresh();
+
+              // Also call the parent's onCommentUpdate if provided
+              if (onCommentUpdate) {
+                onCommentUpdate(comment);
+              }
+            }}
+          />
+        )}
     </div>
   );
 };

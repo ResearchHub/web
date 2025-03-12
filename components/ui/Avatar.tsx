@@ -15,7 +15,7 @@ export const Avatar: FC<AvatarProps> = ({ src, alt, size = 'md', className }) =>
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (src) {
+    if (src && src.trim() !== '') {
       setImageError(false);
       setIsLoading(true);
       const img = new Image();
@@ -26,6 +26,7 @@ export const Avatar: FC<AvatarProps> = ({ src, alt, size = 'md', className }) =>
         setIsLoading(false);
       };
     } else {
+      setImageError(true);
       setIsLoading(false);
     }
   }, [src]);

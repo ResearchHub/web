@@ -149,7 +149,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({ node, debug = false, renderSect
   // Handle paragraph nodes
   if (node.type === 'paragraph') {
     return (
-      <p className="tiptap-paragraph my-4">
+      <p className="tiptap-paragraph my-2">
         {node.content?.map((child: any, i: number) => (
           <RenderNode
             key={i}

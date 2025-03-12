@@ -23,10 +23,12 @@ import { Currency } from '@/types/root';
 import { BountyType } from '@/types/bounty';
 import { BalanceInfo } from './BalanceInfo';
 import { useSession } from 'next-auth/react';
+import { useUser } from '@/contexts/UserContext';
 import { CommentEditor } from '@/components/Comment/CommentEditor';
 import { Switch } from '@headlessui/react';
 import { toast } from 'react-hot-toast';
 import { useComments } from '@/contexts/CommentContext';
+import { useCreateComment } from '@/hooks/useComments';
 import { CommentService } from '@/services/comment.service';
 
 interface CreateBountyModalProps {
@@ -317,7 +319,7 @@ const FeeBreakdown = ({
 );
 
 export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModalProps) {
-  const { data: session } = useSession();
+  const { user } = useUser();
   const [step, setStep] = useState<Step>('details');
   const [selectedPaper, setSelectedPaper] = useState<SelectedPaper | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(true);
@@ -332,7 +334,11 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const RSC_TO_USD = 1;
-  const userBalance = session?.user?.balance || 0;
+  const userBalance = user?.balance || 0;
+
+  const [{ data: commentData, isLoading: isCreatingBounty, error: bountyError }, createComment] =
+    useCreateComment();
+
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
 
   // Make useComments optional to handle cases when the component is not wrapped with a CommentProvider

@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useRef, useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { Sparkles } from 'lucide-react';
 import { useFeed, FeedTab } from '@/hooks/useFeed';
@@ -8,13 +8,26 @@ import { FeedContent } from './FeedContent';
 import { InterestSelector } from '@/components/InterestSelector/InterestSelector';
 import { FeedTabs } from './FeedTabs';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
-export const Feed: FC = () => {
+interface FeedProps {
+  defaultTab: FeedTab;
+}
+
+export const Feed: FC<FeedProps> = ({ defaultTab }) => {
   const { status } = useSession();
+  const router = useRouter();
   const isAuthenticated = status === 'authenticated';
-  const [activeTab, setActiveTab] = useState<FeedTab>('popular');
   const [isCustomizing, setIsCustomizing] = useState(false);
-  const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(activeTab);
+  const [activeTab, setActiveTab] = useState<FeedTab>(defaultTab);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(defaultTab);
+
+  // Sync the activeTab with the defaultTab when the component mounts or defaultTab changes
+  useEffect(() => {
+    setActiveTab(defaultTab);
+    setIsNavigating(false);
+  }, [defaultTab]);
 
   const handleCustomizeChange = () => {
     setIsCustomizing(!isCustomizing);
@@ -24,6 +37,23 @@ export const Feed: FC = () => {
     setIsCustomizing(false);
     refresh();
   };
+
+  const handleTabChange = (tab: FeedTab) => {
+    // Immediately update the active tab for visual feedback
+    setActiveTab(tab);
+    // Set navigating state to true to show loading state
+    setIsNavigating(true);
+
+    // Navigate to the appropriate URL
+    if (tab === 'popular') {
+      router.push('/');
+    } else {
+      router.push(`/${tab}`);
+    }
+  };
+
+  // Combine the loading states
+  const combinedIsLoading = isLoading || isNavigating;
 
   const tabs = [
     {
@@ -56,9 +86,9 @@ export const Feed: FC = () => {
       activeTab={activeTab}
       tabs={tabs}
       isCustomizing={isCustomizing}
-      onTabChange={setActiveTab}
+      onTabChange={handleTabChange}
       onCustomizeChange={handleCustomizeChange}
-      isLoading={isLoading}
+      isLoading={combinedIsLoading}
     />
   );
 
@@ -67,7 +97,7 @@ export const Feed: FC = () => {
       {!isCustomizing ? (
         <FeedContent
           entries={entries}
-          isLoading={isLoading}
+          isLoading={combinedIsLoading}
           hasMore={hasMore}
           loadMore={loadMore}
           header={header}

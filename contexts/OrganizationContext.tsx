@@ -4,14 +4,17 @@ import { createContext, useContext, ReactNode, useState, useEffect } from 'react
 import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import { OrganizationService } from '@/services/organization.service';
-import type { Organization } from '@/types/organization';
+import type { Organization, OrganizationUsers } from '@/types/organization';
 
 interface OrganizationContextType {
   organizations: Organization[];
   selectedOrg: Organization | null;
   defaultOrg: Organization | null;
+  orgUsers: OrganizationUsers | null;
   isLoading: boolean;
   error: Error | null;
+  refreshOrgUsersSilently: () => Promise<void>;
+  refreshOrganizationsSilently: () => Promise<void>;
 }
 
 const OrganizationContext = createContext<OrganizationContextType | null>(null);
@@ -24,10 +27,11 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [defaultOrg, setDefaultOrg] = useState<Organization | null>(null);
+  const [orgUsers, setOrgUsers] = useState<OrganizationUsers | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchOrganizations = async () => {
+  const fetchOrganizations = async (fetchOrgUsers = true) => {
     try {
       const orgs = await OrganizationService.getUserOrganizations(session);
       setOrganizations(orgs);
@@ -38,21 +42,59 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
       }
 
       // Find the organization that matches the current URL
-      const orgFromUrl = organizations.find((o) => o.slug === currentOrgSlug);
+      const orgFromUrl = orgs.find((o) => o.slug === currentOrgSlug);
 
-      // If we found a matching org and it's different from the current selection
-      if (orgFromUrl && (!selectedOrg || orgFromUrl.slug !== selectedOrg.slug)) {
-        setSelectedOrg(orgFromUrl);
+      let orgToSelect: Organization | null = null;
+
+      // If we found a matching org
+      if (orgFromUrl) {
+        orgToSelect = orgFromUrl;
       }
       // If we can't find the org in the URL and we have a default, use that
       else if (!orgFromUrl && newDefaultOrg && !selectedOrg) {
-        setSelectedOrg(newDefaultOrg);
+        //TODO: we need to redirect client to the new default org
+        orgToSelect = newDefaultOrg;
+      }
+
+      // If we have an organization to select, fetch its users
+      if (orgToSelect) {
+        setSelectedOrg(orgToSelect);
+        if (fetchOrgUsers) {
+          const users = await OrganizationService.getOrganizationUsers(orgToSelect.id.toString());
+          setOrgUsers(users);
+        }
       }
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to load organizations'));
+      setError(
+        err instanceof Error ? err : new Error('Failed to load organizations or organization users')
+      );
       setOrganizations([]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchOrgUsers = async () => {
+    if (!selectedOrg) return;
+
+    try {
+      const users = await OrganizationService.getOrganizationUsers(selectedOrg.id.toString());
+      setOrgUsers(users);
+    } catch (err) {
+      console.error('Failed to fetch organization users:', err);
+      setError(err instanceof Error ? err : new Error('Failed to load organization users'));
+    }
+  };
+
+  const refreshOrgUsersSilently = async () => {
+    await fetchOrgUsers();
+  };
+
+  const refreshOrganizationsSilently = async () => {
+    try {
+      await fetchOrganizations(false);
+    } catch (err) {
+      console.error('Failed to refresh organizations:', err);
     }
   };
 
@@ -66,14 +108,17 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     }
 
     fetchOrganizations();
-  }, [session?.user?.id, status]);
+  }, [session?.userId, status]);
 
   const value = {
     organizations,
     selectedOrg,
     defaultOrg,
+    orgUsers,
     isLoading,
     error,
+    refreshOrgUsersSilently,
+    refreshOrganizationsSilently,
   };
 
   return <OrganizationContext.Provider value={value}>{children}</OrganizationContext.Provider>;

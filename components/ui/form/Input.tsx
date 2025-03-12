@@ -8,15 +8,29 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   helperText?: string;
   label?: string;
   required?: boolean;
+  wrapperClassName?: string;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, icon, error, rightElement, helperText, label, required, ...props }, ref) => {
+  (
+    {
+      className,
+      icon,
+      error,
+      rightElement,
+      helperText,
+      label,
+      required,
+      wrapperClassName,
+      ...props
+    },
+    ref
+  ) => {
     const isRoundedFull = className?.includes('rounded-full');
     const roundedClass = isRoundedFull ? 'rounded-full' : 'rounded-lg';
 
     return (
-      <div>
+      <div className={wrapperClassName}>
         {label && (
           <label className="block text-sm font-semibold text-gray-700 mb-1">
             {label} {required && <span className="text-gray-700">*</span>}

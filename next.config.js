@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false,
   images: {
     unoptimized: false,
     minimumCacheTTL: 60,
@@ -9,6 +9,7 @@ const nextConfig = {
       'storage.prod.researchhub.com',
       'pbs.twimg.com',
       'lh3.googleusercontent.com',
+      'storage.staging.researchhub.com',
     ],
   },
   productionBrowserSourceMaps: process.env.VERCEL_ENV === 'preview',
