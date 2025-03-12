@@ -35,6 +35,7 @@ const LeftSidebar = () => {
   //TODO: we might just update the selected org from the @organizationContext
   const handleOrgSelect = useCallback(
     async (org: Organization) => {
+      console.log('handleOrgSelect', currentOrgSlug, org.slug);
       // If we're already on this org's page, no need to navigate
       if (org.slug === currentOrgSlug) {
         return;
@@ -42,12 +43,13 @@ const LeftSidebar = () => {
 
       // If we have notes for the current org, navigate to the first note
       // Otherwise, just navigate to the org's page
-      const targetPath =
-        notes.length > 0 ? `/notebook/${org.slug}/${notes[0].id}` : `/notebook/${org.slug}`;
+      const targetPath = `/notebook/${org.slug}`;
+
+      console.log('targetPath', targetPath);
 
       await router.push(targetPath);
     },
-    [router, currentOrgSlug, notes]
+    [router, currentOrgSlug]
   );
 
   const handleTemplateSelect = useCallback(

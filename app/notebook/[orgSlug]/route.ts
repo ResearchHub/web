@@ -12,6 +12,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ orgS
 
   // Redirect to the notebook page with the orgSlug as a query parameter if it exists
   if (orgSlug) {
+    console.log('redirecting to notebook with orgSlug', orgSlug);
     redirect(`/notebook?orgSlug=${orgSlug}`);
   } else {
     redirect('/notebook');

@@ -31,7 +31,20 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchOrganizations = async (fetchOrgUsers = true) => {
+  const fetchOrgUsers = async (org?: Organization) => {
+    const orgToUse = org || selectedOrg;
+    if (!orgToUse) return;
+
+    try {
+      const users = await OrganizationService.getOrganizationUsers(orgToUse.id.toString());
+      setOrgUsers(users);
+    } catch (err) {
+      console.error('Failed to fetch organization users:', err);
+      setError(err instanceof Error ? err : new Error('Failed to load organization users'));
+    }
+  };
+
+  const fetchOrganizations = async (shouldFetchUsers = true) => {
     try {
       const orgs = await OrganizationService.getUserOrganizations(session);
       setOrganizations(orgs);
@@ -59,9 +72,8 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
       // If we have an organization to select, fetch its users
       if (orgToSelect) {
         setSelectedOrg(orgToSelect);
-        if (fetchOrgUsers) {
-          const users = await OrganizationService.getOrganizationUsers(orgToSelect.id.toString());
-          setOrgUsers(users);
+        if (shouldFetchUsers) {
+          await fetchOrgUsers(orgToSelect);
         }
       }
     } catch (err) {
@@ -71,18 +83,6 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
       setOrganizations([]);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const fetchOrgUsers = async () => {
-    if (!selectedOrg) return;
-
-    try {
-      const users = await OrganizationService.getOrganizationUsers(selectedOrg.id.toString());
-      setOrgUsers(users);
-    } catch (err) {
-      console.error('Failed to fetch organization users:', err);
-      setError(err instanceof Error ? err : new Error('Failed to load organization users'));
     }
   };
 
@@ -109,6 +109,16 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
 
     fetchOrganizations();
   }, [session?.userId, status]);
+
+  useEffect(() => {
+    if (organizations.length > 0 && currentOrgSlug) {
+      const orgFromUrl = organizations.find((o) => o.slug === currentOrgSlug);
+      if (orgFromUrl && (!selectedOrg || selectedOrg.slug !== currentOrgSlug)) {
+        setSelectedOrg(orgFromUrl);
+        fetchOrgUsers(orgFromUrl);
+      }
+    }
+  }, [currentOrgSlug, organizations]);
 
   const value = {
     organizations,
