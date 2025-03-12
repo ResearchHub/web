@@ -48,7 +48,6 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   }, [editor, content, contentJson]);
 
   useEffect(() => {
-    console.log('setting editor', editor);
     setEditor(editor);
   }, [editor, setEditor]);
 

@@ -53,8 +53,6 @@ export async function GET(request: Request) {
   const isNewFunding = searchParams.get('newFunding') === 'true';
   const targetOrgSlug = searchParams.get('orgSlug');
 
-  console.log('targetOrgSlug', targetOrgSlug);
-
   const organizations = await OrganizationService.getUserOrganizations(session);
   if (!organizations || organizations.length === 0) {
     throw new Error('No organizations found. Please create or join an organization first.');
@@ -67,8 +65,6 @@ export async function GET(request: Request) {
       selectedOrg = matchingOrg;
     }
   }
-
-  console.log('selectedOrg', selectedOrg.slug);
 
   if (!selectedOrg) {
     throw new Error('No organization found');
