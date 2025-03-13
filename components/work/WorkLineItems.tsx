@@ -67,10 +67,20 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
       setVoteCount((prevCount) => (wasUpvoted ? prevCount - 1 : prevCount + 1));
 
       await refreshVotes();
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Unable to process your vote. Please try again.'
-      );
+    } catch (error: any) {
+      // Check if it's a 403 error or contains the specific error message
+      if (
+        error?.status === 403 ||
+        (error?.response && error?.response?.status === 403) ||
+        (typeof error === 'object' && error?.detail === 'Can not vote on own content')
+      ) {
+        toast.error('Cannot vote on your own content');
+      } else {
+        // For other errors, show a generic message
+        toast.error(
+          error instanceof Error ? error.message : 'Unable to process your vote. Please try again.'
+        );
+      }
     }
   }, [work.contentType, work.id, isUpvoted, vote, refreshVotes]);
 

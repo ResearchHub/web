@@ -1,13 +1,11 @@
 import { FC, useState } from 'react';
 import { Comment } from '@/types/comment';
-import { ContentType } from '@/types/work';
 import { contentRenderers } from '@/components/Feed/registry';
 import { CommentEditor } from './CommentEditor';
 import { useSession } from 'next-auth/react';
 
 interface CommentCardProps {
   comment: Comment;
-  contentType: ContentType;
   isReplying?: boolean;
   onCancelReply?: () => void;
   onSubmitReply?: (params: any) => Promise<boolean>;
@@ -18,7 +16,7 @@ interface CommentCardProps {
   onEdit?: (commentId: number) => void;
   onDelete?: (commentId: number) => void;
   showActions?: boolean;
-  debug?: boolean;
+  useFooterActions?: boolean;
 }
 
 /**
@@ -27,7 +25,6 @@ interface CommentCardProps {
  */
 export const CommentCard: FC<CommentCardProps> = ({
   comment,
-  contentType,
   isReplying = false,
   onCancelReply,
   onSubmitReply,
@@ -38,9 +35,10 @@ export const CommentCard: FC<CommentCardProps> = ({
   onEdit,
   onDelete,
   showActions = true,
-  debug = false,
+  useFooterActions = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isVoting, setIsVoting] = useState(false);
   const { data: session } = useSession();
 
   // Check if the current user is the author of the comment
@@ -52,18 +50,31 @@ export const CommentCard: FC<CommentCardProps> = ({
     contentRenderers.comment ||
     contentRenderers.default;
 
+  // Handle voting
+  const handleVote = () => {
+    if (onUpvote) {
+      setIsVoting(true);
+      // Add a small delay to show the loading state
+      setTimeout(() => {
+        onUpvote(comment.id);
+        setIsVoting(false);
+      }, 300);
+    }
+  };
+
   // Custom actions handler that includes reply functionality
   const renderFooterActionsWithReply = () => {
     // First render the footer actions from the renderer
     const footerActions = renderer.renderFooterActions(comment, {
       showActions,
-      onUpvote,
+      onUpvote: handleVote,
       onReply,
       onEdit,
       onDelete,
       onReport,
       onShare,
       isAuthor,
+      useFooterActions,
     });
 
     // If we're in reply mode, add the reply editor
@@ -101,16 +112,38 @@ export const CommentCard: FC<CommentCardProps> = ({
             onToggleExpand: () => setIsExpanded(!isExpanded),
           })}
 
-          {/* Render content-specific actions */}
+          {/* Render content-specific actions - Remove the border-t class to remove the top dividing line */}
           {renderer.renderContentActions(comment, {
             isExpanded,
             onToggleExpand: () => setIsExpanded(!isExpanded),
+            showActions,
+            onUpvote: handleVote,
+            onReply,
+            onEdit,
+            onDelete,
+            onReport,
+            onShare,
+            isAuthor,
+            useFooterActions,
           })}
         </div>
       </div>
 
-      {/* Render footer actions with reply functionality */}
-      {renderFooterActionsWithReply()}
+      {/* Render footer actions with reply functionality if useFooterActions is true */}
+      {useFooterActions && renderFooterActionsWithReply()}
+
+      {/* If not using footer actions but in reply mode, show the reply editor */}
+      {!useFooterActions && isReplying && onSubmitReply && (
+        <div className="mt-4 border-t pt-4 px-4 pb-4">
+          <h4 className="text-sm font-medium mb-2">Your reply:</h4>
+          <CommentEditor
+            onSubmit={onSubmitReply}
+            onCancel={onCancelReply}
+            placeholder="Write your reply..."
+            autoFocus={true}
+          />
+        </div>
+      )}
     </div>
   );
 };

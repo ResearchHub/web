@@ -46,17 +46,8 @@ export const DefaultRenderer: ContentRenderer = {
    * Render footer actions that appear at the bottom of every card
    */
   renderFooterActions: (content, options = {}) => {
-    const { showActions = true } = options;
-
-    if (!showActions) return null;
-
-    return (
-      <div className="flex items-center gap-2 mt-2">
-        <Button variant="ghost" size="sm">
-          View Details
-        </Button>
-      </div>
-    );
+    // Return null as we've moved all functionality to renderContentActions
+    return null;
   },
 
   getUrl: (content) => {

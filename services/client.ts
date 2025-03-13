@@ -106,9 +106,8 @@ export class ApiClient {
           errorData = await response.json();
         } catch (e) {
           errorData = { message: 'Invalid JSON response from server' };
-          throw new Error(JSON.stringify({ data: errorData, status: response.status }));
         }
-        throw new ApiError(JSON.stringify({ data: errorData, status: response.status }));
+        throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
       }
 
       return response.json();
@@ -135,7 +134,7 @@ export class ApiClient {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new ApiError(`HTTP error! status: ${response.status}`, response.status);
       }
 
       return response.blob();
@@ -158,9 +157,8 @@ export class ApiClient {
         errorData = await response.json();
       } catch (e) {
         errorData = { message: 'Invalid JSON response from server' };
-        throw new Error(JSON.stringify({ data: errorData, status: response.status }));
       }
-      throw new ApiError(JSON.stringify({ data: errorData, status: response.status }));
+      throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
     }
 
     return response.json();
@@ -174,7 +172,13 @@ export class ApiClient {
     );
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { message: 'Invalid JSON response from server' };
+      }
+      throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
     }
 
     return response.json();
@@ -194,9 +198,8 @@ export class ApiClient {
           errorData = await response.json();
         } catch (e) {
           errorData = { message: 'Invalid JSON response from server' };
-          throw new Error(JSON.stringify({ data: errorData, status: response.status }));
         }
-        throw new ApiError(JSON.stringify({ data: errorData, status: response.status }));
+        throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
       }
 
       return response.json();

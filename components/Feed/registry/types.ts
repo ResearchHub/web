@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { Work, ContentType } from '@/types/work';
+import { UserVoteType } from '@/types/comment';
 
 /**
  * Common interface for author data across different content types
@@ -24,6 +25,16 @@ export interface RenderOptions {
   context?: any;
   metrics?: any;
   expiringSoon?: boolean;
+  isUpvoted?: boolean;
+  useFooterActions?: boolean;
+
+  // Document information
+  documentId?: number;
+  contentType?: ContentType;
+
+  // Voting information
+  userVote?: UserVoteType;
+  score?: number;
 
   // Bounty-specific callbacks
   onContribute?: () => void;
@@ -44,6 +55,7 @@ export interface RenderOptions {
   onShare?: (id: number) => void;
   onReport?: (id: number) => void;
   isAuthor?: boolean;
+  entityId?: number;
 }
 
 /**

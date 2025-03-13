@@ -8,7 +8,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { WorkTabs, TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
-import { FundItem } from '@/components/Fund/FundItem';
+import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 
 interface FundDocumentProps {
   work: Work;
@@ -38,21 +38,31 @@ export const FundDocument = ({
           <div className="mt-6">
             {metadata.fundraising && (
               <div className="mb-6">
-                <FundItem
-                  id={metadata.fundraising.id}
-                  title={work.title}
-                  status={metadata.fundraising.status}
-                  amount={metadata.fundraising.amountRaised.rsc}
-                  goalAmount={metadata.fundraising.goalAmount.rsc}
-                  deadline={metadata.fundraising.endDate}
-                  contributors={metadata.fundraising.contributors.topContributors.map(
-                    (profile) => ({
-                      profile,
-                      amount: 0, // Individual contribution amounts not available in metadata
-                    })
-                  )}
-                  nftRewardsEnabled={work.figures.length > 0}
-                  nftImageSrc={work.figures[0]?.url}
+                <FundraiseProgress
+                  fundraise={{
+                    id: metadata.fundraising.id,
+                    status: metadata.fundraising.status,
+                    amountRaised: {
+                      rsc: metadata.fundraising.amountRaised.rsc,
+                      usd: metadata.fundraising.amountRaised.usd,
+                    },
+                    goalAmount: {
+                      rsc: metadata.fundraising.goalAmount.rsc,
+                      usd: metadata.fundraising.goalAmount.usd,
+                    },
+                    endDate: metadata.fundraising.endDate,
+                    contributors: {
+                      numContributors: metadata.fundraising.contributors.topContributors.length,
+                      topContributors: metadata.fundraising.contributors.topContributors,
+                    },
+                    createdDate: metadata.fundraising.createdDate || '',
+                    updatedDate: metadata.fundraising.updatedDate || '',
+                    goalCurrency: metadata.fundraising.goalCurrency || 'RSC',
+                  }}
+                  onContribute={() => {
+                    // Handle contribute action
+                    console.log('Contribute to fundraise:', metadata.fundraising?.id);
+                  }}
                 />
               </div>
             )}

@@ -1,38 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Comment, CommentType, UserVoteType } from '@/types/comment';
 import { ContentType } from '@/types/work';
-import { CommentService } from '@/services/comment.service';
 import { CommentEditor } from './CommentEditor';
-import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
-import { MessageCircle, ArrowUp, Flag, Edit2, Trash2 } from 'lucide-react';
-import { Avatar } from '@/components/ui/Avatar';
 import 'highlight.js/styles/atom-one-dark.css';
-import hljs from 'highlight.js';
-import { CommentReadOnly } from './CommentReadOnly';
 import { CommentCard } from './CommentCard';
 import { useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
 import { useComments } from '@/contexts/CommentContext';
-import { parseContent } from './lib/commentContentUtils';
-import TipTapRenderer from './lib/TipTapRenderer';
 import LoadMoreReplies from './LoadMoreReplies';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { CommentContent } from './lib/types';
-import { StatusBadge } from '@/components/ui/StatusBadge';
 import { AwardBountyModal } from '@/components/Comment/AwardBountyModal';
-import { Button } from '@/components/ui/Button';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrophy } from '@fortawesome/free-solid-svg-icons';
-import {
-  getDisplayBounty,
-  isOpenBounty,
-  isClosedBounty,
-  hasBounties,
-} from '@/components/Bounty/lib/bountyUtil';
+import { getDisplayBounty, isOpenBounty } from '@/components/Bounty/lib/bountyUtil';
 import { BountyCardWrapper } from '@/components/Bounty/BountyCardWrapper';
-import { contentRenderers } from '@/components/Feed/registry';
+import { useVote } from '@/hooks/useVote';
 
 interface CommentItemProps {
   comment: Comment;
@@ -57,7 +40,6 @@ export const CommentItem = ({
   const {
     updateComment,
     deleteComment,
-    voteComment,
     createReply,
     editingCommentId,
     replyingToCommentId,
@@ -65,6 +47,7 @@ export const CommentItem = ({
     setReplyingToCommentId,
     loading,
     forceRefresh,
+    updateCommentVote,
   } = useComments();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAwardModal, setShowAwardModal] = useState(false);
@@ -97,19 +80,6 @@ export const CommentItem = ({
   // Determine if this comment is being edited or replied to
   const isEditing = editingCommentId === comment.id;
   const isReplying = replyingToCommentId === comment.id;
-
-  // Handle voting on a comment
-  const handleVote = async (voteType: UserVoteType) => {
-    try {
-      // Make the API call through the context
-      await voteComment(comment, voteType);
-
-      // The context handles optimistic updates, so we don't need to update the comment here
-    } catch (error) {
-      console.error('Error voting on comment:', error);
-      toast.error('Failed to vote on comment');
-    }
-  };
 
   // Handle editing a comment
   const handleEdit = async (params: {
@@ -226,22 +196,17 @@ export const CommentItem = ({
     }
   };
 
+  // Handle upvote
+  const handleOnUpvote = useCallback(() => {
+    // Determine the new vote type based on the current vote
+    const newVoteType = comment.userVote === 'UPVOTE' ? 'NEUTRAL' : 'UPVOTE';
+    const newScore = newVoteType === 'UPVOTE' ? comment.score + 1 : comment.score - 1;
+
+    updateCommentVote(comment.id, newVoteType, newScore);
+  }, [comment, debug]);
+
   // Render the comment content based on whether it's being edited
   const renderContent = () => {
-    if (debug) {
-      console.log(`renderContent for comment ${comment.id}:`);
-      console.log(`- isEditing: ${isEditing}`);
-      console.log(`- isReplying: ${isReplying}`);
-      console.log('CommentItem renderContent:', {
-        id: comment.id,
-        commentType: comment.commentType,
-        hasBounties:
-          !!comment.bounties && Array.isArray(comment.bounties) && comment.bounties.length > 0,
-        bountyCount: comment.bounties?.length || 0,
-        firstBountyId: comment.bounties?.[0]?.id,
-      });
-    }
-
     // Check if this is a bounty comment
     const isBountyComment =
       comment.commentType === 'BOUNTY' ||
@@ -273,9 +238,11 @@ export const CommentItem = ({
             documentId={comment.thread?.objectId}
             contentType={contentType || 'paper'}
             commentId={comment.id}
+            userVote={comment.userVote}
+            score={comment.score}
             showFooter={true}
             showActions={renderCommentActions}
-            onUpvote={() => handleVote('UPVOTE')}
+            onUpvote={handleOnUpvote}
             onReply={() => setReplyingToCommentId(comment.id)}
             onReport={() => {
               // Report functionality
@@ -292,19 +259,16 @@ export const CommentItem = ({
     }
 
     // For regular comments, use CommentCard
-    if (debug) {
-      console.log('Rendering regular comment with CommentCard');
-    }
+
     return (
       <div className="space-y-4">
         {/* Render the comment card with all necessary callbacks */}
         <CommentCard
           comment={comment}
-          contentType={contentType}
           isReplying={isReplying}
           onCancelReply={() => setReplyingToCommentId(null)}
           onSubmitReply={handleReply}
-          onUpvote={() => handleVote('UPVOTE')}
+          onUpvote={handleOnUpvote}
           onReply={() => setReplyingToCommentId(comment.id)}
           onReport={() => {
             if (debug) console.log('Report clicked for comment:', comment.id);
@@ -323,41 +287,9 @@ export const CommentItem = ({
           }}
           onDelete={() => handleDelete()}
           showActions={renderCommentActions}
-          debug={debug}
         />
       </div>
     );
-  };
-
-  // Render the award bounty modal if this is a bounty comment
-  const renderAwardBountyButton = (comment: Comment) => {
-    // Check if this is a bounty comment - either by type or by having bounties
-    const isBountyComment = comment.commentType === 'BOUNTY' || hasBounties(comment);
-
-    if (debug) {
-      console.log('renderAwardBountyButton:', {
-        commentId: comment.id,
-        commentType: comment.commentType,
-        hasBounties: hasBounties(comment),
-        isBountyComment,
-        hasOpenBounty: comment.bounties?.some(isOpenBounty),
-      });
-    }
-
-    if (isBountyComment && comment.bounties?.some(isOpenBounty)) {
-      return (
-        <Button
-          variant="secondary"
-          onClick={() => setShowAwardModal(true)}
-          className="flex items-center gap-2 shadow-sm"
-          size="sm"
-        >
-          <FontAwesomeIcon icon={faTrophy} className="h-4 w-4" />
-          Award bounty
-        </Button>
-      );
-    }
-    return null;
   };
 
   return (

@@ -1,15 +1,13 @@
-import { ContentRenderer, AuthorData, RenderOptions } from './types';
+import { ContentRenderer, AuthorData } from './types';
 import { FeedItemHeader } from '../FeedItemHeader';
 import { Work } from '@/types/work';
 import { Button } from '@/components/ui/Button';
 import { DefaultRenderer } from './DefaultRenderer';
-import { Avatar } from '@/components/ui/Avatar';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import { PaperIcon } from '@/components/ui/icons';
 import { ArrowUp, MessageCircle, Share } from 'lucide-react';
 import { ActionButton } from '../ActionButton';
-import { PaperBadge } from '@/components/ui/PaperBadge';
+import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 
 /**
  * Renderer for paper content
@@ -17,7 +15,6 @@ import { PaperBadge } from '@/components/ui/PaperBadge';
 export const PaperRenderer: ContentRenderer<Work> = {
   renderHeader: (paper, options = {}) => {
     const authorData = PaperRenderer.getAuthorData(paper);
-    const metadata = PaperRenderer.getMetadata(paper);
 
     return (
       <FeedItemHeader
@@ -71,7 +68,7 @@ export const PaperRenderer: ContentRenderer<Work> = {
       <div className="space-y-3">
         {/* Paper badge above title */}
         <div className="flex items-center flex-wrap gap-2">
-          <PaperBadge />
+          <ContentTypeBadge type="paper" />
           {journalBadge}
           {topicBadge}
         </div>

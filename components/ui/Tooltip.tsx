@@ -77,7 +77,7 @@ const TooltipContent = ({
     <div
       ref={tooltipRef}
       className={cn(
-        'fixed z-50 px-3 py-2 text-sm bg-white border border-gray-200 rounded-md shadow-md',
+        'fixed z-50 px-2 py-1 text-xs text-white bg-gray-900 rounded shadow-md whitespace-nowrap',
         'transform transition-all duration-150',
         {
           'opacity-0 scale-95': !isVisible || !mounted,
@@ -146,7 +146,7 @@ export function Tooltip({
         onMouseLeave={hideTooltip}
         onFocus={showTooltip}
         onBlur={hideTooltip}
-        className="inline-flex"
+        className="inline-flex h-full"
       >
         {children}
       </div>

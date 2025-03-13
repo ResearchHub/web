@@ -237,7 +237,12 @@ export class CommentService {
       endpoint = `/${contentTypePath}/${documentId}/comments/${commentId}/neutralvote/`;
     }
 
-    return ApiClient.post(this.BASE_PATH + endpoint);
+    try {
+      return await ApiClient.post(this.BASE_PATH + endpoint);
+    } catch (error) {
+      // Just rethrow the error to preserve the ApiError structure
+      throw error;
+    }
   }
 
   static async fetchCommentReplies({

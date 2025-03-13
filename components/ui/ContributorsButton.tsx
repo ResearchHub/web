@@ -38,12 +38,14 @@ interface ContributorsButtonProps {
   }>;
   onContribute?: () => void;
   label?: string;
+  hideLabel?: boolean;
 }
 
 export function ContributorsButton({
   contributors,
   onContribute,
   label = 'Contributors',
+  hideLabel = false,
 }: ContributorsButtonProps) {
   const [showModal, setShowModal] = useState(false);
 
@@ -66,7 +68,7 @@ export function ContributorsButton({
           spacing={-9}
           ringColorClass="ring-white"
         />
-        <LabelBadge count={contributors.length} label={label} />
+        {!hideLabel && <LabelBadge count={contributors.length} label={label} />}
       </button>
 
       <ContributorModal

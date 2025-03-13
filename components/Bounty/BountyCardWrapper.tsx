@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ContentType } from '@/types/work';
 import { Bounty } from '@/types/bounty';
 import { ID } from '@/types/root';
-import { ContentFormat } from '@/types/comment';
+import { ContentFormat, UserVoteType } from '@/types/comment';
 import { BountyCard, SolutionViewEvent } from './BountyCard';
 import { SolutionModal } from '@/components/Comment/SolutionModal';
 import { getDisplayBounty } from './lib/bountyUtil';
@@ -24,6 +24,10 @@ interface BountyCardWrapperProps {
   documentId?: number;
   contentType?: ContentType;
   commentId?: number;
+
+  // Voting data
+  userVote?: UserVoteType;
+  score?: number;
 
   // Callbacks
   isCreator?: boolean;
@@ -57,6 +61,8 @@ export const BountyCardWrapper = ({
   documentId,
   contentType,
   commentId,
+  userVote,
+  score,
   isCreator,
   onBountyUpdated,
   onUpvote,
@@ -109,6 +115,8 @@ export const BountyCardWrapper = ({
         documentId={documentId}
         contentType={contentType}
         commentId={commentId}
+        userVote={userVote}
+        score={score}
         isCreator={isCreator}
         onBountyUpdated={onBountyUpdated}
         onViewSolution={handleViewSolution}

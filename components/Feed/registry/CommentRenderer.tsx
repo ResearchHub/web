@@ -5,7 +5,16 @@ import { Button } from '@/components/ui/Button';
 import { DefaultRenderer } from './DefaultRenderer';
 import { ExpandableContent } from '../shared';
 import { useState } from 'react';
-import { MessageCircle, ArrowUp, Flag, Edit2, Trash2, Share, Star } from 'lucide-react';
+import {
+  MessageCircle,
+  ArrowUp,
+  Flag,
+  Edit2,
+  Trash2,
+  Share,
+  Star,
+  MoreVertical,
+} from 'lucide-react';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { BountyRenderer } from './BountyRenderer';
 import { RSCBadge } from '@/components/ui/RSCBadge';
@@ -22,6 +31,8 @@ import { contentRenderers } from '.';
 import { ReactNode } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { ActionButton } from '../ActionButton';
+import { UpvoteAndCommentButton } from '@/components/ui/UpvoteAndCommentButton';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 
 /**
  * Renderer for comment content
@@ -207,29 +218,140 @@ export const CommentRenderer: ContentRenderer<Comment> = {
    * (e.g., special actions for review comments, etc.)
    */
   renderContentActions: (comment, options = {}) => {
+    const {
+      showActions = true,
+      onUpvote,
+      onReply,
+      onEdit,
+      onDelete,
+      onReport,
+      onShare,
+      isAuthor = false,
+      useFooterActions = false,
+      contentType = 'paper',
+      documentId,
+    } = options;
+
     // For bounty comments, we should not handle them here
     if ((comment.commentType === 'BOUNTY' || comment.bounties?.length > 0) && comment.bounties) {
       return null;
     }
 
-    // For review comments, we might have special actions
-    if (comment.commentType === 'REVIEW') {
-      return (
-        <div className="flex flex-wrap gap-2 mt-4">
-          <Button variant="secondary" size="sm">
-            View Full Review
-          </Button>
-        </div>
-      );
+    // If we're using footer actions, only show content-specific actions
+    if (useFooterActions) {
+      // For review comments, we might have special actions
+      if (comment.commentType === 'REVIEW') {
+        return (
+          <div className="flex flex-wrap gap-2 mt-4">
+            <Button
+              size="sm"
+              className="flex items-center gap-2 shadow-sm bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-700"
+            >
+              Read Full Review
+            </Button>
+          </div>
+        );
+      }
+
+      // Most comments don't have content-specific actions
+      return null;
     }
 
-    // Most comments don't have content-specific actions
-    return null;
+    // If we are not using footer actions, include all actions here
+    if (!showActions) return null;
+
+    const isBountyComment =
+      comment.commentType === 'BOUNTY' || (comment.bounties && comment.bounties.length > 0);
+
+    // Get upvote and comment counts
+    const upvoteCount = comment.score || 0;
+    const commentCount = comment.replyCount || comment.childrenCount || 0;
+
+    return (
+      <div className="mt-4 flex items-center justify-between">
+        <div className="w-full">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {/* Use the UpvoteAndCommentButton in votable mode if documentId is provided, otherwise use it in direct callback mode */}
+              {documentId ? (
+                <UpvoteAndCommentButton
+                  votableEntityId={comment.id}
+                  documentId={documentId}
+                  contentType={contentType}
+                  userVote={comment.userVote}
+                  score={comment.score}
+                  onComment={() => onReply && onReply(comment.id)}
+                  commentCount={commentCount}
+                />
+              ) : (
+                <UpvoteAndCommentButton
+                  onVoteSuccess={() => onUpvote && onUpvote(comment.id)}
+                  onComment={() => onReply && onReply(comment.id)}
+                  isUpvoted={comment.userVote === 'UPVOTE'}
+                  upvoteCount={upvoteCount}
+                  commentCount={commentCount}
+                />
+              )}
+
+              {/* For review comments, add a View Full Review button */}
+              {comment.commentType === 'REVIEW' && (
+                <Button
+                  size="sm"
+                  className="flex items-center gap-2 shadow-sm bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-700"
+                >
+                  Read Full Review
+                </Button>
+              )}
+            </div>
+
+            {/* Three dots menu with options - positioned right after the actions */}
+            <BaseMenu
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-500 p-1 h-8 w-8 rounded-full"
+                >
+                  <MoreVertical className="w-4 h-4 text-gray-700" />
+                </Button>
+              }
+            >
+              {isAuthor && onEdit && (
+                <BaseMenuItem onClick={() => onEdit(comment.id)}>
+                  <Edit2 className="w-4 h-4 mr-2" />
+                  Edit
+                </BaseMenuItem>
+              )}
+              {isAuthor && onDelete && (
+                <BaseMenuItem onClick={() => onDelete(comment.id)}>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </BaseMenuItem>
+              )}
+              {isBountyComment && onShare && (
+                <BaseMenuItem onClick={() => onShare(comment.id)}>
+                  <Share className="w-4 h-4 mr-2" />
+                  Share
+                </BaseMenuItem>
+              )}
+              {onReport && (
+                <BaseMenuItem onClick={() => onReport(comment.id)}>
+                  <Flag className="w-4 h-4 mr-2" />
+                  Flag
+                </BaseMenuItem>
+              )}
+            </BaseMenu>
+          </div>
+        </div>
+      </div>
+    );
   },
 
   /**
    * Render footer actions that appear at the bottom of every card
    * (e.g., "Upvote", "Reply", "Flag" for comments)
+   *
+   * Note: This is used when useFooterActions is true
    */
   renderFooterActions: (comment, options = {}) => {
     const {
@@ -241,7 +363,11 @@ export const CommentRenderer: ContentRenderer<Comment> = {
       onReport,
       onShare,
       isAuthor = false,
+      useFooterActions = false,
     } = options;
+
+    // If not using footer actions, return null as we've moved all functionality to renderContentActions
+    if (!useFooterActions) return null;
 
     if (!showActions) return null;
 

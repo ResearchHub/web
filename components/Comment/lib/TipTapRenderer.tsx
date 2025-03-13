@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { SectionHeaderProps } from './renderUtils';
 import hljs from 'highlight.js';
 import { useEffect } from 'react';
@@ -7,6 +7,8 @@ interface TipTapRendererProps {
   content: any;
   debug?: boolean;
   renderSectionHeader?: (props: SectionHeaderProps) => ReactNode;
+  truncate?: boolean;
+  maxLength?: number;
 }
 
 /**
@@ -60,6 +62,25 @@ export const renderTextWithMarks = (text: string, marks: any[]): ReactNode => {
 };
 
 /**
+ * Helper function to extract plain text from TipTap JSON
+ */
+export const extractPlainText = (node: any): string => {
+  if (!node) return '';
+
+  // If it's a text node, return its text content
+  if (node.type === 'text') {
+    return node.text || '';
+  }
+
+  // If it has content, recursively extract text from all children
+  if (node.content && Array.isArray(node.content)) {
+    return node.content.map(extractPlainText).join('');
+  }
+
+  return '';
+};
+
+/**
  * TipTap JSON Renderer for React
  * Renders TipTap JSON content without requiring the editor
  */
@@ -67,6 +88,8 @@ const TipTapRenderer: React.FC<TipTapRendererProps> = ({
   content,
   debug = false,
   renderSectionHeader,
+  truncate = false,
+  maxLength = 300,
 }) => {
   // Handle different content formats
   let documentContent = content;
@@ -94,6 +117,19 @@ const TipTapRenderer: React.FC<TipTapRendererProps> = ({
     };
   }
 
+  // If truncation is enabled, extract the full text to check length
+  let shouldTruncate = false;
+  if (truncate) {
+    const fullText = extractPlainText(documentContent);
+    shouldTruncate = fullText.length > maxLength;
+
+    if (shouldTruncate && debug) {
+      console.log(
+        `Content length (${fullText.length}) exceeds maxLength (${maxLength}), will truncate`
+      );
+    }
+  }
+
   useEffect(() => {
     // Find all pre code blocks and apply highlighting
     const codeBlocks = window.document.querySelectorAll('pre code');
@@ -104,7 +140,13 @@ const TipTapRenderer: React.FC<TipTapRendererProps> = ({
 
   return (
     <div className="tiptap-renderer">
-      <RenderNode node={documentContent} debug={debug} renderSectionHeader={renderSectionHeader} />
+      <RenderNode
+        node={documentContent}
+        debug={debug}
+        renderSectionHeader={renderSectionHeader}
+        truncate={shouldTruncate}
+        maxLength={maxLength}
+      />
     </div>
   );
 };
@@ -113,20 +155,76 @@ interface RenderNodeProps {
   node: any;
   debug?: boolean;
   renderSectionHeader?: (props: SectionHeaderProps) => ReactNode;
+  truncate?: boolean;
+  maxLength?: number;
+  currentLength?: number; // Track current text length for truncation
 }
 
 /**
  * Renders a TipTap node based on its type
  */
-const RenderNode: React.FC<RenderNodeProps> = ({ node, debug = false, renderSectionHeader }) => {
+const RenderNode: React.FC<RenderNodeProps> = ({
+  node,
+  debug = false,
+  renderSectionHeader,
+  truncate = false,
+  maxLength = 300,
+  currentLength = 0,
+}) => {
   if (!node) {
     if (debug) console.log('No node to render');
+    return null;
+  }
+
+  // For truncation, we need to track how much text we've rendered
+  let textLengthSoFar = currentLength;
+
+  // If we've already exceeded the max length and truncation is enabled, don't render more
+  if (truncate && textLengthSoFar >= maxLength) {
     return null;
   }
 
   // Handle document node
   if (node.type === 'doc') {
     if (debug) console.log('Rendering doc node with', node.content?.length || 0, 'children');
+
+    // For truncation, we need to render children one by one and track length
+    if (truncate) {
+      const renderedChildren: ReactNode[] = [];
+      let currentTextLength = 0;
+
+      for (const child of node.content || []) {
+        // If we've already exceeded max length, stop rendering
+        if (currentTextLength >= maxLength) break;
+
+        // Render this child with current text length
+        const childNode = (
+          <RenderNode
+            key={renderedChildren.length}
+            node={child}
+            debug={debug}
+            renderSectionHeader={renderSectionHeader}
+            truncate={truncate}
+            maxLength={maxLength}
+            currentLength={currentTextLength}
+          />
+        );
+
+        renderedChildren.push(childNode);
+
+        // Update text length by adding this child's text
+        currentTextLength += extractPlainText(child).length;
+      }
+
+      // If we truncated, add ellipsis
+      if (currentTextLength >= maxLength && node.content?.length > renderedChildren.length) {
+        renderedChildren.push(<span key="ellipsis">...</span>);
+      }
+
+      return <div className="tiptap-doc">{renderedChildren}</div>;
+    }
+
+    // Normal rendering without truncation
     return (
       <div className="tiptap-doc">
         {node.content?.map((child: any, i: number) => (
@@ -135,6 +233,9 @@ const RenderNode: React.FC<RenderNodeProps> = ({ node, debug = false, renderSect
             node={child}
             debug={debug}
             renderSectionHeader={renderSectionHeader}
+            truncate={truncate}
+            maxLength={maxLength}
+            currentLength={textLengthSoFar}
           />
         ))}
       </div>
@@ -143,7 +244,16 @@ const RenderNode: React.FC<RenderNodeProps> = ({ node, debug = false, renderSect
 
   // Handle text nodes
   if (node.type === 'text') {
-    return renderTextWithMarks(node.text || '', node.marks || []);
+    const text = node.text || '';
+
+    // For truncation, we may need to cut the text
+    if (truncate && textLengthSoFar + text.length > maxLength) {
+      const remainingLength = maxLength - textLengthSoFar;
+      const truncatedText = text.substring(0, remainingLength);
+      return renderTextWithMarks(truncatedText, node.marks || []);
+    }
+
+    return renderTextWithMarks(text, node.marks || []);
   }
 
   // Handle paragraph nodes
@@ -156,6 +266,9 @@ const RenderNode: React.FC<RenderNodeProps> = ({ node, debug = false, renderSect
             node={child}
             debug={debug}
             renderSectionHeader={renderSectionHeader}
+            truncate={truncate}
+            maxLength={maxLength}
+            currentLength={textLengthSoFar}
           />
         ))}
       </p>
@@ -173,6 +286,9 @@ const RenderNode: React.FC<RenderNodeProps> = ({ node, debug = false, renderSect
             node={child}
             debug={debug}
             renderSectionHeader={renderSectionHeader}
+            truncate={truncate}
+            maxLength={maxLength}
+            currentLength={textLengthSoFar}
           />
         ))}
       </HeadingTag>
@@ -189,6 +305,9 @@ const RenderNode: React.FC<RenderNodeProps> = ({ node, debug = false, renderSect
             node={child}
             debug={debug}
             renderSectionHeader={renderSectionHeader}
+            truncate={truncate}
+            maxLength={maxLength}
+            currentLength={textLengthSoFar}
           />
         ))}
       </blockquote>
@@ -226,6 +345,9 @@ const RenderNode: React.FC<RenderNodeProps> = ({ node, debug = false, renderSect
             node={child}
             debug={debug}
             renderSectionHeader={renderSectionHeader}
+            truncate={truncate}
+            maxLength={maxLength}
+            currentLength={textLengthSoFar}
           />
         ))}
       </ul>
@@ -242,6 +364,9 @@ const RenderNode: React.FC<RenderNodeProps> = ({ node, debug = false, renderSect
             node={child}
             debug={debug}
             renderSectionHeader={renderSectionHeader}
+            truncate={truncate}
+            maxLength={maxLength}
+            currentLength={textLengthSoFar}
           />
         ))}
       </ol>
@@ -258,6 +383,9 @@ const RenderNode: React.FC<RenderNodeProps> = ({ node, debug = false, renderSect
             node={child}
             debug={debug}
             renderSectionHeader={renderSectionHeader}
+            truncate={truncate}
+            maxLength={maxLength}
+            currentLength={textLengthSoFar}
           />
         ))}
       </li>
@@ -297,6 +425,9 @@ const RenderNode: React.FC<RenderNodeProps> = ({ node, debug = false, renderSect
             node={childNode}
             debug={debug}
             renderSectionHeader={renderSectionHeader}
+            truncate={truncate}
+            maxLength={maxLength}
+            currentLength={textLengthSoFar}
           />
         ))}
       </>

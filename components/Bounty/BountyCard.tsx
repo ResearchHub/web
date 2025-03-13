@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ContentType, Work } from '@/types/work';
 import { Bounty } from '@/types/bounty';
 import { ID } from '@/types/root';
-import { ContentFormat } from '@/types/comment';
+import { ContentFormat, UserVoteType } from '@/types/comment';
 
 // Components
 import { ContributorModal } from '@/components/modals/ContributorModal';
@@ -43,6 +43,10 @@ export interface BountyCardProps {
   contentType?: ContentType;
   commentId?: number;
 
+  // Voting data
+  userVote?: UserVoteType;
+  score?: number;
+
   // Callbacks
   isCreator?: boolean;
   onBountyUpdated?: () => void;
@@ -58,8 +62,9 @@ export interface BountyCardProps {
   slug?: string;
 
   // Rendering options
-  showFooter?: boolean;
   showActions?: boolean;
+  useFooterActions?: boolean;
+  showFooter?: boolean;
 }
 
 export const BountyCard = ({
@@ -78,6 +83,10 @@ export const BountyCard = ({
   contentType,
   commentId,
 
+  // Voting data
+  userVote,
+  score,
+
   // Callbacks
   isCreator = false,
   onBountyUpdated,
@@ -93,12 +102,14 @@ export const BountyCard = ({
   slug,
 
   // Rendering options
-  showFooter = true,
   showActions = true,
+  useFooterActions = true,
+  showFooter = true,
 }: BountyCardProps) => {
   const [showContributorsModal, setShowContributorsModal] = useState(false);
   const [showContributeModal, setShowContributeModal] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isVoting, setIsVoting] = useState(false);
   const { data: session } = useSession();
 
   // Check if the current user is the author of the bounty
@@ -147,6 +158,18 @@ export const BountyCard = ({
     }
   };
 
+  // Handle voting
+  const handleVote = () => {
+    if (onUpvote) {
+      setIsVoting(true);
+      // Add a small delay to show the loading state
+      setTimeout(() => {
+        onUpvote(bounty.id);
+        setIsVoting(false);
+      }, 300);
+    }
+  };
+
   return (
     <div className="space-y-3">
       {/* Header - always shown */}
@@ -175,6 +198,18 @@ export const BountyCard = ({
             onViewSolution: handleViewSolution,
             onNavigationClick,
             isAuthor,
+            onUpvote: handleVote,
+            onReply,
+            onEdit,
+            onDelete,
+            onReport,
+            showActions,
+            useFooterActions,
+            documentId,
+            contentType,
+            entityId: commentId,
+            userVote,
+            score,
             context: {
               relatedWork: relatedWork,
               onRelatedWorkClick: handleRelatedWorkClick,
@@ -188,18 +223,6 @@ export const BountyCard = ({
           })}
         </div>
       </div>
-
-      {/* Footer actions - outside the card */}
-      {showFooter &&
-        renderer.renderFooterActions(bounty, {
-          showActions,
-          onUpvote,
-          onReply,
-          onEdit,
-          onDelete,
-          onReport,
-          isAuthor,
-        })}
 
       {/* Modals */}
       {showContributorsModal && (

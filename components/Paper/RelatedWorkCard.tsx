@@ -1,6 +1,6 @@
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
-import { PaperBadge } from '@/components/ui/PaperBadge';
+import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 
 interface RelatedWorkCardProps {
   work: Work;
@@ -35,7 +35,7 @@ export const RelatedWorkCard = ({ work, onClick }: RelatedWorkCardProps) => {
     >
       {/* Paper badge above title - full width */}
       <div className="mb-3">
-        <PaperBadge />
+        <ContentTypeBadge type="paper" />
       </div>
 
       {/* Paper title */}

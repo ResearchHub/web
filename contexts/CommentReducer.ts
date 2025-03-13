@@ -56,8 +56,6 @@ export enum CommentActionType {
   UPDATE_COMMENT_SUCCESS = 'UPDATE_COMMENT_SUCCESS',
   DELETE_COMMENT_START = 'DELETE_COMMENT_START',
   DELETE_COMMENT_SUCCESS = 'DELETE_COMMENT_SUCCESS',
-  VOTE_COMMENT_START = 'VOTE_COMMENT_START',
-  VOTE_COMMENT_SUCCESS = 'VOTE_COMMENT_SUCCESS',
 }
 
 // Define action interfaces
@@ -272,17 +270,6 @@ interface DeleteCommentSuccessAction {
   };
 }
 
-interface VoteCommentStartAction {
-  type: CommentActionType.VOTE_COMMENT_START;
-}
-
-interface VoteCommentSuccessAction {
-  type: CommentActionType.VOTE_COMMENT_SUCCESS;
-  payload: {
-    comment: Comment;
-  };
-}
-
 // Union type for all actions
 export type CommentAction =
   | SetCommentsAction
@@ -321,9 +308,7 @@ export type CommentAction =
   | UpdateCommentStartAction
   | UpdateCommentSuccessAction
   | DeleteCommentStartAction
-  | DeleteCommentSuccessAction
-  | VoteCommentStartAction
-  | VoteCommentSuccessAction;
+  | DeleteCommentSuccessAction;
 
 // Initial state
 export const initialCommentState: CommentState = {
@@ -572,23 +557,6 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
         ...state,
         comments: state.comments.filter((comment) => comment.id !== action.payload.comment.id),
         count: state.count - 1,
-        loading: false,
-        error: null,
-      };
-    case CommentActionType.VOTE_COMMENT_START:
-      return {
-        ...state,
-        loading: true,
-        error: null,
-      };
-    case CommentActionType.VOTE_COMMENT_SUCCESS:
-      return {
-        ...state,
-        comments: updateCommentVoteInList(
-          state.comments,
-          action.payload.comment.id,
-          action.payload.comment
-        ),
         loading: false,
         error: null,
       };
