@@ -1,27 +1,54 @@
 import { useState, useCallback } from 'react';
-import { UserVoteType } from '@/types/comment';
 import { ContentType } from '@/types/work';
-import { CommentService } from '@/services/comment.service';
 import { toast } from 'react-hot-toast';
 import { useSession } from 'next-auth/react';
 import { ApiError } from '@/services/types';
+import { ReactionService } from '@/services/reaction.service';
+import { UserVoteType, VotableContentType } from '@/types/reaction';
+import { FeedContentType } from '@/types/feed';
 
 interface UseVoteOptions {
-  documentId: number;
-  contentType: ContentType;
+  votableEntityId: number;
+  feedContentType?: FeedContentType;
   onVoteSuccess?: (updatedItem: any, voteType: UserVoteType) => void;
   onVoteError?: (error: any) => void;
 }
 
 /**
+ * Maps FeedContentType to VotableContentType for API calls
+ */
+function mapFeedContentTypeToVotable(feedContentType?: FeedContentType): VotableContentType {
+  if (!feedContentType) {
+    return 'paper'; // Default to paper if no feedContentType is provided
+  }
+
+  switch (feedContentType) {
+    case 'BOUNTY':
+    case 'COMMENT':
+      return 'comment';
+    case 'PAPER':
+      return 'paper';
+    case 'POST':
+    case 'PREREGISTRATION':
+    default:
+      return 'researchhubpost';
+  }
+}
+
+/**
  * A reusable hook for handling voting functionality across different content types
  */
-export function useVote({ documentId, contentType, onVoteSuccess, onVoteError }: UseVoteOptions) {
+export function useVote({
+  votableEntityId,
+  feedContentType,
+  onVoteSuccess,
+  onVoteError,
+}: UseVoteOptions) {
   const [isVoting, setIsVoting] = useState(false);
   const { data: session } = useSession();
 
   /**
-   * Vote on a comment or other content item
+   * Vote on a document, comment or other content item
    * @param item The item to vote on (must have id and userVote properties)
    * @param voteType The type of vote (UPVOTE or NEUTRAL)
    */
@@ -42,13 +69,35 @@ export function useVote({ documentId, contentType, onVoteSuccess, onVoteError }:
       try {
         setIsVoting(true);
 
-        // Make the API call directly using CommentService.voteComment
-        const response = await CommentService.voteComment({
-          commentId: item.id,
-          documentId,
-          voteType,
-          contentType,
-        });
+        let response;
+        const votableContentType = mapFeedContentTypeToVotable(feedContentType);
+
+        // Use the appropriate service method based on feed content type
+        if (feedContentType === 'COMMENT') {
+          response = await ReactionService.voteOnComment({
+            commentId: item.id,
+            documentId: votableEntityId,
+            voteType,
+            contentType: votableContentType,
+          });
+        } else {
+          // For documents (papers, posts, etc.)
+          const documentType = votableContentType === 'paper' ? 'paper' : 'researchhubpost';
+
+          // Ensure we have a valid entity ID
+          if (!votableEntityId) {
+            throw new Error('Entity ID is required for voting');
+          }
+
+          // Use the item's ID if votableEntityId is not provided or is invalid
+          const targetEntityId = votableEntityId || item.id;
+
+          response = await ReactionService.voteOnDocument({
+            documentId: targetEntityId,
+            documentType,
+            voteType: voteType === 'UPVOTE' ? 'upvote' : 'neutralvote',
+          });
+        }
 
         // Call success callback with the server response
         if (onVoteSuccess) {
@@ -59,7 +108,7 @@ export function useVote({ documentId, contentType, onVoteSuccess, onVoteError }:
 
         // Handle specific error cases
         if (error instanceof ApiError) {
-          console.log('&error', error.status);
+          console.error(error);
 
           if (error.status === 403) {
             toast.error('Cannot vote on your own content');
@@ -78,7 +127,7 @@ export function useVote({ documentId, contentType, onVoteSuccess, onVoteError }:
         setIsVoting(false);
       }
     },
-    [documentId, contentType, isVoting, session, onVoteSuccess, onVoteError]
+    [votableEntityId, feedContentType, isVoting, session, onVoteSuccess, onVoteError]
   );
 
   return {

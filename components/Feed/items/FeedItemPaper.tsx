@@ -3,7 +3,6 @@
 import { FC } from 'react';
 import { FeedPaperEntry, FeedEntry } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
-import { cn } from '@/utils/styles';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
 import Link from 'next/link';
@@ -13,13 +12,6 @@ import { truncateText } from '@/utils/stringUtils';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
-  onUpvote?: (id: number) => void;
-  onComment?: (id: number) => void;
-  onReport?: (id: number) => void;
-  onShare?: (id: number) => void;
-  onAddToLibrary?: (id: number) => void;
-  onViewPaper?: (id: number, slug: string) => void;
-  className?: string;
 }
 
 /**
@@ -88,16 +80,7 @@ const FeedItemPaperBody: FC<{
 /**
  * Main component for rendering a paper feed item
  */
-export const FeedItemPaper: FC<FeedItemPaperProps> = ({
-  entry,
-  onUpvote,
-  onComment,
-  onReport,
-  onShare,
-  onAddToLibrary,
-  onViewPaper,
-  className,
-}) => {
+export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry }) => {
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperEntry;
 
@@ -108,7 +91,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   const paperPageUrl = `/paper/${paper.id}/${paper.slug}`;
 
   return (
-    <div className={cn('space-y-3', className)}>
+    <div className="space-y-3">
       {/* Header */}
       <FeedItemHeader
         contentType="paper"
@@ -146,7 +129,12 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
             <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
               <div className="flex gap-2 items-center">
                 {/* Standard Feed Item Actions */}
-                <FeedItemActions metrics={paper.metrics} content={paper} />
+                <FeedItemActions
+                  metrics={paper.metrics}
+                  content={paper}
+                  feedContentType="PAPER"
+                  votableEntityId={paper.id}
+                />
               </div>
             </div>
           </div>

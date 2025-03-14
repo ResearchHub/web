@@ -1,14 +1,13 @@
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { BaseTransformer } from './transformer';
 import { Bounty, transformBounty, groupBountiesWithContributions } from './bounty';
+import { UserVoteType } from './reaction';
 
 export type CommentFilter = 'BOUNTY' | 'DISCUSSION' | 'REVIEW';
 export type CommentSort = 'BEST' | 'NEWEST' | 'TOP' | 'CREATED_DATE';
 export type CommentPrivacyType = 'PUBLIC' | 'PRIVATE';
 export type ContentFormat = 'QUILL_EDITOR' | 'TIPTAP';
 export type CommentType = 'GENERIC_COMMENT' | 'REVIEW' | 'BOUNTY' | 'ANSWER';
-
-export type UserVoteType = 'UPVOTE' | 'NEUTRAL' | 'DOWNVOTE';
 
 export interface UserMention {
   userId: string | null;

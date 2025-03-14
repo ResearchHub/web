@@ -13,11 +13,6 @@ import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
-  onUpvote?: (id: number) => void;
-  onComment?: (id: number) => void;
-  onReport?: (id: number) => void;
-  onContribute?: () => void;
-  className?: string;
 }
 
 /**
@@ -97,14 +92,7 @@ const extractContributors = (fundraise: FeedPostEntry['fundraise']) => {
 /**
  * Main component for rendering a fundraise feed item
  */
-export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
-  entry,
-  onUpvote,
-  onComment,
-  onReport,
-  onContribute,
-  className,
-}) => {
+export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({ entry }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostEntry;
 
@@ -125,7 +113,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   const fundingPageUrl = `/fund/${post.id}/${post.slug}`;
 
   return (
-    <div className={cn('space-y-3', className)}>
+    <div className="space-y-3">
       {/* Header */}
       <FeedItemHeader
         contentType="post"
@@ -155,7 +143,6 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                     <FundraiseProgress
                       fundraise={post.fundraise}
                       compact={true}
-                      onContribute={onContribute}
                       showContribute={false}
                       className="p-0 border-0 bg-transparent"
                     />
@@ -178,7 +165,12 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
               <div className="flex gap-2 items-center">
                 {/* Standard Feed Item Actions */}
-                <FeedItemActions metrics={post.metrics} content={post} />
+                <FeedItemActions
+                  metrics={post.metrics}
+                  content={post}
+                  feedContentType={post.contentType}
+                  votableEntityId={post.id}
+                />
               </div>
             </div>
           </div>

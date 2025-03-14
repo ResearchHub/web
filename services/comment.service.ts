@@ -73,13 +73,6 @@ export interface FetchCommentOptions {
   contentType: ContentType;
 }
 
-export interface VoteCommentOptions {
-  commentId: ID;
-  documentId: ID;
-  voteType: 'UPVOTE' | 'DOWNVOTE' | 'NEUTRAL';
-  contentType: ContentType;
-}
-
 export interface FetchCommentRepliesOptions {
   commentId: ID;
   documentId: ID;
@@ -218,31 +211,6 @@ export class CommentService {
     const path = `${this.BASE_PATH}/${contentTypePath}/${documentId}/comments/${commentId}/`;
     const response = await ApiClient.get<any>(path);
     return transformComment(response);
-  }
-
-  static async voteComment({
-    commentId,
-    documentId,
-    voteType,
-    contentType,
-  }: VoteCommentOptions): Promise<any> {
-    const contentTypePath = getContentTypePath(contentType);
-    let endpoint = '';
-
-    if (voteType === 'UPVOTE') {
-      endpoint = `/${contentTypePath}/${documentId}/comments/${commentId}/upvote/`;
-    } else if (voteType === 'DOWNVOTE') {
-      endpoint = `/${contentTypePath}/${documentId}/comments/${commentId}/downvote/`;
-    } else {
-      endpoint = `/${contentTypePath}/${documentId}/comments/${commentId}/neutralvote/`;
-    }
-
-    try {
-      return await ApiClient.post(this.BASE_PATH + endpoint);
-    } catch (error) {
-      // Just rethrow the error to preserve the ApiError structure
-      throw error;
-    }
   }
 
   static async fetchCommentReplies({

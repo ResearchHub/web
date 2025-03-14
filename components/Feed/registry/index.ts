@@ -1,7 +1,6 @@
 import { ContentRendererRegistry } from './types';
 import { DefaultRenderer } from './DefaultRenderer';
 import { BountyRenderer } from './BountyRenderer';
-import { PaperRenderer } from './PaperRenderer';
 import { CommentRenderer } from './CommentRenderer';
 
 /**
@@ -14,7 +13,6 @@ export const contentRenderers: ContentRendererRegistry = {
 
   // Content type specific renderers
   bounty: BountyRenderer,
-  paper: PaperRenderer,
   comment: CommentRenderer,
 
   // Add more renderers as needed
@@ -28,5 +26,4 @@ export * from './types';
 // Export renderers
 export { DefaultRenderer } from './DefaultRenderer';
 export { BountyRenderer } from './BountyRenderer';
-export { PaperRenderer } from './PaperRenderer';
 export { CommentRenderer } from './CommentRenderer';
