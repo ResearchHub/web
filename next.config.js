@@ -4,12 +4,27 @@ const nextConfig = {
   images: {
     unoptimized: false,
     minimumCacheTTL: 60,
-    domains: [
-      'images.unsplash.com',
-      'storage.prod.researchhub.com',
-      'pbs.twimg.com',
-      'lh3.googleusercontent.com',
-      'storage.staging.researchhub.com',
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'storage.prod.researchhub.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pbs.twimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'storage.staging.researchhub.com',
+      },
     ],
   },
   productionBrowserSourceMaps: process.env.VERCEL_ENV === 'preview',

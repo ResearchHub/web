@@ -67,6 +67,7 @@ export const authOptions: NextAuthOptions = {
 
           if (data.key) {
             (account as any).authToken = data.key;
+            (account as any).userId = data.user_id;
           }
 
           return true;
@@ -87,6 +88,7 @@ export const authOptions: NextAuthOptions = {
         return {
           ...token,
           authToken: account.type === 'credentials' ? user.authToken : account.authToken,
+          sub: account.type === 'credentials' ? token.sub : account.userId,
         };
       }
       return token;
