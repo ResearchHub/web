@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { OrganizationService, OrganizationError } from '@/services/organization.service';
 import { Organization } from '@/types/organization';
+import { NoteService, NoteError, NoteListResponse } from '@/services/note.service';
+import { Note } from '@/types/note';
 
 interface UseUpdateOrgDetailsState {
   data: Organization | null;

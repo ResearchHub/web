@@ -191,6 +191,7 @@ const LeftSidebar = () => {
               notes={notes}
               isLoading={isLoadingNotes}
               selectedNoteId={noteId}
+              refreshNotes={refreshNotes}
             />
           </SidebarSection>
         </div>
@@ -207,6 +208,7 @@ const LeftSidebar = () => {
               notes={notes}
               isLoading={isLoadingNotes}
               selectedNoteId={noteId}
+              refreshNotes={refreshNotes}
             />
           </SidebarSection>
         </div>

@@ -3,8 +3,6 @@
 import { ReactNode, useEffect, useState } from 'react';
 import './globals.css';
 import 'cal-sans';
-import { OrganizationNotesProvider } from '@/contexts/OrganizationNotesContext';
-import { NotebookPublishProvider } from '@/contexts/NotebookPublishContext';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
 import { Menu, X, Settings } from 'lucide-react';
 import { Dialog, Transition } from '@headlessui/react';
@@ -19,6 +17,8 @@ import '@fontsource/inter/500.css';
 import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 import { LeftSidebar } from './LeftSidebar';
+import { OrganizationProvider } from '@/contexts/OrganizationContextV2';
+import { OrganizationDataProvider } from '@/contexts/OrganizationDataContext';
 
 // Define breakpoint as a constant
 const DESKTOP_BREAKPOINT = 1024;
@@ -32,15 +32,17 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
     toggleLeftSidebar,
     toggleRightSidebar,
   } = useSidebar();
-  const [isDesktop, setIsDesktop] = useState(false);
+  // Initialize with null to indicate we don't know yet
+  const [isDesktop, setIsDesktop] = useState<boolean | null>(null);
 
   // Check if we're on desktop when component mounts and when window resizes
   useEffect(() => {
+    // Function to check viewport width
     const checkIfDesktop = () => {
       setIsDesktop(window.innerWidth >= DESKTOP_BREAKPOINT);
     };
 
-    // Initial check
+    // Initial check - run immediately
     checkIfDesktop();
 
     // Add event listener for resize
@@ -49,6 +51,12 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
     // Cleanup
     return () => window.removeEventListener('resize', checkIfDesktop);
   }, []);
+
+  // If we don't know yet if it's desktop or mobile, don't render anything
+  // This prevents the flash of mobile layout on desktop
+  if (isDesktop === null) {
+    return null; // Or a loading spinner
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -221,8 +229,12 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
 
 export default function NotebookLayout({ children }: { children: React.ReactNode }) {
   return (
-    <SidebarProvider>
-      <NotebookLayoutContent>{children}</NotebookLayoutContent>
-    </SidebarProvider>
+    <OrganizationProvider>
+      <OrganizationDataProvider>
+        <SidebarProvider>
+          <NotebookLayoutContent>{children}</NotebookLayoutContent>
+        </SidebarProvider>
+      </OrganizationDataProvider>
+    </OrganizationProvider>
   );
 }

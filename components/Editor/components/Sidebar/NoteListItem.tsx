@@ -12,31 +12,30 @@ import {
 } from '@/hooks/useNote';
 import type { Note } from '@/types/note';
 import toast from 'react-hot-toast';
-import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
 import React from 'react';
 
 interface NoteListItemProps {
   note: Note;
   isSelected?: boolean;
+  refreshNotes: () => Promise<void>;
 }
 
 /**
  * A single note item in the sidebar list
  */
-export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) => {
+export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected, refreshNotes }) => {
   const router = useRouter();
   const [{ isLoading: isDeleting }, deleteNote] = useDeleteNote();
   const [{ isLoading: isDuplicating }, duplicateNote] = useDuplicateNote();
   const [{ isLoading: isMakingPrivate }, makeNotePrivate] = useMakeNotePrivate();
   const [{ isLoading: isUpdatingPermissions }, updateNotePermissions] = useUpdateNotePermissions();
-  const { setNotes, refresh: refreshNotes } = useOrganizationNotesContext();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   const isPrivate = note.access === 'PRIVATE';
   const isProcessing = isDeleting || isDuplicating || isMakingPrivate || isUpdatingPermissions;
 
   const handleClick = () => {
-    router.replace(`/notebook/${note.organization.slug}/${note.id}`);
+    router.replace(`/notebook-v2/${note.organization.slug}/${note.id}`);
   };
 
   const handleDuplicate = async (e: React.MouseEvent) => {
@@ -45,7 +44,7 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) 
       const newNote = await duplicateNote(note.id.toString(), note.organization.slug);
       toast.success('Note duplicated successfully');
       refreshNotes();
-      router.push(`/notebook/${note.organization.slug}/${newNote.id}`);
+      router.replace(`/notebook-v2/${note.organization.slug}/${newNote.id}`);
     } catch (error) {
       console.error('Error duplicating note:', error);
       toast.error('Failed to duplicate note. Please try again.');
@@ -87,9 +86,9 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) 
     }
     try {
       await deleteNote(note.id);
-      setNotes((prevNotes) => prevNotes.filter((n) => n.id !== note.id));
+      refreshNotes();
       if (isSelected) {
-        router.push(`/notebook/${note.organization.slug}`);
+        router.replace(`/notebook-v2/${note.organization.slug}`);
       }
     } catch (error) {
       toast.error('Failed to delete note. Please try again.');
