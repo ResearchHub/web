@@ -82,8 +82,8 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
   const iconSizes = {
     xxs: 10,
     xs: 12,
-    sm: 14,
-    md: 16,
+    sm: 16,
+    md: 18,
   };
 
   // Calculate USD value
@@ -92,7 +92,7 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
   // Create tooltip content
   const tooltipContent = (
     <div className="p-1">
-      <div className="font-semibold text-orange-700 mb-0.5 flex items-center gap-1">
+      <div className="font-semibold text-orange-700 mb-0.5 flex items-center gap-1 [u">
         <ResearchCoinIcon size={14} outlined={false} color={colors.iconColor} />
         <span>{amount.toLocaleString()} RSC</span>
       </div>
@@ -127,7 +127,7 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
       <div
         className={cn(
           'flex items-center',
-          variant === 'inline' ? 'px-2 py-0.5' : '',
+          variant === 'inline' ? 'px-2 py-1' : '',
           sizeClasses[size],
           className
         )}
@@ -165,7 +165,7 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
         'flex items-center',
         sizeClasses[size],
         variantClasses[variant],
-        variant === 'badge' || variant === 'contribute' ? 'py-0.5 px-2' : '',
+        variant === 'badge' || variant === 'contribute' ? 'py-1 px-2' : '',
         size === 'xxs' && 'py-0 px-1',
         className
       )}

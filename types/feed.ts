@@ -2,19 +2,19 @@ import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { ContentMetrics } from './metrics';
 import { Topic, transformTopic } from './topic';
 import { createTransformer, BaseTransformed } from './transformer';
-import { Work, transformPaper, transformPost, FundingRequest } from './work';
+import { Work, transformPaper, transformPost, FundingRequest, ContentType } from './work';
 import { Bounty, transformBounty } from './bounty';
-import { Comment, transformComment } from './comment';
+import { Comment, CommentType, ContentFormat, transformComment } from './comment';
 import { Fundraise, transformFundraise } from './funding';
 import { Journal } from './journal';
 
-export type FeedActionType = 'repost' | 'contribute' | 'open' | 'publish' | 'post';
+export type FeedActionType = 'contribute' | 'open' | 'publish' | 'post';
 
 // Re-export FundingRequest for backward compatibility
 export type { FundingRequest };
 
 // New FeedPostEntry type for RESEARCHHUBPOST content
-export interface FeedPostEntry {
+export interface FeedPostContent {
   id: number;
   fundraise?: Fundraise; // Only present for PREREGISTRATION content types
   contentType: 'PREREGISTRATION' | 'POST';
@@ -24,11 +24,26 @@ export interface FeedPostEntry {
   title: string;
   authors: AuthorProfile[];
   topics: Topic[];
-  metrics: ContentMetrics;
   createdBy: AuthorProfile;
 }
 
-export interface FeedPaperEntry {
+export interface FeedBountyContent {
+  id: number;
+  contentType: 'BOUNTY';
+  createdDate: string;
+  bounty: Bounty;
+  createdBy: AuthorProfile;
+  relatedDocumentId?: number;
+  relatedDocumentContentType?: ContentType;
+  comment: {
+    content: any;
+    contentFormat: ContentFormat;
+    commentType: CommentType;
+    id: number;
+  };
+}
+
+export interface FeedPaperContent {
   id: number;
   contentType: 'PAPER';
   createdDate: string;
@@ -37,13 +52,18 @@ export interface FeedPaperEntry {
   title: string;
   authors: AuthorProfile[];
   topics: Topic[];
-  metrics: ContentMetrics;
   createdBy: AuthorProfile;
   journal: Journal;
 }
 
 // Simplified Content type - now Work, Bounty, Comment, or FeedPostEntry
-export type Content = Work | Bounty | Comment | FeedPostEntry | FeedPaperEntry;
+export type Content =
+  | Work
+  | Bounty
+  | Comment
+  | FeedPostContent
+  | FeedPaperContent
+  | FeedBountyContent;
 
 // Define a union type for all possible content types
 export type FeedContentType = 'PAPER' | 'POST' | 'PREREGISTRATION' | 'BOUNTY' | 'COMMENT';
@@ -121,6 +141,13 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         const bounty = transformBounty({ created_by: author, ...content_object });
 
         // If the bounty has a paper, transform it to a Work and set as relatedWork
+        const relatedDocumentId = content_object.paper?.id || content_object.post?.id || undefined;
+        const relatedDocumentContentType = content_object.paper
+          ? 'paper'
+          : content_object.post
+            ? 'post'
+            : undefined;
+
         if (content_object.paper) {
           try {
             relatedWork = transformPaper(content_object.paper);
@@ -129,7 +156,24 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           }
         }
 
-        content = bounty;
+        // Create a FeedBountyEntry object
+        const bountyEntry: FeedBountyContent = {
+          id: content_object.id,
+          contentType: 'BOUNTY',
+          createdDate: content_object.created_date || created_date,
+          bounty: bounty,
+          createdBy: transformAuthorProfile(author),
+          relatedDocumentId,
+          relatedDocumentContentType,
+          comment: {
+            content: content_object?.comment?.comment_content_json,
+            contentFormat: content_object?.comment?.comment_content_type as ContentFormat,
+            commentType: content_object?.comment?.comment_type as CommentType,
+            id: content_object?.comment?.id,
+          },
+        };
+
+        content = bountyEntry;
       } catch (error) {
         console.error('Error transforming bounty:', error);
         throw new Error(`Failed to transform bounty: ${error}`);
@@ -141,7 +185,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       // For papers, use the transformPaper function
       try {
         // Create a FeedPaperEntry object directly
-        const paperEntry: FeedPaperEntry = {
+        const paperEntry: FeedPaperContent = {
           id: content_object.id,
           contentType: 'PAPER',
           createdDate: content_object.created_date,
@@ -160,16 +204,6 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                     },
               ]
             : [],
-          metrics: {
-            votes: content_object.metrics?.votes || 0,
-            comments: content_object.metrics?.comments || 0,
-            reposts: 0,
-            saves: 0,
-            views: 0,
-            reviewScore: 0,
-            reviews: 0,
-            earned: 0,
-          },
           createdBy: author
             ? transformAuthorProfile(author)
             : content_object.authors?.[0]
@@ -253,7 +287,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         const isPreregistration = content_object.type === 'PREREGISTRATION';
 
         // Create a FeedPostEntry object
-        const postEntry: FeedPostEntry = {
+        const postEntry: FeedPostContent = {
           id: content_object.id,
           contentType: isPreregistration ? 'PREREGISTRATION' : 'POST',
           createdDate: content_object.created_date,
@@ -272,16 +306,6 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                     },
               ]
             : [],
-          metrics: {
-            votes: content_object.metrics?.votes || 0,
-            comments: content_object.metrics?.comments || 0,
-            reposts: 0,
-            saves: 0,
-            views: 0,
-            reviewScore: 0,
-            reviews: 0,
-            earned: 0,
-          },
           createdBy: transformAuthorProfile(author),
         };
 

@@ -15,7 +15,6 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { UpvoteAndCommentButton } from '@/components/ui/UpvoteAndCommentButton';
 
 // Import specialized Bounty components
-import { BountyDetails } from '@/components/Bounty/BountyDetails';
 import { BountyMetadataLine } from '@/components/Bounty/BountyMetadataLine';
 import { BountySolutions } from '@/components/Bounty/BountySolutions';
 import { BountyActions } from '@/components/Bounty/BountyActions';
@@ -174,9 +173,9 @@ export const BountyRenderer: ContentRenderer<Bounty> = {
         {badges.length > 0 && <div className="flex flex-wrap gap-2 mt-3">{badges}</div>}
 
         {/* Details section with bounty content - always show, using default content if needed */}
-        <div className="mt-4">
+        {/* <div className="mt-4">
           <BountyDetails content={description} contentFormat={contentFormat} />
-        </div>
+        </div> */}
 
         {/* Related Work - show if available */}
         {relatedWork && (

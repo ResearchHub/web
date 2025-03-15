@@ -29,7 +29,9 @@ export class FeedService {
       console.log('Raw feed response:', response);
 
       // Transform the raw entries into FeedEntry objects
-      const transformedEntries = response.results.map(transformFeedEntry);
+      const transformedEntries = response.results
+        .map(transformFeedEntry)
+        .filter((entry) => entry.contentType !== 'COMMENT');
       console.log(`Transformed ${transformedEntries.length} feed entries`);
 
       // Return the transformed entries

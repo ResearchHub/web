@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { FeedPaperEntry, FeedEntry } from '@/types/feed';
+import { FeedPaperContent, FeedEntry } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
@@ -21,7 +21,7 @@ const FeedItemPaperBody: FC<{
   entry: FeedEntry;
 }> = ({ entry }) => {
   // Extract the paper from the entry's content
-  const paper = entry.content as FeedPaperEntry;
+  const paper = entry.content as FeedPaperContent;
 
   // Get topics/tags for display
   const topics = paper.topics || [];
@@ -82,7 +82,7 @@ const FeedItemPaperBody: FC<{
  */
 export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry }) => {
   // Extract the paper from the entry's content
-  const paper = entry.content as FeedPaperEntry;
+  const paper = entry.content as FeedPaperContent;
 
   // Get the author from the paper
   const author = paper.createdBy;
@@ -94,10 +94,9 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry }) => {
     <div className="space-y-3">
       {/* Header */}
       <FeedItemHeader
-        contentType="paper"
         timestamp={paper.createdDate}
         author={author}
-        actionText="published a paper"
+        actionText="Published a paper"
       />
 
       {/* Main Content Card - Wrapped with Link */}
@@ -127,11 +126,10 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry }) => {
 
             {/* Action Buttons - Full width */}
             <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
-              <div className="flex gap-2 items-center">
+              <div className="flex gap-2 items-center w-full">
                 {/* Standard Feed Item Actions */}
                 <FeedItemActions
-                  metrics={paper.metrics}
-                  content={paper}
+                  metrics={entry.metrics}
                   feedContentType="PAPER"
                   votableEntityId={paper.id}
                 />

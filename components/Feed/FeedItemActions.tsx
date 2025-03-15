@@ -1,15 +1,15 @@
 'use client';
 
 import { FC, useState } from 'react';
-import { Content, FeedContentType, FeedEntry } from '@/types/feed';
-import { MessageCircle, Repeat, MoreHorizontal, ArrowUp } from 'lucide-react';
+import { FeedContentType, FeedEntry } from '@/types/feed';
+import { MessageCircle, Flag, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { FeedItemMenu } from '@/components/menus/FeedItemMenu';
 import { useVote } from '@/hooks/useVote';
-import { ContentType } from '@/types/work';
 import { UserVoteType } from '@/types/reaction';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { useFlagModal } from '@/hooks/useFlagging';
+import { FlagContentModal } from '@/components/modals/FlagContentModal';
+import { ContentType } from '@/types/work';
 
 interface ActionButtonProps {
   icon: any;
@@ -46,85 +46,113 @@ const ActionButton: FC<ActionButtonProps> = ({
 
 interface FeedItemActionsProps {
   metrics?: FeedEntry['metrics'];
-  content: Content;
-  target?: Content;
   feedContentType: FeedContentType;
-  votableEntityId?: number;
+  votableEntityId: number;
+  relatedDocumentId?: number;
+  relatedDocumentContentType?: ContentType;
+  userVote?: UserVoteType;
 }
 
 export const FeedItemActions: FC<FeedItemActionsProps> = ({
   metrics,
-  content,
-  target,
+  userVote,
   feedContentType,
   votableEntityId,
+  relatedDocumentId,
+  relatedDocumentContentType,
 }) => {
-  const { data: session } = useSession();
-  const router = useRouter();
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
-  const [userVote, setUserVote] = useState<UserVoteType | undefined>(
-    (content as any).userVote || undefined
-  );
-
-  // Use the provided votableEntityId or fall back to content.id
-  const effectiveEntityId = votableEntityId || content.id;
-
+  const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const { vote, isVoting } = useVote({
-    votableEntityId: effectiveEntityId,
+    votableEntityId,
     feedContentType,
+    relatedDocumentId,
     onVoteSuccess: (response, voteType) => {
       // Update local state based on vote type
-      if (voteType === 'UPVOTE' && userVote !== 'UPVOTE') {
+      if (voteType === 'UPVOTE' && localUserVote !== 'UPVOTE') {
         setLocalVoteCount((prev) => prev + 1);
-      } else if (voteType === 'NEUTRAL' && userVote === 'UPVOTE') {
+      } else if (voteType === 'NEUTRAL' && localUserVote === 'UPVOTE') {
         setLocalVoteCount((prev) => Math.max(0, prev - 1));
       }
-      setUserVote(voteType);
+      setLocalUserVote(voteType);
     },
   });
 
+  // Use the flag modal hook
+  const { isOpen, contentToFlag, openFlagModal, closeFlagModal } = useFlagModal();
+
   const handleVote = () => {
-    if (!session?.user) {
-      // Redirect to login or show login modal
-      router.push('/login');
-      return;
-    }
+    executeAuthenticatedAction(() => {
+      // Toggle vote: if already upvoted, neutralize, otherwise upvote
+      const newVoteType: UserVoteType = localUserVote === 'UPVOTE' ? 'NEUTRAL' : 'UPVOTE';
+      vote(newVoteType);
+    });
+  };
 
-    // Toggle vote: if already upvoted, neutralize, otherwise upvote
-    const newVoteType: UserVoteType = userVote === 'UPVOTE' ? 'NEUTRAL' : 'UPVOTE';
+  const handleReport = () => {
+    executeAuthenticatedAction(() => {
+      // Map feedContentType to ContentType
+      let contentType: ContentType;
+      let commentId: string | undefined;
 
-    // Create a minimal item object with the necessary properties
-    const voteItem = {
-      id: effectiveEntityId,
-      userVote,
-    };
+      if (feedContentType === 'PAPER') {
+        contentType = 'paper';
+      } else if (feedContentType === 'POST' || feedContentType === 'PREREGISTRATION') {
+        contentType = 'post';
+      } else if (feedContentType === 'BOUNTY' && relatedDocumentContentType) {
+        contentType = relatedDocumentContentType;
+        commentId = votableEntityId.toString(); // Use votableEntityId as commentId for bounties
+      } else {
+        contentType = 'post'; // Default fallback
+      }
 
-    vote(voteItem, newVoteType);
+      openFlagModal(
+        // For comments and bounties, use relatedDocumentId as the documentId
+        (feedContentType === 'COMMENT' || feedContentType === 'BOUNTY') && relatedDocumentId
+          ? relatedDocumentId.toString()
+          : votableEntityId.toString(),
+        contentType,
+        commentId
+      );
+    });
   };
 
   return (
-    <div className="flex items-center space-x-4">
-      <ActionButton
-        icon={ArrowUp}
-        count={localVoteCount}
-        tooltip="Upvote"
-        label="Upvote"
-        onClick={handleVote}
-        isActive={userVote === 'UPVOTE'}
-        isDisabled={isVoting}
-      />
-      <ActionButton
-        icon={MessageCircle}
-        count={metrics?.comments}
-        tooltip="Comment"
-        label="Comment"
-      />
-      <FeedItemMenu>
-        <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-          <MoreHorizontal className="w-5 h-5" />
-          <span className="sr-only">More options</span>
-        </Button>
-      </FeedItemMenu>
-    </div>
+    <>
+      <div className="flex items-center w-full justify-between">
+        <div className="flex items-center space-x-4">
+          <ActionButton
+            icon={ArrowUp}
+            count={localVoteCount}
+            tooltip="Upvote"
+            label="Upvote"
+            onClick={handleVote}
+            isActive={localUserVote === 'UPVOTE'}
+            isDisabled={isVoting}
+          />
+          <ActionButton
+            icon={MessageCircle}
+            count={metrics?.comments}
+            tooltip="Comment"
+            label="Comment"
+          />
+        </div>
+        <div className="ml-auto">
+          <ActionButton icon={Flag} tooltip="Report" label="Report" onClick={handleReport} />
+        </div>
+      </div>
+
+      {/* Flag Content Modal */}
+      {contentToFlag && (
+        <FlagContentModal
+          isOpen={isOpen}
+          onClose={closeFlagModal}
+          documentId={contentToFlag.documentId}
+          workType={contentToFlag.contentType}
+          commentId={contentToFlag.commentId}
+        />
+      )}
+    </>
   );
 };

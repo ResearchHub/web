@@ -10,6 +10,7 @@ import { FeedContentType } from '@/types/feed';
 interface UseVoteOptions {
   votableEntityId: number;
   feedContentType?: FeedContentType;
+  relatedDocumentId?: number;
   onVoteSuccess?: (updatedItem: any, voteType: UserVoteType) => void;
   onVoteError?: (error: any) => void;
 }
@@ -41,6 +42,7 @@ function mapFeedContentTypeToVotable(feedContentType?: FeedContentType): Votable
 export function useVote({
   votableEntityId,
   feedContentType,
+  relatedDocumentId,
   onVoteSuccess,
   onVoteError,
 }: UseVoteOptions) {
@@ -49,14 +51,10 @@ export function useVote({
 
   /**
    * Vote on a document, comment or other content item
-   * @param item The item to vote on (must have id and userVote properties)
    * @param voteType The type of vote (UPVOTE or NEUTRAL)
    */
   const vote = useCallback(
-    async (
-      item: { id: number; userVote?: UserVoteType; score?: number },
-      voteType: UserVoteType
-    ) => {
+    async (voteType: UserVoteType) => {
       // Don't allow voting if not logged in
       if (!session?.user) {
         toast.error('Please sign in to vote');
@@ -73,10 +71,10 @@ export function useVote({
         const votableContentType = mapFeedContentTypeToVotable(feedContentType);
 
         // Use the appropriate service method based on feed content type
-        if (feedContentType === 'COMMENT') {
+        if (feedContentType === 'COMMENT' || feedContentType === 'BOUNTY') {
           response = await ReactionService.voteOnComment({
-            commentId: item.id,
-            documentId: votableEntityId,
+            commentId: votableEntityId,
+            documentId: relatedDocumentId,
             voteType,
             contentType: votableContentType,
           });
@@ -89,11 +87,8 @@ export function useVote({
             throw new Error('Entity ID is required for voting');
           }
 
-          // Use the item's ID if votableEntityId is not provided or is invalid
-          const targetEntityId = votableEntityId || item.id;
-
           response = await ReactionService.voteOnDocument({
-            documentId: targetEntityId,
+            documentId: votableEntityId,
             documentType,
             voteType: voteType === 'UPVOTE' ? 'upvote' : 'neutralvote',
           });
@@ -127,7 +122,15 @@ export function useVote({
         setIsVoting(false);
       }
     },
-    [votableEntityId, feedContentType, isVoting, session, onVoteSuccess, onVoteError]
+    [
+      votableEntityId,
+      feedContentType,
+      relatedDocumentId,
+      isVoting,
+      session,
+      onVoteSuccess,
+      onVoteError,
+    ]
   );
 
   return {

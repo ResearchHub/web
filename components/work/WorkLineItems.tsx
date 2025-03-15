@@ -17,8 +17,8 @@ import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { ClaimModal } from '@/components/modals/ClaimModal';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
-import { useVote } from '@/hooks/useReaction';
-import { useUserVotes } from '@/hooks/useReaction';
+import { useVote } from '@/hooks/useVote';
+import { useUserVotes } from '@/hooks/useUserVotes';
 import toast from 'react-hot-toast';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
@@ -34,7 +34,10 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
-  const [{ isLoading: isVoting }, vote] = useVote();
+  const { vote, isVoting } = useVote({
+    votableEntityId: work.id,
+    feedContentType: work.contentType === 'paper' ? 'PAPER' : 'POST',
+  });
   const [voteCount, setVoteCount] = useState(work.metrics.votes);
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
   const router = useRouter();
@@ -58,11 +61,7 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
     const wasUpvoted = isUpvoted;
 
     try {
-      await vote({
-        documentType: work.contentType === 'paper' ? 'paper' : 'researchhubpost',
-        documentId: work.id,
-        voteType: wasUpvoted ? 'neutralvote' : 'upvote',
-      });
+      await vote(wasUpvoted ? 'NEUTRAL' : 'UPVOTE');
 
       setVoteCount((prevCount) => (wasUpvoted ? prevCount - 1 : prevCount + 1));
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { FeedPostEntry, FeedEntry } from '@/types/feed';
+import { FeedPostContent, FeedEntry } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { cn } from '@/utils/styles';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
@@ -22,7 +22,7 @@ const FeedItemFundraiseBody: FC<{
   entry: FeedEntry;
 }> = ({ entry }) => {
   // Extract the post from the entry's content
-  const post = entry.content as FeedPostEntry;
+  const post = entry.content as FeedPostContent;
 
   // Get topics/tags for display
   const topics = post.topics || [];
@@ -75,7 +75,7 @@ const FeedItemFundraiseBody: FC<{
 /**
  * Helper function to extract contributors from fundraise data
  */
-const extractContributors = (fundraise: FeedPostEntry['fundraise']) => {
+const extractContributors = (fundraise: FeedPostContent['fundraise']) => {
   if (!fundraise || !fundraise.contributors || !fundraise.contributors.topContributors) {
     return [];
   }
@@ -94,7 +94,7 @@ const extractContributors = (fundraise: FeedPostEntry['fundraise']) => {
  */
 export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({ entry }) => {
   // Extract the post from the entry's content
-  const post = entry.content as FeedPostEntry;
+  const post = entry.content as FeedPostContent;
 
   // Check if this is a preregistration with fundraise data
   const hasFundraise = post.contentType === 'PREREGISTRATION' && post.fundraise;
@@ -116,7 +116,6 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({ entry }) => {
     <div className="space-y-3">
       {/* Header */}
       <FeedItemHeader
-        contentType="post"
         timestamp={post.createdDate}
         author={author}
         actionText={
@@ -163,11 +162,10 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({ entry }) => {
 
             {/* Action Buttons - Full width */}
             <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
-              <div className="flex gap-2 items-center">
+              <div className="flex gap-2 items-center w-full">
                 {/* Standard Feed Item Actions */}
                 <FeedItemActions
-                  metrics={post.metrics}
-                  content={post}
+                  metrics={entry.metrics}
                   feedContentType={post.contentType}
                   votableEntityId={post.id}
                 />
