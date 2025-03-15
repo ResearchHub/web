@@ -5,11 +5,11 @@ export const OrganizationSwitcherSkeleton: React.FC = () => {
     <div className="p-4 border-b border-gray-100">
       {/* Organization Button */}
       <div className="px-2 py-2 rounded-lg">
-        <div className="flex items-center">
+        <div className="flex items-center w-full">
           {/* Avatar */}
-          <div className="h-8 w-8 rounded-full bg-gray-100 animate-pulse" />
-          {/* Org Name */}
-          <div className="h-4 w-40 bg-gray-100 rounded ml-2 animate-pulse" />
+          <div className="h-8 w-8 rounded-full bg-gray-100 animate-pulse flex-shrink-0" />
+          {/* Org Name - taking up remaining space */}
+          <div className="h-4 bg-gray-100 rounded ml-2 animate-pulse flex-grow" />
         </div>
       </div>
 

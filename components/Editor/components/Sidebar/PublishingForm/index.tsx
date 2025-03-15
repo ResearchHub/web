@@ -78,6 +78,21 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     mode: 'onChange',
   });
 
+  // Reset form when switching between notes
+  useEffect(() => {
+    if (note?.id) {
+      // Reset form to default values when switching notes
+      methods.reset({
+        authors: [],
+        topics: [],
+        rewardFunders: false,
+        nftSupply: '1000',
+        isJournalEnabled: false,
+        budget: '',
+      });
+    }
+  }, [note?.id, methods]);
+
   // Load data with priority:
   // 1. note.post data
   // 2. localStorage data
@@ -230,7 +245,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
 
   return (
     <FormProvider {...methods}>
-      <div className="w-82 flex flex-col h-screen sticky right-0 top-0 bg-white relative">
+      <div className="w-82 flex flex-col sticky right-0 top-0 bg-white relative">
         {/* Processing overlay */}
         {(isLoadingUpsert || isRedirecting) && (
           <div className="absolute inset-0 bg-white/50 z-50 flex flex-col items-center justify-center">
@@ -260,7 +275,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         </div>
 
         {/* Sticky bottom section */}
-        <div className="border-t bg-white p-6 space-y-3 sticky bottom-0">
+        <div className="border-t bg-white p-2 lg:p-6 space-y-3 sticky bottom-0">
           {articleType === 'discussion' && isJournalEnabled && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">Payment due:</span>

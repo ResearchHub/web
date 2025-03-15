@@ -4,21 +4,11 @@ import { ReactNode, useEffect, useState } from 'react';
 import './globals.css';
 import 'cal-sans';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
-import {
-  Menu,
-  X,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  FileUp,
-  Send,
-  Share,
-  Upload,
-  BookOpen,
-} from 'lucide-react';
+import { Menu, ChevronLeft, ChevronRight, FileUp } from 'lucide-react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { Button } from '@/components/ui/Button';
+import { TopBar } from './components/TopBar';
 
 // Import font styles
 import '@fontsource/inter/100.css';
@@ -29,11 +19,9 @@ import '@fontsource/inter/500.css';
 import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 import { LeftSidebar } from './LeftSidebar';
-import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { OrganizationDataProvider } from '@/contexts/OrganizationDataContext';
 import { RightSidebar } from './RightSidebar';
 
-// Define breakpoint as a constant
 const DESKTOP_BREAKPOINT = 1024;
 
 function NotebookLayoutContent({ children }: { children: ReactNode }) {
@@ -105,41 +93,7 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
         // Mobile layout - single column with slide-out sidebars
         <div className="flex flex-col min-h-screen">
           {/* Mobile TopBar with menu buttons */}
-          <div className="h-16 border-b border-gray-200 sticky top-0 bg-white z-20">
-            <div className="h-full flex items-center px-4 justify-between">
-              {/* Left sidebar toggle button */}
-              <Button
-                onClick={toggleLeftSidebar}
-                className="p-2 rounded-md hover:bg-gray-100"
-                aria-label="Toggle left sidebar"
-                variant="ghost"
-                size="icon"
-              >
-                <div className="flex">
-                  <Menu className="h-5 w-5" />
-                </div>
-              </Button>
-
-              {/* Center content - page title or logo */}
-              <div className="flex-1 text-center">
-                <h1 className="text-lg font-medium">Notebook</h1>
-              </div>
-
-              {/* Right sidebar toggle button */}
-              <Button
-                onClick={toggleRightSidebar}
-                className="p-2 rounded-md hover:bg-gray-100"
-                aria-label="Toggle right sidebar"
-                variant="ghost"
-                size="sm"
-              >
-                <div className="flex items-center gap-1">
-                  <FileUp className="h-4 w-4" />
-                  <span>Publish</span>
-                </div>
-              </Button>
-            </div>
-          </div>
+          <TopBar />
 
           {/* Main content */}
           <div className="flex-1 overflow-auto">{children}</div>
@@ -186,7 +140,7 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
                           </div>
                         </Button>
                       </div>
-                      <div className="h-[calc(100vh-72px)] overflow-y-auto">
+                      <div className="h-[calc(100vh-64px)] overflow-y-auto">
                         <LeftSidebar />
                       </div>
                     </Dialog.Panel>
@@ -238,7 +192,7 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
                           </div>
                         </Button>
                       </div>
-                      <div className="h-[calc(100vh-72px)] overflow-y-auto">
+                      <div className="h-[calc(100vh-64px)] overflow-y-auto">
                         <RightSidebar />
                       </div>
                     </Dialog.Panel>
@@ -255,12 +209,10 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
 
 export default function NotebookLayout({ children }: { children: React.ReactNode }) {
   return (
-    <OrganizationProvider>
-      <OrganizationDataProvider>
-        <SidebarProvider>
-          <NotebookLayoutContent>{children}</NotebookLayoutContent>
-        </SidebarProvider>
-      </OrganizationDataProvider>
-    </OrganizationProvider>
+    <OrganizationDataProvider>
+      <SidebarProvider>
+        <NotebookLayoutContent>{children}</NotebookLayoutContent>
+      </SidebarProvider>
+    </OrganizationDataProvider>
   );
 }

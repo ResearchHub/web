@@ -149,10 +149,8 @@ export function OrganizationDataProvider({ children }: { children: ReactNode }) 
 
   // Load a specific note
   const loadNote = useCallback(async (noteId: string) => {
-    console.log('loadNote', noteId);
     // Don't reload if it's the same note
     if (noteId === lastLoadedNoteIdRef.current && currentNote) {
-      console.log('same note, skipping');
       return;
     }
 
@@ -161,7 +159,6 @@ export function OrganizationDataProvider({ children }: { children: ReactNode }) 
 
     try {
       const note = await NoteService.getNote(noteId);
-      console.log('note', note);
       setCurrentNote(note);
       lastLoadedNoteIdRef.current = noteId;
     } catch (err) {
@@ -231,8 +228,6 @@ export function OrganizationDataProvider({ children }: { children: ReactNode }) 
       return;
     }
 
-    console.log('Initial data loading for organization:', selectedOrg.slug);
-
     // Load notes and users in parallel
     fetchNotes(selectedOrg.slug);
     fetchUsers(selectedOrg.id.toString());
@@ -240,7 +235,6 @@ export function OrganizationDataProvider({ children }: { children: ReactNode }) 
 
   // Update currentNoteId when URL params change
   useEffect(() => {
-    console.log('noteIdFromParams', noteIdFromParams);
     if (noteIdFromParams) {
       loadNote(noteIdFromParams);
     }

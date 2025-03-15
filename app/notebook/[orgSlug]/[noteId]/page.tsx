@@ -67,7 +67,7 @@ export default function NotePage() {
       <div className="h-full">
         <div className="min-h-screen bg-gray-50">
           <div className={'p-4 max-w-4xl mx-auto'}>
-            <div className="bg-white rounded-lg shadow-md p-0 md:p-8 md:pl-16 min-h-[800px]">
+            <div className="bg-white rounded-lg shadow-md p-0 lg:p-8 lg:pl-16 min-h-[800px]">
               <BlockEditor
                 content={content || ''}
                 contentJson={contentJson}

@@ -9,7 +9,7 @@ import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from './api/auth/[...nextauth]/auth.config';
 import { UserProvider } from '@/contexts/UserContext';
-
+import { OrganizationProvider } from '@/contexts/OrganizationContext';
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
   variable: '--font-geist-sans',
@@ -52,7 +52,9 @@ export default async function RootLayout({
           <AuthModalProvider>
             <UserProvider>
               <ExchangeRateProvider>
-                <NotificationProvider>{children}</NotificationProvider>
+                <NotificationProvider>
+                  <OrganizationProvider>{children}</OrganizationProvider>
+                </NotificationProvider>
               </ExchangeRateProvider>
             </UserProvider>
           </AuthModalProvider>

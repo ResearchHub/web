@@ -7,7 +7,7 @@ import { NoteList } from './NoteList';
 import { OrganizationSwitcher } from './OrganizationSwitcher';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useRouter, useParams } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useTransition } from 'react';
 import type { Organization } from '@/types/organization';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { FileText, Wallet } from 'lucide-react';
@@ -30,7 +30,7 @@ const LeftSidebar = () => {
   const { notes, isLoading: isLoadingNotes, refreshNotes } = useOrganizationDataContext();
   const [{ isLoading: isCreatingNote }, createNote] = useCreateNote();
   const [{ isLoading: isUpdatingContent }, updateNoteContent] = useNoteContent();
-  const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   //TODO: we might just update the selected org from the @organizationContext
   const handleOrgSelect = useCallback(
@@ -40,14 +40,17 @@ const LeftSidebar = () => {
         return;
       }
 
-      // If we have notes for the current org, navigate to the first note
-      // Otherwise, just navigate to the org's page
-      const targetPath =
-        notes.length > 0 ? `/notebook/${org.slug}/${notes[0].id}` : `/notebook/${org.slug}`;
-
-      await router.push(targetPath);
+      try {
+        startTransition(() => {
+          const targetPath = `/notebook/${org.slug}`;
+          router.replace(targetPath);
+        });
+      } catch (error) {
+        console.error('Error navigating to organization:', error);
+        toast.error('Failed to switch organization. Please try again.');
+      }
     },
-    [router, currentOrgSlug, notes]
+    [router, currentOrgSlug]
   );
 
   const handleTemplateSelect = useCallback(
@@ -119,7 +122,6 @@ const LeftSidebar = () => {
       }
       align="start"
       className="w-56 p-1.5"
-      onOpenChange={setIsTemplateMenuOpen}
     >
       <div className="text-[.65rem] font-semibold mb-1 uppercase text-neutral-500 px-2">
         Select Template
@@ -179,7 +181,7 @@ const LeftSidebar = () => {
           organizations={organizations}
           selectedOrg={selectedOrg}
           onOrgSelect={handleOrgSelect}
-          isLoading={isLoadingOrgs}
+          isLoading={isLoadingOrgs || isPending}
         />
       </div>
 
@@ -191,7 +193,7 @@ const LeftSidebar = () => {
               notes={notes}
               isLoading={isLoadingNotes}
               selectedNoteId={noteId}
-              refreshNotes={refreshNotes}
+              refreshNotes={refreshNotes || isPending}
             />
           </SidebarSection>
         </div>
@@ -208,7 +210,7 @@ const LeftSidebar = () => {
               notes={notes}
               isLoading={isLoadingNotes}
               selectedNoteId={noteId}
-              refreshNotes={refreshNotes}
+              refreshNotes={refreshNotes || isPending}
             />
           </SidebarSection>
         </div>

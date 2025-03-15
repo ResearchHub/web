@@ -39,7 +39,7 @@ export function PublishingFormSkeleton() {
       </div>
 
       {/* Sticky bottom section */}
-      <div className="border-t bg-white p-6 space-y-3 sticky bottom-0">
+      <div className="border-t bg-white p-2 lg:p-6 space-y-3 sticky bottom-0">
         <div className="h-10 w-full bg-gray-200 rounded" />
       </div>
     </div>

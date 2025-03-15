@@ -13,6 +13,11 @@ import { useSession } from 'next-auth/react';
 import { OrganizationService } from '@/services/organization.service';
 import type { Organization } from '@/types/organization';
 import { useParams } from 'next/navigation';
+import {
+  saveSelectedOrganization,
+  getSelectedOrganization,
+  findOrganizationById,
+} from './utils/organizationStorage';
 
 interface OrganizationContextType {
   organizations: Organization[];
@@ -41,6 +46,11 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     selectedOrgIdRef.current = selectedOrg?.id || null;
   }, [selectedOrg]);
 
+  const handleSetSelectedOrg = (org: Organization) => {
+    setSelectedOrg(org);
+    saveSelectedOrganization(org);
+  };
+
   const fetchOrganizations = useCallback(
     async (silently = false) => {
       if (!session) {
@@ -56,30 +66,37 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
         const orgs = await OrganizationService.getUserOrganizations(session);
         setOrganizations(orgs);
 
-        // If we don't have a selected org yet but have orgs, select the first one
+        // If we don't have a selected org yet but have orgs, select one based on priority
         if (!selectedOrgIdRef.current && orgs.length > 0) {
-          let orgToSelect = orgs[0];
+          let orgToSelect: Organization | undefined;
 
+          // Priority 1 (highest): Try to match org from URL
           if (targetOrgSlug) {
-            // Try to match org from URL
-            const matchingOrg = orgs.find((org) => org.slug === targetOrgSlug);
-            if (matchingOrg) {
-              orgToSelect = matchingOrg;
-            } else {
-              // Try to find an org where user has ADMIN role
-              const adminOrg = orgs.find((org) => org.userPermission?.accessType === 'ADMIN');
-              if (adminOrg) {
-                orgToSelect = adminOrg;
-              }
-            }
+            orgToSelect = orgs.find((org) => org.slug === targetOrgSlug);
           }
 
-          setSelectedOrg(orgToSelect);
+          // Priority 2: Try to find org from localStorage
+          if (!orgToSelect) {
+            const storedOrg = getSelectedOrganization();
+            orgToSelect = findOrganizationById(orgs, storedOrg);
+          }
+
+          // Priority 3: Find an org where user is admin
+          if (!orgToSelect) {
+            orgToSelect = orgs.find((org) => org.userPermission?.accessType === 'ADMIN');
+          }
+
+          // Priority 4 (lowest): Default to first org
+          if (!orgToSelect) {
+            orgToSelect = orgs[0];
+          }
+
+          handleSetSelectedOrg(orgToSelect);
         } else if (selectedOrgIdRef.current) {
           // If we already have a selected org, make sure it's updated with latest data
           const updatedSelectedOrg = orgs.find((org) => org.id === selectedOrgIdRef.current);
           if (updatedSelectedOrg) {
-            setSelectedOrg(updatedSelectedOrg);
+            handleSetSelectedOrg(updatedSelectedOrg);
           }
         }
       } catch (err) {
@@ -119,7 +136,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   const value = {
     organizations,
     selectedOrg,
-    setSelectedOrg,
+    setSelectedOrg: handleSetSelectedOrg,
     isLoading,
     error,
     refreshOrganizations,

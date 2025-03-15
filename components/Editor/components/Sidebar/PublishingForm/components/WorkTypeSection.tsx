@@ -53,7 +53,7 @@ export function WorkTypeSection() {
 
   return (
     <>
-      <div className="pl-6 pt-3">
+      <div className="pl-6 pt-3 hidden lg:block">
         {!note ? (
           <div className="h-5 w-14 bg-gray-100 animate-pulse rounded-full" />
         ) : isPublished ? (
