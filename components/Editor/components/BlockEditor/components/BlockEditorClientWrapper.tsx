@@ -1,9 +1,10 @@
 'use client';
 
-import { NotebookPublishProvider } from '@/contexts/NotebookPublishContext';
 import { BlockEditor } from '@/components/Editor/components/BlockEditor/BlockEditor';
 import { useEffect, useState } from 'react';
 import { BlockEditorProps } from '../BlockEditor';
+import { OrganizationDataProvider } from '@/contexts/OrganizationDataContext';
+
 export function BlockEditorClientWrapper(props: BlockEditorProps) {
   const [isMounted, setIsMounted] = useState(false);
 
@@ -12,8 +13,8 @@ export function BlockEditorClientWrapper(props: BlockEditorProps) {
   }, []);
 
   return (
-    <NotebookPublishProvider>
+    <OrganizationDataProvider>
       <BlockEditor {...props} isLoading={!isMounted} />
-    </NotebookPublishProvider>
+    </OrganizationDataProvider>
   );
 }

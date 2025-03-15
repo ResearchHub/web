@@ -6,7 +6,7 @@ import { SidebarSection } from '@/components/Editor/components/Sidebar/SidebarSe
 import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
-import { useOrganizationContext } from '@/contexts/OrganizationContextV2';
+import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { FileText, Plus, Wallet, Lock } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { Organization } from '@/types/organization';
@@ -34,11 +34,8 @@ export const LeftSidebar = () => {
   const { notes, isLoading: isLoadingNotes, refreshNotes } = useOrganizationDataContext();
   const handleOrgSelect = useCallback(async (org: Organization) => {
     setSelectedOrg(org);
-    // Return a resolved promise
 
-    // If we have notes for the current org, navigate to the first note
-    // Otherwise, just navigate to the org's page
-    const targetPath = `/notebook-v2/${org.slug}`;
+    const targetPath = `/notebook?orgSlug=${org.slug}`;
 
     await router.replace(targetPath);
   }, []);
@@ -83,7 +80,7 @@ export const LeftSidebar = () => {
         });
 
         refreshNotes();
-        router.push(`/notebook-v2/${selectedOrg.slug}/${newNote.id}?template=${template}`);
+        router.push(`/notebook/${selectedOrg.slug}/${newNote.id}?template=${template}`);
       } catch (error) {
         console.error('Error creating note:', error);
         toast.error('Failed to create note. Please try again.', {

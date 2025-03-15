@@ -6,7 +6,6 @@ import { SidebarSection } from './SidebarSection';
 import { NoteList } from './NoteList';
 import { OrganizationSwitcher } from './OrganizationSwitcher';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
 import { useRouter, useParams } from 'next/navigation';
 import { useCallback, useState } from 'react';
 import type { Organization } from '@/types/organization';
@@ -16,6 +15,7 @@ import { useCreateNote, useNoteContent } from '@/hooks/useNote';
 import { getInitialContent } from '@/components/Editor/lib/data/initialContent';
 import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
 import toast from 'react-hot-toast';
+import { useOrganizationDataContext } from '@/contexts/OrganizationDataContext';
 
 /**
  * Left sidebar component for the notebook layout
@@ -27,7 +27,7 @@ const LeftSidebar = () => {
   const currentOrgSlug = params?.orgSlug as string;
   const noteId = params?.noteId as string;
   const { selectedOrg, organizations, isLoading: isLoadingOrgs } = useOrganizationContext();
-  const { notes, isLoading: isLoadingNotes, refresh: refreshNotes } = useOrganizationNotesContext();
+  const { notes, isLoading: isLoadingNotes, refreshNotes } = useOrganizationDataContext();
   const [{ isLoading: isCreatingNote }, createNote] = useCreateNote();
   const [{ isLoading: isUpdatingContent }, updateNoteContent] = useNoteContent();
   const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false);

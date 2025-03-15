@@ -1,20 +1,26 @@
 'use client';
 
-import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import {
+  createContext,
+  useContext,
+  ReactNode,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from 'react';
 import { useSession } from 'next-auth/react';
-import { useParams } from 'next/navigation';
 import { OrganizationService } from '@/services/organization.service';
-import type { Organization, OrganizationUsers } from '@/types/organization';
+import type { Organization } from '@/types/organization';
+import { useParams } from 'next/navigation';
 
 interface OrganizationContextType {
   organizations: Organization[];
   selectedOrg: Organization | null;
-  defaultOrg: Organization | null;
-  orgUsers: OrganizationUsers | null;
+  setSelectedOrg: (org: Organization) => void;
   isLoading: boolean;
   error: Error | null;
-  refreshOrgUsersSilently: () => Promise<void>;
-  refreshOrganizationsSilently: () => Promise<void>;
+  refreshOrganizations: (silently?: boolean) => Promise<void>;
 }
 
 const OrganizationContext = createContext<OrganizationContextType | null>(null);
@@ -22,81 +28,81 @@ const OrganizationContext = createContext<OrganizationContextType | null>(null);
 export function OrganizationProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
   const params = useParams();
-  const currentOrgSlug = params?.orgSlug as string;
+  const targetOrgSlug = params?.orgSlug as string;
 
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
-  const [defaultOrg, setDefaultOrg] = useState<Organization | null>(null);
-  const [orgUsers, setOrgUsers] = useState<OrganizationUsers | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchOrganizations = async (fetchOrgUsers = true) => {
-    try {
-      const orgs = await OrganizationService.getUserOrganizations(session);
-      setOrganizations(orgs);
+  const selectedOrgIdRef = useRef<number | null>(selectedOrg?.id || null);
 
-      const newDefaultOrg = orgs[0];
-      if (newDefaultOrg) {
-        setDefaultOrg(newDefaultOrg);
+  useEffect(() => {
+    selectedOrgIdRef.current = selectedOrg?.id || null;
+  }, [selectedOrg]);
+
+  const fetchOrganizations = useCallback(
+    async (silently = false) => {
+      if (!session) {
+        return;
       }
 
-      // Find the organization that matches the current URL
-      const orgFromUrl = orgs.find((o) => o.slug === currentOrgSlug);
-
-      let orgToSelect: Organization | null = null;
-
-      // If we found a matching org
-      if (orgFromUrl) {
-        orgToSelect = orgFromUrl;
-      }
-      // If we can't find the org in the URL and we have a default, use that
-      else if (!orgFromUrl && newDefaultOrg && !selectedOrg) {
-        //TODO: we need to redirect client to the new default org
-        orgToSelect = newDefaultOrg;
+      if (!silently) {
+        setIsLoading(true);
+        setError(null);
       }
 
-      // If we have an organization to select, fetch its users
-      if (orgToSelect) {
-        setSelectedOrg(orgToSelect);
-        if (fetchOrgUsers) {
-          const users = await OrganizationService.getOrganizationUsers(orgToSelect.id.toString());
-          setOrgUsers(users);
+      try {
+        const orgs = await OrganizationService.getUserOrganizations(session);
+        setOrganizations(orgs);
+
+        // If we don't have a selected org yet but have orgs, select the first one
+        if (!selectedOrgIdRef.current && orgs.length > 0) {
+          let orgToSelect = orgs[0];
+
+          if (targetOrgSlug) {
+            // Try to match org from URL
+            const matchingOrg = orgs.find((org) => org.slug === targetOrgSlug);
+            if (matchingOrg) {
+              orgToSelect = matchingOrg;
+            } else {
+              // Try to find an org where user has ADMIN role
+              const adminOrg = orgs.find((org) => org.userPermission?.accessType === 'ADMIN');
+              if (adminOrg) {
+                orgToSelect = adminOrg;
+              }
+            }
+          }
+
+          setSelectedOrg(orgToSelect);
+        } else if (selectedOrgIdRef.current) {
+          // If we already have a selected org, make sure it's updated with latest data
+          const updatedSelectedOrg = orgs.find((org) => org.id === selectedOrgIdRef.current);
+          if (updatedSelectedOrg) {
+            setSelectedOrg(updatedSelectedOrg);
+          }
+        }
+      } catch (err) {
+        if (!silently) {
+          setError(err instanceof Error ? err : new Error('Failed to load organizations'));
+        } else {
+          console.error('Failed to silently refresh organizations:', err);
+        }
+      } finally {
+        if (!silently) {
+          setIsLoading(false);
         }
       }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err : new Error('Failed to load organizations or organization users')
-      );
-      setOrganizations([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [session, targetOrgSlug]
+  );
 
-  const fetchOrgUsers = async () => {
-    if (!selectedOrg) return;
-
-    try {
-      const users = await OrganizationService.getOrganizationUsers(selectedOrg.id.toString());
-      setOrgUsers(users);
-    } catch (err) {
-      console.error('Failed to fetch organization users:', err);
-      setError(err instanceof Error ? err : new Error('Failed to load organization users'));
-    }
-  };
-
-  const refreshOrgUsersSilently = async () => {
-    await fetchOrgUsers();
-  };
-
-  const refreshOrganizationsSilently = async () => {
-    try {
-      await fetchOrganizations(false);
-    } catch (err) {
-      console.error('Failed to refresh organizations:', err);
-    }
-  };
+  const refreshOrganizations = useCallback(
+    async (silently = false) => {
+      await fetchOrganizations(silently);
+    },
+    [fetchOrganizations]
+  );
 
   useEffect(() => {
     if (status === 'loading') {
@@ -108,17 +114,15 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     }
 
     fetchOrganizations();
-  }, [session?.userId, status]);
+  }, [session, status, fetchOrganizations]);
 
   const value = {
     organizations,
     selectedOrg,
-    defaultOrg,
-    orgUsers,
+    setSelectedOrg,
     isLoading,
     error,
-    refreshOrgUsersSilently,
-    refreshOrganizationsSilently,
+    refreshOrganizations,
   };
 
   return <OrganizationContext.Provider value={value}>{children}</OrganizationContext.Provider>;

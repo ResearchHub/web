@@ -35,7 +35,7 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected, re
   const isProcessing = isDeleting || isDuplicating || isMakingPrivate || isUpdatingPermissions;
 
   const handleClick = () => {
-    router.replace(`/notebook-v2/${note.organization.slug}/${note.id}`);
+    router.replace(`/notebook/${note.organization.slug}/${note.id}`);
   };
 
   const handleDuplicate = async (e: React.MouseEvent) => {
@@ -44,7 +44,7 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected, re
       const newNote = await duplicateNote(note.id.toString(), note.organization.slug);
       toast.success('Note duplicated successfully');
       refreshNotes();
-      router.replace(`/notebook-v2/${note.organization.slug}/${newNote.id}`);
+      router.replace(`/notebook/${note.organization.slug}/${newNote.id}`);
     } catch (error) {
       console.error('Error duplicating note:', error);
       toast.error('Failed to duplicate note. Please try again.');
@@ -88,7 +88,7 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected, re
       await deleteNote(note.id);
       refreshNotes();
       if (isSelected) {
-        router.replace(`/notebook-v2/${note.organization.slug}`);
+        router.replace(`/notebook/${note.organization.slug}`);
       }
     } catch (error) {
       toast.error('Failed to delete note. Please try again.');

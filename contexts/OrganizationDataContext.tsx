@@ -13,7 +13,7 @@ import { NoteService } from '@/services/note.service';
 import { OrganizationService } from '@/services/organization.service';
 import type { Note, NoteWithContent } from '@/types/note';
 import type { OrganizationUsers } from '@/types/organization';
-import { useOrganizationContext } from './OrganizationContextV2';
+import { useOrganizationContext } from './OrganizationContext';
 import { Editor } from '@tiptap/core';
 import { useParams } from 'next/navigation';
 
@@ -149,8 +149,10 @@ export function OrganizationDataProvider({ children }: { children: ReactNode }) 
 
   // Load a specific note
   const loadNote = useCallback(async (noteId: string) => {
+    console.log('loadNote', noteId);
     // Don't reload if it's the same note
     if (noteId === lastLoadedNoteIdRef.current && currentNote) {
+      console.log('same note, skipping');
       return;
     }
 
@@ -159,6 +161,7 @@ export function OrganizationDataProvider({ children }: { children: ReactNode }) 
 
     try {
       const note = await NoteService.getNote(noteId);
+      console.log('note', note);
       setCurrentNote(note);
       lastLoadedNoteIdRef.current = noteId;
     } catch (err) {

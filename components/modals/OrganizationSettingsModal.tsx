@@ -10,7 +10,7 @@ import { Loader2, X, Camera, ChevronDown, Check } from 'lucide-react';
 import { isValidEmail } from '@/utils/validation';
 import { toast } from 'react-hot-toast';
 import { Dropdown, DropdownItem } from '../ui/form/Dropdown';
-import { useOrganizationContext } from '@/contexts/OrganizationContextV2';
+import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import {
   useUpdateOrgDetails,
   useInviteUserToOrg,

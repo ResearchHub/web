@@ -5,7 +5,6 @@ import './globals.css';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { ExchangeRateProvider } from '@/contexts/ExchangeRateContext';
 import { AuthModalProvider } from '@/contexts/AuthModalContext';
-// import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from './api/auth/[...nextauth]/auth.config';
@@ -51,13 +50,11 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <NextAuthProvider session={session}>
           <AuthModalProvider>
-            {/* <OrganizationProvider> */}
             <UserProvider>
               <ExchangeRateProvider>
                 <NotificationProvider>{children}</NotificationProvider>
               </ExchangeRateProvider>
             </UserProvider>
-            {/* </OrganizationProvider> */}
           </AuthModalProvider>
         </NextAuthProvider>
         <ToasterProvider />

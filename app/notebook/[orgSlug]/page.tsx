@@ -1,6 +1,6 @@
 'use client';
 
-import { useOrganizationContext } from '@/contexts/OrganizationContextV2';
+import { useOrganizationContext } from '@/contexts/OrganizationContext';
 
 export default function OrganizationPage() {
   const { selectedOrg } = useOrganizationContext();
