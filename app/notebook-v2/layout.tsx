@@ -19,6 +19,8 @@ import '@fontsource/inter/700.css';
 import { LeftSidebar } from './LeftSidebar';
 import { OrganizationProvider } from '@/contexts/OrganizationContextV2';
 import { OrganizationDataProvider } from '@/contexts/OrganizationDataContext';
+import { RightSidebar } from './RightSidebar';
+import { NotebookPublishProvider } from '@/contexts/NotebookPublishContext';
 
 // Define breakpoint as a constant
 const DESKTOP_BREAKPOINT = 1024;
@@ -58,6 +60,8 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
     return null; // Or a loading spinner
   }
 
+  console.log({ isDesktop });
+
   return (
     <div className="min-h-screen bg-white">
       {isDesktop ? (
@@ -87,8 +91,7 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
 
           {/* Right Sidebar - 300px fixed width */}
           <div className="border-l border-gray-200 h-screen sticky top-0 overflow-y-auto">
-            {/* Right sidebar content will go here */}
-            <div className="p-4">Right Sidebar Placeholder</div>
+            <RightSidebar />
           </div>
         </div>
       ) : (
@@ -212,8 +215,7 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
                         </button>
                       </div>
                       <div className="h-[calc(100vh-72px)] overflow-y-auto">
-                        {/* Right sidebar content will go here */}
-                        <div className="p-4">Mobile Right Sidebar Content</div>
+                        <RightSidebar />
                       </div>
                     </Dialog.Panel>
                   </Transition.Child>
@@ -231,9 +233,11 @@ export default function NotebookLayout({ children }: { children: React.ReactNode
   return (
     <OrganizationProvider>
       <OrganizationDataProvider>
-        <SidebarProvider>
-          <NotebookLayoutContent>{children}</NotebookLayoutContent>
-        </SidebarProvider>
+        <NotebookPublishProvider>
+          <SidebarProvider>
+            <NotebookLayoutContent>{children}</NotebookLayoutContent>
+          </SidebarProvider>
+        </NotebookPublishProvider>
       </OrganizationDataProvider>
     </OrganizationProvider>
   );

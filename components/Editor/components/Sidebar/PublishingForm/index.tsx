@@ -2,7 +2,6 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { publishingFormSchema } from './schema';
 import type { PublishingFormData } from './schema';
-import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 import { WorkTypeSection } from './components/WorkTypeSection';
 import { FundingSection } from './components/FundingSection';
 import { AuthorsSection } from './components/AuthorsSection';
@@ -27,6 +26,7 @@ import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSke
 import { Loader2 } from 'lucide-react';
 import { DOISection } from '@/components/work/components/DOISection';
 import { getFieldErrorMessage } from '@/utils/form';
+import { useOrganizationDataContext } from '@/contexts/OrganizationDataContext';
 
 interface PublishingFormProps {
   bountyAmount: number | null;
@@ -61,7 +61,7 @@ const getButtonText = ({
 };
 
 export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormProps) {
-  const { noteId, editor, note } = useNotebookPublish();
+  const { currentNote: note, editor } = useOrganizationDataContext();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
 
@@ -83,7 +83,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   // 2. localStorage data
   // 3. URL search params
   useEffect(() => {
-    if (!noteId || !note) return;
+    if (!note) return;
 
     // Priority 1: Check for existing post data
     if (note?.post) {
@@ -106,7 +106,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     }
 
     // Priority 2: Check localStorage
-    const storedData = loadPublishingFormFromStorage(noteId.toString());
+    const storedData = loadPublishingFormFromStorage(note?.id.toString() || '');
     if (storedData) {
       Object.entries(storedData).forEach(([key, value]) => {
         methods.setValue(key as keyof PublishingFormData, value);
@@ -125,18 +125,18 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         methods.setValue('articleType', articleType);
       }
     }
-  }, [noteId, note, methods, searchParams]);
+  }, [note, methods, searchParams]);
 
   // Add effect to save form data when it changes
   useEffect(() => {
-    if (!noteId) return;
+    if (!note) return;
 
     const subscription = methods.watch((data) => {
-      savePublishingFormToStorage(noteId.toString(), data as Partial<PublishingFormData>);
+      savePublishingFormToStorage(note.id.toString(), data as Partial<PublishingFormData>);
     });
 
     return () => subscription.unsubscribe();
-  }, [methods, noteId]);
+  }, [methods, note]);
 
   const { watch, clearErrors } = methods;
   const articleType = watch('articleType');
@@ -202,7 +202,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           rewardFunders: formData.rewardFunders,
           nftSupply: formData.nftSupply || '1000',
           title,
-          noteId: noteId,
+          noteId: note?.id.toString(),
           renderableText: text || '',
           fullJSON: JSON.stringify(json),
           fullSrc: previewContent || '',

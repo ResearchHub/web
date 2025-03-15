@@ -2,7 +2,7 @@ import React from 'react';
 
 export function PublishingFormSkeleton() {
   return (
-    <div className="w-82 border-l flex flex-col h-screen sticky right-0 top-0 bg-white">
+    <div className="w-82 flex flex-col h-screen sticky right-0 top-0 bg-white">
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto">
         <div className="pb-6">

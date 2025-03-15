@@ -1,4 +1,3 @@
-// app/notebook-v2/components/LeftSidebar.tsx
 'use client';
 
 import { NoteList } from '@/components/Editor/components/Sidebar/NoteList';
@@ -32,7 +31,7 @@ export const LeftSidebar = () => {
     setSelectedOrg,
     isLoading: isLoadingOrgs,
   } = useOrganizationContext();
-  const { notes, isLoading: isLoadingNotes, refresh: refreshNotes } = useOrganizationDataContext();
+  const { notes, isLoading: isLoadingNotes, refreshNotes } = useOrganizationDataContext();
   const handleOrgSelect = useCallback(async (org: Organization) => {
     setSelectedOrg(org);
     // Return a resolved promise

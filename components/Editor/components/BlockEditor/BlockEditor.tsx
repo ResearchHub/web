@@ -2,7 +2,7 @@ import { Editor, EditorContent } from '@tiptap/react';
 import React, { useEffect, useRef } from 'react';
 import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
 import '@/components/Editor/styles/index.css';
-import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
+// import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 import { useBlockEditor } from '../../hooks/useBlockEditor';
 import { ContentItemMenu } from '../menus/ContentItemMenu';
 import { LinkMenu } from '../menus/LinkMenu';
@@ -11,6 +11,7 @@ import ColumnsMenu from '../../extensions/MultiColumn/menus/ColumnsMenu';
 import TableRowMenu from '../../extensions/Table/menus/TableRow';
 import ImageBlockMenu from '../../extensions/ImageBlock/components/ImageBlockMenu';
 import TableColumnMenu from '../../extensions/Table/menus/TableColumn';
+import { useOrganizationDataContext } from '@/contexts/OrganizationDataContext';
 
 export interface BlockEditorProps {
   content?: string;
@@ -28,7 +29,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   editable = true,
 }) => {
   const menuContainerRef = useRef(null);
-  const { setEditor } = useNotebookPublish();
+  const { setEditor } = useOrganizationDataContext();
 
   const { editor } = useBlockEditor({
     content,

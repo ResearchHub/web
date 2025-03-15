@@ -4,11 +4,11 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { cn } from '@/utils/styles';
 import { SectionHeader } from './SectionHeader';
 import { Badge } from '@/components/ui/Badge';
-import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 import Link from 'next/link';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { PublishingFormData } from '../schema';
 import { Button } from '@/components/ui/Button';
+import { useOrganizationDataContext } from '@/contexts/OrganizationDataContext';
 
 const articleTypes: Record<
   PublishingFormData['articleType'],
@@ -46,7 +46,7 @@ export function WorkTypeSection() {
   } = useFormContext();
   const articleType = watch('articleType') as PublishingFormData['articleType'] | undefined;
   const workId = watch('workId');
-  const { note } = useNotebookPublish();
+  const { currentNote: note } = useOrganizationDataContext();
   const slug = note?.post?.slug;
 
   const isPublished = Boolean(workId);

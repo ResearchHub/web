@@ -2,10 +2,9 @@ import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@
 import { Fragment, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
-import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 import { GraduationCap, Scale, Users, FileText } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
-import { ResearchCoinIcon } from '../ui/icons/ResearchCoinIcon';
+import { useOrganizationDataContext } from '@/contexts/OrganizationDataContext';
 
 interface ConfirmPublishModalProps {
   isOpen: boolean;
@@ -26,7 +25,7 @@ export function ConfirmPublishModal({
 }: ConfirmPublishModalProps) {
   const [title, setTitle] = useState(initialTitle);
   const [hasAgreed, setHasAgreed] = useState(false);
-  const { editor } = useNotebookPublish();
+  const { editor } = useOrganizationDataContext();
 
   const isTitleValid = title.trim().length >= 20;
   const isPublishEnabled = isTitleValid && hasAgreed;
