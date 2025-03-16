@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { PublishingFormData } from '../schema';
 import { Button } from '@/components/ui/Button';
-import { useOrganizationDataContext } from '@/contexts/OrganizationDataContext';
+import { useNotebookContext } from '@/contexts/NotebookContext';
 
 const articleTypes: Record<
   PublishingFormData['articleType'],
@@ -46,7 +46,7 @@ export function WorkTypeSection() {
   } = useFormContext();
   const articleType = watch('articleType') as PublishingFormData['articleType'] | undefined;
   const workId = watch('workId');
-  const { currentNote: note } = useOrganizationDataContext();
+  const { currentNote: note } = useNotebookContext();
   const slug = note?.post?.slug;
 
   const isPublished = Boolean(workId);

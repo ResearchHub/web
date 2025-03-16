@@ -13,7 +13,7 @@ import {
 import type { Note } from '@/types/note';
 import toast from 'react-hot-toast';
 import React from 'react';
-import { useOrganizationDataContext } from '@/contexts/OrganizationDataContext';
+import { useNotebookContext } from '@/contexts/NotebookContext';
 
 interface NoteListItemProps {
   note: Note;
@@ -25,7 +25,7 @@ interface NoteListItemProps {
  */
 export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) => {
   const router = useRouter();
-  const { refreshNotes, setNotes } = useOrganizationDataContext();
+  const { refreshNotes, setNotes } = useNotebookContext();
   const [{ isLoading: isDeleting }, deleteNote] = useDeleteNote();
   const [{ isLoading: isDuplicating }, duplicateNote] = useDuplicateNote();
   const [{ isLoading: isMakingPrivate }, makeNotePrivate] = useMakeNotePrivate();

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
 import { GraduationCap, Scale, Users, FileText } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
-import { useOrganizationDataContext } from '@/contexts/OrganizationDataContext';
+import { useNotebookContext } from '@/contexts/NotebookContext';
 
 interface ConfirmPublishModalProps {
   isOpen: boolean;
@@ -25,7 +25,7 @@ export function ConfirmPublishModal({
 }: ConfirmPublishModalProps) {
   const [title, setTitle] = useState(initialTitle);
   const [hasAgreed, setHasAgreed] = useState(false);
-  const { editor } = useOrganizationDataContext();
+  const { editor } = useNotebookContext();
 
   const isTitleValid = title.trim().length >= 20;
   const isPublishEnabled = isTitleValid && hasAgreed;

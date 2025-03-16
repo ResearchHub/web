@@ -3,7 +3,7 @@
 import { BlockEditor } from '@/components/Editor/components/BlockEditor/BlockEditor';
 import { useEffect, useState } from 'react';
 import { BlockEditorProps } from '../BlockEditor';
-import { OrganizationDataProvider } from '@/contexts/OrganizationDataContext';
+import { NotebookProvider } from '@/contexts/NotebookContext';
 
 export function BlockEditorClientWrapper(props: BlockEditorProps) {
   const [isMounted, setIsMounted] = useState(false);
@@ -13,8 +13,8 @@ export function BlockEditorClientWrapper(props: BlockEditorProps) {
   }, []);
 
   return (
-    <OrganizationDataProvider>
+    <NotebookProvider>
       <BlockEditor {...props} isLoading={!isMounted} />
-    </OrganizationDataProvider>
+    </NotebookProvider>
   );
 }

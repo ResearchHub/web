@@ -17,7 +17,7 @@ import { useOrganizationContext } from './OrganizationContext';
 import { Editor } from '@tiptap/core';
 import { useParams } from 'next/navigation';
 
-interface OrganizationDataContextType {
+interface NotebookContextType {
   // Notes list state
   notes: Note[];
   setNotes: React.Dispatch<React.SetStateAction<Note[]>>;
@@ -50,9 +50,9 @@ interface OrganizationDataContextType {
   refreshAll: () => Promise<void>;
 }
 
-const OrganizationDataContext = createContext<OrganizationDataContextType | null>(null);
+const NotebookContext = createContext<NotebookContextType | null>(null);
 
-export function OrganizationDataProvider({ children }: { children: ReactNode }) {
+export function NotebookProvider({ children }: { children: ReactNode }) {
   const params = useParams();
   const noteIdFromParams = params?.noteId as string;
 
@@ -276,15 +276,13 @@ export function OrganizationDataProvider({ children }: { children: ReactNode }) 
     refreshAll,
   };
 
-  return (
-    <OrganizationDataContext.Provider value={value}>{children}</OrganizationDataContext.Provider>
-  );
+  return <NotebookContext.Provider value={value}>{children}</NotebookContext.Provider>;
 }
 
-export function useOrganizationDataContext() {
-  const context = useContext(OrganizationDataContext);
+export function useNotebookContext() {
+  const context = useContext(NotebookContext);
   if (!context) {
-    throw new Error('useOrganizationDataContext must be used within an OrganizationDataProvider');
+    throw new Error('useNotebookContext must be used within a NotebookProvider');
   }
   return context;
 }

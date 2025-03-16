@@ -6,7 +6,7 @@ import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
 import { useEffect, useState } from 'react';
 import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
 import { FundingTimelineModal } from '@/components/modals/FundingTimelineModal';
-import { useOrganizationDataContext } from '@/contexts/OrganizationDataContext';
+import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useUpdateNote } from '@/hooks/useNote';
 
 export default function NotePage() {
@@ -22,7 +22,7 @@ export default function NotePage() {
     noteError,
     updateNoteTitle,
     isLoading,
-  } = useOrganizationDataContext();
+  } = useNotebookContext();
 
   const [{ isLoading: isUpdating }, updateNote] = useUpdateNote(noteId, {
     onTitleUpdate: (newTitle) => {

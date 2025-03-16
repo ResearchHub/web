@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState, useCallback, useEffect, useMemo } from 'react';
+import { Fragment, useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Avatar } from '@/components/ui/Avatar';
@@ -20,9 +20,8 @@ import {
   useUpdateOrgCoverImage,
 } from '@/hooks/useOrganization';
 import { useSession } from 'next-auth/react';
-import { User } from '@/types/user';
 import { ImageUploadModal } from '@/components/modals/ImageUploadModal';
-import { useOrganizationDataContext } from '@/contexts/OrganizationDataContext';
+import { useNotebookContext } from '@/contexts/NotebookContext';
 
 interface OrganizationSettingsModalProps {
   isOpen: boolean;
@@ -182,7 +181,7 @@ const UserRow = ({
 
 export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSettingsModalProps) {
   const { selectedOrg: organization, refreshOrganizations } = useOrganizationContext();
-  const { users: orgUsers, refreshUsers } = useOrganizationDataContext();
+  const { users: orgUsers, refreshUsers } = useNotebookContext();
   const { data: session } = useSession();
   const [{ isLoading: isUpdatingOrgName }, updateOrgDetails] = useUpdateOrgDetails();
   const [{ isLoading: isInvitingUser }, inviteUserToOrg] = useInviteUserToOrg();

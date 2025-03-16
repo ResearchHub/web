@@ -3,13 +3,13 @@
 import { Button } from '@/components/ui/Button';
 import { Menu, FileUp, ExternalLink } from 'lucide-react';
 import { useSidebar } from '@/contexts/SidebarContext';
-import { useOrganizationDataContext } from '@/contexts/OrganizationDataContext';
+import { useNotebookContext } from '@/contexts/NotebookContext';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
 
 export function TopBar() {
   const { toggleLeftSidebar, toggleRightSidebar } = useSidebar();
-  const { currentNote: note, isLoading } = useOrganizationDataContext();
+  const { currentNote: note, isLoading } = useNotebookContext();
 
   const isPublished = Boolean(note?.post?.id);
 

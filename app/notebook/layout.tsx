@@ -19,10 +19,7 @@ import '@fontsource/inter/500.css';
 import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 import { LeftSidebar } from './LeftSidebar';
-import {
-  OrganizationDataProvider,
-  useOrganizationDataContext,
-} from '@/contexts/OrganizationDataContext';
+import { NotebookProvider, useNotebookContext } from '@/contexts/NotebookContext';
 import { RightSidebar } from './RightSidebar';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
@@ -38,7 +35,7 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
     toggleRightSidebar,
   } = useSidebar();
   // Initialize with null to indicate we don't know yet
-  const { currentNote, isLoading } = useOrganizationDataContext();
+  const { currentNote, isLoading } = useNotebookContext();
 
   const shouldShowRightSidebar = currentNote || isLoading;
 
@@ -201,10 +198,10 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
 }
 export default function NotebookLayout({ children }: { children: React.ReactNode }) {
   return (
-    <OrganizationDataProvider>
+    <NotebookProvider>
       <SidebarProvider>
         <NotebookLayoutContent>{children}</NotebookLayoutContent>
       </SidebarProvider>
-    </OrganizationDataProvider>
+    </NotebookProvider>
   );
 }

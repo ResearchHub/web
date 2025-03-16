@@ -26,7 +26,7 @@ import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSke
 import { Loader2 } from 'lucide-react';
 import { DOISection } from '@/components/work/components/DOISection';
 import { getFieldErrorMessage } from '@/utils/form';
-import { useOrganizationDataContext } from '@/contexts/OrganizationDataContext';
+import { useNotebookContext } from '@/contexts/NotebookContext';
 
 interface PublishingFormProps {
   bountyAmount: number | null;
@@ -61,7 +61,7 @@ const getButtonText = ({
 };
 
 export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormProps) {
-  const { currentNote: note, editor } = useOrganizationDataContext();
+  const { currentNote: note, editor } = useNotebookContext();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
 

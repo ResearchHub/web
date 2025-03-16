@@ -10,7 +10,7 @@ import ColumnsMenu from '../../extensions/MultiColumn/menus/ColumnsMenu';
 import TableRowMenu from '../../extensions/Table/menus/TableRow';
 import ImageBlockMenu from '../../extensions/ImageBlock/components/ImageBlockMenu';
 import TableColumnMenu from '../../extensions/Table/menus/TableColumn';
-import { useOrganizationDataContext } from '@/contexts/OrganizationDataContext';
+import { useNotebookContext } from '@/contexts/NotebookContext';
 
 export interface BlockEditorProps {
   content?: string;
@@ -28,7 +28,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   editable = true,
 }) => {
   const menuContainerRef = useRef(null);
-  const { setEditor } = useOrganizationDataContext();
+  const { setEditor } = useNotebookContext();
 
   const { editor } = useBlockEditor({
     content,

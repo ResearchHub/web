@@ -16,7 +16,7 @@ import { useNoteContent, useCreateNote } from '@/hooks/useNote';
 import { getInitialContent } from '@/components/Editor/lib/data/initialContent';
 import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
 import toast from 'react-hot-toast';
-import { useOrganizationDataContext } from '@/contexts/OrganizationDataContext';
+import { useNotebookContext } from '@/contexts/NotebookContext';
 
 /**
  * Left sidebar component for the notebook layout
@@ -36,7 +36,7 @@ export const LeftSidebar = () => {
     setSelectedOrg,
     isLoading: isLoadingOrgs,
   } = useOrganizationContext();
-  const { notes, isLoading: isLoadingNotes, refreshNotes } = useOrganizationDataContext();
+  const { notes, isLoading: isLoadingNotes, refreshNotes } = useNotebookContext();
   const handleOrgSelect = useCallback(
     async (org: Organization) => {
       setSelectedOrg(org);
