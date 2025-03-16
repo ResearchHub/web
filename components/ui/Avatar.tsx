@@ -39,10 +39,24 @@ export const Avatar: FC<AvatarProps> = ({ src, alt, size = 'md', className }) =>
   };
 
   const sizeClasses = {
-    xxs: 'h-5 w-5 text-[8px]',
-    xs: 'h-6 w-6 text-[10px]',
-    sm: 'h-8 w-8 text-xs',
-    md: 'h-10 w-10 text-sm',
+    xxs: 'h-5 w-5',
+    xs: 'h-6 w-6',
+    sm: 'h-8 w-8',
+    md: 'h-10 w-10',
+  };
+
+  const getTextSizeClass = (initials: string) => {
+    const length = initials.length;
+
+    if (size === 'md') {
+      return length > 1 ? 'text-xs' : 'text-sm';
+    } else if (size === 'sm') {
+      return length > 1 ? 'text-[10px]' : 'text-xs';
+    } else if (size === 'xs') {
+      return length > 1 ? 'text-[8px]' : 'text-[10px]';
+    } else {
+      return length > 1 ? 'text-[6px]' : 'text-[8px]';
+    }
   };
 
   const handleImageError = () => {
@@ -51,20 +65,26 @@ export const Avatar: FC<AvatarProps> = ({ src, alt, size = 'md', className }) =>
   };
 
   const shouldShowInitials = !src || imageError || isLoading;
+  const initials = getInitials(alt);
 
   return (
     <div
       className={cn(
         'relative inline-flex rounded-full bg-gray-100 overflow-hidden',
-        'flex items-center justify-center',
+        'flex items-center justify-center flex-shrink-0',
         sizeClasses[size],
         className
       )}
       style={{ lineHeight: 1 }}
     >
       {shouldShowInitials ? (
-        <span className="absolute inset-0 flex items-center justify-center font-medium text-gray-600">
-          {getInitials(alt)}
+        <span
+          className={cn(
+            'absolute inset-0 flex items-center justify-center font-medium text-gray-600',
+            getTextSizeClass(initials)
+          )}
+        >
+          {initials}
         </span>
       ) : (
         <img

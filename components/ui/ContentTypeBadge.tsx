@@ -1,6 +1,7 @@
 import { PaperIcon } from '@/components/ui/icons';
 import { HandCoins, Coins } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 
 interface ContentTypeBadgeProps {
@@ -42,14 +43,25 @@ export const ContentTypeBadge = ({
 
   if (type === 'bounty') {
     return (
-      <Badge
-        variant="default"
-        size={size}
-        className={cn('gap-1.5 py-1 border-gray-300', className)}
+      <Tooltip
+        content={
+          <div className="flex flex-col items-center gap-2">
+            <Coins size={24} className="text-orange-500" />
+            <div>A bounty is an earning opportunity. Earn ResearchCoin for completing a task.</div>
+          </div>
+        }
+        position="top"
+        width="w-80"
       >
-        <Coins size={16} className="text-gray-500" />
-        <span>Bounty</span>
-      </Badge>
+        <Badge
+          variant="default"
+          size={size}
+          className={cn('gap-1.5 py-1 border-gray-300', className)}
+        >
+          <Coins size={16} className="text-gray-500" />
+          <span>Bounty</span>
+        </Badge>
+      </Tooltip>
     );
   }
 

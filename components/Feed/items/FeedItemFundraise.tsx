@@ -6,13 +6,14 @@ import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { cn } from '@/utils/styles';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
-import Link from 'next/link';
 import { truncateText } from '@/utils/stringUtils';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
+import { useRouter } from 'next/navigation';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
+  href?: string; // Optional href prop
 }
 
 /**
@@ -38,7 +39,7 @@ const FeedItemFundraiseBody: FC<{
   return (
     <div className="mb-4">
       {/* Badges */}
-      <div className="flex flex-wrap gap-2 mb-3">
+      <div className="flex flex-wrap gap-2 mb-3" onClick={(e) => e.stopPropagation()}>
         <ContentTypeBadge type="funding" />
         {topics.map((topic, index) => (
           <div key={index} className="px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">
@@ -92,9 +93,10 @@ const extractContributors = (fundraise: FeedPostContent['fundraise']) => {
 /**
  * Main component for rendering a fundraise feed item
  */
-export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({ entry }) => {
+export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({ entry, href }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
+  const router = useRouter();
 
   // Check if this is a preregistration with fundraise data
   const hasFundraise = post.contentType === 'PREREGISTRATION' && post.fundraise;
@@ -109,8 +111,18 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({ entry }) => {
   const contributors = hasFundraise ? extractContributors(post.fundraise) : [];
   const hasContributors = contributors.length > 0;
 
-  // Create the funding page URL
-  const fundingPageUrl = `/fund/${post.id}/${post.slug}`;
+  // Use provided href or create default funding page URL
+  const fundingPageUrl = href || `/fund/${post.id}/${post.slug}`;
+
+  // Handle click on the card (navigate to funding page) - only if href is provided
+  const handleCardClick = () => {
+    if (href) {
+      router.push(fundingPageUrl);
+    }
+  };
+
+  // Determine if card should have clickable styles
+  const isClickable = !!href;
 
   return (
     <div className="space-y-3">
@@ -125,55 +137,61 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({ entry }) => {
         }
       />
 
-      {/* Main Content Card - Wrapped with Link */}
-      <Link href={fundingPageUrl} prefetch={false} className="block">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden group hover:shadow-md hover:border-blue-200 transition-all duration-200">
-          <div className="p-4">
-            {/* Content area with image */}
-            <div className="flex mb-4">
-              {/* Left side content */}
-              <div className="flex-1 pr-4">
-                {/* Body Content */}
-                <FeedItemFundraiseBody entry={entry} />
+      {/* Main Content Card - Using onClick instead of wrapping with Link */}
+      <div
+        onClick={handleCardClick}
+        className={cn(
+          'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden',
+          isClickable &&
+            'group hover:shadow-md hover:border-blue-200 transition-all duration-200 cursor-pointer'
+        )}
+      >
+        <div className="p-4">
+          {/* Content area with image */}
+          <div className="flex mb-4">
+            {/* Left side content */}
+            <div className="flex-1 pr-4">
+              {/* Body Content */}
+              <FeedItemFundraiseBody entry={entry} />
 
-                {/* Fundraise Progress (only for preregistrations with fundraise) */}
-                {hasFundraise && post.fundraise && (
-                  <div className="mt-4">
-                    <FundraiseProgress
-                      fundraise={post.fundraise}
-                      compact={true}
-                      showContribute={false}
-                      className="p-0 border-0 bg-transparent"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Right side image - cancer cells microscopic image */}
-              <div className="w-1/4 rounded-md overflow-hidden">
-                <img
-                  src="https://media.gettyimages.com/id/480798971/video/microscopic-image-of-human-cancer-cells-melanoma.jpg?s=640x640&k=20&c=FhPQtB4SVMyd10NCmTjpnWVs2JXCyLU4WeUvAthtUZA="
-                  alt="Microscopic image of cancer cells"
-                  className="w-full h-full object-cover"
-                  style={{ minHeight: '200px' }}
-                />
-              </div>
+              {/* Fundraise Progress (only for preregistrations with fundraise) */}
+              {hasFundraise && post.fundraise && (
+                <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+                  <FundraiseProgress
+                    fundraise={post.fundraise}
+                    compact={true}
+                    showContribute={false}
+                    className="p-0 border-0 bg-transparent"
+                  />
+                </div>
+              )}
             </div>
 
-            {/* Action Buttons - Full width */}
-            <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
-              <div className="flex gap-2 items-center w-full">
-                {/* Standard Feed Item Actions */}
-                <FeedItemActions
-                  metrics={entry.metrics}
-                  feedContentType={post.contentType}
-                  votableEntityId={post.id}
-                />
-              </div>
+            {/* Right side image - cancer cells microscopic image */}
+            <div className="w-1/4 rounded-md overflow-hidden">
+              <img
+                src="https://media.gettyimages.com/id/480798971/video/microscopic-image-of-human-cancer-cells-melanoma.jpg?s=640x640&k=20&c=FhPQtB4SVMyd10NCmTjpnWVs2JXCyLU4WeUvAthtUZA="
+                alt="Microscopic image of cancer cells"
+                className="w-full h-full object-cover"
+                style={{ minHeight: '200px' }}
+              />
+            </div>
+          </div>
+
+          {/* Action Buttons - Full width */}
+          <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
+            <div className="flex gap-2 items-center w-full" onClick={(e) => e.stopPropagation()}>
+              {/* Standard Feed Item Actions */}
+              <FeedItemActions
+                metrics={entry.metrics}
+                feedContentType={post.contentType}
+                votableEntityId={post.id}
+                userVote={entry.userVote}
+              />
             </div>
           </div>
         </div>
-      </Link>
+      </div>
     </div>
   );
 };

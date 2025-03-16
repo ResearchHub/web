@@ -1,4 +1,4 @@
-import { Topic, transformTopicSuggestions } from '@/types/topic';
+import { Topic, transformTopicSuggestions, transformTopic } from '@/types/topic';
 import { ApiClient } from './client';
 import { createTransformer, BaseTransformed } from '@/types/transformer';
 
@@ -6,8 +6,17 @@ interface HubResponse {
   id: number;
   name: string;
   slug: string;
-  hub_image?: string;
+  hub_image?: string | null;
   description?: string;
+  namespace?: string;
+  category?: number;
+  discussion_count?: number;
+  paper_count?: number;
+  subscriber_count?: number;
+  is_locked?: boolean;
+  is_removed?: boolean;
+  is_used_for_rep?: boolean;
+  editor_permission_groups?: any[];
 }
 
 interface GetHubsOptions {
@@ -50,7 +59,7 @@ export const transformHub = createTransformer<HubResponse, Hub>((hub) => ({
   id: hub.id,
   name: hub.name,
   slug: hub.slug,
-  imageUrl: hub.hub_image,
+  imageUrl: hub.hub_image || undefined,
   description: hub.description,
 }));
 
@@ -58,7 +67,7 @@ export class HubService {
   private static readonly BASE_PATH = '/api/hub';
   private static readonly SUGGEST_PATH = '/api/search/hubs/suggest';
 
-  static async getHubs(options: GetHubsOptions = {}): Promise<Hub[]> {
+  static async getHubs(options: GetHubsOptions = {}): Promise<Topic[]> {
     const params = new URLSearchParams({
       ordering: '-paper_count',
     });
@@ -72,7 +81,7 @@ export class HubService {
     const response = await ApiClient.get<HubsApiResponse>(
       `${this.BASE_PATH}/?${params.toString()}`
     );
-    return response.results.map(transformHub);
+    return response.results.map(transformTopic);
   }
 
   static async suggestTopics(query: string): Promise<Topic[]> {
@@ -96,7 +105,7 @@ export class HubService {
     await ApiClient.post(`${this.BASE_PATH}/${hubId}/unfollow/`);
   }
 
-  static async getHubBySlug(slug: string): Promise<Hub> {
+  static async getHubBySlug(slug: string): Promise<Topic> {
     const response = await ApiClient.get<HubDetailResponse>(
       `${this.BASE_PATH}?slug=${encodeURIComponent(slug)}`
     );
@@ -105,6 +114,6 @@ export class HubService {
       throw new Error(`Hub with slug "${slug}" not found`);
     }
 
-    return transformHub(response.results[0]);
+    return transformTopic(response.results[0]);
   }
 }

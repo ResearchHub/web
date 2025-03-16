@@ -3,7 +3,6 @@
 import { FC } from 'react';
 import { FeedEntry, FeedBountyContent } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
-import Link from 'next/link';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { BountyMetadataLine } from '@/components/Bounty/BountyMetadataLine';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
@@ -14,6 +13,8 @@ import { ID } from '@/types/root';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { BountyType } from '@/types/bounty';
 import { formatRSC } from '@/utils/number';
+import { useRouter } from 'next/navigation';
+import { cn } from '@/utils/styles';
 
 /**
  * Internal component for rendering bounty details
@@ -46,6 +47,7 @@ interface FeedItemBountyProps {
   showSolutions?: boolean;
   showRelatedWork?: boolean;
   relatedDocumentId?: number;
+  href?: string; // Optional href prop
 }
 
 /**
@@ -80,14 +82,16 @@ const FeedItemBountyBody: FC<{
   return (
     <div className="mb-4">
       {/* Bounty Metadata Line with badges and status */}
-      <BountyMetadataLine
-        bountyType={bounty.bountyType}
-        amount={parseFloat(bounty.totalAmount)}
-        expirationDate={bounty.expirationDate}
-        isOpen={isOpen}
-        expiringSoon={expiringSoon}
-        solutionsCount={solutionsCount}
-      />
+      <div onClick={(e) => e.stopPropagation()}>
+        <BountyMetadataLine
+          bountyType={bounty.bountyType}
+          amount={parseFloat(bounty.totalAmount)}
+          expirationDate={bounty.expirationDate}
+          isOpen={isOpen}
+          expiringSoon={expiringSoon}
+          solutionsCount={solutionsCount}
+        />
+      </div>
 
       {/* Bounty Details */}
       <div className="mt-4">
@@ -100,14 +104,14 @@ const FeedItemBountyBody: FC<{
 
       {/* Related Work - show if available */}
       {relatedWork && showRelatedWork && (
-        <div className="mt-4">
+        <div className="mt-4" onClick={(e) => e.stopPropagation()}>
           <RelatedWorkCard size="sm" work={relatedWork} />
         </div>
       )}
 
       {/* Solutions section for closed bounties */}
       {!isOpen && hasSolutions && showSolutions && (
-        <div className="mt-4">
+        <div className="mt-4" onClick={(e) => e.stopPropagation()}>
           <BountySolutions
             solutions={bounty.solutions}
             isPeerReviewBounty={isPeerReviewBounty}
@@ -125,10 +129,17 @@ const FeedItemBountyBody: FC<{
 /**
  * Main component for rendering a bounty feed item
  */
-export const FeedItemBounty: FC<FeedItemBountyProps> = ({ entry, relatedDocumentId }) => {
+export const FeedItemBounty: FC<FeedItemBountyProps> = ({
+  entry,
+  relatedDocumentId,
+  showSolutions = true,
+  showRelatedWork = true,
+  href,
+}) => {
   // Extract the bounty entry from the entry's content
   const bountyEntry = entry.content as FeedBountyContent;
   const bounty = bountyEntry.bounty;
+  const router = useRouter();
 
   // Get the author from the bounty entry
   const author = bountyEntry.createdBy;
@@ -138,8 +149,8 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({ entry, relatedDocument
   const isExpiring = isActive && isExpiringSoon(bounty.expirationDate);
   const bountyStatus = isExpiring ? 'expiring' : isActive ? 'open' : 'closed';
 
-  // Create the bounty page URL
-  const bountyPageUrl = `/bounty/${bounty.id}`;
+  // Use provided href or create default bounty page URL
+  const bountyPageUrl = href || `/bounty/${bounty.id}`;
 
   // Format the bounty amount for display in the action text
   const formattedBountyAmount = bounty.amount
@@ -148,6 +159,16 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({ entry, relatedDocument
   const bountyActionText = bounty.amount
     ? `Opened a bounty for ${formattedBountyAmount} RSC`
     : 'Opened a bounty';
+
+  // Handle click on the card (navigate to bounty page) - only if href is provided
+  const handleCardClick = () => {
+    if (href) {
+      router.push(bountyPageUrl);
+    }
+  };
+
+  // Determine if card should have clickable styles
+  const isClickable = !!href;
 
   return (
     <div className="space-y-3">
@@ -158,32 +179,42 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({ entry, relatedDocument
         actionText={bountyActionText}
       />
 
-      {/* Main Content Card - Wrapped with Link */}
-      <Link href={bountyPageUrl} prefetch={false} className="block">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden group hover:shadow-md hover:border-blue-200 transition-all duration-200">
-          <div className="p-4">
-            {/* Content area */}
-            <div className="mb-4">
-              {/* Body Content */}
-              <FeedItemBountyBody entry={entry} showSolutions={true} showRelatedWork={true} />
-            </div>
+      {/* Main Content Card - Using onClick instead of wrapping with Link */}
+      <div
+        onClick={handleCardClick}
+        className={cn(
+          'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden',
+          isClickable &&
+            'group hover:shadow-md hover:border-blue-200 transition-all duration-200 cursor-pointer'
+        )}
+      >
+        <div className="p-4">
+          {/* Content area */}
+          <div className="mb-4">
+            {/* Body Content */}
+            <FeedItemBountyBody
+              entry={entry}
+              showSolutions={showSolutions}
+              showRelatedWork={showRelatedWork}
+            />
+          </div>
 
-            {/* Action Buttons - Full width */}
-            <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
-              <div className="flex gap-2 items-center w-full">
-                {/* Standard Feed Item Actions */}
-                <FeedItemActions
-                  metrics={entry.metrics}
-                  feedContentType="BOUNTY"
-                  votableEntityId={bountyEntry.comment.id}
-                  relatedDocumentId={bountyEntry.relatedDocumentId}
-                  relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
-                />
-              </div>
+          {/* Action Buttons - Full width */}
+          <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
+            <div className="flex gap-2 items-center w-full" onClick={(e) => e.stopPropagation()}>
+              {/* Standard Feed Item Actions */}
+              <FeedItemActions
+                metrics={entry.metrics}
+                feedContentType="BOUNTY"
+                votableEntityId={bountyEntry.comment.id}
+                relatedDocumentId={bountyEntry.relatedDocumentId}
+                relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
+                userVote={entry.userVote}
+              />
             </div>
           </div>
         </div>
-      </Link>
+      </div>
     </div>
   );
 };

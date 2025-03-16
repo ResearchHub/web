@@ -5,13 +5,15 @@ import { FeedPaperContent, FeedEntry } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
-import Link from 'next/link';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { truncateText } from '@/utils/stringUtils';
+import { useRouter } from 'next/navigation';
+import { cn } from '@/utils/styles';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
+  href?: string; // Optional href prop
 }
 
 /**
@@ -29,7 +31,7 @@ const FeedItemPaperBody: FC<{
   return (
     <div className="mb-4">
       {/* Badges and Topics */}
-      <div className="flex flex-wrap gap-2 mb-3">
+      <div className="flex flex-wrap gap-2 mb-3" onClick={(e) => e.stopPropagation()}>
         <ContentTypeBadge type="paper" />
         {paper.journal && paper.journal.name && (
           <TopicAndJournalBadge
@@ -80,15 +82,26 @@ const FeedItemPaperBody: FC<{
 /**
  * Main component for rendering a paper feed item
  */
-export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry }) => {
+export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry, href }) => {
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
+  const router = useRouter();
 
   // Get the author from the paper
   const author = paper.createdBy;
 
-  // Create the paper page URL
-  const paperPageUrl = `/paper/${paper.id}/${paper.slug}`;
+  // Use provided href or create default paper page URL
+  const paperPageUrl = href || `/paper/${paper.id}/${paper.slug}`;
+
+  // Handle click on the card (navigate to paper page) - only if href is provided
+  const handleCardClick = () => {
+    if (href) {
+      router.push(paperPageUrl);
+    }
+  };
+
+  // Determine if card should have clickable styles
+  const isClickable = !!href;
 
   return (
     <div className="space-y-3">
@@ -99,45 +112,51 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry }) => {
         actionText="Published a paper"
       />
 
-      {/* Main Content Card - Wrapped with Link */}
-      <Link href={paperPageUrl} prefetch={false} className="block">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden group hover:shadow-md hover:border-blue-200 transition-all duration-200">
-          <div className="p-4">
-            {/* Content area with image */}
-            <div className="flex mb-4">
-              {/* Left side content */}
-              <div className="flex-1 pr-4">
-                {/* Body Content */}
-                <FeedItemPaperBody entry={entry} />
-              </div>
-
-              {/* Right side image - if available */}
-              {paper.journal && paper.journal.imageUrl && (
-                <div className="w-1/4 rounded-md overflow-hidden">
-                  <img
-                    src={paper.journal.imageUrl}
-                    alt={paper.journal.name || 'Journal cover'}
-                    className="w-full h-full object-cover"
-                    style={{ minHeight: '120px', maxHeight: '200px' }}
-                  />
-                </div>
-              )}
+      {/* Main Content Card - Using onClick instead of wrapping with Link */}
+      <div
+        onClick={handleCardClick}
+        className={cn(
+          'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden',
+          isClickable &&
+            'group hover:shadow-md hover:border-blue-200 transition-all duration-200 cursor-pointer'
+        )}
+      >
+        <div className="p-4">
+          {/* Content area with image */}
+          <div className="flex mb-4">
+            {/* Left side content */}
+            <div className="flex-1 pr-4">
+              {/* Body Content */}
+              <FeedItemPaperBody entry={entry} />
             </div>
 
-            {/* Action Buttons - Full width */}
-            <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
-              <div className="flex gap-2 items-center w-full">
-                {/* Standard Feed Item Actions */}
-                <FeedItemActions
-                  metrics={entry.metrics}
-                  feedContentType="PAPER"
-                  votableEntityId={paper.id}
+            {/* Right side image - if available */}
+            {paper.journal && paper.journal.imageUrl && (
+              <div className="w-1/4 rounded-md overflow-hidden">
+                <img
+                  src={paper.journal.imageUrl}
+                  alt={paper.journal.name || 'Journal cover'}
+                  className="w-full h-full object-cover"
+                  style={{ minHeight: '120px', maxHeight: '200px' }}
                 />
               </div>
+            )}
+          </div>
+
+          {/* Action Buttons - Full width */}
+          <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
+            <div className="flex gap-2 items-center w-full" onClick={(e) => e.stopPropagation()}>
+              {/* Standard Feed Item Actions */}
+              <FeedItemActions
+                metrics={entry.metrics}
+                feedContentType="PAPER"
+                votableEntityId={paper.id}
+                userVote={entry.userVote}
+              />
             </div>
           </div>
         </div>
-      </Link>
+      </div>
     </div>
   );
 };

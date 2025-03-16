@@ -19,6 +19,7 @@ interface ActionButtonProps {
   onClick?: () => void;
   isActive?: boolean;
   isDisabled?: boolean;
+  className?: string;
 }
 
 const ActionButton: FC<ActionButtonProps> = ({
@@ -29,17 +30,18 @@ const ActionButton: FC<ActionButtonProps> = ({
   onClick,
   isActive = false,
   isDisabled = false,
+  className = '',
 }) => (
   <Button
     variant="ghost"
     size="sm"
-    className={`flex items-center space-x-1.5 ${isActive ? 'text-primary' : 'text-gray-900'} hover:text-gray-900`}
+    className={`flex items-center space-x-1.5 ${isActive ? 'text-primary-600' : 'text-gray-900'} hover:text-gray-900 ${className}`}
     tooltip={tooltip}
     onClick={onClick}
     disabled={isDisabled}
   >
-    <Icon className="w-5 h-5" />
-    {count !== undefined && count > 0 && <span className="text-sm font-medium">{count}</span>}
+    <Icon className={`w-5 h-5 ${isActive ? 'text-primary-600' : ''}`} />
+    {count !== undefined && <span className="text-sm font-medium">{count}</span>}
     <span className="sr-only">{label}</span>
   </Button>
 );
@@ -64,6 +66,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
+
   const { vote, isVoting } = useVote({
     votableEntityId,
     feedContentType,
@@ -139,7 +142,13 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           />
         </div>
         <div className="ml-auto">
-          <ActionButton icon={Flag} tooltip="Report" label="Report" onClick={handleReport} />
+          <ActionButton
+            icon={Flag}
+            tooltip="Report"
+            label="Report"
+            onClick={handleReport}
+            className="text-gray-400 hover:text-gray-600"
+          />
         </div>
       </div>
 

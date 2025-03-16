@@ -7,6 +7,7 @@ import { Bounty, transformBounty } from './bounty';
 import { Comment, CommentType, ContentFormat, transformComment } from './comment';
 import { Fundraise, transformFundraise } from './funding';
 import { Journal } from './journal';
+import { UserVoteType } from './reaction';
 
 export type FeedActionType = 'contribute' | 'open' | 'publish' | 'post';
 
@@ -77,6 +78,7 @@ export interface FeedEntry {
   metrics?: ContentMetrics;
   relatedWork?: Work;
   raw?: RawApiFeedEntry;
+  userVote?: UserVoteType;
 }
 
 export interface RawApiFeedEntry {
@@ -86,6 +88,18 @@ export interface RawApiFeedEntry {
   created_date: string;
   action: string;
   action_date: string;
+  user_vote?: {
+    id: number;
+    content_type: number;
+    created_by: number;
+    created_date: string;
+    vote_type: number;
+    item: number;
+  };
+  metrics?: {
+    votes: number;
+    comments: number;
+  };
   author: {
     id: number;
     first_name: string;
@@ -344,12 +358,6 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
             id: content_object.id || id,
             document_type: 'POST',
           },
-          metrics: content_object.metrics || {
-            votes: 0,
-            comments: 0,
-            reposts: 0,
-            saves: 0,
-          },
         };
 
         content = transformPaper(genericData);
@@ -365,14 +373,18 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     content,
     relatedWork,
     contentType,
-    metrics: content_object.metrics
+    metrics: feedEntry.metrics
       ? {
-          votes: content_object.metrics.votes || 0,
-          comments: content_object.metrics.comments || 0,
-          reposts: content_object.metrics.reposts || 0,
-          saves: content_object.metrics.saves || 0,
+          votes: feedEntry.metrics.votes || 0,
+          comments: feedEntry.metrics.comments || 0,
         }
       : undefined,
     raw: feedEntry,
+    userVote:
+      feedEntry.user_vote?.vote_type === 1
+        ? 'UPVOTE'
+        : feedEntry.user_vote?.vote_type === 0
+          ? 'NEUTRAL'
+          : undefined,
   } as FeedEntry;
 };

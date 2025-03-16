@@ -78,13 +78,6 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
       isUnimplemented: true,
     },
     {
-      label: 'Peer Reviews',
-      href: '/peerreviews',
-      icon: Star,
-      description: 'Review and rate research papers',
-      isUnimplemented: true,
-    },
-    {
       label: 'Lab Notebook',
       href: '/notebook',
       icon: Notebook,

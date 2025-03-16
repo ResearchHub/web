@@ -4,7 +4,7 @@ import { FC, ReactNode } from 'react';
 import { FeedItemSkeleton } from './FeedItemSkeleton';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { FeedEntry, FeedPostContent } from '@/types/feed';
+import { FeedEntry, FeedPostContent, FeedPaperContent, FeedBountyContent } from '@/types/feed';
 import { Comment } from '@/types/comment';
 import { CommentCard } from '@/components/Comment/CommentCard';
 import { FeedItemFundraise } from './items/FeedItemFundraise';
@@ -18,6 +18,7 @@ interface FeedContentProps {
   loadMore: () => void;
   header?: ReactNode;
   tabs: ReactNode;
+  disableCardLinks?: boolean; // Optional prop to disable all card links
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -27,9 +28,46 @@ export const FeedContent: FC<FeedContentProps> = ({
   loadMore,
   header,
   tabs,
+  disableCardLinks = false,
 }) => {
-  const router = useRouter();
-  const { data: session } = useSession();
+  // Generate appropriate href for each feed item type
+  const generateHref = (entry: FeedEntry): string | undefined => {
+    // If links are disabled globally, return undefined
+    if (disableCardLinks) {
+      return undefined;
+    }
+
+    try {
+      switch (entry.contentType) {
+        case 'POST':
+          const postContent = entry.content as FeedPostContent;
+          return `/post/${postContent.id}/${postContent.slug}`;
+        case 'PREREGISTRATION':
+          const fundContent = entry.content as FeedPostContent;
+          return `/fund/${fundContent.id}/${fundContent.slug}`;
+        case 'PAPER':
+          const paperContent = entry.content as FeedPaperContent;
+          return `/paper/${paperContent.id}/${paperContent.slug}`;
+
+        case 'BOUNTY':
+          const bountyContent = entry.content as FeedBountyContent;
+          return `/bounty/${bountyContent.bounty.id}`;
+
+        case 'COMMENT':
+          const comment = entry.content as Comment;
+          // For comments, we might want to link to the parent content with the comment ID as a hash
+          if (entry.relatedWork?.slug) {
+            return `/papers/${entry.relatedWork.slug}#comment-${comment.id}`;
+          }
+
+        default:
+          return undefined;
+      }
+    } catch (error) {
+      console.error('Error generating href for entry:', error, entry);
+      return undefined;
+    }
+  };
 
   // Render a feed entry based on its content type
   const renderFeedEntry = (entry: FeedEntry, isFirst: boolean) => {
@@ -40,6 +78,9 @@ export const FeedContent: FC<FeedContentProps> = ({
     // Apply appropriate spacing based on position
     const spacingClass = !isFirst ? 'mt-12' : '';
 
+    // Generate the appropriate href for this entry
+    const href = generateHref(entry);
+
     try {
       // Use the contentType field on the FeedEntry object to determine the type of content
       switch (entry.contentType) {
@@ -47,14 +88,14 @@ export const FeedContent: FC<FeedContentProps> = ({
         case 'PREREGISTRATION':
           return (
             <div key={entry.id} className={spacingClass}>
-              <FeedItemFundraise entry={entry} />
+              <FeedItemFundraise entry={entry} href={href} />
             </div>
           );
 
         case 'PAPER':
           return (
             <div key={entry.id} className={spacingClass}>
-              <FeedItemPaper entry={entry} />
+              <FeedItemPaper entry={entry} href={href} />
             </div>
           );
 
@@ -62,21 +103,13 @@ export const FeedContent: FC<FeedContentProps> = ({
           // Use the new FeedItemBounty component
           return (
             <div key={entry.id} className={spacingClass}>
-              <FeedItemBounty entry={entry} relatedDocumentId={entry.relatedWork?.id} />
+              <FeedItemBounty entry={entry} relatedDocumentId={entry.relatedWork?.id} href={href} />
             </div>
           );
 
         case 'COMMENT':
           // This is a Comment
           const comment = entry.content as Comment;
-
-          // Generate a slug for the comment
-          let commentSlug = '';
-          if (entry.relatedWork?.slug) {
-            commentSlug = `papers/${entry.relatedWork.slug}`;
-          } else {
-            commentSlug = `comment/${comment.id}`;
-          }
 
           return (
             <div key={entry.id} className={spacingClass}>

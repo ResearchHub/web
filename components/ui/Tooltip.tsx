@@ -10,6 +10,7 @@ interface TooltipProps {
   className?: string;
   delay?: number; // Delay before showing tooltip in ms
   position?: 'top' | 'bottom' | 'left' | 'right';
+  width?: string; // Width class for the tooltip (e.g., 'w-38', 'w-80', 'w-96')
 }
 
 const TooltipContent = ({
@@ -18,12 +19,14 @@ const TooltipContent = ({
   className,
   isVisible,
   position = 'bottom',
+  width = 'w-38',
 }: {
   content: React.ReactNode;
   triggerRect: DOMRect | null;
   className?: string;
   isVisible: boolean;
   position?: 'top' | 'bottom' | 'left' | 'right';
+  width?: string;
 }) => {
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
@@ -77,8 +80,9 @@ const TooltipContent = ({
     <div
       ref={tooltipRef}
       className={cn(
-        'fixed z-50 px-2 py-1 text-xs text-white bg-gray-900 rounded shadow-md whitespace-nowrap',
-        'transform transition-all duration-150',
+        'fixed z-50 px-4 py-3 text-sm text-gray-800 bg-white rounded-md shadow-md border border-gray-200 text-center',
+        width,
+        'transform transition-all duration-150 break-words',
         {
           'opacity-0 scale-95': !isVisible || !mounted,
           'opacity-100 scale-100': isVisible && mounted,
@@ -102,6 +106,7 @@ export function Tooltip({
   className,
   delay = 100,
   position = 'bottom',
+  width = 'w-38',
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
@@ -157,6 +162,7 @@ export function Tooltip({
           className={className}
           isVisible={isVisible}
           position={position}
+          width={width}
         />
       )}
     </>
