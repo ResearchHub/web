@@ -13,18 +13,19 @@ import {
 import type { Note } from '@/types/note';
 import toast from 'react-hot-toast';
 import React from 'react';
+import { useOrganizationDataContext } from '@/contexts/OrganizationDataContext';
 
 interface NoteListItemProps {
   note: Note;
   isSelected?: boolean;
-  refreshNotes: () => Promise<void>;
 }
 
 /**
  * A single note item in the sidebar list
  */
-export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected, refreshNotes }) => {
+export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) => {
   const router = useRouter();
+  const { refreshNotes, setNotes } = useOrganizationDataContext();
   const [{ isLoading: isDeleting }, deleteNote] = useDeleteNote();
   const [{ isLoading: isDuplicating }, duplicateNote] = useDuplicateNote();
   const [{ isLoading: isMakingPrivate }, makeNotePrivate] = useMakeNotePrivate();
@@ -87,6 +88,7 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected, re
     try {
       await deleteNote(note.id);
       refreshNotes();
+      setNotes((prevNotes) => prevNotes.filter((n) => n.id !== note.id));
       if (isSelected) {
         router.replace(`/notebook/${note.organization.slug}`);
       }

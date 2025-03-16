@@ -8,7 +8,7 @@ export const OrganizationSwitcherSkeleton: React.FC = () => {
         <div className="flex items-center w-full">
           {/* Avatar */}
           <div className="h-8 w-8 rounded-full bg-gray-100 animate-pulse flex-shrink-0" />
-          {/* Org Name - taking up remaining space */}
+          {/* Org Name */}
           <div className="h-4 bg-gray-100 rounded ml-2 animate-pulse flex-grow" />
         </div>
       </div>

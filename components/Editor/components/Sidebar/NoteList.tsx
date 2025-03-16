@@ -9,7 +9,6 @@ interface NoteListProps {
   type: 'workspace' | 'private';
   isLoading?: boolean;
   selectedNoteId?: string;
-  refreshNotes: () => Promise<void>;
 }
 
 export const NoteList: React.FC<NoteListProps> = ({
@@ -17,7 +16,6 @@ export const NoteList: React.FC<NoteListProps> = ({
   type,
   isLoading = false,
   selectedNoteId,
-  refreshNotes,
 }) => {
   if (isLoading || notes.length === 0) {
     return <NoteListSkeleton />;
@@ -50,7 +48,6 @@ export const NoteList: React.FC<NoteListProps> = ({
           key={note.id}
           note={note}
           isSelected={selectedNoteId === note.id.toString()}
-          refreshNotes={refreshNotes}
         />
       ))}
     </div>

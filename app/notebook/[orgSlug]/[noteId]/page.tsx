@@ -23,7 +23,6 @@ export default function NotePage() {
     updateNoteTitle,
     isLoading,
   } = useOrganizationDataContext();
-  console.log({ note, isLoadingNote, noteError, isLoading });
 
   const [{ isLoading: isUpdating }, updateNote] = useUpdateNote(noteId, {
     onTitleUpdate: (newTitle) => {
@@ -53,15 +52,6 @@ export default function NotePage() {
     return <NotebookSkeleton />;
   }
 
-  let content = note.content;
-  let contentJson = note.contentJson;
-
-  //todo: do we really need this? or just display empty note?
-  if (!content && !contentJson) {
-    const defaultTemplate = JSON.stringify(preregistrationTemplate);
-    contentJson = defaultTemplate;
-  }
-
   return (
     <>
       <div className="h-full">
@@ -69,8 +59,8 @@ export default function NotePage() {
           <div className={'p-4 max-w-4xl mx-auto'}>
             <div className="bg-white rounded-lg shadow-md p-0 lg:p-8 lg:pl-16 min-h-[800px]">
               <BlockEditor
-                content={content || ''}
-                contentJson={contentJson}
+                content={note.content}
+                contentJson={note.contentJson}
                 isLoading={false}
                 onUpdate={updateNote}
               />

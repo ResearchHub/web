@@ -1,10 +1,10 @@
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode } from 'react';
 import './globals.css';
 import 'cal-sans';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
-import { Menu, ChevronLeft, ChevronRight, FileUp } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { Button } from '@/components/ui/Button';
@@ -19,8 +19,12 @@ import '@fontsource/inter/500.css';
 import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 import { LeftSidebar } from './LeftSidebar';
-import { OrganizationDataProvider } from '@/contexts/OrganizationDataContext';
+import {
+  OrganizationDataProvider,
+  useOrganizationDataContext,
+} from '@/contexts/OrganizationDataContext';
 import { RightSidebar } from './RightSidebar';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const DESKTOP_BREAKPOINT = 1024;
 
@@ -34,38 +38,27 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
     toggleRightSidebar,
   } = useSidebar();
   // Initialize with null to indicate we don't know yet
-  const [isDesktop, setIsDesktop] = useState<boolean | null>(null);
+  const { currentNote, isLoading } = useOrganizationDataContext();
+
+  const shouldShowRightSidebar = currentNote || isLoading;
 
   // Check if we're on desktop when component mounts and when window resizes
-  useEffect(() => {
-    // Function to check viewport width
-    const checkIfDesktop = () => {
-      setIsDesktop(window.innerWidth >= DESKTOP_BREAKPOINT);
-    };
-
-    // Initial check - run immediately
-    checkIfDesktop();
-
-    // Add event listener for resize
-    window.addEventListener('resize', checkIfDesktop);
-
-    // Cleanup
-    return () => window.removeEventListener('resize', checkIfDesktop);
-  }, []);
+  const isDesktop = useMediaQuery(`(min-width: ${DESKTOP_BREAKPOINT}px)`);
 
   if (isDesktop === null) {
-    // TODO: add a loading spinner???
     return null;
   }
 
   return (
     <div className="min-h-screen bg-white">
       {isDesktop ? (
-        // Desktop layout - 3 columns grid
+        // Desktop layout - 2 or 3 columns grid depending on whether there's a note
         <div
           className="grid min-h-screen w-full"
           style={{
-            gridTemplateColumns: '300px minmax(0, 1fr) 300px',
+            gridTemplateColumns: shouldShowRightSidebar
+              ? '300px minmax(0, 1fr) 300px'
+              : '300px minmax(0, 1fr)',
           }}
         >
           {/* Left Sidebar - 300px fixed width */}
@@ -206,7 +199,6 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
     </div>
   );
 }
-
 export default function NotebookLayout({ children }: { children: React.ReactNode }) {
   return (
     <OrganizationDataProvider>

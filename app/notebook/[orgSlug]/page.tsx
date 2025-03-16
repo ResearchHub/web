@@ -9,7 +9,7 @@ export default function OrganizationPage() {
     <div className="flex flex-col items-center justify-center h-full p-8">
       <div className="max-w-md text-center">
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-          Welcome to {selectedOrg?.name}
+          {selectedOrg?.name ? `Welcome to ${selectedOrg.name}` : 'Welcome'}
         </h2>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <p className="text-gray-600 mb-4">

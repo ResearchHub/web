@@ -2,7 +2,6 @@ import { Editor, EditorContent } from '@tiptap/react';
 import React, { useEffect, useRef } from 'react';
 import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
 import '@/components/Editor/styles/index.css';
-// import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 import { useBlockEditor } from '../../hooks/useBlockEditor';
 import { ContentItemMenu } from '../menus/ContentItemMenu';
 import { LinkMenu } from '../menus/LinkMenu';

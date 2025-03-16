@@ -11,18 +11,23 @@ import { FileText, Plus, Wallet, Lock } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { Organization } from '@/types/organization';
 import { useParams, useRouter } from 'next/navigation';
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useTransition } from 'react';
 import { useNoteContent, useCreateNote } from '@/hooks/useNote';
 import { getInitialContent } from '@/components/Editor/lib/data/initialContent';
 import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
 import toast from 'react-hot-toast';
 import { useOrganizationDataContext } from '@/contexts/OrganizationDataContext';
 
+/**
+ * Left sidebar component for the notebook layout
+ * Displays organization information and lists of workspace and private notes
+ */
 export const LeftSidebar = () => {
   const params = useParams();
   const currentNoteId = params?.noteId as string;
   const router = useRouter();
 
+  const [isPending, startTransition] = useTransition();
   const [{ isLoading: isCreatingNote }, createNote] = useCreateNote();
   const [{ isLoading: isUpdatingContent }, updateNoteContent] = useNoteContent();
   const {
@@ -32,13 +37,22 @@ export const LeftSidebar = () => {
     isLoading: isLoadingOrgs,
   } = useOrganizationContext();
   const { notes, isLoading: isLoadingNotes, refreshNotes } = useOrganizationDataContext();
-  const handleOrgSelect = useCallback(async (org: Organization) => {
-    setSelectedOrg(org);
+  const handleOrgSelect = useCallback(
+    async (org: Organization) => {
+      setSelectedOrg(org);
 
-    const targetPath = `/notebook?orgSlug=${org.slug}`;
-
-    await router.replace(targetPath);
-  }, []);
+      try {
+        startTransition(() => {
+          const targetPath = `/notebook/${org.slug}`;
+          router.replace(targetPath);
+        });
+      } catch (error) {
+        console.error('Error navigating to organization:', error);
+        toast.error('Failed to switch organization. Please try again.');
+      }
+    },
+    [router, startTransition]
+  );
 
   const handleTemplateSelect = useCallback(
     async (type: 'workspace' | 'private', template: 'research' | 'grant' | 'preregistration') => {
@@ -167,7 +181,7 @@ export const LeftSidebar = () => {
         organizations={organizations}
         selectedOrg={selectedOrg}
         onOrgSelect={handleOrgSelect}
-        isLoading={isLoadingOrgs}
+        isLoading={isLoadingOrgs || isPending}
       />
 
       <div className="flex-1 overflow-y-auto">
@@ -177,9 +191,8 @@ export const LeftSidebar = () => {
               <NoteList
                 type="workspace"
                 notes={notes || []}
-                isLoading={isLoadingNotes}
+                isLoading={isLoadingNotes || isPending}
                 selectedNoteId={currentNoteId}
-                refreshNotes={refreshNotes}
               />
             ) : (
               <div className="flex flex-col items-center justify-center py-4 text-sm text-gray-500">
@@ -210,9 +223,8 @@ export const LeftSidebar = () => {
               <NoteList
                 type="private"
                 notes={notes || []}
-                isLoading={isLoadingNotes}
+                isLoading={isLoadingNotes || isPending}
                 selectedNoteId={currentNoteId}
-                refreshNotes={refreshNotes}
               />
             ) : (
               <div className="flex flex-col items-center justify-center py-4 text-sm text-gray-500">
