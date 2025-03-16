@@ -102,7 +102,7 @@ export const BountyCard = ({
   const { data: session } = useSession();
 
   // Check if the current user is the author of the bounty
-  const isAuthor = session?.user?.id === bounty?.createdBy?.id;
+  const isAuthor = session?.userId === bounty?.createdBy?.id.toString();
 
   // If no valid bounty is provided, don't render anything
   if (!bounty) {

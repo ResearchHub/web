@@ -2,7 +2,7 @@ import React from 'react';
 
 export function PublishingFormSkeleton() {
   return (
-    <div className="w-82 border-l flex flex-col h-screen sticky right-0 top-0 bg-white">
+    <div className="w-82 flex flex-col h-screen sticky right-0 top-0 bg-white">
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto">
         <div className="pb-6">
@@ -39,7 +39,7 @@ export function PublishingFormSkeleton() {
       </div>
 
       {/* Sticky bottom section */}
-      <div className="border-t bg-white p-6 space-y-3 sticky bottom-0">
+      <div className="border-t bg-white p-2 lg:p-6 space-y-3 sticky bottom-0">
         <div className="h-10 w-full bg-gray-200 rounded" />
       </div>
     </div>

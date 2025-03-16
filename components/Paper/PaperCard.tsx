@@ -72,7 +72,7 @@ export const PaperCard = ({
   const { data: session } = useSession();
 
   // Check if the current user is the author of the paper
-  const isAuthor = session?.user?.id === paper?.authors?.[0]?.authorProfile?.user?.id;
+  const isAuthor = session?.userId === paper?.authors?.[0]?.authorProfile?.user?.id;
 
   // If no valid paper is provided, don't render anything
   if (!paper) {
