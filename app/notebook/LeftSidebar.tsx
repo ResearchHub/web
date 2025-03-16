@@ -1,53 +1,57 @@
 'use client';
 
-import { Plus, Lock, Loader2 } from 'lucide-react';
+import { NoteList } from '@/components/Editor/components/Sidebar/NoteList';
+import { OrganizationSwitcher } from '@/components/Editor/components/Sidebar/OrganizationSwitcher';
+import { SidebarSection } from '@/components/Editor/components/Sidebar/SidebarSection';
+import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
-import { SidebarSection } from './SidebarSection';
-import { NoteList } from './NoteList';
-import { OrganizationSwitcher } from './OrganizationSwitcher';
+import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
-import { useRouter, useParams } from 'next/navigation';
-import { useCallback, useState } from 'react';
-import type { Organization } from '@/types/organization';
-import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { FileText, Wallet } from 'lucide-react';
-import { useCreateNote, useNoteContent } from '@/hooks/useNote';
+import { FileText, Plus, Wallet, Lock } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { Organization } from '@/types/organization';
+import { useParams, useRouter } from 'next/navigation';
+import { useCallback, useTransition } from 'react';
+import { useNoteContent, useCreateNote } from '@/hooks/useNote';
 import { getInitialContent } from '@/components/Editor/lib/data/initialContent';
 import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
 import toast from 'react-hot-toast';
+import { useNotebookContext } from '@/contexts/NotebookContext';
 
 /**
  * Left sidebar component for the notebook layout
  * Displays organization information and lists of workspace and private notes
  */
-const LeftSidebar = () => {
-  const router = useRouter();
+export const LeftSidebar = () => {
   const params = useParams();
-  const currentOrgSlug = params?.orgSlug as string;
-  const noteId = params?.noteId as string;
-  const { selectedOrg, organizations, isLoading: isLoadingOrgs } = useOrganizationContext();
-  const { notes, isLoading: isLoadingNotes, refresh: refreshNotes } = useOrganizationNotesContext();
+  const currentNoteId = params?.noteId as string;
+  const router = useRouter();
+
+  const [isPending, startTransition] = useTransition();
   const [{ isLoading: isCreatingNote }, createNote] = useCreateNote();
   const [{ isLoading: isUpdatingContent }, updateNoteContent] = useNoteContent();
-  const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false);
-
-  //TODO: we might just update the selected org from the @organizationContext
+  const {
+    organizations,
+    selectedOrg,
+    setSelectedOrg,
+    isLoading: isLoadingOrgs,
+  } = useOrganizationContext();
+  const { notes, isLoading: isLoadingNotes, refreshNotes } = useNotebookContext();
   const handleOrgSelect = useCallback(
     async (org: Organization) => {
-      // If we're already on this org's page, no need to navigate
-      if (org.slug === currentOrgSlug) {
-        return;
+      setSelectedOrg(org);
+
+      try {
+        startTransition(() => {
+          const targetPath = `/notebook/${org.slug}`;
+          router.replace(targetPath);
+        });
+      } catch (error) {
+        console.error('Error navigating to organization:', error);
+        toast.error('Failed to switch organization. Please try again.');
       }
-
-      // If we have notes for the current org, navigate to the first note
-      // Otherwise, just navigate to the org's page
-      const targetPath =
-        notes.length > 0 ? `/notebook/${org.slug}/${notes[0].id}` : `/notebook/${org.slug}`;
-
-      await router.push(targetPath);
     },
-    [router, currentOrgSlug, notes]
+    [router, startTransition]
   );
 
   const handleTemplateSelect = useCallback(
@@ -119,7 +123,6 @@ const LeftSidebar = () => {
       }
       align="start"
       className="w-56 p-1.5"
-      onOpenChange={setIsTemplateMenuOpen}
     >
       <div className="text-[.65rem] font-semibold mb-1 uppercase text-neutral-500 px-2">
         Select Template
@@ -173,25 +176,39 @@ const LeftSidebar = () => {
   );
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col sticky top-0 left-0">
-      <div className="flex-none">
-        <OrganizationSwitcher
-          organizations={organizations}
-          selectedOrg={selectedOrg}
-          onOrgSelect={handleOrgSelect}
-          isLoading={isLoadingOrgs}
-        />
-      </div>
+    <div className="h-full overflow-y-auto">
+      <OrganizationSwitcher
+        organizations={organizations}
+        selectedOrg={selectedOrg}
+        onOrgSelect={handleOrgSelect}
+        isLoading={isLoadingOrgs || isPending}
+      />
 
       <div className="flex-1 overflow-y-auto">
         <div className="px-2 py-3">
           <SidebarSection action={renderTemplateMenu('workspace')} title="Workspace">
-            <NoteList
-              type="workspace"
-              notes={notes}
-              isLoading={isLoadingNotes}
-              selectedNoteId={noteId}
-            />
+            {(notes && notes.length > 0) || isLoadingNotes || isLoadingOrgs ? (
+              <NoteList
+                type="workspace"
+                notes={notes || []}
+                isLoading={isLoadingNotes || isPending}
+                selectedNoteId={currentNoteId}
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-4 text-sm text-gray-500">
+                <p className="mb-2">No notes yet</p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleTemplateSelect('workspace', 'research')}
+                  disabled={isCreatingNote || isUpdatingContent}
+                  className="flex items-center gap-1"
+                >
+                  <Plus className="h-3 w-3" />
+                  Add New Note
+                </Button>
+              </div>
+            )}
           </SidebarSection>
         </div>
 
@@ -202,17 +219,31 @@ const LeftSidebar = () => {
             action={renderTemplateMenu('private')}
             title="Private"
           >
-            <NoteList
-              type="private"
-              notes={notes}
-              isLoading={isLoadingNotes}
-              selectedNoteId={noteId}
-            />
+            {(notes && notes.length > 0) || isLoadingNotes || isLoadingOrgs ? (
+              <NoteList
+                type="private"
+                notes={notes || []}
+                isLoading={isLoadingNotes || isPending}
+                selectedNoteId={currentNoteId}
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-4 text-sm text-gray-500">
+                <p className="mb-2">No private notes yet</p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleTemplateSelect('private', 'research')}
+                  disabled={isCreatingNote || isUpdatingContent}
+                  className="flex items-center gap-1"
+                >
+                  <Plus className="h-3 w-3" />
+                  Add Private Note
+                </Button>
+              </div>
+            )}
           </SidebarSection>
         </div>
       </div>
     </div>
   );
 };
-
-export default LeftSidebar;

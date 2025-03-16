@@ -2,7 +2,6 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { publishingFormSchema } from './schema';
 import type { PublishingFormData } from './schema';
-import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 import { WorkTypeSection } from './components/WorkTypeSection';
 import { FundingSection } from './components/FundingSection';
 import { AuthorsSection } from './components/AuthorsSection';
@@ -27,6 +26,7 @@ import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSke
 import { Loader2 } from 'lucide-react';
 import { DOISection } from '@/components/work/components/DOISection';
 import { getFieldErrorMessage } from '@/utils/form';
+import { useNotebookContext } from '@/contexts/NotebookContext';
 
 interface PublishingFormProps {
   bountyAmount: number | null;
@@ -61,7 +61,7 @@ const getButtonText = ({
 };
 
 export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormProps) {
-  const { noteId, editor, note } = useNotebookPublish();
+  const { currentNote: note, editor } = useNotebookContext();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
 
@@ -78,12 +78,27 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     mode: 'onChange',
   });
 
+  // Reset form when switching between notes
+  useEffect(() => {
+    if (note?.id) {
+      // Reset form to default values when switching notes
+      methods.reset({
+        authors: [],
+        topics: [],
+        rewardFunders: false,
+        nftSupply: '1000',
+        isJournalEnabled: false,
+        budget: '',
+      });
+    }
+  }, [note?.id, methods]);
+
   // Load data with priority:
   // 1. note.post data
   // 2. localStorage data
   // 3. URL search params
   useEffect(() => {
-    if (!noteId || !note) return;
+    if (!note) return;
 
     // Priority 1: Check for existing post data
     if (note?.post) {
@@ -106,7 +121,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     }
 
     // Priority 2: Check localStorage
-    const storedData = loadPublishingFormFromStorage(noteId.toString());
+    const storedData = loadPublishingFormFromStorage(note?.id.toString() || '');
     if (storedData) {
       Object.entries(storedData).forEach(([key, value]) => {
         methods.setValue(key as keyof PublishingFormData, value);
@@ -125,18 +140,18 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         methods.setValue('articleType', articleType);
       }
     }
-  }, [noteId, note, methods, searchParams]);
+  }, [note, methods, searchParams]);
 
   // Add effect to save form data when it changes
   useEffect(() => {
-    if (!noteId) return;
+    if (!note) return;
 
     const subscription = methods.watch((data) => {
-      savePublishingFormToStorage(noteId.toString(), data as Partial<PublishingFormData>);
+      savePublishingFormToStorage(note.id.toString(), data as Partial<PublishingFormData>);
     });
 
     return () => subscription.unsubscribe();
-  }, [methods, noteId]);
+  }, [methods, note]);
 
   const { watch, clearErrors } = methods;
   const articleType = watch('articleType');
@@ -202,7 +217,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           rewardFunders: formData.rewardFunders,
           nftSupply: formData.nftSupply || '1000',
           title,
-          noteId: noteId,
+          noteId: note?.id.toString(),
           renderableText: text || '',
           fullJSON: JSON.stringify(json),
           fullSrc: previewContent || '',
@@ -230,7 +245,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
 
   return (
     <FormProvider {...methods}>
-      <div className="w-82 flex flex-col h-screen sticky right-0 top-0 bg-white relative">
+      <div className="w-82 flex flex-col sticky right-0 top-0 bg-white relative h-[calc(100vh-64px)] lg:h-screen">
         {/* Processing overlay */}
         {(isLoadingUpsert || isRedirecting) && (
           <div className="absolute inset-0 bg-white/50 z-50 flex flex-col items-center justify-center">
@@ -260,7 +275,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         </div>
 
         {/* Sticky bottom section */}
-        <div className="border-t bg-white p-6 space-y-3 sticky bottom-0">
+        <div className="border-t bg-white p-2 lg:p-6 space-y-3 sticky bottom-0">
           {articleType === 'discussion' && isJournalEnabled && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">Payment due:</span>
