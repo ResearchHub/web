@@ -254,7 +254,7 @@ export const FeedContent: FC<FeedContentProps> = ({
         };
 
         // Check if the current user is the author
-        const isAuthor = session?.user?.id === entry.raw.author?.user?.id;
+        const isAuthor = session?.userId === entry.raw.author?.user?.id;
 
         return (
           <div key={entry.id} className={spacingClass}>
@@ -286,7 +286,7 @@ export const FeedContent: FC<FeedContentProps> = ({
             };
 
             // Check if the current user is the author
-            const isAuthor = session?.user?.id === work.authors?.[0]?.authorProfile?.user?.id;
+            const isAuthor = session?.userId === work.authors?.[0]?.authorProfile?.user?.id;
 
             return (
               <div key={entry.id} className={spacingClass}>
