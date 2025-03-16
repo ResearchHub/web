@@ -6,6 +6,11 @@ interface GetContentOptions {
   cleanIntroEmptyContent?: boolean;
 }
 
+export interface UpsertPostResponse {
+  work: Work;
+  raw: any;
+}
+
 export class PostService {
   private static readonly BASE_PATH = '/api/researchhubpost';
 
@@ -14,10 +19,13 @@ export class PostService {
     return transformPost(response);
   }
 
-  static async upsert(payload: any): Promise<Work> {
-    const response = await ApiClient.post<any>(`${this.BASE_PATH}/`, payload);
+  static async upsert(payload: any): Promise<UpsertPostResponse> {
+    const rawResponse = await ApiClient.post<any>(`${this.BASE_PATH}/`, payload);
 
-    return transformPost(response);
+    return {
+      work: transformPost(rawResponse),
+      raw: rawResponse,
+    };
   }
 
   static async getContent(url: string, options: GetContentOptions = {}): Promise<string> {

@@ -1,5 +1,6 @@
 import { NonprofitOrg, NonprofitSearchParams } from '@/types/nonprofit';
 import { ApiClient } from './client';
+import { ID } from '@/types/root';
 
 /**
  * Service for interacting with nonprofit organizations API
@@ -35,6 +36,51 @@ export class NonprofitService {
       return response;
     } catch (error) {
       console.error('Error searching nonprofit organizations:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create or retrieve a nonprofit organization
+   * @param params - The nonprofit organization parameters
+   * @returns A promise that resolves to the created or retrieved NonprofitOrg object
+   * @throws Error when the API request fails
+   */
+  static async createNonprofit(params: {
+    name: string;
+    endaoment_org_id: string;
+    ein?: string;
+    base_wallet_address?: string;
+  }): Promise<NonprofitOrg> {
+    try {
+      const response = await ApiClient.post<NonprofitOrg>(`${this.BASE_PATH}/create/`, params);
+      return response;
+    } catch (error) {
+      console.error('Error creating nonprofit organization:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Link a nonprofit organization to a fundraise
+   * @param params - The link parameters
+   * @returns A promise that resolves to the created link object
+   * @throws Error when the API request fails
+   */
+  static async linkToFundraise(params: {
+    nonprofit_id: ID;
+    fundraise_id: ID;
+    note?: string;
+  }): Promise<{ id: ID; nonprofit: NonprofitOrg; fundraise: { id: ID } }> {
+    try {
+      const response = await ApiClient.post<{
+        id: ID;
+        nonprofit: NonprofitOrg;
+        fundraise: { id: ID };
+      }>(`${this.BASE_PATH}/link-to-fundraise/`, params);
+      return response;
+    } catch (error) {
+      console.error('Error linking nonprofit to fundraise:', error);
       throw error;
     }
   }

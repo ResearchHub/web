@@ -10,7 +10,7 @@ import { JournalSection } from './components/JournalSection';
 import { Button } from '@/components/ui/Button';
 import { useState, useEffect, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useUpsertPost } from '@/hooks/useDocument';
+import { useUpsertPost, UpsertPostResult } from '@/hooks/useDocument';
 import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
 import {
   getDocumentTitleFromEditor,
@@ -28,6 +28,9 @@ import { DOISection } from '@/components/work/components/DOISection';
 import { getFieldErrorMessage } from '@/utils/form';
 import { NonprofitSearchSection } from './components/NonprofitSearchSection';
 import { useNotebookContext } from '@/contexts/NotebookContext';
+import { useNonprofitLink } from '@/hooks/useNonprofitLink';
+import { Work } from '@/types/work';
+import { ID } from '@/types/root';
 
 interface PublishingFormProps {
   bountyAmount: number | null;
@@ -65,6 +68,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   const { currentNote: note, editor } = useNotebookContext();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [{ isLoading: isLoadingNonprofitLink }, linkNonprofitToFundraise] = useNonprofitLink();
 
   const methods = useForm<PublishingFormData>({
     defaultValues: {
@@ -74,6 +78,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       nftSupply: '1000',
       isJournalEnabled: false,
       budget: '',
+      departmentLabName: '',
     },
     resolver: zodResolver(publishingFormSchema),
     mode: 'onChange',
@@ -90,6 +95,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         nftSupply: '1000',
         isJournalEnabled: false,
         budget: '',
+        departmentLabName: '',
       });
     }
   }, [note?.id, methods]);
@@ -212,6 +218,11 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       const title = getDocumentTitleFromEditor(editor);
       const formData = methods.getValues();
 
+      console.log('Publishing form data:', formData);
+      console.log('Selected nonprofit:', formData.selectedNonprofit);
+      console.log('Department/lab name:', formData.departmentLabName);
+      console.log('Base wallet address:', formData.selectedNonprofit?.baseWalletAddress);
+
       const response = await upsertPost(
         {
           budget: formData.budget || '0',
@@ -227,6 +238,36 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         },
         formData.workId
       );
+
+      console.log('Upsert response:', response);
+      console.log('Raw response:', response.rawResponse);
+      console.log('Fundraise ID:', response.fundraiseId);
+
+      // If there's a selected nonprofit and the fundraiseId is available
+      if (formData.selectedNonprofit && response.fundraiseId) {
+        console.log('Attempting to link nonprofit to fundraise...');
+        try {
+          await linkNonprofitToFundraise(
+            {
+              name: formData.selectedNonprofit.name,
+              endaoment_org_id: formData.selectedNonprofit.id,
+              ein: formData.selectedNonprofit.ein,
+              base_wallet_address: formData.selectedNonprofit.baseWalletAddress,
+            },
+            response.fundraiseId,
+            formData.departmentLabName || `Linked from preregistration ${response.id}`
+          );
+          console.log('Successfully linked nonprofit to fundraise');
+        } catch (error) {
+          console.error('Error linking nonprofit:', error);
+          // Continue with redirect even if nonprofit linking fails
+        }
+      } else {
+        console.log('Skipping nonprofit linking - conditions not met:', {
+          hasSelectedNonprofit: Boolean(formData.selectedNonprofit),
+          hasFundraiseId: Boolean(response.fundraiseId),
+        });
+      }
 
       setIsRedirecting(true);
 

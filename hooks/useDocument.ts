@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { PostService } from '@/services/post.service';
+import { PostService, UpsertPostResponse } from '@/services/post.service';
 import { Work } from '@/types/work';
 import { ID } from '@/types/root';
 import { ApiError } from '@/services/types';
@@ -27,7 +27,15 @@ interface UsePostState {
   error: string | null;
 }
 
-type UpsertPostFn = (postParams: PreregistrationPostParams, postId?: ID) => Promise<Work>;
+export interface UpsertPostResult extends Work {
+  rawResponse?: any;
+  fundraiseId?: ID;
+}
+
+type UpsertPostFn = (
+  postParams: PreregistrationPostParams,
+  postId?: ID
+) => Promise<UpsertPostResult>;
 type UseUpsertPostReturn = [UsePostState, UpsertPostFn];
 
 export const useUpsertPost = (): UseUpsertPostReturn => {
@@ -64,8 +72,18 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
 
       const response = await PostService.upsert(payload);
 
-      setData(response);
-      return response;
+      // Extract fundraise ID from raw response if available
+      const fundraiseId = response.raw?.fundraise?.id;
+
+      // Set the transformed work as data
+      setData(response.work);
+
+      // Return an enhanced work object with the raw response and fundraise ID
+      return {
+        ...response.work,
+        rawResponse: response.raw,
+        fundraiseId,
+      };
     } catch (err) {
       const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
       const errorMsg = data?.msg || 'An error occurred while saving the preregistration post';

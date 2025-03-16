@@ -21,7 +21,7 @@ export interface NonprofitOrg {
   name: string;
   ein: string;
   deployments: NonprofitDeployment[];
-  logoUrl: string;
+  logoUrl?: string;
   nteeCode: string;
   nteeDescription: string;
   description: string;
@@ -29,6 +29,7 @@ export interface NonprofitOrg {
   endaomentUrl: string;
   contibutionCount: number;
   contibutionTotal: string;
+  baseWalletAddress?: string; // Base network wallet address (chainId: 8453)
 }
 
 /**

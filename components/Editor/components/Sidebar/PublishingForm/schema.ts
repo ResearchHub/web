@@ -29,6 +29,7 @@ const nonprofitOrgSchema = z.object({
   endaomentUrl: z.string(),
   contibutionCount: z.number(),
   contibutionTotal: z.string(),
+  baseWalletAddress: z.string().optional(),
 });
 
 export const publishingFormSchema = z
@@ -52,6 +53,7 @@ export const publishingFormSchema = z
     ),
     isJournalEnabled: z.boolean().optional(),
     selectedNonprofit: nonprofitOrgSchema.nullable().optional(),
+    departmentLabName: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     // Preregistration-specific validations
@@ -72,6 +74,15 @@ export const publishingFormSchema = z
           code: z.ZodIssueCode.custom,
           message: 'At least one topic is required',
           path: ['topics'],
+        });
+      }
+
+      // Validate department/lab name if nonprofit is selected
+      if (data.selectedNonprofit && !data.departmentLabName?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Department and lab name is required when a nonprofit is selected',
+          path: ['departmentLabName'],
         });
       }
     }

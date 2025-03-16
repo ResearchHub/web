@@ -19,6 +19,7 @@ export function NonprofitSearchSection() {
   const { results, isLoading, searchNonprofits, clearResults } = useNonprofitSearch();
   const { setValue, watch } = useFormContext();
   const selectedNonprofit = watch('selectedNonprofit');
+  const departmentLabName = watch('departmentLabName');
 
   // Perform search when searchTerm changes
   useEffect(() => {
@@ -37,7 +38,16 @@ export function NonprofitSearchSection() {
 
   // Handle selection of a nonprofit
   const handleSelectNonprofit = (nonprofit: NonprofitOrg) => {
-    setValue('selectedNonprofit', nonprofit);
+    // Find the Base network wallet address (chainId: 8453)
+    const baseDeployment = nonprofit.deployments.find((deployment) => deployment.chainId === 8453);
+    const baseWalletAddress = baseDeployment?.address;
+
+    // Store the nonprofit with the base wallet address in the form
+    setValue('selectedNonprofit', {
+      ...nonprofit,
+      baseWalletAddress,
+    });
+
     setSearchTerm(nonprofit.name);
     setIsDropdownOpen(false);
     setSelectedInfoOrg(null);
@@ -124,21 +134,43 @@ export function NonprofitSearchSection() {
       </div>
 
       {selectedNonprofit && (
-        <div className="mt-4 p-3 border border-gray-200 rounded-md">
-          <div className="flex justify-between items-start">
-            <div>
-              <h4 className="font-medium text-gray-900">{selectedNonprofit.name}</h4>
-              <p className="text-xs text-gray-500">EIN: {selectedNonprofit.ein}</p>
-              <p className="text-sm text-gray-600 mt-1">{selectedNonprofit.nteeDescription}</p>
+        <>
+          <div className="mt-4 p-3 border border-gray-200 rounded-md">
+            <div className="flex justify-between items-start">
+              <div>
+                <h4 className="font-medium text-gray-900">{selectedNonprofit.name}</h4>
+                <p className="text-xs text-gray-500">EIN: {selectedNonprofit.ein}</p>
+                <p className="text-sm text-gray-600 mt-1">{selectedNonprofit.nteeDescription}</p>
+              </div>
+              <button
+                className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-50"
+                onClick={(e) => handleInfoClick(selectedNonprofit, e)}
+              >
+                <Info className="h-4 w-4" />
+              </button>
             </div>
-            <button
-              className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-50"
-              onClick={(e) => handleInfoClick(selectedNonprofit, e)}
-            >
-              <Info className="h-4 w-4" />
-            </button>
           </div>
-        </div>
+
+          <div className="mt-3">
+            <label
+              htmlFor="departmentLabName"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              University Department and Lab Name
+            </label>
+            <Input
+              id="departmentLabName"
+              placeholder="e.g., Weldon School of Biomedical Engineering, Rayz Lab"
+              value={departmentLabName || ''}
+              onChange={(e) => setValue('departmentLabName', e.target.value)}
+              className="w-full"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              This information will be associated with the nonprofit organization for this
+              preregistration.
+            </p>
+          </div>
+        </>
       )}
 
       {selectedInfoOrg &&
