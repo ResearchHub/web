@@ -5,7 +5,7 @@ import { ApiClient } from './client';
  * Service for interacting with nonprofit organizations API
  */
 export class NonprofitService {
-  private static readonly BASE_PATH = '/api/nonprofit_orgs';
+  private static readonly BASE_PATH = '/api/organizations/non-profit';
 
   /**
    * Search for nonprofit organizations based on provided parameters
