@@ -166,16 +166,6 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({ entry, href }) =
                 </div>
               )}
             </div>
-
-            {/* Right side image - cancer cells microscopic image */}
-            <div className="w-1/4 rounded-md overflow-hidden">
-              <img
-                src="https://media.gettyimages.com/id/480798971/video/microscopic-image-of-human-cancer-cells-melanoma.jpg?s=640x640&k=20&c=FhPQtB4SVMyd10NCmTjpnWVs2JXCyLU4WeUvAthtUZA="
-                alt="Microscopic image of cancer cells"
-                className="w-full h-full object-cover"
-                style={{ minHeight: '200px' }}
-              />
-            </div>
           </div>
 
           {/* Action Buttons - Full width */}

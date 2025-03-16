@@ -1,7 +1,7 @@
 'use client';
 
 import { EditorContent } from '@tiptap/react';
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import 'highlight.js/styles/atom-one-dark.css';
 import { CommentType } from '@/types/comment';
@@ -48,8 +48,14 @@ export const CommentEditor = ({
   debug = false,
   autoFocus = false,
 }: CommentEditorProps) => {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const editorRef = useRef<HTMLDivElement>(null);
+
+  // Debug session information
+  useEffect(() => {
+    console.log('CommentEditor - Session Status:', status);
+    console.log('CommentEditor - Session Data:', session);
+  }, [session, status]);
 
   // Adapt the onSubmit function to the format expected by useEditorHandlers
   const adaptedOnSubmit = useCallback(

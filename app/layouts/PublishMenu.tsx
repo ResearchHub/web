@@ -4,8 +4,6 @@ import { Plus, FileUp, BadgeCheck, HandCoins, PlayCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
-import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
-import { useState } from 'react';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 interface PublishMenuProps {
@@ -14,16 +12,20 @@ interface PublishMenuProps {
 
 export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
   const router = useRouter();
-  const [isBountyModalOpen, setIsBountyModalOpen] = useState(false);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
+
   const handleFundResearch = () => {
     router.push('/notebook?newFunding=true');
+  };
+
+  const handleCreateBounty = () => {
+    router.push('/bounty/create');
   };
 
   const trigger = (
     <button className="flex items-center px-5 py-3.5 gap-2.5 text-[15px] font-medium rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px]">
       <Plus className="h-[22px] w-[22px] stroke-[1.5]" />
-      <span>New</span>
+      <span>Publish</span>
     </button>
   );
 
@@ -93,7 +95,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
               </h3>
             </div>
             <div className="space-y-2">
-              <BaseMenuItem onClick={() => setIsBountyModalOpen(true)} className="w-full px-2">
+              <BaseMenuItem onClick={handleCreateBounty} className="w-full px-2">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
                     <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
@@ -153,8 +155,6 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
           </div>
         </div>
       </BaseMenu>
-
-      <CreateBountyModal isOpen={isBountyModalOpen} onClose={() => setIsBountyModalOpen(false)} />
     </div>
   );
 };

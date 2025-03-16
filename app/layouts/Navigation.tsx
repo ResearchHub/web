@@ -87,14 +87,18 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
   ];
 
   const getButtonStyles = (path: string, currentPath: string) => {
-    const isActive = path === currentPath;
+    const isActive =
+      path === '/' ? ['/', '/following', '/latest'].includes(currentPath) : path === currentPath;
+
     return isActive
       ? 'flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-indigo-600 bg-indigo-50 rounded-lg group'
       : 'flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-lg group';
   };
 
   const getIconStyles = (path: string, currentPath: string) => {
-    const isActive = path === currentPath;
+    const isActive =
+      path === '/' ? ['/', '/following', '/latest'].includes(currentPath) : path === currentPath;
+
     return `h-[22px] w-[22px] mr-3.5 ${isActive ? 'text-indigo-600' : 'text-gray-600 group-hover:text-indigo-600'}`;
   };
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { BookOpen, Check, Hash, BookMarked } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { Button } from '@/components/ui/Button';
 import { HubService } from '@/services/hub.service';
 import { Topic } from '@/types/topic';
@@ -128,6 +128,17 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({ count = 4 }) => (
   </div>
 );
 
+// Cache for topics data
+interface TopicsCache {
+  journals: Topic[];
+  topics: Topic[];
+  followedItems: number[];
+  timestamp: number;
+}
+
+let topicsCache: TopicsCache | null = null;
+const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
+
 // TopicsToFollow Component
 const TopicsToFollow: React.FC = () => {
   const [followStatus, setFollowStatus] = useState<{ [key: number]: boolean }>({});
@@ -139,6 +150,24 @@ const TopicsToFollow: React.FC = () => {
     const fetchTopics = async () => {
       setIsLoading(true);
       try {
+        // Check if we have valid cached data
+        const now = Date.now();
+        if (topicsCache && now - topicsCache.timestamp < CACHE_EXPIRY_MS) {
+          // Use cached data
+          setJournals(topicsCache.journals);
+          setTopics(topicsCache.topics);
+
+          // Initialize follow status from cache
+          const initialFollowStatus: { [key: number]: boolean } = {};
+          topicsCache.followedItems.forEach((id) => {
+            initialFollowStatus[id] = true;
+          });
+          setFollowStatus(initialFollowStatus);
+          setIsLoading(false);
+          return;
+        }
+
+        // Fetch fresh data if no cache or cache expired
         const [journalData, topicData, followedItems] = await Promise.all([
           HubService.getHubs({ namespace: 'journal' }),
           HubService.getHubs({ excludeJournals: true }),
@@ -146,8 +175,19 @@ const TopicsToFollow: React.FC = () => {
         ]);
 
         // Limit to 4 items each for display
-        setJournals(journalData.slice(0, 4));
-        setTopics(topicData.slice(0, 4));
+        const limitedJournals = journalData.slice(0, 4);
+        const limitedTopics = topicData.slice(0, 4);
+
+        // Update cache
+        topicsCache = {
+          journals: limitedJournals,
+          topics: limitedTopics,
+          followedItems,
+          timestamp: now,
+        };
+
+        setJournals(limitedJournals);
+        setTopics(limitedTopics);
 
         // Initialize follow status
         const initialFollowStatus: { [key: number]: boolean } = {};
@@ -177,8 +217,16 @@ const TopicsToFollow: React.FC = () => {
     try {
       if (isCurrentlyFollowing) {
         await HubService.unfollowHub(topicId);
+        // Update cache if it exists
+        if (topicsCache) {
+          topicsCache.followedItems = topicsCache.followedItems.filter((id) => id !== topicId);
+        }
       } else {
         await HubService.followHub(topicId);
+        // Update cache if it exists
+        if (topicsCache) {
+          topicsCache.followedItems.push(topicId);
+        }
       }
     } catch (error) {
       console.error('Error toggling follow status:', error);
@@ -233,10 +281,13 @@ const TopicsToFollow: React.FC = () => {
   );
 };
 
-// Main RightSidebar Component
-export const RightSidebar: React.FC = () => (
+// Memoize the TopicsToFollow component to prevent unnecessary re-renders
+const MemoizedTopicsToFollow = memo(TopicsToFollow);
+
+// Main RightSidebar Component - memoized to prevent re-renders when parent components change
+export const RightSidebar = memo(() => (
   <div>
     <InfoBanner />
-    <TopicsToFollow />
+    <MemoizedTopicsToFollow />
   </div>
-);
+));
