@@ -40,11 +40,7 @@ export const authOptions: NextAuthOptions = {
           return {
             id: Number(user.id),
             email: user.email,
-            name: user.fullName,
             authToken: loginResponse.key,
-            fullName: user.fullName,
-            authorProfile: user.authorProfile,
-            balance: user.balance,
           };
         } catch (error) {
           return promptInvalidCredentials();
@@ -65,9 +61,15 @@ export const authOptions: NextAuthOptions = {
             id_token: account?.id_token,
           });
 
+          // Then fetch user data using the AuthService
+          const userData = await AuthService.fetchUserData(data.key);
+          // The API returns an array of results, but for user data we only expect
+          // and need the first element since it represents the current authenticated user
+          const user = userData.results[0];
+
           if (data.key) {
             (account as any).authToken = data.key;
-            (account as any).userId = data.user_id;
+            (account as any).userId = user.id;
           }
 
           return true;

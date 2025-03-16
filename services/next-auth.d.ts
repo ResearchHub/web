@@ -5,7 +5,6 @@ import type { AuthorProfile } from '@/types/authorProfile';
 
 declare module 'next-auth' {
   interface Session {
-    userId: string;
     authToken?: string;
     isLoggedIn?: boolean;
     error?: string;
@@ -16,13 +15,5 @@ declare module 'next-auth' {
     isLoggedIn?: boolean;
     error?: string;
     userId: string;
-  }
-
-  interface User {
-    authToken?: string;
-    id?: number;
-    fullName?: string;
-    authorProfile?: AuthorProfile;
-    balance?: number;
   }
 }

@@ -44,7 +44,7 @@ export const CommentCard: FC<CommentCardProps> = ({
   const { data: session } = useSession();
 
   // Check if the current user is the author of the comment
-  const isAuthor = session?.user?.id === comment.author?.id;
+  const isAuthor = session?.userId === comment.author?.id;
 
   // Use the registry pattern to render the comment
   const renderer =
