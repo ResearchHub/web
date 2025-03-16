@@ -61,7 +61,7 @@ export function TopBar() {
             onClick={toggleRightSidebar}
             className="p-2 rounded-md hover:bg-gray-100"
             aria-label="Toggle right sidebar"
-            variant="ghost"
+            variant="default"
             size="sm"
           >
             <div className="flex items-center gap-1">
