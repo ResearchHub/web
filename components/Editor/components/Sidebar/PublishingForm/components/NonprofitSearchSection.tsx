@@ -48,7 +48,8 @@ export function NonprofitSearchSection() {
       baseWalletAddress,
     });
 
-    setSearchTerm(nonprofit.name);
+    // Clear the search term and close the dropdown
+    setSearchTerm('');
     setIsDropdownOpen(false);
     setSelectedInfoOrg(null);
   };
@@ -99,19 +100,41 @@ export function NonprofitSearchSection() {
     setSelectedInfoOrg(null);
   };
 
+  // Clear the selected nonprofit
+  const handleClearSelectedNonprofit = () => {
+    setValue('selectedNonprofit', null);
+    setValue('departmentLabName', '');
+    setSearchTerm('');
+  };
+
   return (
     <div className="py-3 px-6 space-y-3">
       <SectionHeader icon={Building}>Find a Nonprofit Organization</SectionHeader>
       <div className="relative" ref={dropdownRef}>
         <div className="relative">
           <Input
-            placeholder="Search for a nonprofit..."
+            placeholder={selectedNonprofit ? selectedNonprofit.name : 'Search for a nonprofit...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pr-10"
+            onFocus={() => {
+              if (!searchTerm) {
+                setIsDropdownOpen(false);
+              }
+            }}
           />
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            <Search className="h-4 w-4" />
+            {searchTerm ? (
+              <X
+                className="h-4 w-4 cursor-pointer hover:text-gray-600"
+                onClick={() => {
+                  setSearchTerm('');
+                  setIsDropdownOpen(false);
+                }}
+              />
+            ) : (
+              <Search className="h-4 w-4" />
+            )}
           </div>
         </div>
 
@@ -142,12 +165,21 @@ export function NonprofitSearchSection() {
                 <p className="text-xs text-gray-500">EIN: {selectedNonprofit.ein}</p>
                 <p className="text-sm text-gray-600 mt-1">{selectedNonprofit.nteeDescription}</p>
               </div>
-              <button
-                className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-50"
-                onClick={(e) => handleInfoClick(selectedNonprofit, e)}
-              >
-                <Info className="h-4 w-4" />
-              </button>
+              <div className="flex items-center">
+                <button
+                  className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-50 mr-1"
+                  onClick={(e) => handleInfoClick(selectedNonprofit, e)}
+                >
+                  <Info className="h-4 w-4" />
+                </button>
+                <button
+                  className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-50"
+                  onClick={handleClearSelectedNonprofit}
+                  title="Clear selection"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
 
