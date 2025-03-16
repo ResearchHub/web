@@ -59,6 +59,10 @@ export function NonprofitSearchSection() {
     const handleClickOutside = (event: MouseEvent) => {
       // Don't close if we're clicking inside a nonprofit-info-popover element
       const isClickInsidePopover = (event.target as Element)?.closest('.nonprofit-info-popover');
+      // Don't close if we're clicking an info button
+      const isClickingInfoButton = (event.target as Element)
+        ?.closest('button')
+        ?.querySelector('.lucide-info');
 
       // Only close dropdown if the click is outside both the dropdown and any open popover
       if (
@@ -69,9 +73,9 @@ export function NonprofitSearchSection() {
         setIsDropdownOpen(false);
       }
 
-      // Close info popover when clicking outside, but not when clicking the popover X button
+      // Close info popover when clicking outside, but not when clicking the popover X button or info buttons
       const isClickingX = (event.target as Element)?.closest('.nonprofit-popover-close');
-      if (selectedInfoOrg && !isClickInsidePopover && !isClickingX) {
+      if (selectedInfoOrg && !isClickInsidePopover && !isClickingX && !isClickingInfoButton) {
         setSelectedInfoOrg(null);
       }
     };
@@ -82,6 +86,13 @@ export function NonprofitSearchSection() {
 
   const handleInfoClick = (nonprofit: NonprofitOrg, event: React.MouseEvent) => {
     event.stopPropagation();
+    event.preventDefault();
+
+    // Toggle behavior: if the same nonprofit is clicked, close the popover
+    if (selectedInfoOrg && selectedInfoOrg.id === nonprofit.id) {
+      setSelectedInfoOrg(null);
+      return;
+    }
 
     // Get the position of the clicked element
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
@@ -97,6 +108,7 @@ export function NonprofitSearchSection() {
 
   const handlePopoverClose = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     setSelectedInfoOrg(null);
   };
 
@@ -149,6 +161,7 @@ export function NonprofitSearchSection() {
                   nonprofit={nonprofit}
                   onSelect={handleSelectNonprofit}
                   onInfoClick={(e) => handleInfoClick(nonprofit, e)}
+                  selectedInfoOrg={selectedInfoOrg}
                 />
               ))
             )}
@@ -167,8 +180,18 @@ export function NonprofitSearchSection() {
               </div>
               <div className="flex items-center">
                 <button
-                  className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-50 mr-1"
-                  onClick={(e) => handleInfoClick(selectedNonprofit, e)}
+                  className={cn(
+                    'p-1 rounded-full hover:bg-gray-50 mr-1',
+                    selectedInfoOrg && selectedInfoOrg.id === selectedNonprofit.id
+                      ? 'text-primary-600 bg-gray-50'
+                      : 'text-gray-400 hover:text-gray-600'
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleInfoClick(selectedNonprofit, e);
+                  }}
+                  type="button"
                 >
                   <Info className="h-4 w-4" />
                 </button>
@@ -176,6 +199,7 @@ export function NonprofitSearchSection() {
                   className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-50"
                   onClick={handleClearSelectedNonprofit}
                   title="Clear selection"
+                  type="button"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -222,12 +246,14 @@ interface NonprofitSuggestionItemProps {
   nonprofit: NonprofitOrg;
   onSelect: (nonprofit: NonprofitOrg) => void;
   onInfoClick: (e: React.MouseEvent) => void;
+  selectedInfoOrg: NonprofitOrg | null;
 }
 
 function NonprofitSuggestionItem({
   nonprofit,
   onSelect,
   onInfoClick,
+  selectedInfoOrg,
 }: NonprofitSuggestionItemProps) {
   return (
     <div
@@ -241,8 +267,17 @@ function NonprofitSuggestionItem({
         <div className="text-xs text-gray-500">EIN: {nonprofit.ein}</div>
       </div>
       <button
-        className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-50"
-        onClick={onInfoClick}
+        className={cn(
+          'p-1 rounded-full hover:bg-gray-50',
+          selectedInfoOrg && selectedInfoOrg.id === nonprofit.id
+            ? 'text-primary-600 bg-gray-50'
+            : 'text-gray-400 hover:text-gray-600'
+        )}
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          onInfoClick(e);
+        }}
       >
         <Info className="h-4 w-4" />
       </button>
@@ -321,18 +356,6 @@ function NonprofitInfoPopover({ nonprofit, position, onClose }: NonprofitInfoPop
               </p>
             </div>
           )}
-
-          <div className="pt-3 border-t border-gray-100">
-            <a
-              href={nonprofit.endaomentUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-primary-600 hover:underline flex items-center gap-1"
-            >
-              View on Endaoment
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          </div>
         </div>
       </div>
       <div className="absolute bottom-0 right-4 transform translate-y-[8px] rotate-45 w-4 h-4 bg-white border-r border-b border-gray-200"></div>
