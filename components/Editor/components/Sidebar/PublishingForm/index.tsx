@@ -28,6 +28,10 @@ import { DOISection } from '@/components/work/components/DOISection';
 import { getFieldErrorMessage } from '@/utils/form';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 
+// Feature flags for conditionally showing sections
+const FEATURE_FLAG_RESEARCH_COIN = false;
+const FEATURE_FLAG_JOURNAL = false;
+
 interface PublishingFormProps {
   bountyAmount: number | null;
   onBountyClick: () => void;
@@ -53,7 +57,7 @@ const getButtonText = ({
       return 'Redirecting...';
     case hasWorkId:
       return 'Re-publish';
-    case articleType === 'discussion' && isJournalEnabled:
+    case Boolean(FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled):
       return 'Pay & Publish';
     default:
       return 'Publish';
@@ -267,16 +271,16 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
               </div>
             )}
             {articleType === 'preregistration' && <FundingSection note={note} />}
-            {articleType !== 'preregistration' && (
+            {FEATURE_FLAG_RESEARCH_COIN && articleType !== 'preregistration' && (
               <ResearchCoinSection bountyAmount={bountyAmount} onBountyClick={onBountyClick} />
             )}
-            {articleType === 'discussion' && <JournalSection />}
+            {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && <JournalSection />}
           </div>
         </div>
 
         {/* Sticky bottom section */}
         <div className="border-t bg-white p-2 lg:p-6 space-y-3 sticky bottom-0">
-          {articleType === 'discussion' && isJournalEnabled && (
+          {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">Payment due:</span>
               <span className="font-medium text-gray-900">$1,000 USD</span>
