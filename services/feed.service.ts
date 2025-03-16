@@ -12,12 +12,14 @@ export class FeedService {
     pageSize?: number;
     feedView?: string;
     hubSlug?: string;
+    contentType?: string;
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.pageSize) queryParams.append('page_size', params.pageSize.toString());
     if (params?.feedView) queryParams.append('feed_view', params.feedView);
     if (params?.hubSlug) queryParams.append('hub_slug', params.hubSlug);
+    if (params?.contentType) queryParams.append('content_type', params.contentType);
 
     const url = `${this.BASE_PATH}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     console.log(`Fetching feed from URL: ${url}`);

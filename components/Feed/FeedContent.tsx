@@ -17,7 +17,7 @@ interface FeedContentProps {
   hasMore: boolean;
   loadMore: () => void;
   header?: ReactNode;
-  tabs: ReactNode;
+  tabs?: ReactNode;
   disableCardLinks?: boolean; // Optional prop to disable all card links
 }
 
@@ -150,7 +150,7 @@ export const FeedContent: FC<FeedContentProps> = ({
       {header && <div className="pt-4 pb-7">{header}</div>}
 
       <div className="max-w-4xl mx-auto">
-        <div className="border-b">{tabs}</div>
+        {tabs && <div className="border-b">{tabs}</div>}
 
         <div className="mt-12">
           {isLoading ? (
