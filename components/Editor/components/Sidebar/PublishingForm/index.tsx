@@ -198,7 +198,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       return;
     }
 
-    if (articleType !== 'preregistration') {
+    if (articleType !== 'preregistration' && articleType !== 'discussion') {
       console.log('Publishing clicked for type:', articleType);
       return;
     }
@@ -227,6 +227,12 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           fullSrc: previewContent || '',
           assignDOI: formData.workId ? false : true,
           topics: formData.topics.map((topic) => topic.value),
+          authors: formData.authors
+            .map((author) => author.value)
+            .map(Number)
+            .filter((id) => !isNaN(id)),
+          articleType:
+            formData.articleType === 'preregistration' ? 'PREREGISTRATION' : 'DISCUSSION',
         },
         formData.workId
       );

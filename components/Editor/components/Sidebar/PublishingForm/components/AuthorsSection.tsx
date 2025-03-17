@@ -26,7 +26,7 @@ export function AuthorsSection() {
       const options = users.users
         .filter((user) => user.name || user.email)
         .map((user) => ({
-          value: user.id.toString(),
+          value: user.authorId.toString(),
           label: user.name || user.email || 'Unknown User',
         }));
 

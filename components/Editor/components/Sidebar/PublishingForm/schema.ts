@@ -27,6 +27,24 @@ export const publishingFormSchema = z
     isJournalEnabled: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {
+    // Validate topics
+    if (data.topics.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'At least one topic is required',
+        path: ['topics'],
+      });
+    }
+
+    // Validate authors
+    if (data.authors.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'At least one author is required',
+        path: ['authors'],
+      });
+    }
+
     // Preregistration-specific validations
     if (data.articleType === 'preregistration') {
       // Validate budget
@@ -36,24 +54,6 @@ export const publishingFormSchema = z
           code: z.ZodIssueCode.custom,
           message: 'Funding goal must be greater than 0',
           path: ['budget'],
-        });
-      }
-
-      // Validate topics
-      if (data.topics.length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'At least one topic is required',
-          path: ['topics'],
-        });
-      }
-
-      // Validate authors
-      if (data.authors.length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'At least one author is required',
-          path: ['authors'],
         });
       }
     }
