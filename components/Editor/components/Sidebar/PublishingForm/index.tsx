@@ -120,6 +120,14 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         methods.setValue('topics', topicOptions);
       }
 
+      if (note.post.authors && note.post.authors.length > 0) {
+        const authorOptions = note.post.authors.map((author) => ({
+          value: author.authorId.toString(),
+          label: author.name,
+        }));
+        methods.setValue('authors', authorOptions);
+      }
+
       // Set other relevant post data
       return;
     }
