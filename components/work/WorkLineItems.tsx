@@ -121,11 +121,6 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
             <span>{isSaved ? 'Saved' : 'Save'}</span>
           </button>
 
-          <button className="flex items-center space-x-2 px-4 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100">
-            <Coins className="h-4 w-4" />
-            <span>Tip RSC</span>
-          </button>
-
           {/* More Actions Dropdown */}
           <Menu as="div" className="relative">
             <MenuButton className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg">
