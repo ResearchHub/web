@@ -75,7 +75,6 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
   }, [work.contentType, work.id, isUpvoted, vote, refreshVotes]);
 
   const handleEdit = useCallback(() => {
-    console.log({ work });
     if (selectedOrg && work.note) {
       router.push(`/notebook/${work.note.organization.slug}/${work.note.id}`);
     } else {

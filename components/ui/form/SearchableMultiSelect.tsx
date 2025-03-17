@@ -98,7 +98,6 @@ export function SearchableMultiSelect({
   );
 
   useEffect(() => {
-    // Update options when staticOptions change
     if (!query) {
       setOptions(staticOptions);
     }
@@ -109,7 +108,6 @@ export function SearchableMultiSelect({
       if (onAsyncSearch) {
         debouncedSearch(query);
       } else {
-        // Immediately filter static options without debounce
         setOptions(filterStaticOptions(query));
       }
     } else {
