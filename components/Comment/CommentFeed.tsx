@@ -300,9 +300,7 @@ function CommentFeedContent({
                   disabled={loading}
                   className="w-full md:w-auto"
                 >
-                  {loading
-                    ? 'Loading...'
-                    : `Load More (${count - filteredComments.length} remaining)`}
+                  {loading ? 'Loading...' : `Load More)`}
                 </Button>
               </div>
             )}

@@ -1,14 +1,8 @@
 'use client';
 
 import { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
-import {
-  Comment,
-  CommentFilter,
-  CommentSort,
-  CommentType,
-  UserVoteType,
-  QuillContent,
-} from '@/types/comment';
+import { Comment, CommentFilter, CommentSort, CommentType, QuillContent } from '@/types/comment';
+import { UserVoteType } from '@/types/reaction';
 import { ContentType } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
 import {
@@ -160,7 +154,8 @@ export const CommentProvider = ({
   const fetchComments = useCallback(
     async (pageToFetch = 1) => {
       try {
-        dispatch({ type: CommentActionType.FETCH_COMMENTS_START });
+        // We don't need to dispatch FETCH_COMMENTS_START here anymore
+        // as it's already handled by the calling functions (refresh or loadMore)
 
         // Determine the filter to use based on commentType and user selection
         let filterToUse = state.filter;
@@ -206,6 +201,8 @@ export const CommentProvider = ({
   // Refresh comments (fetch page 1)
   const refresh = useCallback(() => {
     dispatch({ type: CommentActionType.REFRESH });
+    // Set loading to true for initial fetch
+    dispatch({ type: CommentActionType.FETCH_COMMENTS_START });
     return fetchComments(1);
   }, [fetchComments]);
 
@@ -213,7 +210,19 @@ export const CommentProvider = ({
   const loadMore = useCallback(() => {
     const nextPage = state.page + 1;
     dispatch({ type: CommentActionType.LOAD_MORE, payload: { page: nextPage } });
-    return fetchComments(nextPage);
+
+    // Use the new action type that doesn't set loading to true
+    try {
+      dispatch({ type: CommentActionType.FETCH_MORE_COMMENTS_START });
+      return fetchComments(nextPage);
+    } catch (err) {
+      dispatch({
+        type: CommentActionType.FETCH_COMMENTS_FAILURE,
+        payload: { error: 'Failed to load more comments' },
+      });
+      console.error('Error loading more comments:', err);
+      return Promise.reject(err);
+    }
   }, [state.page, fetchComments]);
 
   // Initial fetch effect - fetch comments when the component mounts
@@ -221,6 +230,8 @@ export const CommentProvider = ({
     console.log(
       `CommentContext - Initial fetch for documentId=${documentId}, commentType=${commentType}`
     );
+    // Set loading to true for initial fetch
+    dispatch({ type: CommentActionType.FETCH_COMMENTS_START });
     refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [documentId, contentType, commentType]);
@@ -229,6 +240,8 @@ export const CommentProvider = ({
   useEffect(() => {
     // Skip the initial render
     if (state.comments.length > 0) {
+      // Set loading to true for filter/sort changes
+      dispatch({ type: CommentActionType.FETCH_COMMENTS_START });
       refresh();
     }
   }, [state.sortBy, state.filter, refresh]);
@@ -241,6 +254,8 @@ export const CommentProvider = ({
 
     try {
       dispatch({ type: CommentActionType.FORCE_REFRESH });
+      // Set loading to true for force refresh
+      dispatch({ type: CommentActionType.FETCH_COMMENTS_START });
       const { comments: fetchedComments, count: totalCount } = await CommentService.fetchComments({
         documentId,
         contentType,
@@ -788,16 +803,14 @@ export const CommentProvider = ({
     setReplyingToCommentId: handleSetReplyingToCommentId,
     setSortBy: (sort: CommentSort) => {
       dispatch({ type: CommentActionType.SET_SORT_BY, payload: sort });
-      // Set loading to true to show loading skeleton
-      dispatch({ type: CommentActionType.SET_LOADING, payload: true });
+      // Loading will be set by the effect that calls refresh
     },
     setFilter: (filter?: CommentFilter) => {
       dispatch({ type: CommentActionType.SET_FILTER, payload: filter });
     },
     setBountyFilter: (filter: BountyFilterType) => {
       dispatch({ type: CommentActionType.SET_BOUNTY_FILTER, payload: filter });
-      // Set loading to true to show loading skeleton
-      dispatch({ type: CommentActionType.SET_LOADING, payload: true });
+      // Loading will be set by the effect that calls refresh
     },
     forceRefresh,
     emitCommentEvent,

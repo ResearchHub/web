@@ -1,3 +1,5 @@
+'use client';
+
 import { ContentFormat, Comment } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import 'highlight.js/styles/atom-one-dark.css';

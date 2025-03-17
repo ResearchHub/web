@@ -39,6 +39,7 @@ export enum CommentActionType {
   FETCH_COMMENTS_START = 'FETCH_COMMENTS_START',
   FETCH_COMMENTS_SUCCESS = 'FETCH_COMMENTS_SUCCESS',
   FETCH_COMMENTS_FAILURE = 'FETCH_COMMENTS_FAILURE',
+  FETCH_MORE_COMMENTS_START = 'FETCH_MORE_COMMENTS_START',
   FETCH_MORE_COMMENTS_SUCCESS = 'FETCH_MORE_COMMENTS_SUCCESS',
   REFRESH = 'REFRESH',
   LOAD_MORE = 'LOAD_MORE',
@@ -169,6 +170,10 @@ interface FetchCommentsFailureAction {
   };
 }
 
+interface FetchMoreCommentsStartAction {
+  type: CommentActionType.FETCH_MORE_COMMENTS_START;
+}
+
 interface FetchMoreCommentsSuccessAction {
   type: CommentActionType.FETCH_MORE_COMMENTS_SUCCESS;
   payload: {
@@ -292,6 +297,7 @@ export type CommentAction =
   | FetchCommentsStartAction
   | FetchCommentsSuccessAction
   | FetchCommentsFailureAction
+  | FetchMoreCommentsStartAction
   | FetchMoreCommentsSuccessAction
   | RefreshAction
   | LoadMoreAction
@@ -441,6 +447,12 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
         loading: false,
         error: action.payload.error,
       };
+    case CommentActionType.FETCH_MORE_COMMENTS_START:
+      return {
+        ...state,
+        loading: false,
+        error: null,
+      };
     case CommentActionType.FETCH_MORE_COMMENTS_SUCCESS:
       return {
         ...state,
@@ -460,7 +472,7 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
       return {
         ...state,
         page: action.payload.page,
-        loading: true,
+        loading: false,
         error: null,
       };
     case CommentActionType.FORCE_REFRESH:
@@ -486,7 +498,7 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
     case CommentActionType.LOAD_MORE_REPLIES_START:
       return {
         ...state,
-        loading: true,
+        loading: false,
         error: null,
       };
     case CommentActionType.LOAD_MORE_REPLIES_SUCCESS:
@@ -523,7 +535,7 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
     case CommentActionType.CREATE_REPLY_START:
       return {
         ...state,
-        loading: true,
+        loading: false,
         error: null,
       };
     case CommentActionType.CREATE_REPLY_SUCCESS:

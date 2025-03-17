@@ -44,6 +44,26 @@ export interface FeedBountyContent {
   };
 }
 
+export interface FeedCommentContent {
+  id: number;
+  contentType: 'COMMENT';
+  createdDate: string;
+  createdBy: AuthorProfile;
+  comment: {
+    id: number;
+    content: any;
+    contentFormat: ContentFormat;
+    commentType: CommentType;
+    thread?: {
+      id: number;
+      threadType: string;
+      objectId: number;
+    };
+  };
+  relatedDocumentId?: number;
+  relatedDocumentContentType?: ContentType;
+}
+
 export interface FeedPaperContent {
   id: number;
   contentType: 'PAPER';
@@ -64,7 +84,8 @@ export type Content =
   | Comment
   | FeedPostContent
   | FeedPaperContent
-  | FeedBountyContent;
+  | FeedBountyContent
+  | FeedCommentContent;
 
 // Define a union type for all possible content types
 export type FeedContentType = 'PAPER' | 'POST' | 'PREREGISTRATION' | 'BOUNTY' | 'COMMENT';
@@ -387,4 +408,53 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           ? 'NEUTRAL'
           : undefined,
   } as FeedEntry;
+};
+
+/**
+ * Transforms a Comment object into a FeedEntry that can be used with FeedItemComment component
+ * @param comment The Comment object to transform
+ * @param contentType The content type of the related document (paper, post, etc.)
+ * @returns A FeedEntry object with the comment as content
+ */
+export const transformCommentToFeedItem = (
+  comment: Comment,
+  contentType: ContentType
+): FeedEntry => {
+  // Create a FeedCommentContent object from the comment
+  const commentContent: FeedCommentContent = {
+    id: comment.id,
+    contentType: 'COMMENT',
+    createdDate: comment.createdDate,
+    createdBy: comment.author,
+    comment: {
+      id: comment.id,
+      content: comment.content,
+      contentFormat: comment.contentFormat || 'QUILL_EDITOR',
+      commentType: comment.commentType,
+      thread: comment.thread
+        ? {
+            id: comment.thread.id,
+            threadType: comment.thread.threadType,
+            objectId: comment.thread.objectId,
+          }
+        : undefined,
+    },
+    relatedDocumentId: comment.thread?.objectId,
+    relatedDocumentContentType: contentType,
+  };
+
+  // Create a FeedEntry with the comment content
+  return {
+    id: `comment-${comment.id}`,
+    timestamp: comment.createdDate,
+    action: 'contribute', // Default action for comments
+    content: commentContent,
+    contentType: 'COMMENT',
+    metrics: {
+      votes: comment.score || 0,
+      comments: comment.childrenCount || 0,
+      saves: 0, // Add the required saves property
+    },
+    userVote: comment.userVote,
+  };
 };

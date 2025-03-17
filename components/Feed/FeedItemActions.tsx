@@ -20,6 +20,7 @@ interface ActionButtonProps {
   isActive?: boolean;
   isDisabled?: boolean;
   className?: string;
+  showLabel?: boolean;
 }
 
 const ActionButton: FC<ActionButtonProps> = ({
@@ -31,6 +32,7 @@ const ActionButton: FC<ActionButtonProps> = ({
   isActive = false,
   isDisabled = false,
   className = '',
+  showLabel = false,
 }) => (
   <Button
     variant="ghost"
@@ -41,8 +43,11 @@ const ActionButton: FC<ActionButtonProps> = ({
     disabled={isDisabled}
   >
     <Icon className={`w-5 h-5 ${isActive ? 'text-primary-600' : ''}`} />
-    {count !== undefined && <span className="text-sm font-medium">{count}</span>}
-    <span className="sr-only">{label}</span>
+    {showLabel ? (
+      <span className="text-sm font-medium">{label}</span>
+    ) : count !== undefined ? (
+      <span className="text-sm font-medium">{count}</span>
+    ) : null}
   </Button>
 );
 
@@ -53,6 +58,11 @@ interface FeedItemActionsProps {
   relatedDocumentId?: number;
   relatedDocumentContentType?: ContentType;
   userVote?: UserVoteType;
+  actionLabels?: {
+    comment?: string;
+    upvote?: string;
+  };
+  onComment?: () => void;
 }
 
 export const FeedItemActions: FC<FeedItemActionsProps> = ({
@@ -62,6 +72,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   votableEntityId,
   relatedDocumentId,
   relatedDocumentContentType,
+  actionLabels,
+  onComment,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
@@ -123,33 +135,24 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
   return (
     <>
-      <div className="flex items-center w-full justify-between">
-        <div className="flex items-center space-x-4">
-          <ActionButton
-            icon={ArrowUp}
-            count={localVoteCount}
-            tooltip="Upvote"
-            label="Upvote"
-            onClick={handleVote}
-            isActive={localUserVote === 'UPVOTE'}
-            isDisabled={isVoting}
-          />
-          <ActionButton
-            icon={MessageCircle}
-            count={metrics?.comments}
-            tooltip="Comment"
-            label="Comment"
-          />
-        </div>
-        <div className="ml-auto">
-          <ActionButton
-            icon={Flag}
-            tooltip="Report"
-            label="Report"
-            onClick={handleReport}
-            className="text-gray-400 hover:text-gray-600"
-          />
-        </div>
+      <div className="flex items-center space-x-4">
+        <ActionButton
+          icon={ArrowUp}
+          count={localVoteCount}
+          tooltip="Upvote"
+          label={actionLabels?.upvote || 'Upvote'}
+          onClick={handleVote}
+          isActive={localUserVote === 'UPVOTE'}
+          isDisabled={isVoting}
+        />
+        <ActionButton
+          icon={MessageCircle}
+          count={actionLabels?.comment ? undefined : metrics?.comments}
+          tooltip="Comment"
+          label={actionLabels?.comment || 'Comment'}
+          onClick={onComment}
+          showLabel={Boolean(actionLabels?.comment)}
+        />
       </div>
 
       {/* Flag Content Modal */}

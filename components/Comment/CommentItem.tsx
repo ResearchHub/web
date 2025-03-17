@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Comment, CommentType, UserVoteType } from '@/types/comment';
+import { Comment, CommentType } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { CommentEditor } from './CommentEditor';
 import 'highlight.js/styles/atom-one-dark.css';
@@ -16,6 +16,9 @@ import { AwardBountyModal } from '@/components/Comment/AwardBountyModal';
 import { getDisplayBounty, isOpenBounty } from '@/components/Bounty/lib/bountyUtil';
 import { BountyCardWrapper } from '@/components/Bounty/BountyCardWrapper';
 import { useVote } from '@/hooks/useVote';
+import { FeedItemComment } from '@/components/Feed/items/FeedItemComment';
+import { transformCommentToFeedItem } from '@/types/feed';
+import { UserVoteType } from '@/types/reaction';
 
 interface CommentItemProps {
   comment: Comment;
@@ -258,36 +261,42 @@ export const CommentItem = ({
       );
     }
 
-    // For regular comments, use CommentCard
+    // For regular comments, use FeedItemComment
+    if (debug) {
+      console.log('Rendering regular comment with FeedItemComment');
+    }
+
+    // Transform the comment to a feed entry
+    const feedEntry = transformCommentToFeedItem(comment, contentType);
 
     return (
       <div className="space-y-4">
-        {/* Render the comment card with all necessary callbacks */}
-        <CommentCard
-          comment={comment}
-          isReplying={isReplying}
-          onCancelReply={() => setReplyingToCommentId(null)}
-          onSubmitReply={handleReply}
-          onUpvote={handleOnUpvote}
+        <FeedItemComment
+          entry={feedEntry}
           onReply={() => setReplyingToCommentId(comment.id)}
-          onReport={() => {
-            if (debug) console.log('Report clicked for comment:', comment.id);
-          }}
-          onShare={() => {
-            // Copy the link to the clipboard
-            const url =
-              window.location.origin + `/comment/${comment.thread?.objectId}/${comment.id}`;
-            navigator.clipboard.writeText(url).then(() => {
-              toast.success('Link copied to clipboard');
-            });
-          }}
           onEdit={() => {
             if (debug) console.log(`Setting editingCommentId to ${comment.id}`);
             setEditingCommentId(comment.id);
           }}
           onDelete={() => handleDelete()}
-          showActions={renderCommentActions}
+          showCreatorActions={renderCommentActions && isAuthor}
+          actionLabels={{
+            comment: 'Reply',
+          }}
         />
+
+        {/* If we're replying, show the reply editor */}
+        {isReplying && (
+          <div className="mt-4 border-t pt-4 px-4 pb-4">
+            <h4 className="text-sm font-medium mb-2">Your reply:</h4>
+            <CommentEditor
+              onSubmit={handleReply}
+              onCancel={() => setReplyingToCommentId(null)}
+              placeholder="Write your reply..."
+              autoFocus={true}
+            />
+          </div>
+        )}
       </div>
     );
   };
