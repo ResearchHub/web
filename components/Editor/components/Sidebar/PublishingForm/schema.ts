@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const topicOptionSchema = z.object({
+const optionSchema = z.object({
   value: z.string(),
   label: z.string(),
 });
@@ -12,8 +12,8 @@ export const publishingFormSchema = z
       required_error: 'Please select a work type',
       invalid_type_error: 'Please select a valid work type',
     }),
-    authors: z.array(z.string()),
-    topics: z.array(topicOptionSchema),
+    authors: z.array(optionSchema),
+    topics: z.array(optionSchema),
     budget: z.string().optional(),
     rewardFunders: z.boolean(),
     nftArt: z.any().nullable(),
@@ -47,8 +47,17 @@ export const publishingFormSchema = z
           path: ['topics'],
         });
       }
+
+      // Validate authors
+      if (data.authors.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'At least one author is required',
+          path: ['authors'],
+        });
+      }
     }
   });
 
 export type PublishingFormData = z.infer<typeof publishingFormSchema>;
-export type TopicOption = z.infer<typeof topicOptionSchema>;
+export type SelectOption = z.infer<typeof optionSchema>;
