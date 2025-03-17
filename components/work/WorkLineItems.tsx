@@ -75,11 +75,8 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
   }, [work.contentType, work.id, isUpvoted, vote, refreshVotes]);
 
   const handleEdit = useCallback(() => {
-    if (
-      selectedOrg &&
-      work.note &&
-      (work.contentType === 'preregistration' || work.contentType === 'discussion')
-    ) {
+    console.log({ work });
+    if (selectedOrg && work.note) {
       router.push(`/notebook/${work.note.organization.slug}/${work.note.id}`);
     } else {
       toast.error('Unable to edit');
