@@ -302,7 +302,7 @@ export const CommentItem = ({
   };
 
   return (
-    <div className="py-4 mb-2" id={`comment-${comment.id}`}>
+    <div className="mt-4" id={`comment-${comment.id}`}>
       <style jsx global>{`
         /* Comment Content Styles */
         .prose blockquote {
@@ -413,7 +413,7 @@ export const CommentItem = ({
 
       {/* Replies section */}
       {comment.replies && comment.replies.length > 0 ? (
-        <div className="mt-4 pl-6 border-l border-gray-200">
+        <div className="-mt-1 pt-5 pl-6 border-l border-gray-200">
           {debug && (
             <div className="bg-blue-50 p-2 mb-2 rounded text-xs font-mono">
               <div>
@@ -477,7 +477,7 @@ export const CommentItem = ({
         </div>
       ) : comment.childrenCount > 0 ? (
         // No replies loaded yet, but there are replies to load
-        <div className="mt-4 pl-6 border-l border-gray-200">
+        <div className="mt-4">
           {debug && (
             <div className="bg-orange-50 p-2 mb-2 rounded text-xs font-mono">
               <div>

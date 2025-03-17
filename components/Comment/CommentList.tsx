@@ -35,7 +35,7 @@ const CommentList: React.FC<CommentListProps> = ({
   }, [comments.length, isRootList, parentComment?.id, debug]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       {comments.map((comment) => (
         <CommentItem
           key={`comment-${comment.id}`}
