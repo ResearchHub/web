@@ -9,8 +9,14 @@ import { SectionHeader } from './SectionHeader';
 import { Info, Search, ExternalLink, Building, X, HelpCircle } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { createPortal } from 'react-dom';
+import { FeatureFlags } from '@/utils/featureFlags';
 
 export function NonprofitSearchSection() {
+  // Early return if the feature is not enabled
+  if (!FeatureFlags.nonprofitIntegration()) {
+    return null;
+  }
+
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedInfoOrg, setSelectedInfoOrg] = useState<NonprofitOrg | null>(null);

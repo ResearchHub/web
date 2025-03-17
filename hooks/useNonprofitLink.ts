@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NonprofitService } from '@/services/nonprofit.service';
 import { NonprofitOrg } from '@/types/nonprofit';
 import { ID } from '@/types/root';
 import { ApiError } from '@/services/types';
+import { isFeatureEnabled } from '@/utils/featureFlags';
 
 interface NonprofitFundraiseLink {
   id: ID;
@@ -20,6 +21,7 @@ interface NonprofitLinkState {
   data: NonprofitFundraiseLink | null;
   isLoading: boolean;
   error: string | null;
+  isFeatureEnabled: boolean;
 }
 
 type LinkNonprofitToFundraiseFn = (
@@ -48,12 +50,30 @@ export const useNonprofitLink = (): UseNonprofitLinkReturn => {
   const [data, setData] = useState<NonprofitFundraiseLink | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [featureEnabled, setFeatureEnabled] = useState(false);
+
+  // Check if the feature is enabled on mount
+  useEffect(() => {
+    try {
+      setFeatureEnabled(isFeatureEnabled('nonprofitIntegration'));
+    } catch (err) {
+      console.error('Error checking feature flag:', err);
+      setFeatureEnabled(false);
+    }
+  }, []);
 
   const linkNonprofitToFundraise: LinkNonprofitToFundraiseFn = async (
     nonprofitData,
     fundraiseId,
     note = ''
   ) => {
+    // Check if feature is enabled before proceeding
+    if (!featureEnabled) {
+      const errorMsg = 'Nonprofit integration is not available in this environment';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -89,5 +109,5 @@ export const useNonprofitLink = (): UseNonprofitLinkReturn => {
     }
   };
 
-  return [{ data, isLoading, error }, linkNonprofitToFundraise];
+  return [{ data, isLoading, error, isFeatureEnabled: featureEnabled }, linkNonprofitToFundraise];
 };

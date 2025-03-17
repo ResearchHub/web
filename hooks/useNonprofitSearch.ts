@@ -1,19 +1,22 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { NonprofitOrg, NonprofitSearchParams } from '@/types/nonprofit';
 import { NonprofitService } from '@/services/nonprofit.service';
+import { isFeatureEnabled } from '@/utils/featureFlags';
 
 interface NonprofitSearchState {
   results: NonprofitOrg[];
   isLoading: boolean;
   error: Error | null;
+  isFeatureEnabled: boolean;
 }
 
 interface UseNonprofitSearchReturn {
   results: NonprofitOrg[];
   isLoading: boolean;
   error: Error | null;
+  isFeatureEnabled: boolean;
   searchNonprofits: (
     searchTerm: string,
     options?: Omit<NonprofitSearchParams, 'searchTerm'>
@@ -30,7 +33,18 @@ export const useNonprofitSearch = (): UseNonprofitSearchReturn => {
     results: [],
     isLoading: false,
     error: null,
+    isFeatureEnabled: false,
   });
+
+  // Check if the feature is enabled on mount
+  useEffect(() => {
+    try {
+      setState((prev) => ({ ...prev, isFeatureEnabled: isFeatureEnabled('nonprofitIntegration') }));
+    } catch (err) {
+      console.error('Error checking feature flag:', err);
+      setState((prev) => ({ ...prev, isFeatureEnabled: false }));
+    }
+  }, []);
 
   /**
    * Search for nonprofit organizations
@@ -39,6 +53,15 @@ export const useNonprofitSearch = (): UseNonprofitSearchReturn => {
    */
   const searchNonprofits = useCallback(
     async (searchTerm: string, options: Omit<NonprofitSearchParams, 'searchTerm'> = {}) => {
+      // Check if feature is enabled before proceeding
+      if (!state.isFeatureEnabled) {
+        setState((prev) => ({
+          ...prev,
+          error: new Error('Nonprofit integration is not available in this environment'),
+        }));
+        return;
+      }
+
       if (!searchTerm.trim()) {
         setState((prev) => ({ ...prev, results: [], error: null }));
         return;
@@ -48,29 +71,31 @@ export const useNonprofitSearch = (): UseNonprofitSearchReturn => {
 
       try {
         const results = await NonprofitService.searchNonprofitOrgs(searchTerm, options);
-        setState({ results, isLoading: false, error: null });
+        setState((prev) => ({ ...prev, results, isLoading: false, error: null }));
       } catch (error) {
-        setState({
+        setState((prev) => ({
+          ...prev,
           results: [],
           isLoading: false,
           error: error instanceof Error ? error : new Error('Unknown error occurred'),
-        });
+        }));
       }
     },
-    []
+    [state.isFeatureEnabled]
   );
 
   /**
    * Clear search results
    */
   const clearResults = useCallback(() => {
-    setState({ results: [], isLoading: false, error: null });
+    setState((prev) => ({ ...prev, results: [], isLoading: false, error: null }));
   }, []);
 
   return {
     results: state.results,
     isLoading: state.isLoading,
     error: state.error,
+    isFeatureEnabled: state.isFeatureEnabled,
     searchNonprofits,
     clearResults,
   };
