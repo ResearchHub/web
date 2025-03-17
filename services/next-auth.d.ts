@@ -17,12 +17,4 @@ declare module 'next-auth' {
     error?: string;
     userId: string;
   }
-
-  interface User {
-    authToken?: string;
-    id?: number;
-    fullName?: string;
-    authorProfile?: AuthorProfile;
-    balance?: number;
-  }
 }

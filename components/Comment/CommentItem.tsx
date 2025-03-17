@@ -59,17 +59,8 @@ export const CommentItem = ({
   if (!comment) {
     return null; // Return early if no comment can be extracted
   }
-
   // Check if the current user is the author of the comment
-  const isAuthor = session?.user?.authorProfile?.id === comment.author?.id;
-  console.log('isAuthor', isAuthor);
-  console.log('session', session);
-
-  console.log('session?.user?.authorProfile?.id', session?.user?.authorProfile?.id);
-  console.log('comment.author', comment.author);
-
-  console.log('comment.author', comment.author);
-  const renderCommentActions = isAuthor;
+  const isAuthor = session?.userId === comment.author?.user?.id;
 
   // Determine if this comment is being edited or replied to
   const isEditing = editingCommentId === comment.id;
@@ -231,8 +222,7 @@ export const CommentItem = ({
         </div>
       );
     }
-    console.log('render', renderCommentActions);
-    console.log('11');
+
     // For regular comments, use FeedItemComment with the provided feedEntry
     return (
       <div className="space-y-4">
@@ -242,7 +232,7 @@ export const CommentItem = ({
           onReply={() => setReplyingToCommentId(comment.id)}
           onEdit={() => setEditingCommentId(comment.id)}
           onDelete={() => handleDelete()}
-          showActions={renderCommentActions}
+          showActions={isAuthor}
         />
 
         {/* If replying, show the editor */}

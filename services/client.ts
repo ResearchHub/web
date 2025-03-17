@@ -51,11 +51,14 @@ export class ApiClient {
     }
   }
 
-  private static async getHeaders() {
+  private static async getHeaders(method: string) {
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
       Accept: 'application/json',
     };
+
+    if (method !== 'GET') {
+      headers['Content-Type'] = 'application/json';
+    }
 
     const authToken = await this.getAuthToken();
     if (authToken) {
@@ -97,7 +100,7 @@ export class ApiClient {
 
   static async get<T>(path: string): Promise<T> {
     try {
-      const headers = await this.getHeaders();
+      const headers = await this.getHeaders('GET');
       const response = await fetch(`${this.baseURL}${path}`, this.getFetchOptions('GET', headers));
 
       if (!response.ok) {
@@ -124,8 +127,7 @@ export class ApiClient {
    */
   static async getBlob(path: string): Promise<Blob> {
     try {
-      const headers = await this.getHeaders();
-      delete headers['Content-Type']; // Remove Content-Type for blob response
+      const headers = await this.getHeaders('GET');
       delete headers['Accept']; // Remove Accept header to allow blob response
 
       const response = await fetch(`${this.baseURL}${path}`, {
@@ -145,7 +147,7 @@ export class ApiClient {
   }
 
   static async post<T>(path: string, body?: any): Promise<T> {
-    const headers = await this.getHeaders();
+    const headers = await this.getHeaders('POST');
     const response = await fetch(
       `${this.baseURL}${path}`,
       this.getFetchOptions('POST', headers, body)
@@ -165,7 +167,7 @@ export class ApiClient {
   }
 
   static async patch<T>(path: string, body?: any): Promise<T> {
-    const headers = await this.getHeaders();
+    const headers = await this.getHeaders('PATCH');
     const response = await fetch(
       `${this.baseURL}${path}`,
       this.getFetchOptions('PATCH', headers, body)
@@ -186,7 +188,7 @@ export class ApiClient {
 
   static async delete<T>(path: string, body?: any): Promise<T> {
     try {
-      const headers = await this.getHeaders();
+      const headers = await this.getHeaders('DELETE');
       const response = await fetch(
         `${this.baseURL}${path}`,
         this.getFetchOptions('DELETE', headers, body)

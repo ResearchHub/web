@@ -159,8 +159,11 @@ export const useBlockEditor = ({
     });
   }, [provider]);
 
-  //TODO there is a bug where SSR
-  window.editor = editor;
+  useEffect(() => {
+    if (typeof window !== 'undefined' && editor) {
+      window.editor = editor;
+    }
+  }, [editor]);
 
   return { editor, users, collabState };
 };

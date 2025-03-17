@@ -17,6 +17,7 @@ import { ContentType } from '@/types/work';
 import { BountyType } from '@/types/bounty';
 import { Comment } from '@/types/comment';
 import { useComments } from '@/contexts/CommentContext';
+import { useUser } from '@/contexts/UserContext';
 
 interface ContributeBountyModalProps {
   isOpen: boolean;
@@ -194,7 +195,7 @@ export function ContributeBountyModal({
   bountyType,
   expirationDate,
 }: ContributeBountyModalProps) {
-  const { data: session } = useSession();
+  const { user } = useUser();
   const [inputAmount, setInputAmount] = useState(0);
   const [currency, setCurrency] = useState<Currency>('RSC');
   const [isFeesExpanded, setIsFeesExpanded] = useState(false);
@@ -203,7 +204,7 @@ export function ContributeBountyModal({
   const [isSuccess, setIsSuccess] = useState(false);
 
   const RSC_TO_USD = 1;
-  const userBalance = session?.user?.balance || 0;
+  const userBalance = user?.balance || 0;
 
   // Get the emitCommentEvent function from CommentContext
   const { emitCommentEvent } = useComments();

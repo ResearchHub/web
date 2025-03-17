@@ -12,8 +12,8 @@ import {
 } from '@/hooks/useNote';
 import type { Note } from '@/types/note';
 import toast from 'react-hot-toast';
-import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
 import React from 'react';
+import { useNotebookContext } from '@/contexts/NotebookContext';
 
 interface NoteListItemProps {
   note: Note;
@@ -25,11 +25,11 @@ interface NoteListItemProps {
  */
 export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) => {
   const router = useRouter();
+  const { refreshNotes, setNotes } = useNotebookContext();
   const [{ isLoading: isDeleting }, deleteNote] = useDeleteNote();
   const [{ isLoading: isDuplicating }, duplicateNote] = useDuplicateNote();
   const [{ isLoading: isMakingPrivate }, makeNotePrivate] = useMakeNotePrivate();
   const [{ isLoading: isUpdatingPermissions }, updateNotePermissions] = useUpdateNotePermissions();
-  const { setNotes, refresh: refreshNotes } = useOrganizationNotesContext();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   const isPrivate = note.access === 'PRIVATE';
@@ -45,7 +45,7 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) 
       const newNote = await duplicateNote(note.id.toString(), note.organization.slug);
       toast.success('Note duplicated successfully');
       refreshNotes();
-      router.push(`/notebook/${note.organization.slug}/${newNote.id}`);
+      router.replace(`/notebook/${note.organization.slug}/${newNote.id}`);
     } catch (error) {
       console.error('Error duplicating note:', error);
       toast.error('Failed to duplicate note. Please try again.');
@@ -87,9 +87,10 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) 
     }
     try {
       await deleteNote(note.id);
+      refreshNotes();
       setNotes((prevNotes) => prevNotes.filter((n) => n.id !== note.id));
       if (isSelected) {
-        router.push(`/notebook/${note.organization.slug}`);
+        router.replace(`/notebook/${note.organization.slug}`);
       }
     } catch (error) {
       toast.error('Failed to delete note. Please try again.');
