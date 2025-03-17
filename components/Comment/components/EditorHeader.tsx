@@ -1,9 +1,8 @@
 import { Avatar } from '@/components/ui/Avatar';
 import { ReviewStars } from '../lib/ReviewExtension';
-import { Session } from 'next-auth';
+import { useUser } from '@/contexts/UserContext';
 
 interface EditorHeaderProps {
-  session: Session | null;
   isReview: boolean;
   rating: number;
   onRatingChange: (rating: number) => void;
@@ -11,17 +10,16 @@ interface EditorHeaderProps {
 }
 
 export const EditorHeader = ({
-  session,
   isReview,
   rating,
   onRatingChange,
   isReadOnly,
 }: EditorHeaderProps) => {
-  // Debug session information
-  console.log('EditorHeader - Session:', session);
+  const { user } = useUser();
+  if (!user) return null;
 
   // If session is null, show a default header with "User"
-  if (!session?.user) {
+  if (!user) {
     return (
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-3">
@@ -54,10 +52,10 @@ export const EditorHeader = ({
   return (
     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
       <div className="flex items-center gap-3">
-        <Avatar src={session.user.image} alt={session.user.name || 'User'} size="sm" />
+        <Avatar src={user.authorProfile?.profileImage} alt={user.fullName || 'User'} size="sm" />
         <div className="flex flex-col">
           <div className="flex items-center gap-1.5 text-[15px]">
-            <span className="font-semibold text-gray-800">{session.user.name || 'User'}</span>
+            <span className="font-semibold text-gray-800">{user.fullName || 'User'}</span>
             <span className="text-gray-600">{isReview ? 'reviewing' : 'commenting'}</span>
           </div>
         </div>

@@ -66,6 +66,7 @@ export async function GET(request: Request) {
     }
   }
 
+  //TODO: Handle this better. Not found page
   if (!selectedOrg) {
     throw new Error('No organization found');
   }

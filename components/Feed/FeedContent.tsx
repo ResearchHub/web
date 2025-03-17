@@ -2,8 +2,6 @@
 
 import { FC, ReactNode } from 'react';
 import { FeedItemSkeleton } from './FeedItemSkeleton';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 import { FeedEntry, FeedPostContent, FeedPaperContent, FeedBountyContent } from '@/types/feed';
 import { Comment } from '@/types/comment';
 import { CommentCard } from '@/components/Comment/CommentCard';

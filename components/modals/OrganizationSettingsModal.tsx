@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState, useCallback, useEffect, useMemo } from 'react';
+import { Fragment, useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Avatar } from '@/components/ui/Avatar';
@@ -20,8 +20,8 @@ import {
   useUpdateOrgCoverImage,
 } from '@/hooks/useOrganization';
 import { useSession } from 'next-auth/react';
-import { User } from '@/types/user';
 import { ImageUploadModal } from '@/components/modals/ImageUploadModal';
+import { useNotebookContext } from '@/contexts/NotebookContext';
 
 interface OrganizationSettingsModalProps {
   isOpen: boolean;
@@ -180,12 +180,8 @@ const UserRow = ({
 };
 
 export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSettingsModalProps) {
-  const {
-    orgUsers,
-    refreshOrgUsersSilently,
-    selectedOrg: organization,
-    refreshOrganizationsSilently,
-  } = useOrganizationContext();
+  const { selectedOrg: organization, refreshOrganizations } = useOrganizationContext();
+  const { users: orgUsers, refreshUsers } = useNotebookContext();
   const { data: session } = useSession();
   const [{ isLoading: isUpdatingOrgName }, updateOrgDetails] = useUpdateOrgDetails();
   const [{ isLoading: isInvitingUser }, inviteUserToOrg] = useInviteUserToOrg();
@@ -254,7 +250,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
 
       await updateOrgDetails(organization.id.toString(), orgName);
       toast.success('Organization updated successfully');
-      refreshOrganizationsSilently();
+      refreshOrganizations(true);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'An unknown error occurred');
     }
@@ -281,7 +277,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
       toast.success(`Invitation sent to ${inviteEmail}`);
       setInviteEmail('');
       // Refresh the organization users list to show the new invite
-      refreshOrgUsersSilently();
+      refreshUsers(true);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to invite user');
     }
@@ -311,7 +307,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
         toast.success('Member removed successfully');
       }
 
-      refreshOrgUsersSilently();
+      refreshUsers(true);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to remove user');
     } finally {
@@ -333,7 +329,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
     try {
       await updateUserPermissions(organization.id, memberId, accessType);
       toast.success(`User role updated to ${newRole}`);
-      refreshOrgUsersSilently();
+      refreshUsers(true);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to update user role');
     } finally {
@@ -346,7 +342,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
 
     try {
       const updatedOrg = await updateOrgCoverImage(organization.id.toString(), blob);
-      refreshOrganizationsSilently();
+      refreshOrganizations(true);
       return updatedOrg;
     } catch (error) {
       console.error('Error updating cover image:', error);

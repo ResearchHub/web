@@ -88,7 +88,7 @@ export const CommentItem = ({
     comment.bounties && comment.bounties.length > 0 && comment.bounties.some(isOpenBounty);
 
   // Check if the current user is the author of the comment
-  const isAuthor = session?.user?.id === comment.author?.id;
+  const isAuthor = session?.userId === comment.author?.id;
 
   // Determine if this comment is being edited or replied to
   const isEditing = editingCommentId === comment.id;

@@ -59,7 +59,7 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
           size="sm"
           className="bg-gradient-to-br from-indigo-500 to-purple-500 flex-shrink-0"
         />
-        <span className="font-medium truncate overflow-hidden text-ellipsis max-w-[150px]">
+        <span className="font-medium truncate overflow-hidden text-ellipsis max-w-max-content">
           {selectedOrg.name}
         </span>
       </div>
@@ -105,7 +105,7 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
           className="w-full justify-between px-3 py-2 h-auto"
           onClick={() => setIsSettingsModalOpen(true)}
           disabled={!isCurrentUserAdmin}
-          title={!isCurrentUserAdmin ? 'Only admins can manage organization settings' : ''}
+          tooltip={!isCurrentUserAdmin ? 'Only admins can manage organization settings' : undefined}
         >
           <div className="flex items-center gap-2">
             {isCurrentUserAdmin ? (
