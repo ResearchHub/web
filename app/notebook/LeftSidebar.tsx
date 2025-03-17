@@ -55,7 +55,10 @@ export const LeftSidebar = () => {
   );
 
   const handleTemplateSelect = useCallback(
-    async (type: 'workspace' | 'private', template: 'research' | 'grant' | 'preregistration') => {
+    async (
+      type: 'workspace' | 'private',
+      template: 'research' | 'grant' | 'preregistration' | 'empty'
+    ) => {
       if (!selectedOrg) return;
 
       try {
@@ -70,6 +73,9 @@ export const LeftSidebar = () => {
             break;
           case 'preregistration':
             contentTemplate = preregistrationTemplate;
+            break;
+          case 'empty':
+            contentTemplate = { content: [] };
             break;
           default:
             contentTemplate = getInitialContent('research'); // fallback to research template
@@ -142,7 +148,8 @@ export const LeftSidebar = () => {
           <div className="text-xs text-gray-500">Standard research paper format</div>
         </div>
       </BaseMenuItem>
-      <BaseMenuItem
+
+      {/* <BaseMenuItem
         onClick={() => handleTemplateSelect(type, 'grant')}
         className="flex items-center gap-2 py-2"
         disabled={isCreatingNote || isUpdatingContent}
@@ -156,7 +163,7 @@ export const LeftSidebar = () => {
           <div className="font-medium text-gray-900">Grant Proposal</div>
           <div className="text-xs text-gray-500">Structured grant application</div>
         </div>
-      </BaseMenuItem>
+      </BaseMenuItem> */}
       <BaseMenuItem
         onClick={() => handleTemplateSelect(type, 'preregistration')}
         className="flex items-center gap-2 py-2"
@@ -170,6 +177,21 @@ export const LeftSidebar = () => {
         <div>
           <div className="font-medium text-gray-900">Preregistration</div>
           <div className="text-xs text-gray-500">Get funding for your research</div>
+        </div>
+      </BaseMenuItem>
+      <BaseMenuItem
+        onClick={() => handleTemplateSelect(type, 'empty')}
+        className="flex items-center gap-2 py-2"
+        disabled={isCreatingNote || isUpdatingContent}
+      >
+        {isCreatingNote || isUpdatingContent ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <FileText className="h-4 w-4" />
+        )}
+        <div>
+          <div className="font-medium text-gray-900">Empty</div>
+          <div className="text-xs text-gray-500">Start with a blank page</div>
         </div>
       </BaseMenuItem>
     </BaseMenu>

@@ -116,7 +116,7 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
                     leaveFrom="translate-x-0"
                     leaveTo="-translate-x-full"
                   >
-                    <Dialog.Panel className="w-72 h-full bg-white shadow-xl overflow-y-auto">
+                    <Dialog.Panel className="w-full lg:w-72 h-full bg-white shadow-xl overflow-y-auto">
                       <div className="h-16 flex justify-end items-center p-4 sticky top-0 bg-white z-10">
                         <Button
                           onClick={closeLeftSidebar}
@@ -168,7 +168,7 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
                     leaveFrom="translate-x-0"
                     leaveTo="translate-x-full"
                   >
-                    <Dialog.Panel className="w-72 h-full bg-white shadow-xl overflow-y-auto">
+                    <Dialog.Panel className="w-full lg:w-72 h-full bg-white shadow-xl overflow-y-auto">
                       <div className="h-16 flex justify-start items-center p-4 sticky top-0 bg-white z-10">
                         <Button
                           onClick={closeRightSidebar}
