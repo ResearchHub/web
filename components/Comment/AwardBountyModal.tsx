@@ -17,7 +17,6 @@ import { hasBounties, isOpenBounty } from '@/components/Bounty/lib/bountyUtil';
 import { CommentProvider, useComments } from '@/contexts/CommentContext';
 import CommentList from './CommentList';
 import { CommentItem } from './CommentItem';
-import { BountyCardWrapper } from '@/components/Bounty';
 import { CommentCard } from './CommentCard';
 import { contentRenderers } from '@/components/Feed/registry';
 

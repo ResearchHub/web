@@ -26,7 +26,6 @@ import {
   isExpiringSoon,
   getDisplayBounty,
 } from '@/components/Bounty/lib/bountyUtil';
-import { BountyCardWrapper } from '@/components/Bounty';
 import { contentRenderers } from '.';
 import { ReactNode } from 'react';
 import { Badge } from '@/components/ui/Badge';
@@ -88,7 +87,7 @@ export const CommentRenderer: ContentRenderer<Comment> = {
     const { isExpanded = false, onToggleExpand = () => {} } = options;
 
     // For bounty comments, we should not handle them here
-    // They should be handled by BountyCardWrapper directly
+    // They should be handled by FeedItemBounty through CommentItem
     if ((comment.commentType === 'BOUNTY' || comment.bounties?.length > 0) && comment.bounties) {
       console.warn('CommentRenderer should not be used for bounty comments');
       return null;

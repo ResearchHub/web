@@ -14,11 +14,20 @@ import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { CommentContent } from './lib/types';
 import { AwardBountyModal } from '@/components/Comment/AwardBountyModal';
 import { getDisplayBounty, isOpenBounty } from '@/components/Bounty/lib/bountyUtil';
-import { BountyCardWrapper } from '@/components/Bounty/BountyCardWrapper';
 import { useVote } from '@/hooks/useVote';
 import { FeedItemComment } from '@/components/Feed/items/FeedItemComment';
-import { transformCommentToFeedItem } from '@/types/feed';
+import { transformCommentToFeedItem, transformBountyCommentToFeedItem } from '@/types/feed';
 import { UserVoteType } from '@/types/reaction';
+import { FeedItemBounty } from '@/components/Feed/items/FeedItemBounty';
+import { SolutionModal } from '@/components/Comment/SolutionModal';
+import { ID } from '@/types/root';
+
+// Define the SolutionViewEvent interface (previously in BountyCard)
+interface SolutionViewEvent {
+  solutionId: ID;
+  authorName: string;
+  awardedAmount?: string;
+}
 
 interface CommentItemProps {
   comment: Comment;
@@ -54,6 +63,7 @@ export const CommentItem = ({
   } = useComments();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAwardModal, setShowAwardModal] = useState(false);
+  const [selectedSolution, setSelectedSolution] = useState<SolutionViewEvent | null>(null);
 
   // Log component lifecycle if debug is enabled
   useEffect(() => {
@@ -83,6 +93,11 @@ export const CommentItem = ({
   // Determine if this comment is being edited or replied to
   const isEditing = editingCommentId === comment.id;
   const isReplying = replyingToCommentId === comment.id;
+
+  // Handle viewing a solution
+  const handleViewSolution = (event: SolutionViewEvent) => {
+    setSelectedSolution(event);
+  };
 
   // Handle editing a comment
   const handleEdit = async (params: {
@@ -227,38 +242,59 @@ export const CommentItem = ({
       );
     }
 
-    // For bounty comments, use BountyCardWrapper directly
+    // For bounty comments, use FeedItemBounty
     if (isBountyComment && comment.bounties) {
       if (debug) {
-        console.log('Rendering bounty comment with BountyCardWrapper');
+        console.log('Rendering bounty comment with FeedItemBounty');
       }
-      return (
-        <div className="space-y-4">
-          <BountyCardWrapper
-            bounties={comment.bounties}
-            content={comment.content}
-            contentFormat={comment.contentFormat}
-            documentId={comment.thread?.objectId}
-            contentType={contentType || 'paper'}
-            commentId={comment.id}
-            userVote={comment.userVote}
-            score={comment.score}
-            showFooter={true}
-            showActions={renderCommentActions}
-            onUpvote={handleOnUpvote}
-            onReply={() => setReplyingToCommentId(comment.id)}
-            onReport={() => {
-              // Report functionality
-              toast.success('Comment reported');
-            }}
-            onEdit={() => {
-              if (debug) console.log(`Setting editingCommentId to ${comment.id}`);
-              setEditingCommentId(comment.id);
-            }}
-            onDelete={() => handleDelete()}
-          />
-        </div>
-      );
+
+      try {
+        // Transform the comment to a feed entry for FeedItemBounty
+        const feedEntry = transformBountyCommentToFeedItem(comment, contentType);
+
+        // Create a custom href for the FeedItemBounty to handle solution viewing
+        const customHref = undefined; // Setting to undefined to prevent navigation
+
+        return (
+          <div className="space-y-4">
+            <FeedItemBounty
+              entry={feedEntry}
+              showSolutions={true}
+              showRelatedWork={true}
+              href={customHref}
+              onViewSolution={(event) => {
+                setSelectedSolution({
+                  solutionId: event.solutionId,
+                  authorName: event.authorName,
+                  awardedAmount: event.awardedAmount,
+                });
+              }}
+            />
+
+            {/* If we're replying, show the reply editor */}
+            {isReplying && (
+              <div className="mt-4 border-t pt-4 px-4 pb-4">
+                <h4 className="text-sm font-medium mb-2">Your reply:</h4>
+                <CommentEditor
+                  onSubmit={handleReply}
+                  onCancel={() => setReplyingToCommentId(null)}
+                  placeholder="Write your reply..."
+                  autoFocus={true}
+                />
+              </div>
+            )}
+          </div>
+        );
+      } catch (error) {
+        console.error('Error transforming bounty comment to feed item:', error);
+
+        // Fallback to a simple error message
+        return (
+          <div className="p-4 border border-red-200 rounded-md bg-red-50 text-red-700">
+            <p>There was an error displaying this bounty. Please refresh the page and try again.</p>
+          </div>
+        );
+      }
     }
 
     // For regular comments, use FeedItemComment
@@ -531,6 +567,19 @@ export const CommentItem = ({
             }}
           />
         )}
+
+      {/* Solution Modal */}
+      {selectedSolution && (
+        <SolutionModal
+          isOpen={!!selectedSolution}
+          onClose={() => setSelectedSolution(null)}
+          commentId={selectedSolution.solutionId}
+          documentId={comment.thread?.objectId || 0}
+          contentType={contentType || 'paper'} // Default to paper for compatibility
+          solutionAuthorName={selectedSolution.authorName}
+          awardedAmount={selectedSolution.awardedAmount}
+        />
+      )}
     </div>
   );
 };

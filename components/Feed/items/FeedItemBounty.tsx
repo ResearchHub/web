@@ -48,6 +48,11 @@ interface FeedItemBountyProps {
   showRelatedWork?: boolean;
   relatedDocumentId?: number;
   href?: string; // Optional href prop
+  onViewSolution?: (event: {
+    solutionId: number;
+    authorName: string;
+    awardedAmount?: string;
+  }) => void;
 }
 
 /**
@@ -57,7 +62,12 @@ const FeedItemBountyBody: FC<{
   entry: FeedEntry;
   showSolutions?: boolean;
   showRelatedWork?: boolean;
-}> = ({ entry, showSolutions = true, showRelatedWork = true }) => {
+  onViewSolution?: (event: {
+    solutionId: number;
+    authorName: string;
+    awardedAmount?: string;
+  }) => void;
+}> = ({ entry, showSolutions = true, showRelatedWork = true, onViewSolution }) => {
   // Extract the bounty entry from the entry's content
   const bountyEntry = entry.content as FeedBountyContent;
   const bounty = bountyEntry.bounty;
@@ -78,6 +88,19 @@ const FeedItemBountyBody: FC<{
 
   // Get related work if available
   const relatedWork = entry.relatedWork;
+
+  // Handle solution viewing
+  const handleViewSolution = (solutionId: ID, authorName: string, awardedAmount?: string) => {
+    if (onViewSolution) {
+      onViewSolution({
+        solutionId: typeof solutionId === 'number' ? solutionId : Number(solutionId),
+        authorName,
+        awardedAmount,
+      });
+    } else {
+      console.log('View solution:', solutionId, authorName, awardedAmount);
+    }
+  };
 
   return (
     <div className="mb-4">
@@ -116,9 +139,7 @@ const FeedItemBountyBody: FC<{
             solutions={bounty.solutions}
             isPeerReviewBounty={isPeerReviewBounty}
             totalAwardedAmount={totalAwardedAmount}
-            onViewSolution={(solutionId: ID, authorName: string, awardedAmount?: string) => {
-              console.log('View solution:', solutionId, authorName, awardedAmount);
-            }}
+            onViewSolution={handleViewSolution}
           />
         </div>
       )}
@@ -135,6 +156,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   showSolutions = true,
   showRelatedWork = true,
   href,
+  onViewSolution,
 }) => {
   // Extract the bounty entry from the entry's content
   const bountyEntry = entry.content as FeedBountyContent;
@@ -196,6 +218,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
               entry={entry}
               showSolutions={showSolutions}
               showRelatedWork={showRelatedWork}
+              onViewSolution={onViewSolution}
             />
           </div>
 

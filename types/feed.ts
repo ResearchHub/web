@@ -458,3 +458,54 @@ export const transformCommentToFeedItem = (
     userVote: comment.userVote,
   };
 };
+
+/**
+ * Transforms a Comment with bounties into a FeedEntry that can be used with FeedItemBounty component
+ * @param comment The Comment object with bounties to transform
+ * @param contentType The content type of the related document (paper, post, etc.)
+ * @returns A FeedEntry object with the bounty as content
+ */
+export const transformBountyCommentToFeedItem = (
+  comment: Comment,
+  contentType: ContentType
+): FeedEntry => {
+  // Ensure the comment has bounties
+  if (!comment.bounties || comment.bounties.length === 0) {
+    throw new Error('Comment must have bounties to transform to a bounty feed item');
+  }
+
+  // Get the first bounty (or the most relevant one)
+  const bounty = comment.bounties[0];
+
+  // Create a FeedBountyContent object from the comment and bounty
+  const bountyContent: FeedBountyContent = {
+    id: comment.id,
+    contentType: 'BOUNTY',
+    createdDate: comment.createdDate,
+    bounty: bounty,
+    createdBy: comment.author,
+    relatedDocumentId: comment.thread?.objectId,
+    relatedDocumentContentType: contentType,
+    comment: {
+      id: comment.id,
+      content: comment.content,
+      contentFormat: comment.contentFormat || 'QUILL_EDITOR',
+      commentType: comment.commentType || 'BOUNTY',
+    },
+  };
+
+  // Create a FeedEntry with the bounty content
+  return {
+    id: `bounty-${comment.id}`,
+    timestamp: comment.createdDate,
+    action: 'open', // Default action for bounties
+    content: bountyContent,
+    contentType: 'BOUNTY',
+    metrics: {
+      votes: comment.score || 0,
+      comments: comment.childrenCount || 0,
+      saves: 0, // Add the required saves property
+    },
+    userVote: comment.userVote,
+  };
+};

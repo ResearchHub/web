@@ -521,7 +521,7 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
     case CommentActionType.CREATE_COMMENT_START:
       return {
         ...state,
-        loading: true,
+        loading: false,
         error: null,
       };
     case CommentActionType.CREATE_COMMENT_SUCCESS:
