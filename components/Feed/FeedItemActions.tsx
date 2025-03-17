@@ -39,6 +39,7 @@ const ActionButton: FC<ActionButtonProps> = ({
     tooltip={tooltip}
     onClick={onClick}
     disabled={isDisabled}
+    data-action={label.toLowerCase()}
   >
     <Icon className={`w-5 h-5 ${isActive ? 'text-primary-600' : ''}`} />
     {count !== undefined && <span className="text-sm font-medium">{count}</span>}
@@ -53,6 +54,7 @@ interface FeedItemActionsProps {
   relatedDocumentId?: number;
   relatedDocumentContentType?: ContentType;
   userVote?: UserVoteType;
+  onComment?: () => void;
 }
 
 export const FeedItemActions: FC<FeedItemActionsProps> = ({
@@ -62,6 +64,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   votableEntityId,
   relatedDocumentId,
   relatedDocumentContentType,
+  onComment,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
@@ -91,6 +94,15 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       const newVoteType: UserVoteType = localUserVote === 'UPVOTE' ? 'NEUTRAL' : 'UPVOTE';
       vote(newVoteType);
     });
+  };
+
+  // Add a new handler for comment action
+  const handleComment = () => {
+    if (onComment) {
+      executeAuthenticatedAction(() => {
+        onComment();
+      });
+    }
   };
 
   const handleReport = () => {
@@ -139,6 +151,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
             count={metrics?.comments}
             tooltip="Comment"
             label="Comment"
+            onClick={handleComment}
           />
         </div>
         <div className="ml-auto">

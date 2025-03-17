@@ -1,14 +1,23 @@
 'use client';
 
-import { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
+import React, {
+  createContext,
+  useReducer,
+  useContext,
+  useCallback,
+  useEffect,
+  useMemo,
+} from 'react';
 import {
   Comment,
   CommentFilter,
   CommentSort,
   CommentType,
-  UserVoteType,
   QuillContent,
+  transformCommentToCommentFeedEntry,
+  transformCommentToBountyFeedEntry,
 } from '@/types/comment';
+import { UserVoteType } from '@/types/reaction';
 import { ContentType } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
 import {
@@ -30,6 +39,8 @@ import {
   initialCommentState,
 } from './CommentReducer';
 import { toast } from 'react-hot-toast';
+import { FeedEntry, FeedCommentContent, FeedBountyContent } from '@/types/feed';
+import { getCommentFromFeedEntry, createFeedEntryFromComment } from '@/utils/feedUtils';
 
 export type BountyFilterType = 'ALL' | 'OPEN' | 'CLOSED';
 
@@ -38,14 +49,14 @@ export type CommentEventType = 'comment_created' | 'comment_updated' | 'comment_
 
 interface CommentContextType {
   // State
-  comments: Comment[];
+  feedEntries: FeedEntry[];
   count: number;
   loading: boolean;
   error: string | null;
   sortBy: CommentSort;
   filter?: CommentFilter;
   bountyFilter: BountyFilterType;
-  filteredComments: Comment[];
+  filteredFeedEntries: FeedEntry[];
   editingCommentId: number | null;
   replyingToCommentId: number | null;
 
@@ -88,7 +99,7 @@ interface CommentContextType {
   forceRefresh: () => Promise<void>;
 }
 
-const CommentContext = createContext<CommentContextType | null>(null);
+const CommentContext = createContext<CommentContextType | undefined>(undefined);
 
 // Helper function to convert CommentContent to the format expected by the API
 const convertToApiFormat = (content: CommentContent): string | QuillContent => {
@@ -135,12 +146,16 @@ export const CommentProvider = ({
   }, [state.replyingToCommentId, debug]);
 
   // Filter comments based on bounty filter
-  const filteredComments = useMemo(() => {
+  const filteredFeedEntries = useMemo(() => {
     if (commentType !== 'BOUNTY' || state.bountyFilter === 'ALL') {
-      return state.comments;
+      return state.feedEntries;
     }
 
-    return state.comments.filter((comment) => {
+    return state.feedEntries.filter((entry) => {
+      // Extract the comment from the feed entry
+      const comment = getCommentFromFeedEntry(entry);
+      if (!comment) return false;
+
       const hasExpired = comment.expirationDate
         ? new Date(comment.expirationDate) < new Date()
         : false;
@@ -154,7 +169,7 @@ export const CommentProvider = ({
 
       return true;
     });
-  }, [state.comments, commentType, state.bountyFilter]);
+  }, [state.feedEntries, commentType, state.bountyFilter]);
 
   // Fetch comments from API
   const fetchComments = useCallback(
@@ -171,25 +186,23 @@ export const CommentProvider = ({
           filterToUse = state.filter || commentType;
         }
 
-        const { comments: fetchedComments, count: totalCount } = await CommentService.fetchComments(
-          {
-            documentId,
-            contentType,
-            sort: state.sortBy,
-            filter: filterToUse,
-            page: pageToFetch,
-          }
-        );
+        const { count: totalCount, feedEntries } = await CommentService.fetchComments({
+          documentId,
+          contentType,
+          sort: state.sortBy,
+          filter: filterToUse,
+          page: pageToFetch,
+        });
 
         if (pageToFetch === 1) {
           dispatch({
             type: CommentActionType.FETCH_COMMENTS_SUCCESS,
-            payload: { comments: fetchedComments, count: totalCount },
+            payload: { feedEntries, count: totalCount },
           });
         } else {
           dispatch({
             type: CommentActionType.FETCH_MORE_COMMENTS_SUCCESS,
-            payload: { comments: fetchedComments, count: totalCount },
+            payload: { feedEntries, count: totalCount },
           });
         }
       } catch (err) {
@@ -228,7 +241,7 @@ export const CommentProvider = ({
   // Effect to refresh comments when sort or filter changes
   useEffect(() => {
     // Skip the initial render
-    if (state.comments.length > 0) {
+    if (state.feedEntries.length > 0) {
       refresh();
     }
   }, [state.sortBy, state.filter, refresh]);
@@ -241,7 +254,7 @@ export const CommentProvider = ({
 
     try {
       dispatch({ type: CommentActionType.FORCE_REFRESH });
-      const { comments: fetchedComments, count: totalCount } = await CommentService.fetchComments({
+      const { count: totalCount, feedEntries } = await CommentService.fetchComments({
         documentId,
         contentType,
         sort: state.sortBy,
@@ -251,11 +264,11 @@ export const CommentProvider = ({
 
       dispatch({
         type: CommentActionType.FORCE_REFRESH_SUCCESS,
-        payload: { comments: fetchedComments, count: totalCount },
+        payload: { feedEntries, count: totalCount },
       });
 
       if (debug) {
-        console.log(`[forceRefresh] Fetched ${fetchedComments.length} comments`);
+        console.log(`[forceRefresh] Fetched ${feedEntries.length} comments`);
       }
     } catch (err) {
       dispatch({
@@ -275,10 +288,23 @@ export const CommentProvider = ({
         dispatch({ type: CommentActionType.LOAD_MORE_REPLIES_START });
 
         // Find the comment in the tree
-        const comment = findCommentById(state.comments, commentId);
+        const feedEntry = state.feedEntries.find((entry) => {
+          const comment = getCommentFromFeedEntry(entry);
+          return comment?.id === commentId;
+        });
 
-        if (!comment) {
+        if (!feedEntry) {
           console.error(`[loadMoreReplies] Comment with ID ${commentId} not found`);
+          dispatch({
+            type: CommentActionType.LOAD_MORE_REPLIES_FAILURE,
+            payload: { error: 'Failed to load more replies' },
+          });
+          return;
+        }
+
+        const comment = getCommentFromFeedEntry(feedEntry);
+        if (!comment) {
+          console.error(`[loadMoreReplies] Could not extract comment from feed entry`);
           dispatch({
             type: CommentActionType.LOAD_MORE_REPLIES_FAILURE,
             payload: { error: 'Failed to load more replies' },
@@ -295,7 +321,7 @@ export const CommentProvider = ({
         );
 
         // Fetch more replies from the API
-        const { replies, count } = await CommentService.fetchCommentReplies({
+        const { count, feedEntries } = await CommentService.fetchCommentReplies({
           commentId,
           documentId,
           contentType,
@@ -304,144 +330,69 @@ export const CommentProvider = ({
           sort: state.sortBy,
         });
 
-        console.log(`[loadMoreReplies] Fetched ${replies.length} replies for comment ${commentId}`);
+        console.log(
+          `[loadMoreReplies] Fetched ${feedEntries.length} replies for comment ${commentId}`
+        );
 
         // Update the comments state with the new replies
         dispatch({
           type: CommentActionType.LOAD_MORE_REPLIES_SUCCESS,
-          payload: { commentId, replies },
+          payload: { commentId, feedEntries },
         });
-
-        // Log the updated state for debugging
-        setTimeout(() => {
-          const updatedComment = findCommentById(state.comments, commentId);
-          if (updatedComment) {
-            console.log(
-              `[loadMoreReplies] After update, comment ${commentId} has ${updatedComment.replies.length} replies`
-            );
-          }
-        }, 0);
-      } catch (error) {
-        console.error('[loadMoreReplies] Error loading more replies:', error);
+      } catch (err) {
         dispatch({
           type: CommentActionType.LOAD_MORE_REPLIES_FAILURE,
           payload: { error: 'Failed to load more replies' },
         });
+        console.error('Error loading more replies:', err);
       }
     },
-    [state.comments, documentId, contentType, state.sortBy]
+    [state.feedEntries, documentId, contentType, state.sortBy]
   );
 
-  // Event handlers for comment events
-  const handleCommentCreated = useCallback(
-    (data: { comment: Comment; contentType: ContentType; documentId: number }) => {
-      if (data.documentId === documentId && data.contentType === contentType) {
-        // Add the new comment to the list
-        dispatch({
-          type: CommentActionType.CREATE_COMMENT_SUCCESS,
-          payload: { comment: data.comment },
-        });
-        dispatch({ type: CommentActionType.SET_COUNT, payload: state.count + 1 });
-      }
-    },
-    [documentId, contentType, state.count]
-  );
-
-  const handleCommentUpdated = useCallback(
-    (data: { comment: Comment; contentType: ContentType; documentId: number }) => {
-      if (data.documentId === documentId && data.contentType === contentType) {
-        // Update the comment in the list
-        dispatch({
-          type: CommentActionType.UPDATE_COMMENT_SUCCESS,
-          payload: { comment: data.comment },
-        });
-      }
-    },
-    [documentId, contentType]
-  );
-
-  const handleCommentDeleted = useCallback(
-    (data: { comment: Comment; contentType: ContentType; documentId: number }) => {
-      if (data.documentId === documentId && data.contentType === contentType) {
-        // Remove the deleted comment from the list
-        dispatch({
-          type: CommentActionType.DELETE_COMMENT_SUCCESS,
-          payload: { comment: data.comment },
-        });
-        dispatch({ type: CommentActionType.SET_COUNT, payload: state.count - 1 });
-      }
-    },
-    [documentId, contentType, state.count]
-  );
-
-  // Function to emit comment events
-  const emitCommentEvent = useCallback(
-    (
-      eventType: CommentEventType,
-      data: { comment: Comment; contentType: ContentType; documentId: number }
-    ) => {
-      console.log(`[emitCommentEvent] Emitting ${eventType} event:`, data);
-
-      // Handle the event based on its type
-      switch (eventType) {
-        case 'comment_created':
-          handleCommentCreated(data);
-          break;
-        case 'comment_updated':
-          handleCommentUpdated(data);
-          break;
-        case 'comment_deleted':
-          handleCommentDeleted(data);
-          break;
-        default:
-          console.warn(`[emitCommentEvent] Unknown event type: ${eventType}`);
-      }
-    },
-    [handleCommentCreated, handleCommentUpdated, handleCommentDeleted]
-  );
-
-  // Create a new comment
+  // Function to create a new comment
   const createComment = useCallback(
     async (content: CommentContent, rating?: number): Promise<Comment | null> => {
-      dispatch({ type: CommentActionType.CREATE_COMMENT_START });
-      dispatch({ type: CommentActionType.SET_ERROR, payload: null });
-
       try {
+        dispatch({ type: CommentActionType.CREATE_COMMENT_START });
+
+        // Convert content to API format
         const apiContent = convertToApiFormat(content);
 
+        // Create the comment
         const newComment = await CommentService.createComment({
           workId: documentId,
           contentType,
           content: apiContent,
-          contentFormat: 'TIPTAP',
-          commentType: rating !== undefined ? 'REVIEW' : commentType,
+          commentType,
         });
 
-        // Only update the UI after successful API response
-        if (newComment) {
-          console.log(`Comment created successfully with ID: ${newComment.id}`);
+        // Convert the comment to a feed entry
+        const feedEntry = createFeedEntryFromComment(newComment);
 
-          // Update the state with the new comment
-          dispatch({
-            type: CommentActionType.CREATE_COMMENT_SUCCESS,
-            payload: { comment: newComment },
-          });
+        // Update the state
+        dispatch({
+          type: CommentActionType.CREATE_COMMENT_SUCCESS,
+          payload: { comment: feedEntry },
+        });
 
-          // Update the count
-          dispatch({ type: CommentActionType.SET_COUNT, payload: state.count + 1 });
-        }
+        // Emit the comment created event
+        emitCommentEvent('comment_created', {
+          comment: newComment,
+          contentType,
+          documentId,
+        });
 
         return newComment;
       } catch (err) {
         console.error('Error creating comment:', err);
-        dispatch({ type: CommentActionType.SET_ERROR, payload: 'Failed to create comment' });
         return null;
       }
     },
-    [documentId, contentType, commentType, state.count]
+    [documentId, contentType, commentType]
   );
 
-  // Create a new bounty
+  // Function to create a bounty
   const createBounty = useCallback(
     async (
       content: CommentContent,
@@ -450,278 +401,191 @@ export const CommentProvider = ({
       expirationDate: string,
       customWorkId?: string
     ): Promise<Comment | null> => {
-      dispatch({ type: CommentActionType.CREATE_COMMENT_START });
-      dispatch({ type: CommentActionType.SET_ERROR, payload: null });
-
       try {
+        // Convert content to API format
         const apiContent = convertToApiFormat(content);
 
-        // Always use GENERIC_COMMENT as the commentType
-        const commentType = 'GENERIC_COMMENT';
-
+        // Create the bounty
         const newBounty = await CommentService.createComment({
-          workId: customWorkId || documentId.toString(),
+          workId: customWorkId ? parseInt(customWorkId) : documentId,
           contentType,
           content: apiContent,
-          contentFormat: 'TIPTAP',
-          commentType, // Always GENERIC_COMMENT
           bountyAmount,
-          bountyType, // Keep the bountyType as provided
+          bountyType,
           expirationDate,
-          privacyType: 'PUBLIC',
+          commentType: 'BOUNTY',
         });
 
-        // Only update the UI after successful API response
-        if (newBounty) {
-          console.log(`Bounty created successfully with ID: ${newBounty.id}`);
-
-          // Update the state with the new bounty
-          dispatch({
-            type: CommentActionType.CREATE_COMMENT_SUCCESS,
-            payload: { comment: newBounty },
-          });
-
-          // Update the count
-          dispatch({ type: CommentActionType.SET_COUNT, payload: state.count + 1 });
-        }
+        // Refresh the comments to include the new bounty
+        await forceRefresh();
 
         return newBounty;
       } catch (err) {
         console.error('Error creating bounty:', err);
-        dispatch({ type: CommentActionType.SET_ERROR, payload: 'Failed to create bounty' });
         return null;
       }
     },
-    [documentId, contentType, state.count]
+    [documentId, contentType, forceRefresh]
   );
 
-  /**
-   * Creates a reply to an existing comment
-   * @param parentId ID of the parent comment
-   * @param content Content of the reply
-   * @returns The created reply or null if there was an error
-   */
+  // Function to create a reply to a comment
   const createReply = useCallback(
     async (parentId: number, content: CommentContent): Promise<Comment | null> => {
-      dispatch({ type: CommentActionType.CREATE_REPLY_START });
-      dispatch({ type: CommentActionType.SET_ERROR, payload: null });
-
       try {
-        console.log(`Creating reply to parent ${parentId} with content:`, content);
+        dispatch({ type: CommentActionType.CREATE_REPLY_START });
 
-        // Get the real parent ID if it exists
-        const realParentId = getRealId(parentId);
-        console.log(`Real parent ID: ${realParentId}`);
-
+        // Convert content to API format
         const apiContent = convertToApiFormat(content);
 
-        // Make the API call first
-        console.log(`Making API call to create reply to parent ${realParentId}`);
+        // Create the reply
         const newReply = await CommentService.createComment({
           workId: documentId,
           contentType,
           content: apiContent,
-          contentFormat: 'TIPTAP',
-          parentId: realParentId,
+          parentId,
           commentType,
         });
-        console.log(`API response for reply creation:`, newReply);
 
-        // Check if this reply already exists in the comment tree
-        const existingReply = findCommentById(state.comments, newReply.id);
-        if (existingReply) {
-          console.log(`Reply ${newReply.id} already exists in the tree, skipping addition`);
-          return newReply;
-        }
+        // Convert the reply to a feed entry
+        const feedEntry = createFeedEntryFromComment(newReply);
 
-        // Update the state with the new reply
+        // Update the state
         dispatch({
-          type: CommentActionType.ADD_REPLY,
-          payload: { parentId: realParentId, reply: newReply },
+          type: CommentActionType.CREATE_REPLY_SUCCESS,
+          payload: { reply: feedEntry },
         });
 
-        // Clear the replying state
-        dispatch({ type: CommentActionType.SET_REPLYING_TO_COMMENT_ID, payload: null });
+        // Emit the comment created event
+        emitCommentEvent('comment_created', {
+          comment: newReply,
+          contentType,
+          documentId,
+        });
 
         return newReply;
-      } catch (error) {
-        console.error('Error creating reply:', error);
-        dispatch({ type: CommentActionType.SET_ERROR, payload: 'Failed to create reply' });
-
-        // Refresh the comments to ensure we have the correct state
-        await fetchComments();
-
+      } catch (err) {
+        console.error('Error creating reply:', err);
         return null;
       }
     },
-    [session, documentId, contentType, commentType, fetchComments]
+    [documentId, contentType, commentType]
   );
 
-  /**
-   * Updates an existing comment
-   * @param commentId ID of the comment to update
-   * @param content New content for the comment
-   * @param parentId Optional parent ID if the comment is a reply
-   * @returns The updated comment or null if there was an error
-   */
+  // Function to update a comment
   const updateComment = useCallback(
     async (
       commentId: number,
       content: CommentContent,
       parentId?: number
     ): Promise<Comment | null> => {
-      dispatch({ type: CommentActionType.UPDATE_COMMENT_START });
-      dispatch({ type: CommentActionType.SET_ERROR, payload: null });
-
       try {
-        // Get the real comment ID if it exists
-        const realId = getRealId(commentId);
+        dispatch({ type: CommentActionType.UPDATE_COMMENT_START });
 
+        // Convert content to API format
         const apiContent = convertToApiFormat(content);
 
-        // Find the comment to update
-        const commentToUpdate = findCommentById(state.comments, realId);
-
-        if (!commentToUpdate) {
-          console.error(`Comment with ID ${realId} not found`);
-          return null;
-        }
-
-        // Store the original content for reverting if needed
-        const originalContent = commentToUpdate.content;
-
-        // Create an optimistic update
-        const optimisticUpdate: Comment = {
-          ...commentToUpdate,
-          content: apiContent,
-          updatedDate: new Date().toISOString(),
-          metadata: {
-            ...commentToUpdate.metadata,
-            isOptimisticUpdate: true,
-            originalContent,
-          },
-        };
-
-        // Update the comment tree with the optimistic update
-        dispatch({
-          type: CommentActionType.UPDATE_COMMENT_SUCCESS,
-          payload: { comment: optimisticUpdate },
-        });
-
-        // Make the API call
-        const response = await CommentService.updateComment({
-          commentId: realId,
+        // Update the comment
+        const updatedComment = await CommentService.updateComment({
+          commentId,
           documentId,
           contentType,
           content: apiContent,
           contentFormat: 'TIPTAP',
         });
 
-        if (response) {
-          // Update the comment tree with the real data
-          dispatch({
-            type: CommentActionType.UPDATE_COMMENT_SUCCESS,
-            payload: { comment: response },
-          });
+        // Convert the updated comment to a feed entry
+        const feedEntry = createFeedEntryFromComment(updatedComment);
 
-          return response;
-        } else {
-          // Revert the optimistic update if the API call failed
-          dispatch({
-            type: CommentActionType.REVERT_OPTIMISTIC_UPDATE,
-            payload: realId,
-          });
-
-          return null;
-        }
-      } catch (error) {
-        console.error('Error updating comment:', error);
-        dispatch({ type: CommentActionType.SET_ERROR, payload: 'Failed to update comment' });
-
-        // Revert the optimistic update
+        // Update the state
         dispatch({
-          type: CommentActionType.REVERT_OPTIMISTIC_UPDATE,
-          payload: commentId,
+          type: CommentActionType.UPDATE_COMMENT_SUCCESS,
+          payload: { comment: feedEntry },
         });
 
+        // Emit the comment updated event
+        emitCommentEvent('comment_updated', {
+          comment: updatedComment,
+          contentType,
+          documentId,
+        });
+
+        return updatedComment;
+      } catch (err) {
+        console.error('Error updating comment:', err);
         return null;
       }
     },
-    [state.comments, documentId, contentType]
+    [documentId, contentType]
   );
 
-  // Delete a comment
+  // Function to delete a comment
   const deleteComment = useCallback(
     async (commentId: number): Promise<boolean> => {
-      dispatch({ type: CommentActionType.DELETE_COMMENT_START });
-      dispatch({ type: CommentActionType.SET_ERROR, payload: null });
-
       try {
-        // Find the comment to delete
-        const commentToDelete = findCommentById(state.comments, commentId);
-
-        // If we couldn't find the comment to delete, return false
-        if (!commentToDelete) {
-          return false;
-        }
-
-        // Check if this is a reply (has a parentId)
-        const isReply = !!commentToDelete.parentId;
-
-        // Set loading state
         dispatch({ type: CommentActionType.DELETE_COMMENT_START });
 
-        try {
-          // Make the API call first - no optimistic updates for deletion
-          await CommentService.deleteComment({
-            commentId,
-            documentId,
-            contentType,
-          });
+        // Find the comment to delete
+        const feedEntry = state.feedEntries.find((entry) => {
+          const comment = getCommentFromFeedEntry(entry);
+          return comment?.id === commentId;
+        });
 
-          // Only update the UI after successful API response
-          if (isReply) {
-            // For replies, we need to update the parent's replies array
-            dispatch({
-              type: CommentActionType.DELETE_COMMENT_SUCCESS,
-              payload: { comment: commentToDelete },
-            });
-          } else {
-            // For top-level comments, filter them out from the list
-            dispatch({
-              type: CommentActionType.DELETE_COMMENT_SUCCESS,
-              payload: { comment: commentToDelete },
-            });
-          }
-
-          // Update the total count
-          dispatch({ type: CommentActionType.SET_COUNT, payload: state.count - 1 });
-
-          // Emit the event for backward compatibility
-          emitCommentEvent('comment_deleted', {
-            comment: commentToDelete,
-            contentType,
-            documentId,
-          });
-
-          return true;
-        } catch (error) {
-          console.error('Error deleting comment:', error);
-          dispatch({ type: CommentActionType.SET_ERROR, payload: 'Failed to delete comment' });
+        if (!feedEntry) {
+          console.error(`Comment with ID ${commentId} not found`);
           return false;
-        } finally {
-          dispatch({
-            type: CommentActionType.DELETE_COMMENT_SUCCESS,
-            payload: { comment: commentToDelete },
-          });
         }
+
+        const comment = getCommentFromFeedEntry(feedEntry);
+        if (!comment) {
+          console.error(`Could not extract comment from feed entry`);
+          return false;
+        }
+
+        // Delete the comment
+        await CommentService.deleteComment({
+          commentId,
+          documentId,
+          contentType,
+        });
+
+        // Update the state
+        dispatch({
+          type: CommentActionType.DELETE_COMMENT_SUCCESS,
+          payload: { comment: feedEntry },
+        });
+
+        // Emit the comment deleted event
+        emitCommentEvent('comment_deleted', {
+          comment,
+          contentType,
+          documentId,
+        });
+
+        return true;
       } catch (err) {
-        console.error('Error in deleteComment:', err);
-        dispatch({ type: CommentActionType.SET_ERROR, payload: 'Failed to delete comment' });
+        console.error('Error deleting comment:', err);
         return false;
       }
     },
-    [documentId, contentType, state.comments, emitCommentEvent]
+    [documentId, contentType, state.feedEntries]
+  );
+
+  // Function to emit a comment event
+  const emitCommentEvent = useCallback(
+    (
+      eventType: CommentEventType,
+      data: { comment: Comment; contentType: ContentType; documentId: number }
+    ) => {
+      // Dispatch a custom event
+      const event = new CustomEvent('comment_event', {
+        detail: {
+          type: eventType,
+          data,
+        },
+      });
+      window.dispatchEvent(event);
+    },
+    []
   );
 
   // Helper function to set editing comment ID
@@ -756,7 +620,7 @@ export const CommentProvider = ({
         type: CommentActionType.UPDATE_COMMENT_VOTE,
         payload: {
           commentId,
-          updatedComment: { userVote, score },
+          updatedComment: { userVote },
         },
       });
     },
@@ -764,14 +628,14 @@ export const CommentProvider = ({
   );
 
   const value = {
-    comments: state.comments,
+    feedEntries: state.feedEntries,
     count: state.count,
     loading: state.loading,
     error: state.error,
     sortBy: state.sortBy,
     filter: state.filter,
     bountyFilter: state.bountyFilter,
-    filteredComments,
+    filteredFeedEntries,
     editingCommentId: state.editingCommentId,
     replyingToCommentId: state.replyingToCommentId,
     fetchComments,
@@ -808,7 +672,7 @@ export const CommentProvider = ({
 
 export function useComments() {
   const context = useContext(CommentContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useComments must be used within a CommentProvider');
   }
   return context;

@@ -40,7 +40,7 @@ export const useComments = ({
       try {
         setLoading(true);
         setError(null);
-
+        alert(1);
         const response = await CommentService.fetchComments({
           documentId,
           contentType,

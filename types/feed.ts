@@ -28,6 +28,14 @@ export interface FeedPostContent {
   createdBy: AuthorProfile;
 }
 
+export interface FeedCommentContent {
+  id: number;
+  contentType: 'COMMENT';
+  createdDate: string;
+  comment: Comment;
+  createdBy: AuthorProfile;
+}
+
 export interface FeedBountyContent {
   id: number;
   contentType: 'BOUNTY';
@@ -64,7 +72,8 @@ export type Content =
   | Comment
   | FeedPostContent
   | FeedPaperContent
-  | FeedBountyContent;
+  | FeedBountyContent
+  | FeedCommentContent;
 
 // Define a union type for all possible content types
 export type FeedContentType = 'PAPER' | 'POST' | 'PREREGISTRATION' | 'BOUNTY' | 'COMMENT';

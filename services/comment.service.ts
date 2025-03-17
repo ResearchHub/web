@@ -9,9 +9,12 @@ import {
   CommentType,
   QuillContent,
   transformComment,
+  transformCommentToCommentFeedEntry,
+  transformCommentToBountyFeedEntry,
 } from '@/types/comment';
 import { ID } from '@/types/root';
 import { getContentTypePath } from '@/utils/contentTypeMapping';
+import { FeedEntry } from '@/types/feed';
 
 interface FetchCommentsOptions {
   documentId: number;
@@ -130,7 +133,10 @@ export class CommentService {
     childPageSize = 9,
     ascending = false,
     privacyType = 'PUBLIC',
-  }: FetchCommentsOptions): Promise<{ comments: Comment[]; count: number }> {
+  }: FetchCommentsOptions): Promise<{
+    count: number;
+    feedEntries: FeedEntry[];
+  }> {
     const contentTypePath = getContentTypePath(contentType);
     const queryParams = new URLSearchParams({
       page_size: pageSize.toString(),
@@ -152,9 +158,27 @@ export class CommentService {
     const path = `${this.BASE_PATH}/${contentTypePath}/${documentId}/comments/?${queryParams.toString()}`;
     const response = await ApiClient.get<CommentResponse>(path);
 
+    const comments = response.results.map(transformComment);
+
+    // Transform comments to feed entries based on their type
+    const feedEntries = comments.map((comment: Comment) => {
+      // If the comment has bounties, transform it to a bounty feed entry
+      if (comment.bounties && comment.bounties.length > 0) {
+        try {
+          return transformCommentToBountyFeedEntry(comment);
+        } catch (error) {
+          console.error('Error transforming comment to bounty feed entry:', error);
+          // Fall back to regular comment feed entry if bounty transformation fails
+          return transformCommentToCommentFeedEntry(comment);
+        }
+      }
+      // Otherwise, transform it to a regular comment feed entry
+      return transformCommentToCommentFeedEntry(comment);
+    });
+
     return {
-      comments: response.results.map(transformComment),
       count: response.count,
+      feedEntries,
     };
   }
 
@@ -221,7 +245,10 @@ export class CommentService {
     pageSize = 10,
     sort = 'BEST',
     ascending = false,
-  }: FetchCommentRepliesOptions): Promise<{ replies: Comment[]; count: number }> {
+  }: FetchCommentRepliesOptions): Promise<{
+    count: number;
+    feedEntries: FeedEntry[];
+  }> {
     const contentTypePath = getContentTypePath(contentType);
     // Calculate child_offset based on page and pageSize
     const childOffset = (page - 1) * pageSize;
@@ -241,13 +268,29 @@ export class CommentService {
     const response = await ApiClient.get<any>(path);
 
     if (!response) {
-      return { replies: [], count: 0 };
+      return { count: 0, feedEntries: [] };
     }
 
     // The response structure is different - the replies are in the children field of the comment
     const replies = (response.children || []).map(transformComment);
     const count = response.children_count || 0;
 
-    return { replies, count };
+    // Transform replies to feed entries based on their type
+    const feedEntries = replies.map((comment: Comment) => {
+      // If the comment has bounties, transform it to a bounty feed entry
+      if (comment.bounties && comment.bounties.length > 0) {
+        try {
+          return transformCommentToBountyFeedEntry(comment);
+        } catch (error) {
+          console.error('Error transforming comment to bounty feed entry:', error);
+          // Fall back to regular comment feed entry if bounty transformation fails
+          return transformCommentToCommentFeedEntry(comment);
+        }
+      }
+      // Otherwise, transform it to a regular comment feed entry
+      return transformCommentToCommentFeedEntry(comment);
+    });
+
+    return { count, feedEntries };
   }
 }

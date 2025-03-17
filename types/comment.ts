@@ -2,6 +2,8 @@ import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { BaseTransformer } from './transformer';
 import { Bounty, transformBounty, groupBountiesWithContributions } from './bounty';
 import { UserVoteType } from './reaction';
+import { FeedEntry, FeedCommentContent, FeedBountyContent } from './feed';
+import { ContentType } from './work';
 
 export type CommentFilter = 'BOUNTY' | 'DISCUSSION' | 'REVIEW';
 export type CommentSort = 'BEST' | 'NEWEST' | 'TOP' | 'CREATED_DATE';
@@ -144,4 +146,75 @@ export const transformComment = (raw: any): Comment => {
   };
 
   return result;
+};
+
+export const transformCommentToCommentFeedEntry = (comment: Comment): FeedEntry => {
+  // Create a FeedCommentContent object
+  const commentContent: FeedCommentContent = {
+    id: comment.id,
+    contentType: 'COMMENT',
+    createdDate: comment.createdDate,
+    comment: comment,
+    createdBy: comment.author,
+  };
+
+  // Create and return a FeedEntry
+  return {
+    id: `comment-${comment.id}`,
+    timestamp: comment.createdDate,
+    action: 'contribute',
+    content: commentContent,
+    contentType: 'COMMENT',
+    metrics: {
+      votes: comment.score || 0,
+      comments: comment.childrenCount || 0,
+      saves: 0,
+    },
+    userVote: comment.userVote,
+  };
+};
+
+export const transformCommentToBountyFeedEntry = (comment: Comment): FeedEntry => {
+  if (!comment.bounties || comment.bounties.length === 0) {
+    throw new Error('Comment does not have any bounties');
+  }
+
+  // Get the first bounty (typically there's only one)
+  const bounty = comment.bounties[0];
+
+  // Determine the related document content type
+  const relatedDocumentContentType: ContentType =
+    comment.thread?.threadType === 'PAPER' ? 'paper' : 'post';
+
+  // Create a FeedBountyContent object
+  const bountyContent: FeedBountyContent = {
+    id: comment.id,
+    contentType: 'BOUNTY',
+    createdDate: comment.createdDate,
+    bounty: bounty,
+    createdBy: comment.author,
+    relatedDocumentId: comment.thread?.objectId,
+    relatedDocumentContentType: relatedDocumentContentType,
+    comment: {
+      content: comment.content,
+      contentFormat: comment.contentFormat || 'TIPTAP',
+      commentType: comment.commentType,
+      id: comment.id,
+    },
+  };
+
+  // Create and return a FeedEntry
+  return {
+    id: `bounty-${comment.id}`,
+    timestamp: comment.createdDate,
+    action: 'open',
+    content: bountyContent,
+    contentType: 'BOUNTY',
+    metrics: {
+      votes: comment.score || 0,
+      comments: comment.childrenCount || 0,
+      saves: 0,
+    },
+    userVote: comment.userVote,
+  };
 };

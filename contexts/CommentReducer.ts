@@ -1,9 +1,11 @@
 import { Comment, CommentFilter, CommentSort } from '@/types/comment';
 import { BountyFilterType } from './CommentContext';
+import { FeedEntry, FeedCommentContent, FeedBountyContent } from '@/types/feed';
+import { getCommentFromFeedEntry, updateFeedEntryWithComment } from '@/utils/feedUtils';
 
 // Define the state shape
 export interface CommentState {
-  comments: Comment[];
+  feedEntries: FeedEntry[];
   count: number;
   loading: boolean;
   error: string | null;
@@ -61,17 +63,17 @@ export enum CommentActionType {
 // Define action interfaces
 interface SetCommentsAction {
   type: CommentActionType.SET_COMMENTS;
-  payload: Comment[];
+  payload: FeedEntry[];
 }
 
 interface AddCommentAction {
   type: CommentActionType.ADD_COMMENT;
-  payload: Comment;
+  payload: FeedEntry;
 }
 
 interface UpdateCommentAction {
   type: CommentActionType.UPDATE_COMMENT;
-  payload: Comment;
+  payload: FeedEntry;
 }
 
 interface RemoveCommentAction {
@@ -132,7 +134,7 @@ interface AddReplyAction {
   type: CommentActionType.ADD_REPLY;
   payload: {
     parentId: number;
-    reply: Comment;
+    reply: FeedEntry;
   };
 }
 
@@ -140,7 +142,7 @@ interface UpdateCommentVoteAction {
   type: CommentActionType.UPDATE_COMMENT_VOTE;
   payload: {
     commentId: number;
-    updatedComment: Partial<Comment>;
+    updatedComment: Partial<FeedEntry>;
   };
 }
 
@@ -149,7 +151,6 @@ interface RevertOptimisticUpdateAction {
   payload: number; // comment ID
 }
 
-// Additional action interfaces for async operations
 interface FetchCommentsStartAction {
   type: CommentActionType.FETCH_COMMENTS_START;
 }
@@ -157,7 +158,7 @@ interface FetchCommentsStartAction {
 interface FetchCommentsSuccessAction {
   type: CommentActionType.FETCH_COMMENTS_SUCCESS;
   payload: {
-    comments: Comment[];
+    feedEntries: FeedEntry[];
     count: number;
   };
 }
@@ -172,7 +173,7 @@ interface FetchCommentsFailureAction {
 interface FetchMoreCommentsSuccessAction {
   type: CommentActionType.FETCH_MORE_COMMENTS_SUCCESS;
   payload: {
-    comments: Comment[];
+    feedEntries: FeedEntry[];
     count: number;
   };
 }
@@ -195,7 +196,7 @@ interface ForceRefreshAction {
 interface ForceRefreshSuccessAction {
   type: CommentActionType.FORCE_REFRESH_SUCCESS;
   payload: {
-    comments: Comment[];
+    feedEntries: FeedEntry[];
     count: number;
   };
 }
@@ -215,7 +216,7 @@ interface LoadMoreRepliesSuccessAction {
   type: CommentActionType.LOAD_MORE_REPLIES_SUCCESS;
   payload: {
     commentId: number;
-    replies: Comment[];
+    feedEntries: FeedEntry[];
   };
 }
 
@@ -233,7 +234,7 @@ interface CreateCommentStartAction {
 interface CreateCommentSuccessAction {
   type: CommentActionType.CREATE_COMMENT_SUCCESS;
   payload: {
-    comment: Comment;
+    comment: FeedEntry;
   };
 }
 
@@ -244,7 +245,7 @@ interface CreateReplyStartAction {
 interface CreateReplySuccessAction {
   type: CommentActionType.CREATE_REPLY_SUCCESS;
   payload: {
-    reply: Comment;
+    reply: FeedEntry;
   };
 }
 
@@ -255,7 +256,7 @@ interface UpdateCommentStartAction {
 interface UpdateCommentSuccessAction {
   type: CommentActionType.UPDATE_COMMENT_SUCCESS;
   payload: {
-    comment: Comment;
+    comment: FeedEntry;
   };
 }
 
@@ -266,11 +267,10 @@ interface DeleteCommentStartAction {
 interface DeleteCommentSuccessAction {
   type: CommentActionType.DELETE_COMMENT_SUCCESS;
   payload: {
-    comment: Comment;
+    comment: FeedEntry;
   };
 }
 
-// Union type for all actions
 export type CommentAction =
   | SetCommentsAction
   | AddCommentAction
@@ -312,7 +312,7 @@ export type CommentAction =
 
 // Initial state
 export const initialCommentState: CommentState = {
-  comments: [],
+  feedEntries: [],
   count: 0,
   loading: true,
   error: null,
@@ -324,31 +324,195 @@ export const initialCommentState: CommentState = {
   replyingToCommentId: null,
 };
 
+// Helper function to get comment ID from a FeedEntry
+export const getCommentIdFromFeedEntry = (entry: FeedEntry): number => {
+  if (entry.contentType === 'COMMENT') {
+    return (entry.content as FeedCommentContent).comment.id;
+  } else if (entry.contentType === 'BOUNTY') {
+    return (entry.content as FeedBountyContent).id;
+  }
+  return 0;
+};
+
+// Helper function to find a FeedEntry by comment ID
+export const findFeedEntryByCommentId = (
+  feedEntries: FeedEntry[],
+  commentId: number
+): FeedEntry | undefined => {
+  return feedEntries.find((entry) => {
+    const entryCommentId = getCommentIdFromFeedEntry(entry);
+    return entryCommentId === commentId;
+  });
+};
+
+// Helper function to add a reply to a parent comment in the feed entries
+const addReplyToFeedEntries = (
+  feedEntries: FeedEntry[],
+  parentId: number,
+  reply: FeedEntry
+): FeedEntry[] => {
+  // Find the parent feed entry
+  const parentEntry = findFeedEntryByCommentId(feedEntries, parentId);
+  if (!parentEntry) return feedEntries;
+
+  // Extract the parent comment
+  const parentComment = getCommentFromFeedEntry(parentEntry);
+  if (!parentComment) return feedEntries;
+
+  // Extract the reply comment
+  const replyComment = getCommentFromFeedEntry(reply);
+  if (!replyComment) return feedEntries;
+
+  // Add the reply to the parent comment's replies
+  const updatedParentComment = {
+    ...parentComment,
+    replies: [...(parentComment.replies || []), replyComment],
+    childrenCount: (parentComment.childrenCount || 0) + 1,
+  };
+
+  // Update the parent feed entry with the updated comment
+  const updatedParentEntry = updateFeedEntryWithComment(parentEntry, updatedParentComment);
+
+  // Return the updated feed entries
+  return feedEntries.map((entry) =>
+    getCommentIdFromFeedEntry(entry) === parentId ? updatedParentEntry : entry
+  );
+};
+
+// Helper function to update a comment's vote in the feed entries
+const updateCommentVoteInFeedEntries = (
+  feedEntries: FeedEntry[],
+  commentId: number,
+  updatedComment: Partial<FeedEntry>
+): FeedEntry[] => {
+  // Find the feed entry to update
+  const feedEntry = findFeedEntryByCommentId(feedEntries, commentId);
+  if (!feedEntry) return feedEntries;
+
+  // Extract the comment
+  const comment = getCommentFromFeedEntry(feedEntry);
+  if (!comment) return feedEntries;
+
+  // Update the comment with the new vote
+  const updatedCommentObj = {
+    ...comment,
+    userVote: updatedComment.userVote,
+  };
+
+  // Update the feed entry with the updated comment
+  const updatedEntry = updateFeedEntryWithComment(feedEntry, updatedCommentObj);
+
+  // Return the updated feed entries
+  return feedEntries.map((entry) =>
+    getCommentIdFromFeedEntry(entry) === commentId ? updatedEntry : entry
+  );
+};
+
+// Helper function to revert an optimistic update in the feed entries
+const revertOptimisticUpdateInFeedEntries = (
+  feedEntries: FeedEntry[],
+  commentId: number
+): FeedEntry[] => {
+  // Find the feed entry to revert
+  const feedEntry = findFeedEntryByCommentId(feedEntries, commentId);
+  if (!feedEntry) return feedEntries;
+
+  // Extract the comment
+  const comment = getCommentFromFeedEntry(feedEntry);
+  if (!comment || !comment.metadata?.originalContent) return feedEntries;
+
+  // Revert the comment to its original content
+  const revertedComment = {
+    ...comment,
+    content: comment.metadata.originalContent,
+    metadata: {
+      ...comment.metadata,
+      isOptimisticUpdate: false,
+      originalContent: undefined,
+    },
+  };
+
+  // Update the feed entry with the reverted comment
+  const revertedEntry = updateFeedEntryWithComment(feedEntry, revertedComment);
+
+  // Return the updated feed entries
+  return feedEntries.map((entry) =>
+    getCommentIdFromFeedEntry(entry) === commentId ? revertedEntry : entry
+  );
+};
+
+// Helper function to update a comment with more replies
+const updateFeedEntriesWithMoreReplies = (
+  feedEntries: FeedEntry[],
+  commentId: number,
+  newReplies: FeedEntry[]
+): FeedEntry[] => {
+  // Find the feed entry to update
+  const feedEntry = findFeedEntryByCommentId(feedEntries, commentId);
+  if (!feedEntry) return feedEntries;
+
+  // Extract the comment
+  const comment = getCommentFromFeedEntry(feedEntry);
+  if (!comment) return feedEntries;
+
+  // Extract the new reply comments
+  const newReplyComments = newReplies
+    .map((entry) => getCommentFromFeedEntry(entry))
+    .filter(Boolean) as Comment[];
+
+  // Filter out any replies that are already in the comment's replies array
+  const existingReplyIds = new Set(comment.replies.map((reply) => reply.id));
+  const filteredNewReplies = newReplyComments.filter((reply) => !existingReplyIds.has(reply.id));
+
+  if (filteredNewReplies.length === 0) {
+    return feedEntries;
+  }
+
+  // Update the comment with the new replies
+  const updatedComment = {
+    ...comment,
+    replies: [...comment.replies, ...filteredNewReplies],
+  };
+
+  // Update the feed entry with the updated comment
+  const updatedEntry = updateFeedEntryWithComment(feedEntry, updatedComment);
+
+  // Return the updated feed entries
+  return feedEntries.map((entry) =>
+    getCommentIdFromFeedEntry(entry) === commentId ? updatedEntry : entry
+  );
+};
+
 // Reducer function
 export const commentReducer = (state: CommentState, action: CommentAction): CommentState => {
   switch (action.type) {
     case CommentActionType.SET_COMMENTS:
       return {
         ...state,
-        comments: action.payload,
+        feedEntries: action.payload,
       };
     case CommentActionType.ADD_COMMENT:
       return {
         ...state,
-        comments: [action.payload, ...state.comments],
+        feedEntries: [action.payload, ...state.feedEntries],
         count: state.count + 1,
       };
     case CommentActionType.UPDATE_COMMENT:
       return {
         ...state,
-        comments: state.comments.map((comment) =>
-          comment.id === action.payload.id ? action.payload : comment
-        ),
+        feedEntries: state.feedEntries.map((entry) => {
+          const entryCommentId = getCommentIdFromFeedEntry(entry);
+          const payloadCommentId = getCommentIdFromFeedEntry(action.payload);
+          return entryCommentId === payloadCommentId ? action.payload : entry;
+        }),
       };
     case CommentActionType.REMOVE_COMMENT:
       return {
         ...state,
-        comments: state.comments.filter((comment) => comment.id !== action.payload),
+        feedEntries: state.feedEntries.filter((entry) => {
+          const entryCommentId = getCommentIdFromFeedEntry(entry);
+          return entryCommentId !== action.payload;
+        }),
         count: state.count - 1,
       };
     case CommentActionType.SET_COUNT:
@@ -402,7 +566,7 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
       const { parentId, reply } = action.payload;
       return {
         ...state,
-        comments: addReplyToComments(state.comments, parentId, reply),
+        feedEntries: addReplyToFeedEntries(state.feedEntries, parentId, reply),
         count: state.count + 1,
       };
     }
@@ -410,13 +574,13 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
       const { commentId, updatedComment } = action.payload;
       return {
         ...state,
-        comments: updateCommentVoteInComments(state.comments, commentId, updatedComment),
+        feedEntries: updateCommentVoteInFeedEntries(state.feedEntries, commentId, updatedComment),
       };
     }
     case CommentActionType.REVERT_OPTIMISTIC_UPDATE: {
       return {
         ...state,
-        comments: revertOptimisticUpdateInComments(state.comments, action.payload),
+        feedEntries: revertOptimisticUpdateInFeedEntries(state.feedEntries, action.payload),
       };
     }
 
@@ -430,7 +594,7 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
     case CommentActionType.FETCH_COMMENTS_SUCCESS:
       return {
         ...state,
-        comments: action.payload.comments,
+        feedEntries: action.payload.feedEntries,
         count: action.payload.count,
         loading: false,
         error: null,
@@ -444,7 +608,7 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
     case CommentActionType.FETCH_MORE_COMMENTS_SUCCESS:
       return {
         ...state,
-        comments: [...state.comments, ...action.payload.comments],
+        feedEntries: [...state.feedEntries, ...action.payload.feedEntries],
         count: action.payload.count,
         loading: false,
         error: null,
@@ -472,7 +636,7 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
     case CommentActionType.FORCE_REFRESH_SUCCESS:
       return {
         ...state,
-        comments: action.payload.comments,
+        feedEntries: action.payload.feedEntries,
         count: action.payload.count,
         loading: false,
         error: null,
@@ -492,10 +656,10 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
     case CommentActionType.LOAD_MORE_REPLIES_SUCCESS:
       return {
         ...state,
-        comments: updateCommentsWithMoreReplies(
-          state.comments,
+        feedEntries: updateFeedEntriesWithMoreReplies(
+          state.feedEntries,
           action.payload.commentId,
-          action.payload.replies
+          action.payload.feedEntries
         ),
         loading: false,
         error: null,
@@ -515,7 +679,7 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
     case CommentActionType.CREATE_COMMENT_SUCCESS:
       return {
         ...state,
-        comments: [action.payload.comment, ...state.comments],
+        feedEntries: [action.payload.comment, ...state.feedEntries],
         count: state.count + 1,
         loading: false,
         error: null,
@@ -527,9 +691,13 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
         error: null,
       };
     case CommentActionType.CREATE_REPLY_SUCCESS:
-      // This is handled by the ADD_REPLY case
       return {
         ...state,
+        feedEntries: addReplyToFeedEntries(
+          state.feedEntries,
+          getCommentIdFromFeedEntry(action.payload.reply),
+          action.payload.reply
+        ),
         loading: false,
         error: null,
       };
@@ -542,7 +710,11 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
     case CommentActionType.UPDATE_COMMENT_SUCCESS:
       return {
         ...state,
-        comments: updateReplyDeep(state.comments, action.payload.comment),
+        feedEntries: state.feedEntries.map((entry) => {
+          const entryCommentId = getCommentIdFromFeedEntry(entry);
+          const payloadCommentId = getCommentIdFromFeedEntry(action.payload.comment);
+          return entryCommentId === payloadCommentId ? action.payload.comment : entry;
+        }),
         loading: false,
         error: null,
       };
@@ -555,7 +727,11 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
     case CommentActionType.DELETE_COMMENT_SUCCESS:
       return {
         ...state,
-        comments: state.comments.filter((comment) => comment.id !== action.payload.comment.id),
+        feedEntries: state.feedEntries.filter((entry) => {
+          const entryCommentId = getCommentIdFromFeedEntry(entry);
+          const payloadCommentId = getCommentIdFromFeedEntry(action.payload.comment);
+          return entryCommentId !== payloadCommentId;
+        }),
         count: state.count - 1,
         loading: false,
         error: null,
@@ -563,57 +739,4 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
     default:
       return state;
   }
-};
-
-// Helper functions for complex state updates
-import {
-  addReplyDeep,
-  updateCommentVoteInList,
-  revertOptimisticUpdate,
-  updateReplyDeep,
-  traverseCommentTree,
-} from '@/components/Comment/lib/commentUtils/index';
-
-const addReplyToComments = (comments: Comment[], parentId: number, reply: Comment): Comment[] => {
-  return addReplyDeep(comments, parentId, reply);
-};
-
-const updateCommentVoteInComments = (
-  comments: Comment[],
-  commentId: number,
-  updatedComment: Partial<Comment>
-): Comment[] => {
-  return updateCommentVoteInList(comments, commentId, updatedComment);
-};
-
-const revertOptimisticUpdateInComments = (comments: Comment[], commentId: number): Comment[] => {
-  return revertOptimisticUpdate(comments, commentId);
-};
-
-// Helper function to update a comment with more replies
-const updateCommentsWithMoreReplies = (
-  comments: Comment[],
-  commentId: number,
-  newReplies: Comment[]
-): Comment[] => {
-  return traverseCommentTree(comments, (currentComment) => {
-    if (currentComment.id === commentId) {
-      // Filter out any replies that are already in the comment's replies array
-      const existingReplyIds = new Set(currentComment.replies.map((reply) => reply.id));
-      const filteredNewReplies = newReplies.filter((reply) => !existingReplyIds.has(reply.id));
-
-      if (filteredNewReplies.length === 0) {
-        return currentComment;
-      }
-
-      // Create a new comment object with the updated replies
-      return {
-        ...currentComment,
-        replies: [...currentComment.replies, ...filteredNewReplies],
-      };
-    }
-
-    // Return the comment unchanged if it's not the one we're looking for
-    return currentComment;
-  });
 };

@@ -26,7 +26,6 @@ interface CommentFeedProps {
   className?: string;
   commentType?: CommentType;
   editorProps?: Partial<CommentEditorProps>;
-  renderCommentActions?: boolean;
   hideEditor?: boolean;
   debug?: boolean;
 }
@@ -37,7 +36,6 @@ function CommentFeed({
   className,
   commentType = 'GENERIC_COMMENT',
   editorProps = {},
-  renderCommentActions = true,
   hideEditor = false,
   debug = false,
 }: CommentFeedProps) {
@@ -72,7 +70,6 @@ function CommentFeed({
         <CommentFeedContent
           className={className}
           editorProps={editorProps}
-          renderCommentActions={renderCommentActions}
           hideEditor={hideEditor}
           commentType={commentType}
           contentType={contentType}
@@ -93,7 +90,6 @@ function CommentFeed({
 function CommentFeedContent({
   className,
   editorProps = {},
-  renderCommentActions = true,
   hideEditor = false,
   commentType,
   contentType,
@@ -111,7 +107,7 @@ function CommentFeedContent({
   }, [commentType, debug]);
 
   const {
-    filteredComments,
+    filteredFeedEntries,
     count,
     loading,
     error,
@@ -262,7 +258,7 @@ function CommentFeedContent({
       <div className="comment-list-container">
         {loading ? (
           <CommentLoader count={3} commentType={commentType} />
-        ) : filteredComments.length === 0 ? (
+        ) : filteredFeedEntries.length === 0 ? (
           <CommentEmptyState
             commentType={commentType || 'GENERIC_COMMENT'}
             onCreateBounty={handleCreateBounty}
@@ -285,14 +281,12 @@ function CommentFeedContent({
             )}
 
             <CommentList
-              comments={filteredComments}
+              feedEntries={filteredFeedEntries}
               isRootList={true}
               contentType={contentType}
-              renderCommentActions={renderCommentActions}
-              debug={debug}
             />
 
-            {filteredComments.length < count && (
+            {filteredFeedEntries.length < count && (
               <div className="flex justify-center mt-4">
                 <Button
                   variant="outlined"
@@ -302,7 +296,7 @@ function CommentFeedContent({
                 >
                   {loading
                     ? 'Loading...'
-                    : `Load More (${count - filteredComments.length} remaining)`}
+                    : `Load More (${count - filteredFeedEntries.length} remaining)`}
                 </Button>
               </div>
             )}

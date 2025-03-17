@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Comment, CommentType, UserVoteType } from '@/types/comment';
+import { useState, useCallback } from 'react';
+import { CommentType } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { CommentEditor } from './CommentEditor';
 import 'highlight.js/styles/atom-one-dark.css';
-import { CommentCard } from './CommentCard';
+import { FeedItemComment } from '@/components/Feed/items/FeedItemComment';
+import { FeedItemBounty } from '@/components/Feed/items/FeedItemBounty';
 import { useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
 import { useComments } from '@/contexts/CommentContext';
@@ -13,28 +14,26 @@ import LoadMoreReplies from './LoadMoreReplies';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { CommentContent } from './lib/types';
 import { AwardBountyModal } from '@/components/Comment/AwardBountyModal';
+import { SolutionModal } from '@/components/Comment/SolutionModal';
+import { SolutionViewEvent } from '@/components/Bounty/BountyCard';
 import { getDisplayBounty, isOpenBounty } from '@/components/Bounty/lib/bountyUtil';
-import { BountyCardWrapper } from '@/components/Bounty/BountyCardWrapper';
-import { useVote } from '@/hooks/useVote';
+import { FeedEntry, FeedBountyContent } from '@/types/feed';
+import { getCommentFromFeedEntry, createFeedEntryFromComment } from '@/utils/feedUtils';
 
 interface CommentItemProps {
-  comment: Comment;
+  feedEntry: FeedEntry;
   contentType: ContentType;
   commentType?: CommentType;
-  onCommentUpdate?: (newComment: Comment, parentId?: number) => void;
+  onCommentUpdate?: (newComment: any, parentId?: number) => void;
   onCommentDelete?: (commentId: number) => void;
-  renderCommentActions?: boolean;
-  debug?: boolean;
 }
 
 export const CommentItem = ({
-  comment,
+  feedEntry,
   contentType,
   commentType = 'GENERIC_COMMENT',
   onCommentUpdate,
   onCommentDelete,
-  renderCommentActions = true,
-  debug = false,
 }: CommentItemProps) => {
   const { data: session } = useSession();
   const {
@@ -48,34 +47,29 @@ export const CommentItem = ({
     loading,
     forceRefresh,
     updateCommentVote,
+    feedEntries,
   } = useComments();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAwardModal, setShowAwardModal] = useState(false);
+  const [selectedSolution, setSelectedSolution] = useState<SolutionViewEvent | null>(null);
 
-  // Log component lifecycle if debug is enabled
-  useEffect(() => {
-    if (debug) {
-      console.log(`CommentItem ${comment.id} - MOUNTED`);
-      return () => {
-        console.log(`CommentItem ${comment.id} - UNMOUNTED`);
-      };
-    }
-  }, [comment.id, debug]);
+  // Extract the comment from the feedEntry
+  const comment = getCommentFromFeedEntry(feedEntry);
 
-  // Add debug logging if debug is enabled
-  useEffect(() => {
-    if (debug) {
-      console.log(`CommentItem ${comment.id} - isReplying: ${replyingToCommentId === comment.id}`);
-      console.log(`CommentItem ${comment.id} - isEditing: ${editingCommentId === comment.id}`);
-    }
-  }, [comment.id, replyingToCommentId, editingCommentId, debug]);
-
-  // Check if the comment has an open bounty
-  const hasOpenBounty =
-    comment.bounties && comment.bounties.length > 0 && comment.bounties.some(isOpenBounty);
+  if (!comment) {
+    return null; // Return early if no comment can be extracted
+  }
 
   // Check if the current user is the author of the comment
-  const isAuthor = session?.user?.id === comment.author?.id;
+  const isAuthor = session?.user?.authorProfile?.id === comment.author?.id;
+  console.log('isAuthor', isAuthor);
+  console.log('session', session);
+
+  console.log('session?.user?.authorProfile?.id', session?.user?.authorProfile?.id);
+  console.log('comment.author', comment.author);
+
+  console.log('comment.author', comment.author);
+  const renderCommentActions = isAuthor;
 
   // Determine if this comment is being edited or replied to
   const isEditing = editingCommentId === comment.id;
@@ -90,10 +84,6 @@ export const CommentItem = ({
     try {
       // Show loading toast
       const loadingToastId = toast.loading('Saving your changes...');
-
-      if (debug) {
-        console.log(`Editing comment ${comment.id} with content:`, params.content);
-      }
 
       // Make the API call through the context
       const updatedComment = await updateComment(
@@ -138,10 +128,6 @@ export const CommentItem = ({
     try {
       // Show loading toast
       const loadingToastId = toast.loading('Posting your reply...');
-
-      if (debug) {
-        console.log(`Replying to comment ${comment.id} with content:`, params.content);
-      }
 
       // Make the API call through the context
       const newReply = await createReply(comment.id, params.content);
@@ -203,7 +189,7 @@ export const CommentItem = ({
     const newScore = newVoteType === 'UPVOTE' ? comment.score + 1 : comment.score - 1;
 
     updateCommentVote(comment.id, newVoteType, newScore);
-  }, [comment, debug]);
+  }, [comment, updateCommentVote]);
 
   // Render the comment content based on whether it's being edited
   const renderContent = () => {
@@ -224,72 +210,62 @@ export const CommentItem = ({
       );
     }
 
-    // For bounty comments, use BountyCardWrapper directly
-    if (isBountyComment && comment.bounties) {
-      if (debug) {
-        console.log('Rendering bounty comment with BountyCardWrapper');
+    // For bounty comments, use FeedItemBounty directly
+    if (isBountyComment && feedEntry.contentType === 'BOUNTY') {
+      const bountyContent = feedEntry.content as FeedBountyContent;
+      const bounty = bountyContent.bounty;
+
+      if (!bounty) {
+        return null;
       }
+
       return (
         <div className="space-y-4">
-          <BountyCardWrapper
-            bounties={comment.bounties}
-            content={comment.content}
-            contentFormat={comment.contentFormat}
-            documentId={comment.thread?.objectId}
-            contentType={contentType || 'paper'}
-            commentId={comment.id}
-            userVote={comment.userVote}
-            score={comment.score}
-            showFooter={true}
-            showActions={renderCommentActions}
-            onUpvote={handleOnUpvote}
+          <FeedItemBounty
+            entry={feedEntry}
+            relatedDocumentId={comment.thread?.objectId || bountyContent.relatedDocumentId}
+            showSolutions={true}
+            showRelatedWork={true}
             onReply={() => setReplyingToCommentId(comment.id)}
-            onReport={() => {
-              // Report functionality
-              toast.success('Comment reported');
-            }}
-            onEdit={() => {
-              if (debug) console.log(`Setting editingCommentId to ${comment.id}`);
-              setEditingCommentId(comment.id);
-            }}
-            onDelete={() => handleDelete()}
           />
         </div>
       );
     }
-
-    // For regular comments, use CommentCard
-
+    console.log('render', renderCommentActions);
+    console.log('11');
+    // For regular comments, use FeedItemComment with the provided feedEntry
     return (
       <div className="space-y-4">
-        {/* Render the comment card with all necessary callbacks */}
-        <CommentCard
-          comment={comment}
-          isReplying={isReplying}
-          onCancelReply={() => setReplyingToCommentId(null)}
-          onSubmitReply={handleReply}
-          onUpvote={handleOnUpvote}
+        {/* Render the FeedItemComment with all necessary callbacks */}
+        <FeedItemComment
+          entry={feedEntry}
           onReply={() => setReplyingToCommentId(comment.id)}
-          onReport={() => {
-            if (debug) console.log('Report clicked for comment:', comment.id);
-          }}
-          onShare={() => {
-            // Copy the link to the clipboard
-            const url =
-              window.location.origin + `/comment/${comment.thread?.objectId}/${comment.id}`;
-            navigator.clipboard.writeText(url).then(() => {
-              toast.success('Link copied to clipboard');
-            });
-          }}
-          onEdit={() => {
-            if (debug) console.log(`Setting editingCommentId to ${comment.id}`);
-            setEditingCommentId(comment.id);
-          }}
+          onEdit={() => setEditingCommentId(comment.id)}
           onDelete={() => handleDelete()}
           showActions={renderCommentActions}
         />
+
+        {/* If replying, show the editor */}
+        {isReplying && (
+          <div className="mt-4 pl-6 border-l border-gray-200">
+            <CommentEditor
+              onSubmit={handleReply}
+              onCancel={() => setReplyingToCommentId(null)}
+              autoFocus={true}
+              placeholder="Write a reply..."
+            />
+          </div>
+        )}
       </div>
     );
+  };
+
+  // Find feed entries for replies
+  const findReplyFeedEntries = (replyId: number) => {
+    return feedEntries.find((entry) => {
+      const entryComment = getCommentFromFeedEntry(entry);
+      return entryComment?.id === replyId;
+    });
   };
 
   return (
@@ -361,107 +337,43 @@ export const CommentItem = ({
         @import 'highlight.js/styles/atom-one-dark.css';
       `}</style>
 
-      {/* Debug information */}
-      {debug && (
-        <div className="bg-gray-100 p-2 mb-2 rounded text-xs font-mono">
-          <div>
-            <strong>Comment ID:</strong> {comment.id}
-          </div>
-          <div>
-            <strong>Parent ID:</strong> {comment.parentId || 'none'}
-          </div>
-          <div>
-            <strong>Format:</strong> {comment.contentFormat}
-          </div>
-          <div>
-            <strong>Type:</strong> {commentType}
-          </div>
-          <div>
-            <strong>Author:</strong> {comment.author?.name || 'Unknown'}
-          </div>
-          <div>
-            <strong>Created:</strong> {comment.createdDate?.toString()}
-          </div>
-          <div>
-            <strong>isEditing:</strong> {isEditing ? 'true' : 'false'}
-          </div>
-          <div>
-            <strong>isReplying:</strong> {isReplying ? 'true' : 'false'}
-          </div>
-          <div>
-            <strong>Replies:</strong> {comment.replies?.length || 0}
-          </div>
-          {comment.metadata && (
-            <div>
-              <strong>Metadata:</strong> {JSON.stringify(comment.metadata)}
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Comment content */}
       {renderContent()}
 
       {/* Replies section */}
       {comment.replies && comment.replies.length > 0 ? (
         <div className="mt-4 pl-6 border-l border-gray-200">
-          {debug && (
-            <div className="bg-blue-50 p-2 mb-2 rounded text-xs font-mono">
-              <div>
-                <strong>
-                  Rendering {comment.replies.length} replies for comment {comment.id}
-                </strong>
-              </div>
-              <div>
-                <strong>Reply IDs:</strong> {comment.replies.map((r) => r.id).join(', ')}
-              </div>
-              <div>
-                <strong>Parent ID:</strong> {comment.id}
-              </div>
-              <div>
-                <strong>Children Count:</strong> {comment.childrenCount}
-              </div>
-              <div>
-                <strong>Should Show Load More:</strong>{' '}
-                {comment.childrenCount > comment.replies.length ? 'Yes' : 'No'}
-              </div>
-            </div>
-          )}
-          {comment.replies.map((reply) => (
-            <CommentItem
-              key={`reply-${reply.id}`}
-              comment={{
+          {comment.replies.map((reply) => {
+            // Find the corresponding feed entry for this reply
+            const replyFeedEntry = findReplyFeedEntries(reply.id);
+
+            // If we can't find a feed entry, create one
+            const feedEntryToUse =
+              replyFeedEntry ||
+              createFeedEntryFromComment({
                 ...reply,
                 parentId: comment.id, // Ensure the parentId is explicitly set
-              }}
-              contentType={contentType}
-              commentType={commentType}
-              onCommentUpdate={onCommentUpdate}
-              onCommentDelete={onCommentDelete}
-              renderCommentActions={renderCommentActions}
-              debug={debug}
-            />
-          ))}
+              });
+
+            return (
+              <CommentItem
+                key={`reply-${reply.id}`}
+                feedEntry={feedEntryToUse}
+                contentType={contentType}
+                commentType={commentType}
+                onCommentUpdate={onCommentUpdate}
+                onCommentDelete={onCommentDelete}
+              />
+            );
+          })}
 
           {/* Load More Replies button */}
           {comment.childrenCount > comment.replies.length && (
             <div className="mt-2">
-              {debug && (
-                <div className="bg-green-50 p-2 mb-2 rounded text-xs font-mono">
-                  <div>
-                    <strong>Load More Button Debug:</strong>
-                  </div>
-                  <div>Comment ID: {comment.id}</div>
-                  <div>Children Count: {comment.childrenCount}</div>
-                  <div>Replies Length: {comment.replies.length}</div>
-                  <div>Remaining: {comment.childrenCount - comment.replies.length}</div>
-                </div>
-              )}
               <LoadMoreReplies
                 commentId={comment.id}
                 remainingCount={comment.childrenCount - comment.replies.length}
                 isLoading={loading}
-                debug={debug}
               />
             </div>
           )}
@@ -469,22 +381,11 @@ export const CommentItem = ({
       ) : comment.childrenCount > 0 ? (
         // No replies loaded yet, but there are replies to load
         <div className="mt-4 pl-6 border-l border-gray-200">
-          {debug && (
-            <div className="bg-orange-50 p-2 mb-2 rounded text-xs font-mono">
-              <div>
-                <strong>No replies loaded yet</strong>
-              </div>
-              <div>Comment ID: {comment.id}</div>
-              <div>Children Count: {comment.childrenCount}</div>
-              <div>Should Show Load More: Yes</div>
-            </div>
-          )}
           <div className="mt-2">
             <LoadMoreReplies
               commentId={comment.id}
               remainingCount={comment.childrenCount}
               isLoading={loading}
-              debug={debug}
             />
           </div>
         </div>
@@ -522,6 +423,27 @@ export const CommentItem = ({
             }}
           />
         )}
+
+      {/* Solution Modal */}
+      {selectedSolution && feedEntry.contentType === 'BOUNTY' && (
+        <SolutionModal
+          isOpen={!!selectedSolution}
+          onClose={() => setSelectedSolution(null)}
+          commentId={selectedSolution.solutionId}
+          documentId={
+            comment.thread?.objectId ||
+            (feedEntry.content as FeedBountyContent).relatedDocumentId ||
+            0
+          }
+          contentType={
+            contentType ||
+            (feedEntry.content as FeedBountyContent).relatedDocumentContentType ||
+            'paper'
+          }
+          solutionAuthorName={selectedSolution.authorName}
+          awardedAmount={selectedSolution.awardedAmount}
+        />
+      )}
     </div>
   );
 };

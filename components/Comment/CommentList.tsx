@@ -1,50 +1,28 @@
-import React, { useEffect } from 'react';
-import { Comment } from '@/types/comment';
+import React from 'react';
 import { CommentItem } from './CommentItem';
 import { useComments } from '@/contexts/CommentContext';
 import { ContentType } from '@/types/work';
+import { FeedEntry } from '@/types/feed';
+import { getCommentFromFeedEntry } from '@/utils/feedUtils';
 
 interface CommentListProps {
-  comments: Comment[];
-  parentComment?: Comment;
+  feedEntries: FeedEntry[];
+  parentFeedEntry?: FeedEntry;
   isRootList?: boolean;
   contentType: ContentType;
-  renderCommentActions?: boolean;
-  debug?: boolean;
 }
 
-const CommentList: React.FC<CommentListProps> = ({
-  comments = [],
-  parentComment,
-  isRootList = false,
-  contentType,
-  renderCommentActions = true,
-  debug = false,
-}) => {
-  const { loading } = useComments();
-
-  // Log debug information if debug is enabled
-  useEffect(() => {
-    if (debug) {
-      console.log('CommentList rendered with:', {
-        commentsCount: comments.length,
-        isRootList,
-        parentCommentId: parentComment?.id,
-      });
-    }
-  }, [comments.length, isRootList, parentComment?.id, debug]);
-
+const CommentList: React.FC<CommentListProps> = ({ feedEntries = [], contentType }) => {
   return (
     <div className="space-y-4">
-      {comments.map((comment) => (
-        <CommentItem
-          key={`comment-${comment.id}`}
-          comment={comment}
-          contentType={contentType}
-          renderCommentActions={renderCommentActions}
-          debug={debug}
-        />
-      ))}
+      {feedEntries.map((entry) => {
+        const comment = getCommentFromFeedEntry(entry);
+        if (!comment) return null;
+
+        return (
+          <CommentItem key={`comment-${comment.id}`} feedEntry={entry} contentType={contentType} />
+        );
+      })}
     </div>
   );
 };

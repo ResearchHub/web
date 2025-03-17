@@ -10,6 +10,7 @@ import { CommentCard } from '@/components/Comment/CommentCard';
 import { FeedItemFundraise } from './items/FeedItemFundraise';
 import { FeedItemPaper } from './items/FeedItemPaper';
 import { FeedItemBounty } from './items/FeedItemBounty';
+import { FeedItemComment } from './items/FeedItemComment';
 
 interface FeedContentProps {
   entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry
@@ -109,20 +110,9 @@ export const FeedContent: FC<FeedContentProps> = ({
 
         case 'COMMENT':
           // This is a Comment
-          const comment = entry.content as Comment;
-
           return (
             <div key={entry.id} className={spacingClass}>
-              <CommentCard
-                comment={comment}
-                onUpvote={(id) => console.log('Upvote comment:', id)}
-                onReply={(id) => console.log('Reply to comment:', id)}
-                onReport={(id) => console.log('Report comment:', id)}
-                onShare={(id) => console.log('Share comment:', id)}
-                onEdit={(id) => console.log('Edit comment:', id)}
-                onDelete={(id) => console.log('Delete comment:', id)}
-                showActions={true}
-              />
+              <FeedItemComment entry={entry} href={href} />
             </div>
           );
 

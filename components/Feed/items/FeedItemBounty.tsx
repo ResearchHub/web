@@ -15,6 +15,9 @@ import { BountyType } from '@/types/bounty';
 import { formatRSC } from '@/utils/number';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/styles';
+import { Button } from '@/components/ui/Button';
+import { Reply, Edit, Trash2 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 /**
  * Internal component for rendering bounty details
@@ -48,6 +51,7 @@ interface FeedItemBountyProps {
   showRelatedWork?: boolean;
   relatedDocumentId?: number;
   href?: string; // Optional href prop
+  onReply?: () => void; // Add this new prop
 }
 
 /**
@@ -135,14 +139,19 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   showSolutions = true,
   showRelatedWork = true,
   href,
+  onReply,
 }) => {
   // Extract the bounty entry from the entry's content
   const bountyEntry = entry.content as FeedBountyContent;
   const bounty = bountyEntry.bounty;
   const router = useRouter();
+  const { data: session } = useSession();
 
   // Get the author from the bounty entry
   const author = bountyEntry.createdBy;
+
+  // Check if the current user is the author of the bounty
+  const isAuthor = session?.user?.id === bounty?.createdBy?.id;
 
   // Determine bounty status for header display
   const isActive = bounty.status === 'OPEN';
@@ -210,7 +219,47 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
                 relatedDocumentId={bountyEntry.relatedDocumentId}
                 relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
                 userVote={entry.userVote}
+                onComment={onReply}
               />
+
+              {/* Additional action buttons for author */}
+              {isAuthor && (
+                <div className="ml-auto flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    data-action="reply"
+                    className="text-gray-500 hover:text-gray-700"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onReply) onReply();
+                    }}
+                  >
+                    <Reply className="w-4 h-4 mr-1" />
+                    Reply
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    data-action="edit"
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <Edit className="w-4 h-4 mr-1" />
+                    Edit
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    data-action="delete"
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Delete
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
