@@ -1,15 +1,16 @@
 'use client';
 
 import { FC } from 'react';
+import React from 'react';
 import { FeedEntry, FeedCommentContent } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
-import { FeedItemActions } from '@/components/Feed/FeedItemActions';
+import { FeedItemActions, ActionButton } from '@/components/Feed/FeedItemActions';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/styles';
 import { ContentType } from '@/types/work';
 import { Button } from '@/components/ui/Button';
-import { Reply, Edit, Trash2, Flag } from 'lucide-react';
+import { Reply, Pen, Trash2, Flag } from 'lucide-react';
 import { useFlagModal } from '@/hooks/useFlagging';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
@@ -25,6 +26,7 @@ interface FeedItemCommentProps {
     comment?: string;
     upvote?: string;
   };
+  showTooltips?: boolean; // New property for controlling tooltips
 }
 
 /**
@@ -58,6 +60,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   onDelete,
   showCreatorActions = true,
   actionLabels,
+  showTooltips = true, // Default to showing tooltips
 }) => {
   // Extract the comment entry from the entry's content
   const commentEntry = entry.content as FeedCommentContent;
@@ -133,55 +136,52 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                   userVote={entry.userVote}
                   actionLabels={actionLabels}
                   onComment={onReply}
-                />
-
-                {/* Edit button - show to the right of comment button */}
-                {showCreatorActions && onEdit && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEdit();
-                    }}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <Edit className="w-4 h-4 mr-1" />
-                    Edit
-                  </Button>
-                )}
+                  showTooltips={showTooltips}
+                >
+                  {showCreatorActions && onEdit && (
+                    <ActionButton
+                      icon={Pen}
+                      label="Edit"
+                      tooltip="Edit comment"
+                      onClick={(e) => {
+                        e?.stopPropagation();
+                        onEdit();
+                      }}
+                      showLabel
+                      showTooltip={showTooltips}
+                    />
+                  )}
+                </FeedItemActions>
               </div>
 
               <div className="flex items-center gap-2">
                 {/* Delete button - show to the left of Report button with no text */}
                 {showCreatorActions && onDelete && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                  <ActionButton
+                    icon={Trash2}
+                    label="Delete"
+                    tooltip="Delete comment"
                     onClick={(e) => {
-                      e.stopPropagation();
+                      e?.stopPropagation();
                       onDelete();
                     }}
                     className="text-gray-400 hover:text-gray-600"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span className="sr-only">Delete</span>
-                  </Button>
+                    showTooltip={showTooltips}
+                  />
                 )}
 
                 {/* Report button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
+                <ActionButton
+                  icon={Flag}
+                  label="Report"
+                  tooltip="Report comment"
                   onClick={(e) => {
-                    e.stopPropagation();
+                    e?.stopPropagation();
                     handleReport();
                   }}
                   className="text-gray-400 hover:text-gray-600"
-                >
-                  <Flag className="w-4 h-4" />
-                  <span className="sr-only">Report</span>
-                </Button>
+                  showTooltip={showTooltips}
+                />
               </div>
             </div>
           </div>

@@ -4,10 +4,10 @@ import { FC, ReactNode } from 'react';
 import { FeedItemSkeleton } from './FeedItemSkeleton';
 import { FeedEntry, FeedPostContent, FeedPaperContent, FeedBountyContent } from '@/types/feed';
 import { Comment } from '@/types/comment';
-import { CommentCard } from '@/components/Comment/CommentCard';
 import { FeedItemFundraise } from './items/FeedItemFundraise';
 import { FeedItemPaper } from './items/FeedItemPaper';
 import { FeedItemBounty } from './items/FeedItemBounty';
+import { FeedItemComment } from './items/FeedItemComment';
 
 interface FeedContentProps {
   entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry
@@ -54,8 +54,10 @@ export const FeedContent: FC<FeedContentProps> = ({
         case 'COMMENT':
           const comment = entry.content as Comment;
           // For comments, we might want to link to the parent content with the comment ID as a hash
-          if (entry.relatedWork?.slug) {
-            return `/papers/${entry.relatedWork.slug}#comment-${comment.id}`;
+          if (entry.relatedWork?.contentType === 'paper') {
+            return `/paper/${entry.relatedWork.id}/${entry.relatedWork.slug}#comment-${comment.id}`;
+          } else {
+            return `/post/${entry?.relatedWork?.id}/${entry?.relatedWork?.slug}#comment-${comment.id}`;
           }
 
         default:
@@ -106,21 +108,10 @@ export const FeedContent: FC<FeedContentProps> = ({
           );
 
         case 'COMMENT':
-          // This is a Comment
-          const comment = entry.content as Comment;
-
+          // Use FeedItemComment for comment entries
           return (
             <div key={entry.id} className={spacingClass}>
-              <CommentCard
-                comment={comment}
-                onUpvote={(id) => console.log('Upvote comment:', id)}
-                onReply={(id) => console.log('Reply to comment:', id)}
-                onReport={(id) => console.log('Report comment:', id)}
-                onShare={(id) => console.log('Share comment:', id)}
-                onEdit={(id) => console.log('Edit comment:', id)}
-                onDelete={(id) => console.log('Delete comment:', id)}
-                showActions={true}
-              />
+              <FeedItemComment entry={entry} href={href} showCreatorActions={true} />
             </div>
           );
 

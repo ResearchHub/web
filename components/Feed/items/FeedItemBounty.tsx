@@ -48,6 +48,7 @@ interface FeedItemBountyProps {
   showRelatedWork?: boolean;
   relatedDocumentId?: number;
   href?: string; // Optional href prop
+  showTooltips?: boolean; // New property for controlling tooltips
   onViewSolution?: (event: {
     solutionId: number;
     authorName: string;
@@ -156,6 +157,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   showSolutions = true,
   showRelatedWork = true,
   href,
+  showTooltips = true, // Default to showing tooltips
   onViewSolution,
 }) => {
   // Extract the bounty entry from the entry's content
@@ -233,6 +235,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
                 relatedDocumentId={bountyEntry.relatedDocumentId}
                 relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
                 userVote={entry.userVote}
+                showTooltips={showTooltips}
               />
             </div>
           </div>

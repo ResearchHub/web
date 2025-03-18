@@ -110,16 +110,7 @@ function CommentFeedContent({
     }
   }, [commentType, debug]);
 
-  const {
-    filteredComments,
-    count,
-    loading,
-    error,
-    createComment,
-    loadMore,
-    updateComment,
-    deleteComment,
-  } = useCommentsContext();
+  const { filteredComments, count, loading, createComment, loadMore } = useCommentsContext();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { status } = useSession();
@@ -176,20 +167,6 @@ function CommentFeedContent({
       }
     },
     [commentType, createComment]
-  );
-
-  const handleCommentUpdate = useCallback(
-    (newComment: Comment, parentId?: number) => {
-      updateComment(newComment.id, newComment.content, parentId);
-    },
-    [updateComment]
-  );
-
-  const handleCommentDelete = useCallback(
-    (commentId: number) => {
-      deleteComment(commentId);
-    },
-    [deleteComment]
   );
 
   const handleLoadMore = useCallback(async () => {
@@ -284,13 +261,7 @@ function CommentFeedContent({
               </div>
             )}
 
-            <CommentList
-              comments={filteredComments}
-              isRootList={true}
-              contentType={contentType}
-              renderCommentActions={renderCommentActions}
-              debug={debug}
-            />
+            <CommentList comments={filteredComments} isRootList={true} contentType={contentType} />
 
             {filteredComments.length < count && (
               <div className="flex justify-center mt-4">
@@ -300,7 +271,7 @@ function CommentFeedContent({
                   disabled={loading}
                   className="w-full md:w-auto"
                 >
-                  {loading ? 'Loading...' : `Load More)`}
+                  {loading ? 'Loading...' : `Load More`}
                 </Button>
               </div>
             )}

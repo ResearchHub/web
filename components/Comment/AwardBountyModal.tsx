@@ -60,12 +60,7 @@ const FilteredCommentFeed = ({
       {filteredComments.map((comment) => (
         <div key={comment.id} className="flex items-start space-x-4">
           <div className="flex-grow">
-            <CommentItem
-              comment={comment}
-              contentType={contentType}
-              renderCommentActions={false}
-              debug={false}
-            />
+            <CommentItem comment={comment} contentType={contentType} />
           </div>
           {/* Award actions */}
           <div className="flex-shrink-0 flex flex-col space-y-2 pt-2">
@@ -182,7 +177,7 @@ export const AwardBountyModal = ({
     <Modal isOpen={isOpen} onClose={onClose} title="Award Bounty">
       <div className="space-y-6 p-6">
         <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-          <CommentItem comment={comment} contentType={contentType} renderCommentActions={false} />
+          <CommentItem comment={comment} contentType={contentType} />
         </div>
         <div className="text-sm text-gray-600">
           <p>Select which comments to award the bounty to:</p>

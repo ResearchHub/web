@@ -1,6 +1,7 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useState, ReactNode } from 'react';
+import React from 'react';
 import { FeedContentType, FeedEntry } from '@/types/feed';
 import { MessageCircle, Flag, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -16,14 +17,16 @@ interface ActionButtonProps {
   count?: number;
   label: string;
   tooltip?: string;
-  onClick?: () => void;
+  onClick?: (e?: React.MouseEvent) => void;
   isActive?: boolean;
   isDisabled?: boolean;
   className?: string;
   showLabel?: boolean;
+  showTooltip?: boolean;
 }
 
-const ActionButton: FC<ActionButtonProps> = ({
+// Export ActionButton so it can be used in other components
+export const ActionButton: FC<ActionButtonProps> = ({
   icon: Icon,
   count,
   label,
@@ -33,12 +36,13 @@ const ActionButton: FC<ActionButtonProps> = ({
   isDisabled = false,
   className = '',
   showLabel = false,
+  showTooltip = true,
 }) => (
   <Button
     variant="ghost"
     size="sm"
     className={`flex items-center space-x-1.5 ${isActive ? 'text-primary-600' : 'text-gray-900'} hover:text-gray-900 ${className}`}
-    tooltip={tooltip}
+    tooltip={showTooltip ? tooltip : undefined}
     onClick={onClick}
     disabled={isDisabled}
   >
@@ -63,6 +67,8 @@ interface FeedItemActionsProps {
     upvote?: string;
   };
   onComment?: () => void;
+  children?: ReactNode; // Add children prop to accept additional action buttons
+  showTooltips?: boolean; // New property for controlling tooltips
 }
 
 export const FeedItemActions: FC<FeedItemActionsProps> = ({
@@ -74,6 +80,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   relatedDocumentContentType,
   actionLabels,
   onComment,
+  children, // Accept children prop
+  showTooltips = true, // Default to showing tooltips
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
@@ -144,6 +152,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           onClick={handleVote}
           isActive={localUserVote === 'UPVOTE'}
           isDisabled={isVoting}
+          showTooltip={showTooltips}
         />
         <ActionButton
           icon={MessageCircle}
@@ -152,7 +161,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           label={actionLabels?.comment || 'Comment'}
           onClick={onComment}
           showLabel={Boolean(actionLabels?.comment)}
+          showTooltip={showTooltips}
         />
+        {children} {/* Render additional action buttons */}
       </div>
 
       {/* Flag Content Modal */}
