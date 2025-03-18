@@ -54,6 +54,7 @@ export interface FeedCommentContent {
     content: any;
     contentFormat: ContentFormat;
     commentType: CommentType;
+    score: number;
     thread?: {
       id: number;
       threadType: string;
@@ -431,6 +432,7 @@ export const transformCommentToFeedItem = (
       content: comment.content,
       contentFormat: comment.contentFormat || 'QUILL_EDITOR',
       commentType: comment.commentType,
+      score: comment.score,
       thread: comment.thread
         ? {
             id: comment.thread.id,

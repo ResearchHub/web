@@ -274,7 +274,7 @@ export const CommentItem = ({
     // For regular comments, use FeedItemComment
     // Transform the comment to a feed entry
     const feedEntry = transformCommentToFeedItem(comment, contentType);
-
+    console.log('comment', comment);
     return (
       <div className="space-y-4">
         <FeedItemComment

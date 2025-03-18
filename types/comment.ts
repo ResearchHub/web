@@ -47,6 +47,7 @@ export interface Comment {
   updatedDate: string;
   author: any;
   score: number;
+  reviewScore: number;
   replies: Comment[];
   replyCount?: number;
   childrenCount: number;
@@ -83,7 +84,6 @@ export const transformContent = (raw: any): string => {
 };
 
 export const transformComment = (raw: any): Comment => {
-  const reviewScore = raw.review?.score;
   // Transform user_vote from API
   // It can be either an object with vote_type or a direct numeric value
   let userVote: UserVoteType | undefined;
@@ -125,7 +125,8 @@ export const transformComment = (raw: any): Comment => {
     createdDate: raw.created_date,
     updatedDate: raw.updated_date,
     author: transformAuthorProfile(raw.created_by),
-    score: reviewScore !== undefined ? reviewScore : raw.score || 0,
+    score: raw.score || 0,
+    reviewScore: raw.review?.score || 0,
     replyCount: raw.reply_count || raw.children_count || 0,
     childrenCount: raw.children_count || 0,
     replies: (raw.replies || raw.children || []).map(transformComment),

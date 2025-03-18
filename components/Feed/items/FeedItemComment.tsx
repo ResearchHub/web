@@ -14,6 +14,7 @@ import { Reply, Pen, Trash2, Flag } from 'lucide-react';
 import { useFlagModal } from '@/hooks/useFlagging';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 
 interface FeedItemCommentProps {
   entry: FeedEntry;
@@ -38,13 +39,31 @@ const FeedItemCommentBody: FC<{
   // Extract the comment entry from the entry's content
   const commentEntry = entry.content as FeedCommentContent;
   const comment = commentEntry.comment;
+  const isReview = comment.commentType === 'REVIEW';
 
   return (
     <div className="mb-4">
+      {/* For review comments, display the star rating */}
+      {isReview && comment.score !== undefined && <StarRating score={comment.score} />}
+
       {/* Comment Content */}
       <div className="text-gray-600">
         <CommentReadOnly content={comment.content} contentFormat={comment.contentFormat} />
       </div>
+    </div>
+  );
+};
+
+/**
+ * Component for rendering star ratings for reviews
+ */
+const StarRating: FC<{
+  score: number;
+  maxScore?: number;
+}> = ({ score, maxScore = 5 }) => {
+  return (
+    <div className="mb-3">
+      <ContentTypeBadge type="review" score={score} maxScore={maxScore} />
     </div>
   );
 };
@@ -62,6 +81,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   actionLabels,
   showTooltips = true, // Default to showing tooltips
 }) => {
+  console.log('&entry', entry);
   // Extract the comment entry from the entry's content
   const commentEntry = entry.content as FeedCommentContent;
   const comment = commentEntry.comment;
@@ -71,6 +91,9 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
 
   // Get the author from the comment entry
   const author = commentEntry.createdBy;
+
+  // Determine if this is a review comment
+  const isReview = comment.commentType === 'REVIEW';
 
   // Determine the content type for the comment
   const contentType: ContentType = comment.thread?.threadType === 'PAPER' ? 'paper' : 'post';
@@ -100,7 +123,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
       <FeedItemHeader
         timestamp={commentEntry.createdDate}
         author={author}
-        actionText="Added a comment"
+        actionText={isReview ? 'Submitted a peer-review' : 'Added a comment'}
       />
 
       {/* Main Content Card - Using onClick instead of wrapping with Link */}
