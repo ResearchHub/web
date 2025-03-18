@@ -84,11 +84,9 @@ const extractContributors = (fundraise: FeedPostContent['fundraise']) => {
   }
 
   return fundraise.contributors.topContributors.map((contributor) => ({
-    profile: {
-      profileImage: contributor.profileImage,
-      fullName: contributor.fullName,
-    },
-    amount: 0, // We don't have individual contribution amounts in the current data model
+    profileImage: contributor.profileImage,
+    fullName: contributor.fullName,
+    profileUrl: contributor.profileUrl,
   }));
 };
 
@@ -141,6 +139,8 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             ? `published a funding request for ${goalAmountRSC.toLocaleString()} RSC`
             : 'published a post'
         }
+        contributors={hasFundraise ? extractContributors(post.fundraise) : []}
+        contributorsLabel="Funding Contributors"
       />
 
       {/* Main Content Card - Using onClick instead of wrapping with Link */}

@@ -15,7 +15,7 @@ import {
 import { ContentFormat } from '@/types/comment';
 import { ID } from '@/types/root';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
-import { BountyType } from '@/types/bounty';
+import { BountyContribution, BountyType } from '@/types/bounty';
 import { formatRSC } from '@/utils/number';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/styles';
@@ -305,6 +305,15 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         timestamp={bountyEntry.createdDate}
         author={author}
         actionText={bountyActionText}
+        contributors={
+          bounty.contributions?.map((contribution: BountyContribution) => ({
+            profileImage: contribution.createdBy?.authorProfile?.profileImage,
+            fullName: contribution.createdBy?.authorProfile?.fullName || 'Anonymous',
+            profileUrl: contribution.createdBy?.authorProfile?.profileUrl,
+          })) || []
+        }
+        isBounty={true}
+        totalContributorsCount={bounty.contributions?.length || 0}
       />
 
       {/* Main Content Card - Using onClick instead of wrapping with Link */}
