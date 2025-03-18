@@ -1,7 +1,6 @@
 'use client';
 
 import { Home, BookOpen, Star, Notebook, HandCoins, Coins } from 'lucide-react';
-import Link from 'next/link';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
@@ -30,25 +29,6 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
       router.push(href);
     },
     [router]
-  );
-
-  const handleNavClick = useCallback(
-    (e: React.MouseEvent, item: NavigationItem) => {
-      e.preventDefault();
-
-      if (item.isUnimplemented) {
-        onUnimplementedFeature(item.label);
-        return;
-      }
-
-      if (item.requiresAuth) {
-        executeAuthenticatedAction(() => handleNavigate(item.href));
-        return;
-      }
-
-      handleNavigate(item.href);
-    },
-    [executeAuthenticatedAction, handleNavigate, onUnimplementedFeature]
   );
 
   const navigationItems: NavigationItem[] = [

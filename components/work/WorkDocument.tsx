@@ -185,7 +185,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
       />
 
       {/* Tab Content */}
-      {renderTabContent}
+      <div className="mt-6">{renderTabContent}</div>
 
       {/* Mobile sidebar overlay */}
       <div

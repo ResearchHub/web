@@ -19,7 +19,7 @@ import { BountyType } from '@/types/bounty';
 import { formatRSC } from '@/utils/number';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/styles';
-import { Trophy, Pen, Plus, ArrowUp, MessageCircle } from 'lucide-react';
+import { Trophy, Pen, Plus, Users } from 'lucide-react';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Button } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -59,6 +59,7 @@ interface FeedItemBountyProps {
   relatedDocumentId?: number;
   href?: string; // Optional href prop
   showTooltips?: boolean; // Property for controlling tooltips
+  showContributeButton?: boolean; // Property for controlling the visibility of the contribute button
   onViewSolution?: (event: {
     solutionId: number;
     authorName: string;
@@ -177,6 +178,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   showRelatedWork = true,
   href,
   showTooltips = true, // Default to showing tooltips
+  showContributeButton = true, // Default to showing contribute button
   onViewSolution,
   onAward,
   onEdit,
@@ -230,6 +232,72 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
     setIsContributeModalOpen(true);
   };
 
+  // Create menu items array for FeedItemActions
+  const menuItems = [];
+
+  // Add Edit action to menu if applicable
+  if (showCreatorActions && isAuthor && onEdit) {
+    menuItems.push({
+      icon: Pen,
+      label: 'Edit',
+      onClick: (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        onEdit();
+      },
+    });
+  }
+
+  // Add Award action to menu if applicable
+  if (showCreatorActions && isAuthor && isOpenBounty(bounty) && onAward) {
+    menuItems.push({
+      icon: Trophy,
+      label: 'Award',
+      onClick: (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        onAward();
+      },
+    });
+  }
+
+  // Add Contributors action to menu if applicable
+  if (bounty.contributions && bounty.contributions.length > 0) {
+    menuItems.push({
+      icon: Users,
+      label: 'View Contributors',
+      onClick: (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        handleOpenContributeModal(e);
+      },
+    });
+  }
+
+  // Contribute button as a custom right side action
+  const contributeButton =
+    isOpenBounty(bounty) && !isAuthor && showContributeButton ? (
+      <Tooltip
+        content={
+          <div className="flex items-start gap-3 text-left">
+            <div className="bg-orange-100 p-2 rounded-md flex items-center justify-center">
+              <ResearchCoinIcon size={24} contribute />
+            </div>
+            <div>Make this bounty larger by contributing ResearchCoin</div>
+          </div>
+        }
+        position="top"
+        width="w-[260px]"
+      >
+        <Button
+          onClick={handleOpenContributeModal}
+          size="sm"
+          variant="outlined"
+          className="text-sm gap-2 border-orange-400 text-orange-600"
+        >
+          <ResearchCoinIcon size={18} contribute />
+          Contribute
+        </Button>
+      </Tooltip>
+    ) : undefined;
+
   return (
     <div className="space-y-3">
       {/* Header */}
@@ -262,97 +330,21 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
 
           {/* Action Buttons - Full width */}
           <div className="mt-4 pt-3 border-t border-gray-200">
-            <div
-              className="flex items-center justify-between gap-4"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex gap-2 items-center">
-                {/* Standard Feed Item Actions */}
-                <FeedItemActions
-                  metrics={entry.metrics}
-                  feedContentType="BOUNTY"
-                  votableEntityId={bountyEntry.comment.id}
-                  relatedDocumentId={bountyEntry.relatedDocumentId}
-                  relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
-                  userVote={entry.userVote}
-                  showTooltips={showTooltips}
-                  actionLabels={actionLabels}
-                  hideCommentButton={isAuthor}
-                >
-                  {/* Edit button - only show for authors */}
-                  {showCreatorActions && isAuthor && onEdit && (
-                    <ActionButton
-                      icon={Pen}
-                      label="Edit"
-                      tooltip="Edit bounty"
-                      onClick={(e) => {
-                        e?.stopPropagation();
-                        onEdit();
-                      }}
-                      showLabel
-                      showTooltip={showTooltips}
-                    />
-                  )}
-
-                  {/* Award button - only show for authors of open bounties */}
-                  {showCreatorActions && isAuthor && isOpenBounty(bounty) && onAward && (
-                    <ActionButton
-                      icon={Trophy}
-                      label="Award"
-                      tooltip="Award this bounty"
-                      onClick={(e) => {
-                        e?.stopPropagation();
-                        onAward();
-                      }}
-                      showLabel
-                      showTooltip={showTooltips}
-                    />
-                  )}
-                </FeedItemActions>
-              </div>
-
-              <div className="flex items-center gap-3">
-                {/* Contributors Button */}
-                {bounty.contributions && bounty.contributions.length > 0 && (
-                  <ContributorsButton
-                    contributors={bounty.contributions.map((contribution: any) => ({
-                      profile: contribution.profile || {
-                        fullName: contribution.profile?.fullName || 'Anonymous',
-                        profileImage: contribution.profile?.profileImage,
-                      },
-                      amount: parseFloat(contribution.amount || '0'),
-                    }))}
-                    onContribute={() => handleOpenContributeModal(undefined)}
-                    label="Contributors"
-                  />
-                )}
-
-                {/* Contribute Button - only show for open bounties and non-authors */}
-                {isOpenBounty(bounty) && !isAuthor && (
-                  <Tooltip
-                    content={
-                      <div className="flex items-start gap-3 text-left">
-                        <div className="bg-orange-100 p-2 rounded-md flex items-center justify-center">
-                          <ResearchCoinIcon size={24} contribute />
-                        </div>
-                        <div>Make this bounty larger by contributing ResearchCoin</div>
-                      </div>
-                    }
-                    position="top"
-                    width="w-[260px]"
-                  >
-                    <Button
-                      onClick={handleOpenContributeModal}
-                      size="sm"
-                      variant="outlined"
-                      className="text-sm gap-2 border-orange-400 text-orange-600"
-                    >
-                      <Plus size={18} className="text-orange-600" />
-                      Contribute
-                    </Button>
-                  </Tooltip>
-                )}
-              </div>
+            <div onClick={(e) => e.stopPropagation()}>
+              {/* Standard Feed Item Actions */}
+              <FeedItemActions
+                metrics={entry.metrics}
+                feedContentType="BOUNTY"
+                votableEntityId={bountyEntry.comment.id}
+                relatedDocumentId={bountyEntry.relatedDocumentId}
+                relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
+                userVote={entry.userVote}
+                showTooltips={showTooltips}
+                actionLabels={actionLabels}
+                hideCommentButton={isAuthor}
+                menuItems={menuItems}
+                rightSideActionButton={contributeButton}
+              />
             </div>
           </div>
         </div>

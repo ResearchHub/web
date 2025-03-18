@@ -3,7 +3,7 @@
 import { FC, useState, ReactNode } from 'react';
 import React from 'react';
 import { FeedContentType, FeedEntry } from '@/types/feed';
-import { MessageCircle, Flag, ArrowUp } from 'lucide-react';
+import { MessageCircle, Flag, ArrowUp, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useVote } from '@/hooks/useVote';
 import { UserVoteType } from '@/types/reaction';
@@ -11,6 +11,7 @@ import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useFlagModal } from '@/hooks/useFlagging';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { ContentType } from '@/types/work';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 
 interface ActionButtonProps {
   icon: any;
@@ -65,11 +66,19 @@ interface FeedItemActionsProps {
   actionLabels?: {
     comment?: string;
     upvote?: string;
+    report?: string;
   };
   onComment?: () => void;
   children?: ReactNode; // Add children prop to accept additional action buttons
   showTooltips?: boolean; // New property for controlling tooltips
   hideCommentButton?: boolean; // New property to hide the comment button
+  hideReportButton?: boolean; // New property to hide the report button
+  menuItems?: Array<{
+    icon: any;
+    label: string;
+    onClick: (e?: React.MouseEvent) => void;
+  }>;
+  rightSideActionButton?: ReactNode; // New property for a custom action button on the right side
 }
 
 export const FeedItemActions: FC<FeedItemActionsProps> = ({
@@ -84,6 +93,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   children, // Accept children prop
   showTooltips = true, // Default to showing tooltips
   hideCommentButton = false, // Default to showing the comment button
+  hideReportButton = false, // Default to showing the report button
+  menuItems = [], // Default to empty array for additional menu items
+  rightSideActionButton, // Accept custom action button
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
@@ -128,6 +140,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       } else if (feedContentType === 'BOUNTY' && relatedDocumentContentType) {
         contentType = relatedDocumentContentType;
         commentId = votableEntityId.toString(); // Use votableEntityId as commentId for bounties
+      } else if (feedContentType === 'COMMENT') {
+        contentType = relatedDocumentContentType || 'post';
+        commentId = votableEntityId.toString();
       } else {
         contentType = 'post'; // Default fallback
       }
@@ -145,29 +160,78 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
   return (
     <>
-      <div className="flex items-center space-x-4">
-        <ActionButton
-          icon={ArrowUp}
-          count={localVoteCount}
-          tooltip="Upvote"
-          label={actionLabels?.upvote || 'Upvote'}
-          onClick={handleVote}
-          isActive={localUserVote === 'UPVOTE'}
-          isDisabled={isVoting}
-          showTooltip={showTooltips}
-        />
-        {!hideCommentButton && (
+      <div className="flex items-center justify-between w-full">
+        <div className="flex items-center space-x-4">
           <ActionButton
-            icon={MessageCircle}
-            count={actionLabels?.comment ? undefined : metrics?.comments}
-            tooltip="Comment"
-            label={actionLabels?.comment || 'Comment'}
-            onClick={onComment}
-            showLabel={Boolean(actionLabels?.comment)}
+            icon={ArrowUp}
+            count={localVoteCount}
+            tooltip="Upvote"
+            label={actionLabels?.upvote || 'Upvote'}
+            onClick={handleVote}
+            isActive={localUserVote === 'UPVOTE'}
+            isDisabled={isVoting}
             showTooltip={showTooltips}
           />
-        )}
-        {children} {/* Render additional action buttons */}
+          {!hideCommentButton && (
+            <ActionButton
+              icon={MessageCircle}
+              count={actionLabels?.comment ? undefined : metrics?.comments}
+              tooltip="Comment"
+              label={actionLabels?.comment || 'Comment'}
+              onClick={onComment}
+              showLabel={Boolean(actionLabels?.comment)}
+              showTooltip={showTooltips}
+            />
+          )}
+          {children} {/* Render additional action buttons */}
+        </div>
+
+        {/* Right side containing both custom action button and menu */}
+        <div className="flex-grow flex justify-end items-center gap-3">
+          {/* Custom right side action button if provided */}
+          {rightSideActionButton}
+
+          {/* Menu button */}
+          {(!hideReportButton || menuItems.length > 0) && (
+            <BaseMenu
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  <MoreHorizontal className="w-5 h-5" />
+                </Button>
+              }
+              align="end"
+            >
+              {/* Render any additional menu items first */}
+              {menuItems.map((item, index) => (
+                <BaseMenuItem
+                  key={`menu-item-${index}`}
+                  onClick={item.onClick}
+                  className="flex items-center gap-2"
+                >
+                  {item.icon && <item.icon className="w-4 h-4" />}
+                  <span>{item.label}</span>
+                </BaseMenuItem>
+              ))}
+
+              {/* Add a divider if we have both custom menu items and report */}
+              {!hideReportButton && menuItems.length > 0 && (
+                <div className="h-px my-1 bg-gray-200" />
+              )}
+
+              {/* Report menu item */}
+              {!hideReportButton && (
+                <BaseMenuItem onClick={handleReport} className="flex items-center gap-2">
+                  <Flag className="w-4 h-4" />
+                  <span>{actionLabels?.report || 'Report'}</span>
+                </BaseMenuItem>
+              )}
+            </BaseMenu>
+          )}
+        </div>
       </div>
 
       {/* Flag Content Modal */}

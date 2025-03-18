@@ -298,7 +298,35 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           is_removed: false,
           metadata: content_object.metadata || {},
         };
-        content = transformComment(commentData);
+
+        // Transform the comment to get score and other properties
+        const transformedComment = transformComment(commentData);
+
+        // Create a FeedCommentContent object
+        const commentContent: FeedCommentContent = {
+          id: content_object.id,
+          contentType: 'COMMENT',
+          createdDate: content_object.created_date || created_date,
+          createdBy: transformAuthorProfile(author),
+          comment: {
+            id: content_object.id,
+            content: content_object.comment_content_json,
+            contentFormat: (content_object.comment_content_type as ContentFormat) || 'QUILL_EDITOR',
+            commentType: content_object.comment_type as CommentType,
+            score: transformedComment.score || 0,
+            thread: content_object.thread_id
+              ? {
+                  id: content_object.thread_id,
+                  threadType: content_object.document_type || 'PAPER',
+                  objectId: content_object.object_id || content_object.id,
+                }
+              : undefined,
+          },
+          relatedDocumentId: content_object.object_id || content_object.thread_id,
+          relatedDocumentContentType: content_object.document_type as ContentType,
+        };
+
+        content = commentContent;
 
         // If the comment is associated with a paper, transform it to a Work and set as relatedWork
         if (content_object?.paper?.id) {

@@ -1,12 +1,12 @@
 'use client';
 
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, CSSProperties } from 'react';
 import { cn } from '@/utils/styles';
 
 interface AvatarProps {
   src?: string | null;
   alt: string;
-  size?: 'xxs' | 'xs' | 'sm' | 'md';
+  size?: 'xxs' | 'xs' | 'sm' | 'md' | number;
   className?: string;
 }
 
@@ -48,6 +48,15 @@ export const Avatar: FC<AvatarProps> = ({ src, alt, size = 'md', className }) =>
   const getTextSizeClass = (initials: string) => {
     const length = initials.length;
 
+    if (typeof size === 'number') {
+      // Calculate text size based on pixel size
+      if (size <= 20) return length > 1 ? 'text-[6px]' : 'text-[8px]';
+      if (size <= 24) return length > 1 ? 'text-[8px]' : 'text-[10px]';
+      if (size <= 32) return length > 1 ? 'text-[10px]' : 'text-xs';
+      return length > 1 ? 'text-xs' : 'text-sm';
+    }
+
+    // Original logic for string-based sizes
     if (size === 'md') {
       return length > 1 ? 'text-xs' : 'text-sm';
     } else if (size === 'sm') {
@@ -67,15 +76,25 @@ export const Avatar: FC<AvatarProps> = ({ src, alt, size = 'md', className }) =>
   const shouldShowInitials = !src || imageError || isLoading;
   const initials = getInitials(alt);
 
+  // Handle custom pixel size
+  const customStyle: CSSProperties = {};
+  if (typeof size === 'number') {
+    customStyle.width = `${size}px`;
+    customStyle.height = `${size}px`;
+  }
+
   return (
     <div
       className={cn(
         'relative inline-flex rounded-full bg-gray-100 overflow-hidden',
         'flex items-center justify-center flex-shrink-0',
-        sizeClasses[size],
+        typeof size !== 'number' ? sizeClasses[size] : '',
         className
       )}
-      style={{ lineHeight: 1 }}
+      style={{
+        lineHeight: 1,
+        ...customStyle,
+      }}
     >
       {shouldShowInitials ? (
         <span

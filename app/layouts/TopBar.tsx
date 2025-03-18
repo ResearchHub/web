@@ -79,7 +79,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
               {!isLoading ? (
                 user ? (
                   <>
-                    <Tooltip content="View ResearchCoin balance and transactions">
+                    <Tooltip width={'140px'} content="View ResearchCoin balance and transactions">
                       <Link
                         href="/researchcoin"
                         className="relative flex items-center justify-center -mt-0.5"

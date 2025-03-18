@@ -14,6 +14,7 @@ import { cn } from '@/utils/styles';
 interface FeedItemPaperProps {
   entry: FeedEntry;
   href?: string; // Optional href prop
+  showTooltips?: boolean; // Property for controlling tooltips
 }
 
 /**
@@ -82,7 +83,7 @@ const FeedItemPaperBody: FC<{
 /**
  * Main component for rendering a paper feed item
  */
-export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry, href }) => {
+export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry, href, showTooltips = true }) => {
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
   const router = useRouter();
@@ -145,13 +146,14 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry, href }) => {
 
           {/* Action Buttons - Full width */}
           <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
-            <div className="flex gap-2 items-center w-full" onClick={(e) => e.stopPropagation()}>
+            <div className="w-full" onClick={(e) => e.stopPropagation()}>
               {/* Standard Feed Item Actions */}
               <FeedItemActions
                 metrics={entry.metrics}
                 feedContentType="PAPER"
                 votableEntityId={paper.id}
                 userVote={entry.userVote}
+                showTooltips={showTooltips}
               />
             </div>
           </div>

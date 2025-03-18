@@ -10,10 +10,7 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/styles';
 import { ContentType } from '@/types/work';
 import { Button } from '@/components/ui/Button';
-import { Reply, Pen, Trash2, Flag } from 'lucide-react';
-import { useFlagModal } from '@/hooks/useFlagging';
-import { FlagContentModal } from '@/components/modals/FlagContentModal';
-import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { Reply, Pen, Trash2 } from 'lucide-react';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 
 interface FeedItemCommentProps {
@@ -86,8 +83,6 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   const commentEntry = entry.content as FeedCommentContent;
   const comment = commentEntry.comment;
   const router = useRouter();
-  const { executeAuthenticatedAction } = useAuthenticatedAction();
-  const { isOpen, contentToFlag, openFlagModal, closeFlagModal } = useFlagModal();
 
   // Get the author from the comment entry
   const author = commentEntry.createdBy;
@@ -108,12 +103,32 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
     }
   };
 
-  // Handle report button click
-  const handleReport = () => {
-    executeAuthenticatedAction(() => {
-      openFlagModal(comment.thread?.objectId?.toString() || '', contentType, comment.id.toString());
-    });
-  };
+  // Create menu items for edit and delete actions
+  const menuItems = [];
+
+  if (showCreatorActions) {
+    if (onEdit) {
+      menuItems.push({
+        icon: Pen,
+        label: 'Edit',
+        onClick: (e?: React.MouseEvent) => {
+          e?.stopPropagation();
+          onEdit();
+        },
+      });
+    }
+
+    if (onDelete) {
+      menuItems.push({
+        icon: Trash2,
+        label: 'Delete',
+        onClick: (e?: React.MouseEvent) => {
+          e?.stopPropagation();
+          onDelete();
+        },
+      });
+    }
+  }
 
   // Determine if card should have clickable styles
   const isClickable = !!href;
@@ -144,83 +159,24 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
 
           {/* Action Buttons - Full width */}
           <div className="mt-4 pt-3 border-t border-gray-200">
-            <div
-              className="flex items-center w-full justify-between"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center gap-2">
-                {/* Standard Feed Item Actions with Reply functionality */}
-                <FeedItemActions
-                  metrics={entry.metrics}
-                  feedContentType="COMMENT"
-                  votableEntityId={comment.id}
-                  relatedDocumentId={comment.thread?.objectId}
-                  relatedDocumentContentType={contentType}
-                  userVote={entry.userVote}
-                  actionLabels={actionLabels}
-                  onComment={onReply}
-                  showTooltips={showTooltips}
-                >
-                  {showCreatorActions && onEdit && (
-                    <ActionButton
-                      icon={Pen}
-                      label="Edit"
-                      tooltip="Edit comment"
-                      onClick={(e) => {
-                        e?.stopPropagation();
-                        onEdit();
-                      }}
-                      showLabel
-                      showTooltip={showTooltips}
-                    />
-                  )}
-                </FeedItemActions>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {/* Delete button - show to the left of Report button with no text */}
-                {showCreatorActions && onDelete && (
-                  <ActionButton
-                    icon={Trash2}
-                    label="Delete"
-                    tooltip="Delete comment"
-                    onClick={(e) => {
-                      e?.stopPropagation();
-                      onDelete();
-                    }}
-                    className="text-gray-400 hover:text-gray-600"
-                    showTooltip={showTooltips}
-                  />
-                )}
-
-                {/* Report button */}
-                <ActionButton
-                  icon={Flag}
-                  label="Report"
-                  tooltip="Report comment"
-                  onClick={(e) => {
-                    e?.stopPropagation();
-                    handleReport();
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                  showTooltip={showTooltips}
-                />
-              </div>
+            <div onClick={(e) => e.stopPropagation()}>
+              {/* Standard Feed Item Actions with Reply functionality */}
+              <FeedItemActions
+                metrics={entry.metrics}
+                feedContentType="COMMENT"
+                votableEntityId={comment.id}
+                relatedDocumentId={comment.thread?.objectId}
+                relatedDocumentContentType={contentType}
+                userVote={entry.userVote}
+                actionLabels={actionLabels}
+                onComment={onReply}
+                showTooltips={showTooltips}
+                menuItems={menuItems}
+              />
             </div>
           </div>
         </div>
       </div>
-
-      {/* Flag Content Modal */}
-      {contentToFlag && (
-        <FlagContentModal
-          isOpen={isOpen}
-          onClose={closeFlagModal}
-          documentId={contentToFlag.documentId}
-          workType={contentToFlag.contentType}
-          commentId={contentToFlag.commentId}
-        />
-      )}
     </div>
   );
 };

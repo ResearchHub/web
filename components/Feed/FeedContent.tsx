@@ -80,7 +80,7 @@ export const FeedContent: FC<FeedContentProps> = ({
 
     // Generate the appropriate href for this entry
     const href = generateHref(entry);
-
+    console.log('&entry!!', entry);
     try {
       // Use the contentType field on the FeedEntry object to determine the type of content
       switch (entry.contentType) {
@@ -103,7 +103,12 @@ export const FeedContent: FC<FeedContentProps> = ({
           // Use the new FeedItemBounty component
           return (
             <div key={entry.id} className={spacingClass}>
-              <FeedItemBounty entry={entry} relatedDocumentId={entry.relatedWork?.id} href={href} />
+              <FeedItemBounty
+                entry={entry}
+                relatedDocumentId={entry.relatedWork?.id}
+                href={href}
+                showContributeButton={false}
+              />
             </div>
           );
 

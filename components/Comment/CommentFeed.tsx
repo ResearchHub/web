@@ -261,6 +261,8 @@ function CommentFeedContent({
               </div>
             )}
 
+            {commentType === 'BOUNTY' && <div className="h-px bg-gray-200 my-4"></div>}
+
             <CommentList comments={filteredComments} isRootList={true} contentType={contentType} />
 
             {filteredComments.length < count && (

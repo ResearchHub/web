@@ -10,10 +10,12 @@ import { truncateText } from '@/utils/stringUtils';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { useRouter } from 'next/navigation';
+import { Flag } from 'lucide-react';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
   href?: string; // Optional href prop
+  showTooltips?: boolean; // Property for controlling tooltips
 }
 
 /**
@@ -93,7 +95,11 @@ const extractContributors = (fundraise: FeedPostContent['fundraise']) => {
 /**
  * Main component for rendering a fundraise feed item
  */
-export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({ entry, href }) => {
+export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
+  entry,
+  href,
+  showTooltips = true,
+}) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
   const router = useRouter();
@@ -169,14 +175,15 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({ entry, href }) =
           </div>
 
           {/* Action Buttons - Full width */}
-          <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
-            <div className="flex gap-2 items-center w-full" onClick={(e) => e.stopPropagation()}>
+          <div className="mt-4 pt-3 border-t border-gray-200">
+            <div onClick={(e) => e.stopPropagation()}>
               {/* Standard Feed Item Actions */}
               <FeedItemActions
                 metrics={entry.metrics}
                 feedContentType={post.contentType}
                 votableEntityId={post.id}
                 userVote={entry.userVote}
+                showTooltips={showTooltips}
               />
             </div>
           </div>

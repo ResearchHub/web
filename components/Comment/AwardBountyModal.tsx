@@ -2,7 +2,6 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState, useMemo, useEffect } from 'react';
 import { Comment } from '@/types/comment';
 import { ContentType } from '@/types/work';
-import { CommentFeed } from './CommentFeed';
 import { Modal } from '@/components/ui/form/Modal';
 import { Input } from '@/components/ui/form/Input';
 import { Button } from '@/components/ui/Button';
