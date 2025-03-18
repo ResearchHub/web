@@ -45,18 +45,20 @@ export const ContentTypeBadge = ({
     return (
       <Tooltip
         content={
-          <div className="flex flex-col items-center gap-2">
-            <Coins size={24} className="text-orange-500" />
+          <div className="flex items-start gap-3 text-left">
+            <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center">
+              <Coins size={24} className="text-gray-700" />
+            </div>
             <div>A bounty is an earning opportunity. Earn ResearchCoin for completing a task.</div>
           </div>
         }
         position="top"
-        width="w-80"
+        width="w-[360px]"
       >
         <Badge
           variant="default"
           size={size}
-          className={cn('gap-1.5 py-1 border-gray-300', className)}
+          className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
         >
           <Coins size={16} className="text-gray-500" />
           <span>Bounty</span>

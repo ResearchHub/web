@@ -1,13 +1,17 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { FeedEntry, FeedBountyContent } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
-import { FeedItemActions } from '@/components/Feed/FeedItemActions';
+import { FeedItemActions, ActionButton } from '@/components/Feed/FeedItemActions';
 import { BountyMetadataLine } from '@/components/Bounty/BountyMetadataLine';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 import { BountySolutions } from '@/components/Bounty/BountySolutions';
-import { isExpiringSoon, calculateTotalAwardedAmount } from '@/components/Bounty/lib/bountyUtil';
+import {
+  isExpiringSoon,
+  calculateTotalAwardedAmount,
+  isOpenBounty,
+} from '@/components/Bounty/lib/bountyUtil';
 import { ContentFormat } from '@/types/comment';
 import { ID } from '@/types/root';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
@@ -15,6 +19,12 @@ import { BountyType } from '@/types/bounty';
 import { formatRSC } from '@/utils/number';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/styles';
+import { Trophy, Pen, Plus, ArrowUp, MessageCircle } from 'lucide-react';
+import { ContributorsButton } from '@/components/ui/ContributorsButton';
+import { Button } from '@/components/ui/Button';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
 
 /**
  * Internal component for rendering bounty details
@@ -48,12 +58,21 @@ interface FeedItemBountyProps {
   showRelatedWork?: boolean;
   relatedDocumentId?: number;
   href?: string; // Optional href prop
-  showTooltips?: boolean; // New property for controlling tooltips
+  showTooltips?: boolean; // Property for controlling tooltips
   onViewSolution?: (event: {
     solutionId: number;
     authorName: string;
     awardedAmount?: string;
   }) => void;
+  onAward?: () => void; // Prop for Award action
+  onEdit?: () => void; // Prop for Edit action
+  onContributeSuccess?: () => void; // Prop for handling successful contribution
+  isAuthor?: boolean; // Prop to determine if current user is the author
+  showCreatorActions?: boolean; // Prop to determine whether to show creator actions
+  actionLabels?: {
+    upvote?: string;
+    comment?: string;
+  }; // Prop for customizing action labels
 }
 
 /**
@@ -159,11 +178,20 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   href,
   showTooltips = true, // Default to showing tooltips
   onViewSolution,
+  onAward,
+  onEdit,
+  onContributeSuccess,
+  isAuthor = false,
+  showCreatorActions = true, // Default to showing creator actions
+  actionLabels,
 }) => {
   // Extract the bounty entry from the entry's content
   const bountyEntry = entry.content as FeedBountyContent;
   const bounty = bountyEntry.bounty;
   const router = useRouter();
+
+  // State for contribute modal
+  const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
 
   // Get the author from the bounty entry
   const author = bountyEntry.createdBy;
@@ -193,6 +221,14 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
 
   // Determine if card should have clickable styles
   const isClickable = !!href;
+
+  // Handle opening the contribute modal
+  const handleOpenContributeModal = (e: React.MouseEvent | undefined) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    setIsContributeModalOpen(true);
+  };
 
   return (
     <div className="space-y-3">
@@ -225,22 +261,120 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
           </div>
 
           {/* Action Buttons - Full width */}
-          <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
-            <div className="flex gap-2 items-center w-full" onClick={(e) => e.stopPropagation()}>
-              {/* Standard Feed Item Actions */}
-              <FeedItemActions
-                metrics={entry.metrics}
-                feedContentType="BOUNTY"
-                votableEntityId={bountyEntry.comment.id}
-                relatedDocumentId={bountyEntry.relatedDocumentId}
-                relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
-                userVote={entry.userVote}
-                showTooltips={showTooltips}
-              />
+          <div className="mt-4 pt-3 border-t border-gray-200">
+            <div
+              className="flex items-center justify-between gap-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex gap-2 items-center">
+                {/* Standard Feed Item Actions */}
+                <FeedItemActions
+                  metrics={entry.metrics}
+                  feedContentType="BOUNTY"
+                  votableEntityId={bountyEntry.comment.id}
+                  relatedDocumentId={bountyEntry.relatedDocumentId}
+                  relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
+                  userVote={entry.userVote}
+                  showTooltips={showTooltips}
+                  actionLabels={actionLabels}
+                  hideCommentButton={isAuthor}
+                >
+                  {/* Edit button - only show for authors */}
+                  {showCreatorActions && isAuthor && onEdit && (
+                    <ActionButton
+                      icon={Pen}
+                      label="Edit"
+                      tooltip="Edit bounty"
+                      onClick={(e) => {
+                        e?.stopPropagation();
+                        onEdit();
+                      }}
+                      showLabel
+                      showTooltip={showTooltips}
+                    />
+                  )}
+
+                  {/* Award button - only show for authors of open bounties */}
+                  {showCreatorActions && isAuthor && isOpenBounty(bounty) && onAward && (
+                    <ActionButton
+                      icon={Trophy}
+                      label="Award"
+                      tooltip="Award this bounty"
+                      onClick={(e) => {
+                        e?.stopPropagation();
+                        onAward();
+                      }}
+                      showLabel
+                      showTooltip={showTooltips}
+                    />
+                  )}
+                </FeedItemActions>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {/* Contributors Button */}
+                {bounty.contributions && bounty.contributions.length > 0 && (
+                  <ContributorsButton
+                    contributors={bounty.contributions.map((contribution: any) => ({
+                      profile: contribution.profile || {
+                        fullName: contribution.profile?.fullName || 'Anonymous',
+                        profileImage: contribution.profile?.profileImage,
+                      },
+                      amount: parseFloat(contribution.amount || '0'),
+                    }))}
+                    onContribute={() => handleOpenContributeModal(undefined)}
+                    label="Contributors"
+                  />
+                )}
+
+                {/* Contribute Button - only show for open bounties and non-authors */}
+                {isOpenBounty(bounty) && !isAuthor && (
+                  <Tooltip
+                    content={
+                      <div className="flex items-start gap-3 text-left">
+                        <div className="bg-orange-100 p-2 rounded-md flex items-center justify-center">
+                          <ResearchCoinIcon size={24} contribute />
+                        </div>
+                        <div>Make this bounty larger by contributing ResearchCoin</div>
+                      </div>
+                    }
+                    position="top"
+                    width="w-[260px]"
+                  >
+                    <Button
+                      onClick={handleOpenContributeModal}
+                      size="sm"
+                      variant="outlined"
+                      className="text-sm gap-2 border-orange-400 text-orange-600"
+                    >
+                      <Plus size={18} className="text-orange-600" />
+                      Contribute
+                    </Button>
+                  </Tooltip>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Contribute Bounty Modal */}
+      <ContributeBountyModal
+        isOpen={isContributeModalOpen}
+        onClose={() => setIsContributeModalOpen(false)}
+        onContributeSuccess={() => {
+          // Call both callback functions
+          if (onContributeSuccess) {
+            onContributeSuccess();
+          }
+        }}
+        commentId={bountyEntry.comment.id}
+        documentId={bountyEntry.relatedDocumentId || 0}
+        contentType={bountyEntry.relatedDocumentContentType || 'paper'}
+        bountyTitle={'Bounty'}
+        bountyType={bounty.bountyType}
+        expirationDate={bounty.expirationDate}
+      />
     </div>
   );
 };

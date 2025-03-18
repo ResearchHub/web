@@ -248,7 +248,7 @@ export function ContributeBountyModal({
 
       const rscAmount = getRscAmount();
 
-      await BountyService.contributeToBounty(
+      const contribution = await BountyService.contributeToBounty(
         commentId,
         rscAmount,
         'rhcommentmodel',

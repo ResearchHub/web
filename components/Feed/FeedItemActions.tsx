@@ -69,6 +69,7 @@ interface FeedItemActionsProps {
   onComment?: () => void;
   children?: ReactNode; // Add children prop to accept additional action buttons
   showTooltips?: boolean; // New property for controlling tooltips
+  hideCommentButton?: boolean; // New property to hide the comment button
 }
 
 export const FeedItemActions: FC<FeedItemActionsProps> = ({
@@ -82,6 +83,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   onComment,
   children, // Accept children prop
   showTooltips = true, // Default to showing tooltips
+  hideCommentButton = false, // Default to showing the comment button
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
@@ -154,15 +156,17 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           isDisabled={isVoting}
           showTooltip={showTooltips}
         />
-        <ActionButton
-          icon={MessageCircle}
-          count={actionLabels?.comment ? undefined : metrics?.comments}
-          tooltip="Comment"
-          label={actionLabels?.comment || 'Comment'}
-          onClick={onComment}
-          showLabel={Boolean(actionLabels?.comment)}
-          showTooltip={showTooltips}
-        />
+        {!hideCommentButton && (
+          <ActionButton
+            icon={MessageCircle}
+            count={actionLabels?.comment ? undefined : metrics?.comments}
+            tooltip="Comment"
+            label={actionLabels?.comment || 'Comment'}
+            onClick={onComment}
+            showLabel={Boolean(actionLabels?.comment)}
+            showTooltip={showTooltips}
+          />
+        )}
         {children} {/* Render additional action buttons */}
       </div>
 

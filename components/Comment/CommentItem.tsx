@@ -44,7 +44,6 @@ export const CommentItem = ({
   onCommentDelete,
   showTooltips = false,
 }: CommentItemProps) => {
-  const { data: session } = useSession();
   const {
     updateComment,
     deleteComment,
@@ -207,8 +206,11 @@ export const CommentItem = ({
         // Transform the comment to a feed entry for FeedItemBounty
         const feedEntry = transformBountyCommentToFeedItem(comment, contentType);
 
-        // Create a custom href for the FeedItemBounty to handle solution viewing
+        // Create a custom href for the FeedItemBounty to prevent navigation
         const customHref = undefined; // Setting to undefined to prevent navigation
+
+        // Check if this is an open bounty
+        const isBountyOpen = comment.bounties.some((b) => isOpenBounty(b));
 
         return (
           <div className="space-y-4">
@@ -218,6 +220,22 @@ export const CommentItem = ({
               showRelatedWork={true}
               href={customHref}
               showTooltips={showTooltips}
+              isAuthor={isAuthor}
+              showCreatorActions={isAuthor}
+              onAward={() => setShowAwardModal(true)}
+              onEdit={() => setEditingCommentId(comment.id)}
+              onContributeSuccess={() => {
+                // After successful contribution, refresh the comments
+                forceRefresh();
+
+                // Also call the parent's onCommentUpdate if provided
+                if (onCommentUpdate) {
+                  onCommentUpdate(comment);
+                }
+              }}
+              actionLabels={{
+                comment: 'Reply',
+              }}
               onViewSolution={(event) => {
                 setSelectedSolution({
                   solutionId: event.solutionId,
