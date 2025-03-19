@@ -1,7 +1,17 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { BarChart2, Coins, CheckCircle, FileText, MessageCircle, Play, Star } from 'lucide-react';
+import {
+  BarChart2,
+  Coins,
+  CheckCircle,
+  FileText,
+  MessageCircle,
+  Play,
+  Star,
+  AlertTriangle,
+  Info,
+} from 'lucide-react';
 import { Work } from '@/types/work';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { WorkRightSidebar } from './WorkRightSidebar';
@@ -15,6 +25,9 @@ import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { calculateOpenBountiesAmount } from '@/components/Bounty/lib/bountyUtil';
 import { WorkTabs, TabType } from './WorkTabs';
+import { Badge } from '@/components/ui/Badge';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 
 interface WorkDocumentProps {
   work: Work;
@@ -25,6 +38,7 @@ interface WorkDocumentProps {
 export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocumentProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
 
   // Initialize activeTab from URL or props
   const [activeTab, setActiveTab] = useState<TabType>(() => {
@@ -140,7 +154,13 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
                       {(() => {
                         // Calculate total amount from only OPEN bounties using utility function
                         const totalAmount = calculateOpenBountiesAmount(metadata.bounties);
-                        return `${formatRSC({ amount: totalAmount })} RSC Bounties Available`;
+                        // Calculate USD value if exchange rate is available
+                        const usdValue =
+                          !isExchangeRateLoading && exchangeRate > 0
+                            ? (totalAmount * exchangeRate).toFixed(2)
+                            : null;
+
+                        return `${formatRSC({ amount: totalAmount })} RSC${usdValue ? ` (${usdValue} USD)` : ''} Earning Opportunity`;
                       })()}
                     </h2>
                     <p className="mt-1 text-sm text-orange-700">
@@ -161,9 +181,29 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
       )}
       {/* Title & Actions */}
       {work.type === 'preprint' && (
-        <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
-          Preprint
-        </div>
+        <Tooltip
+          content={
+            <div className="flex items-start gap-3 text-left">
+              <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center">
+                <Info size={24} className="text-gray-700" />
+              </div>
+              <div>
+                Preprints are research papers that have not yet undergone formal peer review.
+              </div>
+            </div>
+          }
+          position="top"
+          width="w-[360px]"
+        >
+          <Badge
+            variant="default"
+            size="lg"
+            className="gap-1.5 py-1 border-gray-300 cursor-pointer rounded-md"
+          >
+            <Info size={16} className="text-gray-500" />
+            <span>Preprint</span>
+          </Badge>
+        </Tooltip>
       )}
       <PageHeader title={work.title} className="text-3xl mt-2" />
       <button

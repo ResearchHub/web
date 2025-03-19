@@ -2,6 +2,7 @@ import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { BaseTransformer } from './transformer';
 import { Bounty, transformBounty, groupBountiesWithContributions } from './bounty';
 import { UserVoteType } from './reaction';
+import { transformUser, User } from './user';
 
 export type CommentFilter = 'BOUNTY' | 'DISCUSSION' | 'REVIEW';
 export type CommentSort = 'BEST' | 'NEWEST' | 'TOP' | 'CREATED_DATE';
@@ -45,7 +46,7 @@ export interface Comment {
   contentFormat?: ContentFormat;
   createdDate: string;
   updatedDate: string;
-  author: any;
+  createdBy: User;
   score: number;
   reviewScore: number;
   replies: Comment[];
@@ -123,6 +124,7 @@ export const transformComment = (raw: any): Comment => {
     content: raw.comment_content_json || raw.comment_content,
     contentFormat: raw.comment_content_type,
     createdDate: raw.created_date,
+    createdBy: transformUser(raw.created_by),
     updatedDate: raw.updated_date,
     author: transformAuthorProfile(raw.created_by),
     score: raw.score || 0,

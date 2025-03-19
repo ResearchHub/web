@@ -76,7 +76,7 @@ export const WorkTabs = ({
     <div className="border-b mb-6">
       <nav className="flex space-x-8 mt-6">
         <button
-          className={`px-1 py-4 text-sm font-medium border-b-2 ${
+          className={`px-1 py-4 text-md font-medium border-b-2 ${
             activeTab === 'paper'
               ? 'text-indigo-600 border-indigo-600'
               : 'text-gray-500 border-transparent hover:text-gray-700'
@@ -89,7 +89,7 @@ export const WorkTabs = ({
           </div>
         </button>
         <button
-          className={`px-1 py-4 text-sm font-medium ${
+          className={`px-1 py-4 text-md font-medium ${
             activeTab === 'comments'
               ? 'text-indigo-600 border-b-2 border-indigo-600'
               : 'text-gray-500 hover:text-gray-700'
@@ -111,7 +111,7 @@ export const WorkTabs = ({
           </div>
         </button>
         <button
-          className={`px-1 py-4 text-sm font-medium ${
+          className={`px-1 py-4 text-md font-medium ${
             activeTab === 'reviews'
               ? 'text-indigo-600 border-b-2 border-indigo-600'
               : 'text-gray-500 hover:text-gray-700'
@@ -133,7 +133,7 @@ export const WorkTabs = ({
           </div>
         </button>
         <button
-          className={`px-1 py-4 text-sm font-medium ${
+          className={`px-1 py-4 text-md font-medium ${
             activeTab === 'bounties'
               ? 'text-indigo-600 border-b-2 border-indigo-600'
               : 'text-gray-500 hover:text-gray-700'

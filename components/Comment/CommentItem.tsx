@@ -63,7 +63,7 @@ export const CommentItem = ({
   const { user } = useUser();
 
   // Check if the current user is the author of the comment
-  const isAuthor = user?.authorProfile?.id === comment.author?.id;
+  const isAuthor = user?.authorProfile?.id === comment?.createdBy?.authorProfile?.id;
 
   // Determine if this comment is being edited or replied to
   const isEditing = editingCommentId === comment.id;
@@ -211,7 +211,7 @@ export const CommentItem = ({
 
         // Check if this is an open bounty
         const isBountyOpen = comment.bounties.some((b) => isOpenBounty(b));
-
+        console.log('!showAwardModal', showAwardModal);
         return (
           <div className="space-y-4">
             <FeedItemBounty
@@ -431,26 +431,23 @@ export const CommentItem = ({
       />
 
       {/* Award Bounty Modal for bounty comments */}
-      {comment.commentType === 'BOUNTY' &&
-        comment.bounties &&
-        comment.bounties.length > 0 &&
-        !!getDisplayBounty(comment.bounties) && (
-          <AwardBountyModal
-            isOpen={showAwardModal}
-            onClose={() => setShowAwardModal(false)}
-            comment={comment}
-            contentType={contentType}
-            onBountyUpdated={() => {
-              // Refresh the comments using the context
-              forceRefresh();
+      {showAwardModal && (
+        <AwardBountyModal
+          isOpen={showAwardModal}
+          onClose={() => setShowAwardModal(false)}
+          comment={comment}
+          contentType={contentType}
+          onBountyUpdated={() => {
+            // Refresh the comments using the context
+            forceRefresh();
 
-              // Also call the parent's onCommentUpdate if provided
-              if (onCommentUpdate) {
-                onCommentUpdate(comment);
-              }
-            }}
-          />
-        )}
+            // Also call the parent's onCommentUpdate if provided
+            if (onCommentUpdate) {
+              onCommentUpdate(comment);
+            }
+          }}
+        />
+      )}
 
       {/* Solution Modal */}
       {selectedSolution && (

@@ -335,10 +335,10 @@ const RenderNode: React.FC<RenderNodeProps> = ({
     return <br className="tiptap-hard-break" />;
   }
 
-  // Handle bullet list
-  if (node.type === 'bullet_list') {
+  // Handle ordered list
+  if (node.type === 'orderedList') {
     return (
-      <ul className="tiptap-bullet-list list-disc pl-5 my-4">
+      <ol className="tiptap-ordered-list list-decimal pl-5 my-4" start={node.attrs?.start || 1}>
         {node.content?.map((child: any, i: number) => (
           <RenderNode
             key={i}
@@ -350,11 +350,11 @@ const RenderNode: React.FC<RenderNodeProps> = ({
             currentLength={textLengthSoFar}
           />
         ))}
-      </ul>
+      </ol>
     );
   }
 
-  // Handle ordered list
+  // Handle ordered_list (compatibility with ProseMirror schema naming)
   if (node.type === 'ordered_list') {
     return (
       <ol className="tiptap-ordered-list list-decimal pl-5 my-4" start={node.attrs?.start || 1}>
@@ -373,8 +373,65 @@ const RenderNode: React.FC<RenderNodeProps> = ({
     );
   }
 
+  // Handle bullet list
+  if (node.type === 'bulletList') {
+    return (
+      <ul className="tiptap-bullet-list list-disc pl-5 my-4">
+        {node.content?.map((child: any, i: number) => (
+          <RenderNode
+            key={i}
+            node={child}
+            debug={debug}
+            renderSectionHeader={renderSectionHeader}
+            truncate={truncate}
+            maxLength={maxLength}
+            currentLength={textLengthSoFar}
+          />
+        ))}
+      </ul>
+    );
+  }
+
+  // Handle bullet_list (compatibility with ProseMirror schema naming)
+  if (node.type === 'bullet_list') {
+    return (
+      <ul className="tiptap-bullet-list list-disc pl-5 my-4">
+        {node.content?.map((child: any, i: number) => (
+          <RenderNode
+            key={i}
+            node={child}
+            debug={debug}
+            renderSectionHeader={renderSectionHeader}
+            truncate={truncate}
+            maxLength={maxLength}
+            currentLength={textLengthSoFar}
+          />
+        ))}
+      </ul>
+    );
+  }
+
   // Handle list item
   if (node.type === 'list_item') {
+    return (
+      <li className="tiptap-list-item">
+        {node.content?.map((child: any, i: number) => (
+          <RenderNode
+            key={i}
+            node={child}
+            debug={debug}
+            renderSectionHeader={renderSectionHeader}
+            truncate={truncate}
+            maxLength={maxLength}
+            currentLength={textLengthSoFar}
+          />
+        ))}
+      </li>
+    );
+  }
+
+  // Handle listItem (TipTap naming)
+  if (node.type === 'listItem') {
     return (
       <li className="tiptap-list-item">
         {node.content?.map((child: any, i: number) => (
@@ -435,7 +492,20 @@ const RenderNode: React.FC<RenderNodeProps> = ({
   }
 
   // Fallback for unhandled node types
-  if (debug) console.warn(`Unhandled node type: ${node.type}`, node);
+  if (debug) {
+    console.warn(`Unhandled node type: ${node.type}`, node);
+    // Only in debug mode, render a visible indication of unhandled nodes
+    return (
+      <div className="p-2 border border-red-500 my-2 text-xs">
+        <div>
+          Unhandled node type: <strong>{node.type}</strong>
+        </div>
+        <pre className="mt-1 bg-gray-100 p-1 overflow-auto max-h-24">
+          {JSON.stringify(node, null, 2)}
+        </pre>
+      </div>
+    );
+  }
   return null;
 };
 

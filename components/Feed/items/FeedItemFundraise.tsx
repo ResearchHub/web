@@ -11,6 +11,7 @@ import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { useRouter } from 'next/navigation';
 import { Flag } from 'lucide-react';
+import Image from 'next/image';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
@@ -23,7 +24,8 @@ interface FeedItemFundraiseProps {
  */
 const FeedItemFundraiseBody: FC<{
   entry: FeedEntry;
-}> = ({ entry }) => {
+  imageUrl?: string;
+}> = ({ entry, imageUrl }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
 
@@ -39,8 +41,8 @@ const FeedItemFundraiseBody: FC<{
     })) || [];
 
   return (
-    <div className="mb-4">
-      {/* Badges */}
+    <div>
+      {/* Badges - Always at the top */}
       <div className="flex flex-wrap gap-2 mb-3" onClick={(e) => e.stopPropagation()}>
         <ContentTypeBadge type="funding" />
         {topics.map((topic, index) => (
@@ -50,26 +52,47 @@ const FeedItemFundraiseBody: FC<{
         ))}
       </div>
 
-      {/* Title */}
-      <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-        {post.title}
-      </h2>
+      {/* Content area with image */}
+      <div className="flex justify-between items-start gap-4">
+        {/* Left side content */}
+        <div className="flex-1 min-w-0">
+          {/* Title */}
+          <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+            {post.title}
+          </h2>
 
-      {/* Authors list below title */}
-      {authors.length > 0 && (
-        <div className="mt-1 mb-3">
-          <AuthorList
-            authors={authors}
-            size="sm"
-            className="text-gray-600 font-normal"
-            delimiter="•"
-          />
+          {/* Authors list below title */}
+          {authors.length > 0 && (
+            <div className="mt-1 mb-3">
+              <AuthorList
+                authors={authors}
+                size="sm"
+                className="text-gray-600 font-normal"
+                delimiter="•"
+              />
+            </div>
+          )}
+
+          {/* Truncated Content */}
+          <div className="text-sm text-gray-700">
+            <p>{truncateText(post.textPreview)}</p>
+          </div>
         </div>
-      )}
 
-      {/* Truncated Content */}
-      <div className="text-sm text-gray-700">
-        <p>{truncateText(post.textPreview)}</p>
+        {/* Image - Positioned to the right, aligned with title */}
+        {imageUrl && (
+          <div className="flex-shrink-0 w-[280px] max-w-[33%] hidden md:block">
+            <div className="aspect-[4/3] relative rounded-lg overflow-hidden shadow-sm">
+              <Image
+                src={imageUrl}
+                alt={post.title || 'Fundraise image'}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 280px"
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -128,6 +151,25 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   // Determine if card should have clickable styles
   const isClickable = !!href;
 
+  // Image URL
+  const imageUrl =
+    'https://iiif.elifesciences.org/journal-cms/cover%2F2025-03%2F100490-a_striking_image.png/28,0,1745,978/678,380/0/default.webp';
+
+  // Mobile image display (for small screens only)
+  const MobileImage = () => (
+    <div className="md:hidden w-full mb-4">
+      <div className="aspect-[16/9] relative rounded-lg overflow-hidden shadow-sm">
+        <Image
+          src={imageUrl}
+          alt={post.title || 'Fundraise image'}
+          fill
+          className="object-cover"
+          sizes="100vw"
+        />
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-3">
       {/* Header */}
@@ -153,26 +195,23 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         )}
       >
         <div className="p-4">
-          {/* Content area with image */}
-          <div className="flex mb-4">
-            {/* Left side content */}
-            <div className="flex-1 pr-4">
-              {/* Body Content */}
-              <FeedItemFundraiseBody entry={entry} />
+          {/* Mobile image (shown only on small screens) */}
+          <MobileImage />
 
-              {/* Fundraise Progress (only for preregistrations with fundraise) */}
-              {hasFundraise && post.fundraise && (
-                <div className="mt-4" onClick={(e) => e.stopPropagation()}>
-                  <FundraiseProgress
-                    fundraise={post.fundraise}
-                    compact={true}
-                    showContribute={false}
-                    className="p-0 border-0 bg-transparent"
-                  />
-                </div>
-              )}
+          {/* Body Content with desktop image integrated */}
+          <FeedItemFundraiseBody entry={entry} imageUrl={imageUrl} />
+
+          {/* Fundraise Progress (only for preregistrations with fundraise) */}
+          {hasFundraise && post.fundraise && (
+            <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+              <FundraiseProgress
+                fundraise={post.fundraise}
+                compact={true}
+                showContribute={false}
+                className="p-0 border-0 bg-transparent"
+              />
             </div>
-          </div>
+          )}
 
           {/* Action Buttons - Full width */}
           <div className="mt-4 pt-3 border-t border-gray-200">

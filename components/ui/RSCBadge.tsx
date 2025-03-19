@@ -12,7 +12,7 @@ interface RSCBadgeProps {
   amount: number;
   className?: string;
   size?: 'xxs' | 'xs' | 'sm' | 'md';
-  variant?: 'inline' | 'badge' | 'contribute' | 'text';
+  variant?: 'inline' | 'badge' | 'contribute' | 'text' | 'award';
   /** Whether to show "RSC" text after the amount */
   showText?: boolean;
   /** Whether to show the RSC icon */
@@ -66,6 +66,11 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
     textMedium: 'text-gray-600',
     iconColor: textColor ? undefined : '#F97316', // orange-500
     rscLabel: rscLabelColor || textColor || 'text-orange-500',
+    // Add gold colors for award variant
+    awardBg: 'bg-amber-100',
+    awardBorder: 'border-amber-300',
+    awardText: 'text-amber-700',
+    awardIconColor: '#F59E0B', // amber-500
   };
 
   // Map our custom variants to classes
@@ -74,6 +79,7 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
     inline: '',
     contribute: `${colors.hoverBorder} ${colors.hoverBg}`,
     text: '',
+    award: `${colors.awardBg} ${colors.awardBorder}`,
   };
 
   // Map our size to Badge size
@@ -159,31 +165,40 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
 
   return wrapWithTooltip(
     <Badge
-      variant="orange"
+      variant={variant === 'award' ? 'default' : 'orange'}
       size={badgeSize}
       className={cn(
         'flex items-center',
         sizeClasses[size],
         variantClasses[variant],
-        variant === 'badge' || variant === 'contribute' ? 'py-1 px-2' : '',
+        variant === 'badge' || variant === 'contribute' || variant === 'award' ? 'py-1 px-2' : '',
         size === 'xxs' && 'py-0 px-1',
         className
       )}
     >
       {showIcon && (
-        <ResearchCoinIcon size={iconSizes[size]} outlined={false} color={colors.iconColor} />
+        <ResearchCoinIcon
+          size={iconSizes[size]}
+          outlined={false}
+          color={variant === 'award' ? colors.awardIconColor : colors.iconColor}
+        />
       )}
-      {inverted ? (
+      {variant === 'award' ? (
+        <div className="flex items-center">
+          <span className={cn(colors.awardText, 'font-medium')}>+ {amount.toLocaleString()}</span>
+          {showText && <span className={cn(colors.awardText, 'ml-1')}>Awarded</span>}
+        </div>
+      ) : inverted ? (
         <div className="flex items-center">
           <span className={cn(colors.textDark)}>{amount.toLocaleString()}</span>
           {showText && <span className={cn(colors.rscLabel, 'ml-1')}>RSC</span>}
-          {/* {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>} */}
+          {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>}
         </div>
       ) : (
         <div className="flex items-center">
           <span className={cn(colors.text)}>{amount.toLocaleString()}</span>
           {showText && <span className={cn(colors.rscLabel, 'ml-1')}>RSC</span>}
-          {/* {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>} */}
+          {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>}
         </div>
       )}
     </Badge>

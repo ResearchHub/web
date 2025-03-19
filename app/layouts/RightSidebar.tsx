@@ -26,9 +26,9 @@ const InfoBanner: React.FC = () => (
     </div>
 
     <Button
-      variant="outlined"
+      variant="default"
       size="default"
-      className="w-full justify-center text-indigo-500 border-indigo-500 hover:text-indigo-600 hover:bg-indigo-100 font-medium"
+      className="w-full justify-center bg-indigo-600 text-white hover:bg-indigo-700 font-medium"
     >
       Learn more
     </Button>
@@ -241,7 +241,7 @@ const TopicsToFollow: React.FC = () => {
   if (isLoading) {
     return (
       <div>
-        <h2 className="font-semibold text-gray-900 mb-4">Who to Follow</h2>
+        <h2 className="font-semibold text-gray-900 mb-4">Follow Recommendations</h2>
 
         <LoadingSkeleton />
 
@@ -255,7 +255,7 @@ const TopicsToFollow: React.FC = () => {
 
   return (
     <div>
-      <h2 className="font-semibold text-gray-900 mb-6">Who to Follow</h2>
+      <h2 className="font-semibold text-gray-900 mb-6">Follow Recommendations</h2>
 
       {/* Journals Section */}
       <TopicSection

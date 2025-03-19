@@ -19,7 +19,7 @@ import { BountyContribution, BountyType } from '@/types/bounty';
 import { formatRSC } from '@/utils/number';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/styles';
-import { Trophy, Pen, Plus, Users } from 'lucide-react';
+import { Trophy, Pen, Plus, Users, ArrowBigUpDash } from 'lucide-react';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Button } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -247,17 +247,23 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
     });
   }
 
-  // Add Award action to menu if applicable
-  if (showCreatorActions && isAuthor && isOpenBounty(bounty) && onAward) {
-    menuItems.push({
-      icon: Trophy,
-      label: 'Award',
-      onClick: (e?: React.MouseEvent) => {
-        e?.stopPropagation();
-        onAward();
-      },
-    });
-  }
+  // Award button as a custom action button (to be displayed next to upvote)
+  const awardButton =
+    showCreatorActions && isAuthor && isOpenBounty(bounty) && onAward ? (
+      <ActionButton
+        icon={Trophy}
+        label="Award"
+        tooltip={showTooltips ? 'Award this bounty to a solution' : undefined}
+        onClick={(e) => {
+          e?.stopPropagation();
+          onAward();
+        }}
+        showLabel={true}
+        showTooltip={showTooltips}
+        isActive={false}
+        isDisabled={false}
+      />
+    ) : null;
 
   // Add Contributors action to menu if applicable
   if (bounty.contributions && bounty.contributions.length > 0) {
@@ -277,23 +283,23 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       <Tooltip
         content={
           <div className="flex items-start gap-3 text-left">
-            <div className="bg-orange-100 p-2 rounded-md flex items-center justify-center">
-              <ResearchCoinIcon size={24} contribute />
+            <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center text-gray-600">
+              <ArrowBigUpDash size={24} />
             </div>
-            <div>Make this bounty larger by contributing ResearchCoin</div>
+            <div>Support this bounty with RSC to increase its visibility and reward amount</div>
           </div>
         }
         position="top"
-        width="w-[260px]"
+        width="w-[350px]"
       >
         <Button
           onClick={handleOpenContributeModal}
           size="sm"
           variant="outlined"
-          className="text-sm gap-2 border-orange-400 text-orange-600"
+          className="text-sm text-xs font-medium gap-2 border-orange-400 text-orange-600"
         >
-          <ResearchCoinIcon size={18} contribute />
-          Contribute
+          <ResearchCoinIcon size={16} contribute />
+          Support this bounty
         </Button>
       </Tooltip>
     ) : undefined;
@@ -335,6 +341,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
               showRelatedWork={showRelatedWork}
               onViewSolution={onViewSolution}
             />
+            {contributeButton}
           </div>
 
           {/* Action Buttons - Full width */}
@@ -352,8 +359,10 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
                 actionLabels={actionLabels}
                 hideCommentButton={isAuthor}
                 menuItems={menuItems}
-                rightSideActionButton={contributeButton}
-              />
+              >
+                {/* Award button appears next to upvote and comment buttons */}
+                {awardButton}
+              </FeedItemActions>
             </div>
           </div>
         </div>

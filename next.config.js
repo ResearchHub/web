@@ -25,6 +25,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'storage.staging.researchhub.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'iiif.elifesciences.org',
+      },
     ],
   },
   productionBrowserSourceMaps: process.env.VERCEL_ENV === 'preview',
