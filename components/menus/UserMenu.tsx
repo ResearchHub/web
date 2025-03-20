@@ -86,63 +86,62 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
           </BaseMenuItem>
 
           {/* Wallet Menu Items */}
-          {isConnected ? (
-            <>
-              {/* Truncated wallet address toggles extra options on click */}
-              <BaseMenuItem
-                onSelect={(e) => e.preventDefault()}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setWalletOptionsOpen((prev) => !prev);
-                }}
-                className="w-full px-4 py-2"
-              >
+          {process.env.NODE_ENV !== 'production' &&
+            (isConnected ? (
+              <>
+                <BaseMenuItem
+                  onSelect={(e) => e.preventDefault()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setWalletOptionsOpen((prev) => !prev);
+                  }}
+                  className="w-full px-4 py-2"
+                >
+                  <div className="flex items-center">
+                    <Wallet className="h-4 w-4 mr-3 text-gray-500" />
+                    <span className="text-sm text-gray-700">
+                      {truncateWalletAddress(address as string)}
+                    </span>
+                  </div>
+                </BaseMenuItem>
+                {walletOptionsOpen && (
+                  <>
+                    <BaseMenuItem
+                      onSelect={(e) => e.preventDefault()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (address) navigator.clipboard.writeText(address);
+                      }}
+                      className="w-full px-4 py-2"
+                    >
+                      <div className="flex items-center">
+                        <span className="ml-8 text-xs text-gray-500">Copy Address</span>
+                      </div>
+                    </BaseMenuItem>
+                    <BaseMenuItem
+                      onSelect={(e) => e.preventDefault()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        disconnect();
+                        setWalletOptionsOpen(false);
+                      }}
+                      className="w-full px-4 py-2"
+                    >
+                      <div className="flex items-center">
+                        <span className="ml-8 text-xs text-gray-500">Disconnect Wallet</span>
+                      </div>
+                    </BaseMenuItem>
+                  </>
+                )}
+              </>
+            ) : (
+              <BaseMenuItem onClick={handleOpenWalletModal} className="w-full px-4 py-2">
                 <div className="flex items-center">
                   <Wallet className="h-4 w-4 mr-3 text-gray-500" />
-                  <span className="text-sm text-gray-700">
-                    {truncateWalletAddress(address as string)}
-                  </span>
+                  <span className="text-sm text-gray-700">Connect Wallet</span>
                 </div>
               </BaseMenuItem>
-
-              {walletOptionsOpen && (
-                <>
-                  <BaseMenuItem
-                    onSelect={(e) => e.preventDefault()}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (address) navigator.clipboard.writeText(address);
-                    }}
-                    className="w-full px-4 py-2"
-                  >
-                    <div className="flex items-center">
-                      <span className="ml-8 text-xs text-gray-500">Copy Address</span>
-                    </div>
-                  </BaseMenuItem>
-                  <BaseMenuItem
-                    onSelect={(e) => e.preventDefault()}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      disconnect();
-                      setWalletOptionsOpen(false);
-                    }}
-                    className="w-full px-4 py-2"
-                  >
-                    <div className="flex items-center">
-                      <span className="ml-8 text-xs text-gray-500">Disconnect Wallet</span>
-                    </div>
-                  </BaseMenuItem>
-                </>
-              )}
-            </>
-          ) : (
-            <BaseMenuItem onClick={handleOpenWalletModal} className="w-full px-4 py-2">
-              <div className="flex items-center">
-                <Wallet className="h-4 w-4 mr-3 text-gray-500" />
-                <span className="text-sm text-gray-700">Connect Wallet</span>
-              </div>
-            </BaseMenuItem>
-          )}
+            ))}
 
           <BaseMenuItem onClick={() => signOut({ callbackUrl: '/' })} className="w-full px-4 py-2">
             <div className="flex items-center">
