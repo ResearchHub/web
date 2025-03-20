@@ -2,10 +2,9 @@ import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@
 import { Fragment, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
-import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
 import { GraduationCap, Scale, Users, FileText } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
-import { ResearchCoinIcon } from '../ui/icons/ResearchCoinIcon';
+import { useNotebookContext } from '@/contexts/NotebookContext';
 
 interface ConfirmPublishModalProps {
   isOpen: boolean;
@@ -13,6 +12,7 @@ interface ConfirmPublishModalProps {
   onConfirm: () => void;
   title: string;
   isPublishing: boolean;
+  isUpdate?: boolean;
 }
 
 export function ConfirmPublishModal({
@@ -21,19 +21,19 @@ export function ConfirmPublishModal({
   onConfirm,
   title: initialTitle,
   isPublishing,
+  isUpdate,
 }: ConfirmPublishModalProps) {
   const [title, setTitle] = useState(initialTitle);
   const [hasAgreed, setHasAgreed] = useState(false);
-  const { editor } = useNotebookPublish();
+  const { editor } = useNotebookContext();
 
   const isTitleValid = title.trim().length >= 20;
-  const isPublishEnabled = isTitleValid && hasAgreed && !isPublishing;
+  const isPublishEnabled = isTitleValid && hasAgreed;
 
-  // Reset state when modal opens
   useEffect(() => {
     setTitle(initialTitle);
     setHasAgreed(false);
-  }, [isOpen]);
+  }, []);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
@@ -84,10 +84,11 @@ export function ConfirmPublishModal({
               <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
                 <div className="p-6">
                   <DialogTitle as="h3" className="text-lg font-semibold text-gray-900 mb-4">
-                    Confirm Publication
+                    {isUpdate ? 'Confirm Re-publication' : 'Confirm Publication'}
                   </DialogTitle>
                   <p className="text-sm text-gray-600 mb-4">
-                    You are about to publish your research preregistration:
+                    You are about to {isUpdate ? 're-publish' : 'publish'} your research
+                    preregistration:
                   </p>
                   <input
                     type="text"
@@ -96,6 +97,7 @@ export function ConfirmPublishModal({
                     className="w-full p-3 text-sm font-medium text-gray-900 bg-gray-50 rounded-lg mb-6 border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     placeholder="Enter title..."
                   />
+
                   <div className="bg-gray-50 p-4 rounded-lg mb-6">
                     <h4 className="font-medium text-sm text-gray-900 mb-3">Guidelines for posts</h4>
                     <ul className="space-y-3">
@@ -138,17 +140,6 @@ export function ConfirmPublishModal({
                       </li>
                     </ul>
                   </div>
-
-                  <div className="mt-3 mb-6">
-                    <span className="text-sm text-primary-600 bg-primary-50 rounded-lg px-3 py-2 inline-block">
-                      <span className="font-medium">
-                        Your preregistration will be assigned a DOI for permanent citation
-                      </span>
-                      (5 RSC{' '}
-                      <ResearchCoinIcon size={16} className="text-primary-600 -mt-0.5 inline" />)
-                    </span>
-                  </div>
-
                   <div className="flex items-start gap-2 mb-6">
                     <Checkbox
                       id="guidelines"
@@ -174,10 +165,14 @@ export function ConfirmPublishModal({
                     <Button
                       variant="default"
                       onClick={onConfirm}
-                      disabled={!isPublishEnabled}
+                      disabled={!isPublishEnabled || isPublishing}
                       className="disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isPublishing ? 'Publishing...' : 'Confirm & Publish'}
+                      {isPublishing
+                        ? 'Publishing...'
+                        : isUpdate
+                          ? 'Confirm & Re-publish'
+                          : 'Confirm & Publish'}
                     </Button>
                   </div>
                 </div>

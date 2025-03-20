@@ -5,12 +5,12 @@ import { Work } from '@/types/work';
 import { ID } from '@/types/root';
 import { ApiError } from '@/services/types';
 
-export interface PreregistrationFormData {
+export interface PreregistrationPostParams {
   // Funding related
   budget: string;
   rewardFunders: boolean;
-  nftArt: File | null;
   nftSupply: string;
+  topics: string[];
 
   // Document related
   title: string;
@@ -18,6 +18,7 @@ export interface PreregistrationFormData {
   renderableText: string;
   fullJSON: string;
   fullSrc: string;
+  assignDOI?: boolean;
 }
 
 interface UsePostState {
@@ -26,52 +27,54 @@ interface UsePostState {
   error: string | null;
 }
 
-type CreatePostFn = (formData: PreregistrationFormData) => Promise<Work>;
-type UseCreatePostReturn = [UsePostState, CreatePostFn];
+type UpsertPostFn = (postParams: PreregistrationPostParams, postId?: ID) => Promise<Work>;
+type UseUpsertPostReturn = [UsePostState, UpsertPostFn];
 
-export const useCreatePost = (): UseCreatePostReturn => {
+export const useUpsertPost = (): UseUpsertPostReturn => {
   const [data, setData] = useState<Work | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createPreregistrationPost = async (formData: PreregistrationFormData) => {
+  const upsertPost = async (postParams: PreregistrationPostParams, postId?: ID) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const formDataToSubmit = new FormData();
+      // Create the request payload
+      const payload: any = {
+        document_type: 'PREREGISTRATION',
+        title: postParams.title,
+        renderable_text: postParams.renderableText,
+        full_src: postParams.fullSrc,
+        full_json: postParams.fullJSON,
+        note_id: postParams.noteId,
+        assign_doi: postParams.assignDOI ?? false,
+        hubs: postParams.topics,
+      };
 
-      formDataToSubmit.append('document_type', 'PREREGISTRATION');
-      formDataToSubmit.append('title', formData.title);
-      formDataToSubmit.append('renderable_text', formData.renderableText);
-      formDataToSubmit.append('full_src', formData.fullSrc);
-      formDataToSubmit.append('full_json', formData.fullJSON);
-      formDataToSubmit.append('note_id', String(formData.noteId ?? ''));
-      formDataToSubmit.append('reward_funders', String(formData.rewardFunders));
-      formDataToSubmit.append('nft_supply', String(formData.nftSupply));
-      formDataToSubmit.append('fundraise_goal_currency', 'USD');
-      formDataToSubmit.append(
-        'fundraise_goal_amount',
-        String(parseFloat(formData.budget.replace(/[^0-9.]/g, '')))
-      );
-      if (formData.nftArt) {
-        formDataToSubmit.append('nft_art', formData.nftArt);
+      if (postId) {
+        payload.post_id = postId;
+      } else {
+        // Only include fundraise fields for creation
+        payload.reward_funders = postParams.rewardFunders;
+        payload.nft_supply = postParams.nftSupply;
+        payload.fundraise_goal_currency = 'USD';
+        payload.fundraise_goal_amount = parseFloat(postParams.budget.replace(/[^0-9.]/g, ''));
       }
 
-      const response = await PostService.post({ formData: formDataToSubmit });
-      setData(response);
+      const response = await PostService.upsert(payload);
 
+      setData(response);
       return response;
     } catch (err) {
       const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
-      const errorMsg = data?.msg || 'An error occurred while creating the preregistration post';
+      const errorMsg = data?.msg || 'An error occurred while saving the preregistration post';
       setError(errorMsg);
-
       throw err;
     } finally {
       setIsLoading(false);
     }
   };
 
-  return [{ data, isLoading, error }, createPreregistrationPost];
+  return [{ data, isLoading, error }, upsertPost];
 };

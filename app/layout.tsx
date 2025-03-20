@@ -5,8 +5,11 @@ import './globals.css';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { ExchangeRateProvider } from '@/contexts/ExchangeRateContext';
 import { AuthModalProvider } from '@/contexts/AuthModalContext';
-import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { Metadata } from 'next';
+import { getServerSession } from 'next-auth';
+import { authOptions } from './api/auth/[...nextauth]/auth.config';
+import { UserProvider } from '@/contexts/UserContext';
+import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { OnchainProvider } from '@/contexts/OnchainContext';
 import '@coinbase/onchainkit/styles.css';
 
@@ -38,22 +41,26 @@ export const metadata: Metadata = {
   manifest: '/favicons/site.webmanifest',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <OnchainProvider>
-          <NextAuthProvider>
+          <NextAuthProvider session={session}>
             <AuthModalProvider>
-              <OrganizationProvider>
+              <UserProvider>
                 <ExchangeRateProvider>
-                  <NotificationProvider>{children}</NotificationProvider>
+                  <NotificationProvider>
+                    <OrganizationProvider>{children}</OrganizationProvider>
+                  </NotificationProvider>
                 </ExchangeRateProvider>
-              </OrganizationProvider>
+              </UserProvider>
             </AuthModalProvider>
           </NextAuthProvider>
           <ToasterProvider />

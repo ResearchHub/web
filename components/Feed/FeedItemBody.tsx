@@ -1,13 +1,27 @@
 'use client';
 
 import { FC, useState } from 'react';
-import { Bounty, Content, FeedEntry, Paper, Post } from '@/types/feed';
+import { Content, FeedEntry } from '@/types/feed';
+import { Bounty } from '@/types/bounty';
+import { Work, WorkType } from '@/types/work';
 import { Button } from '@/components/ui/Button';
 import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
 import { Avatar } from '@/components/ui/Avatar';
 import { Journal } from '@/types/journal';
+import { useRouter } from 'next/navigation';
+import { ExpandableContent } from '@/components/Feed/shared/ExpandableContent';
+import { Post } from '@/types/note';
+
+// Type guards to check content type
+const isBounty = (content: Content): content is Bounty => {
+  return 'bountyType' in content;
+};
+
+const isWork = (content: Content): content is Work => {
+  return 'contentType' in content;
+};
 
 interface FeedItemBodyProps {
   content: Content;
@@ -15,15 +29,16 @@ interface FeedItemBodyProps {
   context?: Content;
   metrics?: FeedEntry['metrics'];
   hideTypeLabel?: boolean;
+  isLoading?: boolean;
 }
 
 const buildUrl = (item: Content) => {
-  const title = item.title || '';
-  const slug = title
-    .toLowerCase()
-    .replace(/ /g, '-')
-    .replace(/[^\w-]/g, '');
-  return `/${item.type}/${item.id}/${slug}`;
+  if (isWork(item)) {
+    return `/paper/${item.id}/${item.slug}`;
+  } else if (isBounty(item)) {
+    return `/bounty/${item.id}`;
+  }
+  return '#';
 };
 
 export const FeedItemBody: FC<FeedItemBodyProps> = ({
@@ -32,81 +47,78 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
   context,
   metrics,
   hideTypeLabel,
+  isLoading,
 }) => {
-  const [showFundModal, setShowFundModal] = useState(false);
-  const [expandedPaperIds, setExpandedPaperIds] = useState<Set<string | number>>(new Set());
+  const router = useRouter();
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
   const renderItem = (item: Content, isTarget: boolean = false) => {
     const toggleExpanded = (id: string | number) => {
-      setExpandedPaperIds((prev) => {
-        const newSet = new Set(prev);
-        if (newSet.has(id)) {
-          newSet.delete(id);
-        } else {
-          newSet.add(id);
-        }
-        return newSet;
-      });
+      setExpandedItems((prev) => ({
+        ...prev,
+        [id]: !prev[id],
+      }));
     };
 
-    const itemContent = (() => {
-      switch (item.type) {
-        case 'bounty':
-          return renderBounty(item, expandedPaperIds.has(item.id), () => toggleExpanded(item.id));
-        case 'paper':
-          return renderPaper(item, expandedPaperIds.has(item.id), () => toggleExpanded(item.id));
-        case 'post':
-          return renderPost(item, expandedPaperIds.has(item.id), () => toggleExpanded(item.id));
-        default:
-          return null;
+    const isExpanded = expandedItems[item.id] || false;
+    const onToggleExpand = () => toggleExpanded(item.id);
+
+    if (isBounty(item)) {
+      return renderBounty(item, isExpanded, onToggleExpand);
+    } else if (isWork(item)) {
+      if (item.contentType === 'post') {
+        return renderPost(item, isExpanded, onToggleExpand);
+      } else if (item.contentType === 'paper') {
+        return renderPaper(item, isExpanded, onToggleExpand);
       }
-    })();
-
-    if (!itemContent) return null;
-
-    const isCard =
-      isTarget || item.type === 'bounty' || item.type === 'paper' || item.type === 'post';
-
-    const renderCard = (children: React.ReactNode) => {
-      if (!isCard) return children;
-
-      const cardContent = (
-        <div className="p-3 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-          {children}
-        </div>
-      );
-
-      return isCard ? <Link href={buildUrl(item)}>{cardContent}</Link> : cardContent;
-    };
-
-    return renderCard(<div>{itemContent}</div>);
-  };
-
-  const renderBounty = (bounty: Bounty, isExpanded: boolean, onToggleExpand: () => void) => {
-    if (bounty.paper) {
-      return renderPaper(bounty.paper, isExpanded, onToggleExpand);
     }
-    return <div>An amount of {bounty.amount} has been added to the bounty.</div>;
+
+    // Fallback for unknown content types
+    return <div>Unknown content type</div>;
   };
 
-  const renderPost = (post: Post, isExpanded: boolean, onToggleExpand: () => void) => {
-    return renderExpandableContent(
-      post.type,
-      post.title ?? '',
-      post.summary || '',
-      isExpanded,
-      onToggleExpand
+  const renderCard = (children: React.ReactNode) => {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">{children}</div>
     );
   };
 
-  const renderPaper = (paper: Paper, isExpanded: boolean, onToggleExpand: () => void) => {
-    return renderExpandableContent(
-      paper.type,
-      paper.title ?? '',
-      paper.abstract || '',
-      isExpanded,
-      onToggleExpand,
-      paper.journal
+  const renderBounty = (bounty: Bounty, isExpanded: boolean, onToggleExpand: () => void) => {
+    // Render bounty content
+    return renderCard(
+      <div>
+        <h3 className="text-lg font-medium">Bounty: {bounty.amount} RSC</h3>
+        <p className="text-gray-600 mt-2">
+          Status: {bounty.status}, Type: {bounty.bountyType}
+        </p>
+      </div>
+    );
+  };
+
+  const renderPost = (work: Work, isExpanded: boolean, onToggleExpand: () => void) => {
+    // Render post content
+    return renderCard(
+      renderExpandableContent(
+        'post',
+        work.title,
+        work.previewContent || '',
+        isExpanded,
+        onToggleExpand
+      )
+    );
+  };
+
+  const renderPaper = (work: Work, isExpanded: boolean, onToggleExpand: () => void) => {
+    // Render paper content
+    return renderCard(
+      renderExpandableContent(
+        'paper',
+        work.title,
+        work.abstract || '',
+        isExpanded,
+        onToggleExpand,
+        work.journal
+      )
     );
   };
 
@@ -118,65 +130,39 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
     onToggleExpand: () => void,
     journal?: Journal
   ) => {
-    const truncateSummary = (summary: string, limit: number = 200) => {
-      if (summary.length <= limit) return summary;
-      return summary.slice(0, limit).trim() + '...';
-    };
-
-    const isSummaryTruncated = summary.length > 200;
-
+    // Use the ExpandableContent component
     return (
       <div>
-        <div className="flex items-center gap-2 mb-2">
-          <div className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
-            {type}
-          </div>
-          {journal && (
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border border-gray-200 bg-gray-50 hover:bg-gray-200 transition-colors">
+        {journal && (
+          <div className="flex items-center mt-1 mb-2">
+            {journal.imageUrl && (
               <Avatar
                 src={journal.imageUrl}
-                alt={journal.slug}
-                size="xxs"
-                className="ring-1 ring-gray-200"
+                alt={journal.name}
+                size="xs"
+                className="mr-2 ring-1 ring-gray-200"
               />
-              <span className="text-gray-700">{journal.name}</span>
-            </div>
-          )}
-        </div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-1.5 hover:text-indigo-600">
-          {title}
-        </h3>
-        <div className="text-sm text-gray-800">
-          <p>{isExpanded ? summary : truncateSummary(summary)}</p>
-          {isSummaryTruncated && (
-            <Button
-              variant="link"
-              size="sm"
-              onClick={(e) => {
-                e.preventDefault();
-                onToggleExpand();
-              }}
-              className="flex items-center gap-0.5 mt-1"
-            >
-              {isExpanded ? 'Show less' : 'Read more'}
-              <ChevronDown
-                size={14}
-                className={cn(
-                  'transition-transform duration-200',
-                  isExpanded && 'transform rotate-180'
-                )}
-              />
-            </Button>
-          )}
-        </div>
+            )}
+            <span className="text-sm text-gray-600">{journal.name}</span>
+          </div>
+        )}
+        <ExpandableContent
+          title={title}
+          content={summary || ''}
+          isExpanded={isExpanded}
+          onToggleExpand={onToggleExpand}
+          controlled={true}
+          isLoading={isLoading}
+          titleClassName="text-lg font-medium"
+        />
       </div>
     );
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {renderItem(content)}
-      {target && renderItem(target, true)}
+      {target && <div className="mt-4">{renderItem(target, true)}</div>}
     </div>
   );
 };

@@ -17,7 +17,7 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         try {
           if (!credentials?.email || !credentials?.password) {
             return promptInvalidCredentials();
@@ -38,9 +38,8 @@ export const authOptions: NextAuthOptions = {
           const user = userData.results[0];
 
           return {
-            id: String(user.id),
+            id: Number(user.id),
             email: user.email,
-            name: user.fullName,
             authToken: loginResponse.key,
           };
         } catch (error) {
@@ -62,8 +61,15 @@ export const authOptions: NextAuthOptions = {
             id_token: account?.id_token,
           });
 
+          // Then fetch user data using the AuthService
+          const userData = await AuthService.fetchUserData(data.key);
+          // The API returns an array of results, but for user data we only expect
+          // and need the first element since it represents the current authenticated user
+          const user = userData.results[0];
+
           if (data.key) {
             (account as any).authToken = data.key;
+            (account as any).userId = user.id;
           }
 
           return true;
@@ -84,6 +90,7 @@ export const authOptions: NextAuthOptions = {
         return {
           ...token,
           authToken: account.type === 'credentials' ? user.authToken : account.authToken,
+          sub: account.type === 'credentials' ? token.sub : account.userId,
         };
       }
       return token;
@@ -94,35 +101,23 @@ export const authOptions: NextAuthOptions = {
         return {
           ...session,
           isLoggedIn: false,
+          userId: undefined,
           error: 'AuthenticationFailed',
         };
       }
 
       try {
-        const userData = await AuthService.fetchUserData(token.authToken as string);
-        // The API returns an array of results, but for user data we only expect
-        // and need the first element since it represents the current authenticated user
-        const isAuthenticated = Boolean(userData.results.length > 0 && userData.results[0]);
-
-        if (isAuthenticated) {
-          return {
-            ...session,
-            authToken: token.authToken,
-            isLoggedIn: true,
-            user: userData.results[0],
-          };
-        } else {
-          return {
-            ...session,
-            isLoggedIn: false,
-            error: 'AccessDenied',
-          };
-        }
+        return {
+          ...session,
+          authToken: token.authToken,
+          isLoggedIn: true,
+          userId: token.sub,
+        };
       } catch (error) {
         console.error('Session callback failed:', error);
         return {
           ...session,
-          user: undefined,
+          userId: undefined,
           isLoggedIn: false,
           error: 'SessionExpired',
         };

@@ -167,7 +167,7 @@ export class NoteService {
    * @throws {NoteError} When the request fails or parameters are invalid
    */
   static async updateNoteTitle(params: UpdateNoteTitleParams): Promise<NoteWithContent> {
-    if (!params.noteId || !params.title) {
+    if (!params.noteId) {
       throw new NoteError('Missing required parameters', 'INVALID_PARAMS');
     }
 
@@ -179,6 +179,57 @@ export class NoteService {
     } catch (error) {
       throw new NoteError(
         'Failed to update note title',
+        error instanceof Error ? error.message : 'UNKNOWN_ERROR'
+      );
+    }
+  }
+
+  /**
+   * Makes a note private
+   * @param noteId - The ID of the note to make private
+   * @throws {NoteError} When the request fails or parameters are invalid
+   */
+  static async makePrivate(noteId: ID): Promise<Note> {
+    if (!noteId) {
+      throw new NoteError('Missing note ID', 'INVALID_PARAMS');
+    }
+
+    try {
+      const response = await ApiClient.post<any>(`${this.BASE_PATH}/note/${noteId}/make_private/`);
+      return transformNote(response);
+    } catch (error) {
+      throw new NoteError(
+        'Failed to make note private',
+        error instanceof Error ? error.message : 'UNKNOWN_ERROR'
+      );
+    }
+  }
+
+  /**
+   * Updates the permissions for a note
+   * @param noteId - The ID of the note to update permissions for
+   * @param organizationId - The ID of the organization
+   * @param accessType - The access type to set (defaults to "ADMIN")
+   * @throws {NoteError} When the request fails or parameters are invalid
+   */
+  static async updateNotePermissions(
+    noteId: ID,
+    organizationId: ID,
+    accessType: string = 'ADMIN'
+  ): Promise<boolean> {
+    if (!noteId || !organizationId) {
+      throw new NoteError('Missing required parameters', 'INVALID_PARAMS');
+    }
+
+    try {
+      await ApiClient.patch<any>(`${this.BASE_PATH}/note/${noteId}/update_permissions/`, {
+        access_type: accessType,
+        organization: organizationId,
+      });
+      return true;
+    } catch (error) {
+      throw new NoteError(
+        'Failed to update note permissions',
         error instanceof Error ? error.message : 'UNKNOWN_ERROR'
       );
     }

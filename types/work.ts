@@ -6,11 +6,17 @@ import { createTransformer, BaseTransformed } from './transformer';
 import { Hub } from './hub';
 import { NoteWithContent, transformNoteWithContent } from './note';
 
-export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration';
+export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration' | 'funding_request';
 
 export type AuthorPosition = 'first' | 'middle' | 'last';
 
-export type ContentType = 'post' | 'paper' | 'preregistration';
+export type ContentType =
+  | 'post'
+  | 'paper'
+  | 'preregistration'
+  | 'question'
+  | 'discussion'
+  | 'funding_request';
 
 export type FlagReasonKey =
   | 'LOW_QUALITY'
@@ -61,8 +67,19 @@ export interface Work {
   }>;
   versions: Array<DocumentVersion>;
   metrics: ContentMetrics;
-  unifiedDocumentId: number;
+  unifiedDocumentId: number | null;
   note?: NoteWithContent;
+}
+
+export interface FundingRequest extends Work {
+  type: 'funding_request';
+  contentType: 'funding_request';
+  status: 'OPEN' | 'CLOSED' | 'FUNDED';
+  amount: number;
+  goalAmount: number;
+  deadline: string;
+  preregistered?: boolean;
+  image?: string;
 }
 
 // Transformed types
@@ -80,21 +97,28 @@ export const transformAuthorship = createTransformer<any, Authorship>((raw) => (
 }));
 
 export const transformJournal = (raw: any): TransformedJournal | undefined => {
-  if (!raw.external_source) return undefined;
+  // Check for external_source first (legacy format)
+  if (raw.external_source) {
+    return createTransformer<any, Journal>((raw) => ({
+      id: raw.external_source_id || 0,
+      name: raw.external_source,
+      slug: raw.external_source_slug || '',
+      imageUrl: raw.external_source_image || '',
+    }))(raw);
+  }
 
-  return createTransformer<any, Journal>((raw) => ({
-    id: raw.external_source_id || 0,
-    name: raw.external_source,
-    slug: raw.external_source_slug || '',
-    image: raw.external_source_image || '',
-  }))(raw);
+  // Check for journal property (new format)
+  if (raw.journal) {
+    return createTransformer<any, Journal>((raw) => ({
+      id: raw.journal.id || 0,
+      name: raw.journal.name,
+      slug: raw.journal.slug || '',
+      imageUrl: raw.journal.image || '',
+    }))(raw);
+  }
+
+  return undefined;
 };
-
-export const transformTopic = createTransformer<any, Topic>((raw) => ({
-  id: raw.id,
-  name: raw.name,
-  slug: raw.slug,
-}));
 
 export const transformDocumentVersion = createTransformer<any, DocumentVersion>((raw) => ({
   workId: raw.paper_id,
@@ -115,14 +139,22 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
   authors: Array.isArray(raw.authors) ? raw.authors.map(transformAuthorship) : [],
   abstract: raw.abstract,
   doi: raw.doi,
-  journal: raw.external_source ? transformJournal(raw) : undefined,
+  journal: transformJournal(raw),
   topics: Array.isArray(raw.hubs)
     ? raw.hubs.map((hub: Hub) => ({
         id: hub.id,
         name: hub.name,
         slug: hub.slug,
       }))
-    : [],
+    : raw.hub
+      ? [
+          {
+            id: raw.hub.id || 0,
+            name: raw.hub.name,
+            slug: raw.hub.slug,
+          },
+        ]
+      : [],
   formats: raw.pdf_url
     ? [...(raw.formats || []), { type: 'PDF', url: raw.pdf_url }]
     : raw.formats || [],
@@ -137,20 +169,21 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
     : [],
   versions: Array.isArray(raw.version_list) ? raw.version_list.map(transformDocumentVersion) : [],
   metrics: {
-    votes: raw.score || 0,
-    comments: raw.discussion_count || 0,
-    saves: raw.saves_count || 0,
-    reviewScore: raw.unified_document?.reviews?.avg || 0,
-    reviews: raw.unified_document?.reviews?.count || 0,
+    votes: raw.metrics?.votes || raw.score || 0,
+    comments: raw.metrics?.comments || raw.discussion_count || 0,
+    saves: raw.metrics?.saves || raw.saves_count || 0,
+    reviewScore: raw?.unified_document?.reviews?.avg || 0,
+    reviews: raw?.unified_document?.reviews?.count || 0,
     earned: raw.earned || 0,
-    views: raw.views_count || 0,
+    views: raw.metrics?.views || raw.views_count || 0,
   },
-  unifiedDocumentId: raw.unified_document.id,
+  unifiedDocumentId: raw?.unified_document?.id || null,
 }));
 
 export const transformPost = createTransformer<any, Work>((raw) => ({
   ...transformWork(raw),
-  contentType: 'post',
+  contentType:
+    raw.unified_document?.document_type === 'PREREGISTRATION' ? 'preregistration' : 'post',
   note: raw.note ? transformNoteWithContent(raw.note) : undefined,
   publishedDate: raw.created_date, // Posts use created_date for both
   previewContent: raw.full_markdown,
@@ -162,5 +195,5 @@ export const transformPost = createTransformer<any, Work>((raw) => ({
 
 export const transformPaper = createTransformer<any, Work>((raw) => ({
   ...transformWork(raw),
-  contentType: raw.work_type === 'preregistration' ? 'preregistration' : 'paper',
+  contentType: 'paper',
 }));

@@ -3,36 +3,31 @@ import { Topic } from '@/types/topic';
 import type { AuthorProfile } from '@/types/authorProfile';
 import { transformAuthorProfile } from '@/types/authorProfile';
 import { ContentMetrics } from '@/types/metrics';
+import { Fundraise, transformFundraise } from '@/types/funding';
+import { Bounty, transformBounty } from '@/types/bounty';
+import { countOpenBounties, countClosedBounties } from '@/components/Bounty/lib/bountyUtil';
 
 export interface WorkMetadata {
   id: number;
   score: number;
   topics: Topic[];
   metrics: ContentMetrics;
-  fundraising?: {
-    id: number;
-    amountRaised: {
-      usd: number;
-      rsc: number;
-    };
-    goalAmount: {
-      usd: number;
-      rsc: number;
-    };
-    status: 'OPEN' | 'COMPLETED' | 'CLOSED';
-    goalCurrency: string;
-    startDate: string;
-    endDate: string;
-    contributors: {
-      numContributors: number;
-      topContributors: AuthorProfile[];
-    };
-  };
+  fundraising?: Fundraise;
+  bounties: Bounty[];
+  openBounties: number;
+  closedBounties: number;
 }
 
 function transformWorkMetadata(response: any): WorkMetadata {
   // Handle both array and object document structures
   const document = Array.isArray(response.documents) ? response.documents[0] : response.documents;
+
+  // Transform bounties if they exist using the existing transformer
+  const bounties = document.bounties?.map((bounty: any) => transformBounty(bounty)) || [];
+
+  // Calculate open and closed bounty counts using utility functions
+  const openBounties = countOpenBounties(bounties);
+  const closedBounties = countClosedBounties(bounties);
 
   return {
     id: response.id,
@@ -47,25 +42,12 @@ function transformWorkMetadata(response: any): WorkMetadata {
       comments: document.discussion_aggregates.discussion_count,
       saves: 0, // Not provided in metadata response
       reviewScore: response.reviews.avg,
-      reviews: response.reviews.count,
+      reviews: response.reviews.count, // Properly mapping from the response
     },
-    fundraising: response.fundraise
-      ? {
-          id: response.fundraise.id,
-          amountRaised: response.fundraise.amount_raised,
-          goalAmount: response.fundraise.goal_amount,
-          status: response.fundraise.status,
-          goalCurrency: response.fundraise.goal_currency,
-          startDate: response.fundraise.start_date,
-          endDate: response.fundraise.end_date,
-          contributors: {
-            numContributors: response.fundraise.contributors.total,
-            topContributors: response.fundraise.contributors.top.map((contributor: any) =>
-              transformAuthorProfile(contributor.author_profile)
-            ),
-          },
-        }
-      : undefined,
+    fundraising: response.fundraise ? transformFundraise(response.fundraise) : undefined,
+    bounties: bounties,
+    openBounties,
+    closedBounties,
   };
 }
 

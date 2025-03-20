@@ -21,6 +21,9 @@ import { useVote } from '@/hooks/useReaction';
 import { useUserVotes } from '@/hooks/useReaction';
 import toast from 'react-hot-toast';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
+import { useOrganizationContext } from '@/contexts/OrganizationContext';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/Button';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -34,6 +37,8 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
   const [{ isLoading: isVoting }, vote] = useVote();
   const [voteCount, setVoteCount] = useState(work.metrics.votes);
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
+  const router = useRouter();
+  const { selectedOrg } = useOrganizationContext();
 
   const {
     data: userVotes,
@@ -58,6 +63,9 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
         documentId: work.id,
         voteType: wasUpvoted ? 'neutralvote' : 'upvote',
       });
+
+      setVoteCount((prevCount) => (wasUpvoted ? prevCount - 1 : prevCount + 1));
+
       await refreshVotes();
     } catch (error) {
       toast.error(
@@ -65,6 +73,14 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
       );
     }
   }, [work.contentType, work.id, isUpvoted, vote, refreshVotes]);
+
+  const handleEdit = useCallback(() => {
+    if (selectedOrg && work.note && work.contentType === 'preregistration') {
+      router.push(`/notebook/${work.note.organization.slug}/${work.note.id}`);
+    } else {
+      toast.error('Unable to edit');
+    }
+  }, [work.contentType, work.note, selectedOrg, router]);
 
   return (
     <div>
@@ -110,51 +126,47 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
             <MenuItems className="absolute left-0 mt-2 w-48 origin-top-left bg-white rounded-lg shadow-lg border border-gray-200 py-1 focus:outline-none">
               <MenuItem>
                 {({ focus }) => (
-                  <button
-                    className={`${
-                      focus ? 'bg-gray-50' : ''
-                    } flex items-center space-x-2 px-4 py-2 text-gray-700 w-full text-left`}
+                  <Button
+                    variant="ghost"
+                    className={`${focus ? 'bg-gray-50' : ''} w-full justify-start`}
                   >
-                    <Download className="h-4 w-4" />
+                    <Download className="h-4 w-4 mr-2" />
                     <span>Download PDF</span>
-                  </button>
+                  </Button>
                 )}
               </MenuItem>
               <MenuItem>
                 {({ focus }) => (
-                  <button
-                    className={`${
-                      focus ? 'bg-gray-50' : ''
-                    } flex items-center space-x-2 px-4 py-2 text-gray-700 w-full text-left`}
+                  <Button
+                    variant="ghost"
+                    className={`${focus ? 'bg-gray-50' : ''} w-full justify-start`}
                   >
-                    <Share2 className="h-4 w-4" />
+                    <Share2 className="h-4 w-4 mr-2" />
                     <span>Share</span>
-                  </button>
+                  </Button>
                 )}
               </MenuItem>
               <MenuItem>
-                {({ focus }) => (
-                  <button
-                    className={`${
-                      focus ? 'bg-gray-50' : ''
-                    } flex items-center space-x-2 px-4 py-2 text-gray-700 w-full text-left`}
-                  >
-                    <Edit className="h-4 w-4" />
-                    <span>Edit</span>
-                  </button>
-                )}
+                <Button
+                  variant="ghost"
+                  disabled={!selectedOrg || !work.note}
+                  onClick={handleEdit}
+                  className="w-full justify-start"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  <span>Edit</span>
+                </Button>
               </MenuItem>
               <MenuItem>
                 {({ focus }) => (
-                  <button
+                  <Button
+                    variant="ghost"
                     onClick={() => executeAuthenticatedAction(() => setIsFlagModalOpen(true))}
-                    className={`${
-                      focus ? 'bg-gray-50' : ''
-                    } flex items-center space-x-2 px-4 py-2 text-gray-700 w-full text-left`}
+                    className={`${focus ? 'bg-gray-50' : ''} w-full justify-start`}
                   >
-                    <Flag className="h-4 w-4" />
+                    <Flag className="h-4 w-4 mr-2" />
                     <span>Flag Content</span>
-                  </button>
+                  </Button>
                 )}
               </MenuItem>
             </MenuItems>

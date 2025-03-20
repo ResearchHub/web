@@ -1,66 +1,119 @@
 'use client';
 
-import { FC, useState } from 'react';
-import { FeedTabs } from './FeedTabs';
+import { FC, useRef, useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { FeedItem } from './FeedItem';
-import { FeedItemSkeleton } from './FeedItemSkeleton';
 import { Sparkles } from 'lucide-react';
 import { useFeed, FeedTab } from '@/hooks/useFeed';
+import { FeedContent } from './FeedContent';
+import { InterestSelector } from '@/components/InterestSelector/InterestSelector';
+import { FeedTabs } from './FeedTabs';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
-export const Feed: FC = () => {
-  const [activeTab, setActiveTab] = useState<FeedTab>('following');
+interface FeedProps {
+  defaultTab: FeedTab;
+}
+
+export const Feed: FC<FeedProps> = ({ defaultTab }) => {
+  const { status } = useSession();
+  const router = useRouter();
+  const isAuthenticated = status === 'authenticated';
   const [isCustomizing, setIsCustomizing] = useState(false);
-  const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(activeTab);
+  const [activeTab, setActiveTab] = useState<FeedTab>(defaultTab);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(defaultTab);
+
+  // Sync the activeTab with the defaultTab when the component mounts or defaultTab changes
+  useEffect(() => {
+    setActiveTab(defaultTab);
+    setIsNavigating(false);
+  }, [defaultTab]);
+
+  const handleCustomizeChange = () => {
+    setIsCustomizing(!isCustomizing);
+  };
+
+  const handleSaveComplete = () => {
+    setIsCustomizing(false);
+    refresh();
+  };
+
+  const handleTabChange = (tab: FeedTab) => {
+    // Immediately update the active tab for visual feedback
+    setActiveTab(tab);
+    // Set navigating state to true to show loading state
+    setIsNavigating(true);
+
+    // Navigate to the appropriate URL
+    if (tab === 'popular') {
+      router.push('/');
+    } else {
+      router.push(`/${tab}`);
+    }
+  };
+
+  // Combine the loading states
+  const combinedIsLoading = isLoading || isNavigating;
+
+  const tabs = [
+    {
+      id: 'popular',
+      label: 'Popular',
+    },
+    ...(isAuthenticated
+      ? [
+          {
+            id: 'following',
+            label: 'Following',
+          },
+        ]
+      : []),
+    {
+      id: 'latest',
+      label: 'Latest',
+    },
+  ];
+
+  const header = (
+    <h1 className="text-xl text-gray-600 flex items-center gap-2">
+      <Sparkles className="w-5 h-5 text-indigo-500" />
+      Discover the latest research, earning, and funding opportunities
+    </h1>
+  );
+
+  const feedTabs = (
+    <FeedTabs
+      activeTab={activeTab}
+      tabs={tabs}
+      isCustomizing={isCustomizing}
+      onTabChange={handleTabChange}
+      onCustomizeChange={handleCustomizeChange}
+      isLoading={combinedIsLoading}
+    />
+  );
 
   return (
     <PageLayout>
-      <div className="pt-4 pb-7">
-        <h2 className="text-xl text-gray-600 flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-indigo-500" />
-          Discover the latest research, earning, and funding opportunities
-        </h2>
-      </div>
-
-      <div className="max-w-4xl mx-auto">
-        <FeedTabs
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          onRefresh={refresh}
-          onCustomizeChange={setIsCustomizing}
-          isLoading={isLoading}
+      {!isCustomizing ? (
+        <FeedContent
+          entries={entries}
+          isLoading={combinedIsLoading}
+          hasMore={hasMore}
+          loadMore={loadMore}
+          header={header}
+          tabs={feedTabs}
         />
-
-        {!isCustomizing && (
-          <>
-            <div className="mt-8 space-y-6">
-              {isLoading ? (
-                <div className="space-y-6">
-                  {[...Array(3)].map((_, i) => (
-                    <FeedItemSkeleton key={i} />
-                  ))}
-                </div>
-              ) : (
-                entries.map((entry, index) => (
-                  <FeedItem key={entry.id} entry={entry} isFirst={index === 0} />
-                ))
-              )}
+      ) : (
+        <>
+          <div className="pt-4 pb-7">{header}</div>
+          <div className="max-w-4xl mx-auto">
+            {feedTabs}
+            <div className="mt-6">
+              <InterestSelector mode="preferences" onSaveComplete={handleSaveComplete} />
             </div>
-
-            {!isLoading && hasMore && (
-              <div className="mt-8 text-center">
-                <button
-                  onClick={loadMore}
-                  disabled={isLoading}
-                  className="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                >
-                  Load More
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      )}
     </PageLayout>
   );
 };

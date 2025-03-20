@@ -1,14 +1,19 @@
 'use client';
 
-import { File, MoreHorizontal, Copy, Trash2, Loader2 } from 'lucide-react';
+import { File, MoreHorizontal, Copy, Trash2, Loader2, Lock, Unlock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { useDeleteNote } from '@/hooks/useNote';
+import {
+  useDeleteNote,
+  useDuplicateNote,
+  useMakeNotePrivate,
+  useUpdateNotePermissions,
+} from '@/hooks/useNote';
 import type { Note } from '@/types/note';
 import toast from 'react-hot-toast';
-import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
 import React from 'react';
+import { useNotebookContext } from '@/contexts/NotebookContext';
 
 interface NoteListItemProps {
   note: Note;
@@ -20,17 +25,57 @@ interface NoteListItemProps {
  */
 export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) => {
   const router = useRouter();
+  const { refreshNotes, setNotes } = useNotebookContext();
   const [{ isLoading: isDeleting }, deleteNote] = useDeleteNote();
-  const { setNotes } = useOrganizationNotesContext();
+  const [{ isLoading: isDuplicating }, duplicateNote] = useDuplicateNote();
+  const [{ isLoading: isMakingPrivate }, makeNotePrivate] = useMakeNotePrivate();
+  const [{ isLoading: isUpdatingPermissions }, updateNotePermissions] = useUpdateNotePermissions();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+
+  const isPrivate = note.access === 'PRIVATE';
+  const isProcessing = isDeleting || isDuplicating || isMakingPrivate || isUpdatingPermissions;
 
   const handleClick = () => {
     router.replace(`/notebook/${note.organization.slug}/${note.id}`);
   };
 
-  const handleDuplicate = (e: React.MouseEvent) => {
+  const handleDuplicate = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('Duplicate clicked for note:', note.id);
+    try {
+      const newNote = await duplicateNote(note.id.toString(), note.organization.slug);
+      toast.success('Note duplicated successfully');
+      refreshNotes();
+      router.replace(`/notebook/${note.organization.slug}/${newNote.id}`);
+    } catch (error) {
+      console.error('Error duplicating note:', error);
+      toast.error('Failed to duplicate note. Please try again.');
+    }
+  };
+
+  const handleToggleAccess = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      if (isPrivate) {
+        // Make workspace
+        await updateNotePermissions({
+          noteId: note.id,
+          organizationId: note.organization.id,
+          accessType: 'ADMIN',
+        });
+        toast.success('Note moved to workspace');
+      } else {
+        // Make private
+        await makeNotePrivate(note.id);
+        toast.success('Note made private');
+      }
+
+      refreshNotes();
+    } catch (error) {
+      console.error('Error updating note access:', error);
+      toast.error(
+        `Failed to ${isPrivate ? 'move note to workspace' : 'make note private'}. Please try again.`
+      );
+    }
   };
 
   const handleDelete = async (e: React.MouseEvent) => {
@@ -42,9 +87,10 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) 
     }
     try {
       await deleteNote(note.id);
+      refreshNotes();
       setNotes((prevNotes) => prevNotes.filter((n) => n.id !== note.id));
       if (isSelected) {
-        router.push(`/notebook/${note.organization.slug}`);
+        router.replace(`/notebook/${note.organization.slug}`);
       }
     } catch (error) {
       toast.error('Failed to delete note. Please try again.');
@@ -57,23 +103,23 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) 
         bg-gray-50 hover:bg-gray-200 text-gray-500 hover:text-gray-700
         ${isMenuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
       onClick={(e) => e.stopPropagation()}
-      disabled={isDeleting}
+      disabled={isProcessing}
     >
       <MoreHorizontal className="h-4 w-4" />
     </button>
   );
 
   return (
-    <div className={`group relative ${isDeleting ? 'opacity-50' : ''}`}>
+    <div className={`group relative ${isProcessing ? 'opacity-50' : ''}`}>
       <Button
         variant="ghost"
         className={`w-full justify-start px-2.5 py-1.5 h-8 text-sm font-normal text-gray-700 group
           ${isSelected ? 'bg-gray-100 hover:bg-gray-100' : 'hover:bg-gray-50'}`}
         onClick={handleClick}
-        disabled={isDeleting}
+        disabled={isProcessing}
         title={note.title}
       >
-        {isDeleting ? (
+        {isProcessing ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin text-gray-400" />
         ) : (
           <File
@@ -87,13 +133,35 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) 
 
       <div className="absolute right-2 top-1/2 -translate-y-1/2">
         <BaseMenu trigger={menuTriggerButton} className="p-1" onOpenChange={setIsMenuOpen}>
-          <BaseMenuItem onClick={handleDuplicate} disabled={isDeleting}>
+          <BaseMenuItem onClick={handleDuplicate} disabled={isProcessing}>
             <div className="flex items-center gap-2">
-              <Copy className="h-4 w-4" />
-              <span>Duplicate</span>
+              {isDuplicating ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+              <span>{isDuplicating ? 'Duplicating...' : 'Duplicate'}</span>
             </div>
           </BaseMenuItem>
-          <BaseMenuItem onClick={handleDelete} disabled={isDeleting}>
+          <BaseMenuItem onClick={handleToggleAccess} disabled={isProcessing}>
+            <div className="flex items-center gap-2">
+              {isMakingPrivate || isUpdatingPermissions ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : isPrivate ? (
+                <Unlock className="h-4 w-4" />
+              ) : (
+                <Lock className="h-4 w-4" />
+              )}
+              <span>
+                {isMakingPrivate || isUpdatingPermissions
+                  ? 'Updating...'
+                  : isPrivate
+                    ? 'Move to Workspace'
+                    : 'Make Private'}
+              </span>
+            </div>
+          </BaseMenuItem>
+          <BaseMenuItem onClick={handleDelete} disabled={isProcessing}>
             <div className="flex items-center gap-2 text-red-600">
               {isDeleting ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

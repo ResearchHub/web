@@ -1,17 +1,31 @@
 'use client';
 
-import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import {
+  createContext,
+  useContext,
+  ReactNode,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from 'react';
 import { useSession } from 'next-auth/react';
-import { useParams } from 'next/navigation';
 import { OrganizationService } from '@/services/organization.service';
 import type { Organization } from '@/types/organization';
+import { useParams } from 'next/navigation';
+import {
+  saveSelectedOrganization,
+  getSelectedOrganization,
+  findOrganizationById,
+} from './utils/organizationStorage';
 
 interface OrganizationContextType {
   organizations: Organization[];
   selectedOrg: Organization | null;
-  defaultOrg: Organization | null;
+  setSelectedOrg: (org: Organization) => void;
   isLoading: boolean;
   error: Error | null;
+  refreshOrganizations: (silently?: boolean) => Promise<void>;
 }
 
 const OrganizationContext = createContext<OrganizationContextType | null>(null);
@@ -19,42 +33,93 @@ const OrganizationContext = createContext<OrganizationContextType | null>(null);
 export function OrganizationProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
   const params = useParams();
-  const currentOrgSlug = params?.orgSlug as string;
+  const targetOrgSlug = params?.orgSlug as string;
 
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
-  const [defaultOrg, setDefaultOrg] = useState<Organization | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchOrganizations = async () => {
-    try {
-      const orgs = await OrganizationService.getUserOrganizations(session);
-      setOrganizations(orgs);
+  const selectedOrgIdRef = useRef<number | null>(selectedOrg?.id || null);
 
-      const newDefaultOrg = orgs[0];
-      if (newDefaultOrg) {
-        setDefaultOrg(newDefaultOrg);
-      }
+  useEffect(() => {
+    selectedOrgIdRef.current = selectedOrg?.id || null;
+  }, [selectedOrg]);
 
-      // Find the organization that matches the current URL
-      const orgFromUrl = organizations.find((o) => o.slug === currentOrgSlug);
-
-      // If we found a matching org and it's different from the current selection
-      if (orgFromUrl && (!selectedOrg || orgFromUrl.slug !== selectedOrg.slug)) {
-        setSelectedOrg(orgFromUrl);
-      }
-      // If we can't find the org in the URL and we have a default, use that
-      else if (!orgFromUrl && newDefaultOrg && !selectedOrg) {
-        setSelectedOrg(newDefaultOrg);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to load organizations'));
-      setOrganizations([]);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleSetSelectedOrg = (org: Organization) => {
+    setSelectedOrg(org);
+    saveSelectedOrganization(org);
   };
+
+  const fetchOrganizations = useCallback(
+    async (silently = false) => {
+      if (!session) {
+        return;
+      }
+
+      if (!silently) {
+        setIsLoading(true);
+        setError(null);
+      }
+
+      try {
+        const orgs = await OrganizationService.getUserOrganizations(session);
+        setOrganizations(orgs);
+
+        // If we don't have a selected org yet but have orgs, select one based on priority
+        if (!selectedOrgIdRef.current && orgs.length > 0) {
+          let orgToSelect: Organization | undefined;
+
+          // Priority 1 (highest): Try to match org from URL
+          if (targetOrgSlug) {
+            orgToSelect = orgs.find((org) => org.slug === targetOrgSlug);
+          }
+
+          // Priority 2: Try to find org from localStorage
+          if (!orgToSelect) {
+            const storedOrg = getSelectedOrganization();
+            orgToSelect = findOrganizationById(orgs, storedOrg);
+          }
+
+          // Priority 3: Find an org where user is admin
+          if (!orgToSelect) {
+            orgToSelect = orgs.find((org) => org.userPermission?.accessType === 'ADMIN');
+          }
+
+          // Priority 4 (lowest): Default to first org
+          if (!orgToSelect) {
+            orgToSelect = orgs[0];
+          }
+
+          handleSetSelectedOrg(orgToSelect);
+        } else if (selectedOrgIdRef.current) {
+          // If we already have a selected org, make sure it's updated with latest data
+          const updatedSelectedOrg = orgs.find((org) => org.id === selectedOrgIdRef.current);
+          if (updatedSelectedOrg) {
+            handleSetSelectedOrg(updatedSelectedOrg);
+          }
+        }
+      } catch (err) {
+        if (!silently) {
+          setError(err instanceof Error ? err : new Error('Failed to load organizations'));
+        } else {
+          console.error('Failed to silently refresh organizations:', err);
+        }
+      } finally {
+        if (!silently) {
+          setIsLoading(false);
+        }
+      }
+    },
+    [session, targetOrgSlug]
+  );
+
+  const refreshOrganizations = useCallback(
+    async (silently = false) => {
+      await fetchOrganizations(silently);
+    },
+    [fetchOrganizations]
+  );
 
   useEffect(() => {
     if (status === 'loading') {
@@ -66,14 +131,15 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     }
 
     fetchOrganizations();
-  }, [session?.user?.id, status]);
+  }, [session, status, fetchOrganizations]);
 
   const value = {
     organizations,
     selectedOrg,
-    defaultOrg,
+    setSelectedOrg: handleSetSelectedOrg,
     isLoading,
     error,
+    refreshOrganizations,
   };
 
   return <OrganizationContext.Provider value={value}>{children}</OrganizationContext.Provider>;

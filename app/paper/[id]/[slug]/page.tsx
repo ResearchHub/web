@@ -8,7 +8,6 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkDocument } from '@/components/work/WorkDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
-import type { WorkMetadata } from '@/services/metadata.service';
 
 interface Props {
   params: Promise<{
@@ -41,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function WorkPage({ params }: Props) {
   const resolvedParams = await params;
   const work = await getWork(resolvedParams.id);
-  const metadata = await MetadataService.get(work.unifiedDocumentId.toString());
+  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
   if (!work) {
     notFound();

@@ -1,43 +1,32 @@
 'use client';
 
-import { useNote, useUpdateNote } from '@/hooks/useNote';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams, notFound } from 'next/navigation';
 import { BlockEditor } from '@/components/Editor/components/BlockEditor/BlockEditor';
 import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
-import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
 import { FundingTimelineModal } from '@/components/modals/FundingTimelineModal';
-import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
-import { useOrganizationNotesContext } from '@/contexts/OrganizationNotesContext';
+import { useNotebookContext } from '@/contexts/NotebookContext';
+import { useUpdateNote } from '@/hooks/useNote';
 
 export default function NotePage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const noteId = params?.noteId as string;
-  const orgSlug = params?.orgSlug as string;
   const isNewFunding = searchParams?.get('newFunding') === 'true';
   const [showFundingModal, setShowFundingModal] = useState(false);
 
-  const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
-  const { setNotes } = useOrganizationNotesContext();
-  const { setNoteId, setNote } = useNotebookPublish();
-  const [{ note, isLoading: isLoadingNote, error }, fetchNote] = useNote(noteId, {
-    sendImmediately: false,
-  });
+  const {
+    currentNote: note,
+    isLoadingNote,
+    noteError,
+    updateNoteTitle,
+    isLoading,
+  } = useNotebookContext();
 
   const [{ isLoading: isUpdating }, updateNote] = useUpdateNote(noteId, {
     onTitleUpdate: (newTitle) => {
-      setNotes((prevNotes) =>
-        prevNotes.map((note) =>
-          note.id.toString() === noteId
-            ? {
-                ...note,
-                title: newTitle,
-              }
-            : note
-        )
-      );
+      updateNoteTitle(newTitle);
     },
   });
 
@@ -48,35 +37,14 @@ export default function NotePage() {
     }
   }, [isNewFunding]);
 
-  useEffect(() => {
-    setNoteId(noteId);
-  }, [noteId, setNoteId]);
-
-  useEffect(() => {
-    if (!isLoadingOrg && selectedOrg) {
-      fetchNote();
-    }
-  }, [isLoadingOrg, selectedOrg, fetchNote]);
-
-  useEffect(() => {
-    if (note) {
-      setNote(note);
-    }
-  }, [note, setNote]);
-
   // Handle loading states
   if (isLoadingNote) {
     return <NotebookSkeleton />;
   }
 
-  // Handle organization mismatch or missing data
-  if (orgSlug !== selectedOrg?.slug || !noteId) {
-    return <NotebookSkeleton />;
-  }
-
-  // Let error boundary handle any errors
-  if (error) {
-    throw error;
+  // Handle errors by showing the 404 page
+  if (noteError) {
+    notFound();
   }
 
   // Handle missing note data
@@ -84,24 +52,21 @@ export default function NotePage() {
     return <NotebookSkeleton />;
   }
 
-  // If the note exists but has no content, use the preregistration template
-  let content = note.content;
-  let contentJson = note.contentJson;
-
-  if (!content && !contentJson) {
-    const defaultTemplate = JSON.stringify(preregistrationTemplate);
-    contentJson = defaultTemplate;
-  }
-
   return (
     <>
       <div className="h-full">
-        <BlockEditor
-          content={content || ''}
-          contentJson={contentJson}
-          isLoading={false}
-          onUpdate={updateNote}
-        />
+        <div className="min-h-screen bg-gray-50">
+          <div className={'p-4 max-w-4xl mx-auto'}>
+            <div className="bg-white rounded-lg shadow-md p-0 lg:p-8 lg:pl-16 min-h-[800px]">
+              <BlockEditor
+                content={note.content}
+                contentJson={note.contentJson}
+                isLoading={false}
+                onUpdate={updateNote}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <FundingTimelineModal isOpen={showFundingModal} onClose={() => setShowFundingModal(false)} />

@@ -221,6 +221,11 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
 
   const debouncedUpdate = useRef<DebouncedFunc<(editor: Editor) => Promise<void>>>(
     debounce(async (editor: Editor) => {
+      if (!editor || !noteId) {
+        console.error('Editor or noteId is undefined in debouncedUpdate', { editor, noteId });
+        return;
+      }
+
       const json = editor.getJSON();
       const html = editor.getHTML();
       const newTitle = getDocumentTitleFromEditor(editor) || '';
@@ -248,8 +253,8 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
         promises.push(
           NoteService.updateNoteContent({
             note: noteId,
-            full_src: html,
-            plain_text: editor.getText(),
+            full_src: html || '',
+            plain_text: editor.getText() || '',
             full_json: JSON.stringify(json),
           })
         );
@@ -268,12 +273,15 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
 
   const updateNote = useCallback(
     (editor: Editor) => {
+      if (!editor) {
+        console.error('Editor is undefined in updateNote');
+        return;
+      }
       debouncedUpdate.current(editor);
     },
     [noteId]
   );
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       debouncedUpdate.current.cancel();
@@ -281,4 +289,129 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
   }, []);
 
   return [{ isLoading, error }, updateNote];
+};
+
+interface UseMakeNotePrivateState {
+  isLoading: boolean;
+  error: Error | null;
+}
+
+type MakeNotePrivateFn = (noteId: ID) => Promise<Note>;
+type UseMakeNotePrivateReturn = [UseMakeNotePrivateState, MakeNotePrivateFn];
+
+export const useMakeNotePrivate = (): UseMakeNotePrivateReturn => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const makeNotePrivate = async (noteId: ID) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await NoteService.makePrivate(noteId);
+      return response;
+    } catch (err) {
+      const errorMsg = err instanceof NoteError ? err.message : 'Failed to make note private';
+      const error = new Error(errorMsg);
+      setError(error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return [{ isLoading, error }, makeNotePrivate];
+};
+
+interface UpdateNotePermissionsInput {
+  noteId: ID;
+  organizationId: ID;
+  accessType?: 'ADMIN';
+}
+
+interface UseUpdateNotePermissionsState {
+  isLoading: boolean;
+  error: Error | null;
+}
+
+type UpdateNotePermissionsFn = (params: UpdateNotePermissionsInput) => Promise<boolean>;
+type UseUpdateNotePermissionsReturn = [UseUpdateNotePermissionsState, UpdateNotePermissionsFn];
+
+export const useUpdateNotePermissions = (): UseUpdateNotePermissionsReturn => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const updatePermissions = async (params: UpdateNotePermissionsInput) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await NoteService.updateNotePermissions(
+        params.noteId,
+        params.organizationId,
+        params.accessType
+      );
+      return response;
+    } catch (err) {
+      const errorMsg = err instanceof NoteError ? err.message : 'Failed to update note permissions';
+      const error = new Error(errorMsg);
+      setError(error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return [{ isLoading, error }, updatePermissions];
+};
+
+interface UseDuplicateNoteState {
+  isLoading: boolean;
+  error: Error | null;
+}
+
+type DuplicateNoteFn = (noteId: string, organizationSlug: string) => Promise<Note>;
+type UseDuplicateNoteReturn = [UseDuplicateNoteState, DuplicateNoteFn];
+
+export const useDuplicateNote = (): UseDuplicateNoteReturn => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const duplicateNote = async (noteId: string, organizationSlug: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // 1. Get the original note with content
+      const originalNote = await NoteService.getNote(noteId);
+
+      // 2. Create a new note with the same title
+      const newNote = await NoteService.createNote({
+        title: `${originalNote.title} (Copy)`,
+        grouping: originalNote.access,
+        organization_slug: organizationSlug,
+      });
+
+      // 3. Copy the content to the new note
+      if (originalNote.content || originalNote.contentJson) {
+        await NoteService.updateNoteContent({
+          note: newNote.id,
+          full_src: originalNote.content,
+          plain_text: originalNote.plainText,
+          full_json: originalNote.contentJson,
+        });
+      }
+
+      return newNote;
+    } catch (err) {
+      const errorMsg = err instanceof NoteError ? err.message : 'Failed to duplicate note';
+      const error = new Error(errorMsg);
+      setError(error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return [{ isLoading, error }, duplicateNote];
 };

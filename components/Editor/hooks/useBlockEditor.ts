@@ -5,15 +5,20 @@ import Collaboration from '@tiptap/extension-collaboration';
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
 import { TiptapCollabProvider, WebSocketStatus } from '@hocuspocus/provider';
 import type { Doc as YDoc } from 'yjs';
-import { useSearchParams } from 'next/navigation';
+import { Document } from '@tiptap/extension-document';
+import { TextAlign } from '@tiptap/extension-text-align';
 
 import { ExtensionKit } from '@/components/Editor/extensions/extension-kit';
 import { userColors, userNames } from '../lib/constants';
 import { randomElement } from '../lib/utils';
 import type { EditorUser } from '../components/BlockEditor/types';
-import { getInitialContent } from '@/components/Editor/lib/data/initialContent';
 import { Ai } from '@/components/Editor/extensions/Ai';
 import { AiImage, AiWriter } from '@/components/Editor/extensions';
+
+// Create a simplified Document extension that accepts heading and block content
+const CustomDocument = Document.extend({
+  content: 'heading block+',
+});
 
 declare global {
   interface Window {
@@ -27,41 +32,48 @@ export const useBlockEditor = ({
   provider,
   userId,
   userName = 'Maxi',
+  editable = true,
+  content,
+  contentJson,
+  onUpdate,
+  customClass,
 }: {
   aiToken?: string;
-  ydoc: YDoc | null;
+  ydoc?: YDoc | null;
   provider?: TiptapCollabProvider | null | undefined;
   userId?: string;
   userName?: string;
+  editable?: boolean;
+  content?: string;
+  contentJson?: string;
+  onUpdate?: (editor: Editor) => void;
+  customClass?: string;
 }) => {
   const [collabState, setCollabState] = useState<WebSocketStatus>(
     provider ? WebSocketStatus.Connecting : WebSocketStatus.Disconnected
   );
-  const searchParams = useSearchParams();
-  const templateType = searchParams?.get('type') as 'research' | 'grant' | null;
 
   const editor = useEditor(
     {
-      immediatelyRender: true,
+      editable,
+      immediatelyRender: false,
       shouldRerenderOnTransaction: false,
       autofocus: true,
-      onCreate: (ctx) => {
-        if (provider && !provider.isSynced) {
-          provider.on('synced', () => {
-            setTimeout(() => {
-              if (ctx.editor.isEmpty) {
-                ctx.editor.commands.setContent(getInitialContent(templateType || 'research'));
-              }
-            }, 0);
-          });
-        } else if (ctx.editor.isEmpty) {
-          ctx.editor.commands.setContent(getInitialContent(templateType || 'research'));
-          ctx.editor.commands.focus('start', { scrollIntoView: true });
-        }
-      },
       extensions: [
         ...ExtensionKit({
           provider,
+          customDocument: editable ? CustomDocument : undefined,
+          placeholderConfig: {
+            includeChildren: true,
+            showOnlyCurrent: false,
+            showOnlyWhenEditable: true,
+            placeholder: ({ node }) => {
+              if (node.type.name === 'heading') {
+                return 'Enter a title...';
+              }
+              return '';
+            },
+          },
         }),
         provider && ydoc
           ? Collaboration.configure({
@@ -77,6 +89,9 @@ export const useBlockEditor = ({
               },
             })
           : undefined,
+        TextAlign.configure({
+          types: ['heading', 'paragraph'],
+        }),
         aiToken
           ? AiWriter.configure({
               authorId: userId,
@@ -96,12 +111,30 @@ export const useBlockEditor = ({
           autocomplete: 'off',
           autocorrect: 'off',
           autocapitalize: 'off',
-          class: 'min-h-full',
+          class:
+            customClass ||
+            'min-h-full prose prose-sm max-w-none prose-neutral dark:prose-invert prose-headings:font-display',
         },
       },
+      content: contentJson
+        ? JSON.parse(contentJson)
+        : content || {
+            type: 'doc',
+            content: [
+              {
+                type: 'heading',
+                attrs: { level: 1 },
+                content: [{ type: 'text', text: '' }],
+              },
+            ],
+          },
+      onUpdate: ({ editor }) => {
+        onUpdate?.(editor);
+      },
     },
-    [ydoc, provider, templateType]
+    [ydoc, provider, content, contentJson, editable, customClass]
   );
+
   const users = useEditorState({
     editor,
     selector: (ctx): (EditorUser & { initials: string })[] => {
@@ -126,7 +159,11 @@ export const useBlockEditor = ({
     });
   }, [provider]);
 
-  window.editor = editor;
+  useEffect(() => {
+    if (typeof window !== 'undefined' && editor) {
+      window.editor = editor;
+    }
+  }, [editor]);
 
   return { editor, users, collabState };
 };

@@ -1,83 +1,16 @@
-import { Editor, EditorContent, useEditor } from '@tiptap/react';
-import React, { useEffect } from 'react';
-import { StarterKit } from '@tiptap/starter-kit';
-import { Document } from '@tiptap/extension-document';
-import { Heading } from '@tiptap/extension-heading';
-import { Link } from '@tiptap/extension-link';
-import { TextAlign } from '@tiptap/extension-text-align';
+import { Editor, EditorContent } from '@tiptap/react';
+import React, { useEffect, useRef } from 'react';
 import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
 import '@/components/Editor/styles/index.css';
-import { useNotebookPublish } from '@/contexts/NotebookPublishContext';
-import { Placeholder } from '@tiptap/extension-placeholder';
-import { Decoration, DecorationSet } from '@tiptap/pm/view';
-import { Plugin } from '@tiptap/pm/state';
-import { Underline } from '@tiptap/extension-underline';
-
-// Modify the CustomDocument extension
-const CustomDocument = Document.extend({
-  content: 'heading block+',
-  parseHTML() {
-    return [
-      {
-        tag: 'div[class="editor-content"]',
-      },
-    ];
-  },
-});
-
-// Create a custom Heading extension that enforces h1 at the start
-const CustomHeading = Heading.extend({
-  addProseMirrorPlugins() {
-    const plugins = this.parent?.() || [];
-
-    return [
-      ...plugins,
-      new Plugin({
-        props: {
-          decorations: (state) => {
-            const { doc, selection } = state;
-            const decorations: Decoration[] = [];
-
-            doc.descendants((node, pos) => {
-              if (
-                node.type.name === 'heading' &&
-                node.attrs.level === 1 &&
-                node.content.size === 0
-              ) {
-                decorations.push(
-                  Decoration.node(pos, pos + node.nodeSize, {
-                    class: 'is-empty',
-                    'data-placeholder': 'Enter your title here...',
-                  })
-                );
-              }
-            });
-
-            return DecorationSet.create(doc, decorations);
-          },
-        },
-      }),
-    ];
-  },
-  addKeyboardShortcuts() {
-    return {
-      ...this.parent?.(),
-      // Prevent deleting the title if it's empty
-      Backspace: ({ editor }) => {
-        const { empty, $anchor } = editor.state.selection;
-        const isTitle = $anchor.node().type.name === 'heading' && $anchor.node().attrs.level === 1;
-
-        if (empty && isTitle && $anchor.pos === 1) {
-          return true;
-        }
-        return false;
-      },
-      'Mod-b': ({ editor }) => editor.commands.toggleBold(),
-      'Mod-i': ({ editor }) => editor.commands.toggleItalic(),
-      'Mod-u': ({ editor }) => editor.commands.toggleUnderline(),
-    };
-  },
-});
+import { useBlockEditor } from '../../hooks/useBlockEditor';
+import { ContentItemMenu } from '../menus/ContentItemMenu';
+import { LinkMenu } from '../menus/LinkMenu';
+import { TextMenu } from '../menus/TextMenu';
+import ColumnsMenu from '../../extensions/MultiColumn/menus/ColumnsMenu';
+import TableRowMenu from '../../extensions/Table/menus/TableRow';
+import ImageBlockMenu from '../../extensions/ImageBlock/components/ImageBlockMenu';
+import TableColumnMenu from '../../extensions/Table/menus/TableColumn';
+import { useNotebookContext } from '@/contexts/NotebookContext';
 
 export interface BlockEditorProps {
   content?: string;
@@ -94,58 +27,14 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   isLoading = false,
   editable = true,
 }) => {
-  const { setEditor } = useNotebookPublish();
+  const menuContainerRef = useRef(null);
+  const { setEditor } = useNotebookContext();
 
-  const editor = useEditor({
+  const { editor } = useBlockEditor({
+    content,
+    contentJson,
+    onUpdate,
     editable,
-    immediatelyRender: false,
-    extensions: [
-      CustomDocument,
-      StarterKit.configure({
-        document: false,
-        heading: false,
-      }),
-      CustomHeading.configure({
-        levels: [1, 2, 3],
-      }),
-      Link.configure({
-        openOnClick: false,
-      }),
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
-      Underline,
-      Placeholder.configure({
-        includeChildren: true,
-        placeholder: ({ node }) => {
-          if (node.type.name === 'heading' && node.attrs.level === 1) {
-            return 'Enter your title here...';
-          }
-          return '';
-        },
-      }),
-    ],
-    content: contentJson
-      ? JSON.parse(contentJson)
-      : {
-          type: 'doc',
-          content: [
-            {
-              type: 'heading',
-              attrs: { level: 1 },
-              content: [{ type: 'text', text: '' }],
-            },
-          ],
-        },
-    editorProps: {
-      attributes: {
-        class:
-          'min-h-full prose prose-sm max-w-none prose-neutral dark:prose-invert prose-headings:font-display',
-      },
-    },
-    onUpdate: ({ editor }) => {
-      onUpdate?.(editor);
-    },
   });
 
   useEffect(() => {
@@ -171,9 +60,20 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   }
 
   return (
-    <div className="h-full">
+    <div className="h-full" ref={menuContainerRef}>
       <div className="h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 pr-1">
         <EditorContent editor={editor} className="h-full" />
+        {editable && (
+          <>
+            <ContentItemMenu editor={editor} />
+            <LinkMenu editor={editor} appendTo={menuContainerRef} />
+            <TextMenu editor={editor} />
+            <ColumnsMenu editor={editor} appendTo={menuContainerRef} />
+            <TableRowMenu editor={editor} appendTo={menuContainerRef} />
+            <TableColumnMenu editor={editor} appendTo={menuContainerRef} />
+            <ImageBlockMenu editor={editor} appendTo={menuContainerRef} />
+          </>
+        )}
       </div>
     </div>
   );

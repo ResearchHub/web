@@ -1,14 +1,39 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from './Button';
 import { AvatarStack } from './AvatarStack';
 import { ContributorModal } from '../modals/ContributorModal';
 import type { AuthorProfile } from '@/types/authorProfile';
 
+// Define a more flexible profile type
+type FlexibleProfile = {
+  profileImage?: string;
+  fullName: string;
+  [key: string]: any; // Allow any additional properties
+};
+
+interface LabelBadgeProps {
+  count: number;
+  label: string;
+}
+
+// Extract the label badge as a separate component
+export function LabelBadge({ count, label }: LabelBadgeProps) {
+  // Use singular form if there's only one
+  const displayLabel = count === 1 ? label.replace(/s$/, '') : label;
+
+  return (
+    <div className="bg-gray-100 rounded-full px-3 -ml-[11px] ring-2 ring-white shadow-sm z-10">
+      <span className="text-xs text-gray-900 font-normal whitespace-nowrap">
+        {count} {displayLabel}
+      </span>
+    </div>
+  );
+}
+
 interface ContributorsButtonProps {
   contributors: Array<{
-    profile: AuthorProfile;
+    profile: FlexibleProfile;
     amount: number;
   }>;
   onContribute?: () => void;
@@ -30,20 +55,19 @@ export function ContributorsButton({
 
   return (
     <>
-      <Button
-        variant="default"
-        size="sm"
-        className="hover:bg-gray-300 bg-gray-100 px-2 h-8 rounded-full flex items-center justify-center border border-gray-200"
-        tooltip="View contributors"
+      <button
         onClick={() => setShowModal(true)}
+        className="flex items-center hover:opacity-80 transition-opacity"
       >
-        <div className="flex items-center">
-          <AvatarStack items={avatarItems} size="xxs" maxItems={2} spacing={-8} disableTooltip />
-          <span className="text-xs text-gray-600 ml-1.5">
-            {contributors.length} {label}
-          </span>
-        </div>
-      </Button>
+        <AvatarStack
+          items={avatarItems}
+          size="xs"
+          maxItems={3}
+          spacing={-9}
+          ringColorClass="ring-white"
+        />
+        <LabelBadge count={contributors.length} label={label} />
+      </button>
 
       <ContributorModal
         isOpen={showModal}

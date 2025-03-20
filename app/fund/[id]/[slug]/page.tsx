@@ -7,10 +7,7 @@ import { Work } from '@/types/work';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundingRightSidebar } from '@/components/work/FundingRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
-import type { WorkMetadata } from '@/services/metadata.service';
-import { FundItem } from '@/components/Fund/FundItem';
-import { WorkLineItems } from '@/components/work/WorkLineItems';
-import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
+import { FundDocument } from '@/components/work/FundDocument';
 
 interface Props {
   params: Promise<{
@@ -52,95 +49,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-interface FundingDocumentProps {
-  work: Work;
-  metadata: WorkMetadata;
-  content?: string;
-}
-
-function removeTitle(contentJson: string): string {
-  try {
-    const content = JSON.parse(contentJson);
-    const titleIndex = content.content.findIndex(
-      (node: any) => node.type === 'heading' && node.attrs?.level === 1
-    );
-
-    if (titleIndex !== -1) {
-      content.content.splice(titleIndex, 1);
-    }
-
-    return JSON.stringify(content);
-  } catch (error) {
-    console.error('Error processing content JSON:', error);
-    return contentJson;
-  }
-}
-
-function FundingDocument({ work, metadata, content }: FundingDocumentProps) {
-  console.log('metadata', metadata);
-
-  return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-4">{work.title}</h1>
-        <WorkLineItems work={work} showClaimButton={false} />
-      </div>
-
-      {metadata.fundraising && (
-        <FundItem
-          id={metadata.fundraising.id}
-          title={work.title}
-          status={metadata.fundraising.status}
-          amount={metadata.fundraising.amountRaised.rsc}
-          goalAmount={metadata.fundraising.goalAmount.rsc}
-          deadline={metadata.fundraising.endDate}
-          contributors={metadata.fundraising.contributors.topContributors.map((profile) => ({
-            profile,
-            amount: 0, // Individual contribution amounts not available in metadata
-          }))}
-          nftRewardsEnabled={work.figures.length > 0}
-          nftImageSrc={work.figures[0]?.url}
-        />
-      )}
-
-      {/* Debug section */}
-      <details className="mb-8">
-        <summary className="cursor-pointer text-gray-600">Debug Info</summary>
-        <div className="space-y-4">
-          <div>
-            <h3 className="font-semibold mb-2">Work Data:</h3>
-            <pre className="bg-gray-100 p-4 rounded-lg overflow-auto">
-              {JSON.stringify(work, null, 2)}
-            </pre>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2">Metadata:</h3>
-            <pre className="bg-gray-100 p-4 rounded-lg overflow-auto">
-              {JSON.stringify(metadata, null, 2)}
-            </pre>
-          </div>
-        </div>
-      </details>
-
-      {/* Content section */}
-      {work.note?.contentJson ? (
-        <div className="h-full">
-          <BlockEditorClientWrapper
-            contentJson={removeTitle(work.note.contentJson)}
-            editable={false}
-          />
-        </div>
-      ) : content ? (
-        <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: content }} />
-      ) : work.previewContent ? (
-        <div className="prose max-w-none whitespace-pre-wrap">{work.previewContent}</div>
-      ) : (
-        <p className="text-gray-500">No content available</p>
-      )}
-    </div>
-  );
-}
-
 export default async function FundingProjectPage({ params }: Props) {
   const resolvedParams = await params;
   const id = resolvedParams.id;
@@ -149,7 +57,7 @@ export default async function FundingProjectPage({ params }: Props) {
   const work = await getFundingProject(id);
 
   // Then fetch metadata using unifiedDocumentId
-  const metadata = await MetadataService.get(work.unifiedDocumentId.toString());
+  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
   // Only fetch content after we have the work object with contentUrl
   const content = await getWorkHTMLContent(work);
@@ -157,7 +65,7 @@ export default async function FundingProjectPage({ params }: Props) {
   return (
     <PageLayout rightSidebar={<FundingRightSidebar work={work} metadata={metadata} />}>
       <Suspense>
-        <FundingDocument work={work} metadata={metadata} content={content} />
+        <FundDocument work={work} metadata={metadata} content={content} defaultTab="paper" />
         <SearchHistoryTracker work={work} />
       </Suspense>
     </PageLayout>
