@@ -8,6 +8,7 @@ import { Comment, CommentType, ContentFormat, transformComment } from './comment
 import { Fundraise, transformFundraise } from './funding';
 import { Journal } from './journal';
 import { UserVoteType } from './reaction';
+import { User } from './user';
 
 export type FeedActionType = 'contribute' | 'open' | 'publish' | 'post';
 
@@ -458,7 +459,7 @@ export const transformCommentToFeedItem = (
     id: comment.id,
     contentType: 'COMMENT',
     createdDate: comment.createdDate,
-    createdBy: comment.author,
+    createdBy: transformAuthorProfile(comment.createdBy),
     comment: {
       id: comment.id,
       content: comment.content,
@@ -517,7 +518,7 @@ export const transformBountyCommentToFeedItem = (
     contentType: 'BOUNTY',
     createdDate: comment.createdDate,
     bounty: bounty,
-    createdBy: comment.author,
+    createdBy: transformAuthorProfile(comment.createdBy),
     relatedDocumentId: comment.thread?.objectId,
     relatedDocumentContentType: contentType,
     comment: {

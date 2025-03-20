@@ -1,39 +1,52 @@
 'use client';
 
 import { FC } from 'react';
-import { JournalSubmissionCard } from './JournalSubmissionCard';
 import { Loader } from '@/components/ui/Loader';
+import { JournalSubmissionCard } from './JournalSubmissionCard';
+
+// Import the JournalSubmission type
+interface JournalSubmission {
+  id: string;
+  title: string;
+  authors: string[];
+  abstract: string;
+  submissionDate: string;
+  status: 'in-review' | 'published';
+  reviewDueDate?: string;
+  publishDate?: string;
+  tags: string[];
+}
 
 // Mock data for journal submissions
-const mockSubmissions = [
+const mockSubmissions: JournalSubmission[] = [
   {
     id: '1',
-    title: 'The role of gut microbiota in neurodegenerative diseases',
-    authors: ['John Smith', 'Sarah Johnson', 'Michael Brown'],
+    title: 'Deep learning approaches in neurodegenerative disease diagnosis',
+    authors: ['John Smith', 'Jane Doe'],
     abstract:
-      "This study investigates the connection between gut microbiota composition and the progression of neurodegenerative diseases such as Alzheimer's and Parkinson's.",
-    submissionDate: '2023-08-12',
+      "A comprehensive review of machine learning algorithms applied to early detection of Alzheimer's disease using neuroimaging data.",
+    submissionDate: '2023-10-15',
     status: 'in-review',
-    reviewDueDate: '2023-08-26',
-    tags: ['Neuroscience', 'Microbiology'],
+    reviewDueDate: '2023-10-29',
+    tags: ['AI', 'Neurology', 'Medical Imaging'],
   },
   {
     id: '2',
-    title: 'Climate change impacts on global food security: A systematic review',
-    authors: ['Emily Chen', 'David Wilson', 'Anna Lopez'],
+    title: 'Novel approaches to CRISPR-Cas9 delivery for therapeutic gene editing',
+    authors: ['Alice Johnson', 'Robert Chen', 'Sarah Williams'],
     abstract:
-      'A comprehensive analysis of how climate change affects agricultural productivity and food security across different regions of the world.',
-    submissionDate: '2023-07-30',
+      'An investigation of nanoparticle-based delivery systems for CRISPR-Cas9 gene editing technology.',
+    submissionDate: '2023-09-30',
     status: 'published',
-    publishDate: '2023-09-15',
-    tags: ['Climate Science', 'Food Security', 'Agriculture'],
+    publishDate: '2023-10-15',
+    tags: ['CRISPR', 'Gene Therapy', 'Nanomedicine'],
   },
   {
     id: '3',
-    title: 'Novel CRISPR-based gene therapy for hereditary retinal disorders',
-    authors: ['James Taylor', 'Olivia Garcia', 'Robert Kim'],
+    title: 'The role of gut microbiome in neuropsychiatric disorders',
+    authors: ['Michael Brown', 'Emily Davis'],
     abstract:
-      'This research presents a new approach to treating inherited retinal diseases using CRISPR-Cas9 gene editing technology.',
+      'A systematic review examining the connection between gut microbiota and the development of depression, anxiety, and other neuropsychiatric conditions.',
     submissionDate: '2023-09-05',
     status: 'in-review',
     reviewDueDate: '2023-09-19',
