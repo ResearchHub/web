@@ -285,9 +285,12 @@ const TopicsToFollow: React.FC = () => {
 const MemoizedTopicsToFollow = memo(TopicsToFollow);
 
 // Main RightSidebar Component - memoized to prevent re-renders when parent components change
-export const RightSidebar = memo(() => (
+const SidebarComponent = () => (
   <div>
     <InfoBanner />
     <MemoizedTopicsToFollow />
   </div>
-));
+);
+
+export const RightSidebar = memo(SidebarComponent);
+RightSidebar.displayName = 'RightSidebar';
