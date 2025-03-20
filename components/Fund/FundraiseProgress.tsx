@@ -104,6 +104,8 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                 contributors={contributors}
                 onContribute={onContribute}
                 hideLabel={false}
+                label={`${fundraise.contributors.numContributors} Funders`}
+                size="sm"
               />
             </div>
           ) : (
@@ -179,6 +181,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                 contributors={contributors}
                 onContribute={onContribute}
                 label={`${fundraise.contributors.numContributors} Funders`}
+                size="md"
               />
             </div>
           )}

@@ -36,37 +36,6 @@ export const FundDocument = ({
       case 'paper':
         return (
           <div className="mt-6">
-            {metadata.fundraising && (
-              <div className="mb-6">
-                <FundraiseProgress
-                  fundraise={{
-                    id: metadata.fundraising.id,
-                    status: metadata.fundraising.status,
-                    amountRaised: {
-                      rsc: metadata.fundraising.amountRaised.rsc,
-                      usd: metadata.fundraising.amountRaised.usd,
-                    },
-                    goalAmount: {
-                      rsc: metadata.fundraising.goalAmount.rsc,
-                      usd: metadata.fundraising.goalAmount.usd,
-                    },
-                    endDate: metadata.fundraising.endDate,
-                    contributors: {
-                      numContributors: metadata.fundraising.contributors.topContributors.length,
-                      topContributors: metadata.fundraising.contributors.topContributors,
-                    },
-                    createdDate: metadata.fundraising.createdDate || '',
-                    updatedDate: metadata.fundraising.updatedDate || '',
-                    goalCurrency: metadata.fundraising.goalCurrency || 'RSC',
-                  }}
-                  onContribute={() => {
-                    // Handle contribute action
-                    console.log('Contribute to fundraise:', metadata.fundraising?.id);
-                  }}
-                />
-              </div>
-            )}
-
             {/* Content section */}
             {work.previewContent ? (
               <PostBlockEditor content={work.previewContent} />
@@ -135,6 +104,38 @@ export const FundDocument = ({
       )}
       <PageHeader title={work.title} className="text-3xl mt-2" />
       <WorkLineItems work={work} showClaimButton={false} />
+
+      {/* FundraiseProgress - now placed between line items and tabs */}
+      {metadata.fundraising && (
+        <div className="my-6">
+          <FundraiseProgress
+            fundraise={{
+              id: metadata.fundraising.id,
+              status: metadata.fundraising.status,
+              amountRaised: {
+                rsc: metadata.fundraising.amountRaised.rsc,
+                usd: metadata.fundraising.amountRaised.usd,
+              },
+              goalAmount: {
+                rsc: metadata.fundraising.goalAmount.rsc,
+                usd: metadata.fundraising.goalAmount.usd,
+              },
+              endDate: metadata.fundraising.endDate,
+              contributors: {
+                numContributors: metadata.fundraising.contributors.topContributors.length,
+                topContributors: metadata.fundraising.contributors.topContributors,
+              },
+              createdDate: metadata.fundraising.createdDate || '',
+              updatedDate: metadata.fundraising.updatedDate || '',
+              goalCurrency: metadata.fundraising.goalCurrency || 'RSC',
+            }}
+            onContribute={() => {
+              // Handle contribute action
+              console.log('Contribute to fundraise:', metadata.fundraising?.id);
+            }}
+          />
+        </div>
+      )}
 
       {/* Tabs */}
       <WorkTabs

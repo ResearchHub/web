@@ -1,0 +1,171 @@
+'use client';
+
+import { FC } from 'react';
+import { Avatar } from '@/components/ui/Avatar';
+import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
+import { Zap, CheckCircle } from 'lucide-react';
+
+export const JournalRightSidebar: FC = () => {
+  // Editorial board mock data
+  const editorialBoard = [
+    {
+      id: '1',
+      name: 'Dr. Maulik Dhandha',
+      role: 'Editor in Chief',
+      avatar: '/avatars/editor1.jpg',
+    },
+    {
+      id: '2',
+      name: 'Dr. Emilio Merheb',
+      role: 'Associate Editor',
+      avatar: '/avatars/editor2.jpg',
+    },
+    {
+      id: '3',
+      name: 'Dr. Attila Karsi',
+      role: 'Associate Editor',
+      avatar: '/avatars/editor3.jpg',
+    },
+    {
+      id: '4',
+      name: 'Open Position',
+      role: 'Associate Editor',
+      avatar: '/avatars/placeholder.jpg',
+    },
+  ];
+
+  // FAQ items
+  const faqItems = [
+    {
+      question: 'Who can submit to ResearchHub Journal?',
+      answer:
+        'Any researcher can submit their work to ResearchHub Journal. We welcome submissions from researchers at all career stages and from all institutions.',
+    },
+    {
+      question: 'How long does the review process take?',
+      answer:
+        'Our peer review process is designed to be efficient. Peer reviews are typically completed within 14 days, and a publication decision is made within 21 days of submission.',
+    },
+    {
+      question: 'Do you compensate peer reviewers?',
+      answer:
+        'Yes, we value the expertise and time of our peer reviewers. Reviewers receive $150 per review.',
+    },
+    {
+      question: 'Is there a publication fee?',
+      answer:
+        'No, there are no fees to publish in ResearchHub Journal. We believe in making scientific publishing accessible to all researchers.',
+    },
+    {
+      question: 'How do I become a reviewer?',
+      answer:
+        "If you're interested in becoming a reviewer, please contact us at review@researchhub.com with your CV and areas of expertise.",
+    },
+  ];
+
+  // Journal metrics
+  const journalMetrics = [
+    {
+      label: 'Review Completion',
+      value: '14 days',
+      icon: <Zap className="w-4 h-4 text-indigo-500" />,
+    },
+    {
+      label: 'Publication Decision',
+      value: '21 days',
+      icon: <CheckCircle className="w-4 h-4 text-green-500" />,
+    },
+    {
+      label: 'Acceptance Rate',
+      value: '68%',
+      icon: <CheckCircle className="w-4 h-4 text-green-500" />,
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Editorial Board Section */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Editorial Board</h3>
+        <div className="space-y-4">
+          {editorialBoard.map((editor) => (
+            <div key={editor.id} className="flex items-center space-x-3">
+              <Avatar src={editor.avatar} size="md" alt={editor.name} />
+              <div>
+                <div className="font-medium text-gray-900">{editor.name}</div>
+                <div className="text-sm text-gray-500">{editor.role}</div>
+              </div>
+            </div>
+          ))}
+          <div className="text-sm text-indigo-600 hover:text-indigo-800 cursor-pointer mt-2">
+            Interested in joining as an Editor?
+          </div>
+        </div>
+      </div>
+
+      {/* Journal Metrics */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Journal Metrics</h3>
+        <div className="space-y-3">
+          {journalMetrics.map((metric, index) => (
+            <div key={index} className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                {metric.icon}
+                <span className="text-sm text-gray-600">{metric.label}</span>
+              </div>
+              <span className="font-medium text-gray-900">{metric.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Journal Scope */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Scope of the Journal</h3>
+        <div className="text-sm text-gray-600 space-y-2">
+          <p>
+            ResearchHub Journal publishes original research in all fields of science, including but
+            not limited to:
+          </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Life Sciences & Biomedicine</li>
+            <li>Physical Sciences</li>
+            <li>Computer Science & Engineering</li>
+            <li>Social Sciences</li>
+            <li>Humanities & Arts</li>
+          </ul>
+          <p className="mt-3">We prioritize research that demonstrates:</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Methodological rigor</li>
+            <li>Reproducibility</li>
+            <li>Transparency</li>
+            <li>Novel insights or approaches</li>
+          </ul>
+          <p className="mt-3">We do not accept work that lacks:</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Proper methodology</li>
+            <li>Ethical clearance (where applicable)</li>
+            <li>Open data (when possible)</li>
+            <li>Clear reporting of results</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* FAQ Section */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Frequently Asked Questions</h3>
+        <div className="space-y-2">
+          {faqItems.map((item, index) => (
+            <CollapsibleSection
+              key={index}
+              title={item.question}
+              className="text-sm font-medium text-gray-700"
+            >
+              <div className="text-sm text-gray-600 pt-2">{item.answer}</div>
+            </CollapsibleSection>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};

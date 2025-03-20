@@ -52,10 +52,9 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
     },
     {
       label: 'RH Journal',
-      href: '/rhjournal',
+      href: '/journal',
       icon: BookOpen,
       description: 'Read and publish research papers',
-      isUnimplemented: true,
     },
     {
       label: 'Lab Notebook',

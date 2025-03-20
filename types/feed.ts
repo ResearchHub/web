@@ -350,6 +350,10 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         // Extract the necessary data from content_object
         const isPreregistration = content_object.type === 'PREREGISTRATION';
 
+        if (isPreregistration) {
+          contentType = 'PREREGISTRATION';
+        }
+
         // Create a FeedPostEntry object
         const postEntry: FeedPostContent = {
           id: content_object.id,
