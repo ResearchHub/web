@@ -56,7 +56,9 @@ export default function ResearchCoinPage() {
                 balance={balance ? formatBalance(balance, exchangeRate) : null}
                 isFetchingExchangeRate={isFetchingExchangeRate}
               />
-              <FundCard assetSymbol="ETH" country="US" currency="USD" />; ;
+              <div className="pb-6">
+                <FundCard assetSymbol="USDC" country="US" currency="USD" />
+              </div>
               <TransactionFeed
                 onExport={handleExport}
                 exchangeRate={exchangeRate}
