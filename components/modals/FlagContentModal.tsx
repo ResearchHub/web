@@ -5,9 +5,9 @@ import { Fragment, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { getFlagOptions } from '@/constants/flags';
 import { FlagReasonKey } from '@/types/work';
-import { RadioGroup } from '@/components/ui/form/RadioGroup';
+import { FlagRadioGroup } from '@/components/ui/form/FlagRadioGroup';
 import { toast } from 'react-hot-toast';
-import { useFlag } from '@/hooks/useReaction';
+import { useFlag } from '@/hooks/useFlagging';
 import { ContentType } from '@/types/work';
 
 interface FlagContentModalProps {
@@ -15,11 +15,18 @@ interface FlagContentModalProps {
   onClose: () => void;
   documentId: string;
   workType: ContentType;
+  commentId?: string;
 }
 
 const flagOptions = getFlagOptions();
 
-export function FlagContentModal({ isOpen, onClose, documentId, workType }: FlagContentModalProps) {
+export function FlagContentModal({
+  isOpen,
+  onClose,
+  documentId,
+  workType,
+  commentId,
+}: FlagContentModalProps) {
   const [selectedReason, setSelectedReason] = useState<FlagReasonKey | null>(null);
   const [{ isLoading }, flag] = useFlag();
 
@@ -31,11 +38,12 @@ export function FlagContentModal({ isOpen, onClose, documentId, workType }: Flag
         documentType: workType === 'paper' ? 'paper' : 'researchhubpost',
         documentId,
         reason: selectedReason,
+        commentId: commentId ? Number(commentId) : undefined,
       });
-      toast.success('Content flagged successfully');
+      toast.success('Content reported successfully');
       onClose();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to flag content');
+      toast.error('Failed to report content');
     }
   };
 
@@ -67,30 +75,31 @@ export function FlagContentModal({ isOpen, onClose, documentId, workType }: Flag
             >
               <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
                 <div className="p-6">
-                  <DialogTitle as="h3" className="text-lg font-semibold text-gray-900 mb-4">
-                    Flag content
+                  <DialogTitle as="h3" className="text-base font-semibold text-gray-900 mb-3">
+                    Reporting content
                   </DialogTitle>
-                  <p className="text-sm text-gray-600 mb-4">
-                    I am flagging this content because of:
+                  <p className="text-xs text-gray-600 mb-3">
+                    I am reporting this content because of:
                   </p>
 
-                  <RadioGroup
+                  <FlagRadioGroup
                     options={flagOptions}
                     value={selectedReason || ''}
                     onChange={(value) => setSelectedReason(value as FlagReasonKey)}
-                    className="space-y-2"
+                    className="space-y-1.5"
                   />
 
-                  <div className="mt-6 flex justify-end gap-3">
-                    <Button variant="ghost" onClick={onClose}>
+                  <div className="mt-5 flex justify-end gap-3">
+                    <Button variant="ghost" size="sm" onClick={onClose}>
                       Cancel
                     </Button>
                     <Button
                       variant="default"
+                      size="sm"
                       onClick={handleSubmit}
                       disabled={!selectedReason || isLoading}
                     >
-                      {isLoading ? 'Flagging...' : 'Flag'}
+                      {isLoading ? 'Reporting...' : 'Report'}
                     </Button>
                   </div>
                 </div>

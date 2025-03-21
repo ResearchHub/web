@@ -42,7 +42,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
           <div className="flex py-8">
             {/* Main Content */}
             <main className="flex-1 px-4 lg:px-8">
-              <div className="mx-auto max-w-4xl">{children}</div>
+              <div className="mx-auto max-w-3xl">{children}</div>
             </main>
 
             {/* Right Sidebar */}

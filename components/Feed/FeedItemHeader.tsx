@@ -1,195 +1,152 @@
 'use client';
 
-import { FC, ReactNode } from 'react';
-import { Content, FeedActionType } from '@/types/feed';
-import { AvatarStack } from '@/components/ui/AvatarStack';
-import { AuthorList } from '@/components/ui/AuthorList';
-import { formatTimestamp } from '@/utils/date';
-import { formatRSC } from '@/utils/number';
-import { AuthorProfile } from '@/types/authorProfile';
+import { FC } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
-import { Star } from 'lucide-react';
+import { AvatarStack } from '@/components/ui/AvatarStack';
+import { AuthorProfile } from '@/types/authorProfile';
 import { cn } from '@/utils/styles';
-import { CommentType } from '@/types/comment';
-import { StatusBadge } from '@/components/ui/StatusBadge';
-import { RSCBadge } from '@/components/ui/RSCBadge';
 
-// Simple read-only stars component for displaying review score
-const ReadOnlyStars = ({ rating }: { rating: number }) => {
-  return (
-    <div className="flex space-x-0.5">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Star
-          key={star}
-          className={`h-4 w-4 ${
-            star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
-          }`}
-        />
-      ))}
-    </div>
-  );
-};
-
-type ContentType = 'bounty' | 'paper' | 'post' | 'comment' | 'review' | 'answer' | string;
-
-interface Author {
-  id?: string | number;
-  fullName: string;
-  profileImage?: string | null;
+interface Contributor {
+  profileImage?: string;
+  fullName?: string;
   profileUrl?: string;
-  isVerified?: boolean;
 }
 
 interface FeedItemHeaderProps {
-  // Core props
-  contentType: ContentType;
   timestamp: string | Date;
   className?: string;
   size?: 'xs' | 'sm' | 'md';
-
-  // Author/contributor props
-  author?: Author;
-  authors?: Author[];
-
-  // Action props
-  action?: FeedActionType | string;
+  author?: AuthorProfile;
   actionText?: string;
-
-  // Content-specific props
-  score?: number;
-  bountyAmount?: number;
-  bountyStatus?: 'open' | 'closed' | 'expiring';
-
-  // Additional elements
-  rightElement?: ReactNode;
+  contributors?: Contributor[];
+  contributorsLabel?: string;
+  isBounty?: boolean;
+  totalContributorsCount?: number;
 }
 
 export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
-  contentType,
   timestamp,
   className,
   size = 'sm',
-
   author,
-  authors = [],
-
-  action,
   actionText,
-
-  score,
-  bountyAmount,
-  bountyStatus,
-
-  rightElement,
+  contributors = [],
+  contributorsLabel = 'Contributors',
+  isBounty = false,
+  totalContributorsCount,
 }) => {
-  // Combine single author with authors array if provided
-  const allAuthors = author ? [author, ...authors] : authors;
-
   // Format date consistently
   const formattedDate = timestamp instanceof Date ? timestamp : new Date(timestamp);
 
-  // Determine if we should show multiple authors or just one
-  const showMultipleAuthors = allAuthors.length > 1;
+  // Determine avatar size based on the size prop
+  const avatarSize = size === 'xs' ? 'xs' : size === 'md' ? 'md' : 'sm';
+  const avatarStackSize = avatarSize === 'xs' ? 'xxs' : avatarSize === 'md' ? 'md' : 'sm';
 
-  // Get default action text based on content type if not provided
-  const getDefaultActionText = (): string => {
-    if (actionText) return actionText;
+  // For bounty header format
+  if (isBounty && author) {
+    // Create combined list of avatars starting with author
+    const allParticipants = [
+      {
+        profileImage: author.profileImage || '',
+        fullName: author.fullName || 'Author',
+        profileUrl: author.profileUrl,
+      },
+      ...contributors,
+    ];
 
-    if (action) {
-      switch (contentType) {
-        case 'bounty':
-          return `${action}ed a bounty${bountyAmount ? ` for ${formatRSC({ amount: bountyAmount, shorten: true })} RSC` : ''}`;
-        case 'paper':
-        case 'post':
-          return `${action}ed a ${contentType.replace('_', ' ')}`;
-        case 'comment':
-          return `${action}ed`;
-        case 'review':
-          return `peer reviewed`;
-        case 'answer':
-          return `answered`;
-        default:
-          return `${action}ed`;
-      }
-    }
+    // Calculate the total number of people involved
+    const totalPeople =
+      totalContributorsCount !== undefined
+        ? totalContributorsCount + 1 // +1 for the author
+        : allParticipants.length;
 
-    // Fallbacks if no action provided
-    switch (contentType) {
-      case 'bounty':
-        return 'opened bounty';
-      case 'review':
-        return 'peer reviewed';
-      case 'answer':
-        return 'answered';
-      default:
-        return 'commented';
-    }
-  };
+    // Number of visible avatars in the stack
+    const MAX_VISIBLE_AVATARS = 3;
 
-  // Get avatar items for AvatarStack
-  const getAvatarItems = () => {
-    return allAuthors
-      .map((author) => ({
-        src: author.profileImage ?? '',
-        alt: author.fullName ?? '',
-        tooltip: author.fullName,
-      }))
-      .filter((item) => !!item.src); // Filter out items with empty src
-  };
-
-  // Get authors for AuthorList
-  const getAuthorsForList = () => {
-    return allAuthors.map((author) => ({
-      name: author.fullName ?? '',
-      verified: author.isVerified ?? false,
-      profileUrl: author.profileUrl ?? '',
+    // Convert participants to AvatarStack format
+    const allAvatarItems = allParticipants.map((person) => ({
+      src: person.profileImage || '',
+      alt: person.fullName || 'Participant',
+      tooltip: person.fullName,
     }));
-  };
 
-  // Determine if we should show the review stars
-  const shouldShowReviewStars = contentType === 'review' && typeof score === 'number' && score > 0;
+    // Take the first N avatars for the stack (including author)
+    const visibleAvatarItems = allAvatarItems.slice(0, MAX_VISIBLE_AVATARS);
 
-  // Determine if we should show bounty metadata
-  const shouldShowBountyMetadata = contentType === 'bounty' && (bountyAmount || bountyStatus);
+    // Create the title text
+    const contributorsText =
+      totalPeople > 1 ? (
+        <span>
+          <span className="text-gray-900 font-semibold">
+            {author.fullName} and {totalPeople - 1} {totalPeople === 2 ? 'other' : 'others'}
+            {` `}
+          </span>
+          <span className="text-gray-600">{actionText}</span>
+        </span>
+      ) : (
+        <span>
+          <span className="text-gray-900 font-semibold">
+            {author.fullName}
+            {` `}
+          </span>
+          <span className="text-gray-600">{actionText}</span>
+        </span>
+      );
 
+    return (
+      <div className={cn('flex items-center justify-between w-full', className)}>
+        <div className="flex items-center gap-3">
+          {/* Show avatars with +N indicator for extras */}
+          <AvatarStack
+            items={visibleAvatarItems}
+            allItems={allAvatarItems}
+            size={avatarStackSize}
+            maxItems={MAX_VISIBLE_AVATARS}
+            spacing={-8}
+            ringColorClass="ring-white"
+            disableTooltip={false}
+            showExtraCount={true}
+            totalItemsCount={totalPeople}
+            extraCountLabel="Other Contributors"
+          />
+
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1.5 text-[15px]">
+              <span className="text-gray-900">{contributorsText}</span>
+              <span className="text-gray-400">•</span>
+              <span className="text-gray-500">
+                {formattedDate.toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Standard header format (non-bounty)
   return (
     <div className={cn('flex items-center justify-between w-full', className)}>
       <div className="flex items-center gap-3">
-        {showMultipleAuthors ? (
-          <AvatarStack
-            items={getAvatarItems()}
-            size={size}
-            maxItems={contentType === 'paper' ? 3 : allAuthors.length > 3 ? 3 : allAuthors.length}
-            spacing={-12}
-          />
-        ) : allAuthors.length === 1 ? (
-          <Avatar
-            src={allAuthors[0].profileImage ?? ''}
-            alt={allAuthors[0].fullName}
-            size={size === 'xs' ? 'xs' : size === 'md' ? 'md' : 'sm'}
-          />
-        ) : (
-          // Fallback avatar if no authors
-          <Avatar src="" alt="Unknown" size={size === 'xs' ? 'xs' : size === 'md' ? 'md' : 'sm'} />
-        )}
+        <Avatar
+          src={author?.profileImage ?? ''}
+          alt={author?.fullName ?? 'Unknown'}
+          size={avatarSize}
+        />
 
         <div className="flex flex-col">
           <div className="flex items-center gap-1.5 text-[15px]">
-            {showMultipleAuthors ? (
-              <AuthorList
-                authors={getAuthorsForList()}
-                size={size === 'xs' ? 'xs' : 'sm'}
-                className="font-semibold"
-                delimiter={<span className="text-gray-400">•</span>}
-                delimiterClassName="text-gray-900"
-              />
-            ) : allAuthors.length === 1 ? (
-              <a href={allAuthors[0].profileUrl} className="font-semibold hover:text-indigo-600">
-                {allAuthors[0].fullName}
+            {author ? (
+              <a href={author.profileUrl} className="font-semibold hover:text-indigo-600">
+                {author.fullName}
               </a>
             ) : null}
 
-            <span className="text-gray-600">{getDefaultActionText()}</span>
+            <span className="text-gray-600">{actionText}</span>
             <span className="text-gray-400">•</span>
             <span className="text-gray-500">
               {formattedDate.toLocaleDateString('en-US', {
@@ -200,32 +157,6 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
             </span>
           </div>
         </div>
-      </div>
-
-      <div className="flex items-center gap-2">
-        {/* Show review stars if applicable */}
-        {shouldShowReviewStars && <ReadOnlyStars rating={score!} />}
-
-        {/* Show bounty metadata if applicable */}
-        {shouldShowBountyMetadata && (
-          <div className="flex items-center gap-2">
-            {bountyStatus && (
-              <StatusBadge status={bountyStatus} className="shadow-sm rounded-full" size="xs" />
-            )}
-            {bountyAmount && (
-              <RSCBadge
-                amount={bountyAmount}
-                inverted={true}
-                variant="badge"
-                className="shadow-sm rounded-full h-[26px] flex items-center"
-                size="xs"
-              />
-            )}
-          </div>
-        )}
-
-        {/* Custom right element if provided */}
-        {rightElement}
       </div>
     </div>
   );

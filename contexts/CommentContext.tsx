@@ -1,14 +1,8 @@
 'use client';
 
 import { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
-import {
-  Comment,
-  CommentFilter,
-  CommentSort,
-  CommentType,
-  UserVoteType,
-  QuillContent,
-} from '@/types/comment';
+import { Comment, CommentFilter, CommentSort, CommentType, QuillContent } from '@/types/comment';
+import { UserVoteType } from '@/types/reaction';
 import { ContentType } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
 import {
@@ -29,15 +23,12 @@ import {
   commentReducer,
   initialCommentState,
 } from './CommentReducer';
+import { toast } from 'react-hot-toast';
 
 export type BountyFilterType = 'ALL' | 'OPEN' | 'CLOSED';
 
 // Define event types that were previously in commentEvents
-export type CommentEventType =
-  | 'comment_created'
-  | 'comment_updated'
-  | 'comment_deleted'
-  | 'comment_voted';
+export type CommentEventType = 'comment_created' | 'comment_updated' | 'comment_deleted';
 
 interface CommentContextType {
   // State
@@ -72,7 +63,7 @@ interface CommentContextType {
     parentId?: number
   ) => Promise<Comment | null>;
   deleteComment: (commentId: number) => Promise<boolean>;
-  voteComment: (comment: Comment, voteType: UserVoteType) => Promise<void>;
+  updateCommentVote: (commentId: number, userVote: UserVoteType, score: number) => void;
   setEditingCommentId: (commentId: number | null) => void;
   setReplyingToCommentId: (commentId: number | null) => void;
 
@@ -163,7 +154,8 @@ export const CommentProvider = ({
   const fetchComments = useCallback(
     async (pageToFetch = 1) => {
       try {
-        dispatch({ type: CommentActionType.FETCH_COMMENTS_START });
+        // We don't need to dispatch FETCH_COMMENTS_START here anymore
+        // as it's already handled by the calling functions (refresh or loadMore)
 
         // Determine the filter to use based on commentType and user selection
         let filterToUse = state.filter;
@@ -209,6 +201,8 @@ export const CommentProvider = ({
   // Refresh comments (fetch page 1)
   const refresh = useCallback(() => {
     dispatch({ type: CommentActionType.REFRESH });
+    // Set loading to true for initial fetch
+    dispatch({ type: CommentActionType.FETCH_COMMENTS_START });
     return fetchComments(1);
   }, [fetchComments]);
 
@@ -216,7 +210,19 @@ export const CommentProvider = ({
   const loadMore = useCallback(() => {
     const nextPage = state.page + 1;
     dispatch({ type: CommentActionType.LOAD_MORE, payload: { page: nextPage } });
-    return fetchComments(nextPage);
+
+    // Use the new action type that doesn't set loading to true
+    try {
+      dispatch({ type: CommentActionType.FETCH_MORE_COMMENTS_START });
+      return fetchComments(nextPage);
+    } catch (err) {
+      dispatch({
+        type: CommentActionType.FETCH_COMMENTS_FAILURE,
+        payload: { error: 'Failed to load more comments' },
+      });
+      console.error('Error loading more comments:', err);
+      return Promise.reject(err);
+    }
   }, [state.page, fetchComments]);
 
   // Initial fetch effect - fetch comments when the component mounts
@@ -224,6 +230,8 @@ export const CommentProvider = ({
     console.log(
       `CommentContext - Initial fetch for documentId=${documentId}, commentType=${commentType}`
     );
+    // Set loading to true for initial fetch
+    dispatch({ type: CommentActionType.FETCH_COMMENTS_START });
     refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [documentId, contentType, commentType]);
@@ -232,6 +240,8 @@ export const CommentProvider = ({
   useEffect(() => {
     // Skip the initial render
     if (state.comments.length > 0) {
+      // Set loading to true for filter/sort changes
+      dispatch({ type: CommentActionType.FETCH_COMMENTS_START });
       refresh();
     }
   }, [state.sortBy, state.filter, refresh]);
@@ -244,6 +254,8 @@ export const CommentProvider = ({
 
     try {
       dispatch({ type: CommentActionType.FORCE_REFRESH });
+      // Set loading to true for force refresh
+      dispatch({ type: CommentActionType.FETCH_COMMENTS_START });
       const { comments: fetchedComments, count: totalCount } = await CommentService.fetchComments({
         documentId,
         contentType,
@@ -377,19 +389,6 @@ export const CommentProvider = ({
     [documentId, contentType, state.count]
   );
 
-  const handleCommentVoted = useCallback(
-    (data: { comment: Comment; contentType: ContentType; documentId: number }) => {
-      // Check if this event is relevant to the current feed
-      if (data.documentId === documentId && data.contentType === contentType) {
-        dispatch({
-          type: CommentActionType.VOTE_COMMENT_SUCCESS,
-          payload: { comment: data.comment },
-        });
-      }
-    },
-    [documentId, contentType]
-  );
-
   // Function to emit comment events
   const emitCommentEvent = useCallback(
     (
@@ -409,14 +408,11 @@ export const CommentProvider = ({
         case 'comment_deleted':
           handleCommentDeleted(data);
           break;
-        case 'comment_voted':
-          handleCommentVoted(data);
-          break;
         default:
           console.warn(`[emitCommentEvent] Unknown event type: ${eventType}`);
       }
     },
-    [handleCommentCreated, handleCommentUpdated, handleCommentDeleted, handleCommentVoted]
+    [handleCommentCreated, handleCommentUpdated, handleCommentDeleted]
   );
 
   // Create a new comment
@@ -743,59 +739,6 @@ export const CommentProvider = ({
     [documentId, contentType, state.comments, emitCommentEvent]
   );
 
-  // Vote on a comment
-  const voteComment = useCallback(
-    async (comment: Comment, voteType: UserVoteType): Promise<void> => {
-      dispatch({ type: CommentActionType.VOTE_COMMENT_START });
-      dispatch({ type: CommentActionType.SET_ERROR, payload: null });
-
-      try {
-        // Calculate score change based on previous and new vote states
-        let scoreChange = 0;
-
-        if (voteType === 'UPVOTE' && comment.userVote !== 'UPVOTE') {
-          // Adding an upvote
-          scoreChange = 1;
-        } else if (voteType === 'NEUTRAL' && comment.userVote === 'UPVOTE') {
-          // Removing an upvote
-          scoreChange = -1;
-        }
-
-        // Optimistically update the UI
-        const updatedCommentData = {
-          userVote: voteType,
-          score: comment.score + scoreChange,
-        };
-
-        // Update the comment in the list
-        dispatch({
-          type: CommentActionType.VOTE_COMMENT_SUCCESS,
-          payload: { comment: { ...comment, ...updatedCommentData } },
-        });
-
-        // Make the API call
-        await CommentService.voteComment({
-          commentId: comment.id,
-          documentId,
-          voteType,
-          contentType,
-        });
-
-        // Emit the comment_voted event directly
-        emitCommentEvent('comment_voted', {
-          comment: { ...comment, ...updatedCommentData },
-          contentType,
-          documentId,
-        });
-      } catch (err) {
-        console.error('Error voting on comment:', err);
-        // Revert the optimistic update on error
-        refresh();
-      }
-    },
-    [documentId, contentType, refresh, emitCommentEvent]
-  );
-
   // Helper function to set editing comment ID
   const handleSetEditingCommentId = useCallback((commentId: number | null) => {
     console.log('Setting editingCommentId to:', commentId);
@@ -821,6 +764,20 @@ export const CommentProvider = ({
     }
   }, []);
 
+  // Function to update a comment's vote state without making API calls
+  const updateCommentVote = useCallback(
+    (commentId: number, userVote: UserVoteType, score: number) => {
+      dispatch({
+        type: CommentActionType.UPDATE_COMMENT_VOTE,
+        payload: {
+          commentId,
+          updatedComment: { userVote, score },
+        },
+      });
+    },
+    []
+  );
+
   const value = {
     comments: state.comments,
     count: state.count,
@@ -841,21 +798,19 @@ export const CommentProvider = ({
     createReply,
     updateComment,
     deleteComment,
-    voteComment,
+    updateCommentVote,
     setEditingCommentId: handleSetEditingCommentId,
     setReplyingToCommentId: handleSetReplyingToCommentId,
     setSortBy: (sort: CommentSort) => {
       dispatch({ type: CommentActionType.SET_SORT_BY, payload: sort });
-      // Set loading to true to show loading skeleton
-      dispatch({ type: CommentActionType.SET_LOADING, payload: true });
+      // Loading will be set by the effect that calls refresh
     },
     setFilter: (filter?: CommentFilter) => {
       dispatch({ type: CommentActionType.SET_FILTER, payload: filter });
     },
     setBountyFilter: (filter: BountyFilterType) => {
       dispatch({ type: CommentActionType.SET_BOUNTY_FILTER, payload: filter });
-      // Set loading to true to show loading skeleton
-      dispatch({ type: CommentActionType.SET_LOADING, payload: true });
+      // Loading will be set by the effect that calls refresh
     },
     forceRefresh,
     emitCommentEvent,

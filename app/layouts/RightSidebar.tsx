@@ -1,8 +1,10 @@
 'use client';
 
-import { BookOpen, X, Check } from 'lucide-react';
-import { useState } from 'react';
+import { BookOpen, Check, Hash, BookMarked } from 'lucide-react';
+import { useState, useEffect, memo } from 'react';
 import { Button } from '@/components/ui/Button';
+import { HubService } from '@/services/hub.service';
+import { Topic } from '@/types/topic';
 
 // InfoBanner Component
 const InfoBanner: React.FC = () => (
@@ -13,144 +15,282 @@ const InfoBanner: React.FC = () => (
     </div>
 
     <div className="space-y-2.5 mb-5">
-      <div className="flex items-center space-x-2.5">
-        <Check className="h-4 w-4 text-indigo-900 flex-shrink-0" />
-        <span className="text-sm text-gray-700">14 days to peer reviews</span>
-      </div>
-      <div className="flex items-center space-x-2.5">
-        <Check className="h-4 w-4 text-indigo-900 flex-shrink-0" />
-        <span className="text-sm text-gray-700">Paid peer reviewers</span>
-      </div>
-      <div className="flex items-center space-x-2.5">
-        <Check className="h-4 w-4 text-indigo-900 flex-shrink-0" />
-        <span className="text-sm text-gray-700">Open access by default</span>
-      </div>
+      {['fourteen days to peer reviews', 'Paid peer reviewers', 'Open access by default'].map(
+        (feature, index) => (
+          <div key={index} className="flex items-center space-x-2.5">
+            <Check className="h-4 w-4 text-indigo-900 flex-shrink-0" />
+            <span className="text-sm text-gray-700">{feature}</span>
+          </div>
+        )
+      )}
     </div>
 
     <Button
-      variant="outlined"
+      variant="default"
       size="default"
-      className="w-full justify-center text-indigo-500 border-indigo-500 hover:text-indigo-600 hover:bg-indigo-100 font-medium"
+      className="w-full justify-center bg-indigo-600 text-white hover:bg-indigo-700 font-medium"
     >
       Learn more
     </Button>
   </div>
 );
 
-// WhoToFollow Component
-const WhoToFollow: React.FC = () => {
-  const [followStatus, setFollowStatus] = useState<{ [key: string]: boolean }>({});
+// TopicCard Component
+interface TopicCardProps {
+  topic: Topic;
+  isFollowing: boolean;
+  onFollowToggle: (topicId: number) => void;
+}
 
-  const toggleFollow = (name: string) => {
-    setFollowStatus((prevStatus) => ({
-      ...prevStatus,
-      [name]: !prevStatus[name],
-    }));
-  };
-
-  const organizations = [
-    { name: 'Nature', logo: '🌿', followers: '1.2M followers', type: 'Journal' },
-    { name: 'Science', logo: '🔬', followers: '980K followers', type: 'Journal' },
-    { name: 'MIT', logo: '🎓', followers: '750K followers', type: 'Institution' },
-    { name: 'Stanford Medicine', logo: '🏥', followers: '420K followers', type: 'Institution' },
-  ];
-
-  const people = [
-    {
-      name: 'Dr. Sarah Chen',
-      logo: '👩‍⚕️',
-      followers: '89K followers',
-      type: 'Neuroscientist',
-      org: 'Stanford Medicine',
-    },
-    {
-      name: 'Dr. James Wilson',
-      logo: '👨‍⚕️',
-      followers: '156K followers',
-      type: 'Oncologist',
-      org: 'Mayo Clinic',
-    },
-    {
-      name: 'Dr. Elena Rodriguez',
-      logo: '👩‍🔬',
-      followers: '45K followers',
-      type: 'AI Researcher',
-      org: 'DeepMind',
-    },
-    {
-      name: 'Prof. David Zhang',
-      logo: '👨‍🏫',
-      followers: '92K followers',
-      type: 'Immunologist',
-      org: 'Harvard Medical',
-    },
-  ];
-
-  const ProfileCard = ({ profile }: { profile: any }) => {
-    const isFollowing = followStatus[profile.name];
-
-    return (
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-lg">
-            {profile.logo}
-          </div>
-          <div>
-            <div className="font-medium text-gray-900">{profile.name}</div>
-            <div className="text-sm text-gray-500">
-              {profile.type === 'Journal' || profile.type === 'Institution' ? (
-                profile.followers
-              ) : (
-                <div className="flex flex-col">
-                  <span>{profile.type}</span>
-                  <span className="text-xs text-gray-400">{profile.org}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-        <button
-          onClick={() => toggleFollow(profile.name)}
-          className={`px-3 py-1 border rounded-full text-sm font-medium transition-colors duration-150 ${
-            isFollowing
-              ? 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'
-              : 'border-indigo-600 text-indigo-600 hover:bg-indigo-50'
-          }`}
-        >
-          {isFollowing ? 'Following' : 'Follow'}
-        </button>
-      </div>
-    );
-  };
+const TopicCard: React.FC<TopicCardProps> = ({ topic, isFollowing, onFollowToggle }) => {
+  const isJournal = topic.namespace === 'journal';
 
   return (
-    <div className="">
-      <h2 className="font-semibold text-gray-900 mb-4">Who to Follow</h2>
-
-      {/* Organizations Section */}
-      <div className="space-y-4 mb-6">
-        {organizations.map((org, i) => (
-          <ProfileCard key={`org-${i}`} profile={org} />
-        ))}
+    <div className="flex items-center justify-between mb-3 mx-0.5">
+      <div className="flex items-center space-x-2.5">
+        <div
+          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+            isJournal ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'
+          }`}
+        >
+          {isJournal ? <BookMarked size={16} /> : <Hash size={16} />}
+        </div>
+        <div>
+          <div className="font-medium text-gray-900 text-sm">{topic.name}</div>
+        </div>
       </div>
-
-      {/* Divider */}
-      <div className="border-t border-gray-200 my-4"></div>
-
-      {/* People Section */}
-      <div className="space-y-4">
-        {people.map((person, i) => (
-          <ProfileCard key={`person-${i}`} profile={person} />
-        ))}
-      </div>
+      <Button
+        onClick={() => onFollowToggle(topic.id)}
+        variant={isFollowing ? 'outlined' : 'default'}
+        size="sm"
+        className={`rounded-full ${
+          isFollowing
+            ? 'text-gray-600 border-gray-300 hover:border-gray-400'
+            : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+        }`}
+      >
+        {isFollowing ? 'Following' : 'Follow'}
+      </Button>
     </div>
   );
 };
 
-// Main RightSidebar Component
-export const RightSidebar: React.FC = () => (
-  <div>
-    <InfoBanner />
-    <WhoToFollow />
+// TopicSection Component
+interface TopicSectionProps {
+  title: string;
+  topics: Topic[];
+  followStatus: { [key: number]: boolean };
+  onFollowToggle: (topicId: number) => void;
+}
+
+const TopicSection: React.FC<TopicSectionProps> = ({
+  title,
+  topics,
+  followStatus,
+  onFollowToggle,
+}) => {
+  if (topics.length === 0) return null;
+
+  return (
+    <>
+      <div className="space-y-3 mb-6">
+        {topics.map((topic) => (
+          <TopicCard
+            key={`topic-${topic.id}`}
+            topic={topic}
+            isFollowing={followStatus[topic.id] || false}
+            onFollowToggle={onFollowToggle}
+          />
+        ))}
+      </div>
+    </>
+  );
+};
+
+// LoadingSkeleton Component
+interface LoadingSkeletonProps {
+  count?: number;
+}
+
+const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({ count = 4 }) => (
+  <div className="animate-pulse">
+    {[...Array(count)].map((_, i) => (
+      <div key={`skeleton-${i}`} className="flex items-center justify-between mb-3 mx-0.5">
+        <div className="flex items-center space-x-2.5">
+          <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+          <div>
+            <div className="h-4 bg-gray-200 rounded w-20 mb-1"></div>
+          </div>
+        </div>
+        <div className="h-7 bg-gray-200 rounded-full w-16"></div>
+      </div>
+    ))}
   </div>
 );
+
+// Cache for topics data
+interface TopicsCache {
+  journals: Topic[];
+  topics: Topic[];
+  followedItems: number[];
+  timestamp: number;
+}
+
+let topicsCache: TopicsCache | null = null;
+const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
+
+// TopicsToFollow Component
+const TopicsToFollow: React.FC = () => {
+  const [followStatus, setFollowStatus] = useState<{ [key: number]: boolean }>({});
+  const [journals, setJournals] = useState<Topic[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTopics = async () => {
+      setIsLoading(true);
+      try {
+        // Check if we have valid cached data
+        const now = Date.now();
+        if (topicsCache && now - topicsCache.timestamp < CACHE_EXPIRY_MS) {
+          // Use cached data
+          setJournals(topicsCache.journals);
+          setTopics(topicsCache.topics);
+
+          // Initialize follow status from cache
+          const initialFollowStatus: { [key: number]: boolean } = {};
+          topicsCache.followedItems.forEach((id) => {
+            initialFollowStatus[id] = true;
+          });
+          setFollowStatus(initialFollowStatus);
+          setIsLoading(false);
+          return;
+        }
+
+        // Fetch fresh data if no cache or cache expired
+        const [journalData, topicData, followedItems] = await Promise.all([
+          HubService.getHubs({ namespace: 'journal' }),
+          HubService.getHubs({ excludeJournals: true }),
+          HubService.getFollowedHubs(),
+        ]);
+
+        // Limit to 4 items each for display
+        const limitedJournals = journalData.slice(0, 4);
+        const limitedTopics = topicData.slice(0, 4);
+
+        // Update cache
+        topicsCache = {
+          journals: limitedJournals,
+          topics: limitedTopics,
+          followedItems,
+          timestamp: now,
+        };
+
+        setJournals(limitedJournals);
+        setTopics(limitedTopics);
+
+        // Initialize follow status
+        const initialFollowStatus: { [key: number]: boolean } = {};
+        followedItems.forEach((id) => {
+          initialFollowStatus[id] = true;
+        });
+        setFollowStatus(initialFollowStatus);
+      } catch (error) {
+        console.error('Error loading topics:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTopics();
+  }, []);
+
+  const handleFollowToggle = async (topicId: number) => {
+    const isCurrentlyFollowing = followStatus[topicId] || false;
+
+    // Optimistically update UI
+    setFollowStatus((prev) => ({
+      ...prev,
+      [topicId]: !isCurrentlyFollowing,
+    }));
+
+    try {
+      if (isCurrentlyFollowing) {
+        await HubService.unfollowHub(topicId);
+        // Update cache if it exists
+        if (topicsCache) {
+          topicsCache.followedItems = topicsCache.followedItems.filter((id) => id !== topicId);
+        }
+      } else {
+        await HubService.followHub(topicId);
+        // Update cache if it exists
+        if (topicsCache) {
+          topicsCache.followedItems.push(topicId);
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling follow status:', error);
+      // Revert on error
+      setFollowStatus((prev) => ({
+        ...prev,
+        [topicId]: isCurrentlyFollowing,
+      }));
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div>
+        <h2 className="font-semibold text-gray-900 mb-4">Follow Recommendations</h2>
+
+        <LoadingSkeleton />
+
+        {/* Divider */}
+        <div className="border-t border-gray-200 my-4"></div>
+
+        <LoadingSkeleton />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h2 className="font-semibold text-gray-900 mb-6">Follow Recommendations</h2>
+
+      {/* Journals Section */}
+      <TopicSection
+        title="Journals & Repositories"
+        topics={journals}
+        followStatus={followStatus}
+        onFollowToggle={handleFollowToggle}
+      />
+
+      {/* Divider - only show if we have both journals and topics */}
+      {journals.length > 0 && topics.length > 0 && (
+        <div className="border-t border-gray-200 my-4"></div>
+      )}
+
+      {/* Topics Section */}
+      <TopicSection
+        title="Topics"
+        topics={topics}
+        followStatus={followStatus}
+        onFollowToggle={handleFollowToggle}
+      />
+    </div>
+  );
+};
+
+// Memoize the TopicsToFollow component to prevent unnecessary re-renders
+const MemoizedTopicsToFollow = memo(TopicsToFollow);
+
+// Main RightSidebar Component - memoized to prevent re-renders when parent components change
+const SidebarComponent = () => (
+  <div>
+    <InfoBanner />
+    <MemoizedTopicsToFollow />
+  </div>
+);
+
+export const RightSidebar = memo(SidebarComponent);
+RightSidebar.displayName = 'RightSidebar';

@@ -1,14 +1,14 @@
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { BaseTransformer } from './transformer';
 import { Bounty, transformBounty, groupBountiesWithContributions } from './bounty';
+import { UserVoteType } from './reaction';
+import { transformUser, User } from './user';
 
 export type CommentFilter = 'BOUNTY' | 'DISCUSSION' | 'REVIEW';
 export type CommentSort = 'BEST' | 'NEWEST' | 'TOP' | 'CREATED_DATE';
 export type CommentPrivacyType = 'PUBLIC' | 'PRIVATE';
 export type ContentFormat = 'QUILL_EDITOR' | 'TIPTAP';
 export type CommentType = 'GENERIC_COMMENT' | 'REVIEW' | 'BOUNTY' | 'ANSWER';
-
-export type UserVoteType = 'UPVOTE' | 'NEUTRAL' | 'DOWNVOTE';
 
 export interface UserMention {
   userId: string | null;
@@ -46,8 +46,9 @@ export interface Comment {
   contentFormat?: ContentFormat;
   createdDate: string;
   updatedDate: string;
-  author: any;
+  createdBy: User;
   score: number;
+  reviewScore: number;
   replies: Comment[];
   replyCount?: number;
   childrenCount: number;
@@ -84,15 +85,6 @@ export const transformContent = (raw: any): string => {
 };
 
 export const transformComment = (raw: any): Comment => {
-  const reviewScore = raw.review?.score;
-
-  // Add debugging for comment type
-  console.log('transformComment raw data:', {
-    id: raw.id,
-    comment_type: raw.comment_type,
-    has_bounties: !!raw.bounties && Array.isArray(raw.bounties) && raw.bounties.length > 0,
-  });
-
   // Transform user_vote from API
   // It can be either an object with vote_type or a direct numeric value
   let userVote: UserVoteType | undefined;
@@ -132,9 +124,11 @@ export const transformComment = (raw: any): Comment => {
     content: raw.comment_content_json || raw.comment_content,
     contentFormat: raw.comment_content_type,
     createdDate: raw.created_date,
+    createdBy: transformUser(raw.created_by),
     updatedDate: raw.updated_date,
     author: transformAuthorProfile(raw.created_by),
-    score: reviewScore !== undefined ? reviewScore : raw.score || 0,
+    score: raw.score || 0,
+    reviewScore: raw.review?.score || 0,
     replyCount: raw.reply_count || raw.children_count || 0,
     childrenCount: raw.children_count || 0,
     replies: (raw.replies || raw.children || []).map(transformComment),
@@ -151,12 +145,6 @@ export const transformComment = (raw: any): Comment => {
     raw,
     metadata: raw.metadata,
   };
-
-  console.log('transformComment result:', {
-    id: result.id,
-    commentType: result.commentType,
-    hasBounties: result.bounties.length > 0,
-  });
 
   return result;
 };
