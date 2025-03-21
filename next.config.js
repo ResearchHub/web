@@ -46,6 +46,10 @@ const nextConfig = {
     locales: ['en'],
     defaultLocale: 'en',
   },
+  experimental: {
+    optimizeCss: true,
+    scrollRestoration: true,
+  },
   webpack: (config, { isServer }) => {
     // Preserve existing alias configuration
     config.resolve.alias = {
