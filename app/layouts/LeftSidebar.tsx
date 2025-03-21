@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import { PublishMenu } from './PublishMenu';
 import { Logo } from '@/components/ui/Logo';
 import { ReleaseNotesModal } from '@/components/modals/ReleaseNotesModal';
+import Link from 'next/link';
 
 // This key should be updated whenever the release notes content changes
 const RELEASE_NOTES_VERSION = 'v1.0.2';
@@ -55,14 +56,16 @@ export const LeftSidebar: React.FC = () => {
   return (
     <div className="w-72 fixed h-screen flex flex-col z-50 bg-white">
       <div className="p-2 pl-4">
-        <Logo size={38} color="text-indigo-600" />
+        <Link href="/">
+          <Logo size={38} color="text-indigo-600" />
+        </Link>
       </div>
 
       <div className="px-4 mt-6">
         <PublishMenu />
       </div>
 
-      <div className="flex-1">
+      <div className="flex-1 mt-2">
         <div className="px-4 py-4">
           <Navigation
             currentPath={pathname || ''}
@@ -74,7 +77,7 @@ export const LeftSidebar: React.FC = () => {
       <div className="px-4 py-4">
         <button
           onClick={handleReleaseNotesClick}
-          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-orange-500 hover:bg-gray-50 rounded-lg relative"
+          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg relative"
         >
           <Megaphone className="w-5 h-5" />
           <span className="flex items-center gap-2">

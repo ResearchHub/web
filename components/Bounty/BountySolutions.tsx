@@ -7,8 +7,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye } from '@fortawesome/free-solid-svg-icons';
 import { faTrophy } from '@fortawesome/pro-light-svg-icons';
 import { ID } from '@/types/root';
-import { ChevronUp, ChevronDown, MessageCircle } from 'lucide-react';
+import { ChevronUp, ChevronDown, MessageCircle, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
+import { Tooltip } from '../ui/Tooltip';
 
 interface BountySolutionsProps {
   solutions: BountySolution[];
@@ -54,8 +55,11 @@ export const BountySolutions = ({
         )}
       </Button>
 
+      {/* Add gray divider line spanning the container */}
+      {showSolutions && <div className="w-full h-px bg-gray-200 mt-3"></div>}
+
       {showSolutions && (
-        <div className="mt-6 pt-4 animate-fadeIn w-full">
+        <div className="mt-4 pt-2 animate-fadeIn w-full">
           <h4 className="text-base font-medium text-gray-900 mb-4">
             {isPeerReviewBounty ? 'Reviews' : 'Answers'}
           </h4>
@@ -82,15 +86,16 @@ export const BountySolutions = ({
                           {solution.createdBy.authorProfile?.fullName || 'User'}
                         </span>
                         {hasAward && solution.awardedAmount && (
-                          <div className="flex items-center">
+                          <div className="flex items-center ml-2">
+                            {/* lets update this to show the awarded amount in a tooltip */}
+                            <PlusIcon className="h-3 w-3 text-orange-500" />
                             <RSCBadge
                               amount={parseFloat(solution.awardedAmount)}
-                              size="xxs"
-                              variant="badge"
-                              className="ml-0.5"
+                              variant="inline"
+                              className="ml-0.5 p-0"
+                              size="sm"
+                              showIcon={false}
                               showText={true}
-                              inverted={true}
-                              label="+"
                             />
                           </div>
                         )}
@@ -100,7 +105,7 @@ export const BountySolutions = ({
 
                   <div className="flex items-center gap-3">
                     <Button
-                      variant="default"
+                      variant="secondary"
                       size="sm"
                       onClick={() =>
                         onViewSolution(

@@ -7,6 +7,7 @@ export type FeedTab = 'following' | 'latest' | 'popular';
 
 interface UseFeedOptions {
   hubSlug?: string;
+  contentType?: string;
 }
 
 export const useFeed = (activeTab: FeedTab, options: UseFeedOptions = {}) => {
@@ -42,6 +43,7 @@ export const useFeed = (activeTab: FeedTab, options: UseFeedOptions = {}) => {
         pageSize: 20,
         feedView: activeTab,
         hubSlug: options.hubSlug,
+        contentType: options.contentType,
       });
       setEntries(result.entries);
       setHasMore(result.hasMore);
@@ -64,6 +66,7 @@ export const useFeed = (activeTab: FeedTab, options: UseFeedOptions = {}) => {
         pageSize: 20,
         feedView: activeTab,
         hubSlug: options.hubSlug,
+        contentType: options.contentType,
       });
       setEntries((prev) => [...prev, ...result.entries]);
       setHasMore(result.hasMore);

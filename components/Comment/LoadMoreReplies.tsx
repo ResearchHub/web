@@ -7,30 +7,16 @@ interface LoadMoreRepliesProps {
   commentId: number;
   remainingCount: number;
   isLoading?: boolean;
-  debug?: boolean;
 }
 
 const LoadMoreReplies: React.FC<LoadMoreRepliesProps> = ({
   commentId,
   remainingCount,
   isLoading: externalLoading = false,
-  debug = false,
 }) => {
   const { loadMoreReplies } = useComments();
   const [loading, setLoading] = useState(false);
   const [loadedReplies, setLoadedReplies] = useState(false);
-
-  // Add debug logging when the component mounts or updates
-  useEffect(() => {
-    if (debug) {
-      console.log('[LoadMoreReplies] Component mounted/updated:', {
-        commentId,
-        remainingCount,
-        loading,
-        loadedReplies,
-      });
-    }
-  }, [commentId, remainingCount, loading, loadedReplies, debug]);
 
   // Reset loadedReplies state when commentId changes
   useEffect(() => {
@@ -38,21 +24,10 @@ const LoadMoreReplies: React.FC<LoadMoreRepliesProps> = ({
   }, [commentId]);
 
   const handleLoadMore = async () => {
-    if (debug) {
-      console.log(
-        '[LoadMoreReplies] Loading more replies for comment',
-        commentId,
-        'remaining:',
-        remainingCount
-      );
-    }
     setLoading(true);
     try {
       await loadMoreReplies(commentId);
       setLoadedReplies(true);
-      if (debug) {
-        console.log('[LoadMoreReplies] Successfully loaded more replies for comment', commentId);
-      }
     } catch (error) {
       console.error('[LoadMoreReplies] Error loading more replies:', error);
     } finally {

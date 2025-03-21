@@ -11,6 +11,11 @@ export enum VoteType {
 
 export type VoteTypeString = 'upvote' | 'neutralvote'; // | 'downvote'
 
+export type UserVoteType = 'UPVOTE' | 'NEUTRAL' | 'DOWNVOTE';
+
+// Subset of ContentType that can be voted on
+export type VotableContentType = 'comment' | 'paper' | 'researchhubpost';
+
 export const VOTE_TYPE_LABELS: Record<VoteType, VoteTypeString> = {
   // [VoteType.DOWNVOTE]: 'downvote',
   [VoteType.NEUTRALVOTE]: 'neutralvote',

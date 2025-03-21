@@ -7,11 +7,8 @@ import { ContentType } from '@/types/work';
 import { ID } from '@/types/root';
 import { Loader } from '@/components/ui/Loader';
 import { formatTimestamp } from '@/utils/date';
-import { formatRSC } from '@/utils/number';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { RSCBadge } from '@/components/ui/RSCBadge';
 import { Avatar } from '@/components/ui/Avatar';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrophy } from '@fortawesome/pro-light-svg-icons';
 import { CommentSkeleton } from '@/components/skeletons/CommentSkeleton';
 
 interface SolutionModalProps {
@@ -74,26 +71,25 @@ export const SolutionModal = ({
             <div className="flex items-center justify-between pb-3 border-b border-gray-100">
               <div className="flex items-center gap-2">
                 <Avatar
-                  src={comment.author.profileImage || ''}
-                  alt={comment.author.fullName}
+                  src={comment.createdBy?.authorProfile?.profileImage || ''}
+                  alt={comment.createdBy?.authorProfile?.fullName || ''}
                   size="sm"
                 />
                 <div>
-                  <div className="font-medium">{comment.author.fullName}</div>
+                  <div className="font-medium">{comment.createdBy?.authorProfile?.fullName}</div>
                   <div className="text-sm text-gray-500">
                     Submitted on {formatTimestamp(comment.createdDate)}
                   </div>
                 </div>
               </div>
               {awardedAmount && (
-                <div className="flex items-center gap-2 bg-green-50 px-3 py-1.5 rounded-md">
-                  <FontAwesomeIcon icon={faTrophy} className="h-4 w-4 text-green-600" />
-                  <div className="flex items-center gap-1">
-                    <ResearchCoinIcon className="h-4 w-4" />
-                    <span className="text-sm font-medium text-orange-600">
-                      {formatRSC({ amount: parseFloat(awardedAmount), shorten: true })} RSC
-                    </span>
-                  </div>
+                <div className="flex items-center">
+                  <RSCBadge
+                    amount={parseFloat(awardedAmount)}
+                    size="sm"
+                    variant="award"
+                    showExchangeRate={true}
+                  />
                 </div>
               )}
             </div>

@@ -42,7 +42,7 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
 
   const trigger = (
     <button className="hover:ring-2 hover:ring-gray-200 rounded-full p-1">
-      <Avatar src={user.authorProfile?.profileImage} alt={user.fullName} size="md" />
+      <Avatar src={user.authorProfile?.profileImage} alt={user.fullName} size={34} />
     </button>
   );
 

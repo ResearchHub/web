@@ -17,8 +17,18 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: -apple-system, var(--font-geist-sans), 'system-ui', 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family:
+    var(--font-geist-sans),
+    -apple-system,
+    'system-ui',
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Open Sans',
+    'Helvetica Neue',
+    sans-serif;
 }
 
 @layer utilities {
