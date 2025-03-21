@@ -11,6 +11,7 @@ import { useSession } from 'next-auth/react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatBalance } from '@/components/ResearchCoin/lib/types';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { FundCard } from '@coinbase/onchainkit/fund';
 
 export default function ResearchCoinPage() {
   const { data: session, status } = useSession();
@@ -55,13 +56,12 @@ export default function ResearchCoinPage() {
                 balance={balance ? formatBalance(balance, exchangeRate) : null}
                 isFetchingExchangeRate={isFetchingExchangeRate}
               />
-
+              <FundCard assetSymbol="ETH" country="US" currency="USD" />; ;
               <TransactionFeed
                 onExport={handleExport}
                 exchangeRate={exchangeRate}
                 isExporting={isExporting}
               />
-
               {isExportModalOpen && (
                 <ExportFilterModal
                   isOpen={isExportModalOpen}
