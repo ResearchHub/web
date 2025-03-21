@@ -8,10 +8,11 @@ export function OnchainProvider(props: { children: ReactNode }) {
   return (
     <OnchainKitProvider
       apiKey={process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY}
+      projectId={process.env.NEXT_PUBLIC_CDP_PROJECT_ID}
       config={{
         appearance: {
-          name: '',
-          logo: 'flask.svg',
+          name: 'ResearchHub',
+          logo: 'flask.webp',
           mode: 'auto',
           theme: 'light',
         },
