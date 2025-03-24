@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search as SearchIcon, X } from 'lucide-react';
+import { Search as SearchIcon, X, Loader2 } from 'lucide-react';
 import { SearchSuggestions } from './SearchSuggestions';
 import { cn } from '@/utils/styles';
 import { SearchSuggestion } from '@/types/search';
+import toast from 'react-hot-toast';
 
 interface SearchProps {
   onSelect?: (suggestion: SearchSuggestion) => void;
@@ -26,16 +27,50 @@ export function Search({
   const [isFocused, setIsFocused] = useState(false);
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleBlur = (e: React.FocusEvent) => {
-    // Check if the related target is inside our component
-    if (!containerRef.current?.contains(e.relatedTarget as Node)) {
-      setIsFocused(false);
+  // Handle clicks outside the search component
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node) &&
+        !document.querySelector('.follow-topic-btn')?.contains(event.target as Node)
+      ) {
+        setIsFocused(false);
+      }
     }
-  };
+
+    // Only add the event listener if the dropdown is open
+    if (isFocused) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isFocused]);
 
   const handleSelect = (suggestion: SearchSuggestion) => {
     try {
+      // Close the dropdown
+      setIsFocused(false);
+
+      // Show loading toast
+      toast(
+        (t) => (
+          <div className="flex items-center space-x-3 py-1">
+            <Loader2 className="h-5 w-5 text-primary animate-spin" />
+            <span>Navigating to {truncateTitle(suggestion.displayName)}</span>
+          </div>
+        ),
+        {
+          duration: 5000, // 5 seconds or until page loads
+          position: 'bottom-center',
+          className: 'bg-white shadow-md border border-gray-200',
+        }
+      );
+
       // If onSelect is provided, use that instead of default behavior
       if (onSelect) {
         onSelect(suggestion);
@@ -82,18 +117,24 @@ export function Search({
     }
   };
 
+  // Helper to truncate long titles for the toast
+  const truncateTitle = (title: string) => {
+    return title.length > 30 ? `${title.substring(0, 30)}...` : title;
+  };
+
   return (
     <div ref={containerRef} className={cn('relative', className)}>
       <div className="relative">
         <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <input
+          ref={inputRef}
           type="text"
           placeholder={placeholder}
           className="h-12 w-full rounded-lg border border-gray-300 bg-gray-50 pl-10 pr-10 text-base focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}
-          onBlur={handleBlur}
+          // No blur handler to prevent dropdown from closing too early
         />
         {query && (
           <button

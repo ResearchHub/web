@@ -47,7 +47,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
         router.push(path);
       } else if (suggestion.doi) {
         // If we only have a DOI, redirect to the DOI route
-        router.push(`/work?doi=${suggestion.doi}`);
+        router.push(`/paper?doi=${suggestion.doi}`);
       }
     } else {
       // Handle user suggestions if needed
