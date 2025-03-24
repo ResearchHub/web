@@ -30,7 +30,7 @@ export function Search({
   const handleBlur = (e: React.FocusEvent) => {
     // Check if the related target is inside our component
     if (!containerRef.current?.contains(e.relatedTarget as Node)) {
-      setIsFocused(false);
+      // setIsFocused(false);
     }
   };
 

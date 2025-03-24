@@ -174,8 +174,17 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       contentType = 'BOUNTY';
       // For bounties, use the transformBounty function
       try {
-        // Transform the bounty using the transformBounty function
-        const bounty = transformBounty({ created_by: author, ...content_object });
+        // Check if required fields exist
+        if (!content_object) {
+          console.error('Bounty content_object is missing');
+          throw new Error('Bounty content_object is missing');
+        }
+
+        // Transform the bounty using the transformBounty function with proper error handling
+        const bounty = transformBounty({
+          created_by: author || null,
+          ...content_object,
+        });
 
         // If the bounty has a paper, transform it to a Work and set as relatedWork
         const relatedDocumentId = content_object.paper?.id || content_object.post?.id || undefined;

@@ -2,19 +2,18 @@
 
 import { useState, useEffect, memo } from 'react';
 import { BookMarked, Hash } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 import { HubService } from '@/services/hub.service';
 import { Topic } from '@/types/topic';
 import { LoadingSkeleton } from './LoadingSkeleton';
+import { FollowTopicButton } from '@/components/ui/FollowTopicButton';
+import { useFollowContext } from '@/contexts/FollowContext';
 
 // TopicCard Component
 interface TopicCardProps {
   topic: Topic;
-  isFollowing: boolean;
-  onFollowToggle: (topicId: number) => void;
 }
 
-const TopicCard: React.FC<TopicCardProps> = ({ topic, isFollowing, onFollowToggle }) => {
+const TopicCard: React.FC<TopicCardProps> = ({ topic }) => {
   const isJournal = topic.namespace === 'journal';
 
   return (
@@ -31,18 +30,7 @@ const TopicCard: React.FC<TopicCardProps> = ({ topic, isFollowing, onFollowToggl
           <div className="font-medium text-gray-900 text-sm">{topic.name}</div>
         </div>
       </div>
-      <Button
-        onClick={() => onFollowToggle(topic.id)}
-        variant={isFollowing ? 'outlined' : 'default'}
-        size="sm"
-        className={`rounded-full ${
-          isFollowing
-            ? 'text-gray-600 border-gray-300 hover:border-gray-400'
-            : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-        }`}
-      >
-        {isFollowing ? 'Following' : 'Follow'}
-      </Button>
+      <FollowTopicButton topicId={topic.id} />
     </div>
   );
 };
@@ -51,28 +39,16 @@ const TopicCard: React.FC<TopicCardProps> = ({ topic, isFollowing, onFollowToggl
 interface TopicSectionProps {
   title: string;
   topics: Topic[];
-  followStatus: { [key: number]: boolean };
-  onFollowToggle: (topicId: number) => void;
 }
 
-const TopicSection: React.FC<TopicSectionProps> = ({
-  title,
-  topics,
-  followStatus,
-  onFollowToggle,
-}) => {
+const TopicSection: React.FC<TopicSectionProps> = ({ topics }) => {
   if (topics.length === 0) return null;
 
   return (
     <>
       <div className="space-y-3 mb-6">
         {topics.map((topic) => (
-          <TopicCard
-            key={`topic-${topic.id}`}
-            topic={topic}
-            isFollowing={followStatus[topic.id] || false}
-            onFollowToggle={onFollowToggle}
-          />
+          <TopicCard key={`topic-${topic.id}`} topic={topic} />
         ))}
       </div>
     </>
@@ -83,7 +59,6 @@ const TopicSection: React.FC<TopicSectionProps> = ({
 interface TopicsCache {
   journals: Topic[];
   topics: Topic[];
-  followedItems: number[];
   timestamp: number;
 }
 
@@ -92,10 +67,10 @@ const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 
 // TopicsToFollow Component
 const TopicsToFollowComponent: React.FC = () => {
-  const [followStatus, setFollowStatus] = useState<{ [key: number]: boolean }>({});
   const [journals, setJournals] = useState<Topic[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { loading: followLoading } = useFollowContext();
 
   useEffect(() => {
     const fetchTopics = async () => {
@@ -107,22 +82,14 @@ const TopicsToFollowComponent: React.FC = () => {
           // Use cached data
           setJournals(topicsCache.journals);
           setTopics(topicsCache.topics);
-
-          // Initialize follow status from cache
-          const initialFollowStatus: { [key: number]: boolean } = {};
-          topicsCache.followedItems.forEach((id) => {
-            initialFollowStatus[id] = true;
-          });
-          setFollowStatus(initialFollowStatus);
           setIsLoading(false);
           return;
         }
 
         // Fetch fresh data if no cache or cache expired
-        const [journalData, topicData, followedItems] = await Promise.all([
+        const [journalData, topicData] = await Promise.all([
           HubService.getHubs({ namespace: 'journal' }),
           HubService.getHubs({ excludeJournals: true }),
-          HubService.getFollowedHubs(),
         ]);
 
         // Limit to 4 items each for display
@@ -133,19 +100,11 @@ const TopicsToFollowComponent: React.FC = () => {
         topicsCache = {
           journals: limitedJournals,
           topics: limitedTopics,
-          followedItems,
           timestamp: now,
         };
 
         setJournals(limitedJournals);
         setTopics(limitedTopics);
-
-        // Initialize follow status
-        const initialFollowStatus: { [key: number]: boolean } = {};
-        followedItems.forEach((id) => {
-          initialFollowStatus[id] = true;
-        });
-        setFollowStatus(initialFollowStatus);
       } catch (error) {
         console.error('Error loading topics:', error);
       } finally {
@@ -156,40 +115,7 @@ const TopicsToFollowComponent: React.FC = () => {
     fetchTopics();
   }, []);
 
-  const handleFollowToggle = async (topicId: number) => {
-    const isCurrentlyFollowing = followStatus[topicId] || false;
-
-    // Optimistically update UI
-    setFollowStatus((prev) => ({
-      ...prev,
-      [topicId]: !isCurrentlyFollowing,
-    }));
-
-    try {
-      if (isCurrentlyFollowing) {
-        await HubService.unfollowHub(topicId);
-        // Update cache if it exists
-        if (topicsCache) {
-          topicsCache.followedItems = topicsCache.followedItems.filter((id) => id !== topicId);
-        }
-      } else {
-        await HubService.followHub(topicId);
-        // Update cache if it exists
-        if (topicsCache) {
-          topicsCache.followedItems.push(topicId);
-        }
-      }
-    } catch (error) {
-      console.error('Error toggling follow status:', error);
-      // Revert on error
-      setFollowStatus((prev) => ({
-        ...prev,
-        [topicId]: isCurrentlyFollowing,
-      }));
-    }
-  };
-
-  if (isLoading) {
+  if (isLoading || followLoading) {
     return (
       <div>
         <h2 className="font-semibold text-gray-900 mb-4">Follow Recommendations</h2>
@@ -209,12 +135,7 @@ const TopicsToFollowComponent: React.FC = () => {
       <h2 className="font-semibold text-gray-900 mb-6">Follow Recommendations</h2>
 
       {/* Journals Section */}
-      <TopicSection
-        title="Journals & Repositories"
-        topics={journals}
-        followStatus={followStatus}
-        onFollowToggle={handleFollowToggle}
-      />
+      <TopicSection title="Journals & Repositories" topics={journals} />
 
       {/* Divider - only show if we have both journals and topics */}
       {journals.length > 0 && topics.length > 0 && (
@@ -222,12 +143,7 @@ const TopicsToFollowComponent: React.FC = () => {
       )}
 
       {/* Topics Section */}
-      <TopicSection
-        title="Topics"
-        topics={topics}
-        followStatus={followStatus}
-        onFollowToggle={handleFollowToggle}
-      />
+      <TopicSection title="Topics" topics={topics} />
     </div>
   );
 };

@@ -11,6 +11,7 @@ import { authOptions } from './api/auth/[...nextauth]/auth.config';
 import { UserProvider } from '@/contexts/UserContext';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { OnchainProvider } from '@/contexts/OnchainContext';
+import { FollowProvider } from '@/contexts/FollowContext';
 import '@coinbase/onchainkit/styles.css';
 
 const geistSans = localFont({
@@ -57,7 +58,9 @@ export default async function RootLayout({
               <UserProvider>
                 <ExchangeRateProvider>
                   <NotificationProvider>
-                    <OrganizationProvider>{children}</OrganizationProvider>
+                    <OrganizationProvider>
+                      <FollowProvider>{children}</FollowProvider>
+                    </OrganizationProvider>
                   </NotificationProvider>
                 </ExchangeRateProvider>
               </UserProvider>
