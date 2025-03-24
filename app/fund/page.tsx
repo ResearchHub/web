@@ -1,26 +1,33 @@
 'use client';
 
-import { FeedItemBody } from '@/components/Feed/FeedItemBody';
-import { FundingRequest } from '@/types/feed';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { HandCoins } from 'lucide-react';
-import Image from 'next/image';
-
-const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1507413245164-6160d8298b31?q=80&w=800';
+import { useFeed } from '@/hooks/useFeed';
+import { FeedContent } from '@/components/Feed/FeedContent';
+import { useState } from 'react';
 
 export default function FundingPage() {
+  const [activeTab] = useState<'latest'>('latest');
+  const { entries, isLoading, hasMore, loadMore } = useFeed(activeTab, {
+    contentType: 'PREREGISTRATION',
+  });
+
+  const header = (
+    <h2 className="text-xl text-gray-600 flex items-center gap-2">
+      <HandCoins className="w-5 h-5 text-indigo-500" />
+      Fund breakthrough research shaping tomorrow
+    </h2>
+  );
+
   return (
     <PageLayout>
-      <div>
-        <div className="pt-4 pb-7">
-          <h2 className="text-lg text-gray-600 flex items-center gap-2">
-            <HandCoins className="w-5 h-5 text-indigo-500" />
-            Fund breakthrough research shaping tomorrow
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
-      </div>
+      <FeedContent
+        entries={entries}
+        isLoading={isLoading}
+        hasMore={hasMore}
+        loadMore={loadMore}
+        header={header}
+      />
     </PageLayout>
   );
 }

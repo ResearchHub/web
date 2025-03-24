@@ -7,30 +7,40 @@ import {
   Vote,
   VoteTypeString,
   Flag,
+  UserVoteType,
+  VotableContentType,
 } from '@/types/reaction';
 import { FlagReasonKey } from '@/types/work';
+import { ContentType } from '@/types/work';
+import { getContentTypePath } from '@/utils/contentTypeMapping';
 
 export type DocumentType = 'paper' | 'researchhubpost';
 
 export interface VoteOptions {
   documentType: DocumentType;
-  documentId: ID;
+  documentId: ID; // ID of the document to vote on
   voteType: VoteTypeString;
-  commentId?: ID;
 }
 
 export interface GetVotesOptions {
-  paperIds: (string | number)[];
-  postIds: (string | number)[];
+  paperIds: (string | number)[]; // IDs of papers to check votes for
+  postIds: (string | number)[]; // IDs of posts to check votes for
 }
 
 export interface FlagOptions {
   documentType: DocumentType;
-  documentId: ID;
+  documentId: ID; // ID of the document to flag
   reason: FlagReasonKey;
   threadId?: ID;
-  commentId?: ID;
+  commentId?: ID; // ID of the comment to flag (if flagging a comment)
   replyId?: ID;
+}
+
+export interface VoteOnCommentOptions {
+  commentId: ID; // ID of the comment to vote on
+  documentId: ID; // ID of the parent document
+  voteType: UserVoteType;
+  contentType: VotableContentType;
 }
 
 export class ReactionService {
@@ -56,18 +66,51 @@ export class ReactionService {
     return transformVotes(response);
   }
 
-  static async vote({ documentType, documentId, voteType, commentId }: VoteOptions): Promise<Vote> {
+  static async voteOnDocument({ documentType, documentId, voteType }: VoteOptions): Promise<Vote> {
     if (!documentType || !documentId) {
       throw new Error('Document type and ID are required');
     }
 
-    const baseUrl = `${documentType}/${documentId}`;
-    const commentPart = commentId ? `/comments/${commentId}` : '';
-    const url = `${this.BASE_PATH}/${baseUrl}${commentPart}/${voteType}/`;
-
+    const url = `${this.BASE_PATH}/${documentType}/${documentId}/${voteType}/`;
     const response = await ApiClient.post<any>(url);
 
     return transformVote(response);
+  }
+
+  static async voteOnComment({
+    commentId,
+    documentId,
+    voteType,
+    contentType,
+  }: VoteOnCommentOptions): Promise<any> {
+    // Map VotableContentType to ContentType for the API
+    let apiContentType: ContentType;
+
+    if (contentType === 'comment') {
+      apiContentType = 'paper';
+    } else if (contentType === 'researchhubpost') {
+      apiContentType = 'post';
+    } else {
+      apiContentType = contentType as ContentType;
+    }
+
+    const contentTypePath = getContentTypePath(apiContentType);
+    let endpoint = '';
+
+    if (voteType === 'UPVOTE') {
+      endpoint = `/${contentTypePath}/${documentId}/comments/${commentId}/upvote/`;
+    } else if (voteType === 'DOWNVOTE') {
+      endpoint = `/${contentTypePath}/${documentId}/comments/${commentId}/downvote/`;
+    } else {
+      endpoint = `/${contentTypePath}/${documentId}/comments/${commentId}/neutralvote/`;
+    }
+
+    try {
+      return await ApiClient.post(this.BASE_PATH + endpoint);
+    } catch (error) {
+      // Just rethrow the error to preserve the ApiError structure
+      throw error;
+    }
   }
 
   static async flag({ documentType, documentId, reason, commentId }: FlagOptions): Promise<Flag> {

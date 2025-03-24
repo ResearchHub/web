@@ -4,16 +4,32 @@ export type Topic = {
   name: string;
   slug: string;
   id: number;
+  namespace?: 'journal' | 'topic';
   imageUrl?: string;
   description?: string;
+  category?: number;
+  discussionCount?: number;
+  paperCount?: number;
+  subscriberCount?: number;
+  isLocked?: boolean;
+  isRemoved?: boolean;
+  isUsedForRep?: boolean;
 };
 
 export const transformTopic = createTransformer<any, Topic>((raw: any) => ({
   id: raw.id,
   name: raw.name,
   slug: raw.slug,
-  imageUrl: raw.hub_image,
+  imageUrl: raw.hub_image || undefined,
   description: raw.description,
+  namespace: raw.namespace,
+  category: raw.category,
+  discussionCount: raw.discussion_count,
+  paperCount: raw.paper_count,
+  subscriberCount: raw.subscriber_count,
+  isLocked: raw.is_locked,
+  isRemoved: raw.is_removed,
+  isUsedForRep: raw.is_used_for_rep,
 }));
 
 export const transformTopicSuggestions = (raw: any): Topic[] => {

@@ -1,11 +1,7 @@
-import { Clock, Coins, Star, Trophy } from 'lucide-react';
 import { formatDeadline } from '@/utils/date';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrophy, faClock } from '@fortawesome/pro-light-svg-icons';
-import { Badge } from '@/components/ui/Badge';
 import { RSCBadge } from '@/components/ui/RSCBadge';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
+import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 
 interface BountyMetadataLineProps {
   bountyType?: string;
@@ -14,32 +10,16 @@ interface BountyMetadataLineProps {
   isOpen: boolean;
   expiringSoon: boolean;
   className?: string;
+  solutionsCount?: number;
 }
 
 export const BountyMetadataLine = ({
-  bountyType,
   amount,
   expirationDate,
   isOpen,
   expiringSoon,
   className = '',
 }: BountyMetadataLineProps) => {
-  // Format the bounty type for display
-  const getBountyTypeDisplay = (type?: string) => {
-    if (!type) return 'Bounty';
-
-    switch (type) {
-      case 'REVIEW':
-        return 'Peer Review Bounty';
-      case 'QUESTION':
-        return 'Question Bounty';
-      case 'GENERAL':
-        return 'General Bounty';
-      default:
-        return `${type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()} Bounty`;
-    }
-  };
-
   // Format the deadline text
   const deadlineText = isOpen
     ? expirationDate
@@ -47,47 +27,19 @@ export const BountyMetadataLine = ({
       : 'No deadline'
     : 'Completed';
 
-  // Determine badge variant based on bounty type
-  const getBadgeVariant = () => {
-    if (bountyType === 'REVIEW') return 'bounty';
-    return 'default';
-  };
-
-  // Determine badge size based on bounty type
-  const getBadgeSize = () => {
-    if (bountyType === 'REVIEW') return 'sm';
-    return 'default';
-  };
-
   return (
-    <div
-      className={`flex justify-between items-center text-[15px] flex-wrap font-normal ${className}`}
-    >
-      {/* Bounty Type with appropriate icon - using Badge component */}
-      <div className="flex items-center gap-2">
-        <Badge
-          variant={getBadgeVariant()}
-          size={getBadgeSize()}
-          className="flex items-center gap-1.5 px-2.5 py-1"
-        >
-          <Trophy className="h-3.5 w-3.5 text-gray-500" />
-          <span className="font-medium text-xs">{getBountyTypeDisplay(bountyType)}</span>
-        </Badge>
-        <RSCBadge
-          amount={amount}
-          variant="badge"
-          size="md"
-          label="RSC"
-          showText={true}
-          showExchangeRate={true}
-        />
-      </div>
+    <div className={`space-y-3 ${className}`}>
+      {/* Badges and date in one row */}
+      <div className="flex justify-between items-center w-full">
+        {/* Badges */}
+        <div className="flex flex-wrap gap-2">
+          <ContentTypeBadge type="bounty" />
+          <RSCBadge amount={amount} size="sm" />
+        </div>
 
-      {/* Deadline and RSC amount */}
-      <div className="flex items-center gap-3">
         {/* Deadline with RadiatingDot */}
-        <div className="flex items-center gap-2">
-          <RadiatingDot size={16} dotSize={8} isRadiating={isOpen} className="flex-shrink-0" />
+        <div className="flex items-center gap-2 text-sm">
+          <RadiatingDot size={12} dotSize={6} isRadiating={isOpen} className="flex-shrink-0" />
           <span className={`${expiringSoon ? 'text-orange-600 font-medium' : 'text-gray-700'}`}>
             {deadlineText}
           </span>

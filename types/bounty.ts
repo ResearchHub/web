@@ -47,13 +47,15 @@ export const transformSolution = (raw: any): BountySolution => ({
   awardedAmount: raw.awarded_amount,
 });
 
-export const transformContribution = (raw: any): BountyContribution => ({
-  id: raw.id,
-  amount: raw.amount,
-  createdBy: transformUser(raw.created_by),
-  status: raw.status || 'ACTIVE',
-  raw,
-});
+export const transformContribution = (raw: any): BountyContribution => {
+  return {
+    id: raw.id,
+    amount: raw.amount,
+    createdBy: transformUser(raw.created_by),
+    status: raw.status || 'ACTIVE',
+    raw,
+  };
+};
 
 /**
  * Groups bounties and their contributions together
@@ -61,14 +63,7 @@ export const transformContribution = (raw: any): BountyContribution => ({
  * @returns Array of transformed Bounty objects with contributions attached
  */
 export const groupBountiesWithContributions = (bounties: any[]): Bounty[] => {
-  console.log('groupBountiesWithContributions input:', {
-    bounties,
-    isArray: Array.isArray(bounties),
-    length: bounties?.length || 0,
-  });
-
   if (!bounties || !Array.isArray(bounties) || bounties.length === 0) {
-    console.log('groupBountiesWithContributions returning empty array');
     return [];
   }
 
@@ -77,12 +72,6 @@ export const groupBountiesWithContributions = (bounties: any[]): Bounty[] => {
   const contributions: Record<string | number, any[]> = {};
 
   bounties.forEach((bounty) => {
-    console.log('Processing bounty:', {
-      id: bounty.id,
-      hasParent: !!bounty.parent,
-      parent: bounty.parent,
-    });
-
     if (bounty.parent) {
       // This is a contribution
       const parentId = typeof bounty.parent === 'object' ? bounty.parent.id : bounty.parent;
@@ -96,33 +85,20 @@ export const groupBountiesWithContributions = (bounties: any[]): Bounty[] => {
     }
   });
 
-  console.log('After processing:', {
-    mainBountiesCount: mainBounties.length,
-    contributionsMap: Object.keys(contributions).length,
-  });
-
   // Now transform main bounties and attach their contributions
   const result = mainBounties.map((bounty) => {
     const bountyContributions = contributions[bounty.id] || [];
-    console.log(
-      `Transforming bounty ${bounty.id} with ${bountyContributions.length} contributions`
-    );
+
     return transformBounty({
       ...bounty,
       contributions: bountyContributions,
     });
   });
 
-  console.log('groupBountiesWithContributions result:', {
-    resultLength: result.length,
-  });
-
   return result;
 };
 
 export const transformBounty: BaseTransformer<any, Bounty> = (raw) => {
-  console.log('transformBounty input:', raw);
-
   // Transform contributions if they exist
   const contributions = Array.isArray(raw.contributions)
     ? raw.contributions.map(transformContribution)

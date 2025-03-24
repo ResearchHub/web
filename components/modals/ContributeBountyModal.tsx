@@ -10,14 +10,12 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import { Currency, ID } from '@/types/root';
 import { BalanceInfo } from './BalanceInfo';
-import { useSession } from 'next-auth/react';
 import { BountyService } from '@/services/bounty.service';
 import { toast } from 'react-hot-toast';
 import { ContentType } from '@/types/work';
 import { BountyType } from '@/types/bounty';
-import { Comment } from '@/types/comment';
-import { useComments } from '@/contexts/CommentContext';
 import { useUser } from '@/contexts/UserContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 
 interface ContributeBountyModalProps {
   isOpen: boolean;
@@ -38,12 +36,16 @@ const CurrencyInput = ({
   currency,
   onCurrencyToggle,
   convertedAmount,
+  isExchangeRateLoading,
+  error,
 }: {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   currency: Currency;
   onCurrencyToggle: () => void;
   convertedAmount?: string;
+  isExchangeRateLoading?: boolean;
+  error?: string;
 }) => {
   return (
     <div className="relative">
@@ -56,19 +58,23 @@ const CurrencyInput = ({
         placeholder="0.00"
         type="text"
         inputMode="numeric"
-        className="w-full text-left h-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        className={`w-full text-left h-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${error ? 'border-red-500' : ''}`}
         rightElement={
           <button
             type="button"
             onClick={onCurrencyToggle}
-            className="flex items-center gap-1 pr-3 text-gray-900 hover:text-gray-600"
+            className={`flex items-center gap-1 pr-3 ${isExchangeRateLoading && currency === 'RSC' ? 'text-gray-400 cursor-not-allowed' : 'text-gray-900 hover:text-gray-600'}`}
+            disabled={isExchangeRateLoading && currency === 'RSC'}
           >
             <span className="font-medium">{currency}</span>
             <ChevronDown className="w-4 h-4" />
           </button>
         }
       />
-      {convertedAmount && <div className="mt-1.5 text-sm text-gray-500">{convertedAmount}</div>}
+      {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
+      {!error && convertedAmount && (
+        <div className="mt-1.5 text-sm text-gray-500">{convertedAmount}</div>
+      )}
     </div>
   );
 };
@@ -196,18 +202,16 @@ export function ContributeBountyModal({
   expirationDate,
 }: ContributeBountyModalProps) {
   const { user } = useUser();
+  const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
   const [inputAmount, setInputAmount] = useState(0);
   const [currency, setCurrency] = useState<Currency>('RSC');
   const [isFeesExpanded, setIsFeesExpanded] = useState(false);
   const [isContributing, setIsContributing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [amountError, setAmountError] = useState<string | undefined>(undefined);
 
-  const RSC_TO_USD = 1;
   const userBalance = user?.balance || 0;
-
-  // Get the emitCommentEvent function from CommentContext
-  const { emitCommentEvent } = useComments();
 
   // Utility functions
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -216,8 +220,18 @@ export function ContributeBountyModal({
 
     if (!isNaN(numValue)) {
       setInputAmount(numValue);
+
+      // Validate minimum amount
+      const rscAmount =
+        currency === 'RSC' ? numValue : isExchangeRateLoading ? 0 : numValue / exchangeRate;
+      if (rscAmount < 10) {
+        setAmountError('Minimum contribution amount is 10 RSC');
+      } else {
+        setAmountError(undefined);
+      }
     } else {
       setInputAmount(0);
+      setAmountError('Please enter a valid amount');
     }
   };
 
@@ -227,41 +241,48 @@ export function ContributeBountyModal({
   };
 
   const toggleCurrency = () => {
+    // If exchange rate is loading, only allow toggling from USD to RSC, not the other way around
+    if (isExchangeRateLoading && currency === 'RSC') {
+      toast.error('Exchange rate is loading. Please wait before switching to USD.');
+      return;
+    }
     setCurrency(currency === 'RSC' ? 'USD' : 'RSC');
   };
 
   const getConvertedAmount = () => {
     if (inputAmount === 0) return '';
+    if (isExchangeRateLoading) return 'Loading exchange rate...';
+
     return currency === 'RSC'
-      ? `≈ $${(inputAmount * RSC_TO_USD).toLocaleString()} USD`
-      : `≈ ${(inputAmount / RSC_TO_USD).toLocaleString()} RSC`;
+      ? `≈ $${(inputAmount * exchangeRate).toLocaleString()} USD`
+      : `≈ ${(inputAmount / exchangeRate).toLocaleString()} RSC`;
   };
 
   const getRscAmount = () => {
-    return currency === 'RSC' ? inputAmount : inputAmount / RSC_TO_USD;
+    if (isExchangeRateLoading) return currency === 'RSC' ? inputAmount : 0;
+    return currency === 'RSC' ? inputAmount : inputAmount / exchangeRate;
   };
 
   const handleContribute = async () => {
     try {
+      const rscAmount = getRscAmount();
+
+      // Validate minimum amount before proceeding
+      if (rscAmount < 10) {
+        setError('Minimum contribution amount is 10 RSC');
+        return;
+      }
+
       setIsContributing(true);
       setError(null);
 
-      const rscAmount = getRscAmount();
-
-      await BountyService.contributeToBounty(
+      const contribution = await BountyService.contributeToBounty(
         commentId,
         rscAmount,
         'rhcommentmodel',
         bountyType,
         expirationDate
       );
-
-      // Use emitCommentEvent instead of commentEvents.emit
-      emitCommentEvent('comment_updated', {
-        comment: { id: commentId } as Comment,
-        contentType,
-        documentId,
-      });
 
       toast.success('Your contribution has been successfully added to the bounty.');
 
@@ -343,6 +364,8 @@ export function ContributeBountyModal({
                         currency={currency}
                         onCurrencyToggle={toggleCurrency}
                         convertedAmount={getConvertedAmount()}
+                        isExchangeRateLoading={isExchangeRateLoading}
+                        error={amountError}
                       />
                     </div>
 
@@ -374,7 +397,13 @@ export function ContributeBountyModal({
                     <Button
                       type="button"
                       variant="default"
-                      disabled={isContributing || !inputAmount || insufficientBalance}
+                      disabled={
+                        isContributing ||
+                        !inputAmount ||
+                        insufficientBalance ||
+                        !!amountError ||
+                        getRscAmount() < 10
+                      }
                       className="w-full h-12 text-base"
                       onClick={handleContribute}
                     >

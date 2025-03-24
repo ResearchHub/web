@@ -10,6 +10,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from './api/auth/[...nextauth]/auth.config';
 import { UserProvider } from '@/contexts/UserContext';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
+import { OnchainProvider } from '@/contexts/OnchainContext';
+import '@coinbase/onchainkit/styles.css';
+
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
   variable: '--font-geist-sans',
@@ -48,18 +51,20 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <NextAuthProvider session={session}>
-          <AuthModalProvider>
-            <UserProvider>
-              <ExchangeRateProvider>
-                <NotificationProvider>
-                  <OrganizationProvider>{children}</OrganizationProvider>
-                </NotificationProvider>
-              </ExchangeRateProvider>
-            </UserProvider>
-          </AuthModalProvider>
-        </NextAuthProvider>
-        <ToasterProvider />
+        <OnchainProvider>
+          <NextAuthProvider session={session}>
+            <AuthModalProvider>
+              <UserProvider>
+                <ExchangeRateProvider>
+                  <NotificationProvider>
+                    <OrganizationProvider>{children}</OrganizationProvider>
+                  </NotificationProvider>
+                </ExchangeRateProvider>
+              </UserProvider>
+            </AuthModalProvider>
+          </NextAuthProvider>
+          <ToasterProvider />
+        </OnchainProvider>
       </body>
     </html>
   );
