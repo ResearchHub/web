@@ -29,6 +29,17 @@ const searchTips = [
   "Filter by author using 'author:'",
 ];
 
+// Maximum number of search results to display
+const MAX_RESULTS = 7;
+// Maximum length for titles before truncating
+const MAX_TITLE_LENGTH = 100;
+
+// Helper function to truncate text
+const truncateText = (text: string, maxLength: number) => {
+  if (!text || text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
+};
+
 export function SearchSuggestions({
   query,
   isFocused = true,
@@ -147,7 +158,7 @@ export function SearchSuggestions({
                   className="font-medium text-gray-900 cursor-pointer"
                   onClick={() => onSelect?.(suggestion)}
                 >
-                  {suggestion.displayName}
+                  {truncateText(suggestion.displayName, MAX_TITLE_LENGTH)}
                 </h3>
                 {isPaperSuggestion && (
                   <p className="mt-1 text-sm text-gray-500">
@@ -196,7 +207,7 @@ export function SearchSuggestions({
                   className="font-medium text-sm cursor-pointer"
                   onClick={() => onSelect?.(suggestion)}
                 >
-                  {suggestion.displayName}
+                  {truncateText(suggestion.displayName, MAX_TITLE_LENGTH)}
                 </div>
                 {isPaperSuggestion && (
                   <div className="text-xs text-gray-500">
@@ -246,13 +257,15 @@ export function SearchSuggestions({
   };
 
   // Filter out any suggestions that might cause rendering issues
-  const safeSuggestions = suggestions.filter((suggestion) => {
-    try {
-      return suggestion && typeof suggestion === 'object' && 'entityType' in suggestion;
-    } catch {
-      return false;
-    }
-  });
+  const safeSuggestions = suggestions
+    .filter((suggestion) => {
+      try {
+        return suggestion && typeof suggestion === 'object' && 'entityType' in suggestion;
+      } catch {
+        return false;
+      }
+    })
+    .slice(0, MAX_RESULTS); // Limit to maximum number of results
 
   return (
     <div
