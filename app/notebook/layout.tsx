@@ -75,9 +75,11 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
           </div>
 
           {/* Right Sidebar - 300px fixed width */}
-          <div className="border-l border-gray-200 h-screen sticky top-0 overflow-y-auto">
-            <RightSidebar />
-          </div>
+          {shouldShowRightSidebar && (
+            <div className="border-l border-gray-200 h-screen sticky top-0 overflow-y-auto">
+              <RightSidebar />
+            </div>
+          )}
         </div>
       ) : (
         // Mobile layout - single column with slide-out sidebars

@@ -1,4 +1,4 @@
-import { PublishingFormData } from '../../components/Sidebar/PublishingForm/schema';
+import { PublishingFormData } from '../../../../app/notebook/components/PublishingForm/schema';
 
 const STORAGE_KEY = 'publishing_forms';
 const MAX_STORED_NOTES = 20;

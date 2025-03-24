@@ -1,8 +1,8 @@
 'use client';
 
-import { NoteList } from '@/components/Editor/components/Sidebar/NoteList';
-import { OrganizationSwitcher } from '@/components/Editor/components/Sidebar/OrganizationSwitcher';
-import { SidebarSection } from '@/components/Editor/components/Sidebar/SidebarSection';
+import { NoteList } from '@/app/notebook/components/Sidebar/NoteList';
+import { OrganizationSwitcher } from '@/app/notebook/components/Sidebar/OrganizationSwitcher';
+import { SidebarSection } from '@/app/notebook/components/Sidebar/SidebarSection';
 import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
