@@ -22,10 +22,6 @@ const articleTypes: Record<
     title: 'Preregistration',
     description: 'Get funding by sharing your research plan',
   },
-  question: {
-    title: 'Question',
-    description: 'Ask a research question to the community',
-  },
 };
 
 const renderSelectedIcon = (articleType: PublishingFormData['articleType'] | undefined) => {
@@ -45,6 +41,7 @@ export function WorkTypeSection() {
     formState: { errors },
   } = useFormContext();
   const articleType = watch('articleType') as PublishingFormData['articleType'] | undefined;
+  console.log({ articleType });
   const workId = watch('workId');
   const { currentNote: note } = useNotebookContext();
   const slug = note?.post?.slug;

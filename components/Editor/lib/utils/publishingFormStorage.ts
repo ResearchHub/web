@@ -1,4 +1,7 @@
-import { PublishingFormData } from '../../../../app/notebook/components/PublishingForm/schema';
+import {
+  PublishingFormData,
+  publishingFormSchema,
+} from '../../../../app/notebook/components/PublishingForm/schema';
 
 const STORAGE_KEY = 'publishing_forms';
 const MAX_STORED_NOTES = 20;
@@ -51,7 +54,22 @@ export const loadPublishingFormFromStorage = (
   try {
     const storedNotes = getStoredNotes();
     const note = storedNotes.find((note) => note.noteId === noteId);
-    return note?.data || null;
+
+    if (!note) return null;
+
+    // Validate the stored data against the current schema
+    const validationResult = publishingFormSchema.safeParse(note.data);
+
+    if (validationResult.success) {
+      return note.data;
+    } else {
+      console.log(
+        'Stored form data is invalid according to current schema:',
+        validationResult.error
+      );
+
+      return null;
+    }
   } catch (error) {
     console.error('Error reading publishing form from localStorage:', error);
     return null;

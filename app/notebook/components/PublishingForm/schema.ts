@@ -8,7 +8,7 @@ const optionSchema = z.object({
 export const publishingFormSchema = z
   .object({
     workId: z.string().optional(),
-    articleType: z.enum(['discussion', 'preregistration', 'question'] as const, {
+    articleType: z.enum(['discussion', 'preregistration'] as const, {
       required_error: 'Please select a work type',
       invalid_type_error: 'Please select a valid work type',
     }),
