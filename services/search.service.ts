@@ -6,20 +6,23 @@ import {
   AuthorSuggestion,
 } from '@/types/search';
 import { transformAuthorSuggestions } from '@/types/search';
+import { transformTopic } from '@/types/topic';
 
 export class SearchService {
   private static readonly BASE_PATH = '/api';
   private static readonly PEOPLE_SUGGEST_PATH = '/api/search/people/suggest';
+  private static readonly DEFAULT_INDICES: EntityType[] = ['hub', 'paper', 'user', 'post'];
 
   static async getSuggestions(
     query: string,
     indices?: EntityType | EntityType[]
   ): Promise<SearchSuggestion[]> {
     const params = new URLSearchParams({ q: query });
-    if (indices) {
-      const indexParam = Array.isArray(indices) ? indices.join(',') : indices;
-      params.append('index', indexParam);
-    }
+
+    // Use provided indices or default to all
+    const indicesToUse = indices || this.DEFAULT_INDICES;
+    const indexParam = Array.isArray(indicesToUse) ? indicesToUse.join(',') : indicesToUse;
+    params.append('index', indexParam);
 
     const response = await ApiClient.get<any[]>(
       `${this.BASE_PATH}/search/suggest/?${params.toString()}`

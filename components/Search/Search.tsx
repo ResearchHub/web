@@ -35,23 +35,49 @@ export function Search({
   };
 
   const handleSelect = (suggestion: SearchSuggestion) => {
-    // If onSelect is provided, use that instead of default behavior
-    if (onSelect) {
-      onSelect(suggestion);
-      return;
-    }
+    try {
+      // If onSelect is provided, use that instead of default behavior
+      if (onSelect) {
+        onSelect(suggestion);
+        return;
+      }
 
-    // Default behavior
-    if (suggestion.entityType === 'paper') {
-      if (suggestion.isRecent) {
-        router.push(`/paper/${suggestion.id}/${suggestion.slug}`);
-      } else {
-        if (suggestion.id) {
+      // Default behavior
+      if (suggestion.entityType === 'paper') {
+        if (suggestion.isRecent) {
           router.push(`/paper/${suggestion.id}/${suggestion.slug}`);
-        } else if (suggestion.doi) {
-          router.push(`/paper?doi=${encodeURIComponent(suggestion.doi)}`);
+        } else {
+          if (suggestion.id) {
+            router.push(`/paper/${suggestion.id}/${suggestion.slug || ''}`);
+          } else if ('doi' in suggestion && suggestion.doi) {
+            router.push(`/paper?doi=${encodeURIComponent(suggestion.doi)}`);
+          } else {
+            // Fallback if no identifiers are available
+            router.push('/');
+          }
+        }
+      } else if (suggestion.entityType === 'user' || suggestion.entityType === 'author') {
+        router.push(`/author/${suggestion.id}`);
+      } else if (suggestion.entityType === 'hub') {
+        if ('slug' in suggestion && suggestion.slug) {
+          router.push(`/hub/${suggestion.slug}`);
+        } else {
+          router.push(`/hub/${suggestion.id}`);
+        }
+      } else if (suggestion.entityType === 'post') {
+        router.push(`/post/${suggestion.id}`);
+      } else {
+        // Fallback for unknown types
+        if (suggestion.url) {
+          router.push(suggestion.url);
+        } else {
+          console.warn('Unable to navigate: missing URL and no fallback available', suggestion);
         }
       }
+    } catch (error) {
+      console.error('Error handling search suggestion selection:', error);
+      // Fallback to home page or previous page
+      router.push('/');
     }
   };
 
