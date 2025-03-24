@@ -61,7 +61,6 @@ export default async function FundingProjectPage({ params }: Props) {
 
   // Only fetch content after we have the work object with contentUrl
   const content = await getWorkHTMLContent(work);
-
   return (
     <PageLayout rightSidebar={<FundingRightSidebar work={work} metadata={metadata} />}>
       <Suspense>

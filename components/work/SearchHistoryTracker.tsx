@@ -26,6 +26,7 @@ export function SearchHistoryTracker({ work }: SearchHistoryTrackerProps) {
       openalexId: '',
       isRecent: true,
       slug: work.slug,
+      contentType: work.contentType,
     };
 
     // Update or add the current suggestion

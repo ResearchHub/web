@@ -3,6 +3,7 @@ import { buildWorkUrl, buildAuthorUrl, buildTopicUrl } from '@/utils/url';
 import { AuthorProfile } from './authorProfile';
 import { ID } from './root';
 import { transformTopic } from './topic';
+import { ContentType } from './work';
 
 export type SuggestionSource = 'api' | 'recent' | 'researchhub' | 'openalex';
 export type EntityType = 'user' | 'paper' | 'author' | 'post' | 'hub';
@@ -25,6 +26,7 @@ export interface WorkSuggestion extends BaseSuggestion {
   lastVisited?: string;
   slug?: string;
   publishedDate?: string;
+  contentType?: ContentType;
 }
 
 export interface UserSuggestion extends BaseSuggestion {
@@ -82,10 +84,12 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
         lastVisited: raw.lastVisited,
         slug: raw.slug,
         publishedDate: raw.date_published,
+        contentType: raw.contentType || 'paper',
         url: buildWorkUrl({
           id: raw.id,
-          contentType: 'paper',
+          contentType: raw.contentType || 'paper',
           doi: raw.doi,
+          slug: raw.slug,
         }),
       };
     }

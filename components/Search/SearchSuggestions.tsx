@@ -60,7 +60,11 @@ export function SearchSuggestions({
       const suggestionId = suggestion.id || '';
       const suggestionDoi =
         suggestion.entityType === 'paper' && 'doi' in suggestion ? suggestion.doi : '';
-      const suggestionKey = `${suggestion.entityType}-${suggestionId || suggestionDoi}`;
+      const contentType =
+        suggestion.entityType === 'paper' && 'contentType' in suggestion
+          ? suggestion.contentType
+          : '';
+      const suggestionKey = `${suggestion.entityType}-${contentType}-${suggestionId || suggestionDoi}`;
 
       // Skip rendering this suggestion if it previously caused an error
       if (erroredSuggestions.has(suggestionKey)) {
@@ -224,7 +228,9 @@ export function SearchSuggestions({
       console.error('Error rendering suggestion:', error, suggestion);
 
       try {
-        const errorKey = `${suggestion.entityType}-${suggestion.id || ''}`;
+        const errorKey = `${suggestion.entityType}-${
+          'contentType' in suggestion ? suggestion.contentType : ''
+        }-${suggestion.id || ''}`;
         setErroredSuggestions((prev) => new Set([...prev, errorKey]));
       } catch (e) {
         // Last resort fallback
