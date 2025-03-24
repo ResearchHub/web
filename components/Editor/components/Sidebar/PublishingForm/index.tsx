@@ -29,6 +29,8 @@ import { getFieldErrorMessage } from '@/utils/form';
 import { NonprofitSearchSection } from './components/NonprofitSearchSection';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
+import { NonprofitService } from '@/services/nonprofit.service';
+import { NonprofitOrg, NonprofitDeployment, NonprofitAddress } from '@/types/nonprofit';
 import { Work } from '@/types/work';
 import { ID } from '@/types/root';
 
@@ -64,10 +66,32 @@ const getButtonText = ({
   }
 };
 
+// Add interfaces for the nonprofit API response
+interface NonprofitDetails {
+  id: string | number;
+  name: string;
+  ein: string;
+  endaoment_org_id: string;
+  base_wallet_address?: string;
+  created_date?: string;
+  updated_date?: string;
+}
+
+interface NonprofitLink {
+  id: string | number;
+  nonprofit: string | number;
+  nonprofit_details: NonprofitDetails;
+  fundraise: string | number;
+  note: string;
+  created_date: string;
+  updated_date: string;
+}
+
 export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormProps) {
   const { currentNote: note, editor } = useNotebookContext();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isLoadingNonprofitData, setIsLoadingNonprofitData] = useState(false);
   const [{ isLoading: isLoadingNonprofitLink }, linkNonprofitToFundraise] = useNonprofitLink();
 
   const methods = useForm<PublishingFormData>({
@@ -99,6 +123,70 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       });
     }
   }, [note?.id, methods]);
+
+  // Fetch nonprofit data if this is a published preregistration
+  useEffect(() => {
+    const fetchNonprofitData = async () => {
+      if (
+        !note?.post?.id ||
+        note.post.contentType !== 'preregistration' ||
+        !note.post.fundraise?.id
+      ) {
+        return;
+      }
+
+      try {
+        setIsLoadingNonprofitData(true);
+        const fundraiseId = note.post.fundraise.id;
+        const nonprofitLinks = await NonprofitService.getNonprofitsByFundraiseId(fundraiseId);
+
+        if (nonprofitLinks && nonprofitLinks.length > 0) {
+          const firstLink = nonprofitLinks[0] as unknown as NonprofitLink;
+          const nonprofit = firstLink.nonprofit_details;
+
+          // Create appropriate deployment objects
+          const deployments: NonprofitDeployment[] = [];
+          if (nonprofit.base_wallet_address) {
+            deployments.push({
+              isDeployed: true,
+              chainId: 8453, // Base network
+              address: nonprofit.base_wallet_address,
+            });
+          }
+
+          // Create nonprofit object that matches the NonprofitOrg interface
+          const formattedNonprofit: NonprofitOrg & { endaoment_org_id?: string } = {
+            id: nonprofit.id.toString(),
+            name: nonprofit.name,
+            ein: nonprofit.ein,
+            deployments,
+            baseWalletAddress: nonprofit.base_wallet_address,
+            address: { region: '', country: '' },
+            nteeCode: '',
+            nteeDescription: '',
+            description: '',
+            endaomentUrl: '',
+            contibutionCount: 0,
+            contibutionTotal: '0',
+            // Store the endaoment_org_id to use when linking
+            endaoment_org_id: nonprofit.endaoment_org_id,
+          };
+
+          methods.setValue('selectedNonprofit', formattedNonprofit);
+
+          // Set the department/lab name from the note field
+          methods.setValue('departmentLabName', firstLink.note || '');
+        }
+      } catch (error) {
+        console.error('Error fetching nonprofit data:', error);
+        // Don't show an error toast as this is not critical for the user experience
+      } finally {
+        setIsLoadingNonprofitData(false);
+      }
+    };
+
+    fetchNonprofitData();
+  }, [note?.post?.id, note?.post?.contentType, note?.post?.fundraise?.id, methods]);
 
   // Load data with priority:
   // 1. note.post data
@@ -218,10 +306,11 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       const title = getDocumentTitleFromEditor(editor);
       const formData = methods.getValues();
 
-      console.log('Publishing form data:', formData);
-      console.log('Selected nonprofit:', formData.selectedNonprofit);
-      console.log('Department/lab name:', formData.departmentLabName);
-      console.log('Base wallet address:', formData.selectedNonprofit?.baseWalletAddress);
+      // Store the existing fundraiseId for use in case the API response doesn't include it
+      const existingFundraiseId = note?.post?.fundraise?.id;
+
+      // Get the correct endaoment_org_id from the nonprofit data
+      const endaomentOrgId = (formData.selectedNonprofit as any)?.endaoment_org_id;
 
       const response = await upsertPost(
         {
@@ -239,42 +328,36 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         formData.workId
       );
 
-      console.log('Upsert response:', response);
-      console.log('Raw response:', response.rawResponse);
-      console.log('Fundraise ID:', response.fundraiseId);
+      // Use the fundraiseId from the response, or fallback to the existing one if undefined
+      const fundraiseId = response.fundraiseId || existingFundraiseId;
 
-      // If there's a selected nonprofit and the fundraiseId is available
-      if (formData.selectedNonprofit && response.fundraiseId) {
-        console.log('Attempting to link nonprofit to fundraise...');
+      // If there's a selected nonprofit and a fundraiseId is available (from response or existing)
+      if (formData.selectedNonprofit && fundraiseId) {
         try {
+          // Always use the endaoment_org_id if available to ensure we're linking to the correct nonprofit
+          const linkPayload = {
+            name: formData.selectedNonprofit.name,
+            endaoment_org_id: endaomentOrgId || formData.selectedNonprofit.id,
+            ein: formData.selectedNonprofit.ein,
+            base_wallet_address: formData.selectedNonprofit.baseWalletAddress,
+          };
+
           await linkNonprofitToFundraise(
-            {
-              name: formData.selectedNonprofit.name,
-              endaoment_org_id: formData.selectedNonprofit.id,
-              ein: formData.selectedNonprofit.ein,
-              base_wallet_address: formData.selectedNonprofit.baseWalletAddress,
-            },
-            response.fundraiseId,
+            linkPayload,
+            fundraiseId,
             formData.departmentLabName || `Linked from preregistration ${response.id}`
           );
-          console.log('Successfully linked nonprofit to fundraise');
         } catch (error) {
           console.error('Error linking nonprofit:', error);
           // Continue with redirect even if nonprofit linking fails
         }
-      } else {
-        console.log('Skipping nonprofit linking - conditions not met:', {
-          hasSelectedNonprofit: Boolean(formData.selectedNonprofit),
-          hasFundraiseId: Boolean(response.fundraiseId),
-        });
       }
 
       setIsRedirecting(true);
-
       router.push(`/fund/${response.id}/${response.slug}`);
     } catch (error) {
+      console.error('Error in publish process:', error);
       toast.error('Error publishing. Please try again.');
-      console.error('Error publishing:', error);
     } finally {
       setShowConfirmModal(false);
     }
@@ -289,7 +372,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     <FormProvider {...methods}>
       <div className="w-82 flex flex-col sticky right-0 top-0 bg-white relative h-[calc(100vh-64px)] lg:h-screen">
         {/* Processing overlay */}
-        {(isLoadingUpsert || isRedirecting) && (
+        {(isLoadingUpsert || isRedirecting || isLoadingNonprofitData) && (
           <div className="absolute inset-0 bg-white/50 z-50 flex flex-col items-center justify-center">
             <Loader2 className="h-8 w-8 text-indigo-600 animate-spin mb-2" />
           </div>
@@ -338,7 +421,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             variant="default"
             onClick={handlePublishClick}
             className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isLoadingUpsert || isRedirecting}
+            disabled={isLoadingUpsert || isRedirecting || isLoadingNonprofitData}
           >
             {getButtonText({
               isLoadingUpsert,

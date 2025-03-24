@@ -85,7 +85,7 @@ export const useNonprofitLink = (): UseNonprofitLinkReturn => {
       const linkPayload = {
         nonprofit_id: nonprofitResponse.id,
         fundraise_id: fundraiseId,
-        note,
+        note: note || '',
       };
 
       const linkResponse = await NonprofitService.linkToFundraise(linkPayload);

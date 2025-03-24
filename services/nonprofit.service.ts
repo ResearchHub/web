@@ -3,6 +3,26 @@ import { ApiClient } from './client';
 import { ID } from '@/types/root';
 import { isFeatureEnabled } from '@/utils/featureFlags';
 
+interface NonprofitDetails {
+  id: string | number;
+  name: string;
+  ein: string;
+  endaoment_org_id: string;
+  base_wallet_address?: string;
+  created_date?: string;
+  updated_date?: string;
+}
+
+interface NonprofitLink {
+  id: string | number;
+  nonprofit: string | number;
+  nonprofit_details: NonprofitDetails;
+  fundraise: string | number;
+  note: string;
+  created_date: string;
+  updated_date: string;
+}
+
 /**
  * Service for interacting with nonprofit organizations API
  */
@@ -66,9 +86,10 @@ export class NonprofitService {
     base_wallet_address?: string;
   }): Promise<NonprofitOrg> {
     this.checkFeatureEnabled();
+    const endpoint = `${this.BASE_PATH}/create/`;
 
     try {
-      const response = await ApiClient.post<NonprofitOrg>(`${this.BASE_PATH}/create/`, params);
+      const response = await ApiClient.post<NonprofitOrg>(endpoint, params);
       return response;
     } catch (error) {
       console.error('Error creating nonprofit organization:', error);
@@ -88,16 +109,37 @@ export class NonprofitService {
     note?: string;
   }): Promise<{ id: ID; nonprofit: NonprofitOrg; fundraise: { id: ID } }> {
     this.checkFeatureEnabled();
+    const endpoint = `${this.BASE_PATH}/link-to-fundraise/`;
 
     try {
       const response = await ApiClient.post<{
         id: ID;
         nonprofit: NonprofitOrg;
         fundraise: { id: ID };
-      }>(`${this.BASE_PATH}/link-to-fundraise/`, params);
+      }>(endpoint, params);
+
       return response;
     } catch (error) {
       console.error('Error linking nonprofit to fundraise:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get nonprofits linked to a fundraise
+   * @param fundraiseId - The ID of the fundraise
+   * @returns A promise that resolves to an array of nonprofit links
+   * @throws Error when the API request fails or when the feature is disabled
+   */
+  static async getNonprofitsByFundraiseId(fundraiseId: ID): Promise<NonprofitLink[]> {
+    this.checkFeatureEnabled();
+    const endpoint = `${this.BASE_PATH}/get-by-fundraise/?fundraise_id=${fundraiseId}`;
+
+    try {
+      const response = await ApiClient.get<NonprofitLink[]>(endpoint);
+      return response;
+    } catch (error) {
+      console.error('Error getting nonprofits by fundraise ID:', error);
       throw error;
     }
   }
