@@ -157,7 +157,7 @@ export function SearchSuggestions({
                   <p className="mt-1 text-sm text-gray-500">{safeGetHeadline()}</p>
                 )}
                 {isTopicSuggestion && (
-                  <p className="mt-1 text-sm text-gray-500">Hub • {safeGetPaperCount()}</p>
+                  <p className="mt-1 text-sm text-gray-500">Topic • {safeGetPaperCount()}</p>
                 )}
                 {isPaperSuggestion && 'doi' in suggestion && suggestion.doi && (
                   <p className="mt-1 text-xs text-gray-400">DOI: {suggestion.doi}</p>
@@ -192,7 +192,7 @@ export function SearchSuggestions({
                   <div className="text-xs text-gray-500">{safeGetHeadline()}</div>
                 )}
                 {isTopicSuggestion && (
-                  <div className="text-xs text-gray-500">Hub • {safeGetPaperCount()}</div>
+                  <div className="text-xs text-gray-500">Topic • {safeGetPaperCount()}</div>
                 )}
               </div>
             </div>

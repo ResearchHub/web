@@ -145,7 +145,7 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
           return {
             entityType: 'hub',
             id: topicData.id,
-            displayName: topicData.name || 'Untitled Topic',
+            displayName: topicData.name || raw.name || raw.display_name || 'Untitled Topic',
             slug: topicData.slug || '',
             source: raw.source || 'api',
             isRecent: false,
@@ -155,6 +155,7 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
             url: buildTopicUrl(topicData.slug),
           };
         } catch (error) {
+          console.error('Error transforming topic:', error, raw);
           // Fallback if topic transformation fails
           return {
             entityType: 'hub',

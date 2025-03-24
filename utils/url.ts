@@ -50,8 +50,8 @@ export const buildAuthorUrl = (id: string | number) => {
 };
 
 /**
- * Builds a hub/topic URL from a slug
+ * Builds a topic URL from a slug
  */
 export const buildTopicUrl = (slug: string) => {
-  return `/hub/${slug}`;
+  return `/topic/${slug}`;
 };

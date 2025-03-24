@@ -59,10 +59,11 @@ export function Search({
       } else if (suggestion.entityType === 'user' || suggestion.entityType === 'author') {
         router.push(`/author/${suggestion.id}`);
       } else if (suggestion.entityType === 'hub') {
+        // Handle topic navigation
         if ('slug' in suggestion && suggestion.slug) {
-          router.push(`/hub/${suggestion.slug}`);
+          router.push(`/topic/${suggestion.slug}`);
         } else {
-          router.push(`/hub/${suggestion.id}`);
+          router.push(`/topic/${suggestion.id}`);
         }
       } else if (suggestion.entityType === 'post') {
         router.push(`/post/${suggestion.id}`);
