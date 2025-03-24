@@ -228,7 +228,7 @@ export const transformAuthorSuggestion = (raw: any): AuthorSuggestion => {
     profileImage: raw.profile_image,
     institutions: Array.isArray(raw.institutions) ? raw.institutions : [],
     education: Array.isArray(raw.education) ? raw.education : [],
-    headline: raw?.headline?.title,
+    headline: raw?.author_profile?.headline?.title,
     reputationHubs: Array.isArray(raw.reputation_hubs) ? raw.reputation_hubs : [],
     userId: raw.user_id,
     createdDate: raw.created_date,

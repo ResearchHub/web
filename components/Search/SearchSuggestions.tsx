@@ -101,9 +101,9 @@ export function SearchSuggestions({
       const safeGetHeadline = () => {
         if (isUserSuggestion && 'authorProfile' in suggestion) {
           const headline = suggestion.authorProfile?.headline;
-          return typeof headline === 'string' ? headline : 'Author';
+          return typeof headline === 'string' ? headline : 'User';
         }
-        return 'Author';
+        return 'User';
       };
 
       const safeGetPaperCount = () => {
@@ -158,7 +158,9 @@ export function SearchSuggestions({
                   </p>
                 )}
                 {isUserSuggestion && (
-                  <p className="mt-1 text-sm text-gray-500">{safeGetHeadline()}</p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {safeGetHeadline()} • {}
+                  </p>
                 )}
                 {isTopicSuggestion && (
                   <div className="flex justify-between items-center">

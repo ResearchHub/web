@@ -95,7 +95,19 @@ export function Search({
           }
         }
       } else if (suggestion.entityType === 'user' || suggestion.entityType === 'author') {
-        router.push(`/author/${suggestion.id}`);
+        // Handle user/author differently based on environment
+        const isProduction = process.env.NODE_ENV === 'production';
+        const url = isProduction
+          ? `https://researchhub.com/author/${suggestion.authorProfile.id}`
+          : `/author/${suggestion.authorProfile.id}`;
+
+        if (isProduction) {
+          // For production, open in a new tab
+          window.open(url, '_blank');
+        } else {
+          // For development, use router
+          router.push(url);
+        }
       } else if (suggestion.entityType === 'hub') {
         // Handle topic navigation
         if ('slug' in suggestion && suggestion.slug) {
