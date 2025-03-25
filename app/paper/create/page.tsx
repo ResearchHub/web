@@ -66,7 +66,7 @@ export default function WorkCreatePage() {
 
   return (
     <PageLayout>
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="pb-12">
           <PageHeader title="Submit your research" className="mb-0" />
