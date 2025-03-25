@@ -15,10 +15,12 @@ import {
 } from '../components/AuthorsAndAffiliations';
 import { HubsSelector, Hub } from '../components/HubsSelector';
 import { DeclarationCheckbox } from '../components/DeclarationCheckbox';
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, BookOpen } from 'lucide-react';
 import { UploadFileResult } from '@/services/file.service';
 import { PaperService, CreatePaperPayload } from '@/services/paper.service';
 import toast from 'react-hot-toast';
+import { Switch } from '@/components/ui/Switch';
+import { AvatarStack } from '@/components/ui/AvatarStack';
 
 // Define the steps of our flow
 const steps: SimpleStep[] = [
@@ -30,16 +32,54 @@ const steps: SimpleStep[] = [
 
 export default function UploadPDFPage() {
   const router = useRouter();
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  // For testing purposes, start at the final preview step
+  const [currentStepIndex, setCurrentStepIndex] = useState(3);
 
   // Form state
-  const [title, setTitle] = useState('');
-  const [abstract, setAbstract] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [authors, setAuthors] = useState<AuthorWithAffiliation[]>([]);
-  const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
+  const [title, setTitle] = useState('Novel Approaches to Quantum Computing');
+  const [abstract, setAbstract] = useState(
+    'This paper presents a novel approach to quantum computing that leverages advanced machine learning algorithms to optimize qubit coherence. We demonstrate a 45% improvement in coherence time compared to traditional methods.'
+  );
+  const [selectedFile, setSelectedFile] = useState<File | null>({
+    name: 'quantum-computing-paper.pdf',
+  } as File);
+  const [authors, setAuthors] = useState<AuthorWithAffiliation[]>([
+    {
+      author: {
+        id: 1,
+        fullName: 'Dr. Jane Smith',
+        institutions: [],
+        reputationHubs: [],
+        education: [],
+      },
+      institution: { id: 1, name: 'Quantum Research Institute' },
+      isCorrespondingAuthor: true,
+      department: 'Quantum Physics',
+      email: 'jane.smith@quantum.edu',
+    },
+    {
+      author: {
+        id: 2,
+        fullName: 'Prof. Alex Johnson',
+        institutions: [],
+        reputationHubs: [],
+        education: [],
+      },
+      institution: { id: 2, name: 'University of Physics' },
+      isCorrespondingAuthor: false,
+      department: 'Computer Science',
+      email: 'alex.johnson@physics.edu',
+    },
+  ]);
+  const [selectedHubs, setSelectedHubs] = useState<Hub[]>([
+    { id: 1, name: 'Quantum Computing' },
+    { id: 2, name: 'Machine Learning' },
+    { id: 3, name: 'Computer Science' },
+  ]);
   const [changeDescription, setChangeDescription] = useState('Initial submission');
-  const [fileUploadResult, setFileUploadResult] = useState<UploadFileResult | null>(null);
+  const [fileUploadResult, setFileUploadResult] = useState<UploadFileResult | null>({
+    absoluteUrl: 'https://storage.researchhub.com/files/quantum-computing-paper.pdf',
+  } as UploadFileResult);
 
   // Declarations
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -52,6 +92,48 @@ export default function UploadPDFPage() {
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Journal submission state
+  const [submitToJournal, setSubmitToJournal] = useState(false);
+
+  // Journal editors avatars
+  const journalEditors = [
+    {
+      src: 'https://www.researchhub.com/static/editorial-board/MaulikDhandha.jpeg',
+      alt: 'Maulik Dhandha',
+      tooltip: 'Maulik Dhandha, Editor',
+    },
+    {
+      src: 'https://www.researchhub.com/static/editorial-board/EmilioMerheb.jpeg',
+      alt: 'Emilio Merheb',
+      tooltip: 'Emilio Merheb, Editor',
+    },
+    {
+      src: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2024/05/07/blob_48esqmw',
+      alt: 'Journal Editor',
+      tooltip: 'Editorial Board Member',
+    },
+    {
+      src: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2025/03/04/blob_pxj9rsH',
+      alt: 'Journal Editor',
+      tooltip: 'Editorial Board Member',
+    },
+    {
+      src: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2024/04/01/blob_Ut50nMY',
+      alt: 'Journal Editor',
+      tooltip: 'Editorial Board Member',
+    },
+    {
+      src: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2024/12/23/blob_oVmwyhP',
+      alt: 'Journal Editor',
+      tooltip: 'Editorial Board Member',
+    },
+    {
+      src: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2023/06/25/blob',
+      alt: 'Journal Editor',
+      tooltip: 'Editorial Board Member',
+    },
+  ];
 
   // Handlers with error clearing
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,6 +217,10 @@ export default function UploadPDFPage() {
       ...errors,
       file: error.message || 'Failed to upload file. Please try again.',
     });
+  };
+
+  const handleSubmitToJournalChange = (checked: boolean) => {
+    setSubmitToJournal(checked);
   };
 
   const validateCurrentStep = () => {
@@ -435,6 +521,98 @@ export default function UploadPDFPage() {
                   rows={3}
                 />
               </div>
+
+              {/* Journal promotion section */}
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <div className="bg-gradient-to-b from-indigo-50/80 to-white p-5 rounded-lg border border-indigo-100">
+                  <div className="flex items-center mb-4">
+                    <BookOpen className="h-6 w-6 text-indigo-900" />
+                    <div className="text-lg font-semibold text-indigo-900 ml-2">
+                      Submit to the RH Journal
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2.5 mb-4">
+                      <div className="flex items-start space-x-2.5">
+                        <Check className="h-4 w-4 text-indigo-900 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm text-gray-700">
+                          Fast turnaround time with editorial review
+                        </span>
+                      </div>
+                      <div className="flex items-start space-x-2.5">
+                        <Check className="h-4 w-4 text-indigo-900 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm text-gray-700">
+                          Paid peer reviewers ensure quality feedback
+                        </span>
+                      </div>
+                      <div className="flex items-start space-x-2.5">
+                        <Check className="h-4 w-4 text-indigo-900 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm text-gray-700">
+                          Open access by default, increasing visibility
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-50 p-3 rounded-md border border-blue-100 flex items-center">
+                      <svg
+                        className="h-4 w-4 text-blue-800 mr-2"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      <p className="text-sm text-blue-800 font-medium">
+                        Limited time offer: Journal submissions are currently free!
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-700 font-medium mb-2">
+                        Join others who choose to publish openly
+                      </p>
+                      <div className="flex flex-col md:flex-row md:items-center gap-2">
+                        <AvatarStack
+                          items={journalEditors}
+                          size="sm"
+                          maxItems={7}
+                          spacing={-4}
+                          showExtraCount={false}
+                          ringColorClass="ring-white"
+                          disableTooltip={true}
+                          className="flex-shrink-0"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                      <Button
+                        className={`sm:flex-1 ${submitToJournal ? 'ring-2 ring-indigo-500 shadow-md' : ''}`}
+                        variant="default"
+                        onClick={() => setSubmitToJournal(true)}
+                      >
+                        {submitToJournal && <Check className="h-4 w-4 mr-2" />}
+                        Publish in RH Journal
+                      </Button>
+                      <Button
+                        className={`sm:flex-1 ${!submitToJournal ? 'ring-2 ring-gray-300 shadow-sm' : ''}`}
+                        variant="outlined"
+                        onClick={() => setSubmitToJournal(false)}
+                      >
+                        {!submitToJournal && <Check className="h-4 w-4 mr-2" />}
+                        No thanks
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -475,7 +653,7 @@ export default function UploadPDFPage() {
               'Submitting...'
             ) : currentStepIndex === steps.length - 1 ? (
               <>
-                Submit
+                {submitToJournal ? 'Submit & Pay' : 'Submit'}
                 <Check className="h-4 w-4 ml-2" />
               </>
             ) : (
