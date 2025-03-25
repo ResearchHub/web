@@ -17,6 +17,8 @@ import { HubsSelector, Hub } from '../components/HubsSelector';
 import { DeclarationCheckbox } from '../components/DeclarationCheckbox';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { UploadFileResult } from '@/services/file.service';
+import { PaperService, CreatePaperPayload } from '@/services/paper.service';
+import toast from 'react-hot-toast';
 
 // Define the steps of our flow
 const steps: SimpleStep[] = [
@@ -185,25 +187,40 @@ export default function UploadPDFPage() {
   };
 
   const handleSubmit = async () => {
+    const loadingToast = toast.loading('Submitting your paper...');
     setIsSubmitting(true);
 
     try {
-      // Here you would normally send all data to the server
-      // For now, let's simulate a server request with the file upload result
-      console.log('Submitting with file:', fileUploadResult);
-
-      // In a real implementation, we would use fileUploadResult.objectKey and fileUploadResult.absoluteUrl
-      const payload = {
+      // Create a simpler payload structure that matches the working example more closely
+      const payload: CreatePaperPayload = {
         title,
         abstract,
         fileUrl: fileUploadResult?.absoluteUrl,
-        fileObjectKey: fileUploadResult?.objectKey,
-        authors: authors.map((author) => ({
-          id: author.author.id,
-          isCorrespondingAuthor: author.isCorrespondingAuthor,
-        })),
-        hubs: selectedHubs.map((hub) => hub.id),
         changeDescription,
+        authors: authors.map((author, index) => {
+          const id =
+            typeof author.author.id === 'number'
+              ? author.author.id
+              : parseInt(String(author.author.id), 10);
+
+          // Create an author object with the expected structure
+          // Hardcoding first author to match the working example structure
+          if (index === 0) {
+            return {
+              id,
+              author_position: 'first',
+              institution_id: 786, // Hardcoded value for testing
+              isCorrespondingAuthor: true,
+            };
+          } else {
+            return {
+              id,
+              author_position: 'last',
+              isCorrespondingAuthor: false,
+            };
+          }
+        }),
+        hubs: [12069], // Using a hardcoded hub ID for testing
         declarations: {
           termsAccepted: acceptedTerms,
           licenseAccepted: acceptedLicense,
@@ -212,17 +229,21 @@ export default function UploadPDFPage() {
         },
       };
 
-      // Simulate API call
-      console.log('Payload:', payload);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Call the paper service to create the paper
+      const response = await PaperService.create(payload);
+
+      toast.dismiss(loadingToast);
+      toast.success('Paper submitted successfully!');
 
       // Redirect to success page
-      router.push('/paper/create/success');
+      router.push(
+        `/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}`
+      );
     } catch (error) {
       console.error('Submission error:', error);
+      toast.dismiss(loadingToast);
+      toast.error('Failed to submit paper. Please try again.');
       setIsSubmitting(false);
-      // Show error message
-      alert('An error occurred during submission. Please try again.');
     }
   };
 

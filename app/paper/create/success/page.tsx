@@ -1,13 +1,30 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { CheckCircle, Home, Eye, Share2, MessageCircle, BarChart2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function SubmissionSuccessPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [paperTitle, setPaperTitle] = useState<string>('');
+  const [paperId, setPaperId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const title = searchParams.get('paperTitle');
+    const id = searchParams.get('paperId');
+
+    if (title) {
+      setPaperTitle(decodeURIComponent(title));
+    }
+
+    if (id) {
+      setPaperId(id);
+    }
+  }, [searchParams]);
 
   return (
     <PageLayout>
@@ -18,6 +35,8 @@ export default function SubmissionSuccessPage() {
           </div>
 
           <PageHeader title="Submission Successful!" className="mb-4" />
+
+          {paperTitle && <h2 className="text-lg font-medium text-gray-800 mb-4">"{paperTitle}"</h2>}
 
           <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
             Your research paper has been successfully submitted to ResearchHub. It is now being
@@ -34,14 +53,16 @@ export default function SubmissionSuccessPage() {
               Go to Dashboard
             </Button>
 
-            <Button
-              onClick={() => router.push('/paper/123')}
-              variant="default"
-              className="w-full sm:w-auto"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              View Your Paper
-            </Button>
+            {paperId && (
+              <Button
+                onClick={() => router.push(`/paper/${paperId}`)}
+                variant="default"
+                className="w-full sm:w-auto"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                View Your Paper
+              </Button>
+            )}
           </div>
 
           <div className="mt-12 pt-8 border-t border-gray-200">
