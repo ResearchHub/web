@@ -6,8 +6,9 @@ import { useSidebar } from '@/contexts/SidebarContext';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
+import { PublishedStatusSection } from './PublishingForm/components/PublishedStatusSection';
 
-export function TopBar() {
+export function TopBarMobile() {
   const { toggleLeftSidebar, toggleRightSidebar } = useSidebar();
   const { currentNote: note, isLoading } = useNotebookContext();
 
@@ -30,36 +31,13 @@ export function TopBar() {
         </Button>
 
         {/* Center content - page title or logo */}
-        <div className="flex-1 text-center">
-          {isLoading ? (
-            <div className="inline-flex items-center h-5 w-16 bg-gray-100 animate-pulse rounded-full" />
-          ) : note ? (
-            isPublished ? (
-              <Badge variant="success" size="sm">
-                <span className="mr-1 text-sm">Published</span>
-                {note.post?.contentType === 'preregistration' && note.post?.slug && (
-                  <Link
-                    href={`/fund/${note.post.id}/${note.post.slug}`}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                    target="_blank"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </Link>
-                )}
-              </Badge>
-            ) : (
-              <Badge variant="default" size="sm">
-                Draft
-              </Badge>
-            )
-          ) : null}
-        </div>
+        <PublishedStatusSection />
 
         {/* Right sidebar toggle button */}
         {note && (
           <Button
             onClick={toggleRightSidebar}
-            className="p-2 rounded-md hover:bg-gray-100"
+            className="p-2 rounded-md"
             aria-label="Toggle right sidebar"
             variant="default"
             size="sm"
