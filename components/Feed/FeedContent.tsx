@@ -1,15 +1,13 @@
 'use client';
 
-import { FC, ReactNode, useEffect, useState } from 'react';
+import { FC, ReactNode } from 'react';
 import { FeedItemSkeleton } from './FeedItemSkeleton';
-import { BountyCard, SolutionViewEvent } from '@/components/Bounty/BountyCard';
-import { PaperCard, PaperViewEvent } from '@/components/Paper/PaperCard';
-import { Bounty } from '@/types/bounty';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { FeedService } from '@/services/feed.service';
-import { FeedEntry } from '@/types/feed';
-import { Work, WorkType } from '@/types/work';
+import { FeedEntry, FeedPostContent, FeedPaperContent, FeedBountyContent } from '@/types/feed';
+import { Comment } from '@/types/comment';
+import { FeedItemFundraise } from './items/FeedItemFundraise';
+import { FeedItemPaper } from './items/FeedItemPaper';
+import { FeedItemBounty } from './items/FeedItemBounty';
+import { FeedItemComment } from './items/FeedItemComment';
 
 interface FeedContentProps {
   entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry
@@ -17,186 +15,9 @@ interface FeedContentProps {
   hasMore: boolean;
   loadMore: () => void;
   header?: ReactNode;
-  tabs: ReactNode;
+  tabs?: ReactNode;
+  disableCardLinks?: boolean; // Optional prop to disable all card links
 }
-
-// Create a test bounty for debugging
-const createTestBounty = (): Bounty => {
-  return {
-    id: 999,
-    amount: '100',
-    status: 'OPEN',
-    expirationDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    bountyType: 'REVIEW',
-    createdBy: {
-      id: 1,
-      email: 'test@example.com',
-      firstName: 'Test',
-      lastName: 'User',
-      fullName: 'Test User',
-      isVerified: true,
-      balance: 0,
-      authorProfile: {
-        id: 1,
-        fullName: 'Test User',
-        profileImage: '', // Empty string instead of null
-        headline: 'Test User',
-        profileUrl: '/profile/1',
-        user: {
-          id: 1,
-          email: 'test@example.com',
-          firstName: 'Test',
-          lastName: 'User',
-          fullName: 'Test User',
-          isVerified: true,
-          balance: 0,
-        },
-      },
-    },
-    solutions: [],
-    contributions: [],
-    totalAmount: '100',
-    raw: {
-      id: 999,
-      amount: 100,
-      bounty_type: 'REVIEW',
-      document_type: 'PAPER',
-      expiration_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'OPEN',
-      created_date: new Date().toISOString(),
-      action_date: new Date().toISOString(),
-      author: {
-        id: 1,
-        first_name: 'Test',
-        last_name: 'User',
-        profile_image: '', // Empty string instead of null
-        headline: 'Test User',
-        user: {
-          id: 1,
-          first_name: 'Test',
-          last_name: 'User',
-          email: 'test@example.com',
-          is_verified: true,
-        },
-      },
-      hub: {
-        name: 'Test Hub',
-        slug: 'test-hub',
-      },
-    },
-  };
-};
-
-// Create a test paper for debugging
-const createTestPaper = (): Work => {
-  return {
-    id: 888,
-    type: 'paper' as WorkType,
-    contentType: 'paper',
-    title: 'Test Paper: Advances in AI Research',
-    slug: 'test-paper-advances-in-ai-research',
-    createdDate: new Date().toISOString(),
-    publishedDate: new Date().toISOString(),
-    authors: [
-      {
-        authorProfile: {
-          id: 1,
-          fullName: 'Jane Smith',
-          profileImage: '',
-          headline: 'AI Researcher',
-          profileUrl: '/profile/1',
-          user: {
-            id: 1,
-            email: 'jane@example.com',
-            firstName: 'Jane',
-            lastName: 'Smith',
-            fullName: 'Jane Smith',
-            isVerified: true,
-            balance: 0,
-          },
-        },
-        isCorresponding: true,
-        position: 'first',
-      },
-      {
-        authorProfile: {
-          id: 2,
-          fullName: 'John Doe',
-          profileImage: '',
-          headline: 'Data Scientist',
-          profileUrl: '/profile/2',
-          user: {
-            id: 2,
-            email: 'john@example.com',
-            firstName: 'John',
-            lastName: 'Doe',
-            fullName: 'John Doe',
-            isVerified: false,
-            balance: 0,
-          },
-        },
-        isCorresponding: false,
-        position: 'middle',
-      },
-      {
-        authorProfile: {
-          id: 3,
-          fullName: 'Alice Johnson',
-          profileImage: '',
-          headline: 'Professor',
-          profileUrl: '/profile/3',
-          user: {
-            id: 3,
-            email: 'alice@example.com',
-            firstName: 'Alice',
-            lastName: 'Johnson',
-            fullName: 'Alice Johnson',
-            isVerified: true,
-            balance: 0,
-          },
-        },
-        isCorresponding: false,
-        position: 'last',
-      },
-    ],
-    abstract:
-      'This is a test paper abstract that discusses recent advances in artificial intelligence research. The paper explores various machine learning techniques and their applications in real-world scenarios. It also addresses ethical considerations and future directions for AI development.',
-    doi: '10.1234/test.2023.001',
-    journal: {
-      id: 1,
-      name: 'Journal of AI Research',
-      imageUrl: '',
-      slug: 'journal-of-ai-research',
-    },
-    topics: [
-      {
-        id: 1,
-        name: 'Artificial Intelligence',
-        slug: 'ai',
-      },
-      {
-        id: 2,
-        name: 'Machine Learning',
-        slug: 'machine-learning',
-      },
-    ],
-    formats: [
-      {
-        type: 'pdf',
-        url: '/test-paper.pdf',
-      },
-    ],
-    figures: [],
-    versions: [],
-    metrics: {
-      views: 100,
-      votes: 25,
-      comments: 10,
-      saves: 15,
-    },
-    unifiedDocumentId: 123,
-  };
-};
 
 export const FeedContent: FC<FeedContentProps> = ({
   entries,
@@ -205,9 +26,48 @@ export const FeedContent: FC<FeedContentProps> = ({
   loadMore,
   header,
   tabs,
+  disableCardLinks = false,
 }) => {
-  const router = useRouter();
-  const { data: session } = useSession();
+  // Generate appropriate href for each feed item type
+  const generateHref = (entry: FeedEntry): string | undefined => {
+    // If links are disabled globally, return undefined
+    if (disableCardLinks) {
+      return undefined;
+    }
+
+    try {
+      switch (entry.contentType) {
+        case 'POST':
+          const postContent = entry.content as FeedPostContent;
+          return `/post/${postContent.id}/${postContent.slug}`;
+        case 'PREREGISTRATION':
+          const fundContent = entry.content as FeedPostContent;
+          return `/fund/${fundContent.id}/${fundContent.slug}`;
+        case 'PAPER':
+          const paperContent = entry.content as FeedPaperContent;
+          return `/paper/${paperContent.id}/${paperContent.slug}`;
+
+        case 'BOUNTY':
+          const bountyContent = entry.content as FeedBountyContent;
+          return `/bounty/${bountyContent.bounty.id}`;
+
+        case 'COMMENT':
+          const comment = entry.content as Comment;
+          // For comments, we might want to link to the parent content with the comment ID as a hash
+          if (entry.relatedWork?.contentType === 'paper') {
+            return `/paper/${entry.relatedWork.id}/${entry.relatedWork.slug}#comment-${comment.id}`;
+          } else {
+            return `/post/${entry?.relatedWork?.id}/${entry?.relatedWork?.slug}#comment-${comment.id}`;
+          }
+
+        default:
+          return undefined;
+      }
+    } catch (error) {
+      console.error('Error generating href for entry:', error, entry);
+      return undefined;
+    }
+  };
 
   // Render a feed entry based on its content type
   const renderFeedEntry = (entry: FeedEntry, isFirst: boolean) => {
@@ -215,150 +75,58 @@ export const FeedContent: FC<FeedContentProps> = ({
       console.error('Feed entry is undefined');
       return null;
     }
-
-    console.log('entry', entry);
-
     // Apply appropriate spacing based on position
-    const spacingClass = !isFirst ? 'mt-6' : '';
+    const spacingClass = !isFirst ? 'mt-12' : '';
 
+    // Generate the appropriate href for this entry
+    const href = generateHref(entry);
+    console.log('&entry!!', entry);
     try {
-      // Check if this is a bounty (has bountyType property) or a work
-      const isBounty = 'bountyType' in entry.content;
+      // Use the contentType field on the FeedEntry object to determine the type of content
+      switch (entry.contentType) {
+        case 'POST':
+        case 'PREREGISTRATION':
+          return (
+            <div key={entry.id} className={spacingClass}>
+              <FeedItemFundraise entry={entry} href={href} />
+            </div>
+          );
 
-      if (isBounty) {
-        // For bounties, we need to use the raw data to create a Bounty object
-        // that's compatible with the BountyCard component
-        if (!entry.raw) {
-          throw new Error('Raw bounty data is missing');
-        }
+        case 'PAPER':
+          return (
+            <div key={entry.id} className={spacingClass}>
+              <FeedItemPaper entry={entry} href={href} />
+            </div>
+          );
 
-        const bounty = FeedService.transformRawBounty(entry.raw);
+        case 'BOUNTY':
+          // Use the new FeedItemBounty component
+          return (
+            <div key={entry.id} className={spacingClass}>
+              <FeedItemBounty
+                entry={entry}
+                relatedDocumentId={entry.relatedWork?.id}
+                href={href}
+                showContributeButton={false}
+              />
+            </div>
+          );
 
-        // Generate a slug for the bounty
-        let slug = `bounty/${bounty.id}`;
+        case 'COMMENT':
+          // Use FeedItemComment for comment entries
+          return (
+            <div key={entry.id} className={spacingClass}>
+              <FeedItemComment
+                showReadMoreCTA={false}
+                entry={entry}
+                href={href}
+                showCreatorActions={true}
+              />
+            </div>
+          );
 
-        // If the bounty is associated with a paper, include the paper slug
-        const bountyContent = entry.content as { paper?: Work };
-        if (bountyContent.paper?.slug) {
-          slug = `papers/${bountyContent.paper.slug}/bounty/${bounty.id}`;
-        }
-
-        // Handle viewing a solution
-        const handleViewSolution = (event: SolutionViewEvent) => {
-          router.push(`/${slug}/solutions/${event.solutionId}`);
-        };
-
-        // Handle navigation to different tabs
-        const handleNavigationClick = (tab: 'reviews' | 'conversation') => {
-          router.push(`/${slug}?tab=${tab}`);
-        };
-
-        // Check if the current user is the author
-        const isAuthor = session?.userId === entry.raw.author?.user?.id;
-
-        return (
-          <div key={entry.id} className={spacingClass}>
-            <BountyCard
-              bounty={bounty}
-              relatedWork={entry.relatedWork}
-              slug={slug}
-              isCreator={isAuthor}
-              onViewSolution={handleViewSolution}
-              onNavigationClick={handleNavigationClick}
-              onUpvote={(id) => console.log('Upvote bounty:', id)}
-              onReply={(id) => router.push(`/${slug}?reply=true`)}
-              onShare={(id) => console.log('Share bounty:', id)}
-              showFooter={true}
-              showActions={true}
-            />
-          </div>
-        );
-      } else {
-        // This is a Work
-        const work = entry.content as Work;
-
-        // Render based on the work's contentType
-        switch (work.contentType) {
-          case 'paper':
-            // Handle viewing a paper
-            const handleViewPaper = (event: PaperViewEvent) => {
-              router.push(`/paper/${event.paperId}/${work.slug || 'details'}`);
-            };
-
-            // Check if the current user is the author
-            const isAuthor = session?.userId === work.authors?.[0]?.authorProfile?.user?.id;
-
-            return (
-              <div key={entry.id} className={spacingClass}>
-                <PaperCard
-                  paper={work}
-                  slug={work.slug}
-                  isCreator={isAuthor}
-                  onViewPaper={handleViewPaper}
-                  onUpvote={(id) => console.log('Upvote paper:', id)}
-                  onComment={(id) =>
-                    router.push(`/paper/${id}/${work.slug || 'details'}?tab=conversation`)
-                  }
-                  onShare={(id) => console.log('Share paper:', id)}
-                  onAddToLibrary={(id) => console.log('Add paper to library:', id)}
-                  showFooter={true}
-                  showActions={true}
-                />
-              </div>
-            );
-
-          case 'post':
-          case 'question':
-          case 'discussion':
-            return (
-              <div key={entry.id} className={spacingClass}>
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                  <div className="flex items-center">
-                    <div className="h-10 w-10 rounded-full bg-gray-200 overflow-hidden">
-                      {work.authors[0]?.authorProfile.profileImage && (
-                        <img
-                          src={work.authors[0].authorProfile.profileImage}
-                          alt={work.authors[0].authorProfile.fullName}
-                          className="h-full w-full object-cover"
-                        />
-                      )}
-                    </div>
-                    <div className="ml-3">
-                      <p className="font-medium">
-                        {work.authors[0]?.authorProfile.fullName || 'Unknown User'}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {new Date(work.publishedDate).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-medium mt-3">{work.title}</h3>
-                  <p className="text-gray-600 mt-2">{work.previewContent || work.abstract}</p>
-                </div>
-              </div>
-            );
-
-          default:
-            // For unsupported work types, we'll render a placeholder
-            return (
-              <div key={entry.id} className={spacingClass}>
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                  <h3 className="text-lg font-medium">Unknown work type: {work.contentType}</h3>
-                  <p className="text-gray-600 mt-2">
-                    This content type is not yet supported in the feed.
-                  </p>
-                  {isBounty && (
-                    <div className="mt-4">
-                      <h4 className="font-medium">Data:</h4>
-                      <pre className="text-xs mt-2 bg-gray-100 p-2 rounded overflow-auto">
-                        {JSON.stringify(entry, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-        }
+        default:
+          throw new Error(`Unsupported content type: ${entry.contentType}`);
       }
     } catch (error) {
       console.error('Error rendering feed entry:', error);
@@ -376,36 +144,19 @@ export const FeedContent: FC<FeedContentProps> = ({
     }
   };
 
-  // Create a test bounty for debugging
-  const testBounty = createTestBounty();
-
-  // Handle test bounty actions
-  const handleTestViewSolution = (event: SolutionViewEvent) => {
-    console.log('View solution:', event);
-  };
-
-  const handleTestNavigationClick = (tab: 'reviews' | 'conversation') => {
-    console.log('Navigate to tab:', tab);
-  };
-
-  // Handle test paper actions
-  const handleTestViewPaper = (event: PaperViewEvent) => {
-    console.log('View paper:', event);
-  };
-
   return (
     <>
       {header && <div className="pt-4 pb-7">{header}</div>}
 
       <div className="max-w-4xl mx-auto">
-        {tabs}
+        {tabs && <div className="border-b">{tabs}</div>}
 
-        <div className="mt-4">
+        <div className="mt-12">
           {isLoading ? (
             // Show skeletons when loading
             <>
               {[...Array(3)].map((_, index) => (
-                <div key={`skeleton-${index}`} className={index > 0 ? 'mt-6' : ''}>
+                <div key={`skeleton-${index}`} className={index > 0 ? 'mt-12' : ''}>
                   <FeedItemSkeleton />
                 </div>
               ))}

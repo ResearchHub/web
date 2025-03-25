@@ -12,12 +12,14 @@ export class FeedService {
     pageSize?: number;
     feedView?: string;
     hubSlug?: string;
+    contentType?: string;
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.pageSize) queryParams.append('page_size', params.pageSize.toString());
     if (params?.feedView) queryParams.append('feed_view', params.feedView);
     if (params?.hubSlug) queryParams.append('hub_slug', params.hubSlug);
+    if (params?.contentType) queryParams.append('content_type', params.contentType);
 
     const url = `${this.BASE_PATH}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     console.log(`Fetching feed from URL: ${url}`);
@@ -29,8 +31,22 @@ export class FeedService {
       console.log('Raw feed response:', response);
 
       // Transform the raw entries into FeedEntry objects
-      const transformedEntries = response.results.map(transformFeedEntry);
-      console.log(`Transformed ${transformedEntries.length} feed entries`);
+      const transformedEntries = response.results
+        .map((entry) => {
+          try {
+            return transformFeedEntry(entry);
+          } catch (error) {
+            console.error('Error transforming feed entry:', error, entry);
+            return null;
+          }
+        })
+        .filter((entry): entry is FeedEntry => {
+          // Remove null entries
+          if (!entry) return false;
+
+          // Keep all entries (no filtering by content type)
+          return true;
+        });
 
       // Return the transformed entries
       return {

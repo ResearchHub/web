@@ -17,8 +17,8 @@ import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { ClaimModal } from '@/components/modals/ClaimModal';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
-import { useVote } from '@/hooks/useReaction';
-import { useUserVotes } from '@/hooks/useReaction';
+import { useVote } from '@/hooks/useVote';
+import { useUserVotes } from '@/hooks/useUserVotes';
 import toast from 'react-hot-toast';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
@@ -34,7 +34,10 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
-  const [{ isLoading: isVoting }, vote] = useVote();
+  const { vote, isVoting } = useVote({
+    votableEntityId: work.id,
+    feedContentType: work.contentType === 'paper' ? 'PAPER' : 'POST',
+  });
   const [voteCount, setVoteCount] = useState(work.metrics.votes);
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
   const router = useRouter();
@@ -58,19 +61,25 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
     const wasUpvoted = isUpvoted;
 
     try {
-      await vote({
-        documentType: work.contentType === 'paper' ? 'paper' : 'researchhubpost',
-        documentId: work.id,
-        voteType: wasUpvoted ? 'neutralvote' : 'upvote',
-      });
+      await vote(wasUpvoted ? 'NEUTRAL' : 'UPVOTE');
 
       setVoteCount((prevCount) => (wasUpvoted ? prevCount - 1 : prevCount + 1));
 
       await refreshVotes();
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Unable to process your vote. Please try again.'
-      );
+    } catch (error: any) {
+      // Check if it's a 403 error or contains the specific error message
+      if (
+        error?.status === 403 ||
+        (error?.response && error?.response?.status === 403) ||
+        (typeof error === 'object' && error?.detail === 'Can not vote on own content')
+      ) {
+        toast.error('Cannot vote on your own content');
+      } else {
+        // For other errors, show a generic message
+        toast.error(
+          error instanceof Error ? error.message : 'Unable to process your vote. Please try again.'
+        );
+      }
     }
   }, [work.contentType, work.id, isUpvoted, vote, refreshVotes]);
 
@@ -110,11 +119,6 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
           >
             <Bookmark className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
             <span>{isSaved ? 'Saved' : 'Save'}</span>
-          </button>
-
-          <button className="flex items-center space-x-2 px-4 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100">
-            <Coins className="h-4 w-4" />
-            <span>Tip RSC</span>
           </button>
 
           {/* More Actions Dropdown */}

@@ -39,6 +39,7 @@ export enum CommentActionType {
   FETCH_COMMENTS_START = 'FETCH_COMMENTS_START',
   FETCH_COMMENTS_SUCCESS = 'FETCH_COMMENTS_SUCCESS',
   FETCH_COMMENTS_FAILURE = 'FETCH_COMMENTS_FAILURE',
+  FETCH_MORE_COMMENTS_START = 'FETCH_MORE_COMMENTS_START',
   FETCH_MORE_COMMENTS_SUCCESS = 'FETCH_MORE_COMMENTS_SUCCESS',
   REFRESH = 'REFRESH',
   LOAD_MORE = 'LOAD_MORE',
@@ -56,8 +57,6 @@ export enum CommentActionType {
   UPDATE_COMMENT_SUCCESS = 'UPDATE_COMMENT_SUCCESS',
   DELETE_COMMENT_START = 'DELETE_COMMENT_START',
   DELETE_COMMENT_SUCCESS = 'DELETE_COMMENT_SUCCESS',
-  VOTE_COMMENT_START = 'VOTE_COMMENT_START',
-  VOTE_COMMENT_SUCCESS = 'VOTE_COMMENT_SUCCESS',
 }
 
 // Define action interfaces
@@ -171,6 +170,10 @@ interface FetchCommentsFailureAction {
   };
 }
 
+interface FetchMoreCommentsStartAction {
+  type: CommentActionType.FETCH_MORE_COMMENTS_START;
+}
+
 interface FetchMoreCommentsSuccessAction {
   type: CommentActionType.FETCH_MORE_COMMENTS_SUCCESS;
   payload: {
@@ -272,17 +275,6 @@ interface DeleteCommentSuccessAction {
   };
 }
 
-interface VoteCommentStartAction {
-  type: CommentActionType.VOTE_COMMENT_START;
-}
-
-interface VoteCommentSuccessAction {
-  type: CommentActionType.VOTE_COMMENT_SUCCESS;
-  payload: {
-    comment: Comment;
-  };
-}
-
 // Union type for all actions
 export type CommentAction =
   | SetCommentsAction
@@ -305,6 +297,7 @@ export type CommentAction =
   | FetchCommentsStartAction
   | FetchCommentsSuccessAction
   | FetchCommentsFailureAction
+  | FetchMoreCommentsStartAction
   | FetchMoreCommentsSuccessAction
   | RefreshAction
   | LoadMoreAction
@@ -321,9 +314,7 @@ export type CommentAction =
   | UpdateCommentStartAction
   | UpdateCommentSuccessAction
   | DeleteCommentStartAction
-  | DeleteCommentSuccessAction
-  | VoteCommentStartAction
-  | VoteCommentSuccessAction;
+  | DeleteCommentSuccessAction;
 
 // Initial state
 export const initialCommentState: CommentState = {
@@ -456,6 +447,12 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
         loading: false,
         error: action.payload.error,
       };
+    case CommentActionType.FETCH_MORE_COMMENTS_START:
+      return {
+        ...state,
+        loading: false,
+        error: null,
+      };
     case CommentActionType.FETCH_MORE_COMMENTS_SUCCESS:
       return {
         ...state,
@@ -475,7 +472,7 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
       return {
         ...state,
         page: action.payload.page,
-        loading: true,
+        loading: false,
         error: null,
       };
     case CommentActionType.FORCE_REFRESH:
@@ -501,7 +498,7 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
     case CommentActionType.LOAD_MORE_REPLIES_START:
       return {
         ...state,
-        loading: true,
+        loading: false,
         error: null,
       };
     case CommentActionType.LOAD_MORE_REPLIES_SUCCESS:
@@ -524,7 +521,7 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
     case CommentActionType.CREATE_COMMENT_START:
       return {
         ...state,
-        loading: true,
+        loading: false,
         error: null,
       };
     case CommentActionType.CREATE_COMMENT_SUCCESS:
@@ -538,7 +535,7 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
     case CommentActionType.CREATE_REPLY_START:
       return {
         ...state,
-        loading: true,
+        loading: false,
         error: null,
       };
     case CommentActionType.CREATE_REPLY_SUCCESS:
@@ -572,23 +569,6 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
         ...state,
         comments: state.comments.filter((comment) => comment.id !== action.payload.comment.id),
         count: state.count - 1,
-        loading: false,
-        error: null,
-      };
-    case CommentActionType.VOTE_COMMENT_START:
-      return {
-        ...state,
-        loading: true,
-        error: null,
-      };
-    case CommentActionType.VOTE_COMMENT_SUCCESS:
-      return {
-        ...state,
-        comments: updateCommentVoteInList(
-          state.comments,
-          action.payload.comment.id,
-          action.payload.comment
-        ),
         loading: false,
         error: null,
       };

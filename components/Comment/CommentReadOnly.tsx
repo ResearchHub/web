@@ -1,3 +1,5 @@
+'use client';
+
 import { ContentFormat, Comment } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import 'highlight.js/styles/atom-one-dark.css';
@@ -15,6 +17,9 @@ interface CommentReadOnlyProps {
   contentFormat?: ContentFormat;
   contentType?: ContentType;
   debug?: boolean;
+  maxLength?: number;
+  initiallyExpanded?: boolean;
+  showReadMoreButton?: boolean;
 }
 
 // Simple read-only stars component for displaying review score
@@ -53,8 +58,11 @@ export const CommentReadOnly = ({
   contentFormat = 'TIPTAP',
   contentType,
   debug = false,
+  maxLength = 300,
+  initiallyExpanded = false,
+  showReadMoreButton = true,
 }: CommentReadOnlyProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
 
   if (debug) {
     console.log('Original content in CommentReadOnly:', content);
@@ -67,13 +75,16 @@ export const CommentReadOnly = ({
     console.log('Parsed content in CommentReadOnly:', parsedContent);
   }
 
-  // Extract text for debugging
+  // Extract text for debugging and length calculation
   const textContent =
     contentFormat === 'TIPTAP'
       ? extractTextFromTipTap(parsedContent)
       : typeof content === 'string'
         ? content
         : JSON.stringify(content);
+
+  // Check if content is long enough to truncate
+  const shouldTruncate = textContent.length > maxLength;
 
   const getFormattedContent = () => {
     if (!parsedContent) {
@@ -108,6 +119,8 @@ export const CommentReadOnly = ({
               renderSectionHeader={(props) => (
                 <ReviewSectionHeader key={`section-${props.title}`} {...props} />
               )}
+              truncate={!isExpanded && shouldTruncate}
+              maxLength={maxLength}
             />,
           ];
         } catch (error) {
@@ -118,7 +131,12 @@ export const CommentReadOnly = ({
       }
       default:
         if (debug) console.log('Using default content rendering');
-        renderedContent = [<p key="default">{String(content)}</p>];
+        // For plain text, handle truncation directly
+        let displayContent = String(content);
+        if (!isExpanded && shouldTruncate) {
+          displayContent = displayContent.substring(0, maxLength) + '...';
+        }
+        renderedContent = [<p key="default">{displayContent}</p>];
     }
 
     if (renderedContent.length === 0) {
@@ -126,30 +144,23 @@ export const CommentReadOnly = ({
       return null;
     }
 
-    const truncatedContent = truncateContent(renderedContent);
-    const shouldShowReadMore =
-      renderedContent.length > truncatedContent.length ||
-      (renderedContent[0] &&
-        React.isValidElement(renderedContent[0]) &&
-        renderedContent[0].props.children?.toString().length > 200);
-
-    if (shouldShowReadMore && !isExpanded) {
-      return (
-        <div>
-          {truncatedContent}
+    // Only show the Read more button if content should be truncated and showReadMoreButton is true
+    return (
+      <>
+        {renderedContent}
+        {shouldTruncate && showReadMoreButton && (
           <Button
             variant="ghost"
             size="sm"
             className="mt-2 text-blue-600"
-            onClick={() => setIsExpanded(true)}
+            onClick={() => setIsExpanded(!isExpanded)}
           >
-            Read more <ChevronDown className="ml-1 h-4 w-4" />
+            {isExpanded ? 'Show less' : 'Read more'}{' '}
+            <ChevronDown className={`ml-1 h-4 w-4 ${isExpanded ? 'rotate-180' : ''}`} />
           </Button>
-        </div>
-      );
-    }
-
-    return renderedContent;
+        )}
+      </>
+    );
   };
 
   return <div className="comment-content prose prose-sm max-w-none">{getFormattedContent()}</div>;

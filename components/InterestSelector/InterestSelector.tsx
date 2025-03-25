@@ -1,40 +1,33 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
-import { BookOpen, Users, Hash, Save } from 'lucide-react';
+import { BookOpen, Hash, Save } from 'lucide-react';
 import { InterestSkeleton } from '@/components/skeletons/InterestSkeleton';
 import { InterestCard } from './InterestCard';
 import { HubService } from '@/services/hub.service';
-import { AuthorService } from '@/services/author.service';
+import { Topic } from '@/types/topic';
 import { toast } from 'react-hot-toast';
 
-export interface Interest {
-  id: number;
-  name: string;
-  type: 'journal' | 'person' | 'topic';
-  imageUrl?: string;
-  description?: string;
-}
+type TopicType = 'journal' | 'topic';
+
+const interestTypes = [
+  { id: 'journal' as TopicType, label: 'Journals', icon: BookOpen },
+  { id: 'topic' as TopicType, label: 'Topics', icon: Hash },
+] as const;
 
 interface InterestSelectorProps {
   mode: 'onboarding' | 'preferences';
   onSaveComplete?: () => void;
 }
 
-const interestTypes = [
-  { id: 'journal', label: 'Journals', icon: BookOpen },
-  { id: 'topic', label: 'Topics', icon: Hash },
-] as const;
-
 export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps) {
-  const [activeType, setActiveType] = useState<'journal' | 'person' | 'topic'>('journal');
+  const [activeType, setActiveType] = useState<TopicType>('journal');
   const [isLoading, setIsLoading] = useState(true);
-  const [interests, setInterests] = useState<Interest[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
   const [followedIds, setFollowedIds] = useState<number[]>([]);
   const [pendingChangesByType, setPendingChangesByType] = useState<
-    Record<string, Map<number, boolean>>
+    Record<TopicType, Map<number, boolean>>
   >({
     journal: new Map(),
-    person: new Map(),
     topic: new Map(),
   });
   const [isSaving, setIsSaving] = useState(false);
@@ -43,43 +36,17 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
 
   const descriptions = {
     journal: 'Select journals to stay updated with the latest research in your field',
-    person: 'Follow leading researchers and stay updated with their work',
     topic: "Choose topics you're interested in to get personalized recommendations",
   };
 
-  const fetchInterests = async (type: 'journal' | 'person' | 'topic'): Promise<Interest[]> => {
+  const fetchTopics = async (type: TopicType): Promise<Topic[]> => {
     try {
       if (type === 'journal') {
-        const journals = await HubService.getHubs({ namespace: 'journal' });
-        return journals.map((journal) => ({
-          id: journal.id,
-          name: journal.name,
-          type: 'journal',
-          imageUrl: journal.imageUrl,
-          description: journal.description,
-        }));
+        return await HubService.getHubs({ namespace: 'journal' });
       }
 
       if (type === 'topic') {
-        const hubs = await HubService.getHubs({ excludeJournals: true });
-        return hubs.map((hub) => ({
-          id: hub.id,
-          name: hub.name,
-          type: 'topic',
-          imageUrl: hub.imageUrl,
-          description: hub.description,
-        }));
-      }
-
-      if (type === 'person') {
-        const authors = await AuthorService.getAuthors();
-        return authors.map((author) => ({
-          id: author.id,
-          name: author.name,
-          type: 'person',
-          imageUrl: author.imageUrl,
-          description: author.description,
-        }));
+        return await HubService.getHubs({ excludeJournals: true });
       }
 
       return [];
@@ -90,40 +57,38 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
   };
 
   useEffect(() => {
-    const loadInterests = async () => {
+    const loadTopics = async () => {
       setIsLoading(true);
       try {
         const [data, followedItems] = await Promise.all([
-          fetchInterests(activeType),
-          activeType === 'person'
-            ? AuthorService.getFollowedAuthors()
-            : HubService.getFollowedHubs(),
+          fetchTopics(activeType),
+          HubService.getFollowedHubs(),
         ]);
-        setInterests(data);
+        setTopics(data);
         setFollowedIds(followedItems);
       } catch (error) {
-        console.error('Error loading interests:', error);
-        setInterests([]);
+        console.error('Error loading topics:', error);
+        setTopics([]);
         setFollowedIds([]);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadInterests();
+    loadTopics();
   }, [activeType]);
 
-  const handleTypeChange = (type: typeof activeType) => {
+  const handleTypeChange = (type: TopicType) => {
     setActiveType(type);
   };
 
-  const handleFollowToggle = (interestId: number, isFollowing: boolean) => {
+  const handleFollowToggle = (topicId: number, isFollowing: boolean) => {
     setPendingChangesByType((prev) => {
       const newChanges = new Map(prev[activeType] || new Map());
-      if (newChanges.has(interestId)) {
-        newChanges.delete(interestId);
+      if (newChanges.has(topicId)) {
+        newChanges.delete(topicId);
       } else {
-        newChanges.set(interestId, !isFollowing);
+        newChanges.set(topicId, !isFollowing);
       }
       return {
         ...prev,
@@ -134,9 +99,9 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
     setFollowedIds((prev) => {
       const newFollowedIds = new Set(prev);
       if (isFollowing) {
-        newFollowedIds.delete(interestId);
+        newFollowedIds.delete(topicId);
       } else {
-        newFollowedIds.add(interestId);
+        newFollowedIds.add(topicId);
       }
       return Array.from(newFollowedIds);
     });
@@ -148,23 +113,14 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
 
     try {
       const allPromises = Object.entries(pendingChangesByType).flatMap(([type, changes]) => {
-        return Array.from(changes.entries()).map(([interestId, shouldFollow]) => {
-          if (type === 'person') {
-            return shouldFollow
-              ? AuthorService.followAuthor(interestId)
-              : AuthorService.unfollowAuthor(interestId);
-          } else {
-            return shouldFollow
-              ? HubService.followHub(interestId)
-              : HubService.unfollowHub(interestId);
-          }
+        return Array.from(changes.entries()).map(([topicId, shouldFollow]) => {
+          return shouldFollow ? HubService.followHub(topicId) : HubService.unfollowHub(topicId);
         });
       });
 
       await Promise.all(allPromises);
       setPendingChangesByType({
         journal: new Map(),
-        person: new Map(),
         topic: new Map(),
       });
       toast.success('Changes saved successfully');
@@ -205,7 +161,7 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
           })}
         </div>
 
-        {/* Interest grid */}
+        {/* Topic grid */}
         <div>
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -214,8 +170,8 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
               ))}
             </div>
           ) : (
-            <InterestGrid
-              interests={interests}
+            <TopicGrid
+              topics={topics}
               followedIds={followedIds}
               onFollowToggle={handleFollowToggle}
             />
@@ -243,17 +199,17 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
   );
 }
 
-interface InterestGridProps {
-  interests: Interest[];
+interface TopicGridProps {
+  topics: Topic[];
   followedIds: number[];
-  onFollowToggle: (interestId: number, isFollowing: boolean) => void;
+  onFollowToggle: (topicId: number, isFollowing: boolean) => void;
 }
 
-function InterestGrid({ interests, followedIds, onFollowToggle }: InterestGridProps) {
+function TopicGrid({ topics, followedIds, onFollowToggle }: TopicGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredInterests = interests.filter((interest) =>
-    interest.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTopics = topics.filter((topic) =>
+    topic.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
   return (
     <div>
@@ -270,11 +226,11 @@ function InterestGrid({ interests, followedIds, onFollowToggle }: InterestGridPr
 
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredInterests.map((interest) => (
+        {filteredTopics.map((topic) => (
           <InterestCard
-            key={interest.id}
-            interest={interest}
-            isFollowing={followedIds.includes(Number(interest.id))}
+            key={topic.id}
+            topic={topic}
+            isFollowing={followedIds.includes(Number(topic.id))}
             onFollowToggle={onFollowToggle}
           />
         ))}

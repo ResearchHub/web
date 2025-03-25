@@ -38,22 +38,68 @@ export interface Bounty {
   raw: any;
 }
 
-export const transformSolution = (raw: any): BountySolution => ({
-  id: raw.id,
-  contentType: raw.content_type,
-  objectId: raw.object_id,
-  createdBy: transformUser(raw.created_by),
-  status: raw.status,
-  awardedAmount: raw.awarded_amount,
-});
+export const transformSolution = (raw: any): BountySolution => {
+  if (!raw) {
+    console.warn('Received null or undefined solution data');
+    return {
+      id: 0,
+      objectId: 0,
+      createdBy: transformUser(null),
+      status: 'PENDING',
+    };
+  }
 
-export const transformContribution = (raw: any): BountyContribution => ({
-  id: raw.id,
-  amount: raw.amount,
-  createdBy: transformUser(raw.created_by),
-  status: raw.status || 'ACTIVE',
-  raw,
-});
+  try {
+    return {
+      id: raw.id || 0,
+      contentType: raw.content_type,
+      objectId: raw.object_id || 0,
+      createdBy: transformUser(raw.created_by),
+      status: raw.status || 'PENDING',
+      awardedAmount: raw.awarded_amount,
+    };
+  } catch (error) {
+    console.error('Error transforming solution:', error);
+    return {
+      id: raw.id || 0,
+      objectId: raw.object_id || 0,
+      createdBy: transformUser(null),
+      status: raw.status || 'PENDING',
+    };
+  }
+};
+
+export const transformContribution = (raw: any): BountyContribution => {
+  if (!raw) {
+    console.warn('Received null or undefined contribution data');
+    return {
+      id: 0,
+      amount: '0',
+      createdBy: transformUser(null),
+      status: 'ACTIVE',
+      raw: null,
+    };
+  }
+
+  try {
+    return {
+      id: raw.id || 0,
+      amount: raw.amount || '0',
+      createdBy: transformUser(raw.created_by),
+      status: raw.status || 'ACTIVE',
+      raw,
+    };
+  } catch (error) {
+    console.error('Error transforming contribution:', error);
+    return {
+      id: raw.id || 0,
+      amount: raw.amount || '0',
+      createdBy: transformUser(null),
+      status: raw.status || 'ACTIVE',
+      raw,
+    };
+  }
+};
 
 /**
  * Groups bounties and their contributions together
@@ -61,14 +107,7 @@ export const transformContribution = (raw: any): BountyContribution => ({
  * @returns Array of transformed Bounty objects with contributions attached
  */
 export const groupBountiesWithContributions = (bounties: any[]): Bounty[] => {
-  console.log('groupBountiesWithContributions input:', {
-    bounties,
-    isArray: Array.isArray(bounties),
-    length: bounties?.length || 0,
-  });
-
   if (!bounties || !Array.isArray(bounties) || bounties.length === 0) {
-    console.log('groupBountiesWithContributions returning empty array');
     return [];
   }
 
@@ -77,12 +116,6 @@ export const groupBountiesWithContributions = (bounties: any[]): Bounty[] => {
   const contributions: Record<string | number, any[]> = {};
 
   bounties.forEach((bounty) => {
-    console.log('Processing bounty:', {
-      id: bounty.id,
-      hasParent: !!bounty.parent,
-      parent: bounty.parent,
-    });
-
     if (bounty.parent) {
       // This is a contribution
       const parentId = typeof bounty.parent === 'object' ? bounty.parent.id : bounty.parent;
@@ -96,60 +129,78 @@ export const groupBountiesWithContributions = (bounties: any[]): Bounty[] => {
     }
   });
 
-  console.log('After processing:', {
-    mainBountiesCount: mainBounties.length,
-    contributionsMap: Object.keys(contributions).length,
-  });
-
   // Now transform main bounties and attach their contributions
   const result = mainBounties.map((bounty) => {
     const bountyContributions = contributions[bounty.id] || [];
-    console.log(
-      `Transforming bounty ${bounty.id} with ${bountyContributions.length} contributions`
-    );
+
     return transformBounty({
       ...bounty,
       contributions: bountyContributions,
     });
   });
 
-  console.log('groupBountiesWithContributions result:', {
-    resultLength: result.length,
-  });
-
   return result;
 };
 
 export const transformBounty: BaseTransformer<any, Bounty> = (raw) => {
-  console.log('transformBounty input:', raw);
+  if (!raw) {
+    console.warn('Received null or undefined bounty data');
+    return {
+      id: 0,
+      amount: '0',
+      status: 'OPEN',
+      expirationDate: new Date().toISOString(),
+      bountyType: 'BOUNTY',
+      createdBy: transformUser(null),
+      solutions: [],
+      contributions: [],
+      totalAmount: '0',
+      raw: null,
+    };
+  }
 
-  // Transform contributions if they exist
-  const contributions = Array.isArray(raw.contributions)
-    ? raw.contributions.map(transformContribution)
-    : [];
+  try {
+    // Transform contributions if they exist
+    const contributions = Array.isArray(raw.contributions)
+      ? raw.contributions.map(transformContribution)
+      : [];
 
-  // Calculate total amount (base amount + all contributions)
-  const baseAmount = parseFloat(raw.amount) || 0;
-  const contributionsTotal = contributions.reduce(
-    (total: number, contribution: BountyContribution) => {
-      return total + (parseFloat(contribution.amount) || 0);
-    },
-    0
-  );
-  const totalAmount = (baseAmount + contributionsTotal).toString();
+    // Calculate total amount (base amount + all contributions)
+    const baseAmount = parseFloat(raw.amount) || 0;
+    const contributionsTotal = contributions.reduce(
+      (total: number, contribution: BountyContribution) => {
+        return total + (parseFloat(contribution.amount) || 0);
+      },
+      0
+    );
+    const totalAmount = (baseAmount + contributionsTotal).toString();
 
-  const result = {
-    id: raw.id,
-    amount: raw.amount,
-    status: raw.status,
-    expirationDate: raw.expiration_date,
-    bountyType: raw.bounty_type,
-    createdBy: transformUser(raw.created_by),
-    solutions: Array.isArray(raw.solutions) ? raw.solutions.map(transformSolution) : [],
-    contributions,
-    totalAmount,
-    raw,
-  };
-
-  return result;
+    return {
+      id: raw.id || 0,
+      amount: raw.amount || '0',
+      status: raw.status || 'OPEN',
+      expirationDate: raw.expiration_date || new Date().toISOString(),
+      bountyType: raw.bounty_type || 'BOUNTY',
+      createdBy: transformUser(raw.created_by),
+      solutions: Array.isArray(raw.solutions) ? raw.solutions.map(transformSolution) : [],
+      contributions,
+      totalAmount,
+      raw,
+    };
+  } catch (error) {
+    console.error('Error transforming bounty:', error, raw);
+    // Return a minimal valid bounty object
+    return {
+      id: raw?.id || 0,
+      amount: raw?.amount || '0',
+      status: raw?.status || 'OPEN',
+      expirationDate: raw?.expiration_date || new Date().toISOString(),
+      bountyType: raw?.bounty_type || 'BOUNTY',
+      createdBy: transformUser(null),
+      solutions: [],
+      contributions: [],
+      totalAmount: raw?.amount || '0',
+      raw,
+    };
+  }
 };

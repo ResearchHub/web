@@ -1,7 +1,6 @@
 'use client';
 
 import { Home, BookOpen, Star, Notebook, HandCoins, Coins } from 'lucide-react';
-import Link from 'next/link';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
@@ -32,25 +31,6 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
     [router]
   );
 
-  const handleNavClick = useCallback(
-    (e: React.MouseEvent, item: NavigationItem) => {
-      e.preventDefault();
-
-      if (item.isUnimplemented) {
-        onUnimplementedFeature(item.label);
-        return;
-      }
-
-      if (item.requiresAuth) {
-        executeAuthenticatedAction(() => handleNavigate(item.href));
-        return;
-      }
-
-      handleNavigate(item.href);
-    },
-    [executeAuthenticatedAction, handleNavigate, onUnimplementedFeature]
-  );
-
   const navigationItems: NavigationItem[] = [
     {
       label: 'Home',
@@ -72,17 +52,9 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
     },
     {
       label: 'RH Journal',
-      href: '/rhjournal',
+      href: '/journal',
       icon: BookOpen,
       description: 'Read and publish research papers',
-      isUnimplemented: true,
-    },
-    {
-      label: 'Peer Reviews',
-      href: '/peerreviews',
-      icon: Star,
-      description: 'Review and rate research papers',
-      isUnimplemented: true,
     },
     {
       label: 'Lab Notebook',
@@ -94,14 +66,18 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
   ];
 
   const getButtonStyles = (path: string, currentPath: string) => {
-    const isActive = path === currentPath;
+    const isActive =
+      path === '/' ? ['/', '/following', '/latest'].includes(currentPath) : path === currentPath;
+
     return isActive
       ? 'flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-indigo-600 bg-indigo-50 rounded-lg group'
       : 'flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-lg group';
   };
 
   const getIconStyles = (path: string, currentPath: string) => {
-    const isActive = path === currentPath;
+    const isActive =
+      path === '/' ? ['/', '/following', '/latest'].includes(currentPath) : path === currentPath;
+
     return `h-[22px] w-[22px] mr-3.5 ${isActive ? 'text-indigo-600' : 'text-gray-600 group-hover:text-indigo-600'}`;
   };
 

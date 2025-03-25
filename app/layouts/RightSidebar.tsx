@@ -1,156 +1,151 @@
 'use client';
 
-import { BookOpen, X, Check } from 'lucide-react';
-import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Suspense, memo } from 'react';
+import dynamic from 'next/dynamic';
+import { LoadingSkeleton } from './components/LoadingSkeleton';
+import { Avatar } from '@/components/ui/Avatar';
 
-// InfoBanner Component
-const InfoBanner: React.FC = () => (
-  <div className="bg-indigo-50 rounded-lg p-5 mb-6">
-    <div className="flex flex-col items-center mb-4">
-      <BookOpen className="h-8 w-8 text-indigo-900 mb-2" />
-      <div className="text-lg font-semibold text-indigo-900 text-center">ResearchHub Journal</div>
-    </div>
-
-    <div className="space-y-2.5 mb-5">
-      <div className="flex items-center space-x-2.5">
-        <Check className="h-4 w-4 text-indigo-900 flex-shrink-0" />
-        <span className="text-sm text-gray-700">14 days to peer reviews</span>
+// Dynamically import InfoBanner component
+const InfoBanner = dynamic(() => import('./components/InfoBanner').then((mod) => mod.InfoBanner), {
+  ssr: true,
+  loading: () => (
+    <div className="bg-gray-100 rounded-lg p-5 mb-6 animate-pulse">
+      <div className="flex flex-col items-center mb-4">
+        <div className="w-8 h-8 bg-gray-200 rounded-full mb-2"></div>
+        <div className="h-6 bg-gray-200 rounded w-48 mb-1"></div>
       </div>
-      <div className="flex items-center space-x-2.5">
-        <Check className="h-4 w-4 text-indigo-900 flex-shrink-0" />
-        <span className="text-sm text-gray-700">Paid peer reviewers</span>
-      </div>
-      <div className="flex items-center space-x-2.5">
-        <Check className="h-4 w-4 text-indigo-900 flex-shrink-0" />
-        <span className="text-sm text-gray-700">Open access by default</span>
-      </div>
-    </div>
-
-    <Button
-      variant="outlined"
-      size="default"
-      className="w-full justify-center text-indigo-500 border-indigo-500 hover:text-indigo-600 hover:bg-indigo-100 font-medium"
-    >
-      Learn more
-    </Button>
-  </div>
-);
-
-// WhoToFollow Component
-const WhoToFollow: React.FC = () => {
-  const [followStatus, setFollowStatus] = useState<{ [key: string]: boolean }>({});
-
-  const toggleFollow = (name: string) => {
-    setFollowStatus((prevStatus) => ({
-      ...prevStatus,
-      [name]: !prevStatus[name],
-    }));
-  };
-
-  const organizations = [
-    { name: 'Nature', logo: '🌿', followers: '1.2M followers', type: 'Journal' },
-    { name: 'Science', logo: '🔬', followers: '980K followers', type: 'Journal' },
-    { name: 'MIT', logo: '🎓', followers: '750K followers', type: 'Institution' },
-    { name: 'Stanford Medicine', logo: '🏥', followers: '420K followers', type: 'Institution' },
-  ];
-
-  const people = [
-    {
-      name: 'Dr. Sarah Chen',
-      logo: '👩‍⚕️',
-      followers: '89K followers',
-      type: 'Neuroscientist',
-      org: 'Stanford Medicine',
-    },
-    {
-      name: 'Dr. James Wilson',
-      logo: '👨‍⚕️',
-      followers: '156K followers',
-      type: 'Oncologist',
-      org: 'Mayo Clinic',
-    },
-    {
-      name: 'Dr. Elena Rodriguez',
-      logo: '👩‍🔬',
-      followers: '45K followers',
-      type: 'AI Researcher',
-      org: 'DeepMind',
-    },
-    {
-      name: 'Prof. David Zhang',
-      logo: '👨‍🏫',
-      followers: '92K followers',
-      type: 'Immunologist',
-      org: 'Harvard Medical',
-    },
-  ];
-
-  const ProfileCard = ({ profile }: { profile: any }) => {
-    const isFollowing = followStatus[profile.name];
-
-    return (
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-lg">
-            {profile.logo}
+      <div className="space-y-2.5 mb-5">
+        {[1, 2, 3].map((_, i) => (
+          <div key={i} className="flex items-center space-x-2.5">
+            <div className="w-4 h-4 bg-gray-200 rounded-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-32"></div>
           </div>
-          <div>
-            <div className="font-medium text-gray-900">{profile.name}</div>
-            <div className="text-sm text-gray-500">
-              {profile.type === 'Journal' || profile.type === 'Institution' ? (
-                profile.followers
-              ) : (
-                <div className="flex flex-col">
-                  <span>{profile.type}</span>
-                  <span className="text-xs text-gray-400">{profile.org}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-        <button
-          onClick={() => toggleFollow(profile.name)}
-          className={`px-3 py-1 border rounded-full text-sm font-medium transition-colors duration-150 ${
-            isFollowing
-              ? 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'
-              : 'border-indigo-600 text-indigo-600 hover:bg-indigo-50'
-          }`}
-        >
-          {isFollowing ? 'Following' : 'Follow'}
-        </button>
-      </div>
-    );
-  };
-
-  return (
-    <div className="">
-      <h2 className="font-semibold text-gray-900 mb-4">Who to Follow</h2>
-
-      {/* Organizations Section */}
-      <div className="space-y-4 mb-6">
-        {organizations.map((org, i) => (
-          <ProfileCard key={`org-${i}`} profile={org} />
         ))}
       </div>
+      <div className="h-10 bg-gray-200 rounded-md w-full"></div>
+    </div>
+  ),
+});
 
-      {/* Divider */}
-      <div className="border-t border-gray-200 my-4"></div>
+// Dynamically import TopicsToFollow component
+const TopicsToFollow = dynamic(
+  () => import('./components/TopicsToFollow').then((mod) => mod.TopicsToFollow),
+  {
+    ssr: false,
+    loading: () => (
+      <div>
+        <h2 className="font-semibold text-gray-900 mb-4">Follow Recommendations</h2>
+        <LoadingSkeleton />
+        <div className="border-t border-gray-200 my-4"></div>
+        <LoadingSkeleton />
+      </div>
+    ),
+  }
+);
 
-      {/* People Section */}
-      <div className="space-y-4">
-        {people.map((person, i) => (
-          <ProfileCard key={`person-${i}`} profile={person} />
+// Top Peer Reviewers Component
+const TopPeerReviewers = () => {
+  // Hardcoded reviewers data for now
+  const reviewers = [
+    { id: 1, name: 'Sarah Johnson', src: 'https://randomuser.me/api/portraits/women/12.jpg' },
+    { id: 2, name: 'Mark Davis', src: 'https://randomuser.me/api/portraits/men/32.jpg' },
+    { id: 3, name: 'Emily Chen', src: 'https://randomuser.me/api/portraits/women/22.jpg' },
+  ];
+
+  return (
+    <div className="mb-0 bg-white rounded-lg p-4 pl-0">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="font-semibold text-gray-900">Top Peer Reviewers</h2>
+        <span className="text-xs text-gray-500">This week</span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {reviewers.map((reviewer) => (
+          <div key={reviewer.id} className="flex flex-col items-center">
+            <Avatar src={reviewer.src} alt={reviewer.name} size="sm" className="mb-1" />
+            <span className="text-xs text-gray-700 max-w-[60px] truncate text-center">
+              {reviewer.name}
+            </span>
+          </div>
         ))}
       </div>
     </div>
   );
 };
 
-// Main RightSidebar Component
-export const RightSidebar: React.FC = () => (
+// Top Funders Component
+const TopFunders = () => {
+  // Hardcoded funders data for now
+  const funders = [
+    { id: 1, name: 'Alex Morgan', src: 'https://randomuser.me/api/portraits/men/62.jpg' },
+    { id: 2, name: 'Julia Roberts', src: 'https://randomuser.me/api/portraits/women/72.jpg' },
+    { id: 3, name: 'Vikram Patel', src: 'https://randomuser.me/api/portraits/men/82.jpg' },
+  ];
+
+  return (
+    <div className="mb-6 bg-white rounded-lg p-4 pl-0">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="font-semibold text-gray-900">Top Funders</h2>
+        <span className="text-xs text-gray-500">This week</span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {funders.map((funder) => (
+          <div key={funder.id} className="flex flex-col items-center">
+            <Avatar src={funder.src} alt={funder.name} size="sm" className="mb-1" />
+            <span className="text-xs text-gray-700 max-w-[60px] truncate text-center">
+              {funder.name}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Main RightSidebar Component - memoized to prevent re-renders when parent components change
+const SidebarComponent = () => (
   <div>
-    <InfoBanner />
-    <WhoToFollow />
+    <Suspense
+      fallback={
+        <div className="bg-gray-100 rounded-lg p-5 mb-6 animate-pulse">
+          <div className="flex flex-col items-center mb-4">
+            <div className="w-8 h-8 bg-gray-200 rounded-full mb-2"></div>
+            <div className="h-6 bg-gray-200 rounded w-48 mb-1"></div>
+          </div>
+          <div className="space-y-2.5 mb-5">
+            {[1, 2, 3].map((_, i) => (
+              <div key={i} className="flex items-center space-x-2.5">
+                <div className="w-4 h-4 bg-gray-200 rounded-full"></div>
+                <div className="h-4 bg-gray-200 rounded w-32"></div>
+              </div>
+            ))}
+          </div>
+          <div className="h-10 bg-gray-200 rounded-md w-full"></div>
+        </div>
+      }
+    >
+      <InfoBanner />
+    </Suspense>
+
+    {/* Top Peer Reviewers Section */}
+    <TopPeerReviewers />
+
+    {/* Top Funders Section */}
+    <TopFunders />
+
+    <Suspense
+      fallback={
+        <div>
+          <h2 className="font-semibold text-gray-900 mb-4">Follow Recommendations</h2>
+          <LoadingSkeleton />
+          <div className="border-t border-gray-200 my-4"></div>
+          <LoadingSkeleton />
+        </div>
+      }
+    >
+      <TopicsToFollow />
+    </Suspense>
   </div>
 );
+
+export const RightSidebar = memo(SidebarComponent);
+RightSidebar.displayName = 'RightSidebar';

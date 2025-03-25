@@ -1,6 +1,6 @@
 'use client';
 
-import { FileText, Star, Coins, MessageCircle } from 'lucide-react';
+import { FileText, Star, Coins, Activity, MessagesSquare } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useState, useEffect } from 'react';
@@ -76,7 +76,7 @@ export const WorkTabs = ({
     <div className="border-b mb-6">
       <nav className="flex space-x-8 mt-6">
         <button
-          className={`px-1 py-4 text-sm font-medium border-b-2 ${
+          className={`px-1 py-4 text-md font-medium border-b-2 ${
             activeTab === 'paper'
               ? 'text-indigo-600 border-indigo-600'
               : 'text-gray-500 border-transparent hover:text-gray-700'
@@ -89,7 +89,29 @@ export const WorkTabs = ({
           </div>
         </button>
         <button
-          className={`px-1 py-4 text-sm font-medium ${
+          className={`px-1 py-4 text-md font-medium ${
+            activeTab === 'comments'
+              ? 'text-indigo-600 border-b-2 border-indigo-600'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+          onClick={() => handleTabChange('comments')}
+        >
+          <div className="flex items-center">
+            <MessagesSquare className="h-4 w-4 mr-2" />
+            Activity
+            <span
+              className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                activeTab === 'comments'
+                  ? 'bg-indigo-100 text-indigo-600'
+                  : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {metadata.metrics.comments}
+            </span>
+          </div>
+        </button>
+        <button
+          className={`px-1 py-4 text-md font-medium ${
             activeTab === 'reviews'
               ? 'text-indigo-600 border-b-2 border-indigo-600'
               : 'text-gray-500 hover:text-gray-700'
@@ -111,7 +133,7 @@ export const WorkTabs = ({
           </div>
         </button>
         <button
-          className={`px-1 py-4 text-sm font-medium ${
+          className={`px-1 py-4 text-md font-medium ${
             activeTab === 'bounties'
               ? 'text-indigo-600 border-b-2 border-indigo-600'
               : 'text-gray-500 hover:text-gray-700'
@@ -133,28 +155,6 @@ export const WorkTabs = ({
               }`}
             >
               {metadata.openBounties || 0}
-            </span>
-          </div>
-        </button>
-        <button
-          className={`px-1 py-4 text-sm font-medium ${
-            activeTab === 'comments'
-              ? 'text-indigo-600 border-b-2 border-indigo-600'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => handleTabChange('comments')}
-        >
-          <div className="flex items-center">
-            <MessageCircle className="h-4 w-4 mr-2" />
-            Comments
-            <span
-              className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                activeTab === 'comments'
-                  ? 'bg-indigo-100 text-indigo-600'
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              {metadata.metrics.comments}
             </span>
           </div>
         </button>

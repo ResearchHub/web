@@ -25,6 +25,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'storage.staging.researchhub.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'iiif.elifesciences.org',
+      },
     ],
   },
   productionBrowserSourceMaps: process.env.VERCEL_ENV === 'preview',
@@ -41,6 +45,10 @@ const nextConfig = {
   i18n: {
     locales: ['en'],
     defaultLocale: 'en',
+  },
+  experimental: {
+    optimizeCss: true,
+    scrollRestoration: true,
   },
   webpack: (config, { isServer }) => {
     // Preserve existing alias configuration

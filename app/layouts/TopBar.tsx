@@ -36,25 +36,6 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
     }
   };
 
-  const handleWorkSelect = (suggestion: SearchSuggestion) => {
-    // Only handle paper suggestions
-    if (suggestion.entityType === 'paper') {
-      if (suggestion.id) {
-        // If we have an ID, redirect to the work page with slug
-        const path = suggestion.slug
-          ? `/paper/${suggestion.id}/${suggestion.slug}`
-          : `/paper/${suggestion.id}`;
-        router.push(path);
-      } else if (suggestion.doi) {
-        // If we only have a DOI, redirect to the DOI route
-        router.push(`/work?doi=${suggestion.doi}`);
-      }
-    } else {
-      // Handle user suggestions if needed
-      console.log('User suggestion selected:', suggestion);
-    }
-  };
-
   return (
     <>
       <div className="sticky top-0 bg-white/80 backdrop-blur-md z-20 h-[64px]">
@@ -65,7 +46,6 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
               {/* Search Input 500px */}
               <div className="w-[600px] mx-auto">
                 <Search
-                  onSelect={handleWorkSelect}
                   placeholder="Search any paper, journal, topic, ..."
                   className="[&_input]:rounded-full [&_input]:bg-[#F8F9FC] mt-2"
                 />
@@ -79,7 +59,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
               {!isLoading ? (
                 user ? (
                   <>
-                    <Tooltip content="View ResearchCoin balance and transactions">
+                    <Tooltip width={'140px'} content="View ResearchCoin balance and transactions">
                       <Link
                         href="/researchcoin"
                         className="relative flex items-center justify-center -mt-0.5"

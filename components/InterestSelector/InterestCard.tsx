@@ -1,22 +1,20 @@
-import { Interest } from './InterestSelector';
+import { Topic } from '@/types/topic';
 
 interface InterestCardProps {
-  interest: Interest;
+  topic: Topic;
   isFollowing: boolean;
-  onFollowToggle: (interestId: number, isFollowing: boolean) => void;
+  onFollowToggle: (topicId: number, isFollowing: boolean) => void;
 }
 
-export function InterestCard({ interest, isFollowing, onFollowToggle }: InterestCardProps) {
+export function InterestCard({ topic, isFollowing, onFollowToggle }: InterestCardProps) {
   const handleClick = () => {
-    onFollowToggle(interest.id, isFollowing);
+    onFollowToggle(topic.id, isFollowing);
   };
 
-  const getInitialBgColor = (type: string) => {
-    switch (type) {
+  const getInitialBgColor = (namespace: string) => {
+    switch (namespace) {
       case 'journal':
         return 'bg-blue-100';
-      case 'person':
-        return 'bg-green-100';
       case 'topic':
         return 'bg-purple-100';
       default:
@@ -24,12 +22,10 @@ export function InterestCard({ interest, isFollowing, onFollowToggle }: Interest
     }
   };
 
-  const getInitialTextColor = (type: string) => {
-    switch (type) {
+  const getInitialTextColor = (namespace: string) => {
+    switch (namespace) {
       case 'journal':
         return 'text-blue-700';
-      case 'person':
-        return 'text-green-700';
       case 'topic':
         return 'text-purple-700';
       default:
@@ -48,29 +44,31 @@ export function InterestCard({ interest, isFollowing, onFollowToggle }: Interest
         }`}
     >
       <div className="flex items-center gap-3">
-        {interest.imageUrl ? (
+        {topic.imageUrl ? (
           <img
-            src={interest.imageUrl}
-            alt={interest.name}
+            src={topic.imageUrl}
+            alt={topic.name}
             className="w-12 h-12 rounded-full object-cover"
           />
         ) : (
           <div
             className={`w-12 h-12 rounded-full flex items-center justify-center
-              ${getInitialBgColor(interest.type)}`}
+              ${getInitialBgColor(topic.namespace || 'topic')}`}
           >
-            <span className={`text-xl font-medium ${getInitialTextColor(interest.type)}`}>
-              {interest.name.charAt(0)}
+            <span
+              className={`text-xl font-medium ${getInitialTextColor(topic.namespace || 'topic')}`}
+            >
+              {topic.name.charAt(0)}
             </span>
           </div>
         )}
 
         <div className="flex-1">
           <div className="flex items-center gap-1">
-            <h3 className="font-medium">{interest.name}</h3>
+            <h3 className="font-medium">{topic.name}</h3>
           </div>
-          {interest.description && (
-            <p className="text-sm text-gray-600 mt-1 line-clamp-2">{interest.description}</p>
+          {topic.description && (
+            <p className="text-sm text-gray-600 mt-1 line-clamp-2">{topic.description}</p>
           )}
         </div>
       </div>
