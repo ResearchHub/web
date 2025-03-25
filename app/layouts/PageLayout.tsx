@@ -10,7 +10,7 @@ const LeftSidebar = dynamic(() => import('./LeftSidebar').then((mod) => mod.Left
 });
 
 const RightSidebar = dynamic(() => import('./RightSidebar').then((mod) => mod.RightSidebar), {
-  ssr: false,
+  ssr: true,
 });
 
 const TopBar = dynamic(() => import('./TopBar').then((mod) => mod.TopBar), {

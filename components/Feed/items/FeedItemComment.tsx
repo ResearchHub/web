@@ -12,6 +12,7 @@ import { ContentType } from '@/types/work';
 import { Button } from '@/components/ui/Button';
 import { Reply, Pen, Trash2 } from 'lucide-react';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
+import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 
 interface FeedItemCommentProps {
   entry: FeedEntry;
@@ -20,6 +21,8 @@ interface FeedItemCommentProps {
   onEdit?: () => void;
   onDelete?: () => void;
   showCreatorActions?: boolean;
+  showRelatedWork?: boolean;
+  showReadMoreCTA?: boolean; // New property for controlling the "Read more" button
   actionLabels?: {
     comment?: string;
     upvote?: string;
@@ -32,21 +35,35 @@ interface FeedItemCommentProps {
  */
 const FeedItemCommentBody: FC<{
   entry: FeedEntry;
-}> = ({ entry }) => {
+  showRelatedWork?: boolean;
+  showReadMoreCTA?: boolean;
+}> = ({ entry, showRelatedWork = true, showReadMoreCTA = true }) => {
   // Extract the comment entry from the entry's content
   const commentEntry = entry.content as FeedCommentContent;
   const comment = commentEntry.comment;
   const isReview = comment.commentType === 'REVIEW';
 
+  // Get related work if available
+  const relatedWork = entry.relatedWork;
+
   return (
     <div className="mb-4">
-      {/* For review comments, display the star rating */}
-      {isReview && comment.score !== undefined && <StarRating score={comment.score} />}
-
       {/* Comment Content */}
       <div className="text-gray-600">
-        <CommentReadOnly content={comment.content} contentFormat={comment.contentFormat} />
+        <CommentReadOnly
+          content={comment.content}
+          contentFormat={comment.contentFormat}
+          initiallyExpanded={false} // Always start with truncated content
+          showReadMoreButton={showReadMoreCTA} // Only control the button visibility
+        />
       </div>
+
+      {/* Related Work - show if available */}
+      {relatedWork && showRelatedWork && (
+        <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+          <RelatedWorkCard size="sm" work={relatedWork} />
+        </div>
+      )}
     </div>
   );
 };
@@ -59,8 +76,18 @@ const StarRating: FC<{
   maxScore?: number;
 }> = ({ score, maxScore = 5 }) => {
   return (
-    <div className="mb-3">
-      <ContentTypeBadge type="review" score={score} maxScore={maxScore} />
+    <div className="flex items-center">
+      {Array.from({ length: maxScore }).map((_, index) => (
+        <span
+          key={index}
+          className={cn('text-lg', index < score ? 'text-yellow-400' : 'text-gray-300')}
+        >
+          ★
+        </span>
+      ))}
+      <span className="ml-1 text-sm text-gray-600">
+        {score}/{maxScore}
+      </span>
     </div>
   );
 };
@@ -75,6 +102,8 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   onEdit,
   onDelete,
   showCreatorActions = true,
+  showRelatedWork = true,
+  showReadMoreCTA = true, // Default to showing "Read more" button
   actionLabels,
   showTooltips = true, // Default to showing tooltips
 }) => {
@@ -132,6 +161,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
 
   // Determine if card should have clickable styles
   const isClickable = !!href;
+
   return (
     <div className="space-y-3">
       {/* Header */}
@@ -151,10 +181,22 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
         )}
       >
         <div className="p-4">
+          {/* Review Badge and Rating - Only show for reviews */}
+          {isReview && (
+            <div className="flex justify-between items-center mb-3">
+              <ContentTypeBadge type="review" />
+              {comment.score !== undefined && <StarRating score={comment.score} maxScore={5} />}
+            </div>
+          )}
+
           {/* Content area */}
           <div className="mb-4">
             {/* Body Content */}
-            <FeedItemCommentBody entry={entry} />
+            <FeedItemCommentBody
+              entry={entry}
+              showRelatedWork={showRelatedWork}
+              showReadMoreCTA={showReadMoreCTA}
+            />
           </div>
 
           {/* Action Buttons - Full width */}

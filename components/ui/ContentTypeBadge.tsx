@@ -34,14 +34,27 @@ export const ContentTypeBadge = ({
 
   if (type === 'funding') {
     return (
-      <Badge
-        variant="default"
-        size={size}
-        className={cn('gap-1.5 py-1 border-gray-300', className)}
+      <Tooltip
+        content={
+          <div className="flex items-start gap-3 text-left">
+            <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center">
+              <HandCoins size={24} className="text-gray-700" />
+            </div>
+            <div>Funding opportunities help researchers secure resources for their work.</div>
+          </div>
+        }
+        position="top"
+        width="w-[360px]"
       >
-        <HandCoins size={16} className="text-gray-500" />
-        <span>Funding</span>
-      </Badge>
+        <Badge
+          variant="default"
+          size={size}
+          className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
+        >
+          <HandCoins size={16} className="text-gray-500" />
+          <span>Funding</span>
+        </Badge>
+      </Tooltip>
     );
   }
 
@@ -91,7 +104,7 @@ export const ContentTypeBadge = ({
           className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
         >
           <Star size={16} className="text-gray-500" />
-          <span>Review {score !== undefined ? `${score}/${maxScore}` : ''}</span>
+          <span>Peer Review</span>
         </Badge>
       </Tooltip>
     );
