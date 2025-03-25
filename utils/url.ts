@@ -21,13 +21,18 @@ export const buildWorkUrl = ({
   slug,
 }: {
   id?: string | number | null;
-  contentType: 'paper' | 'post';
+  contentType: 'paper' | 'post' | 'funding_request' | 'preregistration';
   doi?: string | null;
   slug?: string;
 }) => {
   if (contentType === 'post') {
     if (!id) return '#'; // Return a safe fallback for posts without ID
     return `/post/${id}`;
+  }
+
+  if (contentType === 'funding_request' || contentType === 'preregistration') {
+    if (!id) return '#'; // Return a safe fallback for funding requests without ID
+    return slug ? `/fund/${id}/${slug}` : `/fund/${id}`;
   }
 
   // For papers
@@ -47,4 +52,11 @@ export const buildWorkUrl = ({
  */
 export const buildAuthorUrl = (id: string | number) => {
   return `/author/${id}`;
+};
+
+/**
+ * Builds a topic URL from a slug
+ */
+export const buildTopicUrl = (slug: string) => {
+  return `/topic/${slug}`;
 };

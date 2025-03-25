@@ -3,7 +3,7 @@ import React from 'react';
 export const NotebookSkeleton: React.FC = () => {
   return (
     <div className="h-full p-8">
-      <div className="prose prose-lg max-w-3xl mx-auto space-y-6">
+      <div className="prose prose-lg max-w-4xl mx-auto space-y-6">
         {/* Title */}
         <div className="h-12 bg-gray-100 rounded-md w-2/3 animate-pulse" />
 

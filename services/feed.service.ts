@@ -31,17 +31,22 @@ export class FeedService {
       console.log('Raw feed response:', response);
 
       // Transform the raw entries into FeedEntry objects
-      const transformedEntries = response.results.map(transformFeedEntry).filter((entry) => {
-        // Keep all non-comment entries
-        if (entry.contentType !== 'COMMENT') {
-          return true;
-        }
+      const transformedEntries = response.results
+        .map((entry) => {
+          try {
+            return transformFeedEntry(entry);
+          } catch (error) {
+            console.error('Error transforming feed entry:', error, entry);
+            return null;
+          }
+        })
+        .filter((entry): entry is FeedEntry => {
+          // Remove null entries
+          if (!entry) return false;
 
-        // For comments, only keep REVIEW comments
-        const commentEntry = entry.content as import('@/types/feed').FeedCommentContent;
-        return commentEntry?.comment?.commentType === 'REVIEW';
-      });
-      console.log(`Transformed ${transformedEntries.length} feed entries`);
+          // Keep all entries (no filtering by content type)
+          return true;
+        });
 
       // Return the transformed entries
       return {

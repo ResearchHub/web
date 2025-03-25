@@ -116,7 +116,12 @@ export const FeedContent: FC<FeedContentProps> = ({
           // Use FeedItemComment for comment entries
           return (
             <div key={entry.id} className={spacingClass}>
-              <FeedItemComment entry={entry} href={href} showCreatorActions={true} />
+              <FeedItemComment
+                showReadMoreCTA={false}
+                entry={entry}
+                href={href}
+                showCreatorActions={true}
+              />
             </div>
           );
 

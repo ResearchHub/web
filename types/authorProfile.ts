@@ -14,11 +14,27 @@ export interface AuthorProfile {
 
 export type TransformedAuthorProfile = AuthorProfile & BaseTransformed;
 
-export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw) => ({
-  id: raw.id,
-  fullName: `${raw.first_name} ${raw.last_name}`.trim(),
-  profileImage: raw.profile_image || '',
-  headline: typeof raw.headline === 'string' ? raw.headline : raw.headline?.title || '',
-  profileUrl: `/profile/${raw.id}`,
-  user: raw.user ? transformUser(raw.user) : undefined,
-}));
+export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw) => {
+  if (!raw) {
+    console.warn('Received null or undefined author profile data');
+    return {
+      id: 0,
+      fullName: 'Unknown Author',
+      profileImage: '',
+      headline: '',
+      profileUrl: '/profile/0',
+    };
+  }
+
+  return {
+    id: raw.id || 0,
+    fullName:
+      raw.first_name || raw.last_name
+        ? `${raw.first_name || ''} ${raw.last_name || ''}`.trim()
+        : 'Unknown Author',
+    profileImage: raw.profile_image || '',
+    headline: typeof raw.headline === 'string' ? raw.headline : raw.headline?.title || '',
+    profileUrl: `/profile/${raw.id || 0}`,
+    user: raw.user ? transformUser(raw.user) : undefined,
+  };
+});
