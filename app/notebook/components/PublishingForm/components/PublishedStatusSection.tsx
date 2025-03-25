@@ -11,7 +11,6 @@ export function PublishedStatusSection() {
 
   const isPublished = Boolean(workId);
 
-  // If there's no note, render nothing
   if (!note && !isLoading) {
     return null;
   }
