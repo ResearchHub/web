@@ -1,26 +1,27 @@
-import { NonprofitOrg, NonprofitSearchParams } from '@/types/nonprofit';
+import {
+  NonprofitOrg,
+  NonprofitSearchParams,
+  NonprofitDetails,
+  NonprofitLink,
+} from '@/types/nonprofit';
 import { ApiClient } from './client';
 import { ID } from '@/types/root';
 import { isFeatureEnabled } from '@/utils/featureFlags';
 
-interface NonprofitDetails {
-  id: string | number;
-  name: string;
-  ein: string;
-  endaoment_org_id: string;
-  base_wallet_address?: string;
-  created_date?: string;
-  updated_date?: string;
+// Custom error class for feature flag issues
+export class NonprofitFeatureDisabledError extends Error {
+  constructor() {
+    super('Nonprofit integration is not available in this environment');
+    this.name = 'NonprofitFeatureDisabledError';
+  }
 }
 
-interface NonprofitLink {
-  id: string | number;
-  nonprofit: string | number;
-  nonprofit_details: NonprofitDetails;
-  fundraise: string | number;
-  note: string;
-  created_date: string;
-  updated_date: string;
+// Custom error class for nonprofit service errors
+export class NonprofitServiceError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NonprofitServiceError';
+  }
 }
 
 /**
@@ -31,11 +32,11 @@ export class NonprofitService {
 
   /**
    * Check if nonprofit integration is enabled
-   * @throws Error if the feature is disabled
+   * @throws NonprofitFeatureDisabledError if the feature is disabled
    */
   private static checkFeatureEnabled(): void {
     if (!isFeatureEnabled('nonprofitIntegration')) {
-      throw new Error('Nonprofit integration is not available in this environment');
+      throw new NonprofitFeatureDisabledError();
     }
   }
 
@@ -44,7 +45,8 @@ export class NonprofitService {
    * @param searchTerm - The search term to find matching nonprofit organizations
    * @param options - Additional search parameters
    * @returns A promise that resolves to an array of NonprofitOrg objects
-   * @throws Error when the API request fails or when the feature is disabled
+   * @throws NonprofitFeatureDisabledError when the feature is disabled
+   * @throws NonprofitServiceError when the API request fails
    */
   static async searchNonprofitOrgs(
     searchTerm: string,
@@ -69,7 +71,9 @@ export class NonprofitService {
       return response;
     } catch (error) {
       console.error('Error searching nonprofit organizations:', error);
-      throw error;
+      throw error instanceof Error
+        ? new NonprofitServiceError(error.message)
+        : new NonprofitServiceError('Failed to search nonprofit organizations');
     }
   }
 
@@ -77,7 +81,8 @@ export class NonprofitService {
    * Create or retrieve a nonprofit organization
    * @param params - The nonprofit organization parameters
    * @returns A promise that resolves to the created or retrieved NonprofitOrg object
-   * @throws Error when the API request fails or when the feature is disabled
+   * @throws NonprofitFeatureDisabledError when the feature is disabled
+   * @throws NonprofitServiceError when the API request fails
    */
   static async createNonprofit(params: {
     name: string;
@@ -93,7 +98,9 @@ export class NonprofitService {
       return response;
     } catch (error) {
       console.error('Error creating nonprofit organization:', error);
-      throw error;
+      throw error instanceof Error
+        ? new NonprofitServiceError(error.message)
+        : new NonprofitServiceError('Failed to create nonprofit organization');
     }
   }
 
@@ -101,7 +108,8 @@ export class NonprofitService {
    * Link a nonprofit organization to a fundraise
    * @param params - The link parameters
    * @returns A promise that resolves to the created link object
-   * @throws Error when the API request fails or when the feature is disabled
+   * @throws NonprofitFeatureDisabledError when the feature is disabled
+   * @throws NonprofitServiceError when the API request fails
    */
   static async linkToFundraise(params: {
     nonprofit_id: ID;
@@ -121,7 +129,9 @@ export class NonprofitService {
       return response;
     } catch (error) {
       console.error('Error linking nonprofit to fundraise:', error);
-      throw error;
+      throw error instanceof Error
+        ? new NonprofitServiceError(error.message)
+        : new NonprofitServiceError('Failed to link nonprofit to fundraise');
     }
   }
 
@@ -129,7 +139,8 @@ export class NonprofitService {
    * Get nonprofits linked to a fundraise
    * @param fundraiseId - The ID of the fundraise
    * @returns A promise that resolves to an array of nonprofit links
-   * @throws Error when the API request fails or when the feature is disabled
+   * @throws NonprofitFeatureDisabledError when the feature is disabled
+   * @throws NonprofitServiceError when the API request fails
    */
   static async getNonprofitsByFundraiseId(fundraiseId: ID): Promise<NonprofitLink[]> {
     this.checkFeatureEnabled();
@@ -140,7 +151,9 @@ export class NonprofitService {
       return response;
     } catch (error) {
       console.error('Error getting nonprofits by fundraise ID:', error);
-      throw error;
+      throw error instanceof Error
+        ? new NonprofitServiceError(error.message)
+        : new NonprofitServiceError('Failed to get nonprofits by fundraise ID');
     }
   }
 }

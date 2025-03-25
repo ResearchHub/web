@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { NonprofitService } from '@/services/nonprofit.service';
+import { useState } from 'react';
+import { NonprofitService, NonprofitFeatureDisabledError } from '@/services/nonprofit.service';
 import { NonprofitOrg } from '@/types/nonprofit';
 import { ID } from '@/types/root';
 import { ApiError } from '@/services/types';
-import { isFeatureEnabled } from '@/utils/featureFlags';
 
-interface NonprofitFundraiseLink {
+export interface NonprofitFundraiseLink {
   id: ID;
   nonprofit: NonprofitOrg;
   fundraise: {
@@ -17,25 +16,23 @@ interface NonprofitFundraiseLink {
   note?: string;
 }
 
-interface NonprofitLinkState {
-  data: NonprofitFundraiseLink | null;
-  isLoading: boolean;
-  error: string | null;
-  isFeatureEnabled: boolean;
+export interface NonprofitLinkParams {
+  name: string;
+  endaoment_org_id: string;
+  ein?: string;
+  base_wallet_address?: string;
 }
 
-type LinkNonprofitToFundraiseFn = (
-  nonprofitData: {
-    name: string;
-    endaoment_org_id: string;
-    ein?: string;
-    base_wallet_address?: string;
-  },
-  fundraiseId: ID,
-  note?: string
-) => Promise<NonprofitFundraiseLink>;
-
-type UseNonprofitLinkReturn = [NonprofitLinkState, LinkNonprofitToFundraiseFn];
+export interface UseNonprofitLinkReturn {
+  data: NonprofitFundraiseLink | null;
+  isLoading: boolean;
+  error: Error | null;
+  linkNonprofitToFundraise: (
+    nonprofitData: NonprofitLinkParams,
+    fundraiseId: ID,
+    note?: string
+  ) => Promise<NonprofitFundraiseLink>;
+}
 
 /**
  * Hook for linking nonprofits to fundraises.
@@ -44,36 +41,27 @@ type UseNonprofitLinkReturn = [NonprofitLinkState, LinkNonprofitToFundraiseFn];
  * 1. Create or retrieve a nonprofit organization
  * 2. Link it to a fundraise
  *
- * @returns [state, linkNonprofitToFundraise]
+ * @returns Object containing link data, loading state, error state, and link function
  */
 export const useNonprofitLink = (): UseNonprofitLinkReturn => {
   const [data, setData] = useState<NonprofitFundraiseLink | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [featureEnabled, setFeatureEnabled] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  // Check if the feature is enabled on mount
-  useEffect(() => {
-    try {
-      setFeatureEnabled(isFeatureEnabled('nonprofitIntegration'));
-    } catch (err) {
-      console.error('Error checking feature flag:', err);
-      setFeatureEnabled(false);
-    }
-  }, []);
-
-  const linkNonprofitToFundraise: LinkNonprofitToFundraiseFn = async (
-    nonprofitData,
-    fundraiseId,
+  /**
+   * Link a nonprofit organization to a fundraise
+   *
+   * @param nonprofitData - The nonprofit organization data to create or retrieve
+   * @param fundraiseId - The ID of the fundraise to link to
+   * @param note - Optional note or description for the link (e.g., department/lab name)
+   * @returns Promise that resolves to the created nonprofit-fundraise link
+   */
+  const linkNonprofitToFundraise = async (
+    nonprofitData: NonprofitLinkParams,
+    fundraiseId: ID,
     note = ''
-  ) => {
-    // Check if feature is enabled before proceeding
-    if (!featureEnabled) {
-      const errorMsg = 'Nonprofit integration is not available in this environment';
-      setError(errorMsg);
-      throw new Error(errorMsg);
-    }
-
+  ): Promise<NonprofitFundraiseLink> => {
+    // Set loading state first, before any async operations
     setIsLoading(true);
     setError(null);
 
@@ -96,18 +84,45 @@ export const useNonprofitLink = (): UseNonprofitLinkReturn => {
         note: note || undefined,
       };
 
+      // Set data and clear error
       setData(responseWithNote);
+      setError(null);
+
       return responseWithNote;
     } catch (err) {
-      const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
-      const errorMsg =
-        data?.error || 'An error occurred while linking the nonprofit to the fundraise';
-      setError(errorMsg);
-      throw err;
+      // Handle various error types
+      let errorMessage: string;
+
+      if (err instanceof NonprofitFeatureDisabledError) {
+        errorMessage = err.message;
+      } else if (err instanceof ApiError) {
+        try {
+          const { data = {} } = JSON.parse(err.message);
+          errorMessage =
+            data?.error || 'An error occurred while linking the nonprofit to the fundraise';
+        } catch {
+          errorMessage =
+            err.message || 'An error occurred while linking the nonprofit to the fundraise';
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message || 'An unknown error occurred';
+      } else {
+        errorMessage = 'An unknown error occurred';
+      }
+
+      const errorObj = new Error(errorMessage);
+      setError(errorObj);
+      throw errorObj;
     } finally {
+      // Always set loading to false when done
       setIsLoading(false);
     }
   };
 
-  return [{ data, isLoading, error, isFeatureEnabled: featureEnabled }, linkNonprofitToFundraise];
+  return {
+    data,
+    isLoading,
+    error,
+    linkNonprofitToFundraise,
+  };
 };

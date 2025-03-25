@@ -29,7 +29,7 @@ import { getFieldErrorMessage } from '@/utils/form';
 import { NonprofitSearchSection } from './components/NonprofitSearchSection';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
-import { NonprofitService } from '@/services/nonprofit.service';
+import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
 import { NonprofitOrg, NonprofitDeployment, NonprofitAddress } from '@/types/nonprofit';
 import { Work } from '@/types/work';
 import { ID } from '@/types/root';
@@ -91,8 +91,15 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   const { currentNote: note, editor } = useNotebookContext();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [isLoadingNonprofitData, setIsLoadingNonprofitData] = useState(false);
-  const [{ isLoading: isLoadingNonprofitLink }, linkNonprofitToFundraise] = useNonprofitLink();
+  const {
+    nonprofit,
+    departmentLabName,
+    isLoading: isLoadingNonprofitData,
+    fetchNonprofitData,
+  } = useNonprofitByFundraiseId(
+    note?.post?.contentType === 'preregistration' ? note?.post?.fundraise?.id : undefined
+  );
+  const { isLoading: isLoadingNonprofitLink, linkNonprofitToFundraise } = useNonprofitLink();
 
   const methods = useForm<PublishingFormData>({
     defaultValues: {
@@ -126,67 +133,24 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
 
   // Fetch nonprofit data if this is a published preregistration
   useEffect(() => {
-    const fetchNonprofitData = async () => {
-      if (
-        !note?.post?.id ||
-        note.post.contentType !== 'preregistration' ||
-        !note.post.fundraise?.id
-      ) {
-        return;
-      }
+    if (
+      !note?.post?.id ||
+      note.post.contentType !== 'preregistration' ||
+      !note.post.fundraise?.id
+    ) {
+      return;
+    }
 
-      try {
-        setIsLoadingNonprofitData(true);
-        const fundraiseId = note.post.fundraise.id;
-        const nonprofitLinks = await NonprofitService.getNonprofitsByFundraiseId(fundraiseId);
+    fetchNonprofitData(note.post.fundraise.id);
+  }, [note?.post?.id, note?.post?.contentType, note?.post?.fundraise?.id, fetchNonprofitData]);
 
-        if (nonprofitLinks && nonprofitLinks.length > 0) {
-          const firstLink = nonprofitLinks[0] as unknown as NonprofitLink;
-          const nonprofit = firstLink.nonprofit_details;
-
-          // Create appropriate deployment objects
-          const deployments: NonprofitDeployment[] = [];
-          if (nonprofit.base_wallet_address) {
-            deployments.push({
-              isDeployed: true,
-              chainId: 8453, // Base network
-              address: nonprofit.base_wallet_address,
-            });
-          }
-
-          // Create nonprofit object that matches the NonprofitOrg interface
-          const formattedNonprofit: NonprofitOrg & { endaoment_org_id?: string } = {
-            id: nonprofit.id.toString(),
-            name: nonprofit.name,
-            ein: nonprofit.ein,
-            deployments,
-            baseWalletAddress: nonprofit.base_wallet_address,
-            address: { region: '', country: '' },
-            nteeCode: '',
-            nteeDescription: '',
-            description: '',
-            endaomentUrl: '',
-            contibutionCount: 0,
-            contibutionTotal: '0',
-            // Store the endaoment_org_id to use when linking
-            endaoment_org_id: nonprofit.endaoment_org_id,
-          };
-
-          methods.setValue('selectedNonprofit', formattedNonprofit);
-
-          // Set the department/lab name from the note field
-          methods.setValue('departmentLabName', firstLink.note || '');
-        }
-      } catch (error) {
-        console.error('Error fetching nonprofit data:', error);
-        // Don't show an error toast as this is not critical for the user experience
-      } finally {
-        setIsLoadingNonprofitData(false);
-      }
-    };
-
-    fetchNonprofitData();
-  }, [note?.post?.id, note?.post?.contentType, note?.post?.fundraise?.id, methods]);
+  // Set nonprofit data in form when it's loaded
+  useEffect(() => {
+    if (nonprofit) {
+      methods.setValue('selectedNonprofit', nonprofit);
+      methods.setValue('departmentLabName', departmentLabName);
+    }
+  }, [nonprofit, departmentLabName, methods]);
 
   // Load data with priority:
   // 1. note.post data

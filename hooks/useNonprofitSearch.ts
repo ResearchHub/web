@@ -2,21 +2,18 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { NonprofitOrg, NonprofitSearchParams } from '@/types/nonprofit';
-import { NonprofitService } from '@/services/nonprofit.service';
-import { isFeatureEnabled } from '@/utils/featureFlags';
+import { NonprofitService, NonprofitFeatureDisabledError } from '@/services/nonprofit.service';
 
-interface NonprofitSearchState {
-  results: NonprofitOrg[];
-  isLoading: boolean;
-  error: Error | null;
-  isFeatureEnabled: boolean;
+export interface UseNonprofitSearchOptions {
+  initialSearchTerm?: string;
+  initialSearchOptions?: Omit<NonprofitSearchParams, 'searchTerm'>;
+  performInitialSearch?: boolean;
 }
 
-interface UseNonprofitSearchReturn {
+export interface UseNonprofitSearchReturn {
   results: NonprofitOrg[];
   isLoading: boolean;
   error: Error | null;
-  isFeatureEnabled: boolean;
   searchNonprofits: (
     searchTerm: string,
     options?: Omit<NonprofitSearchParams, 'searchTerm'>
@@ -26,76 +23,90 @@ interface UseNonprofitSearchReturn {
 
 /**
  * Hook for searching nonprofit organizations
- * @returns Object containing search results, loading state, error state, and search function
+ *
+ * @param options - Optional configuration for the hook
+ * @param options.initialSearchTerm - Initial search term to use on mount
+ * @param options.initialSearchOptions - Initial search options to use on mount
+ * @param options.performInitialSearch - Whether to perform search on mount with initial values
+ * @returns Object containing search results, loading state, error state, and search functions
  */
-export const useNonprofitSearch = (): UseNonprofitSearchReturn => {
-  const [state, setState] = useState<NonprofitSearchState>({
-    results: [],
-    isLoading: false,
-    error: null,
-    isFeatureEnabled: false,
-  });
+export const useNonprofitSearch = (
+  options: UseNonprofitSearchOptions = {}
+): UseNonprofitSearchReturn => {
+  const [results, setResults] = useState<NonprofitOrg[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  // Check if the feature is enabled on mount
-  useEffect(() => {
-    try {
-      setState((prev) => ({ ...prev, isFeatureEnabled: isFeatureEnabled('nonprofitIntegration') }));
-    } catch (err) {
-      console.error('Error checking feature flag:', err);
-      setState((prev) => ({ ...prev, isFeatureEnabled: false }));
-    }
-  }, []);
+  const {
+    initialSearchTerm = '',
+    initialSearchOptions = {},
+    performInitialSearch = false,
+  } = options;
 
   /**
    * Search for nonprofit organizations
+   *
    * @param searchTerm - Search term to find matching organizations
    * @param options - Additional search parameters
+   * @returns Promise that resolves when search is complete and state is updated
    */
   const searchNonprofits = useCallback(
-    async (searchTerm: string, options: Omit<NonprofitSearchParams, 'searchTerm'> = {}) => {
-      // Check if feature is enabled before proceeding
-      if (!state.isFeatureEnabled) {
-        setState((prev) => ({
-          ...prev,
-          error: new Error('Nonprofit integration is not available in this environment'),
-        }));
-        return;
-      }
-
+    async (
+      searchTerm: string,
+      options: Omit<NonprofitSearchParams, 'searchTerm'> = {}
+    ): Promise<void> => {
       if (!searchTerm.trim()) {
-        setState((prev) => ({ ...prev, results: [], error: null }));
+        setResults([]);
+        setError(null);
         return;
       }
 
-      setState((prev) => ({ ...prev, isLoading: true, error: null }));
+      // Set loading state first, before any async operations
+      setIsLoading(true);
+      setError(null);
 
       try {
-        const results = await NonprofitService.searchNonprofitOrgs(searchTerm, options);
-        setState((prev) => ({ ...prev, results, isLoading: false, error: null }));
+        const searchResults = await NonprofitService.searchNonprofitOrgs(searchTerm, options);
+        setResults(searchResults);
+        // Error is already null from above, no need to set again
       } catch (error) {
-        setState((prev) => ({
-          ...prev,
-          results: [],
-          isLoading: false,
-          error: error instanceof Error ? error : new Error('Unknown error occurred'),
-        }));
+        setResults([]);
+
+        if (error instanceof NonprofitFeatureDisabledError) {
+          setError(error);
+        } else if (error instanceof Error) {
+          setError(error);
+        } else {
+          setError(new Error('Unknown error occurred while searching for nonprofits'));
+        }
+      } finally {
+        // Always set loading to false when done
+        setIsLoading(false);
       }
     },
-    [state.isFeatureEnabled]
+    []
   );
 
   /**
-   * Clear search results
+   * Clear search results and reset state
    */
-  const clearResults = useCallback(() => {
-    setState((prev) => ({ ...prev, results: [], isLoading: false, error: null }));
+  const clearResults = useCallback((): void => {
+    setResults([]);
+    setIsLoading(false);
+    setError(null);
   }, []);
 
+  // Perform initial search if enabled and there's a search term
+  useEffect(() => {
+    if (performInitialSearch && initialSearchTerm.trim()) {
+      searchNonprofits(initialSearchTerm, initialSearchOptions);
+    }
+  }, [performInitialSearch, initialSearchTerm, initialSearchOptions, searchNonprofits]);
+
   return {
-    results: state.results,
-    isLoading: state.isLoading,
-    error: state.error,
-    isFeatureEnabled: state.isFeatureEnabled,
+    results,
+    isLoading,
+    error,
     searchNonprofits,
     clearResults,
   };
