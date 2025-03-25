@@ -42,12 +42,21 @@ const FeedItemCommentBody: FC<{
   const commentEntry = entry.content as FeedCommentContent;
   const comment = commentEntry.comment;
   const isReview = comment.commentType === 'REVIEW';
+  const reviewScore = comment.reviewScore || commentEntry.review?.score || comment.score || 0;
 
   // Get related work if available
   const relatedWork = entry.relatedWork;
 
   return (
     <div className="mb-4">
+      {/* Review information for reviews (optional additional display) */}
+      {isReview && (
+        <div className="mb-4 text-gray-700 text-sm mt-0.5">
+          <span className="font-medium">Review score: </span>
+          <span className="text-yellow-500 font-medium">{reviewScore}/5</span>
+        </div>
+      )}
+
       {/* Comment Content */}
       <div className="text-gray-600">
         <CommentReadOnly
@@ -64,30 +73,6 @@ const FeedItemCommentBody: FC<{
           <RelatedWorkCard size="sm" work={relatedWork} />
         </div>
       )}
-    </div>
-  );
-};
-
-/**
- * Component for rendering star ratings for reviews
- */
-const StarRating: FC<{
-  score: number;
-  maxScore?: number;
-}> = ({ score, maxScore = 5 }) => {
-  return (
-    <div className="flex items-center">
-      {Array.from({ length: maxScore }).map((_, index) => (
-        <span
-          key={index}
-          className={cn('text-lg', index < score ? 'text-yellow-400' : 'text-gray-300')}
-        >
-          ★
-        </span>
-      ))}
-      <span className="ml-1 text-sm text-gray-600">
-        {score}/{maxScore}
-      </span>
     </div>
   );
 };
@@ -118,6 +103,9 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
 
   // Determine if this is a review comment
   const isReview = comment.commentType === 'REVIEW';
+
+  // Get the review score from either comment.reviewScore, commentEntry.review.score, or comment.score
+  const reviewScore = comment.reviewScore || commentEntry.review?.score || comment.score || 0;
 
   // Determine the content type for the comment
   const contentType: ContentType = comment.thread?.threadType === 'PAPER' ? 'paper' : 'post';
@@ -168,7 +156,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
       <FeedItemHeader
         timestamp={commentEntry.createdDate}
         author={author}
-        actionText={isReview ? 'Submitted a peer-review' : 'Added a comment'}
+        actionText={isReview ? `submitted a peer review` : 'Added a comment'}
       />
 
       {/* Main Content Card - Using onClick instead of wrapping with Link */}
@@ -185,7 +173,6 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
           {isReview && (
             <div className="flex justify-between items-center mb-3">
               <ContentTypeBadge type="review" />
-              {comment.score !== undefined && <StarRating score={comment.score} maxScore={5} />}
             </div>
           )}
 
