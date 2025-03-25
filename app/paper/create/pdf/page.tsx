@@ -10,9 +10,9 @@ import { Input } from '@/components/ui/form/Input';
 import { FileUpload } from '@/components/ui/form/FileUpload';
 import { SimpleStepProgress, SimpleStep } from '@/components/ui/SimpleStepProgress';
 import {
-  MultipleAuthorsSection,
+  AuthorsAndAffiliations,
   AuthorWithAffiliation,
-} from '../components/MultipleAuthorsSection';
+} from '../components/AuthorsAndAffiliations';
 import { HubsSelector, Hub } from '../components/HubsSelector';
 import { DeclarationCheckbox } from '../components/DeclarationCheckbox';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
@@ -203,24 +203,26 @@ export default function UploadPDFPage() {
               ? author.author.id
               : parseInt(String(author.author.id), 10);
 
-          // Create an author object with the expected structure
-          // Hardcoding first author to match the working example structure
-          if (index === 0) {
-            return {
-              id,
-              author_position: 'first',
-              institution_id: 786, // Hardcoded value for testing
-              isCorrespondingAuthor: true,
-            };
-          } else {
-            return {
-              id,
-              author_position: 'last',
-              isCorrespondingAuthor: false,
-            };
+          // Get institution ID if available
+          let institution_id: number | undefined = undefined;
+          if (author.institution?.id) {
+            institution_id =
+              typeof author.institution.id === 'number'
+                ? author.institution.id
+                : parseInt(String(author.institution.id), 10);
           }
+
+          return {
+            id,
+            author_position:
+              index === 0 ? 'first' : index === authors.length - 1 ? 'last' : 'middle',
+            institution_id,
+            isCorrespondingAuthor: author.isCorrespondingAuthor,
+          };
         }),
-        hubs: [12069], // Using a hardcoded hub ID for testing
+        hubs: selectedHubs.map((hub) =>
+          typeof hub.id === 'number' ? hub.id : parseInt(String(hub.id), 10)
+        ),
         declarations: {
           termsAccepted: acceptedTerms,
           licenseAccepted: acceptedLicense,
@@ -304,8 +306,8 @@ export default function UploadPDFPage() {
 
       case 'authors':
         return (
-          <div className="space-y-8">
-            <MultipleAuthorsSection
+          <div className="space-y-6">
+            <AuthorsAndAffiliations
               authors={authors}
               onChange={handleAuthorsChange}
               error={errors.authors || null}

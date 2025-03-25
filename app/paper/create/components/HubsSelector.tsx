@@ -8,9 +8,11 @@ import {
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { X } from 'lucide-react';
+import { HubService } from '@/services/hub.service';
+import { Topic } from '@/types/topic';
 
 export interface Hub {
-  id: string;
+  id: string | number;
   name: string;
   description?: string;
   color?: string;
@@ -26,8 +28,17 @@ export function HubsSelector({ selectedHubs, onChange, error }: HubsSelectorProp
   // Convert hubs to the format expected by SearchableMultiSelect
   const hubsToOptions = (hubs: Hub[]): MultiSelectOption[] => {
     return hubs.map((hub) => ({
-      value: hub.id,
+      value: String(hub.id),
       label: hub.name,
+    }));
+  };
+
+  // Convert Topic to Hub
+  const topicsToHubs = (topics: Topic[]): Hub[] => {
+    return topics.map((topic) => ({
+      id: topic.id,
+      name: topic.name,
+      description: topic.description,
     }));
   };
 
@@ -35,7 +46,7 @@ export function HubsSelector({ selectedHubs, onChange, error }: HubsSelectorProp
   const optionsToHubs = (options: MultiSelectOption[]): Hub[] => {
     return options.map((option) => {
       // Find the original hub in the selectedHubs array
-      const existingHub = selectedHubs.find((hub) => hub.id === option.value);
+      const existingHub = selectedHubs.find((hub) => String(hub.id) === option.value);
 
       // If found, return it, otherwise create a minimal hub
       return (
@@ -49,37 +60,14 @@ export function HubsSelector({ selectedHubs, onChange, error }: HubsSelectorProp
 
   const fetchHubs = useCallback(
     async (query: string): Promise<MultiSelectOption[]> => {
-      // This would be replaced with an actual API call to fetch hubs
-      // For now, let's mock the response with some sample data
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
-
-      const mockHubs: Hub[] = [
-        { id: '1', name: 'Biology', description: 'Life sciences', color: '#4caf50' },
-        { id: '2', name: 'Chemistry', description: 'Chemical sciences', color: '#f44336' },
-        { id: '3', name: 'Physics', description: 'Physical sciences', color: '#2196f3' },
-        {
-          id: '4',
-          name: 'Computer Science',
-          description: 'Computing and information technology',
-          color: '#ff9800',
-        },
-        { id: '5', name: 'Mathematics', description: 'Mathematical sciences', color: '#9c27b0' },
-        { id: '6', name: 'Medicine', description: 'Medical sciences', color: '#00bcd4' },
-        { id: '7', name: 'Psychology', description: 'Psychological sciences', color: '#795548' },
-        { id: '8', name: 'Economics', description: 'Economic sciences', color: '#607d8b' },
-        { id: '9', name: 'Sociology', description: 'Social sciences', color: '#8bc34a' },
-        { id: '10', name: 'Neuroscience', description: 'Neural sciences', color: '#e91e63' },
-      ];
-
-      const filtered = query
-        ? mockHubs.filter(
-            (hub) =>
-              hub.name.toLowerCase().includes(query.toLowerCase()) ||
-              hub.description?.toLowerCase().includes(query.toLowerCase())
-          )
-        : mockHubs;
-
-      return hubsToOptions(filtered);
+      try {
+        const topics = await HubService.suggestTopics(query);
+        const hubs = topicsToHubs(topics);
+        return hubsToOptions(hubs);
+      } catch (error) {
+        console.error('Error fetching topics:', error);
+        return [];
+      }
     },
     [selectedHubs]
   );
