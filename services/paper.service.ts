@@ -48,8 +48,13 @@ interface CreatePaperResponse {
   title: string;
 }
 
+interface CheckoutSessionResponse {
+  url: string;
+}
+
 export class PaperService {
   private static readonly BASE_PATH = '/api/paper';
+  private static readonly PAYMENT_PATH = '/api/payment';
 
   // TODO: Remove this
   static async createByOpenAlexId(openalexId: string) {
@@ -135,5 +140,20 @@ export class PaperService {
       `${this.BASE_PATH}/create_researchhub_paper/`,
       apiPayload
     );
+  }
+
+  /**
+   * Create a checkout session for journal submission payment
+   */
+  static async payForJournalSubmission(
+    paperId: number,
+    successUrl: string,
+    failureUrl: string
+  ): Promise<CheckoutSessionResponse> {
+    return ApiClient.post<CheckoutSessionResponse>(`${this.PAYMENT_PATH}/checkout-session/`, {
+      success_url: successUrl,
+      failure_url: failureUrl,
+      paper: paperId,
+    });
   }
 }

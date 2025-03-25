@@ -32,54 +32,16 @@ const steps: SimpleStep[] = [
 
 export default function UploadPDFPage() {
   const router = useRouter();
-  // For testing purposes, start at the final preview step
-  const [currentStepIndex, setCurrentStepIndex] = useState(3);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
   // Form state
-  const [title, setTitle] = useState('Novel Approaches to Quantum Computing');
-  const [abstract, setAbstract] = useState(
-    'This paper presents a novel approach to quantum computing that leverages advanced machine learning algorithms to optimize qubit coherence. We demonstrate a 45% improvement in coherence time compared to traditional methods.'
-  );
-  const [selectedFile, setSelectedFile] = useState<File | null>({
-    name: 'quantum-computing-paper.pdf',
-  } as File);
-  const [authors, setAuthors] = useState<AuthorWithAffiliation[]>([
-    {
-      author: {
-        id: 1,
-        fullName: 'Dr. Jane Smith',
-        institutions: [],
-        reputationHubs: [],
-        education: [],
-      },
-      institution: { id: 1, name: 'Quantum Research Institute' },
-      isCorrespondingAuthor: true,
-      department: 'Quantum Physics',
-      email: 'jane.smith@quantum.edu',
-    },
-    {
-      author: {
-        id: 2,
-        fullName: 'Prof. Alex Johnson',
-        institutions: [],
-        reputationHubs: [],
-        education: [],
-      },
-      institution: { id: 2, name: 'University of Physics' },
-      isCorrespondingAuthor: false,
-      department: 'Computer Science',
-      email: 'alex.johnson@physics.edu',
-    },
-  ]);
-  const [selectedHubs, setSelectedHubs] = useState<Hub[]>([
-    { id: 1, name: 'Quantum Computing' },
-    { id: 2, name: 'Machine Learning' },
-    { id: 3, name: 'Computer Science' },
-  ]);
+  const [title, setTitle] = useState('');
+  const [abstract, setAbstract] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [authors, setAuthors] = useState<AuthorWithAffiliation[]>([]);
+  const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
   const [changeDescription, setChangeDescription] = useState('Initial submission');
-  const [fileUploadResult, setFileUploadResult] = useState<UploadFileResult | null>({
-    absoluteUrl: 'https://storage.researchhub.com/files/quantum-computing-paper.pdf',
-  } as UploadFileResult);
+  const [fileUploadResult, setFileUploadResult] = useState<UploadFileResult | null>(null);
 
   // Declarations
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -323,10 +285,38 @@ export default function UploadPDFPage() {
       toast.dismiss(loadingToast);
       toast.success('Paper submitted successfully!');
 
-      // Redirect to success page
-      router.push(
-        `/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}`
-      );
+      // If submitting to journal, redirect to Stripe checkout
+      if (submitToJournal) {
+        try {
+          // Create checkout session using the PaperService
+          const successUrl = `${window.location.origin}/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}&isJournal=true`;
+          const failureUrl = `${window.location.origin}/`;
+
+          const checkoutData = await PaperService.payForJournalSubmission(
+            response.id,
+            successUrl,
+            failureUrl
+          );
+
+          if (checkoutData.url) {
+            // Redirect to Stripe checkout
+            window.location.href = checkoutData.url;
+            return; // Exit function as we're redirecting
+          } else {
+            throw new Error('No checkout URL received from server');
+          }
+        } catch (error) {
+          console.error('Checkout Error:', error);
+          toast.error('Failed to initiate payment. Please try again.');
+          setIsSubmitting(false);
+          return; // Stop execution
+        }
+      } else {
+        // Regular submission (no journal) - redirect to success page
+        router.push(
+          `/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}&isJournal=${submitToJournal}`
+        );
+      }
     } catch (error) {
       console.error('Submission error:', error);
       toast.dismiss(loadingToast);
