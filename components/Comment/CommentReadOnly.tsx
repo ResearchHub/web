@@ -19,6 +19,7 @@ interface CommentReadOnlyProps {
   debug?: boolean;
   maxLength?: number;
   initiallyExpanded?: boolean;
+  showReadMoreButton?: boolean;
 }
 
 // Simple read-only stars component for displaying review score
@@ -59,6 +60,7 @@ export const CommentReadOnly = ({
   debug = false,
   maxLength = 300,
   initiallyExpanded = false,
+  showReadMoreButton = true,
 }: CommentReadOnlyProps) => {
   const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
 
@@ -142,11 +144,11 @@ export const CommentReadOnly = ({
       return null;
     }
 
-    // Only show the Read more button if content should be truncated
+    // Only show the Read more button if content should be truncated and showReadMoreButton is true
     return (
       <>
         {renderedContent}
-        {shouldTruncate && (
+        {shouldTruncate && showReadMoreButton && (
           <Button
             variant="ghost"
             size="sm"

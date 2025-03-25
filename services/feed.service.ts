@@ -44,16 +44,9 @@ export class FeedService {
           // Remove null entries
           if (!entry) return false;
 
-          // Keep all non-comment entries
-          if (entry.contentType !== 'COMMENT') {
-            return true;
-          }
-
-          // For comments, only keep REVIEW comments
-          const commentEntry = entry.content as import('@/types/feed').FeedCommentContent;
-          return commentEntry?.comment?.commentType === 'REVIEW';
+          // Keep all entries (no filtering by content type)
+          return true;
         });
-      console.log(`Transformed ${transformedEntries.length} feed entries`);
 
       // Return the transformed entries
       return {

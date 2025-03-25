@@ -56,6 +56,7 @@ export interface FeedCommentContent {
     contentFormat: ContentFormat;
     commentType: CommentType;
     score: number;
+    reviewScore?: number;
     thread?: {
       id: number;
       threadType: string;
@@ -64,6 +65,9 @@ export interface FeedCommentContent {
   };
   relatedDocumentId?: number;
   relatedDocumentContentType?: ContentType;
+  review?: {
+    score: number;
+  };
 }
 
 export interface FeedPaperContent {
@@ -307,6 +311,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           is_public: true,
           is_removed: false,
           metadata: content_object.metadata || {},
+          review: content_object.review || null,
         };
 
         // Transform the comment to get score and other properties
@@ -324,6 +329,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
             contentFormat: (content_object.comment_content_type as ContentFormat) || 'QUILL_EDITOR',
             commentType: content_object.comment_type as CommentType,
             score: transformedComment.score || 0,
+            reviewScore: transformedComment.reviewScore || 0,
             thread: content_object.thread_id
               ? {
                   id: content_object.thread_id,
@@ -335,6 +341,13 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           relatedDocumentId: content_object.object_id || content_object.thread_id,
           relatedDocumentContentType: content_object.document_type as ContentType,
         };
+
+        // Add review data if available
+        if (content_object.review) {
+          commentContent.review = {
+            score: content_object.review.score || 0,
+          };
+        }
 
         content = commentContent;
 
@@ -441,6 +454,10 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       ? {
           votes: feedEntry.metrics.votes || 0,
           comments: feedEntry.metrics.comments || 0,
+          ...(contentType === 'COMMENT' &&
+          (content as FeedCommentContent).comment.commentType === 'REVIEW'
+            ? { reviewScore: (content as FeedCommentContent).review?.score || 0 }
+            : {}),
         }
       : undefined,
     raw: feedEntry,
@@ -475,6 +492,7 @@ export const transformCommentToFeedItem = (
       contentFormat: comment.contentFormat || 'QUILL_EDITOR',
       commentType: comment.commentType,
       score: comment.score,
+      reviewScore: comment.reviewScore,
       thread: comment.thread
         ? {
             id: comment.thread.id,
@@ -487,6 +505,13 @@ export const transformCommentToFeedItem = (
     relatedDocumentContentType: contentType,
   };
 
+  // Add review data if this is a review comment
+  if (comment.commentType === 'REVIEW') {
+    commentContent.review = {
+      score: comment.reviewScore || comment.score || 0,
+    };
+  }
+
   // Create a FeedEntry with the comment content
   return {
     id: `comment-${comment.id}`,
@@ -498,6 +523,9 @@ export const transformCommentToFeedItem = (
       votes: comment.score || 0,
       comments: comment.childrenCount || 0,
       saves: 0, // Add the required saves property
+      ...(comment.commentType === 'REVIEW'
+        ? { reviewScore: comment.reviewScore || comment.score || 0 }
+        : {}),
     },
     userVote: comment.userVote,
   };
