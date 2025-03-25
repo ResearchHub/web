@@ -218,7 +218,13 @@ export default function WorkCreatePage() {
                 {publishOption && (
                   <div className="mt-6">
                     <Button
-                      onClick={() => router.push(`/paper/create/${publishOption}`)}
+                      onClick={() => {
+                        if (publishOption === 'pdf') {
+                          router.push('/paper/create/pdf');
+                        } else {
+                          router.push(`/paper/create/${publishOption}`);
+                        }
+                      }}
                       variant="default"
                       className="w-full py-6 text-base"
                     >
