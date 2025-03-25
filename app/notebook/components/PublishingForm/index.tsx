@@ -247,7 +247,11 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
 
       setIsRedirecting(true);
 
-      router.push(`/fund/${response.id}/${response.slug}`);
+      if (formData.articleType === 'preregistration') {
+        router.push(`/fund/${response.id}/${response.slug}`);
+      } else {
+        router.push(`/post/${response.id}/${response.slug}`);
+      }
     } catch (error) {
       toast.error('Error publishing. Please try again.');
       console.error('Error publishing:', error);

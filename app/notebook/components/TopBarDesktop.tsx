@@ -1,11 +1,9 @@
 'use client';
 
 import { Button } from '@/components/ui/Button';
-import { Menu, FileUp, ExternalLink, ChevronRight, ChevronLeft } from 'lucide-react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useNotebookContext } from '@/contexts/NotebookContext';
-import { Badge } from '@/components/ui/Badge';
-import Link from 'next/link';
 import { PublishedStatusSection } from './PublishingForm/components/PublishedStatusSection';
 
 export function TopBarDesktop() {
@@ -13,6 +11,7 @@ export function TopBarDesktop() {
   const { currentNote: note, isLoading } = useNotebookContext();
 
   const isPublished = Boolean(note?.post?.id);
+  const shouldShowRightSidebar = Boolean(note);
 
   return (
     <div className="h-16 border-b border-gray-200 sticky top-0 bg-white z-20">
@@ -21,35 +20,37 @@ export function TopBarDesktop() {
         <PublishedStatusSection />
 
         {/* Right sidebar toggle button */}
-        {isRightSidebarOpen ? (
-          <Button
-            onClick={toggleRightSidebar}
-            className="p-2 rounded-md hover:bg-gray-100"
-            variant="ghost"
-            size="icon"
-          >
-            <div className="flex">
-              <ChevronRight className="h-5 w-5" />
-              <ChevronRight className="h-5 w-5 -ml-3" />
-            </div>
-          </Button>
-        ) : (
-          <Button
-            onClick={toggleRightSidebar}
-            className="p-2 rounded-md"
-            aria-label="Toggle right sidebar"
-            variant="default"
-            size="sm"
-          >
-            <div className="flex items-center gap-1">
+        {shouldShowRightSidebar ? (
+          isRightSidebarOpen ? (
+            <Button
+              onClick={toggleRightSidebar}
+              className="p-2 rounded-md hover:bg-gray-100"
+              variant="ghost"
+              size="icon"
+            >
               <div className="flex">
-                <ChevronLeft className="h-5 w-5" />
-                <ChevronLeft className="h-5 w-5 -ml-3" />
+                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className="h-5 w-5 -ml-3" />
               </div>
-              <span>{isPublished ? 'Re-publish' : 'Publish'}</span>
-            </div>
-          </Button>
-        )}
+            </Button>
+          ) : (
+            <Button
+              onClick={toggleRightSidebar}
+              className="p-2 rounded-md"
+              aria-label="Toggle right sidebar"
+              variant="default"
+              size="sm"
+            >
+              <div className="flex items-center gap-1">
+                <div className="flex">
+                  <ChevronLeft className="h-5 w-5" />
+                  <ChevronLeft className="h-5 w-5 -ml-3" />
+                </div>
+                <span>{isPublished ? 'Re-publish' : 'Publish'}</span>
+              </div>
+            </Button>
+          )
+        ) : null}
       </div>
     </div>
   );
