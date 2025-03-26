@@ -1,7 +1,7 @@
 import { cn } from '@/components/Editor/lib/utils';
 import { memo, useCallback } from 'react';
 import { Editor } from '@tiptap/react';
-import { TableOfContents } from '../TableOfContents';
+import { TableOfContents } from '../../../../components/Editor/components/TableOfContents';
 
 export const Sidebar = memo(
   ({ editor, isOpen, onClose }: { editor: Editor; isOpen?: boolean; onClose: () => void }) => {

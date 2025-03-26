@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import './globals.css';
 import 'cal-sans';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { Button } from '@/components/ui/Button';
-import { TopBar } from './components/TopBar';
+import { TopBarMobile } from './components/TopBarMobile';
 
 // Import font styles
 import '@fontsource/inter/100.css';
@@ -21,26 +21,59 @@ import '@fontsource/inter/700.css';
 import { LeftSidebar } from './LeftSidebar';
 import { NotebookProvider, useNotebookContext } from '@/contexts/NotebookContext';
 import { RightSidebar } from './RightSidebar';
-import { useMediaQuery } from '@/hooks/useMediaQuery';
-
-const DESKTOP_BREAKPOINT = 1024;
+import { useScreenSize } from '@/hooks/useScreenSize';
+import { TopBarDesktop } from './components/TopBarDesktop';
 
 function NotebookLayoutContent({ children }: { children: ReactNode }) {
   const {
     isLeftSidebarOpen,
     isRightSidebarOpen,
+    openLeftSidebar,
     closeLeftSidebar,
+    openRightSidebar,
     closeRightSidebar,
     toggleLeftSidebar,
     toggleRightSidebar,
+    closeBothSidebars,
   } = useSidebar();
+
   // Initialize with null to indicate we don't know yet
   const { currentNote, isLoading } = useNotebookContext();
 
   const shouldShowRightSidebar = currentNote || isLoading;
 
-  // Check if we're on desktop when component mounts and when window resizes
-  const isDesktop = useMediaQuery(`(min-width: ${DESKTOP_BREAKPOINT}px)`);
+  const { xlAndUp, lgAndUp, mdAndDown, current } = useScreenSize();
+  // Consider lg and above as desktop
+  const isDesktop = lgAndUp;
+
+  // Handle responsive sidebar states based on screen size
+  useEffect(() => {
+    if (xlAndUp) {
+      // On extra large screens, both sidebars are open
+      openLeftSidebar();
+      if (shouldShowRightSidebar) {
+        openRightSidebar();
+      }
+    } else if (lgAndUp) {
+      // On large screens, left sidebar is open, right is closed
+      openLeftSidebar();
+      closeRightSidebar();
+    } else {
+      // On medium and smaller screens, both sidebars are closed
+      closeBothSidebars();
+    }
+  }, [
+    xlAndUp,
+    lgAndUp,
+    mdAndDown,
+    current,
+    shouldShowRightSidebar,
+    openLeftSidebar,
+    openRightSidebar,
+    closeLeftSidebar,
+    closeRightSidebar,
+    closeBothSidebars,
+  ]);
 
   if (isDesktop === null) {
     return null;
@@ -53,9 +86,10 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
         <div
           className="grid min-h-screen w-full"
           style={{
-            gridTemplateColumns: shouldShowRightSidebar
-              ? '300px minmax(0, 1fr) 300px'
-              : '300px minmax(0, 1fr)',
+            gridTemplateColumns:
+              shouldShowRightSidebar && isRightSidebarOpen
+                ? '300px minmax(0, 1fr) 300px'
+                : '300px minmax(0, 1fr)',
           }}
         >
           {/* Left Sidebar - 300px fixed width */}
@@ -66,24 +100,24 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
           {/* Main content area - flexible width */}
           <div className="flex flex-col">
             {/* TopBar */}
-            {/* <div className="h-16 border-b border-gray-200">
-            <div className="p-4">TopBar Placeholder</div>
-            </div> */}
+            <TopBarDesktop />
 
             {/* Main content */}
             <div className="flex-1 overflow-auto">{children}</div>
           </div>
 
           {/* Right Sidebar - 300px fixed width */}
-          <div className="border-l border-gray-200 h-screen sticky top-0 overflow-y-auto">
-            <RightSidebar />
-          </div>
+          {shouldShowRightSidebar && isRightSidebarOpen && (
+            <div className="border-l border-gray-200 h-screen sticky top-0 overflow-y-auto">
+              <RightSidebar />
+            </div>
+          )}
         </div>
       ) : (
         // Mobile layout - single column with slide-out sidebars
         <div className="flex flex-col min-h-screen">
           {/* Mobile TopBar with menu buttons */}
-          <TopBar />
+          <TopBarMobile />
 
           {/* Main content */}
           <div className="flex-1 overflow-auto">{children}</div>
@@ -116,7 +150,7 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
                     leaveFrom="translate-x-0"
                     leaveTo="-translate-x-full"
                   >
-                    <Dialog.Panel className="w-72 h-full bg-white shadow-xl overflow-y-auto">
+                    <Dialog.Panel className="w-full lg:w-72 h-full bg-white shadow-xl overflow-y-auto">
                       <div className="h-16 flex justify-end items-center p-4 sticky top-0 bg-white z-10">
                         <Button
                           onClick={closeLeftSidebar}
@@ -168,7 +202,7 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
                     leaveFrom="translate-x-0"
                     leaveTo="translate-x-full"
                   >
-                    <Dialog.Panel className="w-72 h-full bg-white shadow-xl overflow-y-auto">
+                    <Dialog.Panel className="w-full lg:w-72 h-full bg-white shadow-xl overflow-y-auto">
                       <div className="h-16 flex justify-start items-center p-4 sticky top-0 bg-white z-10">
                         <Button
                           onClick={closeRightSidebar}
@@ -196,6 +230,7 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
     </div>
   );
 }
+
 export default function NotebookLayout({ children }: { children: React.ReactNode }) {
   return (
     <NotebookProvider>

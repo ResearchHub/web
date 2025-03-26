@@ -13,12 +13,14 @@ export interface PreregistrationPostParams {
   topics: string[];
 
   // Document related
+  articleType: 'PREREGISTRATION' | 'DISCUSSION';
   title: string;
   noteId: ID;
   renderableText: string;
   fullJSON: string;
   fullSrc: string;
   assignDOI?: boolean;
+  authors: number[];
 }
 
 interface UsePostState {
@@ -50,7 +52,7 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
     try {
       // Create the request payload
       const payload: any = {
-        document_type: 'PREREGISTRATION',
+        document_type: postParams.articleType,
         title: postParams.title,
         renderable_text: postParams.renderableText,
         full_src: postParams.fullSrc,
@@ -58,11 +60,12 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         note_id: postParams.noteId,
         assign_doi: postParams.assignDOI ?? false,
         hubs: postParams.topics,
+        authors: postParams.authors,
       };
 
       if (postId) {
         payload.post_id = postId;
-      } else {
+      } else if (postParams.articleType === 'PREREGISTRATION') {
         // Only include fundraise fields for creation
         payload.reward_funders = postParams.rewardFunders;
         payload.nft_supply = postParams.nftSupply;

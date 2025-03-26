@@ -18,8 +18,8 @@ interface WorkRightSidebarProps {
 export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
   return (
     <div className="space-y-8">
-      <HaveYouPublishedBanner />
-      {/* <PublishInJournalBanner /> */}
+      {/* <HaveYouPublishedBanner /> */}
+      <PublishInJournalBanner />
 
       <MetricsSection metrics={metadata.metrics} />
       <TopicsSection topics={metadata.topics || []} />

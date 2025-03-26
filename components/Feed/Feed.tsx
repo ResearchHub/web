@@ -3,7 +3,7 @@
 import { FC, useRef, useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { Sparkles } from 'lucide-react';
-import { useFeed, FeedTab } from '@/hooks/useFeed';
+import { useFeed, FeedTab, FeedSource } from '@/hooks/useFeed';
 import { FeedContent } from './FeedContent';
 import { InterestSelector } from '@/components/InterestSelector/InterestSelector';
 import { FeedTabs } from './FeedTabs';
@@ -21,7 +21,10 @@ export const Feed: FC<FeedProps> = ({ defaultTab }) => {
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [activeTab, setActiveTab] = useState<FeedTab>(defaultTab);
   const [isNavigating, setIsNavigating] = useState(false);
-  const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(defaultTab);
+  const [sourceFilter, setSourceFilter] = useState<FeedSource>('all');
+  const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(defaultTab, {
+    source: sourceFilter,
+  });
 
   // Sync the activeTab with the defaultTab when the component mounts or defaultTab changes
   useEffect(() => {
@@ -50,6 +53,11 @@ export const Feed: FC<FeedProps> = ({ defaultTab }) => {
     } else {
       router.push(`/${tab}`);
     }
+  };
+
+  const handleSourceFilterChange = (source: FeedSource) => {
+    setSourceFilter(source);
+    // The filter will be applied through the useFeed hook with the updated source option
   };
 
   // Combine the loading states
@@ -92,6 +100,35 @@ export const Feed: FC<FeedProps> = ({ defaultTab }) => {
     />
   );
 
+  const sourceFilters = (
+    <div className="flex justify-end">
+      <div className="inline-flex items-center text-sm">
+        <span className="text-gray-500 mr-2">View:</span>
+        <button
+          onClick={() => handleSourceFilterChange('all')}
+          className={`transition-colors duration-200 px-1 ${
+            sourceFilter === 'all'
+              ? 'text-indigo-600 font-medium'
+              : 'text-gray-500 hover:text-gray-800'
+          }`}
+        >
+          All
+        </button>
+        <span className="mx-2 text-gray-300">•</span>
+        <button
+          onClick={() => handleSourceFilterChange('researchhub')}
+          className={`transition-colors duration-200 px-1 ${
+            sourceFilter === 'researchhub'
+              ? 'text-indigo-600 font-medium'
+              : 'text-gray-500 hover:text-gray-800'
+          }`}
+        >
+          ResearchHub
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <PageLayout>
       {!isCustomizing ? (
@@ -102,6 +139,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab }) => {
           loadMore={loadMore}
           header={header}
           tabs={feedTabs}
+          filters={sourceFilters}
         />
       ) : (
         <>

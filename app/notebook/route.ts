@@ -4,8 +4,9 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/auth.config';
 import { OrganizationService } from '@/services/organization.service';
 import { NoteService } from '@/services/note.service';
 import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
-import { initialContent } from '@/components/Editor/lib/data/initialContent';
+import { getInitialContent, initialContent } from '@/components/Editor/lib/data/initialContent';
 import { getDocumentTitle } from '@/components/Editor/lib/utils/documentTitle';
+import { selectOrganization } from '@/contexts/utils/organizationSelection';
 // These settings ensure our notebook route always gets fresh data and never uses cached responses.
 export const dynamic = 'force-dynamic'; // Disable static optimization, ensuring fresh data on every request
 export const fetchCache = 'force-no-store'; // Prevent Next.js from caching fetch requests inside this route
@@ -15,10 +16,12 @@ async function createNoteWithContent(
   orgSlug: string,
   {
     template,
-    isNewFunding = false,
+    queryParam,
+    queryValue,
   }: {
     template: typeof preregistrationTemplate | typeof initialContent;
-    isNewFunding?: boolean;
+    queryParam?: string;
+    queryValue?: string;
   }
 ) {
   const title = getDocumentTitle(template) || 'Untitled';
@@ -38,7 +41,8 @@ async function createNoteWithContent(
       .join('\n'),
   });
 
-  return redirect(`/notebook/${orgSlug}/${newNote.id}${isNewFunding ? '?newFunding=true' : ''}`);
+  const queryString = queryParam && queryValue ? `?${queryParam}=${queryValue}` : '';
+  return redirect(`/notebook/${orgSlug}/${newNote.id}${queryString}`);
 }
 
 export async function GET(request: Request) {
@@ -51,6 +55,7 @@ export async function GET(request: Request) {
   // Get URL and search params
   const { searchParams } = new URL(request.url);
   const isNewFunding = searchParams.get('newFunding') === 'true';
+  const isNewResearch = searchParams.get('newResearch') === 'true';
   const targetOrgSlug = searchParams.get('orgSlug');
 
   const organizations = await OrganizationService.getUserOrganizations(session);
@@ -58,13 +63,7 @@ export async function GET(request: Request) {
     throw new Error('No organizations found. Please create or join an organization first.');
   }
 
-  let selectedOrg = organizations[0];
-  if (targetOrgSlug) {
-    const matchingOrg = organizations.find((org) => org.slug === targetOrgSlug);
-    if (matchingOrg) {
-      selectedOrg = matchingOrg;
-    }
-  }
+  const selectedOrg = selectOrganization(organizations, targetOrgSlug);
 
   //TODO: Handle this better. Not found page
   if (!selectedOrg) {
@@ -74,7 +73,14 @@ export async function GET(request: Request) {
   if (isNewFunding) {
     return createNoteWithContent(selectedOrg.slug, {
       template: preregistrationTemplate,
-      isNewFunding: true,
+      queryParam: 'newFunding',
+      queryValue: 'true',
+    });
+  } else if (isNewResearch) {
+    return createNoteWithContent(selectedOrg.slug, {
+      template: getInitialContent('research'),
+      queryParam: 'newResearch',
+      queryValue: 'true',
     });
   }
 

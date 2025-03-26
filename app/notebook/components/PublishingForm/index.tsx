@@ -10,7 +10,7 @@ import { JournalSection } from './components/JournalSection';
 import { Button } from '@/components/ui/Button';
 import { useState, useEffect, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useUpsertPost, UpsertPostResult } from '@/hooks/useDocument';
+import { useUpsertPost } from '@/hooks/useDocument';
 import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
 import {
   getDocumentTitleFromEditor,
@@ -26,13 +26,11 @@ import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSke
 import { Loader2 } from 'lucide-react';
 import { DOISection } from '@/components/work/components/DOISection';
 import { getFieldErrorMessage } from '@/utils/form';
-import { NonprofitSearchSection } from './components/NonprofitSearchSection';
 import { useNotebookContext } from '@/contexts/NotebookContext';
-import { useNonprofitLink } from '@/hooks/useNonprofitLink';
-import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
-import { NonprofitOrg, NonprofitDeployment, NonprofitAddress } from '@/types/nonprofit';
-import { Work } from '@/types/work';
-import { ID } from '@/types/root';
+
+// Feature flags for conditionally showing sections
+const FEATURE_FLAG_RESEARCH_COIN = false;
+const FEATURE_FLAG_JOURNAL = false;
 
 interface PublishingFormProps {
   bountyAmount: number | null;
@@ -59,47 +57,17 @@ const getButtonText = ({
       return 'Redirecting...';
     case hasWorkId:
       return 'Re-publish';
-    case articleType === 'discussion' && isJournalEnabled:
+    case Boolean(FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled):
       return 'Pay & Publish';
     default:
       return 'Publish';
   }
 };
 
-// Add interfaces for the nonprofit API response
-interface NonprofitDetails {
-  id: string | number;
-  name: string;
-  ein: string;
-  endaoment_org_id: string;
-  base_wallet_address?: string;
-  created_date?: string;
-  updated_date?: string;
-}
-
-interface NonprofitLink {
-  id: string | number;
-  nonprofit: string | number;
-  nonprofit_details: NonprofitDetails;
-  fundraise: string | number;
-  note: string;
-  created_date: string;
-  updated_date: string;
-}
-
 export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormProps) {
   const { currentNote: note, editor } = useNotebookContext();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const {
-    nonprofit,
-    departmentLabName,
-    isLoading: isLoadingNonprofitData,
-    fetchNonprofitData,
-  } = useNonprofitByFundraiseId(
-    note?.post?.contentType === 'preregistration' ? note?.post?.fundraise?.id : undefined
-  );
-  const { isLoading: isLoadingNonprofitLink, linkNonprofitToFundraise } = useNonprofitLink();
 
   const methods = useForm<PublishingFormData>({
     defaultValues: {
@@ -109,7 +77,6 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       nftSupply: '1000',
       isJournalEnabled: false,
       budget: '',
-      departmentLabName: '',
     },
     resolver: zodResolver(publishingFormSchema),
     mode: 'onChange',
@@ -126,31 +93,9 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         nftSupply: '1000',
         isJournalEnabled: false,
         budget: '',
-        departmentLabName: '',
       });
     }
   }, [note?.id, methods]);
-
-  // Fetch nonprofit data if this is a published preregistration
-  useEffect(() => {
-    if (
-      !note?.post?.id ||
-      note.post.contentType !== 'preregistration' ||
-      !note.post.fundraise?.id
-    ) {
-      return;
-    }
-
-    fetchNonprofitData(note.post.fundraise.id);
-  }, [note?.post?.id, note?.post?.contentType, note?.post?.fundraise?.id, fetchNonprofitData]);
-
-  // Set nonprofit data in form when it's loaded
-  useEffect(() => {
-    if (nonprofit) {
-      methods.setValue('selectedNonprofit', nonprofit);
-      methods.setValue('departmentLabName', departmentLabName);
-    }
-  }, [nonprofit, departmentLabName, methods]);
 
   // Load data with priority:
   // 1. note.post data
@@ -175,6 +120,14 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         methods.setValue('topics', topicOptions);
       }
 
+      if (note.post.authors && note.post.authors.length > 0) {
+        const authorOptions = note.post.authors.map((author) => ({
+          value: author.authorId.toString(),
+          label: author.name,
+        }));
+        methods.setValue('authors', authorOptions);
+      }
+
       // Set other relevant post data
       return;
     }
@@ -189,11 +142,14 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
 
     // Priority 3: Check URL params
     const isNewFunding = searchParams?.get('newFunding') === 'true';
+    const isNewResearch = searchParams?.get('newResearch') === 'true';
     const template = searchParams?.get('template');
 
     if (!note?.post && !storedData) {
       if (isNewFunding) {
         methods.setValue('articleType', 'preregistration');
+      } else if (isNewResearch) {
+        methods.setValue('articleType', 'discussion');
       } else if (template) {
         const articleType = template === 'preregistration' ? 'preregistration' : 'discussion';
         methods.setValue('articleType', articleType);
@@ -253,7 +209,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       return;
     }
 
-    if (articleType !== 'preregistration') {
+    if (articleType !== 'preregistration' && articleType !== 'discussion') {
       console.log('Publishing clicked for type:', articleType);
       return;
     }
@@ -270,12 +226,6 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       const title = getDocumentTitleFromEditor(editor);
       const formData = methods.getValues();
 
-      // Store the existing fundraiseId for use in case the API response doesn't include it
-      const existingFundraiseId = note?.post?.fundraise?.id;
-
-      // Get the correct endaoment_org_id from the nonprofit data
-      const endaomentOrgId = (formData.selectedNonprofit as any)?.endaoment_org_id;
-
       const response = await upsertPost(
         {
           budget: formData.budget || '0',
@@ -288,40 +238,26 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           fullSrc: previewContent || '',
           assignDOI: formData.workId ? false : true,
           topics: formData.topics.map((topic) => topic.value),
+          authors: formData.authors
+            .map((author) => author.value)
+            .map(Number)
+            .filter((id) => !isNaN(id)),
+          articleType:
+            formData.articleType === 'preregistration' ? 'PREREGISTRATION' : 'DISCUSSION',
         },
         formData.workId
       );
 
-      // Use the fundraiseId from the response, or fallback to the existing one if undefined
-      const fundraiseId = response.fundraiseId || existingFundraiseId;
-
-      // If there's a selected nonprofit and a fundraiseId is available (from response or existing)
-      if (formData.selectedNonprofit && fundraiseId) {
-        try {
-          // Always use the endaoment_org_id if available to ensure we're linking to the correct nonprofit
-          const linkPayload = {
-            name: formData.selectedNonprofit.name,
-            endaoment_org_id: endaomentOrgId || formData.selectedNonprofit.id,
-            ein: formData.selectedNonprofit.ein,
-            base_wallet_address: formData.selectedNonprofit.baseWalletAddress,
-          };
-
-          await linkNonprofitToFundraise(
-            linkPayload,
-            fundraiseId,
-            formData.departmentLabName || `Linked from preregistration ${response.id}`
-          );
-        } catch (error) {
-          console.error('Error linking nonprofit:', error);
-          // Continue with redirect even if nonprofit linking fails
-        }
-      }
-
       setIsRedirecting(true);
-      router.push(`/fund/${response.id}/${response.slug}`);
+
+      if (formData.articleType === 'preregistration') {
+        router.push(`/fund/${response.id}/${response.slug}`);
+      } else {
+        router.push(`/post/${response.id}/${response.slug}`);
+      }
     } catch (error) {
-      console.error('Error in publish process:', error);
       toast.error('Error publishing. Please try again.');
+      console.error('Error publishing:', error);
     } finally {
       setShowConfirmModal(false);
     }
@@ -336,7 +272,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     <FormProvider {...methods}>
       <div className="w-82 flex flex-col sticky right-0 top-0 bg-white relative h-[calc(100vh-64px)] lg:h-screen">
         {/* Processing overlay */}
-        {(isLoadingUpsert || isRedirecting || isLoadingNonprofitData) && (
+        {(isLoadingUpsert || isRedirecting) && (
           <div className="absolute inset-0 bg-white/50 z-50 flex flex-col items-center justify-center">
             <Loader2 className="h-8 w-8 text-indigo-600 animate-spin mb-2" />
           </div>
@@ -348,34 +284,24 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         >
           <div className="pb-6">
             <WorkTypeSection />
-
-            {articleType === 'preregistration' && (
-              <>
-                <FundingSection note={note} />
-                <NonprofitSearchSection />
-              </>
-            )}
-
             <AuthorsSection />
             <TopicsSection />
-
             {note.post?.doi && (
               <div className="py-3 px-6 space-y-6">
                 <DOISection doi={note.post.doi} />
               </div>
             )}
-
-            {articleType !== 'preregistration' && (
+            {articleType === 'preregistration' && <FundingSection note={note} />}
+            {FEATURE_FLAG_RESEARCH_COIN && articleType !== 'preregistration' && (
               <ResearchCoinSection bountyAmount={bountyAmount} onBountyClick={onBountyClick} />
             )}
-
-            {articleType === 'discussion' && <JournalSection />}
+            {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && <JournalSection />}
           </div>
         </div>
 
         {/* Sticky bottom section */}
         <div className="border-t bg-white p-2 lg:p-6 space-y-3 sticky bottom-0">
-          {articleType === 'discussion' && isJournalEnabled && (
+          {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">Payment due:</span>
               <span className="font-medium text-gray-900">$1,000 USD</span>
@@ -385,7 +311,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             variant="default"
             onClick={handlePublishClick}
             className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isLoadingUpsert || isRedirecting || isLoadingNonprofitData}
+            disabled={isLoadingUpsert || isRedirecting}
           >
             {getButtonText({
               isLoadingUpsert,

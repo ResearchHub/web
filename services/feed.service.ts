@@ -13,6 +13,7 @@ export class FeedService {
     feedView?: string;
     hubSlug?: string;
     contentType?: string;
+    source?: 'all' | 'researchhub';
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
@@ -20,6 +21,7 @@ export class FeedService {
     if (params?.feedView) queryParams.append('feed_view', params.feedView);
     if (params?.hubSlug) queryParams.append('hub_slug', params.hubSlug);
     if (params?.contentType) queryParams.append('content_type', params.contentType);
+    if (params?.source) queryParams.append('source', params.source);
 
     const url = `${this.BASE_PATH}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     console.log(`Fetching feed from URL: ${url}`);

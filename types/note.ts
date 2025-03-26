@@ -4,8 +4,14 @@ import { transformOrganization } from './organization';
 import { ID } from './root';
 import { ContentType } from './work';
 import { Fundraise, transformFundraise } from './funding';
-import { Topic, transformTopic, transformTopicSuggestions } from './topic';
+import { Topic, transformTopic } from './topic';
 export type NoteAccess = 'WORKSPACE' | 'PRIVATE' | 'SHARED';
+
+export type Author = {
+  authorId: number;
+  userId: number;
+  name: string;
+};
 
 export type Post = {
   id: number;
@@ -13,6 +19,7 @@ export type Post = {
   contentType: ContentType;
   fundraise?: Fundraise;
   topics?: Topic[];
+  authors?: Author[];
   doi?: string;
 };
 
@@ -51,6 +58,12 @@ export interface NoteApiItem {
 
 export type TransformedNote = Note & BaseTransformed;
 
+export const transformAuthor = createTransformer<any, Author>((raw: any) => ({
+  authorId: raw.id,
+  userId: raw.user,
+  name: `${raw.first_name || ''} ${raw.last_name || ''}`.trim() || 'Unknown',
+}));
+
 export const transformPost = createTransformer<any, Post>((raw) => ({
   id: raw.id,
   slug: raw.slug,
@@ -60,6 +73,9 @@ export const transformPost = createTransformer<any, Post>((raw) => ({
     : undefined,
   doi: raw.doi,
   topics: Array.isArray(raw.hubs) ? raw.hubs.map((hub: any) => transformTopic(hub)) : undefined,
+  authors: Array.isArray(raw.authors)
+    ? raw.authors.map((author: any) => transformAuthor(author))
+    : undefined,
 }));
 
 export const transformNote = createTransformer<any, Note>((raw) => ({

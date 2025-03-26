@@ -20,7 +20,7 @@ export interface MultiSelectOption {
 export interface SearchableMultiSelectProps {
   value: MultiSelectOption[];
   onChange: (value: MultiSelectOption[]) => void;
-  onSearch?: (query: string) => Promise<MultiSelectOption[]>;
+  onAsyncSearch?: (query: string) => Promise<MultiSelectOption[]>;
   options?: MultiSelectOption[];
   label?: string;
   placeholder?: string;
@@ -34,10 +34,10 @@ export interface SearchableMultiSelectProps {
 }
 
 export function SearchableMultiSelect({
-  options: staticOptions,
+  options: staticOptions = [],
   value,
   onChange,
-  onSearch,
+  onAsyncSearch,
   label,
   placeholder = 'Select options...',
   error,
@@ -51,20 +51,33 @@ export function SearchableMultiSelect({
   const id = useId();
   const [query, setQuery] = useState('');
   const [focusedValueIndex, setFocusedValueIndex] = useState<number | null>(null);
-  const [options, setOptions] = useState<MultiSelectOption[]>(staticOptions || []);
+  const [options, setOptions] = useState<MultiSelectOption[]>(staticOptions);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Handle static filtering when no async search is provided
+  const filterStaticOptions = useCallback(
+    (searchQuery: string) => {
+      if (!searchQuery) return staticOptions;
+
+      return staticOptions.filter((option) =>
+        option.label.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    },
+    [JSON.stringify(staticOptions)]
+  );
+
+  // Debounced search for async search
   const debouncedSearch = useCallback(
     debounce(async (searchQuery: string) => {
-      if (!onSearch || searchQuery.length < minSearchLength) {
-        setOptions(staticOptions || []);
+      if (!onAsyncSearch || searchQuery.length < minSearchLength) {
+        setOptions(filterStaticOptions(searchQuery));
         setIsLoading(false);
         return;
       }
 
       try {
         setIsLoading(true);
-        const results = await onSearch(searchQuery);
+        const results = await onAsyncSearch(searchQuery);
         setOptions(results);
       } catch (error) {
         console.error('Search failed:', error);
@@ -73,20 +86,38 @@ export function SearchableMultiSelect({
         setIsLoading(false);
       }
     }, debounceMs),
-    [onSearch, staticOptions, minSearchLength, debounceMs, setOptions, setIsLoading]
+    [
+      onAsyncSearch,
+      JSON.stringify(staticOptions),
+      minSearchLength,
+      debounceMs,
+      setOptions,
+      setIsLoading,
+      filterStaticOptions,
+    ]
   );
 
   useEffect(() => {
+    if (!query) {
+      setOptions(staticOptions);
+    }
+  }, [JSON.stringify(staticOptions)]);
+
+  useEffect(() => {
     if (query) {
-      debouncedSearch(query);
+      if (onAsyncSearch) {
+        debouncedSearch(query);
+      } else {
+        setOptions(filterStaticOptions(query));
+      }
     } else {
-      setOptions(staticOptions || []);
+      setOptions(staticOptions);
     }
 
     return () => {
       debouncedSearch.cancel();
     };
-  }, [query, debouncedSearch, staticOptions]);
+  }, [query, debouncedSearch, onAsyncSearch, filterStaticOptions]);
 
   const handleChange = (newValue: MultiSelectOption[]) => {
     const uniqueValues = newValue.filter(
@@ -168,55 +199,53 @@ export function SearchableMultiSelect({
               />
               {isLoading && <Loader2 className="h-4 w-4 animate-spin text-gray-400 mr-2" />}
             </div>
-            {!onSearch && (
+            {!onAsyncSearch && (
               <ComboboxButton className="absolute right-2 top-1/2 -translate-y-1/2">
-                <ChevronDown className="h-4 w-4 text-gray-400" />
+                <ChevronDown className="h-4 w-4" />
               </ComboboxButton>
             )}
           </div>
 
-          {query.length > 0 && (
-            <ComboboxOptions className="absolute z-10 mt-1 w-full p-2 overflow-auto rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-              {(() => {
-                if (query.length < minSearchLength && options.length === 0) {
-                  return <div className="px-4 py-2 text-sm text-gray-500">Type to search...</div>;
-                }
+          <ComboboxOptions className="absolute z-10 mt-1 w-full p-2 overflow-auto rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none max-h-60">
+            {(() => {
+              if (onAsyncSearch && query.length < minSearchLength && options.length === 0) {
+                return <div className="px-4 py-2 text-sm text-gray-500">Type to search...</div>;
+              }
 
-                const filteredOptions = options.filter(
-                  (option) => !value.some((v) => v.value === option.value)
-                );
+              const filteredOptions = options.filter(
+                (option) => !value.some((v) => v.value === option.value)
+              );
 
-                if (isLoading && filteredOptions.length === 0) {
-                  return <div className="px-4 py-2 text-sm text-gray-500">Searching...</div>;
-                }
+              if (isLoading && filteredOptions.length === 0) {
+                return <div className="px-4 py-2 text-sm text-gray-500">Searching...</div>;
+              }
 
-                if (!isLoading && filteredOptions.length === 0) {
-                  return <div className="px-4 py-2 text-sm text-gray-500">No options found</div>;
-                }
+              if (!isLoading && filteredOptions.length === 0) {
+                return <div className="px-4 py-2 text-sm text-gray-500">No options found</div>;
+              }
 
-                return (
-                  <div className="flex flex-wrap gap-2">
-                    {filteredOptions.map((option) => (
-                      <ComboboxOption key={option.value} value={option} as={Fragment}>
-                        {({ focus, selected }) => (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="p-0 h-auto hover:bg-transparent"
-                          >
-                            <Badge variant={focus || selected ? 'primary' : 'default'}>
-                              {option.label}
-                              {selected && <Check className="ml-1.5 h-3 w-3" />}
-                            </Badge>
-                          </Button>
-                        )}
-                      </ComboboxOption>
-                    ))}
-                  </div>
-                );
-              })()}
-            </ComboboxOptions>
-          )}
+              return (
+                <div className="flex flex-wrap gap-2">
+                  {filteredOptions.map((option) => (
+                    <ComboboxOption key={option.value} value={option} as={Fragment}>
+                      {({ focus, selected }) => (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="p-0 h-auto hover:bg-transparent"
+                        >
+                          <Badge variant={focus || selected ? 'primary' : 'default'}>
+                            {option.label}
+                            {selected && <Check className="ml-1.5 h-3 w-3" />}
+                          </Badge>
+                        </Button>
+                      )}
+                    </ComboboxOption>
+                  ))}
+                </div>
+              );
+            })()}
+          </ComboboxOptions>
         </label>
       </Combobox>
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
