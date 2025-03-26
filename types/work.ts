@@ -5,6 +5,7 @@ import { Topic } from './topic';
 import { createTransformer, BaseTransformed } from './transformer';
 import { Hub } from './hub';
 import { NoteWithContent, transformNoteWithContent } from './note';
+import { ProxyService } from '../services/proxy.service';
 
 export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration' | 'funding_request';
 
@@ -41,6 +42,11 @@ export type DocumentVersion = {
   description: string;
 };
 
+export interface FormatType {
+  type: string;
+  url: string;
+}
+
 export interface Work {
   id: number;
   type: WorkType;
@@ -56,10 +62,7 @@ export interface Work {
   doi?: string;
   journal?: Journal;
   topics: Topic[];
-  formats: Array<{
-    type: string;
-    url: string;
-  }>;
+  formats: Array<FormatType>;
   license?: string;
   pdfCopyrightAllowsDisplay?: boolean;
   figures: Array<{
@@ -156,8 +159,11 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
         ]
       : [],
   formats: raw.pdf_url
-    ? [...(raw.formats || []), { type: 'PDF', url: raw.pdf_url }]
-    : raw.formats || [],
+    ? [...(raw.formats || []), { type: 'PDF', url: ProxyService.generateProxyUrl(raw.pdf_url) }]
+    : (raw.formats || []).map((format: FormatType) => ({
+        ...format,
+        url: format.type === 'PDF' ? ProxyService.generateProxyUrl(format.url) : format.url,
+      })),
   license: raw.pdf_license,
   pdfCopyrightAllowsDisplay: raw.pdf_copyright_allows_display,
   figures: raw.first_preview
