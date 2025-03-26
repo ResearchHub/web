@@ -1,15 +1,19 @@
 'use client';
 
-import { Home, BookOpen, Star, Notebook, HandCoins, Coins } from 'lucide-react';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 import { Button } from '@/components/Editor/components/ui/Button';
+import Icon from '@/components/ui/icons/Icon';
+import { IconName } from '@/components/ui/icons/Icon';
+
+// Define icon mapping for navigation items
+type NavIconName = 'home1' | 'earn1' | 'fund' | 'rhJournal2' | 'labNotebook2';
 
 interface NavigationItem {
   label: string;
   href: string;
-  icon: React.FC<{ className?: string }>;
+  iconName: NavIconName;
   description: string;
   requiresAuth?: boolean;
   isUnimplemented?: boolean;
@@ -35,31 +39,31 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
     {
       label: 'Home',
       href: '/',
-      icon: Home,
+      iconName: 'home1',
       description: 'Navigate to the home page',
     },
     {
       label: 'Earn',
       href: '/earn',
-      icon: Coins,
+      iconName: 'earn1',
       description: 'Find opportunities to earn RSC',
     },
     {
       label: 'Fund',
       href: '/fund',
-      icon: HandCoins,
+      iconName: 'fund',
       description: 'Browse grants and fundraising opportunities',
     },
     {
       label: 'RH Journal',
       href: '/journal',
-      icon: BookOpen,
+      iconName: 'rhJournal2',
       description: 'Read and publish research papers',
     },
     {
       label: 'Lab Notebook',
       href: '/notebook',
-      icon: Notebook,
+      iconName: 'labNotebook2',
       description: 'Access your research notebook',
       requiresAuth: true,
     },
@@ -74,11 +78,10 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
       : 'flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-lg group';
   };
 
-  const getIconStyles = (path: string, currentPath: string) => {
-    const isActive =
-      path === '/' ? ['/', '/following', '/latest'].includes(currentPath) : path === currentPath;
-
-    return `h-[22px] w-[22px] mr-3.5 ${isActive ? 'text-indigo-600' : 'text-gray-600 group-hover:text-indigo-600'}`;
+  const isPathActive = (path: string) => {
+    return path === '/'
+      ? ['/', '/following', '/latest'].includes(currentPath)
+      : path === currentPath;
   };
 
   const NavLink: React.FC<{
@@ -89,7 +92,10 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
     const { executeAuthenticatedAction } = useAuthenticatedAction();
     const router = useRouter();
     const buttonStyles = getButtonStyles(item.href, currentPath);
-    const iconStyles = getIconStyles(item.href, currentPath);
+    const isActive = isPathActive(item.href);
+
+    // Set icon colors based on active state
+    const iconColor = isActive ? '#4f46e5' : '#404040'; // Indigo-600 for active, gray-600 for inactive
 
     const handleClick = (e: React.MouseEvent) => {
       e.preventDefault();
@@ -109,7 +115,9 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
 
     return (
       <Button onClick={handleClick} className={buttonStyles} variant="ghost">
-        <item.icon className={iconStyles} />
+        <div className="h-[28px] w-[28px] mr-3.5 flex items-center justify-center">
+          <Icon name={item.iconName as IconName} size={26} color={iconColor} />
+        </div>
         <div className="flex items-center justify-between w-full min-w-0">
           <span className="truncate">{item.label}</span>
         </div>

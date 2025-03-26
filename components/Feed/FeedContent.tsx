@@ -16,6 +16,7 @@ interface FeedContentProps {
   loadMore: () => void;
   header?: ReactNode;
   tabs?: ReactNode;
+  filters?: ReactNode; // New prop for source filters
   disableCardLinks?: boolean; // Optional prop to disable all card links
 }
 
@@ -26,6 +27,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   loadMore,
   header,
   tabs,
+  filters,
   disableCardLinks = false,
 }) => {
   // Generate appropriate href for each feed item type
@@ -151,7 +153,9 @@ export const FeedContent: FC<FeedContentProps> = ({
       <div className="max-w-4xl mx-auto">
         {tabs && <div className="border-b">{tabs}</div>}
 
-        <div className="mt-12">
+        {filters && <div className="py-3">{filters}</div>}
+
+        <div className="mt-8">
           {isLoading ? (
             // Show skeletons when loading
             <>

@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search } from '@/components/Search/Search';
 import { Button } from '@/components/ui/Button';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { RadioGroup } from '@headlessui/react';
-import { FileUp, Notebook, Eye, BadgeCheck, BookOpen } from 'lucide-react';
+import { FileUp, Notebook, Eye, BadgeCheck, BookOpen, Loader2 } from 'lucide-react';
 import type { SearchSuggestion } from '@/types/search';
 import { PaperActionCard } from './PaperActionCard';
 
@@ -26,6 +26,7 @@ interface SelectedPaper {
 
 export default function WorkCreatePage() {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [selectedPaper, setSelectedPaper] = useState<SelectedPaper | null>(null);
   const [publishOption, setPublishOption] = useState<PublishOption>(null);
   const [showSuggestions, setShowSuggestions] = useState(true);
@@ -58,8 +59,8 @@ export default function WorkCreatePage() {
     },
     {
       id: 'pdf',
-      title: 'Upload a PDF',
-      description: 'Upload your existing research paper',
+      title: 'Upload your manuscript',
+      description: 'Upload your existing manuscript',
       icon: FileUp,
     },
   ];
@@ -69,10 +70,15 @@ export default function WorkCreatePage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="pb-12">
-          <PageHeader title="Submit your research" className="mb-0" />
-          <p className="mt-2 text-lg text-gray-600">
-            Share your work with the ResearchHub community
-          </p>
+          <div className="flex items-center flex-col">
+            <div className="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 ">
+              <FileUp className="h-9 w-9 text-blue-600" />
+            </div>
+            <PageHeader title="Submit your research" className="mt-1 mb-1" />
+            <p className="text-lg text-gray-600">
+              Share your original work with the ResearchHub community
+            </p>
+          </div>
         </div>
 
         {selectedPaper ? (
@@ -131,6 +137,7 @@ export default function WorkCreatePage() {
           </div>
         ) : (
           <div className="space-y-8">
+            {/* 
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">
                 Do you have a preprint published?
@@ -157,76 +164,94 @@ export default function WorkCreatePage() {
                   <span className="bg-white px-4 text-sm text-gray-500">or</span>
                 </div>
               </div>
+            </div>
+            */}
 
-              <div className="mt-8">
-                <RadioGroup value={publishOption} onChange={setPublishOption}>
-                  <div className="grid grid-cols-1 gap-4">
-                    {publishOptions.map((option) => {
-                      const Icon = option.icon;
-                      return (
-                        <RadioGroup.Option
-                          key={option.id}
-                          value={option.id}
-                          className={({ checked }) =>
-                            `relative flex cursor-pointer rounded-lg border-2 p-4 focus:outline-none
-                            ${
-                              checked
-                                ? 'border-indigo-600 bg-indigo-50'
-                                : 'border-gray-200 bg-white hover:bg-gray-50'
-                            }`
-                          }
-                        >
-                          {({ checked }) => (
-                            <div className="flex w-full items-start gap-4">
-                              <div
-                                className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${
-                                  checked ? 'bg-indigo-100' : 'bg-gray-100'
+            <div className="mt-8">
+              <h3 className="text-base font-medium text-gray-700 mb-4">Choose one:</h3>
+              <RadioGroup value={publishOption} onChange={setPublishOption}>
+                <div className="grid grid-cols-1 gap-4">
+                  {publishOptions.map((option) => {
+                    const Icon = option.icon;
+                    return (
+                      <RadioGroup.Option
+                        key={option.id}
+                        value={option.id}
+                        className={({ checked }) =>
+                          `relative flex cursor-pointer rounded-lg border-2 p-4 focus:outline-none
+                          ${
+                            checked
+                              ? 'border-indigo-600 bg-indigo-50'
+                              : 'border-gray-200 bg-white hover:bg-gray-50'
+                          }`
+                        }
+                      >
+                        {({ checked }) => (
+                          <div className="flex w-full items-start gap-4">
+                            <div
+                              className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${
+                                checked ? 'bg-indigo-100' : 'bg-gray-100'
+                              }`}
+                            >
+                              <Icon
+                                className={`h-5 w-5 ${
+                                  checked ? 'text-indigo-600' : 'text-gray-600'
+                                }`}
+                              />
+                            </div>
+                            <div className="flex flex-col">
+                              <RadioGroup.Label
+                                as="span"
+                                className={`font-medium ${
+                                  checked ? 'text-indigo-900' : 'text-gray-900'
                                 }`}
                               >
-                                <Icon
-                                  className={`h-5 w-5 ${
-                                    checked ? 'text-indigo-600' : 'text-gray-600'
-                                  }`}
-                                />
-                              </div>
-                              <div className="flex flex-col">
-                                <RadioGroup.Label
-                                  as="span"
-                                  className={`font-medium ${
-                                    checked ? 'text-indigo-900' : 'text-gray-900'
-                                  }`}
-                                >
-                                  {option.title}
-                                </RadioGroup.Label>
-                                <RadioGroup.Description
-                                  as="span"
-                                  className={`text-sm ${
-                                    checked ? 'text-indigo-700' : 'text-gray-500'
-                                  }`}
-                                >
-                                  {option.description}
-                                </RadioGroup.Description>
-                              </div>
+                                {option.title}
+                              </RadioGroup.Label>
+                              <RadioGroup.Description
+                                as="span"
+                                className={`text-sm ${
+                                  checked ? 'text-indigo-700' : 'text-gray-500'
+                                }`}
+                              >
+                                {option.description}
+                              </RadioGroup.Description>
                             </div>
-                          )}
-                        </RadioGroup.Option>
-                      );
-                    })}
-                  </div>
-                </RadioGroup>
+                          </div>
+                        )}
+                      </RadioGroup.Option>
+                    );
+                  })}
+                </div>
+              </RadioGroup>
 
-                {publishOption && (
-                  <div className="mt-6">
-                    <Button
-                      onClick={() => router.push(`/paper/create/${publishOption}`)}
-                      variant="default"
-                      className="w-full py-6 text-base"
-                    >
-                      Continue
-                    </Button>
-                  </div>
-                )}
-              </div>
+              {publishOption && (
+                <div className="mt-6">
+                  <Button
+                    onClick={() => {
+                      startTransition(() => {
+                        if (publishOption === 'pdf') {
+                          router.push('/paper/create/pdf');
+                        } else {
+                          router.push(`/notebook?newResearch=true`);
+                        }
+                      });
+                    }}
+                    variant="default"
+                    className="w-full py-6 text-base"
+                    disabled={isPending}
+                  >
+                    {isPending ? (
+                      <span className="flex items-center justify-center">
+                        <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
+                        Loading...
+                      </span>
+                    ) : (
+                      'Continue'
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}

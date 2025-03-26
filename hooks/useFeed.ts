@@ -4,10 +4,12 @@ import { FeedService } from '@/services/feed.service';
 import { useSession } from 'next-auth/react';
 
 export type FeedTab = 'following' | 'latest' | 'popular';
+export type FeedSource = 'all' | 'researchhub';
 
 interface UseFeedOptions {
   hubSlug?: string;
   contentType?: string;
+  source?: FeedSource;
 }
 
 export const useFeed = (activeTab: FeedTab, options: UseFeedOptions = {}) => {
@@ -17,6 +19,7 @@ export const useFeed = (activeTab: FeedTab, options: UseFeedOptions = {}) => {
   const [hasMore, setHasMore] = useState(false);
   const [page, setPage] = useState(1);
   const [currentTab, setCurrentTab] = useState<FeedTab>(activeTab);
+  const [currentOptions, setCurrentOptions] = useState<UseFeedOptions>(options);
 
   // Only load the feed when the component mounts or when the session status changes
   // We no longer reload when activeTab changes, as that will be handled by page navigation
@@ -35,6 +38,15 @@ export const useFeed = (activeTab: FeedTab, options: UseFeedOptions = {}) => {
     }
   }, [status, activeTab]);
 
+  // Check if options have changed
+  useEffect(() => {
+    const optionsChanged = JSON.stringify(options) !== JSON.stringify(currentOptions);
+    if (optionsChanged) {
+      setCurrentOptions(options);
+      loadFeed();
+    }
+  }, [options]);
+
   const loadFeed = async () => {
     setIsLoading(true);
     try {
@@ -44,6 +56,7 @@ export const useFeed = (activeTab: FeedTab, options: UseFeedOptions = {}) => {
         feedView: activeTab,
         hubSlug: options.hubSlug,
         contentType: options.contentType,
+        source: options.source,
       });
       setEntries(result.entries);
       setHasMore(result.hasMore);
@@ -67,6 +80,7 @@ export const useFeed = (activeTab: FeedTab, options: UseFeedOptions = {}) => {
         feedView: activeTab,
         hubSlug: options.hubSlug,
         contentType: options.contentType,
+        source: options.source,
       });
       setEntries((prev) => [...prev, ...result.entries]);
       setHasMore(result.hasMore);
