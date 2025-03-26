@@ -97,10 +97,17 @@ export const useNonprofitLink = (): UseNonprofitLinkReturn => {
         errorMessage = err.message;
       } else if (err instanceof ApiError) {
         try {
-          const { data = {} } = JSON.parse(err.message);
-          errorMessage =
-            data?.error || 'An error occurred while linking the nonprofit to the fundraise';
-        } catch {
+          const errorData = JSON.parse(err.message);
+
+          // Try to extract specific error messages
+          if (errorData.data && errorData.data.error) {
+            errorMessage = errorData.data.error;
+          } else if (errorData.error) {
+            errorMessage = errorData.error;
+          } else {
+            errorMessage = 'An error occurred while linking the nonprofit to the fundraise';
+          }
+        } catch (parseError) {
           errorMessage =
             err.message || 'An error occurred while linking the nonprofit to the fundraise';
         }

@@ -50,10 +50,14 @@ export function NonprofitSearchSection() {
     const baseDeployment = nonprofit.deployments.find((deployment) => deployment.chainId === 8453);
     const baseWalletAddress = baseDeployment?.address;
 
+    // Make sure we always have an endaoment_org_id
+    const endaoment_org_id = nonprofit.endaoment_org_id || nonprofit.id;
+
     // Store the nonprofit with the base wallet address in the form
     setValue('selectedNonprofit', {
       ...nonprofit,
       baseWalletAddress,
+      endaoment_org_id,
     });
 
     // Clear the search term and close the dropdown
@@ -160,7 +164,7 @@ export function NonprofitSearchSection() {
   };
 
   return (
-    <div className="py-3 px-6 space-y-3">
+    <div className="space-y-3">
       <div className="mb-2">
         <div className="flex items-center gap-1.5 mb-1.5">
           <Building className="h-4 w-4 text-gray-700" />
@@ -364,6 +368,7 @@ interface NonprofitInfoPopoverProps {
 function NonprofitInfoPopover({ nonprofit, position, onClose }: NonprofitInfoPopoverProps) {
   // Find Base network deployment (chainId: 8453)
   const baseDeployment = nonprofit.deployments.find((deployment) => deployment.chainId === 8453);
+  const endaomentId = nonprofit.endaoment_org_id || nonprofit.id;
 
   return (
     <div
@@ -400,6 +405,9 @@ function NonprofitInfoPopover({ nonprofit, position, onClose }: NonprofitInfoPop
             <span>
               {nonprofit.nteeCode} - {nonprofit.nteeDescription}
             </span>
+
+            <span className="text-gray-500">Endaoment ID:</span>
+            <span className="font-medium">{endaomentId}</span>
 
             {baseDeployment && (
               <>
