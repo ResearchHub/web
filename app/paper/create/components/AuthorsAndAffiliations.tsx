@@ -94,7 +94,7 @@ export function AuthorsAndAffiliations({ authors, onChange, error }: AuthorsAndA
       {authors.length > 0 && (
         <Alert variant="info" className="mb-4">
           Authors will be displayed in the order shown below. The first author is typically the main
-          contributor.
+          contributor. At least one author must be designated as the corresponding author.
         </Alert>
       )}
 

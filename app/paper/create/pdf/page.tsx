@@ -200,6 +200,9 @@ export default function UploadPDFPage() {
 
       case 'authors':
         if (authors.length === 0) newErrors.authors = 'Please add at least one author';
+        else if (!authors.some((author) => author.isCorrespondingAuthor)) {
+          newErrors.authors = 'Please designate at least one corresponding author';
+        }
         break;
 
       case 'declaration':
