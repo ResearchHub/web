@@ -16,10 +16,12 @@ async function createNoteWithContent(
   orgSlug: string,
   {
     template,
-    isNewFunding = false,
+    queryParam,
+    queryValue,
   }: {
     template: typeof preregistrationTemplate | typeof initialContent;
-    isNewFunding?: boolean;
+    queryParam?: string;
+    queryValue?: string;
   }
 ) {
   const title = getDocumentTitle(template) || 'Untitled';
@@ -39,7 +41,8 @@ async function createNoteWithContent(
       .join('\n'),
   });
 
-  return redirect(`/notebook/${orgSlug}/${newNote.id}${isNewFunding ? '?newFunding=true' : ''}`);
+  const queryString = queryParam && queryValue ? `?${queryParam}=${queryValue}` : '';
+  return redirect(`/notebook/${orgSlug}/${newNote.id}${queryString}`);
 }
 
 export async function GET(request: Request) {
@@ -70,11 +73,14 @@ export async function GET(request: Request) {
   if (isNewFunding) {
     return createNoteWithContent(selectedOrg.slug, {
       template: preregistrationTemplate,
-      isNewFunding: true,
+      queryParam: 'newFunding',
+      queryValue: 'true',
     });
   } else if (isNewResearch) {
     return createNoteWithContent(selectedOrg.slug, {
       template: getInitialContent('research'),
+      queryParam: 'newResearch',
+      queryValue: 'true',
     });
   }
 
