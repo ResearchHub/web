@@ -90,12 +90,43 @@ interface IconProps {
    * Additional CSS classes
    */
   className?: string;
+
+  /**
+   * Color to apply to the SVG
+   * If provided, will display the icon with the specified color
+   */
+  color?: string;
 }
 
 /**
  * Icon component that can display any SVG from the public/icons directory.
+ * Supports color customization when the color prop is provided.
  */
-export const Icon: FC<IconProps> = ({ name, size = 24, className = '' }) => {
+export const Icon: FC<IconProps> = ({ name, size = 24, className = '', color }) => {
+  // Apply a CSS filter if color is provided
+  // We'll use a mask-image approach which works well across browsers
+  const imgStyles = color
+    ? {
+        WebkitMaskImage: `url(/icons/${name}.svg)`,
+        maskImage: `url(/icons/${name}.svg)`,
+        WebkitMaskSize: 'contain',
+        maskSize: 'contain',
+        WebkitMaskRepeat: 'no-repeat',
+        maskRepeat: 'no-repeat',
+        WebkitMaskPosition: 'center',
+        maskPosition: 'center',
+        backgroundColor: color,
+        width: size,
+        height: size,
+        display: 'inline-block',
+      }
+    : {};
+
+  if (color) {
+    return <div style={imgStyles} className={className} />;
+  }
+
+  // Default: use the Image component
   return (
     <Image
       src={`/icons/${name}.svg`}
