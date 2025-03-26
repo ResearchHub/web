@@ -114,7 +114,7 @@ export function HubsSelector({ selectedHubs, onChange, error }: HubsSelectorProp
         <SearchableMultiSelect
           value={hubsToOptions(selectedHubs)}
           onChange={handleChange}
-          onSearch={fetchHubs}
+          onAsyncSearch={fetchHubs}
           label="Search topics"
           placeholder="Search for topics..."
           minSearchLength={1}
