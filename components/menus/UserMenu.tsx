@@ -9,6 +9,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useConnect, useDisconnect, useAccount } from 'wagmi';
 import { WalletModal } from 'components/modals/WalletModal';
+import { VerifyIdentityModal } from '@/components/modals/VerifyIdentityModal';
 
 interface UserMenuProps {
   user: User;
@@ -27,9 +28,10 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
   const { disconnect } = useDisconnect();
   const { address, isConnected } = useAccount();
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
 
   const handleLearnMore = () => {
-    onVerifyAccount();
+    setIsVerifyModalOpen(true);
   };
 
   const handleOpenWalletModal = () => {
@@ -38,6 +40,15 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
 
   const handleCloseWalletModal = () => {
     setIsWalletModalOpen(false);
+  };
+
+  const handleVerifyAccount = () => {
+    setIsVerifyModalOpen(true);
+    onVerifyAccount(); // Call the original handler if needed
+  };
+
+  const handleCloseVerifyModal = () => {
+    setIsVerifyModalOpen(false);
   };
 
   const trigger = (
@@ -76,7 +87,7 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
             </div>
           </BaseMenuItem>
 
-          <BaseMenuItem onClick={onVerifyAccount} className="w-full px-4 py-2">
+          <BaseMenuItem onClick={handleVerifyAccount} className="w-full px-4 py-2">
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center">
                 <BadgeCheck className="h-4 w-4 mr-3 text-gray-500" />
@@ -162,7 +173,9 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
         )}
       </BaseMenu>
 
+      {/* Modals */}
       <WalletModal isOpen={isWalletModalOpen} onClose={handleCloseWalletModal} />
+      <VerifyIdentityModal isOpen={isVerifyModalOpen} onClose={handleCloseVerifyModal} />
     </>
   );
 }
