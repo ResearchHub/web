@@ -3,6 +3,7 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { BountyForm } from '@/components/Bounty/BountyForm';
+import Icon from '@/components/ui/icons/Icon';
 
 interface CreateBountyModalProps {
   isOpen: boolean;
@@ -40,9 +41,14 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
               <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
                 <div className="p-6">
                   <div className="flex justify-between items-center border-b border-gray-200 -mx-6 px-6 pb-4 mb-6">
-                    <Dialog.Title as="h2" className="text-xl font-semibold text-gray-900">
-                      Create Bounty
-                    </Dialog.Title>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-md bg-blue-50 flex items-center justify-center">
+                        <Icon name="earn1" size={24} color="#2563eb" />
+                      </div>
+                      <Dialog.Title as="h2" className="text-xl font-semibold text-gray-900">
+                        Create Bounty
+                      </Dialog.Title>
+                    </div>
                     <button
                       type="button"
                       className="text-gray-400 hover:text-gray-500"

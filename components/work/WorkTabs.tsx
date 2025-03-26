@@ -1,9 +1,10 @@
 'use client';
 
-import { FileText, Star, Coins, Activity, MessagesSquare } from 'lucide-react';
+import { FileText, Star, Activity, MessagesSquare } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useState, useEffect } from 'react';
+import Icon from '@/components/ui/icons/Icon';
 
 export type TabType = 'paper' | 'reviews' | 'bounties' | 'comments';
 
@@ -112,6 +113,28 @@ export const WorkTabs = ({
         </button>
         <button
           className={`px-1 py-4 text-md font-medium ${
+            activeTab === 'bounties'
+              ? 'text-indigo-600 border-b-2 border-indigo-600'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+          onClick={() => handleTabChange('bounties')}
+        >
+          <div className="flex items-center">
+            <Icon name="earn1" size={16} color={activeTab === 'bounties' ? '#4f46e5' : '#6B7280'} />
+            <span className="ml-2">Bounties</span>
+            <span
+              className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                activeTab === 'bounties'
+                  ? 'bg-indigo-100 text-indigo-600'
+                  : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {metadata.openBounties || 0}
+            </span>
+          </div>
+        </button>
+        <button
+          className={`px-1 py-4 text-md font-medium ${
             activeTab === 'reviews'
               ? 'text-indigo-600 border-b-2 border-indigo-600'
               : 'text-gray-500 hover:text-gray-700'
@@ -129,32 +152,6 @@ export const WorkTabs = ({
               }`}
             >
               {metadata.metrics.reviews}
-            </span>
-          </div>
-        </button>
-        <button
-          className={`px-1 py-4 text-md font-medium ${
-            activeTab === 'bounties'
-              ? 'text-indigo-600 border-b-2 border-indigo-600'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => handleTabChange('bounties')}
-        >
-          <div className="flex items-center">
-            <Coins
-              className={`h-4 w-4 mr-2 ${
-                activeTab === 'bounties' ? 'text-indigo-600' : 'text-gray-500'
-              }`}
-            />
-            Bounties
-            <span
-              className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                activeTab === 'bounties'
-                  ? 'bg-indigo-100 text-indigo-600'
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              {metadata.openBounties || 0}
             </span>
           </div>
         </button>
