@@ -1,10 +1,11 @@
 'use client';
 
-import { Plus, FileUp, BadgeCheck, HandCoins, PlayCircle, Coins } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import Icon from '@/components/ui/icons/Icon';
 
 interface PublishMenuProps {
   children?: React.ReactNode;
@@ -53,7 +54,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
                     <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                      <FileUp className="h-6 w-6 text-blue-600" />
+                      <Icon name="submit1" size={24} color="#2563eb" />
                     </div>
                   </div>
                   <div className="flex-1">
@@ -81,7 +82,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
                     <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                      <Coins className="h-6 w-6 text-blue-600" />
+                      <Icon name="earn1" size={24} color="#2563eb" />
                     </div>
                   </div>
                   <div className="flex-1">
@@ -102,7 +103,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
                     <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                      <FundingIcon size={24} className="text-blue-600" color="#2563eb" />
+                      <FundingIcon size={24} color="#2563eb" />
                     </div>
                   </div>
                   <div className="flex-1">
@@ -120,7 +121,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
                     <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                      <HandCoins className="h-6 w-6 text-blue-600" />
+                      <Icon name="fund" size={24} color="#2563eb" />
                     </div>
                   </div>
                   <div className="flex-1">
