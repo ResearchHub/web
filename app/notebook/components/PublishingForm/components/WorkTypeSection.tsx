@@ -1,11 +1,8 @@
 import { useFormContext } from 'react-hook-form';
-import { FileText, ChevronDown, Wallet, ExternalLink } from 'lucide-react';
+import { FileText, ChevronDown, Wallet } from 'lucide-react';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { cn } from '@/utils/styles';
 import { SectionHeader } from './SectionHeader';
-import { Badge } from '@/components/ui/Badge';
-import Link from 'next/link';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { PublishingFormData } from '../schema';
 import { Button } from '@/components/ui/Button';
 import { useNotebookContext } from '@/contexts/NotebookContext';
@@ -21,10 +18,6 @@ const articleTypes: Record<
   preregistration: {
     title: 'Preregistration',
     description: 'Get funding by sharing your research plan',
-  },
-  question: {
-    title: 'Question',
-    description: 'Ask a research question to the community',
   },
 };
 
@@ -47,36 +40,11 @@ export function WorkTypeSection() {
   const articleType = watch('articleType') as PublishingFormData['articleType'] | undefined;
   const workId = watch('workId');
   const { currentNote: note } = useNotebookContext();
-  const slug = note?.post?.slug;
 
   const isPublished = Boolean(workId);
 
   return (
     <>
-      <div className="pl-6 pt-3 hidden lg:block">
-        {!note ? (
-          <div className="h-5 w-14 bg-gray-100 animate-pulse rounded-full" />
-        ) : isPublished ? (
-          <div className="flex items-center gap-2">
-            <Badge variant="success" size="sm">
-              <span className="mr-1 text-sm">Published</span>
-              {articleType === 'preregistration' && slug && (
-                <Link
-                  href={`/fund/${workId}/${slug}`}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                  target="_blank"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </Link>
-              )}
-            </Badge>
-          </div>
-        ) : (
-          <Badge variant="default" size="sm">
-            Draft
-          </Badge>
-        )}
-      </div>
       <div className="py-3 px-6">
         <div className="flex items-start justify-start gap-2">
           <SectionHeader icon={FileText}>Work Type</SectionHeader>
@@ -97,7 +65,11 @@ export function WorkTypeSection() {
               >
                 <div className="flex items-center gap-2">
                   {renderSelectedIcon(articleType)}
-                  <span>{articleType ? articleTypes[articleType].title : 'Select work type'}</span>
+                  <span>
+                    {articleType && articleTypes[articleType]
+                      ? articleTypes[articleType].title
+                      : 'Select work type'}
+                  </span>
                 </div>
                 <ChevronDown className="h-4 w-4 ml-auto" />
               </Button>

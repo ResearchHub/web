@@ -7,6 +7,7 @@ import { TiptapCollabProvider, WebSocketStatus } from '@hocuspocus/provider';
 import type { Doc as YDoc } from 'yjs';
 import { Document } from '@tiptap/extension-document';
 import { TextAlign } from '@tiptap/extension-text-align';
+import { History } from '@tiptap/extension-history';
 
 import { ExtensionKit } from '@/components/Editor/extensions/extension-kit';
 import { userColors, userNames } from '../lib/constants';
@@ -92,6 +93,11 @@ export const useBlockEditor = ({
         TextAlign.configure({
           types: ['heading', 'paragraph'],
         }),
+        provider && ydoc
+          ? undefined
+          : History.configure({
+              depth: 100,
+            }),
         aiToken
           ? AiWriter.configure({
               authorId: userId,

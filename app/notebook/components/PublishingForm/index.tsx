@@ -28,6 +28,10 @@ import { DOISection } from '@/components/work/components/DOISection';
 import { getFieldErrorMessage } from '@/utils/form';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 
+// Feature flags for conditionally showing sections
+const FEATURE_FLAG_RESEARCH_COIN = false;
+const FEATURE_FLAG_JOURNAL = false;
+
 interface PublishingFormProps {
   bountyAmount: number | null;
   onBountyClick: () => void;
@@ -53,7 +57,7 @@ const getButtonText = ({
       return 'Redirecting...';
     case hasWorkId:
       return 'Re-publish';
-    case articleType === 'discussion' && isJournalEnabled:
+    case Boolean(FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled):
       return 'Pay & Publish';
     default:
       return 'Publish';
@@ -114,6 +118,14 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           label: topic.name,
         }));
         methods.setValue('topics', topicOptions);
+      }
+
+      if (note.post.authors && note.post.authors.length > 0) {
+        const authorOptions = note.post.authors.map((author) => ({
+          value: author.authorId.toString(),
+          label: author.name,
+        }));
+        methods.setValue('authors', authorOptions);
       }
 
       // Set other relevant post data
@@ -197,7 +209,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       return;
     }
 
-    if (articleType !== 'preregistration') {
+    if (articleType !== 'preregistration' && articleType !== 'discussion') {
       console.log('Publishing clicked for type:', articleType);
       return;
     }
@@ -226,13 +238,23 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           fullSrc: previewContent || '',
           assignDOI: formData.workId ? false : true,
           topics: formData.topics.map((topic) => topic.value),
+          authors: formData.authors
+            .map((author) => author.value)
+            .map(Number)
+            .filter((id) => !isNaN(id)),
+          articleType:
+            formData.articleType === 'preregistration' ? 'PREREGISTRATION' : 'DISCUSSION',
         },
         formData.workId
       );
 
       setIsRedirecting(true);
 
-      router.push(`/fund/${response.id}/${response.slug}`);
+      if (formData.articleType === 'preregistration') {
+        router.push(`/fund/${response.id}/${response.slug}`);
+      } else {
+        router.push(`/post/${response.id}/${response.slug}`);
+      }
     } catch (error) {
       toast.error('Error publishing. Please try again.');
       console.error('Error publishing:', error);
@@ -270,16 +292,16 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
               </div>
             )}
             {articleType === 'preregistration' && <FundingSection note={note} />}
-            {articleType !== 'preregistration' && (
+            {FEATURE_FLAG_RESEARCH_COIN && articleType !== 'preregistration' && (
               <ResearchCoinSection bountyAmount={bountyAmount} onBountyClick={onBountyClick} />
             )}
-            {articleType === 'discussion' && <JournalSection />}
+            {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && <JournalSection />}
           </div>
         </div>
 
         {/* Sticky bottom section */}
         <div className="border-t bg-white p-2 lg:p-6 space-y-3 sticky bottom-0">
-          {articleType === 'discussion' && isJournalEnabled && (
+          {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">Payment due:</span>
               <span className="font-medium text-gray-900">$1,000 USD</span>

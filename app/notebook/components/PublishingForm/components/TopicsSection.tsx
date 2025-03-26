@@ -29,7 +29,7 @@ export function TopicsSection() {
       <SearchableMultiSelect
         value={topics}
         onChange={(newTopics) => setValue('topics', newTopics, { shouldValidate: true })}
-        onSearch={handleSearch}
+        onAsyncSearch={handleSearch}
         placeholder="Search topics..."
         debounceMs={500}
         error={getFieldErrorMessage(errors.topics, 'Invalid topics')}
