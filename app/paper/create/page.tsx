@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search } from '@/components/Search/Search';
 import { Button } from '@/components/ui/Button';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { RadioGroup } from '@headlessui/react';
-import { FileUp, Notebook, Eye, BadgeCheck, BookOpen } from 'lucide-react';
+import { FileUp, Notebook, Eye, BadgeCheck, BookOpen, Loader2 } from 'lucide-react';
 import type { SearchSuggestion } from '@/types/search';
 import { PaperActionCard } from './PaperActionCard';
 
@@ -26,6 +26,7 @@ interface SelectedPaper {
 
 export default function WorkCreatePage() {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [selectedPaper, setSelectedPaper] = useState<SelectedPaper | null>(null);
   const [publishOption, setPublishOption] = useState<PublishOption>(null);
   const [showSuggestions, setShowSuggestions] = useState(true);
@@ -228,16 +229,26 @@ export default function WorkCreatePage() {
                 <div className="mt-6">
                   <Button
                     onClick={() => {
-                      if (publishOption === 'pdf') {
-                        router.push('/paper/create/pdf');
-                      } else {
-                        router.push(`/notebook`);
-                      }
+                      startTransition(() => {
+                        if (publishOption === 'pdf') {
+                          router.push('/paper/create/pdf');
+                        } else {
+                          router.push(`/notebook?newResearch=true`);
+                        }
+                      });
                     }}
                     variant="default"
                     className="w-full py-6 text-base"
+                    disabled={isPending}
                   >
-                    Continue
+                    {isPending ? (
+                      <span className="flex items-center justify-center">
+                        <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
+                        Loading...
+                      </span>
+                    ) : (
+                      'Continue'
+                    )}
                   </Button>
                 </div>
               )}

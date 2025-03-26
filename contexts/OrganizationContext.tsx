@@ -18,6 +18,7 @@ import {
   getSelectedOrganization,
   findOrganizationById,
 } from './utils/organizationStorage';
+import { selectOrganization } from './utils/organizationSelection';
 
 interface OrganizationContextType {
   organizations: Organization[];
@@ -68,30 +69,10 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
 
         // If we don't have a selected org yet but have orgs, select one based on priority
         if (!selectedOrgIdRef.current && orgs.length > 0) {
-          let orgToSelect: Organization | undefined;
-
-          // Priority 1 (highest): Try to match org from URL
-          if (targetOrgSlug) {
-            orgToSelect = orgs.find((org) => org.slug === targetOrgSlug);
+          const orgToSelect = selectOrganization(orgs, targetOrgSlug);
+          if (orgToSelect) {
+            handleSetSelectedOrg(orgToSelect);
           }
-
-          // Priority 2: Try to find org from localStorage
-          if (!orgToSelect) {
-            const storedOrg = getSelectedOrganization();
-            orgToSelect = findOrganizationById(orgs, storedOrg);
-          }
-
-          // Priority 3: Find an org where user is admin
-          if (!orgToSelect) {
-            orgToSelect = orgs.find((org) => org.userPermission?.accessType === 'ADMIN');
-          }
-
-          // Priority 4 (lowest): Default to first org
-          if (!orgToSelect) {
-            orgToSelect = orgs[0];
-          }
-
-          handleSetSelectedOrg(orgToSelect);
         } else if (selectedOrgIdRef.current) {
           // If we already have a selected org, make sure it's updated with latest data
           const updatedSelectedOrg = orgs.find((org) => org.id === selectedOrgIdRef.current);
