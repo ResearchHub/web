@@ -80,7 +80,7 @@ const TooltipContent = ({
     <div
       ref={tooltipRef}
       className={cn(
-        'fixed z-50 px-4 py-3 text-sm text-gray-800 bg-white rounded-md shadow-md border border-gray-200 text-center',
+        'fixed z-50 px-4 py-3 text-sm text-gray-800 bg-white rounded-md shadow-md border border-gray-200 text-center pointer-events-none',
         width,
         'transform transition-all duration-150 break-words',
         {

@@ -89,7 +89,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
             {/* Right Sidebar */}
             {rightSidebar && (
               <div className="hidden lg:block w-80 bg-white">
-                <div className="sticky top-[64px] p-4 pt-0">
+                <div className="sticky top-[64px] p-4 pt-0 overflow-y-auto max-h-[calc(100vh-64px)]">
                   <Suspense fallback={<RightSidebarSkeleton />}>
                     {typeof rightSidebar === 'boolean' ? <RightSidebar /> : rightSidebar}
                   </Suspense>

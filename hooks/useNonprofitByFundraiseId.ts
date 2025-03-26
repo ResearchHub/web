@@ -58,39 +58,64 @@ export const useNonprofitByFundraiseId = (
         const firstLink = nonprofitLinks[0];
         const nonprofit = firstLink.nonprofit_details;
 
-        // Create appropriate deployment objects
-        const deployments: NonprofitDeployment[] = [];
-        if (nonprofit.base_wallet_address) {
-          deployments.push({
-            isDeployed: true,
-            chainId: 8453, // Base network
-            address: nonprofit.base_wallet_address,
-          });
+        // Search for the complete nonprofit information using the EIN
+        let completeNonprofitInfo: NonprofitOrg | null = null;
+        if (nonprofit.ein) {
+          const searchResults = await NonprofitService.searchNonprofitOrgs(nonprofit.ein);
+          // If we find an exact match by EIN, use that data
+          completeNonprofitInfo =
+            searchResults.find((result) => result.ein === nonprofit.ein) || null;
         }
 
-        // Create nonprofit object that matches the NonprofitOrg interface
-        const formattedNonprofit: NonprofitOrg = {
-          id: nonprofit.id.toString(),
-          name: nonprofit.name,
-          ein: nonprofit.ein,
-          deployments,
-          baseWalletAddress: nonprofit.base_wallet_address,
-          address: { region: '', country: '' },
-          nteeCode: '',
-          nteeDescription: '',
-          description: '',
-          endaomentUrl: '',
-          contibutionCount: 0,
-          contibutionTotal: '0',
-          endaoment_org_id: nonprofit.endaoment_org_id,
-        };
+        if (completeNonprofitInfo) {
+          // If we found complete info, use it but ensure we keep the base_wallet_address
+          setState({
+            nonprofit: {
+              ...completeNonprofitInfo,
+              baseWalletAddress:
+                nonprofit.base_wallet_address || completeNonprofitInfo.baseWalletAddress,
+              endaoment_org_id:
+                nonprofit.endaoment_org_id || completeNonprofitInfo.endaoment_org_id,
+            },
+            departmentLabName: firstLink.note || '',
+            isLoading: false,
+            error: null,
+          });
+        } else {
+          // Create nonprofit object that matches the NonprofitOrg interface using available data
+          const deployments: NonprofitDeployment[] = [];
+          if (nonprofit.base_wallet_address) {
+            deployments.push({
+              isDeployed: true,
+              chainId: 8453, // Base network
+              address: nonprofit.base_wallet_address,
+            });
+          }
 
-        setState({
-          nonprofit: formattedNonprofit,
-          departmentLabName: firstLink.note || '',
-          isLoading: false,
-          error: null,
-        });
+          // Create nonprofit object that matches the NonprofitOrg interface
+          const formattedNonprofit: NonprofitOrg = {
+            id: nonprofit.id.toString(),
+            name: nonprofit.name,
+            ein: nonprofit.ein,
+            deployments,
+            baseWalletAddress: nonprofit.base_wallet_address,
+            address: { region: '', country: '' },
+            nteeCode: '',
+            nteeDescription: '',
+            description: '',
+            endaomentUrl: '',
+            contibutionCount: 0,
+            contibutionTotal: '0',
+            endaoment_org_id: nonprofit.endaoment_org_id,
+          };
+
+          setState({
+            nonprofit: formattedNonprofit,
+            departmentLabName: firstLink.note || '',
+            isLoading: false,
+            error: null,
+          });
+        }
       } else {
         setState({
           nonprofit: null,
