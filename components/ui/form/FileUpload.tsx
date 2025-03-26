@@ -25,7 +25,7 @@ export function FileUpload({
   onFileRemove,
   onError,
   accept = 'application/pdf',
-  maxSizeMB = 10,
+  maxSizeMB = 100,
   className,
   selectedFile,
   error,
@@ -132,11 +132,12 @@ export function FileUpload({
             'border-2 border-dashed rounded-lg p-6 transition-colors',
             isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400',
             error || fileError ? 'border-red-500 bg-red-50' : '',
-            isUploading ? 'opacity-70 cursor-not-allowed' : ''
+            isUploading ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'
           )}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
+          onClick={isUploading ? undefined : handleBrowseClick}
         >
           <div className="flex flex-col items-center justify-center text-center">
             {isUploading ? (
@@ -152,14 +153,10 @@ export function FileUpload({
                 <FileUp className="h-10 w-10 text-gray-400 mb-2" />
                 <h3 className="text-gray-700 font-medium">Drag and drop your PDF here</h3>
                 <p className="text-sm text-gray-500 mt-1 mb-3">
-                  or{' '}
-                  <button
-                    type="button"
-                    className="text-blue-600 hover:text-blue-700 font-medium"
-                    onClick={handleBrowseClick}
-                  >
+                  or click anywhere in this area to{' '}
+                  <span className="text-blue-600 hover:text-blue-700 font-medium">
                     browse files
-                  </button>
+                  </span>
                 </p>
                 <p className="text-xs text-gray-500 mt-1">Maximum file size: {maxSizeMB}MB</p>
               </>
