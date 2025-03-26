@@ -10,7 +10,6 @@ import {
   Play,
   Star,
   AlertTriangle,
-  Info,
 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -28,6 +27,7 @@ import { WorkTabs, TabType } from './WorkTabs';
 import { Badge } from '@/components/ui/Badge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { PreprintBadge } from '@/components/ui/PreprintBadge';
 
 interface WorkDocumentProps {
   work: Work;
@@ -180,31 +180,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
         </div>
       )}
       {/* Title & Actions */}
-      {work.type === 'preprint' && (
-        <Tooltip
-          content={
-            <div className="flex items-start gap-3 text-left">
-              <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center">
-                <Info size={24} className="text-gray-700" />
-              </div>
-              <div>
-                Preprints are research papers that have not yet undergone formal peer review.
-              </div>
-            </div>
-          }
-          position="top"
-          width="w-[360px]"
-        >
-          <Badge
-            variant="default"
-            size="lg"
-            className="gap-1.5 py-1 border-gray-300 cursor-pointer rounded-md"
-          >
-            <Info size={16} className="text-gray-500" />
-            <span>Preprint</span>
-          </Badge>
-        </Tooltip>
-      )}
+      {work.type === 'preprint' && <PreprintBadge size="lg" />}
       <PageHeader title={work.title} className="text-3xl mt-2" />
       <button
         className="lg:hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"

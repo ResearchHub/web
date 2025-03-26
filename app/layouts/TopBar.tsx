@@ -65,13 +65,14 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                         href="/researchcoin"
                         className="relative flex items-center justify-center -mt-0.5"
                       >
-                        <Icon name="rscIcon" size={40} className="text-gray-600" />
+                        <Icon name="rscGold" size={36} />
                         {/* <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-green-50 text-[10px] font-medium text-green-700">
                           +10
                         </span> */}
                       </Link>
                     </Tooltip>
-                    <NotificationBell filled={isNotificationsPage} />
+                    {/* <NotificationBell filled={isNotificationsPage} /> */}
+                    <Icon name="notification" size={24} />
                     <UserMenu user={user} onViewProfile={() => null} onVerifyAccount={() => null} />
                   </>
                 ) : (

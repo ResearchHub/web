@@ -1,8 +1,10 @@
 import { PaperIcon } from '@/components/ui/icons';
-import { HandCoins, Coins, Star } from 'lucide-react';
+import { FundingIcon } from '@/components/ui/icons/FundingIcon';
+import { Coins, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
+import Icon from '@/components/ui/icons/Icon';
 
 interface ContentTypeBadgeProps {
   type: 'paper' | 'funding' | 'bounty' | 'review';
@@ -26,7 +28,7 @@ export const ContentTypeBadge = ({
         size={size}
         className={cn('gap-1.5 py-1 border-gray-300', className)}
       >
-        <PaperIcon width={13} height={16} className="text-gray-500" />
+        <Icon name="workType" size={16} color="#374151" />
         <span>Paper</span>
       </Badge>
     );
@@ -38,7 +40,7 @@ export const ContentTypeBadge = ({
         content={
           <div className="flex items-start gap-3 text-left">
             <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center">
-              <HandCoins size={24} className="text-gray-700" />
+              <Icon name="fund" size={24} color="#374151" />
             </div>
             <div>Funding opportunities help researchers secure resources for their work.</div>
           </div>
@@ -51,7 +53,7 @@ export const ContentTypeBadge = ({
           size={size}
           className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
         >
-          <HandCoins size={16} className="text-gray-500" />
+          <Icon name="fund" size={16} color="#374151" />
           <span>Funding</span>
         </Badge>
       </Tooltip>
@@ -64,7 +66,7 @@ export const ContentTypeBadge = ({
         content={
           <div className="flex items-start gap-3 text-left">
             <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center">
-              <Coins size={24} className="text-gray-700" />
+              <Icon name="earn1" size={24} color="#374151" />
             </div>
             <div>A bounty is an earning opportunity. Earn ResearchCoin for completing a task.</div>
           </div>
@@ -77,7 +79,7 @@ export const ContentTypeBadge = ({
           size={size}
           className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
         >
-          <Coins size={16} className="text-gray-500" />
+          <Icon name="earn1" size={16} color="#6B7280" />
           <span>Bounty</span>
         </Badge>
       </Tooltip>
@@ -90,7 +92,7 @@ export const ContentTypeBadge = ({
         content={
           <div className="flex items-start gap-3 text-left">
             <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center">
-              <Star size={24} className="text-gray-700" />
+              <Icon name="peerReview1" size={24} color="#374151" />
             </div>
             <div>Peer reviews help the community evaluate the quality of research.</div>
           </div>
@@ -103,7 +105,7 @@ export const ContentTypeBadge = ({
           size={size}
           className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
         >
-          <Star size={16} className="text-gray-500" />
+          <Icon name="peerReview1" size={16} color="#6B7280" />
           <span>Peer Review</span>
         </Badge>
       </Tooltip>
