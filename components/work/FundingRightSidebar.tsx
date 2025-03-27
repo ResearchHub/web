@@ -16,6 +16,7 @@ export const FundingRightSidebar = ({ work, metadata }: FundingRightSidebarProps
   return (
     <div className="space-y-12">
       {metadata.fundraising && <FundraiseSection fundraise={metadata.fundraising} />}
+      {metadata.fundraising && <NonprofitSection fundraiseId={metadata.fundraising.id} />}
       {metadata.fundraising &&
         metadata.fundraising.contributors &&
         metadata.fundraising.contributors.numContributors > 0 && (
