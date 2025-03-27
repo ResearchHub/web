@@ -2,6 +2,7 @@
 
 import { NonprofitOrg } from '@/types/nonprofit';
 import { ExternalLink, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface NonprofitInfoPopoverProps {
   nonprofit: NonprofitOrg;
@@ -13,74 +14,92 @@ export function NonprofitInfoPopover({ nonprofit, position, onClose }: Nonprofit
   // Find Base network deployment (chainId: 8453)
   const baseDeployment = nonprofit.deployments.find((deployment) => deployment.chainId === 8453);
   const endaomentId = nonprofit.endaoment_org_id || nonprofit.id;
+  const [isBelow, setIsBelow] = useState(false);
+
+  // Detect if popover is positioned below the info button
+  useEffect(() => {
+    const popover = document.querySelector('.nonprofit-info-popover');
+    if (popover) {
+      const transform = window.getComputedStyle(popover).transform;
+      setIsBelow(transform === 'none' || !transform.includes('translateY(-100%)'));
+    }
+  }, []);
 
   return (
     <div
-      className="nonprofit-info-popover fixed z-50 w-80 bg-white rounded-lg shadow-xl border border-gray-200"
+      className="nonprofit-info-popover fixed z-50 w-80 bg-white rounded-lg shadow-xl border border-gray-200 max-h-[60vh] flex flex-col"
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
-        transform: 'translateY(-100%)', // Position above the element
+        transform: 'translateY(-100%)', // Default position above - will be overridden if needed
       }}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <h3 className="text-base font-semibold text-gray-900">{nonprofit.name}</h3>
-          <button
-            className="nonprofit-popover-close text-gray-400 hover:text-gray-600 p-1"
-            onClick={onClose}
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="space-y-3">
-          <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
-            <span className="text-gray-500">EIN:</span>
-            <span className="font-medium">{nonprofit.ein}</span>
-
-            <span className="text-gray-500">Location:</span>
-            <span>
-              {nonprofit.address.region}, {nonprofit.address.country}
-            </span>
-
-            <span className="text-gray-500">Category:</span>
-            <span>
-              {nonprofit.nteeCode} - {nonprofit.nteeDescription}
-            </span>
-
-            <span className="text-gray-500">Endaoment ID:</span>
-            <span className="font-medium">{endaomentId}</span>
-
-            {baseDeployment && (
-              <>
-                <span className="text-gray-500">Base Address:</span>
-                <a
-                  href={`https://basescan.org/address/${baseDeployment.address}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary-600 hover:underline flex items-center gap-1"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {baseDeployment.address.slice(0, 8)}...{baseDeployment.address.slice(-6)}
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </>
-            )}
+      <div className="overflow-y-auto">
+        <div className="p-4">
+          <div className="flex justify-between items-start mb-3 sticky top-0 bg-white z-10">
+            <h3 className="text-base font-semibold text-gray-900">{nonprofit.name}</h3>
+            <button
+              className="nonprofit-popover-close text-gray-400 hover:text-gray-600 p-1"
+              onClick={onClose}
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
 
-          {nonprofit.description && (
-            <div className="pt-3 border-t border-gray-100">
-              <h4 className="text-sm font-medium text-gray-700 mb-1">Description</h4>
-              <p className="text-sm text-gray-600 max-h-24 overflow-y-auto">
-                {nonprofit.description}
-              </p>
+          <div className="space-y-3">
+            <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
+              <span className="text-gray-500">EIN:</span>
+              <span className="font-medium">{nonprofit.ein}</span>
+
+              <span className="text-gray-500">Location:</span>
+              <span>
+                {nonprofit.address.region}, {nonprofit.address.country}
+              </span>
+
+              <span className="text-gray-500">Category:</span>
+              <span className="break-words">
+                {nonprofit.nteeCode} - {nonprofit.nteeDescription}
+              </span>
+
+              <span className="text-gray-500">Endaoment ID:</span>
+              <span className="font-medium break-words">{endaomentId}</span>
+
+              {baseDeployment && (
+                <>
+                  <span className="text-gray-500">Base Address:</span>
+                  <a
+                    href={`https://basescan.org/address/${baseDeployment.address}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary-600 hover:underline flex items-center gap-1 break-all"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {baseDeployment.address.slice(0, 8)}...{baseDeployment.address.slice(-6)}
+                    <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                  </a>
+                </>
+              )}
             </div>
-          )}
+
+            {nonprofit.description && (
+              <div className="pt-3 border-t border-gray-100">
+                <h4 className="text-sm font-medium text-gray-700 mb-1">Description</h4>
+                <p className="text-sm text-gray-600">{nonprofit.description}</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-      <div className="absolute bottom-0 right-4 transform translate-y-[8px] rotate-45 w-4 h-4 bg-white border-r border-b border-gray-200"></div>
+
+      {/* Arrow pointing to the info button */}
+      {isBelow ? (
+        // Arrow on top (when popover is below)
+        <div className="absolute top-0 right-4 transform translate-y-[-8px] rotate-45 w-4 h-4 bg-white border-l border-t border-gray-200"></div>
+      ) : (
+        // Arrow on bottom (when popover is above)
+        <div className="absolute bottom-0 right-4 transform translate-y-[8px] rotate-45 w-4 h-4 bg-white border-r border-b border-gray-200"></div>
+      )}
     </div>
   );
 }
