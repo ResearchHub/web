@@ -13,16 +13,9 @@ import { ProgressStepper, ProgressStepperStep } from '@/components/ui/ProgressSt
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Alert } from '@/components/ui/Alert';
 import { useUser } from '@/contexts/UserContext';
-// import { VerificationWithPersonaStep } from './Verification/VerificationWithPersonaStep';
-import dynamic from 'next/dynamic';
 import { VerificationWithPersonaStep } from './Verification/VerificationWithPersonaStep';
 
-interface VerifyIdentityModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-type VerificationStep = 'intro' | 'identity' | 'publications' | 'verification' | 'success';
+// import dynamic from 'next/dynamic';
 
 // const VerificationWithPersonaStep = dynamic(
 //   () =>
@@ -34,8 +27,21 @@ type VerificationStep = 'intro' | 'identity' | 'publications' | 'verification' |
 //   }
 // );
 
+interface VerifyIdentityModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+type VerificationStep =
+  | 'INTRO'
+  | 'IDENTITY'
+  | 'IDENTITY_VERIFIED_SUCCESSFULLY'
+  | 'IDENTITY_CANNOT_BE_VERIFIED'
+  | 'PUBLICATIONS'
+  | 'SUCCESS';
+
 export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProps) {
-  const [currentStep, setCurrentStep] = useState<VerificationStep>('intro');
+  const [currentStep, setCurrentStep] = useState<VerificationStep>('INTRO');
   const [verificationStatus, setVerificationStatus] = useState<'pending' | 'success' | 'failed'>(
     'pending'
   );
@@ -44,7 +50,7 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
 
   // Connect to WebSocket for verification status updates
   const { messages, status, sendMessage } = useWebSocket({
-    url: user?.id ? WS_ROUTES.PAPER_SUBMISSION(user.id) : '',
+    url: user?.id ? WS_ROUTES.NOTIFICATIONS(user.id) : '',
     authRequired: true,
     autoConnect: !!user?.id,
     global: true,
@@ -55,34 +61,32 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
     if (messages.length > 0) {
       const latestMessage = messages[messages.length - 1];
 
-      if (latestMessage.type === 'verification_status') {
-        if (latestMessage.status === 'success') {
+      if (latestMessage.type === 'IDENTITY_VERIFICATION_UPDATED') {
+        if (latestMessage.raw?.extra?.status === 'APPROVED') {
           setVerificationStatus('success');
-          setCurrentStep('success');
-        } else if (latestMessage.status === 'failed') {
+          setCurrentStep('IDENTITY_VERIFIED_SUCCESSFULLY');
+        } else {
           setVerificationStatus('failed');
+          setCurrentStep('IDENTITY_CANNOT_BE_VERIFIED');
         }
       }
     }
   }, [messages]);
 
   const handleBack = () => {
-    if (currentStep === 'identity') {
-      setCurrentStep('intro');
-    } else if (currentStep === 'publications') {
-      setCurrentStep('identity');
-    } else if (currentStep === 'verification') {
-      setCurrentStep('publications');
+    if (currentStep === 'IDENTITY') {
+      setCurrentStep('INTRO');
+    } else if (currentStep === 'PUBLICATIONS') {
+      setCurrentStep('IDENTITY');
     }
   };
 
   const handleNext = () => {
-    if (currentStep === 'intro') {
-      setCurrentStep('identity');
-    } else if (currentStep === 'identity') {
-      setCurrentStep('publications');
-    } else if (currentStep === 'publications') {
-      setCurrentStep('verification');
+    if (currentStep === 'INTRO') {
+      setCurrentStep('IDENTITY');
+    } else if (currentStep === 'IDENTITY') {
+      setCurrentStep('PUBLICATIONS');
+    } else if (currentStep === 'PUBLICATIONS') {
       // Send verification request via WebSocket
       if (user?.id) {
         sendMessage({
@@ -90,15 +94,15 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
           userId: user.id,
         });
       }
-    } else if (currentStep === 'success') {
+    } else if (currentStep === 'SUCCESS') {
       onClose();
       router.push('/profile');
     }
   };
 
   const handlePersonaComplete = () => {
-    // Move to the next step when Persona verification is complete
-    setCurrentStep('publications');
+    // Show success message first
+    setCurrentStep('IDENTITY_VERIFIED_SUCCESSFULLY');
   };
 
   const handlePersonaError = (error: any) => {
@@ -106,29 +110,9 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
     // You might want to show an error message or allow retry
   };
 
-  const handlePublicationsSubmit = (publications: any[]) => {
-    // Handle publications submission
-    setCurrentStep('verification');
-    // Send verification request via WebSocket
-    if (user?.id) {
-      sendMessage({
-        type: 'verification_request',
-        userId: user.id,
-        publications,
-      });
-    }
-  };
-
-  const steps: ProgressStepperStep[] = [
-    { id: 'intro', label: 'Introduction', icon: <User className="h-5 w-5" /> },
-    { id: 'identity', label: 'Identity', icon: <User className="h-5 w-5" /> },
-    { id: 'publications', label: 'Publications', icon: <ChartLine className="h-5 w-5" /> },
-    { id: 'verification', label: 'Verification', icon: <Check className="h-5 w-5" /> },
-  ];
-
   const renderStepContent = () => {
     switch (currentStep) {
-      case 'intro':
+      case 'INTRO':
         return (
           <div className="space-y-6 p-6">
             <div className="flex justify-center mb-4">
@@ -196,7 +180,7 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
           </div>
         );
 
-      case 'identity':
+      case 'IDENTITY':
         return (
           <VerificationWithPersonaStep
             onComplete={handlePersonaComplete}
@@ -204,7 +188,54 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
           />
         );
 
-      case 'publications':
+      case 'IDENTITY_VERIFIED_SUCCESSFULLY':
+        return (
+          <div className="space-y-6 text-center p-6">
+            <div className="flex justify-center">
+              <div className="bg-green-100 p-4 rounded-full">
+                <Check className="h-8 w-8 text-green-600" />
+              </div>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900">Identity Verified Successfully</h3>
+            <p className="text-gray-600">
+              A Verified badge will now appear next to your name throughout the platform.
+            </p>
+            <div className="flex flex-col space-y-4 mt-6">
+              <Button onClick={() => setCurrentStep('PUBLICATIONS')}>
+                Next: View rewards on my publications
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  onClose();
+                  router.push('/profile');
+                }}
+              >
+                View my profile
+              </Button>
+            </div>
+          </div>
+        );
+
+      case 'IDENTITY_CANNOT_BE_VERIFIED':
+        return (
+          <div className="space-y-6 text-center p-6">
+            <div className="flex justify-center">
+              <div className="bg-red-100 p-4 rounded-full">
+                <AlertTriangle className="h-8 w-8 text-red-600" />
+              </div>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900">Identity Verification Failed</h3>
+            <p className="text-gray-600">
+              We were unable to verify your identity. Please try again later.
+            </p>
+            <div className="flex justify-center">
+              <Button onClick={() => setCurrentStep('INTRO')}>Try Again</Button>
+            </div>
+          </div>
+        );
+
+      case 'PUBLICATIONS':
         return (
           <div className="space-y-6 p-6">
             <h3 className="text-xl font-semibold text-gray-900">Add Your Publications</h3>
@@ -221,10 +252,7 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
           </div>
         );
 
-      case 'verification':
-        return <div className="space-y-6 p-6">{/* Verification content */}</div>;
-
-      case 'success':
+      case 'SUCCESS':
         return (
           <div className="space-y-6 text-center p-6">
             <div className="flex justify-center">
@@ -276,16 +304,18 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
                   {/* Header with close button */}
                   <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center">
-                      {currentStep !== 'intro' && currentStep !== 'success' && (
-                        <Button
-                          onClick={handleBack}
-                          variant="ghost"
-                          size="icon"
-                          className="mr-2 text-gray-400 hover:text-gray-600"
-                        >
-                          <ArrowLeft className="h-5 w-5" />
-                        </Button>
-                      )}
+                      {currentStep !== 'INTRO' &&
+                        currentStep !== 'SUCCESS' &&
+                        currentStep !== 'IDENTITY' && (
+                          <Button
+                            onClick={handleBack}
+                            variant="ghost"
+                            size="icon"
+                            className="mr-2 text-gray-400 hover:text-gray-600"
+                          >
+                            <ArrowLeft className="h-5 w-5" />
+                          </Button>
+                        )}
                       <Dialog.Title as="h3" className="text-lg font-medium text-gray-900">
                         Verify Identity
                       </Dialog.Title>

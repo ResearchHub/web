@@ -2,14 +2,15 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useUser } from '@/contexts/UserContext';
-import PersonaReact from 'persona-react';
+// import PersonaReact from 'persona-react';
+import { PersonaVerificationSkeleton } from '@/components/skeletons/PersonaVerificationSkeleton';
 
-// import dynamic from 'next/dynamic';
-// const PersonaReact = dynamic(() => import('persona-react'), {
-//   ssr: false,
-// });
+import dynamic from 'next/dynamic';
+const PersonaReact = dynamic(() => import('persona-react'), {
+  ssr: false,
+});
 
-interface VerificationWithPersonaStepProps {
+export interface VerificationWithPersonaStepProps {
   onComplete?: () => void;
   onError?: (error: any) => void;
 }
@@ -47,26 +48,33 @@ export function VerificationWithPersonaStep({
 
   return (
     <div ref={personaWrapperRef} className="w-full">
-      <PersonaReact
-        environmentId={process.env.NEXT_PUBLIC_PERSONA_ENVIRONMENT_ID}
-        templateId={process.env.NEXT_PUBLIC_PERSONA_TEMPLATE_ID}
-        referenceId={`${user.id}`}
-        fields={{
-          nameFirst: user.firstName || '',
-          nameLast: user.lastName || '',
-        }}
-        onLoad={() => {
-          setIsPersonaLoaded(true);
-        }}
-        // onComplete={({ inquiryId, status, fields }) => {
-        //   console.log('Persona verification completed:', inquiryId);
-        //   onComplete?.();
-        // }}
-        // onError={(error: any) => {
-        //   console.error('Persona verification error:', error);
-        //   onError?.(error);
-        // }}
-      />
+      {!isPersonaLoaded && (
+        <div className="p-6">
+          <PersonaVerificationSkeleton />
+        </div>
+      )}
+      <div className={isPersonaLoaded ? '' : 'hidden'}>
+        <PersonaReact
+          environmentId={process.env.NEXT_PUBLIC_PERSONA_ENVIRONMENT_ID}
+          templateId={process.env.NEXT_PUBLIC_PERSONA_TEMPLATE_ID}
+          referenceId={`${user.id}`}
+          fields={{
+            nameFirst: user.firstName || '',
+            nameLast: user.lastName || '',
+          }}
+          onReady={() => {
+            setIsPersonaLoaded(true);
+          }}
+          onComplete={({ inquiryId, status, fields }) => {
+            console.log('Persona verification completed:', inquiryId);
+            onComplete?.();
+          }}
+          onError={(error: any) => {
+            console.error('Persona verification error:', error);
+            onError?.(error);
+          }}
+        />
+      </div>
     </div>
   );
 }
