@@ -28,7 +28,7 @@ export interface UseNonprofitSelectorReturn {
 
   // Info popover state
   infoNonprofit: NonprofitOrg | null;
-  infoPosition: { top: number; left: number };
+  infoPosition: { top: number; left: number; arrowPosition?: number };
   showEndaomentInfo: boolean;
 
   // Actions
@@ -36,7 +36,7 @@ export interface UseNonprofitSelectorReturn {
   handleClearNonprofit: () => void;
   handleShowInfo: (nonprofit: NonprofitOrg, position: { top: number; left: number }) => void;
   handleCloseInfo: () => void;
-  toggleEndaomentInfo: (position: { top: number; left: number }) => void;
+  toggleEndaomentInfo: (position: { top: number; left: number; arrowPosition?: number }) => void;
 
   // Feature status
   isFeatureEnabled: boolean;
@@ -151,7 +151,7 @@ export const useNonprofitSelector = ({
 
   // Toggle the Endaoment info popover
   const toggleEndaomentInfo = useCallback(
-    (position: { top: number; left: number }) => {
+    (position: { top: number; left: number; arrowPosition?: number }) => {
       if (showEndaomentInfo) {
         setShowEndaomentInfo(false);
         return;

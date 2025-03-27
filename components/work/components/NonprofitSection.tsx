@@ -1,8 +1,11 @@
 'use client';
 
 import { Building, HelpCircle } from 'lucide-react';
-import { Tooltip } from '@/components/ui/Tooltip';
-import { NonprofitDisplay, NonprofitInfoPopover } from '@/components/Nonprofit';
+import {
+  NonprofitDisplay,
+  NonprofitInfoPopover,
+  EndaomentInfoPopover,
+} from '@/components/Nonprofit';
 import { NonprofitSkeleton } from '@/components/skeletons/NonprofitSkeleton';
 import { ID } from '@/types/root';
 import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
@@ -22,6 +25,12 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
   const [isMounted, setIsMounted] = useState(false);
   const [infoNonprofit, setInfoNonprofit] = useState<NonprofitOrg | null>(null);
   const [infoPosition, setInfoPosition] = useState({ top: 0, left: 0 });
+  const [showEndaomentInfo, setShowEndaomentInfo] = useState(false);
+  const [endaomentInfoPosition, setEndaomentInfoPosition] = useState({
+    top: 0,
+    left: 0,
+    arrowPosition: 0,
+  });
 
   const { nonprofit, departmentLabName, isLoading, fetchNonprofitData } =
     useNonprofitByFundraiseId();
@@ -31,13 +40,15 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
     setIsMounted(true);
   }, [fundraiseId, fetchNonprofitData]);
 
-  // Handle click outside to close the info popover
+  // Handle click outside to close the info popovers
   useEffect(() => {
-    if (!infoNonprofit) return;
+    if (!infoNonprofit && !showEndaomentInfo) return;
 
     const handleClickOutside = (event: MouseEvent) => {
       // Don't close if we're clicking inside a nonprofit-info-popover element
-      const isClickInsidePopover = (event.target as Element)?.closest('.nonprofit-info-popover');
+      const isClickInsidePopover =
+        (event.target as Element)?.closest('.nonprofit-info-popover') ||
+        (event.target as Element)?.closest('.endaoment-info-popover');
       // Don't close if we're clicking an info button
       const isClickingInfoButton = (event.target as Element)
         ?.closest('button')
@@ -45,14 +56,20 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
       // Don't close when clicking the popover X button
       const isClickingX = (event.target as Element)?.closest('.nonprofit-popover-close');
 
-      if (infoNonprofit && !isClickInsidePopover && !isClickingX && !isClickingInfoButton) {
+      if (
+        (infoNonprofit || showEndaomentInfo) &&
+        !isClickInsidePopover &&
+        !isClickingX &&
+        !isClickingInfoButton
+      ) {
         setInfoNonprofit(null);
+        setShowEndaomentInfo(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [infoNonprofit]);
+  }, [infoNonprofit, showEndaomentInfo]);
 
   if (!nonprofit && !isLoading && isMounted) {
     return null;
@@ -97,6 +114,7 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
 
     // Set position with the calculated values
     setInfoNonprofit(nonprofit);
+    setShowEndaomentInfo(false);
     setInfoPosition({ top, left });
 
     // Update the transform style directly on the element after render
@@ -108,10 +126,55 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
     }, 0);
   };
 
+  // Handle endaoment info click with positioning
+  const handleEndaomentInfoClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    // Get the position of the clicked element
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+
+    // Calculate position similar to nonprofit info
+    let left = rect.left + rect.width / 2 - 192; // 192 is half the popover width (384px)
+    const viewportWidth = window.innerWidth;
+
+    // Ensure the popover stays within horizontal bounds
+    if (left < 20) {
+      left = 20;
+    } else if (left + 384 > viewportWidth - 20) {
+      left = viewportWidth - 384 - 20;
+    }
+
+    // Calculate vertical position
+    let top = rect.top - 10;
+
+    // Calculate the correct horizontal position to place the arrow
+    // The button is centered in the top bar, so we want the arrow to point at it
+    let arrowPosition = rect.left - left + rect.width / 2;
+
+    // Make sure arrow position is reasonable (not too close to edges)
+    if (arrowPosition < 40) arrowPosition = 40;
+    if (arrowPosition > 384 - 40) arrowPosition = 384 - 40;
+
+    // Set position and show popover
+    setShowEndaomentInfo(true);
+    setInfoNonprofit(null);
+    setEndaomentInfoPosition({
+      top,
+      left,
+      arrowPosition,
+    });
+  };
+
   // Handle closing the info popover
   const handleCloseInfo = (e: React.MouseEvent) => {
     e.stopPropagation();
     setInfoNonprofit(null);
+  };
+
+  // Handle closing the endaoment info popover
+  const handleCloseEndaomentInfo = () => {
+    setShowEndaomentInfo(false);
   };
 
   return (
@@ -119,21 +182,9 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
       <div className="flex items-center space-x-2 mb-4">
         <Building className="h-5 w-5 text-gray-500" />
         <h2 className="text-base font-semibold text-gray-900">Associated Nonprofit</h2>
-        <Tooltip
-          content={
-            <div className="max-w-xs">
-              <p>
-                Donations are processed through this nonprofit foundation, making your contributions
-                ({'>'} $1000) tax-deductible while supporting the researcher&apos;s work.
-              </p>
-            </div>
-          }
-          width="w-80"
-        >
-          <button className="text-gray-400 hover:text-gray-600">
-            <HelpCircle className="h-4 w-4" />
-          </button>
-        </Tooltip>
+        <button className="text-gray-400 hover:text-gray-600" onClick={handleEndaomentInfoClick}>
+          <HelpCircle className="h-4 w-4" />
+        </button>
       </div>
 
       {isLoading || !isMounted ? (
@@ -163,6 +214,18 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
             nonprofit={infoNonprofit}
             position={infoPosition}
             onClose={handleCloseInfo}
+          />,
+          document.body
+        )}
+
+      {/* Endaoment info popover with alternate text about tax deductions */}
+      {showEndaomentInfo &&
+        isMounted &&
+        createPortal(
+          <EndaomentInfoPopover
+            position={endaomentInfoPosition}
+            onClose={handleCloseEndaomentInfo}
+            useAlternateText={true}
           />,
           document.body
         )}

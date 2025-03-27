@@ -197,10 +197,20 @@ function NonprofitSearchSectionInner({
     // Get the position of the clicked element
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
 
+    // Calculate the popover position
+    const left = rect.left - 327 + rect.width / 2; // Position more to the right, adjusted for wider popover
+
+    // Calculate the arrow position to point at the button
+    const arrowPosition = rect.left - left + rect.width / 2;
+
+    // Make sure arrow position is reasonable (not too close to edges)
+    const adjustedArrowPosition = Math.min(Math.max(arrowPosition, 40), 384 - 40);
+
     // Position the popover above the info icon, similar to nonprofit info
     toggleEndaomentInfo({
       top: rect.top - 10, // Position above with a small gap
-      left: rect.left - 327 + rect.width / 2, // Position more to the right, adjusted for wider popover
+      left: left,
+      arrowPosition: adjustedArrowPosition,
     });
   };
 
@@ -314,7 +324,8 @@ function NonprofitSearchSectionInner({
         createPortal(
           <EndaomentInfoPopover
             position={infoPosition}
-            onClose={() => toggleEndaomentInfo({ top: 0, left: 0 })}
+            onClose={() => toggleEndaomentInfo({ top: 0, left: 0, arrowPosition: 0 })}
+            useAlternateText={false}
           />,
           document.body
         )}

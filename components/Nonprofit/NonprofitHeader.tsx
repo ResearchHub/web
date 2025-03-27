@@ -20,6 +20,7 @@ export function NonprofitHeader({
         <Building className="h-4 w-4 text-gray-700" />
         <h3 className="text-[15px] font-semibold tracking-tight text-gray-900">
           {readOnly ? 'Nonprofit Organization' : 'Find a Nonprofit'}
+          {!readOnly && <span className="ml-1 font-normal text-gray-500 text-xs">(Optional)</span>}
         </h3>
         <button
           className={cn(
