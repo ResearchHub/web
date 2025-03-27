@@ -1,31 +1,12 @@
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState, useEffect } from 'react';
-import { X, ArrowLeft, User, ChartLine, Check, AlertTriangle } from 'lucide-react';
+import { Fragment, useState } from 'react';
+import { X, Check, AlertTriangle, BadgeCheck } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useWebSocket } from '@/hooks/useWebSocket';
-import { WebSocketStatus } from '@/services/websocket.service';
-import { WS_ROUTES } from '@/services/websocket';
-import { ProgressStepper, ProgressStepperStep } from '@/components/ui/ProgressStepper';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { Alert } from '@/components/ui/Alert';
 import { useUser } from '@/contexts/UserContext';
 import { VerificationWithPersonaStep } from './Verification/VerificationWithPersonaStep';
-
-// import dynamic from 'next/dynamic';
-
-// const VerificationWithPersonaStep = dynamic(
-//   () =>
-//     import('./Verification/VerificationWithPersonaStep').then(
-//       (mod) => mod.VerificationWithPersonaStep
-//     ),
-//   {
-//     ssr: false,
-//   }
-// );
 
 interface VerifyIdentityModalProps {
   isOpen: boolean;
@@ -42,44 +23,9 @@ type VerificationStep =
 
 export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProps) {
   const [currentStep, setCurrentStep] = useState<VerificationStep>('INTRO');
-  const [verificationStatus, setVerificationStatus] = useState<'pending' | 'success' | 'failed'>(
-    'pending'
-  );
+
   const { user } = useUser();
   const router = useRouter();
-
-  // Connect to WebSocket for verification status updates
-  const { messages, status, sendMessage } = useWebSocket({
-    url: user?.id ? WS_ROUTES.NOTIFICATIONS(user.id) : '',
-    authRequired: true,
-    autoConnect: !!user?.id,
-    global: true,
-  });
-
-  // Handle WebSocket messages
-  useEffect(() => {
-    if (messages.length > 0) {
-      const latestMessage = messages[messages.length - 1];
-
-      if (latestMessage.type === 'IDENTITY_VERIFICATION_UPDATED') {
-        if (latestMessage.raw?.extra?.status === 'APPROVED') {
-          setVerificationStatus('success');
-          setCurrentStep('IDENTITY_VERIFIED_SUCCESSFULLY');
-        } else {
-          setVerificationStatus('failed');
-          setCurrentStep('IDENTITY_CANNOT_BE_VERIFIED');
-        }
-      }
-    }
-  }, [messages]);
-
-  const handleBack = () => {
-    if (currentStep === 'IDENTITY') {
-      setCurrentStep('INTRO');
-    } else if (currentStep === 'PUBLICATIONS') {
-      setCurrentStep('IDENTITY');
-    }
-  };
 
   const handleNext = () => {
     if (currentStep === 'INTRO') {
@@ -89,10 +35,7 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
     } else if (currentStep === 'PUBLICATIONS') {
       // Send verification request via WebSocket
       if (user?.id) {
-        sendMessage({
-          type: 'verification_request',
-          userId: user.id,
-        });
+        // Placeholder for WebSocket sendMessage
       }
     } else if (currentStep === 'SUCCESS') {
       onClose();
@@ -100,14 +43,12 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
     }
   };
 
-  const handlePersonaComplete = () => {
-    // Show success message first
-    setCurrentStep('IDENTITY_VERIFIED_SUCCESSFULLY');
-  };
-
-  const handlePersonaError = (error: any) => {
-    console.error('Persona verification error:', error);
-    // You might want to show an error message or allow retry
+  const handleVerificationStatusChange = (status: 'success' | 'failed') => {
+    if (status === 'success') {
+      setCurrentStep('IDENTITY_VERIFIED_SUCCESSFULLY');
+    } else {
+      setCurrentStep('IDENTITY_CANNOT_BE_VERIFIED');
+    }
   };
 
   const renderStepContent = () => {
@@ -117,7 +58,7 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
           <div className="space-y-6 p-6">
             <div className="flex justify-center mb-4">
               <div className="bg-primary-100 p-4 rounded-full">
-                <Check className="h-8 w-8 text-primary-600" />
+                <BadgeCheck className="h-8 w-8 text-primary-600" />
               </div>
             </div>
 
@@ -134,17 +75,13 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
 
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-primary-600 mt-0.5" />
-                    <div>
-                      <p className="text-gray-800">Verified badge</p>
-                    </div>
+                    <Check className="h-4 w-4 flex-shrink-0 text-primary-600" />
+                    <p className="text-gray-800">Verified badge</p>
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-primary-600 mt-0.5" />
-                    <div>
-                      <p className="text-gray-800">Faster withdrawal limits</p>
-                    </div>
+                    <Check className="h-4 w-4 flex-shrink-0 text-primary-600" />
+                    <p className="text-gray-800">Faster withdrawal limits</p>
                   </div>
                 </div>
               </div>
@@ -154,19 +91,13 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
 
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-primary-600 mt-0.5" />
-                    <div>
-                      <p className="text-gray-800">Claim RSC rewards on papers</p>
-                    </div>
+                    <Check className="h-4 w-4 flex-shrink-0 text-primary-600" />
+                    <p className="text-gray-800">Claim RSC rewards on papers</p>
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-primary-600 mt-0.5" />
-                    <div>
-                      <p className="text-gray-800">
-                        Get notified on bounty and grant opportunities
-                      </p>
-                    </div>
+                    <Check className="h-4 w-4 flex-shrink-0 text-primary-600" />
+                    <p className="text-gray-800">Get notified on bounty and grant opportunities</p>
                   </div>
                 </div>
               </div>
@@ -183,25 +114,28 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
       case 'IDENTITY':
         return (
           <VerificationWithPersonaStep
-            onComplete={handlePersonaComplete}
-            onError={handlePersonaError}
+            onVerificationStatusChange={handleVerificationStatusChange}
           />
         );
 
       case 'IDENTITY_VERIFIED_SUCCESSFULLY':
         return (
-          <div className="space-y-6 text-center p-6">
-            <div className="flex justify-center">
-              <div className="bg-green-100 p-4 rounded-full">
-                <Check className="h-8 w-8 text-green-600" />
+          <div className="space-y-6 text-center p-6 flex flex-col justify-between min-h-[400px]">
+            <div>
+              <div className="flex justify-center mb-6">
+                <div className="bg-green-100 p-5 rounded-full">
+                  <BadgeCheck className="h-12 w-12 text-green-600" />
+                </div>
               </div>
+              <h3 className="text-2xl font-semibold text-gray-900 mt-6">
+                Identity has been verified successfully
+              </h3>
+              <p className="mt-4 text-gray-600">
+                A Verified badge will now appear next to your name throughout the platform.
+              </p>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900">Identity Verified Successfully</h3>
-            <p className="text-gray-600">
-              A Verified badge will now appear next to your name throughout the platform.
-            </p>
             <div className="flex flex-col space-y-4 mt-6">
-              <Button onClick={() => setCurrentStep('PUBLICATIONS')}>
+              <Button onClick={() => setCurrentStep('PUBLICATIONS')} className="w-full">
                 Next: View rewards on my publications
               </Button>
               <Button
@@ -210,6 +144,7 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
                   onClose();
                   router.push('/profile');
                 }}
+                className="w-full"
               >
                 View my profile
               </Button>
@@ -225,12 +160,22 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
                 <AlertTriangle className="h-8 w-8 text-red-600" />
               </div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900">Identity Verification Failed</h3>
+            <h3 className="text-xl font-semibold text-gray-900">
+              Your identity cannot be verified at this time.
+            </h3>
             <p className="text-gray-600">
-              We were unable to verify your identity. Please try again later.
+              Please reach out to support at{' '}
+              <a
+                href="mailto:verification@researchhub.com"
+                className="text-blue-600 hover:underline"
+              >
+                verification@researchhub.com
+              </a>
             </p>
             <div className="flex justify-center">
-              <Button onClick={() => setCurrentStep('INTRO')}>Try Again</Button>
+              <Button onClick={onClose} className="w-[200px] mx-auto mt-5">
+                Close
+              </Button>
             </div>
           </div>
         );
@@ -243,10 +188,7 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
               Link your published research to verify your identity as a researcher.
             </p>
             <h2>AddPublicationsForm</h2>
-            <div className="flex justify-between">
-              <Button variant="ghost" onClick={handleBack}>
-                Back
-              </Button>
+            <div className="flex justify-end">
               <Button onClick={handleNext}>Continue</Button>
             </div>
           </div>
@@ -257,7 +199,7 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
           <div className="space-y-6 text-center p-6">
             <div className="flex justify-center">
               <div className="bg-green-100 p-4 rounded-full">
-                <Check className="h-8 w-8 text-green-600" />
+                <BadgeCheck className="h-8 w-8 text-green-600" />
               </div>
             </div>
             <h3 className="text-xl font-semibold text-gray-900">Verification Successful!</h3>
@@ -304,18 +246,6 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
                   {/* Header with close button */}
                   <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center">
-                      {currentStep !== 'INTRO' &&
-                        currentStep !== 'SUCCESS' &&
-                        currentStep !== 'IDENTITY' && (
-                          <Button
-                            onClick={handleBack}
-                            variant="ghost"
-                            size="icon"
-                            className="mr-2 text-gray-400 hover:text-gray-600"
-                          >
-                            <ArrowLeft className="h-5 w-5" />
-                          </Button>
-                        )}
                       <Dialog.Title as="h3" className="text-lg font-medium text-gray-900">
                         Verify Identity
                       </Dialog.Title>

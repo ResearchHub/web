@@ -4,24 +4,48 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useUser } from '@/contexts/UserContext';
 // import PersonaReact from 'persona-react';
 import { PersonaVerificationSkeleton } from '@/components/skeletons/PersonaVerificationSkeleton';
-
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { WS_ROUTES } from '@/services/websocket';
+import { transformNotification } from '@/types/notification';
 import dynamic from 'next/dynamic';
 const PersonaReact = dynamic(() => import('persona-react'), {
   ssr: false,
 });
 
 export interface VerificationWithPersonaStepProps {
-  onComplete?: () => void;
-  onError?: (error: any) => void;
+  onVerificationStatusChange?: (status: 'success' | 'failed') => void;
 }
 
 export function VerificationWithPersonaStep({
-  onComplete,
-  onError,
+  onVerificationStatusChange,
 }: VerificationWithPersonaStepProps): JSX.Element {
   const [isPersonaLoaded, setIsPersonaLoaded] = useState(false);
   const { user } = useUser();
   const personaWrapperRef = useRef<HTMLDivElement>(null);
+
+  // Connect to WebSocket for verification status updates
+  const { messages } = useWebSocket({
+    url: user?.id ? WS_ROUTES.NOTIFICATIONS(user.id) : '',
+    authRequired: true,
+    autoConnect: !!user?.id,
+    global: true,
+  });
+
+  // Handle WebSocket messages
+  useEffect(() => {
+    if (messages.length > 0) {
+      const latestMessage = messages[messages.length - 1];
+      const latestNotification = transformNotification(latestMessage);
+
+      if (latestNotification.type === 'IDENTITY_VERIFICATION_UPDATED') {
+        if (latestNotification.raw?.data?.extra?.status === 'APPROVED') {
+          onVerificationStatusChange?.('success');
+        } else {
+          onVerificationStatusChange?.('failed');
+        }
+      }
+    }
+  }, [messages, onVerificationStatusChange]);
 
   useEffect(() => {
     const applyIframeStyles = () => {
@@ -64,14 +88,6 @@ export function VerificationWithPersonaStep({
           }}
           onReady={() => {
             setIsPersonaLoaded(true);
-          }}
-          onComplete={({ inquiryId, status, fields }) => {
-            console.log('Persona verification completed:', inquiryId);
-            onComplete?.();
-          }}
-          onError={(error: any) => {
-            console.error('Persona verification error:', error);
-            onError?.(error);
           }}
         />
       </div>
