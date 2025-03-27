@@ -13,6 +13,8 @@ import { ProgressStepper, ProgressStepperStep } from '@/components/ui/ProgressSt
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Alert } from '@/components/ui/Alert';
 import { useUser } from '@/contexts/UserContext';
+// import { VerificationWithPersonaStep } from './Verification/VerificationWithPersonaStep';
+import dynamic from 'next/dynamic';
 import { VerificationWithPersonaStep } from './Verification/VerificationWithPersonaStep';
 
 interface VerifyIdentityModalProps {
@@ -22,8 +24,18 @@ interface VerifyIdentityModalProps {
 
 type VerificationStep = 'intro' | 'identity' | 'publications' | 'verification' | 'success';
 
+// const VerificationWithPersonaStep = dynamic(
+//   () =>
+//     import('./Verification/VerificationWithPersonaStep').then(
+//       (mod) => mod.VerificationWithPersonaStep
+//     ),
+//   {
+//     ssr: false,
+//   }
+// );
+
 export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProps) {
-  const [currentStep, setCurrentStep] = useState<VerificationStep>('identity');
+  const [currentStep, setCurrentStep] = useState<VerificationStep>('intro');
   const [verificationStatus, setVerificationStatus] = useState<'pending' | 'success' | 'failed'>(
     'pending'
   );
@@ -118,82 +130,83 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
     switch (currentStep) {
       case 'intro':
         return (
-          <div className="space-y-6">
-            <h3 className="text-xl font-semibold text-gray-900">Verify Your Identity</h3>
-            <p className="text-gray-600">
-              Verifying your identity on ResearchHub helps establish trust and gives you access to
-              additional features.
-            </p>
+          <div className="space-y-6 p-6">
+            <div className="flex justify-center mb-4">
+              <div className="bg-primary-100 p-4 rounded-full">
+                <Check className="h-8 w-8 text-primary-600" />
+              </div>
+            </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-primary-100 p-2 rounded-full">
-                  <User className="h-5 w-5 text-primary-600" />
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-900">Establish Trust</h4>
-                  <p className="text-sm text-gray-500">
-                    Show the community you're a verified researcher
-                  </p>
+            <div className="text-center">
+              <h3 className="text-2xl font-bold text-gray-900">
+                Verify identity to unlock new features
+              </h3>
+              <p className="mt-2 text-gray-600">(Takes 1-3 minutes)</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-8 mt-8">
+              <div className="space-y-6">
+                <div className="text-xl font-semibold">All users</div>
+
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <Check className="h-5 w-5 text-primary-600 mt-0.5" />
+                    <div>
+                      <p className="text-gray-800">Verified badge</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Check className="h-5 w-5 text-primary-600 mt-0.5" />
+                    <div>
+                      <p className="text-gray-800">Faster withdrawal limits</p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="bg-primary-100 p-2 rounded-full">
-                  <ChartLine className="h-5 w-5 text-primary-600" />
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-900">Claim Your Publications</h4>
-                  <p className="text-sm text-gray-500">
-                    Link your published research to your profile
-                  </p>
-                </div>
-              </div>
+              <div className="space-y-6">
+                <div className="text-xl font-semibold">Published authors</div>
 
-              <div className="flex items-center gap-3">
-                <div className="bg-primary-100 p-2 rounded-full">
-                  <ResearchCoinIcon className="h-5 w-5 text-primary-600" />
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-900">Earn ResearchCoin</h4>
-                  <p className="text-sm text-gray-500">
-                    Get rewarded for your contributions to science
-                  </p>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <Check className="h-5 w-5 text-primary-600 mt-0.5" />
+                    <div>
+                      <p className="text-gray-800">Claim RSC rewards on papers</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Check className="h-5 w-5 text-primary-600 mt-0.5" />
+                    <div>
+                      <p className="text-gray-800">
+                        Get notified on bounty and grant opportunities
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end">
-              <Button onClick={handleNext}>Get Started</Button>
+            <div className="flex justify-center mt-8">
+              <Button onClick={handleNext} className="w-full justify-center py-3">
+                Start
+              </Button>
             </div>
           </div>
         );
 
       case 'identity':
         return (
-          <div className="space-y-6">
-            <h3 className="text-xl font-semibold text-gray-900">Verify Your Identity</h3>
-            <p className="text-gray-600">
-              We use Persona to securely verify your identity. This process takes just a few
-              minutes.
-            </p>
-
-            <VerificationWithPersonaStep
-              onComplete={handlePersonaComplete}
-              onError={handlePersonaError}
-            />
-
-            <div className="flex justify-between">
-              <Button variant="ghost" onClick={handleBack}>
-                Back
-              </Button>
-            </div>
-          </div>
+          <VerificationWithPersonaStep
+            onComplete={handlePersonaComplete}
+            onError={handlePersonaError}
+          />
         );
 
       case 'publications':
         return (
-          <div className="space-y-6">
+          <div className="space-y-6 p-6">
             <h3 className="text-xl font-semibold text-gray-900">Add Your Publications</h3>
             <p className="text-gray-600">
               Link your published research to verify your identity as a researcher.
@@ -209,49 +222,11 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
         );
 
       case 'verification':
-        return (
-          <div className="space-y-6">
-            <h3 className="text-xl font-semibold text-gray-900">Verification in Progress</h3>
-            <p className="text-gray-600">
-              We're verifying your identity. This process may take a few moments.
-            </p>
-
-            <div className="flex justify-center py-8">
-              {verificationStatus === 'pending' && (
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-                  <p className="text-gray-500">Verifying your publications...</p>
-                </div>
-              )}
-
-              {verificationStatus === 'failed' && (
-                <Alert variant="error">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5" />
-                    <span>Verification failed. Please try again or contact support.</span>
-                  </div>
-                </Alert>
-              )}
-            </div>
-
-            <div className="flex justify-between">
-              <Button
-                variant="ghost"
-                onClick={handleBack}
-                disabled={verificationStatus === 'pending'}
-              >
-                Back
-              </Button>
-              {verificationStatus === 'failed' && (
-                <Button onClick={() => setCurrentStep('publications')}>Try Again</Button>
-              )}
-            </div>
-          </div>
-        );
+        return <div className="space-y-6 p-6">{/* Verification content */}</div>;
 
       case 'success':
         return (
-          <div className="space-y-6 text-center">
+          <div className="space-y-6 text-center p-6">
             <div className="flex justify-center">
               <div className="bg-green-100 p-4 rounded-full">
                 <Check className="h-8 w-8 text-green-600" />
@@ -302,28 +277,32 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
                   <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center">
                       {currentStep !== 'intro' && currentStep !== 'success' && (
-                        <button
+                        <Button
                           onClick={handleBack}
+                          variant="ghost"
+                          size="icon"
                           className="mr-2 text-gray-400 hover:text-gray-600"
                         >
                           <ArrowLeft className="h-5 w-5" />
-                        </button>
+                        </Button>
                       )}
                       <Dialog.Title as="h3" className="text-lg font-medium text-gray-900">
                         Verify Identity
                       </Dialog.Title>
                     </div>
-                    <button
+                    <Button
                       onClick={onClose}
+                      variant="ghost"
+                      size="icon"
                       className="text-gray-400 hover:text-gray-500"
                       aria-label="Close"
                     >
                       <X className="h-5 w-5" />
-                    </button>
+                    </Button>
                   </div>
 
                   {/* Progress stepper */}
-                  {currentStep !== 'success' && (
+                  {/* {currentStep !== 'success' && (
                     <div className="px-6 py-4 border-b border-gray-200">
                       <ProgressStepper
                         steps={steps}
@@ -339,10 +318,10 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
                         }}
                       />
                     </div>
-                  )}
+                  )} */}
 
                   {/* Content */}
-                  <div className="p-6">{renderStepContent()}</div>
+                  <div className="">{renderStepContent()}</div>
                 </div>
               </Dialog.Panel>
             </Transition.Child>

@@ -2,12 +2,12 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useUser } from '@/contexts/UserContext';
+import PersonaReact from 'persona-react';
 
-// We'll dynamically import PersonaReact to avoid SSR issues
-import dynamic from 'next/dynamic';
-const PersonaReact = dynamic(() => import('persona-react'), {
-  ssr: false,
-});
+// import dynamic from 'next/dynamic';
+// const PersonaReact = dynamic(() => import('persona-react'), {
+//   ssr: false,
+// });
 
 interface VerificationWithPersonaStepProps {
   onComplete?: () => void;
@@ -48,8 +48,8 @@ export function VerificationWithPersonaStep({
   return (
     <div ref={personaWrapperRef} className="w-full">
       <PersonaReact
-        templateId={process.env.NEXT_PUBLIC_PERSONA_TEMPLATE_ID}
         environmentId={process.env.NEXT_PUBLIC_PERSONA_ENVIRONMENT_ID}
+        templateId={process.env.NEXT_PUBLIC_PERSONA_TEMPLATE_ID}
         referenceId={`${user.id}`}
         fields={{
           nameFirst: user.firstName || '',
@@ -58,14 +58,14 @@ export function VerificationWithPersonaStep({
         onLoad={() => {
           setIsPersonaLoaded(true);
         }}
-        onComplete={({ inquiryId, status, fields }) => {
-          console.log('Persona verification completed:', inquiryId);
-          onComplete?.();
-        }}
-        onError={(error: any) => {
-          console.error('Persona verification error:', error);
-          onError?.(error);
-        }}
+        // onComplete={({ inquiryId, status, fields }) => {
+        //   console.log('Persona verification completed:', inquiryId);
+        //   onComplete?.();
+        // }}
+        // onError={(error: any) => {
+        //   console.error('Persona verification error:', error);
+        //   onError?.(error);
+        // }}
       />
     </div>
   );
