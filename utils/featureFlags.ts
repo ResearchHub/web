@@ -7,7 +7,7 @@
  */
 export function isProduction(): boolean {
   // Debug flag - set to true to see environment detection logs
-  const DEBUG = true;
+  const DEBUG = false;
 
   // Check for client-side rendering
   if (typeof window !== 'undefined') {
