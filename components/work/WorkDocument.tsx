@@ -46,7 +46,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   // Initialize activeTab from URL or props
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     // Check if URL contains a tab indicator
-    if (pathname.includes('/conversation')) return 'comments';
+    if (pathname.includes('/conversation')) return 'conversation';
     if (pathname.includes('/reviews')) return 'reviews';
     if (pathname.includes('/bounties')) return 'bounties';
     return defaultTab;
@@ -150,7 +150,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
             />
           </div>
         );
-      case 'comments':
+      case 'conversation':
         return (
           <div className="space-y-6" key="comments-tab">
             <CommentFeed

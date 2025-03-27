@@ -129,28 +129,6 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
 
             <MenuItems className="absolute left-0 mt-2 w-48 origin-top-left bg-white rounded-lg shadow-lg border border-gray-200 py-1 focus:outline-none">
               <MenuItem>
-                {({ focus }) => (
-                  <Button
-                    variant="ghost"
-                    className={`${focus ? 'bg-gray-50' : ''} w-full justify-start`}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    <span>Download PDF</span>
-                  </Button>
-                )}
-              </MenuItem>
-              <MenuItem>
-                {({ focus }) => (
-                  <Button
-                    variant="ghost"
-                    className={`${focus ? 'bg-gray-50' : ''} w-full justify-start`}
-                  >
-                    <Share2 className="h-4 w-4 mr-2" />
-                    <span>Share</span>
-                  </Button>
-                )}
-              </MenuItem>
-              <MenuItem>
                 <Button
                   variant="ghost"
                   disabled={!selectedOrg || !work.note}

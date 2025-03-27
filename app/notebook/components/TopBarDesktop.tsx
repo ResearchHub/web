@@ -46,7 +46,7 @@ export function TopBarDesktop() {
                   <ChevronLeft className="h-5 w-5" />
                   <ChevronLeft className="h-5 w-5 -ml-3" />
                 </div>
-                <span>{isPublished ? 'Re-publish' : 'Publish'}</span>
+                <span>{isPublished ? 'PUBLISH' : 'Publish'}</span>
               </div>
             </Button>
           )

@@ -65,7 +65,7 @@ export default async function FundConversationPage({ params }: Props) {
   return (
     <PageLayout rightSidebar={<FundingRightSidebar work={work} metadata={metadata} />}>
       <Suspense>
-        <FundDocument work={work} metadata={metadata} content={content} defaultTab="comments" />
+        <FundDocument work={work} metadata={metadata} content={content} defaultTab="conversation" />
         <SearchHistoryTracker work={work} />
       </Suspense>
     </PageLayout>
