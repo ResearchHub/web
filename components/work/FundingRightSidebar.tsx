@@ -5,6 +5,7 @@ import { DOISection } from './components/DOISection';
 import { FundraiseSection } from './components/FundraiseSection';
 import { TopicsSection } from './components/TopicsSection';
 import { NonprofitSection } from './components/NonprofitSection';
+import { FundersSection } from './components/FundersSection';
 
 interface FundingRightSidebarProps {
   work: Work;
@@ -13,14 +14,13 @@ interface FundingRightSidebarProps {
 
 export const FundingRightSidebar = ({ work, metadata }: FundingRightSidebarProps) => {
   return (
-    <div className="space-y-8">
-      {metadata.fundraising && (
-        <>
-          <FundraiseSection fundraise={metadata.fundraising} />
-          <NonprofitSection fundraiseId={metadata.fundraising.id} />
-        </>
-      )}
-      <MetricsSection metrics={work.metrics} />
+    <div className="space-y-12">
+      {metadata.fundraising && <FundraiseSection fundraise={metadata.fundraising} />}
+      {metadata.fundraising &&
+        metadata.fundraising.contributors &&
+        metadata.fundraising.contributors.numContributors > 0 && (
+          <FundersSection fundraise={metadata.fundraising} />
+        )}
       <TopicsSection topics={metadata.topics || []} />
       {work.doi && <DOISection doi={work.doi} />}
     </div>

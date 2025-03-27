@@ -107,9 +107,9 @@ const extractContributors = (fundraise: FeedPostContent['fundraise']) => {
   }
 
   return fundraise.contributors.topContributors.map((contributor) => ({
-    profileImage: contributor.profileImage,
-    fullName: contributor.fullName,
-    profileUrl: contributor.profileUrl,
+    profileImage: contributor.authorProfile.profileImage,
+    fullName: contributor.authorProfile.fullName,
+    profileUrl: contributor.authorProfile.profileUrl,
   }));
 };
 

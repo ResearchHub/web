@@ -3,6 +3,7 @@ import { FeedEntry, FeedApiResponse, transformFeedEntry, RawApiFeedEntry } from 
 import { Bounty, BountyType, transformBounty } from '@/types/bounty';
 import { transformUser } from '@/types/user';
 import { transformAuthorProfile } from '@/types/authorProfile';
+import { Fundraise, transformFundraise } from '@/types/funding';
 
 export class FeedService {
   private static readonly BASE_PATH = '/api/feed';
@@ -182,5 +183,45 @@ export class FeedService {
         paper: content_object.paper || null,
       },
     };
+  }
+
+  // Helper function to transform a raw fundraise from the feed API to a Fundraise object
+  static transformRawFundraise(rawFundraise: RawApiFeedEntry): Fundraise {
+    if (!rawFundraise) {
+      throw new Error('Raw fundraise is undefined');
+    }
+
+    const { content_object } = rawFundraise;
+
+    if (!content_object) {
+      throw new Error('Raw fundraise content_object is undefined');
+    }
+
+    // Create a raw format expected by the transformer
+    const formattedRawFundraise = {
+      id: content_object.id,
+      status: content_object.status,
+      goal_currency: content_object.goal_currency,
+      goal_amount: {
+        usd: content_object.goal_amount?.usd || 0,
+        rsc: content_object.goal_amount?.rsc || 0,
+      },
+      amount_raised: {
+        usd: content_object.amount_raised?.usd || 0,
+        rsc: content_object.amount_raised?.rsc || 0,
+      },
+      start_date: content_object.start_date,
+      end_date: content_object.end_date,
+      contributors: {
+        total: content_object.contributors?.total || 0,
+        top: (content_object.contributors?.top || []).map((contributor: any) => ({
+          author_profile: contributor.author_profile,
+        })),
+      },
+      created_date: content_object.created_date,
+      updated_date: content_object.updated_date,
+    };
+
+    return transformFundraise(formattedRawFundraise);
   }
 }

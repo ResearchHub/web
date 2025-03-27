@@ -3,6 +3,7 @@
 import { ChevronDown, Tags } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { Badge } from '@/components/ui/Badge';
 
 interface Topic {
   id: string | number;
@@ -34,9 +35,11 @@ export const TopicsSection = ({ topics }: TopicsSectionProps) => {
             <Link
               key={topic.id}
               href={`/topic/${topic.slug}`}
-              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors"
+              className="hover:opacity-80 transition-colors"
             >
-              {topic.name}
+              <Badge variant="default" size="lg" className="cursor-pointer hover:bg-gray-200">
+                {topic.name}
+              </Badge>
             </Link>
           ))}
         </div>

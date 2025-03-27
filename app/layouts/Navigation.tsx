@@ -6,17 +6,19 @@ import { useCallback } from 'react';
 import { Button } from '@/components/Editor/components/ui/Button';
 import Icon from '@/components/ui/icons/Icon';
 import { IconName } from '@/components/ui/icons/Icon';
+import { Home } from 'lucide-react';
 
 // Define icon mapping for navigation items
-type NavIconName = 'home1' | 'earn1' | 'fund' | 'rhJournal2' | 'labNotebook2';
+type NavIconName = 'earn1' | 'fund' | 'rhJournal1' | 'labNotebook2';
 
 interface NavigationItem {
   label: string;
   href: string;
-  iconName: NavIconName;
+  iconName?: NavIconName;
   description: string;
   requiresAuth?: boolean;
   isUnimplemented?: boolean;
+  isLucideIcon?: boolean;
 }
 
 interface NavigationProps {
@@ -39,7 +41,7 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
     {
       label: 'Home',
       href: '/',
-      iconName: 'home1',
+      isLucideIcon: true,
       description: 'Navigate to the home page',
     },
     {
@@ -57,7 +59,7 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
     {
       label: 'RH Journal',
       href: '/journal',
-      iconName: 'rhJournal2',
+      iconName: 'rhJournal1',
       description: 'Read and publish research papers',
     },
     {
@@ -116,7 +118,11 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
     return (
       <Button onClick={handleClick} className={buttonStyles} variant="ghost">
         <div className="h-[28px] w-[28px] mr-3.5 flex items-center justify-center">
-          <Icon name={item.iconName as IconName} size={26} color={iconColor} />
+          {item.isLucideIcon ? (
+            <Home size={26} color={iconColor} />
+          ) : (
+            <Icon name={item.iconName as IconName} size={26} color={iconColor} />
+          )}
         </div>
         <div className="flex items-center justify-between w-full min-w-0">
           <span className="truncate">{item.label}</span>

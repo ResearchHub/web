@@ -49,7 +49,7 @@ export default async function WorkConversationPage({ params }: Props) {
   return (
     <PageLayout rightSidebar={<WorkRightSidebar work={work} metadata={metadata} />}>
       <Suspense>
-        <WorkDocument work={work} metadata={metadata} defaultTab="comments" />
+        <WorkDocument work={work} metadata={metadata} defaultTab="conversation" />
         <SearchHistoryTracker work={work} />
       </Suspense>
     </PageLayout>
