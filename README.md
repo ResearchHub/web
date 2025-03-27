@@ -38,6 +38,18 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Feature Flags
+
+This project includes a feature flag system for enabling/disabling features in different environments:
+
+- Feature flags are managed in `utils/featureFlags.ts`
+- Features are automatically disabled in production unless explicitly configured otherwise
+- Use `isFeatureEnabled('featureName')` to check if a feature is available in the current environment
+- Debug feature flag status with `printFeatureStatus()` in browser console
+- Add new features by extending the `FeatureFlags` object in the file
+
+When adding new experimental features, always wrap them in feature flags to control deployment across environments.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
