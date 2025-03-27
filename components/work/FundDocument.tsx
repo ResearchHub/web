@@ -24,7 +24,8 @@ export const FundDocument = ({
   defaultTab = 'paper',
 }: FundDocumentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
-
+  console.log('&metadata', metadata);
+  console.log('&work', work);
   // Handle tab change
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);

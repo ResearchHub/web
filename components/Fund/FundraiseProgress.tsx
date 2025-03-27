@@ -11,6 +11,9 @@ import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { RSCBadge } from '@/components/ui/RSCBadge';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
+import { formatRSC } from '@/utils/number';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { Icon } from '../ui/icons';
 
 interface FundraiseProgressProps {
   fundraise: Fundraise;
@@ -42,8 +45,12 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   // Extract contributors if available
   const contributors =
     fundraise.contributors?.topContributors?.map((contributor) => ({
-      profile: contributor,
-      amount: 0, // We don't have individual contribution amounts in the current data model
+      profile: {
+        profileImage: contributor.authorProfile.profileImage,
+        fullName: contributor.authorProfile.fullName,
+        id: contributor.authorProfile.id,
+      },
+      amount: contributor.totalContribution,
     })) || [];
 
   // Check if fundraise is active
@@ -110,17 +117,19 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1">
               <RSCBadge
-                amount={fundraise.amountRaised.rsc}
+                amount={Math.round(fundraise.amountRaised.rsc)}
                 variant="text"
                 size="xs"
                 showText={false}
+                showExchangeRate={true}
               />
               <span className="font-medium text-gray-700 mx-0.5">/</span>
               <RSCBadge
-                amount={fundraise.goalAmount.rsc}
+                amount={Math.round(fundraise.goalAmount.rsc)}
                 variant="text"
                 size="xs"
                 showText={true}
+                showExchangeRate={true}
               />
             </div>
 
@@ -179,14 +188,26 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
         <div className={cn(defaultContainerClasses, className)}>
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <ResearchCoinIcon size={20} outlined />
-                <span className="font-medium text-orange-500 text-lg">
-                  {fundraise.amountRaised.rsc.toLocaleString()} RSC raised
-                </span>
-                <span className="text-gray-500 text-lg">
-                  of {fundraise.goalAmount.rsc.toLocaleString()} RSC goal
-                </span>
+              <div className="flex items-center">
+                <RSCBadge
+                  amount={Math.round(fundraise.amountRaised.rsc)}
+                  variant="text"
+                  size="md"
+                  showText={false}
+                  showExchangeRate={true}
+                  className="font-medium text-orange-500 text-lg pl-0"
+                />
+                <span className="text-gray-500 text-lg">raised of</span>
+                <RSCBadge
+                  amount={Math.round(fundraise.goalAmount.rsc)}
+                  variant="text"
+                  size="md"
+                  showText={true}
+                  showIcon={false}
+                  showExchangeRate={true}
+                  className="text-gray-500 text-lg"
+                />
+                <span className="text-gray-500 text-lg">goal</span>
               </div>
               {getStatusDisplay()}
             </div>
@@ -216,7 +237,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                 <ContributorsButton
                   contributors={contributors}
                   onContribute={handleContributeClick}
-                  label={`${fundraise.contributors.numContributors} Funders`}
+                  label={`Funders`}
                   size="md"
                 />
               </div>

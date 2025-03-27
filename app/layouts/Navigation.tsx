@@ -8,7 +8,7 @@ import Icon from '@/components/ui/icons/Icon';
 import { IconName } from '@/components/ui/icons/Icon';
 
 // Define icon mapping for navigation items
-type NavIconName = 'home1' | 'earn1' | 'fund' | 'rhJournal2' | 'labNotebook2';
+type NavIconName = 'home1' | 'earn1' | 'fund' | 'rhJournal1' | 'labNotebook2';
 
 interface NavigationItem {
   label: string;
@@ -57,7 +57,7 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
     {
       label: 'RH Journal',
       href: '/journal',
-      iconName: 'rhJournal2',
+      iconName: 'rhJournal1',
       description: 'Read and publish research papers',
     },
     {
