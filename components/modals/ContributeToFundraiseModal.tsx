@@ -1,31 +1,24 @@
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState, useEffect } from 'react';
+import { Fragment, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { cn } from '@/utils/styles';
 import { Currency, ID } from '@/types/root';
 import { BalanceInfo } from './BalanceInfo';
-import { BountyService } from '@/services/bounty.service';
 import { toast } from 'react-hot-toast';
-import { ContentType } from '@/types/work';
-import { BountyType } from '@/types/bounty';
+import { FundraiseService } from '@/services/fundraise.service';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { Fundraise } from '@/types/funding';
 
-interface ContributeBountyModalProps {
+interface ContributeToFundraiseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onContributeSuccess?: () => void;
-  commentId: ID;
-  documentId: number;
-  contentType: ContentType;
-  bountyTitle?: string;
-  bountyType: BountyType;
-  expirationDate: string;
+  fundraise: Fundraise;
 }
 
 // Currency Input Component
@@ -140,20 +133,14 @@ const ModalHeader = ({
   </div>
 );
 
-export function ContributeBountyModal({
+export function ContributeToFundraiseModal({
   isOpen,
   onClose,
   onContributeSuccess,
-  commentId,
-  documentId,
-  contentType,
-  bountyTitle = 'Bounty',
-  bountyType,
-  expirationDate,
-}: ContributeBountyModalProps) {
+  fundraise,
+}: ContributeToFundraiseModalProps) {
   const { user } = useUser();
-  const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
-  const [inputAmount, setInputAmount] = useState(50);
+  const [inputAmount, setInputAmount] = useState(100);
   const [isContributing, setIsContributing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -199,15 +186,9 @@ export function ContributeBountyModal({
 
       // Pass the contribution amount without the platform fee
       // The API expects the net contribution amount
-      const contribution = await BountyService.contributeToBounty(
-        commentId,
-        inputAmount,
-        'rhcommentmodel',
-        bountyType,
-        expirationDate
-      );
+      await FundraiseService.contributeToFundraise(fundraise.id, inputAmount);
 
-      toast.success('Your contribution has been successfully added to the bounty.');
+      toast.success('Your contribution has been successfully added to the fundraise.');
 
       // Set success flag
       setIsSuccess(true);
@@ -220,8 +201,8 @@ export function ContributeBountyModal({
       // Close the modal
       onClose();
     } catch (error) {
-      console.error('Failed to contribute to bounty:', error);
-      setError(error instanceof Error ? error.message : 'Failed to contribute to bounty');
+      console.error('Failed to contribute to fundraise:', error);
+      setError(error instanceof Error ? error.message : 'Failed to contribute to fundraise');
     } finally {
       setIsContributing(false);
     }
@@ -230,12 +211,6 @@ export function ContributeBountyModal({
   const platformFee = Math.round(inputAmount * 0.09 * 100) / 100;
   const totalAmount = inputAmount + platformFee;
   const insufficientBalance = userBalance < totalAmount;
-
-  // Calculate USD equivalent for display
-  const usdEquivalent =
-    !isExchangeRateLoading && exchangeRate > 0
-      ? `≈ $${(inputAmount * exchangeRate).toFixed(2)} USD`
-      : '';
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -276,9 +251,9 @@ export function ContributeBountyModal({
               <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
                 <div className="p-6">
                   <ModalHeader
-                    title="Contribute to Bounty"
+                    title="Contribute to Fundraise"
                     onClose={onClose}
-                    subtitle="Support this bounty by contributing ResearchCoin"
+                    subtitle="Support this fundraise by contributing ResearchCoin"
                   />
 
                   <div className="space-y-6">
@@ -289,9 +264,6 @@ export function ContributeBountyModal({
                         onChange={handleAmountChange}
                         error={amountError}
                       />
-                      {!amountError && usdEquivalent && (
-                        <div className="mt-1.5 text-sm text-gray-500">{usdEquivalent}</div>
-                      )}
                     </div>
 
                     {/* Fees Breakdown */}
@@ -328,15 +300,17 @@ export function ContributeBountyModal({
                       className="w-full h-12 text-base"
                       onClick={handleContribute}
                     >
-                      {isContributing ? 'Contributing...' : 'Contribute to Bounty'}
+                      {isContributing ? 'Contributing...' : 'Contribute to Fundraise'}
                     </Button>
 
                     {/* Info Alert */}
                     <Alert variant="info">
                       <div className="flex items-center gap-3">
                         <span>
-                          The bounty creator will be able to award the full bounty amount including
-                          your contribution to a solution they pick.
+                          Your contribution will help this fundraise reach its goal of{' '}
+                          {fundraise.goalCurrency === 'RSC'
+                            ? `${fundraise.goalAmount.rsc.toLocaleString()} RSC`
+                            : `$${fundraise.goalAmount.usd.toLocaleString()} USD`}
                         </span>
                       </div>
                     </Alert>

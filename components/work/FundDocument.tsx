@@ -131,7 +131,6 @@ export const FundDocument = ({
             }}
             onContribute={() => {
               // Handle contribute action
-              console.log('Contribute to fundraise:', metadata.fundraising?.id);
             }}
           />
         </div>
