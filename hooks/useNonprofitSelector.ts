@@ -5,6 +5,14 @@ import { NonprofitOrg } from '@/types/nonprofit';
 import { useNonprofitSearch } from './useNonprofitSearch';
 import { FeatureFlags } from '@/utils/featureFlags';
 
+/**
+ * Props for initializing the useNonprofitSelector hook
+ *
+ * @property readOnly - Whether the selector is in read-only mode
+ * @property initialSelectedNonprofit - Initial nonprofit selection, if any
+ * @property initialNote - Initial note or department/lab name for the selected nonprofit
+ * @property onSelectNonprofit - Callback when a nonprofit is selected or cleared
+ */
 export interface UseNonprofitSelectorProps {
   readOnly?: boolean;
   initialSelectedNonprofit?: NonprofitOrg | null;
@@ -12,6 +20,9 @@ export interface UseNonprofitSelectorProps {
   onSelectNonprofit?: (nonprofit: NonprofitOrg | null, note: string) => void;
 }
 
+/**
+ * Return type for the useNonprofitSelector hook
+ */
 export interface UseNonprofitSelectorReturn {
   // Search state
   searchTerm: string;
@@ -43,7 +54,12 @@ export interface UseNonprofitSelectorReturn {
 }
 
 /**
- * Hook for managing nonprofit selection and search state
+ * Hook for managing nonprofit selection UI and state
+ *
+ * This orchestration hook handles search, selection, and info popovers for nonprofit selection UI.
+ *
+ * @param props - Configuration options for the hook
+ * @returns Object containing all state and functions needed for nonprofit selection UI
  */
 export const useNonprofitSelector = ({
   readOnly = false,
@@ -54,23 +70,21 @@ export const useNonprofitSelector = ({
   // Feature flag check
   const isFeatureEnabled = FeatureFlags.nonprofitIntegration();
 
-  // Search state
+  // State
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { results, isLoading, searchNonprofits, clearResults } = useNonprofitSearch();
-
-  // Selected nonprofit state
   const [selectedNonprofit, setSelectedNonprofit] = useState<NonprofitOrg | null>(
     initialSelectedNonprofit
   );
   const [note, setNote] = useState(initialNote);
-
-  // Info popover state
   const [infoNonprofit, setInfoNonprofit] = useState<NonprofitOrg | null>(null);
   const [infoPosition, setInfoPosition] = useState({ top: 0, left: 0 });
   const [showEndaomentInfo, setShowEndaomentInfo] = useState(false);
 
-  // Perform search when searchTerm changes
+  /**
+   * Debounced search
+   */
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchTerm.trim()) {
@@ -85,7 +99,9 @@ export const useNonprofitSelector = ({
     return () => clearTimeout(timer);
   }, [searchTerm, searchNonprofits, clearResults]);
 
-  // Handle selection of a nonprofit
+  /**
+   * Handle selection of a nonprofit
+   */
   const handleSelectNonprofit = useCallback(
     (nonprofit: NonprofitOrg) => {
       // Find the Base network wallet address (chainId: 8453)
@@ -118,7 +134,11 @@ export const useNonprofitSelector = ({
     [onSelectNonprofit, note]
   );
 
-  // Clear the selected nonprofit
+  /**
+   * Clear the selected nonprofit
+   *
+   * Resets selection state and notifies parent component
+   */
   const handleClearNonprofit = useCallback(() => {
     setSelectedNonprofit(null);
     setSearchTerm('');
@@ -129,7 +149,9 @@ export const useNonprofitSelector = ({
     }
   }, [onSelectNonprofit]);
 
-  // Show info popover for a nonprofit
+  /**
+   * Show info popover for a nonprofit (toggle behavior)
+   */
   const handleShowInfo = useCallback(
     (nonprofit: NonprofitOrg, position: { top: number; left: number }) => {
       // Toggle behavior: if the same nonprofit is clicked, close the popover
@@ -144,12 +166,16 @@ export const useNonprofitSelector = ({
     [infoNonprofit]
   );
 
-  // Close the info popover
+  /**
+   * Close the nonprofit info popover
+   */
   const handleCloseInfo = useCallback(() => {
     setInfoNonprofit(null);
   }, []);
 
-  // Toggle the Endaoment info popover
+  /**
+   * Toggle the Endaoment info popover
+   */
   const toggleEndaomentInfo = useCallback(
     (position: { top: number; left: number; arrowPosition?: number }) => {
       if (showEndaomentInfo) {
@@ -164,7 +190,6 @@ export const useNonprofitSelector = ({
   );
 
   return {
-    // Search state
     searchTerm,
     setSearchTerm,
     searchResults: results,
@@ -172,24 +197,20 @@ export const useNonprofitSelector = ({
     isDropdownOpen,
     setIsDropdownOpen,
 
-    // Selected nonprofit state
     selectedNonprofit,
     note,
     setNote,
 
-    // Info popover state
     infoNonprofit,
     infoPosition,
     showEndaomentInfo,
 
-    // Actions
     handleSelectNonprofit,
     handleClearNonprofit,
     handleShowInfo,
     handleCloseInfo,
     toggleEndaomentInfo,
 
-    // Feature status
     isFeatureEnabled,
   };
 };
