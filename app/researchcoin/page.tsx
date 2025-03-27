@@ -11,7 +11,7 @@ import { useSession } from 'next-auth/react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatBalance } from '@/components/ResearchCoin/lib/types';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { FundCard } from '@coinbase/onchainkit/fund';
+import { BuyRSCSection } from '@/components/ResearchCoin/BuyRSCSection';
 
 export default function ResearchCoinPage() {
   const { data: session, status } = useSession();
@@ -20,7 +20,6 @@ export default function ResearchCoinPage() {
   const [balance, setBalance] = useState<number | null>(null);
   const { exchangeRate, isLoading: isFetchingExchangeRate } = useExchangeRate();
 
-  // Fetch initial data
   useEffect(() => {
     if (status === 'loading') return;
 
@@ -57,7 +56,7 @@ export default function ResearchCoinPage() {
                 isFetchingExchangeRate={isFetchingExchangeRate}
               />
               <div className="pb-6">
-                <FundCard assetSymbol="USDC" country="US" currency="USD" />
+                <BuyRSCSection />
               </div>
               <TransactionFeed
                 onExport={handleExport}
