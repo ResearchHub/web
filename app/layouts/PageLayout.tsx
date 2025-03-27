@@ -64,7 +64,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
         {/* Left Sidebar */}
         <div
           className={`
-          fixed lg:sticky top-0 left-0 h-screen bg-white z-40 w-72 transform transition-transform duration-200 ease-in-out
+          lg:!sticky top-0 left-0 h-screen bg-white z-40 w-72 transform transition-transform duration-200 ease-in-out
           lg:translate-x-0
           ${isLeftSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
@@ -88,7 +88,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
 
             {/* Right Sidebar */}
             {rightSidebar && (
-              <div className="hidden lg:block w-80 bg-white">
+              <div className="lg:!block hidden w-80 bg-white">
                 <div className="sticky top-[64px] p-4 pt-0">
                   <Suspense fallback={<RightSidebarSkeleton />}>
                     {typeof rightSidebar === 'boolean' ? <RightSidebar /> : rightSidebar}
