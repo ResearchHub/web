@@ -139,7 +139,22 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
   slug: raw.slug,
   createdDate: raw.created_date,
   publishedDate: raw.paper_publish_date,
-  authors: Array.isArray(raw.authors) ? raw.authors.map(transformAuthorship) : [],
+  authors:
+    Array.isArray(raw.authors) && raw.authors.length > 0
+      ? raw.authors.map(transformAuthorship)
+      : Array.isArray(raw.raw_authors) && raw.raw_authors.length > 0
+        ? raw.raw_authors.map((author: any) => ({
+            authorProfile: {
+              id: 0, // We don't have a real ID for raw authors
+              fullName: `${author.first_name || ''} ${author.last_name || ''}`.trim(),
+              profileImage: '',
+              headline: '',
+              profileUrl: '',
+            },
+            isCorresponding: false,
+            position: 'middle' as AuthorPosition,
+          }))
+        : [],
   abstract: raw.abstract,
   doi: raw.doi,
   journal: transformJournal(raw),

@@ -26,7 +26,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
   const trigger = (
     <button className="flex items-center px-5 py-3.5 gap-2.5 text-[15px] font-medium rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px]">
       <Plus className="h-[22px] w-[22px] stroke-[1.5]" />
-      <span>Publish</span>
+      <span>New</span>
     </button>
   );
 

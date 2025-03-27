@@ -1,29 +1,35 @@
 import { Fundraise } from '@/types/funding';
-import { BarChart3, Users, CircleDollarSign } from 'lucide-react';
+import { BarChart3, Users } from 'lucide-react';
+import { Icon } from '@/components/ui/icons/Icon';
+import { formatRSC } from '@/utils/number';
 
 interface FundraiseSectionProps {
   fundraise: Fundraise;
 }
 
 export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
-  const progress = (fundraise.amountRaised.usd / fundraise.goalAmount.usd) * 100;
+  const progress = (fundraise.amountRaised.rsc / fundraise.goalAmount.rsc) * 100;
 
   return (
     <section>
       <div className="flex items-center space-x-2 mb-4">
-        <CircleDollarSign className="h-5 w-5 text-gray-500" />
+        <Icon name="rscIcon" size={26} className="text-gray-500" />
         <h2 className="text-base font-semibold text-gray-900">Funding Progress</h2>
       </div>
       <div className="space-y-4">
         {/* Progress Bar */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">${fundraise.amountRaised.usd.toLocaleString()}</span>
-            <span className="text-gray-600">${fundraise.goalAmount.usd.toLocaleString()}</span>
+            <span className="text-gray-600">
+              {formatRSC({ amount: fundraise.amountRaised.rsc, round: true })} RSC
+            </span>
+            <span className="text-gray-600">
+              {formatRSC({ amount: fundraise.goalAmount.rsc, round: true })} RSC
+            </span>
           </div>
           <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-indigo-500 rounded-full"
+              className="h-full bg-orange-500 rounded-full"
               style={{
                 width: `${progress}%`,
               }}

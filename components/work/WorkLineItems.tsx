@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
-import { ClaimModal } from '@/components/modals/ClaimModal';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useVote } from '@/hooks/useVote';
 import { useUserVotes } from '@/hooks/useUserVotes';
@@ -129,28 +128,6 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
 
             <MenuItems className="absolute left-0 mt-2 w-48 origin-top-left bg-white rounded-lg shadow-lg border border-gray-200 py-1 focus:outline-none">
               <MenuItem>
-                {({ focus }) => (
-                  <Button
-                    variant="ghost"
-                    className={`${focus ? 'bg-gray-50' : ''} w-full justify-start`}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    <span>Download PDF</span>
-                  </Button>
-                )}
-              </MenuItem>
-              <MenuItem>
-                {({ focus }) => (
-                  <Button
-                    variant="ghost"
-                    className={`${focus ? 'bg-gray-50' : ''} w-full justify-start`}
-                  >
-                    <Share2 className="h-4 w-4 mr-2" />
-                    <span>Share</span>
-                  </Button>
-                )}
-              </MenuItem>
-              <MenuItem>
                 <Button
                   variant="ghost"
                   disabled={!selectedOrg || !work.note}
@@ -197,15 +174,6 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
                   delimiter="•"
                 />
               </div>
-              {showClaimButton && (
-                <button
-                  onClick={() => setClaimModalOpen(true)}
-                  className="flex items-center space-x-1 text-orange-500 hover:text-orange-600"
-                >
-                  <UserPlus className="h-3.5 w-3.5" />
-                  <span className="text-xs font-medium">Claim profile and earn rewards</span>
-                </button>
-              )}
             </div>
           </div>
         </div>
@@ -236,10 +204,6 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
           </div>
         )}
       </div>
-
-      {showClaimButton && (
-        <ClaimModal isOpen={claimModalOpen} onClose={() => setClaimModalOpen(false)} />
-      )}
 
       <FlagContentModal
         isOpen={isFlagModalOpen}

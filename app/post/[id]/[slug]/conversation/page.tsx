@@ -62,9 +62,14 @@ export default async function PostConversationPage({ params }: Props) {
     <PageLayout rightSidebar={<WorkRightSidebar work={post} metadata={metadata} />}>
       <Suspense>
         {content ? (
-          <PostDocument work={post} metadata={metadata} content={content} defaultTab="comments" />
+          <PostDocument
+            work={post}
+            metadata={metadata}
+            content={content}
+            defaultTab="conversation"
+          />
         ) : (
-          <PostDocument work={post} metadata={metadata} defaultTab="comments" />
+          <PostDocument work={post} metadata={metadata} defaultTab="conversation" />
         )}
         <SearchHistoryTracker work={post} />
       </Suspense>

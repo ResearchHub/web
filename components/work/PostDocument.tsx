@@ -77,9 +77,9 @@ export const PostDocument = ({
             />
           </div>
         );
-      case 'comments':
+      case 'conversation':
         return (
-          <div className="space-y-6" key="comments-tab">
+          <div className="space-y-6" key="conversation-tab">
             <CommentFeed
               documentId={work.id}
               contentType={work.contentType}

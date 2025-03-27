@@ -46,7 +46,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   // Initialize activeTab from URL or props
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     // Check if URL contains a tab indicator
-    if (pathname.includes('/conversation')) return 'comments';
+    if (pathname.includes('/conversation')) return 'conversation';
     if (pathname.includes('/reviews')) return 'reviews';
     if (pathname.includes('/bounties')) return 'bounties';
     return defaultTab;
@@ -150,7 +150,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
             />
           </div>
         );
-      case 'comments':
+      case 'conversation':
         return (
           <div className="space-y-6" key="comments-tab">
             <CommentFeed
@@ -212,7 +212,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
       {work.type === 'preprint' && <PreprintBadge size="lg" />}
       <PageHeader title={work.title} className="text-3xl mt-2" />
       <button
-        className="lg:hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+        className="lg:!hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
         onClick={() => setShowMobileMetrics(true)}
       >
         <BarChart2 className="h-4 w-4" />

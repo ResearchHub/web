@@ -44,7 +44,7 @@ export function TopBarMobile() {
           >
             <div className="flex items-center gap-1">
               <FileUp className="h-4 w-4" />
-              <span>{isPublished ? 'Re-publish' : 'Publish'}</span>
+              <span>{isPublished ? 'PUBLISH' : 'Publish'}</span>
             </div>
           </Button>
         )}

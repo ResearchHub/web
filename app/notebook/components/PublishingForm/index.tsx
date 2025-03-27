@@ -56,7 +56,7 @@ const getButtonText = ({
     case isRedirecting:
       return 'Redirecting...';
     case hasWorkId:
-      return 'Re-publish';
+      return 'Publish';
     case Boolean(FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled):
       return 'Pay & Publish';
     default:

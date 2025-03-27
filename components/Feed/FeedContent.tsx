@@ -50,16 +50,18 @@ export const FeedContent: FC<FeedContentProps> = ({
           return `/paper/${paperContent.id}/${paperContent.slug}`;
 
         case 'BOUNTY':
-          const bountyContent = entry.content as FeedBountyContent;
-          return `/bounty/${bountyContent.bounty.id}`;
-
+          if (entry.relatedWork?.contentType === 'paper') {
+            return `/paper/${entry.relatedWork.id}/${entry.relatedWork.slug}/bounties`;
+          } else {
+            return `/post/${entry?.relatedWork?.id}/${entry?.relatedWork?.slug}/bounties`;
+          }
         case 'COMMENT':
           const comment = entry.content as Comment;
           // For comments, we might want to link to the parent content with the comment ID as a hash
           if (entry.relatedWork?.contentType === 'paper') {
-            return `/paper/${entry.relatedWork.id}/${entry.relatedWork.slug}#comment-${comment.id}`;
+            return `/paper/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
           } else {
-            return `/post/${entry?.relatedWork?.id}/${entry?.relatedWork?.slug}#comment-${comment.id}`;
+            return `/post/${entry?.relatedWork?.id}/${entry?.relatedWork?.slug}/conversation#comment-${comment.id}`;
           }
 
         default:
