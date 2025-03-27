@@ -236,6 +236,9 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       const title = getDocumentTitleFromEditor(editor);
       const formData = methods.getValues();
 
+      // Get the fundraiseId from the existing post if it exists (for updates)
+      const existingFundraiseId = note?.post?.fundraise?.id;
+
       const response = await upsertPost(
         {
           budget: formData.budget || '0',
@@ -258,12 +261,12 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         formData.workId
       );
 
-      // If this is a preregistration with a nonprofit selected, link it to the fundraise
-      if (
-        formData.articleType === 'preregistration' &&
-        formData.selectedNonprofit &&
-        response.fundraiseId
-      ) {
+      // If a nonprofit is selected, link it to the fundraise
+      // Use either the new fundraiseId from response or the existing one
+      // This ensures it works for both new and existing preregistrations
+      const fundraiseId = response.fundraiseId || existingFundraiseId;
+
+      if (formData.selectedNonprofit && fundraiseId) {
         try {
           // Create the nonprofit and link it to the fundraise
           const nonprofitData = {
@@ -276,7 +279,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
 
           await linkNonprofitToFundraise(
             nonprofitData,
-            response.fundraiseId,
+            fundraiseId,
             formData.departmentLabName || ''
           );
         } catch (error: unknown) {

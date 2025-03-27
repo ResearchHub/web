@@ -4,10 +4,12 @@ import { Input } from '@/components/ui/form/Input';
 import { Switch } from '@/components/ui/Switch';
 import Image from 'next/image';
 import { cn } from '@/utils/styles';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Note } from '@/types/note';
 import { FundraiseSection } from '@/components/work/components/FundraiseSection';
-import { NonprofitSearchSection } from './NonprofitSearchSection';
+import { NonprofitSearchSection } from '@/components/Nonprofit';
+import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
+import { useNonprofitSearch } from '@/hooks/useNonprofitSearch';
 
 interface FundingSectionProps {
   note: Note;
@@ -26,8 +28,71 @@ export function FundingSection({ note }: FundingSectionProps) {
   const rewardFunders = watch('rewardFunders');
   const budget = watch('budget');
   const nftSupply = watch('nftSupply');
+  const selectedNonprofit = watch('selectedNonprofit');
+  const nonprofitNote = watch('departmentLabName');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isEditingNonprofit, setIsEditingNonprofit] = useState(false);
+
+  const fundraise = note.post?.fundraise;
+  const {
+    nonprofit,
+    departmentLabName: existingNote,
+    isLoading: isLoadingNonprofit,
+  } = useNonprofitByFundraiseId(fundraise?.id);
+  const {
+    results: nonprofitSearchResults,
+    isLoading: isLoadingSearch,
+    searchNonprofits,
+  } = useNonprofitSearch();
+
+  // If we have a fundraise and a nonprofit with EIN, search for complete data
+  useEffect(() => {
+    if (nonprofit && nonprofit.ein && !isEditingNonprofit) {
+      searchNonprofits(nonprofit.ein);
+    }
+  }, [nonprofit, searchNonprofits, isEditingNonprofit]);
+
+  // When we have both the nonprofit from the fundraise and search results, merge the data
+  // and set it in the form
+  useEffect(() => {
+    if (
+      nonprofit &&
+      nonprofitSearchResults &&
+      nonprofitSearchResults.length > 0 &&
+      !isEditingNonprofit
+    ) {
+      // Find the nonprofit in search results that matches the EIN
+      const matchedNonprofit = nonprofitSearchResults.find(
+        (result) => result.ein === nonprofit.ein
+      );
+
+      if (matchedNonprofit) {
+        // Create merged nonprofit object, favoring DB data over search results
+        const mergedNonprofit = {
+          ...matchedNonprofit,
+          // Keep the original ID and endaoment_org_id from our database
+          id: nonprofit.id,
+          endaoment_org_id:
+            nonprofit.endaoment_org_id || matchedNonprofit.endaoment_org_id || nonprofit.id,
+          // Prefer our database wallet address if available
+          baseWalletAddress: nonprofit.baseWalletAddress || matchedNonprofit.baseWalletAddress,
+        };
+
+        // Set the merged nonprofit data in the form
+        setValue('selectedNonprofit', mergedNonprofit);
+        setValue('departmentLabName', existingNote);
+      } else {
+        // If no match in search results, use the nonprofit data we have
+        setValue('selectedNonprofit', nonprofit);
+        setValue('departmentLabName', existingNote);
+      }
+    } else if (nonprofit && !isEditingNonprofit) {
+      // If we have nonprofit data but no search results, use what we have
+      setValue('selectedNonprofit', nonprofit);
+      setValue('departmentLabName', existingNote);
+    }
+  }, [nonprofit, nonprofitSearchResults, existingNote, setValue, isEditingNonprofit]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -50,13 +115,25 @@ export function FundingSection({ note }: FundingSectionProps) {
     return (funding / supply).toFixed(2);
   };
 
-  const fundraise = note.post?.fundraise;
-
   return (
     <div className="py-3 px-6 space-y-6">
       {fundraise ? (
         <>
           <FundraiseSection fundraise={fundraise} />
+          {/* Display nonprofit section only if we're still loading or have nonprofit data */}
+          {(isLoadingNonprofit || nonprofit || isEditingNonprofit) && (
+            <div className="pt-4 border-t border-gray-200">
+              {isEditingNonprofit || !nonprofit ? (
+                <NonprofitSearchSection />
+              ) : (
+                <NonprofitSearchSection
+                  readOnly={false}
+                  allowClear={true}
+                  onClear={() => setIsEditingNonprofit(true)}
+                />
+              )}
+            </div>
+          )}
         </>
       ) : (
         <>
