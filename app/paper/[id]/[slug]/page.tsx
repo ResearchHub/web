@@ -9,9 +9,8 @@ import { WorkDocument } from '@/components/work/WorkDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 
-// Use Incremental Static Regeneration with revalidation
-// Pages will be cached but regenerated after this time period (in seconds)
-export const revalidate = 3600; // Revalidate every hour
+// Explicitly opt out of static rendering/caching
+export const dynamic = 'force-dynamic';
 
 interface Props {
   params: Promise<{
