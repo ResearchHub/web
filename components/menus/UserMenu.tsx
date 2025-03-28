@@ -9,6 +9,8 @@ import { Avatar } from '@/components/ui/Avatar';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useConnect, useDisconnect, useAccount } from 'wagmi';
 import { WalletModal } from 'components/modals/WalletModal';
+import { VerifyIdentityModal } from '@/components/modals/VerifyIdentityModal';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 
 interface UserMenuProps {
   user: User;
@@ -27,9 +29,10 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
   const { disconnect } = useDisconnect();
   const { address, isConnected } = useAccount();
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
 
   const handleLearnMore = () => {
-    onVerifyAccount();
+    setIsVerifyModalOpen(true);
   };
 
   const handleOpenWalletModal = () => {
@@ -40,9 +43,23 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
     setIsWalletModalOpen(false);
   };
 
+  const handleVerifyAccount = () => {
+    setIsVerifyModalOpen(true);
+    onVerifyAccount(); // Call the original handler if needed
+  };
+
+  const handleCloseVerifyModal = () => {
+    setIsVerifyModalOpen(false);
+  };
+
   const trigger = (
-    <button className="hover:ring-2 hover:ring-gray-200 rounded-full p-1">
+    <button className="hover:ring-2 hover:ring-gray-200 rounded-full p-1 relative">
       <Avatar src={user.authorProfile?.profileImage} alt={user.fullName} size={34} />
+      {user.isVerified && (
+        <div className="absolute -top-1 -right-1">
+          <VerifiedBadge size="md" />
+        </div>
+      )}
     </button>
   );
 
@@ -76,14 +93,16 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
             </div>
           </BaseMenuItem>
 
-          <BaseMenuItem onClick={onVerifyAccount} className="w-full px-4 py-2">
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center">
-                <BadgeCheck className="h-4 w-4 mr-3 text-gray-500" />
-                <span className="text-sm text-gray-700">Verify Account</span>
+          {!user.isVerified && (
+            <BaseMenuItem onClick={handleVerifyAccount} className="w-full px-4 py-2">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center">
+                  <BadgeCheck className="h-4 w-4 mr-3 text-gray-500" />
+                  <span className="text-sm text-gray-700">Verify Account</span>
+                </div>
               </div>
-            </div>
-          </BaseMenuItem>
+            </BaseMenuItem>
+          )}
 
           {/* Wallet Menu Items */}
           {process.env.NODE_ENV !== 'production' &&
@@ -152,7 +171,7 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
         </div>
 
         {/* Verification Banner at bottom */}
-        {showVerificationBanner && (
+        {showVerificationBanner && !user.isVerified && (
           <div className="pb-3 px-3 mt-2">
             <VerificationBanner
               onClose={() => setShowVerificationBanner(false)}
@@ -162,7 +181,9 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
         )}
       </BaseMenu>
 
+      {/* Modals */}
       <WalletModal isOpen={isWalletModalOpen} onClose={handleCloseWalletModal} />
+      <VerifyIdentityModal isOpen={isVerifyModalOpen} onClose={handleCloseVerifyModal} />
     </>
   );
 }
