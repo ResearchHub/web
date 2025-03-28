@@ -35,6 +35,8 @@ export interface AuthorProfile {
   facebook?: string | null;
   linkedin?: string | null;
   googleScholar?: string | null;
+  orcidId?: string | null;
+  isClaimed: boolean;
 }
 
 export type TransformedAuthorProfile = AuthorProfile & BaseTransformed;
@@ -48,8 +50,13 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
       profileImage: '',
       headline: '',
       profileUrl: '/profile/0',
+      isClaimed: false,
     };
   }
+
+  // Determine if the profile is claimed based on:
+  // If a 'user' property exists and is not null
+  const isClaimed = !!raw.user && raw.user !== null;
 
   return {
     id: raw.id || 0,
@@ -67,5 +74,7 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
     facebook: raw.facebook || undefined,
     linkedin: raw.linkedin || undefined,
     googleScholar: raw.google_scholar || undefined,
+    orcidId: raw.orcid_id || undefined,
+    isClaimed: isClaimed,
   };
 });

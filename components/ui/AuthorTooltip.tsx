@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { UserService } from '@/services/user.service';
+import { AuthorService } from '@/services/author.service';
 import { Avatar } from '@/components/ui/Avatar';
 import { User } from '@/types/user';
 import { cn } from '@/utils/styles';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { navigateToAuthorProfile } from '@/utils/navigation';
+import { InfoIcon } from 'lucide-react';
 
 interface SocialIconProps {
   href?: string | null;
@@ -36,8 +37,8 @@ const SocialIcon: React.FC<SocialIconProps> = ({ href, icon, label }) => {
   );
 };
 
-interface UserTooltipProps {
-  userId?: number;
+interface AuthorTooltipProps {
+  authorId?: number;
   children: React.ReactNode;
   placement?: 'top' | 'bottom' | 'left' | 'right';
   className?: string;
@@ -76,8 +77,8 @@ const CustomTooltipWrapper: React.FC<{
   );
 };
 
-export const UserTooltip: React.FC<UserTooltipProps> = ({
-  userId,
+export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
+  authorId,
   children,
   placement = 'bottom',
   className,
@@ -93,38 +94,47 @@ export const UserTooltip: React.FC<UserTooltipProps> = ({
   const tooltipWrapperRef = useRef<HTMLDivElement>(null);
   const tooltipContentRef = useRef<HTMLDivElement>(null);
 
-  const fetchUserData = async () => {
-    if (!userId || loading || hasTriedFetching.current) return;
+  // Clear cache once on component initialization
+  useEffect(() => {
+    // Call clearCache once to ensure we're getting fresh data
+    AuthorService.clearCache();
+    console.log('AuthorTooltip: Cleared author cache on initialization');
+  }, []);
+
+  const fetchAuthorData = async () => {
+    if (!authorId || loading || hasTriedFetching.current) return;
 
     try {
       setLoading(true);
       setHasError(false);
       hasTriedFetching.current = true;
-      const user = await UserService.getUserInfo(userId);
-      setUserData(user);
-    } catch (error) {
-      console.error('Error fetching user data:', error);
+      console.log('AuthorTooltip: Starting to fetch author data for ID:', authorId);
+      const user = await AuthorService.getAuthorInfo(authorId);
+      console.log('AuthorTooltip: Received user data:', user);
 
-      // Try to fetch using the alternative method if the first one fails
-      try {
-        const user = await UserService.getAuthorProfileInfo(userId);
-        setUserData(user);
-        setHasError(false);
-      } catch (secondError) {
-        console.error('Both fetch methods failed:', secondError);
+      if (!user || !user.authorProfile) {
+        console.error('AuthorTooltip: Invalid user data received:', user);
         setHasError(true);
+      } else {
+        setUserData(user);
       }
+    } catch (error) {
+      console.error('AuthorTooltip: Error fetching author data:', error);
+      setHasError(true);
     } finally {
       setLoading(false);
     }
   };
 
-  // Reset fetch state when userId changes
+  // Reset fetch state when authorId changes
   useEffect(() => {
-    if (userId) {
+    if (authorId) {
+      console.log('AuthorTooltip: Author ID changed to:', authorId);
       hasTriedFetching.current = false;
+      setUserData(null);
+      setHasError(false);
     }
-  }, [userId]);
+  }, [authorId]);
 
   // Handle mouse events for the tooltip
   const handleMouseEnter = () => {
@@ -135,8 +145,9 @@ export const UserTooltip: React.FC<UserTooltipProps> = ({
 
     setIsTooltipVisible(true);
 
-    if (!hasTriedFetching.current && userId) {
-      fetchUserData();
+    if (!hasTriedFetching.current && authorId) {
+      console.log('AuthorTooltip: Mouse enter triggered data fetch');
+      fetchAuthorData();
     }
   };
 
@@ -157,18 +168,18 @@ export const UserTooltip: React.FC<UserTooltipProps> = ({
 
   // Render tooltip content based on loading state and data
   const tooltipContent = useMemo(() => {
-    if (!userId) return null;
+    if (!authorId) return null;
 
     if (loading) {
       return (
         <div className="p-2 text-center">
-          <div className="animate-pulse">Loading user profile...</div>
+          <div className="animate-pulse">Loading author profile...</div>
         </div>
       );
     }
 
     if (hasError) {
-      return <div className="p-2 text-center text-red-500">Could not load user profile</div>;
+      return <div className="p-2 text-center text-red-500">Could not load author profile</div>;
     }
 
     if (!userData || !userData.authorProfile) {
@@ -180,6 +191,9 @@ export const UserTooltip: React.FC<UserTooltipProps> = ({
         </div>
       );
     }
+
+    // Debug logging for profile data
+    console.log('AuthorTooltip: Rendering profile with data:', userData.authorProfile);
 
     return (
       <div className="p-4">
@@ -200,6 +214,13 @@ export const UserTooltip: React.FC<UserTooltipProps> = ({
                 {userData.fullName}
               </a>
             </div>
+
+            {!userData.authorProfile.isClaimed && (
+              <div className="mt-1 text-xs text-gray-500 flex items-center">
+                <InfoIcon className="mr-1 h-3 w-3" />
+                This profile is unclaimed
+              </div>
+            )}
 
             {userData.authorProfile.headline && (
               <div className="text-sm text-gray-700 font-medium mt-0.5">
@@ -237,7 +258,7 @@ export const UserTooltip: React.FC<UserTooltipProps> = ({
             className="text-xs text-indigo-600 hover:text-indigo-800 font-medium inline-block"
             onClick={(e) => {
               e.preventDefault();
-              navigateToAuthorProfile(userData.id);
+              navigateToAuthorProfile(userData.authorProfile?.id || userData.id);
             }}
           >
             View profile
@@ -286,13 +307,26 @@ export const UserTooltip: React.FC<UserTooltipProps> = ({
             }
             label="Google Scholar"
           />
+          <SocialIcon
+            href={userData.authorProfile.orcidId}
+            icon={
+              <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
+                {/* ORCID icon with its official color */}
+                <path
+                  fill="#A6CE39"
+                  d="M12 0C5.372 0 0 5.372 0 12s5.372 12 12 12 12-5.372 12-12S18.628 0 12 0zM7.369 4.378c.525 0 .947.431.947.947s-.422.947-.947.947a.95.95 0 0 1-.947-.947c0-.525.422-.947.947-.947zm-.722 3.038h1.444v10.041H6.647V7.416zm4.163 0h3.909c3.947 0 5.894 2.788 5.894 5.022 0 2.628-2.009 5.022-5.897 5.022h-3.906V7.416zm1.444 1.368v7.303h2.463c3.103 0 4.453-1.641 4.453-3.652 0-1.838-1.2-3.653-4.453-3.653h-2.463v.002z"
+                />
+              </svg>
+            }
+            label="ORCID"
+          />
         </div>
       </div>
     );
-  }, [userId, userData, loading, hasError]);
+  }, [authorId, userData, loading, hasError]);
 
-  // If no userId, just render children
-  if (!userId) {
+  // If no authorId, just render children
+  if (!authorId) {
     return <>{children}</>;
   }
 
