@@ -36,7 +36,6 @@ export function NonprofitSearchBox({
           className="pr-10"
           onFocus={() => {
             if (!searchTerm) {
-              // Do nothing, focus handling is in parent component
             }
           }}
         />
@@ -73,9 +72,6 @@ export function NonprofitSearchBox({
   );
 }
 
-/**
- * Renders a single nonprofit result item in the search results list
- */
 function NonprofitResultItem({
   nonprofit,
   onSelect,

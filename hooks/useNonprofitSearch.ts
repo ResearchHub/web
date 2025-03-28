@@ -61,14 +61,12 @@ export const useNonprofitSearch = (
         return;
       }
 
-      // Set loading state first, before any async operations
       setIsLoading(true);
       setError(null);
 
       try {
         const searchResults = await NonprofitService.searchNonprofitOrgs(searchTerm, options);
         setResults(searchResults);
-        // Error is already null from above, no need to set again
       } catch (error) {
         setResults([]);
 
@@ -80,23 +78,18 @@ export const useNonprofitSearch = (
           setError(new Error('Unknown error occurred while searching for nonprofits'));
         }
       } finally {
-        // Always set loading to false when done
         setIsLoading(false);
       }
     },
     []
   );
 
-  /**
-   * Clear search results and reset state
-   */
   const clearResults = useCallback((): void => {
     setResults([]);
     setIsLoading(false);
     setError(null);
   }, []);
 
-  // Perform initial search if enabled and there's a search term
   useEffect(() => {
     if (performInitialSearch && initialSearchTerm.trim()) {
       searchNonprofits(initialSearchTerm, initialSearchOptions);

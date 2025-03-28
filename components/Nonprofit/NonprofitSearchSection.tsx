@@ -7,7 +7,6 @@ import { FeatureFlags } from '@/utils/featureFlags';
 import { useNonprofitSelector } from '@/hooks/useNonprofitSelector';
 import { NonprofitOrg } from '@/types/nonprofit';
 
-// Import components directly from local files to avoid circular dependencies
 import { NonprofitHeader } from './NonprofitHeader';
 import { NonprofitSearchBox } from './NonprofitSearchBox';
 import NonprofitDisplay from './NonprofitDisplay';
@@ -26,7 +25,7 @@ interface NonprofitSearchSectionProps {
   initialNonprofit?: NonprofitOrg | null;
   initialNote?: string;
   onChange?: (result: NonprofitSelectionResult) => void;
-  standalone?: boolean; // If true, will use its own form context
+  standalone?: boolean;
 }
 
 /**
@@ -45,7 +44,6 @@ export function NonprofitSearchSection({
   onChange,
   standalone = false,
 }: NonprofitSearchSectionProps) {
-  // If standalone, we need to create our own form context
   const methods = useForm({
     defaultValues: {
       selectedNonprofit: initialNonprofit,
@@ -53,7 +51,6 @@ export function NonprofitSearchSection({
     },
   });
 
-  // For standalone mode, wrap the inner component with a FormProvider
   if (standalone) {
     return (
       <FormProvider {...methods}>
@@ -67,7 +64,6 @@ export function NonprofitSearchSection({
     );
   }
 
-  // Otherwise, use the existing form context
   return (
     <NonprofitSearchSectionInner
       readOnly={readOnly}
@@ -78,23 +74,19 @@ export function NonprofitSearchSection({
   );
 }
 
-// Internal component that uses form context
 function NonprofitSearchSectionInner({
   readOnly = false,
   allowClear = false,
   onClear,
   onChange,
 }: Omit<NonprofitSearchSectionProps, 'initialNonprofit' | 'initialNote' | 'standalone'>) {
-  // Hook into form context to get/set values
   const { setValue, watch } = useFormContext();
   const selectedNonprofit = watch('selectedNonprofit');
   const departmentLabName = watch('departmentLabName');
 
-  // DOM refs
   const dropdownRef = useRef<HTMLDivElement>(null);
   const endaomentInfoButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Use our orchestration hook for state management
   const {
     searchTerm,
     setSearchTerm,
@@ -131,14 +123,12 @@ function NonprofitSearchSectionInner({
     },
   });
 
-  // Update note state when it changes
   useEffect(() => {
     if (departmentLabName !== note) {
       setNote(departmentLabName || '');
     }
   }, [departmentLabName, note, setNote]);
 
-  // Notify parent of changes
   useEffect(() => {
     if (onChange) {
       onChange({
@@ -148,17 +138,13 @@ function NonprofitSearchSectionInner({
     }
   }, [selectedNonprofit, departmentLabName, onChange]);
 
-  // Handle click outside to close dropdown and popovers
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Don't close if we're clicking inside a nonprofit-info-popover element
       const isClickInsidePopover = (event.target as Element)?.closest('.nonprofit-info-popover');
-      // Don't close if we're clicking an info button
       const isClickingInfoButton = (event.target as Element)
         ?.closest('button')
         ?.querySelector('.lucide-info, .lucide-help-circle');
 
-      // Only close dropdown if the click is outside both the dropdown and any open popover
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node) &&
@@ -167,13 +153,11 @@ function NonprofitSearchSectionInner({
         setIsDropdownOpen(false);
       }
 
-      // Close info popover when clicking outside, but not when clicking the popover X button or info buttons
       const isClickingX = (event.target as Element)?.closest('.nonprofit-popover-close');
       if (infoNonprofit && !isClickInsidePopover && !isClickingX && !isClickingInfoButton) {
         handleCloseInfo();
       }
 
-      // Close Endaoment info popover when clicking outside
       const isClickInsideEndaomentPopover = (event.target as Element)?.closest(
         '.endaoment-info-popover'
       );
@@ -189,32 +173,22 @@ function NonprofitSearchSectionInner({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [infoNonprofit, showEndaomentInfo, setIsDropdownOpen, handleCloseInfo, toggleEndaomentInfo]);
 
-  // Get position for endaoment info button
   const handleEndaomentInfoClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     e.preventDefault();
 
-    // Get the position of the clicked element
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-
-    // Calculate the popover position
-    const left = rect.left - 327 + rect.width / 2; // Position more to the right, adjusted for wider popover
-
-    // Calculate the arrow position to point at the button
+    const left = rect.left - 327 + rect.width / 2;
     const arrowPosition = rect.left - left + rect.width / 2;
-
-    // Make sure arrow position is reasonable (not too close to edges)
     const adjustedArrowPosition = Math.min(Math.max(arrowPosition, 40), 384 - 40);
 
-    // Position the popover above the info icon, similar to nonprofit info
     toggleEndaomentInfo({
-      top: rect.top - 10, // Position above with a small gap
+      top: rect.top - 10,
       left: left,
       arrowPosition: adjustedArrowPosition,
     });
   };
 
-  // Handle nonprofit info click with positioning
   const handleNonprofitInfoClick = (
     nonprofit: NonprofitOrg,
     e: React.MouseEvent<HTMLButtonElement>
@@ -222,35 +196,28 @@ function NonprofitSearchSectionInner({
     e.stopPropagation();
     e.preventDefault();
 
-    // Get the position of the clicked element
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-
-    // Position the popover above the info icon, but shifted more to the right
     const position = {
-      top: rect.top - 10, // Position above with a small gap
-      left: rect.left - 295 + rect.width / 2, // Position more to the right
+      top: rect.top - 10,
+      left: rect.left - 295 + rect.width / 2,
     };
 
     handleShowInfo(nonprofit, position);
   };
 
-  // Early return if the feature is not enabled
   if (!isFeatureEnabled) {
     return null;
   }
 
-  // Handle clear with callback for parent component
   const handleClear = () => {
     handleClearNonprofit();
     setValue('selectedNonprofit', null, { shouldDirty: true });
     setValue('departmentLabName', '', { shouldDirty: true });
 
-    // Call onClear if provided
     if (onClear) {
       onClear();
     }
 
-    // Notify parent of change
     if (onChange) {
       onChange({
         nonprofit: null,
@@ -261,7 +228,6 @@ function NonprofitSearchSectionInner({
 
   return (
     <div className="space-y-3">
-      {/* Header section */}
       <NonprofitHeader
         readOnly={readOnly}
         showEndaomentInfo={showEndaomentInfo}
@@ -274,7 +240,6 @@ function NonprofitSearchSectionInner({
         </p>
       )}
 
-      {/* Search box - show only if no nonprofit is selected and not in read-only mode */}
       {!selectedNonprofit && !readOnly && (
         <div ref={dropdownRef}>
           <NonprofitSearchBox
@@ -290,7 +255,6 @@ function NonprofitSearchSectionInner({
         </div>
       )}
 
-      {/* Selected nonprofit display */}
       {selectedNonprofit && (
         <NonprofitDisplay
           nonprofit={selectedNonprofit}
@@ -308,7 +272,6 @@ function NonprofitSearchSectionInner({
         />
       )}
 
-      {/* Info popover for nonprofit details */}
       {infoNonprofit &&
         createPortal(
           <NonprofitInfoPopover
@@ -319,7 +282,6 @@ function NonprofitSearchSectionInner({
           document.body
         )}
 
-      {/* Info popover for Endaoment */}
       {showEndaomentInfo &&
         createPortal(
           <EndaomentInfoPopover

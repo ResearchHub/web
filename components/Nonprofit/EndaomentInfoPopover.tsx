@@ -17,7 +17,6 @@ export function EndaomentInfoPopover({
   onClose,
   useAlternateText = false,
 }: EndaomentInfoPopoverProps) {
-  // Primary content (default)
   const primaryContent = (
     <>
       <p>

@@ -2,33 +2,16 @@
 
 import { useState } from 'react';
 import { NonprofitService, NonprofitFeatureDisabledError } from '@/services/nonprofit.service';
-import { NonprofitOrg } from '@/types/nonprofit';
+import { NonprofitOrg, NonprofitFundraiseLink, CreateNonprofitParams } from '@/types/nonprofit';
 import { ID } from '@/types/root';
 import { ApiError } from '@/services/types';
-
-export interface NonprofitFundraiseLink {
-  id: ID;
-  nonprofit: NonprofitOrg;
-  fundraise: {
-    id: ID;
-    [key: string]: any;
-  };
-  note?: string;
-}
-
-export interface NonprofitLinkParams {
-  name: string;
-  endaoment_org_id: string;
-  ein?: string;
-  base_wallet_address?: string;
-}
 
 export interface UseNonprofitLinkReturn {
   data: NonprofitFundraiseLink | null;
   isLoading: boolean;
   error: Error | null;
   linkNonprofitToFundraise: (
-    nonprofitData: NonprofitLinkParams,
+    nonprofitData: CreateNonprofitParams,
     fundraiseId: ID,
     note?: string
   ) => Promise<NonprofitFundraiseLink>;
@@ -57,7 +40,7 @@ export const useNonprofitLink = (): UseNonprofitLinkReturn => {
    * @returns Promise that resolves to the created nonprofit-fundraise link
    */
   const linkNonprofitToFundraise = async (
-    nonprofitData: NonprofitLinkParams,
+    nonprofitData: CreateNonprofitParams,
     fundraiseId: ID,
     note = ''
   ): Promise<NonprofitFundraiseLink> => {
@@ -71,24 +54,18 @@ export const useNonprofitLink = (): UseNonprofitLinkReturn => {
 
       // Step 2: Link the nonprofit to the fundraise
       const linkPayload = {
-        nonprofit_id: nonprofitResponse.id,
-        fundraise_id: fundraiseId,
+        nonprofitId: nonprofitResponse.id,
+        fundraiseId: fundraiseId,
         note: note || '',
       };
 
       const linkResponse = await NonprofitService.linkToFundraise(linkPayload);
 
-      // Ensure the response has the note field
-      const responseWithNote: NonprofitFundraiseLink = {
-        ...linkResponse,
-        note: note || undefined,
-      };
-
       // Set data and clear error
-      setData(responseWithNote);
+      setData(linkResponse);
       setError(null);
 
-      return responseWithNote;
+      return linkResponse;
     } catch (err) {
       // Handle various error types
       let errorMessage: string;

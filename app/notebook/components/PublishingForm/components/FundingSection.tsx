@@ -62,33 +62,25 @@ export function FundingSection({ note }: FundingSectionProps) {
       nonprofitSearchResults.length > 0 &&
       !isEditingNonprofit
     ) {
-      // Find the nonprofit in search results that matches the EIN
       const matchedNonprofit = nonprofitSearchResults.find(
         (result) => result.ein === nonprofit.ein
       );
 
       if (matchedNonprofit) {
-        // Create merged nonprofit object, favoring DB data over search results
         const mergedNonprofit = {
           ...matchedNonprofit,
-          // Keep the original ID and endaoment_org_id from our database
           id: nonprofit.id,
-          endaoment_org_id:
-            nonprofit.endaoment_org_id || matchedNonprofit.endaoment_org_id || nonprofit.id,
-          // Prefer our database wallet address if available
+          endaomentOrgId: nonprofit.endaomentOrgId || matchedNonprofit.endaomentOrgId,
           baseWalletAddress: nonprofit.baseWalletAddress || matchedNonprofit.baseWalletAddress,
         };
 
-        // Set the merged nonprofit data in the form
         setValue('selectedNonprofit', mergedNonprofit);
         setValue('departmentLabName', existingNote);
       } else {
-        // If no match in search results, use the nonprofit data we have
         setValue('selectedNonprofit', nonprofit);
         setValue('departmentLabName', existingNote);
       }
     } else if (nonprofit && !isEditingNonprofit) {
-      // If we have nonprofit data but no search results, use what we have
       setValue('selectedNonprofit', nonprofit);
       setValue('departmentLabName', existingNote);
     }
@@ -120,7 +112,6 @@ export function FundingSection({ note }: FundingSectionProps) {
       {fundraise ? (
         <>
           <FundraiseSection fundraise={fundraise} />
-          {/* Display nonprofit section only if we're still loading or have nonprofit data */}
           {(isLoadingNonprofit || nonprofit || isEditingNonprofit) && (
             <div className="pt-4 border-t border-gray-200">
               {isEditingNonprofit || !nonprofit ? (
@@ -172,7 +163,6 @@ export function FundingSection({ note }: FundingSectionProps) {
 
       {FEATURE_FLAG_NFT_REWARDS && (
         <>
-          {' '}
           <div className="space-y-3 pt-4 border-t border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">

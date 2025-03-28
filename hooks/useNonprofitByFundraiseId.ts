@@ -7,6 +7,7 @@ import {
   NonprofitDeployment,
   NonprofitDetails,
   NonprofitLink,
+  transformNonprofitDetailsToOrg,
 } from '@/types/nonprofit';
 import { ID } from '@/types/root';
 
@@ -56,58 +57,35 @@ export const useNonprofitByFundraiseId = (
 
       if (nonprofitLinks && nonprofitLinks.length > 0) {
         const firstLink = nonprofitLinks[0];
-        const nonprofit = firstLink.nonprofit_details;
+        const nonprofitDetails = firstLink.nonprofitDetails;
 
         // Search for the complete nonprofit information using the EIN
         let completeNonprofitInfo: NonprofitOrg | null = null;
-        if (nonprofit.ein) {
-          const searchResults = await NonprofitService.searchNonprofitOrgs(nonprofit.ein);
+        if (nonprofitDetails.ein) {
+          const searchResults = await NonprofitService.searchNonprofitOrgs(nonprofitDetails.ein);
           // If we find an exact match by EIN, use that data
           completeNonprofitInfo =
-            searchResults.find((result) => result.ein === nonprofit.ein) || null;
+            searchResults.find((result) => result.ein === nonprofitDetails.ein) || null;
         }
 
         if (completeNonprofitInfo) {
-          // If we found complete info, use it but ensure we keep the base_wallet_address
+          // If we found complete info, use it but ensure we keep our database IDs
           setState({
             nonprofit: {
               ...completeNonprofitInfo,
+              id: nonprofitDetails.id, // Preserve our internal database ID
               baseWalletAddress:
-                nonprofit.base_wallet_address || completeNonprofitInfo.baseWalletAddress,
-              endaoment_org_id:
-                nonprofit.endaoment_org_id || completeNonprofitInfo.endaoment_org_id,
+                nonprofitDetails.baseWalletAddress || completeNonprofitInfo.baseWalletAddress,
+              endaomentOrgId: nonprofitDetails.endaomentOrgId,
             },
             departmentLabName: firstLink.note || '',
             isLoading: false,
             error: null,
           });
         } else {
-          // Create nonprofit object that matches the NonprofitOrg interface using available data
-          const deployments: NonprofitDeployment[] = [];
-          if (nonprofit.base_wallet_address) {
-            deployments.push({
-              isDeployed: true,
-              chainId: 8453, // Base network
-              address: nonprofit.base_wallet_address,
-            });
-          }
-
-          // Create nonprofit object that matches the NonprofitOrg interface
-          const formattedNonprofit: NonprofitOrg = {
-            id: nonprofit.id.toString(),
-            name: nonprofit.name,
-            ein: nonprofit.ein,
-            deployments,
-            baseWalletAddress: nonprofit.base_wallet_address,
-            address: { region: '', country: '' },
-            nteeCode: '',
-            nteeDescription: '',
-            description: '',
-            endaomentUrl: '',
-            contibutionCount: 0,
-            contibutionTotal: '0',
-            endaoment_org_id: nonprofit.endaoment_org_id,
-          };
+          // If we don't have complete info from search, use the transformNonprofitDetailsToOrg
+          // transformer to convert our database details to a nonprofit org
+          const formattedNonprofit = transformNonprofitDetailsToOrg(nonprofitDetails.raw);
 
           setState({
             nonprofit: formattedNonprofit,

@@ -1,6 +1,5 @@
 'use client';
 
-// Export components from this directory
 export { NonprofitSearchSection, type NonprofitSelectionResult } from './NonprofitSearchSection';
 export { NonprofitHeader } from './NonprofitHeader';
 export { NonprofitSearchBox } from './NonprofitSearchBox';

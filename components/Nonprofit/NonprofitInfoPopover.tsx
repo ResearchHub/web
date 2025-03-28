@@ -11,9 +11,8 @@ interface NonprofitInfoPopoverProps {
 }
 
 export function NonprofitInfoPopover({ nonprofit, position, onClose }: NonprofitInfoPopoverProps) {
-  // Find Base network deployment (chainId: 8453)
   const baseDeployment = nonprofit.deployments.find((deployment) => deployment.chainId === 8453);
-  const endaomentId = nonprofit.endaoment_org_id || nonprofit.id;
+  const endaomentId = nonprofit.endaomentOrgId;
   const [isBelow, setIsBelow] = useState(false);
 
   // Detect if popover is positioned below the info button
@@ -31,7 +30,7 @@ export function NonprofitInfoPopover({ nonprofit, position, onClose }: Nonprofit
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
-        transform: 'translateY(-100%)', // Default position above - will be overridden if needed
+        transform: 'translateY(-100%)',
       }}
       onClick={(e) => e.stopPropagation()}
     >
@@ -92,7 +91,6 @@ export function NonprofitInfoPopover({ nonprofit, position, onClose }: Nonprofit
         </div>
       </div>
 
-      {/* Arrow pointing to the info button */}
       {isBelow ? (
         // Arrow on top (when popover is below)
         <div className="absolute top-0 right-4 transform translate-y-[-8px] rotate-45 w-4 h-4 bg-white border-l border-t border-gray-200"></div>

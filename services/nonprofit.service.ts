@@ -3,13 +3,23 @@ import {
   NonprofitSearchParams,
   NonprofitDetails,
   NonprofitLink,
+  NonprofitDetailsRaw,
+  NonprofitLinkRaw,
+  NonprofitSearchResultRaw,
+  NonprofitFundraiseLinkRaw,
+  NonprofitFundraiseLink,
+  CreateNonprofitParams,
+  LinkToFundraiseParams,
+  transformNonprofitDetails,
+  transformNonprofitLink,
+  transformNonprofitSearchResult,
+  transformNonprofitFundraiseLink,
 } from '@/types/nonprofit';
 import { ApiClient } from './client';
 import { ID } from '@/types/root';
 import { isFeatureEnabled } from '@/utils/featureFlags';
 import { ApiError } from './types';
 
-// Custom error class for feature flag issues
 export class NonprofitFeatureDisabledError extends Error {
   constructor() {
     super('Nonprofit integration is not available in this environment');
@@ -17,7 +27,6 @@ export class NonprofitFeatureDisabledError extends Error {
   }
 }
 
-// Custom error class for nonprofit service errors
 export class NonprofitServiceError extends Error {
   constructor(message: string) {
     super(message);
@@ -25,16 +34,9 @@ export class NonprofitServiceError extends Error {
   }
 }
 
-/**
- * Service for interacting with nonprofit organizations API
- */
 export class NonprofitService {
   private static readonly BASE_PATH = '/api/organizations/non-profit';
 
-  /**
-   * Check if nonprofit integration is enabled
-   * @throws NonprofitFeatureDisabledError if the feature is disabled
-   */
   private static checkFeatureEnabled(): void {
     if (!isFeatureEnabled('nonprofitIntegration')) {
       throw new NonprofitFeatureDisabledError();
@@ -65,11 +67,11 @@ export class NonprofitService {
     });
 
     try {
-      const response = await ApiClient.get<NonprofitOrg[]>(
+      const response = await ApiClient.get<NonprofitSearchResultRaw[]>(
         `${this.BASE_PATH}/search/?${params.toString()}`
       );
 
-      return response;
+      return response.map(transformNonprofitSearchResult);
     } catch (error) {
       console.error('Error searching nonprofit organizations:', error);
       throw error instanceof Error
@@ -81,29 +83,29 @@ export class NonprofitService {
   /**
    * Create or retrieve a nonprofit organization
    * @param params - The nonprofit organization parameters
-   * @returns A promise that resolves to the created or retrieved NonprofitOrg object
+   * @returns A promise that resolves to the created or retrieved NonprofitDetails object
    * @throws NonprofitFeatureDisabledError when the feature is disabled
    * @throws NonprofitServiceError when the API request fails
    */
-  static async createNonprofit(params: {
-    name: string;
-    endaoment_org_id: string;
-    ein?: string;
-    base_wallet_address?: string;
-  }): Promise<NonprofitOrg> {
+  static async createNonprofit(params: CreateNonprofitParams): Promise<NonprofitDetails> {
     this.checkFeatureEnabled();
     const endpoint = `${this.BASE_PATH}/create/`;
 
-    // Validate endaoment_org_id is present
-    if (!params.endaoment_org_id) {
-      throw new NonprofitServiceError('endaoment_org_id is required');
+    if (!params.endaomentOrgId) {
+      throw new NonprofitServiceError('endaomentOrgId is required');
     }
 
+    const apiParams = {
+      name: params.name,
+      endaoment_org_id: params.endaomentOrgId,
+      ein: params.ein,
+      base_wallet_address: params.baseWalletAddress,
+    };
+
     try {
-      const response = await ApiClient.post<NonprofitOrg>(endpoint, params);
-      return response;
+      const response = await ApiClient.post<NonprofitDetailsRaw>(endpoint, apiParams);
+      return transformNonprofitDetails(response);
     } catch (error: unknown) {
-      // Check for specific API errors
       if (error instanceof ApiError) {
         try {
           const errorData = JSON.parse(error.message);
@@ -112,9 +114,7 @@ export class NonprofitService {
           } else if (errorData.error) {
             throw new NonprofitServiceError(errorData.error);
           }
-        } catch (parseError) {
-          // If parsing fails, continue with original error
-        }
+        } catch (parseError) {}
       }
 
       throw error instanceof Error
@@ -130,28 +130,23 @@ export class NonprofitService {
    * @throws NonprofitFeatureDisabledError when the feature is disabled
    * @throws NonprofitServiceError when the API request fails
    */
-  static async linkToFundraise(params: {
-    nonprofit_id: ID;
-    fundraise_id: ID;
-    note?: string;
-  }): Promise<{ id: ID; nonprofit: NonprofitOrg; fundraise: { id: ID } }> {
+  static async linkToFundraise(params: LinkToFundraiseParams): Promise<NonprofitFundraiseLink> {
     this.checkFeatureEnabled();
     const endpoint = `${this.BASE_PATH}/link-to-fundraise/`;
 
-    try {
-      const response = await ApiClient.post<{
-        id: ID;
-        nonprofit: NonprofitOrg;
-        fundraise: { id: ID };
-      }>(endpoint, params);
+    const apiParams = {
+      nonprofit_id: params.nonprofitId,
+      fundraise_id: params.fundraiseId,
+      note: params.note || '',
+    };
 
-      return response;
+    try {
+      const response = await ApiClient.post<NonprofitFundraiseLinkRaw>(endpoint, apiParams);
+      return transformNonprofitFundraiseLink(response);
     } catch (error: unknown) {
-      // Check for specific error cases
       if (error instanceof ApiError) {
         try {
           const errorData = JSON.parse(error.message);
-          // Check for 404 response, which might indicate a missing fundraise
           if (
             errorData.status === 404 &&
             errorData.data &&
@@ -160,15 +155,12 @@ export class NonprofitService {
             throw new NonprofitServiceError('Fundraise not found');
           }
 
-          // Try to extract specific error messages
           if (errorData.data && errorData.data.error) {
             throw new NonprofitServiceError(errorData.data.error);
           } else if (errorData.error) {
             throw new NonprofitServiceError(errorData.error);
           }
-        } catch (parseError) {
-          // If parsing fails, continue with original error
-        }
+        } catch (parseError) {}
       }
 
       throw error instanceof Error
@@ -189,10 +181,9 @@ export class NonprofitService {
     const endpoint = `${this.BASE_PATH}/get-by-fundraise/?fundraise_id=${fundraiseId}`;
 
     try {
-      const response = await ApiClient.get<NonprofitLink[]>(endpoint);
-      return response;
+      const response = await ApiClient.get<NonprofitLinkRaw[]>(endpoint);
+      return response.map(transformNonprofitLink);
     } catch (error: unknown) {
-      // Check for specific error cases
       if (error instanceof ApiError) {
         try {
           const errorData = JSON.parse(error.message);
@@ -201,9 +192,7 @@ export class NonprofitService {
           } else if (errorData.error) {
             throw new NonprofitServiceError(errorData.error);
           }
-        } catch (parseError) {
-          // If parsing fails, continue with original error
-        }
+        } catch (parseError) {}
       }
 
       throw error instanceof Error

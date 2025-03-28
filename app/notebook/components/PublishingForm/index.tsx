@@ -262,19 +262,17 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       );
 
       // If a nonprofit is selected, link it to the fundraise
-      // Use either the new fundraiseId from response or the existing one
-      // This ensures it works for both new and existing preregistrations
       const fundraiseId = response.fundraiseId || existingFundraiseId;
 
       if (formData.selectedNonprofit && fundraiseId) {
         try {
-          // Create the nonprofit and link it to the fundraise
+          // Create the nonprofit and link it to the fundraise using consistent camelCase naming
           const nonprofitData = {
             name: formData.selectedNonprofit.name,
             ein: formData.selectedNonprofit.ein,
-            endaoment_org_id:
-              formData.selectedNonprofit.endaoment_org_id || formData.selectedNonprofit.id,
-            base_wallet_address: formData.selectedNonprofit.baseWalletAddress,
+            endaomentOrgId:
+              formData.selectedNonprofit.endaomentOrgId || formData.selectedNonprofit.id,
+            baseWalletAddress: formData.selectedNonprofit.baseWalletAddress,
           };
 
           await linkNonprofitToFundraise(
