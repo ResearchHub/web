@@ -8,6 +8,7 @@ import { FeedItemFundraise } from './items/FeedItemFundraise';
 import { FeedItemPaper } from './items/FeedItemPaper';
 import { FeedItemBounty } from './items/FeedItemBounty';
 import { FeedItemComment } from './items/FeedItemComment';
+import { FeedItemPost } from './items/FeedItemPost';
 
 interface FeedContentProps {
   entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry
@@ -84,11 +85,17 @@ export const FeedContent: FC<FeedContentProps> = ({
 
     // Generate the appropriate href for this entry
     const href = generateHref(entry);
-    console.log('&entry!!', entry);
+
     try {
       // Use the contentType field on the FeedEntry object to determine the type of content
       switch (entry.contentType) {
         case 'POST':
+          return (
+            <div key={entry.id} className={spacingClass}>
+              <FeedItemPost entry={entry} href={href} />
+            </div>
+          );
+
         case 'PREREGISTRATION':
           return (
             <div key={entry.id} className={spacingClass}>

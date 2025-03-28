@@ -7,7 +7,7 @@ import { cn } from '@/utils/styles';
 import Icon from '@/components/ui/icons/Icon';
 
 interface ContentTypeBadgeProps {
-  type: 'paper' | 'funding' | 'bounty' | 'review';
+  type: 'paper' | 'funding' | 'bounty' | 'review' | 'article';
   className?: string;
   size?: 'default' | 'sm' | 'lg' | 'xs';
   score?: number;
@@ -30,6 +30,19 @@ export const ContentTypeBadge = ({
       >
         <Icon name="workType" size={16} color="#374151" />
         <span>Paper</span>
+      </Badge>
+    );
+  }
+
+  if (type === 'article') {
+    return (
+      <Badge
+        variant="default"
+        size={size}
+        className={cn('gap-1.5 py-1 border-gray-300', className)}
+      >
+        <Icon name="workType" size={16} color="#374151" />
+        <span>Article</span>
       </Badge>
     );
   }
