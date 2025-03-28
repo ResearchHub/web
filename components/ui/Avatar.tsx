@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState, useEffect, CSSProperties } from 'react';
+import { FC, useState, useEffect, CSSProperties, MouseEvent } from 'react';
 import { cn } from '@/utils/styles';
 
 interface AvatarProps {
@@ -8,9 +8,10 @@ interface AvatarProps {
   alt: string;
   size?: 'xxs' | 'xs' | 'sm' | 'md' | number;
   className?: string;
+  onClick?: (e: MouseEvent<HTMLDivElement>) => void;
 }
 
-export const Avatar: FC<AvatarProps> = ({ src, alt, size = 'md', className }) => {
+export const Avatar: FC<AvatarProps> = ({ src, alt, size = 'md', className, onClick }) => {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -89,12 +90,14 @@ export const Avatar: FC<AvatarProps> = ({ src, alt, size = 'md', className }) =>
         'relative inline-flex rounded-full bg-gray-100 overflow-hidden',
         'flex items-center justify-center flex-shrink-0',
         typeof size !== 'number' ? sizeClasses[size] : '',
+        onClick ? 'cursor-pointer' : '',
         className
       )}
       style={{
         lineHeight: 1,
         ...customStyle,
       }}
+      onClick={onClick}
     >
       {shouldShowInitials ? (
         <span
