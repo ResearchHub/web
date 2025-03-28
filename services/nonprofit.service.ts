@@ -3,10 +3,6 @@ import {
   NonprofitSearchParams,
   NonprofitDetails,
   NonprofitLink,
-  NonprofitDetailsRaw,
-  NonprofitLinkRaw,
-  NonprofitSearchResultRaw,
-  NonprofitFundraiseLinkRaw,
   NonprofitFundraiseLink,
   CreateNonprofitParams,
   LinkToFundraiseParams,
@@ -67,9 +63,7 @@ export class NonprofitService {
     });
 
     try {
-      const response = await ApiClient.get<NonprofitSearchResultRaw[]>(
-        `${this.BASE_PATH}/search/?${params.toString()}`
-      );
+      const response = await ApiClient.get<any[]>(`${this.BASE_PATH}/search/?${params.toString()}`);
 
       return response.map(transformNonprofitSearchResult);
     } catch (error) {
@@ -103,7 +97,7 @@ export class NonprofitService {
     };
 
     try {
-      const response = await ApiClient.post<NonprofitDetailsRaw>(endpoint, apiParams);
+      const response = await ApiClient.post<any>(endpoint, apiParams);
       return transformNonprofitDetails(response);
     } catch (error: unknown) {
       if (error instanceof ApiError) {
@@ -141,7 +135,7 @@ export class NonprofitService {
     };
 
     try {
-      const response = await ApiClient.post<NonprofitFundraiseLinkRaw>(endpoint, apiParams);
+      const response = await ApiClient.post<any>(endpoint, apiParams);
       return transformNonprofitFundraiseLink(response);
     } catch (error: unknown) {
       if (error instanceof ApiError) {
@@ -181,7 +175,7 @@ export class NonprofitService {
     const endpoint = `${this.BASE_PATH}/get-by-fundraise/?fundraise_id=${fundraiseId}`;
 
     try {
-      const response = await ApiClient.get<NonprofitLinkRaw[]>(endpoint);
+      const response = await ApiClient.get<any[]>(endpoint);
       return response.map(transformNonprofitLink);
     } catch (error: unknown) {
       if (error instanceof ApiError) {

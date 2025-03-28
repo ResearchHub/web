@@ -1,8 +1,9 @@
 'use client';
 import { useState } from 'react';
-import { PostService, UpsertPostResponse } from '@/services/post.service';
+import { PostService } from '@/services/post.service';
 import { Work } from '@/types/work';
 import { ID } from '@/types/root';
+import { TransformedWork } from '@/types/work';
 import { ApiError } from '@/services/types';
 
 export interface PreregistrationPostParams {
@@ -24,12 +25,12 @@ export interface PreregistrationPostParams {
 }
 
 interface UsePostState {
-  data: Work | null;
+  data: TransformedWork | null;
   isLoading: boolean;
   error: string | null;
 }
 
-export interface UpsertPostResult extends Work {
+export interface UpsertPostResult extends TransformedWork {
   rawResponse?: any;
   fundraiseId?: ID;
 }
@@ -41,11 +42,14 @@ type UpsertPostFn = (
 type UseUpsertPostReturn = [UsePostState, UpsertPostFn];
 
 export const useUpsertPost = (): UseUpsertPostReturn => {
-  const [data, setData] = useState<Work | null>(null);
+  const [data, setData] = useState<TransformedWork | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const upsertPost = async (postParams: PreregistrationPostParams, postId?: ID) => {
+  const upsertPost = async (
+    postParams: PreregistrationPostParams,
+    postId?: ID
+  ): Promise<UpsertPostResult> => {
     setIsLoading(true);
     setError(null);
 
@@ -73,17 +77,17 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         payload.fundraise_goal_amount = parseFloat(postParams.budget.replace(/[^0-9.]/g, ''));
       }
 
-      const response = await PostService.upsert(payload);
+      const response = (await PostService.upsert(payload)) as TransformedWork;
 
       // Extract fundraise ID from raw response if available
       const fundraiseId = response.raw?.fundraise?.id;
 
       // Set the transformed work as data
-      setData(response.work);
+      setData(response);
 
       // Return an enhanced work object with the raw response and fundraise ID
       return {
-        ...response.work,
+        ...response,
         rawResponse: response.raw,
         fundraiseId,
       };

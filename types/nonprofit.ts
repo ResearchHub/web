@@ -2,64 +2,12 @@ import { BaseTransformed, createTransformer } from '@/types/transformer';
 import { ID } from '@/types/root';
 
 /**
- * Raw API response types (matching exact server formats)
+ * App-side models and transformation utilities for nonprofit data
  */
 
-// Raw nonprofit details from create API and get-by-fundraise nested details
-export interface NonprofitDetailsRaw {
-  id: number | string;
-  name: string;
-  ein: string;
-  endaoment_org_id: string;
-  base_wallet_address?: string;
-  created_date?: string;
-  updated_date?: string;
-}
-
-// Raw nonprofit-fundraise link from get-by-fundraise API
-export interface NonprofitLinkRaw {
-  id: number | string;
-  nonprofit: number | string;
-  nonprofit_details: NonprofitDetailsRaw;
-  fundraise: number | string;
-  note: string;
-  created_date: string;
-  updated_date: string;
-}
-
-// Raw nonprofit organization from search API (note: this has camelCase as it's a proxy endpoint)
-export interface NonprofitSearchResultRaw {
-  id: string;
-  name: string;
-  ein: string;
-  deployments: {
-    isDeployed: boolean;
-    chainId: number;
-    address: string;
-  }[];
-  logoUrl?: string;
-  nteeCode: string;
-  nteeDescription: string;
-  description: string;
-  address: {
-    region: string;
-    country: string;
-  };
-  endaomentUrl: string;
-  contibutionCount: number; // API typo preserved
-  contibutionTotal: string; // API typo preserved
-}
-
-export interface NonprofitFundraiseLinkRaw {
-  id: number | string;
-  nonprofit: number | string;
-  nonprofit_details: NonprofitDetailsRaw;
-  fundraise: number | string;
-  note: string;
-  created_date: string;
-  updated_date: string;
-}
-
+/**
+ * Application model interfaces - these match our frontend needs
+ */
 export interface NonprofitAddress {
   region: string;
   country: string;
@@ -71,7 +19,7 @@ export interface NonprofitDeployment {
   address: string;
 }
 
-export interface NonprofitDetails extends BaseTransformed<NonprofitDetailsRaw> {
+export interface NonprofitDetails extends BaseTransformed {
   id: string;
   name: string;
   ein: string;
@@ -81,7 +29,7 @@ export interface NonprofitDetails extends BaseTransformed<NonprofitDetailsRaw> {
   updatedDate?: string;
 }
 
-export interface NonprofitLink extends BaseTransformed<NonprofitLinkRaw> {
+export interface NonprofitLink extends BaseTransformed {
   id: string;
   nonprofitId: string;
   nonprofitDetails: NonprofitDetails;
@@ -91,8 +39,7 @@ export interface NonprofitLink extends BaseTransformed<NonprofitLinkRaw> {
   updatedDate: string;
 }
 
-export interface NonprofitOrg
-  extends BaseTransformed<NonprofitSearchResultRaw | NonprofitDetailsRaw> {
+export interface NonprofitOrg extends BaseTransformed {
   id: string;
   name: string;
   ein: string;
@@ -109,7 +56,7 @@ export interface NonprofitOrg
   endaomentOrgId: string;
 }
 
-export interface NonprofitFundraiseLink extends BaseTransformed<NonprofitFundraiseLinkRaw> {
+export interface NonprofitFundraiseLink extends BaseTransformed {
   id: string;
   nonprofitId: string;
   nonprofitDetails: NonprofitDetails;
@@ -119,6 +66,9 @@ export interface NonprofitFundraiseLink extends BaseTransformed<NonprofitFundrai
   updatedDate: string;
 }
 
+/**
+ * API request parameters
+ */
 export interface NonprofitSearchParams {
   searchTerm: string;
   nteeMajorCodes?: string;
@@ -141,23 +91,22 @@ export interface LinkToFundraiseParams {
   note?: string;
 }
 
-export const transformNonprofitDetails = createTransformer<
-  NonprofitDetailsRaw,
-  Omit<NonprofitDetails, 'raw'>
->((raw) => ({
-  id: raw.id.toString(),
-  name: raw.name,
-  ein: raw.ein,
-  endaomentOrgId: raw.endaoment_org_id,
-  baseWalletAddress: raw.base_wallet_address,
-  createdDate: raw.created_date,
-  updatedDate: raw.updated_date,
-}));
+/**
+ * Transformer functions
+ */
+export const transformNonprofitDetails = createTransformer<any, Omit<NonprofitDetails, 'raw'>>(
+  (raw) => ({
+    id: raw.id.toString(),
+    name: raw.name,
+    ein: raw.ein,
+    endaomentOrgId: raw.endaoment_org_id,
+    baseWalletAddress: raw.base_wallet_address,
+    createdDate: raw.created_date,
+    updatedDate: raw.updated_date,
+  })
+);
 
-export const transformNonprofitLink = createTransformer<
-  NonprofitLinkRaw,
-  Omit<NonprofitLink, 'raw'>
->((raw) => ({
+export const transformNonprofitLink = createTransformer<any, Omit<NonprofitLink, 'raw'>>((raw) => ({
   id: raw.id.toString(),
   nonprofitId: raw.nonprofit.toString(),
   nonprofitDetails: transformNonprofitDetails(raw.nonprofit_details),
@@ -167,58 +116,58 @@ export const transformNonprofitLink = createTransformer<
   updatedDate: raw.updated_date,
 }));
 
-export const transformNonprofitSearchResult = createTransformer<
-  NonprofitSearchResultRaw,
-  Omit<NonprofitOrg, 'raw'>
->((raw) => ({
-  id: `endaoment-${raw.id}`, // Prefix with 'endaoment-' to make it clear this is an external ID, not our internal DB ID
-  name: raw.name,
-  ein: raw.ein,
-  deployments: [...raw.deployments],
-  logoUrl: raw.logoUrl,
-  nteeCode: raw.nteeCode,
-  nteeDescription: raw.nteeDescription,
-  description: raw.description,
-  address: { ...raw.address },
-  endaomentUrl: raw.endaomentUrl,
-  contributionCount: raw.contibutionCount, // Fix typo from API
-  contributionTotal: raw.contibutionTotal, // Fix typo from API
-  baseWalletAddress: raw.deployments.find((d) => d.chainId === 8453)?.address,
-  endaomentOrgId: raw.id,
-}));
-
-export const transformNonprofitDetailsToOrg = createTransformer<
-  NonprofitDetailsRaw,
-  Omit<NonprofitOrg, 'raw'>
->((raw) => {
-  const deployments: NonprofitDeployment[] = [];
-  if (raw.base_wallet_address) {
-    deployments.push({
-      isDeployed: true,
-      chainId: 8453,
-      address: raw.base_wallet_address,
-    });
-  }
-
-  return {
-    id: raw.id.toString(),
+export const transformNonprofitSearchResult = createTransformer<any, Omit<NonprofitOrg, 'raw'>>(
+  (raw) => ({
+    // For search results (camelCase from proxy endpoint)
+    id: `endaoment-${raw.id}`, // Prefix with 'endaoment-' to make it clear this is an external ID
     name: raw.name,
     ein: raw.ein,
-    deployments,
-    baseWalletAddress: raw.base_wallet_address,
-    address: { region: '', country: '' },
-    nteeCode: '',
-    nteeDescription: '',
-    description: '',
-    endaomentUrl: '',
-    contributionCount: 0,
-    contributionTotal: '0',
-    endaomentOrgId: raw.endaoment_org_id,
-  };
-});
+    deployments: [...raw.deployments],
+    logoUrl: raw.logoUrl,
+    nteeCode: raw.nteeCode,
+    nteeDescription: raw.nteeDescription,
+    description: raw.description,
+    address: { ...raw.address },
+    endaomentUrl: raw.endaomentUrl,
+    contributionCount: raw.contibutionCount, // Fix typo from API
+    contributionTotal: raw.contibutionTotal, // Fix typo from API
+    baseWalletAddress: raw.deployments.find((d: NonprofitDeployment) => d.chainId === 8453)
+      ?.address,
+    endaomentOrgId: raw.id,
+  })
+);
+
+export const transformNonprofitDetailsToOrg = createTransformer<any, Omit<NonprofitOrg, 'raw'>>(
+  (raw) => {
+    const deployments: NonprofitDeployment[] = [];
+    if (raw.base_wallet_address) {
+      deployments.push({
+        isDeployed: true,
+        chainId: 8453,
+        address: raw.base_wallet_address,
+      });
+    }
+
+    return {
+      id: raw.id.toString(),
+      name: raw.name,
+      ein: raw.ein,
+      deployments,
+      baseWalletAddress: raw.base_wallet_address,
+      address: { region: '', country: '' },
+      nteeCode: '',
+      nteeDescription: '',
+      description: '',
+      endaomentUrl: '',
+      contributionCount: 0,
+      contributionTotal: '0',
+      endaomentOrgId: raw.endaoment_org_id,
+    };
+  }
+);
 
 export const transformNonprofitFundraiseLink = createTransformer<
-  NonprofitFundraiseLinkRaw,
+  any,
   Omit<NonprofitFundraiseLink, 'raw'>
 >((raw) => ({
   id: raw.id.toString(),
