@@ -1,5 +1,6 @@
 import { BaseTransformed, createTransformer } from '@/types/transformer';
 import { ID } from '@/types/root';
+import { CHAIN_IDS } from '@/constants/chains';
 
 /**
  * App-side models and transformation utilities for nonprofit data
@@ -131,8 +132,9 @@ export const transformNonprofitSearchResult = createTransformer<any, Omit<Nonpro
     endaomentUrl: raw.endaomentUrl,
     contributionCount: raw.contibutionCount, // Fix typo from API
     contributionTotal: raw.contibutionTotal, // Fix typo from API
-    baseWalletAddress: raw.deployments.find((d: NonprofitDeployment) => d.chainId === 8453)
-      ?.address,
+    baseWalletAddress: raw.deployments.find(
+      (d: NonprofitDeployment) => d.chainId === CHAIN_IDS.BASE
+    )?.address,
     endaomentOrgId: raw.id,
   })
 );
@@ -143,7 +145,7 @@ export const transformNonprofitDetailsToOrg = createTransformer<any, Omit<Nonpro
     if (raw.base_wallet_address) {
       deployments.push({
         isDeployed: true,
-        chainId: 8453,
+        chainId: CHAIN_IDS.BASE,
         address: raw.base_wallet_address,
       });
     }

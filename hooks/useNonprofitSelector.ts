@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { NonprofitOrg } from '@/types/nonprofit';
 import { useNonprofitSearch } from './useNonprofitSearch';
 import { FeatureFlags } from '@/utils/featureFlags';
+import { CHAIN_IDS } from '@/constants/chains';
 
 /**
  * Props for initializing the useNonprofitSelector hook
@@ -92,7 +93,7 @@ export const useNonprofitSelector = ({
   const handleSelectNonprofit = useCallback(
     (nonprofit: NonprofitOrg) => {
       const baseDeployment = nonprofit.deployments.find(
-        (deployment) => deployment.chainId === 8453
+        (deployment) => deployment.chainId === CHAIN_IDS.BASE
       );
       const baseWalletAddress = baseDeployment?.address;
       const endaomentOrgId = nonprofit.endaomentOrgId;

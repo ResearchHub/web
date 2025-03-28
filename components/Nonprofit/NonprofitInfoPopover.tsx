@@ -4,6 +4,7 @@ import { NonprofitOrg } from '@/types/nonprofit';
 import { ExternalLink, X } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
+import { CHAIN_IDS } from '@/constants/chains';
 
 interface NonprofitInfoPopoverProps {
   nonprofit: NonprofitOrg;
@@ -12,7 +13,9 @@ interface NonprofitInfoPopoverProps {
 }
 
 export function NonprofitInfoPopover({ nonprofit, position, onClose }: NonprofitInfoPopoverProps) {
-  const baseDeployment = nonprofit.deployments.find((deployment) => deployment.chainId === 8453);
+  const baseDeployment = nonprofit.deployments.find(
+    (deployment) => deployment.chainId === CHAIN_IDS.BASE
+  );
   const endaomentId = nonprofit.endaomentOrgId;
   const [isBelow, setIsBelow] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
