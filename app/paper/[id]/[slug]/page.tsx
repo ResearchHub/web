@@ -9,9 +9,6 @@ import { WorkDocument } from '@/components/work/WorkDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 
-// Explicitly opt out of static rendering/caching
-export const dynamic = 'force-dynamic';
-
 interface Props {
   params: Promise<{
     id: string;
