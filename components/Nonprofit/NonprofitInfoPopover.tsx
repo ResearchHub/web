@@ -2,7 +2,8 @@
 
 import { NonprofitOrg } from '@/types/nonprofit';
 import { ExternalLink, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { Button } from '@/components/ui/Button';
 
 interface NonprofitInfoPopoverProps {
   nonprofit: NonprofitOrg;
@@ -14,18 +15,20 @@ export function NonprofitInfoPopover({ nonprofit, position, onClose }: Nonprofit
   const baseDeployment = nonprofit.deployments.find((deployment) => deployment.chainId === 8453);
   const endaomentId = nonprofit.endaomentOrgId;
   const [isBelow, setIsBelow] = useState(false);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   // Detect if popover is positioned below the info button
   useEffect(() => {
-    const popover = document.querySelector('.nonprofit-info-popover');
-    if (popover) {
-      const transform = window.getComputedStyle(popover).transform;
+    if (popoverRef.current) {
+      const computedStyle = window.getComputedStyle(popoverRef.current);
+      const transform = computedStyle.transform;
       setIsBelow(transform === 'none' || !transform.includes('translateY(-100%)'));
     }
   }, []);
 
   return (
     <div
+      ref={popoverRef}
       className="nonprofit-info-popover fixed z-50 w-80 bg-white rounded-lg shadow-xl border border-gray-200 max-h-[60vh] flex flex-col"
       style={{
         top: `${position.top}px`,
@@ -38,12 +41,14 @@ export function NonprofitInfoPopover({ nonprofit, position, onClose }: Nonprofit
         <div className="p-4">
           <div className="flex justify-between items-start mb-3 sticky top-0 bg-white z-10">
             <h3 className="text-base font-semibold text-gray-900">{nonprofit.name}</h3>
-            <button
-              className="nonprofit-popover-close text-gray-400 hover:text-gray-600 p-1"
+            <Button
+              className="nonprofit-popover-close text-gray-400 hover:text-gray-600"
               onClick={onClose}
+              variant="ghost"
+              size="icon"
             >
               <X className="h-4 w-4" />
-            </button>
+            </Button>
           </div>
 
           <div className="space-y-3">

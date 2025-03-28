@@ -4,27 +4,35 @@ import { Input } from '@/components/ui/form/Input';
 import { Search, X, Info } from 'lucide-react';
 import { NonprofitOrg } from '@/types/nonprofit';
 import { cn } from '@/utils/styles';
+import { KeyboardEvent, RefObject } from 'react';
+import { Button } from '@/components/ui/Button';
 
 interface NonprofitSearchBoxProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   isDropdownOpen: boolean;
+  setIsDropdownOpen: (isOpen: boolean) => void;
   isLoading: boolean;
   results: NonprofitOrg[];
   onSelectNonprofit: (nonprofit: NonprofitOrg) => void;
   onInfoClick: (nonprofit: NonprofitOrg, e: React.MouseEvent<HTMLButtonElement>) => void;
   selectedInfoNonprofit: NonprofitOrg | null;
+  inputRef?: RefObject<HTMLInputElement>;
+  onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void;
 }
 
 export function NonprofitSearchBox({
   searchTerm,
   onSearchChange,
   isDropdownOpen,
+  setIsDropdownOpen,
   isLoading,
   results,
   onSelectNonprofit,
   onInfoClick,
   selectedInfoNonprofit,
+  inputRef,
+  onKeyDown,
 }: NonprofitSearchBoxProps) {
   return (
     <div className="relative">
@@ -34,10 +42,9 @@ export function NonprofitSearchBox({
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
           className="pr-10"
-          onFocus={() => {
-            if (!searchTerm) {
-            }
-          }}
+          onFocus={() => setIsDropdownOpen(true)}
+          onKeyDown={onKeyDown}
+          ref={inputRef}
         />
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
           {searchTerm ? (
@@ -94,9 +101,8 @@ function NonprofitResultItem({
         </div>
         <div className="text-xs text-gray-500">EIN: {nonprofit.ein}</div>
       </div>
-      <button
+      <Button
         className={cn(
-          'p-1 rounded-full hover:bg-gray-50',
           selectedInfoNonprofit && selectedInfoNonprofit.id === nonprofit.id
             ? 'text-primary-600 bg-gray-50'
             : 'text-gray-400 hover:text-gray-600'
@@ -106,9 +112,11 @@ function NonprofitResultItem({
           e.preventDefault();
           onInfoClick(e);
         }}
+        variant="ghost"
+        size="icon"
       >
         <Info className="h-4 w-4" />
-      </button>
+      </Button>
     </div>
   );
 }

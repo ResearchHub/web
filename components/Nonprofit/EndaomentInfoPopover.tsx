@@ -1,6 +1,7 @@
 'use client';
 
 import { ExternalLink, X } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 interface EndaomentInfoPopoverProps {
   position: {
@@ -78,12 +79,14 @@ export function EndaomentInfoPopover({
           <h3 className="text-base font-semibold text-gray-900">
             {useAlternateText ? 'Tax-Deductible Donations' : 'About Fiscal Sponsorship'}
           </h3>
-          <button
-            className="nonprofit-popover-close text-gray-400 hover:text-gray-600 p-1"
+          <Button
+            className="nonprofit-popover-close text-gray-400 hover:text-gray-600"
             onClick={onClose}
+            variant="ghost"
+            size="icon"
           >
             <X className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
 
         <div className="space-y-4 text-xs text-gray-600 max-h-80 overflow-y-auto pr-1">

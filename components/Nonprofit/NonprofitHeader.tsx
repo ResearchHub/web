@@ -2,6 +2,7 @@
 
 import { Building, HelpCircle } from 'lucide-react';
 import { cn } from '@/utils/styles';
+import { Button } from '@/components/ui/Button';
 
 interface NonprofitHeaderProps {
   readOnly?: boolean;
@@ -22,16 +23,18 @@ export function NonprofitHeader({
           {readOnly ? 'Nonprofit Organization' : 'Find a Nonprofit'}
           {!readOnly && <span className="ml-1 font-normal text-gray-500 text-xs">(Optional)</span>}
         </h3>
-        <button
+        <Button
           className={cn(
-            'p-1 rounded-full hover:bg-gray-100',
+            'p-1 rounded-full',
             showEndaomentInfo ? 'text-primary-600 bg-gray-100' : 'text-gray-400 hover:text-gray-600'
           )}
           onClick={onInfoClick}
           type="button"
+          variant="ghost"
+          size="icon"
         >
           <HelpCircle className="h-4 w-4" />
-        </button>
+        </Button>
       </div>
     </div>
   );

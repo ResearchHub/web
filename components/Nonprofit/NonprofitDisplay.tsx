@@ -4,6 +4,7 @@ import { NonprofitOrg } from '@/types/nonprofit';
 import { Info, X } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Input } from '@/components/ui/form/Input';
+import { Button } from '@/components/ui/Button';
 
 interface NonprofitDisplayProps {
   nonprofit: NonprofitOrg;
@@ -37,24 +38,27 @@ export default function NonprofitDisplay({
           <p className="text-xs text-gray-500">EIN: {nonprofit.ein}</p>
         </div>
         <div className="flex items-center shrink-0">
-          <button
+          <Button
             type="button"
             onClick={onInfoClick}
             className={cn(
-              'p-1 rounded-full hover:bg-gray-200',
               isInfoOpen ? 'text-primary-600 bg-gray-200' : 'text-gray-400 hover:text-gray-600'
             )}
+            variant="ghost"
+            size="icon"
           >
             <Info className="h-4 w-4" />
-          </button>
+          </Button>
           {(!readOnly || allowClear) && (
-            <button
+            <Button
               type="button"
               onClick={onClear}
-              className="p-1 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600 ml-1"
+              className="ml-1 text-gray-400 hover:text-gray-600"
+              variant="ghost"
+              size="icon"
             >
               <X className="h-4 w-4" />
-            </button>
+            </Button>
           )}
         </div>
       </div>

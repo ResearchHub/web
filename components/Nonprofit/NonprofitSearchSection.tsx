@@ -1,17 +1,16 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState, KeyboardEvent } from 'react';
 import { FormProvider, useForm, useFormContext } from 'react-hook-form';
-import { createPortal } from 'react-dom';
-import { FeatureFlags } from '@/utils/featureFlags';
+import { Dialog, Transition } from '@headlessui/react';
+import { Fragment } from 'react';
 import { useNonprofitSelector } from '@/hooks/useNonprofitSelector';
 import { NonprofitOrg } from '@/types/nonprofit';
 
 import { NonprofitHeader } from './NonprofitHeader';
 import { NonprofitSearchBox } from './NonprofitSearchBox';
 import NonprofitDisplay from './NonprofitDisplay';
-import { NonprofitInfoPopover } from './NonprofitInfoPopover';
-import { EndaomentInfoPopover } from './EndaomentInfoPopover';
+import { Button } from '@/components/ui/Button';
 
 export interface NonprofitSelectionResult {
   nonprofit: NonprofitOrg | null;
@@ -84,8 +83,11 @@ function NonprofitSearchSectionInner({
   const selectedNonprofit = watch('selectedNonprofit');
   const departmentLabName = watch('departmentLabName');
 
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const endaomentInfoButtonRef = useRef<HTMLButtonElement>(null);
+  const [showInfoDialog, setShowInfoDialog] = useState(false);
+  const [selectedInfoNonprofit, setSelectedInfoNonprofit] = useState<NonprofitOrg | null>(null);
+  const [showEndaomentInfo, setShowEndaomentInfo] = useState(false);
 
   const {
     searchTerm,
@@ -97,14 +99,8 @@ function NonprofitSearchSectionInner({
     selectedNonprofit: hookSelectedNonprofit,
     note,
     setNote,
-    infoNonprofit,
-    infoPosition,
-    showEndaomentInfo,
     handleSelectNonprofit,
     handleClearNonprofit,
-    handleShowInfo,
-    handleCloseInfo,
-    toggleEndaomentInfo,
     isFeatureEnabled,
   } = useNonprofitSelector({
     initialSelectedNonprofit: selectedNonprofit,
@@ -113,6 +109,9 @@ function NonprofitSearchSectionInner({
     onSelectNonprofit: (nonprofit, note) => {
       setValue('selectedNonprofit', nonprofit, { shouldDirty: true });
       setValue('departmentLabName', note, { shouldDirty: true });
+
+      // Close dropdown when a nonprofit is selected
+      setIsDropdownOpen(false);
 
       if (onChange) {
         onChange({
@@ -138,71 +137,17 @@ function NonprofitSearchSectionInner({
     }
   }, [selectedNonprofit, departmentLabName, onChange]);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const isClickInsidePopover = (event.target as Element)?.closest('.nonprofit-info-popover');
-      const isClickingInfoButton = (event.target as Element)
-        ?.closest('button')
-        ?.querySelector('.lucide-info, .lucide-help-circle');
-
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        !isClickInsidePopover
-      ) {
-        setIsDropdownOpen(false);
-      }
-
-      const isClickingX = (event.target as Element)?.closest('.nonprofit-popover-close');
-      if (infoNonprofit && !isClickInsidePopover && !isClickingX && !isClickingInfoButton) {
-        handleCloseInfo();
-      }
-
-      const isClickInsideEndaomentPopover = (event.target as Element)?.closest(
-        '.endaoment-info-popover'
-      );
-      const isClickingEndaomentInfoButton = endaomentInfoButtonRef.current?.contains(
-        event.target as Node
-      );
-      if (showEndaomentInfo && !isClickInsideEndaomentPopover && !isClickingEndaomentInfoButton) {
-        toggleEndaomentInfo({ top: 0, left: 0 });
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [infoNonprofit, showEndaomentInfo, setIsDropdownOpen, handleCloseInfo, toggleEndaomentInfo]);
-
-  const handleEndaomentInfoClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    e.preventDefault();
-
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const left = rect.left - 327 + rect.width / 2;
-    const arrowPosition = rect.left - left + rect.width / 2;
-    const adjustedArrowPosition = Math.min(Math.max(arrowPosition, 40), 384 - 40);
-
-    toggleEndaomentInfo({
-      top: rect.top - 10,
-      left: left,
-      arrowPosition: adjustedArrowPosition,
-    });
+  // Handle Escape key to close dropdown
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      setIsDropdownOpen(false);
+    }
   };
 
-  const handleNonprofitInfoClick = (
-    nonprofit: NonprofitOrg,
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    e.stopPropagation();
-    e.preventDefault();
-
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const position = {
-      top: rect.top - 10,
-      left: rect.left - 295 + rect.width / 2,
-    };
-
-    handleShowInfo(nonprofit, position);
+  const handleNonprofitInfoClick = (nonprofit: NonprofitOrg) => {
+    setSelectedInfoNonprofit(nonprofit);
+    setShowInfoDialog(true);
+    // No longer closing the dropdown when viewing info
   };
 
   if (!isFeatureEnabled) {
@@ -231,7 +176,7 @@ function NonprofitSearchSectionInner({
       <NonprofitHeader
         readOnly={readOnly}
         showEndaomentInfo={showEndaomentInfo}
-        onInfoClick={handleEndaomentInfoClick}
+        onInfoClick={() => setShowEndaomentInfo(true)}
       />
 
       {!readOnly && (
@@ -246,11 +191,14 @@ function NonprofitSearchSectionInner({
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             isDropdownOpen={isDropdownOpen}
+            setIsDropdownOpen={setIsDropdownOpen}
             isLoading={isSearching}
             results={searchResults}
             onSelectNonprofit={handleSelectNonprofit}
             onInfoClick={handleNonprofitInfoClick}
-            selectedInfoNonprofit={infoNonprofit}
+            selectedInfoNonprofit={selectedInfoNonprofit}
+            inputRef={searchInputRef}
+            onKeyDown={handleKeyDown}
           />
         </div>
       )}
@@ -262,35 +210,229 @@ function NonprofitSearchSectionInner({
           onNoteChange={(value: string) =>
             setValue('departmentLabName', value, { shouldDirty: true })
           }
-          onInfoClick={(e: React.MouseEvent<HTMLButtonElement>) =>
-            handleNonprofitInfoClick(selectedNonprofit, e)
-          }
+          onInfoClick={() => handleNonprofitInfoClick(selectedNonprofit)}
           onClear={handleClear}
-          isInfoOpen={infoNonprofit?.id === selectedNonprofit.id}
+          isInfoOpen={showInfoDialog && selectedInfoNonprofit?.id === selectedNonprofit.id}
           readOnly={readOnly}
           allowClear={allowClear}
         />
       )}
 
-      {infoNonprofit &&
-        createPortal(
-          <NonprofitInfoPopover
-            nonprofit={infoNonprofit}
-            position={infoPosition}
-            onClose={handleCloseInfo}
-          />,
-          document.body
-        )}
+      {/* Nonprofit Info Dialog */}
+      <Transition show={showInfoDialog && !!selectedInfoNonprofit} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={() => setShowInfoDialog(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="transition-opacity duration-200"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="transition-opacity duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/25" aria-hidden="true" />
+          </Transition.Child>
 
-      {showEndaomentInfo &&
-        createPortal(
-          <EndaomentInfoPopover
-            position={infoPosition}
-            onClose={() => toggleEndaomentInfo({ top: 0, left: 0, arrowPosition: 0 })}
-            useAlternateText={false}
-          />,
-          document.body
-        )}
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4">
+              <Transition.Child
+                as={Fragment}
+                enter="transition ease-out duration-200"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="transition ease-in duration-150"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-white p-6 shadow-xl transition-all">
+                  {selectedInfoNonprofit && (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <Dialog.Title className="text-lg font-medium text-gray-900">
+                          {selectedInfoNonprofit.name}
+                        </Dialog.Title>
+                        <Button
+                          onClick={() => setShowInfoDialog(false)}
+                          className="text-gray-400 hover:text-gray-600"
+                          variant="ghost"
+                          size="icon"
+                        >
+                          <span className="sr-only">Close</span>
+                          <svg
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </Button>
+                      </div>
+
+                      <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
+                        <span className="text-gray-500">EIN:</span>
+                        <span className="font-medium">{selectedInfoNonprofit.ein}</span>
+
+                        <span className="text-gray-500">Location:</span>
+                        <span>
+                          {selectedInfoNonprofit.address.region},{' '}
+                          {selectedInfoNonprofit.address.country}
+                        </span>
+
+                        <span className="text-gray-500">Category:</span>
+                        <span className="break-words">
+                          {selectedInfoNonprofit.nteeCode} - {selectedInfoNonprofit.nteeDescription}
+                        </span>
+
+                        <span className="text-gray-500">Endaoment ID:</span>
+                        <span className="font-medium break-words">
+                          {selectedInfoNonprofit.endaomentOrgId}
+                        </span>
+                      </div>
+
+                      {selectedInfoNonprofit.description && (
+                        <div className="pt-3 border-t border-gray-100">
+                          <h4 className="text-sm font-medium text-gray-700 mb-1">Description</h4>
+                          <p className="text-sm text-gray-600">
+                            {selectedInfoNonprofit.description}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+
+      {/* Endaoment Info Dialog */}
+      <Transition show={showEndaomentInfo} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={() => setShowEndaomentInfo(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="transition-opacity duration-200"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="transition-opacity duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/25" aria-hidden="true" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4">
+              <Transition.Child
+                as={Fragment}
+                enter="transition ease-out duration-200"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="transition ease-in duration-150"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-white p-6 shadow-xl transition-all">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Dialog.Title className="text-lg font-medium text-gray-900">
+                        About Fiscal Sponsorship
+                      </Dialog.Title>
+                      <Button
+                        onClick={() => setShowEndaomentInfo(false)}
+                        className="text-gray-400 hover:text-gray-600"
+                        variant="ghost"
+                        size="icon"
+                      >
+                        <span className="sr-only">Close</span>
+                        <svg
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </Button>
+                    </div>
+
+                    <div className="text-sm text-gray-600 space-y-4">
+                      <p>
+                        <span className="font-medium text-gray-800">Endaoment</span> is a nonprofit
+                        community foundation that processes donations from users directly to
+                        university nonprofits on behalf of researchers.
+                      </p>
+
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-700 mb-1">Benefits:</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li>Researchers don't have to handle crypto or payments</li>
+                          <li>Donors receive tax-deductible status for qualifying contributions</li>
+                          <li>Seamless transfer of funds to university foundations</li>
+                          <li>Support for multiple asset types (crypto, cash, etc.)</li>
+                        </ul>
+                      </div>
+
+                      <p>
+                        By selecting a nonprofit organization, you're enabling Endaoment to process
+                        donations through their fiscal sponsorship program, ensuring your research
+                        receives funding while maintaining compliance with tax regulations.
+                      </p>
+
+                      <div className="pt-2">
+                        <a
+                          href="https://endaoment.org"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary-600 hover:underline flex items-center gap-1"
+                        >
+                          Learn more about Endaoment
+                          <svg
+                            className="h-3 w-3"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                          >
+                            <path
+                              d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M15 3h6v6"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M10 14L21 3"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
     </div>
   );
 }
