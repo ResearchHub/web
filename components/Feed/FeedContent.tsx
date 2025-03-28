@@ -36,7 +36,7 @@ export const FeedContent: FC<FeedContentProps> = ({
     if (disableCardLinks) {
       return undefined;
     }
-
+    console.log('entry', entry);
     try {
       switch (entry.contentType) {
         case 'POST':

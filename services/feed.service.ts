@@ -7,6 +7,7 @@ import { Fundraise, transformFundraise } from '@/types/funding';
 
 export class FeedService {
   private static readonly BASE_PATH = '/api/feed';
+  private static readonly FUNDING_PATH = '/api/funding_feed';
 
   static async getFeed(params?: {
     page?: number;
@@ -15,6 +16,8 @@ export class FeedService {
     hubSlug?: string;
     contentType?: string;
     source?: 'all' | 'researchhub';
+    endpoint?: 'feed' | 'funding_feed';
+    fundraiseStatus?: 'OPEN' | 'CLOSED';
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
@@ -23,8 +26,11 @@ export class FeedService {
     if (params?.hubSlug) queryParams.append('hub_slug', params.hubSlug);
     if (params?.contentType) queryParams.append('content_type', params.contentType);
     if (params?.source) queryParams.append('source', params.source);
+    if (params?.fundraiseStatus) queryParams.append('fundraise_status', params.fundraiseStatus);
 
-    const url = `${this.BASE_PATH}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    // Determine which endpoint to use
+    const basePath = params?.endpoint === 'funding_feed' ? this.FUNDING_PATH : this.BASE_PATH;
+    const url = `${basePath}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     console.log(`Fetching feed from URL: ${url}`);
 
     try {

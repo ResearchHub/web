@@ -4,12 +4,14 @@ import { FC } from 'react';
 import { Avatar } from './Avatar';
 import { Tooltip } from './Tooltip';
 import { cn } from '@/utils/styles';
+import { UserTooltip } from './UserTooltip';
 
 interface AvatarStackProps {
   items: {
     src: string;
     alt: string;
     tooltip?: string;
+    userId?: number;
   }[];
   size?: 'xxs' | 'xs' | 'sm' | 'md';
   maxItems?: number;
@@ -31,6 +33,7 @@ interface AvatarStackProps {
     src: string;
     alt: string;
     tooltip?: string;
+    userId?: number;
   }[];
   /** Label for the extra count tooltip */
   extraCountLabel?: string;
@@ -103,6 +106,14 @@ export const AvatarStack: FC<AvatarStackProps> = ({
     );
 
     if (disableTooltip) return avatar;
+
+    if (item.userId) {
+      return (
+        <UserTooltip key={`${item.alt}-${index}`} userId={item.userId}>
+          {avatar}
+        </UserTooltip>
+      );
+    }
 
     return (
       <Tooltip key={`${item.alt}-${index}`} content={item.tooltip || item.alt}>

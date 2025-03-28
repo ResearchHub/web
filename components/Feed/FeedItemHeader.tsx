@@ -1,15 +1,17 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorProfile } from '@/types/authorProfile';
 import { cn } from '@/utils/styles';
+import { UserTooltip } from '@/components/ui/UserTooltip';
 
 interface Contributor {
   profileImage?: string;
   fullName?: string;
   profileUrl?: string;
+  userId?: number;
 }
 
 interface FeedItemHeaderProps {
@@ -38,9 +40,22 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   // Format date consistently
   const formattedDate = timestamp instanceof Date ? timestamp : new Date(timestamp);
 
+  // Add debug logging to check author data
+  useEffect(() => {
+    if (author) {
+      console.log('FeedItemHeader author:', author);
+      console.log('Author user id available:', author.user?.id);
+      console.log('Author id available:', author.id);
+    }
+  }, [author]);
+
   // Determine avatar size based on the size prop
   const avatarSize = size === 'xs' ? 'xs' : size === 'md' ? 'md' : 'sm';
   const avatarStackSize = avatarSize === 'xs' ? 'xxs' : avatarSize === 'md' ? 'md' : 'sm';
+
+  // Determine if we have user ID to show tooltip
+  // Try to get the ID either from author.user.id or directly from author.id
+  const authorUserId = author?.user?.id || author?.id;
 
   // For bounty header format
   if (isBounty && author) {
@@ -50,6 +65,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
         profileImage: author.profileImage || '',
         fullName: author.fullName || 'Author',
         profileUrl: author.profileUrl,
+        userId: authorUserId,
       },
       ...contributors,
     ];
@@ -68,27 +84,38 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
       src: person.profileImage || '',
       alt: person.fullName || 'Participant',
       tooltip: person.fullName,
+      userId: person.userId,
     }));
 
     // Take the first N avatars for the stack (including author)
     const visibleAvatarItems = allAvatarItems.slice(0, MAX_VISIBLE_AVATARS);
 
-    // Create the title text
+    // Create the title text with tooltip for author name
     const contributorsText =
       totalPeople > 1 ? (
         <span>
+          {authorUserId ? (
+            <UserTooltip userId={authorUserId}>
+              <span className="text-gray-900 font-semibold">{author.fullName}</span>
+            </UserTooltip>
+          ) : (
+            <span className="text-gray-900 font-semibold">{author.fullName}</span>
+          )}
           <span className="text-gray-900 font-semibold">
-            {author.fullName} and {totalPeople - 1} {totalPeople === 2 ? 'other' : 'others'}
-            {` `}
+            {` and ${totalPeople - 1} ${totalPeople === 2 ? 'other' : 'others'} `}
           </span>
           <span className="text-gray-600">{actionText}</span>
         </span>
       ) : (
         <span>
-          <span className="text-gray-900 font-semibold">
-            {author.fullName}
-            {` `}
-          </span>
+          {authorUserId ? (
+            <UserTooltip userId={authorUserId}>
+              <span className="text-gray-900 font-semibold">{author.fullName}</span>
+            </UserTooltip>
+          ) : (
+            <span className="text-gray-900 font-semibold">{author.fullName}</span>
+          )}
+          {` `}
           <span className="text-gray-600">{actionText}</span>
         </span>
       );
@@ -132,18 +159,36 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   return (
     <div className={cn('flex items-center justify-between w-full', className)}>
       <div className="flex items-center gap-3">
-        <Avatar
-          src={author?.profileImage ?? ''}
-          alt={author?.fullName ?? 'Unknown'}
-          size={avatarSize}
-        />
+        {author && authorUserId ? (
+          <UserTooltip userId={authorUserId}>
+            <Avatar
+              src={author.profileImage ?? ''}
+              alt={author.fullName ?? 'Unknown'}
+              size={avatarSize}
+            />
+          </UserTooltip>
+        ) : (
+          <Avatar
+            src={author?.profileImage ?? ''}
+            alt={author?.fullName ?? 'Unknown'}
+            size={avatarSize}
+          />
+        )}
 
         <div className="flex flex-col">
           <div className="flex items-center gap-1.5 text-[15px]">
             {author ? (
-              <a href={author.profileUrl} className="font-semibold hover:text-indigo-600">
-                {author.fullName}
-              </a>
+              authorUserId ? (
+                <UserTooltip userId={authorUserId}>
+                  <a href={author.profileUrl} className="font-semibold hover:text-indigo-600">
+                    {author.fullName}
+                  </a>
+                </UserTooltip>
+              ) : (
+                <a href={author.profileUrl} className="font-semibold hover:text-indigo-600">
+                  {author.fullName}
+                </a>
+              )
             ) : null}
 
             <span className="text-gray-600">{actionText}</span>

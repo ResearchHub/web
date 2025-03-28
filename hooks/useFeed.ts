@@ -4,21 +4,24 @@ import { FeedService } from '@/services/feed.service';
 import { useSession } from 'next-auth/react';
 
 export type FeedTab = 'following' | 'latest' | 'popular';
+export type FundingTab = 'all' | 'open' | 'closed';
 export type FeedSource = 'all' | 'researchhub';
 
 interface UseFeedOptions {
   hubSlug?: string;
   contentType?: string;
   source?: FeedSource;
+  endpoint?: 'feed' | 'funding_feed';
+  fundraiseStatus?: 'OPEN' | 'CLOSED';
 }
 
-export const useFeed = (activeTab: FeedTab, options: UseFeedOptions = {}) => {
+export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions = {}) => {
   const { status } = useSession();
   const [entries, setEntries] = useState<FeedEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(false);
   const [page, setPage] = useState(1);
-  const [currentTab, setCurrentTab] = useState<FeedTab>(activeTab);
+  const [currentTab, setCurrentTab] = useState<FeedTab | FundingTab>(activeTab);
   const [currentOptions, setCurrentOptions] = useState<UseFeedOptions>(options);
 
   // Only load the feed when the component mounts or when the session status changes
@@ -53,10 +56,12 @@ export const useFeed = (activeTab: FeedTab, options: UseFeedOptions = {}) => {
       const result = await FeedService.getFeed({
         page: 1,
         pageSize: 20,
-        feedView: activeTab,
+        feedView: activeTab as FeedTab, // Only pass feedView if it's a FeedTab
         hubSlug: options.hubSlug,
         contentType: options.contentType,
         source: options.source,
+        endpoint: options.endpoint,
+        fundraiseStatus: options.fundraiseStatus,
       });
       setEntries(result.entries);
       setHasMore(result.hasMore);
@@ -77,10 +82,12 @@ export const useFeed = (activeTab: FeedTab, options: UseFeedOptions = {}) => {
       const result = await FeedService.getFeed({
         page: nextPage,
         pageSize: 20,
-        feedView: activeTab,
+        feedView: activeTab as FeedTab, // Only pass feedView if it's a FeedTab
         hubSlug: options.hubSlug,
         contentType: options.contentType,
         source: options.source,
+        endpoint: options.endpoint,
+        fundraiseStatus: options.fundraiseStatus,
       });
       setEntries((prev) => [...prev, ...result.entries]);
       setHasMore(result.hasMore);
