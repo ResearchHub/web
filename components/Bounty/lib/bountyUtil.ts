@@ -183,6 +183,7 @@ export interface Contributor {
   profile: {
     fullName: string;
     profileImage?: string;
+    isClaimed?: boolean;
   };
   amount: number;
   isCreator?: boolean;
@@ -305,6 +306,7 @@ export const extractContributorsForDisplay = (bounty: Bounty): Contributor[] => 
       profile: {
         fullName,
         profileImage,
+        isClaimed: true,
       },
       amount: Number(contribution.amount),
       isCreator: false,
@@ -332,6 +334,7 @@ export const extractContributorsForDisplay = (bounty: Bounty): Contributor[] => 
     profile: {
       fullName: creatorFullName,
       profileImage: creatorProfileImage,
+      isClaimed: true,
     },
     amount: Number(bounty.amount),
     isCreator: true,

@@ -2,6 +2,7 @@
 
 import { FC, useState, useEffect, CSSProperties, MouseEvent } from 'react';
 import { cn } from '@/utils/styles';
+import { AuthorTooltip } from './AuthorTooltip';
 
 interface AvatarProps {
   src?: string | null;
@@ -9,9 +10,17 @@ interface AvatarProps {
   size?: 'xxs' | 'xs' | 'sm' | 'md' | number;
   className?: string;
   onClick?: (e: MouseEvent<HTMLDivElement>) => void;
+  authorId?: number;
 }
 
-export const Avatar: FC<AvatarProps> = ({ src, alt, size = 'md', className, onClick }) => {
+export const Avatar: FC<AvatarProps> = ({
+  src,
+  alt,
+  size = 'md',
+  className,
+  onClick,
+  authorId,
+}) => {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -84,7 +93,7 @@ export const Avatar: FC<AvatarProps> = ({ src, alt, size = 'md', className, onCl
     customStyle.height = `${size}px`;
   }
 
-  return (
+  const avatarElement = (
     <div
       className={cn(
         'relative inline-flex rounded-full bg-gray-100 overflow-hidden',
@@ -118,4 +127,11 @@ export const Avatar: FC<AvatarProps> = ({ src, alt, size = 'md', className, onCl
       )}
     </div>
   );
+
+  // If authorId is provided, wrap the avatar with AuthorTooltip
+  if (authorId) {
+    return <AuthorTooltip authorId={authorId}>{avatarElement}</AuthorTooltip>;
+  }
+
+  return avatarElement;
 };

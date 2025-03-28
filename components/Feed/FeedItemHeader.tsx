@@ -5,14 +5,14 @@ import { Avatar } from '@/components/ui/Avatar';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorProfile } from '@/types/authorProfile';
 import { cn } from '@/utils/styles';
-import { UserTooltip } from '@/components/ui/UserTooltip';
+import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 
 interface Contributor {
   profileImage?: string;
   fullName?: string;
   profileUrl?: string;
-  userId?: number;
+  authorId?: number;
 }
 
 interface FeedItemHeaderProps {
@@ -45,7 +45,6 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   useEffect(() => {
     if (author) {
       console.log('FeedItemHeader author:', author);
-      console.log('Author user id available:', author.user?.id);
       console.log('Author id available:', author.id);
     }
   }, [author]);
@@ -54,9 +53,8 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   const avatarSize = size === 'xs' ? 'xs' : size === 'md' ? 'md' : 'sm';
   const avatarStackSize = avatarSize === 'xs' ? 'xxs' : avatarSize === 'md' ? 'md' : 'sm';
 
-  // Determine if we have user ID to show tooltip
-  // Try to get the ID either from author.user.id or directly from author.id
-  const authorUserId = author?.user?.id || author?.id;
+  // Determine if we have author ID to show tooltip
+  const authorId = author?.id;
 
   // For bounty header format
   if (isBounty && author) {
@@ -66,7 +64,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
         profileImage: author.profileImage || '',
         fullName: author.fullName || 'Author',
         profileUrl: author.profileUrl,
-        userId: authorUserId,
+        authorId: authorId,
       },
       ...contributors,
     ];
@@ -85,7 +83,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
       src: person.profileImage || '',
       alt: person.fullName || 'Participant',
       tooltip: person.fullName,
-      userId: person.userId,
+      authorId: person.authorId,
     }));
 
     // Take the first N avatars for the stack (including author)
@@ -95,15 +93,15 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
     const contributorsText =
       totalPeople > 1 ? (
         <span>
-          {authorUserId ? (
-            <UserTooltip userId={authorUserId}>
+          {authorId ? (
+            <AuthorTooltip authorId={authorId}>
               <span
                 className="text-gray-900 font-semibold cursor-pointer hover:text-indigo-600"
-                onClick={() => navigateToAuthorProfile(authorUserId)}
+                onClick={() => navigateToAuthorProfile(authorId)}
               >
                 {author.fullName}
               </span>
-            </UserTooltip>
+            </AuthorTooltip>
           ) : (
             <span className="text-gray-900 font-semibold">{author.fullName}</span>
           )}
@@ -114,15 +112,15 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
         </span>
       ) : (
         <span>
-          {authorUserId ? (
-            <UserTooltip userId={authorUserId}>
+          {authorId ? (
+            <AuthorTooltip authorId={authorId}>
               <span
                 className="text-gray-900 font-semibold cursor-pointer hover:text-indigo-600"
-                onClick={() => navigateToAuthorProfile(authorUserId)}
+                onClick={() => navigateToAuthorProfile(authorId)}
               >
                 {author.fullName}
               </span>
-            </UserTooltip>
+            </AuthorTooltip>
           ) : (
             <span className="text-gray-900 font-semibold">{author.fullName}</span>
           )}
@@ -170,40 +168,31 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   return (
     <div className={cn('flex items-center justify-between w-full', className)}>
       <div className="flex items-center gap-3">
-        {author && authorUserId ? (
-          <UserTooltip userId={authorUserId}>
-            <Avatar
-              src={author.profileImage ?? ''}
-              alt={author.fullName ?? 'Unknown'}
-              size={avatarSize}
-              className="cursor-pointer"
-              onClick={() => navigateToAuthorProfile(authorUserId)}
-            />
-          </UserTooltip>
-        ) : (
-          <Avatar
-            src={author?.profileImage ?? ''}
-            alt={author?.fullName ?? 'Unknown'}
-            size={avatarSize}
-          />
-        )}
+        <Avatar
+          src={author?.profileImage ?? ''}
+          alt={author?.fullName ?? 'Unknown'}
+          size={avatarSize}
+          className={authorId ? 'cursor-pointer' : ''}
+          onClick={authorId ? () => navigateToAuthorProfile(authorId) : undefined}
+          authorId={authorId}
+        />
 
         <div className="flex flex-col">
           <div className="flex items-center gap-1.5 text-[15px]">
             {author ? (
-              authorUserId ? (
-                <UserTooltip userId={authorUserId}>
+              authorId ? (
+                <AuthorTooltip authorId={authorId}>
                   <a
                     href="#"
                     className="font-semibold hover:text-indigo-600 cursor-pointer"
                     onClick={(e) => {
                       e.preventDefault();
-                      navigateToAuthorProfile(authorUserId);
+                      navigateToAuthorProfile(authorId);
                     }}
                   >
                     {author.fullName}
                   </a>
-                </UserTooltip>
+                </AuthorTooltip>
               ) : (
                 <span className="font-semibold">{author.fullName}</span>
               )

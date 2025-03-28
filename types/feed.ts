@@ -264,6 +264,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                   profileImage: '',
                   headline: '',
                   profileUrl: '/profile/0',
+                  isClaimed: false,
                 },
           journal: content_object.journal || {
             id: 0,

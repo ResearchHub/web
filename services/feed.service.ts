@@ -36,9 +36,6 @@ export class FeedService {
     try {
       const response = await ApiClient.get<FeedApiResponse>(url);
 
-      // For debugging - log the raw response
-      console.log('Raw feed response:', response);
-
       // Transform the raw entries into FeedEntry objects
       const transformedEntries = response.results
         .map((entry) => {
@@ -151,6 +148,7 @@ export class FeedService {
             isVerified: safeAuthor.user?.is_verified || false,
             balance: 0,
           },
+          isClaimed: !!safeAuthor.user,
         },
       };
     }

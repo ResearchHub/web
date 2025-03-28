@@ -1,4 +1,5 @@
 import { ApiClient } from './client';
+import { User, transformUser } from '@/types/user';
 
 interface AuthorResponse {
   id: number;
@@ -22,6 +23,21 @@ interface FollowResponse {
   updated_date: string;
 }
 
+interface AuthorProfileResponse {
+  id: number;
+  first_name: string;
+  last_name: string;
+  profile_image?: string | null;
+  description?: string | null;
+  headline?: string | null;
+  facebook?: string | null;
+  twitter?: string | null;
+  linkedin?: string | null;
+  google_scholar?: string | null;
+  education?: any[];
+  [key: string]: any; // Allow other properties
+}
+
 export interface Author {
   id: number;
   name: string;
@@ -33,6 +49,9 @@ export interface Author {
 export class AuthorService {
   private static readonly BASE_PATH = '/api/search/person';
   private static readonly AUTHORS_PATH = '/api/author';
+
+  // Cache to store previously fetched author data
+  private static authorCache: Record<number, User> = {};
 
   static async getAuthors(): Promise<Author[]> {
     const response = await ApiClient.get<AuthorsApiResponse>(`${this.BASE_PATH}/`);
@@ -56,5 +75,113 @@ export class AuthorService {
 
   static async unfollowAuthor(authorId: number): Promise<void> {
     await ApiClient.post(`${this.AUTHORS_PATH}/${authorId}/unfollow/`);
+  }
+
+  /**
+   * Get author information for the tooltip
+   */
+  static async getAuthorInfo(authorId: number): Promise<User> {
+    // Check if we already have cached data for this author
+    if (this.authorCache[authorId]) {
+      console.log(`Using cached data for author ID: ${authorId}`);
+      return this.authorCache[authorId];
+    }
+
+    try {
+      // Add debug logging
+      console.log(`Fetching author info for ID: ${authorId}`);
+
+      const response = await ApiClient.get<AuthorProfileResponse>(
+        `${this.AUTHORS_PATH}/${authorId}/minimal_overview/`
+      );
+
+      // Enhanced debugging
+      console.log('Author info response structure:', Object.keys(response || {}));
+      console.log('Author has first_name:', !!response?.first_name);
+      console.log('Author has last_name:', !!response?.last_name);
+
+      // Check response structure and ensure it contains expected fields
+      if (!response) {
+        throw new Error('Received empty response from API');
+      }
+
+      // Properly prepare the data for transformUser
+      let userData;
+      if ('author_profile' in response) {
+        // Response already has the expected structure
+        userData = transformUser(response);
+      } else if ('id' in response) {
+        // Response is an author profile directly - wrap it properly
+        // Create a user object with the author profile data
+        userData = transformUser({
+          id: response.id,
+          first_name: response.first_name,
+          last_name: response.last_name,
+          author_profile: {
+            ...response,
+            id: response.id,
+            first_name: response.first_name,
+            last_name: response.last_name,
+            profile_image: response.profile_image,
+            description: response.description,
+            orcid_id: response.orcid_id,
+          },
+        });
+      } else {
+        throw new Error('Response does not contain expected author data');
+      }
+
+      console.log('Transformed user data:', userData);
+      console.log('Has author profile:', !!userData.authorProfile);
+      console.log('Author fullName:', userData.fullName);
+
+      // Cache the result
+      this.authorCache[authorId] = userData;
+
+      return userData;
+    } catch (error) {
+      console.error(`Error fetching author info for ID ${authorId}:`, error);
+
+      // Try to fetch using the alternative method if the first one fails
+      try {
+        console.log(`Trying alternative method for author ID: ${authorId}`);
+        const response = await ApiClient.get<AuthorProfileResponse>(
+          `${this.AUTHORS_PATH}/${authorId}/`
+        );
+        console.log('Alternative method response structure:', Object.keys(response || {}));
+
+        // Ensure the response is wrapped correctly for transformUser
+        const userData = transformUser({
+          id: response.id,
+          first_name: response.first_name,
+          last_name: response.last_name,
+          author_profile: {
+            ...response,
+            id: response.id,
+            first_name: response.first_name,
+            last_name: response.last_name,
+            profile_image: response.profile_image,
+            description: response.description,
+            orcid_id: response.orcid_id,
+          },
+        });
+        console.log('Alternative method transformed data:', userData);
+
+        // Cache the result
+        this.authorCache[authorId] = userData;
+
+        return userData;
+      } catch (secondError) {
+        console.error(`Both fetch methods failed for author ID ${authorId}:`, secondError);
+        throw error; // Throw the original error
+      }
+    }
+  }
+
+  /**
+   * Clear the cache for testing or when needed
+   */
+  static clearCache(): void {
+    this.authorCache = {};
   }
 }
