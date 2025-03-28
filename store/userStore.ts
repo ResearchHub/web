@@ -17,6 +17,7 @@ export const users: Record<string, AuthorProfile> = {
       isVerified: true,
       balance: 1000,
     },
+    isClaimed: true,
   },
   dominikus: {
     id: 2,
@@ -34,6 +35,7 @@ export const users: Record<string, AuthorProfile> = {
       isVerified: true,
       balance: 1000,
     },
+    isClaimed: true,
   },
   bioRxiv: {
     id: 3,
@@ -51,6 +53,7 @@ export const users: Record<string, AuthorProfile> = {
       isVerified: true,
       balance: 1000,
     },
+    isClaimed: true,
   },
   adamDraper: {
     id: 4,
@@ -67,6 +70,7 @@ export const users: Record<string, AuthorProfile> = {
       isVerified: true,
       balance: 1000,
     },
+    isClaimed: true,
   },
   elenaRodriguez: {
     id: 5,
@@ -84,6 +88,7 @@ export const users: Record<string, AuthorProfile> = {
       isVerified: true,
       balance: 1000,
     },
+    isClaimed: true,
   },
   hundessaNemomssa: {
     id: 6,
@@ -101,6 +106,7 @@ export const users: Record<string, AuthorProfile> = {
       isVerified: true,
       balance: 1000,
     },
+    isClaimed: true,
   },
   alexThompson: {
     id: 7,
@@ -118,6 +124,7 @@ export const users: Record<string, AuthorProfile> = {
       isVerified: true,
       balance: 1000,
     },
+    isClaimed: true,
   },
   sarahChen: {
     id: 8,
@@ -135,6 +142,7 @@ export const users: Record<string, AuthorProfile> = {
       isVerified: true,
       balance: 1000,
     },
+    isClaimed: true,
   },
   mariaGarcia: {
     id: 9,
@@ -152,6 +160,7 @@ export const users: Record<string, AuthorProfile> = {
       isVerified: true,
       balance: 1000,
     },
+    isClaimed: true,
   },
   davidKumar: {
     id: 10,
@@ -169,6 +178,7 @@ export const users: Record<string, AuthorProfile> = {
       isVerified: true,
       balance: 1000,
     },
+    isClaimed: true,
   },
   jamesWilson: {
     id: 11,
@@ -186,6 +196,7 @@ export const users: Record<string, AuthorProfile> = {
       isVerified: false,
       balance: 1000,
     },
+    isClaimed: true,
   },
   mariaPatel: {
     id: 12,
@@ -203,6 +214,7 @@ export const users: Record<string, AuthorProfile> = {
       isVerified: true,
       balance: 1000,
     },
+    isClaimed: true,
   },
   stanfordAILab: {
     id: 13,
@@ -219,6 +231,7 @@ export const users: Record<string, AuthorProfile> = {
       isVerified: true,
       balance: 1000,
     },
+    isClaimed: true,
   },
   climateResearchInstitute: {
     id: 14,
@@ -236,6 +249,7 @@ export const users: Record<string, AuthorProfile> = {
       isVerified: true,
       balance: 1000,
     },
+    isClaimed: true,
   },
   openBiologyInitiative: {
     id: 15,
@@ -252,6 +266,7 @@ export const users: Record<string, AuthorProfile> = {
       isVerified: true,
       balance: 1000,
     },
+    isClaimed: true,
   },
   nationalScienceFoundation: {
     id: 16,
@@ -268,5 +283,6 @@ export const users: Record<string, AuthorProfile> = {
       isVerified: true,
       balance: 1000,
     },
+    isClaimed: true,
   },
 };

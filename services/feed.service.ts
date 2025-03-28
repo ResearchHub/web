@@ -151,6 +151,7 @@ export class FeedService {
             isVerified: safeAuthor.user?.is_verified || false,
             balance: 0,
           },
+          isClaimed: !!safeAuthor.user,
         },
       };
     }

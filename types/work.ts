@@ -150,6 +150,7 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
               profileImage: '',
               headline: '',
               profileUrl: '',
+              isClaimed: false,
             },
             isCorresponding: false,
             position: 'middle' as AuthorPosition,
