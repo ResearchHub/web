@@ -74,11 +74,11 @@ export default function NonprofitDisplay({
         <div className="mt-2">
           <Input
             label="Note"
-            placeholder="e.g., Biology Department"
+            placeholder="Smith Lab, School of Mechanical Engineering"
             value={note || ''}
             onChange={(e) => onNoteChange(e.target.value)}
             className="text-sm"
-            helperText="Specify any additional information about your funding recipient"
+            helperText="Provide your lab name and university department"
           />
         </div>
       )}
