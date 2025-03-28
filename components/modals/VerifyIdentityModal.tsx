@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import { X, Check, AlertTriangle, BadgeCheck } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
@@ -26,6 +26,14 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
 
   const { user } = useUser();
   const router = useRouter();
+
+  useEffect(() => {
+    return () => {
+      if (!isOpen) {
+        setCurrentStep('INTRO');
+      }
+    };
+  }, [isOpen]);
 
   const handleNext = () => {
     if (currentStep === 'INTRO') {

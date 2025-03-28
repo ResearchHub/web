@@ -29,7 +29,10 @@ const ALLOWED_ORIGINS = [
   'wss://backend.prod.researchhub.com',
   'backend.staging.researchhub.com',
   'wss://backend.staging.researchhub.com',
+  'v2.staging.researchhub.com',
+  'wss://v2.staging.researchhub.com',
   'researchhub.com',
+  'wss://researchhub.com',
 ];
 
 const CLOSE_CODES = {
