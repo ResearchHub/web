@@ -2,11 +2,21 @@
 
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState, useEffect } from 'react';
-import { X, Check, AlertTriangle, BadgeCheck, Users, GraduationCap } from 'lucide-react';
+import {
+  X,
+  Check,
+  AlertTriangle,
+  BadgeCheck,
+  Users,
+  GraduationCap,
+  TrendingUp,
+  CircleDollarSign,
+} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { VerificationWithPersonaStep } from './Verification/VerificationWithPersonaStep';
+import { AddPublicationsForm } from './Verification/AddPublicationsForm';
 
 interface VerifyIdentityModalProps {
   isOpen: boolean;
@@ -22,18 +32,24 @@ type VerificationStep =
   | 'SUCCESS';
 
 export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProps) {
-  const [currentStep, setCurrentStep] = useState<VerificationStep>('INTRO');
+  // const [currentStep, setCurrentStep] = useState<VerificationStep>('INTRO');
+  const [currentStep, setCurrentStep] = useState<VerificationStep>(
+    'IDENTITY_VERIFIED_SUCCESSFULLY'
+  );
+  const [publicationsSubstep, setPublicationsSubstep] = useState<'DOI' | 'RESULTS' | 'LOADING'>(
+    'DOI'
+  );
 
   const { user } = useUser();
   const router = useRouter();
 
-  useEffect(() => {
-    return () => {
-      if (!isOpen) {
-        setCurrentStep('INTRO');
-      }
-    };
-  }, [isOpen]);
+  // useEffect(() => {
+  //   return () => {
+  //     if (!isOpen) {
+  //       setCurrentStep('INTRO');
+  //     }
+  //   };
+  // }, [isOpen]);
 
   const handleNext = () => {
     if (currentStep === 'INTRO') {
@@ -227,14 +243,75 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
 
       case 'PUBLICATIONS':
         return (
-          <div className="space-y-6 p-6">
-            <h3 className="text-xl font-semibold text-gray-900">Add Your Publications</h3>
-            <p className="text-gray-600">
-              Link your published research to verify your identity as a researcher.
-            </p>
-            <h2>AddPublicationsForm</h2>
-            <div className="flex justify-end">
-              <Button onClick={handleNext}>Continue</Button>
+          <div className="p-6">
+            <div className="min-h-[600px]">
+              {publicationsSubstep === 'DOI' && (
+                <div>
+                  <h3 className="text-2xl font-semibold text-center text-gray-900">
+                    Let's find rewards on your publications
+                  </h3>
+                  <p className="mt-4 text-gray-600 text-center text-lg">
+                    Enter a DOI for any paper you've published and we will fetch the rest of your
+                    works.
+                  </p>
+
+                  <div className="mt-8 mb-4 text-sm font-medium text-gray-500 uppercase tracking-wider">
+                    What happens next
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4 text-gray-700">
+                      <div className="bg-gray-100 p-2 rounded-full">
+                        <Users className="h-5 w-5 text-gray-500" />
+                      </div>
+                      <span>We will build your researcher profile</span>
+                    </div>
+
+                    <div className="flex items-center gap-4 text-gray-700">
+                      <div className="bg-gray-100 p-2 rounded-full">
+                        <TrendingUp className="h-5 w-5 text-gray-500" />
+                      </div>
+                      <span>We will calculate your hub specific reputation</span>
+                    </div>
+
+                    <div className="flex items-center gap-4 text-gray-700">
+                      <div className="bg-gray-100 p-2 rounded-full">
+                        <CircleDollarSign className="h-5 w-5 text-gray-500" />
+                      </div>
+                      <span>
+                        We will identify your prior publications that are eligible for rewards
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {publicationsSubstep === 'RESULTS' && (
+                <div>
+                  <h3 className="text-2xl font-semibold text-center text-gray-900">
+                    Review your publication history
+                  </h3>
+                  <p className="mt-4 text-gray-600 text-center text-lg">
+                    We fetched some of your publications. We may have mislabeled a paper or two so
+                    please select only the ones that you have authored or co-authored.
+                  </p>
+                </div>
+              )}
+
+              <div className="mt-10">
+                <AddPublicationsForm
+                  onStepChange={({ step }) => {
+                    if (step === 'DOI') setPublicationsSubstep('DOI');
+                    else if (step === 'RESULTS') setPublicationsSubstep('RESULTS');
+                    else if (step === 'LOADING') setPublicationsSubstep('LOADING');
+                    else if (step === 'FINISHED') {
+                      setCurrentStep('SUCCESS');
+                    }
+                  }}
+                  onDoThisLater={onClose}
+                  allowDoThisLater={true}
+                />
+              </div>
             </div>
           </div>
         );
