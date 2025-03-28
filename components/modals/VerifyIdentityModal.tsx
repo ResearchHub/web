@@ -2,7 +2,7 @@
 
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState, useEffect } from 'react';
-import { X, Check, AlertTriangle, BadgeCheck } from 'lucide-react';
+import { X, Check, AlertTriangle, BadgeCheck, Users, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
@@ -63,56 +63,93 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
     switch (currentStep) {
       case 'INTRO':
         return (
-          <div className="space-y-6 p-6">
-            <div className="flex justify-center mb-4">
-              <div className="bg-primary-100 p-4 rounded-full">
-                <BadgeCheck className="h-8 w-8 text-primary-600" />
+          <div
+            className="p-6 text-white rounded-t-2xl"
+            style={{
+              backgroundImage: "url('/small-banner-background.png')",
+              backgroundRepeat: 'no-repeat',
+              backgroundSize: 'cover',
+            }}
+          >
+            {/* Close button in the top-right corner */}
+            <div className="absolute top-4 right-4">
+              <Button
+                onClick={onClose}
+                variant="ghost"
+                size="icon"
+                className="text-white hover:bg-indigo-500"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Badge icon */}
+            <div className="flex justify-center mb-6">
+              <div className="bg-indigo-500 p-4 rounded-full">
+                <BadgeCheck className="h-10 w-10 text-white" />
               </div>
             </div>
 
+            {/* Title and subtitle */}
             <div className="text-center">
-              <h3 className="text-2xl font-bold text-gray-900">
+              <h3 className="text-2xl font-bold text-white">
                 Verify identity to unlock new features
               </h3>
-              <p className="mt-2 text-gray-600">(Takes 1-3 minutes)</p>
+              <p className="mt-2 text-indigo-100">(Takes 1-3 minutes)</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-8 mt-8">
+            {/* Two columns of features */}
+            <div className="grid grid-cols-2 gap-8 mt-10">
               <div className="space-y-6">
-                <div className="text-xl font-semibold">All users</div>
+                <div className="flex items-center gap-3">
+                  <div className="bg-indigo-500 p-1 rounded-full">
+                    <Users className="h-8 w-8 text-white" />
+                  </div>
+                  <div className="text-xl font-semibold">All users</div>
+                </div>
 
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
-                    <Check className="h-4 w-4 flex-shrink-0 text-primary-600" />
-                    <p className="text-gray-800">Verified badge</p>
+                    <Check className="h-5 w-5 flex-shrink-0 text-white" />
+                    <p className="text-white">Verified badge</p>
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <Check className="h-4 w-4 flex-shrink-0 text-primary-600" />
-                    <p className="text-gray-800">Faster withdrawal limits</p>
+                    <Check className="h-5 w-5 flex-shrink-0 text-white" />
+                    <p className="text-white">Faster withdrawal limits</p>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-6">
-                <div className="text-xl font-semibold">Published authors</div>
+                <div className="flex items-center gap-3">
+                  <div className="bg-indigo-500 p-1 rounded-full">
+                    <GraduationCap className="h-8 w-8 text-white" />
+                  </div>
+                  <div className="text-xl font-semibold">Published authors</div>
+                </div>
 
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
-                    <Check className="h-4 w-4 flex-shrink-0 text-primary-600" />
-                    <p className="text-gray-800">Claim RSC rewards on papers</p>
+                    <Check className="h-5 w-5 flex-shrink-0 text-white" />
+                    <p className="text-white">Claim RSC rewards on papers</p>
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <Check className="h-4 w-4 flex-shrink-0 text-primary-600" />
-                    <p className="text-gray-800">Get notified on bounty and grant opportunities</p>
+                    <Check className="h-5 w-5 flex-shrink-0 text-white" />
+                    <p className="text-white">Get notified on bounty and grant opportunities</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-center mt-8">
-              <Button onClick={handleNext} className="w-full justify-center py-3">
+            {/* Start button */}
+            <div className="mt-10">
+              <Button
+                onClick={handleNext}
+                className="w-full justify-center py-3 bg-white text-indigo-700 hover:bg-indigo-50"
+              >
                 Start
               </Button>
             </div>
@@ -249,25 +286,27 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
                 <div className="relative">
-                  {/* Header with close button */}
-                  <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                    <div className="flex items-center">
-                      <Dialog.Title as="h3" className="text-lg font-medium text-gray-900">
-                        Verify Identity
-                      </Dialog.Title>
+                  {/* Header with close button - only show for non-INTRO steps */}
+                  {currentStep !== 'INTRO' && (
+                    <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                      <div className="flex items-center">
+                        <Dialog.Title as="h3" className="text-lg font-medium text-gray-900">
+                          Verify Identity
+                        </Dialog.Title>
+                      </div>
+                      <Button
+                        onClick={onClose}
+                        variant="ghost"
+                        size="icon"
+                        className="text-gray-400 hover:text-gray-500"
+                        aria-label="Close"
+                      >
+                        <X className="h-5 w-5" />
+                      </Button>
                     </div>
-                    <Button
-                      onClick={onClose}
-                      variant="ghost"
-                      size="icon"
-                      className="text-gray-400 hover:text-gray-500"
-                      aria-label="Close"
-                    >
-                      <X className="h-5 w-5" />
-                    </Button>
-                  </div>
+                  )}
 
                   {/* Progress stepper */}
                   {/* {currentStep !== 'success' && (
