@@ -6,6 +6,7 @@ import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorProfile } from '@/types/authorProfile';
 import { cn } from '@/utils/styles';
 import { UserTooltip } from '@/components/ui/UserTooltip';
+import { navigateToAuthorProfile } from '@/utils/navigation';
 
 interface Contributor {
   profileImage?: string;
@@ -96,7 +97,12 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
         <span>
           {authorUserId ? (
             <UserTooltip userId={authorUserId}>
-              <span className="text-gray-900 font-semibold">{author.fullName}</span>
+              <span
+                className="text-gray-900 font-semibold cursor-pointer hover:text-indigo-600"
+                onClick={() => navigateToAuthorProfile(authorUserId)}
+              >
+                {author.fullName}
+              </span>
             </UserTooltip>
           ) : (
             <span className="text-gray-900 font-semibold">{author.fullName}</span>
@@ -110,7 +116,12 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
         <span>
           {authorUserId ? (
             <UserTooltip userId={authorUserId}>
-              <span className="text-gray-900 font-semibold">{author.fullName}</span>
+              <span
+                className="text-gray-900 font-semibold cursor-pointer hover:text-indigo-600"
+                onClick={() => navigateToAuthorProfile(authorUserId)}
+              >
+                {author.fullName}
+              </span>
             </UserTooltip>
           ) : (
             <span className="text-gray-900 font-semibold">{author.fullName}</span>
@@ -165,6 +176,8 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
               src={author.profileImage ?? ''}
               alt={author.fullName ?? 'Unknown'}
               size={avatarSize}
+              className="cursor-pointer"
+              onClick={() => navigateToAuthorProfile(authorUserId)}
             />
           </UserTooltip>
         ) : (
@@ -180,14 +193,19 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
             {author ? (
               authorUserId ? (
                 <UserTooltip userId={authorUserId}>
-                  <a href={author.profileUrl} className="font-semibold hover:text-indigo-600">
+                  <a
+                    href="#"
+                    className="font-semibold hover:text-indigo-600 cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigateToAuthorProfile(authorUserId);
+                    }}
+                  >
                     {author.fullName}
                   </a>
                 </UserTooltip>
               ) : (
-                <a href={author.profileUrl} className="font-semibold hover:text-indigo-600">
-                  {author.fullName}
-                </a>
+                <span className="font-semibold">{author.fullName}</span>
               )
             ) : null}
 

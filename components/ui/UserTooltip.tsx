@@ -6,6 +6,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { User } from '@/types/user';
 import { cn } from '@/utils/styles';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { navigateToAuthorProfile } from '@/utils/navigation';
 
 interface SocialIconProps {
   href?: string | null;
@@ -232,8 +233,12 @@ export const UserTooltip: React.FC<UserTooltipProps> = ({
         {/* Profile link positioned right above the border */}
         <div className="mt-3 text-left">
           <a
-            href={userData.authorProfile.profileUrl}
+            href="#"
             className="text-xs text-indigo-600 hover:text-indigo-800 font-medium inline-block"
+            onClick={(e) => {
+              e.preventDefault();
+              navigateToAuthorProfile(userData.id);
+            }}
           >
             View profile
           </a>
