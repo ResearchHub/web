@@ -4,9 +4,12 @@ import { Input } from '@/components/ui/form/Input';
 import { Switch } from '@/components/ui/Switch';
 import Image from 'next/image';
 import { cn } from '@/utils/styles';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Note } from '@/types/note';
 import { FundraiseSection } from '@/components/work/components/FundraiseSection';
+import { NonprofitSearchSection } from '@/components/Nonprofit';
+import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
+import { useNonprofitSearch } from '@/hooks/useNonprofitSearch';
 
 interface FundingSectionProps {
   note: Note;
@@ -25,8 +28,63 @@ export function FundingSection({ note }: FundingSectionProps) {
   const rewardFunders = watch('rewardFunders');
   const budget = watch('budget');
   const nftSupply = watch('nftSupply');
+  const selectedNonprofit = watch('selectedNonprofit');
+  const nonprofitNote = watch('departmentLabName');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isEditingNonprofit, setIsEditingNonprofit] = useState(false);
+
+  const fundraise = note.post?.fundraise;
+  const {
+    nonprofit,
+    departmentLabName: existingNote,
+    isLoading: isLoadingNonprofit,
+  } = useNonprofitByFundraiseId(fundraise?.id);
+  const {
+    results: nonprofitSearchResults,
+    isLoading: isLoadingSearch,
+    searchNonprofits,
+  } = useNonprofitSearch();
+
+  // If we have a fundraise and a nonprofit with EIN, search for complete data
+  useEffect(() => {
+    if (nonprofit && nonprofit.ein && !isEditingNonprofit) {
+      searchNonprofits(nonprofit.ein);
+    }
+  }, [nonprofit, searchNonprofits, isEditingNonprofit]);
+
+  // When we have both the nonprofit from the fundraise and search results, merge the data
+  // and set it in the form
+  useEffect(() => {
+    if (
+      nonprofit &&
+      nonprofitSearchResults &&
+      nonprofitSearchResults.length > 0 &&
+      !isEditingNonprofit
+    ) {
+      const matchedNonprofit = nonprofitSearchResults.find(
+        (result) => result.ein === nonprofit.ein
+      );
+
+      if (matchedNonprofit) {
+        const mergedNonprofit = {
+          ...matchedNonprofit,
+          id: nonprofit.id,
+          endaomentOrgId: nonprofit.endaomentOrgId || matchedNonprofit.endaomentOrgId,
+          baseWalletAddress: nonprofit.baseWalletAddress || matchedNonprofit.baseWalletAddress,
+        };
+
+        setValue('selectedNonprofit', mergedNonprofit);
+        setValue('departmentLabName', existingNote);
+      } else {
+        setValue('selectedNonprofit', nonprofit);
+        setValue('departmentLabName', existingNote);
+      }
+    } else if (nonprofit && !isEditingNonprofit) {
+      setValue('selectedNonprofit', nonprofit);
+      setValue('departmentLabName', existingNote);
+    }
+  }, [nonprofit, nonprofitSearchResults, existingNote, setValue, isEditingNonprofit]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -49,46 +107,62 @@ export function FundingSection({ note }: FundingSectionProps) {
     return (funding / supply).toFixed(2);
   };
 
-  const fundraise = note.post?.fundraise;
-
   return (
     <div className="py-3 px-6 space-y-6">
       {fundraise ? (
         <>
           <FundraiseSection fundraise={fundraise} />
+          {(isLoadingNonprofit || nonprofit || isEditingNonprofit) && (
+            <div className="pt-4 border-t border-gray-200">
+              {isEditingNonprofit || !nonprofit ? (
+                <NonprofitSearchSection />
+              ) : (
+                <NonprofitSearchSection
+                  readOnly={false}
+                  allowClear={true}
+                  onClear={() => setIsEditingNonprofit(true)}
+                />
+              )}
+            </div>
+          )}
         </>
       ) : (
-        <div>
-          <Input
-            {...register('budget')}
-            label="Funding Goal"
-            required
-            placeholder="1,000"
-            type="text"
-            inputMode="numeric"
-            className="w-full"
-            error={errors.budget?.message?.toString()}
-            rightElement={
-              <div className="flex items-center pr-4 font-medium text-sm text-gray-900">USD</div>
-            }
-            helperText="Set your total funding goal for this research project"
-            onChange={(e) => {
-              const numericValue = e.target.value.replace(/[^0-9]/g, '');
-              setValue('budget', numericValue, { shouldValidate: true });
-
-              if (numericValue) {
-                e.target.value = new Intl.NumberFormat('en-US').format(parseInt(numericValue));
-              } else {
-                e.target.value = '';
+        <>
+          <div>
+            <Input
+              {...register('budget')}
+              label="Funding Goal"
+              required
+              placeholder="1,000"
+              type="text"
+              inputMode="numeric"
+              className="w-full"
+              error={errors.budget?.message?.toString()}
+              rightElement={
+                <div className="flex items-center pr-4 font-medium text-sm text-gray-900">USD</div>
               }
-            }}
-          />
-        </div>
+              helperText="Set your total funding goal for this research project"
+              onChange={(e) => {
+                const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                setValue('budget', numericValue, { shouldValidate: true });
+
+                if (numericValue) {
+                  e.target.value = new Intl.NumberFormat('en-US').format(parseInt(numericValue));
+                } else {
+                  e.target.value = '';
+                }
+              }}
+            />
+          </div>
+
+          <div className="pt-4 border-t border-gray-200">
+            <NonprofitSearchSection />
+          </div>
+        </>
       )}
 
       {FEATURE_FLAG_NFT_REWARDS && (
         <>
-          {' '}
           <div className="space-y-3 pt-4 border-t border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
