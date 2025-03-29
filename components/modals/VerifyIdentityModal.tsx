@@ -45,13 +45,13 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
   const { user } = useUser();
   const router = useRouter();
 
-  // useEffect(() => {
-  //   return () => {
-  //     if (!isOpen) {
-  //       setCurrentStep('INTRO');
-  //     }
-  //   };
-  // }, [isOpen]);
+  useEffect(() => {
+    return () => {
+      if (!isOpen) {
+        setCurrentStep('INTRO');
+      }
+    };
+  }, [isOpen]);
 
   const handleNext = () => {
     if (currentStep === 'INTRO') {
