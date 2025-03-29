@@ -126,7 +126,7 @@ export class NonprofitService {
    */
   static async linkToFundraise(params: LinkToFundraiseParams): Promise<NonprofitFundraiseLink> {
     this.checkFeatureEnabled();
-    const endpoint = `${this.BASE_PATH}/link-to-fundraise/`;
+    const endpoint = `${this.BASE_PATH}/link_to_fundraise/`;
 
     const apiParams = {
       nonprofit_id: params.nonprofitId,
@@ -172,7 +172,7 @@ export class NonprofitService {
    */
   static async getNonprofitsByFundraiseId(fundraiseId: ID): Promise<NonprofitLink[]> {
     this.checkFeatureEnabled();
-    const endpoint = `${this.BASE_PATH}/get-by-fundraise/?fundraise_id=${fundraiseId}`;
+    const endpoint = `${this.BASE_PATH}/get_by_fundraise/?fundraise_id=${fundraiseId}`;
 
     try {
       const response = await ApiClient.get<any[]>(endpoint);
