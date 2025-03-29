@@ -31,9 +31,12 @@ export class FeedService {
     // Determine which endpoint to use
     const basePath = params?.endpoint === 'funding_feed' ? this.FUNDING_PATH : this.BASE_PATH;
     const url = `${basePath}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    console.log(`Fetching feed from URL: ${url}`);
 
     try {
+      // Use ApiClient for both server and client environments
+      const isServer = typeof window === 'undefined';
+      console.log(`Fetching feed from URL: ${url} (${isServer ? 'server-side' : 'client-side'})`);
+
       const response = await ApiClient.get<FeedApiResponse>(url);
 
       // Transform the raw entries into FeedEntry objects
@@ -46,13 +49,7 @@ export class FeedService {
             return null;
           }
         })
-        .filter((entry): entry is FeedEntry => {
-          // Remove null entries
-          if (!entry) return false;
-
-          // Keep all entries (no filtering by content type)
-          return true;
-        });
+        .filter((entry): entry is FeedEntry => !!entry);
 
       // Return the transformed entries
       return {

@@ -9,12 +9,17 @@ import { InterestSelector } from '@/components/InterestSelector/InterestSelector
 import { FeedTabs } from './FeedTabs';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { FeedEntry } from '@/types/feed';
 
 interface FeedProps {
   defaultTab: FeedTab;
+  initialFeedData?: {
+    entries: FeedEntry[];
+    hasMore: boolean;
+  };
 }
 
-export const Feed: FC<FeedProps> = ({ defaultTab }) => {
+export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData }) => {
   const { status } = useSession();
   const router = useRouter();
   const isAuthenticated = status === 'authenticated';
@@ -24,6 +29,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab }) => {
   const [sourceFilter, setSourceFilter] = useState<FeedSource>('all');
   const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(defaultTab, {
     source: sourceFilter,
+    initialData: initialFeedData,
   });
 
   // Sync the activeTab with the defaultTab when the component mounts or defaultTab changes

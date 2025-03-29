@@ -223,6 +223,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                 votableEntityId={post.id}
                 userVote={entry.userVote}
                 showTooltips={showTooltips}
+                href={fundingPageUrl}
               />
             </div>
           </div>

@@ -13,13 +13,17 @@ interface UseFeedOptions {
   source?: FeedSource;
   endpoint?: 'feed' | 'funding_feed';
   fundraiseStatus?: 'OPEN' | 'CLOSED';
+  initialData?: {
+    entries: FeedEntry[];
+    hasMore: boolean;
+  };
 }
 
 export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions = {}) => {
   const { status } = useSession();
-  const [entries, setEntries] = useState<FeedEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(false);
+  const [entries, setEntries] = useState<FeedEntry[]>(options.initialData?.entries || []);
+  const [isLoading, setIsLoading] = useState(!options.initialData);
+  const [hasMore, setHasMore] = useState(options.initialData?.hasMore || false);
   const [page, setPage] = useState(1);
   const [currentTab, setCurrentTab] = useState<FeedTab | FundingTab>(activeTab);
   const [currentOptions, setCurrentOptions] = useState<UseFeedOptions>(options);
@@ -28,6 +32,15 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
   // We no longer reload when activeTab changes, as that will be handled by page navigation
   useEffect(() => {
     if (status === 'loading') {
+      return;
+    }
+
+    // If we have initial data and it's the first load, don't fetch again
+    if (
+      options.initialData &&
+      entries.length === options.initialData.entries.length &&
+      page === 1
+    ) {
       return;
     }
 
@@ -43,8 +56,15 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
 
   // Check if options have changed
   useEffect(() => {
-    const optionsChanged = JSON.stringify(options) !== JSON.stringify(currentOptions);
-    if (optionsChanged) {
+    // Compare relevant options (excluding initialData which shouldn't trigger a reload)
+    const relevantOptionsChanged =
+      options.hubSlug !== currentOptions.hubSlug ||
+      options.contentType !== currentOptions.contentType ||
+      options.source !== currentOptions.source ||
+      options.endpoint !== currentOptions.endpoint ||
+      options.fundraiseStatus !== currentOptions.fundraiseStatus;
+
+    if (relevantOptionsChanged) {
       setCurrentOptions(options);
       loadFeed();
     }
