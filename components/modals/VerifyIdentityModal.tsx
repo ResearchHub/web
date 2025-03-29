@@ -39,9 +39,7 @@ const stepperSteps = [
 ];
 
 export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProps) {
-  const [currentStep, setCurrentStep] = useState<VerificationStep>(
-    'IDENTITY_VERIFIED_SUCCESSFULLY'
-  );
+  const [currentStep, setCurrentStep] = useState<VerificationStep>('INTRO');
   const [publicationsSubstep, setPublicationsSubstep] = useState<STEP | 'SUCCESS'>('DOI');
 
   const { user } = useUser();
