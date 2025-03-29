@@ -163,7 +163,12 @@ export class ApiClient {
       throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
     }
 
-    return response.json();
+    const hasContent = parseInt(response.headers.get('content-length') || '0', 10) > 0;
+    if (hasContent) {
+      return response.json();
+    }
+
+    return {} as T;
   }
 
   static async patch<T>(path: string, body?: any): Promise<T> {
