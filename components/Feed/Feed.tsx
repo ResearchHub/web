@@ -2,7 +2,7 @@
 
 import { FC, useRef, useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Globe } from 'lucide-react';
 import { useFeed, FeedTab, FeedSource } from '@/hooks/useFeed';
 import { FeedContent } from './FeedContent';
 import { InterestSelector } from '@/components/InterestSelector/InterestSelector';
@@ -10,6 +10,7 @@ import { FeedTabs } from './FeedTabs';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { FeedEntry } from '@/types/feed';
+import Icon from '@/components/ui/icons/Icon';
 
 interface FeedProps {
   defaultTab: FeedTab;
@@ -72,7 +73,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData }) => {
   const tabs = [
     {
       id: 'popular',
-      label: 'Popular',
+      label: 'Trending',
     },
     ...(isAuthenticated
       ? [
@@ -91,7 +92,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData }) => {
   const header = (
     <h1 className="text-xl text-gray-600 flex items-center gap-2">
       <Sparkles className="w-5 h-5 text-indigo-500" />
-      Discover the latest research, earning, and funding opportunities
+      Discover trending research, earning, and funding opportunities
     </h1>
   );
 
@@ -112,23 +113,29 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData }) => {
         <span className="text-gray-500 mr-2">View:</span>
         <button
           onClick={() => handleSourceFilterChange('all')}
-          className={`transition-colors duration-200 px-1 ${
+          className={`transition-colors duration-200 px-1 flex items-center gap-1 ${
             sourceFilter === 'all'
               ? 'text-indigo-600 font-medium'
               : 'text-gray-500 hover:text-gray-800'
           }`}
         >
+          <Globe size={16} />
           All
         </button>
         <span className="mx-2 text-gray-300">•</span>
         <button
           onClick={() => handleSourceFilterChange('researchhub')}
-          className={`transition-colors duration-200 px-1 ${
+          className={`transition-colors duration-200 px-1 flex items-center gap-1 ${
             sourceFilter === 'researchhub'
               ? 'text-indigo-600 font-medium'
               : 'text-gray-500 hover:text-gray-800'
           }`}
         >
+          <Icon
+            name="flaskVector"
+            size={16}
+            color={sourceFilter === 'researchhub' ? '#4f46e5' : '#6b7280'}
+          />
           ResearchHub
         </button>
       </div>
