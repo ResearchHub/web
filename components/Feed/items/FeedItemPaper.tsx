@@ -154,6 +154,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry, href, showTooltip
                 votableEntityId={paper.id}
                 userVote={entry.userVote}
                 showTooltips={showTooltips}
+                href={paperPageUrl}
               />
             </div>
           </div>

@@ -3,7 +3,7 @@
 import { FC, useState, ReactNode } from 'react';
 import React from 'react';
 import { FeedContentType, FeedEntry } from '@/types/feed';
-import { MessageCircle, Flag, ArrowUp, MoreHorizontal } from 'lucide-react';
+import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useVote } from '@/hooks/useVote';
 import { UserVoteType } from '@/types/reaction';
@@ -12,6 +12,7 @@ import { useFlagModal } from '@/hooks/useFlagging';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { ContentType } from '@/types/work';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import { useRouter } from 'next/navigation';
 
 interface ActionButtonProps {
   icon: any;
@@ -79,6 +80,7 @@ interface FeedItemActionsProps {
     onClick: (e?: React.MouseEvent) => void;
   }>;
   rightSideActionButton?: ReactNode; // New property for a custom action button on the right side
+  href?: string; // URL to use for navigation
 }
 
 export const FeedItemActions: FC<FeedItemActionsProps> = ({
@@ -96,10 +98,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   hideReportButton = false, // Default to showing the report button
   menuItems = [], // Default to empty array for additional menu items
   rightSideActionButton, // Accept custom action button
+  href,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
+  const router = useRouter();
 
   const { vote, isVoting } = useVote({
     votableEntityId,
@@ -125,6 +129,22 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       const newVoteType: UserVoteType = localUserVote === 'UPVOTE' ? 'NEUTRAL' : 'UPVOTE';
       vote(newVoteType);
     });
+  };
+
+  const handleComment = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (href) {
+      router.push(`${href}/conversation`);
+    } else if (onComment) {
+      onComment();
+    }
+  };
+
+  const handleReviewClick = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (href) {
+      router.push(`${href}/reviews`);
+    }
   };
 
   const handleReport = () => {
@@ -178,9 +198,19 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               count={actionLabels?.comment ? undefined : metrics?.comments}
               tooltip="Comment"
               label={actionLabels?.comment || 'Comment'}
-              onClick={onComment}
+              onClick={handleComment}
               showLabel={Boolean(actionLabels?.comment)}
               showTooltip={showTooltips}
+            />
+          )}
+          {metrics?.reviewScore !== undefined && metrics.reviewScore > 0 && (
+            <ActionButton
+              icon={Star}
+              count={parseFloat(metrics.reviewScore.toFixed(1))}
+              tooltip="Peer Review"
+              label="Peer Review"
+              showTooltip={showTooltips}
+              onClick={handleReviewClick}
             />
           )}
           {children} {/* Render additional action buttons */}

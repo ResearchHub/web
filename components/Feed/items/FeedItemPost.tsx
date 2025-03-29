@@ -177,6 +177,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({ entry, href, showTooltips 
                 votableEntityId={post.id}
                 userVote={entry.userVote}
                 showTooltips={showTooltips}
+                href={postPageUrl}
               />
             </div>
           </div>

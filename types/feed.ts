@@ -126,6 +126,10 @@ export interface RawApiFeedEntry {
   metrics?: {
     votes: number;
     comments: number;
+    review_metrics?: {
+      avg: number;
+      count: number;
+    };
   };
   author: {
     id: number;
@@ -455,10 +459,8 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       ? {
           votes: feedEntry.metrics.votes || 0,
           comments: feedEntry.metrics.comments || 0,
-          ...(contentType === 'COMMENT' &&
-          (content as FeedCommentContent).comment.commentType === 'REVIEW'
-            ? { reviewScore: (content as FeedCommentContent).review?.score || 0 }
-            : {}),
+          saves: 0, // Default value for saves
+          reviewScore: getReviewScore(feedEntry.metrics, contentType, content),
         }
       : undefined,
     raw: feedEntry,
@@ -470,6 +472,33 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           : undefined,
   } as FeedEntry;
 };
+
+/**
+ * Helper function to get review score from various sources
+ */
+function getReviewScore(
+  metrics: RawApiFeedEntry['metrics'] | undefined,
+  contentType: FeedContentType,
+  content: Content
+): number {
+  // First check if we have review_metrics from the API
+  if (metrics?.review_metrics?.avg) {
+    return metrics.review_metrics.avg;
+  }
+
+  // For REVIEW comments, use the review score if available
+  const commentContent = content as FeedCommentContent;
+  if (
+    contentType === 'COMMENT' &&
+    commentContent?.comment?.commentType === 'REVIEW' &&
+    commentContent?.review?.score !== undefined
+  ) {
+    return commentContent.review.score;
+  }
+
+  // Default to 0 if no review score is found
+  return 0;
+}
 
 /**
  * Transforms a Comment object into a FeedEntry that can be used with FeedItemComment component
@@ -523,10 +552,8 @@ export const transformCommentToFeedItem = (
     metrics: {
       votes: comment.score || 0,
       comments: comment.childrenCount || 0,
-      saves: 0, // Add the required saves property
-      ...(comment.commentType === 'REVIEW'
-        ? { reviewScore: comment.reviewScore || comment.score || 0 }
-        : {}),
+      saves: 0, // Required property
+      reviewScore: comment.commentType === 'REVIEW' ? comment.reviewScore || comment.score || 0 : 0,
     },
     userVote: comment.userVote,
   };
@@ -577,7 +604,8 @@ export const transformBountyCommentToFeedItem = (
     metrics: {
       votes: comment.score || 0,
       comments: comment.childrenCount || 0,
-      saves: 0, // Add the required saves property
+      saves: 0, // Required property
+      reviewScore: 0, // Default value for reviewScore
     },
     userVote: comment.userVote,
   };
