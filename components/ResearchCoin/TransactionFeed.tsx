@@ -263,7 +263,7 @@ export function TransactionFeed({
                 variant="link"
                 className="text-indigo-600 hover:text-indigo-500"
               >
-                {isLoadingMore ? 'Loading...' : 'Load More'}
+                {isLoadingMore ? 'Loading...' : 'Load more'}
               </Button>
             </div>
           )}
