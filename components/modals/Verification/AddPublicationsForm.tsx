@@ -12,9 +12,10 @@ import { Input } from '@/components/ui/form/Input';
 import { Spinner } from '@/components/Editor/components/ui/Spinner';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
 import { Checkbox } from '@/components/ui/form/Checkbox';
-import { OpenAlexAuthor, OpenAlexWork } from '@/types/publication';
 import { usePublicationsSearch, useAddPublications } from '@/hooks/usePublications';
 import { PublicationError } from '@/services/publication.service';
+import { Avatar } from '@/components/ui/Avatar';
+import { VerificationPaperResult } from './VerificationPaperResult';
 
 export type STEP =
   | 'DOI'
@@ -24,12 +25,7 @@ export type STEP =
   | 'LOADING'
   | 'FINISHED';
 
-type ERROR_TYPE =
-  | 'DOI_NOT_FOUND'
-  | 'GENERIC_ERROR'
-  | 'ALREADY_CLAIMED_BY_CURRENT_USER'
-  | 'ALREADY_CLAIMED_BY_ANOTHER_USER'
-  | null;
+type ERROR_TYPE = 'DOI_NOT_FOUND' | 'GENERIC_ERROR' | null;
 
 export const ORDERED_STEPS: Array<STEP> = [
   'DOI',
@@ -58,11 +54,10 @@ export function AddPublicationsForm({
   const { user } = useUser();
 
   // Use our custom hooks
-  const [
-    { data, isLoading: isSearchLoading, error: searchError },
-    searchPublications,
-    setSelectedAuthorId,
-  ] = usePublicationsSearch();
+  const [{ data, isLoading: isSearchLoading, error: searchError }, searchPublications] =
+    usePublicationsSearch();
+
+  const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
   const [{ isLoading: isAddingLoading, error: addError }, addPublications] = useAddPublications();
 
@@ -86,9 +81,10 @@ export function AddPublicationsForm({
     }
   }, [messages]);
 
-  // Notify parent component when step changes
+  // Notify parent component when step changes and reset error
   useEffect(() => {
     onStepChange?.({ step });
+    setError(null);
   }, [step, onStepChange]);
 
   // Handle errors from hooks
@@ -148,18 +144,12 @@ export function AddPublicationsForm({
   };
 
   const handleAddPublications = async () => {
-    if (selectedPaperIds.length === 0) {
-      toast.error('Please select at least one publication to add to your profile.', {
-        duration: 5000,
-      });
-      return;
-    }
-
     setStep('LOADING');
     try {
       await addPublications({
-        authorId: data?.selectedAuthorId || null,
-        publicationIds: selectedPaperIds,
+        authorId: String(user?.authorProfile?.id) || '',
+        openAlexPublicationIds: selectedPaperIds,
+        openAlexAuthorId: selectedAuthorId || '',
       });
       // The actual completion will be handled by the WebSocket notification
     } catch (err) {
@@ -188,31 +178,24 @@ export function AddPublicationsForm({
       {step === 'DOI' && (
         <div>
           <div className="mb-6">
-            <label htmlFor="doi" className="block text-sm font-medium text-gray-700 mb-1">
-              Enter a DOI for any paper you've published
-            </label>
             <Input
               id="doi"
+              label="Enter a DOI for any paper you've published"
               placeholder="e.g., 10.1038/s41586-021-03819-2"
               value={paperDoi}
               onChange={(e) => setPaperDoi(e.target.value)}
               className="w-full"
+              error={(() => {
+                switch (error) {
+                  case 'DOI_NOT_FOUND':
+                    return "We couldn't find this DOI. Please check that you've entered it correctly or try a different publication.";
+                  case 'GENERIC_ERROR':
+                    return 'An error occurred. Please enter a valid DOI and try again.';
+                  default:
+                    return undefined;
+                }
+              })()}
             />
-            {error === 'DOI_NOT_FOUND' && (
-              <div className="mt-2 text-sm text-red-600 flex items-start gap-2">
-                <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                <span>
-                  We couldn't find this DOI. Please check that you've entered it correctly or try a
-                  different publication.
-                </span>
-              </div>
-            )}
-            {error === 'GENERIC_ERROR' && (
-              <div className="mt-2 text-sm text-red-600 flex items-start gap-2">
-                <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                <span>An error occurred. Please try again later.</span>
-              </div>
-            )}
           </div>
 
           <div className="flex justify-between items-center mt-8">
@@ -235,31 +218,34 @@ export function AddPublicationsForm({
 
       {step === 'NEEDS_AUTHOR_CONFIRMATION' && (
         <div>
-          <div className="mb-6">
-            <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-1">
-              Select your name from the list of authors
-            </label>
+          <div className="mb-6 relative">
+            <p className="mb-2">Please confirm which of these authors you are:</p>
 
             <Dropdown
+              label="Author"
+              required={true}
               trigger={
-                <div className="flex items-center justify-between w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm">
+                <Button
+                  variant="outlined"
+                  className="flex items-center justify-between w-full"
+                  type="button"
+                >
                   <span className="text-gray-700">
-                    {data?.selectedAuthorId
-                      ? data?.availableAuthors.find(
-                          (author) => author.id === data?.selectedAuthorId
+                    {selectedAuthorId
+                      ? (data?.availableAuthors || []).find(
+                          (author) => author.id === selectedAuthorId
                         )?.displayName
                       : 'Select an author'}
                   </span>
                   <ChevronDown className="h-4 w-4 text-gray-500" />
-                </div>
+                </Button>
               }
-              className="w-full"
             >
-              {data?.availableAuthors.map((author) => (
+              {(data?.availableAuthors || []).map((author) => (
                 <DropdownItem
                   key={author.id}
                   onClick={() => setSelectedAuthorId(author.id)}
-                  className={data?.selectedAuthorId === author.id ? 'bg-gray-100' : ''}
+                  className={selectedAuthorId === author.id ? 'bg-gray-100' : ''}
                 >
                   {author.displayName}
                 </DropdownItem>
@@ -280,10 +266,8 @@ export function AddPublicationsForm({
               Back
             </Button>
             <Button
-              onClick={() =>
-                handleFetchPublications({ doi: paperDoi, authorId: data?.selectedAuthorId })
-              }
-              disabled={!data?.selectedAuthorId || isSearchLoading}
+              onClick={() => handleFetchPublications({ doi: paperDoi, authorId: selectedAuthorId })}
+              disabled={!selectedAuthorId || isSearchLoading}
             >
               {isSearchLoading ? <Spinner className="mr-2 h-4 w-4" /> : null}
               Continue
@@ -295,12 +279,43 @@ export function AddPublicationsForm({
       {step === 'RESULTS' && (
         <div>
           <div className="mb-6">
-            <div className="flex items-center mb-4">
-              <Button variant="ghost" onClick={toggleSelectAll} className="text-primary p-0">
-                {selectedPaperIds.length === (data?.works || []).length
-                  ? 'Deselect All'
-                  : 'Select All'}
-              </Button>
+            <div className="flex items-center justify-between mb-4">
+              <Checkbox
+                id="select-all-publications"
+                label={`Select All (${selectedPaperIds.length})`}
+                checked={
+                  selectedPaperIds.length === (data?.works || []).length &&
+                  (data?.works || []).length > 0
+                }
+                onCheckedChange={toggleSelectAll}
+                className="[&>div>label]:text-indigo-600"
+              />
+
+              {selectedAuthorId && data?.availableAuthors && (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <Avatar
+                      alt={
+                        data.availableAuthors.find((author) => author.id === selectedAuthorId)
+                          ?.displayName || 'Author'
+                      }
+                      size="sm"
+                    />
+                    <span className="text-sm text-gray-700">
+                      {
+                        data.availableAuthors.find((author) => author.id === selectedAuthorId)
+                          ?.displayName
+                      }
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setStep('NEEDS_AUTHOR_CONFIRMATION')}
+                    className="text-xs text-indigo-600 hover:text-indigo-800"
+                  >
+                    (Change)
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="space-y-4 max-h-[400px] overflow-y-auto">
@@ -308,38 +323,21 @@ export function AddPublicationsForm({
                 <div
                   key={publication.id}
                   className={`border rounded-md p-4 ${
-                    selectedPaperIds.includes(publication.id) ? 'border-primary' : 'border-gray-200'
+                    selectedPaperIds.includes(publication.id)
+                      ? 'border-indigo-600'
+                      : 'border-gray-200'
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <Checkbox
                       id={`paper-${publication.id}`}
                       checked={selectedPaperIds.includes(publication.id)}
-                      onCheckedChange={() => togglePaperSelection(publication.id)}
+                      className="mt-1"
+                      onCheckedChange={(checked) => {
+                        togglePaperSelection(publication.id);
+                      }}
                     />
-                    <div>
-                      <label
-                        htmlFor={`paper-${publication.id}`}
-                        className="font-medium text-gray-900 cursor-pointer"
-                      >
-                        {publication.title}
-                      </label>
-                      <div className="text-sm text-gray-500 mt-1">
-                        {publication.venue?.displayName && (
-                          <span>{publication.venue.displayName} • </span>
-                        )}
-                        {publication.publicationYear && <span>{publication.publicationYear}</span>}
-                      </div>
-                      {publication.authorshipPosition && (
-                        <div className="text-sm text-gray-500 mt-1">
-                          {publication.authorshipPosition === 'first'
-                            ? 'First Author'
-                            : publication.authorshipPosition === 'last'
-                              ? 'Last Author'
-                              : 'Co-Author'}
-                        </div>
-                      )}
-                    </div>
+                    <VerificationPaperResult result={publication} />
                   </div>
                 </div>
               ))}

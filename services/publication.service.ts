@@ -19,8 +19,9 @@ export interface PublicationSearchParams {
 }
 
 export interface AddPublicationsParams {
-  authorId: string | null;
-  publicationIds: string[];
+  authorId: string;
+  openAlexPublicationIds: string[];
+  openAlexAuthorId: string;
 }
 
 export class PublicationService {
@@ -69,51 +70,22 @@ export class PublicationService {
    * @throws {PublicationError} When the request fails or parameters are invalid
    */
   static async addPublications(params: AddPublicationsParams): Promise<void> {
-    if (!params.publicationIds || params.publicationIds.length === 0) {
+    if (!params.openAlexPublicationIds || params.openAlexPublicationIds.length === 0) {
       throw new PublicationError('No publication IDs provided', 'INVALID_PARAMS');
     }
 
+    if (!params.openAlexAuthorId || !params.authorId) {
+      throw new PublicationError('No author ID provided', 'INVALID_PARAMS');
+    }
+
     try {
-      await ApiClient.post(`${this.AUTHOR_PATH}/publications`, {
-        authorId: params.authorId,
-        publicationIds: params.publicationIds,
+      await ApiClient.post(`${this.AUTHOR_PATH}/${params.authorId}/publications/`, {
+        openalex_ids: params.openAlexPublicationIds,
+        openalex_author_id: params.openAlexAuthorId,
       });
     } catch (error) {
       throw new PublicationError(
         'Failed to add publications',
-        error instanceof Error ? error.message : 'UNKNOWN_ERROR'
-      );
-    }
-  }
-
-  /**
-   * Claim author profile and add publications
-   * @throws {PublicationError} When the request fails or parameters are invalid
-   */
-  static async claimProfileAndAddPublications(params: {
-    authorId: ID;
-    publicationIds: string[];
-    openAlexAuthorId?: string | null;
-  }): Promise<void> {
-    if (!params.authorId) {
-      throw new PublicationError('Missing author ID', 'INVALID_PARAMS');
-    }
-
-    if (!params.publicationIds || params.publicationIds.length === 0) {
-      throw new PublicationError('No publication IDs provided', 'INVALID_PARAMS');
-    }
-
-    try {
-      await ApiClient.post(
-        `${this.AUTHOR_PATH}/${params.authorId}/claim_profile_and_add_publications`,
-        {
-          openalex_ids: params.publicationIds,
-          openalex_author_id: params.openAlexAuthorId,
-        }
-      );
-    } catch (error) {
-      throw new PublicationError(
-        'Failed to claim profile and add publications',
         error instanceof Error ? error.message : 'UNKNOWN_ERROR'
       );
     }

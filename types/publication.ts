@@ -7,12 +7,19 @@ export interface OpenAlexAuthor {
   orcid?: string;
 }
 
+export interface OpenAlexConcept {
+  displayName: string;
+  level: number;
+  relevancyScore: number;
+}
+
 export interface OpenAlexWork {
   id: string;
   title: string;
   doi?: string;
   doiUrl?: string;
   publicationYear?: number;
+  publicationDate?: string;
   authorshipPosition?: string;
   venue?: {
     displayName?: string;
@@ -24,6 +31,7 @@ export interface OpenAlexWork {
     };
     position?: string;
   }>;
+  concepts: OpenAlexConcept[];
 }
 
 export interface PublicationSearchResponse {
@@ -39,12 +47,19 @@ export const transformOpenAlexAuthor = createTransformer<any, OpenAlexAuthor>((r
   orcid: raw.orcid,
 }));
 
+export const transformOpenAlexConcept = createTransformer<any, OpenAlexConcept>((raw) => ({
+  displayName: raw.display_name,
+  level: raw.level,
+  relevancyScore: raw.score,
+}));
+
 export const transformOpenAlexWork = createTransformer<any, OpenAlexWork>((raw) => ({
   id: raw.id,
   title: raw.title,
-  doi: raw.doi,
-  doiUrl: raw.doi_url,
+  doiUrl: raw.doi,
+  doi: raw.doi ? raw.doi.replace('https://doi.org/', '') : undefined,
   publicationYear: raw.publication_year,
+  publicationDate: raw.publication_date,
   authorshipPosition: raw.authorship_position,
   venue: raw.venue
     ? {
@@ -58,6 +73,7 @@ export const transformOpenAlexWork = createTransformer<any, OpenAlexWork>((raw) 
     },
     position: authorship.position,
   })),
+  concepts: (raw.concepts || []).map(transformOpenAlexConcept),
 }));
 
 export const transformPublicationsResponse = createTransformer<any, PublicationSearchResponse>(

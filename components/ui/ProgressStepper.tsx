@@ -56,7 +56,7 @@ export function ProgressStepper({
               </div>
               <span
                 className={cn(
-                  'ml-2 text-sm font-medium',
+                  'ml-2 text-sm font-medium whitespace-nowrap',
                   isActive ? 'text-primary-600' : isCompleted ? 'text-gray-900' : 'text-gray-500'
                 )}
               >

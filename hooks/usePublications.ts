@@ -17,11 +17,7 @@ interface UsePublicationsSearchState {
 
 type SearchPublicationsFn = (params: PublicationSearchParams) => Promise<void>;
 type SetSelectedAuthorIdFn = (authorId: string | null) => void;
-type UsePublicationsSearchReturn = [
-  UsePublicationsSearchState,
-  SearchPublicationsFn,
-  SetSelectedAuthorIdFn,
-];
+type UsePublicationsSearchReturn = [UsePublicationsSearchState, SearchPublicationsFn];
 
 /**
  * Hook for searching publications by DOI
@@ -59,17 +55,6 @@ export function usePublicationsSearch(): UsePublicationsSearchReturn {
     }
   }, []);
 
-  const setSelectedAuthorId = useCallback((authorId: string | null) => {
-    setData((prevData) =>
-      prevData
-        ? {
-            ...prevData,
-            selectedAuthorId: authorId,
-          }
-        : null
-    );
-  }, []);
-
   return [
     {
       data,
@@ -77,7 +62,6 @@ export function usePublicationsSearch(): UsePublicationsSearchReturn {
       error,
     },
     searchPublications,
-    setSelectedAuthorId,
   ];
 }
 
@@ -114,45 +98,4 @@ export function useAddPublications(): UseAddPublicationsReturn {
   }, []);
 
   return [{ isLoading, error }, addPublications];
-}
-
-interface UseClaimProfileState {
-  isLoading: boolean;
-  error: Error | null;
-}
-
-interface ClaimProfileParams {
-  authorId: string;
-  publicationIds: string[];
-  openAlexAuthorId?: string | null;
-}
-
-type ClaimProfileFn = (params: ClaimProfileParams) => Promise<void>;
-type UseClaimProfileReturn = [UseClaimProfileState, ClaimProfileFn];
-
-/**
- * Hook for claiming an author profile and adding publications
- */
-export function useClaimProfile(): UseClaimProfileReturn {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  const claimProfile = useCallback(async (params: ClaimProfileParams): Promise<void> => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      await PublicationService.claimProfileAndAddPublications(params);
-    } catch (err) {
-      console.error('Error claiming profile:', err);
-      const errorMsg = err instanceof PublicationError ? err.message : 'Failed to claim profile';
-      const error = new Error(errorMsg);
-      setError(error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  return [{ isLoading, error }, claimProfile];
 }
