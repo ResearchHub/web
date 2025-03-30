@@ -37,6 +37,7 @@ export type IconName =
   | 'rscGrey'
   | 'rscBold1'
   | 'rscBold2'
+  | 'RSC'
   // Solid icons
   | 'solidHand'
   | 'solidNotebook'

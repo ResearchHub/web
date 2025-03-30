@@ -37,7 +37,7 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
     votableEntityId: work.id,
     feedContentType: work.contentType === 'paper' ? 'PAPER' : 'POST',
   });
-  const [voteCount, setVoteCount] = useState(work.metrics.votes);
+  const [voteCount, setVoteCount] = useState(work.metrics?.votes || 0);
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
   const router = useRouter();
   const { selectedOrg } = useOrganizationContext();

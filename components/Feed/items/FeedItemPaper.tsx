@@ -68,8 +68,10 @@ const FeedItemPaperBody: FC<{
           />
         ))}
 
-        {/* Status badge - using the new JournalStatusBadge component */}
-        {paper.journal && <JournalStatusBadge status={getJournalStatus()} />}
+        {/* Status badge - only show for ResearchHub Journal */}
+        {paper.journal && paper.journal.name === 'ResearchHub Journal' && (
+          <JournalStatusBadge status={getJournalStatus()} />
+        )}
       </div>
 
       {/* Paper Title */}
@@ -108,7 +110,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry, href, showTooltip
   const router = useRouter();
 
   // Get the author from the paper
-  const author = paper.createdBy;
+  const author = paper.createdBy || paper.authors[0];
 
   // Use provided href or create default paper page URL
   const paperPageUrl = href || `/paper/${paper.id}/${paper.slug}`;

@@ -29,10 +29,13 @@ export const RelatedWorkCard = ({ work, onClick, size = 'default' }: RelatedWork
       let path;
       if (work.contentType === 'preregistration' && work.fundraise) {
         path = `/fund/${work.id}/${work.slug}`;
-      } else if (work.contentType === 'post' || work.contentType === 'preregistration') {
+      } else if (work.contentType === 'preregistration' || work.contentType === 'post') {
         path = `/post/${work.id}/${work.slug}`;
-      } else {
+      } else if (work.contentType === 'paper') {
         path = `/paper/${work.id}/${work.slug}`;
+      } else {
+        // For other content types like 'question', 'discussion', 'funding_request'
+        path = `/post/${work.id}/${work.slug}`;
       }
       window.open(path, '_blank');
     }
@@ -48,7 +51,7 @@ export const RelatedWorkCard = ({ work, onClick, size = 'default' }: RelatedWork
     | 'preprint'
     | 'published' => {
     // If it's a fundraise preregistration, show funding badge
-    if ((work.contentType === 'preregistration' && work.fundraise) || work.contentType === 'post') {
+    if (work.contentType === 'preregistration' && work.fundraise) {
       return 'funding';
     }
 
