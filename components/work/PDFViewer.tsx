@@ -20,6 +20,12 @@ const styles = `
     pointer-events: all;
     cursor: text;
   }
+  /* Override PDF.js round function styling */
+  .textLayer {
+    width: auto !important;
+    height: auto !important;
+    transform-origin: top left !important;
+  }
 `;
 
 interface Props {
@@ -45,7 +51,7 @@ const PDFViewer = ({
   useEffect(() => {
     // Add the custom styles to the document
     const styleElement = document.createElement('style');
-    styleElement.textContent = styles;
+    // styleElement.textContent = styles;
     document.head.appendChild(styleElement);
 
     // Clean up on unmount
@@ -82,10 +88,20 @@ const PDFViewer = ({
         // Tell the parent component we're ready
         onReady?.({ numPages: pdf.numPages });
 
+        // Get container width for scaling calculations
+        const containerWidth = containerRef.current?.clientWidth || 800;
+
         // Render each page
         for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
           const page = await pdf.getPage(pageNumber);
-          const viewport = page.getViewport({ scale });
+
+          // Calculate scale based on container width and original page width
+          const originalViewport = page.getViewport({ scale: 1.0 });
+          const calculatedScale = containerWidth / originalViewport.width;
+          // If scale is provided, use it as a maximum, otherwise use calculated scale
+          const finalScale = scale !== 1.0 ? Math.min(scale, calculatedScale) : calculatedScale;
+
+          const viewport = page.getViewport({ scale: finalScale });
 
           // Create page container
           const pageContainer = document.createElement('div');
@@ -98,7 +114,7 @@ const PDFViewer = ({
           const pdfPageView = new pdfjsViewer.PDFPageView({
             container: pageContainer,
             id: pageNumber,
-            scale,
+            scale: finalScale,
             defaultViewport: viewport,
             eventBus,
             textLayerMode: enableTextSelection ? 1 : 0, // 1 = enabled, 0 = disabled
@@ -113,31 +129,24 @@ const PDFViewer = ({
           await pdfPageView.draw();
 
           // Fix styling for text layer
-          const textLayerDiv = pageContainer.querySelector('.textLayer');
-          if (textLayerDiv) {
-            // Add styles for better text selection
-            textLayerDiv.setAttribute(
-              'style',
-              `
-              position: absolute;
-              left: 0;
-              top: 0;
-              right: 0;
-              bottom: 0;
-              overflow: hidden;
-              line-height: 1.0;
-              opacity: 0.2;
-              text-align: initial;
-              user-select: text;
-              pointer-events: auto;
-            `
-            );
-          }
+          // const textLayerDiv = pageContainer.querySelector('.textLayer');
 
-          // Style the page div
-          const pageDiv = pageContainer.querySelector('.page');
-          if (pageDiv) {
-            pageDiv.setAttribute('style', 'margin: 0 auto;');
+          // if (textLayerDiv) {
+          //   textLayerDiv.id = `textLayer-page-${pageNumber}`;
+          //   textLayerDiv.style.margin = '0 auto';
+          // }
+
+          // // Style the page div
+          // const pageDiv = pageContainer.querySelector('.page');
+          // if (pageDiv) {
+          //   pageDiv.setAttribute('style', 'margin: 0 auto;');
+          // }
+
+          // // Ensure the canvas width matches the viewport width
+          const canvas = pageContainer.querySelector('canvas');
+          if (canvas) {
+            canvas.style.width = `${viewport.width}px`;
+            canvas.style.height = `${viewport.height}px`;
           }
 
           // Add to container
