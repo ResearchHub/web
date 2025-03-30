@@ -163,12 +163,16 @@ export class ApiClient {
       throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
     }
 
-    const hasContent = parseInt(response.headers.get('content-length') || '0', 10) > 0;
-    if (hasContent) {
-      return response.json();
+    // Try to parse JSON, but don't fail if there's nothing to parse
+    // Some endpoints return empty responses,
+    // eg when creating a new publication (POST: /api/author/${authorId}/publications/)
+    // In this case, the response is an empty object
+    try {
+      return await response.json();
+    } catch (e) {
+      // If parsing fails, return an empty object
+      return {} as T;
     }
-
-    return {} as T;
   }
 
   static async patch<T>(path: string, body?: any): Promise<T> {
