@@ -87,6 +87,7 @@
     "clsx": "^2.1.1",
     "critters": "^0.0.23",
     "dayjs": "^1.11.13",
+    "ethers": "^6.13.5",
     "iframe-resizer": "^4.4.5",
     "jsonwebtoken": "^9.0.2",
     "katex": "^0.16.11",
