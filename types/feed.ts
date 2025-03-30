@@ -9,6 +9,7 @@ import { Fundraise, transformFundraise } from './funding';
 import { Journal } from './journal';
 import { UserVoteType } from './reaction';
 import { User } from './user';
+import { stripHtml } from '@/utils/stringUtils';
 
 export type FeedActionType = 'contribute' | 'open' | 'publish' | 'post';
 
@@ -24,6 +25,7 @@ export interface FeedPostContent {
   textPreview: string;
   slug: string;
   title: string;
+  previewImage?: string; // URL to preview image if available
   authors: AuthorProfile[];
   topics: Topic[];
   createdBy: AuthorProfile;
@@ -126,7 +128,8 @@ export interface RawApiFeedEntry {
   };
   metrics?: {
     votes: number;
-    comments: number;
+    comments?: number;
+    replies?: number;
     review_metrics?: {
       avg: number;
       count: number;
@@ -136,7 +139,8 @@ export interface RawApiFeedEntry {
     id: number;
     first_name: string;
     last_name: string;
-    description: string;
+    description?: string;
+    headline?: string;
     profile_image: string;
     user?: {
       id: number;
@@ -172,6 +176,18 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     timestamp: action_date,
     action: action.toLowerCase() as FeedActionType,
   };
+
+  // Pre-process metrics to ensure consistent format
+  const processedMetrics = feedEntry.metrics
+    ? {
+        votes: feedEntry.metrics.votes || 0,
+        comments:
+          feedEntry.metrics.comments !== undefined
+            ? feedEntry.metrics.comments
+            : feedEntry.metrics.replies || 0,
+        review_metrics: feedEntry.metrics.review_metrics,
+      }
+    : undefined;
 
   // Transform the content based on content_type
   let content: Content;
@@ -246,7 +262,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           createdDate: content_object.created_date,
           textPreview: content_object.abstract || '',
           slug: content_object.slug || '',
-          title: content_object.title || '',
+          title: stripHtml(content_object.title || ''),
           authors: content_object.authors?.map(transformAuthorProfile) || [],
           workType:
             content_object.workType ||
@@ -323,6 +339,14 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           review: content_object.review || null,
         };
 
+        // Check if the comment is associated with a paper or post for related work
+        const relatedDocumentId = content_object.paper?.id || content_object.post?.id || undefined;
+        const relatedDocumentContentType = content_object.paper
+          ? 'paper'
+          : content_object.post
+            ? 'post'
+            : undefined;
+
         // Transform the comment to get score and other properties
         const transformedComment = transformComment(commentData);
 
@@ -347,8 +371,10 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                 }
               : undefined,
           },
-          relatedDocumentId: content_object.object_id || content_object.thread_id,
-          relatedDocumentContentType: content_object.document_type as ContentType,
+          relatedDocumentId:
+            relatedDocumentId || content_object.object_id || content_object.thread_id,
+          relatedDocumentContentType:
+            relatedDocumentContentType || (content_object.document_type as ContentType),
         };
 
         // Add review data if available
@@ -360,13 +386,18 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
 
         content = commentContent;
 
-        // If the comment is associated with a paper, transform it to a Work and set as relatedWork
-        if (content_object?.paper?.id) {
-          console.log('content_object.paper', content_object.paper);
+        // If the comment is associated with a paper or post, transform it to a Work and set as relatedWork
+        if (content_object.paper) {
           try {
             relatedWork = transformPaper(content_object.paper);
           } catch (paperError) {
             console.error('Error transforming paper for comment:', paperError);
+          }
+        } else if (content_object.post) {
+          try {
+            relatedWork = transformPost(content_object.post);
+          } catch (postError) {
+            console.error('Error transforming post for comment:', postError);
           }
         }
       } catch (error) {
@@ -393,7 +424,8 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           createdDate: content_object.created_date,
           textPreview: content_object.renderable_text || '',
           slug: content_object.slug || '',
-          title: content_object.title || '',
+          title: stripHtml(content_object.title || ''),
+          previewImage: content_object.image_url || '',
           authors: [transformAuthorProfile(author)],
           topics: content_object.hub
             ? [
@@ -434,7 +466,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         // Create a minimal object that can be transformed to a Work
         const genericData = {
           id: content_object.id || id,
-          title: content_object.title || `${content_type} #${content_object.id || id}`,
+          title: stripHtml(content_object.title || `${content_type} #${content_object.id || id}`),
           content_type: 'post',
           slug: content_object.slug || `${content_type.toLowerCase()}/${content_object.id || id}`,
           created_date: created_date,
@@ -459,12 +491,12 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     content,
     relatedWork,
     contentType,
-    metrics: feedEntry.metrics
+    metrics: processedMetrics
       ? {
-          votes: feedEntry.metrics.votes || 0,
-          comments: feedEntry.metrics.comments || 0,
+          votes: processedMetrics.votes || 0,
+          comments: processedMetrics.comments || 0,
           saves: 0, // Default value for saves
-          reviewScore: getReviewScore(feedEntry.metrics, contentType, content),
+          reviewScore: getReviewScore(processedMetrics, contentType, content),
         }
       : undefined,
     raw: feedEntry,
@@ -508,11 +540,13 @@ function getReviewScore(
  * Transforms a Comment object into a FeedEntry that can be used with FeedItemComment component
  * @param comment The Comment object to transform
  * @param contentType The content type of the related document (paper, post, etc.)
+ * @param relatedDocument Optional related work (paper or post) to include with the comment
  * @returns A FeedEntry object with the comment as content
  */
 export const transformCommentToFeedItem = (
   comment: Comment,
-  contentType: ContentType
+  contentType: ContentType,
+  relatedDocument?: Work
 ): FeedEntry => {
   // Create a FeedCommentContent object from the comment
   const commentContent: FeedCommentContent = {
@@ -553,6 +587,7 @@ export const transformCommentToFeedItem = (
     action: 'contribute', // Default action for comments
     content: commentContent,
     contentType: 'COMMENT',
+    relatedWork: relatedDocument, // Add the related document if provided
     metrics: {
       votes: comment.score || 0,
       comments: comment.childrenCount || 0,
@@ -567,11 +602,13 @@ export const transformCommentToFeedItem = (
  * Transforms a Comment with bounties into a FeedEntry that can be used with FeedItemBounty component
  * @param comment The Comment object with bounties to transform
  * @param contentType The content type of the related document (paper, post, etc.)
+ * @param relatedDocument Optional related work (paper or post) to include with the bounty
  * @returns A FeedEntry object with the bounty as content
  */
 export const transformBountyCommentToFeedItem = (
   comment: Comment,
-  contentType: ContentType
+  contentType: ContentType,
+  relatedDocument?: Work
 ): FeedEntry => {
   // Ensure the comment has bounties
   if (!comment.bounties || comment.bounties.length === 0) {
@@ -605,6 +642,7 @@ export const transformBountyCommentToFeedItem = (
     action: 'open', // Default action for bounties
     content: bountyContent,
     contentType: 'BOUNTY',
+    relatedWork: relatedDocument, // Add the related document if provided
     metrics: {
       votes: comment.score || 0,
       comments: comment.childrenCount || 0,
