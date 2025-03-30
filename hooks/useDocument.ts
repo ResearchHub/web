@@ -21,6 +21,7 @@ export interface PreregistrationPostParams {
   fullSrc: string;
   assignDOI?: boolean;
   authors: number[];
+  image: string | null;
 }
 
 interface UsePostState {
@@ -54,6 +55,10 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         hubs: postParams.topics,
         authors: postParams.authors,
       };
+
+      if (postParams.image) {
+        payload.image = postParams.image;
+      }
 
       if (postId) {
         payload.post_id = postId;

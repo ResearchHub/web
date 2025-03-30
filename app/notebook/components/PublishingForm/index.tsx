@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { publishingFormSchema } from './schema';
 import type { PublishingFormData } from './schema';
 import { WorkTypeSection } from './components/WorkTypeSection';
+import { WorkImageSection } from './components/WorkImageSection';
 import { FundingSection } from './components/FundingSection';
 import { AuthorsSection } from './components/AuthorsSection';
 import { TopicsSection } from './components/TopicsSection';
@@ -27,6 +28,7 @@ import { Loader2 } from 'lucide-react';
 import { DOISection } from '@/components/work/components/DOISection';
 import { getFieldErrorMessage } from '@/utils/form';
 import { useNotebookContext } from '@/contexts/NotebookContext';
+import { useAssetUpload } from '@/hooks/useAssetUpload';
 
 // Feature flags for conditionally showing sections
 const FEATURE_FLAG_RESEARCH_COIN = false;
@@ -68,6 +70,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   const { currentNote: note, editor } = useNotebookContext();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [{ loading: isUploadingImage }, uploadAsset] = useAssetUpload();
 
   const methods = useForm<PublishingFormData>({
     defaultValues: {
@@ -93,6 +96,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         nftSupply: '1000',
         isJournalEnabled: false,
         budget: '',
+        coverImage: null,
       });
     }
   }, [note?.id, methods]);
@@ -112,6 +116,14 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         note.post.contentType === 'preregistration' ? 'preregistration' : 'discussion'
       );
       methods.setValue('budget', note.post.fundraise?.goalAmount.usd.toString());
+
+      if (note.post.image) {
+        methods.setValue('coverImage', {
+          file: null,
+          url: note.post.image,
+        });
+      }
+
       if (note.post.topics && note.post.topics.length > 0) {
         const topicOptions = note.post.topics.map((topic) => ({
           value: topic.id.toString(),
@@ -226,6 +238,26 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       const title = getDocumentTitleFromEditor(editor);
       const formData = methods.getValues();
 
+      // Initialize imageUrl variable
+      let imagePath = null;
+
+      // Only upload the image for new preregistration posts that have an image file
+      if (
+        !formData.workId &&
+        formData.articleType === 'preregistration' &&
+        formData.coverImage?.file
+      ) {
+        try {
+          const uploadResult = await uploadAsset(formData.coverImage.file, 'post');
+          imagePath = uploadResult.objectKey;
+        } catch (uploadError) {
+          console.error('Error uploading image:', uploadError);
+          toast.error('Failed to upload image. Please try again.');
+          setShowConfirmModal(false);
+          return;
+        }
+      }
+
       const response = await upsertPost(
         {
           budget: formData.budget || '0',
@@ -244,6 +276,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             .filter((id) => !isNaN(id)),
           articleType:
             formData.articleType === 'preregistration' ? 'PREREGISTRATION' : 'DISCUSSION',
+          image: imagePath,
         },
         formData.workId
       );
@@ -284,6 +317,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         >
           <div className="pb-6">
             <WorkTypeSection />
+            {articleType === 'preregistration' && <WorkImageSection />}
             <AuthorsSection />
             <TopicsSection />
             {note.post?.doi && (

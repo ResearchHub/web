@@ -11,12 +11,13 @@ interface FileUploadProps {
   onFileUpload?: (result: UploadFileResult) => void;
   onFileRemove?: () => void;
   onError?: (error: Error) => void;
-  accept?: string;
+  accept?: string[];
   maxSizeMB?: number;
   className?: string;
   selectedFile?: File | null;
   error?: string | null;
   uploadImmediately?: boolean;
+  dragDropTitle?: string;
 }
 
 export function FileUpload({
@@ -24,12 +25,13 @@ export function FileUpload({
   onFileUpload,
   onFileRemove,
   onError,
-  accept = 'application/pdf',
+  accept = ['application/pdf'],
   maxSizeMB = 100,
   className,
   selectedFile,
   error,
   uploadImmediately = false,
+  dragDropTitle = 'Drag and drop your PDF here',
 }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -38,10 +40,21 @@ export function FileUpload({
 
   const handleFileSelect = async (file: File) => {
     setFileError(null);
+    console.log('File selected:', file);
 
     // Check if the file type is acceptable
-    if (!file.type.match(accept)) {
-      const errorMsg = `Only ${accept.split('/')[1].toUpperCase()} files are accepted`;
+    const isAcceptable = accept.some((type) => file.type.match(type));
+
+    if (!isAcceptable) {
+      // Format the accepted file types for the error message
+      const acceptedTypes = accept
+        .map((type) => {
+          const parts = type.split('/');
+          return parts.length > 1 ? parts[1].toUpperCase() : type.toUpperCase();
+        })
+        .join(', ');
+
+      const errorMsg = `Only ${acceptedTypes} files are accepted`;
       setFileError(errorMsg);
       onError?.(new Error(errorMsg));
       return;
@@ -115,13 +128,16 @@ export function FileUpload({
     setFileError(null);
   };
 
+  // Convert accept to string for the input element
+  const acceptString = accept.join(',');
+
   return (
-    <div className={className}>
+    <div className={cn('w-full', className)}>
       <input
-        type="file"
         ref={fileInputRef}
+        type="file"
         className="hidden"
-        accept={accept}
+        accept={acceptString}
         onChange={handleFileInputChange}
         disabled={isUploading}
       />
@@ -151,7 +167,7 @@ export function FileUpload({
             ) : (
               <>
                 <FileUp className="h-10 w-10 text-gray-400 mb-2" />
-                <h3 className="text-gray-700 font-medium">Drag and drop your PDF here</h3>
+                <h3 className="text-gray-700 font-medium">{dragDropTitle}</h3>
                 <p className="text-sm text-gray-500 mt-1 mb-3">
                   or click anywhere in this area to{' '}
                   <span className="text-blue-600 hover:text-blue-700 font-medium">
@@ -166,12 +182,12 @@ export function FileUpload({
       ) : (
         <div className="border rounded-lg p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="bg-gray-100 p-2 rounded">
+            <div className="flex items-center space-x-3 flex-1 min-w-0">
+              <div className="bg-gray-100 p-2 rounded flex-shrink-0">
                 <FileText className="h-6 w-6 text-gray-500" />
               </div>
-              <div>
-                <p className="font-medium truncate max-w-xs">{selectedFile.name}</p>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium truncate">{selectedFile.name}</p>
                 <p className="text-sm text-gray-500">
                   {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                 </p>
@@ -183,6 +199,7 @@ export function FileUpload({
               onClick={handleRemoveFile}
               aria-label="Remove file"
               disabled={isUploading}
+              className="flex-shrink-0 ml-2"
             >
               <X className="h-5 w-5 text-gray-500" />
             </Button>

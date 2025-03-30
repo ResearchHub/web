@@ -69,6 +69,7 @@ export interface Work {
   metrics: ContentMetrics;
   unifiedDocumentId: number | null;
   note?: NoteWithContent;
+  image?: string;
 }
 
 export interface FundingRequest extends Work {
@@ -178,6 +179,7 @@ export const transformWork = createTransformer<any, Work>((raw) => ({
     views: raw.metrics?.views || raw.views_count || 0,
   },
   unifiedDocumentId: raw?.unified_document?.id || null,
+  image: raw.image,
 }));
 
 export const transformPost = createTransformer<any, Work>((raw) => ({
