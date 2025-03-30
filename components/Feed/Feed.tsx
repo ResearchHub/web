@@ -18,9 +18,10 @@ interface FeedProps {
     entries: FeedEntry[];
     hasMore: boolean;
   };
+  showSourceFilter?: boolean;
 }
 
-export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData }) => {
+export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFilter = true }) => {
   const { status } = useSession();
   const router = useRouter();
   const isAuthenticated = status === 'authenticated';
@@ -107,7 +108,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData }) => {
     />
   );
 
-  const sourceFilters = (
+  const sourceFilters = showSourceFilter ? (
     <div className="flex justify-end">
       <div className="inline-flex items-center text-sm">
         <span className="text-gray-500 mr-2">View:</span>
@@ -140,7 +141,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData }) => {
         </button>
       </div>
     </div>
-  );
+  ) : null;
 
   return (
     <PageLayout>

@@ -4,4 +4,5 @@ export interface Journal {
   slug: string;
   imageUrl?: string;
   description?: string;
+  status?: 'published' | 'preprint';
 }

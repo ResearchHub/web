@@ -3,34 +3,38 @@
 import { FC } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
-import { Zap, CheckCircle } from 'lucide-react';
+import { Zap, CheckCircle, Mail, Linkedin } from 'lucide-react';
+import { SocialIcon } from '@/components/ui/SocialIcon';
 
 export const JournalRightSidebar: FC = () => {
-  // Editorial board mock data
+  // Editorial board data
   const editorialBoard = [
     {
       id: '1',
       name: 'Dr. Maulik Dhandha',
       role: 'Editor in Chief',
-      avatar: '/avatars/editor1.jpg',
+      avatar: 'https://www.researchhub.com/static/editorial-board/MaulikDhandha.jpeg',
+      email: 'maulik.editor@researchhub.foundation',
+      linkedin: 'https://www.linkedin.com/in/maulik-dhandha-1836a5227/',
+      googleScholar: 'https://scholar.google.com/citations?user=M2JZCWMAAAAJ&hl=en',
     },
     {
       id: '2',
       name: 'Dr. Emilio Merheb',
       role: 'Associate Editor',
-      avatar: '/avatars/editor2.jpg',
+      avatar: 'https://www.researchhub.com/static/editorial-board/EmilioMerheb.jpeg',
+      email: 'emilio.editor@researchhub.foundation',
+      linkedin: 'https://www.linkedin.com/in/emilio-merheb-ph-d-29ba10154/',
+      googleScholar: 'https://scholar.google.com/citations?user=MY7E-6QAAAAJ&hl=en',
     },
     {
       id: '3',
       name: 'Dr. Attila Karsi',
       role: 'Associate Editor',
-      avatar: '/avatars/editor3.jpg',
-    },
-    {
-      id: '4',
-      name: 'Open Position',
-      role: 'Associate Editor',
-      avatar: '/avatars/placeholder.jpg',
+      avatar: 'https://www.researchhub.com/static/editorial-board/AttilaKarsi.jpeg',
+      email: 'attila.editor@researchhub.foundation',
+      linkedin: 'https://www.linkedin.com/in/attilakarsi/',
+      googleScholar: 'https://scholar.google.com/citations?user=kkhhBZgAAAAJ&hl=en',
     },
   ];
 
@@ -85,15 +89,46 @@ export const JournalRightSidebar: FC = () => {
   return (
     <div className="space-y-6">
       {/* Editorial Board Section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Editorial Board</h3>
-        <div className="space-y-4">
+      <div className="bg-white rounded-lg p-4 pl-0">
+        <h3 className="font-semibold text-gray-800 mb-4">Editorial Board</h3>
+        <div className="space-y-6">
           {editorialBoard.map((editor) => (
-            <div key={editor.id} className="flex items-center space-x-3">
-              <Avatar src={editor.avatar} size="md" alt={editor.name} />
-              <div>
-                <div className="font-medium text-gray-900">{editor.name}</div>
-                <div className="text-sm text-gray-500">{editor.role}</div>
+            <div key={editor.id} className="space-y-1">
+              <div className="flex items-center space-x-3">
+                <Avatar src={editor.avatar} size="md" alt={editor.name} />
+                <div>
+                  <div className="font-medium text-gray-900">{editor.name}</div>
+                  <div className="text-sm text-gray-500">{editor.role}</div>
+                  <div className="flex items-center space-x-1 mt-1">
+                    <SocialIcon
+                      href={`mailto:${editor.email}`}
+                      icon={<Mail className="w-4 h-4" />}
+                      label="Email"
+                      size="sm"
+                    />
+                    <SocialIcon
+                      href={editor.linkedin}
+                      icon={<Linkedin className="w-4 h-4" />}
+                      label="LinkedIn"
+                      size="sm"
+                    />
+                    <SocialIcon
+                      href={editor.googleScholar}
+                      icon={
+                        <svg
+                          className="w-4 h-4"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <path d="M5.242 13.769L0 9.5 12 0l12 9.5-5.242 4.269C17.548 11.249 14.978 9.5 12 9.5c-2.977 0-5.548 1.748-6.758 4.269zM12 10a7 7 0 1 0 0 14 7 7 0 0 0 0-14z" />
+                        </svg>
+                      }
+                      label="Google Scholar"
+                      size="sm"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           ))}
@@ -104,8 +139,8 @@ export const JournalRightSidebar: FC = () => {
       </div>
 
       {/* Journal Metrics */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Journal Metrics</h3>
+      <div className="bg-white rounded-lg p-4 pl-0">
+        <h3 className="font-semibold text-gray-800 mb-4">Journal Metrics</h3>
         <div className="space-y-3">
           {journalMetrics.map((metric, index) => (
             <div key={index} className="flex items-center justify-between">
@@ -120,8 +155,8 @@ export const JournalRightSidebar: FC = () => {
       </div>
 
       {/* Journal Scope */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Scope of the Journal</h3>
+      <div className="bg-white rounded-lg p-4 pl-0">
+        <h3 className="font-semibold text-gray-800 mb-4">Scope of the Journal</h3>
         <div className="text-sm text-gray-600 space-y-2">
           <p>
             ResearchHub Journal publishes original research in all fields of science, including but
@@ -152,8 +187,8 @@ export const JournalRightSidebar: FC = () => {
       </div>
 
       {/* FAQ Section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Frequently Asked Questions</h3>
+      <div className="bg-white rounded-lg p-4 pl-0">
+        <h3 className="font-semibold text-gray-800 mb-4">Frequently Asked Questions</h3>
         <div className="space-y-2">
           {faqItems.map((item, index) => (
             <CollapsibleSection

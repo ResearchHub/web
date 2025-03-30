@@ -81,6 +81,7 @@ export interface FeedPaperContent {
   topics: Topic[];
   createdBy: AuthorProfile;
   journal: Journal;
+  workType?: 'paper' | 'preprint' | 'published';
 }
 
 // Simplified Content type - now Work, Bounty, Comment, or FeedPostEntry
@@ -247,6 +248,9 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           slug: content_object.slug || '',
           title: content_object.title || '',
           authors: content_object.authors?.map(transformAuthorProfile) || [],
+          workType:
+            content_object.workType ||
+            (content_object.journal?.status === 'preprint' ? 'preprint' : 'published'),
           topics: content_object.hub
             ? [
                 content_object.hub.id

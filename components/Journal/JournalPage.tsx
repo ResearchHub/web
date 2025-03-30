@@ -8,7 +8,7 @@ import { JournalTabs } from './JournalTabs';
 type JournalTab = 'all' | 'in-review' | 'published';
 
 export const JournalPage: FC = () => {
-  const [activeTab, setActiveTab] = useState<JournalTab>('all');
+  const [activeTab, setActiveTab] = useState<JournalTab>('published');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleTabChange = (tab: JournalTab) => {
@@ -44,8 +44,7 @@ export const JournalPage: FC = () => {
 
   const description = (
     <p className="text-gray-600 mt-2 mb-6">
-      Accelerating science through novel incentive structures that reward authors for reproducible
-      research and compensate peer reviewers for their expertise.
+      Accelerating science through open access publishing and peer review.
     </p>
   );
 

@@ -7,11 +7,12 @@ import { cn } from '@/utils/styles';
 import Icon from '@/components/ui/icons/Icon';
 
 interface ContentTypeBadgeProps {
-  type: 'paper' | 'funding' | 'bounty' | 'review' | 'article';
+  type: 'paper' | 'funding' | 'bounty' | 'review' | 'article' | 'preprint' | 'published';
   className?: string;
   size?: 'default' | 'sm' | 'lg' | 'xs';
   score?: number;
   maxScore?: number;
+  showTooltip?: boolean;
 }
 
 export const ContentTypeBadge = ({
@@ -20,6 +21,7 @@ export const ContentTypeBadge = ({
   size = 'default',
   score,
   maxScore = 5,
+  showTooltip = true,
 }: ContentTypeBadgeProps) => {
   if (type === 'paper') {
     return (
@@ -31,6 +33,74 @@ export const ContentTypeBadge = ({
         <Icon name="workType" size={16} color="#374151" />
         <span>Paper</span>
       </Badge>
+    );
+  }
+
+  if (type === 'preprint') {
+    const badge = (
+      <Badge
+        variant="default"
+        size={size}
+        className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
+      >
+        <Icon name="preprint" size={16} color="#6B7280" />
+        <span>Preprint</span>
+      </Badge>
+    );
+
+    if (!showTooltip) {
+      return badge;
+    }
+
+    return (
+      <Tooltip
+        content={
+          <div className="flex items-start gap-3 text-left">
+            <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center">
+              <Icon name="preprint" size={24} color="#374151" />
+            </div>
+            <div>Preprints are research papers that have not yet undergone formal peer review.</div>
+          </div>
+        }
+        position="top"
+        width="w-[360px]"
+      >
+        {badge}
+      </Tooltip>
+    );
+  }
+
+  if (type === 'published') {
+    const badge = (
+      <Badge
+        variant="default"
+        size={size}
+        className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
+      >
+        <Icon name="verify1" size={16} color="#10B981" />
+        <span>Published</span>
+      </Badge>
+    );
+
+    if (!showTooltip) {
+      return badge;
+    }
+
+    return (
+      <Tooltip
+        content={
+          <div className="flex items-start gap-3 text-left">
+            <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center">
+              <Icon name="verify1" size={24} color="#10B981" />
+            </div>
+            <div>Published papers have undergone peer review and been formally published.</div>
+          </div>
+        }
+        position="top"
+        width="w-[360px]"
+      >
+        {badge}
+      </Tooltip>
     );
   }
 
