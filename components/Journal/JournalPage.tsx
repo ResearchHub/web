@@ -8,7 +8,7 @@ import { JournalTabs } from './JournalTabs';
 type JournalTab = 'all' | 'in-review' | 'published';
 
 export const JournalPage: FC = () => {
-  const [activeTab, setActiveTab] = useState<JournalTab>('published');
+  const [activeTab, setActiveTab] = useState<JournalTab>('all');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleTabChange = (tab: JournalTab) => {

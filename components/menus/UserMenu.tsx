@@ -56,8 +56,8 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
     <button className="hover:ring-2 hover:ring-gray-200 rounded-full p-1 relative">
       <Avatar src={user.authorProfile?.profileImage} alt={user.fullName} size={34} />
       {user.isVerified && (
-        <div className="absolute -top-1 -right-1">
-          <VerifiedBadge size="md" />
+        <div className="absolute bottom-[15px] -right-0">
+          <VerifiedBadge size="lg" />
         </div>
       )}
     </button>

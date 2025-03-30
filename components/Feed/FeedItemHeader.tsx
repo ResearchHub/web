@@ -41,14 +41,6 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   // Format date consistently
   const formattedDate = timestamp instanceof Date ? timestamp : new Date(timestamp);
 
-  // Add debug logging to check author data
-  useEffect(() => {
-    if (author) {
-      console.log('FeedItemHeader author:', author);
-      console.log('Author id available:', author.id);
-    }
-  }, [author]);
-
   // Determine avatar size based on the size prop
   const avatarSize = size === 'xs' ? 'xs' : size === 'md' ? 'md' : 'sm';
   const avatarStackSize = avatarSize === 'xs' ? 'xxs' : avatarSize === 'md' ? 'md' : 'sm';
