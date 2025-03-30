@@ -35,6 +35,14 @@ export type IconName =
   | 'rscGold'
   | 'rscGold2'
   | 'rscGrey'
+  | 'rscBold1'
+  | 'rscBold2'
+  | 'RSC'
+  // Solid icons
+  | 'solidHand'
+  | 'solidNotebook'
+  | 'solidCoin'
+  | 'solidBook'
   // Peer review icons
   | 'peerReview1'
   | 'peerReview2'
@@ -50,6 +58,17 @@ export type IconName =
   // Submit icons
   | 'submit1'
   | 'submit2'
+  // Analytics icons
+  | 'upChart1'
+  | 'upChart2'
+  | 'gauge'
+  // Interactive icons
+  | 'settings'
+  | 'comment'
+  | 'upvote'
+  | 'report'
+  | 'lightening'
+  | 'solid'
   // Other icons
   | 'logo'
   | 'profile'
@@ -72,6 +91,7 @@ export type IconName =
   | 'flaskVector'
   | 'flaskFrame'
   | 'workType'
+  | 'solidEarn'
   | 'researchhubVector';
 
 interface IconProps {

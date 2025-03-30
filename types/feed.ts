@@ -9,6 +9,7 @@ import { Fundraise, transformFundraise } from './funding';
 import { Journal } from './journal';
 import { UserVoteType } from './reaction';
 import { User } from './user';
+import { stripHtml } from '@/utils/stringUtils';
 
 export type FeedActionType = 'contribute' | 'open' | 'publish' | 'post';
 
@@ -24,6 +25,7 @@ export interface FeedPostContent {
   textPreview: string;
   slug: string;
   title: string;
+  previewImage?: string; // URL to preview image if available
   authors: AuthorProfile[];
   topics: Topic[];
   createdBy: AuthorProfile;
@@ -81,6 +83,7 @@ export interface FeedPaperContent {
   topics: Topic[];
   createdBy: AuthorProfile;
   journal: Journal;
+  workType?: 'paper' | 'preprint' | 'published';
 }
 
 // Simplified Content type - now Work, Bounty, Comment, or FeedPostEntry
@@ -125,13 +128,19 @@ export interface RawApiFeedEntry {
   };
   metrics?: {
     votes: number;
-    comments: number;
+    comments?: number;
+    replies?: number;
+    review_metrics?: {
+      avg: number;
+      count: number;
+    };
   };
   author: {
     id: number;
     first_name: string;
     last_name: string;
-    description: string;
+    description?: string;
+    headline?: string;
     profile_image: string;
     user?: {
       id: number;
@@ -167,6 +176,18 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     timestamp: action_date,
     action: action.toLowerCase() as FeedActionType,
   };
+
+  // Pre-process metrics to ensure consistent format
+  const processedMetrics = feedEntry.metrics
+    ? {
+        votes: feedEntry.metrics.votes || 0,
+        comments:
+          feedEntry.metrics.comments !== undefined
+            ? feedEntry.metrics.comments
+            : feedEntry.metrics.replies || 0,
+        review_metrics: feedEntry.metrics.review_metrics,
+      }
+    : undefined;
 
   // Transform the content based on content_type
   let content: Content;
@@ -241,8 +262,23 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           createdDate: content_object.created_date,
           textPreview: content_object.abstract || '',
           slug: content_object.slug || '',
-          title: content_object.title || '',
-          authors: content_object.authors?.map(transformAuthorProfile) || [],
+          title: stripHtml(content_object.title || ''),
+          authors:
+            content_object.authors && content_object.authors.length > 0
+              ? content_object.authors.map(transformAuthorProfile)
+              : content_object.raw_authors && content_object.raw_authors.length > 0
+                ? content_object.raw_authors.map((author: any) => ({
+                    id: 0, // We don't have a real ID for raw authors
+                    fullName: `${author.first_name || ''} ${author.last_name || ''}`.trim(),
+                    profileImage: '',
+                    headline: '',
+                    profileUrl: '/profile/0',
+                    isClaimed: false,
+                  }))
+                : [],
+          workType:
+            content_object.workType ||
+            (content_object.journal?.status === 'preprint' ? 'preprint' : 'published'),
           topics: content_object.hub
             ? [
                 content_object.hub.id
@@ -258,13 +294,24 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
             ? transformAuthorProfile(author)
             : content_object.authors?.[0]
               ? transformAuthorProfile(content_object.authors[0])
-              : {
-                  id: 0,
-                  fullName: 'Unknown Author',
-                  profileImage: '',
-                  headline: '',
-                  profileUrl: '/profile/0',
-                },
+              : Array.isArray(content_object.raw_authors) && content_object.raw_authors.length > 0
+                ? {
+                    id: 0,
+                    fullName:
+                      `${content_object.raw_authors[0].first_name || ''} ${content_object.raw_authors[0].last_name || ''}`.trim(),
+                    profileImage: '',
+                    headline: '',
+                    profileUrl: '/profile/0',
+                    isClaimed: false,
+                  }
+                : {
+                    id: 0,
+                    fullName: 'Unknown Author',
+                    profileImage: '',
+                    headline: '',
+                    profileUrl: '/profile/0',
+                    isClaimed: false,
+                  },
           journal: content_object.journal || {
             id: 0,
             name: '',
@@ -314,6 +361,14 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           review: content_object.review || null,
         };
 
+        // Check if the comment is associated with a paper or post for related work
+        const relatedDocumentId = content_object.paper?.id || content_object.post?.id || undefined;
+        const relatedDocumentContentType = content_object.paper
+          ? 'paper'
+          : content_object.post
+            ? 'post'
+            : undefined;
+
         // Transform the comment to get score and other properties
         const transformedComment = transformComment(commentData);
 
@@ -338,8 +393,10 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                 }
               : undefined,
           },
-          relatedDocumentId: content_object.object_id || content_object.thread_id,
-          relatedDocumentContentType: content_object.document_type as ContentType,
+          relatedDocumentId:
+            relatedDocumentId || content_object.object_id || content_object.thread_id,
+          relatedDocumentContentType:
+            relatedDocumentContentType || (content_object.document_type as ContentType),
         };
 
         // Add review data if available
@@ -351,13 +408,18 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
 
         content = commentContent;
 
-        // If the comment is associated with a paper, transform it to a Work and set as relatedWork
-        if (content_object?.paper?.id) {
-          console.log('content_object.paper', content_object.paper);
+        // If the comment is associated with a paper or post, transform it to a Work and set as relatedWork
+        if (content_object.paper) {
           try {
             relatedWork = transformPaper(content_object.paper);
           } catch (paperError) {
             console.error('Error transforming paper for comment:', paperError);
+          }
+        } else if (content_object.post) {
+          try {
+            relatedWork = transformPost(content_object.post);
+          } catch (postError) {
+            console.error('Error transforming post for comment:', postError);
           }
         }
       } catch (error) {
@@ -384,7 +446,8 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           createdDate: content_object.created_date,
           textPreview: content_object.renderable_text || '',
           slug: content_object.slug || '',
-          title: content_object.title || '',
+          title: stripHtml(content_object.title || ''),
+          previewImage: content_object.image_url || '',
           authors: [transformAuthorProfile(author)],
           topics: content_object.hub
             ? [
@@ -425,7 +488,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         // Create a minimal object that can be transformed to a Work
         const genericData = {
           id: content_object.id || id,
-          title: content_object.title || `${content_type} #${content_object.id || id}`,
+          title: stripHtml(content_object.title || `${content_type} #${content_object.id || id}`),
           content_type: 'post',
           slug: content_object.slug || `${content_type.toLowerCase()}/${content_object.id || id}`,
           created_date: created_date,
@@ -450,14 +513,12 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     content,
     relatedWork,
     contentType,
-    metrics: feedEntry.metrics
+    metrics: processedMetrics
       ? {
-          votes: feedEntry.metrics.votes || 0,
-          comments: feedEntry.metrics.comments || 0,
-          ...(contentType === 'COMMENT' &&
-          (content as FeedCommentContent).comment.commentType === 'REVIEW'
-            ? { reviewScore: (content as FeedCommentContent).review?.score || 0 }
-            : {}),
+          votes: processedMetrics.votes || 0,
+          comments: processedMetrics.comments || 0,
+          saves: 0, // Default value for saves
+          reviewScore: getReviewScore(processedMetrics, contentType, content),
         }
       : undefined,
     raw: feedEntry,
@@ -471,14 +532,43 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
 };
 
 /**
+ * Helper function to get review score from various sources
+ */
+function getReviewScore(
+  metrics: RawApiFeedEntry['metrics'] | undefined,
+  contentType: FeedContentType,
+  content: Content
+): number {
+  // First check if we have review_metrics from the API
+  if (metrics?.review_metrics?.avg) {
+    return metrics.review_metrics.avg;
+  }
+
+  // For REVIEW comments, use the review score if available
+  const commentContent = content as FeedCommentContent;
+  if (
+    contentType === 'COMMENT' &&
+    commentContent?.comment?.commentType === 'REVIEW' &&
+    commentContent?.review?.score !== undefined
+  ) {
+    return commentContent.review.score;
+  }
+
+  // Default to 0 if no review score is found
+  return 0;
+}
+
+/**
  * Transforms a Comment object into a FeedEntry that can be used with FeedItemComment component
  * @param comment The Comment object to transform
  * @param contentType The content type of the related document (paper, post, etc.)
+ * @param relatedDocument Optional related work (paper or post) to include with the comment
  * @returns A FeedEntry object with the comment as content
  */
 export const transformCommentToFeedItem = (
   comment: Comment,
-  contentType: ContentType
+  contentType: ContentType,
+  relatedDocument?: Work
 ): FeedEntry => {
   // Create a FeedCommentContent object from the comment
   const commentContent: FeedCommentContent = {
@@ -519,13 +609,12 @@ export const transformCommentToFeedItem = (
     action: 'contribute', // Default action for comments
     content: commentContent,
     contentType: 'COMMENT',
+    relatedWork: relatedDocument, // Add the related document if provided
     metrics: {
       votes: comment.score || 0,
       comments: comment.childrenCount || 0,
-      saves: 0, // Add the required saves property
-      ...(comment.commentType === 'REVIEW'
-        ? { reviewScore: comment.reviewScore || comment.score || 0 }
-        : {}),
+      saves: 0, // Required property
+      reviewScore: comment.commentType === 'REVIEW' ? comment.reviewScore || comment.score || 0 : 0,
     },
     userVote: comment.userVote,
   };
@@ -535,11 +624,13 @@ export const transformCommentToFeedItem = (
  * Transforms a Comment with bounties into a FeedEntry that can be used with FeedItemBounty component
  * @param comment The Comment object with bounties to transform
  * @param contentType The content type of the related document (paper, post, etc.)
+ * @param relatedDocument Optional related work (paper or post) to include with the bounty
  * @returns A FeedEntry object with the bounty as content
  */
 export const transformBountyCommentToFeedItem = (
   comment: Comment,
-  contentType: ContentType
+  contentType: ContentType,
+  relatedDocument?: Work
 ): FeedEntry => {
   // Ensure the comment has bounties
   if (!comment.bounties || comment.bounties.length === 0) {
@@ -573,10 +664,12 @@ export const transformBountyCommentToFeedItem = (
     action: 'open', // Default action for bounties
     content: bountyContent,
     contentType: 'BOUNTY',
+    relatedWork: relatedDocument, // Add the related document if provided
     metrics: {
       votes: comment.score || 0,
       comments: comment.childrenCount || 0,
-      saves: 0, // Add the required saves property
+      saves: 0, // Required property
+      reviewScore: 0, // Default value for reviewScore
     },
     userVote: comment.userVote,
   };

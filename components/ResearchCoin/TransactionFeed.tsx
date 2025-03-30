@@ -10,10 +10,6 @@ import { FileDown, LogIn, Coins, HelpCircle, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const INITIAL_PAGE = 1;
-// Trigger loading when we're 500px from the bottom
-const OBSERVER_ROOT_MARGIN = '0px 0px 500px 0px';
-// Trigger as soon as even 1% of the target is visible
-const OBSERVER_THRESHOLD = 0.01;
 const LOADING_SKELETON_COUNT = 3;
 
 interface TransactionFeedProps {
@@ -32,13 +28,11 @@ export function TransactionFeed({
   const { data: session, status } = useSession();
   const [transactions, setTransactions] = useState<TransactionAPIRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true); // For initial load
-  const [isLoadingMore, setIsLoadingMore] = useState(false); // For infinite scroll
+  const [isLoadingMore, setIsLoadingMore] = useState(false); // For loading more on button click
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(INITIAL_PAGE);
   const [hasNextPage, setHasNextPage] = useState(true);
 
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const observerTarget = useRef<HTMLDivElement>(null);
   const abortController = useRef<AbortController | null>(null);
 
   // Initial data fetch
@@ -52,40 +46,6 @@ export function TransactionFeed({
 
     fetchTransactions(INITIAL_PAGE);
   }, [session, status]);
-
-  // Set up infinite scroll
-  useEffect(() => {
-    // Don't observe while initial loading
-    if (!hasNextPage || isLoading) return;
-
-    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
-      const [entry] = entries;
-      if (entry?.isIntersecting && !isLoadingMore) {
-        handleLoadMore();
-      }
-    };
-
-    if (observerRef.current) {
-      observerRef.current.disconnect();
-    }
-
-    observerRef.current = new IntersectionObserver(handleIntersection, {
-      root: null,
-      rootMargin: OBSERVER_ROOT_MARGIN,
-      threshold: OBSERVER_THRESHOLD,
-    });
-
-    const currentTarget = observerTarget.current;
-    if (currentTarget) {
-      observerRef.current.observe(currentTarget);
-    }
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [hasNextPage, isLoading, isLoadingMore]);
 
   // Notify parent of transactions changes
   useEffect(() => {
@@ -283,17 +243,28 @@ export function TransactionFeed({
                 transaction={formatTransaction(transaction, exchangeRate)}
               />
             ))}
-
-            {/* Infinite scroll trigger and loading feedback */}
-            <div ref={observerTarget} className="min-h-[20px]" aria-hidden="true" />
           </div>
 
           {/* Loading more feedback */}
-          {isLoadingMore && hasNextPage && (
+          {isLoadingMore && (
             <div className="space-y-1 animate-fadeIn mt-1">
               {[...Array(LOADING_SKELETON_COUNT)].map((_, index) => (
                 <TransactionSkeleton key={index} />
               ))}
+            </div>
+          )}
+
+          {/* Load More button */}
+          {!isLoading && hasNextPage && (
+            <div className="mt-8 text-center">
+              <Button
+                onClick={handleLoadMore}
+                disabled={isLoadingMore}
+                variant="link"
+                className="text-indigo-600 hover:text-indigo-500"
+              >
+                {isLoadingMore ? 'Loading...' : 'Load more'}
+              </Button>
             </div>
           )}
         </>

@@ -43,11 +43,6 @@ export const BountyMetadataLine = ({
           <span className={`${expiringSoon ? 'text-orange-600 font-medium' : 'text-gray-700'}`}>
             {deadlineText}
           </span>
-          {expiringSoon && (
-            <span className="text-xs font-medium bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full">
-              Expiring Soon
-            </span>
-          )}
         </div>
       </div>
     </div>

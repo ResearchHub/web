@@ -4,6 +4,18 @@ import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 
 export type FundraiseStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
 
+export interface Contribution {
+  amount: number;
+  date: string;
+}
+
+export interface Contributor {
+  id: ID;
+  authorProfile: AuthorProfile;
+  totalContribution: number;
+  contributions: Contribution[];
+}
+
 export interface Fundraise {
   id: ID;
   status: FundraiseStatus;
@@ -22,7 +34,7 @@ export interface Fundraise {
 
   contributors: {
     numContributors: number;
-    topContributors: AuthorProfile[];
+    topContributors: Contributor[];
   };
 
   createdDate: string;
@@ -41,9 +53,15 @@ export const transformFundraise = createTransformer<any, Fundraise>((raw) => ({
   },
   contributors: {
     numContributors: raw.contributors.total,
-    topContributors: raw.contributors.top.map((contributor: any) =>
-      transformAuthorProfile(contributor.author_profile)
-    ),
+    topContributors: raw.contributors.top.map((contributor: any) => ({
+      id: contributor.id,
+      authorProfile: transformAuthorProfile(contributor.author_profile),
+      totalContribution: contributor.total_contribution,
+      contributions: contributor.contributions.map((contribution: any) => ({
+        amount: contribution.amount,
+        date: contribution.date,
+      })),
+    })),
   },
   status: raw.status as FundraiseStatus,
   goalCurrency: raw.goal_currency as Currency,

@@ -27,6 +27,7 @@ import { Loader2 } from 'lucide-react';
 import { DOISection } from '@/components/work/components/DOISection';
 import { getFieldErrorMessage } from '@/utils/form';
 import { useNotebookContext } from '@/contexts/NotebookContext';
+import { useNonprofitLink } from '@/hooks/useNonprofitLink';
 
 // Feature flags for conditionally showing sections
 const FEATURE_FLAG_RESEARCH_COIN = false;
@@ -40,12 +41,14 @@ interface PublishingFormProps {
 const getButtonText = ({
   isLoadingUpsert,
   isRedirecting,
+  isLinkingNonprofit,
   articleType,
   isJournalEnabled,
   hasWorkId,
 }: {
   isLoadingUpsert: boolean;
   isRedirecting: boolean;
+  isLinkingNonprofit: boolean;
   articleType: string;
   isJournalEnabled: boolean;
   hasWorkId: boolean;
@@ -53,10 +56,12 @@ const getButtonText = ({
   switch (true) {
     case isLoadingUpsert:
       return 'Publishing...';
+    case isLinkingNonprofit:
+      return 'Linking nonprofit...';
     case isRedirecting:
       return 'Redirecting...';
     case hasWorkId:
-      return 'Re-publish';
+      return 'Publish';
     case Boolean(FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled):
       return 'Pay & Publish';
     default:
@@ -68,6 +73,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   const { currentNote: note, editor } = useNotebookContext();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const { linkNonprofitToFundraise, isLoading: isLinkingNonprofit } = useNonprofitLink();
 
   const methods = useForm<PublishingFormData>({
     defaultValues: {
@@ -77,6 +83,8 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       nftSupply: '1000',
       isJournalEnabled: false,
       budget: '',
+      selectedNonprofit: null,
+      departmentLabName: '',
     },
     resolver: zodResolver(publishingFormSchema),
     mode: 'onChange',
@@ -93,6 +101,8 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         nftSupply: '1000',
         isJournalEnabled: false,
         budget: '',
+        selectedNonprofit: null,
+        departmentLabName: '',
       });
     }
   }, [note?.id, methods]);
@@ -226,6 +236,9 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       const title = getDocumentTitleFromEditor(editor);
       const formData = methods.getValues();
 
+      // Get the fundraiseId from the existing post if it exists (for updates)
+      const existingFundraiseId = note?.post?.fundraise?.id;
+
       const response = await upsertPost(
         {
           budget: formData.budget || '0',
@@ -247,6 +260,41 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         },
         formData.workId
       );
+
+      // If a nonprofit is selected, link it to the fundraise
+      const fundraiseId = response.fundraiseId || existingFundraiseId;
+
+      if (formData.selectedNonprofit && fundraiseId) {
+        try {
+          // Create the nonprofit and link it to the fundraise using consistent camelCase naming
+          const nonprofitData = {
+            name: formData.selectedNonprofit.name,
+            ein: formData.selectedNonprofit.ein,
+            endaomentOrgId:
+              formData.selectedNonprofit.endaomentOrgId || formData.selectedNonprofit.id,
+            baseWalletAddress: formData.selectedNonprofit.baseWalletAddress,
+          };
+
+          await linkNonprofitToFundraise(
+            nonprofitData,
+            fundraiseId,
+            formData.departmentLabName || ''
+          );
+        } catch (error: unknown) {
+          console.error('Error linking nonprofit:', error);
+
+          // Handle specific error for "Fundraise not found"
+          if (error instanceof Error && error.message.includes('Fundraise not found')) {
+            toast.error('The fundraise was not found. Please try publishing again.');
+            setIsRedirecting(false);
+            setShowConfirmModal(false);
+            return; // Don't proceed with redirect
+          }
+
+          // Don't block the redirect if the nonprofit linking fails
+          toast.error('Nonprofit organization was not linked successfully.');
+        }
+      }
 
       setIsRedirecting(true);
 
@@ -272,9 +320,12 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     <FormProvider {...methods}>
       <div className="w-82 flex flex-col sticky right-0 top-0 bg-white relative h-[calc(100vh-64px)] lg:h-screen">
         {/* Processing overlay */}
-        {(isLoadingUpsert || isRedirecting) && (
+        {(isLoadingUpsert || isRedirecting || isLinkingNonprofit) && (
           <div className="absolute inset-0 bg-white/50 z-50 flex flex-col items-center justify-center">
             <Loader2 className="h-8 w-8 text-indigo-600 animate-spin mb-2" />
+            {isLinkingNonprofit && (
+              <p className="text-sm text-gray-600">Linking nonprofit organization...</p>
+            )}
           </div>
         )}
 
@@ -311,11 +362,12 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             variant="default"
             onClick={handlePublishClick}
             className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isLoadingUpsert || isRedirecting}
+            disabled={isLoadingUpsert || isRedirecting || isLinkingNonprofit}
           >
             {getButtonText({
               isLoadingUpsert,
               isRedirecting,
+              isLinkingNonprofit,
               articleType,
               isJournalEnabled: isJournalEnabled ?? false,
               hasWorkId: Boolean(methods.watch('workId')),

@@ -10,9 +10,10 @@ import {
   Play,
   Star,
   AlertTriangle,
+  FlaskConicalOff,
 } from 'lucide-react';
 import { Work } from '@/types/work';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { WorkRightSidebar } from './WorkRightSidebar';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { WorkLineItems } from './WorkLineItems';
@@ -27,7 +28,8 @@ import { WorkTabs, TabType } from './WorkTabs';
 import { Badge } from '@/components/ui/Badge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
-import { PreprintBadge } from '@/components/ui/PreprintBadge';
+import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
+import { Button } from '@/components/ui/Button';
 
 interface WorkDocumentProps {
   work: Work;
@@ -38,15 +40,15 @@ interface WorkDocumentProps {
 export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocumentProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
 
   // Initialize activeTab from URL or props
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     // Check if URL contains a tab indicator
-    const path = window.location.pathname;
-    if (path.includes('/conversation')) return 'comments';
-    if (path.includes('/reviews')) return 'reviews';
-    if (path.includes('/bounties')) return 'bounties';
+    if (pathname.includes('/conversation')) return 'conversation';
+    if (pathname.includes('/reviews')) return 'reviews';
+    if (pathname.includes('/bounties')) return 'bounties';
     return defaultTab;
   });
 
@@ -76,18 +78,45 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
       case 'paper':
         return (
           <>
-            <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4">Abstract</h2>
-              <p className="text-gray-700">{work.abstract}</p>
-            </div>
+            {/* Abstract - Only show if no PDF or if PDF can't be displayed */}
+            {(!work.formats.find((format) => format.type === 'PDF')?.url ||
+              !work.pdfCopyrightAllowsDisplay) && (
+              <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+                <h2 className="text-xl font-semibold mb-4">Abstract</h2>
+                <p className="text-gray-700">{work.abstract}</p>
+              </div>
+            )}
 
             {/* PDF Viewer */}
             {work.formats.find((format) => format.type === 'PDF')?.url && (
-              <div className="bg-white rounded-lg shadow-sm border mb-6">
-                <DocumentViewer
-                  url={work.formats.find((format) => format.type === 'PDF')?.url || ''}
-                  className="min-h-[800px]"
-                />
+              <div className="bg-white rounded-lg shadow-sm border mb-6 relative">
+                {work.pdfCopyrightAllowsDisplay ? (
+                  <DocumentViewer
+                    url={work.formats.find((format) => format.type === 'PDF')?.url || ''}
+                    className="min-h-[800px]"
+                  />
+                ) : (
+                  <div className="p-8 text-center">
+                    <FlaskConicalOff className="h-10 w-10 text-indigo-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Content is restricted</h3>
+                    <p className="text-gray-600 mb-4">
+                      This paper's license is marked as closed access or non-commercial and cannot
+                      be viewed on ResearchHub.
+                    </p>
+                    <Button
+                      variant="secondary"
+                      onClick={() =>
+                        window.open(
+                          work.doi ? `https://doi.org/${work.doi}` : '#',
+                          '_blank',
+                          'noopener,noreferrer'
+                        )
+                      }
+                    >
+                      Visit External Site
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </>
@@ -121,7 +150,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
             />
           </div>
         );
-      case 'comments':
+      case 'conversation':
         return (
           <div className="space-y-6" key="comments-tab">
             <CommentFeed
@@ -180,10 +209,10 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
         </div>
       )}
       {/* Title & Actions */}
-      {work.type === 'preprint' && <PreprintBadge size="lg" />}
+      {work.type === 'preprint' && <ContentTypeBadge type="preprint" size="lg" />}
       <PageHeader title={work.title} className="text-3xl mt-2" />
       <button
-        className="lg:hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+        className="lg:!hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
         onClick={() => setShowMobileMetrics(true)}
       >
         <BarChart2 className="h-4 w-4" />

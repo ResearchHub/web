@@ -100,7 +100,7 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
     <div className="p-1">
       <div className="font-semibold text-orange-700 mb-0.5 flex items-center gap-1 [u">
         <ResearchCoinIcon size={14} outlined={false} color={colors.iconColor} />
-        <span>{amount.toLocaleString()} RSC</span>
+        <span>{Math.round(amount).toLocaleString()} RSC</span>
       </div>
       {usdValue ? (
         <div className="text-gray-700 text-xs">≈ ${usdValue} USD</div>
@@ -148,13 +148,17 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
         )}
         {inverted ? (
           <div className="flex items-center">
-            <span className={cn(colors.textDark, 'font-medium')}>{amount.toLocaleString()}</span>
+            <span className={cn(colors.textDark, 'font-medium')}>
+              {Math.round(amount).toLocaleString()}
+            </span>
             {showText && <span className={cn(colors.rscLabel, 'ml-1')}>RSC</span>}
             {/* {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>} */}
           </div>
         ) : (
           <div className="flex items-center">
-            <span className={cn(colors.text, 'font-medium')}>{amount.toLocaleString()}</span>
+            <span className={cn(colors.text, 'font-medium')}>
+              {Math.round(amount).toLocaleString()}
+            </span>
             {showText && <span className={cn(colors.rscLabel, 'ml-1')}>RSC</span>}
             {/* {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>} */}
           </div>
@@ -185,18 +189,20 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
       )}
       {variant === 'award' ? (
         <div className="flex items-center">
-          <span className={cn(colors.awardText, 'font-medium')}>+ {amount.toLocaleString()}</span>
+          <span className={cn(colors.awardText, 'font-medium')}>
+            + {Math.round(amount).toLocaleString()}
+          </span>
           {showText && <span className={cn(colors.awardText, 'ml-1')}>Awarded</span>}
         </div>
       ) : inverted ? (
         <div className="flex items-center">
-          <span className={cn(colors.textDark)}>{amount.toLocaleString()}</span>
+          <span className={cn(colors.textDark)}>{Math.round(amount).toLocaleString()}</span>
           {showText && <span className={cn(colors.rscLabel, 'ml-1')}>RSC</span>}
           {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>}
         </div>
       ) : (
         <div className="flex items-center">
-          <span className={cn(colors.text)}>{amount.toLocaleString()}</span>
+          <span className={cn(colors.text)}>{Math.round(amount).toLocaleString()}</span>
           {showText && <span className={cn(colors.rscLabel, 'ml-1')}>RSC</span>}
           {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>}
         </div>

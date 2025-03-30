@@ -91,6 +91,17 @@ const TipTapRenderer: React.FC<TipTapRendererProps> = ({
   truncate = false,
   maxLength = 300,
 }) => {
+  // Log regardless of debug flag to ensure we see this
+  console.log('TipTapRenderer COMPONENT RENDER STARTED');
+
+  if (debug) {
+    console.log('||TipTapRenderer props received:', {
+      truncate,
+      maxLength,
+      contentType: content?.type || 'unknown',
+    });
+  }
+
   // Handle different content formats
   let documentContent = content;
 
@@ -123,10 +134,11 @@ const TipTapRenderer: React.FC<TipTapRendererProps> = ({
     const fullText = extractPlainText(documentContent);
     shouldTruncate = fullText.length > maxLength;
 
-    if (shouldTruncate && debug) {
-      console.log(
-        `Content length (${fullText.length}) exceeds maxLength (${maxLength}), will truncate`
-      );
+    if (debug) {
+      console.log('||TipTapRenderer fullText.length', fullText.length);
+      console.log('||TipTapRenderer maxLength', maxLength);
+      console.log('||TipTapRenderer shouldTruncate', shouldTruncate);
+      console.log('||TipTapRenderer truncate param', truncate);
     }
   }
 
@@ -171,6 +183,9 @@ const RenderNode: React.FC<RenderNodeProps> = ({
   maxLength = 300,
   currentLength = 0,
 }) => {
+  // Log regardless of debug flag
+  console.log('RenderNode FUNCTION CALLED', node?.type || 'unknown type');
+
   if (!node) {
     if (debug) console.log('No node to render');
     return null;
@@ -181,12 +196,17 @@ const RenderNode: React.FC<RenderNodeProps> = ({
 
   // If we've already exceeded the max length and truncation is enabled, don't render more
   if (truncate && textLengthSoFar >= maxLength) {
+    if (debug)
+      console.log('||RenderNode: Skipping node due to length', textLengthSoFar, '>=', maxLength);
     return null;
   }
 
   // Handle document node
   if (node.type === 'doc') {
-    if (debug) console.log('Rendering doc node with', node.content?.length || 0, 'children');
+    if (debug) {
+      console.log('Rendering doc node with', node.content?.length || 0, 'children');
+      console.log('||RenderNode doc: truncate=', truncate, 'maxLength=', maxLength);
+    }
 
     // For truncation, we need to render children one by one and track length
     if (truncate) {
@@ -195,7 +215,16 @@ const RenderNode: React.FC<RenderNodeProps> = ({
 
       for (const child of node.content || []) {
         // If we've already exceeded max length, stop rendering
-        if (currentTextLength >= maxLength) break;
+        if (currentTextLength >= maxLength) {
+          if (debug)
+            console.log(
+              '||RenderNode: Breaking loop due to length',
+              currentTextLength,
+              '>=',
+              maxLength
+            );
+          break;
+        }
 
         // Render this child with current text length
         const childNode = (
@@ -213,11 +242,20 @@ const RenderNode: React.FC<RenderNodeProps> = ({
         renderedChildren.push(childNode);
 
         // Update text length by adding this child's text
-        currentTextLength += extractPlainText(child).length;
+        const childTextLength = extractPlainText(child).length;
+        currentTextLength += childTextLength;
+        if (debug)
+          console.log(
+            '||RenderNode: Child text length',
+            childTextLength,
+            'Current total',
+            currentTextLength
+          );
       }
 
       // If we truncated, add ellipsis
       if (currentTextLength >= maxLength && node.content?.length > renderedChildren.length) {
+        if (debug) console.log('||RenderNode: Adding ellipsis');
         renderedChildren.push(<span key="ellipsis">...</span>);
       }
 
@@ -245,12 +283,26 @@ const RenderNode: React.FC<RenderNodeProps> = ({
   // Handle text nodes
   if (node.type === 'text') {
     const text = node.text || '';
+    console.log(
+      'TEXT NODE',
+      text.substring(0, 20) + '...',
+      'truncate:',
+      truncate,
+      'textLengthSoFar:',
+      textLengthSoFar
+    );
 
     // For truncation, we may need to cut the text
     if (truncate && textLengthSoFar + text.length > maxLength) {
       const remainingLength = maxLength - textLengthSoFar;
       const truncatedText = text.substring(0, remainingLength);
-      return renderTextWithMarks(truncatedText, node.marks || []);
+      console.log('TRUNCATING TEXT to', truncatedText + '...');
+      return (
+        <>
+          {renderTextWithMarks(truncatedText, node.marks || [])}
+          <strong style={{ color: 'red' }}>[...]</strong>
+        </>
+      );
     }
 
     return renderTextWithMarks(text, node.marks || []);

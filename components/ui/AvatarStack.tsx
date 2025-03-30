@@ -4,12 +4,14 @@ import { FC } from 'react';
 import { Avatar } from './Avatar';
 import { Tooltip } from './Tooltip';
 import { cn } from '@/utils/styles';
+import { AuthorTooltip } from './AuthorTooltip';
 
 interface AvatarStackProps {
   items: {
     src: string;
     alt: string;
     tooltip?: string;
+    authorId?: number;
   }[];
   size?: 'xxs' | 'xs' | 'sm' | 'md';
   maxItems?: number;
@@ -31,6 +33,7 @@ interface AvatarStackProps {
     src: string;
     alt: string;
     tooltip?: string;
+    authorId?: number;
   }[];
   /** Label for the extra count tooltip */
   extraCountLabel?: string;
@@ -98,17 +101,28 @@ export const AvatarStack: FC<AvatarStackProps> = ({
           zIndex: reverseOrder ? displayItems.length - index : index,
         }}
       >
-        <Avatar src={item.src} alt={item.alt} size={size} className={`ring-2 ${ringColorClass}`} />
+        <Avatar
+          src={item.src}
+          alt={item.alt}
+          size={size}
+          className={`ring-2 ${ringColorClass}`}
+          authorId={item.authorId}
+        />
       </div>
     );
 
     if (disableTooltip) return avatar;
 
-    return (
-      <Tooltip key={`${item.alt}-${index}`} content={item.tooltip || item.alt}>
-        {avatar}
-      </Tooltip>
-    );
+    // Only add tooltip if authorId is not present (since Avatar will handle that case)
+    if (!item.authorId && item.tooltip) {
+      return (
+        <Tooltip key={`${item.alt}-${index}`} content={item.tooltip || item.alt}>
+          {avatar}
+        </Tooltip>
+      );
+    }
+
+    return avatar;
   };
 
   // Generate tooltip content for extra count

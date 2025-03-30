@@ -13,56 +13,90 @@ interface QuillMention {
 // Utility function to convert Quill Delta to HTML
 export const convertDeltaToHTML = (delta: { ops: any[] }) => {
   // Basic conversion of Quill Delta to HTML
-  return delta.ops.reduce((html, op) => {
+  let html = '';
+  let inList = false;
+  let listType: 'bullet' | 'ordered' | null = null;
+  let listItems: string[] = [];
+
+  const flushList = () => {
+    if (listItems.length > 0) {
+      const listTag = listType === 'ordered' ? 'ol' : 'ul';
+      html += `<${listTag}>${listItems.join('')}</${listTag}>`;
+      listItems = [];
+      inList = false;
+      listType = null;
+    }
+  };
+
+  delta.ops.forEach((op) => {
     if (typeof op.insert === 'string') {
       let text = op.insert;
-      // Handle newlines
-      text = text.replace(/\n/g, '<br />');
-      if (op.attributes) {
-        if (op.attributes.bold) text = `<strong>${text}</strong>`;
-        if (op.attributes.italic) text = `<em>${text}</em>`;
-        if (op.attributes.underline) text = `<u>${text}</u>`;
-        if (op.attributes.strike) text = `<s>${text}</s>`;
-        if (op.attributes.code) text = `<code>${text}</code>`;
-        if (op.attributes.link) text = `<a href="${op.attributes.link}">${text}</a>`;
-        if (op.attributes.list === 'bullet') text = `<li>${text}</li>`;
-        if (op.attributes.list === 'ordered') text = `<li>${text}</li>`;
+      const attributes = op.attributes || {};
+
+      // Handle list items
+      if (attributes.list) {
+        if (!inList || listType !== attributes.list) {
+          // Flush any current list
+          flushList();
+          inList = true;
+          listType = attributes.list;
+        }
+
+        // Format text with inline attributes
+        if (attributes.bold) text = `<strong>${text}</strong>`;
+        if (attributes.italic) text = `<em>${text}</em>`;
+        if (attributes.underline) text = `<u>${text}</u>`;
+        if (attributes.strike) text = `<s>${text}</s>`;
+        if (attributes.code) text = `<code>${text}</code>`;
+        if (attributes.link) text = `<a href="${attributes.link}">${text}</a>`;
+
+        // Add to list items
+        listItems.push(`<li>${text}</li>`);
+      } else {
+        // Flush any current list
+        if (inList) {
+          flushList();
+        }
+
+        // Handle newlines
+        if (text === '\n') {
+          html += '<br />';
+        } else {
+          // Apply inline formatting
+          if (attributes.bold) text = `<strong>${text}</strong>`;
+          if (attributes.italic) text = `<em>${text}</em>`;
+          if (attributes.underline) text = `<u>${text}</u>`;
+          if (attributes.strike) text = `<s>${text}</s>`;
+          if (attributes.code) text = `<code>${text}</code>`;
+          if (attributes.link) text = `<a href="${attributes.link}">${text}</a>`;
+          html += text;
+        }
       }
-      return html + text;
     } else if (op.insert && typeof op.insert === 'object') {
+      // Flush any current list before inserting special objects
+      if (inList) {
+        flushList();
+      }
+
       if (op.insert.image) {
-        return html + `<img src="${op.insert.image}" />`;
+        html += `<img src="${op.insert.image}" />`;
       } else if (op.insert.video) {
-        return (
-          html +
-          `<div class="video-embed"><iframe src="${op.insert.video}" frameborder="0" allowfullscreen></iframe></div>`
-        );
+        html += `<div class="video-embed"><iframe src="${op.insert.video}" frameborder="0" allowfullscreen></iframe></div>`;
       } else if (op.insert['peer-review-rating']) {
         const rating = op.insert['peer-review-rating'] as PeerReviewRating;
-        return (
-          html +
-          `<div class="peer-review-rating">
+        html += `<div class="peer-review-rating">
           <div class="rating-category">${rating.category}</div>
           <div class="rating-value">${'★'.repeat(rating.rating)}${'☆'.repeat(5 - rating.rating)}</div>
-        </div>`
-        );
+        </div>`;
       } else if (op.insert.mention) {
         const mention = op.insert.mention as QuillMention;
-        return (
-          html +
-          `<span class="mention" data-user-id="${mention.id}" data-author-profile-id="${mention.authorProfileId || ''}">${mention.denotationChar}${mention.value}</span>`
-        );
+        html += `<span class="mention" data-user-id="${mention.id}" data-author-profile-id="${mention.authorProfileId || ''}">${mention.denotationChar}${mention.value}</span>`;
       }
     }
+  });
 
-    // Handle list wrappers
-    if (op.attributes?.list === 'bullet') {
-      return `<ul>${html}</ul>`;
-    }
-    if (op.attributes?.list === 'ordered') {
-      return `<ol>${html}</ol>`;
-    }
+  // Flush any remaining list
+  flushList();
 
-    return html;
-  }, '');
+  return html;
 };
