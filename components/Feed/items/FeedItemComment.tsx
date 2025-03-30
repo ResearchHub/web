@@ -46,7 +46,7 @@ const FeedItemCommentBody: FC<{
 
   // Get related work if available
   const relatedWork = entry.relatedWork;
-
+  console.log('***************', relatedWork);
   return (
     <div className="mb-4">
       {/* Review information for reviews (optional additional display) */}
@@ -92,7 +92,6 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   actionLabels,
   showTooltips = true, // Default to showing tooltips
 }) => {
-  console.log('&entry', entry);
   // Extract the comment entry from the entry's content
   const commentEntry = entry.content as FeedCommentContent;
   const comment = commentEntry.comment;

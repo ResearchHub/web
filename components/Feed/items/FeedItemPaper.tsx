@@ -10,6 +10,8 @@ import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { truncateText } from '@/utils/stringUtils';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/styles';
+import Icon from '@/components/ui/icons/Icon';
+import { JournalStatusBadge } from '@/components/ui/JournalStatusBadge';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
@@ -29,11 +31,25 @@ const FeedItemPaperBody: FC<{
   // Get topics/tags for display
   const topics = paper.topics || [];
 
+  // Determine the badge type based on the paper's status
+  const getPaperBadgeType = () => {
+    // Always use 'paper' for the primary badge
+    return 'paper' as const;
+  };
+
+  // Determine the journal status
+  const getJournalStatus = () => {
+    return (paper.journal as any)?.status === 'preprint' || paper.workType === 'preprint'
+      ? 'in-review'
+      : 'published';
+  };
+
   return (
     <div className="mb-4">
       {/* Badges and Topics */}
       <div className="flex flex-wrap gap-2 mb-3" onClick={(e) => e.stopPropagation()}>
-        <ContentTypeBadge type="paper" />
+        <ContentTypeBadge type={getPaperBadgeType()} />
+
         {paper.journal && paper.journal.name && (
           <TopicAndJournalBadge
             type="journal"
@@ -51,6 +67,9 @@ const FeedItemPaperBody: FC<{
             imageUrl={topic.imageUrl}
           />
         ))}
+
+        {/* Status badge - using the new JournalStatusBadge component */}
+        {paper.journal && <JournalStatusBadge status={getJournalStatus()} />}
       </div>
 
       {/* Paper Title */}

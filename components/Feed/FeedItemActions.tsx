@@ -16,7 +16,7 @@ import { useRouter } from 'next/navigation';
 
 interface ActionButtonProps {
   icon: any;
-  count?: number;
+  count?: number | string;
   label: string;
   tooltip?: string;
   onClick?: (e?: React.MouseEvent) => void;
@@ -206,7 +206,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           {metrics?.reviewScore !== undefined && metrics.reviewScore > 0 && (
             <ActionButton
               icon={Star}
-              count={parseFloat(metrics.reviewScore.toFixed(1))}
+              count={metrics.reviewScore.toFixed(1)}
               tooltip="Peer Review"
               label="Peer Review"
               showTooltip={showTooltips}

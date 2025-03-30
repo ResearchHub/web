@@ -8,34 +8,7 @@ import { cn } from '@/utils/styles';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { InfoIcon } from 'lucide-react';
-
-interface SocialIconProps {
-  href?: string | null;
-  icon: React.ReactNode;
-  label: string;
-}
-
-const SocialIcon: React.FC<SocialIconProps> = ({ href, icon, label }) => {
-  if (!href) {
-    return (
-      <div className="text-gray-300 cursor-not-allowed p-2" title={`No ${label} provided`}>
-        {icon}
-      </div>
-    );
-  }
-
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-gray-600 hover:text-indigo-600 p-2"
-      title={label}
-    >
-      {icon}
-    </a>
-  );
-};
+import { SocialIcon } from '@/components/ui/SocialIcon';
 
 interface AuthorTooltipProps {
   authorId?: number;
