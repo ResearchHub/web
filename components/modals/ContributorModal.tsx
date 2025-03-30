@@ -2,7 +2,7 @@
 
 import { FC } from 'react';
 import { Dialog } from '@headlessui/react';
-import { X, Plus as PlusIcon } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatRSC } from '@/utils/number';
@@ -45,7 +45,7 @@ export const ContributorModal: FC<ContributorModalProps> = ({
                 {sortedContributors.length})
               </Dialog.Title>
               <div className="text-sm text-gray-500">
-                Total: {formatRSC({ amount: totalAmount })} RSC
+                Total: {formatRSC({ amount: totalAmount, round: true })} RSC
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -55,6 +55,7 @@ export const ContributorModal: FC<ContributorModalProps> = ({
                 onClick={onContribute}
                 className="flex items-center gap-2"
               >
+                <ResearchCoinIcon size={16} contribute />
                 Contribute RSC
               </Button>
               <Button
@@ -87,7 +88,7 @@ export const ContributorModal: FC<ContributorModalProps> = ({
                     </span>
                   </div>
                   <span className="text-sm font-medium text-orange-500">
-                    {formatRSC({ amount: contributor.amount })} RSC
+                    +{formatRSC({ amount: contributor.amount, round: true })} RSC
                   </span>
                 </div>
               ))}

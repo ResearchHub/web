@@ -24,7 +24,8 @@ export const FundDocument = ({
   defaultTab = 'paper',
 }: FundDocumentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
-
+  console.log('&metadata', metadata);
+  console.log('&work', work);
   // Handle tab change
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -78,9 +79,9 @@ export const FundDocument = ({
             />
           </div>
         );
-      case 'comments':
+      case 'conversation':
         return (
-          <div className="space-y-6" key="comments-tab">
+          <div className="space-y-6" key="conversation-tab">
             <CommentFeed
               documentId={work.id}
               contentType={work.contentType}
@@ -131,7 +132,6 @@ export const FundDocument = ({
             }}
             onContribute={() => {
               // Handle contribute action
-              console.log('Contribute to fundraise:', metadata.fundraising?.id);
             }}
           />
         </div>

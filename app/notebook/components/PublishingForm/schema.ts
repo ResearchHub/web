@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { NonprofitOrg } from '@/types/nonprofit';
 
 const optionSchema = z.object({
   value: z.string(),
@@ -32,6 +33,8 @@ export const publishingFormSchema = z
       .nullable()
       .optional(),
     isJournalEnabled: z.boolean().optional(),
+    selectedNonprofit: z.any().nullable().optional(),
+    departmentLabName: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     // Validate topics

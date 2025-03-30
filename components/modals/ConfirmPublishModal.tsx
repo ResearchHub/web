@@ -87,7 +87,7 @@ export function ConfirmPublishModal({
                     {isUpdate ? 'Confirm Re-publication' : 'Confirm Publication'}
                   </DialogTitle>
                   <p className="text-sm text-gray-600 mb-4">
-                    You are about to {isUpdate ? 're-publish' : 'publish'} your research
+                    You are about to {isUpdate ? 'republish' : 'publish'} your research
                     preregistration:
                   </p>
                   <input
@@ -171,7 +171,7 @@ export function ConfirmPublishModal({
                       {isPublishing
                         ? 'Publishing...'
                         : isUpdate
-                          ? 'Confirm & Re-publish'
+                          ? 'Confirm & Republish'
                           : 'Confirm & Publish'}
                     </Button>
                   </div>

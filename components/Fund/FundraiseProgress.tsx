@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { Progress } from '@/components/ui/Progress';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
@@ -10,6 +10,10 @@ import type { Fundraise } from '@/types/funding';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { RSCBadge } from '@/components/ui/RSCBadge';
+import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
+import { formatRSC } from '@/utils/number';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { Icon } from '../ui/icons';
 
 interface FundraiseProgressProps {
   fundraise: Fundraise;
@@ -26,6 +30,8 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   showContribute = true,
   className,
 }) => {
+  const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
+
   if (!fundraise) return null;
 
   const deadlineText = fundraise.endDate ? formatDeadline(fundraise.endDate) : undefined;
@@ -39,8 +45,12 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   // Extract contributors if available
   const contributors =
     fundraise.contributors?.topContributors?.map((contributor) => ({
-      profile: contributor,
-      amount: 0, // We don't have individual contribution amounts in the current data model
+      profile: {
+        profileImage: contributor.authorProfile.profileImage,
+        fullName: contributor.authorProfile.fullName,
+        id: contributor.authorProfile.id,
+      },
+      amount: contributor.totalContribution,
     })) || [];
 
   // Check if fundraise is active
@@ -77,6 +87,23 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
     }
   };
 
+  const handleContributeClick = () => {
+    setIsContributeModalOpen(true);
+    if (onContribute) {
+      onContribute();
+    }
+  };
+
+  const handleContributeSuccess = () => {
+    // Close the modal
+    setIsContributeModalOpen(false);
+
+    // Call the parent onContribute callback if provided
+    if (onContribute) {
+      onContribute();
+    }
+  };
+
   const defaultContainerClasses = compact
     ? 'p-3 bg-white rounded-lg border border-gray-200'
     : 'p-4 bg-white rounded-lg border border-gray-200';
@@ -84,109 +111,148 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   if (compact) {
     // Compact mode with RSCBadge style
     return (
-      <div className={cn(defaultContainerClasses, className)}>
-        {/* Top row: Amount on left, contributors on right */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1">
-            <RSCBadge
-              amount={fundraise.amountRaised.rsc}
-              variant="text"
-              size="xs"
-              showText={false}
-            />
-            <span className="font-medium text-gray-700 mx-0.5">/</span>
-            <RSCBadge amount={fundraise.goalAmount.rsc} variant="text" size="xs" showText={true} />
-          </div>
-
-          {contributors.length > 0 ? (
-            <div className="-mr-1">
-              <ContributorsButton
-                contributors={contributors}
-                onContribute={onContribute}
-                hideLabel={false}
-                label={`${fundraise.contributors.numContributors} Funders`}
-                size="sm"
+      <>
+        <div className={cn(defaultContainerClasses, className)}>
+          {/* Top row: Amount on left, contributors on right */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1">
+              <RSCBadge
+                amount={Math.round(fundraise.amountRaised.rsc)}
+                variant="text"
+                size="xs"
+                showText={false}
+                showExchangeRate={true}
+              />
+              <span className="font-medium text-gray-700 mx-0.5">/</span>
+              <RSCBadge
+                amount={Math.round(fundraise.goalAmount.rsc)}
+                variant="text"
+                size="xs"
+                showText={true}
+                showExchangeRate={true}
               />
             </div>
-          ) : (
-            getStatusDisplay()
+
+            {contributors.length > 0 ? (
+              <div className="-mr-1">
+                <ContributorsButton
+                  contributors={contributors}
+                  onContribute={handleContributeClick}
+                  hideLabel={false}
+                  label={`${fundraise.contributors.numContributors} Funders`}
+                  size="sm"
+                />
+              </div>
+            ) : (
+              getStatusDisplay()
+            )}
+          </div>
+
+          {/* Progress bar */}
+          <Progress
+            value={progressPercentage}
+            variant={fundraise.status === 'COMPLETED' ? 'success' : 'default'}
+            className="h-2 mb-2"
+          />
+
+          {/* Bottom row: Fund CTA on left */}
+          {showContribute && (
+            <div className="flex items-center">
+              <Button
+                variant="contribute"
+                size="sm"
+                disabled={!isActive}
+                className="flex items-center gap-1.5"
+                onClick={handleContributeClick}
+              >
+                <ResearchCoinIcon size={16} contribute />
+                Fund this research
+              </Button>
+            </div>
           )}
         </div>
 
-        {/* Progress bar */}
-        <Progress
-          value={progressPercentage}
-          variant={fundraise.status === 'COMPLETED' ? 'success' : 'default'}
-          className="h-2 mb-2"
+        {/* Contribute Modal */}
+        <ContributeToFundraiseModal
+          isOpen={isContributeModalOpen}
+          onClose={() => setIsContributeModalOpen(false)}
+          onContributeSuccess={handleContributeSuccess}
+          fundraise={fundraise}
         />
-
-        {/* Bottom row: Fund CTA on left */}
-        {showContribute && (
-          <div className="flex items-center">
-            <Button
-              variant="contribute"
-              size="sm"
-              disabled={!isActive}
-              className="flex items-center gap-1.5"
-              onClick={onContribute}
-            >
-              <ResearchCoinIcon size={16} contribute />
-              Fund this research
-            </Button>
-          </div>
-        )}
-      </div>
+      </>
     );
   } else {
     // Default mode with original style
     return (
-      <div className={cn(defaultContainerClasses, className)}>
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <ResearchCoinIcon size={20} outlined />
-              <span className="font-medium text-orange-500 text-lg">
-                {fundraise.amountRaised.rsc.toLocaleString()} RSC raised
-              </span>
-              <span className="text-gray-500 text-lg">
-                of {fundraise.goalAmount.rsc.toLocaleString()} RSC goal
-              </span>
+      <>
+        <div className={cn(defaultContainerClasses, className)}>
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center">
+                <RSCBadge
+                  amount={Math.round(fundraise.amountRaised.rsc)}
+                  variant="text"
+                  size="md"
+                  showText={false}
+                  showExchangeRate={true}
+                  className="font-medium text-orange-500 text-lg pl-0"
+                />
+                <span className="text-gray-500 text-lg">raised of</span>
+                <RSCBadge
+                  amount={Math.round(fundraise.goalAmount.rsc)}
+                  variant="text"
+                  size="md"
+                  showText={true}
+                  showIcon={false}
+                  showExchangeRate={true}
+                  className="text-gray-500 text-lg"
+                />
+                <span className="text-gray-500 text-lg">goal</span>
+              </div>
+              {getStatusDisplay()}
             </div>
-            {getStatusDisplay()}
+            <Progress
+              value={progressPercentage}
+              variant={fundraise.status === 'COMPLETED' ? 'success' : 'default'}
+              className="h-3"
+            />
           </div>
-          <Progress
-            value={progressPercentage}
-            variant={fundraise.status === 'COMPLETED' ? 'success' : 'default'}
-            className="h-3"
-          />
+
+          <div className="flex items-center justify-between">
+            {showContribute && (
+              <Button
+                variant="contribute"
+                size="lg"
+                disabled={!isActive}
+                className="flex items-center gap-1.5"
+                onClick={handleContributeClick}
+              >
+                <ResearchCoinIcon size={20} contribute />
+                Fund this research
+              </Button>
+            )}
+
+            {contributors.length > 0 && (
+              <div className={showContribute ? '' : 'ml-auto'}>
+                <ContributorsButton
+                  contributors={contributors}
+                  onContribute={handleContributeClick}
+                  label={`Funders`}
+                  size="md"
+                />
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          {showContribute && (
-            <Button
-              variant="contribute"
-              size="lg"
-              disabled={!isActive}
-              className="flex items-center gap-1.5"
-              onClick={onContribute}
-            >
-              <ResearchCoinIcon size={20} contribute />
-              Fund this research
-            </Button>
-          )}
-
-          {contributors.length > 0 && (
-            <div className={showContribute ? '' : 'ml-auto'}>
-              <ContributorsButton
-                contributors={contributors}
-                onContribute={onContribute}
-                label={`${fundraise.contributors.numContributors} Funders`}
-                size="md"
-              />
-            </div>
-          )}
-        </div>
-      </div>
+        {/* Contribute Modal */}
+        <ContributeToFundraiseModal
+          isOpen={isContributeModalOpen}
+          onClose={() => setIsContributeModalOpen(false)}
+          onContributeSuccess={handleContributeSuccess}
+          fundraise={fundraise}
+        />
+      </>
     );
   }
 };

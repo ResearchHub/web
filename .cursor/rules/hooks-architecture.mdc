@@ -150,16 +150,8 @@ This document outlines the architectural patterns and best practices for custom 
 
 ## Performance Optimization
 
-1. **Memoization**:
-   - Use `useMemo` for expensive calculations
-   - Use `useCallback` for functions passed to child components
+1. **Don't memoize**:
    - Properly manage dependency arrays to prevent unnecessary re-renders
-
-   ```typescript
-   const handleProcess = useCallback((id: string) => {
-     // Process implementation
-   }, [dependency1, dependency2]);
-   ```
 
 2. **Debouncing and Throttling**:
    - Debounce input handlers and search functions

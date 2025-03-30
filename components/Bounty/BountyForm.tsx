@@ -231,7 +231,10 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
   const [step, setStep] = useState<Step>('details');
   const [selectedPaper, setSelectedPaper] = useState<SelectedPaper | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(true);
-  const [inputAmount, setInputAmount] = useState(0);
+  // Initialize with 150 USD worth of RSC, or 100 RSC if exchange rate is loading
+  const [inputAmount, setInputAmount] = useState(() => {
+    return isExchangeRateLoading ? 100 : Math.round(150 / exchangeRate);
+  });
   const [currency, setCurrency] = useState<Currency>('RSC');
   const [bountyLength, setBountyLength] = useState<BountyLength>('30');
   const [bountyType, setBountyType] = useState<BountyType>('REVIEW');
@@ -268,6 +271,14 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
       }
     }
   }, [exchangeRate, isExchangeRateLoading, currency, inputAmount]);
+
+  // Update the input amount when the exchange rate loads
+  useEffect(() => {
+    if (!isExchangeRateLoading && exchangeRate > 0 && !hasInteractedWithAmount) {
+      // Only update if the user hasn't manually changed the amount
+      setInputAmount(Math.round(150 / exchangeRate));
+    }
+  }, [exchangeRate, isExchangeRateLoading, hasInteractedWithAmount]);
 
   const handleCreateBounty = async () => {
     if (isSubmitting) return;

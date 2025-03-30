@@ -62,3 +62,8 @@ body {
 .animate-fade-in {
   animation: fade-in 0.3s ease-out forwards;
 }
+
+.post-content h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+}

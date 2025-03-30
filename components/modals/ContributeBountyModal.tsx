@@ -1,10 +1,9 @@
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
-import { ChevronDown } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
@@ -33,18 +32,10 @@ interface ContributeBountyModalProps {
 const CurrencyInput = ({
   value,
   onChange,
-  currency,
-  onCurrencyToggle,
-  convertedAmount,
-  isExchangeRateLoading,
   error,
 }: {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  currency: Currency;
-  onCurrencyToggle: () => void;
-  convertedAmount?: string;
-  isExchangeRateLoading?: boolean;
   error?: string;
 }) => {
   return (
@@ -60,101 +51,60 @@ const CurrencyInput = ({
         inputMode="numeric"
         className={`w-full text-left h-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${error ? 'border-red-500' : ''}`}
         rightElement={
-          <button
-            type="button"
-            onClick={onCurrencyToggle}
-            className={`flex items-center gap-1 pr-3 ${isExchangeRateLoading && currency === 'RSC' ? 'text-gray-400 cursor-not-allowed' : 'text-gray-900 hover:text-gray-600'}`}
-            disabled={isExchangeRateLoading && currency === 'RSC'}
-          >
-            <span className="font-medium">{currency}</span>
-            <ChevronDown className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1 pr-3 text-gray-900">
+            <span className="font-medium">RSC</span>
+          </div>
         }
       />
       {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
-      {!error && convertedAmount && (
-        <div className="mt-1.5 text-sm text-gray-500">{convertedAmount}</div>
-      )}
     </div>
   );
 };
 
 // Fee Breakdown Component
 const FeeBreakdown = ({
-  totalAmount,
+  contributionAmount,
   platformFee,
-  daoFee,
-  incFee,
-  baseAmount,
-  isFeesExpanded,
-  onToggleExpand,
+  totalAmount,
 }: {
-  totalAmount: number;
+  contributionAmount: number;
   platformFee: number;
-  daoFee: number;
-  incFee: number;
-  baseAmount: number;
-  isFeesExpanded: boolean;
-  onToggleExpand: () => void;
+  totalAmount: number;
 }) => (
   <div className="bg-gray-50 rounded-lg p-4 space-y-4 border border-gray-200">
     <div className="flex justify-between items-center">
       <span className="text-gray-900">Your contribution:</span>
-      <span className="text-gray-900">{totalAmount.toLocaleString()} RSC</span>
+      <span className="text-gray-900">{contributionAmount.toLocaleString()} RSC</span>
     </div>
 
     <div>
-      <button
-        onClick={onToggleExpand}
-        className="w-full flex items-center justify-between text-left group"
-      >
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-1">
           <span className="text-gray-600">Platform fees (9%)</span>
-          <div className="flex items-center gap-1">
-            <ChevronDown
-              className={cn(
-                'w-4 h-4 text-gray-500 transition-transform',
-                isFeesExpanded && 'transform rotate-180'
-              )}
-            />
-            <Tooltip
-              content="Platform fees help support ResearchHub's operations and development"
-              className="max-w-xs"
-            >
-              <div className="text-gray-400 hover:text-gray-500">
-                <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    fillRule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-            </Tooltip>
-          </div>
+          <Tooltip
+            content="Platform fees help support ResearchHub's operations and development"
+            className="max-w-xs"
+          >
+            <div className="text-gray-400 hover:text-gray-500">
+              <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+          </Tooltip>
         </div>
-        <span className="text-gray-600">{platformFee.toLocaleString()} RSC</span>
-      </button>
-
-      {isFeesExpanded && (
-        <div className="mt-2 pl-0 space-y-1">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500 pl-0">ResearchHub DAO (2%)</span>
-            <span className="text-gray-500">{daoFee.toLocaleString()} RSC</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500 pl-0">ResearchHub Inc (7%)</span>
-            <span className="text-gray-500">{incFee.toLocaleString()} RSC</span>
-          </div>
-        </div>
-      )}
+        <span className="text-gray-600">+ {platformFee.toLocaleString()} RSC</span>
+      </div>
     </div>
 
     <div className="border-t border-gray-200" />
 
     <div className="flex justify-between items-center">
-      <span className="font-semibold text-gray-900">Net contribution amount:</span>
-      <span className="font-semibold text-gray-900">{baseAmount.toLocaleString()} RSC</span>
+      <span className="font-semibold text-gray-900">Total amount:</span>
+      <span className="font-semibold text-gray-900">{totalAmount.toLocaleString()} RSC</span>
     </div>
   </div>
 );
@@ -203,9 +153,7 @@ export function ContributeBountyModal({
 }: ContributeBountyModalProps) {
   const { user } = useUser();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
-  const [inputAmount, setInputAmount] = useState(0);
-  const [currency, setCurrency] = useState<Currency>('RSC');
-  const [isFeesExpanded, setIsFeesExpanded] = useState(false);
+  const [inputAmount, setInputAmount] = useState(50);
   const [isContributing, setIsContributing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -222,9 +170,7 @@ export function ContributeBountyModal({
       setInputAmount(numValue);
 
       // Validate minimum amount
-      const rscAmount =
-        currency === 'RSC' ? numValue : isExchangeRateLoading ? 0 : numValue / exchangeRate;
-      if (rscAmount < 10) {
+      if (numValue < 10) {
         setAmountError('Minimum contribution amount is 10 RSC');
       } else {
         setAmountError(undefined);
@@ -240,35 +186,10 @@ export function ContributeBountyModal({
     return inputAmount.toLocaleString();
   };
 
-  const toggleCurrency = () => {
-    // If exchange rate is loading, only allow toggling from USD to RSC, not the other way around
-    if (isExchangeRateLoading && currency === 'RSC') {
-      toast.error('Exchange rate is loading. Please wait before switching to USD.');
-      return;
-    }
-    setCurrency(currency === 'RSC' ? 'USD' : 'RSC');
-  };
-
-  const getConvertedAmount = () => {
-    if (inputAmount === 0) return '';
-    if (isExchangeRateLoading) return 'Loading exchange rate...';
-
-    return currency === 'RSC'
-      ? `≈ $${(inputAmount * exchangeRate).toLocaleString()} USD`
-      : `≈ ${(inputAmount / exchangeRate).toLocaleString()} RSC`;
-  };
-
-  const getRscAmount = () => {
-    if (isExchangeRateLoading) return currency === 'RSC' ? inputAmount : 0;
-    return currency === 'RSC' ? inputAmount : inputAmount / exchangeRate;
-  };
-
   const handleContribute = async () => {
     try {
-      const rscAmount = getRscAmount();
-
       // Validate minimum amount before proceeding
-      if (rscAmount < 10) {
+      if (inputAmount < 10) {
         setError('Minimum contribution amount is 10 RSC');
         return;
       }
@@ -276,9 +197,11 @@ export function ContributeBountyModal({
       setIsContributing(true);
       setError(null);
 
+      // Pass the contribution amount without the platform fee
+      // The API expects the net contribution amount
       const contribution = await BountyService.contributeToBounty(
         commentId,
-        rscAmount,
+        inputAmount,
         'rhcommentmodel',
         bountyType,
         expirationDate
@@ -304,12 +227,15 @@ export function ContributeBountyModal({
     }
   };
 
-  const rscAmount = getRscAmount();
-  const platformFee = Math.round(rscAmount * 0.09 * 100) / 100;
-  const daoFee = Math.round(rscAmount * 0.02 * 100) / 100;
-  const incFee = Math.round(rscAmount * 0.07 * 100) / 100;
-  const baseAmount = rscAmount - platformFee;
-  const insufficientBalance = userBalance < rscAmount;
+  const platformFee = Math.round(inputAmount * 0.09 * 100) / 100;
+  const totalAmount = inputAmount + platformFee;
+  const insufficientBalance = userBalance < totalAmount;
+
+  // Calculate USD equivalent for display
+  const usdEquivalent =
+    !isExchangeRateLoading && exchangeRate > 0
+      ? `≈ $${(inputAmount * exchangeRate).toFixed(2)} USD`
+      : '';
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -361,12 +287,11 @@ export function ContributeBountyModal({
                       <CurrencyInput
                         value={getFormattedInputValue()}
                         onChange={handleAmountChange}
-                        currency={currency}
-                        onCurrencyToggle={toggleCurrency}
-                        convertedAmount={getConvertedAmount()}
-                        isExchangeRateLoading={isExchangeRateLoading}
                         error={amountError}
                       />
+                      {!amountError && usdEquivalent && (
+                        <div className="mt-1.5 text-sm text-gray-500">{usdEquivalent}</div>
+                      )}
                     </div>
 
                     {/* Fees Breakdown */}
@@ -375,19 +300,15 @@ export function ContributeBountyModal({
                         <h3 className="text-sm font-semibold text-gray-900">Fees Breakdown</h3>
                       </div>
                       <FeeBreakdown
-                        totalAmount={rscAmount}
+                        contributionAmount={inputAmount}
                         platformFee={platformFee}
-                        daoFee={daoFee}
-                        incFee={incFee}
-                        baseAmount={baseAmount}
-                        isFeesExpanded={isFeesExpanded}
-                        onToggleExpand={() => setIsFeesExpanded(!isFeesExpanded)}
+                        totalAmount={totalAmount}
                       />
                     </div>
 
                     {/* Balance Info */}
                     <div>
-                      <BalanceInfo amount={rscAmount} showWarning={insufficientBalance} />
+                      <BalanceInfo amount={totalAmount} showWarning={insufficientBalance} />
                     </div>
 
                     {/* Error Alert */}
@@ -402,7 +323,7 @@ export function ContributeBountyModal({
                         !inputAmount ||
                         insufficientBalance ||
                         !!amountError ||
-                        getRscAmount() < 10
+                        inputAmount < 10
                       }
                       className="w-full h-12 text-base"
                       onClick={handleContribute}

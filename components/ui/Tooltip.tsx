@@ -82,10 +82,10 @@ const TooltipContent = ({
       className={cn(
         'fixed z-50 px-4 py-3 text-sm text-gray-800 bg-white rounded-md shadow-md border border-gray-200 text-center',
         width,
-        'transform transition-all duration-150 break-words',
+        'transition-opacity duration-150 break-words',
         {
-          'opacity-0 scale-95': !isVisible || !mounted,
-          'opacity-100 scale-100': isVisible && mounted,
+          'opacity-100': mounted,
+          'opacity-0': !mounted,
         },
         className
       )}
@@ -155,7 +155,7 @@ export function Tooltip({
       >
         {children}
       </div>
-      {triggerRect && (
+      {triggerRect && isVisible && (
         <TooltipContent
           content={content}
           triggerRect={triggerRect}
