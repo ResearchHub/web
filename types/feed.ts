@@ -84,6 +84,7 @@ export interface FeedPaperContent {
   createdBy: AuthorProfile;
   journal: Journal;
   workType?: 'paper' | 'preprint' | 'published';
+  featured_image?: string; // URL to featured image if available
 }
 
 // Simplified Content type - now Work, Bounty, Comment, or FeedPostEntry
@@ -319,6 +320,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
             image: null,
             description: '',
           },
+          featured_image: content_object.featured_image,
         };
 
         content = paperEntry;

@@ -1,103 +1,5 @@
 export const journalPapers: any[] = [
   {
-    id: 9267860,
-    authors: [
-      {
-        id: 5986804,
-        first_name: 'Ed',
-        last_name: 'Caddye',
-        user: 77803,
-        authorship: { position: 'first', is_corresponding: true },
-      },
-      {
-        id: 974040,
-        first_name: 'Guy W.',
-        last_name: 'Fincham, PhD',
-        user: 39779,
-        authorship: { position: 'last', is_corresponding: true },
-      },
-    ],
-    abstract_src_markdown: null,
-    boost_amount: 325,
-    first_preview: null,
-    score: 1,
-    purchases: [
-      {
-        user: {
-          id: 14,
-          author_profile: {
-            id: 22,
-            first_name: 'Patrick',
-            last_name: 'Joyce',
-            profile_image:
-              'https://storage.prod.researchhub.com/uploads/author_profile_images/2019/11/19/blob',
-            is_verified: true,
-          },
-          first_name: 'Patrick',
-          last_name: 'Joyce',
-        },
-        amount: '325',
-      },
-    ],
-    unified_document: {
-      id: 7343974,
-      documents: { id: 9267860 },
-      reviews: { avg: 4, count: 3 },
-      is_removed: false,
-      document_type: 'PAPER',
-    },
-    uploaded_by: {
-      id: 39779,
-      author_profile: {
-        id: 974040,
-        first_name: 'Guy W.',
-        last_name: 'Fincham, PhD',
-        profile_image:
-          'https://storage.prod.researchhub.com/uploads/author_profile_images/2023/06/25/blob',
-        is_verified: true,
-      },
-      first_name: 'Guy W.',
-      last_name: 'Fincham',
-      is_verified: true,
-    },
-    file: null,
-    pdf_url:
-      'https://storage.prod.researchhub.com/uploads/papers/users/39779/36a1f706-b9b3-435a-8f29-38f9154a188d/Neuromuscular%20Nexus%20ec%20ra%20gwf.pdf',
-    pdf_copyright_allows_display: true,
-    peer_reviews: [],
-    version: 1,
-    version_list: [
-      {
-        version: 1,
-        paper_id: 9267860,
-        published_date: '2025-02-25',
-        message: 'Version #2 (revised after peer-review).',
-        is_latest: true,
-      },
-    ],
-    created_date: '2025-02-25T18:58:53.541831Z',
-    discussion_count: 0,
-    pdf_file_extract: null,
-    is_open_access: null,
-    oa_status: null,
-    external_source: null,
-    title:
-      'The Neuromuscular Nexus: Introducing torque chains as a paradigm-shifting framework for physical, mental, and emotional health',
-    doi: '10.55277/ResearchHub.hf8spovj.1',
-    paper_title:
-      'The Neuromuscular Nexus: Introducing torque chains as a paradigm-shifting framework for physical, mental, and emotional health',
-    paper_publish_date: '2025-02-25',
-    raw_authors: null,
-    abstract:
-      'This paper highlights a gap in the scientific understanding of the relationship between movement, muscular tension, breathing, the nervous system, and interoception, proposing a novel framework based on previously undefined neuromuscular "torque chains". These torque chains, categorised as internal and external, influence musculoskeletal alignment, autonomic regulation, and emotional processing. Building upon the concept of a functionally integrated biomechanical model of the muscular system, we propose an expanded view that includes nervous system dynamics. By examining the interplay among these systems, this work brings awareness to how targeted interventions—such as breathwork guided by muscular tension and the application of specific movement patterns—can be developed and applied to alleviate chronic pain, improve nervous system regulation, and facilitate somatic-emotional integration. The proposed framework offers potential insights into the mechanisms that link all forms of somatic therapy used for chronic pain and stress-related conditions, encouraging further consideration and formal research.',
-    url: null,
-    pdf_license: 'cc-by-nc-4.0',
-    slug: 'the-neuromuscular-nexus-introducing-torque-chains-as-a-paradigm-shifting-framework-for-physical-mental-and-emotional-health',
-    work_type: 'preprint',
-    user_vote: null,
-    status: 'published',
-  },
-  {
     id: 9196125,
     authors: [
       {
@@ -112,6 +14,8 @@ export const journalPapers: any[] = [
     boost_amount: 500,
     first_preview: null,
     score: 11,
+    featured_image:
+      'https://storage.prod.researchhub.com/comment_files/png/4e40a679037254672ee5f249ea491419.png',
     purchases: [
       {
         user: {
@@ -362,6 +266,106 @@ export const journalPapers: any[] = [
     work_type: 'preprint',
     user_vote: null,
     status: 'preprint',
+  },
+  {
+    id: 9267860,
+    authors: [
+      {
+        id: 5986804,
+        first_name: 'Ed',
+        last_name: 'Caddye',
+        user: 77803,
+        authorship: { position: 'first', is_corresponding: true },
+      },
+      {
+        id: 974040,
+        first_name: 'Guy W.',
+        last_name: 'Fincham, PhD',
+        user: 39779,
+        authorship: { position: 'last', is_corresponding: true },
+      },
+    ],
+    abstract_src_markdown: null,
+    boost_amount: 325,
+    first_preview: null,
+    score: 1,
+    featured_image:
+      'https://storage.prod.researchhub.com/comment_files/png/4e40a679037254672ee5f249ea491419.png',
+    purchases: [
+      {
+        user: {
+          id: 14,
+          author_profile: {
+            id: 22,
+            first_name: 'Patrick',
+            last_name: 'Joyce',
+            profile_image:
+              'https://storage.prod.researchhub.com/uploads/author_profile_images/2019/11/19/blob',
+            is_verified: true,
+          },
+          first_name: 'Patrick',
+          last_name: 'Joyce',
+        },
+        amount: '325',
+      },
+    ],
+    unified_document: {
+      id: 7343974,
+      documents: { id: 9267860 },
+      reviews: { avg: 4, count: 3 },
+      is_removed: false,
+      document_type: 'PAPER',
+    },
+    uploaded_by: {
+      id: 39779,
+      author_profile: {
+        id: 974040,
+        first_name: 'Guy W.',
+        last_name: 'Fincham, PhD',
+        profile_image:
+          'https://storage.prod.researchhub.com/uploads/author_profile_images/2023/06/25/blob',
+        is_verified: true,
+      },
+      first_name: 'Guy W.',
+      last_name: 'Fincham',
+      is_verified: true,
+    },
+    file: null,
+    pdf_url:
+      'https://storage.prod.researchhub.com/uploads/papers/users/39779/36a1f706-b9b3-435a-8f29-38f9154a188d/Neuromuscular%20Nexus%20ec%20ra%20gwf.pdf',
+    pdf_copyright_allows_display: true,
+    peer_reviews: [],
+    version: 1,
+    version_list: [
+      {
+        version: 1,
+        paper_id: 9267860,
+        published_date: '2025-02-25',
+        message: 'Version #2 (revised after peer-review).',
+        is_latest: true,
+      },
+    ],
+    created_date: '2025-02-25T18:58:53.541831Z',
+    discussion_count: 0,
+    pdf_file_extract: null,
+    is_open_access: null,
+    oa_status: null,
+    external_source: null,
+    title:
+      'The Neuromuscular Nexus: Introducing torque chains as a paradigm-shifting framework for physical, mental, and emotional health',
+    doi: '10.55277/ResearchHub.hf8spovj.1',
+    paper_title:
+      'The Neuromuscular Nexus: Introducing torque chains as a paradigm-shifting framework for physical, mental, and emotional health',
+    paper_publish_date: '2025-02-25',
+    raw_authors: null,
+    abstract:
+      'This paper highlights a gap in the scientific understanding of the relationship between movement, muscular tension, breathing, the nervous system, and interoception, proposing a novel framework based on previously undefined neuromuscular "torque chains". These torque chains, categorised as internal and external, influence musculoskeletal alignment, autonomic regulation, and emotional processing. Building upon the concept of a functionally integrated biomechanical model of the muscular system, we propose an expanded view that includes nervous system dynamics. By examining the interplay among these systems, this work brings awareness to how targeted interventions—such as breathwork guided by muscular tension and the application of specific movement patterns—can be developed and applied to alleviate chronic pain, improve nervous system regulation, and facilitate somatic-emotional integration. The proposed framework offers potential insights into the mechanisms that link all forms of somatic therapy used for chronic pain and stress-related conditions, encouraging further consideration and formal research.',
+    url: null,
+    pdf_license: 'cc-by-nc-4.0',
+    slug: 'the-neuromuscular-nexus-introducing-torque-chains-as-a-paradigm-shifting-framework-for-physical-mental-and-emotional-health',
+    work_type: 'preprint',
+    user_vote: null,
+    status: 'published',
   },
   {
     id: 9324244,

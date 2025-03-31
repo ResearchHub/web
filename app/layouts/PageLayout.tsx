@@ -75,15 +75,15 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
         </div>
 
         {/* Main Content Area with TopBar and Right Sidebar */}
-        <div className="flex-1">
+        <div className={`flex-1`}>
           <Suspense fallback={<TopBarSkeleton />}>
             <TopBar onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)} />
           </Suspense>
 
           <div className="flex py-8">
             {/* Main Content */}
-            <main className="flex-1 px-4 lg:px-8">
-              <div className="mx-auto max-w-4xl">{children}</div>
+            <main className={`flex-1 ${rightSidebar ? 'px-4 lg:px-8' : 'px-2 lg:px-4'}`}>
+              <div className={`${rightSidebar ? 'max-w-4xl mx-auto' : 'w-full'}`}>{children}</div>
             </main>
 
             {/* Right Sidebar */}
