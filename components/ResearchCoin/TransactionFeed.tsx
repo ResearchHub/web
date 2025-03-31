@@ -26,7 +26,7 @@ export function TransactionFeed({ onExport, exchangeRate, isExporting }: Transac
   const [isLoadingMore, setIsLoadingMore] = useState(false); // For loading more on button click
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(INITIAL_PAGE);
-  const [hasNextPage, setHasNextPage] = useState(true);
+  const [hasNextPage, setHasNextPage] = useState(false);
 
   const abortController = useRef<AbortController | null>(null);
 
@@ -244,8 +244,8 @@ export function TransactionFeed({ onExport, exchangeRate, isExporting }: Transac
             </div>
           )}
 
-          {/* Load More button */}
-          {!isLoading && hasNextPage && (
+          {/* Load More button - only show if there are transactions and hasNextPage is true */}
+          {!isLoading && hasNextPage && transactions.length > 0 && (
             <div className="mt-8 text-center">
               <Button
                 onClick={handleLoadMore}
