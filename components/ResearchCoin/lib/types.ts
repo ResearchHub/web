@@ -7,15 +7,16 @@ import {
   Trophy,
   Percent,
   HelpCircle,
-  type LucideIcon,
 } from 'lucide-react';
 import { formatUsdValue, formatRSC } from '@/utils/number';
 import { formatTimestamp } from '@/utils/date';
 import type { TransactionAPIRequest } from '@/services/types/transaction.dto';
+import type { IconName } from '@/components/ui/icons/Icon';
 
 export interface TransactionTypeInfo {
   label: string;
-  icon: LucideIcon;
+  icon: IconName;
+  variant?: 'default' | 'positive' | 'negative';
 }
 
 // Define mapping rules in order of priority
@@ -24,47 +25,51 @@ const transactionMappings: TransactionMappingRule[] = [
   {
     condition: (tx) => tx.source?.distribution_type === 'RESEARCHHUB_POST_UPVOTED',
     label: 'Upvote: Post',
-    icon: ArrowBigUpDash,
+    icon: 'upvote',
+    variant: 'positive',
   },
   {
     condition: (tx) => tx.source?.distribution_type === 'BOUNTY_REFUND',
     label: 'Bounty Refund',
-    icon: HandCoins,
+    icon: 'earn1',
   },
   {
     condition: (tx) => tx.source?.distribution_type === 'RhCOMMENT_UPVOTED',
     label: 'Upvote: Comment',
-    icon: ArrowBigUpDash,
+    icon: 'upvote',
+    variant: 'positive',
   },
   {
     condition: (tx) => tx.source?.distribution_type === 'PAPER_UPVOTED',
     label: 'Upvote: Paper',
-    icon: ArrowBigUpDash,
+    icon: 'upvote',
+    variant: 'positive',
   },
   {
     condition: (tx) => tx.source?.distribution_type === 'RESEARCHHUB_POST_DOWNVOTED',
     label: 'Downvote: Post',
-    icon: ArrowDown,
+    icon: 'upvote',
+    variant: 'negative',
   },
   {
     condition: (tx) => tx.source?.distribution_type === 'PAPER_REWARD',
     label: 'Paper Reward',
-    icon: Trophy,
+    icon: 'solidCoin',
   },
   {
     condition: (tx) => tx.source?.distribution_type === 'PURCHASE',
     label: 'Received Support',
-    icon: HandCoins,
+    icon: 'fund',
   },
   {
     condition: (tx) => tx.source?.distribution_type === 'EDITOR_COMPENSATION',
     label: 'Editor Compensation',
-    icon: Trophy,
+    icon: 'solidCoin',
   },
   {
     condition: (tx) => tx.source?.distribution_type === 'DEPOSIT',
     label: 'Deposit',
-    icon: ArrowDownToLine,
+    icon: 'wallet1',
   },
 
   // Specific Purchase Types & Associated Fees (Fees checked first)
@@ -72,52 +77,65 @@ const transactionMappings: TransactionMappingRule[] = [
     condition: (tx) =>
       tx.source?.purchase_type === 'BOOST' && tx.readable_content_type === 'supportfee',
     label: 'ResearchHub Platform Fee',
-    icon: Percent,
+    icon: 'solidCoin',
   },
   {
     condition: (tx) =>
       tx.source?.purchase_type === 'FUNDRAISE_CONTRIBUTION' &&
       tx.readable_content_type === 'bountyfee',
     label: 'ResearchHub Platform Fee',
-    icon: Percent,
+    icon: 'solidCoin',
   },
-  { condition: (tx) => tx.source?.purchase_type === 'BOOST', label: 'Boost', icon: HandCoins },
+  {
+    condition: (tx) => tx.source?.purchase_type === 'BOOST',
+    label: 'Boost',
+    icon: 'fund',
+  },
   {
     condition: (tx) => tx.source?.purchase_type === 'FUNDRAISE_CONTRIBUTION',
     label: 'Fundraise Contribution',
-    icon: HandCoins,
+    icon: 'fund',
   },
 
   // Fallback readable_content_type checks
   {
     condition: (tx) => tx.readable_content_type === 'withdrawal',
     label: 'Withdrawal',
-    icon: ArrowUpFromLine,
+    icon: 'wallet3',
   },
-  { condition: (tx) => tx.readable_content_type === 'bounty', label: 'Bounty', icon: Trophy },
+  {
+    condition: (tx) => tx.readable_content_type === 'bounty',
+    label: 'Bounty',
+    icon: 'earn1',
+  },
   // Fallback fee checks (if not caught by purchase_type) - lower priority
   {
     condition: (tx) => tx.readable_content_type === 'supportfee',
     label: 'ResearchHub Platform Fee',
-    icon: Percent,
+    icon: 'solidCoin',
   },
   {
     condition: (tx) => tx.readable_content_type === 'bountyfee',
     label: 'ResearchHub Platform Fee',
-    icon: Percent,
+    icon: 'solidCoin',
   },
 ];
 
 interface TransactionMappingRule {
   condition: (tx: TransactionAPIRequest) => boolean;
   label: string;
-  icon: LucideIcon;
+  icon: IconName;
+  variant?: 'default' | 'positive' | 'negative';
 }
 
 export function getTransactionTypeInfo(tx: TransactionAPIRequest): TransactionTypeInfo {
   for (const rule of transactionMappings) {
     if (rule.condition(tx)) {
-      return { label: rule.label, icon: rule.icon };
+      return {
+        label: rule.label,
+        icon: rule.icon,
+        variant: rule.variant || 'default',
+      };
     }
   }
 
@@ -126,7 +144,7 @@ export function getTransactionTypeInfo(tx: TransactionAPIRequest): TransactionTy
     label:
       tx.readable_content_type?.charAt(0).toUpperCase() + tx.readable_content_type?.slice(1) ||
       'Unknown Transaction',
-    icon: HelpCircle,
+    icon: 'notification',
   };
 }
 
