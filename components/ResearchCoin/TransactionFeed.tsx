@@ -3,28 +3,23 @@ import { TransactionService } from '@/services/transaction.service';
 import { TransactionFeedItem } from './TransactionFeedItem';
 import { TransactionSkeleton } from '@/components/skeletons/TransactionSkeleton';
 import type { TransactionAPIRequest } from '@/services/types/transaction.dto';
-import { formatTransaction } from './lib/types';
+import { formatTransaction, type FormattedTransaction } from './lib/types';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { FileDown, LogIn, Coins, HelpCircle, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { ID } from '@/types/root';
 
 const INITIAL_PAGE = 1;
 const LOADING_SKELETON_COUNT = 3;
 
 interface TransactionFeedProps {
-  onTransactionsChange?: (transactions: TransactionAPIRequest[]) => void;
   onExport: () => void;
   exchangeRate: number;
   isExporting: boolean;
 }
 
-export function TransactionFeed({
-  onTransactionsChange,
-  onExport,
-  exchangeRate,
-  isExporting,
-}: TransactionFeedProps) {
+export function TransactionFeed({ onExport, exchangeRate, isExporting }: TransactionFeedProps) {
   const { data: session, status } = useSession();
   const [transactions, setTransactions] = useState<TransactionAPIRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true); // For initial load
@@ -34,6 +29,10 @@ export function TransactionFeed({
   const [hasNextPage, setHasNextPage] = useState(true);
 
   const abortController = useRef<AbortController | null>(null);
+
+  // Conditionally get user ID and cast to satisfy linter
+  // NOTE: Proper solution involves augmenting next-auth types in a .d.ts file
+  const currentUserId = session?.user ? ((session.user as any).id as ID) : undefined;
 
   // Initial data fetch
   useEffect(() => {
@@ -46,11 +45,6 @@ export function TransactionFeed({
 
     fetchTransactions(INITIAL_PAGE);
   }, [session, status]);
-
-  // Notify parent of transactions changes
-  useEffect(() => {
-    onTransactionsChange?.(transactions.map((tx) => formatTransaction(tx, exchangeRate)));
-  }, [transactions, onTransactionsChange, exchangeRate]);
 
   async function fetchTransactions(page: number, isLoadingMore = false) {
     if (!session) return;
@@ -240,7 +234,7 @@ export function TransactionFeed({
             {transactions.map((transaction) => (
               <TransactionFeedItem
                 key={transaction.id}
-                transaction={formatTransaction(transaction, exchangeRate)}
+                transaction={formatTransaction(transaction, exchangeRate, currentUserId)}
               />
             ))}
           </div>

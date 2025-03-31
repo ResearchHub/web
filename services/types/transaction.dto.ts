@@ -1,3 +1,19 @@
+import { ID } from '@/types/root';
+
+// Nested structures based on observed data
+interface UnifiedDocumentSource {
+  id?: ID;
+  // Add other potentially useful fields like document_type if needed later
+}
+
+interface ProofItemSource {
+  source?: {
+    unified_document?: UnifiedDocumentSource;
+    // Add other potentially useful fields like document_type, slug etc.
+  };
+  // Add other potentially useful fields from proof_item
+}
+
 export interface TransactionAPIRequest {
   id: number;
   source?: TransactionSource;
@@ -47,4 +63,8 @@ export interface ExchangeRateResponse {
 export interface TransactionSource {
   purchase_type?: string;
   distribution_type?: string;
+  giver?: ID;
+  unified_document?: UnifiedDocumentSource; // Direct unified document link
+  proof_item?: ProofItemSource; // Nested structure seen in some distributions
+  // Potentially add item_object_id, item_content_type etc. if needed later
 }
