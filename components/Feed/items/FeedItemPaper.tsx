@@ -15,12 +15,15 @@ import { JournalStatusBadge } from '@/components/ui/JournalStatusBadge';
 import { ReviewerBadge, Reviewer } from '@/components/ui/ReviewerBadge';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck } from '@fortawesome/free-solid-svg-icons';
+import { ClipboardCheck } from 'lucide-react';
+import { RSCBadge } from '@/components/ui/RSCBadge';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
   href?: string; // Optional href prop
   showTooltips?: boolean; // Property for controlling tooltips
   showReviewStatus?: boolean; // Whether to show review status
+  showPeerReviewBounty?: boolean; // Whether to show peer review bounty
   reviewers?: Reviewer[]; // Array of reviewers
   compact?: boolean; // Whether to show in compact mode
   className?: string; // Additional CSS class
@@ -42,7 +45,13 @@ const FeedItemPaperBody: FC<{
 
   // Determine the badge type based on the paper's status
   const getPaperBadgeType = () => {
-    // Always use 'paper' for the primary badge
+    // Check the workType to determine the badge type
+    if (paper.workType === 'preprint') {
+      return 'preprint' as const;
+    } else if (paper.workType === 'published') {
+      return 'paper' as const;
+    }
+    // Default to 'paper' if workType is not specified
     return 'paper' as const;
   };
 
@@ -122,6 +131,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   href,
   showTooltips = true,
   showReviewStatus = false,
+  showPeerReviewBounty = false,
   reviewers = [],
   compact = false,
   className,
@@ -197,6 +207,37 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
 
           {/* Spacer to push the bottom sections down */}
           <div className="flex-grow"></div>
+
+          {/* Peer Review Bounty Section - Only show if showPeerReviewBounty is true */}
+          {showPeerReviewBounty && (
+            <div
+              className="mt-4 mb-3 bg-amber-50 rounded-md p-3 flex items-center justify-between border border-amber-100"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Left side - Status text with icons */}
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-amber-800">Peer Review Bounty</span>
+                <div className="mt-1">
+                  <div className="flex items-center">
+                    <ClipboardCheck className="mr-1.5 h-3.5 w-3.5 text-amber-600" />
+                    <span className="text-sm text-amber-700 font-medium">
+                      Earn $150 USD to review
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right side - RSC Badge */}
+              <div className="ml-auto">
+                <RSCBadge
+                  amount={(paper as any).bounty_amount || 0}
+                  size="xs"
+                  variant="award"
+                  label="RSC"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Review Status Section - Only show if showReviewStatus is true */}
           {showReviewStatus && paper.journal && paper.journal.name === 'ResearchHub Journal' && (

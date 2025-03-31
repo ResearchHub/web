@@ -1,16 +1,25 @@
 'use client';
 
 import { FC, useMemo } from 'react';
-import { journalPapers } from '@/store/journalPaperStore';
+import {
+  journalPapers,
+  trendingPapers,
+  forYouPapers,
+  peerReviewPapers,
+} from '@/store/journalPaperStore';
 import { FeedEntry, RawApiFeedEntry, transformFeedEntry, FeedPaperContent } from '@/types/feed';
 import { Carousel } from '@/components/ui/Carousel';
 import { FeedItemPaper } from '@/components/Feed/items/FeedItemPaper';
 import Icon from '@/components/ui/icons/Icon';
-import { Sparkles, FileText, TrendingUp, Clock } from 'lucide-react';
+import { Sparkles, FileText, TrendingUp, Clock, BookOpen, ClipboardCheck } from 'lucide-react';
 import Link from 'next/link';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { authors, peerReviews } from '@/store/authorStore';
 import { Reviewer } from '@/components/ui/ReviewerBadge';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleCheck, faUserCheck } from '@fortawesome/free-solid-svg-icons';
+import { RSCBadge } from '@/components/ui/RSCBadge';
+import { cn } from '@/utils/styles';
 
 // Adapter to transform journal papers to RawApiFeedEntry format (reused from JournalFeed)
 const adaptJournalPapersToFeedEntries = (): FeedEntry[] => {
@@ -96,6 +105,260 @@ const adaptJournalPapersToFeedEntries = (): FeedEntry[] => {
   });
 };
 
+// Function to adapt trending papers to feed entries
+const adaptTrendingPapersToFeedEntries = (): FeedEntry[] => {
+  return trendingPapers.map((paper) => {
+    // Determine the work type based on paper status
+    const workType = paper.status === 'preprint' ? 'preprint' : 'published';
+
+    // Create a RawApiFeedEntry compatible object from a trending paper
+    const rawFeedEntry: RawApiFeedEntry = {
+      id: paper.id,
+      content_type: 'PAPER',
+      content_object: {
+        id: paper.id,
+        title: paper.title,
+        abstract: paper.abstract,
+        slug: paper.slug,
+        created_date: paper.created_date,
+        authors: paper.authors,
+        hub: paper.unified_document?.hubs?.[0] || null,
+        workType: workType,
+        featured_image: paper.featured_image || null,
+        journal: {
+          id: paper.journal?.id || 2,
+          name: paper.journal?.name || 'bioRxiv',
+          slug: paper.journal?.slug || 'biorxiv',
+          image: paper.journal?.imageUrl || null,
+          description: paper.journal?.description || 'The preprint server for biology',
+          status: paper.status,
+        },
+      },
+      created_date: paper.created_date,
+      action: 'PUBLISH',
+      action_date: paper.created_date,
+      metrics: {
+        votes: paper.score || 0,
+        comments: paper.discussion_count || 0,
+        review_metrics: paper.unified_document?.reviews || { avg: 0, count: 0 },
+      },
+      author: paper.uploaded_by
+        ? {
+            id: paper.uploaded_by.author_profile.id,
+            first_name: paper.uploaded_by.first_name,
+            last_name: paper.uploaded_by.last_name,
+            description: '',
+            profile_image: paper.uploaded_by.author_profile.profile_image || '',
+            user: {
+              id: paper.uploaded_by.id,
+              first_name: paper.uploaded_by.first_name,
+              last_name: paper.uploaded_by.last_name,
+              email: '',
+              is_verified: paper.uploaded_by.is_verified || false,
+            },
+          }
+        : {
+            // Default author when no uploader is available
+            id: 0,
+            first_name: 'Unknown',
+            last_name: 'Author',
+            description: '',
+            profile_image: '',
+            user: {
+              id: 0,
+              first_name: 'Unknown',
+              last_name: 'Author',
+              email: '',
+              is_verified: false,
+            },
+          },
+      user_vote: paper.user_vote
+        ? {
+            id: 0,
+            content_type: 0,
+            created_by: 0,
+            created_date: '',
+            vote_type: paper.user_vote === 'UPVOTE' ? 1 : 0,
+            item: 0,
+          }
+        : undefined,
+    };
+
+    // Transform the raw feed entry to a proper FeedEntry
+    return transformFeedEntry(rawFeedEntry);
+  });
+};
+
+// Function to adapt "For You" papers to feed entries
+const adaptForYouPapersToFeedEntries = (): FeedEntry[] => {
+  return forYouPapers.map((paper) => {
+    // Determine the work type based on paper status
+    const workType = paper.status === 'preprint' ? 'preprint' : 'published';
+
+    // Create a RawApiFeedEntry compatible object from a "For You" paper
+    const rawFeedEntry: RawApiFeedEntry = {
+      id: paper.id,
+      content_type: 'PAPER',
+      content_object: {
+        id: paper.id,
+        title: paper.title,
+        abstract: paper.abstract,
+        slug: paper.slug,
+        created_date: paper.created_date,
+        authors: paper.authors,
+        hub: paper.unified_document?.hubs?.[0] || null,
+        workType: workType,
+        featured_image: paper.featured_image || null,
+        journal: {
+          id: paper.journal?.id || 4,
+          name: paper.journal?.name || 'Journal',
+          slug: paper.journal?.slug || 'journal',
+          image: paper.journal?.imageUrl || null,
+          description: paper.journal?.description || 'Scientific journal',
+          status: paper.status,
+        },
+      },
+      created_date: paper.created_date,
+      action: 'PUBLISH',
+      action_date: paper.created_date,
+      metrics: {
+        votes: paper.score || 0,
+        comments: paper.discussion_count || 0,
+        review_metrics: paper.unified_document?.reviews || { avg: 0, count: 0 },
+      },
+      author: paper.uploaded_by
+        ? {
+            id: paper.uploaded_by.author_profile.id,
+            first_name: paper.uploaded_by.first_name,
+            last_name: paper.uploaded_by.last_name,
+            description: '',
+            profile_image: paper.uploaded_by.author_profile.profile_image || '',
+            user: {
+              id: paper.uploaded_by.id,
+              first_name: paper.uploaded_by.first_name,
+              last_name: paper.uploaded_by.last_name,
+              email: '',
+              is_verified: paper.uploaded_by.is_verified || false,
+            },
+          }
+        : {
+            // Default author when no uploader is available
+            id: 0,
+            first_name: 'Unknown',
+            last_name: 'Author',
+            description: '',
+            profile_image: '',
+            user: {
+              id: 0,
+              first_name: 'Unknown',
+              last_name: 'Author',
+              email: '',
+              is_verified: false,
+            },
+          },
+      user_vote: paper.user_vote
+        ? {
+            id: 0,
+            content_type: 0,
+            created_by: 0,
+            created_date: '',
+            vote_type: paper.user_vote === 'UPVOTE' ? 1 : 0,
+            item: 0,
+          }
+        : undefined,
+    };
+
+    // Transform the raw feed entry to a proper FeedEntry
+    return transformFeedEntry(rawFeedEntry);
+  });
+};
+
+// Function to adapt peer review papers to feed entries
+const adaptPeerReviewPapersToFeedEntries = (): FeedEntry[] => {
+  return peerReviewPapers.map((paper) => {
+    // Determine the work type based on paper status
+    const workType = paper.status === 'preprint' ? 'preprint' : 'published';
+
+    // Create a RawApiFeedEntry compatible object from a peer review paper
+    const rawFeedEntry: RawApiFeedEntry = {
+      id: paper.id,
+      content_type: 'PAPER',
+      content_object: {
+        id: paper.id,
+        title: `[Peer Review Needed] ${paper.title}`, // Add prefix to title
+        abstract: paper.abstract,
+        slug: paper.slug,
+        created_date: paper.created_date,
+        authors: paper.authors,
+        hub: paper.unified_document?.hubs?.[0] || null,
+        workType: workType,
+        featured_image: paper.featured_image || null,
+        journal: {
+          id: 1,
+          name: 'ResearchHub Journal',
+          slug: 'researchhub-journal',
+          image: null,
+          description: 'Accelerating science through open access publishing',
+          status: paper.status,
+        },
+        bounty_amount: paper.bounty_amount,
+        peer_review_status: paper.peer_review_status,
+      },
+      created_date: paper.created_date,
+      action: 'PUBLISH',
+      action_date: paper.created_date,
+      metrics: {
+        votes: paper.score || 0,
+        comments: paper.discussion_count || 0,
+        review_metrics: paper.unified_document?.reviews || { avg: 0, count: 0 },
+      },
+      author: paper.uploaded_by
+        ? {
+            id: paper.uploaded_by.author_profile.id,
+            first_name: paper.uploaded_by.first_name,
+            last_name: paper.uploaded_by.last_name,
+            description: '',
+            profile_image: paper.uploaded_by.author_profile.profile_image || '',
+            user: {
+              id: paper.uploaded_by.id,
+              first_name: paper.uploaded_by.first_name,
+              last_name: paper.uploaded_by.last_name,
+              email: '',
+              is_verified: paper.uploaded_by.is_verified || false,
+            },
+          }
+        : {
+            // Default author when no uploader is available
+            id: 0,
+            first_name: 'Unknown',
+            last_name: 'Author',
+            description: '',
+            profile_image: '',
+            user: {
+              id: 0,
+              first_name: 'Unknown',
+              last_name: 'Author',
+              email: '',
+              is_verified: false,
+            },
+          },
+      user_vote: paper.user_vote
+        ? {
+            id: 0,
+            content_type: 0,
+            created_by: 0,
+            created_date: '',
+            vote_type: paper.user_vote === 'UPVOTE' ? 1 : 0,
+            item: 0,
+          }
+        : undefined,
+    };
+
+    // Transform the raw feed entry to a proper FeedEntry
+    return transformFeedEntry(rawFeedEntry);
+  });
+};
+
 // Function to get reviewer data for a specific paper
 const getReviewersForPaper = (paperId: number): Reviewer[] => {
   // Find all reviews for this paper
@@ -121,6 +384,15 @@ export const JournalShowcase: FC = () => {
   // Transform journal papers to feed entries
   const allFeedEntries = useMemo(() => adaptJournalPapersToFeedEntries(), []);
 
+  // Transform trending papers to feed entries
+  const trendingFeedEntries = useMemo(() => adaptTrendingPapersToFeedEntries(), []);
+
+  // Transform "For You" papers to feed entries
+  const forYouFeedEntries = useMemo(() => adaptForYouPapersToFeedEntries(), []);
+
+  // Transform peer review papers to feed entries
+  const peerReviewFeedEntries = useMemo(() => adaptPeerReviewPapersToFeedEntries(), []);
+
   // Create mapping of paper IDs to reviewer data
   const paperReviewersMap = useMemo(() => {
     const map = new Map<number, Reviewer[]>();
@@ -137,14 +409,9 @@ export const JournalShowcase: FC = () => {
 
   // Filter for different carousels
   const recentlySubmitted = allFeedEntries;
-
-  const trending = useMemo(
-    () =>
-      [...allFeedEntries]
-        .sort((a, b) => (b.metrics?.votes || 0) - (a.metrics?.votes || 0))
-        .slice(0, 8),
-    [allFeedEntries]
-  );
+  const trending = trendingFeedEntries;
+  const forYou = forYouFeedEntries;
+  const peerReview = peerReviewFeedEntries;
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
@@ -180,10 +447,142 @@ export const JournalShowcase: FC = () => {
         </div>
       </div>
 
+      {/* "For You" carousel */}
+      <div className="mb-8">
+        <Carousel
+          title="New papers for you"
+          icon={<BookOpen className="h-6 w-6 text-blue-500" />}
+          onSeeAllClick={() => (window.location.href = '/for-you')}
+          seeAllText="View All Recommendations"
+          itemsPerSlide={4}
+        >
+          {forYou.map((entry) => (
+            <div key={entry.id} className="h-[340px]">
+              <FeedItemPaper
+                key={entry.id}
+                entry={entry}
+                href={
+                  entry.contentType === 'PAPER'
+                    ? `/paper/${entry.content.id}/${(entry.content as FeedPaperContent).slug}`
+                    : undefined
+                }
+                showReviewStatus={false}
+                compact={true}
+                className="h-full"
+              />
+            </div>
+          ))}
+        </Carousel>
+      </div>
+
+      {/* Verification Banner */}
+      <div className="mb-12 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg overflow-hidden border border-blue-100 shadow-sm transition-all duration-300 hover:shadow-md">
+        <div className="flex flex-col md:flex-row items-center justify-between">
+          {/* Left section with icon and text */}
+          <div className="flex items-center gap-4 p-4 md:p-6 md:pl-8">
+            <div className="bg-white p-2.5 rounded-full shadow-sm flex items-center justify-center">
+              <FontAwesomeIcon icon={faUserCheck} className="h-6 w-6 text-blue-500" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Personalized Research Recommendations
+              </h3>
+              <p className="text-sm text-gray-600 max-w-md">
+                Verify your profile to get tailored research recommendations based on your interests
+                and reading history.
+              </p>
+            </div>
+          </div>
+
+          {/* Right section with benefits and CTA */}
+          <div className="flex items-center gap-8 p-4 md:p-6 md:pr-8">
+            <div className="hidden md:flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
+                <span className="text-sm text-gray-700">Discover relevant research</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
+                <span className="text-sm text-gray-700">Stay up to date in your field</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
+                <span className="text-sm text-gray-700">Save time finding papers</span>
+              </div>
+            </div>
+            <Link href="/profile/verify">
+              <button className="flex items-center gap-1.5 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-md shadow-sm hover:bg-blue-700 transition-all">
+                Verify Profile
+                <FontAwesomeIcon icon={faCircleCheck} className="h-4 w-4" />
+              </button>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Peer Review Opportunities Section */}
+      <div className="mb-12">
+        {/* Section Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+          <div className="flex items-center gap-2.5 mb-3 sm:mb-0">
+            <div className="bg-amber-50 p-2 rounded-full">
+              <ClipboardCheck className="h-6 w-6 text-amber-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">
+                Peer Review Earning Opportunity
+              </h2>
+              <p className="text-sm text-gray-600">
+                Get paid $150 USD to review papers. Must be verified user.
+                <Link href="/peer-review/learn-more" className="text-blue-600 hover:underline ml-1">
+                  Learn more
+                </Link>
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/peer-review/opportunities"
+            className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1 hover:underline"
+          >
+            View All Opportunities
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+
+        {/* Peer Review Papers Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {peerReview.slice(0, 4).map((entry) => {
+            const paper = entry.content as any;
+            const paperUrl = `/paper/${paper.id}/${paper.slug}`;
+
+            return (
+              <div key={entry.id} className="h-full">
+                <FeedItemPaper
+                  entry={entry}
+                  href={paperUrl}
+                  showReviewStatus={false}
+                  showPeerReviewBounty={true}
+                  compact={true}
+                  className="h-full"
+                />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Recently submitted carousel */}
       <div className="mb-12">
         <Carousel
-          title="All Journal Papers"
+          title="Recent submissions to the RH Journal"
           icon={<Icon name="rhJournal2" size={28} className="text-indigo-600" />}
           onSeeAllClick={() => (window.location.href = '/journal')}
           seeAllText="View All Papers"
@@ -315,7 +714,7 @@ export const JournalShowcase: FC = () => {
       {/* Trending papers carousel */}
       <div className="mb-12">
         <Carousel
-          title="Trending Papers"
+          title="Trending Papers from Preprint Servers"
           icon={
             <div className="relative">
               <TrendingUp className="h-6 w-6 text-rose-500" />
@@ -325,8 +724,8 @@ export const JournalShowcase: FC = () => {
               </span>
             </div>
           }
-          onSeeAllClick={() => (window.location.href = '/journal')}
-          seeAllText="View All Papers"
+          onSeeAllClick={() => (window.location.href = '/explore')}
+          seeAllText="Explore More"
           itemsPerSlide={4}
         >
           {trending.map((entry) => (
