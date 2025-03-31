@@ -22,22 +22,25 @@ export function WorkImageSection() {
     setError(error.message);
   };
 
+  // Helper function to check if file is valid
+  const isValidFile = (file: any): file is File => {
+    return Boolean(file instanceof File && file.name && file.size > 0);
+  };
+
   return (
     <div className="py-3 px-6">
       <SectionHeader icon={ImageIcon}>Cover Image</SectionHeader>
       <div className="mt-2">
         <div className="mt-4">
-          {coverImage?.url && !coverImage.file ? (
-            <div className="mb-4">
-              <div className="relative w-full h-48 rounded-md overflow-hidden">
-                <Image src={coverImage.url} alt="Cover image" fill className="object-cover" />
-              </div>
-            </div>
-          ) : (
-            <Controller
-              name="coverImage"
-              control={control}
-              render={({ field }) => (
+          <Controller
+            name="coverImage"
+            control={control}
+            render={({ field }) => {
+              // Check if file is a valid File object or null
+              const fileValue =
+                field.value?.file && isValidFile(field.value.file) ? field.value.file : null;
+
+              return (
                 <FileUpload
                   onFileSelect={(file) => {
                     field.onChange({ file, url: null });
@@ -48,13 +51,14 @@ export function WorkImageSection() {
                   onError={handleError}
                   accept={['image/jpeg', 'image/png']}
                   maxSizeMB={10}
-                  selectedFile={field.value?.file || null}
+                  selectedFile={fileValue}
+                  existingImageUrl={field.value?.url || null}
                   error={error || (errors.coverImage?.message as string) || null}
                   dragDropTitle="Drag and drop your image here"
                 />
-              )}
-            />
-          )}
+              );
+            }}
+          />
         </div>
       </div>
     </div>

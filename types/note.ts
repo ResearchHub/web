@@ -77,7 +77,7 @@ export const transformPost = createTransformer<any, Post>((raw) => ({
   authors: Array.isArray(raw.authors)
     ? raw.authors.map((author: any) => transformAuthor(author))
     : undefined,
-  image_url: raw.image,
+  image: raw.image_url,
 }));
 
 export const transformNote = createTransformer<any, Note>((raw) => ({

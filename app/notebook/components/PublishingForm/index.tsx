@@ -251,12 +251,8 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       // Initialize imageUrl variable
       let imagePath = null;
 
-      // Only upload the image for new preregistration posts that have an image file
-      if (
-        !formData.workId &&
-        formData.articleType === 'preregistration' &&
-        formData.coverImage?.file
-      ) {
+      // Only upload the image for preregistration posts
+      if (formData.articleType === 'preregistration' && formData.coverImage?.file) {
         try {
           const uploadResult = await uploadAsset(formData.coverImage.file, 'post');
           imagePath = uploadResult.objectKey;
@@ -352,7 +348,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     <FormProvider {...methods}>
       <div className="w-82 flex flex-col sticky right-0 top-0 bg-white relative h-[calc(100vh-64px)] lg:h-screen">
         {/* Processing overlay */}
-        {(isLoadingUpsert || isRedirecting || isLinkingNonprofit) && (
+        {(isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage) && (
           <div className="absolute inset-0 bg-white/50 z-50 flex flex-col items-center justify-center">
             <Loader2 className="h-8 w-8 text-indigo-600 animate-spin mb-2" />
             {isLinkingNonprofit && (
@@ -395,10 +391,10 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             variant="default"
             onClick={handlePublishClick}
             className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isLoadingUpsert || isRedirecting || isLinkingNonprofit}
+            disabled={isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage}
           >
             {getButtonText({
-              isLoadingUpsert,
+              isLoadingUpsert: isLoadingUpsert || isUploadingImage,
               isRedirecting,
               isLinkingNonprofit,
               articleType,
@@ -415,7 +411,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           onClose={() => setShowConfirmModal(false)}
           onConfirm={handleConfirmPublish}
           title={getDocumentTitleFromEditor(editor) || 'Untitled Research'}
-          isPublishing={isLoadingUpsert || isRedirecting}
+          isPublishing={isLoadingUpsert || isRedirecting || isUploadingImage}
           isUpdate={Boolean(methods.watch('workId'))}
         />
       )}

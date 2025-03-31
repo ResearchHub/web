@@ -67,8 +67,8 @@ export const publishingFormSchema = z
         });
       }
 
-      // Validate cover image for new preregistration posts
-      if (!data.workId && !data.coverImage?.file && !data.coverImage?.url) {
+      // Validate cover image
+      if (!data.coverImage?.file && !data.coverImage?.url) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'Cover image is required for preregistration',
