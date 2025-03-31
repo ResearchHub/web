@@ -1,13 +1,3 @@
-import {
-  ArrowBigUpDash,
-  ArrowUpFromLine,
-  HandCoins,
-  ArrowDownToLine,
-  ArrowDown,
-  Trophy,
-  Percent,
-  HelpCircle,
-} from 'lucide-react';
 import { formatUsdValue, formatRSC } from '@/utils/number';
 import { formatTimestamp } from '@/utils/date';
 import type { TransactionAPIRequest } from '@/services/types/transaction.dto';
@@ -77,14 +67,14 @@ const transactionMappings: TransactionMappingRule[] = [
     condition: (tx) =>
       tx.source?.purchase_type === 'BOOST' && tx.readable_content_type === 'supportfee',
     label: 'ResearchHub Platform Fee',
-    icon: 'solidCoin',
+    icon: 'RSC',
   },
   {
     condition: (tx) =>
       tx.source?.purchase_type === 'FUNDRAISE_CONTRIBUTION' &&
       tx.readable_content_type === 'bountyfee',
     label: 'ResearchHub Platform Fee',
-    icon: 'solidCoin',
+    icon: 'RSC',
   },
   {
     condition: (tx) => tx.source?.purchase_type === 'BOOST',
@@ -112,12 +102,12 @@ const transactionMappings: TransactionMappingRule[] = [
   {
     condition: (tx) => tx.readable_content_type === 'supportfee',
     label: 'ResearchHub Platform Fee',
-    icon: 'solidCoin',
+    icon: 'RSC',
   },
   {
     condition: (tx) => tx.readable_content_type === 'bountyfee',
     label: 'ResearchHub Platform Fee',
-    icon: 'solidCoin',
+    icon: 'RSC',
   },
 ];
 
