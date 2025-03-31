@@ -153,7 +153,7 @@ export function TransactionFeed({ onExport, exchangeRate, isExporting }: Transac
               variant="default"
               size="lg"
             >
-              Sign In to Get Started
+              Sign in to get started
             </Button>
           </div>
         </div>
