@@ -1,7 +1,4 @@
-import Link from 'next/link';
-import type { FormattedTransaction } from './lib/types'; // Import the enhanced type
-import { Avatar } from '@/components/ui/Avatar';
-import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import type { FormattedTransaction } from './lib/types';
 
 interface TransactionFeedItemProps {
   transaction: FormattedTransaction;
@@ -9,47 +6,6 @@ interface TransactionFeedItemProps {
 
 export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
   const Icon = transaction.typeInfo.icon;
-
-  const GiverInfo = () => {
-    if (!transaction.giverInfo) return null;
-
-    // Ensure giver ID is a valid number for AuthorTooltip/Avatar
-    const giverIdAsNumber =
-      typeof transaction.giverInfo.id === 'number' ? transaction.giverInfo.id : undefined;
-
-    // If ID is not a valid number, don't render the giver info
-    if (giverIdAsNumber === undefined) {
-      console.warn('Giver ID is not a valid number:', transaction.giverInfo.id);
-      return null;
-    }
-
-    // Placeholder alt text until tooltip loads real name
-    const altText = `User ${giverIdAsNumber}`;
-
-    return (
-      <span className="text-xs text-gray-500 ml-1 inline-flex items-center gap-1">
-        by
-        <AuthorTooltip authorId={giverIdAsNumber}>
-          {/* Wrap both Avatar and a subtle link inside the tooltip trigger */}
-          <Link
-            href={transaction.giverInfo.url}
-            className="inline-flex items-center gap-1 hover:text-indigo-600 group/giver"
-            onClick={(e) => e.stopPropagation()} // Prevent click from propagating to content link if nested
-          >
-            <Avatar authorId={giverIdAsNumber} alt={altText} size="xxs" />
-            <span className="group-hover/giver:underline">{altText}</span>
-          </Link>
-        </AuthorTooltip>
-      </span>
-    );
-  };
-
-  const LabelContent = () => (
-    <>
-      {transaction.typeInfo.label}
-      <GiverInfo />
-    </>
-  );
 
   return (
     <div className="group">
@@ -61,21 +17,8 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
             </div>
 
             <div className="flex-1">
-              <div className="flex items-center gap-1 flex-wrap">
-                {' '}
-                {/* Allow wrapping */}
-                <p className="font-medium text-gray-900">
-                  {transaction.contentUrl ? (
-                    <Link
-                      href={transaction.contentUrl}
-                      className="hover:text-indigo-600 hover:underline"
-                    >
-                      <LabelContent />
-                    </Link>
-                  ) : (
-                    <LabelContent />
-                  )}
-                </p>
+              <div className="flex items-center gap-2">
+                <p className="font-medium text-gray-900">{transaction.typeInfo.label}</p>
               </div>
               <div className="text-xs text-gray-600 mt-0.5">{transaction.formattedDate}</div>
             </div>

@@ -30,10 +30,6 @@ export function TransactionFeed({ onExport, exchangeRate, isExporting }: Transac
 
   const abortController = useRef<AbortController | null>(null);
 
-  // Conditionally get user ID and cast to satisfy linter
-  // NOTE: Proper solution involves augmenting next-auth types in a .d.ts file
-  const currentUserId = session?.user ? ((session.user as any).id as ID) : undefined;
-
   // Initial data fetch
   useEffect(() => {
     if (status === 'loading') return;
@@ -234,7 +230,7 @@ export function TransactionFeed({ onExport, exchangeRate, isExporting }: Transac
             {transactions.map((transaction) => (
               <TransactionFeedItem
                 key={transaction.id}
-                transaction={formatTransaction(transaction, exchangeRate, currentUserId)}
+                transaction={formatTransaction(transaction, exchangeRate)}
               />
             ))}
           </div>
