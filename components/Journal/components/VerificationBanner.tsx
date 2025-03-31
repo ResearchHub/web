@@ -1,0 +1,54 @@
+'use client';
+
+import { FC } from 'react';
+import Link from 'next/link';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUserCheck, faCircleCheck } from '@fortawesome/free-solid-svg-icons';
+
+export const VerificationBanner: FC = () => {
+  return (
+    <div className="mb-12 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg overflow-hidden border border-blue-100 shadow-sm transition-all duration-300 hover:shadow-md">
+      <div className="flex flex-col md:flex-row items-center justify-between">
+        {/* Left section with icon and text */}
+        <div className="flex items-center gap-4 p-4 md:p-6 md:pl-8">
+          <div className="bg-white p-2.5 rounded-full shadow-sm flex items-center justify-center">
+            <FontAwesomeIcon icon={faUserCheck} className="h-6 w-6 text-blue-500" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Personalized Research Recommendations
+            </h3>
+            <p className="text-sm text-gray-600 max-w-md">
+              Verify your profile to get tailored research recommendations based on your interests
+              and reading history.
+            </p>
+          </div>
+        </div>
+
+        {/* Right section with benefits and CTA */}
+        <div className="flex items-center gap-8 p-4 md:p-6 md:pr-8">
+          <div className="hidden md:flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
+              <span className="text-sm text-gray-700">Discover relevant research</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
+              <span className="text-sm text-gray-700">Stay up to date in your field</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
+              <span className="text-sm text-gray-700">Save time finding papers</span>
+            </div>
+          </div>
+          <Link href="/profile/verify">
+            <button className="flex items-center gap-1.5 px-5 py-2.5 bg-blue-600 text-white font-medium rounded-md shadow-sm hover:bg-blue-700 transition-all">
+              Verify Profile
+              <FontAwesomeIcon icon={faCircleCheck} className="h-4 w-4" />
+            </button>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+};
