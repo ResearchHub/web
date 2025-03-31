@@ -1,24 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  ChevronDown,
-  ChevronRight,
-  ClipboardCheck,
-  GraduationCap,
-  Route,
-  HandCoins,
-  Coins,
-  Microscope,
-  ArrowBigUpDash,
-  CircleDollarSign,
-  CheckCircle,
-  HelpCircle,
-  Sparkles,
-  Trophy,
-  Scale,
-} from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { CollapsibleSection, CollapsibleItem } from '@/components/ui/CollapsibleSection';
+import Icon from '@/components/ui/icons/Icon';
 
 export const ResearchCoinRightSidebar = () => {
   const [openSections, setOpenSections] = useState<string[]>([]);
@@ -36,18 +21,18 @@ export const ResearchCoinRightSidebar = () => {
         <CollapsibleSection title="About ResearchCoin" className="px-6">
           <CollapsibleItem
             title="What is ResearchCoin (RSC)?"
-            icon={<Coins className="w-4 h-4" strokeWidth={2} />}
+            icon={<Icon name="earn2" size={16} />}
             isOpen={openSections.includes('what-is-rsc')}
             onToggle={() => toggleSection('what-is-rsc')}
           >
             ResearchCoin (RSC) is a digital currency that incentivizes good science by allowing
-            users to create grants, reward quality contributions, and fund open science initiatives
-            on ResearchHub.
+            users to create bounties, reward quality contributions, and fund open science
+            initiatives on ResearchHub.
           </CollapsibleItem>
 
           <CollapsibleItem
             title="Why RSC?"
-            icon={<HelpCircle className="w-4 h-4" strokeWidth={2} />}
+            icon={<Icon name="fund2" size={16} />}
             isOpen={openSections.includes('why-rsc')}
             onToggle={() => toggleSection('why-rsc')}
           >
@@ -57,8 +42,8 @@ export const ResearchCoinRightSidebar = () => {
           </CollapsibleItem>
 
           <CollapsibleItem
-            title="Getting Started with RSC"
-            icon={<Route className="w-4 h-4" strokeWidth={2} />}
+            title="Getting started with RSC"
+            icon={<Icon name="wallet3" size={16} />}
             isOpen={openSections.includes('getting-started')}
             onToggle={() => toggleSection('getting-started')}
           >
@@ -68,27 +53,27 @@ export const ResearchCoinRightSidebar = () => {
               <li>2. Verify your academic credentials</li>
               <li>3. Start engaging with content through reviews and discussions</li>
               <li>4. Earn your first RSC through participation</li>
-              <li>5. Explore rewards and funding opportunities</li>
+              <li>5. Explore bounties and funding opportunities</li>
             </ul>
           </CollapsibleItem>
         </CollapsibleSection>
 
         {/* RSC Utility Section */}
-        <CollapsibleSection title="Using ResearchCoin" className="px-6">
+        <CollapsibleSection title="Use ResearchCoin" className="px-6">
           <CollapsibleItem
-            title="Create reward"
-            icon={<Trophy className="w-4 h-4" strokeWidth={2} />}
+            title="Create bounties"
+            icon={<Icon name="createBounty" size={16} />}
             isOpen={openSections.includes('create-reward')}
             onToggle={() => toggleSection('create-reward')}
           >
-            RSC empowers the reward system on ResearchHub, connecting researchers with tailored
-            opportunities. Users can create rewards to engage experts for tasks like data processing
-            and literature reviews.
+            RSC empowers the bounty system on ResearchHub, connecting researchers with tailored
+            opportunities. Users can create bounties to engage experts for tasks like data
+            processing and literature reviews.
           </CollapsibleItem>
 
           <CollapsibleItem
             title="Fund open science"
-            icon={<CircleDollarSign className="w-4 h-4" strokeWidth={2} />}
+            icon={<Icon name="fundYourRsc2" size={16} />}
             isOpen={openSections.includes('fund-science')}
             onToggle={() => toggleSection('fund-science')}
           >
@@ -98,7 +83,7 @@ export const ResearchCoinRightSidebar = () => {
 
           <CollapsibleItem
             title="Tip authors"
-            icon={<HandCoins className="w-4 h-4" strokeWidth={2} />}
+            icon={<Icon name="fund" size={16} />}
             isOpen={openSections.includes('tip-authors')}
             onToggle={() => toggleSection('tip-authors')}
           >
@@ -108,7 +93,7 @@ export const ResearchCoinRightSidebar = () => {
 
           <CollapsibleItem
             title="Change the platform"
-            icon={<Scale className="w-4 h-4" strokeWidth={2} />}
+            icon={<Icon name="settings" size={16} />}
             isOpen={openSections.includes('governance')}
             onToggle={() => toggleSection('governance')}
           >
@@ -119,10 +104,10 @@ export const ResearchCoinRightSidebar = () => {
         </CollapsibleSection>
 
         {/* Earning Section */}
-        <CollapsibleSection title="Earning ResearchCoin" className="px-6">
+        <CollapsibleSection title="Earn ResearchCoin" className="px-6">
           <CollapsibleItem
             title="Share a peer review"
-            icon={<ClipboardCheck className="w-4 h-4" strokeWidth={2} />}
+            icon={<Icon name="peerReview1" size={16} />}
             isOpen={openSections.includes('peer-review')}
             onToggle={() => toggleSection('peer-review')}
           >
@@ -131,18 +116,18 @@ export const ResearchCoinRightSidebar = () => {
           </CollapsibleItem>
 
           <CollapsibleItem
-            title="Answer a reward"
-            icon={<Trophy className="w-4 h-4" strokeWidth={2} />}
+            title="Complete a bounty"
+            icon={<Icon name="earn1" size={16} />}
             isOpen={openSections.includes('answer-reward')}
             onToggle={() => toggleSection('answer-reward')}
           >
-            Researchers earn RSC by answering rewards on ResearchHub, from peer reviews to
+            Researchers earn RSC by completing bounties on ResearchHub, from peer reviews to
             specialized research assistance, allowing monetization of expertise.
           </CollapsibleItem>
 
           <CollapsibleItem
             title="Do reproducible research"
-            icon={<Microscope className="w-4 h-4" strokeWidth={2} />}
+            icon={<Icon name="workType" size={16} />}
             isOpen={openSections.includes('reproducible-research')}
             onToggle={() => toggleSection('reproducible-research')}
           >
@@ -155,7 +140,7 @@ export const ResearchCoinRightSidebar = () => {
 
           <CollapsibleItem
             title="Get upvotes on your content"
-            icon={<ArrowBigUpDash className="w-4 h-4" strokeWidth={2} />}
+            icon={<Icon name="upvote" size={16} />}
             isOpen={openSections.includes('upvotes')}
             onToggle={() => toggleSection('upvotes')}
           >
