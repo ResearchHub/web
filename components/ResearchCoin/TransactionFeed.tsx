@@ -3,35 +3,30 @@ import { TransactionService } from '@/services/transaction.service';
 import { TransactionFeedItem } from './TransactionFeedItem';
 import { TransactionSkeleton } from '@/components/skeletons/TransactionSkeleton';
 import type { TransactionAPIRequest } from '@/services/types/transaction.dto';
-import { formatTransaction } from './lib/types';
+import { formatTransaction, type FormattedTransaction } from './lib/types';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { FileDown, LogIn, Coins, HelpCircle, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { ID } from '@/types/root';
 
 const INITIAL_PAGE = 1;
 const LOADING_SKELETON_COUNT = 3;
 
 interface TransactionFeedProps {
-  onTransactionsChange?: (transactions: TransactionAPIRequest[]) => void;
   onExport: () => void;
   exchangeRate: number;
   isExporting: boolean;
 }
 
-export function TransactionFeed({
-  onTransactionsChange,
-  onExport,
-  exchangeRate,
-  isExporting,
-}: TransactionFeedProps) {
+export function TransactionFeed({ onExport, exchangeRate, isExporting }: TransactionFeedProps) {
   const { data: session, status } = useSession();
   const [transactions, setTransactions] = useState<TransactionAPIRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true); // For initial load
   const [isLoadingMore, setIsLoadingMore] = useState(false); // For loading more on button click
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(INITIAL_PAGE);
-  const [hasNextPage, setHasNextPage] = useState(true);
+  const [hasNextPage, setHasNextPage] = useState(false);
 
   const abortController = useRef<AbortController | null>(null);
 
@@ -46,11 +41,6 @@ export function TransactionFeed({
 
     fetchTransactions(INITIAL_PAGE);
   }, [session, status]);
-
-  // Notify parent of transactions changes
-  useEffect(() => {
-    onTransactionsChange?.(transactions.map((tx) => formatTransaction(tx, exchangeRate)));
-  }, [transactions, onTransactionsChange, exchangeRate]);
 
   async function fetchTransactions(page: number, isLoadingMore = false) {
     if (!session) return;
@@ -163,7 +153,7 @@ export function TransactionFeed({
               variant="default"
               size="lg"
             >
-              Sign In to Get Started
+              Sign in to get started
             </Button>
           </div>
         </div>
@@ -254,8 +244,8 @@ export function TransactionFeed({
             </div>
           )}
 
-          {/* Load More button */}
-          {!isLoading && hasNextPage && (
+          {/* Load More button - only show if there are transactions and hasNextPage is true */}
+          {!isLoading && hasNextPage && transactions.length > 0 && (
             <div className="mt-8 text-center">
               <Button
                 onClick={handleLoadMore}

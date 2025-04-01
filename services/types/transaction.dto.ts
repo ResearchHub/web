@@ -1,3 +1,5 @@
+import { ID } from '@/types/root';
+
 export interface TransactionAPIRequest {
   id: number;
   source?: TransactionSource;
@@ -47,4 +49,5 @@ export interface ExchangeRateResponse {
 export interface TransactionSource {
   purchase_type?: string;
   distribution_type?: string;
+  giver?: ID;
 }
