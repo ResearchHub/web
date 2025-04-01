@@ -13,11 +13,11 @@ import {
   CircleDollarSign,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { VerificationWithPersonaStep } from './Verification/VerificationWithPersonaStep';
 import { AddPublicationsForm, STEP } from './Verification/AddPublicationsForm';
 import { ProgressStepper } from '@/components/ui/ProgressStepper';
+import { navigateToAuthorProfile } from '@/utils/navigation';
 
 interface VerifyIdentityModalProps {
   isOpen: boolean;
@@ -43,7 +43,6 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
   const [publicationsSubstep, setPublicationsSubstep] = useState<STEP | 'SUCCESS'>('DOI');
 
   const { user } = useUser();
-  const router = useRouter();
 
   useEffect(() => {
     return () => {
@@ -65,7 +64,7 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
       }
     } else if (currentStep === 'SUCCESS') {
       onClose();
-      router.push('/profile');
+      navigateToAuthorProfile(user?.authorProfile?.id, false);
     }
   };
 
@@ -205,7 +204,7 @@ export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProp
                 variant="ghost"
                 onClick={() => {
                   onClose();
-                  router.push('/profile');
+                  navigateToAuthorProfile(user?.authorProfile?.id, false);
                 }}
                 className="w-full"
               >
