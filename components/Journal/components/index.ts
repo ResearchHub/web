@@ -7,3 +7,4 @@ export * from './HeroSection';
 export * from './VerificationBanner';
 export * from './PromotionalBanner';
 export * from './SubmitCTA';
+export * from './FundingCarousel';

@@ -16,7 +16,7 @@ interface NavIcon {
   solid?: IconName;
 }
 
-type NavIconKey = 'earn' | 'fund' | 'journal' | 'notebook' | 'home';
+type NavIconKey = 'earn' | 'fund' | 'journal' | 'notebook' | 'home' | 'discuss';
 
 interface NavigationItem {
   label: string;
@@ -55,6 +55,10 @@ const navIconMap: Record<NavIconKey, NavIcon> = {
     light: 'labNotebook2',
     solid: 'solidNotebook',
   },
+  discuss: {
+    light: 'comment',
+    solid: 'comment',
+  },
 };
 
 export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimplementedFeature }) => {
@@ -75,6 +79,12 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
       iconKey: 'home',
       isFontAwesome: true,
       description: 'Navigate to the home page',
+    },
+    {
+      label: 'Discuss',
+      href: '/discuss',
+      iconKey: 'discuss',
+      description: 'Join research discussions',
     },
     {
       label: 'Earn',

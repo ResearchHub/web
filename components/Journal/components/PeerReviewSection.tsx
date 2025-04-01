@@ -6,6 +6,7 @@ import { FeedEntry, RawApiFeedEntry, transformFeedEntry, FeedPaperContent } from
 import { FeedItemPaper } from '@/components/Feed/items/FeedItemPaper';
 import { ClipboardCheck } from 'lucide-react';
 import Link from 'next/link';
+import { Icon } from '@/components/ui/icons';
 
 // Function to adapt peer review papers to feed entries
 const adaptPeerReviewPapersToFeedEntries = (): FeedEntry[] => {
@@ -27,14 +28,6 @@ const adaptPeerReviewPapersToFeedEntries = (): FeedEntry[] => {
         hub: paper.unified_document?.hubs?.[0] || null,
         workType: workType,
         featured_image: paper.featured_image || null,
-        journal: {
-          id: 1,
-          name: 'ResearchHub Journal',
-          slug: 'researchhub-journal',
-          image: null,
-          description: 'Accelerating science through open access publishing',
-          status: paper.status,
-        },
         bounty_amount: paper.bounty_amount,
         peer_review_status: paper.peer_review_status,
       },
@@ -102,13 +95,16 @@ export const PeerReviewSection: FC = () => {
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <div className="flex items-center gap-2.5 mb-3 sm:mb-0">
-          <div className="bg-amber-50 p-2 rounded-full">
-            <ClipboardCheck className="h-6 w-6 text-amber-600" />
-          </div>
+          {/* TODO: add amber color to icon */}
+          <Icon name="earn1" color="#dd8705" size={30} />
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Peer Review Earning Opportunity</h2>
             <p className="text-sm text-gray-600">
-              Get paid $150 USD to review papers. Must be verified user.
+              Get paid{' '}
+              <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md ml-0.5 mr-0.5">
+                $150 USD
+              </span>{' '}
+              to review papers.{' '}
               <Link href="/peer-review/learn-more" className="text-blue-600 hover:underline ml-1">
                 Learn more
               </Link>

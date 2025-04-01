@@ -961,7 +961,7 @@ export const forYouPapers: any[] = [
       reviews: { avg: 4.7, count: 8 },
       is_removed: false,
       document_type: 'PAPER',
-      hubs: [{ id: 245, name: 'Artificial Intelligence', slug: 'artificial-intelligence' }],
+      //   hubs: [{ id: 245, name: 'Artificial Intelligence', slug: 'artificial-intelligence' }],
     },
     uploaded_by: {
       id: 85001,
@@ -1035,7 +1035,7 @@ export const forYouPapers: any[] = [
       reviews: { avg: 4.3, count: 6 },
       is_removed: false,
       document_type: 'PAPER',
-      hubs: [{ id: 178, name: 'Neuroscience', slug: 'neuroscience' }],
+      //   hubs: [{ id: 178, name: 'Neuroscience', slug: 'neuroscience' }],
     },
     uploaded_by: {
       id: 85002,
@@ -1112,7 +1112,7 @@ export const forYouPapers: any[] = [
       reviews: { avg: 4.8, count: 9 },
       is_removed: false,
       document_type: 'PAPER',
-      hubs: [{ id: 320, name: 'Quantum Computing', slug: 'quantum-computing' }],
+      //   hubs: [{ id: 320, name: 'Quantum Computing', slug: 'quantum-computing' }],
     },
     uploaded_by: {
       id: 85003,
@@ -1186,7 +1186,7 @@ export const forYouPapers: any[] = [
       reviews: { avg: 4.5, count: 7 },
       is_removed: false,
       document_type: 'PAPER',
-      hubs: [{ id: 156, name: 'Climate Science', slug: 'climate-science' }],
+      //   hubs: [{ id: 156, name: 'Climate Science', slug: 'climate-science' }],
     },
     uploaded_by: {
       id: 85004,

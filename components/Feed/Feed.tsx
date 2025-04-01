@@ -2,7 +2,7 @@
 
 import { FC, useRef, useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { Sparkles, Globe } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { useFeed, FeedTab, FeedSource } from '@/hooks/useFeed';
 import { FeedContent } from './FeedContent';
 import { InterestSelector } from '@/components/InterestSelector/InterestSelector';
@@ -10,6 +10,8 @@ import { FeedTabs } from './FeedTabs';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { FeedEntry } from '@/types/feed';
+import { CommentEditor } from '@/components/Comment/CommentEditor';
+import { CommentContent } from '@/components/Comment/lib/types';
 import Icon from '@/components/ui/icons/Icon';
 
 interface FeedProps {
@@ -21,14 +23,15 @@ interface FeedProps {
   showSourceFilter?: boolean;
 }
 
-export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFilter = true }) => {
-  const { status } = useSession();
+export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFilter = false }) => {
+  const { data: session, status } = useSession();
   const router = useRouter();
   const isAuthenticated = status === 'authenticated';
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [activeTab, setActiveTab] = useState<FeedTab>(defaultTab);
   const [isNavigating, setIsNavigating] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<FeedSource>('all');
+  const [commentContent, setCommentContent] = useState<CommentContent>('');
   const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(defaultTab, {
     source: sourceFilter,
     initialData: initialFeedData,
@@ -63,9 +66,26 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     }
   };
 
-  const handleSourceFilterChange = (source: FeedSource) => {
-    setSourceFilter(source);
-    // The filter will be applied through the useFeed hook with the updated source option
+  const handleCommentSubmit = async ({ content }: { content: CommentContent }) => {
+    // Check if the comment references a paper
+    if (typeof content === 'string') {
+      if (!content.includes('@paper')) {
+        alert('Please reference a paper using @paper');
+        return false;
+      }
+    } else {
+      // For TipTap document structure, we need to check content differently
+      const contentJSON = JSON.stringify(content);
+      if (!contentJSON.includes('@paper')) {
+        alert('Please reference a paper using @paper');
+        return false;
+      }
+    }
+
+    console.log('Submitting comment:', content);
+    // Implement submission logic here
+    setCommentContent('');
+    return true;
   };
 
   // Combine the loading states
@@ -84,10 +104,6 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
           },
         ]
       : []),
-    {
-      id: 'latest',
-      label: 'Latest',
-    },
   ];
 
   const header = (
@@ -108,53 +124,44 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     />
   );
 
-  const sourceFilters = showSourceFilter ? (
-    <div className="flex justify-end">
-      <div className="inline-flex items-center text-sm">
-        <span className="text-gray-500 mr-2">View:</span>
-        <button
-          onClick={() => handleSourceFilterChange('all')}
-          className={`transition-colors duration-200 px-1 flex items-center gap-1 ${
-            sourceFilter === 'all'
-              ? 'text-indigo-600 font-medium'
-              : 'text-gray-500 hover:text-gray-800'
-          }`}
-        >
-          <Globe size={16} />
-          All
-        </button>
-        <span className="mx-2 text-gray-300">•</span>
-        <button
-          onClick={() => handleSourceFilterChange('researchhub')}
-          className={`transition-colors duration-200 px-1 flex items-center gap-1 ${
-            sourceFilter === 'researchhub'
-              ? 'text-indigo-600 font-medium'
-              : 'text-gray-500 hover:text-gray-800'
-          }`}
-        >
-          <Icon
-            name="flaskVector"
-            size={16}
-            color={sourceFilter === 'researchhub' ? '#4f46e5' : '#6b7280'}
-          />
-          ResearchHub
-        </button>
-      </div>
-    </div>
-  ) : null;
-
   return (
     <PageLayout>
       {!isCustomizing ? (
-        <FeedContent
-          entries={entries}
-          isLoading={combinedIsLoading}
-          hasMore={hasMore}
-          loadMore={loadMore}
-          header={header}
-          tabs={feedTabs}
-          filters={sourceFilters}
-        />
+        <>
+          <div className="pt-4 pb-4">{header}</div>
+          <div className="max-w-4xl mx-auto">
+            {feedTabs}
+
+            {/* Twitter-style comment editor */}
+            {isAuthenticated && (
+              <div className="mt-6 mb-8 bg-white rounded-xl shadow-sm transition-all duration-200">
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <h2 className="text-base font-medium text-gray-800">Share your thoughts</h2>
+                </div>
+                <div className="p-4">
+                  <CommentEditor
+                    onSubmit={handleCommentSubmit}
+                    placeholder="What's on your mind? Remember to reference a paper using @paper..."
+                    storageKey="feed-comment-draft"
+                    compactToolbar={true}
+                    initialContent={commentContent}
+                    autoFocus={false}
+                  />
+                </div>
+              </div>
+            )}
+
+            <FeedContent
+              entries={entries}
+              isLoading={combinedIsLoading}
+              hasMore={hasMore}
+              loadMore={loadMore}
+              filters={null}
+              header={null}
+              tabs={null}
+            />
+          </div>
+        </>
       ) : (
         <>
           <div className="pt-4 pb-7">{header}</div>

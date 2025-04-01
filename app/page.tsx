@@ -1,10 +1,11 @@
-'use client';
+import { PageLayout } from '@/app/layouts/PageLayout';
+import { JournalShowcase } from '@/components/Journal';
+import { Metadata } from 'next';
 
-import Feed from '@/components/Feed/Feed';
-import { FeedTab } from '@/hooks/useFeed';
-
-export default function Home() {
-  const defaultTab: FeedTab = 'popular';
-
-  return <Feed defaultTab={defaultTab} />;
+export default function JournalShowcasePage() {
+  return (
+    <PageLayout rightSidebar={false}>
+      <JournalShowcase />
+    </PageLayout>
+  );
 }

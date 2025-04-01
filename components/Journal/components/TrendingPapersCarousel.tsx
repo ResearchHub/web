@@ -98,16 +98,8 @@ export const TrendingPapersCarousel: FC = () => {
   return (
     <div className="mb-12">
       <Carousel
-        title="Trending Papers from Preprint Servers"
-        icon={
-          <div className="relative">
-            <TrendingUp className="h-6 w-6 text-rose-500" />
-            <span className="absolute -top-1 -right-1 flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
-            </span>
-          </div>
-        }
+        title="Trending Papers on ResearchHub"
+        icon={<TrendingUp className="h-6 w-6 text-rose-500" />}
         onSeeAllClick={() => (window.location.href = '/explore')}
         seeAllText="Explore More"
         itemsPerSlide={4}

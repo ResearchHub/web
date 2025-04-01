@@ -93,7 +93,7 @@ const FeedItemPaperBody: FC<{
       <h2
         className={cn(
           'font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors',
-          compact ? 'text-lg line-clamp-5' : 'text-lg'
+          compact ? 'text-lg line-clamp-4' : 'text-lg'
         )}
       >
         {paper.title}
@@ -216,25 +216,27 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
             >
               {/* Left side - Status text with icons */}
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-amber-800">Peer Review Bounty</span>
-                <div className="mt-1">
+                <div className="">
                   <div className="flex items-center">
-                    <ClipboardCheck className="mr-1.5 h-3.5 w-3.5 text-amber-600" />
-                    <span className="text-sm text-amber-700 font-medium">
-                      Earn $150 USD to review
-                    </span>
+                    <div className="flex">
+                      <div className="p-2 rounded-md bg-amber-100 w-10 h-10 flex items-center justify-center">
+                        <Icon name="earn1" size={24} color="#dd8705" />
+                      </div>
+                      <div className="text-sm text-amber-700 font-medium flex flex-col ml-2">
+                        <span className="text-sm font-medium text-amber-800">
+                          Peer Review Bounty
+                        </span>
+                        <div className="flex items-center inline-flex">
+                          Earn
+                          <div className="ml-auto">
+                            <RSCBadge amount={750} size="xs" label="RSC" variant="text" />
+                          </div>
+                          to peer review
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Right side - RSC Badge */}
-              <div className="ml-auto">
-                <RSCBadge
-                  amount={(paper as any).bounty_amount || 0}
-                  size="xs"
-                  variant="award"
-                  label="RSC"
-                />
               </div>
             </div>
           )}

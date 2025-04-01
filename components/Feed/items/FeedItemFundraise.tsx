@@ -17,6 +17,8 @@ interface FeedItemFundraiseProps {
   entry: FeedEntry;
   href?: string; // Optional href prop
   showTooltips?: boolean; // Property for controlling tooltips
+  compact?: boolean; // Whether to show in compact mode
+  className?: string; // Additional CSS class
 }
 
 /**
@@ -25,7 +27,8 @@ interface FeedItemFundraiseProps {
 const FeedItemFundraiseBody: FC<{
   entry: FeedEntry;
   imageUrl?: string;
-}> = ({ entry, imageUrl }) => {
+  compact?: boolean;
+}> = ({ entry, imageUrl, compact = false }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
 
@@ -57,7 +60,12 @@ const FeedItemFundraiseBody: FC<{
         {/* Left side content */}
         <div className="flex-1 min-w-0">
           {/* Title */}
-          <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+          <h2
+            className={cn(
+              'font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors',
+              compact ? 'text-lg line-clamp-4' : 'text-lg'
+            )}
+          >
             {post.title}
           </h2>
 
@@ -73,10 +81,12 @@ const FeedItemFundraiseBody: FC<{
             </div>
           )}
 
-          {/* Truncated Content */}
-          <div className="text-sm text-gray-700">
-            <p>{truncateText(post.textPreview)}</p>
-          </div>
+          {/* Truncated Content - hide in compact mode if specified */}
+          {!compact && (
+            <div className="text-sm text-gray-700">
+              <p>{truncateText(post.textPreview)}</p>
+            </div>
+          )}
         </div>
 
         {/* Image - Positioned to the right, aligned with title */}
@@ -120,6 +130,8 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   entry,
   href,
   showTooltips = true,
+  compact = false,
+  className,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
@@ -171,35 +183,41 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
     ) : null;
 
   return (
-    <div className="space-y-3">
-      {/* Header */}
-      <FeedItemHeader
-        timestamp={post.createdDate}
-        author={author}
-        actionText={
-          hasFundraise
-            ? `published a funding request for ${goalAmountRSC.toLocaleString()} RSC`
-            : 'published a post'
-        }
-        contributors={hasFundraise ? extractContributors(post.fundraise) : []}
-        contributorsLabel="Funding Contributors"
-      />
+    <div className={cn('space-y-3', className)}>
+      {/* Header - only show if not in compact mode */}
+      {!compact && (
+        <FeedItemHeader
+          timestamp={post.createdDate}
+          author={author}
+          actionText={
+            hasFundraise
+              ? `published a funding request for ${goalAmountRSC.toLocaleString()} RSC`
+              : 'published a post'
+          }
+          contributors={hasFundraise ? extractContributors(post.fundraise) : []}
+          contributorsLabel="Funding Contributors"
+        />
+      )}
 
       {/* Main Content Card - Using onClick instead of wrapping with Link */}
       <div
         onClick={handleCardClick}
         className={cn(
-          'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden',
+          'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden h-full flex flex-col',
           isClickable &&
-            'group hover:shadow-md hover:border-blue-200 transition-all duration-200 cursor-pointer'
+            'group hover:shadow-md hover:border-blue-200 transition-all duration-200 cursor-pointer',
+          className
         )}
       >
-        <div className="p-4">
+        <div className="p-4 flex flex-col flex-grow">
           {/* Mobile image (shown only on small screens) */}
           <MobileImage />
 
           {/* Body Content with desktop image integrated */}
-          <FeedItemFundraiseBody entry={entry} imageUrl={imageUrl} />
+          <FeedItemFundraiseBody entry={entry} imageUrl={imageUrl} compact={compact} />
+
+          {/* Spacer to push the bottom sections down */}
+          <div className="flex-grow"></div>
 
           {/* Fundraise Progress (only for preregistrations with fundraise) */}
           {hasFundraise && post.fundraise && (

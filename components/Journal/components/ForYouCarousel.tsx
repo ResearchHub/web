@@ -5,7 +5,7 @@ import { forYouPapers } from '@/store/journalPaperStore';
 import { Carousel } from '@/components/ui/Carousel';
 import { FeedItemPaper } from '@/components/Feed/items/FeedItemPaper';
 import { FeedEntry, RawApiFeedEntry, transformFeedEntry, FeedPaperContent } from '@/types/feed';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Sparkles } from 'lucide-react';
 
 // Function to adapt "For You" papers to feed entries
 const adaptForYouPapersToFeedEntries = (): FeedEntry[] => {
@@ -99,7 +99,7 @@ export const ForYouCarousel: FC = () => {
     <div className="mb-8">
       <Carousel
         title="New papers for you"
-        icon={<BookOpen className="h-6 w-6 text-blue-500" />}
+        icon={<Sparkles className="h-6 w-6" color="blue" />}
         onSeeAllClick={() => (window.location.href = '/for-you')}
         seeAllText="View All Recommendations"
         itemsPerSlide={4}

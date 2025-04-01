@@ -10,6 +10,7 @@ import {
   PromotionalBanner,
   TrendingPapersCarousel,
   SubmitCTA,
+  FundingCarousel,
 } from './components';
 
 export const JournalShowcase: FC = () => {
@@ -24,6 +25,9 @@ export const JournalShowcase: FC = () => {
       {/* Verification Banner */}
       <VerificationBanner />
 
+      {/* Trending Papers Carousel */}
+      <TrendingPapersCarousel />
+
       {/* Peer Review Section */}
       <PeerReviewSection />
 
@@ -33,11 +37,11 @@ export const JournalShowcase: FC = () => {
       {/* Promotional Banner */}
       <PromotionalBanner />
 
-      {/* Trending Papers Carousel */}
-      <TrendingPapersCarousel />
+      {/* Funding Carousel */}
+      <FundingCarousel />
 
       {/* Submit CTA Banner */}
-      <SubmitCTA />
+      {/* <SubmitCTA /> */}
     </div>
   );
 };
