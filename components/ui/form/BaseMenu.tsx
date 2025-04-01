@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, ReactNode, useState } from 'react';
+import { FC, ReactNode, useState, useEffect } from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import * as Portal from '@radix-ui/react-portal';
 import { Transition } from '@headlessui/react';
@@ -17,6 +17,7 @@ interface BaseMenuProps {
   onOpenChange?: (open: boolean) => void;
   disabled?: boolean;
   sameWidth?: boolean;
+  open?: boolean;
 }
 
 export const BaseMenu: FC<BaseMenuProps> = ({
@@ -30,8 +31,26 @@ export const BaseMenu: FC<BaseMenuProps> = ({
   onOpenChange,
   disabled = false,
   sameWidth = false,
+  open,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpenInternal, setIsOpenInternal] = useState(false);
+
+  const isOpen = open !== undefined ? open : isOpenInternal;
+
+  useEffect(() => {
+    if (open !== undefined) {
+      setIsOpenInternal(open);
+    }
+  }, [open]);
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!disabled) {
+      if (open === undefined) {
+        setIsOpenInternal(newOpen);
+      }
+      onOpenChange?.(newOpen);
+    }
+  };
 
   return (
     <>
@@ -49,19 +68,12 @@ export const BaseMenu: FC<BaseMenuProps> = ({
             <div
               className="fixed inset-0 bg-black/[0.15]"
               style={{ zIndex: 99999 }}
-              onClick={() => setIsOpen(false)}
+              onClick={() => handleOpenChange(false)}
             />
           </Transition>
         </Portal.Root>
       )}
-      <DropdownMenu.Root
-        onOpenChange={(open) => {
-          if (!disabled) {
-            setIsOpen(open);
-            onOpenChange?.(open);
-          }
-        }}
-      >
+      <DropdownMenu.Root open={isOpen} onOpenChange={handleOpenChange}>
         <DropdownMenu.Trigger disabled={disabled} asChild>
           {trigger}
         </DropdownMenu.Trigger>

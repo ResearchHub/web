@@ -30,6 +30,7 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
   const { address, isConnected } = useAccount();
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleLearnMore = () => {
     setIsVerifyModalOpen(true);
@@ -52,6 +53,10 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
     setIsVerifyModalOpen(false);
   };
 
+  const handleCloseMenu = () => {
+    setIsMenuOpen(false);
+  };
+
   const trigger = (
     <button className="hover:ring-2 hover:ring-gray-200 rounded-full p-1 relative">
       <Avatar src={user.authorProfile?.profileImage} alt={user.fullName} size={34} />
@@ -72,6 +77,8 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
         className="w-64 p-0"
         withOverlay={true}
         animate
+        open={isMenuOpen}
+        onOpenChange={setIsMenuOpen}
       >
         {/* User info section */}
         <div className="px-4 py-3 border-b border-gray-200">
@@ -176,6 +183,7 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
             <VerificationBanner
               onClose={() => setShowVerificationBanner(false)}
               onLearnMore={handleLearnMore}
+              onMenuClose={handleCloseMenu}
             />
           </div>
         )}
