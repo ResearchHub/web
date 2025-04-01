@@ -21,6 +21,7 @@ export type Post = {
   topics?: Topic[];
   authors?: Author[];
   doi?: string;
+  image?: string;
 };
 
 export interface Note {
@@ -76,6 +77,7 @@ export const transformPost = createTransformer<any, Post>((raw) => ({
   authors: Array.isArray(raw.authors)
     ? raw.authors.map((author: any) => transformAuthor(author))
     : undefined,
+  image: raw.image_url,
 }));
 
 export const transformNote = createTransformer<any, Note>((raw) => ({

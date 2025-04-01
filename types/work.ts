@@ -70,6 +70,7 @@ export interface Work {
   metrics?: ContentMetrics;
   versions?: DocumentVersion[];
   note?: NoteWithContent;
+  image?: string;
   previewContent?: string;
   contentUrl?: string;
   unifiedDocumentId?: number | null;
@@ -212,6 +213,7 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     note: raw.note ? transformNoteWithContent(raw.note) : undefined,
     previewContent: raw.full_markdown || '',
     contentUrl: raw.post_src,
+    image: raw.image,
   };
 });
 

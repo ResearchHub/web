@@ -17,9 +17,6 @@ export type Topic = {
 };
 
 export const transformTopic = createTransformer<any, Topic>((raw: any) => {
-  // Debug logging to see what's coming in
-  console.log('Raw topic data:', raw);
-
   // Extract name with fallbacks
   const name = raw.name || raw.display_name || 'Untitled Topic';
 
