@@ -377,7 +377,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           id: content_object.id,
           contentType: 'COMMENT',
           createdDate: content_object.created_date || created_date,
-          createdBy: transformAuthorProfile(author),
+          createdBy: (content_object as any).author,
           comment: {
             id: content_object.id,
             content: content_object.comment_content_json,
@@ -575,7 +575,7 @@ export const transformCommentToFeedItem = (
     id: comment.id,
     contentType: 'COMMENT',
     createdDate: comment.createdDate,
-    createdBy: transformAuthorProfile(comment.createdBy),
+    createdBy: (comment as any).author,
     comment: {
       id: comment.id,
       content: comment.content,
@@ -646,7 +646,7 @@ export const transformBountyCommentToFeedItem = (
     contentType: 'BOUNTY',
     createdDate: comment.createdDate,
     bounty: bounty,
-    createdBy: transformAuthorProfile(comment.createdBy),
+    createdBy: (comment as any).author,
     relatedDocumentId: comment.thread?.objectId,
     relatedDocumentContentType: contentType,
     comment: {
