@@ -6,6 +6,10 @@ const nextConfig = {
       source: '/:path*',
       headers: [
         {
+          key: 'Permissions-Policy',
+          value: 'camera=(), geolocation=(), gyroscope=(), microphone=()',
+        },
+        {
           key: 'Referrer-Policy',
           value: 'strict-origin-when-cross-origin',
         },
