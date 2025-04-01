@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-  headers: [
+  headers: async () => [
     {
       source: '/:path*',
       headers: [
