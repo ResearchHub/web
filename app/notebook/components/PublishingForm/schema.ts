@@ -25,6 +25,13 @@ export const publishingFormSchema = z
       },
       { message: 'NFT supply must be at least 100' }
     ),
+    coverImage: z
+      .object({
+        file: z.instanceof(File).nullable().optional(),
+        url: z.string().nullable().optional(),
+      })
+      .nullable()
+      .optional(),
     isJournalEnabled: z.boolean().optional(),
     selectedNonprofit: z.any().nullable().optional(),
     departmentLabName: z.string().optional(),
@@ -57,6 +64,15 @@ export const publishingFormSchema = z
           code: z.ZodIssueCode.custom,
           message: 'Funding goal must be greater than 0',
           path: ['budget'],
+        });
+      }
+
+      // Validate cover image
+      if (!data.coverImage?.file && !data.coverImage?.url) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Cover image is required for preregistration',
+          path: ['coverImage'],
         });
       }
     }
