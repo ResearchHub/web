@@ -67,6 +67,15 @@ export const FeatureFlags = {
   nonprofitIntegration: (): boolean => {
     return !isProduction();
   },
+
+  /**
+   * Legacy note banner feature
+   * Controls whether legacy note banners and restrictions are shown
+   * Enabled in all environments
+   */
+  legacyNoteBanner: (): boolean => {
+    return true; // Always enabled for now, but can be changed later
+  },
 };
 
 /**
