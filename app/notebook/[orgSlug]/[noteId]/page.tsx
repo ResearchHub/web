@@ -20,7 +20,6 @@ export default function NotePage() {
   const isNewFunding = searchParams?.get('newFunding') === 'true';
   const [showFundingModal, setShowFundingModal] = useState(false);
 
-  // Add state for legacy note detection
   const [isLegacyNote, setIsLegacyNote] = useState(false);
 
   const {
@@ -44,10 +43,8 @@ export default function NotePage() {
     }
   }, [isNewFunding]);
 
-  // Detect legacy notes
   useEffect(() => {
     if (note) {
-      // Only set as legacy if the feature flag is enabled
       const isLegacy = !note.contentJson && isFeatureEnabled('legacyNoteBanner');
       setIsLegacyNote(isLegacy);
     }
