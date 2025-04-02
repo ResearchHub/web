@@ -92,6 +92,7 @@ export type IconName =
   | 'flaskFrame'
   | 'workType'
   | 'solidEarn'
+  | 'giveRSC'
   | 'researchhubVector';
 
 interface IconProps {

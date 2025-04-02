@@ -105,6 +105,7 @@ export const AvatarStack: FC<AvatarStackProps> = ({
           src={item.src}
           alt={item.alt}
           size={size}
+          disableTooltip={disableTooltip}
           className={`ring-2 ${ringColorClass}`}
           authorId={item.authorId}
         />
@@ -137,7 +138,13 @@ export const AvatarStack: FC<AvatarStackProps> = ({
         <ul className="space-y-0.5">
           {extraItems.slice(0, 10).map((item, index) => (
             <li key={index} className="flex items-center gap-2">
-              <Avatar src={item.src} alt={item.alt} size="xxs" className="ring-1 ring-white" />
+              <Avatar
+                disableTooltip={disableTooltip}
+                src={item.src}
+                alt={item.alt}
+                size="xxs"
+                className="ring-1 ring-white"
+              />
               <span>{item.tooltip || item.alt}</span>
             </li>
           ))}
@@ -159,7 +166,7 @@ export const AvatarStack: FC<AvatarStackProps> = ({
         ))}
 
         {/* Extra count avatar */}
-        {hasExtra && (
+        {hasExtra && !disableTooltip && (
           <div
             className="relative inline-flex"
             style={{

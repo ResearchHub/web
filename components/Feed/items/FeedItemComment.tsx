@@ -46,7 +46,6 @@ const FeedItemCommentBody: FC<{
 
   // Get related work if available
   const relatedWork = entry.relatedWork;
-  console.log('***************', relatedWork);
   return (
     <div className="mb-4">
       {/* Review information for reviews (optional additional display) */}
