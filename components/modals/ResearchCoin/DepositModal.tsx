@@ -13,19 +13,39 @@ import { DepositService } from '@/services/deposit.service';
 import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction';
 import { WalletModal } from 'components/modals/WalletModal';
 import type { Token } from '@coinbase/onchainkit/token';
+import { Interface } from 'ethers';
+
+const BASE_RSC_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_BASE_RSC_ADDRESS;
+if (!BASE_RSC_ADDRESS_ENV || BASE_RSC_ADDRESS_ENV.trim() === '') {
+  throw new Error('Missing environment variable: NEXT_PUBLIC_WEB3_BASE_RSC_ADDRESS');
+}
+const BASE_RSC_ADDRESS = BASE_RSC_ADDRESS_ENV as `0x${string}`;
 
 const RSC: Token = {
   name: 'ResearchCoin',
-  address: '0xFbB75A59193A3525a8825BeBe7D4b56899E2f7e1' as `0x${string}`,
+  address: BASE_RSC_ADDRESS,
   symbol: 'RSC',
   decimals: 18,
   image: '/RSC.webp',
   chainId: 8453,
 };
 
-const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_HOT_WALLET_ADDRESS;
+const ABI = [
+  {
+    inputs: [
+      { internalType: 'address', name: '_to', type: 'address' },
+      { internalType: 'uint256', name: '_value', type: 'uint256' },
+    ],
+    name: 'transfer',
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+];
+
+const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_WALLET_ADDRESS;
 if (!HOT_WALLET_ADDRESS_ENV || HOT_WALLET_ADDRESS_ENV.trim() === '') {
-  throw new Error('Missing environment variable: NEXT_PUBLIC_HOT_WALLET_ADDRESS');
+  throw new Error('Missing environment variable: NEXT_PUBLIC_WEB3_WALLET_ADDRESS');
 }
 const HOT_WALLET_ADDRESS = HOT_WALLET_ADDRESS_ENV as `0x${string}`;
 
@@ -33,12 +53,6 @@ interface DepositModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentBalance: number;
-}
-
-function getNetworkName(chainId: number): string {
-  if (chainId === 1) return 'ETHEREUM';
-  if (chainId === 8453) return 'BASE';
-  return 'UNKNOWN';
 }
 
 export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalProps) {
@@ -70,7 +84,7 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
           amount: depositAmount,
           transaction_hash: txHash,
           from_address: address!,
-          network: getNetworkName(RSC.chainId),
+          network: 'BASE',
         })
           .then(() => toast.success('Deposit recorded successfully!'))
           .catch((error) => {
@@ -94,24 +108,25 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
       throw new Error('Deposit amount exceeds wallet balance');
     }
     const amountInWei = (parseFloat(amount) * 1e18).toFixed(0);
-    const ABI = [
-      {
-        inputs: [
-          { internalType: 'address', name: '_to', type: 'address' },
-          { internalType: 'uint256', name: '_value', type: 'uint256' },
-        ],
-        name: 'transfer',
-        outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-        stateMutability: 'nonpayable',
-        type: 'function',
-      },
-    ];
-    const transferCall = {
-      to: RSC.address as `0x${string}`,
-      abi: ABI,
-      functionName: 'transfer',
-      args: [HOT_WALLET_ADDRESS, amountInWei],
+
+    const transferInterface = new Interface(ABI);
+    const encodedData = transferInterface.encodeFunctionData('transfer', [
+      HOT_WALLET_ADDRESS,
+      amountInWei,
+    ]);
+
+    type Call = {
+      to: `0x${string}`;
+      data?: `0x${string}`;
+      value?: bigint;
     };
+
+    // Cast the result to Call type with proper hex type
+    const transferCall: Call = {
+      to: BASE_RSC_ADDRESS,
+      data: encodedData as `0x${string}`,
+    };
+
     return [transferCall];
   }, [amount, depositAmount, walletBalance]);
 
@@ -197,7 +212,7 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
                           value={amount}
                           onChange={(e) => setAmount(e.target.value)}
                           placeholder="0.00"
-                          disabled={!address} // disable input if no wallet is connected
+                          disabled={!address}
                           className={`w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200 ${!address ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                         />
                         <div className="absolute inset-y-0 right-0 flex items-center pr-4">
