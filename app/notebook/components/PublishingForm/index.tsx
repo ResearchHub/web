@@ -425,6 +425,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           onClose={() => setShowNonprofitConfirmModal(false)}
           onConfirm={handleNonprofitConfirm}
           nonprofitName={selectedNonprofit.name}
+          ein={selectedNonprofit.ein}
         />
       )}
 
