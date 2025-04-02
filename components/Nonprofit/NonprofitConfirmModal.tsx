@@ -49,11 +49,11 @@ export function NonprofitConfirmModal({
                   <p className="text-sm text-gray-600 mb-6">
                     You&apos;ve selected nonprofit{' '}
                     <span className="font-semibold">{nonprofitName}</span>. This means that
-                    Endaoment is providing fiscal sponsorship such that all funds contributed to
-                    your fundraise will be converted to cash at the time of fundraise completion and
-                    all funds will be sent from Endaoment directly to the nonprofit{' '}
-                    <span className="font-semibold">{nonprofitName}</span> that you selected. The
-                    funds will never be in your personal custody.
+                    Endaoment is providing nonprofit support to facilitate the fundraising process.
+                    All funds contributed to your fundraise will be converted to cash at the time of
+                    fundraise completion and all funds will be sent from Endaoment directly to the
+                    nonprofit <span className="font-semibold">{nonprofitName}</span> that you
+                    selected. The funds will never be in your personal custody.
                   </p>
                   <div className="mt-6 flex justify-end gap-3">
                     <Button variant="secondary" onClick={onClose}>
