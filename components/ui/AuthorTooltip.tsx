@@ -1,23 +1,24 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { AuthorService } from '@/services/author.service';
 import { Avatar } from '@/components/ui/Avatar';
 import { User } from '@/types/user';
 import { cn } from '@/utils/styles';
-import { Tooltip } from '@/components/ui/Tooltip';
-import { navigateToAuthorProfile } from '@/utils/navigation';
 import { InfoIcon } from 'lucide-react';
 import { SocialIcon } from '@/components/ui/SocialIcon';
+import { navigateToAuthorProfile } from '@/utils/navigation';
 
 interface AuthorTooltipProps {
   authorId?: number;
   children: React.ReactNode;
   placement?: 'top' | 'bottom' | 'left' | 'right';
   className?: string;
+  showDelay?: number; // Delay in ms before showing the tooltip
 }
 
-// Create a custom tooltip wrapper
+// Create a custom tooltip wrapper that uses a portal
 const CustomTooltipWrapper: React.FC<{
   isVisible: boolean;
   children: React.ReactNode;
@@ -25,28 +26,70 @@ const CustomTooltipWrapper: React.FC<{
   onMouseEnter: () => void;
   onMouseLeave: () => void;
   position: 'top' | 'bottom' | 'left' | 'right';
-}> = ({ isVisible, children, className, onMouseEnter, onMouseLeave, position }) => {
-  if (!isVisible) return null;
+  anchorRef: React.RefObject<HTMLDivElement>;
+}> = ({ isVisible, children, className, onMouseEnter, onMouseLeave, position, anchorRef }) => {
+  const [mounted, setMounted] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
 
-  const positionClasses = {
-    top: 'bottom-full mb-2 left-1/2 transform -translate-x-1/2',
-    bottom: 'top-full mt-2 left-1/2 transform -translate-x-1/2',
-    left: 'right-full mr-2 top-1/2 transform -translate-y-1/2',
-    right: 'left-full ml-2 top-1/2 transform -translate-y-1/2',
+  useEffect(() => {
+    setMounted(true);
+
+    // Update tooltip position based on its anchor element
+    if (isVisible && anchorRef.current) {
+      const rect = anchorRef.current.getBoundingClientRect();
+      const tooltipWidth = 288; // w-72 = 18rem = 288px
+
+      let top = 0;
+      let left = 0;
+
+      switch (position) {
+        case 'top':
+          top = rect.top - 8; // minus a small gap
+          left = rect.left + rect.width / 2 - tooltipWidth / 2;
+          break;
+        case 'bottom':
+          top = rect.bottom + 8; // plus a small gap
+          left = rect.left + rect.width / 2 - tooltipWidth / 2;
+          break;
+        case 'left':
+          top = rect.top + rect.height / 2;
+          left = rect.left - tooltipWidth - 8;
+          break;
+        case 'right':
+          top = rect.top + rect.height / 2;
+          left = rect.right + 8;
+          break;
+      }
+
+      setTooltipPosition({ top, left });
+    }
+  }, [isVisible, position, anchorRef]);
+
+  if (!mounted || !isVisible) return null;
+
+  const positionStyles = {
+    position: 'fixed',
+    top: `${tooltipPosition.top}px`,
+    left: `${tooltipPosition.left}px`,
+    zIndex: 9999,
+    transform:
+      position === 'top'
+        ? 'translateY(-100%)'
+        : position === 'left' || position === 'right'
+          ? 'translateY(-50%)'
+          : 'none',
   };
 
-  return (
+  return createPortal(
     <div
-      className={cn(
-        'absolute z-50 w-72 shadow-lg rounded-md bg-white border border-gray-200',
-        positionClasses[position],
-        className
-      )}
+      className={cn('w-72 shadow-lg rounded-md bg-white border border-gray-200', className)}
+      style={positionStyles as React.CSSProperties}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
       {children}
-    </div>
+    </div>,
+    document.body
   );
 };
 
@@ -55,6 +98,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
   children,
   placement = 'bottom',
   className,
+  showDelay = 500, // Default delay of 500ms
 }) => {
   const [userData, setUserData] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
@@ -62,6 +106,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
   const hasTriedFetching = useRef(false);
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const showTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Create a custom tooltip wrapper with a ref we can use
   const tooltipWrapperRef = useRef<HTMLDivElement>(null);
@@ -116,15 +161,28 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
       tooltipTimeoutRef.current = null;
     }
 
-    setIsTooltipVisible(true);
-
-    if (!hasTriedFetching.current && authorId) {
-      console.log('AuthorTooltip: Mouse enter triggered data fetch');
-      fetchAuthorData();
+    if (showTimeoutRef.current) {
+      clearTimeout(showTimeoutRef.current);
     }
+
+    // Add delay before showing the tooltip
+    showTimeoutRef.current = setTimeout(() => {
+      setIsTooltipVisible(true);
+
+      if (!hasTriedFetching.current && authorId) {
+        console.log('AuthorTooltip: Mouse enter triggered data fetch');
+        fetchAuthorData();
+      }
+    }, showDelay);
   };
 
   const handleMouseLeave = () => {
+    // Clear show timeout if it exists
+    if (showTimeoutRef.current) {
+      clearTimeout(showTimeoutRef.current);
+      showTimeoutRef.current = null;
+    }
+
     tooltipTimeoutRef.current = setTimeout(() => {
       setIsTooltipVisible(false);
     }, 300); // Delay closing to allow moving to tooltip content
@@ -135,6 +193,9 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
     return () => {
       if (tooltipTimeoutRef.current) {
         clearTimeout(tooltipTimeoutRef.current);
+      }
+      if (showTimeoutRef.current) {
+        clearTimeout(showTimeoutRef.current);
       }
     };
   }, []);
@@ -303,7 +364,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
     return <>{children}</>;
   }
 
-  // Use our custom tooltip implementation for better hover management
+  // Use our custom tooltip implementation with portal
   return (
     <div
       ref={tooltipWrapperRef}
@@ -319,6 +380,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
         position={placement}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        anchorRef={tooltipWrapperRef}
       >
         <div ref={tooltipContentRef}>{tooltipContent}</div>
       </CustomTooltipWrapper>

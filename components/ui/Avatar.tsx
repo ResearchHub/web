@@ -3,6 +3,7 @@
 import { FC, useState, useEffect, CSSProperties, MouseEvent } from 'react';
 import { cn } from '@/utils/styles';
 import { AuthorTooltip } from './AuthorTooltip';
+import Link from 'next/link';
 
 interface AvatarProps {
   src?: string | null;
@@ -11,6 +12,7 @@ interface AvatarProps {
   className?: string;
   onClick?: (e: MouseEvent<HTMLDivElement>) => void;
   authorId?: number;
+  disableTooltip?: boolean;
 }
 
 // Define a set of background colors for avatars without images
@@ -58,6 +60,7 @@ export const Avatar: FC<AvatarProps> = ({
   className,
   onClick,
   authorId,
+  disableTooltip = false,
 }) => {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -144,6 +147,7 @@ export const Avatar: FC<AvatarProps> = ({
         shouldShowInitials ? backgroundColorClass : 'bg-gray-100',
         typeof size !== 'number' ? sizeClasses[size] : '',
         onClick ? 'cursor-pointer' : '',
+        authorId ? 'cursor-pointer' : '',
         className
       )}
       style={{
@@ -173,9 +177,29 @@ export const Avatar: FC<AvatarProps> = ({
     </div>
   );
 
-  // If authorId is provided, wrap the avatar with AuthorTooltip
+  // If authorId is provided, wrap the avatar with AuthorTooltip and/or Link
   if (authorId) {
-    return <AuthorTooltip authorId={authorId}>{avatarElement}</AuthorTooltip>;
+    const isProduction = process.env.NODE_ENV === 'production';
+    const href = isProduction
+      ? `https://researchhub.com/author/${authorId}`
+      : `/author/${authorId}`;
+
+    // If tooltip is enabled, wrap with AuthorTooltip
+    if (!disableTooltip) {
+      const linkedAvatar = (
+        <Link href={href} prefetch={false}>
+          {avatarElement}
+        </Link>
+      );
+      return <AuthorTooltip authorId={authorId}>{linkedAvatar}</AuthorTooltip>;
+    }
+
+    // If tooltip is disabled, just wrap with Link
+    return (
+      <Link href={href} prefetch={false}>
+        {avatarElement}
+      </Link>
+    );
   }
 
   return avatarElement;

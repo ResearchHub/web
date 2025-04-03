@@ -28,10 +28,10 @@ export const Progress: FC<ProgressProps> = ({
   };
 
   return (
-    <div className={clsx('w-full bg-gray-200 rounded-full', sizeClasses[size], className)}>
+    <div className={clsx('w-full bg-gray-200 rounded-lg', sizeClasses[size], className)}>
       <div
         className={clsx(
-          'rounded-full transition-all duration-300',
+          'rounded-lg transition-all duration-300',
           sizeClasses[size],
           variant === 'success' ? 'bg-green-500' : 'bg-orange-500'
         )}

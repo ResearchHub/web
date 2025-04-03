@@ -12,6 +12,7 @@ import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { useRouter } from 'next/navigation';
 import { Flag } from 'lucide-react';
 import Image from 'next/image';
+import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
@@ -46,9 +47,13 @@ const FeedItemFundraiseBody: FC<{
       <div className="flex flex-wrap gap-2 mb-3" onClick={(e) => e.stopPropagation()}>
         <ContentTypeBadge type="funding" />
         {topics.map((topic, index) => (
-          <div key={index} className="px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">
-            {topic.name}
-          </div>
+          <TopicAndJournalBadge
+            key={index}
+            type="topic"
+            name={topic.name}
+            slug={topic.slug || topic.name.toLowerCase().replace(/\s+/g, '-')}
+            imageUrl={topic.imageUrl}
+          />
         ))}
       </div>
 

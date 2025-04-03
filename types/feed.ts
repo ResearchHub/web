@@ -16,6 +16,47 @@ export type FeedActionType = 'contribute' | 'open' | 'publish' | 'post';
 // Re-export FundingRequest for backward compatibility
 export type { FundingRequest };
 
+// Simplified structure for parent comment preview - now recursive
+export interface ParentCommentPreview {
+  id: number;
+  content: any;
+  contentFormat?: ContentFormat;
+  createdBy: AuthorProfile;
+  parentComment?: ParentCommentPreview | undefined; // Add recursive field
+}
+
+// Recursive helper function to transform nested parent comments
+const transformNestedParentComment = (rawParent: any): ParentCommentPreview | undefined => {
+  if (!rawParent) {
+    return undefined;
+  }
+
+  try {
+    const createdBy = rawParent.author
+      ? transformAuthorProfile(rawParent.author)
+      : {
+          id: 0,
+          fullName: 'Unknown User',
+          profileImage: '',
+          headline: '',
+          profileUrl: '/profile/0',
+          isClaimed: false,
+        };
+
+    return {
+      id: rawParent.id,
+      content: rawParent.comment_content_json,
+      contentFormat: rawParent.comment_content_type,
+      createdBy: createdBy,
+      // Recursively transform the next parent level
+      parentComment: transformNestedParentComment(rawParent.parent_comment),
+    };
+  } catch (error) {
+    console.error('Error transforming nested parent comment:', error, rawParent);
+    return undefined; // Return undefined on error to prevent breaking the chain
+  }
+};
+
 // New FeedPostEntry type for RESEARCHHUBPOST content
 export interface FeedPostContent {
   id: number;
@@ -65,11 +106,12 @@ export interface FeedCommentContent {
       objectId: number;
     };
   };
-  relatedDocumentId?: number;
+  relatedDocumentId?: number | string;
   relatedDocumentContentType?: ContentType;
   review?: {
     score: number;
   };
+  parentComment?: ParentCommentPreview;
 }
 
 export interface FeedPaperContent {
@@ -333,14 +375,14 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       // For comments, use the transformComment function
       try {
         // Prepare the comment data for transformation
-        const commentData = {
+        const commentData: any = {
           id: content_object.id,
           comment_content_json: content_object.comment_content_json,
           comment_content_type: content_object.comment_content_type,
           comment_type: content_object.comment_type,
           created_date: content_object.created_date || created_date,
           updated_date: content_object.updated_date || created_date,
-          created_by: author,
+          created_by: author || content_object.author,
           score: content_object.score || 0,
           children_count: content_object.children_count || 0,
           reply_count: content_object.reply_count || 0,
@@ -352,13 +394,17 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                 id: content_object.thread_id,
                 thread_type: content_object.document_type || 'PAPER',
                 privacy_type: 'PUBLIC',
-                object_id: content_object.id,
+                object_id: content_object.object_id || content_object.id,
               }
             : null,
           is_public: true,
           is_removed: false,
           metadata: content_object.metadata || {},
           review: content_object.review || null,
+          user_vote: feedEntry.user_vote || null,
+          created_location: '',
+          unified_document_id: content_object.unified_document_id,
+          bounty_amount: content_object.bounty_amount,
         };
 
         // Check if the comment is associated with a paper or post for related work
@@ -377,7 +423,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           id: content_object.id,
           contentType: 'COMMENT',
           createdDate: content_object.created_date || created_date,
-          createdBy: transformAuthorProfile(author),
+          createdBy: transformAuthorProfile(author || content_object.author),
           comment: {
             id: content_object.id,
             content: content_object.comment_content_json,
@@ -404,6 +450,13 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           commentContent.review = {
             score: content_object.review.score || 0,
           };
+        }
+
+        // Transform and add parent comment if it exists, using the recursive helper
+        if (content_object.parent_comment) {
+          commentContent.parentComment = transformNestedParentComment(
+            content_object.parent_comment
+          );
         }
 
         content = commentContent;
@@ -575,7 +628,7 @@ export const transformCommentToFeedItem = (
     id: comment.id,
     contentType: 'COMMENT',
     createdDate: comment.createdDate,
-    createdBy: transformAuthorProfile(comment.createdBy),
+    createdBy: (comment as any).author,
     comment: {
       id: comment.id,
       content: comment.content,
@@ -646,7 +699,7 @@ export const transformBountyCommentToFeedItem = (
     contentType: 'BOUNTY',
     createdDate: comment.createdDate,
     bounty: bounty,
-    createdBy: transformAuthorProfile(comment.createdBy),
+    createdBy: (comment as any).author,
     relatedDocumentId: comment.thread?.objectId,
     relatedDocumentContentType: contentType,
     comment: {

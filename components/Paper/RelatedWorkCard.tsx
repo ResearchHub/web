@@ -66,7 +66,7 @@ export const RelatedWorkCard = ({ work, onClick, size = 'default' }: RelatedWork
         if (work.type === 'preprint') {
           return 'preprint';
         } else if (work.type === 'article') {
-          return 'published';
+          return 'paper';
         }
         return 'paper';
       case 'funding_request':
