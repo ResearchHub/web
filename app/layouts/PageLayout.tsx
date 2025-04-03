@@ -88,7 +88,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
 
             {/* Right Sidebar - CSS only solution */}
             {rightSidebar && (
-              <aside className="hidden lg:block w-80 py-8">
+              <aside className="lg:!block hidden w-80 bg-white py-8">
                 <div className="sticky top-16 overflow-y-auto pb-8 max-h-[calc(100vh-64px)]">
                   <Suspense fallback={<RightSidebarSkeleton />}>
                     {typeof rightSidebar === 'boolean' ? <RightSidebar /> : rightSidebar}

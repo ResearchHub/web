@@ -116,6 +116,14 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
     }
   };
 
+  // Determine the progress bar variant based on fundraise status and funding percentage
+  const getProgressVariant = () => {
+    if (fundraise.status === 'COMPLETED') {
+      return actualPercentage >= 100 ? 'success' : 'gray';
+    }
+    return 'default';
+  };
+
   // Render minimal variant
   if (variant === 'minimal') {
     return (
@@ -128,11 +136,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
           </div>
 
           {/* Progress bar */}
-          <Progress
-            value={progressPercentage}
-            variant={fundraise.status === 'COMPLETED' ? 'success' : 'default'}
-            size="xs"
-          />
+          <Progress value={progressPercentage} variant={getProgressVariant()} size="xs" />
         </div>
       </>
     );
@@ -179,11 +183,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
 
           {/* Progress bar - Keep as is */}
           <div className="mb-2">
-            <Progress
-              value={progressPercentage}
-              variant={fundraise.status === 'COMPLETED' ? 'success' : 'default'}
-              size="xs"
-            />
+            <Progress value={progressPercentage} variant={getProgressVariant()} size="xs" />
           </div>
 
           {/* Bottom row: Fund CTA on left, contributors on right */}
@@ -273,11 +273,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
               )}
               {getStatusDisplay()}
             </div>
-            <Progress
-              value={progressPercentage}
-              variant={fundraise.status === 'COMPLETED' ? 'success' : 'default'}
-              className="h-3"
-            />
+            <Progress value={progressPercentage} variant={getProgressVariant()} className="h-3" />
           </div>
 
           <div className="flex items-center justify-between">

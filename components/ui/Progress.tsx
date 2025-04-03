@@ -7,7 +7,7 @@ interface ProgressProps {
   value: number;
   max?: number;
   className?: string;
-  variant?: 'default' | 'success';
+  variant?: 'default' | 'success' | 'gray';
   /** Controls the height of the progress bar */
   size?: 'xs' | 'sm' | 'md';
 }
@@ -33,7 +33,11 @@ export const Progress: FC<ProgressProps> = ({
         className={clsx(
           'rounded-lg transition-all duration-300',
           sizeClasses[size],
-          variant === 'success' ? 'bg-green-500' : 'bg-orange-500'
+          variant === 'success'
+            ? 'bg-green-500'
+            : variant === 'gray'
+              ? 'bg-gray-400'
+              : 'bg-orange-500'
         )}
         style={{ width: `${percentage}%` }}
       />
