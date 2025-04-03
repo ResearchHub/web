@@ -212,7 +212,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
               <FundraiseProgress
                 fundraise={post.fundraise}
                 compact={true}
-                showContribute={false}
+                showContribute={true}
                 className="p-0 border-0 bg-transparent"
               />
             </div>

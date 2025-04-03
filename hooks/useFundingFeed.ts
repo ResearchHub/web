@@ -21,7 +21,6 @@ export const useFundingFeed = (limit: number = 10): UseFundingFeedResult => {
       const result = await FeedService.getFeed({
         contentType: 'PREREGISTRATION',
         endpoint: 'funding_feed',
-        fundraiseStatus: 'OPEN', // Fetch only open funding requests for the carousel
         pageSize: limit,
         page: 1, // Fetch only the first page
       });

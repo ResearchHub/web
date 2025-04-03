@@ -15,6 +15,7 @@ import type { FeedEntry } from '@/types/feed';
 import Link from 'next/link';
 import { useFeed } from '@/hooks/useFeed';
 import { ArrowRightIcon } from 'lucide-react';
+import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 
 // Dynamically import InfoBanner component
 const InfoBanner = dynamic(() => import('./components/InfoBanner').then((mod) => mod.InfoBanner), {
@@ -105,7 +106,7 @@ const JournalSpotlight = () => {
 
   return (
     <div className="relative bg-white rounded-lg mb-4 border border-gray-200 hover:bg-gray-50 transition-colors duration-150 overflow-hidden">
-      <h2 className="absolute top-[-1px] left-[-1px] z-10 bg-indigo-50 text-indigo-600 rounded-lg py-2 px-4 text-sm font-semibold flex items-center">
+      <h2 className="absolute top-[-1px] left-[-1px] z-10 bg-indigo-50 text-indigo-600 rounded-lg py-2 px-4 text-sm font-medium flex items-center">
         <Icon name="rhJournal1" size={16} className="mr-1.5" color="#4f46e5" />
         RH Journal Spotlight
       </h2>
@@ -130,57 +131,16 @@ const JournalSpotlight = () => {
       </div>
 
       {/* Condensed Journal Promotional Section - Simplified */}
-      <div className="mt-4 text-center">
+      <div className="mb-2 text-center">
         <a
           href="/journal"
           className="text-xs text-blue-600 hover:text-blue-700 hover:underline font-medium"
         >
-          <div className="flex items-center justify-center gap-2 px-4 py-2">
+          <div className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium flex items-center justify-center gap-2 px-4 py-2">
             Learn more about the RH Journal
-            <ArrowRightIcon className="w-4 h-4" />
           </div>
         </a>
       </div>
-    </div>
-  );
-};
-
-// Simple FundraiseProgress component that mimics the one used in FundingCarouselItem
-interface FundraiseProgressProps {
-  fundraise: {
-    amountRaised?: { rsc: number };
-    amountGoal?: { rsc: number };
-  };
-  compact?: boolean;
-  className?: string;
-  showPercentage?: boolean;
-}
-
-const FundraiseProgress = ({
-  fundraise,
-  compact = false,
-  className,
-  showPercentage = false,
-}: FundraiseProgressProps) => {
-  const amountRaised = fundraise?.amountRaised?.rsc || 0;
-  const amountGoal = fundraise?.amountGoal?.rsc || 100;
-  const percentage = Math.min(100, (amountRaised / amountGoal) * 100);
-  const isComplete = percentage >= 100;
-
-  return (
-    <div className={`bg-white rounded-lg ${compact ? 'p-0' : 'p-3'} ${className || ''}`}>
-      <div className="flex justify-between items-center text-xs mb-1.5">
-        <div className="text-gray-700 font-medium">
-          {showPercentage ? `${Math.round(percentage)}% funded` : `${amountRaised} RSC funded`}
-        </div>
-        {!showPercentage && <div className="text-gray-500">Goal: {amountGoal} RSC</div>}
-      </div>
-      <Progress
-        value={amountRaised}
-        max={amountGoal}
-        variant={isComplete ? 'success' : 'default'}
-        size="sm"
-      />
     </div>
   );
 };
@@ -217,8 +177,7 @@ const FundingSpotlight = () => {
   // Determine content type and safely access content properties
   const content = fundingItem?.content as any;
 
-  // Map fetched content type to a valid badge type ('funding' in this case)
-  let badgeType: React.ComponentProps<typeof ContentTypeBadge>['type'] = 'funding';
+  console.log('|||content', content);
 
   const title = content?.title || 'Funding Opportunity';
   const slug = content?.slug;
@@ -230,15 +189,6 @@ const FundingSpotlight = () => {
 
   // Improved author handling for content and fundraise
   const authors: Author[] = [];
-
-  // Add content creator/author if available
-  if (content?.createdBy) {
-    authors.push({
-      name: `${content.createdBy.firstName || ''} ${content.createdBy.lastName || ''}`.trim(),
-      verified: content.createdBy.isVerified,
-      profileUrl: content.createdBy.profileUrl,
-    });
-  }
 
   // Add any additional authors from the content
   if (content?.authors && Array.isArray(content.authors)) {
@@ -255,7 +205,7 @@ const FundingSpotlight = () => {
 
   return (
     <div className="relative bg-white rounded-lg mb-4 border border-gray-200 p-4 hover:bg-gray-50 transition-colors duration-150">
-      <h2 className="absolute top-[-1px] left-[-1px] z-10 bg-indigo-50 text-indigo-600 rounded-lg py-2 px-4 text-sm font-semibold flex items-center">
+      <h2 className="absolute top-[-1px] left-[-1px] z-10 bg-indigo-50 text-indigo-600 rounded-lg py-2 px-4 text-sm font-medium flex items-center">
         <Icon name="fund" size={16} className="mr-1.5" color="#4f46e5" />
         Funding Spotlight
       </h2>
@@ -278,21 +228,20 @@ const FundingSpotlight = () => {
               />
             )}
 
-            {/* Fundraise progress bar */}
+            {/* Fundraise progress bar - now with minimal variant */}
             {content?.fundraise && (
-              <FundraiseProgress
-                fundraise={content.fundraise}
-                compact={true}
-                className="mt-2 bg-transparent"
-              />
+              <FundraiseProgress fundraise={content.fundraise} variant="minimal" className="mt-2" />
             )}
 
-            <Link
-              href={link}
-              className="block w-full text-center text-white bg-green-600 hover:bg-green-700 rounded-md px-3 py-1.5 text-xs font-medium mt-3"
-            >
-              View Opportunity
-            </Link>
+            {/* Changed from button to text link */}
+            <div className="text-center pt-2">
+              <Link
+                href="/fund"
+                className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium"
+              >
+                Need money for your research?
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="bg-gray-100 p-3 rounded-md text-sm text-gray-600 text-center">
