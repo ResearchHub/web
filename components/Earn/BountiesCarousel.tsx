@@ -9,13 +9,15 @@ import { cn } from '@/utils/styles';
 import Link from 'next/link';
 import { BountyCarouselItem } from './BountyCarouselItem';
 
-interface BountiesCarouselProps {
-  // Placeholder for potential future props
-}
+/**
+ * Props for the BountiesCarousel component.
+ * Currently empty but defined as a specific empty object type for future extensibility.
+ */
+type BountiesCarouselProps = Record<string, never>;
 
 const CAROUSEL_ITEM_WIDTH = 250 + 12; // width + gap
 
-export const BountiesCarousel: FC<BountiesCarouselProps> = ({}) => {
+export const BountiesCarousel: FC<BountiesCarouselProps> = () => {
   // Let's specifically fetch review bounties for our carousel
   const { entries, isLoading, error } = useBountiesFeed(10, 'OPEN', 'REVIEW');
   const scrollContainerRef = useRef<HTMLDivElement>(null);

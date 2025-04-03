@@ -10,13 +10,15 @@ import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 
-interface FundingCarouselProps {
-  // Placeholder for potential future props
-}
+/**
+ * Props for the FundingCarousel component.
+ * Currently empty but defined as a specific empty object type for future extensibility.
+ */
+type FundingCarouselProps = Record<string, never>;
 
 const CAROUSEL_ITEM_WIDTH = 250 + 12; // width + gap (updated to match BountiesCarousel)
 
-export const FundingCarousel: FC<FundingCarouselProps> = ({}) => {
+export const FundingCarousel: FC<FundingCarouselProps> = () => {
   const { entries, isLoading, error } = useFundingFeed(10);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isAtStart, setIsAtStart] = useState(true);
