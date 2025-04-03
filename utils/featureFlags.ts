@@ -62,10 +62,9 @@ export function isProduction(): boolean {
 export const FeatureFlags = {
   /**
    * Nonprofit integration feature
-   * Enabled in all environments except production
    */
   nonprofitIntegration: (): boolean => {
-    return !isProduction();
+    return true; // Always enabled in all environments
   },
 };
 
