@@ -11,7 +11,6 @@ export class ApiClient {
   static setGlobalAuthToken(token: string | null) {
     this.globalAuthToken = token;
     this.tokenInitPromise = null;
-    console.log(`[ApiClient] Global token set`);
   }
 
   static getGlobalAuthToken(): string | null {
@@ -20,7 +19,6 @@ export class ApiClient {
 
   private static async getAuthToken() {
     if (typeof window === 'undefined') {
-      console.log('[ApiClient] Server-side request, fetching fresh token');
       return this.initializeToken();
     }
 
@@ -41,23 +39,13 @@ export class ApiClient {
       if (typeof window === 'undefined') {
         const session = await getServerSession(authOptions);
         if (session?.authToken) {
-          console.log(
-            `[ApiClient] Server-side token fetched for user: ${session.userId || 'unknown'}`
-          );
           return session.authToken;
-        } else {
-          console.log('[ApiClient] Server-side session has no authToken');
         }
       } else {
         const session = await getSession();
         if (session?.authToken) {
           this.globalAuthToken = session.authToken;
-          console.log(
-            `[ApiClient] Client-side token initialized for user: ${session.userId || 'unknown'}`
-          );
           return session.authToken;
-        } else {
-          console.log('[ApiClient] Client-side session has no authToken');
         }
       }
       return null;
@@ -78,8 +66,6 @@ export class ApiClient {
     const authToken = await this.getAuthToken();
     if (authToken) {
       headers['Authorization'] = `Token ${authToken}`;
-    } else {
-      console.warn('No auth token available for request');
     }
 
     return headers;
@@ -118,30 +104,26 @@ export class ApiClient {
     headers: Record<string, string>,
     body?: any
   ) {
-    const isServer = typeof window === 'undefined';
-    const environment = isServer ? 'SERVER' : 'CLIENT';
-    const authHeader = headers['Authorization'] || 'No Auth Header';
-
-    console.log(`[ApiClient:${environment}] ${method} ${url}`);
-    console.log(`[ApiClient:${environment}] Headers:`, {
-      ...headers,
-      Authorization: authHeader,
-    });
-
-    if (body && method !== 'GET') {
-      console.log(
-        `[ApiClient:${environment}] Body:`,
-        body instanceof FormData ? 'FormData (not stringifiable)' : body
-      );
-    }
+    // Removed logging
   }
 
-  static async get<T>(path: string): Promise<T> {
+  static async get<T>(path: string, params?: Record<string, string>): Promise<T> {
     try {
       const headers = await this.getHeaders('GET');
-      const url = `${this.baseURL}${path}`;
+      let url = `${this.baseURL}${path}`;
 
-      this.logRequest('GET', url, headers);
+      if (params) {
+        const queryParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            queryParams.append(key, value);
+          }
+        });
+        const queryString = queryParams.toString();
+        if (queryString) {
+          url += `?${queryString}`;
+        }
+      }
 
       const response = await fetch(url, this.getFetchOptions('GET', headers));
 
@@ -157,7 +139,6 @@ export class ApiClient {
 
       return response.json();
     } catch (error) {
-      console.error('API request failed:', error);
       throw error;
     }
   }
@@ -170,23 +151,22 @@ export class ApiClient {
   static async getBlob(path: string): Promise<Blob> {
     try {
       const headers = await this.getHeaders('GET');
-      delete headers['Accept'];
       const url = `${this.baseURL}${path}`;
 
-      this.logRequest('GET (Blob)', url, headers);
-
-      const response = await fetch(url, {
-        ...this.getFetchOptions('GET', headers),
-        headers: headers,
-      });
+      const response = await fetch(url, this.getFetchOptions('GET', headers));
 
       if (!response.ok) {
-        throw new ApiError(`HTTP error! status: ${response.status}`, response.status);
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { message: 'Invalid JSON response from server' };
+        }
+        throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
       }
 
       return response.blob();
     } catch (error) {
-      console.error('API request failed:', error);
       throw error;
     }
   }
@@ -195,8 +175,6 @@ export class ApiClient {
     try {
       const headers = await this.getHeaders('POST');
       const url = `${this.baseURL}${path}`;
-
-      this.logRequest('POST', url, headers, body);
 
       const response = await fetch(url, this.getFetchOptions('POST', headers, body));
 
@@ -216,7 +194,6 @@ export class ApiClient {
         return {} as T;
       }
     } catch (error) {
-      console.error('API POST request failed:', error);
       throw error;
     }
   }
@@ -225,8 +202,6 @@ export class ApiClient {
     try {
       const headers = await this.getHeaders('PATCH');
       const url = `${this.baseURL}${path}`;
-
-      this.logRequest('PATCH', url, headers, body);
 
       const response = await fetch(url, this.getFetchOptions('PATCH', headers, body));
 
@@ -242,7 +217,6 @@ export class ApiClient {
 
       return response.json();
     } catch (error) {
-      console.error('API PATCH request failed:', error);
       throw error;
     }
   }
@@ -251,8 +225,6 @@ export class ApiClient {
     try {
       const headers = await this.getHeaders('DELETE');
       const url = `${this.baseURL}${path}`;
-
-      this.logRequest('DELETE', url, headers, body);
 
       const response = await fetch(url, this.getFetchOptions('DELETE', headers, body));
 
@@ -268,7 +240,6 @@ export class ApiClient {
 
       return response.json();
     } catch (error) {
-      console.error('API DELETE request failed:', error);
       throw error;
     }
   }
