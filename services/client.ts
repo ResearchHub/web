@@ -11,6 +11,7 @@ export class ApiClient {
   static setGlobalAuthToken(token: string | null) {
     this.globalAuthToken = token;
     this.tokenInitPromise = null;
+    console.log(`[ApiClient] Global token set`);
   }
 
   static getGlobalAuthToken(): string | null {
@@ -18,6 +19,11 @@ export class ApiClient {
   }
 
   private static async getAuthToken() {
+    if (typeof window === 'undefined') {
+      console.log('[ApiClient] Server-side request, fetching fresh token');
+      return this.initializeToken();
+    }
+
     if (this.globalAuthToken) {
       return this.globalAuthToken;
     }
@@ -35,8 +41,9 @@ export class ApiClient {
       if (typeof window === 'undefined') {
         const session = await getServerSession(authOptions);
         if (session?.authToken) {
-          this.globalAuthToken = session.authToken;
-          console.log('[ApiClient] Server-side token initialized:', session.authToken);
+          console.log(
+            `[ApiClient] Server-side token fetched for user: ${session.userId || 'unknown'}`
+          );
           return session.authToken;
         } else {
           console.log('[ApiClient] Server-side session has no authToken');
@@ -45,7 +52,9 @@ export class ApiClient {
         const session = await getSession();
         if (session?.authToken) {
           this.globalAuthToken = session.authToken;
-          console.log('[ApiClient] Client-side token initialized:', session.authToken);
+          console.log(
+            `[ApiClient] Client-side token initialized for user: ${session.userId || 'unknown'}`
+          );
           return session.authToken;
         } else {
           console.log('[ApiClient] Client-side session has no authToken');
@@ -82,7 +91,6 @@ export class ApiClient {
     body?: any
   ): RequestInit {
     if (body instanceof FormData) {
-      // Remove Content-Type header for FormData to let browser set it with boundary
       const formDataHeaders = { ...headers };
       delete formDataHeaders['Content-Type'];
 
@@ -117,7 +125,7 @@ export class ApiClient {
     console.log(`[ApiClient:${environment}] ${method} ${url}`);
     console.log(`[ApiClient:${environment}] Headers:`, {
       ...headers,
-      Authorization: authHeader, // Log the full auth header
+      Authorization: authHeader,
     });
 
     if (body && method !== 'GET') {
@@ -162,14 +170,14 @@ export class ApiClient {
   static async getBlob(path: string): Promise<Blob> {
     try {
       const headers = await this.getHeaders('GET');
-      delete headers['Accept']; // Remove Accept header to allow blob response
+      delete headers['Accept'];
       const url = `${this.baseURL}${path}`;
 
       this.logRequest('GET (Blob)', url, headers);
 
       const response = await fetch(url, {
         ...this.getFetchOptions('GET', headers),
-        headers: headers, // Override headers
+        headers: headers,
       });
 
       if (!response.ok) {
@@ -202,14 +210,9 @@ export class ApiClient {
         throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
       }
 
-      // Try to parse JSON, but don't fail if there's nothing to parse
-      // Some endpoints return empty responses,
-      // eg when creating a new publication (POST: /api/author/${authorId}/publications/)
-      // In this case, the response is an empty object
       try {
         return await response.json();
       } catch (e) {
-        // If parsing fails, return an empty object
         return {} as T;
       }
     } catch (error) {
