@@ -24,6 +24,8 @@ interface FundraiseProgressProps {
   className?: string;
   /** Whether to show percentage funded instead of amounts */
   showPercentage?: boolean;
+  /** Render in minimal mode with just percentage and days left */
+  variant?: 'default' | 'minimal';
 }
 
 export const FundraiseProgress: FC<FundraiseProgressProps> = ({
@@ -33,6 +35,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   showContribute = true,
   className,
   showPercentage = false,
+  variant = 'default',
 }) => {
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
 
@@ -112,6 +115,28 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
       onContribute();
     }
   };
+
+  // Render minimal variant
+  if (variant === 'minimal') {
+    return (
+      <>
+        <div className={cn('rounded-lg', className)}>
+          {/* Top row: Percentage on left, days left on right */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="font-medium text-sm text-gray-700">{actualPercentage}% funded</div>
+            {getStatusDisplay()}
+          </div>
+
+          {/* Progress bar */}
+          <Progress
+            value={progressPercentage}
+            variant={fundraise.status === 'COMPLETED' ? 'success' : 'default'}
+            size="xs"
+          />
+        </div>
+      </>
+    );
+  }
 
   const defaultContainerClasses = compact
     ? 'p-3 bg-white rounded-lg border border-gray-200'

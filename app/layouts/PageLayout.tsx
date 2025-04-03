@@ -80,21 +80,21 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
             <TopBar onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)} />
           </Suspense>
 
-          <div className="flex py-8">
+          <div className="flex">
             {/* Main Content */}
-            <main className="flex-1 px-4 lg:px-8">
+            <main className="flex-1 px-4 lg:px-8 py-8">
               <div className="mx-auto max-w-4xl">{children}</div>
             </main>
 
-            {/* Right Sidebar */}
+            {/* Right Sidebar - CSS only solution */}
             {rightSidebar && (
-              <div className="lg:!block hidden w-80 bg-white">
-                <div className="sticky top-[64px] p-4 pt-0">
+              <aside className="hidden lg:block w-80 py-8">
+                <div className="sticky top-16 overflow-y-auto pb-8 max-h-[calc(100vh-64px)]">
                   <Suspense fallback={<RightSidebarSkeleton />}>
                     {typeof rightSidebar === 'boolean' ? <RightSidebar /> : rightSidebar}
                   </Suspense>
                 </div>
-              </div>
+              </aside>
             )}
           </div>
         </div>

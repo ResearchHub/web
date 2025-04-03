@@ -56,7 +56,7 @@ export const BountyCarouselItem: FC<BountyCarouselItemProps> = ({ entry }) => {
 
   return (
     <div
-      className="bg-white rounded-lg border border-gray-200 overflow-hidden w-[250px] cursor-pointer hover:shadow-md transition-shadow duration-200"
+      className="bg-white rounded-lg border border-gray-200 overflow-hidden w-[250px] h-[200px] cursor-pointer hover:shadow-md transition-shadow duration-200"
       onClick={handleCardClick}
     >
       {/* Paper info section */}
@@ -83,8 +83,8 @@ export const BountyCarouselItem: FC<BountyCarouselItemProps> = ({ entry }) => {
         </div>
 
         {/* Authors - using AuthorList */}
-        {authors.length > 0 && (
-          <div className="text-gray-600">
+        <div className="text-gray-600 line-clamp-1">
+          {authors.length > 0 && (
             <AuthorList
               authors={authors}
               className="font-normal text-gray-600"
@@ -92,8 +92,8 @@ export const BountyCarouselItem: FC<BountyCarouselItemProps> = ({ entry }) => {
               delimiter="•"
               abbreviated={true}
             />
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Bounty section - simplified yellow background */}

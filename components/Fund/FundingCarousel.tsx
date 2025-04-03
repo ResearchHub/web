@@ -177,7 +177,7 @@ export const FundingCarousel: FC<FundingCarouselProps> = () => {
       </div>
 
       {/* Promotional Section */}
-      <div className="mt-6 p-4 border border-gray-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-gray-100 rounded-lg ">
+      <div className="mt-6 p-4 border border-gray-200 flex flex-row items-start items-center justify-between gap-4 bg-gray-100 rounded-lg ">
         <div className="flex items-center gap-2 text-sm text-gray-700">
           <span className=" text-md text-gray-700 flex items-center gap-2">
             <Coins size={24} />
