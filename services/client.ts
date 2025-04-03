@@ -36,13 +36,19 @@ export class ApiClient {
         const session = await getServerSession(authOptions);
         if (session?.authToken) {
           this.globalAuthToken = session.authToken;
+          console.log('[ApiClient] Server-side token initialized:', session.authToken);
           return session.authToken;
+        } else {
+          console.log('[ApiClient] Server-side session has no authToken');
         }
       } else {
         const session = await getSession();
         if (session?.authToken) {
           this.globalAuthToken = session.authToken;
+          console.log('[ApiClient] Client-side token initialized:', session.authToken);
           return session.authToken;
+        } else {
+          console.log('[ApiClient] Client-side session has no authToken');
         }
       }
       return null;
@@ -98,10 +104,38 @@ export class ApiClient {
     };
   }
 
+  private static logRequest(
+    method: string,
+    url: string,
+    headers: Record<string, string>,
+    body?: any
+  ) {
+    const isServer = typeof window === 'undefined';
+    const environment = isServer ? 'SERVER' : 'CLIENT';
+    const authHeader = headers['Authorization'] || 'No Auth Header';
+
+    console.log(`[ApiClient:${environment}] ${method} ${url}`);
+    console.log(`[ApiClient:${environment}] Headers:`, {
+      ...headers,
+      Authorization: authHeader, // Log the full auth header
+    });
+
+    if (body && method !== 'GET') {
+      console.log(
+        `[ApiClient:${environment}] Body:`,
+        body instanceof FormData ? 'FormData (not stringifiable)' : body
+      );
+    }
+  }
+
   static async get<T>(path: string): Promise<T> {
     try {
       const headers = await this.getHeaders('GET');
-      const response = await fetch(`${this.baseURL}${path}`, this.getFetchOptions('GET', headers));
+      const url = `${this.baseURL}${path}`;
+
+      this.logRequest('GET', url, headers);
+
+      const response = await fetch(url, this.getFetchOptions('GET', headers));
 
       if (!response.ok) {
         let errorData;
@@ -129,8 +163,11 @@ export class ApiClient {
     try {
       const headers = await this.getHeaders('GET');
       delete headers['Accept']; // Remove Accept header to allow blob response
+      const url = `${this.baseURL}${path}`;
 
-      const response = await fetch(`${this.baseURL}${path}`, {
+      this.logRequest('GET (Blob)', url, headers);
+
+      const response = await fetch(url, {
         ...this.getFetchOptions('GET', headers),
         headers: headers, // Override headers
       });
@@ -147,61 +184,48 @@ export class ApiClient {
   }
 
   static async post<T>(path: string, body?: any): Promise<T> {
-    const headers = await this.getHeaders('POST');
-    const response = await fetch(
-      `${this.baseURL}${path}`,
-      this.getFetchOptions('POST', headers, body)
-    );
-
-    if (!response.ok) {
-      let errorData;
-      try {
-        errorData = await response.json();
-      } catch (e) {
-        errorData = { message: 'Invalid JSON response from server' };
-      }
-      throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
-    }
-
-    // Try to parse JSON, but don't fail if there's nothing to parse
-    // Some endpoints return empty responses,
-    // eg when creating a new publication (POST: /api/author/${authorId}/publications/)
-    // In this case, the response is an empty object
     try {
-      return await response.json();
-    } catch (e) {
-      // If parsing fails, return an empty object
-      return {} as T;
+      const headers = await this.getHeaders('POST');
+      const url = `${this.baseURL}${path}`;
+
+      this.logRequest('POST', url, headers, body);
+
+      const response = await fetch(url, this.getFetchOptions('POST', headers, body));
+
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { message: 'Invalid JSON response from server' };
+        }
+        throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
+      }
+
+      // Try to parse JSON, but don't fail if there's nothing to parse
+      // Some endpoints return empty responses,
+      // eg when creating a new publication (POST: /api/author/${authorId}/publications/)
+      // In this case, the response is an empty object
+      try {
+        return await response.json();
+      } catch (e) {
+        // If parsing fails, return an empty object
+        return {} as T;
+      }
+    } catch (error) {
+      console.error('API POST request failed:', error);
+      throw error;
     }
   }
 
   static async patch<T>(path: string, body?: any): Promise<T> {
-    const headers = await this.getHeaders('PATCH');
-    const response = await fetch(
-      `${this.baseURL}${path}`,
-      this.getFetchOptions('PATCH', headers, body)
-    );
-
-    if (!response.ok) {
-      let errorData;
-      try {
-        errorData = await response.json();
-      } catch (e) {
-        errorData = { message: 'Invalid JSON response from server' };
-      }
-      throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
-    }
-
-    return response.json();
-  }
-
-  static async delete<T>(path: string, body?: any): Promise<T> {
     try {
-      const headers = await this.getHeaders('DELETE');
-      const response = await fetch(
-        `${this.baseURL}${path}`,
-        this.getFetchOptions('DELETE', headers, body)
-      );
+      const headers = await this.getHeaders('PATCH');
+      const url = `${this.baseURL}${path}`;
+
+      this.logRequest('PATCH', url, headers, body);
+
+      const response = await fetch(url, this.getFetchOptions('PATCH', headers, body));
 
       if (!response.ok) {
         let errorData;
@@ -215,7 +239,33 @@ export class ApiClient {
 
       return response.json();
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error('API PATCH request failed:', error);
+      throw error;
+    }
+  }
+
+  static async delete<T>(path: string, body?: any): Promise<T> {
+    try {
+      const headers = await this.getHeaders('DELETE');
+      const url = `${this.baseURL}${path}`;
+
+      this.logRequest('DELETE', url, headers, body);
+
+      const response = await fetch(url, this.getFetchOptions('DELETE', headers, body));
+
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { message: 'Invalid JSON response from server' };
+        }
+        throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('API DELETE request failed:', error);
       throw error;
     }
   }
