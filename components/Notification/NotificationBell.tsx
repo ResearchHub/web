@@ -2,32 +2,66 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { Icon } from '@/components/ui/icons/Icon';
 import { useNotifications } from '@/contexts/NotificationContext';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBell as faBellRegular } from '@fortawesome/free-regular-svg-icons';
-import { faBell as faBellSolid } from '@fortawesome/free-solid-svg-icons';
+import { useUser } from '@/contexts/UserContext';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { WS_ROUTES } from '@/services/websocket';
+import { transformNotification } from '@/types/notification';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface NotificationBellProps {
   filled?: boolean;
 }
 
 export function NotificationBell({ filled }: NotificationBellProps) {
+  const [unreadCountInternal, setUnreadCountInternal] = useState(0);
   const { unreadCount } = useNotifications();
+  const { user } = useUser();
   const pathname = usePathname();
-  const bellIcon = filled ? faBellSolid : faBellRegular;
-  const href = pathname === '/notifications' ? '/' : '/notifications';
+  const isNotificationsPage = pathname === '/notifications';
+  const href = isNotificationsPage ? '/' : '/notifications';
+
+  // Connect to WebSocket for real-time notification updates
+  const { messages } = useWebSocket({
+    url: user?.id ? WS_ROUTES.NOTIFICATIONS(user.id) : '',
+    authRequired: true,
+    autoConnect: !!user?.id,
+    global: true,
+  });
+
+  // Update unread count when new notifications arrive via websocket
+  useEffect(() => {
+    if (messages.length > 0) {
+      const latestMessage = messages[messages.length - 1];
+      try {
+        transformNotification(latestMessage);
+        setUnreadCountInternal((prev) => prev + 1);
+      } catch (error) {
+        console.error('Error processing notification:', error);
+      }
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    setUnreadCountInternal((prev) => prev + unreadCount);
+  }, [unreadCount]);
 
   return (
-    <Link href={href} className="relative">
-      <FontAwesomeIcon
-        icon={bellIcon}
-        className="h-7 w-7 text-gray-600 hover:text-gray-900 transition-colors translate-y-[1px]"
-      />
-      {unreadCount > 0 && (
-        <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[11px] font-medium text-white">
-          {unreadCount > 99 ? '99+' : unreadCount}
-        </span>
-      )}
-    </Link>
+    <Tooltip content="Notifications" width={'120px'}>
+      <Link href={href} className="relative flex items-center justify-center">
+        <Icon
+          name="notification"
+          size={24}
+          className="text-gray-600 hover:text-gray-900 transition-colors"
+        />
+        {unreadCountInternal > 0 && (
+          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary-500 text-[9px] font-medium text-white">
+            {unreadCountInternal > 9 ? '9+' : unreadCountInternal}
+          </span>
+        )}
+      </Link>
+    </Tooltip>
   );
 }

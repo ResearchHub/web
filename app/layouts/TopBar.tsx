@@ -72,7 +72,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                       </Link>
                     </Tooltip>
                     {/* <NotificationBell filled={isNotificationsPage} /> */}
-                    <Icon name="notification" size={24} />
+                    <NotificationBell filled={isNotificationsPage} />
                     <UserMenu user={user} onViewProfile={() => null} onVerifyAccount={() => null} />
                   </>
                 ) : (
