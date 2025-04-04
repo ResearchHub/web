@@ -2,6 +2,7 @@ import { getSession } from 'next-auth/react';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/auth.config';
 import { EventEmitter } from 'events';
+import { ApiClient } from './client';
 
 export enum WebSocketStatus {
   Connecting = 'connecting',
@@ -237,16 +238,21 @@ export class WebSocketService extends EventEmitter {
   private async getAuthToken(): Promise<string | null> {
     try {
       if (typeof window === 'undefined') {
-        // Server-side
+        // Server-side - always get a fresh token
         const session = await getServerSession(authOptions);
         return session?.authToken || null;
       } else {
-        // Client-side
+        // Client-side - can use cached token
+        const cachedToken = ApiClient.getGlobalAuthToken();
+        if (cachedToken) {
+          return cachedToken;
+        }
+
+        // If no cached token, get from session
         const session = await getSession();
         return session?.authToken || null;
       }
     } catch (error) {
-      console.error('Error getting auth token:', error);
       return null;
     }
   }

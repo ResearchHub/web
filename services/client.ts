@@ -18,6 +18,10 @@ export class ApiClient {
   }
 
   private static async getAuthToken() {
+    if (typeof window === 'undefined') {
+      return this.initializeToken();
+    }
+
     if (this.globalAuthToken) {
       return this.globalAuthToken;
     }
@@ -35,7 +39,6 @@ export class ApiClient {
       if (typeof window === 'undefined') {
         const session = await getServerSession(authOptions);
         if (session?.authToken) {
-          this.globalAuthToken = session.authToken;
           return session.authToken;
         }
       } else {
