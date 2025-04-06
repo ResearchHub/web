@@ -54,19 +54,19 @@ export const LeftSidebar: React.FC = () => {
   };
 
   return (
-    <div className="w-72 fixed h-screen flex flex-col z-50 bg-white">
-      <div className="p-2 pl-4">
+    <div className="h-full flex flex-col z-50 bg-white overflow-hidden">
+      <div className="p-2 pl-4 tablet:max-sidebar-compact:flex tablet:max-sidebar-compact:justify-center">
         <Link href="/">
           <Logo size={38} color="text-indigo-600" />
         </Link>
       </div>
 
-      <div className="px-4 mt-6">
+      <div className="px-4 mt-6 tablet:max-sidebar-compact:px-2">
         <PublishMenu />
       </div>
 
-      <div className="flex-1 mt-2">
-        <div className="px-4 py-4">
+      <div className="flex-1 mt-2 overflow-y-auto">
+        <div className="px-4 py-4 tablet:max-sidebar-compact:px-2">
           <Navigation
             currentPath={pathname || ''}
             onUnimplementedFeature={handleUnimplementedFeature}
@@ -74,22 +74,27 @@ export const LeftSidebar: React.FC = () => {
         </div>
       </div>
 
-      <div className="px-4 py-4">
+      <div className="px-4 py-4 tablet:max-sidebar-compact:px-2">
         <button
           onClick={handleReleaseNotesClick}
-          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg relative"
+          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg relative tablet:max-sidebar-compact:justify-center"
         >
           <Megaphone className="w-5 h-5" />
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-2 tablet:max-sidebar-compact:hidden">
             Release Notes
             {!hasSeenReleaseNotes && (
               <span className="w-2 h-2 bg-orange-500 rounded-full inline-block" />
             )}
           </span>
+          {!hasSeenReleaseNotes && (
+            <span className="hidden tablet:max-sidebar-compact:inline-block w-2 h-2 bg-orange-500 rounded-full absolute top-2 right-2" />
+          )}
         </button>
       </div>
 
-      <FooterLinks />
+      <div className="tablet:max-sidebar-compact:hidden">
+        <FooterLinks />
+      </div>
 
       <ReleaseNotesModal isOpen={isReleaseNotesOpen} onClose={() => setIsReleaseNotesOpen(false)} />
     </div>

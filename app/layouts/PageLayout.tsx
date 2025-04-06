@@ -51,23 +51,32 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Mobile overlay */}
       {isLeftSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-40 tablet:hidden"
           onClick={() => setIsLeftSidebarOpen(false)}
         />
       )}
 
       <div className="flex">
-        {/* Left Sidebar */}
+        {/* Left Sidebar - Fixed on mobile, sticky on tablet and above
+            - Full width (w-72) on desktop
+            - Compact (w-[90px]) on medium screens (below sidebar-compact)
+            - Hidden by default on mobile (below tablet) */}
         <div
           className={`
-          lg:!sticky top-0 left-0 h-screen bg-white z-40 w-72 transform transition-transform duration-200 ease-in-out
-          lg:translate-x-0
-          ${isLeftSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        `}
+            fixed tablet:sticky top-0 left-0 h-screen bg-white border-r border-gray-200
+            z-50 tablet:z-30 
+            transition-all duration-200 ease-in-out
+            
+            tablet:translate-x-0 
+            tablet:sidebar-compact:w-72
+            tablet:max-sidebar-compact:w-[90px]
+            
+            ${isLeftSidebarOpen ? 'translate-x-0 w-[280px]' : '-translate-x-full w-[280px]'}
+          `}
         >
           <Suspense fallback={<div className="w-full h-screen bg-gray-100 animate-pulse"></div>}>
             <LeftSidebar />
@@ -81,14 +90,24 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
           </Suspense>
 
           <div className="flex">
-            {/* Main Content */}
-            <main className="flex-1 px-4 lg:px-8 py-8">
-              <div className="mx-auto max-w-4xl">{children}</div>
+            {/* Main Content with responsive max-width */}
+            <main className="flex-1 px-4 tablet:px-8 py-8">
+              <div
+                className="mx-auto 
+                max-w-full
+                tablet:max-w-2xl 
+                content-md:max-w-2xl 
+                content-lg:max-w-3xl 
+                content-xl:max-w-4xl
+              "
+              >
+                {children}
+              </div>
             </main>
 
-            {/* Right Sidebar - CSS only solution */}
+            {/* Right Sidebar - Hidden below right-sidebar breakpoint */}
             {rightSidebar && (
-              <aside className="lg:!block hidden w-80 bg-white py-8">
+              <aside className="hidden right-sidebar:block w-80 bg-white py-8">
                 <div className="sticky top-16 overflow-y-auto pb-8 max-h-[calc(100vh-64px)]">
                   <Suspense fallback={<RightSidebarSkeleton />}>
                     {typeof rightSidebar === 'boolean' ? <RightSidebar /> : rightSidebar}

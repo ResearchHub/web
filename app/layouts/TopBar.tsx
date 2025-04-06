@@ -39,13 +39,32 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
 
   return (
     <>
-      <div className="sticky top-0 bg-white/80 backdrop-blur-md z-20 h-[64px]">
+      <div className="sticky top-0 bg-white/80 backdrop-blur-md z-20 h-[64px] border-b border-gray-200">
         <div className="h-full relative flex items-center">
+          {/* Mobile Menu Button - visible below tablet */}
+          <div className="tablet:hidden flex items-center pl-4">
+            <button
+              onClick={onMenuClick}
+              className="p-2 rounded-lg text-gray-700 hover:bg-gray-100"
+              aria-label="Open menu"
+            >
+              <Menu className="h-6 w-6" />
+            </button>
+          </div>
+
           {/* Centered Search */}
-          <div className="flex-1 px-4 py-4 lg:px-8">
-            <div className="mx-auto max-w-4xl">
-              {/* Search Input 500px */}
-              <div className="w-[600px] mx-auto">
+          <div className="flex-1 px-4 py-4 tablet:px-8">
+            <div
+              className="mx-auto 
+              max-w-full
+              tablet:max-w-2xl 
+              content-md:max-w-2xl 
+              content-lg:max-w-3xl 
+              content-xl:max-w-4xl
+            "
+            >
+              {/* Responsive Search */}
+              <div className="w-full tablet:w-[500px] tablet:mx-auto">
                 <Search
                   placeholder="Search any paper, journal, topic, ..."
                   className="[&_input]:rounded-full [&_input]:bg-[#F8F9FC] mt-2"
@@ -54,7 +73,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
             </div>
           </div>
 
-          <div className="lg:block w-80 bg-white">
+          <div className="hidden tablet:block right-sidebar:w-80 bg-white">
             {/* Right-aligned buttons */}
             <div className="flex items-center justify-end h-full px-6 gap-6">
               {!isLoading ? (
@@ -89,6 +108,22 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                 )
               ) : null}
             </div>
+          </div>
+
+          {/* Mobile user menu button - visible only on mobile */}
+          <div className="tablet:hidden pr-4">
+            {!isLoading && user ? (
+              <UserMenu user={user} onViewProfile={() => null} onVerifyAccount={() => null} />
+            ) : (
+              <button
+                onClick={handleAuthClick}
+                data-testid="sign-in-button-mobile"
+                className="flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50"
+              >
+                <LogIn className="h-4 w-4 text-gray-600" />
+                <span className="text-xs font-medium text-gray-600">Sign In</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

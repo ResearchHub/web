@@ -15,6 +15,13 @@ export default {
         gray: colors.gray,
       },
       screens: {
+        mobile: '480px',
+        tablet: '768px',
+        'sidebar-compact': '1240px',
+        'right-sidebar': '1100px',
+        'content-md': '1350px',
+        'content-lg': '1440px',
+        'content-xl': '1580px',
         wide: '1200px',
         '3xl': '1600px',
       },
