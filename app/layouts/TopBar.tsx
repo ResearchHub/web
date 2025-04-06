@@ -37,6 +37,17 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
     }
   };
 
+  const handleViewProfile = () => {
+    if (user) {
+      router.push(`/user/${user.authorProfile?.id}`);
+    }
+  };
+
+  const handleVerifyAccount = () => {
+    // Logic for verification flow
+    console.log('Verify account clicked');
+  };
+
   return (
     <>
       <div className="sticky top-0 bg-white/80 backdrop-blur-md z-20 h-[64px] border-b border-gray-200">
@@ -92,7 +103,11 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                     </Tooltip>
                     {/* <NotificationBell filled={isNotificationsPage} /> */}
                     <NotificationBell filled={isNotificationsPage} />
-                    <UserMenu user={user} onViewProfile={() => null} onVerifyAccount={() => null} />
+                    <UserMenu
+                      user={user}
+                      onViewProfile={handleViewProfile}
+                      onVerifyAccount={handleVerifyAccount}
+                    />
                   </>
                 ) : (
                   <button
@@ -113,7 +128,11 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
           {/* Mobile user menu button - visible only on mobile */}
           <div className="tablet:hidden pr-4">
             {!isLoading && user ? (
-              <UserMenu user={user} onViewProfile={() => null} onVerifyAccount={() => null} />
+              <UserMenu
+                user={user}
+                onViewProfile={handleViewProfile}
+                onVerifyAccount={handleVerifyAccount}
+              />
             ) : (
               <button
                 onClick={handleAuthClick}

@@ -2,7 +2,7 @@
 
 import { User as UserIcon, LogOut, BadgeCheck, Wallet } from 'lucide-react';
 import { signOut } from 'next-auth/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
 import VerificationBanner from '@/components/banners/VerificationBanner';
 import { Avatar } from '@/components/ui/Avatar';
@@ -11,6 +11,7 @@ import { useConnect, useDisconnect, useAccount } from 'wagmi';
 import { WalletModal } from 'components/modals/WalletModal';
 import { VerifyIdentityModal } from '@/components/modals/VerifyIdentityModal';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
+import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 
 interface UserMenuProps {
   user: User;
@@ -31,6 +32,23 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if we're on mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Set initial value
+    checkMobile();
+
+    // Add event listener for window resize
+    window.addEventListener('resize', checkMobile);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleLearnMore = () => {
     setIsVerifyModalOpen(true);
@@ -57,7 +75,8 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
     setIsMenuOpen(false);
   };
 
-  const trigger = (
+  // Common avatar button
+  const avatarButton = (
     <button className="hover:ring-2 hover:ring-gray-200 rounded-full p-1 relative">
       <Avatar src={user.authorProfile?.profileImage} alt={user.fullName} size={34} />
       {user.isVerified && (
@@ -68,126 +87,268 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
     </button>
   );
 
-  return (
+  // Mobile drawer menu content
+  const mobileMenuContent = (
     <>
-      <BaseMenu
-        trigger={trigger}
-        align="end"
-        sideOffset={8}
-        className="w-64 p-0"
-        withOverlay={true}
-        animate
-        open={isMenuOpen}
-        onOpenChange={setIsMenuOpen}
-      >
-        {/* User info section */}
-        <div className="px-4 py-3 border-b border-gray-200">
+      {/* User info section */}
+      <div className="px-6 py-4 border-b border-gray-200">
+        <div className="flex items-center">
+          <Avatar src={user.authorProfile?.profileImage} alt={user.fullName} size="md" />
+          <div className="ml-3">
+            <p className="text-base font-medium text-gray-900">{user.fullName}</p>
+            <p className="text-sm text-gray-500">{user.email}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Menu items */}
+      <div className="py-4">
+        <div
+          className="px-6 py-2 hover:bg-gray-50"
+          onClick={() => {
+            onViewProfile();
+            setIsMenuOpen(false);
+          }}
+        >
           <div className="flex items-center">
-            <Avatar src={user.authorProfile?.profileImage} alt={user.fullName} size="md" />
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-900">{user.fullName}</p>
-              <p className="text-xs text-gray-500">{user.email}</p>
-            </div>
+            <UserIcon className="h-5 w-5 mr-3 text-gray-500" />
+            <span className="text-base text-gray-700">View Profile</span>
           </div>
         </div>
 
-        {/* Menu items */}
-        <div className="py-1">
-          <BaseMenuItem onClick={onViewProfile} className="w-full px-4 py-2">
-            <div className="flex items-center">
-              <UserIcon className="h-4 w-4 mr-3 text-gray-500" />
-              <span className="text-sm text-gray-700">View Profile</span>
-            </div>
-          </BaseMenuItem>
-
-          {!user.isVerified && (
-            <BaseMenuItem onClick={handleVerifyAccount} className="w-full px-4 py-2">
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center">
-                  <BadgeCheck className="h-4 w-4 mr-3 text-gray-500" />
-                  <span className="text-sm text-gray-700">Verify Account</span>
-                </div>
+        {!user.isVerified && (
+          <div
+            className="px-6 py-2 hover:bg-gray-50"
+            onClick={() => {
+              handleVerifyAccount();
+              setIsMenuOpen(false);
+            }}
+          >
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center">
+                <BadgeCheck className="h-5 w-5 mr-3 text-gray-500" />
+                <span className="text-base text-gray-700">Verify Account</span>
               </div>
-            </BaseMenuItem>
-          )}
-
-          {/* Wallet Menu Items */}
-          {process.env.NODE_ENV !== 'production' &&
-            (isConnected ? (
-              <>
-                <BaseMenuItem
-                  onSelect={(e) => e.preventDefault()}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setWalletOptionsOpen((prev) => !prev);
-                  }}
-                  className="w-full px-4 py-2"
-                >
-                  <div className="flex items-center">
-                    <Wallet className="h-4 w-4 mr-3 text-gray-500" />
-                    <span className="text-sm text-gray-700">
-                      {truncateWalletAddress(address as string)}
-                    </span>
-                  </div>
-                </BaseMenuItem>
-                {walletOptionsOpen && (
-                  <>
-                    <BaseMenuItem
-                      onSelect={(e) => e.preventDefault()}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (address) navigator.clipboard.writeText(address);
-                      }}
-                      className="w-full px-4 py-2"
-                    >
-                      <div className="flex items-center">
-                        <span className="ml-8 text-xs text-gray-500">Copy Address</span>
-                      </div>
-                    </BaseMenuItem>
-                    <BaseMenuItem
-                      onSelect={(e) => e.preventDefault()}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        disconnect();
-                        setWalletOptionsOpen(false);
-                      }}
-                      className="w-full px-4 py-2"
-                    >
-                      <div className="flex items-center">
-                        <span className="ml-8 text-xs text-gray-500">Disconnect Wallet</span>
-                      </div>
-                    </BaseMenuItem>
-                  </>
-                )}
-              </>
-            ) : (
-              <BaseMenuItem onClick={handleOpenWalletModal} className="w-full px-4 py-2">
-                <div className="flex items-center">
-                  <Wallet className="h-4 w-4 mr-3 text-gray-500" />
-                  <span className="text-sm text-gray-700">Connect Wallet</span>
-                </div>
-              </BaseMenuItem>
-            ))}
-
-          <BaseMenuItem onClick={() => signOut({ callbackUrl: '/' })} className="w-full px-4 py-2">
-            <div className="flex items-center">
-              <LogOut className="h-4 w-4 mr-3 text-gray-500" />
-              <span className="text-sm text-gray-700">Sign Out</span>
             </div>
-          </BaseMenuItem>
-        </div>
-
-        {/* Verification Banner at bottom */}
-        {showVerificationBanner && !user.isVerified && (
-          <div className="pb-3 px-3 mt-2">
-            <VerificationBanner
-              onClose={() => setShowVerificationBanner(false)}
-              onLearnMore={handleLearnMore}
-              onMenuClose={handleCloseMenu}
-            />
           </div>
         )}
-      </BaseMenu>
+
+        {/* Wallet Menu Items */}
+        {process.env.NODE_ENV !== 'production' &&
+          (isConnected ? (
+            <>
+              <div
+                className="px-6 py-2 hover:bg-gray-50"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setWalletOptionsOpen((prev) => !prev);
+                }}
+              >
+                <div className="flex items-center">
+                  <Wallet className="h-5 w-5 mr-3 text-gray-500" />
+                  <span className="text-base text-gray-700">
+                    {truncateWalletAddress(address as string)}
+                  </span>
+                </div>
+              </div>
+              {walletOptionsOpen && (
+                <>
+                  <div
+                    className="px-6 py-2 hover:bg-gray-50"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (address) navigator.clipboard.writeText(address);
+                    }}
+                  >
+                    <div className="flex items-center">
+                      <span className="ml-8 text-sm text-gray-500">Copy Address</span>
+                    </div>
+                  </div>
+                  <div
+                    className="px-6 py-2 hover:bg-gray-50"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      disconnect();
+                      setWalletOptionsOpen(false);
+                    }}
+                  >
+                    <div className="flex items-center">
+                      <span className="ml-8 text-sm text-gray-500">Disconnect Wallet</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            <div
+              className="px-6 py-2 hover:bg-gray-50"
+              onClick={() => {
+                handleOpenWalletModal();
+                setIsMenuOpen(false);
+              }}
+            >
+              <div className="flex items-center">
+                <Wallet className="h-5 w-5 mr-3 text-gray-500" />
+                <span className="text-base text-gray-700">Connect Wallet</span>
+              </div>
+            </div>
+          ))}
+
+        <div className="px-6 py-2 hover:bg-gray-50" onClick={() => signOut({ callbackUrl: '/' })}>
+          <div className="flex items-center">
+            <LogOut className="h-5 w-5 mr-3 text-gray-500" />
+            <span className="text-base text-gray-700">Sign Out</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Verification Banner at bottom */}
+      {showVerificationBanner && !user.isVerified && (
+        <div className="px-6 py-4 mt-auto border-t border-gray-200">
+          <VerificationBanner
+            onClose={() => setShowVerificationBanner(false)}
+            onLearnMore={handleLearnMore}
+            onMenuClose={handleCloseMenu}
+          />
+        </div>
+      )}
+    </>
+  );
+
+  return (
+    <>
+      {isMobile ? (
+        <>
+          {/* Mobile view with SwipeableDrawer */}
+          <div onClick={() => setIsMenuOpen(true)}>{avatarButton}</div>
+          <SwipeableDrawer isOpen={isMenuOpen} onClose={handleCloseMenu} showCloseButton={false}>
+            {mobileMenuContent}
+          </SwipeableDrawer>
+        </>
+      ) : (
+        /* Desktop view - original BaseMenu implementation */
+        <BaseMenu
+          trigger={avatarButton}
+          align="end"
+          sideOffset={8}
+          className="w-64 p-0"
+          withOverlay={true}
+          animate
+          open={isMenuOpen}
+          onOpenChange={setIsMenuOpen}
+        >
+          {/* User info section */}
+          <div className="px-4 py-3 border-b border-gray-200">
+            <div className="flex items-center">
+              <Avatar src={user.authorProfile?.profileImage} alt={user.fullName} size="md" />
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-900">{user.fullName}</p>
+                <p className="text-xs text-gray-500">{user.email}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Menu items */}
+          <div className="py-1">
+            <BaseMenuItem onClick={onViewProfile} className="w-full px-4 py-2">
+              <div className="flex items-center">
+                <UserIcon className="h-4 w-4 mr-3 text-gray-500" />
+                <span className="text-sm text-gray-700">View Profile</span>
+              </div>
+            </BaseMenuItem>
+
+            {!user.isVerified && (
+              <BaseMenuItem onClick={handleVerifyAccount} className="w-full px-4 py-2">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center">
+                    <BadgeCheck className="h-4 w-4 mr-3 text-gray-500" />
+                    <span className="text-sm text-gray-700">Verify Account</span>
+                  </div>
+                </div>
+              </BaseMenuItem>
+            )}
+
+            {/* Wallet Menu Items */}
+            {process.env.NODE_ENV !== 'production' &&
+              (isConnected ? (
+                <>
+                  <BaseMenuItem
+                    onSelect={(e) => e.preventDefault()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setWalletOptionsOpen((prev) => !prev);
+                    }}
+                    className="w-full px-4 py-2"
+                  >
+                    <div className="flex items-center">
+                      <Wallet className="h-4 w-4 mr-3 text-gray-500" />
+                      <span className="text-sm text-gray-700">
+                        {truncateWalletAddress(address as string)}
+                      </span>
+                    </div>
+                  </BaseMenuItem>
+                  {walletOptionsOpen && (
+                    <>
+                      <BaseMenuItem
+                        onSelect={(e) => e.preventDefault()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (address) navigator.clipboard.writeText(address);
+                        }}
+                        className="w-full px-4 py-2"
+                      >
+                        <div className="flex items-center">
+                          <span className="ml-8 text-xs text-gray-500">Copy Address</span>
+                        </div>
+                      </BaseMenuItem>
+                      <BaseMenuItem
+                        onSelect={(e) => e.preventDefault()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          disconnect();
+                          setWalletOptionsOpen(false);
+                        }}
+                        className="w-full px-4 py-2"
+                      >
+                        <div className="flex items-center">
+                          <span className="ml-8 text-xs text-gray-500">Disconnect Wallet</span>
+                        </div>
+                      </BaseMenuItem>
+                    </>
+                  )}
+                </>
+              ) : (
+                <BaseMenuItem onClick={handleOpenWalletModal} className="w-full px-4 py-2">
+                  <div className="flex items-center">
+                    <Wallet className="h-4 w-4 mr-3 text-gray-500" />
+                    <span className="text-sm text-gray-700">Connect Wallet</span>
+                  </div>
+                </BaseMenuItem>
+              ))}
+
+            <BaseMenuItem
+              onClick={() => signOut({ callbackUrl: '/' })}
+              className="w-full px-4 py-2"
+            >
+              <div className="flex items-center">
+                <LogOut className="h-4 w-4 mr-3 text-gray-500" />
+                <span className="text-sm text-gray-700">Sign Out</span>
+              </div>
+            </BaseMenuItem>
+          </div>
+
+          {/* Verification Banner at bottom */}
+          {showVerificationBanner && !user.isVerified && (
+            <div className="pb-3 px-3 mt-2">
+              <VerificationBanner
+                onClose={() => setShowVerificationBanner(false)}
+                onLearnMore={handleLearnMore}
+                onMenuClose={handleCloseMenu}
+              />
+            </div>
+          )}
+        </BaseMenu>
+      )}
 
       {/* Modals */}
       <WalletModal isOpen={isWalletModalOpen} onClose={handleCloseWalletModal} />
