@@ -34,6 +34,7 @@ export const authOptions: NextAuthOptions = {
                 authToken: credentials.authToken,
               };
             } catch (error) {
+              AuthSharingService.removeSharedAuthToken();
               return promptInvalidCredentials();
             }
           }
@@ -135,6 +136,7 @@ export const authOptions: NextAuthOptions = {
           userId: token.sub,
         };
       } catch (error) {
+        console.error('Session callback failed:', error);
         return {
           ...session,
           userId: undefined,

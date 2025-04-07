@@ -49,20 +49,7 @@ export class AuthSharingService {
       sameSite: 'lax',
     };
 
-    console.log('[AuthSharing] Setting shared auth token:', {
-      cookieName: this.AUTH_COOKIE_NAME,
-      domain: cookieOptions.domain,
-      environment: process.env.VERCEL_ENV,
-    });
-
     Cookies.set(this.AUTH_COOKIE_NAME, token, cookieOptions);
-
-    const verifyToken = Cookies.get(this.AUTH_COOKIE_NAME);
-    console.log('[AuthSharing] Verify cookie was set:', {
-      cookieName: this.AUTH_COOKIE_NAME,
-      wasSet: !!verifyToken,
-      matches: verifyToken === token,
-    });
   }
 
   /**
@@ -71,10 +58,7 @@ export class AuthSharingService {
    */
   static getSharedAuthToken(): string | null {
     const token = Cookies.get(this.AUTH_COOKIE_NAME);
-    console.log('[AuthSharing] Getting shared auth token:', {
-      cookieName: this.AUTH_COOKIE_NAME,
-      found: !!token,
-    });
+
     return token || null;
   }
 
@@ -93,13 +77,10 @@ export class AuthSharingService {
    * and calling the signOut method
    */
   static async signOutFromBothApps(): Promise<void> {
-    console.log('[AuthSharing] Signing out from both apps');
-
     // First remove the shared cookie
     this.removeSharedAuthToken();
 
     // Finally, sign out from NextAuth
-    console.log('[AuthSharing] Calling NextAuth signOut');
     await signOut({ callbackUrl: '/' });
   }
 }
