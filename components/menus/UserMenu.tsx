@@ -1,7 +1,6 @@
 'use client';
 
 import { User as UserIcon, LogOut, BadgeCheck, Wallet } from 'lucide-react';
-import { signOut } from 'next-auth/react';
 import { useState } from 'react';
 import type { User } from '@/types/user';
 import VerificationBanner from '@/components/banners/VerificationBanner';
@@ -11,6 +10,7 @@ import { useConnect, useDisconnect, useAccount } from 'wagmi';
 import { WalletModal } from 'components/modals/WalletModal';
 import { VerifyIdentityModal } from '@/components/modals/VerifyIdentityModal';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
+import { AuthSharingService } from '@/services/auth-sharing.service';
 
 interface UserMenuProps {
   user: User;
@@ -169,7 +169,10 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
               </BaseMenuItem>
             ))}
 
-          <BaseMenuItem onClick={() => signOut({ callbackUrl: '/' })} className="w-full px-4 py-2">
+          <BaseMenuItem
+            onClick={() => AuthSharingService.signOutFromBothApps()}
+            className="w-full px-4 py-2"
+          >
             <div className="flex items-center">
               <LogOut className="h-4 w-4 mr-3 text-gray-500" />
               <span className="text-sm text-gray-700">Sign Out</span>

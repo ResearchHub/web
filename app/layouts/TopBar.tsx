@@ -1,21 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-import { Menu, BadgeCheck, LogIn, MoveLeft } from 'lucide-react';
-import { useSession, signOut } from 'next-auth/react';
-import AuthModal from '@/components/modals/Auth/AuthModal';
+import { LogIn } from 'lucide-react';
 import UserMenu from '@/components/menus/UserMenu';
-import type { User } from '@/types/user';
-import { useNotifications } from '@/contexts/NotificationContext';
 import { useRouter, usePathname } from 'next/navigation';
 import { NotificationBell } from '@/components/Notification/NotificationBell';
 import { Search } from '@/components/Search/Search';
-import { SearchSuggestion } from '@/types/search';
 import { Tooltip } from '@/components/ui/Tooltip';
 import Link from 'next/link';
 import { useAuthModalContext } from '@/contexts/AuthModalContext';
 import { useUser } from '@/contexts/UserContext';
 import { Icon } from '@/components/ui/icons';
+import { AuthSharingService } from '@/services/auth-sharing.service';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -31,7 +26,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
 
   const handleAuthClick = () => {
     if (user) {
-      signOut();
+      AuthSharingService.signOutFromBothApps();
     } else {
       showAuthModal();
     }
