@@ -1,6 +1,6 @@
 'use client';
 
-import { User as UserIcon, LogOut, BadgeCheck, Wallet } from 'lucide-react';
+import { User as UserIcon, LogOut, BadgeCheck, Wallet, Bell } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
@@ -12,18 +12,29 @@ import { WalletModal } from 'components/modals/WalletModal';
 import { VerifyIdentityModal } from '@/components/modals/VerifyIdentityModal';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
+import { Icon } from '@/components/ui/icons';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import Link from 'next/link';
 
 interface UserMenuProps {
   user: User;
   onViewProfile: () => void;
   onVerifyAccount: () => void;
+  isMenuOpen?: boolean;
+  onMenuOpenChange?: (isOpen: boolean) => void;
 }
 
 function truncateWalletAddress(address: string): string {
   return `${address.slice(0, 4)}...${address.slice(-4)}`;
 }
 
-export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserMenuProps) {
+export default function UserMenu({
+  user,
+  onViewProfile,
+  onVerifyAccount,
+  isMenuOpen,
+  onMenuOpenChange,
+}: UserMenuProps) {
   const [showVerificationBanner, setShowVerificationBanner] = useState(true);
   const [walletOptionsOpen, setWalletOptionsOpen] = useState(false);
   const { connect, connectors } = useConnect();
@@ -31,8 +42,18 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
   const { address, isConnected } = useAccount();
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [internalMenuOpen, setInternalMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Use controlled or uncontrolled menu state
+  const menuOpenState = isMenuOpen !== undefined ? isMenuOpen : internalMenuOpen;
+  const setMenuOpenState = (open: boolean) => {
+    if (onMenuOpenChange) {
+      onMenuOpenChange(open);
+    } else {
+      setInternalMenuOpen(open);
+    }
+  };
 
   // Check if we're on mobile
   useEffect(() => {
@@ -72,18 +93,18 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
   };
 
   const handleCloseMenu = () => {
-    setIsMenuOpen(false);
+    setMenuOpenState(false);
   };
 
   // Common avatar button
   const avatarButton = (
     <button className="hover:ring-2 hover:ring-gray-200 rounded-full p-1 relative">
-      <Avatar src={user.authorProfile?.profileImage} alt={user.fullName} size={34} />
-      {user.isVerified && (
-        <div className="absolute bottom-[15px] -right-0">
-          <VerifiedBadge size="lg" />
-        </div>
-      )}
+      <Avatar
+        src={user.authorProfile?.profileImage}
+        className="font-semibold"
+        alt={user.fullName}
+        size={30}
+      />
     </button>
   );
 
@@ -95,7 +116,10 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
         <div className="flex items-center">
           <Avatar src={user.authorProfile?.profileImage} alt={user.fullName} size="md" />
           <div className="ml-3">
-            <p className="text-base font-medium text-gray-900">{user.fullName}</p>
+            <p className="text-base font-medium text-gray-900 flex items-center">
+              {user.fullName}
+              {user.isVerified && <VerifiedBadge size="sm" className="ml-1" />}
+            </p>
             <p className="text-sm text-gray-500">{user.email}</p>
           </div>
         </div>
@@ -107,7 +131,7 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
           className="px-6 py-2 hover:bg-gray-50"
           onClick={() => {
             onViewProfile();
-            setIsMenuOpen(false);
+            setMenuOpenState(false);
           }}
         >
           <div className="flex items-center">
@@ -116,12 +140,30 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
           </div>
         </div>
 
+        <Link href="/notifications" className="block" onClick={() => setMenuOpenState(false)}>
+          <div className="px-6 py-2 hover:bg-gray-50">
+            <div className="flex items-center">
+              <Bell className="h-5 w-5 mr-3 text-gray-500" />
+              <span className="text-base text-gray-700">Notifications</span>
+            </div>
+          </div>
+        </Link>
+
+        <Link href="/researchcoin" className="block" onClick={() => setMenuOpenState(false)}>
+          <div className="px-6 py-2 hover:bg-gray-50">
+            <div className="flex items-center">
+              <ResearchCoinIcon outlined className="h-5 w-5 mr-3 text-gray-500" color="#676767" />
+              <span className="text-base text-gray-700">My Wallet</span>
+            </div>
+          </div>
+        </Link>
+
         {!user.isVerified && (
           <div
             className="px-6 py-2 hover:bg-gray-50"
             onClick={() => {
               handleVerifyAccount();
-              setIsMenuOpen(false);
+              setMenuOpenState(false);
             }}
           >
             <div className="flex items-center justify-between w-full">
@@ -184,7 +226,7 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
               className="px-6 py-2 hover:bg-gray-50"
               onClick={() => {
                 handleOpenWalletModal();
-                setIsMenuOpen(false);
+                setMenuOpenState(false);
               }}
             >
               <div className="flex items-center">
@@ -220,8 +262,8 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
       {isMobile ? (
         <>
           {/* Mobile view with SwipeableDrawer */}
-          <div onClick={() => setIsMenuOpen(true)}>{avatarButton}</div>
-          <SwipeableDrawer isOpen={isMenuOpen} onClose={handleCloseMenu} showCloseButton={false}>
+          <div onClick={() => setMenuOpenState(true)}>{avatarButton}</div>
+          <SwipeableDrawer isOpen={menuOpenState} onClose={handleCloseMenu} showCloseButton={false}>
             {mobileMenuContent}
           </SwipeableDrawer>
         </>
@@ -229,20 +271,23 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
         /* Desktop view - original BaseMenu implementation */
         <BaseMenu
           trigger={avatarButton}
-          align="end"
-          sideOffset={8}
+          align="start"
+          sideOffset={0}
           className="w-64 p-0"
           withOverlay={true}
           animate
-          open={isMenuOpen}
-          onOpenChange={setIsMenuOpen}
+          open={menuOpenState}
+          onOpenChange={setMenuOpenState}
         >
           {/* User info section */}
           <div className="px-4 py-3 border-b border-gray-200">
             <div className="flex items-center">
               <Avatar src={user.authorProfile?.profileImage} alt={user.fullName} size="md" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900">{user.fullName}</p>
+                <p className="text-sm font-medium text-gray-900 flex items-center">
+                  {user.fullName}
+                  {user.isVerified && <VerifiedBadge size="sm" className="ml-1" />}
+                </p>
                 <p className="text-xs text-gray-500">{user.email}</p>
               </div>
             </div>
@@ -256,6 +301,28 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
                 <span className="text-sm text-gray-700">View Profile</span>
               </div>
             </BaseMenuItem>
+
+            <Link href="/notifications" className="block" onClick={() => setMenuOpenState(false)}>
+              <div className="w-full px-4 py-2 hover:bg-gray-50">
+                <div className="flex items-center">
+                  <Bell className="h-4 w-4 mr-3 text-gray-500" />
+                  <span className="text-sm text-gray-700">Notifications</span>
+                </div>
+              </div>
+            </Link>
+
+            <Link href="/researchcoin" className="block" onClick={() => setMenuOpenState(false)}>
+              <div className="w-full px-4 py-2 hover:bg-gray-50">
+                <div className="flex items-center">
+                  <ResearchCoinIcon
+                    outlined
+                    className="h-4 w-4 mr-3 text-gray-500"
+                    color="#676767"
+                  />
+                  <span className="text-sm text-gray-700">My Wallet</span>
+                </div>
+              </div>
+            </Link>
 
             {!user.isVerified && (
               <BaseMenuItem onClick={handleVerifyAccount} className="w-full px-4 py-2">
@@ -311,7 +378,9 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
                         className="w-full px-4 py-2"
                       >
                         <div className="flex items-center">
-                          <span className="ml-8 text-xs text-gray-500">Disconnect Wallet</span>
+                          <span className="ml-8 text-xs text-gray-500">
+                            Disconnect External Wallet
+                          </span>
                         </div>
                       </BaseMenuItem>
                     </>
@@ -321,7 +390,7 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
                 <BaseMenuItem onClick={handleOpenWalletModal} className="w-full px-4 py-2">
                   <div className="flex items-center">
                     <Wallet className="h-4 w-4 mr-3 text-gray-500" />
-                    <span className="text-sm text-gray-700">Connect Wallet</span>
+                    <span className="text-sm text-gray-700">Connect External Wallet</span>
                   </div>
                 </BaseMenuItem>
               ))}

@@ -61,10 +61,6 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
       )}
 
       <div className="flex">
-        {/* Left Sidebar - Fixed on mobile, sticky on tablet and above
-            - Full width (w-72) on desktop
-            - Compact (w-[90px]) on medium screens (below sidebar-compact)
-            - Hidden by default on mobile (below tablet) */}
         <div
           className={`
             fixed tablet:sticky top-0 left-0 h-screen bg-white border-r border-gray-200
@@ -73,7 +69,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
             
             tablet:translate-x-0 
             tablet:sidebar-compact:w-72
-            tablet:max-sidebar-compact:w-[90px]
+            tablet:max-sidebar-compact:w-[70px]
             
             ${isLeftSidebarOpen ? 'translate-x-0 w-[280px]' : '-translate-x-full w-[280px]'}
           `}
