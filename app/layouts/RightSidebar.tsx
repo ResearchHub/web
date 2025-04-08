@@ -104,44 +104,43 @@ const JournalSpotlight = () => {
     { name: 'Attila Karsi' },
   ];
 
+  // The specific paper URL from the request
+  const paperUrl =
+    'https://new.researchhub.com/paper/9324244/analysis-of-unique-genes-reveals-potential-role-of-essential-amino-acid-synthesis-pathway-in-flavobacterium-covae-virulence';
+
   return (
-    <div className="relative bg-white rounded-lg mb-4 border border-gray-200 hover:bg-gray-50 transition-colors duration-150 overflow-hidden">
-      <h2 className="absolute top-[-1px] left-[-1px] z-10 bg-indigo-50 text-indigo-600 rounded-lg py-2 px-4 text-sm font-medium flex items-center">
-        <Icon name="rhJournal1" size={16} className="mr-1.5" color="#4f46e5" />
-        RH Journal Spotlight
-      </h2>
-      <div className="space-y-3 px-4 pb-4 pt-12">
-        <img
-          src="/promos/biosynthesis2.png"
-          alt="Biosynthesis pathway diagram"
-          className="w-full max-h-[100px] rounded-md my-2 object-cover"
-        />
-        <a href="#" className="block hover:text-blue-600">
+    <Link href={paperUrl} className="block">
+      <div className="relative bg-white rounded-lg mb-4 border border-gray-200 hover:bg-gray-50 transition-colors duration-150 overflow-hidden cursor-pointer">
+        <h2 className="absolute top-[-1px] left-[-1px] z-10 bg-indigo-50 text-indigo-600 rounded-lg py-2 px-4 text-sm font-medium flex items-center">
+          <Icon name="rhJournal1" size={16} className="mr-1.5" color="#4f46e5" />
+          RH Journal Spotlight
+        </h2>
+        <div className="space-y-3 px-4 pb-4 pt-12">
+          <img
+            src="/promos/biosynthesis2.png"
+            alt="Biosynthesis pathway diagram"
+            className="w-full max-h-[100px] rounded-md my-2 object-cover"
+          />
           <h3 className="font-bold text-md text-gray-900 leading-tight">
             Analysis of Unique Genes Reveals Potential Role of Essential Amino Acid Synthesis
             Pathway in Flavobacterium covae Virulence
           </h3>
-        </a>
-        <AuthorList
-          authors={authors}
-          size="xs"
-          delimiter=", "
-          className="text-gray-500 font-normal"
-        />
-      </div>
+          <AuthorList
+            authors={authors}
+            size="xs"
+            delimiter=", "
+            className="text-gray-500 font-normal"
+          />
+        </div>
 
-      {/* Condensed Journal Promotional Section - Simplified */}
-      <div className="mb-2 text-center">
-        <a
-          href="/journal"
-          className="text-xs text-blue-600 hover:text-blue-700 hover:underline font-medium"
-        >
+        {/* Condensed Journal Promotional Section - Simplified */}
+        <div className="mb-2 text-center">
           <div className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium flex items-center justify-center gap-2 px-4 py-2">
             Learn more about the RH Journal
           </div>
-        </a>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
@@ -177,15 +176,12 @@ const FundingSpotlight = () => {
   // Determine content type and safely access content properties
   const content = fundingItem?.content as any;
 
-  console.log('|||content', content);
-
   const title = content?.title || 'Funding Opportunity';
   const slug = content?.slug;
-  const link = slug
-    ? `/post/${slug}`
-    : fundingItem?.relatedWork?.slug
-      ? `/paper/${fundingItem.relatedWork.slug}`
-      : '#';
+  const id = content?.id;
+
+  // Create the funding URL using the same format as in FeedItemFundraise
+  const fundingUrl = id && slug ? `/fund/${id}/${slug}` : '/fund';
 
   // Improved author handling for content and fundraise
   const authors: Author[] = [];
@@ -204,52 +200,55 @@ const FundingSpotlight = () => {
   }
 
   return (
-    <div className="relative bg-white rounded-lg mb-4 border border-gray-200 p-4 hover:bg-gray-50 transition-colors duration-150">
-      <h2 className="absolute top-[-1px] left-[-1px] z-10 bg-indigo-50 text-indigo-600 rounded-lg py-2 px-4 text-sm font-medium flex items-center">
-        <Icon name="fund" size={16} className="mr-1.5" color="#4f46e5" />
-        Funding Spotlight
-      </h2>
-      <div className="pt-8">
-        {isLoading ? (
-          <FundingSpotlightSkeleton />
-        ) : fundingItem && content ? (
-          <div className="space-y-3">
-            <Link href={link} className="block hover:text-blue-600">
+    <Link href={fundingUrl} className="block">
+      <div className="relative bg-white rounded-lg mb-4 border border-gray-200 p-4 hover:bg-gray-50 transition-colors duration-150 cursor-pointer">
+        <h2 className="absolute top-[-1px] left-[-1px] z-10 bg-indigo-50 text-indigo-600 rounded-lg py-2 px-4 text-sm font-medium flex items-center">
+          <Icon name="fund" size={16} className="mr-1.5" color="#4f46e5" />
+          Funding Spotlight
+        </h2>
+        <div className="pt-8">
+          {isLoading ? (
+            <FundingSpotlightSkeleton />
+          ) : fundingItem && content ? (
+            <div className="space-y-3">
               <h3 className="font-bold text-md text-gray-900 leading-tight">{title}</h3>
-            </Link>
 
-            {/* Authors list with improved rendering */}
-            {authors.length > 0 && (
-              <AuthorList
-                authors={authors}
-                size="xs"
-                delimiter=", "
-                className="text-gray-500 font-normal"
-              />
-            )}
+              {/* Authors list with improved rendering */}
+              {authors.length > 0 && (
+                <AuthorList
+                  authors={authors}
+                  size="xs"
+                  delimiter=", "
+                  className="text-gray-500 font-normal"
+                />
+              )}
 
-            {/* Fundraise progress bar - now with minimal variant */}
-            {content?.fundraise && (
-              <FundraiseProgress fundraise={content.fundraise} variant="minimal" className="mt-2" />
-            )}
+              {/* Fundraise progress bar - now with minimal variant */}
+              {content?.fundraise && (
+                <div onClick={(e) => e.stopPropagation()}>
+                  <FundraiseProgress
+                    fundraise={content.fundraise}
+                    variant="minimal"
+                    className="mt-2"
+                  />
+                </div>
+              )}
 
-            {/* Changed from button to text link */}
-            <div className="text-center pt-2">
-              <Link
-                href="/fund"
-                className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium"
-              >
-                Need money for your research?
-              </Link>
+              {/* Changed from button to text link */}
+              <div className="text-center pt-2">
+                <span className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium">
+                  Need money for your research?
+                </span>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="bg-gray-100 p-3 rounded-md text-sm text-gray-600 text-center">
-            No open funding opportunities currently featured.
-          </div>
-        )}
+          ) : (
+            <div className="bg-gray-100 p-3 rounded-md text-sm text-gray-600 text-center">
+              No open funding opportunities currently featured.
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
