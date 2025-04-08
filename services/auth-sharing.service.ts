@@ -49,6 +49,12 @@ export class AuthSharingService {
       sameSite: 'lax',
     };
 
+    console.log('[AuthSharing] Setting shared auth token:', {
+      cookieName: this.AUTH_COOKIE_NAME,
+      domain: cookieOptions.domain,
+      environment: process.env.VERCEL_ENV,
+    });
+
     Cookies.set(this.AUTH_COOKIE_NAME, token, cookieOptions);
   }
 

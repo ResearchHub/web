@@ -13,17 +13,43 @@ export function AuthSharingWrapper({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     const checkSharedToken = async () => {
+      console.log('[AuthSharing] Checking auth status:', {
+        status,
+        isChecking,
+      });
+
       // Only check if we're not authenticated
       if (status === 'unauthenticated') {
+        console.log('[AuthSharing] User is not authenticated, checking for shared token');
         const sharedToken = AuthSharingService.getSharedAuthToken();
+
+        console.log('[AuthSharing] Shared token check result:', {
+          hasToken: !!sharedToken,
+          tokenPreview: sharedToken ? `${sharedToken.substring(0, 5)}...` : null,
+        });
+
         if (sharedToken) {
           setIsChecking(true);
-          await signIn('credentials', {
-            authToken: sharedToken,
-            redirect: false,
-          });
-          AuthSharingService.removeSharedAuthToken();
-          setIsChecking(false);
+          console.log('[AuthSharing] Attempting to sign in with shared token');
+
+          try {
+            const result = await signIn('credentials', {
+              authToken: sharedToken,
+              redirect: false,
+            });
+
+            console.log('[AuthSharing] Sign in result:', {
+              success: result?.ok,
+              error: result?.error,
+              status: result?.status,
+            });
+
+            AuthSharingService.removeSharedAuthToken();
+          } catch (error) {
+            console.error('[AuthSharing] Sign in failed:', error);
+          } finally {
+            setIsChecking(false);
+          }
         }
       }
     };
@@ -32,8 +58,20 @@ export function AuthSharingWrapper({ children }: { children: React.ReactNode }) 
   }, [status]);
 
   useEffect(() => {
+    console.log('[AuthSharing] Session token check:', {
+      hasSession: !!session,
+      hasAuthToken: !!session?.authToken,
+      tokenPreview: session?.authToken ? `${session.authToken.substring(0, 5)}...` : null,
+    });
+
     if (session?.authToken) {
-      AuthSharingService.setSharedAuthToken(session.authToken);
+      console.log('[AuthSharing] Setting shared token from session');
+      try {
+        AuthSharingService.setSharedAuthToken(session.authToken);
+        console.log('[AuthSharing] Successfully set shared token');
+      } catch (error) {
+        console.error('[AuthSharing] Failed to set shared token:', error);
+      }
     }
   }, [session?.authToken]);
 
