@@ -9,8 +9,16 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 
 export default function NotificationsPage() {
-  const { notificationData, loading, isLoadingMore, error, fetchNotifications, fetchNextPage } =
-    useNotifications();
+  const {
+    notificationData,
+    loading,
+    isLoadingMore,
+    error,
+    fetchNotifications,
+    fetchNextPage,
+    markAllAsRead,
+    unreadCount,
+  } = useNotifications();
 
   useEffect(() => {
     fetchNotifications();
@@ -22,10 +30,21 @@ export default function NotificationsPage() {
     }
   };
 
+  const handleMarkAllAsRead = async () => {
+    await markAllAsRead();
+  };
+
   return (
     <PageLayout>
       <div className="w-full">
-        <PageHeader title="Notifications" />
+        <div className="flex justify-between items-center">
+          <PageHeader title="Notifications" />
+          {unreadCount > 0 && !loading && (
+            <Button onClick={handleMarkAllAsRead} variant="secondary" size="sm" className="mb-4">
+              Mark all as read
+            </Button>
+          )}
+        </div>
 
         <div className="py-6">
           <NotificationList
