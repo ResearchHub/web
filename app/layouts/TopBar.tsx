@@ -22,9 +22,6 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
       console.warn('No author profile URL found for user:', user);
     }
   };
-  const handleVerifyAccount = () => {
-    console.log('Verify account clicked');
-  };
 
   return (
     <>
@@ -49,12 +46,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
 
           <div className="tablet:!hidden">
             {user && !isLoading ? (
-              <UserMenu
-                user={user}
-                onViewProfile={handleViewProfile}
-                onVerifyAccount={handleVerifyAccount}
-                avatarSize={40}
-              />
+              <UserMenu user={user} onViewProfile={handleViewProfile} avatarSize={40} />
             ) : (
               <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
             )}

@@ -115,7 +115,6 @@ const UserSidebarSection = ({ forceMinimize = false }: { forceMinimize?: boolean
             <UserMenu
               user={user}
               onViewProfile={() => null}
-              onVerifyAccount={() => null}
               isMenuOpen={isMenuOpen}
               onMenuOpenChange={setIsMenuOpen}
               showAvatarOnly={forceMinimize}

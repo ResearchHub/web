@@ -1,7 +1,6 @@
 'use client';
 
 import { User as UserIcon, LogOut, BadgeCheck, Wallet, Bell } from 'lucide-react';
-import { signOut } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
 import VerificationBanner from '@/components/banners/VerificationBanner';
@@ -15,11 +14,11 @@ import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { Icon } from '@/components/ui/icons';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import Link from 'next/link';
+import { AuthSharingService } from '@/services/auth-sharing.service';
 
 interface UserMenuProps {
   user: User;
   onViewProfile: () => void;
-  onVerifyAccount: () => void;
   isMenuOpen?: boolean;
   onMenuOpenChange?: (isOpen: boolean) => void;
   avatarSize?: number | 'sm' | 'md' | 'xs' | 'xxs';
@@ -33,7 +32,6 @@ function truncateWalletAddress(address: string): string {
 export default function UserMenu({
   user,
   onViewProfile,
-  onVerifyAccount,
   isMenuOpen,
   onMenuOpenChange,
   avatarSize = 30,
@@ -89,7 +87,6 @@ export default function UserMenu({
 
   const handleVerifyAccount = () => {
     setIsVerifyModalOpen(true);
-    onVerifyAccount(); // Call the original handler if needed
   };
 
   const handleCloseVerifyModal = () => {
@@ -244,7 +241,10 @@ export default function UserMenu({
             </div>
           ))}
 
-        <div className="px-6 py-2 hover:bg-gray-50" onClick={() => signOut({ callbackUrl: '/' })}>
+        <div
+          className="px-6 py-2 hover:bg-gray-50"
+          onClick={() => AuthSharingService.signOutFromBothApps()}
+        >
           <div className="flex items-center">
             <LogOut className="h-5 w-5 mr-3 text-gray-500" />
             <span className="text-base text-gray-700">Sign Out</span>
@@ -404,7 +404,7 @@ export default function UserMenu({
               ))}
 
             <BaseMenuItem
-              onClick={() => signOut({ callbackUrl: '/' })}
+              onClick={() => AuthSharingService.signOutFromBothApps()}
               className="w-full px-4 py-2"
             >
               <div className="flex items-center">
