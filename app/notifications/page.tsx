@@ -17,12 +17,15 @@ export default function NotificationsPage() {
     fetchNotifications,
     fetchNextPage,
     markAllAsRead,
-    unreadCount,
   } = useNotifications();
 
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
+
+  useEffect(() => {
+    markAllAsRead();
+  }, []);
 
   const handleLoadMore = () => {
     if (!isLoadingMore && notificationData.next) {
@@ -30,20 +33,11 @@ export default function NotificationsPage() {
     }
   };
 
-  const handleMarkAllAsRead = async () => {
-    await markAllAsRead();
-  };
-
   return (
     <PageLayout>
       <div className="w-full">
-        <div className="flex justify-between items-center mb-4">
+        <div className="mb-4">
           <PageHeader title="Notifications" className="mb-0" />
-          {unreadCount > 0 && !loading && (
-            <Button onClick={handleMarkAllAsRead} variant="secondary" size="sm">
-              Mark all as read
-            </Button>
-          )}
         </div>
 
         <div className="py-6">
