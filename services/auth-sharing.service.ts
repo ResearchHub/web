@@ -7,7 +7,7 @@ import { signOut } from 'next-auth/react';
  */
 export class AuthSharingService {
   private static readonly ENV_PREFIX = (() => {
-    switch (process.env.VERCEL_ENV) {
+    switch (process.env.NEXT_PUBLIC_VERCEL_ENV) {
       case 'production':
         return 'prod';
       case 'preview':
@@ -24,7 +24,7 @@ export class AuthSharingService {
    * The parent domain that both applications share (for cookie sharing)
    */
   private static readonly PARENT_DOMAIN = (() => {
-    switch (process.env.VERCEL_ENV) {
+    switch (process.env.NEXT_PUBLIC_VERCEL_ENV) {
       case 'production':
         return '.researchhub.com';
       case 'preview':
@@ -45,16 +45,9 @@ export class AuthSharingService {
       expires: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000),
       path: '/',
       domain: this.PARENT_DOMAIN,
-      secure: process.env.VERCEL_ENV !== undefined,
+      secure: process.env.NEXT_PUBLIC_VERCEL_ENV !== undefined,
       sameSite: 'lax',
     };
-
-    console.log('[AuthSharing] Setting shared auth token:', {
-      cookieName: this.AUTH_COOKIE_NAME,
-      domain: cookieOptions.domain,
-      environment: process.env.VERCEL_ENV,
-      public_env: process.env.NEXT_PUBLIC_VERCEL_ENV,
-    });
 
     Cookies.set(this.AUTH_COOKIE_NAME, token, cookieOptions);
   }

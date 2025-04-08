@@ -38,7 +38,6 @@ export default function NotePage() {
 
   // Show funding modal and set article type when landing on a new funding note
   useEffect(() => {
-    console.log('isNewFunding', isNewFunding);
     if (isNewFunding) {
       setShowFundingModal(true);
     }
