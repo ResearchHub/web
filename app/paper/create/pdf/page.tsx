@@ -9,13 +9,19 @@ import { Textarea } from '@/components/ui/form/Textarea';
 import { Input } from '@/components/ui/form/Input';
 import { FileUpload } from '@/components/ui/form/FileUpload';
 import { SimpleStepProgress, SimpleStep } from '@/components/ui/SimpleStepProgress';
-import {
-  AuthorsAndAffiliations,
-  AuthorWithAffiliation,
-} from '../components/AuthorsAndAffiliations';
+import { AuthorsAndAffiliations, SelectedAuthor } from '../components/AuthorsAndAffiliations';
 import { HubsSelector, Hub } from '../components/HubsSelector';
 import { DeclarationCheckbox } from '../components/DeclarationCheckbox';
-import { ArrowLeft, ArrowRight, Check, BookOpen } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  BookOpen,
+  FileText,
+  FileUp,
+  Users,
+  Tags,
+} from 'lucide-react';
 import { UploadFileResult } from '@/services/file.service';
 import { PaperService, CreatePaperPayload } from '@/services/paper.service';
 import toast from 'react-hot-toast';
@@ -24,8 +30,11 @@ import { AvatarStack } from '@/components/ui/AvatarStack';
 
 // Define the steps of our flow
 const steps: SimpleStep[] = [
-  { id: 'content', name: 'Content', description: 'Upload your paper and add basic information' },
-  { id: 'authors', name: 'Authors', description: 'Add authors and affiliations' },
+  {
+    id: 'content',
+    name: 'Content & Authors',
+    description: 'Upload paper, add details and authors',
+  },
   { id: 'declaration', name: 'Declaration', description: 'Legal requirements and permissions' },
   { id: 'preview', name: 'Preview', description: 'Review your submission' },
 ];
@@ -38,7 +47,7 @@ export default function UploadPDFPage() {
   const [title, setTitle] = useState('');
   const [abstract, setAbstract] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [authors, setAuthors] = useState<AuthorWithAffiliation[]>([]);
+  const [authors, setAuthors] = useState<SelectedAuthor[]>([]);
   const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
   const [changeDescription, setChangeDescription] = useState('Initial submission');
   const [fileUploadResult, setFileUploadResult] = useState<UploadFileResult | null>(null);
@@ -131,7 +140,7 @@ export default function UploadPDFPage() {
     }
   };
 
-  const handleAuthorsChange = (newAuthors: AuthorWithAffiliation[]) => {
+  const handleAuthorsChange = (newAuthors: SelectedAuthor[]) => {
     setAuthors(newAuthors);
     if (errors.authors) {
       setErrors({ ...errors, authors: null });
@@ -195,14 +204,11 @@ export default function UploadPDFPage() {
         if (!selectedFile) newErrors.file = 'Please upload a PDF file';
         if (selectedFile && !fileUploadResult)
           newErrors.file = 'Please wait for the file to finish uploading';
-        if (selectedHubs.length === 0) newErrors.hubs = 'Please select at least one topic';
-        break;
-
-      case 'authors':
         if (authors.length === 0) newErrors.authors = 'Please add at least one author';
         else if (!authors.some((author) => author.isCorrespondingAuthor)) {
           newErrors.authors = 'Please designate at least one corresponding author';
         }
+        if (selectedHubs.length === 0) newErrors.hubs = 'Please select at least one topic';
         break;
 
       case 'declaration':
@@ -238,37 +244,37 @@ export default function UploadPDFPage() {
   };
 
   const handleSubmit = async () => {
+    if (!validateCurrentStep() && currentStepIndex === steps.length - 1) {
+      toast.error('Please fix the errors before submitting.');
+      return;
+    }
+    if (!fileUploadResult?.absoluteUrl) {
+      toast.error('File upload is not complete or failed.');
+      setErrors({ ...errors, file: 'File upload is not complete or failed.' });
+      return;
+    }
+
     const loadingToast = toast.loading('Submitting your paper...');
     setIsSubmitting(true);
 
     try {
-      // Create a simpler payload structure that matches the working example more closely
       const payload: CreatePaperPayload = {
         title,
         abstract,
-        fileUrl: fileUploadResult?.absoluteUrl,
+        fileUrl: fileUploadResult.absoluteUrl,
         changeDescription,
-        authors: authors.map((author, index) => {
+        authors: authors.map((selectedAuthor, index) => {
           const id =
-            typeof author.author.id === 'number'
-              ? author.author.id
-              : parseInt(String(author.author.id), 10);
-
-          // Get institution ID if available
-          let institution_id: number | undefined = undefined;
-          if (author.institution?.id) {
-            institution_id =
-              typeof author.institution.id === 'number'
-                ? author.institution.id
-                : parseInt(String(author.institution.id), 10);
-          }
+            typeof selectedAuthor.author.id === 'number'
+              ? selectedAuthor.author.id
+              : parseInt(String(selectedAuthor.author.id), 10);
 
           return {
             id,
             author_position:
               index === 0 ? 'first' : index === authors.length - 1 ? 'last' : 'middle',
-            institution_id,
-            isCorrespondingAuthor: author.isCorrespondingAuthor,
+            institution_id: undefined,
+            isCorrespondingAuthor: selectedAuthor.isCorrespondingAuthor,
           };
         }),
         hubs: selectedHubs.map((hub) =>
@@ -282,16 +288,13 @@ export default function UploadPDFPage() {
         },
       };
 
-      // Call the paper service to create the paper
       const response = await PaperService.create(payload);
 
       toast.dismiss(loadingToast);
       toast.success('Paper submitted successfully!');
 
-      // If submitting to journal, redirect to Stripe checkout
       if (submitToJournal) {
         try {
-          // Create checkout session using the PaperService
           const successUrl = `${window.location.origin}/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}&isJournal=true`;
           const failureUrl = `${window.location.origin}/`;
 
@@ -302,9 +305,8 @@ export default function UploadPDFPage() {
           );
 
           if (checkoutData.url) {
-            // Redirect to Stripe checkout
             window.location.href = checkoutData.url;
-            return; // Exit function as we're redirecting
+            return;
           } else {
             throw new Error('No checkout URL received from server');
           }
@@ -312,10 +314,9 @@ export default function UploadPDFPage() {
           console.error('Checkout Error:', error);
           toast.error('Failed to initiate payment. Please try again.');
           setIsSubmitting(false);
-          return; // Stop execution
+          return;
         }
       } else {
-        // Regular submission (no journal) - redirect to success page
         router.push(
           `/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}&isJournal=${submitToJournal}`
         );
@@ -328,18 +329,19 @@ export default function UploadPDFPage() {
     }
   };
 
-  // Render the current step
   const renderStep = () => {
     switch (steps[currentStepIndex].id) {
       case 'content':
         return (
           <div className="space-y-8">
             <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Paper Details</h3>
-                <p className="text-sm text-gray-500">Provide basic information about your paper</p>
+              <div className="flex items-center gap-2 mb-2">
+                <FileText className="h-5 w-5 text-gray-600" />
+                <h3 className="text-lg font-medium text-gray-900">Paper Details</h3>
               </div>
-
+              <p className="text-sm text-gray-500 mb-4">
+                Provide basic information about your paper
+              </p>
               <div>
                 <Input
                   label="Title"
@@ -349,7 +351,6 @@ export default function UploadPDFPage() {
                   required
                 />
               </div>
-
               <div>
                 <Textarea
                   label="Abstract"
@@ -362,35 +363,54 @@ export default function UploadPDFPage() {
               </div>
             </div>
 
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Upload Paper</h3>
-              <FileUpload
-                onFileSelect={handleFileSelect}
-                onFileRemove={handleFileRemove}
-                onFileUpload={handleFileUpload}
-                onError={handleFileUploadError}
-                uploadImmediately={true}
-                selectedFile={selectedFile}
-                error={errors.file || null}
-              />
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <FileUp className="h-5 w-5 text-gray-600" />
+                <h3 className="text-lg font-medium text-gray-900">Upload Paper</h3>
+              </div>
+              <div>
+                <FileUpload
+                  onFileSelect={handleFileSelect}
+                  onFileRemove={handleFileRemove}
+                  onFileUpload={handleFileUpload}
+                  onError={handleFileUploadError}
+                  uploadImmediately={true}
+                  selectedFile={selectedFile}
+                  error={errors.file || null}
+                />
+              </div>
             </div>
 
-            <HubsSelector
-              selectedHubs={selectedHubs}
-              onChange={handleHubsChange}
-              error={errors.hubs || null}
-            />
-          </div>
-        );
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-gray-600" />
+                <h3 className="text-lg font-medium text-gray-900">Authors</h3>
+              </div>
+              <p className="text-sm text-gray-500 mb-4">
+                Add all the authors associated with this paper
+              </p>
+              <div>
+                <AuthorsAndAffiliations authors={authors} onChange={handleAuthorsChange} />
+                {errors.authors && <p className="text-sm text-red-600 mt-2">{errors.authors}</p>}
+              </div>
+            </div>
 
-      case 'authors':
-        return (
-          <div className="space-y-6">
-            <AuthorsAndAffiliations
-              authors={authors}
-              onChange={handleAuthorsChange}
-              error={errors.authors || null}
-            />
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Tags className="h-5 w-5 text-gray-600" />
+                <h3 className="text-lg font-medium text-gray-900">Topics</h3>
+              </div>
+              <p className="text-sm text-gray-500 mb-4">
+                Select topics that best describe your research
+              </p>
+              <div>
+                <HubsSelector
+                  selectedHubs={selectedHubs}
+                  onChange={handleHubsChange}
+                  error={errors.hubs || null}
+                />
+              </div>
+            </div>
           </div>
         );
 
@@ -493,10 +513,10 @@ export default function UploadPDFPage() {
               <div>
                 <h3 className="text-sm font-medium text-gray-500">Authors</h3>
                 <div className="mt-1 space-y-2">
-                  {authors.map((author) => (
-                    <div key={author.author.id} className="flex items-center">
-                      <span className="text-gray-900">{author.author.fullName}</span>
-                      {author.isCorrespondingAuthor && (
+                  {authors.map((selectedAuthor) => (
+                    <div key={selectedAuthor.author.id} className="flex items-center">
+                      <span className="text-gray-900">{selectedAuthor.author.fullName}</span>
+                      {selectedAuthor.isCorrespondingAuthor && (
                         <span className="ml-2 text-xs text-gray-500">(Corresponding Author)</span>
                       )}
                     </div>
@@ -515,7 +535,6 @@ export default function UploadPDFPage() {
                 />
               </div>
 
-              {/* Journal promotion section */}
               <div className="mt-8 pt-6 border-t border-gray-200">
                 <div className="bg-gradient-to-b from-indigo-50/80 to-white p-5 rounded-lg border border-indigo-100">
                   <div className="flex items-center mb-4">

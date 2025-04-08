@@ -50,7 +50,7 @@ export function Alert({ variant = 'info', children, className }: AlertProps) {
 
   return (
     <div className={cn('flex items-start gap-3 rounded-lg px-4 py-3', styles.container, className)}>
-      <div className="shrink-0 mt-0.5">{styles.icon}</div>
+      <div className="shrink-0">{styles.icon}</div>
       <div className="text-sm font-medium">{children}</div>
     </div>
   );
