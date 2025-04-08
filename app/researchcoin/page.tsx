@@ -11,6 +11,7 @@ import { useSession } from 'next-auth/react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatBalance } from '@/components/ResearchCoin/lib/types';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { BuyRSCSection } from '@/components/ResearchCoin/BuyRSCSection';
 
 export default function ResearchCoinPage() {
   const { data: session, status } = useSession();
@@ -19,7 +20,6 @@ export default function ResearchCoinPage() {
   const [balance, setBalance] = useState<number | null>(null);
   const { exchangeRate, isLoading: isFetchingExchangeRate } = useExchangeRate();
 
-  // Fetch initial data
   useEffect(() => {
     if (status === 'loading') return;
 
@@ -55,13 +55,14 @@ export default function ResearchCoinPage() {
                 balance={balance ? formatBalance(balance, exchangeRate) : null}
                 isFetchingExchangeRate={isFetchingExchangeRate}
               />
-
+              <div className="pb-6">
+                <BuyRSCSection />
+              </div>
               <TransactionFeed
                 onExport={handleExport}
                 exchangeRate={exchangeRate}
                 isExporting={isExporting}
               />
-
               {isExportModalOpen && (
                 <ExportFilterModal
                   isOpen={isExportModalOpen}
