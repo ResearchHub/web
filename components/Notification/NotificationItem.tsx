@@ -85,14 +85,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         )}
       >
         <div className="flex items-center">
-          <div className="pl-1 flex-shrink-0 flex items-center justify-center self-center">
-            <div
-              className={clsx(
-                'w-2 h-2 rounded-full',
-                !notification.read ? 'bg-primary-500' : 'bg-transparent'
-              )}
-            ></div>
-          </div>
+          {IndicatorSection}
           <div className="ml-3 flex gap-3 items-center">
             {AvatarSection}
 
