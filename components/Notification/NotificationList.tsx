@@ -1,6 +1,6 @@
 import { Notification } from '@/types/notification';
 import { NotificationItem } from './NotificationItem';
-import { NotificationSkeleton } from './NotificationSkeleton';
+import { NotificationSkeleton } from '@/components/skeletons/NotificationSkeleton';
 
 interface NotificationListProps {
   notifications: Notification[];

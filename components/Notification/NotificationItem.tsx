@@ -22,9 +22,20 @@ export function NotificationItem({ notification }: NotificationItemProps) {
 
   const hubDetails = getHubDetailsFromNotification(notification);
 
+  const IndicatorSection = (
+    <div className="w-2 flex-shrink-0 flex items-center justify-center self-center">
+      <div
+        className={clsx(
+          'w-2 h-2 rounded-full',
+          !notification.read ? 'bg-primary-500' : 'bg-transparent'
+        )}
+      ></div>
+    </div>
+  );
+
   const AvatarSection =
     notification.actionUser && notificationInfo.useAvatar ? (
-      <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+      <div className="flex-shrink-0 w-[40px] h-[40px]" onClick={(e) => e.stopPropagation()}>
         <Avatar
           src={notification.actionUser?.authorProfile?.profileImage}
           alt={notification.actionUser?.fullName || 'User'}
@@ -35,7 +46,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     ) : (
       <div
         className={clsx(
-          'w-[38px] h-[38px] flex items-center justify-center rounded-full bg-gray-50 flex-shrink-0'
+          'w-[40px] h-[40px] flex items-center justify-center rounded-full bg-gray-50 flex-shrink-0'
         )}
       >
         <Icon name={notificationInfo.icon} size={18} />
@@ -45,19 +56,21 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const ContentSection = (
     <div className="flex-grow min-w-0">
       <div className="text-sm font-medium text-gray-900">{message}</div>
-      {hubDetails && (
-        <div className="mt-2" onClick={(e) => e.stopPropagation()}>
-          <TopicAndJournalBadge
-            type="topic"
-            name={hubDetails.name}
-            slug={hubDetails.slug}
-            imageUrl={hubDetails.imageUrl}
-            size="sm"
-          />
+      <div className="flex items-center gap-2 mt-1">
+        <div className="text-xs text-gray-500">
+          {formatTimestamp(notification.createdDate.toISOString())}
         </div>
-      )}
-      <div className="mt-0.5 text-xs text-gray-500">
-        {formatTimestamp(notification.createdDate.toISOString())}
+        {hubDetails && (
+          <div className="inline-block" onClick={(e) => e.stopPropagation()}>
+            <TopicAndJournalBadge
+              type="topic"
+              name={hubDetails.name}
+              slug={hubDetails.slug}
+              imageUrl={hubDetails.imageUrl}
+              size="sm"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -71,21 +84,31 @@ export function NotificationItem({ notification }: NotificationItemProps) {
           hasNavigationUrl ? 'cursor-pointer' : ''
         )}
       >
-        <div className="flex gap-3 items-center">
-          {AvatarSection}
+        <div className="flex items-center">
+          <div className="pl-1 flex-shrink-0 flex items-center justify-center self-center">
+            <div
+              className={clsx(
+                'w-2 h-2 rounded-full',
+                !notification.read ? 'bg-primary-500' : 'bg-transparent'
+              )}
+            ></div>
+          </div>
+          <div className="ml-3 flex gap-3 items-center">
+            {AvatarSection}
 
-          {hasNavigationUrl && notification.navigationUrl ? (
-            <Link
-              href={notification.navigationUrl}
-              className="flex-grow min-w-0 hover:text-indigo-600 transition-colors"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {ContentSection}
-            </Link>
-          ) : (
-            ContentSection
-          )}
+            {hasNavigationUrl && notification.navigationUrl ? (
+              <Link
+                href={notification.navigationUrl}
+                className="flex-grow min-w-0 hover:text-indigo-600 transition-colors"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {ContentSection}
+              </Link>
+            ) : (
+              ContentSection
+            )}
+          </div>
         </div>
       </div>
     </div>
