@@ -7,12 +7,14 @@ import { useNotebookContext } from '@/contexts/NotebookContext';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
 import { PublishedStatusSection } from './PublishingForm/components/PublishedStatusSection';
+import { isFeatureEnabled } from '@/utils/featureFlags';
 
 export function TopBarMobile() {
   const { toggleLeftSidebar, toggleRightSidebar } = useSidebar();
   const { currentNote: note, isLoading } = useNotebookContext();
 
   const isPublished = Boolean(note?.post?.id);
+  const isLegacyNote = !note?.contentJson && isFeatureEnabled('legacyNoteBanner');
 
   return (
     <div className="h-16 border-b border-gray-200 sticky top-0 bg-white z-20">
@@ -34,7 +36,7 @@ export function TopBarMobile() {
         <PublishedStatusSection />
 
         {/* Right sidebar toggle button */}
-        {note && (
+        {note && !isLegacyNote && (
           <Button
             onClick={toggleRightSidebar}
             className="p-2 rounded-md"
