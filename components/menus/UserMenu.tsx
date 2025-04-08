@@ -23,6 +23,7 @@ interface UserMenuProps {
   isMenuOpen?: boolean;
   onMenuOpenChange?: (isOpen: boolean) => void;
   avatarSize?: number | 'sm' | 'md' | 'xs' | 'xxs';
+  showAvatarOnly?: boolean;
 }
 
 function truncateWalletAddress(address: string): string {
@@ -36,6 +37,7 @@ export default function UserMenu({
   isMenuOpen,
   onMenuOpenChange,
   avatarSize = 30,
+  showAvatarOnly = false,
 }: UserMenuProps) {
   const [showVerificationBanner, setShowVerificationBanner] = useState(true);
   const [walletOptionsOpen, setWalletOptionsOpen] = useState(false);
@@ -98,14 +100,18 @@ export default function UserMenu({
     setMenuOpenState(false);
   };
 
-  // Common avatar button
+  // Apply different avatar size for avatar-only mode
+  const effectiveAvatarSize =
+    showAvatarOnly && typeof avatarSize === 'number' ? avatarSize * 1.25 : avatarSize;
+
+  // Common avatar button with adjusted sizing for avatar-only mode
   const avatarButton = (
     <button className="hover:ring-2 hover:ring-gray-200 rounded-full p-1 relative">
       <Avatar
         src={user.authorProfile?.profileImage}
         className="font-semibold"
         alt={user.fullName}
-        size={avatarSize}
+        size={effectiveAvatarSize}
       />
     </button>
   );

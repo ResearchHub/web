@@ -20,7 +20,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 // Component for user profile section in sidebar
-const UserSidebarSection = () => {
+const UserSidebarSection = ({ forceMinimize = false }: { forceMinimize?: boolean }) => {
   const { user, isLoading: userLoading } = useUser();
   const pathname = usePathname();
   const router = useRouter();
@@ -40,15 +40,23 @@ const UserSidebarSection = () => {
           {/* Left side skeleton for user profile */}
           <div className="flex items-center p-1 pr-2 pl-2 rounded-lg">
             <div className="h-8 w-8 flex-shrink-0 mr-2 rounded-full bg-gray-200 animate-pulse tablet:max-sidebar-compact:!mr-0 tablet:max-sidebar-compact:!h-10 tablet:max-sidebar-compact:!w-10"></div>
-            <div className="h-4 w-20 bg-gray-200 rounded animate-pulse tablet:max-sidebar-compact:!hidden"></div>
-            <div className="ml-2 h-3 w-3 bg-gray-200 rounded animate-pulse tablet:max-sidebar-compact:!hidden"></div>
+            <div
+              className={`h-4 w-20 bg-gray-200 rounded animate-pulse ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
+            ></div>
+            <div
+              className={`ml-2 h-3 w-3 bg-gray-200 rounded animate-pulse ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
+            ></div>
           </div>
 
           {/* Separator skeleton */}
-          <div className="mx-2 h-6 w-px bg-gray-200 tablet:max-sidebar-compact:!hidden"></div>
+          <div
+            className={`mx-2 h-6 w-px bg-gray-200 ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
+          ></div>
 
           {/* Right side skeleton for icons */}
-          <div className="flex items-center space-x-1 tablet:max-sidebar-compact:!hidden">
+          <div
+            className={`flex items-center space-x-1 ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
+          >
             <div className="h-9 w-9 bg-gray-200 rounded-md animate-pulse"></div>
             <div className="h-9 w-9 bg-gray-200 rounded-md animate-pulse"></div>
           </div>
@@ -70,13 +78,15 @@ const UserSidebarSection = () => {
             onClick={() => executeAuthenticatedAction(() => router.push('/home'))}
           >
             <User size={18} className="text-white" />
-            <span className="tablet:max-sidebar-compact:!hidden">Login</span>
+            <span className={forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}>
+              Login
+            </span>
           </Button>
 
           {/* Join button */}
           <Button
             variant="outlined"
-            className="w-full border-indigo-200 hover:bg-indigo-50 text-indigo-700 font-medium flex items-center justify-center gap-2 py-2.5 tablet:max-sidebar-compact:!hidden"
+            className={`w-full border-indigo-200 hover:bg-indigo-50 text-indigo-700 font-medium flex items-center justify-center gap-2 py-2.5 ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
             onClick={() => executeAuthenticatedAction(() => router.push('/home'))}
           >
             <UserPlus size={18} className="text-indigo-700" />
@@ -90,11 +100,13 @@ const UserSidebarSection = () => {
   return (
     <div className="px-3 py-3 tablet:max-sidebar-compact:!px-2 tablet:max-sidebar-compact:!flex tablet:max-sidebar-compact:!justify-center">
       {/* Single row layout with all elements */}
-      <div className="flex items-center justify-between tablet:max-sidebar-compact:!justify-center">
+      <div
+        className={`flex items-center ${forceMinimize ? 'justify-center' : 'justify-between'} tablet:max-sidebar-compact:!justify-center`}
+      >
         {/* Left side: Avatar, Name and Caret */}
         <div
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="flex items-center cursor-pointer transition-colors hover:bg-gray-100 p-1 pr-2 pl-2 rounded-lg group flex-shrink min-w-0"
+          className={`flex items-center cursor-pointer transition-colors hover:bg-gray-100 ${forceMinimize ? 'p-0' : 'p-1 pr-2 pl-2'} rounded-lg group flex-shrink min-w-0`}
         >
           <div
             className="flex-shrink-0 mr-2 tablet:max-sidebar-compact:!mr-0 tablet:max-sidebar-compact:!scale-125"
@@ -106,10 +118,13 @@ const UserSidebarSection = () => {
               onVerifyAccount={() => null}
               isMenuOpen={isMenuOpen}
               onMenuOpenChange={setIsMenuOpen}
+              showAvatarOnly={forceMinimize}
             />
           </div>
 
-          <div className="flex items-center min-w-0 tablet:max-sidebar-compact:!hidden">
+          <div
+            className={`flex items-center min-w-0 ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
+          >
             <div className="text-[14px] font-medium text-gray-800 group-hover:text-gray-900 truncate">
               {user.firstName}
             </div>
@@ -121,10 +136,14 @@ const UserSidebarSection = () => {
         </div>
 
         {/* Separator */}
-        <div className="mx-2 h-6 w-px bg-gray-200 flex-shrink-0 tablet:max-sidebar-compact:!hidden"></div>
+        <div
+          className={`mx-2 h-6 w-px bg-gray-200 flex-shrink-0 ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
+        ></div>
 
         {/* Right side: Wallet and Notification icons */}
-        <div className="flex items-center space-x-1 flex-shrink-0 tablet:max-sidebar-compact:!hidden">
+        <div
+          className={`flex items-center space-x-1 flex-shrink-0 ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
+        >
           {/* Wallet icon */}
           <Tooltip content="Your ResearchCoin Wallet" position="bottom">
             <Link href="/researchcoin" className="flex items-center">
@@ -153,7 +172,11 @@ const UserSidebarSection = () => {
   );
 };
 
-export const LeftSidebar: React.FC = () => {
+interface LeftSidebarProps {
+  forceMinimize?: boolean;
+}
+
+export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false }) => {
   const pathname = usePathname();
 
   const handleUnimplementedFeature = (featureName: string) => {
@@ -176,36 +199,46 @@ export const LeftSidebar: React.FC = () => {
     );
   };
 
+  // Create minimized classes based on either responsive design or forced minimization
+  const minimizeClass = forceMinimize ? 'minimized-sidebar' : '';
+
   return (
-    <div className="h-full flex flex-col z-50 bg-white overflow-hidden">
-      <div className="p-4 pl-4 tablet:max-sidebar-compact:!flex tablet:max-sidebar-compact:!justify-center">
+    <div className={`h-full flex flex-col z-50 bg-white overflow-hidden ${minimizeClass}`}>
+      <div
+        className={`p-4 pl-4 ${forceMinimize ? '!flex !justify-center' : 'tablet:max-sidebar-compact:!flex tablet:max-sidebar-compact:!justify-center'}`}
+      >
         <Link href="/">
-          <div className="tablet:max-sidebar-compact:!hidden">
+          <div className={forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}>
             <Logo size={44} color="text-indigo-600" />
           </div>
-          <div className="hidden tablet:max-sidebar-compact:!block">
+          <div className={forceMinimize ? '!block' : 'hidden tablet:max-sidebar-compact:!block'}>
             <Icon name="flaskFrame" size={38} color="#4f46e5" />
           </div>
         </Link>
       </div>
 
-      <div className="bg-gray-50 mt-2 tablet:max-sidebar-compact:!bg-transparent tablet:max-sidebar-compact:!border-none">
-        <UserSidebarSection />
+      <div
+        className={`bg-gray-50 mt-2 ${forceMinimize ? '!bg-transparent !border-none' : 'tablet:max-sidebar-compact:!bg-transparent tablet:max-sidebar-compact:!border-none'}`}
+      >
+        <UserSidebarSection forceMinimize={forceMinimize} />
       </div>
-      <div className="px-4 mt-6 tablet:max-sidebar-compact:!px-2">
-        <PublishMenu />
+      <div className={`px-4 mt-6 ${forceMinimize ? '!px-2' : 'tablet:max-sidebar-compact:!px-2'}`}>
+        <PublishMenu forceMinimize={forceMinimize} />
       </div>
 
       <div className="flex-1 mt-2 overflow-y-auto">
-        <div className="px-4 py-4 tablet:max-sidebar-compact:!px-2">
+        <div
+          className={`px-4 py-4 ${forceMinimize ? '!px-2' : 'tablet:max-sidebar-compact:!px-2'}`}
+        >
           <Navigation
             currentPath={pathname || ''}
             onUnimplementedFeature={handleUnimplementedFeature}
+            forceMinimize={forceMinimize}
           />
         </div>
       </div>
 
-      <div className="tablet:max-sidebar-compact:!hidden">
+      <div className={forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}>
         <FooterLinks />
       </div>
     </div>
