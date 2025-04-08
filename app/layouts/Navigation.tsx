@@ -108,8 +108,8 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
       path === '/' ? ['/', '/following', '/latest'].includes(currentPath) : path === currentPath;
 
     return isActive
-      ? 'flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-indigo-600 bg-indigo-50 rounded-lg group'
-      : 'flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-lg group';
+      ? 'flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-indigo-600 tablet:max-sidebar-compact:px-2 tablet:max-sidebar-compact:justify-center bg-indigo-50 rounded-lg group'
+      : 'flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-gray-700 tablet:max-sidebar-compact:px-2 tablet:max-sidebar-compact:justify-center hover:bg-gray-50 rounded-lg group';
   };
 
   const isPathActive = (path: string) => {
@@ -157,7 +157,7 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
 
     return (
       <Button onClick={handleClick} className={buttonStyles} variant="ghost">
-        <div className="h-[26px] w-[26px] mr-2.5 flex items-center justify-center">
+        <div className="h-[26px] w-[26px] mr-2.5 tablet:max-sidebar-compact:mr-0 flex items-center justify-center">
           {item.isFontAwesome && item.iconKey === 'home' ? (
             <FontAwesomeIcon
               icon={isActive ? faHouseSolid : faHouseLight}
@@ -168,7 +168,7 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
             item.iconKey && <Icon name={getIconName() as IconName} size={26} color={iconColor} />
           )}
         </div>
-        <div className="flex items-center justify-between w-full min-w-0">
+        <div className="flex items-center justify-between w-full min-w-0 tablet:max-sidebar-compact:hidden">
           <span className="truncate text-[16px]">{item.label}</span>
         </div>
       </Button>
