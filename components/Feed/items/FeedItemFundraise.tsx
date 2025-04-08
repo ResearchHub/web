@@ -12,6 +12,7 @@ import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { useRouter } from 'next/navigation';
 import { Flag } from 'lucide-react';
 import Image from 'next/image';
+import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
@@ -46,9 +47,13 @@ const FeedItemFundraiseBody: FC<{
       <div className="flex flex-wrap gap-2 mb-3" onClick={(e) => e.stopPropagation()}>
         <ContentTypeBadge type="funding" />
         {topics.map((topic, index) => (
-          <div key={index} className="px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">
-            {topic.name}
-          </div>
+          <TopicAndJournalBadge
+            key={index}
+            type="topic"
+            name={topic.name}
+            slug={topic.slug || topic.name.toLowerCase().replace(/\s+/g, '-')}
+            imageUrl={topic.imageUrl}
+          />
         ))}
       </div>
 
@@ -81,7 +86,7 @@ const FeedItemFundraiseBody: FC<{
 
         {/* Image - Positioned to the right, aligned with title */}
         {imageUrl && (
-          <div className="flex-shrink-0 w-[280px] max-w-[33%] hidden md:block">
+          <div className="flex-shrink-0 w-[280px] max-w-[33%] hidden mobile:!block">
             <div className="aspect-[4/3] relative rounded-lg overflow-hidden shadow-sm">
               <Image
                 src={imageUrl}
@@ -157,7 +162,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   // Mobile image display (for small screens only)
   const MobileImage = () =>
     imageUrl ? (
-      <div className="md:hidden w-full mb-4">
+      <div className="mobile:!hidden w-full mb-4">
         <div className="aspect-[16/9] relative rounded-lg overflow-hidden shadow-sm">
           <Image
             src={imageUrl}
@@ -195,19 +200,17 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         )}
       >
         <div className="p-4">
-          {/* Mobile image (shown only on small screens) */}
-          <MobileImage />
-
           {/* Body Content with desktop image integrated */}
           <FeedItemFundraiseBody entry={entry} imageUrl={imageUrl} />
-
+          {/* Mobile image (shown only on small screens) */}
+          <MobileImage />
           {/* Fundraise Progress (only for preregistrations with fundraise) */}
           {hasFundraise && post.fundraise && (
             <div className="mt-4" onClick={(e) => e.stopPropagation()}>
               <FundraiseProgress
                 fundraise={post.fundraise}
                 compact={true}
-                showContribute={false}
+                showContribute={true}
                 className="p-0 border-0 bg-transparent"
               />
             </div>

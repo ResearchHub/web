@@ -40,7 +40,7 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
     <section className={className}>
       <div className="flex items-center space-x-2 mb-4">
         <Building className="h-5 w-5 text-gray-500" />
-        <h2 className="text-base font-semibold text-gray-900">Associated Nonprofit</h2>
+        <h2 className="text-base font-semibold text-gray-900">Nonprofit support</h2>
         <Button
           className="text-gray-400 hover:text-gray-600"
           onClick={() => setShowEndaomentInfo(true)}
@@ -191,7 +191,7 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <Dialog.Title className="text-lg font-medium text-gray-900">
-                        Tax-Deductible Donations
+                        Tax-deductible donations
                       </Dialog.Title>
                       <Button
                         onClick={() => setShowEndaomentInfo(false)}
@@ -218,7 +218,7 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
 
                     <div className="text-sm text-gray-600 space-y-4">
                       <p>
-                        <span className="font-medium text-gray-800">Tax-Deductible Donations</span>{' '}
+                        <span className="font-medium text-gray-800">Tax-deductible donations</span>{' '}
                         are processed through this nonprofit foundation, making contributions over
                         $1,000 eligible for tax deductions while supporting the researcher's work.
                       </p>

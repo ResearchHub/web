@@ -2,7 +2,7 @@
 
 import { FC } from 'react';
 import React from 'react';
-import { FeedEntry, FeedCommentContent } from '@/types/feed';
+import { FeedEntry, FeedCommentContent, ParentCommentPreview } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions, ActionButton } from '@/components/Feed/FeedItemActions';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
@@ -13,6 +13,47 @@ import { Button } from '@/components/ui/Button';
 import { Reply, Pen, Trash2 } from 'lucide-react';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
+import { Avatar } from '@/components/ui/Avatar';
+
+// Define the recursive rendering component for parent comments
+const RenderParentComment: FC<{ comment: ParentCommentPreview; level: number }> = ({
+  comment,
+  level,
+}) => {
+  // Base indentation + additional indentation per level
+  const indentation = level * 0.25; // Adjust multiplier for desired nesting (using rem units)
+
+  return (
+    <div
+      className="mt-4 p-3 pt-0 pb-0 border-l-2 border-l-gray-100  text-sm text-gray-500"
+      style={{ marginLeft: `${indentation}rem` }}
+    >
+      <div className="flex items-center space-x-2 mb-2">
+        <Avatar
+          src={comment.createdBy.profileImage}
+          alt={comment.createdBy.fullName || 'User'}
+          authorId={comment.createdBy.id}
+          size="xs"
+          disableTooltip
+        />
+        <span className="font-medium text-gray-700">{comment.createdBy.fullName}</span>
+        <span>replied:</span>
+      </div>
+      <div className="text-gray-600">
+        <CommentReadOnly
+          content={comment.content}
+          contentFormat={comment.contentFormat}
+          initiallyExpanded={false}
+          showReadMoreButton={false}
+        />
+      </div>
+      {/* Recursive call for the next parent level */}
+      {comment.parentComment && (
+        <RenderParentComment comment={comment.parentComment} level={level + 1} />
+      )}
+    </div>
+  );
+};
 
 interface FeedItemCommentProps {
   entry: FeedEntry;
@@ -35,18 +76,18 @@ interface FeedItemCommentProps {
  */
 const FeedItemCommentBody: FC<{
   entry: FeedEntry;
+  parentComment?: ParentCommentPreview;
   showRelatedWork?: boolean;
   showReadMoreCTA?: boolean;
-}> = ({ entry, showRelatedWork = true, showReadMoreCTA = true }) => {
+}> = ({ entry, parentComment, showRelatedWork = true, showReadMoreCTA = true }) => {
   // Extract the comment entry from the entry's content
   const commentEntry = entry.content as FeedCommentContent;
   const comment = commentEntry.comment;
   const isReview = comment.commentType === 'REVIEW';
   const reviewScore = comment.reviewScore || commentEntry.review?.score || comment.score || 0;
-
+  console.log('parentComment', parentComment);
   // Get related work if available
   const relatedWork = entry.relatedWork;
-  console.log('***************', relatedWork);
   return (
     <div className="mb-4">
       {/* Review information for reviews (optional additional display) */}
@@ -58,14 +99,17 @@ const FeedItemCommentBody: FC<{
       )}
 
       {/* Comment Content */}
-      <div className="text-gray-600">
+      <div className="text-gray-600 mb-4">
         <CommentReadOnly
           content={comment.content}
           contentFormat={comment.contentFormat}
-          initiallyExpanded={false} // Always start with truncated content
-          showReadMoreButton={showReadMoreCTA} // Only control the button visibility
+          initiallyExpanded={false}
+          showReadMoreButton={showReadMoreCTA}
         />
       </div>
+
+      {/* Initiate recursive rendering of parent comments if they exist */}
+      {parentComment && <RenderParentComment comment={parentComment} level={1} />}
 
       {/* Related Work - show if available */}
       {relatedWork && showRelatedWork && (
@@ -96,7 +140,8 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   const commentEntry = entry.content as FeedCommentContent;
   const comment = commentEntry.comment;
   const router = useRouter();
-
+  const parentComment = commentEntry.parentComment;
+  console.log('---parentComment', parentComment);
   // Get the author from the comment entry
   const author = commentEntry.createdBy;
 
@@ -180,6 +225,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
             {/* Body Content */}
             <FeedItemCommentBody
               entry={entry}
+              parentComment={parentComment}
               showRelatedWork={showRelatedWork}
               showReadMoreCTA={showReadMoreCTA}
             />

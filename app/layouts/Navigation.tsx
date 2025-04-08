@@ -31,6 +31,7 @@ interface NavigationItem {
 interface NavigationProps {
   currentPath: string;
   onUnimplementedFeature: (featureName: string) => void;
+  forceMinimize?: boolean;
 }
 
 // Map navigation icons to their light and solid variants
@@ -53,11 +54,15 @@ const navIconMap: Record<NavIconKey, NavIcon> = {
   },
   notebook: {
     light: 'labNotebook2',
-    solid: 'solidNotebook',
+    solid: 'notebookBold',
   },
 };
 
-export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimplementedFeature }) => {
+export const Navigation: React.FC<NavigationProps> = ({
+  currentPath,
+  onUnimplementedFeature,
+  forceMinimize = false,
+}) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const router = useRouter();
 
@@ -107,15 +112,29 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
     const isActive =
       path === '/' ? ['/', '/following', '/latest'].includes(currentPath) : path === currentPath;
 
+    // Use either responsive or force minimized classes
+    const responsiveClasses = forceMinimize
+      ? '!px-2 !justify-center'
+      : 'tablet:max-sidebar-compact:!px-2 tablet:max-sidebar-compact:!justify-center';
+
     return isActive
-      ? 'flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-indigo-600 bg-indigo-50 rounded-lg group'
-      : 'flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-lg group';
+      ? `flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-indigo-600 ${responsiveClasses} bg-indigo-50 rounded-lg group`
+      : `flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-gray-700 ${responsiveClasses} hover:bg-gray-50 rounded-lg group`;
   };
 
   const isPathActive = (path: string) => {
-    return path === '/'
-      ? ['/', '/following', '/latest'].includes(currentPath)
-      : path === currentPath;
+    // Special case for home page
+    if (path === '/') {
+      return ['/', '/following', '/latest'].includes(currentPath);
+    }
+
+    // Special case for notebook page - match any route that starts with /notebook
+    if (path === '/notebook') {
+      return currentPath.startsWith('/notebook');
+    }
+
+    // Default case - exact match
+    return path === currentPath;
   };
 
   const NavLink: React.FC<{
@@ -155,9 +174,18 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
       router.push(item.href);
     };
 
+    // Conditionally apply minimized classes
+    const iconContainerClass = forceMinimize
+      ? 'h-[26px] w-[26px] mr-0 flex items-center justify-center'
+      : 'h-[26px] w-[26px] mr-2.5 tablet:max-sidebar-compact:!mr-0 flex items-center justify-center';
+
+    const textContainerClass = forceMinimize
+      ? 'flex items-center justify-between w-full min-w-0 !hidden'
+      : 'flex items-center justify-between w-full min-w-0 tablet:max-sidebar-compact:!hidden';
+
     return (
       <Button onClick={handleClick} className={buttonStyles} variant="ghost">
-        <div className="h-[26px] w-[26px] mr-2.5 flex items-center justify-center">
+        <div className={iconContainerClass}>
           {item.isFontAwesome && item.iconKey === 'home' ? (
             <FontAwesomeIcon
               icon={isActive ? faHouseSolid : faHouseLight}
@@ -168,7 +196,7 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
             item.iconKey && <Icon name={getIconName() as IconName} size={26} color={iconColor} />
           )}
         </div>
-        <div className="flex items-center justify-between w-full min-w-0">
+        <div className={textContainerClass}>
           <span className="truncate text-[16px]">{item.label}</span>
         </div>
       </Button>

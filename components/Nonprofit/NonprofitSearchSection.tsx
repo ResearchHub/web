@@ -342,7 +342,7 @@ function NonprofitSearchSectionInner({
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <Dialog.Title className="text-lg font-medium text-gray-900">
-                        About Fiscal Sponsorship
+                        About nonprofit support
                       </Dialog.Title>
                       <Button
                         onClick={() => setShowEndaomentInfo(false)}
@@ -386,7 +386,7 @@ function NonprofitSearchSectionInner({
 
                       <p>
                         By selecting a nonprofit organization, you're enabling Endaoment to process
-                        donations through their fiscal sponsorship program, ensuring your research
+                        donations through their nonprofit support program, ensuring your research
                         receives funding while maintaining compliance with tax regulations.
                       </p>
 

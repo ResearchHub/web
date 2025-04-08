@@ -16,6 +16,7 @@ export type IconName =
   // Lab notebook icons
   | 'labNotebook'
   | 'labNotebook2'
+  | 'notebookBold'
   // Fund icons
   | 'fund'
   | 'fund2'
@@ -92,6 +93,7 @@ export type IconName =
   | 'flaskFrame'
   | 'workType'
   | 'solidEarn'
+  | 'giveRSC'
   | 'researchhubVector';
 
 interface IconProps {
