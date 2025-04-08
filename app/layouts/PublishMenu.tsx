@@ -25,7 +25,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
 
   // Regular trigger for standard mode
   const standardTrigger = (
-    <button className="flex items-center px-5 py-3.5 gap-2.5 text-[15px] font-medium rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px] tablet:max-sidebar-compact:hidden">
+    <button className="flex items-center px-5 py-3.5 gap-2.5 text-[15px] font-medium rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px] tablet:max-sidebar-compact:!hidden">
       <Plus className="h-[22px] w-[22px] stroke-[1.5]" />
       <span>New</span>
     </button>
@@ -33,7 +33,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children }) => {
 
   // Compact trigger for minimized sidebar
   const compactTrigger = (
-    <button className="hidden tablet:max-sidebar-compact:flex items-center justify-center p-3 rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px] mx-auto">
+    <button className="hidden tablet:max-sidebar-compact:!flex items-center justify-center p-3 rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px] mx-auto">
       <Plus className="h-[22px] w-[22px] stroke-[1.5]" />
     </button>
   );
