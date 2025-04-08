@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { NotificationList } from '@/components/Notification/NotificationList';
-import { NotificationSkeleton } from '@/components/Notification/NotificationSkeleton';
+import { NotificationSkeleton } from '@/components/skeletons/NotificationSkeleton';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 

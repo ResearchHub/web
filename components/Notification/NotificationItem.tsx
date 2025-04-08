@@ -56,19 +56,21 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const ContentSection = (
     <div className="flex-grow min-w-0">
       <div className="text-sm font-medium text-gray-900">{message}</div>
-      {hubDetails && (
-        <div className="mt-1.5 mb-1.5 inline-block" onClick={(e) => e.stopPropagation()}>
-          <TopicAndJournalBadge
-            type="topic"
-            name={hubDetails.name}
-            slug={hubDetails.slug}
-            imageUrl={hubDetails.imageUrl}
-            size="sm"
-          />
+      <div className="flex items-center gap-2 mt-1">
+        <div className="text-xs text-gray-500">
+          {formatTimestamp(notification.createdDate.toISOString())}
         </div>
-      )}
-      <div className="text-xs text-gray-500">
-        {formatTimestamp(notification.createdDate.toISOString())}
+        {hubDetails && (
+          <div className="inline-block" onClick={(e) => e.stopPropagation()}>
+            <TopicAndJournalBadge
+              type="topic"
+              name={hubDetails.name}
+              slug={hubDetails.slug}
+              imageUrl={hubDetails.imageUrl}
+              size="sm"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
