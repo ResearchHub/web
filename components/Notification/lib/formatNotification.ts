@@ -127,8 +127,11 @@ export function getHubDetailsFromNotification(notification: Notification): HubDe
 }
 
 /**
- * Transform old ResearchHub URLs to the new format
- * Example: https://www.researchhub.com/paper/8086044/title#comments → https://new.researchhub.com/paper/8086044/title/conversation
+ * Transform ResearchHub URLs to the new format
+ * Examples:
+ * - https://www.researchhub.com/paper/8086044/title#comments → https://new.researchhub.com/paper/8086044/title/conversation
+ * - https://www.staging.researchhub.com/post/272/03-25-24-test-post#comments → https://www.staging.researchhub.com/post/272/03-25-24-test-post/conversation
+ * - http://localhost:3000/paper/4/alzheimeralzheimer#comments → http://localhost:3000/paper/4/alzheimeralzheimer/conversation
  */
 export function formatNavigationUrl(url: string | undefined): string | undefined {
   if (!url) return undefined;
@@ -137,23 +140,24 @@ export function formatNavigationUrl(url: string | undefined): string | undefined
     // Create a URL object to parse the components
     const urlObj = new URL(url);
 
-    // Check if it's a ResearchHub URL
-    if (!urlObj.hostname.includes('researchhub.com')) {
-      return url;
-    }
-
-    // Change the domain
-    urlObj.hostname = 'new.researchhub.com';
-
     // Get the pathname and fragments
     const pathname = urlObj.pathname;
     const hash = urlObj.hash;
 
-    // Remove the hash
-    urlObj.hash = '';
+    // Check if the URL is from production researchhub.com (not localhost, not staging)
+    const isProductionDomain =
+      urlObj.hostname === 'www.researchhub.com' || urlObj.hostname === 'researchhub.com';
 
-    // If it's a paper link with #comments, transform to /conversation
-    if (pathname.startsWith('/paper/') && hash === '#comments') {
+    // For production URLs, change the domain to new.researchhub.com
+    if (isProductionDomain) {
+      urlObj.hostname = 'new.researchhub.com';
+    }
+
+    // Remove the hash and transform #comments to /conversation for all environments
+    if (hash === '#comments') {
+      // Remove the hash
+      urlObj.hash = '';
+
       // Remove any trailing slash if it exists
       const cleanPath = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
       urlObj.pathname = `${cleanPath}/conversation`;
