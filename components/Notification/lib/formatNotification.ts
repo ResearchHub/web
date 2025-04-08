@@ -4,7 +4,6 @@ import { Notification, Document } from '@/types/notification';
 export interface NotificationTypeInfo {
   icon: IconName;
   useAvatar: boolean;
-  color: string;
 }
 
 export interface HubDetails {
@@ -18,105 +17,86 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
   IDENTITY_VERIFICATION_UPDATED: {
     icon: 'verify1',
     useAvatar: false,
-    color: 'text-green-600',
   },
   ACCOUNT_VERIFIED: {
     icon: 'verify2',
     useAvatar: false,
-    color: 'text-green-600',
   },
 
   // Bounty-related notifications
   BOUNTY_FOR_YOU: {
     icon: 'earn1',
     useAvatar: false,
-    color: 'text-orange-600',
   },
   BOUNTY_EXPIRING_SOON: {
     icon: 'earn1',
     useAvatar: false,
-    color: 'text-yellow-600',
   },
   BOUNTY_HUB_EXPIRING_SOON: {
     icon: 'earn1',
     useAvatar: false,
-    color: 'text-yellow-600',
   },
   BOUNTY_PAYOUT: {
     icon: 'earn1',
     useAvatar: true,
-    color: 'text-green-600',
   },
 
   // Paper-related notifications
   PAPER_CLAIM_PAYOUT: {
     icon: 'createBounty',
     useAvatar: false,
-    color: 'text-green-600',
   },
   PAPER_CLAIMED: {
     icon: 'claimPaper',
     useAvatar: true,
-    color: 'text-blue-600',
   },
   PUBLICATIONS_ADDED: {
     icon: 'claimPaper',
     useAvatar: false,
-    color: 'text-blue-600',
   },
 
   // Comment and thread notifications
   COMMENT: {
     icon: 'comment',
     useAvatar: true,
-    color: 'text-blue-600',
   },
   COMMENT_ON_COMMENT: {
     icon: 'comment',
     useAvatar: true,
-    color: 'text-blue-600',
   },
   COMMENT_ON_THREAD: {
     icon: 'comment',
     useAvatar: true,
-    color: 'text-blue-600',
   },
   REPLY_ON_THREAD: {
     icon: 'comment',
     useAvatar: true,
-    color: 'text-blue-600',
   },
   COMMENT_USER_MENTION: {
     icon: 'profile',
     useAvatar: true,
-    color: 'text-purple-600',
   },
   THREAD_ON_DOC: {
     icon: 'comment',
     useAvatar: true,
-    color: 'text-blue-600',
   },
 
   // Financial notifications
   RSC_WITHDRAWAL_COMPLETE: {
     icon: 'wallet1',
     useAvatar: false,
-    color: 'text-green-600',
   },
   FUNDRAISE_PAYOUT: {
     icon: 'fundYourRsc2',
     useAvatar: false,
-    color: 'text-green-600',
   },
   RSC_SUPPORT_ON_DIS: {
     icon: 'fund',
     useAvatar: true,
-    color: 'text-green-600',
   },
   RSC_SUPPORT_ON_DOC: {
     icon: 'fund',
     useAvatar: true,
-    color: 'text-green-600',
   },
 };
 
@@ -125,7 +105,6 @@ export function getNotificationInfo(notification: Notification): NotificationTyp
     NOTIFICATION_TYPE_MAP[notification.type] || {
       icon: 'notification',
       useAvatar: false,
-      color: 'text-gray-600',
     }
   );
 }
