@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { X } from 'lucide-react';
+import { useAssetUpload } from '@/hooks/useAssetUpload';
 
 interface ImageUploadModalProps {
   onClose: () => void;
@@ -9,8 +10,8 @@ interface ImageUploadModalProps {
 export const ImageUploadModal = ({ onClose, onImageEmbed }: ImageUploadModalProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [{ loading: isUploading, error: uploadError }, uploadAsset] = useAssetUpload();
+  const [validationError, setValidationError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -28,8 +29,9 @@ export const ImageUploadModal = ({ onClose, onImageEmbed }: ImageUploadModalProp
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith('image/')) {
       setSelectedFile(file);
+      setValidationError(null);
     } else {
-      setError('Please select an image file');
+      setValidationError('Please select an image file');
     }
   };
 
@@ -37,33 +39,28 @@ export const ImageUploadModal = ({ onClose, onImageEmbed }: ImageUploadModalProp
     const file = e.target.files?.[0];
     if (file && file.type.startsWith('image/')) {
       setSelectedFile(file);
+      setValidationError(null);
     } else {
-      setError('Please select an image file');
+      setValidationError('Please select an image file');
     }
   };
 
   const handleUpload = async () => {
     if (!selectedFile) return;
 
-    setIsUploading(true);
-    setError(null);
+    setValidationError(null);
 
     try {
-      // TODO: Implement API call to upload image
-      // const formData = new FormData();
-      // formData.append('image', selectedFile);
-      // const response = await uploadImage(formData);
-      // onImageEmbed(response.imageUrl);
-
-      // For now, just simulate an upload delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setError('Image upload API not implemented yet');
+      const result = await uploadAsset(selectedFile, 'comment');
+      onImageEmbed(result.absoluteUrl);
+      onClose();
     } catch (error) {
-      setError('Failed to upload image. Please try again.');
-    } finally {
-      setIsUploading(false);
+      // Error handling is done by the hook
     }
   };
+
+  // Display either validation error or upload error
+  const error = validationError || uploadError;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
