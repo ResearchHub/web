@@ -38,7 +38,7 @@ export function EndaomentInfoPopover({
 
       <p>
         By selecting a nonprofit organization, you're enabling Endaoment to process donations
-        through their fiscal sponsorship program, ensuring your research receives funding while
+        through their nonprofit support program, ensuring your research receives funding while
         maintaining compliance with tax regulations.
       </p>
     </>
@@ -77,7 +77,7 @@ export function EndaomentInfoPopover({
       <div className="p-4">
         <div className="flex justify-between items-start mb-3">
           <h3 className="text-base font-semibold text-gray-900">
-            {useAlternateText ? 'Tax-Deductible Donations' : 'About Fiscal Sponsorship'}
+            {useAlternateText ? 'Tax-deductible donations' : 'About nonprofit support'}
           </h3>
           <Button
             className="nonprofit-popover-close text-gray-400 hover:text-gray-600"

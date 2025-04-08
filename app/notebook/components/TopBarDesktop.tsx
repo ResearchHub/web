@@ -5,12 +5,14 @@ import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { PublishedStatusSection } from './PublishingForm/components/PublishedStatusSection';
+import { isFeatureEnabled } from '@/utils/featureFlags';
 
 export function TopBarDesktop() {
   const { toggleLeftSidebar, toggleRightSidebar, isRightSidebarOpen } = useSidebar();
   const { currentNote: note, isLoading } = useNotebookContext();
 
   const isPublished = Boolean(note?.post?.id);
+  const isLegacyNote = !note?.contentJson && isFeatureEnabled('legacyNoteBanner');
   const shouldShowRightSidebar = Boolean(note);
 
   return (
@@ -20,7 +22,7 @@ export function TopBarDesktop() {
         <PublishedStatusSection />
 
         {/* Right sidebar toggle button */}
-        {shouldShowRightSidebar ? (
+        {shouldShowRightSidebar && !isLegacyNote ? (
           isRightSidebarOpen ? (
             <Button
               onClick={toggleRightSidebar}

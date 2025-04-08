@@ -153,7 +153,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
           loadMore={loadMore}
           header={header}
           tabs={feedTabs}
-          filters={sourceFilters}
+          // filters={sourceFilters}
         />
       ) : (
         <>

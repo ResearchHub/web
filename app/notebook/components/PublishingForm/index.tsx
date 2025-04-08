@@ -9,7 +9,7 @@ import { AuthorsSection } from './components/AuthorsSection';
 import { TopicsSection } from './components/TopicsSection';
 import { JournalSection } from './components/JournalSection';
 import { Button } from '@/components/ui/Button';
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUpsertPost } from '@/hooks/useDocument';
 import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
@@ -30,6 +30,7 @@ import { getFieldErrorMessage } from '@/utils/form';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useAssetUpload } from '@/hooks/useAssetUpload';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
+import { NonprofitConfirmModal } from '@/components/Nonprofit';
 
 // Feature flags for conditionally showing sections
 const FEATURE_FLAG_RESEARCH_COIN = false;
@@ -77,6 +78,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [{ loading: isUploadingImage }, uploadAsset] = useAssetUpload();
   const { linkNonprofitToFundraise, isLoading: isLinkingNonprofit } = useNonprofitLink();
+  const [showNonprofitConfirmModal, setShowNonprofitConfirmModal] = useState(false);
 
   const methods = useForm<PublishingFormData>({
     defaultValues: {
@@ -193,6 +195,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   const { watch, clearErrors } = methods;
   const articleType = watch('articleType');
   const isJournalEnabled = watch('isJournalEnabled');
+  const selectedNonprofit = watch('selectedNonprofit');
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const router = useRouter();
@@ -236,6 +239,17 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       return;
     }
 
+    // If nonprofit is selected, show the nonprofit confirmation first
+    if (selectedNonprofit) {
+      setShowNonprofitConfirmModal(true);
+    } else {
+      // Otherwise show the regular publish confirmation
+      setShowConfirmModal(true);
+    }
+  };
+
+  const handleNonprofitConfirm = () => {
+    setShowNonprofitConfirmModal(false);
     setShowConfirmModal(true);
   };
 
@@ -404,6 +418,16 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           </Button>
         </div>
       </div>
+
+      {showNonprofitConfirmModal && selectedNonprofit && (
+        <NonprofitConfirmModal
+          isOpen={showNonprofitConfirmModal}
+          onClose={() => setShowNonprofitConfirmModal(false)}
+          onConfirm={handleNonprofitConfirm}
+          nonprofitName={selectedNonprofit.name}
+          ein={selectedNonprofit.ein}
+        />
+      )}
 
       {showConfirmModal && (
         <ConfirmPublishModal

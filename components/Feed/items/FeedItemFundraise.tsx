@@ -86,7 +86,7 @@ const FeedItemFundraiseBody: FC<{
 
         {/* Image - Positioned to the right, aligned with title */}
         {imageUrl && (
-          <div className="flex-shrink-0 w-[280px] max-w-[33%] hidden md:block">
+          <div className="flex-shrink-0 w-[280px] max-w-[33%] hidden mobile:!block">
             <div className="aspect-[4/3] relative rounded-lg overflow-hidden shadow-sm">
               <Image
                 src={imageUrl}
@@ -162,7 +162,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   // Mobile image display (for small screens only)
   const MobileImage = () =>
     imageUrl ? (
-      <div className="md:hidden w-full mb-4">
+      <div className="mobile:!hidden w-full mb-4">
         <div className="aspect-[16/9] relative rounded-lg overflow-hidden shadow-sm">
           <Image
             src={imageUrl}
@@ -200,12 +200,10 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         )}
       >
         <div className="p-4">
-          {/* Mobile image (shown only on small screens) */}
-          <MobileImage />
-
           {/* Body Content with desktop image integrated */}
           <FeedItemFundraiseBody entry={entry} imageUrl={imageUrl} />
-
+          {/* Mobile image (shown only on small screens) */}
+          <MobileImage />
           {/* Fundraise Progress (only for preregistrations with fundraise) */}
           {hasFundraise && post.fundraise && (
             <div className="mt-4" onClick={(e) => e.stopPropagation()}>
