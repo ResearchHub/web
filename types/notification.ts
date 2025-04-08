@@ -100,6 +100,26 @@ export const transformNotificationBody = (body: any): NotificationBodyElement[] 
 
   return [];
 };
+
+// Helper function to transform work without using createTransformer
+export const transformWorkRaw = (raw: any): Document | undefined => {
+  if (!raw || !raw.unified_document) return undefined;
+
+  if (raw.unified_document.documents) {
+    return Array.isArray(raw.unified_document.documents)
+      ? raw.unified_document.documents[0]
+      : raw.unified_document.documents;
+  }
+
+  return undefined;
+};
+
+export const transformWork = (raw: any): Document | undefined => {
+  const transformed = transformWorkRaw(raw);
+  if (!transformed) return undefined;
+  return createTransformer<any, Document>(() => transformed)(raw);
+};
+
 export const transformNotification = createTransformer<any, Notification>((raw) => ({
   id: raw.id,
   action_user: transformUser(raw.action_user),
