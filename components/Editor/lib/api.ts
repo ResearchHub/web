@@ -1,10 +1,14 @@
+import { AssetService } from '../../../services/asset.service';
+
 export class API {
-  public static uploadImage = async (_file: File) => {
-    console.log(
-      'Image upload is disabled in the demo... Please implement the API.uploadImage method in your project.'
-    );
-    await new Promise((r) => setTimeout(r, 500));
-    return '/placeholder-image.jpg';
+  public static uploadImage = async (file: File) => {
+    try {
+      const result = await AssetService.uploadFile(file, 'note');
+      return result.absoluteUrl;
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      throw error;
+    }
   };
 }
 

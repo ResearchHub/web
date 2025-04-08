@@ -96,7 +96,7 @@ function AuthenticatedNotificationProvider({ children }: { children: React.React
         ...prev,
         results: prev.results.map((notification) => ({
           ...notification,
-          isRead: true,
+          read: true,
         })),
       }));
 

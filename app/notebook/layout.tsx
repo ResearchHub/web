@@ -18,11 +18,13 @@ import '@fontsource/inter/400.css';
 import '@fontsource/inter/500.css';
 import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
-import { LeftSidebar } from './LeftSidebar';
+import { LeftSidebar as NotebookLeftSidebar } from './LeftSidebar';
+import { LeftSidebar as MainLeftSidebar } from '../layouts/LeftSidebar';
 import { NotebookProvider, useNotebookContext } from '@/contexts/NotebookContext';
 import { RightSidebar } from './RightSidebar';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { TopBarDesktop } from './components/TopBarDesktop';
+import { isFeatureEnabled } from '@/utils/featureFlags';
 
 function NotebookLayoutContent({ children }: { children: ReactNode }) {
   const {
@@ -40,7 +42,9 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
   // Initialize with null to indicate we don't know yet
   const { currentNote, isLoading } = useNotebookContext();
 
-  const shouldShowRightSidebar = currentNote || isLoading;
+  const isLegacyNote =
+    currentNote && !currentNote.contentJson && isFeatureEnabled('legacyNoteBanner');
+  const shouldShowRightSidebar = (currentNote || isLoading) && !isLegacyNote;
 
   const { xlAndUp, lgAndUp, mdAndDown, current } = useScreenSize();
   // Consider lg and above as desktop
@@ -82,19 +86,24 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-white">
       {isDesktop ? (
-        // Desktop layout - 2 or 3 columns grid depending on whether there's a note
+        // Desktop layout - 3 or 4 columns grid depending on whether there's a note
         <div
           className="grid min-h-screen w-full"
           style={{
             gridTemplateColumns:
               shouldShowRightSidebar && isRightSidebarOpen
-                ? '300px minmax(0, 1fr) 300px'
-                : '300px minmax(0, 1fr)',
+                ? '70px 300px minmax(0, 1fr) 300px'
+                : '70px 300px minmax(0, 1fr)',
           }}
         >
-          {/* Left Sidebar - 300px fixed width */}
+          {/* Main Left Sidebar - 70px fixed width (minimized) */}
           <div className="border-r border-gray-200 h-screen sticky top-0 overflow-y-auto">
-            <LeftSidebar />
+            <MainLeftSidebar forceMinimize={true} />
+          </div>
+
+          {/* Notebook Left Sidebar - 300px fixed width */}
+          <div className="border-r border-gray-200 h-screen sticky top-0 overflow-y-auto">
+            <NotebookLeftSidebar />
           </div>
 
           {/* Main content area - flexible width */}
@@ -141,6 +150,7 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
               {/* Sidebar slide transition */}
               <div className="fixed inset-0 overflow-y-auto">
                 <div className="flex h-full">
+                  {/* Main Left Sidebar in mobile mode */}
                   <Transition.Child
                     as={Fragment}
                     enter="transform transition duration-200 ease-in-out"
@@ -150,7 +160,22 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
                     leaveFrom="translate-x-0"
                     leaveTo="-translate-x-full"
                   >
-                    <Dialog.Panel className="w-full lg:w-72 h-full bg-white shadow-xl overflow-y-auto">
+                    <Dialog.Panel className="w-[70px] h-full bg-white shadow-xl overflow-y-auto border-r border-gray-200">
+                      <MainLeftSidebar forceMinimize={true} />
+                    </Dialog.Panel>
+                  </Transition.Child>
+
+                  {/* Notebook Left Sidebar */}
+                  <Transition.Child
+                    as={Fragment}
+                    enter="transform transition duration-200 ease-in-out"
+                    enterFrom="-translate-x-full"
+                    enterTo="translate-x-0"
+                    leave="transform transition duration-200 ease-in-out"
+                    leaveFrom="translate-x-0"
+                    leaveTo="-translate-x-full"
+                  >
+                    <Dialog.Panel className="w-full max-w-[300px] h-full bg-white shadow-xl overflow-y-auto">
                       <div className="h-16 flex justify-end items-center p-4 sticky top-0 bg-white z-10">
                         <Button
                           onClick={closeLeftSidebar}
@@ -165,7 +190,7 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
                         </Button>
                       </div>
                       <div className="h-[calc(100vh-64px)] overflow-y-auto">
-                        <LeftSidebar />
+                        <NotebookLeftSidebar />
                       </div>
                     </Dialog.Panel>
                   </Transition.Child>
