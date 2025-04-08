@@ -1,18 +1,40 @@
 import { createTransformer, BaseTransformed } from './transformer';
 import { User, transformUser } from './user';
+import { ContentType } from './work';
+import { ContentMetrics } from './metrics';
+import { Journal } from './journal';
+import { Topic } from './topic';
+import { AuthorProfile } from './authorProfile';
 
 export interface NotificationHub {
   name: string;
   slug: string;
 }
 
+export interface Document {
+  id: number;
+  title: string;
+  paper_title?: string;
+  slug: string;
+  authors?: AuthorProfile[];
+  topics?: Topic[];
+  journal?: Journal;
+  metrics?: ContentMetrics;
+  workType?: 'paper' | 'preprint' | 'published';
+}
+
+export interface UnifiedDocument {
+  documents: Document | Document[];
+  document_type: ContentType;
+}
+
 export interface NotificationExtra {
   amount?: string;
-  rewardId?: string;
-  rewardType?: 'REVIEW' | 'CONTRIBUTION' | 'DISCUSSION';
-  hub?: NotificationHub;
-  userHubScore?: string;
-  rewardExpirationDate?: Date;
+  bounty_id?: string;
+  bounty_type?: string;
+  hub_details?: string;
+  user_hub_score?: string;
+  bounty_expiration_date?: string;
 }
 
 export interface NotificationBodyElement {
@@ -24,19 +46,16 @@ export interface NotificationBodyElement {
 
 export interface Notification {
   id: number;
-  isRead: boolean;
-  type: string;
-  actionUser: User;
+  action_user: User;
   recipient: User;
-  work?: {
-    id: number;
-    title: string;
-  };
-  body: NotificationBodyElement[] | string;
-  extra?: NotificationExtra;
-  navigationUrl: string;
-  createdDate: Date;
-  readDate: Date | null;
+  unified_document: UnifiedDocument;
+  type: string;
+  body: NotificationBodyElement[];
+  extra: NotificationExtra;
+  navigation_url: string | null;
+  read: boolean;
+  read_date: string;
+  created_date: string;
 }
 
 export type TransformedNotification = Notification & BaseTransformed;
@@ -49,13 +68,11 @@ const transformNotificationExtraRaw = (raw: any): NotificationExtra | undefined 
 
   return {
     amount: raw.amount,
-    rewardId: raw.bounty_id,
-    rewardType: raw.bounty_type,
-    hub: raw.hub_details ? JSON.parse(raw.hub_details) : undefined,
-    userHubScore: raw.user_hub_score,
-    rewardExpirationDate: raw.bounty_expiration_date
-      ? new Date(raw.bounty_expiration_date)
-      : undefined,
+    bounty_id: raw.bounty_id,
+    bounty_type: raw.bounty_type,
+    hub_details: raw.hub_details,
+    user_hub_score: raw.user_hub_score,
+    bounty_expiration_date: raw.bounty_expiration_date,
   };
 };
 
@@ -74,45 +91,28 @@ export const transformNotificationBodyElement = createTransformer<any, Notificat
   })
 );
 
-export const transformNotificationBody = (
-  body: any
-): NotificationBodyElement[] | string | undefined => {
+export const transformNotificationBody = (body: any): NotificationBodyElement[] | undefined => {
   if (!body) return undefined;
 
   if (Array.isArray(body)) {
     return body.map(transformNotificationBodyElement);
   }
 
-  return body;
+  return [];
 };
-
-// Helper function to transform work without using createTransformer
-const transformWorkRaw = (raw: any): { id: number; title: string } | undefined => {
-  if (!raw?.documents) return undefined;
-
-  return {
-    id: raw.id,
-    title: raw.documents.title || raw.documents.paper_title,
-  };
-};
-
-export const transformWork = (raw: any) => {
-  const transformed = transformWorkRaw(raw);
-  if (!transformed) return undefined;
-  return createTransformer<any, { id: number; title: string }>(() => transformed)(raw);
-};
-
 export const transformNotification = createTransformer<any, Notification>((raw) => ({
   id: raw.id,
-  isRead: raw.read,
-  type: raw.notification_type,
-  actionUser: transformUser(raw.action_user),
+  action_user: transformUser(raw.action_user),
   recipient: transformUser(raw.recipient),
-  work: raw.unified_document ? transformWork(raw.unified_document) : undefined,
-  body:
-    raw.notification_type === 'RSC_SUPPORT_ON_DIS' ? transformNotificationBody(raw.body) : raw.body,
-  extra: transformNotificationExtra(raw.extra),
-  navigationUrl: raw.navigation_url,
-  createdDate: new Date(raw.created_date),
-  readDate: raw.read_date ? new Date(raw.read_date) : null,
+  unified_document: {
+    documents: raw.unified_document.documents,
+    document_type: (raw.unified_document.document_type?.toLowerCase() || 'unknown') as ContentType,
+  },
+  type: raw.notification_type || raw.type,
+  body: transformNotificationBody(raw.body) || [],
+  extra: transformNotificationExtra(raw.extra) || {},
+  navigation_url: raw.navigation_url,
+  read: raw.read,
+  read_date: raw.read_date,
+  created_date: raw.created_date,
 }));

@@ -12,7 +12,7 @@ export function NotificationList({ notifications, loading, error }: Notification
   if (loading) {
     return (
       <div className="space-y-4">
-        {[...Array(10)].map((_, index) => (
+        {[...Array(3)].map((_, index) => (
           <NotificationSkeleton key={index} />
         ))}
       </div>
@@ -21,22 +21,24 @@ export function NotificationList({ notifications, loading, error }: Notification
 
   if (error) {
     return (
-      <div className="p-4 rounded-lg border border-red-200 bg-red-50 text-red-700">{error}</div>
+      <div className="p-4 text-sm rounded-lg bg-red-50 text-red-600 border border-red-200">
+        {error}
+      </div>
     );
   }
 
-  if (notifications.length === 0) {
+  if (!notifications?.length) {
     return (
-      <div className="p-4 rounded-lg border border-gray-200 bg-gray-50 text-gray-600">
+      <div className="p-4 text-sm rounded-lg bg-gray-50 text-gray-600 border border-gray-200">
         No notifications
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      {notifications.map((notification, index) => (
-        <NotificationItem key={`${notification.id}-${index}`} notification={notification} />
+    <div className="divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white overflow-hidden">
+      {notifications.map((notification) => (
+        <NotificationItem key={notification.id} notification={notification} />
       ))}
     </div>
   );
