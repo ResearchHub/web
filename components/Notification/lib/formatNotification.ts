@@ -4,7 +4,6 @@ import { Notification, Document } from '@/types/notification';
 export interface NotificationTypeInfo {
   icon: IconName;
   useAvatar: boolean;
-  useIconComponent: boolean;
   color: string;
 }
 
@@ -19,13 +18,11 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
   IDENTITY_VERIFICATION_UPDATED: {
     icon: 'verify1',
     useAvatar: false,
-    useIconComponent: true,
     color: 'text-green-600',
   },
   ACCOUNT_VERIFIED: {
     icon: 'verify2',
     useAvatar: false,
-    useIconComponent: true,
     color: 'text-green-600',
   },
 
@@ -33,25 +30,21 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
   BOUNTY_FOR_YOU: {
     icon: 'earn1',
     useAvatar: false,
-    useIconComponent: true,
     color: 'text-orange-600',
   },
   BOUNTY_EXPIRING_SOON: {
     icon: 'earn1',
     useAvatar: false,
-    useIconComponent: true,
     color: 'text-yellow-600',
   },
   BOUNTY_HUB_EXPIRING_SOON: {
     icon: 'earn1',
     useAvatar: false,
-    useIconComponent: true,
     color: 'text-yellow-600',
   },
   BOUNTY_PAYOUT: {
     icon: 'earn1',
     useAvatar: true,
-    useIconComponent: true,
     color: 'text-green-600',
   },
 
@@ -59,19 +52,16 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
   PAPER_CLAIM_PAYOUT: {
     icon: 'createBounty',
     useAvatar: false,
-    useIconComponent: true,
     color: 'text-green-600',
   },
   PAPER_CLAIMED: {
     icon: 'claimPaper',
     useAvatar: true,
-    useIconComponent: true,
     color: 'text-blue-600',
   },
   PUBLICATIONS_ADDED: {
     icon: 'claimPaper',
     useAvatar: false,
-    useIconComponent: true,
     color: 'text-blue-600',
   },
 
@@ -79,37 +69,31 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
   COMMENT: {
     icon: 'comment',
     useAvatar: true,
-    useIconComponent: true,
     color: 'text-blue-600',
   },
   COMMENT_ON_COMMENT: {
     icon: 'comment',
     useAvatar: true,
-    useIconComponent: true,
     color: 'text-blue-600',
   },
   COMMENT_ON_THREAD: {
     icon: 'comment',
     useAvatar: true,
-    useIconComponent: true,
     color: 'text-blue-600',
   },
   REPLY_ON_THREAD: {
     icon: 'comment',
     useAvatar: true,
-    useIconComponent: true,
     color: 'text-blue-600',
   },
   COMMENT_USER_MENTION: {
     icon: 'profile',
     useAvatar: true,
-    useIconComponent: true,
     color: 'text-purple-600',
   },
   THREAD_ON_DOC: {
     icon: 'comment',
     useAvatar: true,
-    useIconComponent: true,
     color: 'text-blue-600',
   },
 
@@ -117,25 +101,21 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
   RSC_WITHDRAWAL_COMPLETE: {
     icon: 'wallet1',
     useAvatar: false,
-    useIconComponent: true,
     color: 'text-green-600',
   },
   FUNDRAISE_PAYOUT: {
     icon: 'fundYourRsc2',
     useAvatar: false,
-    useIconComponent: true,
     color: 'text-green-600',
   },
   RSC_SUPPORT_ON_DIS: {
     icon: 'fund',
     useAvatar: true,
-    useIconComponent: true,
     color: 'text-green-600',
   },
   RSC_SUPPORT_ON_DOC: {
     icon: 'fund',
     useAvatar: true,
-    useIconComponent: true,
     color: 'text-green-600',
   },
 };
@@ -145,7 +125,6 @@ export function getNotificationInfo(notification: Notification): NotificationTyp
     NOTIFICATION_TYPE_MAP[notification.type] || {
       icon: 'notification',
       useAvatar: false,
-      useIconComponent: true,
       color: 'text-gray-600',
     }
   );
