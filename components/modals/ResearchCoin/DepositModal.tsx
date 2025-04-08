@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react';
-import { Fragment, useCallback, useState } from 'react';
+import { Fragment, useCallback, useMemo, useState } from 'react';
 import { X as XIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
@@ -15,6 +15,7 @@ import { WalletModal } from 'components/modals/WalletModal';
 import type { Token } from '@coinbase/onchainkit/token';
 import { Interface } from 'ethers';
 
+// Environment validation
 const BASE_RSC_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_BASE_RSC_ADDRESS;
 if (!BASE_RSC_ADDRESS_ENV || BASE_RSC_ADDRESS_ENV.trim() === '') {
   throw new Error('Missing environment variable: NEXT_PUBLIC_WEB3_BASE_RSC_ADDRESS');
@@ -27,6 +28,14 @@ if (!CHAIN_ID_ENV || CHAIN_ID_ENV.trim() === '') {
 }
 const CHAIN_ID = parseInt(CHAIN_ID_ENV, 10);
 
+// Network configuration based on environment
+const IS_PRODUCTION = process.env.VERCEL_ENV === 'production';
+const NETWORK_NAME = IS_PRODUCTION ? 'Base' : 'Base Sepolia';
+const NETWORK_DESCRIPTION = IS_PRODUCTION
+  ? 'Deposits are processed on Base L2'
+  : 'Deposits are processed on Base Sepolia testnet';
+
+// Token definition
 const RSC: Token = {
   name: 'ResearchCoin',
   address: BASE_RSC_ADDRESS,
@@ -36,6 +45,7 @@ const RSC: Token = {
   chainId: CHAIN_ID,
 };
 
+// ERC20 Transfer ABI
 const ABI = [
   {
     inputs: [
@@ -55,20 +65,43 @@ if (!HOT_WALLET_ADDRESS_ENV || HOT_WALLET_ADDRESS_ENV.trim() === '') {
 }
 const HOT_WALLET_ADDRESS = HOT_WALLET_ADDRESS_ENV as `0x${string}`;
 
+// Define types for blockchain transaction call
+type Call = {
+  to: `0x${string}`;
+  data?: `0x${string}`;
+  value?: bigint;
+};
+
+/**
+ * Props for the DepositModal component
+ */
 interface DepositModalProps {
+  /** Whether the modal is currently open */
   isOpen: boolean;
+  /** Function to close the modal */
   onClose: () => void;
+  /** Current RSC balance of the user */
   currentBalance: number;
 }
 
+/**
+ * Modal for depositing RSC tokens into the user's ResearchHub balance
+ */
 export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalProps) {
   const [amount, setAmount] = useState<string>('');
   const { exchangeRate } = useExchangeRate();
   const { address } = useAccount();
 
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
-  const handleOpenWalletModal = () => setIsWalletModalOpen(true);
-  const handleCloseWalletModal = () => setIsWalletModalOpen(false);
+
+  // Memoize event handlers
+  const handleOpenWalletModal = useCallback(() => {
+    setIsWalletModalOpen(true);
+  }, []);
+
+  const handleCloseWalletModal = useCallback(() => {
+    setIsWalletModalOpen(false);
+  }, []);
 
   const { data: rscBalanceData } = useBalance({
     address,
@@ -76,10 +109,23 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
     chainId: RSC.chainId,
   });
 
-  const walletBalance = rscBalanceData ? parseFloat(rscBalanceData.formatted) : 0;
-  const depositAmount = parseFloat(amount || '0');
+  // Memoize derived values
+  const walletBalance = useMemo(
+    () => (rscBalanceData ? parseFloat(rscBalanceData.formatted) : 0),
+    [rscBalanceData]
+  );
 
-  const calculateNewBalance = (): number => currentBalance + depositAmount;
+  const depositAmount = useMemo(() => parseFloat(amount || '0'), [amount]);
+
+  const calculateNewBalance = useCallback(
+    (): number => currentBalance + depositAmount,
+    [currentBalance, depositAmount]
+  );
+
+  const isButtonDisabled = useMemo(
+    () => !amount || depositAmount <= 0 || depositAmount > walletBalance,
+    [amount, depositAmount, walletBalance]
+  );
 
   const handleOnStatus = useCallback(
     (status: any) => {
@@ -121,12 +167,6 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
       amountInWei,
     ]);
 
-    type Call = {
-      to: `0x${string}`;
-      data?: `0x${string}`;
-      value?: bigint;
-    };
-
     // Cast the result to Call type with proper hex type
     const transferCall: Call = {
       to: BASE_RSC_ADDRESS,
@@ -135,8 +175,6 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
 
     return [transferCall];
   }, [amount, depositAmount, walletBalance]);
-
-  const isButtonDisabled = !amount || depositAmount <= 0 || depositAmount > walletBalance;
 
   return (
     <>
@@ -173,6 +211,7 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
                     <button
                       onClick={onClose}
                       className="text-gray-400 hover:text-gray-500 transition-colors rounded-full p-1 hover:bg-gray-100"
+                      aria-label="Close"
                     >
                       <XIcon className="h-5 w-5" />
                     </button>
@@ -182,12 +221,14 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
                     {/* Network Info */}
                     <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-md">
                       <div className="flex items-center gap-3">
-                        <img src="/base-logo.svg" alt="Base Network" className="h-6 w-6" />
+                        <img
+                          src="/base-logo.svg"
+                          alt={`${NETWORK_NAME} Network`}
+                          className="h-6 w-6"
+                        />
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900">Base</span>
-                          <span className="text-xs text-gray-500">
-                            Deposits are processed on Base L2
-                          </span>
+                          <span className="text-sm font-medium text-gray-900">{NETWORK_NAME}</span>
+                          <span className="text-xs text-gray-500">{NETWORK_DESCRIPTION}</span>
                         </div>
                       </div>
                     </div>
@@ -219,6 +260,7 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
                           onChange={(e) => setAmount(e.target.value)}
                           placeholder="0.00"
                           disabled={!address}
+                          aria-label="Amount to deposit"
                           className={`w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200 ${!address ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                         />
                         <div className="absolute inset-y-0 right-0 flex items-center pr-4">
@@ -226,7 +268,7 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
                         </div>
                       </div>
                       {depositAmount > walletBalance && (
-                        <p className="text-sm text-red-600">
+                        <p className="text-sm text-red-600" role="alert">
                           Deposit amount exceeds your wallet balance.
                         </p>
                       )}
