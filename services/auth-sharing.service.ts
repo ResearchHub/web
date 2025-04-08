@@ -53,6 +53,7 @@ export class AuthSharingService {
       cookieName: this.AUTH_COOKIE_NAME,
       domain: cookieOptions.domain,
       environment: process.env.VERCEL_ENV,
+      public_env: process.env.NEXT_PUBLIC_VERCEL_ENV,
     });
 
     Cookies.set(this.AUTH_COOKIE_NAME, token, cookieOptions);
