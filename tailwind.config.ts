@@ -19,6 +19,7 @@ export default {
         tablet: '768px',
         'sidebar-compact': '1240px',
         'right-sidebar': '1100px',
+        'topbar-hide': '1110px',
         'content-md': '1350px',
         'content-lg': '1440px',
         'content-xl': '1580px',

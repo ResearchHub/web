@@ -22,6 +22,7 @@ interface UserMenuProps {
   onVerifyAccount: () => void;
   isMenuOpen?: boolean;
   onMenuOpenChange?: (isOpen: boolean) => void;
+  avatarSize?: number | 'sm' | 'md' | 'xs' | 'xxs';
 }
 
 function truncateWalletAddress(address: string): string {
@@ -34,6 +35,7 @@ export default function UserMenu({
   onVerifyAccount,
   isMenuOpen,
   onMenuOpenChange,
+  avatarSize = 30,
 }: UserMenuProps) {
   const [showVerificationBanner, setShowVerificationBanner] = useState(true);
   const [walletOptionsOpen, setWalletOptionsOpen] = useState(false);
@@ -103,7 +105,7 @@ export default function UserMenu({
         src={user.authorProfile?.profileImage}
         className="font-semibold"
         alt={user.fullName}
-        size={30}
+        size={avatarSize}
       />
     </button>
   );

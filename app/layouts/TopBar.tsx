@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { Menu } from 'lucide-react';
-import { Search } from '@/components/Search/Search';
 import { useUser } from '@/contexts/UserContext';
+import { Search } from '@/components/Search/Search';
+import UserMenu from '@/components/menus/UserMenu';
+import { useRouter } from 'next/navigation';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -11,33 +13,52 @@ interface TopBarProps {
 
 export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const { user, isLoading } = useUser();
+  const router = useRouter();
+
+  const handleViewProfile = () => {
+    if (user?.authorProfile?.profileUrl) {
+      router.push(user.authorProfile.profileUrl);
+    } else {
+      console.warn('No author profile URL found for user:', user);
+    }
+  };
+  const handleVerifyAccount = () => {
+    console.log('Verify account clicked');
+  };
 
   return (
     <>
-      <div className="sticky top-0 bg-white/80 backdrop-blur-md z-20 h-[64px]">
-        <div className="h-full relative flex items-center">
-          {/* Mobile menu button */}
-          <div className="block lg:hidden pl-4">
-            <button onClick={onMenuClick} className="p-2 rounded-lg hover:bg-gray-100">
-              <Menu className="h-6 w-6 text-gray-600" />
-            </button>
-          </div>
-
-          {/* Centered Search */}
-          <div className="flex-1 px-4 py-4 lg:px-8">
-            <div className="mx-auto max-w-4xl">
-              {/* Search Input 500px */}
-              <div className="w-[600px] mx-auto">
-                <Search
-                  placeholder="Search any paper, journal, topic, ..."
-                  className="[&_input]:rounded-full [&_input]:bg-[#F8F9FC] mt-2"
-                />
-              </div>
+      <div className="h-[64px] border-b border-gray-200">
+        <div className="h-full flex items-center justify-between px-4 lg:px-8">
+          <div className="flex items-center">
+            <div className="block tablet:hidden">
+              <button onClick={onMenuClick} className="p-2 rounded-lg hover:bg-gray-100">
+                <Menu className="h-6 w-6 text-gray-600" />
+              </button>
             </div>
           </div>
 
-          {/* Right padding area */}
-          <div className="w-16 lg:w-16">{/* Empty div for spacing */}</div>
+          <div className="flex-1 flex justify-center px-4">
+            <div className="w-full max-w-xl">
+              <Search
+                placeholder="Search papers, topics..."
+                className="[&_input]:rounded-full [&_input]:bg-[#F8F9FC]"
+              />
+            </div>
+          </div>
+
+          <div className="tablet:hidden">
+            {user && !isLoading ? (
+              <UserMenu
+                user={user}
+                onViewProfile={handleViewProfile}
+                onVerifyAccount={handleVerifyAccount}
+                avatarSize={40}
+              />
+            ) : (
+              <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+            )}
+          </div>
         </div>
       </div>
     </>

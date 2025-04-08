@@ -2,6 +2,7 @@
 
 import { ReactNode, useState, Suspense } from 'react';
 import dynamic from 'next/dynamic';
+import { Search } from '@/components/Search/Search';
 
 // Dynamically import sidebar components
 const LeftSidebar = dynamic(() => import('./LeftSidebar').then((mod) => mod.LeftSidebar), {
@@ -81,13 +82,16 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
 
         {/* Main Content Area with TopBar and Right Sidebar */}
         <div className="flex-1">
-          <Suspense fallback={<TopBarSkeleton />}>
-            <TopBar onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)} />
-          </Suspense>
+          {/* Conditionally render TopBar based on topbar-hide breakpoint */}
+          <div className="topbar-hide:hidden">
+            <Suspense fallback={<TopBarSkeleton />}>
+              <TopBar onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)} />
+            </Suspense>
+          </div>
 
           <div className="flex">
             {/* Main Content with responsive max-width */}
-            <main className="flex-1 px-4 tablet:px-8 py-8">
+            <main className="flex-1 px-4 tablet:px-8 py-8" style={{ maxWidth: '100vw' }}>
               <div
                 className="mx-auto 
                 max-w-full
@@ -103,7 +107,16 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
 
             {/* Right Sidebar - Hidden below right-sidebar breakpoint */}
             {rightSidebar && (
-              <aside className="hidden right-sidebar:block w-80 bg-white py-8">
+              <aside className="hidden right-sidebar:block w-80 bg-white py-8 px-4">
+                {/* Search Bar Added Back - Visible only when sidebar is visible */}
+                <div className="mb-4">
+                  <Search
+                    placeholder="Search..."
+                    className="[&_input]:rounded-full [&_input]:bg-[#F8F9FC]"
+                  />
+                </div>
+
+                {/* Sticky container for the rest of the sidebar */}
                 <div className="sticky top-16 overflow-y-auto pb-8 max-h-[calc(100vh-64px)]">
                   <Suspense fallback={<RightSidebarSkeleton />}>
                     {typeof rightSidebar === 'boolean' ? <RightSidebar /> : rightSidebar}
