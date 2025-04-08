@@ -31,7 +31,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
       <div className="h-[64px] border-b border-gray-200">
         <div className="h-full flex items-center justify-between px-4 lg:px-8">
           <div className="flex items-center">
-            <div className="block tablet:hidden">
+            <div className="block tablet:!hidden">
               <button onClick={onMenuClick} className="p-2 rounded-lg hover:bg-gray-100">
                 <Menu className="h-6 w-6 text-gray-600" />
               </button>
@@ -47,7 +47,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
             </div>
           </div>
 
-          <div className="tablet:hidden">
+          <div className="tablet:!hidden">
             {user && !isLoading ? (
               <UserMenu
                 user={user}
