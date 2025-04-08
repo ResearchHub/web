@@ -21,7 +21,6 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const hasNavigationUrl =
     !!notification.navigation_url && notification.navigation_url.trim() !== '';
 
-  // Get hub details for hub-related notifications
   const hubDetails = getHubDetailsFromNotification(notification);
 
   const AvatarSection =
@@ -48,7 +47,6 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const ContentSection = (
     <div className="flex-grow min-w-0">
       <div className="text-sm font-medium text-gray-900">{message}</div>
-      {/* Hub Badge for hub-related notifications */}
       {hubDetails && (
         <div className="mt-2" onClick={(e) => e.stopPropagation()}>
           <TopicAndJournalBadge
