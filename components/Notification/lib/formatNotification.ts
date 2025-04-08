@@ -8,6 +8,12 @@ export interface NotificationTypeInfo {
   color: string;
 }
 
+export interface HubDetails {
+  name: string;
+  slug: string;
+  imageUrl?: string;
+}
+
 const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
   // Account notifications
   IDENTITY_VERIFICATION_UPDATED: {
@@ -152,6 +158,24 @@ function getDocumentTitle(documents: Document | Document[]): string {
   return documents.title || documents.paper_title || '';
 }
 
+export function getHubDetailsFromNotification(notification: Notification): HubDetails | null {
+  // For hub-related notifications, extract hub details
+  if (notification.type === 'BOUNTY_FOR_YOU' && notification.extra?.hub_details) {
+    try {
+      const hubDetails = JSON.parse(notification.extra.hub_details);
+      return {
+        name: hubDetails.name || '',
+        slug: hubDetails.slug || '',
+        imageUrl: hubDetails.imageUrl || hubDetails.image_url || undefined,
+      };
+    } catch (error) {
+      console.error('Failed to parse hub details', error);
+      return null;
+    }
+  }
+  return null;
+}
+
 export function formatNotificationMessage(notification: Notification): string {
   const { type, action_user, unified_document } = notification;
 
@@ -171,6 +195,7 @@ export function formatNotificationMessage(notification: Notification): string {
       const amount = notification.extra?.amount
         ? parseFloat(notification.extra.amount).toLocaleString()
         : '';
+      // For the plain text message format, still include the hub name in the text
       const hubName = notification.extra?.hub_details
         ? JSON.parse(notification.extra.hub_details).name
         : '';

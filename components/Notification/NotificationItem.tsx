@@ -1,10 +1,15 @@
 import { Notification } from '@/types/notification';
 import Link from 'next/link';
 import { formatTimestamp } from '@/utils/date';
-import { getNotificationInfo, formatNotificationMessage } from './lib/formatNotification';
+import {
+  getNotificationInfo,
+  formatNotificationMessage,
+  getHubDetailsFromNotification,
+} from './lib/formatNotification';
 import { Avatar } from '@/components/ui/Avatar';
 import { Icon } from '@/components/ui/icons/Icon';
 import clsx from 'clsx';
+import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 
 interface NotificationItemProps {
   notification: Notification;
@@ -15,6 +20,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const message = formatNotificationMessage(notification);
   const hasNavigationUrl =
     !!notification.navigation_url && notification.navigation_url.trim() !== '';
+
+  // Get hub details for hub-related notifications
+  const hubDetails = getHubDetailsFromNotification(notification);
 
   const AvatarSection =
     notification.action_user && notificationInfo.useAvatar ? (
@@ -40,6 +48,18 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const ContentSection = (
     <div className="flex-grow min-w-0">
       <div className="text-sm font-medium text-gray-900">{message}</div>
+      {/* Hub Badge for hub-related notifications */}
+      {hubDetails && (
+        <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+          <TopicAndJournalBadge
+            type="topic"
+            name={hubDetails.name}
+            slug={hubDetails.slug}
+            imageUrl={hubDetails.imageUrl}
+            size="sm"
+          />
+        </div>
+      )}
       <div className="mt-0.5 text-xs text-gray-500">
         {formatTimestamp(notification.created_date)}
       </div>
