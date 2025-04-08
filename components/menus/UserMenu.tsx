@@ -86,7 +86,7 @@ export default function UserMenu({ user, onViewProfile, onVerifyAccount }: UserM
           </BaseMenuItem>
 
           {/* Wallet Menu Items */}
-          {process.env.NODE_ENV !== 'production' &&
+          {(process.env.VERCEL_ENV === 'preview' || process.env.VERCEL_ENV === 'development') &&
             (isConnected ? (
               <>
                 <BaseMenuItem
