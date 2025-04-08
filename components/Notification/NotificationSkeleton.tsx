@@ -1,28 +1,14 @@
 export function NotificationSkeleton() {
   return (
-    <div className="pt-4 pb-4 rounded-lg bg-white animate-pulse">
-      <div className="flex justify-between items-start">
-        <div className="w-full">
-          {/* Header - User name and type */}
-          <div className="flex items-center space-x-2 mb-2">
-            <div className="h-4 bg-gray-200 rounded w-32"></div>
-            <div className="h-4 bg-gray-200 rounded w-24"></div>
+    <div className="group">
+      <div className="relative py-3 px-4 -mx-4">
+        <div className="flex gap-3 items-center">
+          <div className="flex-shrink-0">
+            <div className="w-[38px] h-[38px] bg-gray-200 rounded-full animate-pulse" />
           </div>
-
-          {/* Body text */}
-          <div className="space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-full"></div>
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-          </div>
-
-          {/* Document info */}
-          <div className="mt-2">
-            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-          </div>
-
-          {/* Date */}
-          <div className="mt-2">
-            <div className="h-3 bg-gray-200 rounded w-24"></div>
+          <div className="flex-grow min-w-0 space-y-2">
+            <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse" />
+            <div className="h-3 bg-gray-200 rounded w-24 animate-pulse mt-0.5" />
           </div>
         </div>
       </div>

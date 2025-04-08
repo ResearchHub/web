@@ -1,5 +1,10 @@
 import { createTransformer, BaseTransformed } from './transformer';
 import { User, transformUser } from './user';
+import { ContentType } from './work';
+import { ContentMetrics } from './metrics';
+import { Journal } from './journal';
+import { Topic } from './topic';
+import { AuthorProfile } from './authorProfile';
 
 export interface NotificationHub {
   name: string;
@@ -12,7 +17,7 @@ export interface NotificationExtra {
   rewardType?: 'REVIEW' | 'CONTRIBUTION' | 'DISCUSSION';
   hub?: NotificationHub;
   userHubScore?: string;
-  rewardExpirationDate?: Date;
+  rewardExpirationDate?: string;
 }
 
 export interface NotificationBodyElement {
@@ -24,19 +29,19 @@ export interface NotificationBodyElement {
 
 export interface Notification {
   id: number;
-  isRead: boolean;
-  type: string;
   actionUser: User;
   recipient: User;
   work?: {
     id: number;
     title: string;
   };
-  body: NotificationBodyElement[] | string;
+  type: string;
+  body: NotificationBodyElement[];
   extra?: NotificationExtra;
-  navigationUrl: string;
-  createdDate: Date;
+  navigationUrl?: string;
+  read: boolean;
   readDate: Date | null;
+  createdDate: Date;
 }
 
 export type TransformedNotification = Notification & BaseTransformed;
@@ -47,15 +52,28 @@ export type TransformedNotificationBodyElement = NotificationBodyElement & BaseT
 const transformNotificationExtraRaw = (raw: any): NotificationExtra | undefined => {
   if (!raw) return undefined;
 
+  let hub: NotificationHub | undefined = undefined;
+
+  // Safely parse hub_details if available
+  if (raw.hub_details) {
+    try {
+      const hubData = JSON.parse(raw.hub_details);
+      hub = {
+        name: hubData.name || '',
+        slug: hubData.slug || '',
+      };
+    } catch (error) {
+      console.error('Failed to parse hub_details', error);
+    }
+  }
+
   return {
     amount: raw.amount,
     rewardId: raw.bounty_id,
     rewardType: raw.bounty_type,
-    hub: raw.hub_details ? JSON.parse(raw.hub_details) : undefined,
+    hub,
     userHubScore: raw.user_hub_score,
-    rewardExpirationDate: raw.bounty_expiration_date
-      ? new Date(raw.bounty_expiration_date)
-      : undefined,
+    rewardExpirationDate: raw.bounty_expiration_date,
   };
 };
 
@@ -74,26 +92,54 @@ export const transformNotificationBodyElement = createTransformer<any, Notificat
   })
 );
 
-export const transformNotificationBody = (
-  body: any
-): NotificationBodyElement[] | string | undefined => {
+export const transformNotificationBody = (body: any): NotificationBodyElement[] | undefined => {
   if (!body) return undefined;
 
   if (Array.isArray(body)) {
     return body.map(transformNotificationBodyElement);
   }
 
-  return body;
+  return [];
 };
 
 // Helper function to transform work without using createTransformer
 const transformWorkRaw = (raw: any): { id: number; title: string } | undefined => {
-  if (!raw?.documents) return undefined;
+  if (!raw) return undefined;
 
-  return {
-    id: raw.id,
-    title: raw.documents.title || raw.documents.paper_title,
-  };
+  // Direct extraction when raw is already a unified_document
+  if (raw.documents) {
+    // Handle array of documents
+    if (Array.isArray(raw.documents)) {
+      const firstDoc = raw.documents[0];
+      if (!firstDoc) return undefined;
+      return {
+        id: firstDoc.id,
+        title: firstDoc.title || firstDoc.paper_title || '',
+      };
+    }
+    // Handle single document object
+    else {
+      return {
+        id: raw.documents.id,
+        title: raw.documents.title || raw.documents.paper_title || '',
+      };
+    }
+  }
+
+  // Handle case where raw contains unified_document
+  if (raw.unified_document) {
+    return transformWorkRaw(raw.unified_document);
+  }
+
+  // Fallback for direct properties
+  if (raw.id && (raw.title || raw.paper_title)) {
+    return {
+      id: raw.id,
+      title: raw.title || raw.paper_title || '',
+    };
+  }
+
+  return undefined;
 };
 
 export const transformWork = (raw: any) => {
@@ -104,15 +150,14 @@ export const transformWork = (raw: any) => {
 
 export const transformNotification = createTransformer<any, Notification>((raw) => ({
   id: raw.id,
-  isRead: raw.read,
-  type: raw.notification_type,
   actionUser: transformUser(raw.action_user),
   recipient: transformUser(raw.recipient),
-  work: raw.unified_document ? transformWork(raw.unified_document) : undefined,
-  body:
-    raw.notification_type === 'RSC_SUPPORT_ON_DIS' ? transformNotificationBody(raw.body) : raw.body,
+  work: transformWork(raw),
+  type: raw.notification_type || raw.type,
+  body: Array.isArray(raw.body) ? transformNotificationBody(raw.body) || [] : [],
   extra: transformNotificationExtra(raw.extra),
-  navigationUrl: raw.navigation_url,
-  createdDate: new Date(raw.created_date),
+  navigationUrl: raw.navigation_url || '',
+  read: !!raw.read,
   readDate: raw.read_date ? new Date(raw.read_date) : null,
+  createdDate: new Date(raw.created_date),
 }));
