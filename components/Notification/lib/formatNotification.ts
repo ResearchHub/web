@@ -126,6 +126,46 @@ export function getHubDetailsFromNotification(notification: Notification): HubDe
   return null;
 }
 
+/**
+ * Transform old ResearchHub URLs to the new format
+ * Example: https://www.researchhub.com/paper/8086044/title#comments → https://new.researchhub.com/paper/8086044/title/conversation
+ */
+export function formatNavigationUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+
+  try {
+    // Create a URL object to parse the components
+    const urlObj = new URL(url);
+
+    // Check if it's a ResearchHub URL
+    if (!urlObj.hostname.includes('researchhub.com')) {
+      return url;
+    }
+
+    // Change the domain
+    urlObj.hostname = 'new.researchhub.com';
+
+    // Get the pathname and fragments
+    const pathname = urlObj.pathname;
+    const hash = urlObj.hash;
+
+    // Remove the hash
+    urlObj.hash = '';
+
+    // If it's a paper link with #comments, transform to /conversation
+    if (pathname.startsWith('/paper/') && hash === '#comments') {
+      // Remove any trailing slash if it exists
+      const cleanPath = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+      urlObj.pathname = `${cleanPath}/conversation`;
+    }
+
+    return urlObj.toString();
+  } catch (error) {
+    console.error('Error formatting navigation URL:', error);
+    return url;
+  }
+}
+
 export function formatNotificationMessage(notification: Notification): string {
   const { type, actionUser, work } = notification;
 
