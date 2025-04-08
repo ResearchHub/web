@@ -13,6 +13,8 @@ interface NotificationItemProps {
 export function NotificationItem({ notification }: NotificationItemProps) {
   const notificationInfo = getNotificationInfo(notification);
   const message = formatNotificationMessage(notification);
+  const hasNavigationUrl =
+    !!notification.navigation_url && notification.navigation_url.trim() !== '';
 
   const AvatarSection =
     notification.action_user && notificationInfo.useAvatar ? (
@@ -40,7 +42,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const wrapperClassNames = clsx(
     'p-4',
     notification.read ? 'bg-white' : 'bg-blue-50',
-    notification.navigation_url ? 'hover:bg-gray-50 transition-colors cursor-pointer' : ''
+    hasNavigationUrl ? 'hover:bg-gray-50 transition-colors cursor-pointer' : ''
   );
 
   return (
@@ -49,9 +51,13 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         <div className="flex gap-4 items-start">
           {AvatarSection}
 
-          {/* Content section is wrapped in Link only if navigation_url exists */}
-          {notification.navigation_url ? (
-            <Link href={notification.navigation_url} className="flex-grow min-w-0">
+          {hasNavigationUrl && notification.navigation_url ? (
+            <Link
+              href={notification.navigation_url}
+              className="flex-grow min-w-0 hover:text-indigo-600 transition-colors"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {ContentSection}
             </Link>
           ) : (
