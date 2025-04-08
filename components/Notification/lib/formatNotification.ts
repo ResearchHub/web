@@ -1,5 +1,5 @@
 import { Icon, type IconName } from '@/components/ui/icons/Icon';
-import { Notification, Document } from '@/types/notification';
+import { Notification } from '@/types/notification';
 
 export interface NotificationTypeInfo {
   icon: IconName;
@@ -109,22 +109,14 @@ export function getNotificationInfo(notification: Notification): NotificationTyp
   );
 }
 
-function getDocumentTitle(documents: Document | Document[]): string {
-  if (Array.isArray(documents)) {
-    return documents[0]?.title || documents[0]?.paper_title || '';
-  }
-  return documents.title || documents.paper_title || '';
-}
-
 export function getHubDetailsFromNotification(notification: Notification): HubDetails | null {
   // For hub-related notifications, extract hub details
-  if (notification.type === 'BOUNTY_FOR_YOU' && notification.extra?.hub_details) {
+  if (notification.type === 'BOUNTY_FOR_YOU' && notification.extra?.hub) {
     try {
-      const hubDetails = JSON.parse(notification.extra.hub_details);
       return {
-        name: hubDetails.name || '',
-        slug: hubDetails.slug || '',
-        imageUrl: hubDetails.imageUrl || hubDetails.image_url || undefined,
+        name: notification.extra.hub.name || '',
+        slug: notification.extra.hub.slug || '',
+        imageUrl: undefined,
       };
     } catch (error) {
       console.error('Failed to parse hub details', error);
@@ -135,10 +127,10 @@ export function getHubDetailsFromNotification(notification: Notification): HubDe
 }
 
 export function formatNotificationMessage(notification: Notification): string {
-  const { type, action_user, unified_document } = notification;
+  const { type, actionUser, work } = notification;
 
-  const userName = action_user.fullName;
-  const docTitle = unified_document?.documents ? getDocumentTitle(unified_document.documents) : '';
+  const userName = actionUser ? actionUser.fullName : 'A user';
+  const docTitle = work?.title || 'an item';
   const truncatedTitle = docTitle.length > 60 ? `${docTitle.slice(0, 60)}...` : docTitle;
 
   switch (type) {
@@ -154,10 +146,8 @@ export function formatNotificationMessage(notification: Notification): string {
         ? parseFloat(notification.extra.amount).toLocaleString()
         : '';
       // For the plain text message format, still include the hub name in the text
-      const hubName = notification.extra?.hub_details
-        ? JSON.parse(notification.extra.hub_details).name
-        : '';
-      return `${amount} RSC bounty available in ${hubName} hub`;
+      const hubName = notification.extra?.hub?.name || '';
+      return `${amount} RSC bounty available for "${truncatedTitle}"${hubName ? ` in ${hubName}` : ''}`;
 
     case 'BOUNTY_EXPIRING_SOON':
     case 'BOUNTY_HUB_EXPIRING_SOON':

@@ -11,30 +11,13 @@ export interface NotificationHub {
   slug: string;
 }
 
-export interface Document {
-  id: number;
-  title: string;
-  paper_title?: string;
-  slug: string;
-  authors?: AuthorProfile[];
-  topics?: Topic[];
-  journal?: Journal;
-  metrics?: ContentMetrics;
-  workType?: 'paper' | 'preprint' | 'published';
-}
-
-export interface UnifiedDocument {
-  documents: Document | Document[];
-  document_type: ContentType;
-}
-
 export interface NotificationExtra {
   amount?: string;
-  bounty_id?: string;
-  bounty_type?: string;
-  hub_details?: string;
-  user_hub_score?: string;
-  bounty_expiration_date?: string;
+  rewardId?: string;
+  rewardType?: 'REVIEW' | 'CONTRIBUTION' | 'DISCUSSION';
+  hub?: NotificationHub;
+  userHubScore?: string;
+  rewardExpirationDate?: string;
 }
 
 export interface NotificationBodyElement {
@@ -46,16 +29,19 @@ export interface NotificationBodyElement {
 
 export interface Notification {
   id: number;
-  action_user: User;
+  actionUser: User;
   recipient: User;
-  unified_document: UnifiedDocument;
+  work?: {
+    id: number;
+    title: string;
+  };
   type: string;
   body: NotificationBodyElement[];
-  extra: NotificationExtra;
-  navigation_url: string | null;
+  extra?: NotificationExtra;
+  navigationUrl?: string;
   read: boolean;
-  read_date: string;
-  created_date: string;
+  readDate: Date | null;
+  createdDate: Date;
 }
 
 export type TransformedNotification = Notification & BaseTransformed;
@@ -66,13 +52,28 @@ export type TransformedNotificationBodyElement = NotificationBodyElement & BaseT
 const transformNotificationExtraRaw = (raw: any): NotificationExtra | undefined => {
   if (!raw) return undefined;
 
+  let hub: NotificationHub | undefined = undefined;
+
+  // Safely parse hub_details if available
+  if (raw.hub_details) {
+    try {
+      const hubData = JSON.parse(raw.hub_details);
+      hub = {
+        name: hubData.name || '',
+        slug: hubData.slug || '',
+      };
+    } catch (error) {
+      console.error('Failed to parse hub_details', error);
+    }
+  }
+
   return {
     amount: raw.amount,
-    bounty_id: raw.bounty_id,
-    bounty_type: raw.bounty_type,
-    hub_details: raw.hub_details,
-    user_hub_score: raw.user_hub_score,
-    bounty_expiration_date: raw.bounty_expiration_date,
+    rewardId: raw.bounty_id,
+    rewardType: raw.bounty_type,
+    hub,
+    userHubScore: raw.user_hub_score,
+    rewardExpirationDate: raw.bounty_expiration_date,
   };
 };
 
@@ -102,37 +103,61 @@ export const transformNotificationBody = (body: any): NotificationBodyElement[] 
 };
 
 // Helper function to transform work without using createTransformer
-export const transformWorkRaw = (raw: any): Document | undefined => {
-  if (!raw || !raw.unified_document) return undefined;
+const transformWorkRaw = (raw: any): { id: number; title: string } | undefined => {
+  if (!raw) return undefined;
 
-  if (raw.unified_document.documents) {
-    return Array.isArray(raw.unified_document.documents)
-      ? raw.unified_document.documents[0]
-      : raw.unified_document.documents;
+  // Direct extraction when raw is already a unified_document
+  if (raw.documents) {
+    // Handle array of documents
+    if (Array.isArray(raw.documents)) {
+      const firstDoc = raw.documents[0];
+      if (!firstDoc) return undefined;
+      return {
+        id: firstDoc.id,
+        title: firstDoc.title || firstDoc.paper_title || '',
+      };
+    }
+    // Handle single document object
+    else {
+      return {
+        id: raw.documents.id,
+        title: raw.documents.title || raw.documents.paper_title || '',
+      };
+    }
+  }
+
+  // Handle case where raw contains unified_document
+  if (raw.unified_document) {
+    return transformWorkRaw(raw.unified_document);
+  }
+
+  // Fallback for direct properties
+  if (raw.id && (raw.title || raw.paper_title)) {
+    return {
+      id: raw.id,
+      title: raw.title || raw.paper_title || '',
+    };
   }
 
   return undefined;
 };
 
-export const transformWork = (raw: any): Document | undefined => {
+export const transformWork = (raw: any) => {
   const transformed = transformWorkRaw(raw);
   if (!transformed) return undefined;
-  return createTransformer<any, Document>(() => transformed)(raw);
+  return createTransformer<any, { id: number; title: string }>(() => transformed)(raw);
 };
 
 export const transformNotification = createTransformer<any, Notification>((raw) => ({
   id: raw.id,
-  action_user: transformUser(raw.action_user),
+  actionUser: transformUser(raw.action_user),
   recipient: transformUser(raw.recipient),
-  unified_document: {
-    documents: raw.unified_document.documents,
-    document_type: (raw.unified_document.document_type?.toLowerCase() || 'unknown') as ContentType,
-  },
+  work: transformWork(raw),
   type: raw.notification_type || raw.type,
-  body: transformNotificationBody(raw.body) || [],
-  extra: transformNotificationExtra(raw.extra) || {},
-  navigation_url: raw.navigation_url,
-  read: raw.read,
-  read_date: raw.read_date,
-  created_date: raw.created_date,
+  body: Array.isArray(raw.body) ? transformNotificationBody(raw.body) || [] : [],
+  extra: transformNotificationExtra(raw.extra),
+  navigationUrl: raw.navigation_url || '',
+  read: !!raw.read,
+  readDate: raw.read_date ? new Date(raw.read_date) : null,
+  createdDate: new Date(raw.created_date),
 }));

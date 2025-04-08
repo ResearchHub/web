@@ -18,19 +18,18 @@ interface NotificationItemProps {
 export function NotificationItem({ notification }: NotificationItemProps) {
   const notificationInfo = getNotificationInfo(notification);
   const message = formatNotificationMessage(notification);
-  const hasNavigationUrl =
-    !!notification.navigation_url && notification.navigation_url.trim() !== '';
+  const hasNavigationUrl = !!notification.navigationUrl && notification.navigationUrl.trim() !== '';
 
   const hubDetails = getHubDetailsFromNotification(notification);
 
   const AvatarSection =
-    notification.action_user && notificationInfo.useAvatar ? (
+    notification.actionUser && notificationInfo.useAvatar ? (
       <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
         <Avatar
-          src={notification.action_user?.authorProfile?.profileImage}
-          alt={notification.action_user?.fullName || 'User'}
+          src={notification.actionUser?.authorProfile?.profileImage}
+          alt={notification.actionUser?.fullName || 'User'}
           size="md"
-          authorId={notification.action_user?.authorProfile?.id}
+          authorId={notification.actionUser?.authorProfile?.id}
         />
       </div>
     ) : (
@@ -58,7 +57,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         </div>
       )}
       <div className="mt-0.5 text-xs text-gray-500">
-        {formatTimestamp(notification.created_date)}
+        {formatTimestamp(notification.createdDate.toISOString())}
       </div>
     </div>
   );
@@ -75,9 +74,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         <div className="flex gap-3 items-center">
           {AvatarSection}
 
-          {hasNavigationUrl && notification.navigation_url ? (
+          {hasNavigationUrl && notification.navigationUrl ? (
             <Link
-              href={notification.navigation_url}
+              href={notification.navigationUrl}
               className="flex-grow min-w-0 hover:text-indigo-600 transition-colors"
               target="_blank"
               rel="noopener noreferrer"
