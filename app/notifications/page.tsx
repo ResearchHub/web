@@ -37,42 +37,44 @@ export default function NotificationsPage() {
   return (
     <PageLayout>
       <div className="w-full">
-        <div className="flex justify-between items-center">
-          <PageHeader title="Notifications" />
+        <div className="flex justify-between items-center mb-4">
+          <PageHeader title="Notifications" className="mb-0" />
           {unreadCount > 0 && !loading && (
-            <Button onClick={handleMarkAllAsRead} variant="secondary" size="sm" className="mb-4">
+            <Button onClick={handleMarkAllAsRead} variant="secondary" size="sm">
               Mark all as read
             </Button>
           )}
         </div>
 
         <div className="py-6">
-          <NotificationList
-            notifications={notificationData.results}
-            loading={loading}
-            error={error}
-          />
+          <div className="bg-white">
+            <NotificationList
+              notifications={notificationData.results}
+              loading={loading}
+              error={error}
+            />
 
-          {isLoadingMore && (
-            <div className="space-y-4 mt-4">
-              <NotificationSkeleton key="skeleton-1" />
-              <NotificationSkeleton key="skeleton-2" />
-              <NotificationSkeleton key="skeleton-3" />
-            </div>
-          )}
+            {isLoadingMore && (
+              <div>
+                {[...Array(10)].map((_, index) => (
+                  <NotificationSkeleton key={`skeleton-${index}`} />
+                ))}
+              </div>
+            )}
 
-          {!loading && notificationData.next && (
-            <div className="mt-8 text-center">
-              <Button
-                onClick={handleLoadMore}
-                disabled={isLoadingMore}
-                variant="link"
-                className="text-indigo-600 hover:text-indigo-500"
-              >
-                {isLoadingMore ? 'Loading...' : 'Load more'}
-              </Button>
-            </div>
-          )}
+            {!loading && notificationData.next && (
+              <div className="mt-8 text-center">
+                <Button
+                  onClick={handleLoadMore}
+                  disabled={isLoadingMore}
+                  variant="link"
+                  className="text-indigo-600 hover:text-indigo-500"
+                >
+                  {isLoadingMore ? 'Loading...' : 'Load more'}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </PageLayout>

@@ -27,28 +27,35 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         />
       </div>
     ) : (
-      <div className={clsx('p-2 rounded-full bg-gray-100 flex-shrink-0', notificationInfo.color)}>
-        <Icon name={notificationInfo.icon} size={20} />
+      <div
+        className={clsx(
+          'w-[38px] h-[38px] flex items-center justify-center rounded-full bg-gray-50 flex-shrink-0',
+          notificationInfo.color
+        )}
+      >
+        <Icon name={notificationInfo.icon} size={18} />
       </div>
     );
 
   const ContentSection = (
     <div className="flex-grow min-w-0">
-      <div className="text-sm text-gray-900">{message}</div>
-      <div className="mt-1 text-xs text-gray-500">{formatTimestamp(notification.created_date)}</div>
+      <div className="text-sm font-medium text-gray-900">{message}</div>
+      <div className="mt-0.5 text-xs text-gray-500">
+        {formatTimestamp(notification.created_date)}
+      </div>
     </div>
   );
 
-  const wrapperClassNames = clsx(
-    'p-4',
-    notification.read ? 'bg-white' : 'bg-blue-50',
-    hasNavigationUrl ? 'hover:bg-gray-50 transition-colors cursor-pointer' : ''
-  );
-
   return (
-    <div className="border-b border-gray-100">
-      <div className={wrapperClassNames}>
-        <div className="flex gap-4 items-start">
+    <div className="group">
+      <div
+        className={clsx(
+          'relative py-3 px-4 -mx-4 rounded-lg',
+          notification.read ? 'hover:bg-gray-50' : 'bg-blue-50 hover:bg-blue-100',
+          hasNavigationUrl ? 'cursor-pointer' : ''
+        )}
+      >
+        <div className="flex gap-3 items-center">
           {AvatarSection}
 
           {hasNavigationUrl && notification.navigation_url ? (

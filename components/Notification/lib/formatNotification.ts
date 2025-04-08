@@ -31,13 +31,13 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
     color: 'text-orange-600',
   },
   BOUNTY_EXPIRING_SOON: {
-    icon: 'notification',
+    icon: 'earn1',
     useAvatar: false,
     useIconComponent: true,
     color: 'text-yellow-600',
   },
   BOUNTY_HUB_EXPIRING_SOON: {
-    icon: 'notification',
+    icon: 'earn1',
     useAvatar: false,
     useIconComponent: true,
     color: 'text-yellow-600',

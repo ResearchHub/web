@@ -11,9 +11,9 @@ interface NotificationListProps {
 export function NotificationList({ notifications, loading, error }: NotificationListProps) {
   if (loading) {
     return (
-      <div className="space-y-4">
-        {[...Array(3)].map((_, index) => (
-          <NotificationSkeleton key={index} />
+      <div>
+        {[...Array(10)].map((_, index) => (
+          <NotificationSkeleton key={`initial-skeleton-${index}`} />
         ))}
       </div>
     );
@@ -36,7 +36,7 @@ export function NotificationList({ notifications, loading, error }: Notification
   }
 
   return (
-    <div className="divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white overflow-hidden">
+    <div className="bg-white">
       {notifications.map((notification) => (
         <NotificationItem key={notification.id} notification={notification} />
       ))}
