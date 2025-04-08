@@ -21,7 +21,12 @@ if (!BASE_RSC_ADDRESS_ENV || BASE_RSC_ADDRESS_ENV.trim() === '') {
 }
 const BASE_RSC_ADDRESS = BASE_RSC_ADDRESS_ENV as `0x${string}`;
 
-const CHAIN_ID = process.env.NODE_ENV !== 'production' ? 84532 : 8453;
+const CHAIN_ID_ENV = process.env.NEXT_PUBLIC_BASE_CHAIN_ID;
+if (!CHAIN_ID_ENV || CHAIN_ID_ENV.trim() === '') {
+  throw new Error('Missing environment variable: NEXT_PUBLIC_BASE_CHAIN_ID');
+}
+const CHAIN_ID = parseInt(CHAIN_ID_ENV, 10);
+
 const RSC: Token = {
   name: 'ResearchCoin',
   address: BASE_RSC_ADDRESS,
@@ -179,14 +184,9 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
                       <div className="flex items-center gap-3">
                         <img src="/base-logo.svg" alt="Base Network" className="h-6 w-6" />
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900">
-                            {process.env.NODE_ENV !== 'production' ? 'Base Sepolia' : 'Base'}{' '}
-                            Network
-                          </span>
+                          <span className="text-sm font-medium text-gray-900">Base</span>
                           <span className="text-xs text-gray-500">
-                            Deposits are processed on{' '}
-                            {process.env.NODE_ENV !== 'production' ? 'Base Sepolia' : 'Base'}{' '}
-                            {process.env.NODE_ENV !== 'production' ? 'Testnet' : 'L2'}
+                            Deposits are processed on Base L2
                           </span>
                         </div>
                       </div>
