@@ -112,12 +112,12 @@ const JournalSpotlight = () => {
       </h2>
       <div className="space-y-3 px-4 pb-4 pt-12">
         <img
-          src="/promos/biosynthesis.png"
+          src="/promos/biosynthesis2.png"
           alt="Biosynthesis pathway diagram"
           className="w-full max-h-[100px] rounded-md my-2 object-cover"
         />
         <a href="#" className="block hover:text-blue-600">
-          <h3 className="font-bold text-lg text-gray-900 leading-tight">
+          <h3 className="font-bold text-md text-gray-900 leading-tight">
             Analysis of Unique Genes Reveals Potential Role of Essential Amino Acid Synthesis
             Pathway in Flavobacterium covae Virulence
           </h3>
@@ -215,7 +215,7 @@ const FundingSpotlight = () => {
         ) : fundingItem && content ? (
           <div className="space-y-3">
             <Link href={link} className="block hover:text-blue-600">
-              <h3 className="font-bold text-lg text-gray-900 leading-tight">{title}</h3>
+              <h3 className="font-bold text-md text-gray-900 leading-tight">{title}</h3>
             </Link>
 
             {/* Authors list with improved rendering */}
