@@ -105,11 +105,6 @@ export function HubsSelector({ selectedHubs, onChange, error }: HubsSelectorProp
 
   return (
     <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Topics</h3>
-        <p className="text-sm text-gray-500 mb-4">Select topics that best describe your research</p>
-      </div>
-
       <div className="relative">
         <SearchableMultiSelect
           value={hubsToOptions(selectedHubs)}
