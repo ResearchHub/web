@@ -49,7 +49,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     ) : (
       <div
         className={clsx(
-          'w-[40px] h-[40px] flex items-center justify-center rounded-full bg-transparent flex-shrink-0'
+          'w-[40px] h-[40px] flex items-center justify-center rounded-full bg-white flex-shrink-0'
         )}
       >
         <Icon name={notificationInfo.icon} size={18} />
