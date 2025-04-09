@@ -49,7 +49,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     ) : (
       <div
         className={clsx(
-          'w-[40px] h-[40px] flex items-center justify-center rounded-full bg-gray-50 flex-shrink-0'
+          'w-[40px] h-[40px] flex items-center justify-center rounded-full bg-transparent flex-shrink-0'
         )}
       >
         <Icon name={notificationInfo.icon} size={18} />
@@ -88,21 +88,21 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     <div className="group">
       <div
         className={clsx(
-          'relative py-3 px-4 -mx-4 rounded-lg',
+          'relative py-3 px-2 border-b border-gray-100',
           notification.read
             ? hasNavigationUrl
               ? 'hover:bg-gray-50'
               : ''
             : hasNavigationUrl
-              ? 'bg-primary-50 hover:bg-primary-100'
-              : 'bg-primary-50',
+              ? 'bg-primary-50/40 hover:bg-primary-50/60'
+              : 'bg-primary-50/40',
           hasNavigationUrl ? 'cursor-pointer' : ''
         )}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             {IndicatorSection}
-            <div className="ml-3 flex gap-3 items-center">
+            <div className="ml-2 flex gap-3 items-center">
               {AvatarSection}
 
               {hasNavigationUrl && formattedNavigationUrl ? (
