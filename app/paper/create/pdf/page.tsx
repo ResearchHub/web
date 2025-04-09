@@ -21,6 +21,7 @@ import {
   FileUp,
   Users,
   Tags,
+  X,
 } from 'lucide-react';
 import { UploadFileResult } from '@/services/file.service';
 import { PaperService, CreatePaperPayload } from '@/services/paper.service';
@@ -36,7 +37,7 @@ const steps: SimpleStep[] = [
     description: 'Upload paper, add details and authors',
   },
   { id: 'declaration', name: 'Declaration', description: 'Legal requirements and permissions' },
-  { id: 'preview', name: 'Preview', description: 'Review your submission' },
+  { id: 'preview', name: 'Submission', description: 'Review your submission' },
 ];
 
 export default function UploadPDFPage() {
@@ -65,7 +66,7 @@ export default function UploadPDFPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Journal submission state
-  const [submitToJournal, setSubmitToJournal] = useState(false);
+  const [submitToJournal, setSubmitToJournal] = useState(true);
 
   // Journal editors avatars
   const journalEditors = [
@@ -468,162 +469,133 @@ export default function UploadPDFPage() {
         return (
           <div className="space-y-8">
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Preview Submission</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Choose your publishing option
+              </h3>
               <p className="text-sm text-gray-500 mb-6">
-                Please review your submission before finalizing
+                Select how you want to publish your research on ResearchHub.
               </p>
             </div>
 
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Paper Title</h3>
-                <p className="mt-1 text-gray-900">{title}</p>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Abstract</h3>
-                <p className="mt-1 text-gray-900">{abstract}</p>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">File</h3>
-                <p className="mt-1 text-gray-900">{selectedFile?.name}</p>
-                {fileUploadResult && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Uploaded successfully.{' '}
-                    {fileUploadResult.absoluteUrl ? 'File is ready for submission.' : ''}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Topics</h3>
-                <div className="mt-1 flex flex-wrap gap-2">
-                  {selectedHubs.map((hub) => (
-                    <span
-                      key={hub.id}
-                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
-                    >
-                      {hub.name}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div
+                className={`border rounded-lg p-6 flex flex-col cursor-pointer ${!submitToJournal ? 'border-indigo-500 ring-2 ring-indigo-500 shadow-lg' : 'border-gray-300 hover:shadow-md transition-shadow'}`}
+                onClick={() => setSubmitToJournal(false)}
+              >
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Publish on ResearchHub</h4>
+                <ul className="space-y-3 mb-6 flex-grow">
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                    <span className="text-sm text-gray-700">Open Access Publication</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                    <span className="text-sm text-gray-700">DOI Assignment</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                    <span className="text-sm text-gray-700">Indexed on ResearchHub</span>
+                  </li>
+                  <li className="flex items-center">
+                    <X className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />{' '}
+                    <span className="text-sm text-gray-500">Formal Peer Review</span>
+                  </li>
+                  <li className="flex items-center">
+                    <X className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />{' '}
+                    <span className="text-sm text-gray-500">Editorial Oversight</span>
+                  </li>
+                  <li className="flex items-center">
+                    <X className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />{' '}
+                    <span className="text-sm text-gray-500">
+                      Journal Indexing (e.g. Google Scholar)
                     </span>
-                  ))}
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                    <span className="text-sm text-gray-700 font-medium">Free</span>
+                  </li>
+                </ul>
+                <Button
+                  variant={!submitToJournal ? 'default' : 'outlined'}
+                  className="w-full mt-auto"
+                  aria-pressed={!submitToJournal}
+                >
+                  {!submitToJournal && <Check className="h-4 w-4 mr-2" />}
+                  Select Standard Publish
+                </Button>
+              </div>
+
+              <div
+                className={`border rounded-lg p-6 flex flex-col cursor-pointer ${submitToJournal ? 'border-indigo-500 ring-2 ring-indigo-500 shadow-lg' : 'border-gray-300 hover:shadow-md transition-shadow'}`}
+                onClick={() => setSubmitToJournal(true)}
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <h4 className="text-lg font-semibold text-indigo-900">Publish in RH Journal</h4>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 flex-shrink-0 ml-2">
+                    Limited time: Free!
+                  </span>
                 </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Authors</h3>
-                <div className="mt-1 space-y-2">
-                  {authors.map((selectedAuthor) => (
-                    <div key={selectedAuthor.author.id} className="flex items-center">
-                      <span className="text-gray-900">{selectedAuthor.author.fullName}</span>
-                      {selectedAuthor.isCorrespondingAuthor && (
-                        <span className="ml-2 text-xs text-gray-500">(Corresponding Author)</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Change Description</h3>
-                <Textarea
-                  value={changeDescription}
-                  onChange={(e) => setChangeDescription(e.target.value)}
-                  placeholder="Describe any changes or additional information about this submission"
-                  className="mt-1"
-                  rows={3}
-                />
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <div className="bg-gradient-to-b from-indigo-50/80 to-white p-5 rounded-lg border border-indigo-100">
-                  <div className="flex items-center mb-4">
-                    <BookOpen className="h-6 w-6 text-indigo-900" />
-                    <div className="text-lg font-semibold text-indigo-900 ml-2">
-                      Submit to the RH Journal
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="space-y-2.5 mb-4">
-                      <div className="flex items-start space-x-2.5">
-                        <Check className="h-4 w-4 text-indigo-900 flex-shrink-0 mt-0.5" />
-                        <span className="text-sm text-gray-700">
-                          Fast turnaround time with editorial review
-                        </span>
-                      </div>
-                      <div className="flex items-start space-x-2.5">
-                        <Check className="h-4 w-4 text-indigo-900 flex-shrink-0 mt-0.5" />
-                        <span className="text-sm text-gray-700">
-                          Paid peer reviewers ensure quality feedback
-                        </span>
-                      </div>
-                      <div className="flex items-start space-x-2.5">
-                        <Check className="h-4 w-4 text-indigo-900 flex-shrink-0 mt-0.5" />
-                        <span className="text-sm text-gray-700">
-                          Open access by default, increasing visibility
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="bg-blue-50 p-3 rounded-md border border-blue-100 flex items-center">
-                      <svg
-                        className="h-4 w-4 text-blue-800 mr-2"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <p className="text-sm text-blue-800 font-medium">
-                        Limited time offer: Journal submissions are currently free!
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-gray-700 font-medium mb-2">
-                        Join others who choose to publish openly
-                      </p>
-                      <div className="flex flex-col md:flex-row md:items-center gap-2">
-                        <AvatarStack
-                          items={journalEditors}
-                          size="sm"
-                          maxItems={7}
-                          spacing={-4}
-                          showExtraCount={false}
-                          ringColorClass="ring-white"
-                          disableTooltip={true}
-                          className="flex-shrink-0"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                      <Button
-                        className={`sm:flex-1 ${submitToJournal ? 'ring-2 ring-indigo-500 shadow-md' : ''}`}
-                        variant="default"
-                        onClick={() => setSubmitToJournal(true)}
-                      >
-                        {submitToJournal && <Check className="h-4 w-4 mr-2" />}
-                        Publish in RH Journal
-                      </Button>
-                      <Button
-                        className={`sm:flex-1 ${!submitToJournal ? 'ring-2 ring-gray-300 shadow-sm' : ''}`}
-                        variant="outlined"
-                        onClick={() => setSubmitToJournal(false)}
-                      >
-                        {!submitToJournal && <Check className="h-4 w-4 mr-2" />}
-                        No thanks
-                      </Button>
-                    </div>
+                <ul className="space-y-3 mb-6 flex-grow">
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                    <span className="text-sm text-gray-700">Open Access Publication</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                    <span className="text-sm text-gray-700">DOI Assignment</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                    <span className="text-sm text-gray-700">Indexed on ResearchHub</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                    <span className="text-sm text-gray-700">
+                      Formal Peer Review (Paid Reviewers)
+                    </span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                    <span className="text-sm text-gray-700">Editorial Oversight</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                    <span className="text-sm text-gray-700">
+                      Journal Indexing (e.g. Google Scholar)
+                    </span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span className="text-sm text-gray-700 font-medium">
+                      Free <span className="line-through text-gray-400 ml-1">$200</span> (Limited
+                      Time Offer)
+                    </span>
+                  </li>
+                </ul>
+                <div className="mt-4 mb-6 text-center">
+                  <p className="text-sm text-gray-700 font-medium mb-2">
+                    Join Open Science Advocates
+                  </p>
+                  <div className="flex justify-center">
+                    <AvatarStack
+                      items={journalEditors}
+                      size="sm"
+                      maxItems={7}
+                      spacing={-4}
+                      showExtraCount={false}
+                      ringColorClass="ring-white"
+                      disableTooltip={true}
+                    />
                   </div>
                 </div>
+                <Button
+                  variant={submitToJournal ? 'default' : 'outlined'}
+                  className="w-full mt-auto"
+                  aria-pressed={submitToJournal}
+                >
+                  {submitToJournal && <Check className="h-4 w-4 mr-2" />}
+                  Select Journal Publish
+                </Button>
               </div>
             </div>
           </div>
@@ -664,10 +636,11 @@ export default function UploadPDFPage() {
             {isSubmitting ? (
               'Submitting...'
             ) : currentStepIndex === steps.length - 1 ? (
-              <>
-                {submitToJournal ? 'Submit & Pay' : 'Submit'}
-                <Check className="h-4 w-4 ml-2" />
-              </>
+              submitToJournal ? (
+                'Submit & Pay'
+              ) : (
+                'Submit'
+              )
             ) : (
               <>
                 Continue

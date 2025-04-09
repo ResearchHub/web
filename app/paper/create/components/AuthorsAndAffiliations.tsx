@@ -20,6 +20,13 @@ interface AuthorsAndAffiliationsProps {
   onChange: (authors: SelectedAuthor[]) => void;
 }
 
+// Function to get ordinal suffix
+const getOrdinalSuffix = (n: number): string => {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return s[(v - 20) % 10] || s[v] || s[0];
+};
+
 export function AuthorsAndAffiliations({ authors, onChange }: AuthorsAndAffiliationsProps) {
   const [authorError, setAuthorError] = useState<string | null>(null);
 
@@ -134,88 +141,103 @@ export function AuthorsAndAffiliations({ authors, onChange }: AuthorsAndAffiliat
           <Alert variant="info" className="mb-4">
             Authors will appear in the order shown. Ensure one author is marked as corresponding.
           </Alert>
-          <div className="divide-y divide-gray-200 rounded-lg border border-gray-200">
-            {authors.map((authorEntry, index) => (
-              <div
-                key={authorEntry.author.id || index}
-                className="p-4 flex items-center justify-between hover:bg-gray-50"
-              >
-                <div className="flex items-center gap-3 flex-grow">
-                  <div className="flex-shrink-0">
-                    <Avatar
-                      src={authorEntry.author.profileImage}
-                      alt={authorEntry.author.fullName || 'Author'}
-                      size="md"
-                    />
-                  </div>
+          {/* Removed divide-y, added space-y-2 */}
+          <div className="space-y-6">
+            {' '}
+            {/* Removed border, padding, and rounded-lg from container */}
+            {authors.map((authorEntry, index) => {
+              const position = index + 1;
+              const isLast = index === authors.length - 1;
+              const badgeText =
+                isLast && authors.length > 1
+                  ? 'Last Author'
+                  : `${position}${getOrdinalSuffix(position)} Author`;
 
-                  <div className="flex-grow">
-                    <h5 className="text-sm font-medium">{authorEntry.author.fullName}</h5>
-                    <div className="mt-1">
-                      <Checkbox
-                        id={`corresponding-${authorEntry.author.id}-${index}`}
-                        label="Corresponding Author"
-                        checked={authorEntry.isCorrespondingAuthor}
-                        onChange={(e) => handleSetCorresponding(index, e)}
-                        className="text-xs"
+              return (
+                <div
+                  key={authorEntry.author.id || index}
+                  className="relative p-4 flex items-center justify-between hover:bg-gray-50 rounded-md border border-gray-200"
+                >
+                  {/* Individual Author Position Badge */}
+                  <Badge
+                    variant="default"
+                    className="absolute top-0 left-0 -translate-y-1/2 translate-x-2 z-10 px-1.5 py-0.5 text-[10px] font-medium"
+                  >
+                    {badgeText}
+                  </Badge>
+                  <div className="flex items-center gap-3 flex-grow">
+                    <div className="flex-shrink-0">
+                      <Avatar
+                        src={authorEntry.author.profileImage}
+                        alt={authorEntry.author.fullName || 'Author'}
+                        size="md"
                       />
                     </div>
-                  </div>
-                </div>
 
-                {/* Action Buttons (Order, Delete) */}
-                <div className="flex items-center gap-1 flex-shrink-0 ml-4">
-                  {/* Order Buttons */}
-                  <div className="flex flex-col items-center">
-                    <span className="text-lg font-bold text-gray-800 mb-1">{index + 1}</span>
-                    <div className="flex flex-col">
-                      <Button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          moveAuthor(index, index - 1);
-                        }}
-                        disabled={index === 0}
-                        variant="ghost"
-                        size="icon"
-                        className="p-1 h-auto w-auto text-gray-400 hover:text-gray-600 disabled:opacity-30"
-                      >
-                        <ChevronUp className="h-4 w-4" />
-                      </Button>
-
-                      <Button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          moveAuthor(index, index + 1);
-                        }}
-                        disabled={index === authors.length - 1}
-                        variant="ghost"
-                        size="icon"
-                        className="p-1 h-auto w-auto text-gray-400 hover:text-gray-600 disabled:opacity-30"
-                      >
-                        <ChevronDown className="h-4 w-4" />
-                      </Button>
+                    <div className="flex-grow">
+                      <h5 className="text-sm font-medium">{authorEntry.author.fullName}</h5>
+                      <div className="mt-1">
+                        <Checkbox
+                          id={`corresponding-${authorEntry.author.id}-${index}`}
+                          label="Corresponding Author"
+                          checked={authorEntry.isCorrespondingAuthor}
+                          onChange={(e) => handleSetCorresponding(index, e)}
+                          className="text-xs"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  {/* Delete Button */}
-                  <Button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveAuthor(index);
-                    }}
-                    variant="ghost"
-                    size="icon"
-                    className="p-2 h-auto w-auto text-gray-400 hover:text-red-600 self-center ml-2"
-                    aria-label="Delete author"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {/* Combined and restyled action buttons */}
+                  <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+                    {/* Move Up Button */}
+                    <Button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveAuthor(index, index - 1);
+                      }}
+                      disabled={index === 0}
+                      variant="ghost"
+                      size="icon"
+                      className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                      aria-label="Move author up"
+                    >
+                      <ChevronUp className="h-4 w-4" />
+                    </Button>
+                    {/* Move Down Button */}
+                    <Button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveAuthor(index, index + 1);
+                      }}
+                      disabled={index === authors.length - 1}
+                      variant="ghost"
+                      size="icon"
+                      className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                      aria-label="Move author down"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                    {/* Delete Button */}
+                    <Button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveAuthor(index);
+                      }}
+                      variant="ghost"
+                      size="icon"
+                      className="p-2 text-gray-400 hover:text-red-600"
+                      aria-label="Delete author"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
