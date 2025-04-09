@@ -94,8 +94,8 @@ export function NotificationItem({ notification }: NotificationItemProps) {
               ? 'hover:bg-gray-50'
               : ''
             : hasNavigationUrl
-              ? 'bg-blue-50 hover:bg-blue-100'
-              : 'bg-blue-50',
+              ? 'bg-primary-50 hover:bg-primary-100'
+              : 'bg-primary-50',
           hasNavigationUrl ? 'cursor-pointer' : ''
         )}
       >
