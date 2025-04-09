@@ -35,6 +35,14 @@ export class AuthSharingService {
     }
   })();
 
+  public static getAuthCookieName(): string {
+    return this.AUTH_COOKIE_NAME;
+  }
+
+  public static getParentDomain(): string {
+    return this.PARENT_DOMAIN;
+  }
+
   /**
    * Sets the authentication token in a shared cookie that can be accessed by both domains
    * @param token The authentication token to store
