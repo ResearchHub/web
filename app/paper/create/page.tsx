@@ -28,7 +28,6 @@ export default function WorkCreatePage() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [selectedPaper, setSelectedPaper] = useState<SelectedPaper | null>(null);
-  const [publishOption, setPublishOption] = useState<PublishOption>(null);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const showNewBadge = true; // This can be controlled by a feature flag or other logic
 
@@ -64,6 +63,16 @@ export default function WorkCreatePage() {
       icon: FileUp,
     },
   ];
+
+  const handleOptionClick = (optionId: PublishOption) => {
+    startTransition(() => {
+      if (optionId === 'pdf') {
+        router.push('/paper/create/pdf');
+      } else if (optionId === 'notebook') {
+        router.push(`/notebook?newResearch=true`);
+      }
+    });
+  };
 
   return (
     <PageLayout>
@@ -169,89 +178,34 @@ export default function WorkCreatePage() {
 
             <div className="mt-8">
               <h3 className="text-base font-medium text-gray-700 mb-4">Choose one:</h3>
-              <RadioGroup value={publishOption} onChange={setPublishOption}>
-                <div className="grid grid-cols-1 gap-4">
-                  {publishOptions.map((option) => {
-                    const Icon = option.icon;
-                    return (
-                      <RadioGroup.Option
-                        key={option.id}
-                        value={option.id}
-                        className={({ checked }) =>
-                          `relative flex cursor-pointer rounded-lg border-2 p-4 focus:outline-none
-                          ${
-                            checked
-                              ? 'border-indigo-600 bg-indigo-50'
-                              : 'border-gray-200 bg-white hover:bg-gray-50'
-                          }`
-                        }
-                      >
-                        {({ checked }) => (
-                          <div className="flex w-full items-start gap-4">
-                            <div
-                              className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${
-                                checked ? 'bg-indigo-100' : 'bg-gray-100'
-                              }`}
-                            >
-                              <Icon
-                                className={`h-5 w-5 ${
-                                  checked ? 'text-indigo-600' : 'text-gray-600'
-                                }`}
-                              />
-                            </div>
-                            <div className="flex flex-col">
-                              <RadioGroup.Label
-                                as="span"
-                                className={`font-medium ${
-                                  checked ? 'text-indigo-900' : 'text-gray-900'
-                                }`}
-                              >
-                                {option.title}
-                              </RadioGroup.Label>
-                              <RadioGroup.Description
-                                as="span"
-                                className={`text-sm ${
-                                  checked ? 'text-indigo-700' : 'text-gray-500'
-                                }`}
-                              >
-                                {option.description}
-                              </RadioGroup.Description>
-                            </div>
-                          </div>
+              <div className="grid grid-cols-1 gap-4">
+                {publishOptions.map((option) => {
+                  const Icon = option.icon;
+                  return (
+                    <div
+                      key={option.id}
+                      onClick={() => !isPending && handleOptionClick(option.id as PublishOption)}
+                      className={`relative flex cursor-pointer rounded-lg border-2 p-4 focus:outline-none
+                        border-gray-200 bg-white hover:bg-gray-50 ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <div className="flex w-full items-start gap-4">
+                        <div
+                          className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100`}
+                        >
+                          <Icon className={`h-5 w-5 text-gray-600`} />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className={`font-medium text-gray-900`}>{option.title}</span>
+                          <span className={`text-sm text-gray-500`}>{option.description}</span>
+                        </div>
+                        {isPending && option.id === null && (
+                          <Loader2 className="animate-spin ml-auto h-5 w-5 text-gray-600" />
                         )}
-                      </RadioGroup.Option>
-                    );
-                  })}
-                </div>
-              </RadioGroup>
-
-              {publishOption && (
-                <div className="mt-6">
-                  <Button
-                    onClick={() => {
-                      startTransition(() => {
-                        if (publishOption === 'pdf') {
-                          router.push('/paper/create/pdf');
-                        } else {
-                          router.push(`/notebook?newResearch=true`);
-                        }
-                      });
-                    }}
-                    variant="default"
-                    className="w-full py-6 text-base"
-                    disabled={isPending}
-                  >
-                    {isPending ? (
-                      <span className="flex items-center justify-center">
-                        <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
-                        Loading...
-                      </span>
-                    ) : (
-                      'Continue'
-                    )}
-                  </Button>
-                </div>
-              )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
