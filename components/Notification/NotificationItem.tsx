@@ -5,11 +5,13 @@ import {
   getNotificationInfo,
   formatNotificationMessage,
   getHubDetailsFromNotification,
+  formatNavigationUrl,
 } from './lib/formatNotification';
 import { Avatar } from '@/components/ui/Avatar';
 import { Icon } from '@/components/ui/icons/Icon';
 import clsx from 'clsx';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { ChevronRight } from 'lucide-react';
 
 interface NotificationItemProps {
   notification: Notification;
@@ -18,7 +20,8 @@ interface NotificationItemProps {
 export function NotificationItem({ notification }: NotificationItemProps) {
   const notificationInfo = getNotificationInfo(notification);
   const message = formatNotificationMessage(notification);
-  const hasNavigationUrl = !!notification.navigationUrl && notification.navigationUrl.trim() !== '';
+  const formattedNavigationUrl = formatNavigationUrl(notification.navigationUrl);
+  const hasNavigationUrl = !!formattedNavigationUrl && formattedNavigationUrl.trim() !== '';
 
   const hubDetails = getHubDetailsFromNotification(notification);
 
@@ -46,7 +49,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     ) : (
       <div
         className={clsx(
-          'w-[40px] h-[40px] flex items-center justify-center rounded-full bg-gray-50 flex-shrink-0'
+          'w-[40px] h-[40px] flex items-center justify-center rounded-full bg-white flex-shrink-0'
         )}
       >
         <Icon name={notificationInfo.icon} size={18} />
@@ -75,40 +78,48 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     </div>
   );
 
+  const NavigationIndicator = hasNavigationUrl && (
+    <div className="text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0">
+      <ChevronRight size={16} />
+    </div>
+  );
+
   return (
     <div className="group">
       <div
         className={clsx(
-          'relative py-3 px-4 -mx-4 rounded-lg',
-          notification.read ? 'hover:bg-gray-50' : 'bg-blue-50 hover:bg-blue-100',
+          'relative py-3 px-2 border-b border-gray-100',
+          notification.read
+            ? hasNavigationUrl
+              ? 'hover:bg-gray-50'
+              : ''
+            : hasNavigationUrl
+              ? 'bg-primary-50/40 hover:bg-primary-50/60'
+              : 'bg-primary-50/40',
           hasNavigationUrl ? 'cursor-pointer' : ''
         )}
       >
-        <div className="flex items-center">
-          <div className="pl-1 flex-shrink-0 flex items-center justify-center self-center">
-            <div
-              className={clsx(
-                'w-2 h-2 rounded-full',
-                !notification.read ? 'bg-primary-500' : 'bg-transparent'
-              )}
-            ></div>
-          </div>
-          <div className="ml-3 flex gap-3 items-center">
-            {AvatarSection}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            {IndicatorSection}
+            <div className="ml-2 flex gap-3 items-center">
+              {AvatarSection}
 
-            {hasNavigationUrl && notification.navigationUrl ? (
-              <Link
-                href={notification.navigationUrl}
-                className="flex-grow min-w-0 hover:text-indigo-600 transition-colors"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {ContentSection}
-              </Link>
-            ) : (
-              ContentSection
-            )}
+              {hasNavigationUrl && formattedNavigationUrl ? (
+                <Link
+                  href={formattedNavigationUrl}
+                  className="flex-grow min-w-0 hover:text-indigo-600 transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {ContentSection}
+                </Link>
+              ) : (
+                ContentSection
+              )}
+            </div>
           </div>
+          {hasNavigationUrl && NavigationIndicator}
         </div>
       </div>
     </div>

@@ -126,6 +126,39 @@ export function getHubDetailsFromNotification(notification: Notification): HubDe
   return null;
 }
 
+/**
+ * Transform ResearchHub URLs to relative paths and convert #comments to /conversation
+ * Examples:
+ * - https://www.researchhub.com/paper/8086044/title#comments → /paper/8086044/title/conversation
+ * - https://www.staging.researchhub.com/post/272/03-25-24-test-post#comments → /post/272/03-25-24-test-post/conversation
+ * - http://localhost:3000/paper/4/alzheimeralzheimer#comments → /paper/4/alzheimeralzheimer/conversation
+ * - https://xyz-researchhub.vercel.app/paper/9348486/title → /paper/9348486/title
+ */
+export function formatNavigationUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+
+  try {
+    // Strip the hostname and protocol using regex - handle hostnames with ports like localhost:3000
+    let relativePath = url.replace(/^(https?:\/\/)?([^\/]+(:\d+)?)/, '');
+
+    // Ensure the path starts with a forward slash
+    if (!relativePath.startsWith('/')) {
+      relativePath = '/' + relativePath;
+    }
+
+    relativePath = relativePath.replace(/#comments$/, '/conversation');
+
+    if (relativePath.length > 1 && relativePath.endsWith('/')) {
+      relativePath = relativePath.slice(0, -1);
+    }
+
+    return relativePath;
+  } catch (error) {
+    console.error('Error formatting navigation URL:', error);
+    return url;
+  }
+}
+
 export function formatNotificationMessage(notification: Notification): string {
   const { type, actionUser, work } = notification;
 
