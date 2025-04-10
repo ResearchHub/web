@@ -7,7 +7,8 @@ const nextConfig = {
       headers: [
         {
           key: 'Permissions-Policy',
-          value: 'camera=(), geolocation=(), gyroscope=(), microphone=()',
+          value:
+            'camera=("https://*.withpersona.com/"), geolocation=(), gyroscope=(), microphone=()',
         },
         {
           key: 'Referrer-Policy',
