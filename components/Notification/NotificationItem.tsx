@@ -20,7 +20,7 @@ interface NotificationItemProps {
 export function NotificationItem({ notification }: NotificationItemProps) {
   const notificationInfo = getNotificationInfo(notification);
   const message = formatNotificationMessage(notification);
-  const formattedNavigationUrl = formatNavigationUrl(notification.navigationUrl);
+  const formattedNavigationUrl = formatNavigationUrl(notification);
   const hasNavigationUrl = !!formattedNavigationUrl && formattedNavigationUrl.trim() !== '';
 
   const hubDetails = getHubDetailsFromNotification(notification);
