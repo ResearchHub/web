@@ -127,44 +127,32 @@ export function getHubDetailsFromNotification(notification: Notification): HubDe
 }
 
 /**
- * Transform ResearchHub URLs to the new format
+ * Transform ResearchHub URLs to relative paths and convert #comments to /conversation
  * Examples:
- * - https://www.researchhub.com/paper/8086044/title#comments → https://new.researchhub.com/paper/8086044/title/conversation
- * - https://www.staging.researchhub.com/post/272/03-25-24-test-post#comments → https://new.staging.researchhub.com/post/272/03-25-24-test-post/conversation
- * - http://localhost:3000/paper/4/alzheimeralzheimer#comments → http://localhost:3000/paper/4/alzheimeralzheimer/conversation
+ * - https://www.researchhub.com/paper/8086044/title#comments → /paper/8086044/title/conversation
+ * - https://www.staging.researchhub.com/post/272/03-25-24-test-post#comments → /post/272/03-25-24-test-post/conversation
+ * - http://localhost:3000/paper/4/alzheimeralzheimer#comments → /paper/4/alzheimeralzheimer/conversation
+ * - https://xyz-researchhub.vercel.app/paper/9348486/title → /paper/9348486/title
  */
 export function formatNavigationUrl(url: string | undefined): string | undefined {
   if (!url) return undefined;
 
   try {
-    const urlObj = new URL(url);
-    const pathname = urlObj.pathname;
-    const hash = urlObj.hash;
+    // Strip the hostname and protocol using regex - handle hostnames with ports like localhost:3000
+    let relativePath = url.replace(/^(https?:\/\/)?([^\/]+(:\d+)?)/, '');
 
-    // Check if the URL is from production or staging domain
-    const hostname = urlObj.hostname;
-    const isProductionDomain = hostname === 'www.researchhub.com' || hostname === 'researchhub.com';
-    const isStagingDomain = hostname.includes('staging.researchhub.com');
-
-    // For production or staging URLs, change www. to new.
-    if (isProductionDomain) {
-      urlObj.hostname = 'new.researchhub.com';
-    } else if (isStagingDomain) {
-      if (hostname.startsWith('www.')) {
-        urlObj.hostname = hostname.replace('www.', 'new.');
-      } else {
-        urlObj.hostname = 'new.' + hostname;
-      }
+    // Ensure the path starts with a forward slash
+    if (!relativePath.startsWith('/')) {
+      relativePath = '/' + relativePath;
     }
 
-    // Remove the hash and transform #comments to /conversation for all environments
-    if (hash === '#comments') {
-      urlObj.hash = '';
-      const cleanPath = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
-      urlObj.pathname = `${cleanPath}/conversation`;
+    relativePath = relativePath.replace(/#comments$/, '/conversation');
+
+    if (relativePath.length > 1 && relativePath.endsWith('/')) {
+      relativePath = relativePath.slice(0, -1);
     }
 
-    return urlObj.toString();
+    return relativePath;
   } catch (error) {
     console.error('Error formatting navigation URL:', error);
     return url;
