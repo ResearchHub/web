@@ -20,7 +20,7 @@ export default function NotePage() {
   const isNewFunding = searchParams?.get('newFunding') === 'true';
   const [showFundingModal, setShowFundingModal] = useState(false);
 
-  const [isLegacyNote, setIsLegacyNote] = useState(false);
+  const [isLegacyNote, setIsLegacyNote] = useState<boolean | undefined>(undefined);
 
   const {
     currentNote: note,
@@ -44,14 +44,21 @@ export default function NotePage() {
   }, [isNewFunding]);
 
   useEffect(() => {
-    if (note) {
-      const isLegacy = !note.contentJson && isFeatureEnabled('legacyNoteBanner');
-      setIsLegacyNote(isLegacy);
+    if (isLoadingNote) {
+      return;
     }
-  }, [note]);
+
+    if (!note || noteError) {
+      setIsLegacyNote(false);
+      return;
+    }
+
+    const isLegacy = !note.contentJson && isFeatureEnabled('legacyNoteBanner');
+    setIsLegacyNote(isLegacy);
+  }, [note, noteError, isLoadingNote]);
 
   // Handle loading states
-  if (isLoadingNote) {
+  if (isLoadingNote || isLegacyNote === undefined) {
     return <NotebookSkeleton />;
   }
 
@@ -86,9 +93,7 @@ export default function NotePage() {
                 content={note.content}
                 contentJson={note.contentJson}
                 isLoading={false}
-                onUpdate={
-                  isLegacyNote && isFeatureEnabled('legacyNoteBanner') ? undefined : updateNote
-                }
+                onUpdate={isLegacyNote ? undefined : updateNote}
                 editable={!(isLegacyNote && isFeatureEnabled('legacyNoteBanner'))}
               />
             </div>

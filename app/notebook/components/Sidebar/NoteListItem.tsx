@@ -36,7 +36,8 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) 
   const isProcessing = isDeleting || isDuplicating || isMakingPrivate || isUpdatingPermissions;
 
   const handleClick = () => {
-    router.replace(`/notebook/${note.organization.slug}/${note.id}`);
+    // router.replace(`/notebook/${note.organization.slug}/${note.id}`);
+    router.replace(`/notebook/${note.organization.slug}/${note.id}`, { scroll: false });
   };
 
   const handleDuplicate = async (e: React.MouseEvent) => {

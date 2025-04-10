@@ -231,7 +231,7 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
     // Load notes and users in parallel
     fetchNotes(selectedOrg.slug);
     fetchUsers(selectedOrg.id.toString());
-  }, [selectedOrg?.slug, selectedOrg?.id, isLoadingOrg, fetchNotes, fetchUsers, noteIdFromParams]);
+  }, [selectedOrg?.slug, selectedOrg?.id, isLoadingOrg, fetchNotes, fetchUsers]);
 
   // Update currentNoteId when URL params change
   useEffect(() => {
