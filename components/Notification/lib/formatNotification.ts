@@ -127,6 +127,21 @@ export function getHubDetailsFromNotification(notification: Notification): HubDe
 }
 
 /**
+ * Extract RSC amount from notification if available
+ */
+export function getRSCAmountFromNotification(notification: Notification): number | null {
+  if (notification.extra?.amount) {
+    try {
+      return parseFloat(notification.extra.amount);
+    } catch (error) {
+      console.error('Failed to parse RSC amount', error);
+      return null;
+    }
+  }
+  return null;
+}
+
+/**
  * Transform ResearchHub URLs to relative paths and convert #comments to /conversation
  * Examples:
  * - https://www.researchhub.com/paper/8086044/title#comments → /paper/8086044/title/conversation

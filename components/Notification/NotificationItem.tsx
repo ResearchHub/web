@@ -6,6 +6,7 @@ import {
   formatNotificationMessage,
   getHubDetailsFromNotification,
   formatNavigationUrl,
+  getRSCAmountFromNotification,
 } from './lib/formatNotification';
 import { Avatar } from '@/components/ui/Avatar';
 import { Icon } from '@/components/ui/icons/Icon';
@@ -23,7 +24,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const message = formatNotificationMessage(notification);
   const formattedNavigationUrl = formatNavigationUrl(notification);
   const hasNavigationUrl = !!formattedNavigationUrl && formattedNavigationUrl.trim() !== '';
-  const rscAmount = notification.extra?.amount ? parseFloat(notification.extra.amount) : null;
+  const rscAmount = getRSCAmountFromNotification(notification);
 
   const hubDetails = getHubDetailsFromNotification(notification);
 
@@ -78,7 +79,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         )}
         {rscAmount && (
           <div className="inline-block" onClick={(e) => e.stopPropagation()}>
-            <RSCBadge amount={rscAmount} size="xxs" variant="badge" />
+            <RSCBadge amount={rscAmount} size="xs" variant="badge" showText className="py-0.5" />
           </div>
         )}
       </div>
