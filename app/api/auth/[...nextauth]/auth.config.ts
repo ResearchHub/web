@@ -2,6 +2,7 @@ import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { AuthService } from '@/services/auth.service';
+import { AuthSharingService } from '@/services/auth-sharing.service';
 
 const promptInvalidCredentials = () => null;
 
@@ -16,12 +17,32 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
+        authToken: { label: 'Auth Token', type: 'text' },
       },
       async authorize(credentials, req) {
         try {
+          // If we have an authToken from the shared cookie, use that directly
+          if (credentials?.authToken) {
+            try {
+              // Fetch user data using the provided authToken
+              const userData = await AuthService.fetchUserData(credentials.authToken);
+              const user = userData.results[0];
+
+              return {
+                id: Number(user.id),
+                email: user.email,
+                authToken: credentials.authToken,
+              };
+            } catch (error) {
+              AuthSharingService.removeSharedAuthToken();
+              return promptInvalidCredentials();
+            }
+          }
+
           if (!credentials?.email || !credentials?.password) {
             return promptInvalidCredentials();
           }
+
           const loginResponse = await AuthService.login({
             email: credentials.email,
             password: credentials.password,
@@ -93,6 +114,7 @@ export const authOptions: NextAuthOptions = {
           sub: account.type === 'credentials' ? token.sub : account.userId,
         };
       }
+
       return token;
     },
 
