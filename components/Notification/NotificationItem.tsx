@@ -12,6 +12,7 @@ import { Icon } from '@/components/ui/icons/Icon';
 import clsx from 'clsx';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { ChevronRight } from 'lucide-react';
+import { RSCBadge } from '@/components/ui/RSCBadge';
 
 interface NotificationItemProps {
   notification: Notification;
@@ -22,6 +23,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const message = formatNotificationMessage(notification);
   const formattedNavigationUrl = formatNavigationUrl(notification);
   const hasNavigationUrl = !!formattedNavigationUrl && formattedNavigationUrl.trim() !== '';
+  const rscAmount = notification.extra?.amount ? parseFloat(notification.extra.amount) : null;
 
   const hubDetails = getHubDetailsFromNotification(notification);
 
@@ -72,6 +74,11 @@ export function NotificationItem({ notification }: NotificationItemProps) {
               imageUrl={hubDetails.imageUrl}
               size="sm"
             />
+          </div>
+        )}
+        {rscAmount && (
+          <div className="inline-block" onClick={(e) => e.stopPropagation()}>
+            <RSCBadge amount={rscAmount} size="xxs" variant="badge" />
           </div>
         )}
       </div>
