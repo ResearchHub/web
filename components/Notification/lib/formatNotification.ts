@@ -133,8 +133,33 @@ export function getHubDetailsFromNotification(notification: Notification): HubDe
  * - https://www.staging.researchhub.com/post/272/03-25-24-test-post#comments → /post/272/03-25-24-test-post/conversation
  * - http://localhost:3000/paper/4/alzheimeralzheimer#comments → /paper/4/alzheimeralzheimer/conversation
  * - https://xyz-researchhub.vercel.app/paper/9348486/title → /paper/9348486/title
+ *
+ * For notifications with null/empty URLs:
+ * - Creates relative paper URLs for any notification with a paper ID
+ * - Adds /bounties suffix specifically for BOUNTY_FOR_YOU notifications
  */
-export function formatNavigationUrl(url: string | undefined): string | undefined {
+export function formatNavigationUrl(notification: Notification): string | undefined {
+  const url = notification.navigationUrl;
+
+  // Handle null/empty URL when we have document data
+  if ((!url || url.trim() === '') && notification.work?.id) {
+    const paperId = notification.work.id;
+    let basePath = notification.work.slug
+      ? `/paper/${paperId}/${notification.work.slug}`
+      : `/paper/${paperId}`;
+
+    if (
+      notification.type === 'BOUNTY_FOR_YOU' ||
+      notification.type === 'BOUNTY_EXPIRING_SOON' ||
+      notification.type === 'BOUNTY_HUB_EXPIRING_SOON' ||
+      notification.type === 'BOUNTY_PAYOUT'
+    ) {
+      basePath += '/bounties';
+    }
+
+    return basePath;
+  }
+
   if (!url) return undefined;
 
   try {

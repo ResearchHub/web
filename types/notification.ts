@@ -34,6 +34,7 @@ export interface Notification {
   work?: {
     id: number;
     title: string;
+    slug?: string;
   };
   type: string;
   body: NotificationBodyElement[];
@@ -103,7 +104,7 @@ export const transformNotificationBody = (body: any): NotificationBodyElement[] 
 };
 
 // Helper function to transform work without using createTransformer
-const transformWorkRaw = (raw: any): { id: number; title: string } | undefined => {
+const transformWorkRaw = (raw: any): { id: number; title: string; slug?: string } | undefined => {
   if (!raw) return undefined;
 
   // Direct extraction when raw is already a unified_document
@@ -115,6 +116,7 @@ const transformWorkRaw = (raw: any): { id: number; title: string } | undefined =
       return {
         id: firstDoc.id,
         title: firstDoc.title || firstDoc.paper_title || '',
+        slug: firstDoc.slug,
       };
     }
     // Handle single document object
@@ -122,6 +124,7 @@ const transformWorkRaw = (raw: any): { id: number; title: string } | undefined =
       return {
         id: raw.documents.id,
         title: raw.documents.title || raw.documents.paper_title || '',
+        slug: raw.documents.slug,
       };
     }
   }
@@ -136,6 +139,7 @@ const transformWorkRaw = (raw: any): { id: number; title: string } | undefined =
     return {
       id: raw.id,
       title: raw.title || raw.paper_title || '',
+      slug: raw.slug,
     };
   }
 
@@ -145,7 +149,9 @@ const transformWorkRaw = (raw: any): { id: number; title: string } | undefined =
 export const transformWork = (raw: any) => {
   const transformed = transformWorkRaw(raw);
   if (!transformed) return undefined;
-  return createTransformer<any, { id: number; title: string }>(() => transformed)(raw);
+  return createTransformer<any, { id: number; title: string; slug?: string }>(() => transformed)(
+    raw
+  );
 };
 
 export const transformNotification = createTransformer<any, Notification>((raw) => ({
