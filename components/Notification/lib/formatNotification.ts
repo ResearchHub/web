@@ -136,13 +136,22 @@ export function getHubDetailsFromNotification(notification: Notification): HubDe
  */
 export function getRSCAmountFromNotification(notification: Notification): number | null {
   if (notification.extra?.amount) {
-    try {
-      return parseFloat(notification.extra.amount);
-    } catch (error) {
-      console.error('Failed to parse RSC amount', error);
-      return null;
+    const amount = parseFloat(notification.extra.amount);
+    if (!isNaN(amount)) return amount;
+  }
+
+  // If no amount in extra, try to parse from notification body
+  if (notification.body && Array.isArray(notification.body)) {
+    const bodyText = notification.body.map((segment) => segment.value).join('');
+
+    // Match numbers with optional decimal places followed by RSC
+    const match = bodyText.match(/(\d+(?:\.\d+)?)\s*RSC/);
+    if (match?.[1]) {
+      const amount = parseFloat(match[1]);
+      if (!isNaN(amount)) return amount;
     }
   }
+
   return null;
 }
 
@@ -215,26 +224,6 @@ function getBountyTypeAction(bountyType: string): string {
   }
 }
 
-/**
- * Extract RSC amount from notification body text
- * Looks for text segments with "rsc_color" in extra and parses the RSC amount
- */
-function getRSCFromBody(
-  body: Array<{ type: string; value: string; extra?: string }>
-): string | null {
-  const rscSegment = body.find(
-    (segment) =>
-      segment.extra && segment.extra.includes('rsc_color') && segment.value.includes('RSC')
-  );
-
-  if (rscSegment) {
-    const match = rscSegment.value.match(/(\d+(?:\.\d+)?)\s*RSC/);
-    return match ? match[1] : null;
-  }
-
-  return null;
-}
-
 export function formatNotificationMessage(
   notification: Notification,
   exchangeRate: number = 0
@@ -302,7 +291,7 @@ export function formatNotificationMessage(
     // RSC Support notifications
     case 'RSC_SUPPORT_ON_DIS':
     case 'RSC_SUPPORT_ON_DOC':
-      return `${userName} supported "${truncatedTitle}" with RSC`;
+      return `${userName} supported your work "${truncatedTitle}" with RSC`;
 
     // Fundraising notifications
     case 'FUNDRAISE_PAYOUT':
