@@ -86,7 +86,7 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
                         variant="outlined"
                         size="lg"
                         className="gap-2"
-                        disabled={!isBalanceReady || !balance?.raw}
+                        disabled={!isBalanceReady}
                       >
                         <ArrowUpFromLine className="h-5 w-5" />
                         Withdraw
