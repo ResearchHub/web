@@ -1,5 +1,6 @@
 import { Icon, type IconName } from '@/components/ui/icons/Icon';
 import { Notification } from '@/types/notification';
+import { formatUsdValue } from '@/utils/number';
 
 export interface NotificationTypeInfo {
   icon: IconName;
@@ -29,7 +30,7 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
     useAvatar: false,
   },
   BOUNTY_EXPIRING_SOON: {
-    icon: 'earn1',
+    icon: 'openGrant',
     useAvatar: false,
   },
   BOUNTY_HUB_EXPIRING_SOON: {
@@ -40,15 +41,19 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
     icon: 'earn1',
     useAvatar: true,
   },
+  FLAGGED_CONTENT_VERDICT: {
+    icon: 'report',
+    useAvatar: false,
+  },
 
   // Paper-related notifications
   PAPER_CLAIM_PAYOUT: {
-    icon: 'createBounty',
+    icon: 'claimPaper',
     useAvatar: false,
   },
   PAPER_CLAIMED: {
-    icon: 'claimPaper',
-    useAvatar: true,
+    icon: 'submit2',
+    useAvatar: false,
   },
   PUBLICATIONS_ADDED: {
     icon: 'claimPaper',
@@ -199,7 +204,41 @@ export function formatNavigationUrl(notification: Notification): string | undefi
   }
 }
 
-export function formatNotificationMessage(notification: Notification): string {
+function getBountyTypeAction(bountyType: string): string {
+  switch (bountyType?.toUpperCase()) {
+    case 'REVIEW':
+      return 'peer reviewing';
+    case 'ANSWER':
+      return 'answering a question on';
+    default:
+      return 'helping with';
+  }
+}
+
+/**
+ * Extract RSC amount from notification body text
+ * Looks for text segments with "rsc_color" in extra and parses the RSC amount
+ */
+function getRSCFromBody(
+  body: Array<{ type: string; value: string; extra?: string }>
+): string | null {
+  const rscSegment = body.find(
+    (segment) =>
+      segment.extra && segment.extra.includes('rsc_color') && segment.value.includes('RSC')
+  );
+
+  if (rscSegment) {
+    const match = rscSegment.value.match(/(\d+(?:\.\d+)?)\s*RSC/);
+    return match ? match[1] : null;
+  }
+
+  return null;
+}
+
+export function formatNotificationMessage(
+  notification: Notification,
+  exchangeRate: number = 0
+): string {
   const { type, actionUser, work } = notification;
 
   const userName = actionUser ? actionUser.fullName : 'A user';
@@ -212,26 +251,28 @@ export function formatNotificationMessage(notification: Notification): string {
       return 'Your RSC withdrawal has been completed';
 
     case 'BOUNTY_PAYOUT':
-      return `${userName} received a bounty payout for "${truncatedTitle}"`;
+      return `${userName} awarded you RSC for your work on "${truncatedTitle}"`;
 
-    case 'BOUNTY_FOR_YOU':
-      const amount = notification.extra?.amount
-        ? parseFloat(notification.extra.amount).toLocaleString()
-        : '';
-      // For the plain text message format, still include the hub name in the text
-      const hubName = notification.extra?.hub?.name || '';
-      return `${amount} RSC bounty available for "${truncatedTitle}"${hubName ? ` in ${hubName}` : ''}`;
+    case 'BOUNTY_FOR_YOU': {
+      const amount = notification.extra?.amount || '0';
+      const bountyType = notification.extra?.bounty_type || '';
+      const bountyTypeAction = getBountyTypeAction(bountyType);
+      const usdValue = formatUsdValue(amount, exchangeRate);
+      return `Your expertise is needed! Earn ${usdValue} for ${bountyTypeAction} "${truncatedTitle}"`;
+    }
 
     case 'BOUNTY_EXPIRING_SOON':
+      return `Your bounty on "${truncatedTitle}" is expiring soon! Please award the best answer`;
+
     case 'BOUNTY_HUB_EXPIRING_SOON':
-      return `A bounty for "${truncatedTitle}" is expiring soon`;
+      return `A bounty on "${truncatedTitle}" is expiring soon `;
 
     // Paper-related notifications
     case 'PAPER_CLAIM_PAYOUT':
       return `Your paper claim for "${truncatedTitle}" has been approved`;
 
     case 'PAPER_CLAIMED':
-      return `${userName} claimed "${truncatedTitle}"`;
+      return `Your paper claim for "${truncatedTitle} has been submitted`;
 
     case 'PUBLICATIONS_ADDED':
       return 'New publications were added to your profile';
@@ -255,8 +296,10 @@ export function formatNotificationMessage(notification: Notification): string {
 
     // Account notifications
     case 'IDENTITY_VERIFICATION_UPDATED':
+      return 'Your ID has been submitted for review';
+
     case 'ACCOUNT_VERIFIED':
-      return 'Your account has been verified';
+      return 'Congratulations, your ID has passed the verification review';
 
     // RSC Support notifications
     case 'RSC_SUPPORT_ON_DIS':

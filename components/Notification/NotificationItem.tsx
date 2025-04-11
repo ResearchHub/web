@@ -14,6 +14,7 @@ import clsx from 'clsx';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { ChevronRight } from 'lucide-react';
 import { RSCBadge } from '@/components/ui/RSCBadge';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 
 interface NotificationItemProps {
   notification: Notification;
@@ -21,7 +22,8 @@ interface NotificationItemProps {
 
 export function NotificationItem({ notification }: NotificationItemProps) {
   const notificationInfo = getNotificationInfo(notification);
-  const message = formatNotificationMessage(notification);
+  const { exchangeRate } = useExchangeRate();
+  const message = formatNotificationMessage(notification, exchangeRate);
   const formattedNavigationUrl = formatNavigationUrl(notification);
   const hasNavigationUrl = !!formattedNavigationUrl && formattedNavigationUrl.trim() !== '';
   const rscAmount = getRSCAmountFromNotification(notification);

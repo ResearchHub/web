@@ -13,6 +13,11 @@ export interface NotificationHub {
 
 export interface NotificationExtra {
   amount?: string;
+  bounty_id?: string;
+  bounty_type?: string;
+  bounty_expiration_date?: string;
+  hub_details?: string;
+  user_hub_score?: string;
   rewardId?: string;
   rewardType?: 'REVIEW' | 'CONTRIBUTION' | 'DISCUSSION';
   hub?: NotificationHub;
@@ -70,10 +75,13 @@ const transformNotificationExtraRaw = (raw: any): NotificationExtra | undefined 
 
   return {
     amount: raw.amount,
+    bounty_id: raw.bounty_id,
+    bounty_type: raw.bounty_type,
+    bounty_expiration_date: raw.bounty_expiration_date,
+    hub,
+    user_hub_score: raw.user_hub_score,
     rewardId: raw.bounty_id,
     rewardType: raw.bounty_type,
-    hub,
-    userHubScore: raw.user_hub_score,
     rewardExpirationDate: raw.bounty_expiration_date,
   };
 };
