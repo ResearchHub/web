@@ -234,7 +234,15 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
 
                     {/* Amount Input */}
                     <div className="space-y-2">
-                      <span className="text-[15px] text-gray-700">Amount to Deposit</span>
+                      <div className="flex justify-between items-center">
+                        <span className="text-[15px] text-gray-700">Amount to Deposit</span>
+                        <button
+                          onClick={() => setAmount(walletBalance.toString())}
+                          className="text-sm text-primary-500 font-medium hover:text-primary-600"
+                        >
+                          MAX
+                        </button>
+                      </div>
                       <div className="relative">
                         <input
                           type="text"
@@ -272,21 +280,23 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
                         </div>
                       </div>
 
-                      <div className="my-2 border-t border-gray-200" />
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">After Deposit:</span>
-                        <div className="text-right flex items-center gap-2">
-                          <div className="flex items-center gap-2">
-                            <ResearchCoinIcon size={16} />
-                            <span
-                              className={`text-sm font-semibold ${depositAmount > 0 ? 'text-green-600' : 'text-gray-900'}`}
-                            >
-                              {formatRSC({ amount: calculateNewBalance() })}
-                            </span>
-                            <span className="text-sm text-gray-500">RSC</span>
+                      {depositAmount > 0 && depositAmount <= walletBalance && (
+                        <>
+                          <div className="my-2 border-t border-gray-200" />
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">After Deposit:</span>
+                            <div className="text-right flex items-center gap-2">
+                              <div className="flex items-center gap-2">
+                                <ResearchCoinIcon size={16} />
+                                <span className="text-sm font-semibold text-green-600">
+                                  {formatRSC({ amount: calculateNewBalance() })}
+                                </span>
+                                <span className="text-sm text-gray-500">RSC</span>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
+                        </>
+                      )}
                     </div>
 
                     {/* Transaction Button */}
