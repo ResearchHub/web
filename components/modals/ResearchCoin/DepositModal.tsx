@@ -280,23 +280,23 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
                         </div>
                       </div>
 
-                      {depositAmount > 0 && depositAmount <= walletBalance && (
-                        <>
-                          <div className="my-2 border-t border-gray-200" />
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">After Deposit:</span>
-                            <div className="text-right flex items-center gap-2">
-                              <div className="flex items-center gap-2">
-                                <ResearchCoinIcon size={16} />
-                                <span className="text-sm font-semibold text-green-600">
-                                  {formatRSC({ amount: calculateNewBalance() })}
-                                </span>
-                                <span className="text-sm text-gray-500">RSC</span>
-                              </div>
-                            </div>
+                      <div className="my-2 border-t border-gray-200" />
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">After Deposit:</span>
+                        <div className="text-right flex items-center gap-2">
+                          <div className="flex items-center gap-2">
+                            <ResearchCoinIcon size={16} />
+                            <span
+                              className={`text-sm font-semibold ${depositAmount > 0 && depositAmount <= walletBalance ? 'text-green-600' : 'text-gray-900'}`}
+                            >
+                              {depositAmount > 0 && depositAmount <= walletBalance
+                                ? formatRSC({ amount: calculateNewBalance() })
+                                : formatRSC({ amount: currentBalance })}
+                            </span>
+                            <span className="text-sm text-gray-500">RSC</span>
                           </div>
-                        </>
-                      )}
+                        </div>
+                      </div>
                     </div>
 
                     {/* Transaction Button */}
