@@ -16,7 +16,7 @@ export interface HubDetails {
 const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
   // Account notifications
   IDENTITY_VERIFICATION_UPDATED: {
-    icon: 'verify1',
+    icon: 'verify2',
     useAvatar: false,
   },
   ACCOUNT_VERIFIED: {
@@ -116,7 +116,7 @@ export function getNotificationInfo(notification: Notification): NotificationTyp
 
 export function getHubDetailsFromNotification(notification: Notification): HubDetails | null {
   // For hub-related notifications, extract hub details
-  if (notification.type === 'BOUNTY_FOR_YOU' && notification.extra?.hub) {
+  if (notification.extra?.hub) {
     try {
       return {
         name: notification.extra.hub.name || '',
@@ -296,10 +296,8 @@ export function formatNotificationMessage(
 
     // Account notifications
     case 'IDENTITY_VERIFICATION_UPDATED':
-      return 'Your ID has been submitted for review';
-
     case 'ACCOUNT_VERIFIED':
-      return 'Congratulations, your ID has passed the verification review';
+      return 'Your ID verification status has been updated';
 
     // RSC Support notifications
     case 'RSC_SUPPORT_ON_DIS':
