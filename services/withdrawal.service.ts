@@ -12,7 +12,7 @@ export interface WithdrawalResponse {
 }
 
 export class WithdrawalService {
-  private static readonly WITHDRAWAL_PATH = '/api/web3';
+  private static readonly WITHDRAWAL_PATH = '/api/withdrawal';
 
   /**
    * Initiates a withdrawal of RSC to the specified wallet address
@@ -22,15 +22,12 @@ export class WithdrawalService {
    */
   static async withdrawRSC(withdrawalData: WithdrawalRequest): Promise<WithdrawalResponse> {
     try {
-      return await ApiClient.post<WithdrawalResponse>(
-        `${this.WITHDRAWAL_PATH}/withdraw_rsc/`,
-        withdrawalData
-      );
+      return await ApiClient.post<WithdrawalResponse>(`${this.WITHDRAWAL_PATH}/`, withdrawalData);
     } catch (error: unknown) {
       if (error instanceof Error) {
-        throw new Error(`Failed to withdraw RSC: ${error.message}`);
+        throw new Error(`${error.message}`);
       }
-      throw new Error('Failed to withdraw RSC: Unknown error');
+      throw new Error('Unknown error');
     }
   }
 }
