@@ -67,7 +67,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
           {formatTimestamp(notification.createdDate.toISOString())}
         </div>
         {hubDetails && (
-          <div className="inline-block" onClick={(e) => e.stopPropagation()}>
+          <div className="inline-block">
             <TopicAndJournalBadge
               type="topic"
               name={hubDetails.name}
@@ -78,7 +78,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
           </div>
         )}
         {rscAmount && (
-          <div className="inline-block" onClick={(e) => e.stopPropagation()}>
+          <div className="inline-block">
             <RSCBadge amount={rscAmount} size="xs" variant="badge" showText className="py-0.5" />
           </div>
         )}
@@ -106,25 +106,18 @@ export function NotificationItem({ notification }: NotificationItemProps) {
               : 'bg-primary-50/40',
           hasNavigationUrl ? 'cursor-pointer' : ''
         )}
+        onClick={() => {
+          if (hasNavigationUrl && formattedNavigationUrl) {
+            window.open(formattedNavigationUrl, '_blank', 'noopener,noreferrer');
+          }
+        }}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             {IndicatorSection}
             <div className="ml-2 flex gap-3 items-center">
               {AvatarSection}
-
-              {hasNavigationUrl && formattedNavigationUrl ? (
-                <Link
-                  href={formattedNavigationUrl}
-                  className="flex-grow min-w-0 hover:text-indigo-600 transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {ContentSection}
-                </Link>
-              ) : (
-                ContentSection
-              )}
+              {ContentSection}
             </div>
           </div>
           {hasNavigationUrl && NavigationIndicator}
