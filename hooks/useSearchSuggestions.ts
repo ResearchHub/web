@@ -134,19 +134,8 @@ export function useSearchSuggestions({
       results = apiSuggestions;
     }
 
-    // Group results by entity type
-    const groupedResults: SearchSuggestion[] = [];
-    const papers = results.filter((s) => s.entityType === 'paper');
-    const users = results.filter((s) => s.entityType === 'user');
-    const authors = results.filter((s) => s.entityType === 'author');
-    const posts = results.filter((s) => s.entityType === 'post');
-
-    if (papers.length) groupedResults.push(...papers);
-    if (users.length) groupedResults.push(...users);
-    if (authors.length) groupedResults.push(...authors);
-    if (posts.length) groupedResults.push(...posts);
-
-    return groupedResults;
+    // Don't group results by entity type anymore, just return them in their original order
+    return results;
   }, [query, filteredLocalSuggestions, apiSuggestions, localSuggestions, includeLocalSuggestions]);
 
   // Clear all search history

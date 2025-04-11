@@ -1,15 +1,18 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorProfile } from '@/types/authorProfile';
 import { cn } from '@/utils/styles';
+import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { navigateToAuthorProfile } from '@/utils/navigation';
 
 interface Contributor {
   profileImage?: string;
   fullName?: string;
   profileUrl?: string;
+  authorId?: number;
 }
 
 interface FeedItemHeaderProps {
@@ -42,6 +45,9 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   const avatarSize = size === 'xs' ? 'xs' : size === 'md' ? 'md' : 'sm';
   const avatarStackSize = avatarSize === 'xs' ? 'xxs' : avatarSize === 'md' ? 'md' : 'sm';
 
+  // Determine if we have author ID to show tooltip
+  const authorId = author?.id;
+
   // For bounty header format
   if (isBounty && author) {
     // Create combined list of avatars starting with author
@@ -50,6 +56,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
         profileImage: author.profileImage || '',
         fullName: author.fullName || 'Author',
         profileUrl: author.profileUrl,
+        authorId: authorId,
       },
       ...contributors,
     ];
@@ -68,27 +75,48 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
       src: person.profileImage || '',
       alt: person.fullName || 'Participant',
       tooltip: person.fullName,
+      authorId: person.authorId,
     }));
 
     // Take the first N avatars for the stack (including author)
     const visibleAvatarItems = allAvatarItems.slice(0, MAX_VISIBLE_AVATARS);
 
-    // Create the title text
+    // Create the title text with tooltip for author name
     const contributorsText =
       totalPeople > 1 ? (
         <span>
+          {authorId ? (
+            <AuthorTooltip authorId={authorId}>
+              <span
+                className="text-gray-900 font-semibold cursor-pointer hover:text-indigo-600"
+                onClick={() => navigateToAuthorProfile(authorId)}
+              >
+                {author.fullName}
+              </span>
+            </AuthorTooltip>
+          ) : (
+            <span className="text-gray-900 font-semibold">{author.fullName}</span>
+          )}
           <span className="text-gray-900 font-semibold">
-            {author.fullName} and {totalPeople - 1} {totalPeople === 2 ? 'other' : 'others'}
-            {` `}
+            {` and ${totalPeople - 1} ${totalPeople === 2 ? 'other' : 'others'} `}
           </span>
           <span className="text-gray-600">{actionText}</span>
         </span>
       ) : (
         <span>
-          <span className="text-gray-900 font-semibold">
-            {author.fullName}
-            {` `}
-          </span>
+          {authorId ? (
+            <AuthorTooltip authorId={authorId}>
+              <span
+                className="text-gray-900 font-semibold cursor-pointer hover:text-indigo-600"
+                onClick={() => navigateToAuthorProfile(authorId)}
+              >
+                {author.fullName}
+              </span>
+            </AuthorTooltip>
+          ) : (
+            <span className="text-gray-900 font-semibold">{author.fullName}</span>
+          )}
+          {` `}
           <span className="text-gray-600">{actionText}</span>
         </span>
       );
@@ -136,14 +164,30 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
           src={author?.profileImage ?? ''}
           alt={author?.fullName ?? 'Unknown'}
           size={avatarSize}
+          className={authorId ? 'cursor-pointer' : ''}
+          onClick={authorId ? () => navigateToAuthorProfile(authorId) : undefined}
+          authorId={authorId}
         />
 
         <div className="flex flex-col">
           <div className="flex items-center gap-1.5 text-[15px]">
             {author ? (
-              <a href={author.profileUrl} className="font-semibold hover:text-indigo-600">
-                {author.fullName}
-              </a>
+              authorId ? (
+                <AuthorTooltip authorId={authorId}>
+                  <a
+                    href="#"
+                    className="font-semibold hover:text-indigo-600 cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigateToAuthorProfile(authorId);
+                    }}
+                  >
+                    {author.fullName}
+                  </a>
+                </AuthorTooltip>
+              ) : (
+                <span className="font-semibold">{author.fullName}</span>
+              )
             ) : null}
 
             <span className="text-gray-600">{actionText}</span>

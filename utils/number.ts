@@ -8,6 +8,11 @@ interface FormatRSCOptions {
    * @default false
    */
   shorten?: boolean;
+  /**
+   * Whether to round the number to the nearest integer (remove decimal places)
+   * @default false
+   */
+  round?: boolean;
 }
 
 /**
@@ -20,20 +25,24 @@ interface FormatRSCOptions {
  * formatRSC({ amount: 1000, shorten: true }) // "1K"
  * formatRSC({ amount: 433 }) // "433"
  * formatRSC({ amount: 1234 }) // "1,234"
+ * formatRSC({ amount: 1234.567, round: true }) // "1,235"
  */
-export function formatRSC({ amount, shorten = false }: FormatRSCOptions): string {
+export function formatRSC({ amount, shorten = false, round = false }: FormatRSCOptions): string {
+  // Round the amount if requested
+  const valueToFormat = round ? Math.round(amount) : amount;
+
   if (!shorten) {
-    return amount.toLocaleString();
+    return valueToFormat.toLocaleString();
   }
 
-  if (amount >= 1000) {
-    const shortened = (amount / 1000).toFixed(1);
+  if (valueToFormat >= 1000) {
+    const shortened = (valueToFormat / 1000).toFixed(1);
     // Remove .0 if present
     const formatted = shortened.endsWith('.0') ? shortened.slice(0, -2) : shortened;
     return `${formatted}K`;
   }
 
-  return amount.toString();
+  return valueToFormat.toString();
 }
 
 /**

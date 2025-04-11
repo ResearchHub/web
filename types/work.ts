@@ -5,6 +5,8 @@ import { Topic } from './topic';
 import { createTransformer, BaseTransformed } from './transformer';
 import { Hub } from './hub';
 import { NoteWithContent, transformNoteWithContent } from './note';
+import { ProxyService } from '../services/proxy.service';
+import { stripHtml } from '../utils/stringUtils';
 
 export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration' | 'funding_request';
 
@@ -41,34 +43,39 @@ export type DocumentVersion = {
   description: string;
 };
 
+export interface FormatType {
+  type: string;
+  url: string;
+}
+
 export interface Work {
   id: number;
-  type: WorkType;
+  type?: WorkType;
   contentType: ContentType;
   title: string;
   slug: string;
   createdDate: string;
-  publishedDate: string;
+  publishedDate?: string;
   authors: Authorship[];
-  abstract?: string;
-  previewContent?: string;
-  contentUrl?: string;
+  abstract: string;
   doi?: string;
   journal?: Journal;
   topics: Topic[];
-  formats: Array<{
-    type: string;
-    url: string;
-  }>;
+  formats: FormatType[];
   license?: string;
   pdfCopyrightAllowsDisplay?: boolean;
   figures: Array<{
     url: string;
   }>;
-  versions: Array<DocumentVersion>;
-  metrics: ContentMetrics;
-  unifiedDocumentId: number | null;
+  metrics?: ContentMetrics;
+  versions?: DocumentVersion[];
   note?: NoteWithContent;
+  image?: string;
+  previewContent?: string;
+  contentUrl?: string;
+  unifiedDocumentId?: number | null;
+  postType?: string;
+  fundraise?: any;
 }
 
 export interface FundingRequest extends Work {
@@ -101,7 +108,7 @@ export const transformJournal = (raw: any): TransformedJournal | undefined => {
   if (raw.external_source) {
     return createTransformer<any, Journal>((raw) => ({
       id: raw.external_source_id || 0,
-      name: raw.external_source,
+      name: raw.external_source || '',
       slug: raw.external_source_slug || '',
       imageUrl: raw.external_source_image || '',
     }))(raw);
@@ -111,7 +118,7 @@ export const transformJournal = (raw: any): TransformedJournal | undefined => {
   if (raw.journal) {
     return createTransformer<any, Journal>((raw) => ({
       id: raw.journal.id || 0,
-      name: raw.journal.name,
+      name: raw.journal.name || '',
       slug: raw.journal.slug || '',
       imageUrl: raw.journal.image || '',
     }))(raw);
@@ -128,65 +135,97 @@ export const transformDocumentVersion = createTransformer<any, DocumentVersion>(
   description: raw.description || '',
 }));
 
-export const transformWork = createTransformer<any, Work>((raw) => ({
-  id: raw.id,
-  type: raw.work_type as WorkType,
-  contentType: raw.content_type as ContentType,
-  title: raw.title || raw.paper_title,
-  slug: raw.slug,
-  createdDate: raw.created_date,
-  publishedDate: raw.paper_publish_date,
-  authors: Array.isArray(raw.authors) ? raw.authors.map(transformAuthorship) : [],
-  abstract: raw.abstract,
-  doi: raw.doi,
-  journal: transformJournal(raw),
-  topics: Array.isArray(raw.hubs)
-    ? raw.hubs.map((hub: Hub) => ({
-        id: hub.id,
-        name: hub.name,
-        slug: hub.slug,
-      }))
-    : raw.hub
+export const transformWork = createTransformer<any, Work>((raw) => {
+  // Process fullName fields from raw authors if needed
+  const processedAuthors =
+    Array.isArray(raw.authors) && raw.authors.length > 0
+      ? raw.authors.map(transformAuthorship)
+      : Array.isArray(raw.raw_authors) && raw.raw_authors.length > 0
+        ? raw.raw_authors.map((author: any) => ({
+            authorProfile: {
+              id: 0, // We don't have a real ID for raw authors
+              fullName: `${author.first_name || ''} ${author.last_name || ''}`.trim(),
+              profileImage: '',
+              headline: '',
+              profileUrl: '',
+              isClaimed: false,
+            },
+            isCorresponding: false,
+            position: 'middle' as AuthorPosition,
+          }))
+        : [];
+
+  return {
+    id: raw.id,
+    type: raw.work_type as WorkType,
+    contentType: raw.content_type as ContentType,
+    title: stripHtml(raw.title || raw.paper_title || ''),
+    slug: raw.slug,
+    createdDate: raw.created_date,
+    publishedDate: raw.paper_publish_date,
+    authors: processedAuthors,
+    abstract: raw.abstract || raw.renderable_text || '',
+    doi: raw.doi,
+    journal: transformJournal(raw),
+    topics: Array.isArray(raw.hubs)
+      ? raw.hubs.map((hub: Hub) => ({
+          id: hub.id,
+          name: hub.name || '',
+          slug: hub.slug,
+        }))
+      : raw.hub
+        ? [
+            {
+              id: raw.hub.id || 0,
+              name: raw.hub.name || '',
+              slug: raw.hub.slug,
+            },
+          ]
+        : [],
+    formats: raw.pdf_url
+      ? [...(raw.formats || []), { type: 'PDF', url: ProxyService.generateProxyUrl(raw.pdf_url) }]
+      : (raw.formats || []).map((format: FormatType) => ({
+          ...format,
+          url: format.type === 'PDF' ? ProxyService.generateProxyUrl(format.url) : format.url,
+        })),
+    license: raw.pdf_license,
+    pdfCopyrightAllowsDisplay: raw.pdf_copyright_allows_display,
+    figures: raw.first_preview
       ? [
           {
-            id: raw.hub.id || 0,
-            name: raw.hub.name,
-            slug: raw.hub.slug,
+            url: raw.first_preview.file,
           },
         ]
       : [],
-  formats: raw.pdf_url
-    ? [...(raw.formats || []), { type: 'PDF', url: raw.pdf_url }]
-    : raw.formats || [],
-  license: raw.pdf_license,
-  pdfCopyrightAllowsDisplay: raw.pdf_copyright_allows_display,
-  figures: raw.first_preview
-    ? [
-        {
-          url: raw.first_preview.file,
-        },
-      ]
-    : [],
-  versions: Array.isArray(raw.version_list) ? raw.version_list.map(transformDocumentVersion) : [],
-  metrics: {
-    votes: raw.metrics?.votes || raw.score || 0,
-    comments: raw.metrics?.comments || raw.discussion_count || 0,
-    saves: raw.metrics?.saves || raw.saves_count || 0,
-    reviewScore: raw?.unified_document?.reviews?.avg || 0,
-    reviews: raw?.unified_document?.reviews?.count || 0,
-    earned: raw.earned || 0,
-    views: raw.metrics?.views || raw.views_count || 0,
-  },
-  unifiedDocumentId: raw?.unified_document?.id || null,
-}));
+    versions: Array.isArray(raw.version_list) ? raw.version_list.map(transformDocumentVersion) : [],
+    metrics: {
+      votes: raw.metrics?.votes || raw.score || 0,
+      comments: raw.metrics?.comments || raw.discussion_count || 0,
+      saves: raw.metrics?.saves || raw.saves_count || 0,
+      reviewScore: raw?.unified_document?.reviews?.avg || 0,
+      reviews: raw?.unified_document?.reviews?.count || 0,
+      earned: raw.earned || 0,
+      views: raw.metrics?.views || raw.views_count || 0,
+    },
+    unifiedDocumentId: raw?.unified_document?.id || null,
+    postType: raw.type || raw.unified_document?.document_type,
+    fundraise: raw.fundraise,
+    note: raw.note ? transformNoteWithContent(raw.note) : undefined,
+    previewContent: raw.full_markdown || '',
+    contentUrl: raw.post_src,
+    image: raw.image,
+  };
+});
 
 export const transformPost = createTransformer<any, Work>((raw) => ({
   ...transformWork(raw),
   contentType:
-    raw.unified_document?.document_type === 'PREREGISTRATION' ? 'preregistration' : 'post',
+    raw.unified_document?.document_type === 'PREREGISTRATION' || raw.type === 'PREREGISTRATION'
+      ? 'preregistration'
+      : 'post',
   note: raw.note ? transformNoteWithContent(raw.note) : undefined,
   publishedDate: raw.created_date, // Posts use created_date for both
-  previewContent: raw.full_markdown,
+  previewContent: raw.full_markdown || '',
   contentUrl: raw.post_src,
   formats: [], // Posts don't have formats
   license: undefined,

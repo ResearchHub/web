@@ -49,7 +49,7 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
   const handlePaperSelect = (paper: SearchSuggestion) => {
     if (paper.entityType === 'paper') {
       if (paper.doi) {
-        router.push(`/work?doi=${encodeURIComponent(paper.doi)}`);
+        router.push(`/paper?doi=${encodeURIComponent(paper.doi)}`);
       }
     }
   };

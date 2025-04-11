@@ -1,6 +1,7 @@
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
+import { truncateText } from '@/utils/stringUtils';
 
 interface RelatedWorkCardProps {
   work: Work;
@@ -24,8 +25,54 @@ export const RelatedWorkCard = ({ work, onClick, size = 'default' }: RelatedWork
     if (onClick) {
       onClick();
     } else if (work.id && work.slug) {
-      // Default behavior: open the paper in a new tab
-      window.open(`/paper/${work.id}/${work.slug}`, '_blank');
+      // Default behavior: open the document in a new tab
+      let path;
+      if (work.contentType === 'preregistration' && work.fundraise) {
+        path = `/fund/${work.id}/${work.slug}`;
+      } else if (work.contentType === 'preregistration' || work.contentType === 'post') {
+        path = `/post/${work.id}/${work.slug}`;
+      } else if (work.contentType === 'paper') {
+        path = `/paper/${work.id}/${work.slug}`;
+      } else {
+        // For other content types like 'question', 'discussion', 'funding_request'
+        path = `/post/${work.id}/${work.slug}`;
+      }
+      window.open(path, '_blank');
+    }
+  };
+
+  // Determine badge type based on content type
+  const getBadgeType = ():
+    | 'paper'
+    | 'funding'
+    | 'bounty'
+    | 'review'
+    | 'article'
+    | 'preprint'
+    | 'published' => {
+    // If it's a fundraise preregistration, show funding badge
+    if (work.contentType === 'preregistration' && work.fundraise) {
+      return 'funding';
+    }
+
+    // Map content types to badge types
+    switch (work.contentType) {
+      case 'preregistration':
+        return 'article';
+      case 'post':
+        return 'article';
+      case 'paper':
+        // For papers, check the work type
+        if (work.type === 'preprint') {
+          return 'preprint';
+        } else if (work.type === 'article') {
+          return 'paper';
+        }
+        return 'paper';
+      case 'funding_request':
+        return 'funding';
+      default:
+        return 'paper';
     }
   };
 
@@ -43,14 +90,32 @@ export const RelatedWorkCard = ({ work, onClick, size = 'default' }: RelatedWork
     }
   };
 
+  const getAbstractClass = () => {
+    switch (size) {
+      case 'xs':
+        return 'text-xs';
+      case 'sm':
+        return 'text-xs';
+      case 'lg':
+        return 'text-sm';
+      default:
+        return 'text-xs';
+    }
+  };
+
+  // Truncate abstract for display
+  const maxLength = size === 'lg' ? 200 : size === 'default' ? 150 : 100;
+  const displayAbstract = work.abstract ? truncateText(work.abstract, maxLength) : '';
+
   return (
     <div
-      className={`bg-gray-50 rounded-lg border border-gray-200 p-4 ${onClick ? 'cursor-pointer hover:bg-gray-100' : ''}`}
+      // TODO: Add left border with dark gray thick and do not round top left and bottom right corners
+      className={`bg-gray-50 rounded-lg border border-l-2 border-l-gray-600 border-gray-200 rounded-tl-none rounded-bl-none p-4 ${onClick ? 'cursor-pointer hover:bg-gray-100' : ''}`}
       onClick={handleClick}
     >
       {/* Paper badge above title - full width */}
       <div className="mb-3">
-        <ContentTypeBadge size={size} type="paper" />
+        <ContentTypeBadge size={size} type={getBadgeType()} />
       </div>
 
       {/* Paper title */}
@@ -66,6 +131,11 @@ export const RelatedWorkCard = ({ work, onClick, size = 'default' }: RelatedWork
             delimiter="•"
           />
         </div>
+      )}
+
+      {/* Abstract */}
+      {displayAbstract && (
+        <div className={`mt-2 text-gray-600 ${getAbstractClass()}`}>{displayAbstract}</div>
       )}
     </div>
   );

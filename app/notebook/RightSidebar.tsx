@@ -1,6 +1,6 @@
 'use client';
 
-import { PublishingForm } from '@/components/Editor/components/Sidebar/PublishingForm';
+import { PublishingForm } from '@/app/notebook/components/PublishingForm';
 
 /**
  * Right sidebar component for the notebook layout

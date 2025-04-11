@@ -15,6 +15,7 @@ export interface Organization {
 
 export interface OrganizationMember {
   id: string;
+  authorId: number;
   name: string;
   email: string;
   role: OrganizationRole;
@@ -38,6 +39,7 @@ export interface OrganizationUsers {
 function transformOrganizationUser(raw: any, role: OrganizationRole): OrganizationMember {
   return {
     id: raw.id.toString(),
+    authorId: raw.author_profile?.id,
     name: `${raw.author_profile?.first_name} ${raw.author_profile?.last_name}`.trim(),
     email: raw.email,
     role,

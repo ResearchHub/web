@@ -112,7 +112,7 @@ const UserRow = ({
                   )}
                 </Button>
               }
-              className="p-1"
+              className="p-1 min-w-[250px]"
             >
               <DropdownItem
                 onClick={() => onRoleChange && onRoleChange(user.id, 'Admin')}

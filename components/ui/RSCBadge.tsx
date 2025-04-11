@@ -7,6 +7,7 @@ import { Badge } from './Badge';
 import { Tooltip } from './Tooltip';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { InfoIcon } from 'lucide-react';
+import { formatRSC } from '@/utils/number';
 
 interface RSCBadgeProps {
   amount: number;
@@ -29,6 +30,8 @@ interface RSCBadgeProps {
   textColor?: string;
   /** Custom text color for the RSC label (if different from amount) */
   rscLabelColor?: string;
+  /** Whether to shorten large numbers (e.g., 17,500 → 17.5K) */
+  shorten?: boolean;
 }
 
 export const RSCBadge: FC<RSCBadgeProps> = ({
@@ -44,6 +47,7 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
   tooltipPosition = 'top',
   textColor,
   rscLabelColor,
+  shorten,
 }) => {
   const { exchangeRate, isLoading } = useExchangeRate();
 
@@ -65,7 +69,7 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
     textDark: textColor || 'text-orange-600',
     textMedium: 'text-gray-600',
     iconColor: textColor ? undefined : '#F97316', // orange-500
-    rscLabel: rscLabelColor || textColor || 'text-orange-500',
+    rscLabel: rscLabelColor || textColor || 'text-amber-600"',
     // Add gold colors for award variant
     awardBg: 'bg-amber-100',
     awardBorder: 'border-amber-300',
@@ -99,8 +103,8 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
   const tooltipContent = (
     <div className="p-1">
       <div className="font-semibold text-orange-700 mb-0.5 flex items-center gap-1 [u">
-        <ResearchCoinIcon size={14} outlined={false} color={colors.iconColor} />
-        <span>{amount.toLocaleString()} RSC</span>
+        <ResearchCoinIcon size={14} color={colors.iconColor} />
+        <span>{Math.round(amount).toLocaleString()} RSC</span>
       </div>
       {usdValue ? (
         <div className="text-gray-700 text-xs">≈ ${usdValue} USD</div>
@@ -141,20 +145,24 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
         {showIcon && (
           <ResearchCoinIcon
             size={iconSizes[size]}
-            outlined={variant === 'text' ? false : true}
+            outlined={false}
             color={colors.iconColor}
             className="mr-1"
           />
         )}
         {inverted ? (
           <div className="flex items-center">
-            <span className={cn(colors.textDark, 'font-medium')}>{amount.toLocaleString()}</span>
+            <span className={cn(colors.textDark, 'font-semibold')}>
+              {shorten ? formatRSC({ amount, shorten: true }) : Math.round(amount).toLocaleString()}
+            </span>
             {showText && <span className={cn(colors.rscLabel, 'ml-1')}>RSC</span>}
             {/* {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>} */}
           </div>
         ) : (
           <div className="flex items-center">
-            <span className={cn(colors.text, 'font-medium')}>{amount.toLocaleString()}</span>
+            <span className={cn(colors.text, 'font-semibold')}>
+              {shorten ? formatRSC({ amount, shorten: true }) : Math.round(amount).toLocaleString()}
+            </span>
             {showText && <span className={cn(colors.rscLabel, 'ml-1')}>RSC</span>}
             {/* {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>} */}
           </div>
@@ -179,24 +187,29 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
       {showIcon && (
         <ResearchCoinIcon
           size={iconSizes[size]}
-          outlined={false}
           color={variant === 'award' ? colors.awardIconColor : colors.iconColor}
         />
       )}
       {variant === 'award' ? (
         <div className="flex items-center">
-          <span className={cn(colors.awardText, 'font-medium')}>+ {amount.toLocaleString()}</span>
+          <span className={cn(colors.awardText, 'font-semibold')}>
+            + {shorten ? formatRSC({ amount, shorten: true }) : Math.round(amount).toLocaleString()}
+          </span>
           {showText && <span className={cn(colors.awardText, 'ml-1')}>Awarded</span>}
         </div>
       ) : inverted ? (
         <div className="flex items-center">
-          <span className={cn(colors.textDark)}>{amount.toLocaleString()}</span>
+          <span className={cn(colors.textDark)}>
+            {shorten ? formatRSC({ amount, shorten: true }) : Math.round(amount).toLocaleString()}
+          </span>
           {showText && <span className={cn(colors.rscLabel, 'ml-1')}>RSC</span>}
           {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>}
         </div>
       ) : (
         <div className="flex items-center">
-          <span className={cn(colors.text)}>{amount.toLocaleString()}</span>
+          <span className={cn(colors.text)}>
+            {shorten ? formatRSC({ amount, shorten: true }) : Math.round(amount).toLocaleString()}
+          </span>
           {showText && <span className={cn(colors.rscLabel, 'ml-1')}>RSC</span>}
           {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>}
         </div>

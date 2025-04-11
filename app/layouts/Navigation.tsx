@@ -1,24 +1,61 @@
 'use client';
 
-import { Home, BookOpen, Star, Notebook, HandCoins, Coins } from 'lucide-react';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 import { Button } from '@/components/Editor/components/ui/Button';
+import Icon from '@/components/ui/icons/Icon';
+import { IconName } from '@/components/ui/icons/Icon';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
+import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
+
+// Define icon mapping for navigation items with both light and solid variants
+interface NavIcon {
+  light: IconName;
+  solid?: IconName;
+}
+
+type NavIconKey = 'earn' | 'fund' | 'journal' | 'notebook' | 'home';
 
 interface NavigationItem {
   label: string;
   href: string;
-  icon: React.FC<{ className?: string }>;
+  iconKey?: NavIconKey;
   description: string;
   requiresAuth?: boolean;
   isUnimplemented?: boolean;
+  isFontAwesome?: boolean;
 }
 
 interface NavigationProps {
   currentPath: string;
   onUnimplementedFeature: (featureName: string) => void;
 }
+
+// Map navigation icons to their light and solid variants
+const navIconMap: Record<NavIconKey, NavIcon> = {
+  home: {
+    light: 'home' as IconName,
+    solid: 'home' as IconName,
+  },
+  earn: {
+    light: 'earn1',
+    solid: 'solidEarn',
+  },
+  fund: {
+    light: 'fund',
+    solid: 'solidHand',
+  },
+  journal: {
+    light: 'rhJournal1',
+    solid: 'rhJournal2',
+  },
+  notebook: {
+    light: 'labNotebook2',
+    solid: 'solidNotebook',
+  },
+};
 
 export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimplementedFeature }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
@@ -35,31 +72,32 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
     {
       label: 'Home',
       href: '/',
-      icon: Home,
+      iconKey: 'home',
+      isFontAwesome: true,
       description: 'Navigate to the home page',
     },
     {
       label: 'Earn',
       href: '/earn',
-      icon: Coins,
+      iconKey: 'earn',
       description: 'Find opportunities to earn RSC',
     },
     {
       label: 'Fund',
       href: '/fund',
-      icon: HandCoins,
+      iconKey: 'fund',
       description: 'Browse grants and fundraising opportunities',
     },
     {
       label: 'RH Journal',
       href: '/journal',
-      icon: BookOpen,
+      iconKey: 'journal',
       description: 'Read and publish research papers',
     },
     {
       label: 'Lab Notebook',
       href: '/notebook',
-      icon: Notebook,
+      iconKey: 'notebook',
       description: 'Access your research notebook',
       requiresAuth: true,
     },
@@ -70,15 +108,14 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
       path === '/' ? ['/', '/following', '/latest'].includes(currentPath) : path === currentPath;
 
     return isActive
-      ? 'flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-indigo-600 bg-indigo-50 rounded-lg group'
-      : 'flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-lg group';
+      ? 'flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-indigo-600 tablet:max-sidebar-compact:!px-2 tablet:max-sidebar-compact:!justify-center bg-indigo-50 rounded-lg group'
+      : 'flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-gray-700 tablet:max-sidebar-compact:!px-2 tablet:max-sidebar-compact:!justify-center hover:bg-gray-50 rounded-lg group';
   };
 
-  const getIconStyles = (path: string, currentPath: string) => {
-    const isActive =
-      path === '/' ? ['/', '/following', '/latest'].includes(currentPath) : path === currentPath;
-
-    return `h-[22px] w-[22px] mr-3.5 ${isActive ? 'text-indigo-600' : 'text-gray-600 group-hover:text-indigo-600'}`;
+  const isPathActive = (path: string) => {
+    return path === '/'
+      ? ['/', '/following', '/latest'].includes(currentPath)
+      : path === currentPath;
   };
 
   const NavLink: React.FC<{
@@ -89,7 +126,18 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
     const { executeAuthenticatedAction } = useAuthenticatedAction();
     const router = useRouter();
     const buttonStyles = getButtonStyles(item.href, currentPath);
-    const iconStyles = getIconStyles(item.href, currentPath);
+    const isActive = isPathActive(item.href);
+
+    // Set icon colors based on active state
+    const iconColor = isActive ? '#4f46e5' : '#404040'; // Indigo-600 for active, gray-600 for inactive
+
+    // Get the appropriate icon based on active state
+    const getIconName = (): IconName | undefined => {
+      if (!item.iconKey) return undefined;
+
+      const iconSet = navIconMap[item.iconKey];
+      return isActive && iconSet.solid ? iconSet.solid : iconSet.light;
+    };
 
     const handleClick = (e: React.MouseEvent) => {
       e.preventDefault();
@@ -109,16 +157,26 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPath, onUnimpleme
 
     return (
       <Button onClick={handleClick} className={buttonStyles} variant="ghost">
-        <item.icon className={iconStyles} />
-        <div className="flex items-center justify-between w-full min-w-0">
-          <span className="truncate">{item.label}</span>
+        <div className="h-[26px] w-[26px] mr-2.5 tablet:max-sidebar-compact:!mr-0 flex items-center justify-center">
+          {item.isFontAwesome && item.iconKey === 'home' ? (
+            <FontAwesomeIcon
+              icon={isActive ? faHouseSolid : faHouseLight}
+              fontSize={20}
+              color={iconColor}
+            />
+          ) : (
+            item.iconKey && <Icon name={getIconName() as IconName} size={26} color={iconColor} />
+          )}
+        </div>
+        <div className="flex items-center justify-between w-full min-w-0 tablet:max-sidebar-compact:!hidden">
+          <span className="truncate text-[16px]">{item.label}</span>
         </div>
       </Button>
     );
   };
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       {navigationItems.map((item) => (
         <NavLink
           key={item.href}

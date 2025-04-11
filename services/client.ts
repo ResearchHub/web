@@ -18,6 +18,10 @@ export class ApiClient {
   }
 
   private static async getAuthToken() {
+    if (typeof window === 'undefined') {
+      return this.initializeToken();
+    }
+
     if (this.globalAuthToken) {
       return this.globalAuthToken;
     }
@@ -35,7 +39,6 @@ export class ApiClient {
       if (typeof window === 'undefined') {
         const session = await getServerSession(authOptions);
         if (session?.authToken) {
-          this.globalAuthToken = session.authToken;
           return session.authToken;
         }
       } else {
@@ -163,7 +166,16 @@ export class ApiClient {
       throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
     }
 
-    return response.json();
+    // Try to parse JSON, but don't fail if there's nothing to parse
+    // Some endpoints return empty responses,
+    // eg when creating a new publication (POST: /api/author/${authorId}/publications/)
+    // In this case, the response is an empty object
+    try {
+      return await response.json();
+    } catch (e) {
+      // If parsing fails, return an empty object
+      return {} as T;
+    }
   }
 
   static async patch<T>(path: string, body?: any): Promise<T> {

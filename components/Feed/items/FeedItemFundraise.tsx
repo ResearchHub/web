@@ -12,6 +12,7 @@ import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { useRouter } from 'next/navigation';
 import { Flag } from 'lucide-react';
 import Image from 'next/image';
+import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
@@ -46,9 +47,13 @@ const FeedItemFundraiseBody: FC<{
       <div className="flex flex-wrap gap-2 mb-3" onClick={(e) => e.stopPropagation()}>
         <ContentTypeBadge type="funding" />
         {topics.map((topic, index) => (
-          <div key={index} className="px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">
-            {topic.name}
-          </div>
+          <TopicAndJournalBadge
+            key={index}
+            type="topic"
+            name={topic.name}
+            slug={topic.slug || topic.name.toLowerCase().replace(/\s+/g, '-')}
+            imageUrl={topic.imageUrl}
+          />
         ))}
       </div>
 
@@ -107,9 +112,9 @@ const extractContributors = (fundraise: FeedPostContent['fundraise']) => {
   }
 
   return fundraise.contributors.topContributors.map((contributor) => ({
-    profileImage: contributor.profileImage,
-    fullName: contributor.fullName,
-    profileUrl: contributor.profileUrl,
+    profileImage: contributor.authorProfile.profileImage,
+    fullName: contributor.authorProfile.fullName,
+    profileUrl: contributor.authorProfile.profileUrl,
   }));
 };
 
@@ -152,23 +157,23 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   const isClickable = !!href;
 
   // Image URL
-  const imageUrl =
-    'https://iiif.elifesciences.org/journal-cms/cover%2F2025-03%2F100490-a_striking_image.png/28,0,1745,978/678,380/0/default.webp';
+  const imageUrl = post.previewImage || undefined; // Only use the actual preview image, no default
 
   // Mobile image display (for small screens only)
-  const MobileImage = () => (
-    <div className="md:hidden w-full mb-4">
-      <div className="aspect-[16/9] relative rounded-lg overflow-hidden shadow-sm">
-        <Image
-          src={imageUrl}
-          alt={post.title || 'Fundraise image'}
-          fill
-          className="object-cover"
-          sizes="100vw"
-        />
+  const MobileImage = () =>
+    imageUrl ? (
+      <div className="md:hidden w-full mb-4">
+        <div className="aspect-[16/9] relative rounded-lg overflow-hidden shadow-sm">
+          <Image
+            src={imageUrl}
+            alt={post.title || 'Fundraise image'}
+            fill
+            className="object-cover"
+            sizes="100vw"
+          />
+        </div>
       </div>
-    </div>
-  );
+    ) : null;
 
   return (
     <div className="space-y-3">
@@ -207,7 +212,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
               <FundraiseProgress
                 fundraise={post.fundraise}
                 compact={true}
-                showContribute={false}
+                showContribute={true}
                 className="p-0 border-0 bg-transparent"
               />
             </div>
@@ -223,6 +228,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                 votableEntityId={post.id}
                 userVote={entry.userVote}
                 showTooltips={showTooltips}
+                href={fundingPageUrl}
               />
             </div>
           </div>

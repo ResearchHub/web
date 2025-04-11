@@ -1,6 +1,7 @@
 'use client';
 
 import { FC, ReactNode } from 'react';
+import React from 'react';
 import { FeedItemSkeleton } from './FeedItemSkeleton';
 import { FeedEntry, FeedPostContent, FeedPaperContent, FeedBountyContent } from '@/types/feed';
 import { Comment } from '@/types/comment';
@@ -8,6 +9,9 @@ import { FeedItemFundraise } from './items/FeedItemFundraise';
 import { FeedItemPaper } from './items/FeedItemPaper';
 import { FeedItemBounty } from './items/FeedItemBounty';
 import { FeedItemComment } from './items/FeedItemComment';
+import { FeedItemPost } from './items/FeedItemPost';
+import { FundingCarousel } from '@/components/Fund/FundingCarousel';
+import { BountiesCarousel } from '@/components/Earn/BountiesCarousel';
 
 interface FeedContentProps {
   entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry
@@ -16,6 +20,7 @@ interface FeedContentProps {
   loadMore: () => void;
   header?: ReactNode;
   tabs?: ReactNode;
+  filters?: ReactNode; // New prop for source filters
   disableCardLinks?: boolean; // Optional prop to disable all card links
 }
 
@@ -26,6 +31,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   loadMore,
   header,
   tabs,
+  filters,
   disableCardLinks = false,
 }) => {
   // Generate appropriate href for each feed item type
@@ -34,7 +40,7 @@ export const FeedContent: FC<FeedContentProps> = ({
     if (disableCardLinks) {
       return undefined;
     }
-
+    console.log('entry', entry);
     try {
       switch (entry.contentType) {
         case 'POST':
@@ -48,16 +54,18 @@ export const FeedContent: FC<FeedContentProps> = ({
           return `/paper/${paperContent.id}/${paperContent.slug}`;
 
         case 'BOUNTY':
-          const bountyContent = entry.content as FeedBountyContent;
-          return `/bounty/${bountyContent.bounty.id}`;
-
+          if (entry.relatedWork?.contentType === 'paper') {
+            return `/paper/${entry.relatedWork.id}/${entry.relatedWork.slug}/bounties`;
+          } else {
+            return `/post/${entry?.relatedWork?.id}/${entry?.relatedWork?.slug}/bounties`;
+          }
         case 'COMMENT':
           const comment = entry.content as Comment;
           // For comments, we might want to link to the parent content with the comment ID as a hash
           if (entry.relatedWork?.contentType === 'paper') {
-            return `/paper/${entry.relatedWork.id}/${entry.relatedWork.slug}#comment-${comment.id}`;
+            return `/paper/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
           } else {
-            return `/post/${entry?.relatedWork?.id}/${entry?.relatedWork?.slug}#comment-${comment.id}`;
+            return `/post/${entry?.relatedWork?.id}/${entry?.relatedWork?.slug}/conversation#comment-${comment.id}`;
           }
 
         default:
@@ -70,73 +78,79 @@ export const FeedContent: FC<FeedContentProps> = ({
   };
 
   // Render a feed entry based on its content type
-  const renderFeedEntry = (entry: FeedEntry, isFirst: boolean) => {
+  const renderFeedEntry = (entry: FeedEntry, index: number) => {
     if (!entry) {
       console.error('Feed entry is undefined');
       return null;
     }
     // Apply appropriate spacing based on position
-    const spacingClass = !isFirst ? 'mt-12' : '';
+    const spacingClass = index !== 0 ? 'mt-12' : '';
 
     // Generate the appropriate href for this entry
     const href = generateHref(entry);
-    console.log('&entry!!', entry);
+
+    let content = null;
+
     try {
       // Use the contentType field on the FeedEntry object to determine the type of content
       switch (entry.contentType) {
         case 'POST':
+          content = <FeedItemPost entry={entry} href={href} />;
+          break;
+
         case 'PREREGISTRATION':
-          return (
-            <div key={entry.id} className={spacingClass}>
-              <FeedItemFundraise entry={entry} href={href} />
-            </div>
-          );
+          content = <FeedItemFundraise entry={entry} href={href} />;
+          break;
 
         case 'PAPER':
-          return (
-            <div key={entry.id} className={spacingClass}>
-              <FeedItemPaper entry={entry} href={href} />
-            </div>
-          );
+          content = <FeedItemPaper entry={entry} href={href} />;
+          break;
 
         case 'BOUNTY':
           // Use the new FeedItemBounty component
-          return (
-            <div key={entry.id} className={spacingClass}>
-              <FeedItemBounty
-                entry={entry}
-                relatedDocumentId={entry.relatedWork?.id}
-                href={href}
-                showContributeButton={false}
-              />
-            </div>
+          content = (
+            <FeedItemBounty
+              entry={entry}
+              relatedDocumentId={entry.relatedWork?.id}
+              href={href}
+              showContributeButton={false}
+            />
           );
+          break;
 
         case 'COMMENT':
           // Use FeedItemComment for comment entries
-          return (
-            <div key={entry.id} className={spacingClass}>
-              <FeedItemComment entry={entry} href={href} showCreatorActions={true} />
-            </div>
+          content = (
+            <FeedItemComment
+              showReadMoreCTA={false}
+              entry={entry}
+              href={href}
+              showCreatorActions={true}
+            />
           );
+          break;
 
         default:
           throw new Error(`Unsupported content type: ${entry.contentType}`);
       }
     } catch (error) {
       console.error('Error rendering feed entry:', error);
-      return (
-        <div key={entry.id} className={spacingClass}>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 className="text-lg font-medium">Error Rendering Entry - {entry.id}</h3>
-            <p className="text-gray-600 mt-2">There was an error rendering this entry.</p>
-            <pre className="text-xs mt-2 bg-gray-100 p-2 rounded overflow-auto">
-              {JSON.stringify(error, null, 2)}
-            </pre>
-          </div>
+      content = (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <h3 className="text-lg font-medium">Error Rendering Entry - {entry.id}</h3>
+          <p className="text-gray-600 mt-2">There was an error rendering this entry.</p>
+          <pre className="text-xs mt-2 bg-gray-100 p-2 rounded overflow-auto">
+            {JSON.stringify(error, null, 2)}
+          </pre>
         </div>
       );
     }
+
+    return (
+      <div key={entry.id} className={spacingClass}>
+        {content}
+      </div>
+    );
   };
 
   return (
@@ -146,7 +160,9 @@ export const FeedContent: FC<FeedContentProps> = ({
       <div className="max-w-4xl mx-auto">
         {tabs && <div className="border-b">{tabs}</div>}
 
-        <div className="mt-12">
+        {filters && <div className="py-3">{filters}</div>}
+
+        <div className="mt-8">
           {isLoading ? (
             // Show skeletons when loading
             <>
@@ -161,7 +177,13 @@ export const FeedContent: FC<FeedContentProps> = ({
               <p className="text-gray-500">No feed entries found</p>
             </div>
           ) : (
-            entries.map((entry, index) => renderFeedEntry(entry, index === 0))
+            entries.map((entry, index) => (
+              <React.Fragment key={entry.id}>
+                {renderFeedEntry(entry, index)}
+                {index === 2 && <FundingCarousel />}
+                {index === 8 && <BountiesCarousel />}
+              </React.Fragment>
+            ))
           )}
         </div>
 

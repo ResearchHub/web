@@ -5,9 +5,19 @@ import { X, BadgeCheck, ChevronRight } from 'lucide-react';
 interface VerificationBannerProps {
   onClose: () => void;
   onLearnMore?: () => void;
+  onMenuClose?: () => void;
 }
 
-export default function VerificationBanner({ onClose, onLearnMore }: VerificationBannerProps) {
+export default function VerificationBanner({
+  onClose,
+  onLearnMore,
+  onMenuClose,
+}: VerificationBannerProps) {
+  const handleLearnMoreClick = (e: React.MouseEvent) => {
+    onMenuClose?.();
+    onLearnMore?.();
+  };
+
   return (
     <div className="bg-indigo-50 p-3 rounded-lg">
       <div className="flex justify-between items-start">
@@ -31,7 +41,7 @@ export default function VerificationBanner({ onClose, onLearnMore }: Verificatio
             </li>
           </ul>
           <button
-            onClick={onLearnMore}
+            onClick={handleLearnMoreClick}
             className="text-xs text-indigo-600 hover:text-indigo-700 font-medium flex items-center"
           >
             Learn more

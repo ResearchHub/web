@@ -15,9 +15,8 @@ export class PostService {
   }
 
   static async upsert(payload: any): Promise<Work> {
-    const response = await ApiClient.post<any>(`${this.BASE_PATH}/`, payload);
-
-    return transformPost(response);
+    const rawResponse = await ApiClient.post<any>(`${this.BASE_PATH}/`, payload);
+    return transformPost(rawResponse);
   }
 
   static async getContent(url: string, options: GetContentOptions = {}): Promise<string> {

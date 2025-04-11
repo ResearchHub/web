@@ -1,96 +1,156 @@
-import {
-  ArrowBigUpDash,
-  ArrowUpFromLine,
-  HandCoins,
-  ArrowDownToLine,
-  Trophy,
-  Percent,
-  HelpCircle,
-  type LucideIcon,
-} from 'lucide-react';
 import { formatUsdValue, formatRSC } from '@/utils/number';
 import { formatTimestamp } from '@/utils/date';
 import type { TransactionAPIRequest } from '@/services/types/transaction.dto';
+import type { IconName } from '@/components/ui/icons/Icon';
 
 export interface TransactionTypeInfo {
   label: string;
-  icon: LucideIcon;
+  icon: IconName;
+  variant?: 'default' | 'positive' | 'negative';
 }
 
-// Move distribution types mapping to view layer
-export const DISTRIBUTION_TYPES = {
-  EDITOR_BOUNTY: 'Editor Bounty',
-  PAPER_UPVOTED: 'Upvote: Paper',
-  COMMENT_UPVOTED: 'Upvote: Comment',
-  RESEARCH_UPVOTED: 'Upvote: Research',
-  PURCHASING_POWER: 'Purchasing Power',
-  RhCOMMENT: 'Comment',
-  STORED_REWARD: 'Stored Reward',
-  THREAD_REWARD: 'Thread Reward',
-  PAPER_REWARD: 'Paper Reward',
-  EDITOR_CONTRIBUTION: 'Editor Contribution',
-  COMMENT_REWARD: 'Comment Reward',
-  RhCOMMENT_UPVOTED: 'Upvote: Comment',
-  RESEARCHHUB_POST_UPVOTED: 'Upvote: Post',
-  MOD_PAYMENT: 'Moderator Payment',
-  REPLY_COMMENT: 'Reply Comment',
-  PURCHASE: 'Purchase',
-  PURCHASE_BOOST: 'Tip',
-  PURCHASE_TIP: 'Tip',
-  SUPPORT_RH_FEE: 'Support RH Fee',
-  BOUNTY: 'Bounty',
-  BOUNTY_FEE: 'Bounty Fee',
-  WITHDRAWAL: 'Withdrawal',
-  DEPOSIT: 'Deposit',
-} as const;
+// Define mapping rules in order of priority
+const transactionMappings: TransactionMappingRule[] = [
+  // Specific Distribution Types
+  {
+    condition: (tx) => tx.source?.distribution_type === 'RESEARCHHUB_POST_UPVOTED',
+    label: 'Upvote: Post',
+    icon: 'upvote',
+    variant: 'positive',
+  },
+  {
+    condition: (tx) => tx.source?.distribution_type === 'BOUNTY_REFUND',
+    label: 'Bounty Refund',
+    icon: 'earn1',
+  },
+  {
+    condition: (tx) => tx.source?.distribution_type === 'RhCOMMENT_UPVOTED',
+    label: 'Upvote: Comment',
+    icon: 'upvote',
+    variant: 'positive',
+  },
+  {
+    condition: (tx) => tx.source?.distribution_type === 'PAPER_UPVOTED',
+    label: 'Upvote: Paper',
+    icon: 'upvote',
+    variant: 'positive',
+  },
+  {
+    condition: (tx) => tx.source?.distribution_type === 'RESEARCHHUB_POST_DOWNVOTED',
+    label: 'Downvote: Post',
+    icon: 'upvote',
+    variant: 'negative',
+  },
+  {
+    condition: (tx) => tx.source?.distribution_type === 'PAPER_REWARD',
+    label: 'Paper Reward',
+    icon: 'solidCoin',
+  },
+  {
+    condition: (tx) => tx.source?.distribution_type === 'PURCHASE',
+    label: 'Received Support',
+    icon: 'fund',
+  },
+  {
+    condition: (tx) => tx.source?.distribution_type === 'EDITOR_COMPENSATION',
+    label: 'Editor Compensation',
+    icon: 'solidCoin',
+  },
+  {
+    condition: (tx) => tx.source?.distribution_type === 'DEPOSIT',
+    label: 'Deposit',
+    icon: 'wallet1',
+  },
 
-// Move content type mapping to view layer
-export const CONTENT_TYPE_MAP: Record<number, TransactionTypeInfo> = {
-  27: { label: 'Distribution', icon: ArrowBigUpDash },
-  30: { label: 'Withdrawal', icon: ArrowUpFromLine },
-  55: { label: 'Purchase', icon: HandCoins },
-  61: { label: 'Support', icon: HandCoins },
-  89: { label: 'Deposit', icon: ArrowDownToLine },
-  108: { label: 'Bounty', icon: Trophy },
-  110: { label: 'Bounty Fee', icon: Percent },
-  127: { label: 'Support Fee', icon: Percent },
-  144: { label: 'Paper Reward', icon: Trophy },
-  154: { label: 'Payment', icon: HandCoins },
-};
+  // Specific Purchase Types & Associated Fees (Fees checked first)
+  {
+    condition: (tx) =>
+      tx.source?.purchase_type === 'BOOST' && tx.readable_content_type === 'supportfee',
+    label: 'ResearchHub Platform Fee',
+    icon: 'RSC',
+  },
+  {
+    condition: (tx) =>
+      tx.source?.purchase_type === 'FUNDRAISE_CONTRIBUTION' &&
+      tx.readable_content_type === 'bountyfee',
+    label: 'ResearchHub Platform Fee',
+    icon: 'RSC',
+  },
+  {
+    condition: (tx) => tx.source?.purchase_type === 'BOOST',
+    label: 'Boost',
+    icon: 'fund',
+  },
+  {
+    condition: (tx) => tx.source?.purchase_type === 'FUNDRAISE_CONTRIBUTION',
+    label: 'Fundraise Contribution',
+    icon: 'fund',
+  },
+
+  // Fallback readable_content_type checks
+  {
+    condition: (tx) => tx.readable_content_type === 'withdrawal',
+    label: 'Withdrawal',
+    icon: 'wallet3',
+  },
+  {
+    condition: (tx) => tx.readable_content_type === 'bounty',
+    label: 'Bounty',
+    icon: 'earn1',
+  },
+  // Fallback fee checks (if not caught by purchase_type) - lower priority
+  {
+    condition: (tx) => tx.readable_content_type === 'supportfee',
+    label: 'ResearchHub Platform Fee',
+    icon: 'RSC',
+  },
+  {
+    condition: (tx) => tx.readable_content_type === 'bountyfee',
+    label: 'ResearchHub Platform Fee',
+    icon: 'RSC',
+  },
+];
+
+interface TransactionMappingRule {
+  condition: (tx: TransactionAPIRequest) => boolean;
+  label: string;
+  icon: IconName;
+  variant?: 'default' | 'positive' | 'negative';
+}
 
 export function getTransactionTypeInfo(tx: TransactionAPIRequest): TransactionTypeInfo {
-  // First check if we have source type information
-  if (tx.source?.purchase_type) {
-    const sourceType = tx.source.purchase_type;
-    const label = DISTRIBUTION_TYPES[sourceType as keyof typeof DISTRIBUTION_TYPES];
-    if (label) {
+  for (const rule of transactionMappings) {
+    if (rule.condition(tx)) {
       return {
-        label,
-        icon:
-          sourceType.includes('BOOST') || sourceType.includes('TIP')
-            ? HandCoins
-            : sourceType === 'BOUNTY'
-              ? Trophy
-              : ArrowBigUpDash,
+        label: rule.label,
+        icon: rule.icon,
+        variant: rule.variant || 'default',
       };
     }
   }
 
-  // Then check content type map
-  if (tx.content_type && CONTENT_TYPE_MAP[tx.content_type]) {
-    return CONTENT_TYPE_MAP[tx.content_type];
-  }
-
-  // Finally fall back to readable content type or unknown
+  // Final fallback if no rules match
   return {
     label:
       tx.readable_content_type?.charAt(0).toUpperCase() + tx.readable_content_type?.slice(1) ||
-      'Unknown TX',
-    icon: HelpCircle,
+      'Unknown Transaction',
+    icon: 'notification',
   };
 }
 
-export function formatTransaction(tx: TransactionAPIRequest, exchangeRate: number) {
+// Define the shape of the formatted transaction object
+export interface FormattedTransaction extends TransactionAPIRequest {
+  formattedAmount: string;
+  formattedUsdValue: string;
+  formattedDate: string;
+  typeInfo: TransactionTypeInfo;
+  isPositive: boolean;
+}
+
+export function formatTransaction(
+  tx: TransactionAPIRequest,
+  exchangeRate: number
+): FormattedTransaction {
   const amount = parseFloat(tx.amount);
   const isPositive = amount >= 0;
   const formattedAmount = formatRSC({ amount: Math.abs(amount) });

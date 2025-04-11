@@ -2,7 +2,7 @@
 
 import { FC } from 'react';
 import React from 'react';
-import { FeedEntry, FeedCommentContent } from '@/types/feed';
+import { FeedEntry, FeedCommentContent, ParentCommentPreview } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions, ActionButton } from '@/components/Feed/FeedItemActions';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
@@ -12,6 +12,48 @@ import { ContentType } from '@/types/work';
 import { Button } from '@/components/ui/Button';
 import { Reply, Pen, Trash2 } from 'lucide-react';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
+import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
+import { Avatar } from '@/components/ui/Avatar';
+
+// Define the recursive rendering component for parent comments
+const RenderParentComment: FC<{ comment: ParentCommentPreview; level: number }> = ({
+  comment,
+  level,
+}) => {
+  // Base indentation + additional indentation per level
+  const indentation = level * 0.25; // Adjust multiplier for desired nesting (using rem units)
+
+  return (
+    <div
+      className="mt-4 p-3 pt-0 pb-0 border-l-2 border-l-gray-100  text-sm text-gray-500"
+      style={{ marginLeft: `${indentation}rem` }}
+    >
+      <div className="flex items-center space-x-2 mb-2">
+        <Avatar
+          src={comment.createdBy.profileImage}
+          alt={comment.createdBy.fullName || 'User'}
+          authorId={comment.createdBy.id}
+          size="xs"
+          disableTooltip
+        />
+        <span className="font-medium text-gray-700">{comment.createdBy.fullName}</span>
+        <span>replied:</span>
+      </div>
+      <div className="text-gray-600">
+        <CommentReadOnly
+          content={comment.content}
+          contentFormat={comment.contentFormat}
+          initiallyExpanded={false}
+          showReadMoreButton={false}
+        />
+      </div>
+      {/* Recursive call for the next parent level */}
+      {comment.parentComment && (
+        <RenderParentComment comment={comment.parentComment} level={level + 1} />
+      )}
+    </div>
+  );
+};
 
 interface FeedItemCommentProps {
   entry: FeedEntry;
@@ -20,6 +62,8 @@ interface FeedItemCommentProps {
   onEdit?: () => void;
   onDelete?: () => void;
   showCreatorActions?: boolean;
+  showRelatedWork?: boolean;
+  showReadMoreCTA?: boolean; // New property for controlling the "Read more" button
   actionLabels?: {
     comment?: string;
     upvote?: string;
@@ -32,35 +76,47 @@ interface FeedItemCommentProps {
  */
 const FeedItemCommentBody: FC<{
   entry: FeedEntry;
-}> = ({ entry }) => {
+  parentComment?: ParentCommentPreview;
+  showRelatedWork?: boolean;
+  showReadMoreCTA?: boolean;
+}> = ({ entry, parentComment, showRelatedWork = true, showReadMoreCTA = true }) => {
   // Extract the comment entry from the entry's content
   const commentEntry = entry.content as FeedCommentContent;
   const comment = commentEntry.comment;
   const isReview = comment.commentType === 'REVIEW';
-
+  const reviewScore = comment.reviewScore || commentEntry.review?.score || comment.score || 0;
+  console.log('parentComment', parentComment);
+  // Get related work if available
+  const relatedWork = entry.relatedWork;
   return (
     <div className="mb-4">
-      {/* For review comments, display the star rating */}
-      {isReview && comment.score !== undefined && <StarRating score={comment.score} />}
+      {/* Review information for reviews (optional additional display) */}
+      {isReview && (
+        <div className="mb-4 text-gray-700 text-sm mt-0.5">
+          <span className="font-medium">Review score: </span>
+          <span className="text-yellow-500 font-medium">{reviewScore}/5</span>
+        </div>
+      )}
 
       {/* Comment Content */}
-      <div className="text-gray-600">
-        <CommentReadOnly content={comment.content} contentFormat={comment.contentFormat} />
+      <div className="text-gray-600 mb-4">
+        <CommentReadOnly
+          content={comment.content}
+          contentFormat={comment.contentFormat}
+          initiallyExpanded={false}
+          showReadMoreButton={showReadMoreCTA}
+        />
       </div>
-    </div>
-  );
-};
 
-/**
- * Component for rendering star ratings for reviews
- */
-const StarRating: FC<{
-  score: number;
-  maxScore?: number;
-}> = ({ score, maxScore = 5 }) => {
-  return (
-    <div className="mb-3">
-      <ContentTypeBadge type="review" score={score} maxScore={maxScore} />
+      {/* Initiate recursive rendering of parent comments if they exist */}
+      {parentComment && <RenderParentComment comment={parentComment} level={1} />}
+
+      {/* Related Work - show if available */}
+      {relatedWork && showRelatedWork && (
+        <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+          <RelatedWorkCard size="sm" work={relatedWork} />
+        </div>
+      )}
     </div>
   );
 };
@@ -75,20 +131,25 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   onEdit,
   onDelete,
   showCreatorActions = true,
+  showRelatedWork = true,
+  showReadMoreCTA = true, // Default to showing "Read more" button
   actionLabels,
   showTooltips = true, // Default to showing tooltips
 }) => {
-  console.log('&entry', entry);
   // Extract the comment entry from the entry's content
   const commentEntry = entry.content as FeedCommentContent;
   const comment = commentEntry.comment;
   const router = useRouter();
-
+  const parentComment = commentEntry.parentComment;
+  console.log('---parentComment', parentComment);
   // Get the author from the comment entry
   const author = commentEntry.createdBy;
 
   // Determine if this is a review comment
   const isReview = comment.commentType === 'REVIEW';
+
+  // Get the review score from either comment.reviewScore, commentEntry.review.score, or comment.score
+  const reviewScore = comment.reviewScore || commentEntry.review?.score || comment.score || 0;
 
   // Determine the content type for the comment
   const contentType: ContentType = comment.thread?.threadType === 'PAPER' ? 'paper' : 'post';
@@ -132,13 +193,14 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
 
   // Determine if card should have clickable styles
   const isClickable = !!href;
+
   return (
     <div className="space-y-3">
       {/* Header */}
       <FeedItemHeader
         timestamp={commentEntry.createdDate}
         author={author}
-        actionText={isReview ? 'Submitted a peer-review' : 'Added a comment'}
+        actionText={isReview ? `submitted a peer review` : 'Added a comment'}
       />
 
       {/* Main Content Card - Using onClick instead of wrapping with Link */}
@@ -151,10 +213,22 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
         )}
       >
         <div className="p-4">
+          {/* Review Badge and Rating - Only show for reviews */}
+          {isReview && (
+            <div className="flex justify-between items-center mb-3">
+              <ContentTypeBadge type="review" />
+            </div>
+          )}
+
           {/* Content area */}
           <div className="mb-4">
             {/* Body Content */}
-            <FeedItemCommentBody entry={entry} />
+            <FeedItemCommentBody
+              entry={entry}
+              parentComment={parentComment}
+              showRelatedWork={showRelatedWork}
+              showReadMoreCTA={showReadMoreCTA}
+            />
           </div>
 
           {/* Action Buttons - Full width */}

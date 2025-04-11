@@ -211,7 +211,7 @@ export const CommentItem = ({
 
         // Check if this is an open bounty
         const isBountyOpen = comment.bounties.some((b) => isOpenBounty(b));
-        console.log('!showAwardModal', showAwardModal);
+
         return (
           <div className="space-y-4">
             <FeedItemBounty
@@ -274,7 +274,7 @@ export const CommentItem = ({
     // For regular comments, use FeedItemComment
     // Transform the comment to a feed entry
     const feedEntry = transformCommentToFeedItem(comment, contentType);
-    console.log('comment', comment);
+
     return (
       <div className="space-y-4">
         <FeedItemComment

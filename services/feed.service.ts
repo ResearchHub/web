@@ -3,9 +3,11 @@ import { FeedEntry, FeedApiResponse, transformFeedEntry, RawApiFeedEntry } from 
 import { Bounty, BountyType, transformBounty } from '@/types/bounty';
 import { transformUser } from '@/types/user';
 import { transformAuthorProfile } from '@/types/authorProfile';
+import { Fundraise, transformFundraise } from '@/types/funding';
 
 export class FeedService {
   private static readonly BASE_PATH = '/api/feed';
+  private static readonly FUNDING_PATH = '/api/funding_feed';
 
   static async getFeed(params?: {
     page?: number;
@@ -13,6 +15,9 @@ export class FeedService {
     feedView?: string;
     hubSlug?: string;
     contentType?: string;
+    source?: 'all' | 'researchhub';
+    endpoint?: 'feed' | 'funding_feed';
+    fundraiseStatus?: 'OPEN' | 'CLOSED';
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
@@ -20,28 +25,31 @@ export class FeedService {
     if (params?.feedView) queryParams.append('feed_view', params.feedView);
     if (params?.hubSlug) queryParams.append('hub_slug', params.hubSlug);
     if (params?.contentType) queryParams.append('content_type', params.contentType);
+    if (params?.source) queryParams.append('source', params.source);
+    if (params?.fundraiseStatus) queryParams.append('fundraise_status', params.fundraiseStatus);
 
-    const url = `${this.BASE_PATH}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    console.log(`Fetching feed from URL: ${url}`);
+    // Determine which endpoint to use
+    const basePath = params?.endpoint === 'funding_feed' ? this.FUNDING_PATH : this.BASE_PATH;
+    const url = `${basePath}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
 
     try {
+      // Use ApiClient for both server and client environments
+      const isServer = typeof window === 'undefined';
+      console.log(`Fetching feed from URL: ${url} (${isServer ? 'server-side' : 'client-side'})`);
+
       const response = await ApiClient.get<FeedApiResponse>(url);
 
-      // For debugging - log the raw response
-      console.log('Raw feed response:', response);
-
       // Transform the raw entries into FeedEntry objects
-      const transformedEntries = response.results.map(transformFeedEntry).filter((entry) => {
-        // Keep all non-comment entries
-        if (entry.contentType !== 'COMMENT') {
-          return true;
-        }
-
-        // For comments, only keep REVIEW comments
-        const commentEntry = entry.content as import('@/types/feed').FeedCommentContent;
-        return commentEntry?.comment?.commentType === 'REVIEW';
-      });
-      console.log(`Transformed ${transformedEntries.length} feed entries`);
+      const transformedEntries = response.results
+        .map((entry) => {
+          try {
+            return transformFeedEntry(entry);
+          } catch (error) {
+            console.error('Error transforming feed entry:', error, entry);
+            return null;
+          }
+        })
+        .filter((entry): entry is FeedEntry => !!entry);
 
       // Return the transformed entries
       return {
@@ -137,6 +145,7 @@ export class FeedService {
             isVerified: safeAuthor.user?.is_verified || false,
             balance: 0,
           },
+          isClaimed: !!safeAuthor.user,
         },
       };
     }
@@ -175,5 +184,45 @@ export class FeedService {
         paper: content_object.paper || null,
       },
     };
+  }
+
+  // Helper function to transform a raw fundraise from the feed API to a Fundraise object
+  static transformRawFundraise(rawFundraise: RawApiFeedEntry): Fundraise {
+    if (!rawFundraise) {
+      throw new Error('Raw fundraise is undefined');
+    }
+
+    const { content_object } = rawFundraise;
+
+    if (!content_object) {
+      throw new Error('Raw fundraise content_object is undefined');
+    }
+
+    // Create a raw format expected by the transformer
+    const formattedRawFundraise = {
+      id: content_object.id,
+      status: content_object.status,
+      goal_currency: content_object.goal_currency,
+      goal_amount: {
+        usd: content_object.goal_amount?.usd || 0,
+        rsc: content_object.goal_amount?.rsc || 0,
+      },
+      amount_raised: {
+        usd: content_object.amount_raised?.usd || 0,
+        rsc: content_object.amount_raised?.rsc || 0,
+      },
+      start_date: content_object.start_date,
+      end_date: content_object.end_date,
+      contributors: {
+        total: content_object.contributors?.total || 0,
+        top: (content_object.contributors?.top || []).map((contributor: any) => ({
+          author_profile: contributor.author_profile,
+        })),
+      },
+      created_date: content_object.created_date,
+      updated_date: content_object.updated_date,
+    };
+
+    return transformFundraise(formattedRawFundraise);
   }
 }
