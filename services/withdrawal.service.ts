@@ -1,8 +1,11 @@
 import { ApiClient } from './client';
 
 export interface WithdrawalRequest {
-  amount: number;
   to_address: string;
+  agreed_to_terms: boolean;
+  amount: string;
+  transaction_fee: string;
+  network: 'ETHEREUM' | 'BASE';
 }
 
 export interface WithdrawalResponse {

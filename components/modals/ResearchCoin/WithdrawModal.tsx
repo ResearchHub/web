@@ -84,8 +84,11 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
       setTxStatus({ state: 'pending' });
 
       const response = await WithdrawalService.withdrawRSC({
-        amount: withdrawAmount,
         to_address: address,
+        agreed_to_terms: true,
+        amount: amount,
+        transaction_fee: '0',
+        network: 'BASE',
       });
 
       setTxStatus({
@@ -99,7 +102,7 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
         message: error instanceof Error ? error.message : 'Unknown error occurred',
       });
     }
-  }, [address, amount, withdrawAmount, isButtonDisabled]);
+  }, [address, amount, isButtonDisabled]);
 
   // If no wallet is connected, show nothing
   if (!address) {
