@@ -63,34 +63,37 @@ export default function NotePage() {
     notFound();
   }
 
-  // Handle missing note data
-  if (!note) {
-    return <NotebookSkeleton />;
-  }
-
   return (
     <>
       <div className="h-full">
         <div className="min-h-screen bg-gray-50">
-          <div className={'p-4 max-w-4xl mx-auto'}>
-            {isLegacyNote && selectedOrg && (
-              <div className="sticky top-0 z-10" role="status" aria-live="polite">
-                <LegacyNoteBanner orgSlug={selectedOrg.slug} noteId={note.id.toString()} />
+          <div className="p-4 max-w-4xl mx-auto">
+            {!note ? (
+              <div className="pt-16 pl-16">
+                <NotebookSkeleton />
               </div>
+            ) : (
+              <>
+                {isLegacyNote && selectedOrg && (
+                  <div className="sticky top-0 z-10" role="status" aria-live="polite">
+                    <LegacyNoteBanner orgSlug={selectedOrg.slug} noteId={note.id.toString()} />
+                  </div>
+                )}
+                <div
+                  className={`bg-white rounded-lg shadow-md p-0 lg:p-8 lg:pl-16 min-h-[800px] ${
+                    isLegacyNote ? 'opacity-70 blur-sm pointer-events-none select-none' : ''
+                  }`}
+                >
+                  <BlockEditor
+                    content={note.content}
+                    contentJson={note.contentJson}
+                    isLoading={false}
+                    onUpdate={isLegacyNote ? undefined : updateNote}
+                    editable={!(isLegacyNote && isFeatureEnabled('legacyNoteBanner'))}
+                  />
+                </div>
+              </>
             )}
-            <div
-              className={`bg-white rounded-lg shadow-md p-0 lg:p-8 lg:pl-16 min-h-[800px] ${
-                isLegacyNote ? 'opacity-70 blur-sm pointer-events-none select-none' : ''
-              }`}
-            >
-              <BlockEditor
-                content={note.content}
-                contentJson={note.contentJson}
-                isLoading={false}
-                onUpdate={isLegacyNote ? undefined : updateNote}
-                editable={!(isLegacyNote && isFeatureEnabled('legacyNoteBanner'))}
-              />
-            </div>
           </div>
         </div>
       </div>
