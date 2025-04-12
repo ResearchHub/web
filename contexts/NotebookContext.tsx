@@ -52,6 +52,11 @@ interface NotebookContextType {
 
 const NotebookContext = createContext<NotebookContextType | null>(null);
 
+// Add a utility function for consistent logging
+const logContextEvent = (event: string, data?: any) => {
+  console.log(`[NotebookContext] ${event}`, data ? data : '');
+};
+
 export function NotebookProvider({ children }: { children: ReactNode }) {
   const params = useParams();
   const noteIdFromParams = params?.noteId as string;
@@ -78,9 +83,40 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
   // Editor state
   const [editor, setEditor] = useState<Editor | null>(null);
 
-  // Fetch notes list
+  // Add logging for notes state changes
+  useEffect(() => {
+    logContextEvent('Notes state changed', {
+      notesCount: notes.length,
+      isLoading: isLoadingNotes,
+      hasError: !!notesError,
+    });
+  }, [notes, isLoadingNotes, notesError]);
+
+  // Add logging for current note changes
+  useEffect(() => {
+    logContextEvent('Current note changed', {
+      noteId: currentNote?.id,
+      title: currentNote?.title,
+      isLoading: isLoadingNote,
+      hasError: !!noteError,
+    });
+  }, [currentNote, isLoadingNote, noteError]);
+
+  // Add logging for users state changes
+  useEffect(() => {
+    logContextEvent('Users state changed', {
+      usersCount: users?.users.length,
+      isLoading: isLoadingUsers,
+      hasError: !!usersError,
+    });
+  }, [users, isLoadingUsers, usersError]);
+
+  // Modify fetchNotes with logging
   const fetchNotes = useCallback(async (slug?: string) => {
+    logContextEvent('Fetching notes started', { slug });
+
     if (!slug) {
+      logContextEvent('Fetch notes failed - no slug provided');
       setNotesError(new Error('No organization slug provided'));
       return;
     }
@@ -90,9 +126,14 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
 
     try {
       const data = await NoteService.getOrganizationNotes(slug);
+      logContextEvent('Notes fetched successfully', {
+        count: data.results.length,
+        totalCount: data.count,
+      });
       setNotes(data.results);
       setTotalCount(data.count);
     } catch (err) {
+      logContextEvent('Fetch notes failed', { error: err });
       setNotesError(err instanceof Error ? err : new Error('Failed to load notes'));
       setNotes([]);
       setTotalCount(0);
@@ -101,8 +142,10 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Fetch organization users
+  // Modify fetchUsers with logging
   const fetchUsers = useCallback(async (orgId: string, silently = false) => {
+    logContextEvent('Fetching users started', { orgId, silently });
+
     if (!silently) {
       setIsLoadingUsers(true);
       setUsersError(null);
@@ -110,12 +153,14 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
 
     try {
       const usersData = await OrganizationService.getOrganizationUsers(orgId);
+      logContextEvent('Users fetched successfully', {
+        count: usersData?.users.length,
+      });
       setUsers(usersData);
     } catch (err) {
+      logContextEvent('Fetch users failed', { error: err, silently });
       if (!silently) {
         setUsersError(err instanceof Error ? err : new Error('Failed to load organization users'));
-      } else {
-        console.error('Failed to silently refresh users:', err);
       }
     } finally {
       if (!silently) {
@@ -147,10 +192,12 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
     await fetchNotes(selectedOrg.slug);
   }, [selectedOrg?.slug, fetchNotes]);
 
-  // Load a specific note
+  // Modify loadNote with logging
   const loadNote = useCallback(async (noteId: string) => {
-    // Don't reload if it's the same note
+    logContextEvent('Loading note started', { noteId });
+
     if (noteId === lastLoadedNoteIdRef.current && currentNote) {
+      logContextEvent('Note load skipped - already loaded', { noteId });
       return;
     }
 
@@ -159,9 +206,14 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
 
     try {
       const note = await NoteService.getNote(noteId);
+      logContextEvent('Note loaded successfully', {
+        noteId: note.id,
+        title: note.title,
+      });
       setCurrentNote(note);
       lastLoadedNoteIdRef.current = noteId;
     } catch (err) {
+      logContextEvent('Note load failed', { error: err });
       setNoteError(err instanceof Error ? err : new Error('Failed to load note'));
       setCurrentNote(null);
     } finally {
@@ -211,13 +263,22 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
     await Promise.all(promises);
   }, [selectedOrg?.slug, selectedOrg?.id, noteIdFromParams, fetchNotes, fetchUsers, loadNote]);
 
-  // Initial data loading when organization changes
+  // Add logging to initial data loading effect
   useEffect(() => {
+    logContextEvent('Organization state changed', {
+      isLoadingOrg,
+      orgSlug: selectedOrg?.slug,
+      orgId: selectedOrg?.id,
+    });
+
     if (isLoadingOrg) {
       setIsLoadingNotes(true);
       setIsLoadingUsers(true);
       return;
-    } else if (!selectedOrg) {
+    }
+
+    if (!selectedOrg) {
+      logContextEvent('Resetting context - no organization selected');
       setNotes([]);
       setTotalCount(0);
       setUsers(null);
@@ -228,17 +289,28 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Load notes and users in parallel
+    logContextEvent('Loading initial organization data', {
+      orgSlug: selectedOrg.slug,
+      orgId: selectedOrg.id,
+    });
     fetchNotes(selectedOrg.slug);
     fetchUsers(selectedOrg.id.toString());
   }, [selectedOrg?.slug, selectedOrg?.id, isLoadingOrg, fetchNotes, fetchUsers]);
 
-  // Update currentNoteId when URL params change
+  // Add logging to URL params effect
   useEffect(() => {
+    logContextEvent('URL note ID changed', { noteIdFromParams });
     if (noteIdFromParams) {
       loadNote(noteIdFromParams);
     }
   }, [noteIdFromParams, loadNote]);
+
+  // Add logging for editor changes
+  useEffect(() => {
+    logContextEvent('Editor state changed', {
+      hasEditor: !!editor,
+    });
+  }, [editor]);
 
   // Calculate overall loading state
   const isLoading = isLoadingNotes || isLoadingUsers || isLoadingNote || isLoadingOrg;
