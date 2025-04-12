@@ -12,21 +12,27 @@ import {
 } from '@/hooks/useNote';
 import type { Note } from '@/types/note';
 import toast from 'react-hot-toast';
-import React, { useTransition } from 'react';
+import React from 'react';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 
 interface NoteListItemProps {
   note: Note;
   isSelected?: boolean;
+  disabled: boolean;
+  startTransition: (callback: () => void) => void;
 }
 
 /**
  * A single note item in the sidebar list
  */
-export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) => {
+export const NoteListItem: React.FC<NoteListItemProps> = ({
+  note,
+  isSelected,
+  disabled,
+  startTransition,
+}) => {
   const router = useRouter();
   const { refreshNotes, setNotes } = useNotebookContext();
-  const [isPending, startTransition] = useTransition();
   const [{ isLoading: isDeleting }, deleteNote] = useDeleteNote();
   const [{ isLoading: isDuplicating }, duplicateNote] = useDuplicateNote();
   const [{ isLoading: isMakingPrivate }, makeNotePrivate] = useMakeNotePrivate();
@@ -34,35 +40,26 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) 
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   const isPrivate = note.access === 'PRIVATE';
-  const isProcessing =
-    isDeleting || isDuplicating || isMakingPrivate || isUpdatingPermissions || isPending;
+  const isProcessing = isDeleting || isDuplicating || isMakingPrivate || isUpdatingPermissions;
 
   const handleClick = React.useCallback(() => {
     startTransition(() => {
       router.push(`/notebook/${note.organization.slug}/${note.id}`, { scroll: false });
     });
-  }, [router, note.organization.slug, note.id]);
+  }, [router, note.organization.slug, note.id, startTransition]);
 
-  const handleDuplicate = React.useCallback(
-    async (e: React.MouseEvent) => {
-      e.stopPropagation();
-      if (isProcessing) return;
-
-      try {
-        const newNote = await duplicateNote(note.id.toString(), note.organization.slug);
-        toast.success('Note duplicated successfully');
-        await refreshNotes();
-
-        startTransition(() => {
-          router.push(`/notebook/${note.organization.slug}/${newNote.id}`, { scroll: false });
-        });
-      } catch (error) {
-        console.error('Error duplicating note:', error);
-        toast.error('Failed to duplicate note. Please try again.');
-      }
-    },
-    [duplicateNote, note.id, note.organization.slug, refreshNotes, router, isProcessing]
-  );
+  const handleDuplicate = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const newNote = await duplicateNote(note.id.toString(), note.organization.slug);
+      toast.success('Note duplicated successfully');
+      refreshNotes();
+      router.replace(`/notebook/${note.organization.slug}/${newNote.id}`);
+    } catch (error) {
+      console.error('Error duplicating note:', error);
+      toast.error('Failed to duplicate note. Please try again.');
+    }
+  };
 
   const handleToggleAccess = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -90,33 +87,24 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) 
     }
   };
 
-  const handleDelete = React.useCallback(
-    async (e: React.MouseEvent) => {
-      e.stopPropagation();
-      if (isProcessing) return;
-
-      if (
-        !window.confirm('Are you sure you want to delete this note? This action cannot be undone.')
-      ) {
-        return;
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (
+      !window.confirm('Are you sure you want to delete this note? This action cannot be undone.')
+    ) {
+      return;
+    }
+    try {
+      await deleteNote(note.id);
+      refreshNotes();
+      setNotes((prevNotes) => prevNotes.filter((n) => n.id !== note.id));
+      if (isSelected) {
+        router.replace(`/notebook/${note.organization.slug}`);
       }
-
-      try {
-        await deleteNote(note.id);
-        await refreshNotes();
-        setNotes((prevNotes) => prevNotes.filter((n) => n.id !== note.id));
-
-        if (isSelected) {
-          startTransition(() => {
-            router.push(`/notebook/${note.organization.slug}`, { scroll: false });
-          });
-        }
-      } catch (error) {
-        toast.error('Failed to delete note. Please try again.');
-      }
-    },
-    [deleteNote, note.id, refreshNotes, setNotes, isSelected, router, isProcessing]
-  );
+    } catch (error) {
+      toast.error('Failed to delete note. Please try again.');
+    }
+  };
 
   const menuTriggerButton = (
     <button
@@ -124,20 +112,20 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) 
         bg-gray-50 hover:bg-gray-200 text-gray-500 hover:text-gray-700
         ${isMenuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
       onClick={(e) => e.stopPropagation()}
-      disabled={isProcessing}
+      disabled={isProcessing || disabled}
     >
       <MoreHorizontal className="h-4 w-4" />
     </button>
   );
 
   return (
-    <div className={`group relative ${isProcessing ? 'opacity-50' : ''}`}>
+    <div className={`group relative ${isProcessing || disabled ? 'opacity-50' : ''}`}>
       <Button
         variant="ghost"
         className={`w-full justify-start px-2.5 py-1.5 h-8 text-sm font-normal text-gray-700 group
           ${isSelected ? 'bg-gray-100 hover:bg-gray-100' : 'hover:bg-gray-50'}`}
         onClick={handleClick}
-        disabled={isProcessing}
+        disabled={isProcessing || disabled}
         title={note.title}
       >
         {isProcessing ? (

@@ -3,6 +3,7 @@
 import { NoteListItem } from './NoteListItem';
 import { Note } from '@/types/note';
 import { NoteListSkeleton } from '@/components/skeletons/NoteListSkeleton';
+import { useTransition } from 'react';
 
 interface NoteListProps {
   notes: Note[];
@@ -17,6 +18,8 @@ export const NoteList: React.FC<NoteListProps> = ({
   isLoading = false,
   selectedNoteId,
 }) => {
+  const [isPending, startTransition] = useTransition();
+
   if (isLoading || notes.length === 0) {
     return <NoteListSkeleton />;
   }
@@ -48,6 +51,8 @@ export const NoteList: React.FC<NoteListProps> = ({
           key={note.id}
           note={note}
           isSelected={selectedNoteId === note.id.toString()}
+          disabled={isPending}
+          startTransition={startTransition}
         />
       ))}
     </div>
