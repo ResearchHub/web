@@ -289,8 +289,8 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
     });
   }, [editor]);
 
-  // Calculate overall loading state
-  const isLoading = isLoadingNotes || isLoadingUsers || isLoadingNote || isLoadingOrg;
+  // Calculate overall loading state ignoring isLoadingNote
+  const isLoading = isLoadingNotes || isLoadingUsers || isLoadingOrg;
 
   const value = {
     // Notes list state
