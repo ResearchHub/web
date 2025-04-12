@@ -12,7 +12,7 @@ import {
 } from '@/hooks/useNote';
 import type { Note } from '@/types/note';
 import toast from 'react-hot-toast';
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 
 interface NoteListItemProps {
@@ -32,10 +32,25 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, star
   const [{ isLoading: isMakingPrivate }, makeNotePrivate] = useMakeNotePrivate();
   const [{ isLoading: isUpdatingPermissions }, updateNotePermissions] = useUpdateNotePermissions();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const itemRef = useRef<HTMLDivElement>(null);
 
   const isPrivate = note.access === 'PRIVATE';
   const isProcessing = isDeleting || isDuplicating || isMakingPrivate || isUpdatingPermissions;
   const isSelected = note.id.toString() === noteIdFromParams;
+
+  useEffect(() => {
+    if (isSelected && itemRef.current) {
+      // Small delay to ensure smooth transition after navigation
+      const timeoutId = setTimeout(() => {
+        itemRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+        });
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isSelected]);
 
   const handleClick = React.useCallback(() => {
     startTransition(() => {
@@ -114,7 +129,7 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, star
   );
 
   return (
-    <div className={`group relative ${isProcessing || disabled ? 'opacity-50' : ''}`}>
+    <div ref={itemRef} className={`group relative ${isProcessing || disabled ? 'opacity-50' : ''}`}>
       <Button
         variant="ghost"
         className={`w-full justify-start px-2.5 py-1.5 h-8 text-sm font-normal text-gray-700 group

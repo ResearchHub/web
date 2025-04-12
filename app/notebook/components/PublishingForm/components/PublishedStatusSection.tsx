@@ -38,7 +38,7 @@ export function PublishedStatusSection() {
         </Badge>
       ) : (
         <Badge variant="default" size="sm">
-          Draft
+          <span className="mr-1 text-sm">Draft</span>
         </Badge>
       )}
     </div>

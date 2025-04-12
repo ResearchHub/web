@@ -4,6 +4,8 @@ import { NoteListItem } from './NoteListItem';
 import { Note } from '@/types/note';
 import { NoteListSkeleton } from '@/components/skeletons/NoteListSkeleton';
 import { useTransition } from 'react';
+import { useNotebookContext } from '@/contexts/NotebookContext';
+import { useEffect, useRef } from 'react';
 
 interface NoteListProps {
   notes: Note[];
@@ -13,10 +15,6 @@ interface NoteListProps {
 
 export const NoteList: React.FC<NoteListProps> = ({ notes, type, isLoading = false }) => {
   const [isPending, startTransition] = useTransition();
-
-  if (isLoading || notes.length === 0) {
-    return <NoteListSkeleton />;
-  }
 
   const filteredAndSortedNotes = notes
     .filter((note: Note) => {
@@ -29,6 +27,10 @@ export const NoteList: React.FC<NoteListProps> = ({ notes, type, isLoading = fal
     .sort((a, b) => {
       return new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime();
     });
+
+  if (isLoading || notes.length === 0) {
+    return <NoteListSkeleton />;
+  }
 
   if (filteredAndSortedNotes.length === 0) {
     return (
