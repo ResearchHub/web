@@ -40,7 +40,6 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, star
 
   useEffect(() => {
     if (isSelected && itemRef.current) {
-      // Small delay to ensure smooth transition after navigation
       const timeoutId = setTimeout(() => {
         itemRef.current?.scrollIntoView({
           behavior: 'smooth',

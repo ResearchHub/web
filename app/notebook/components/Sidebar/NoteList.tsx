@@ -4,8 +4,6 @@ import { NoteListItem } from './NoteListItem';
 import { Note } from '@/types/note';
 import { NoteListSkeleton } from '@/components/skeletons/NoteListSkeleton';
 import { useTransition } from 'react';
-import { useNotebookContext } from '@/contexts/NotebookContext';
-import { useEffect, useRef } from 'react';
 
 interface NoteListProps {
   notes: Note[];

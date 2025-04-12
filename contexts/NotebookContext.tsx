@@ -80,7 +80,7 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
   // Editor state
   const [editor, setEditor] = useState<Editor | null>(null);
 
-  // Modify fetchNotes with logging
+  // Fetch notes list
   const fetchNotes = useCallback(async (slug?: string) => {
     if (!slug) {
       setNotesError(new Error('No organization slug provided'));
@@ -104,7 +104,7 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Modify fetchUsers with logging
+  // Fetch organization users
   const fetchUsers = useCallback(async (orgId: string, silently = false) => {
     if (!silently) {
       setIsLoadingUsers(true);
@@ -170,7 +170,7 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Update note title
+  // Load a specific note
   const updateNoteTitle = useCallback(
     (newTitle: string) => {
       if (!noteIdFromParams) return;
@@ -211,7 +211,7 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
     await Promise.all(promises);
   }, [selectedOrg?.slug, selectedOrg?.id, noteIdFromParams, fetchNotes, fetchUsers, loadNote]);
 
-  // Add logging to initial data loading effect
+  // Initial data loading when organization changes
   useEffect(() => {
     if (isLoadingOrg) {
       setIsLoadingNotes(true);
@@ -234,15 +234,12 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
     fetchUsers(selectedOrg.id.toString());
   }, [selectedOrg?.slug, selectedOrg?.id, isLoadingOrg, fetchNotes, fetchUsers]);
 
-  // Add logging to URL params effect
+  // Update currentNoteId when URL params change
   useEffect(() => {
     if (noteIdFromParams) {
       loadNote(noteIdFromParams);
     }
   }, [noteIdFromParams, loadNote]);
-
-  // Add logging for editor changes
-  useEffect(() => {}, [editor]);
 
   // Calculate overall loading state ignoring isLoadingNote
   const isLoading = isLoadingNotes || isLoadingUsers || isLoadingOrg;

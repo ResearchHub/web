@@ -11,7 +11,7 @@ import { isFeatureEnabled } from '@/utils/featureFlags';
 import { LegacyNoteBanner } from '@/components/LegacyNoteBanner';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 
-const RenderNotebookSkeleton = () => {
+const NotePaper = () => {
   return (
     <div className="h-full">
       <div className="min-h-screen bg-gray-50">
@@ -70,7 +70,7 @@ export default function NotePage() {
 
   // Handle loading states
   if (isLoadingNote || isLegacyNote === undefined) {
-    return <RenderNotebookSkeleton />;
+    return <NotePaper />;
   }
 
   // Handle errors by showing the 404 page
@@ -80,7 +80,7 @@ export default function NotePage() {
 
   // Handle missing note data
   if (!note) {
-    return <RenderNotebookSkeleton />;
+    return <NotePaper />;
   }
 
   return (
