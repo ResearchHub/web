@@ -10,7 +10,7 @@ import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { FileText, Plus, Wallet, Lock } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { Organization } from '@/types/organization';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useCallback, useTransition } from 'react';
 import { useNoteContent, useCreateNote } from '@/hooks/useNote';
 import { getInitialContent } from '@/components/Editor/lib/data/initialContent';
@@ -23,8 +23,6 @@ import { useNotebookContext } from '@/contexts/NotebookContext';
  * Displays organization information and lists of workspace and private notes
  */
 export const LeftSidebar = () => {
-  const params = useParams();
-  const currentNoteId = params?.noteId as string;
   const router = useRouter();
 
   const [isPending, startTransition] = useTransition();
@@ -36,7 +34,8 @@ export const LeftSidebar = () => {
     setSelectedOrg,
     isLoading: isLoadingOrgs,
   } = useOrganizationContext();
-  const { notes, isLoading: isLoadingNotes, refreshNotes } = useNotebookContext();
+  const { notes, isLoading: isLoadingNotes, refreshNotes, currentNote } = useNotebookContext();
+
   const handleOrgSelect = useCallback(
     async (org: Organization) => {
       setSelectedOrg(org);
@@ -214,7 +213,6 @@ export const LeftSidebar = () => {
                 type="workspace"
                 notes={notes || []}
                 isLoading={isLoadingNotes || isPending}
-                selectedNoteId={currentNoteId}
               />
             ) : (
               <div className="flex flex-col items-center justify-center py-4 text-sm text-gray-500">
@@ -246,7 +244,6 @@ export const LeftSidebar = () => {
                 type="private"
                 notes={notes || []}
                 isLoading={isLoadingNotes || isPending}
-                selectedNoteId={currentNoteId}
               />
             ) : (
               <div className="flex flex-col items-center justify-center py-4 text-sm text-gray-500">
