@@ -9,15 +9,9 @@ interface NoteListProps {
   notes: Note[];
   type: 'workspace' | 'private';
   isLoading?: boolean;
-  selectedNoteId?: string;
 }
 
-export const NoteList: React.FC<NoteListProps> = ({
-  notes,
-  type,
-  isLoading = false,
-  selectedNoteId,
-}) => {
+export const NoteList: React.FC<NoteListProps> = ({ notes, type, isLoading = false }) => {
   const [isPending, startTransition] = useTransition();
 
   if (isLoading || notes.length === 0) {
@@ -50,7 +44,6 @@ export const NoteList: React.FC<NoteListProps> = ({
         <NoteListItem
           key={note.id}
           note={note}
-          isSelected={selectedNoteId === note.id.toString()}
           disabled={isPending}
           startTransition={startTransition}
         />

@@ -213,7 +213,6 @@ export const LeftSidebar = () => {
                 type="workspace"
                 notes={notes || []}
                 isLoading={isLoadingNotes || isPending}
-                selectedNoteId={currentNote?.id?.toString()}
               />
             ) : (
               <div className="flex flex-col items-center justify-center py-4 text-sm text-gray-500">
@@ -245,7 +244,6 @@ export const LeftSidebar = () => {
                 type="private"
                 notes={notes || []}
                 isLoading={isLoadingNotes || isPending}
-                selectedNoteId={currentNote?.id?.toString()}
               />
             ) : (
               <div className="flex flex-col items-center justify-center py-4 text-sm text-gray-500">

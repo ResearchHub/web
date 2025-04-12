@@ -48,13 +48,15 @@ interface NotebookContextType {
 
   // Fetch all data at once
   refreshAll: () => Promise<void>;
+
+  noteIdFromParams: string | null;
 }
 
 const NotebookContext = createContext<NotebookContextType | null>(null);
 
 export function NotebookProvider({ children }: { children: ReactNode }) {
   const params = useParams();
-  const noteIdFromParams = params?.noteId as string;
+  const noteIdFromParams = (params?.noteId as string) || null;
 
   const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
 
@@ -276,6 +278,8 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
 
     // Fetch all data at once
     refreshAll,
+
+    noteIdFromParams,
   };
 
   return <NotebookContext.Provider value={value}>{children}</NotebookContext.Provider>;

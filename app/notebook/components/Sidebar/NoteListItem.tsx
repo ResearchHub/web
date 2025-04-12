@@ -17,7 +17,6 @@ import { useNotebookContext } from '@/contexts/NotebookContext';
 
 interface NoteListItemProps {
   note: Note;
-  isSelected?: boolean;
   disabled: boolean;
   startTransition: (callback: () => void) => void;
 }
@@ -25,14 +24,9 @@ interface NoteListItemProps {
 /**
  * A single note item in the sidebar list
  */
-export const NoteListItem: React.FC<NoteListItemProps> = ({
-  note,
-  isSelected,
-  disabled,
-  startTransition,
-}) => {
+export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, startTransition }) => {
   const router = useRouter();
-  const { refreshNotes, setNotes } = useNotebookContext();
+  const { refreshNotes, setNotes, noteIdFromParams } = useNotebookContext();
   const [{ isLoading: isDeleting }, deleteNote] = useDeleteNote();
   const [{ isLoading: isDuplicating }, duplicateNote] = useDuplicateNote();
   const [{ isLoading: isMakingPrivate }, makeNotePrivate] = useMakeNotePrivate();
@@ -41,6 +35,7 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({
 
   const isPrivate = note.access === 'PRIVATE';
   const isProcessing = isDeleting || isDuplicating || isMakingPrivate || isUpdatingPermissions;
+  const isSelected = note.id.toString() === noteIdFromParams;
 
   const handleClick = React.useCallback(() => {
     startTransition(() => {
@@ -141,7 +136,12 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({
       </Button>
 
       <div className="absolute right-2 top-1/2 -translate-y-1/2">
-        <BaseMenu trigger={menuTriggerButton} className="p-1" onOpenChange={setIsMenuOpen}>
+        <BaseMenu
+          trigger={menuTriggerButton}
+          className="p-1"
+          onOpenChange={setIsMenuOpen}
+          disabled={isProcessing || disabled}
+        >
           <BaseMenuItem onClick={handleDuplicate} disabled={isProcessing}>
             <div className="flex items-center gap-2">
               {isDuplicating ? (
