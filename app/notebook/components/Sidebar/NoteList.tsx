@@ -17,6 +17,7 @@ export const NoteList: React.FC<NoteListProps> = ({
   isLoading = false,
   selectedNoteId,
 }) => {
+  console.log('isLoading NoteList: ', isLoading);
   if (isLoading || notes.length === 0) {
     return <NoteListSkeleton />;
   }

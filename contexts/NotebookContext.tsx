@@ -83,34 +83,6 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
   // Editor state
   const [editor, setEditor] = useState<Editor | null>(null);
 
-  // Add logging for notes state changes
-  useEffect(() => {
-    logContextEvent('Notes state changed', {
-      notesCount: notes.length,
-      isLoading: isLoadingNotes,
-      hasError: !!notesError,
-    });
-  }, [notes, isLoadingNotes, notesError]);
-
-  // Add logging for current note changes
-  useEffect(() => {
-    logContextEvent('Current note changed', {
-      noteId: currentNote?.id,
-      title: currentNote?.title,
-      isLoading: isLoadingNote,
-      hasError: !!noteError,
-    });
-  }, [currentNote, isLoadingNote, noteError]);
-
-  // Add logging for users state changes
-  useEffect(() => {
-    logContextEvent('Users state changed', {
-      usersCount: users?.users.length,
-      isLoading: isLoadingUsers,
-      hasError: !!usersError,
-    });
-  }, [users, isLoadingUsers, usersError]);
-
   // Modify fetchNotes with logging
   const fetchNotes = useCallback(async (slug?: string) => {
     logContextEvent('Fetching notes started', { slug });
@@ -185,6 +157,7 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
 
   // Refresh notes
   const refreshNotes = useCallback(async () => {
+    logContextEvent('Refreshing notes', { orgSlug: selectedOrg?.slug });
     if (!selectedOrg?.slug) {
       setNotesError(new Error('No organization slug provided'));
       return;
@@ -247,8 +220,12 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
 
   // Refresh all data at once
   const refreshAll = useCallback(async () => {
+    logContextEvent('Refreshing all data', {
+      orgSlug: selectedOrg?.slug,
+      noteId: noteIdFromParams,
+    });
     if (!selectedOrg?.slug || !selectedOrg?.id) {
-      console.error('No organization information provided for refreshAll');
+      logContextEvent('Refresh all failed - no organization information provided');
       return;
     }
 
