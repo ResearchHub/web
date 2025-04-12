@@ -34,6 +34,16 @@ export const NotebookSkeleton: React.FC = () => {
             <div className="h-4 bg-gray-100 rounded w-full animate-pulse" />
           </div>
         </div>
+
+        {/* Results */}
+        <div className="space-y-3">
+          <div className="h-6 bg-gray-100 rounded-md w-40 animate-pulse" />
+          <div className="space-y-2">
+            <div className="h-4 bg-gray-100 rounded w-full animate-pulse" />
+            <div className="h-4 bg-gray-100 rounded w-4/5 animate-pulse" />
+            <div className="h-4 bg-gray-100 rounded w-full animate-pulse" />
+          </div>
+        </div>
       </div>
     </div>
   );

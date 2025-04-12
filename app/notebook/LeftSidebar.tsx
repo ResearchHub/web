@@ -36,12 +36,6 @@ export const LeftSidebar = () => {
   } = useOrganizationContext();
   const { notes, isLoading: isLoadingNotes, refreshNotes, currentNote } = useNotebookContext();
 
-  console.log('LeftSidebar state: ', {
-    isLoadingOrgs,
-    isLoadingNotes,
-    isCreatingNote,
-    isUpdatingContent,
-  });
   const handleOrgSelect = useCallback(
     async (org: Organization) => {
       setSelectedOrg(org);
