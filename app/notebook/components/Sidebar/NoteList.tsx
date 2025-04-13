@@ -3,23 +3,16 @@
 import { NoteListItem } from './NoteListItem';
 import { Note } from '@/types/note';
 import { NoteListSkeleton } from '@/components/skeletons/NoteListSkeleton';
+import { useTransition } from 'react';
 
 interface NoteListProps {
   notes: Note[];
   type: 'workspace' | 'private';
   isLoading?: boolean;
-  selectedNoteId?: string;
 }
 
-export const NoteList: React.FC<NoteListProps> = ({
-  notes,
-  type,
-  isLoading = false,
-  selectedNoteId,
-}) => {
-  if (isLoading || notes.length === 0) {
-    return <NoteListSkeleton />;
-  }
+export const NoteList: React.FC<NoteListProps> = ({ notes, type, isLoading = false }) => {
+  const [isPending, startTransition] = useTransition();
 
   const filteredAndSortedNotes = notes
     .filter((note: Note) => {
@@ -32,6 +25,10 @@ export const NoteList: React.FC<NoteListProps> = ({
     .sort((a, b) => {
       return new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime();
     });
+
+  if (isLoading || notes.length === 0) {
+    return <NoteListSkeleton />;
+  }
 
   if (filteredAndSortedNotes.length === 0) {
     return (
@@ -47,7 +44,8 @@ export const NoteList: React.FC<NoteListProps> = ({
         <NoteListItem
           key={note.id}
           note={note}
-          isSelected={selectedNoteId === note.id.toString()}
+          disabled={isPending}
+          startTransition={startTransition}
         />
       ))}
     </div>
