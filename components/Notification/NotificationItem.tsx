@@ -30,6 +30,14 @@ export function NotificationItem({ notification }: NotificationItemProps) {
 
   const hubDetails = getHubDetailsFromNotification(notification);
 
+  // Add helper to determine if notification is a received type
+  const isReceivedRSC = [
+    'FUNDRAISE_PAYOUT',
+    'RSC_SUPPORT_ON_DIS',
+    'RSC_SUPPORT_ON_DOC',
+    'RSC_WITHDRAWAL_COMPLETE',
+  ].includes(notification.type);
+
   const IndicatorSection = (
     <div className="w-2 flex-shrink-0 flex items-center justify-center self-center">
       <div
@@ -63,11 +71,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
 
   const ContentSection = (
     <div className="flex-grow min-w-0">
-      <div className="text-sm font-medium text-gray-900">{message}</div>
-      <div className="flex items-center gap-2 mt-1">
-        <div className="text-xs text-gray-500">
-          {formatTimestamp(notification.createdDate.toISOString())}
-        </div>
+      <div className="flex items-center gap-2 mb-1">
         {hubDetails && (
           <div className="inline-block">
             <TopicAndJournalBadge
@@ -81,9 +85,19 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         )}
         {rscAmount && (
           <div className="inline-block">
-            <RSCBadge amount={rscAmount} size="xs" variant="badge" showText className="py-0.5" />
+            <RSCBadge
+              amount={rscAmount}
+              size="xs"
+              variant={isReceivedRSC ? 'received' : 'badge'}
+              showText
+              className="py-0.5"
+            />
           </div>
         )}
+      </div>
+      <div className="text-sm font-medium text-gray-900">{message}</div>
+      <div className="text-xs text-gray-500 mt-1">
+        {formatTimestamp(notification.createdDate.toISOString())}
       </div>
     </div>
   );
@@ -98,7 +112,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     <div className="group">
       <div
         className={clsx(
-          'relative py-3 px-2 border-b border-gray-100',
+          'relative py-3 px-2 border-b border-gray-200',
           notification.read
             ? hasNavigationUrl
               ? 'hover:bg-gray-50'
