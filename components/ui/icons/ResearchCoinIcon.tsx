@@ -39,6 +39,11 @@ interface ResearchCoinIconProps {
    * @default 1.0
    */
   strokeWidth?: number;
+  /**
+   * Visual variant of the icon (changes the gradient)
+   * @default 'orange'
+   */
+  variant?: 'orange' | 'green';
 }
 
 function ContributeVariant({ size, color }: { size: number; color: string }) {
@@ -71,6 +76,7 @@ export function ResearchCoinIcon({
   outlined = false,
   contribute = false,
   strokeWidth = 1,
+  variant = 'orange',
 }: ResearchCoinIconProps) {
   if (contribute) {
     return <ContributeVariant size={size} color={color} />;
@@ -122,12 +128,19 @@ export function ResearchCoinIcon({
     );
   }
 
+  // Define gradient IDs based on variant
+  const gradientId = variant === 'green' ? 'greenCoinGradient' : 'coinGradient';
+
   return (
     <svg width={size} height={size} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14">
       <defs>
         <linearGradient id="coinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#F97316" />
           <stop offset="100%" stopColor="#EA580C" />
+        </linearGradient>
+        <linearGradient id="greenCoinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#16A34A" />
+          <stop offset="100%" stopColor="#15803D" />
         </linearGradient>
         <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
           <feGaussianBlur stdDeviation="0.3" />
@@ -151,7 +164,7 @@ export function ResearchCoinIcon({
         fillRule="evenodd"
         clipRule="evenodd"
         d="M7.96539 1.07912C11.2355 1.61221 13.4541 4.6951 12.9209 7.96525C12.3877 11.2355 9.30472 13.454 6.03461 12.9209C2.7645 12.3876 0.545902 9.30493 1.07911 6.03456C1.61231 2.7643 4.69517 0.545903 7.96539 1.07912Z"
-        fill="url(#coinGradient)"
+        fill={`url(#${gradientId})`}
       />
 
       <path
