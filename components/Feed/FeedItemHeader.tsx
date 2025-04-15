@@ -7,7 +7,7 @@ import { AuthorProfile } from '@/types/authorProfile';
 import { cn } from '@/utils/styles';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { navigateToAuthorProfile } from '@/utils/navigation';
-import { formatTimestamp } from '@/utils/date';
+import { formatTimeAgo } from '@/utils/date';
 
 interface Contributor {
   profileImage?: string;
@@ -143,7 +143,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
             <div className="flex items-center gap-1.5 text-[15px]">
               <span className="text-gray-900">{contributorsText}</span>
               <span className="text-gray-400">•</span>
-              <span className="text-gray-500">{formatTimestamp(formattedDate.toISOString())}</span>
+              <span className="text-gray-500">{formatTimeAgo(formattedDate.toISOString())}</span>
             </div>
           </div>
         </div>
@@ -187,7 +187,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
 
             <span className="text-gray-600">{actionText}</span>
             <span className="text-gray-400">•</span>
-            <span className="text-gray-500">{formatTimestamp(formattedDate.toISOString())}</span>
+            <span className="text-gray-500">{formatTimeAgo(formattedDate.toISOString())}</span>
           </div>
         </div>
       </div>
