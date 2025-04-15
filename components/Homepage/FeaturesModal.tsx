@@ -1,9 +1,7 @@
 'use client';
 
-import { useState, useEffect, Fragment } from 'react';
-import { Slideshow } from '@/components/ui/Slideshow';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
-import Confetti from 'react-confetti';
 import Link from 'next/link';
 import { Icon, IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -13,16 +11,8 @@ import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { useUser } from '@/contexts/UserContext';
 import { useSearchParams } from 'next/navigation';
 
-// Define Feature type with icon
-interface Feature {
-  title: string;
-  description: string | React.ReactNode;
-  cta: string;
-  link: string;
-  icon: IconName | typeof faComments;
-}
-
-const features: Feature[] = [
+// Define features array
+const features = [
   {
     title: 'Earn 150 USD for Peer Reviews',
     description: 'Get paid to peer-review papers based on your expertise.',
@@ -32,28 +22,15 @@ const features: Feature[] = [
   },
   {
     title: 'Fund Promising Research',
-    description: (
-      <ul className="list-disc pl-4 text-left space-y-1.5">
-        <li>
-          <strong>Funders:</strong> Fund promising research via RSC
-        </li>
-        <li>
-          <strong>Researchers:</strong> Get your experiment funded
-        </li>
-      </ul>
-    ),
+    description:
+      'Funders: Fund promising research via RSC. Researchers: Get your experiment funded.',
     cta: 'Explore Funding',
     link: '/fund',
     icon: 'solidHand',
   },
   {
     title: 'Discover and Discuss Science',
-    description: (
-      <ul className="list-disc pl-4 text-left space-y-1.5">
-        <li>Discuss any paper with the ResearchHub community</li>
-        <li>Get customized content recommendations based on your expertise</li>
-      </ul>
-    ),
+    description: 'Discuss papers with the community and get customized content recommendations.',
     cta: 'Browse Papers',
     link: '/',
     icon: faComments,
@@ -68,27 +45,17 @@ const features: Feature[] = [
 ];
 
 export function FeaturesModal() {
-  // Define feature name
+  // Core state
   const featureName = 'homepage_features_modal';
-
-  // Get user state
   const { user } = useUser();
-
-  // Get search params to check for force show parameter
   const searchParams = useSearchParams();
   const forceShow = searchParams.get('showFeatures') === 'true';
-
-  // Use the dismissable feature hook
   const { isDismissed, dismissFeature, dismissStatus } = useDismissableFeature(featureName);
 
-  // State for confetti, controlled by the hook status
-  const [showConfetti, setShowConfetti] = useState(false);
-  // Local state to track if confetti has been shown this session,
-  // prevents confetti on subsequent opens if dismissed via localStorage then logged in.
-  const [confettiShown, setConfettiShown] = useState(false);
+  // Simple state for current slide
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Determine if the modal should be open
-  // Show if forced via query param OR if the status is checked, the feature is not dismissed, and user is logged in
+  // Determine if modal should be open
   const isOpen =
     forceShow ||
     (dismissStatus === 'checked' &&
@@ -96,96 +63,125 @@ export function FeaturesModal() {
       !!user &&
       user?.hasCompletedOnboarding === true);
 
-  // Effect to trigger confetti only once when the modal opens for the first time
-  useEffect(() => {
-    if (isOpen && !confettiShown) {
-      setShowConfetti(true);
-      setConfettiShown(true); // Mark confetti as shown
-    }
-    // Don't show confetti again if modal re-opens (e.g., due to state change)
-    // unless confettiShown is reset elsewhere (which it isn't here).
-  }, [isOpen, confettiShown]);
-
-  const closeModal = () => {
-    // Call dismissFeature to mark it dismissed via API or localStorage
-    dismissFeature();
-    // Note: The modal will close automatically on the next render because
-    // `isDismissed` will become true (optimistically) or the hook will re-run.
-    // We don't need setIsOpen(false) anymore.
-    setShowConfetti(false); // Stop confetti if the button is clicked
+  // Simple slide navigation
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev === features.length - 1 ? 0 : prev + 1));
   };
 
-  // Return null only if not forced via query param AND one of the conditions is not met
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev === 0 ? features.length - 1 : prev - 1));
+  };
+
+  const closeModal = () => {
+    dismissFeature();
+  };
+
+  // Return null if conditions not met
   if (!forceShow && (dismissStatus !== 'checked' || isDismissed || !user)) {
     return null;
   }
 
+  const feature = features[currentSlide];
+
   return (
     <BaseModal
-      // isOpen is now derived directly from the hook state
       isOpen={isOpen}
-      // onClose should still call our dismiss logic
       onClose={closeModal}
-      // Make modal wider
-      maxWidth="max-w-xl"
+      maxWidth="max-w-md"
       padding="p-0"
-      showCloseButton={false}
+      showCloseButton={true}
     >
-      {/* Show confetti only when isOpen and showConfetti state is true */}
-      {isOpen && showConfetti && (
-        <Confetti
-          recycle={false}
-          numberOfPieces={500}
-          gravity={0.15}
-          initialVelocityY={-15}
-          wind={0.01}
-          width={typeof window !== 'undefined' ? window.innerWidth : 0}
-          height={typeof window !== 'undefined' ? window.innerHeight : 0}
-          style={{ position: 'fixed', top: 0, left: 0, zIndex: 100 }}
-          onConfettiComplete={() => setShowConfetti(false)} // Keep this to remove confetti element after animation
-        />
-      )}
-
-      <div className="p-8 flex flex-col h-full">
+      <div className="p-5 flex flex-col">
+        {/* Modal header */}
         <div className="text-center mb-4">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-1">Welcome to ResearchHub!</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-1">Welcome to ResearchHub!</h2>
           <p className="text-sm text-gray-600">Take a quick tour of key features:</p>
         </div>
-        <div className="mb-8 max-w-[500px] mx-auto">
-          <Slideshow>
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="flex flex-col text-left p-6 min-h-[280px] bg-blue-50 rounded-lg"
-              >
-                <div className="mb-4 self-center">
-                  {typeof feature.icon === 'string' ? (
-                    <Icon name={feature.icon as IconName} size={46} color="#4f46e5" />
-                  ) : (
-                    <FontAwesomeIcon icon={feature.icon} className="text-indigo-600" size="3x" />
-                  )}
-                </div>
-                <h3 className="font-semibold text-xl mb-2 text-gray-800">{feature.title}</h3>
-                <div className="text-sm text-gray-600 mb-4 flex-grow max-w-xs">
-                  {feature.description}
-                </div>
-                <Link
-                  href={feature.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-auto relative z-10 text-primary-600 text-sm font-medium underline-offset-4 hover:underline focus:outline-none self-center"
-                >
-                  {feature.cta}
-                </Link>
-              </div>
-            ))}
-          </Slideshow>
+
+        {/* Feature slide */}
+        <div className="bg-blue-50 rounded-lg p-4 flex flex-col items-center mb-4">
+          {/* Icon */}
+          <div className="mb-3">
+            {typeof feature.icon === 'string' ? (
+              <Icon name={feature.icon as IconName} size={40} color="#4f46e5" />
+            ) : (
+              <FontAwesomeIcon icon={feature.icon} className="text-indigo-600" size="2x" />
+            )}
+          </div>
+
+          {/* Content */}
+          <h3 className="font-semibold text-lg mb-2 text-center">{feature.title}</h3>
+          <p className="text-center text-sm text-gray-600 mb-3">{feature.description}</p>
+
+          {/* CTA Button */}
+          <Link
+            href={feature.link}
+            className="text-primary-600 text-sm font-medium hover:underline"
+          >
+            {feature.cta}
+          </Link>
         </div>
-        <div className="text-center mt-auto pt-4">
-          <Button onClick={closeModal} variant="default" size="lg">
-            Got it
-          </Button>
+
+        {/* Navigation dots */}
+        <div className="flex justify-center gap-2 mb-4">
+          {features.map((_, index) => (
+            <button
+              key={index}
+              className={`w-2 h-2 rounded-full ${
+                index === currentSlide ? 'bg-indigo-600' : 'bg-gray-300'
+              }`}
+              onClick={() => setCurrentSlide(index)}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
         </div>
+
+        {/* Prev/Next buttons */}
+        <div className="flex justify-between mb-4">
+          <button
+            onClick={prevSlide}
+            className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"
+            aria-label="Previous slide"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <button
+            onClick={nextSlide}
+            className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"
+            aria-label="Next slide"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Close button */}
+        <Button onClick={closeModal} variant="default" size="lg" className="w-full">
+          Got it
+        </Button>
       </div>
     </BaseModal>
   );
