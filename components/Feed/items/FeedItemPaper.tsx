@@ -75,7 +75,7 @@ const FeedItemPaperBody: FC<{
       </div>
 
       {/* Paper Title */}
-      <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+      <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
         {paper.title}
       </h2>
 
@@ -140,7 +140,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry, href, showTooltip
         className={cn(
           'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden',
           isClickable &&
-            'group hover:shadow-md hover:border-blue-200 transition-all duration-200 cursor-pointer'
+            'group hover:shadow-md hover:border-indigo-100 transition-all duration-200 cursor-pointer'
         )}
       >
         <div className="p-4">
