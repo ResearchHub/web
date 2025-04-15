@@ -183,7 +183,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         author={author}
         actionText={
           hasFundraise
-            ? `published a funding request for ${goalAmountRSC.toLocaleString()} RSC`
+            ? `applied for crowdfunding for ${goalAmountRSC.toLocaleString()} RSC`
             : 'published a post'
         }
         contributors={hasFundraise ? extractContributors(post.fundraise) : []}

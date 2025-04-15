@@ -13,7 +13,7 @@ const articleTypes: Record<
 > = {
   discussion: {
     title: 'Original Research Work',
-    description: 'Submit your original research',
+    description: 'Publish your original research',
   },
   preregistration: {
     title: 'Preregistration',

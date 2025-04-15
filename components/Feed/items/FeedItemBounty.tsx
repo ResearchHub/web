@@ -211,8 +211,8 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
     ? formatRSC({ amount: parseFloat(bounty.amount) })
     : '';
   const bountyActionText = bounty.amount
-    ? `Opened a bounty for ${formattedBountyAmount} RSC`
-    : 'Opened a bounty';
+    ? `created a bounty for ${formattedBountyAmount} RSC`
+    : 'created a bounty';
 
   // Handle click on the card (navigate to bounty page) - only if href is provided
   const handleCardClick = () => {

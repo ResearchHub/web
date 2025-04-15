@@ -610,7 +610,7 @@ export default function UploadPDFPage() {
     <PageLayout>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="mb-6 sm:mb-8">
-          <PageHeader title="Submit your research" className="mb-2" />
+          <PageHeader title="Publish your research" className="mb-2" />
           <p className="text-gray-600">Upload your research paper as a PDF</p>
         </div>
 

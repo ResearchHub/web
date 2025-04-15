@@ -131,7 +131,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry, href, showTooltip
       <FeedItemHeader
         timestamp={paper.createdDate}
         author={author}
-        actionText="Published a paper"
+        actionText="published a paper"
       />
 
       {/* Main Content Card - Using onClick instead of wrapping with Link */}
