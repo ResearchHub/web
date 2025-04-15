@@ -328,7 +328,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         className={cn(
           'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden',
           isClickable &&
-            'group hover:shadow-md hover:bg-indigo-50 hover:border-indigo-100 transition-all duration-200 cursor-pointer'
+            'group hover:shadow-md hover:border-indigo-100 transition-all duration-200 cursor-pointer'
         )}
       >
         <div className="p-4">
