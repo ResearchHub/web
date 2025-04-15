@@ -2,8 +2,6 @@ import { ApiClient } from './client';
 import { User, transformUser } from '@/types/user';
 
 export class UserService {
-  private static readonly BASE_PATH = '/api/popover';
-
   /**
    * Get author profile information using the profile ID
    * This is an alternative if the author ID doesn't work

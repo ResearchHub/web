@@ -126,6 +126,7 @@ export interface FeedPaperContent {
   createdBy: AuthorProfile;
   journal: Journal;
   workType?: 'paper' | 'preprint' | 'published';
+  bounties?: Bounty[];
 }
 
 // Simplified Content type - now Work, Bounty, Comment, or FeedPostEntry
@@ -361,6 +362,9 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
             image: null,
             description: '',
           },
+          bounties: Array.isArray(content_object.bounties)
+            ? content_object.bounties.map(transformBounty)
+            : [],
         };
 
         content = paperEntry;
