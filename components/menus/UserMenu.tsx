@@ -121,11 +121,11 @@ export default function UserMenu({
         <div className="flex items-center">
           <Avatar src={user.authorProfile?.profileImage} alt={user.fullName} size="md" />
           <div className="ml-3">
-            <p className="text-base font-medium text-gray-900 flex items-center">
+            <p className="text-base font-medium text-gray-900 flex items-center gap-1">
               {user.fullName}
-              {user.isVerified && <VerifiedBadge size="sm" className="ml-1" />}
+              {user.isVerified && <VerifiedBadge size="sm" />}
             </p>
-            <p className="text-sm text-gray-500">{user.email}</p>
+            <p className="text-lg text-gray-500">{user.email}</p>
           </div>
         </div>
       </div>
@@ -292,9 +292,9 @@ export default function UserMenu({
             <div className="flex items-center">
               <Avatar src={user.authorProfile?.profileImage} alt={user.fullName} size="md" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900 flex items-center">
+                <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
                   {user.fullName}
-                  {user.isVerified && <VerifiedBadge size="sm" className="ml-1" />}
+                  {user.isVerified && <VerifiedBadge size="sm" />}
                 </p>
                 <p className="text-xs text-gray-500">{user.email}</p>
               </div>

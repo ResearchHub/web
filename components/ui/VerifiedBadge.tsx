@@ -14,34 +14,19 @@ export function VerifiedBadge({
   className,
 }: VerifiedBadgeProps) {
   // Map sizes to pixel values
-  const containerSize = {
-    xs: 12,
-    sm: 16,
-    md: 20,
-    lg: 24,
-  }[size];
-
-  const badgeSize = Math.max(containerSize * 0.65, 8);
+  const sizeMap = {
+    xs: 'w-3 h-3',
+    sm: 'w-4 h-4',
+    md: 'w-5 h-5',
+    lg: 'w-6 h-6',
+  };
 
   return (
-    <div
-      className={clsx('relative', className)}
-      style={{ width: containerSize, height: containerSize }}
-    >
-      <div
-        className="absolute rounded-full "
-        style={{
-          right: -badgeSize / 4,
-          bottom: -badgeSize / 4,
-          width: badgeSize,
-          height: badgeSize,
-        }}
-      >
-        <FontAwesomeIcon
-          icon={faBadgeCheck}
-          className={clsx('w-full h-full', isOrganization ? 'text-purple-500' : 'text-blue-500')}
-        />
-      </div>
-    </div>
+    <span className={clsx('inline-flex items-center justify-center', sizeMap[size], className)}>
+      <FontAwesomeIcon
+        icon={faBadgeCheck}
+        className={clsx('w-full h-full', isOrganization ? 'text-purple-500' : 'text-blue-500')}
+      />
+    </span>
   );
 }
