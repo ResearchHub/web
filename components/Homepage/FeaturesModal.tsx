@@ -11,6 +11,7 @@ import { faComments } from '@fortawesome/free-solid-svg-icons';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { useUser } from '@/contexts/UserContext';
+import { useSearchParams } from 'next/navigation';
 
 // Define Feature type with icon
 interface Feature {
@@ -73,6 +74,10 @@ export function FeaturesModal() {
   // Get user state
   const { user } = useUser();
 
+  // Get search params to check for force show parameter
+  const searchParams = useSearchParams();
+  const forceShow = searchParams.get('showFeatures') === 'true';
+
   // Use the dismissable feature hook
   const { isDismissed, dismissFeature, dismissStatus } = useDismissableFeature(featureName);
 
@@ -83,9 +88,13 @@ export function FeaturesModal() {
   const [confettiShown, setConfettiShown] = useState(false);
 
   // Determine if the modal should be open
-  // Show only if the status is checked, the feature is not dismissed, and user is logged in
+  // Show if forced via query param OR if the status is checked, the feature is not dismissed, and user is logged in
   const isOpen =
-    dismissStatus === 'checked' && !isDismissed && !!user && user?.hasCompletedOnboarding === true;
+    forceShow ||
+    (dismissStatus === 'checked' &&
+      !isDismissed &&
+      !!user &&
+      user?.hasCompletedOnboarding === true);
 
   // Effect to trigger confetti only once when the modal opens for the first time
   useEffect(() => {
@@ -106,8 +115,8 @@ export function FeaturesModal() {
     setShowConfetti(false); // Stop confetti if the button is clicked
   };
 
-  // If status is not checked yet, or feature is dismissed, or user is not logged in, render nothing
-  if (dismissStatus !== 'checked' || isDismissed || !user) {
+  // Return null only if not forced via query param AND one of the conditions is not met
+  if (!forceShow && (dismissStatus !== 'checked' || isDismissed || !user)) {
     return null;
   }
 
