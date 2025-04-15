@@ -32,9 +32,13 @@ export const EarnRightSidebar: FC = () => {
     <div className="space-y-6">
       <div className="bg-blue-50 rounded-lg shadow-sm border border-blue-100 p-6">
         <h3 className="text-lg font-semibold mb-4">Create a Bounty</h3>
-        <p className="text-gray-600 mb-4">
-          Have a research question or need a paper reviewed? Create your own bounty to incentivize
-          the community to help.
+        <p className="text-gray-600 mb-2">
+          Experts can accelerate your research – use their help with:
+        </p>
+
+        <p className="text-gray-600 mb-4 italic font-medium">
+          {' '}
+          Statistical analysis, methods checks, peer reviews, and more
         </p>
         <Button className="w-full" onClick={handleCreateBounty}>
           Create Bounty
