@@ -140,7 +140,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry, href, showTooltip
         className={cn(
           'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden',
           isClickable &&
-            'group hover:shadow-md hover:border-blue-200 transition-all duration-200 cursor-pointer'
+            'group hover:shadow-md hover:bg-indigo-50 hover:border-indigo-100 transition-all duration-200 cursor-pointer'
         )}
       >
         <div className="p-4">
