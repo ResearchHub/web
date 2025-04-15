@@ -11,6 +11,7 @@ export interface User {
   isVerified: boolean;
   authorProfile?: AuthorProfile;
   balance: number;
+  hasCompletedOnboarding?: boolean;
 }
 
 export type TransformedUser = User & BaseTransformed;
@@ -29,6 +30,7 @@ const baseTransformUser = (raw: any): User => {
       isVerified: false,
       authorProfile: undefined,
       balance: 0,
+      hasCompletedOnboarding: false,
     };
   }
 
@@ -41,6 +43,7 @@ const baseTransformUser = (raw: any): User => {
     isVerified: raw.is_verified_v2 || false,
     authorProfile: undefined,
     balance: raw.balance || 0,
+    hasCompletedOnboarding: raw.has_completed_onboarding || false,
   };
 };
 
@@ -57,6 +60,7 @@ export const transformUser = (raw: any): TransformedUser => {
       fullName: 'Unknown User',
       isVerified: false,
       authorProfile: undefined,
+      hasCompletedOnboarding: false,
       balance: 0,
       raw: null,
     };

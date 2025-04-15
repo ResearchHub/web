@@ -22,6 +22,7 @@ import { navigateToAuthorProfile } from '@/utils/navigation';
 interface VerifyIdentityModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialStep?: VerificationStep;
 }
 
 type VerificationStep =
@@ -38,19 +39,23 @@ const stepperSteps = [
   { id: 'SUCCESS', label: 'View Rewards' },
 ];
 
-export function VerifyIdentityModal({ isOpen, onClose }: VerifyIdentityModalProps) {
-  const [currentStep, setCurrentStep] = useState<VerificationStep>('INTRO');
+export function VerifyIdentityModal({
+  isOpen,
+  onClose,
+  initialStep = 'INTRO',
+}: VerifyIdentityModalProps) {
+  const [currentStep, setCurrentStep] = useState<VerificationStep>(initialStep);
   const [publicationsSubstep, setPublicationsSubstep] = useState<STEP | 'SUCCESS'>('DOI');
 
   const { user } = useUser();
 
   useEffect(() => {
-    return () => {
-      if (!isOpen) {
-        setCurrentStep('INTRO');
-      }
-    };
-  }, [isOpen]);
+    if (isOpen) {
+      setCurrentStep(initialStep);
+    } else {
+      setCurrentStep(initialStep);
+    }
+  }, [isOpen, initialStep]);
 
   const handleNext = () => {
     if (currentStep === 'INTRO') {

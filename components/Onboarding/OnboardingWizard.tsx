@@ -10,6 +10,7 @@ import {
   faGraduationCap,
 } from '@fortawesome/free-solid-svg-icons';
 import { faLinkedin, faXTwitter } from '@fortawesome/free-brands-svg-icons';
+import { Check, Verified } from 'lucide-react';
 import { AvatarUpload } from '@/components/AvatarUpload';
 import { InterestSelector } from '@/components/InterestSelector/InterestSelector';
 import { AuthorService } from '@/services/author.service';
@@ -20,8 +21,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Confetti from 'react-confetti';
 import { SocialIcon } from '@/components/ui/SocialIcon';
+import { Icon } from '@/components/ui/icons/Icon';
+import { VerifyIdentityModal } from '@/components/modals/VerifyIdentityModal';
+import { UserService } from '@/services/user.service';
 
-const TOTAL_STEPS = 5; // Welcome, Profile, Verify, Features, Interests
+const TOTAL_STEPS = 4; // Welcome, Profile, Verify, Interests (Removed Features)
 
 interface UserOnboardingData {
   firstName: string;
@@ -59,6 +63,21 @@ export function OnboardingWizard() {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
+
+  // Mark onboarding as completed as soon as the component mounts
+  useEffect(() => {
+    const markOnboardingCompleted = async () => {
+      try {
+        await UserService.setCompletedOnboarding();
+        await refreshUser();
+      } catch (error) {
+        console.error('Error automatically marking onboarding as completed:', error);
+      }
+    };
+
+    markOnboardingCompleted();
+  }, []);
 
   useEffect(() => {
     if (user && !isUserLoading) {
@@ -111,15 +130,30 @@ export function OnboardingWizard() {
     setIsSaving(true);
     const authorId = user.authorProfile.id;
 
+    // Helper function to ensure URL has a protocol
+    const ensureProtocol = (url: string | null | undefined): string | null => {
+      if (!url || url.trim() === '') {
+        return null; // Return null for empty or whitespace-only strings
+      }
+      // Check if the URL already starts with http:// or https:// (case-insensitive)
+      if (!/^https?:\/\//i.test(url)) {
+        // If not, prepend https://
+        return 'https://' + url;
+      }
+      // If it already has a protocol, return it as is
+      return url;
+    };
+
     const params: AuthorUpdateParams = {
       first_name: userData.firstName || undefined,
       last_name: userData.lastName || undefined,
       headline: userData.headline || undefined,
       description: userData.description || undefined,
-      linkedin: userData.socialLinks.linkedIn || null,
-      twitter: userData.socialLinks.twitter || null,
-      orcid_id: userData.socialLinks.orcid || null,
-      google_scholar: userData.socialLinks.googleScholar || null,
+      // Apply the helper function to each social link
+      linkedin: ensureProtocol(userData.socialLinks.linkedIn),
+      twitter: ensureProtocol(userData.socialLinks.twitter),
+      orcid_id: ensureProtocol(userData.socialLinks.orcid),
+      google_scholar: ensureProtocol(userData.socialLinks.googleScholar),
       profileImageDataUrl: userData.avatar?.startsWith('data:image') ? userData.avatar : undefined,
     };
 
@@ -139,6 +173,7 @@ export function OnboardingWizard() {
     if (currentStep === 2) {
       const success = await saveProfileStep();
       if (!success) {
+        toast.error('Failed to save profile information. Please try again.');
         return;
       }
     }
@@ -152,12 +187,15 @@ export function OnboardingWizard() {
   const handleFinishOnboarding = async () => {
     setIsSaving(true);
     try {
-      console.log('Onboarding marked as complete (simulation).');
-      await new Promise((res) => setTimeout(res, 500));
+      // Mark onboarding as complete in the database
+      await UserService.setCompletedOnboarding();
+      // Refresh user data to update the hasCompletedOnboarding flag
+      await refreshUser();
+
       toast.success('Setup complete! Welcome to ResearchHub.');
       setShowConfetti(true);
       setTimeout(() => {
-        router.push('/?onboardingComplete=true');
+        router.push('/');
       }, 2000);
     } catch (error) {
       console.error('Error finishing onboarding:', error);
@@ -186,10 +224,8 @@ export function OnboardingWizard() {
           />
         );
       case 3: // Verify Profile Info
-        return <VerifyProfileStep />;
-      case 4: // Platform Features (Moved from step 5)
-        return <PlatformFeaturesStep />;
-      case 5: // Interest Selection (Moved from step 4)
+        return <VerifyProfileStep openVerifyModal={() => setIsVerifyModalOpen(true)} />;
+      case 4: // Interest Selection (Moved from step 5)
         return <InterestSelector mode="onboarding" />;
       default:
         return <div>Invalid Step</div>;
@@ -197,17 +233,17 @@ export function OnboardingWizard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-8 relative">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-violet-100 flex flex-col items-center justify-center p-8 relative">
       {showConfetti && <Confetti recycle={false} numberOfPieces={400} />}
       <div className="bg-white rounded-lg shadow-2xl p-8 max-w-4xl w-full relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-r from-blue-500 to-blue-700 flex items-center px-3">
-          <span className="text-white text-sm font-semibold">ResearchHub Setup Wizard</span>
+        <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-r from-indigo-500 to-indigo-700 flex items-center px-3">
+          <span className="text-white text-sm font-semibold">ResearchHub Onboarding</span>
         </div>
 
         <div className="pt-12 mb-6">
           <div className="bg-gray-200 rounded-full h-2.5">
             <div
-              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out"
+              className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300 ease-out"
               style={{ width: `${(currentStep / TOTAL_STEPS) * 100}%` }}
             ></div>
           </div>
@@ -226,7 +262,7 @@ export function OnboardingWizard() {
             <Button
               onClick={nextStep}
               disabled={
-                isSaving || (currentStep === 2 && isUserLoading) || (currentStep === 5 && isSaving)
+                isSaving || (currentStep === 2 && isUserLoading) || (currentStep === 4 && isSaving)
               }
             >
               {isSaving && currentStep === 2 ? 'Saving...' : 'Next'}{' '}
@@ -248,7 +284,12 @@ export function OnboardingWizard() {
           isLoading={isUploadingAvatar}
         />
       </div>
-      <Link href="/" className="mt-4 text-sm text-gray-600 hover:text-gray-800">
+      <VerifyIdentityModal
+        isOpen={isVerifyModalOpen}
+        onClose={() => setIsVerifyModalOpen(false)}
+        initialStep="IDENTITY"
+      />
+      <Link href="/" className="mt-4 text-md text-blue-800  hover:text-gray-800">
         Skip onboarding and go to homepage
       </Link>
     </div>
@@ -258,10 +299,9 @@ export function OnboardingWizard() {
 function WelcomeStep() {
   return (
     <div className="text-center">
+      <Icon name="flaskFrame" size={48} className="mb-4 text-indigo-600 mx-auto" />
       <h2 className="text-2xl font-semibold mb-4 text-gray-800">Welcome to ResearchHub!</h2>
-      <p className="text-gray-600 mb-6">
-        Let's get your profile set up so you can start contributing and discovering research.
-      </p>
+      <p className="text-gray-600 mb-6">Let's get your profile set up.</p>
       <p className="text-sm text-gray-500">Click "Next" to begin.</p>
     </div>
   );
@@ -426,91 +466,43 @@ function ProfileStep({ userData, setUserData, openAvatarModal }: ProfileStepProp
   );
 }
 
-function VerifyProfileStep() {
-  return (
-    <div>
-      <h2 className="text-xl font-semibold mb-4 text-gray-700">Verify Your Profile</h2>
-      <p className="text-gray-600 mb-6">
-        Verifying your profile unlocks additional benefits on ResearchHub.
-      </p>
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
-        <h3 className="font-medium text-blue-800">Benefits of Verification:</h3>
-        <ul className="list-disc list-inside space-y-1 text-sm text-blue-700">
-          <li>Verified badge displayed on your profile</li>
-          <li>Faster withdrawal limits for earned rewards</li>
-          <li>Access to personalized earning opportunities</li>
-          <li>Author badge automatically linked to your publications</li>
-        </ul>
-      </div>
-      <div className="mt-6 text-center">
-        <Button variant="secondary" disabled>
-          Verification Coming Soon
-        </Button>
-      </div>
-    </div>
-  );
+interface VerifyProfileStepProps {
+  openVerifyModal: () => void;
 }
 
-function PlatformFeaturesStep() {
-  const features = [
-    {
-      title: 'Fund Promising Research',
-      description: 'Fund preregistrations on ResearchHub.',
-      cta: 'Explore Now',
-      link: '/preregistrations',
-    },
-    {
-      title: 'Open a Scientific Bounty',
-      description: 'Engage the community with a financial incentive.',
-      cta: 'Create Bounty',
-      link: '/bounties/create',
-    },
-    {
-      title: 'Discuss Papers',
-      description: 'Discuss or read any paper on RH.',
-      cta: 'Browse Papers',
-      link: '/live',
-    },
-    {
-      title: 'Peer Review Papers',
-      description: 'Get paid 150 USD to review papers.',
-      cta: 'Become a Reviewer',
-      link: '/peer-review',
-    },
-    {
-      title: 'Get Published',
-      description: 'Publish your original work to the ResearchHub journal.',
-      cta: 'Submit Manuscript',
-      link: '/notebook/new',
-    },
-    {
-      title: 'Discover Content',
-      description: 'Explore research across various fields.',
-      cta: 'Discover',
-      link: '/live',
-    },
-  ];
-
+function VerifyProfileStep({ openVerifyModal }: VerifyProfileStepProps) {
   return (
-    <div>
-      <h2 className="text-xl font-semibold mb-6 text-gray-700">What You Can Do on ResearchHub</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {features.map((feature, index) => (
-          <div
-            key={index}
-            className="border rounded-lg p-4 flex flex-col justify-between hover:shadow-md transition-shadow"
-          >
-            <div>
-              <h3 className="font-semibold text-md mb-1 text-gray-800">{feature.title}</h3>
-              <p className="text-sm text-gray-600 mb-3">{feature.description}</p>
-            </div>
-            <a href={feature.link} target="_blank" rel="noopener noreferrer" className="self-start">
-              <Button variant="link" className="text-sm p-0 h-auto">
-                {feature.cta}
-              </Button>
-            </a>
+    <div className="flex flex-col items-center">
+      <Verified className="h-10 w-10 text-blue-500 mb-3" />
+      <h2 className="text-xl font-semibold mb-4 text-gray-700">Verify Your Profile</h2>
+      <p className="text-gray-600 mb-6 text-center">
+        Verifying your profile unlocks additional benefits on ResearchHub.
+      </p>
+      <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 space-y-3 mb-6 w-full max-w-md">
+        <h3 className="font-medium text-indigo-800">Benefits of Verification:</h3>
+        <div className="space-y-2 text-sm text-indigo-700">
+          <div className="flex items-start gap-2">
+            <Check className="h-4 w-4 mt-0.5 text-indigo-600 flex-shrink-0" />
+            <span>Verified badge displayed on your profile</span>
           </div>
-        ))}
+          <div className="flex items-start gap-2">
+            <Check className="h-4 w-4 mt-0.5 text-indigo-600 flex-shrink-0" />
+            <span>Faster withdrawal limits for earned rewards</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <Check className="h-4 w-4 mt-0.5 text-indigo-600 flex-shrink-0" />
+            <span>Access to personalized earning opportunities</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <Check className="h-4 w-4 mt-0.5 text-indigo-600 flex-shrink-0" />
+            <span>Early access to new features</span>
+          </div>
+        </div>
+      </div>
+      <div className="text-center">
+        <Button variant="secondary" onClick={openVerifyModal}>
+          Verify Now (2-5 min)
+        </Button>
       </div>
     </div>
   );

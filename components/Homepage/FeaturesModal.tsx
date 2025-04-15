@@ -10,6 +10,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faComments } from '@fortawesome/free-solid-svg-icons';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
+import { useUser } from '@/contexts/UserContext';
 
 // Define Feature type with icon
 interface Feature {
@@ -69,6 +70,9 @@ export function FeaturesModal() {
   // Define feature name
   const featureName = 'homepage_features_modal';
 
+  // Get user state
+  const { user } = useUser();
+
   // Use the dismissable feature hook
   const { isDismissed, dismissFeature, dismissStatus } = useDismissableFeature(featureName);
 
@@ -79,8 +83,9 @@ export function FeaturesModal() {
   const [confettiShown, setConfettiShown] = useState(false);
 
   // Determine if the modal should be open
-  // Show only if the status is checked and the feature is not dismissed
-  const isOpen = dismissStatus === 'checked' && !isDismissed;
+  // Show only if the status is checked, the feature is not dismissed, and user is logged in
+  const isOpen =
+    dismissStatus === 'checked' && !isDismissed && !!user && user?.hasCompletedOnboarding === true;
 
   // Effect to trigger confetti only once when the modal opens for the first time
   useEffect(() => {
@@ -101,8 +106,8 @@ export function FeaturesModal() {
     setShowConfetti(false); // Stop confetti if the button is clicked
   };
 
-  // If status is not checked yet, or feature is dismissed, render nothing
-  if (dismissStatus !== 'checked' || isDismissed) {
+  // If status is not checked yet, or feature is dismissed, or user is not logged in, render nothing
+  if (dismissStatus !== 'checked' || isDismissed || !user) {
     return null;
   }
 
@@ -137,7 +142,7 @@ export function FeaturesModal() {
           <h2 className="text-2xl font-semibold text-gray-800 mb-1">Welcome to ResearchHub!</h2>
           <p className="text-sm text-gray-600">Take a quick tour of key features:</p>
         </div>
-        <div className="mb-8">
+        <div className="mb-8 max-w-[500px] mx-auto">
           <Slideshow>
             {features.map((feature, index) => (
               <div

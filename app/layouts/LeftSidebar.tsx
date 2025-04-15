@@ -75,7 +75,7 @@ const UserSidebarSection = ({ forceMinimize = false }: { forceMinimize?: boolean
           <Button
             variant="default"
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium flex items-center justify-center gap-2 py-2.5 tablet:max-sidebar-compact:!w-10 tablet:max-sidebar-compact:!h-10 tablet:max-sidebar-compact:!p-0"
-            onClick={() => executeAuthenticatedAction(() => router.push('/home'))}
+            onClick={() => executeAuthenticatedAction(() => router.push('/'))}
           >
             <User size={18} className="text-white" />
             <span className={forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}>
@@ -87,7 +87,7 @@ const UserSidebarSection = ({ forceMinimize = false }: { forceMinimize?: boolean
           <Button
             variant="outlined"
             className={`w-full border-indigo-200 hover:bg-indigo-50 text-indigo-700 font-medium flex items-center justify-center gap-2 py-2.5 ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
-            onClick={() => executeAuthenticatedAction(() => router.push('/home'))}
+            onClick={() => executeAuthenticatedAction(() => router.push('/'))}
           >
             <UserPlus size={18} className="text-indigo-700" />
             <span>Join ResearchHub</span>
