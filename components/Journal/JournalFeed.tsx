@@ -263,7 +263,7 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading, tabs }
 
         <Link href="/paper/create/pdf" className="flex-shrink-0">
           <button className="px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-md shadow-sm hover:bg-indigo-700 transition-all duration-200 inline-flex items-center">
-            Submit Your Research
+            Publish your research
             <svg
               className="ml-2 w-4 h-4"
               fill="none"
