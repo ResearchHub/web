@@ -181,10 +181,10 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
-                      Submit your research
+                      Publish your research
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
-                      Submit your original research. Optionally publish in the ResearchHub Journal.
+                      Preprint or peer reviewed publication
                     </div>
                   </div>
                 </div>
@@ -209,10 +209,10 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
-                      Open a scientific bounty
+                      Create a bounty
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
-                      Engage the world's brightest minds by offering ResearchCoin
+                      Reward experts for doing research tasks
                     </div>
                   </div>
                 </div>
@@ -230,10 +230,10 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
-                      Crowdfund your research
+                      Apply for funding
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
-                      Get your research funded through a crowdfunding campaign.
+                      Preregister your work to get crowdfunded
                     </div>
                   </div>
                 </div>
@@ -251,7 +251,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                       Open a grant
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
-                      Fund promising research on ResearchHub.
+                      Donate to fund a specific area of science
                     </div>
                   </div>
                 </div>
