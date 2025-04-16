@@ -74,11 +74,11 @@ export function FeaturesModal() {
     <BaseModal
       isOpen={isOpen}
       onClose={closeModal}
-      maxWidth="max-w-md"
+      maxWidth="max-w-lg"
       padding="p-0"
       showCloseButton={true}
     >
-      <div className="p-5 flex flex-col w-full md:w-96 lg:w-[500px] min-h-[70vh] md:min-h-0 justify-between md:justify-start">
+      <div className="p-5 flex flex-col w-full min-h-[70vh] md:min-h-0 justify-between md:justify-start md:w-96 lg:w-[500px]">
         {/* Modal header */}
         <div className="text-center mb-4">
           <h2 className="text-xl font-semibold text-gray-800 mb-1">Welcome to ResearchHub!</h2>
@@ -86,7 +86,7 @@ export function FeaturesModal() {
         </div>
 
         {/* Feature slides using Slideshow component */}
-        <Slideshow className="mb-4 w-full flex-1 md:flex-none flex items-center justify-center">
+        <Slideshow className="mb-4 w-full flex-1 flex items-center justify-center md:flex-none">
           {features.map((feature, index) => (
             <div
               key={index}
