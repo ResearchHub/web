@@ -69,7 +69,6 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
-                      <WalletDefault />
                       <Button
                         onClick={() => setIsDepositModalOpen(true)}
                         variant="default"
@@ -91,6 +90,7 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
                         <ArrowUpFromLine className="h-5 w-5" />
                         Withdraw
                       </Button>
+                      <WalletDefault />
                     </div>
                   </>
                 ) : (

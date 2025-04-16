@@ -2,8 +2,8 @@
 
 import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react';
 import { Fragment, useCallback, useMemo, useState, useEffect } from 'react';
-import { X as XIcon, Check, AlertCircle, AlertTriangle } from 'lucide-react';
-import { formatRSC, formatUsdValue } from '@/utils/number';
+import { X as XIcon, Check, AlertCircle, ExternalLink } from 'lucide-react';
+import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useAccount } from 'wagmi';
@@ -15,6 +15,7 @@ const NETWORK_NAME = IS_PRODUCTION ? 'Base' : 'Base Sepolia';
 const NETWORK_DESCRIPTION = IS_PRODUCTION
   ? 'Withdrawals are processed on Base L2'
   : 'Withdrawals are processed on Base Sepolia testnet';
+const BLOCK_EXPLORER_URL = IS_PRODUCTION ? 'https://basescan.org' : 'https://sepolia.basescan.org';
 
 interface WithdrawModalProps {
   isOpen: boolean;
@@ -67,13 +68,23 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
   );
 
   const isButtonDisabled = useMemo(
-    () => !amount || withdrawAmount <= 0 || withdrawAmount > availableBalance,
-    [amount, withdrawAmount, availableBalance]
+    () =>
+      !amount ||
+      withdrawAmount <= 0 ||
+      withdrawAmount > availableBalance ||
+      txStatus.state === 'pending',
+    [amount, withdrawAmount, availableBalance, txStatus.state]
   );
 
+  // Function to check if inputs should be disabled
+  const isInputDisabled = useCallback(() => {
+    return !address || txStatus.state === 'pending' || txStatus.state === 'success';
+  }, [address, txStatus.state]);
+
   const handleMaxAmount = useCallback(() => {
+    if (isInputDisabled()) return;
     setAmount(availableBalance.toString());
-  }, [availableBalance]);
+  }, [availableBalance, isInputDisabled]);
 
   const handleWithdraw = useCallback(async () => {
     if (!address || !amount || isButtonDisabled) {
@@ -97,9 +108,36 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
       });
     } catch (error) {
       console.error('Withdrawal failed:', error);
+
+      // Extract the error message from the API response
+      let errorMessage = 'Unknown error occurred';
+
+      // Handle different error types from the API
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      // If it's a response from fetch or axios with specific error data
+      if (error && typeof error === 'object' && 'response' in error) {
+        const apiError = error as { response?: { data?: any; status?: number } };
+        if (apiError.response?.data) {
+          // API might return plain text errors
+          if (typeof apiError.response.data === 'string') {
+            errorMessage = apiError.response.data;
+          }
+          // Or it might return a JSON object with error details
+          else if (typeof apiError.response.data === 'object' && apiError.response.data !== null) {
+            errorMessage =
+              apiError.response.data.detail ||
+              apiError.response.data.message ||
+              JSON.stringify(apiError.response.data);
+          }
+        }
+      }
+
       setTxStatus({
         state: 'error',
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        message: errorMessage,
       });
     }
   }, [address, amount, isButtonDisabled]);
@@ -171,7 +209,8 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                       <span className="text-[15px] text-gray-700">Amount to Withdraw</span>
                       <button
                         onClick={handleMaxAmount}
-                        className="text-sm text-primary-500 font-medium hover:text-primary-600"
+                        disabled={isInputDisabled()}
+                        className="text-sm text-primary-500 font-medium hover:text-primary-600 disabled:opacity-50 disabled:text-gray-400 disabled:hover:text-gray-400"
                       >
                         MAX
                       </button>
@@ -183,8 +222,9 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                         value={amount}
                         onChange={handleAmountChange}
                         placeholder="0.00"
+                        disabled={isInputDisabled()}
                         aria-label="Amount to withdraw"
-                        className={`w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200`}
+                        className={`w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200 ${isInputDisabled() ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                       />
                       <div className="absolute inset-y-0 right-0 flex items-center pr-4">
                         <span className="text-gray-500">RSC</span>
@@ -202,7 +242,7 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                     <div className="flex items-center">
                       <span className="text-[15px] text-gray-700">Withdrawal Address</span>
                     </div>
-                    <div className="text-[14px] font-mono text-gray-800 break-all text-center">
+                    <div className="text-[14px] font-mono text-gray-800 break-all text-center p-3 bg-gray-50 rounded-lg border border-gray-100">
                       {address}
                     </div>
                   </div>
@@ -244,7 +284,7 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                   {/* Action Button */}
                   <button
                     onClick={handleWithdraw}
-                    disabled={isButtonDisabled || txStatus.state === 'pending'}
+                    disabled={isButtonDisabled}
                     className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                   >
                     {txStatus.state === 'pending' ? 'Processing...' : 'Withdraw RSC'}
@@ -266,6 +306,15 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                             <Check className="mr-2 h-5 w-5" />
                             <span className="font-medium">Withdrawal successful!</span>
                           </div>
+                          <a
+                            href={`${BLOCK_EXPLORER_URL}/tx/${txStatus.txHash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-primary-600 hover:text-primary-700 flex items-center mt-2"
+                          >
+                            View transaction on block explorer
+                            <ExternalLink className="h-4 w-4 ml-1" />
+                          </a>
                         </div>
                       )}
 
@@ -275,7 +324,9 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                             <AlertCircle className="mr-2 h-5 w-5" />
                             <span className="font-medium">Withdrawal failed</span>
                           </div>
-                          <p className="text-sm text-gray-600">{txStatus.message}</p>
+                          <p className="text-sm text-gray-600 mt-2 p-3 bg-red-50 border border-red-100 rounded-md">
+                            {txStatus.message}
+                          </p>
                         </div>
                       )}
                     </div>

@@ -1,17 +1,15 @@
 'use client';
 
 import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react';
-import { Fragment, useCallback, useMemo, useState, useRef, useEffect } from 'react';
+import { Fragment, useCallback, useMemo, useState, useEffect } from 'react';
 import { X as XIcon, Check, AlertCircle } from 'lucide-react';
-import { formatRSC, formatUsdValue } from '@/utils/number';
+import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useAccount } from 'wagmi';
 import { useWalletRSCBalance } from '@/hooks/useWalletRSCBalance';
 import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction';
 import { Interface } from 'ethers';
 import { DepositService } from '@/services/deposit.service';
-import { Button } from '@/components/ui/Button';
 import { RSC, TRANSFER_ABI } from '@/constants/tokens';
 
 const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_WALLET_ADDRESS;
@@ -40,16 +38,16 @@ interface DepositModalProps {
   currentBalance: number;
 }
 
-// Define transaction status type
+// Define transaction status type to include all relevant states
 type TransactionStatus =
   | { state: 'idle' }
+  | { state: 'buildingTransaction' }
   | { state: 'pending' }
   | { state: 'success'; txHash: string }
   | { state: 'error'; message: string };
 
 export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalProps) {
   const [amount, setAmount] = useState<string>('');
-  const { exchangeRate } = useExchangeRate();
   const { address } = useAccount();
   const { balance: walletBalance } = useWalletRSCBalance();
   const [txStatus, setTxStatus] = useState<TransactionStatus>({ state: 'idle' });
@@ -90,11 +88,27 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
     [amount, depositAmount, walletBalance]
   );
 
+  // Function to check if inputs should be disabled
+  const isInputDisabled = useCallback(() => {
+    return (
+      !address ||
+      txStatus.state === 'buildingTransaction' ||
+      txStatus.state === 'pending' ||
+      txStatus.state === 'success'
+    );
+  }, [address, txStatus.state]);
+
   const handleOnStatus = useCallback(
     (status: any) => {
       console.log('Transaction status:', status);
 
-      if (status.statusName === 'waiting') {
+      // Updated to handle all lifecycle states
+      if (
+        status.statusName === 'buildingTransaction' ||
+        status.statusName === 'transactionPending'
+      ) {
+        setTxStatus({ state: 'buildingTransaction' });
+      } else if (status.statusName === 'transactionPending') {
         setTxStatus({ state: 'pending' });
       } else if (status.statusName === 'transactionLegacyExecuted') {
         const txHash = status.statusData.transactionHashList[0];
@@ -110,7 +124,6 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
           console.error('Failed to record deposit:', error);
         });
       } else if (status.statusName === 'error') {
-        // Log the entire status object to see its complete structure
         console.error('Transaction error full status:', JSON.stringify(status, null, 2));
         setTxStatus({
           state: 'error',
@@ -144,17 +157,6 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
 
     return [transferCall];
   }, [amount, depositAmount, walletBalance]);
-
-  // Function to reset the form
-  const handleReset = useCallback(() => {
-    setAmount('');
-    setTxStatus({ state: 'idle' });
-  }, []);
-
-  // Add a reset function for transaction errors
-  const handleResetError = useCallback(() => {
-    setTxStatus({ state: 'idle' });
-  }, []);
 
   // If no wallet is connected, show nothing - assuming modal shouldn't open in this state
   if (!address) {
@@ -238,7 +240,8 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
                         <span className="text-[15px] text-gray-700">Amount to Deposit</span>
                         <button
                           onClick={() => setAmount(walletBalance.toString())}
-                          className="text-sm text-primary-500 font-medium hover:text-primary-600"
+                          className="text-sm text-primary-500 font-medium hover:text-primary-600 disabled:opacity-50 disabled:text-gray-400 disabled:hover:text-gray-400"
+                          disabled={isInputDisabled()}
                         >
                           MAX
                         </button>
@@ -250,9 +253,9 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
                           value={amount}
                           onChange={handleAmountChange}
                           placeholder="0.00"
-                          disabled={!address}
+                          disabled={isInputDisabled()}
                           aria-label="Amount to deposit"
-                          className={`w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200 ${!address ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                          className={`w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200 ${isInputDisabled() ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                         />
                         <div className="absolute inset-y-0 right-0 flex items-center pr-4">
                           <span className="text-gray-500">RSC</span>
@@ -308,20 +311,13 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
                       <TransactionButton
                         className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                         disabled={isButtonDisabled || txStatus.state === 'pending'}
-                        text={txStatus.state === 'pending' ? 'Processing...' : 'Deposit RSC'}
+                        text={'Deposit RSC'}
                       />
                     </Transaction>
 
                     {/* Transaction Status Display */}
-                    {txStatus.state !== 'idle' && (
+                    {(txStatus.state === 'success' || txStatus.state === 'error') && (
                       <div className="mt-4 p-4 rounded-lg border">
-                        {txStatus.state === 'pending' && (
-                          <div className="flex items-center text-amber-600">
-                            <div className="animate-spin mr-2 h-5 w-5 border-2 border-amber-600 border-t-transparent rounded-full"></div>
-                            <span>Transaction in progress...</span>
-                          </div>
-                        )}
-
                         {txStatus.state === 'success' && (
                           <div className="space-y-2">
                             <div className="flex items-center text-green-600">
