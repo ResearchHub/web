@@ -7,7 +7,7 @@ import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useAccount } from 'wagmi';
-import { WithdrawalService } from '@/services/withdrawal.service';
+import { useWithdrawRSC } from '@/hooks/useWithdrawRSC';
 
 // Network configuration based on environment
 const IS_PRODUCTION = process.env.VERCEL_ENV === 'production';
@@ -23,28 +23,19 @@ interface WithdrawModalProps {
   availableBalance: number;
 }
 
-// Define transaction status type
-type TransactionStatus =
-  | { state: 'idle' }
-  | { state: 'pending' }
-  | { state: 'success'; txHash: string }
-  | { state: 'error'; message: string };
-
 export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawModalProps) {
   const [amount, setAmount] = useState<string>('');
   const { exchangeRate } = useExchangeRate();
   const { address } = useAccount();
-  const [txStatus, setTxStatus] = useState<TransactionStatus>({ state: 'idle' });
+  const [{ txStatus, isLoading }, withdrawRSC] = useWithdrawRSC();
 
-  // Reset transaction status when modal is closed
+  // Reset state when modal is closed
   useEffect(() => {
-    setTxStatus({ state: 'idle' });
     setAmount('');
   }, [isOpen]);
 
   // Handle custom close with state reset
   const handleClose = useCallback(() => {
-    setTxStatus({ state: 'idle' });
     setAmount('');
     onClose();
   }, [onClose]);
@@ -91,106 +82,14 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
       return;
     }
 
-    try {
-      setTxStatus({ state: 'pending' });
-
-      const response = await WithdrawalService.withdrawRSC({
-        to_address: address,
-        agreed_to_terms: true,
-        amount: amount,
-        transaction_fee: '0',
-        network: 'BASE',
-      });
-
-      setTxStatus({
-        state: 'success',
-        txHash: response.transaction_hash,
-      });
-    } catch (error) {
-      console.error('Withdrawal failed:', error);
-
-      // Extract the error message from the API response
-      let errorMessage = 'Unknown error occurred';
-
-      try {
-        // For axios errors that contain the response data directly
-        if (error && typeof error === 'object' && 'response' in error) {
-          const axiosError = error as { response?: { data?: any } };
-          if (axiosError.response?.data) {
-            if (typeof axiosError.response.data === 'string') {
-              errorMessage = axiosError.response.data;
-            } else if (typeof axiosError.response.data === 'object') {
-              // Check common error fields
-              errorMessage =
-                axiosError.response.data.detail ||
-                axiosError.response.data.message ||
-                axiosError.response.data.error ||
-                JSON.stringify(axiosError.response.data);
-            }
-            // If we found an error message, use it and stop processing
-            setTxStatus({ state: 'error', message: errorMessage });
-            return;
-          }
-        }
-
-        // Look for API error message in cause or any nested structure
-        if (error instanceof Error) {
-          if ('cause' in error && error.cause) {
-            errorMessage = String(error.cause);
-          } else if (error.message && !error.message.includes('Request failed')) {
-            errorMessage = error.message;
-          }
-
-          // Check for Response object or error.response
-          if ('response' in error && error.response) {
-            // Add type assertion to inform TypeScript that response has json method
-            const response = error.response as { json?: () => Promise<any> };
-
-            if (response.json) {
-              try {
-                const responseData = await response.json().catch(() => null);
-                if (responseData) {
-                  errorMessage =
-                    responseData.detail ||
-                    responseData.message ||
-                    responseData.error ||
-                    JSON.stringify(responseData);
-                  setTxStatus({ state: 'error', message: errorMessage });
-                  return;
-                }
-              } catch {
-                // Ignore JSON parsing errors
-              }
-            }
-          }
-        }
-        // Direct string error
-        if (typeof error === 'string') {
-          errorMessage = error;
-        }
-
-        // Handle the case where the error might be the Response object itself
-        if (
-          error instanceof Response ||
-          (typeof error === 'object' && error !== null && 'status' in error && 'json' in error)
-        ) {
-          try {
-            const data = await (error as Response).json();
-            errorMessage = data.detail || data.message || data.error || JSON.stringify(data);
-            setTxStatus({ state: 'error', message: errorMessage });
-            return;
-          } catch {}
-        }
-      } catch (parseError) {
-        console.error('Error while parsing error response:', parseError);
-      }
-
-      setTxStatus({
-        state: 'error',
-        message: errorMessage,
-      });
-    }
-  }, [address, amount, isButtonDisabled]);
+    await withdrawRSC({
+      to_address: address,
+      agreed_to_terms: true,
+      amount: amount,
+      transaction_fee: '0',
+      network: 'BASE',
+    });
+  }, [address, amount, isButtonDisabled, withdrawRSC]);
 
   // If no wallet is connected, show nothing
   if (!address) {
