@@ -13,15 +13,18 @@ export const Slideshow: FC<SlideshowProps> = ({ children, className }) => {
   const slides = Children.toArray(children);
   const [currentSlide, setCurrentSlide] = useState(0);
   const totalSlides = slides.length;
-  const slideContainerRef = useRef<HTMLDivElement>(null);
+  const slideTrackRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [slideHeight, setSlideHeight] = useState<number | null>(null);
 
   // Touch handling state
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
 
-  // Minimum swipe distance (in px)
-  const minSwipeDistance = 50;
+  // Animation state
+  const [isAnimating, setIsAnimating] = useState(false);
 
   // Check if we're on mobile
   useEffect(() => {
@@ -39,171 +42,167 @@ export const Slideshow: FC<SlideshowProps> = ({ children, className }) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev === totalSlides - 1 ? 0 : prev + 1));
-    // Scroll to the next slide if on mobile
-    if (isMobile && slideContainerRef.current) {
-      const slideWidth = slideContainerRef.current.scrollWidth / totalSlides;
-      const nextSlidePos = slideWidth * ((currentSlide + 1) % totalSlides);
-      slideContainerRef.current.scrollTo({ left: nextSlidePos, behavior: 'smooth' });
+  // Calculate and set the maximum height of all slides
+  useEffect(() => {
+    if (slideTrackRef.current) {
+      // Get all slide elements
+      const slideElements = slideTrackRef.current.children;
+      let maxHeight = 0;
+
+      // Find the tallest slide
+      Array.from(slideElements).forEach((slide) => {
+        const slideHeight = slide.scrollHeight;
+        maxHeight = Math.max(maxHeight, slideHeight);
+      });
+
+      // Set a minimum height to ensure proper vertical centering
+      setSlideHeight(Math.max(maxHeight, 200));
     }
+  }, [children]);
+
+  // Handle slide change with animation flag
+  const changeSlide = (index: number) => {
+    if (index === currentSlide || isAnimating) return;
+
+    setIsAnimating(true);
+    setCurrentSlide(index);
+
+    // Reset animation flag after transition completes
+    const timer = setTimeout(() => {
+      setIsAnimating(false);
+    }, 300); // Match this to your CSS transition duration
+
+    return () => clearTimeout(timer);
+  };
+
+  const nextSlide = () => {
+    const newIndex = currentSlide === totalSlides - 1 ? 0 : currentSlide + 1;
+    changeSlide(newIndex);
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
-    // Scroll to the previous slide if on mobile
-    if (isMobile && slideContainerRef.current) {
-      const slideWidth = slideContainerRef.current.scrollWidth / totalSlides;
-      const prevSlidePos = slideWidth * ((currentSlide - 1 + totalSlides) % totalSlides);
-      slideContainerRef.current.scrollTo({ left: prevSlidePos, behavior: 'smooth' });
-    }
+    const newIndex = currentSlide === 0 ? totalSlides - 1 : currentSlide - 1;
+    changeSlide(newIndex);
   };
 
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-    // Scroll to selected slide if on mobile
-    if (isMobile && slideContainerRef.current) {
-      const slideWidth = slideContainerRef.current.scrollWidth / totalSlides;
-      slideContainerRef.current.scrollTo({ left: slideWidth * index, behavior: 'smooth' });
-    }
-  };
-
-  // Handle mobile scroll events to update the current slide
-  const handleScroll = () => {
-    if (isMobile && slideContainerRef.current) {
-      const scrollPos = slideContainerRef.current.scrollLeft;
-      const slideWidth = slideContainerRef.current.scrollWidth / totalSlides;
-      const newSlideIndex = Math.round(scrollPos / slideWidth);
-      if (newSlideIndex !== currentSlide && newSlideIndex >= 0 && newSlideIndex < totalSlides) {
-        setCurrentSlide(newSlideIndex);
-      }
-    }
-  };
-
-  // Touch event handlers for swiping
-  const onTouchStart = (e: TouchEvent<HTMLDivElement>) => {
-    setTouchEnd(null); // Reset touchEnd
+  // Touch event handlers
+  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
     setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e: TouchEvent<HTMLDivElement>) => {
     setTouchEnd(e.targetTouches[0].clientX);
+    setIsDragging(true);
+    setDragOffset(0);
   };
 
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
+  const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
 
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
+    setTouchEnd(e.targetTouches[0].clientX);
+    const newOffset = touchEnd - touchStart;
+    setDragOffset(newOffset);
 
-    if (isLeftSwipe) {
-      nextSlide();
-    } else if (isRightSwipe) {
-      prevSlide();
+    // Prevent default scrolling when swiping
+    if (Math.abs(newOffset) > 10) {
+      e.preventDefault();
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging) return;
+
+    const minSwipeDistance = 50;
+    const delta = touchEnd - touchStart;
+
+    if (delta < -minSwipeDistance) {
+      nextSlide(); // Swipe left
+    } else if (delta > minSwipeDistance) {
+      prevSlide(); // Swipe right
     }
 
-    // Reset values
-    setTouchStart(null);
-    setTouchEnd(null);
+    // Reset drag state
+    setIsDragging(false);
+    setDragOffset(0);
   };
 
   if (totalSlides === 0) {
-    return null; // Don't render anything if there are no slides
+    return null;
   }
 
   return (
-    <div className={cn('relative w-full', className)}>
-      {/* Container for slide content and side buttons */}
-      <div className="relative flex items-center">
-        {/* Left navigation button - positioned outside content area for desktop, but
-            positioned absolutely for mobile to avoid shrinking the content */}
-        {totalSlides > 1 && !isMobile && (
-          <button
-            onClick={prevSlide}
-            className="flex-none p-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full focus:outline-none transition-colors z-10 mr-2"
-            aria-label="Previous slide"
-          >
-            <ChevronLeft size={20} />
-          </button>
-        )}
-
-        {/* Slide Content Area */}
-        <div className={cn('relative flex-grow overflow-hidden', isMobile ? 'w-full' : 'mx-0')}>
-          {isMobile ? (
-            // Mobile: Horizontal scrollable container with touch events for swiping
+    <div className={cn('w-full flex flex-col gap-4', className)}>
+      {/* Slideshow container */}
+      <div className="relative w-full overflow-hidden flex items-center justify-center">
+        {/* Slide track - container for all slides */}
+        <div
+          ref={slideTrackRef}
+          className="relative flex transition-transform duration-300 ease-out w-full"
+          style={{
+            transform: `translateX(calc(-${currentSlide * 100}% + ${isDragging ? dragOffset : 0}px))`,
+            transitionProperty: isDragging ? 'none' : 'transform',
+            minHeight: slideHeight ? `${slideHeight}px` : 'auto',
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
+        >
+          {slides.map((slide, index) => (
             <div
-              ref={slideContainerRef}
-              className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none -mx-4 px-4"
-              onScroll={handleScroll}
-              onTouchStart={onTouchStart}
-              onTouchMove={onTouchMove}
-              onTouchEnd={onTouchEnd}
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-                WebkitOverflowScrolling: 'touch', // Better scrolling on iOS
-              }}
+              key={index}
+              className="min-w-full w-full flex-shrink-0 flex items-center justify-center"
+              aria-hidden={currentSlide !== index}
             >
-              {slides.map((slide, index) => (
-                <div key={index} className="min-w-full snap-center flex-shrink-0 px-1">
-                  {slide}
-                </div>
-              ))}
+              {slide}
             </div>
-          ) : (
-            // Desktop: Show only current slide
-            <div className="transition-opacity duration-300 ease-in-out">
-              {slides[currentSlide]}
-            </div>
-          )}
+          ))}
         </div>
 
-        {/* Right navigation button - positioned outside content area for desktop, but
-            positioned absolutely for mobile to avoid shrinking the content */}
-        {totalSlides > 1 && !isMobile && (
-          <button
-            onClick={nextSlide}
-            className="flex-none p-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full focus:outline-none transition-colors z-10 ml-2"
-            aria-label="Next slide"
-          >
-            <ChevronRight size={20} />
-          </button>
+        {/* Navigation buttons */}
+        {totalSlides > 1 && (
+          <>
+            <button
+              onClick={prevSlide}
+              disabled={isAnimating}
+              className={cn(
+                'absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-gray-200/80 hover:bg-gray-300 text-gray-700 rounded-full',
+                'focus:outline-none transition-colors z-10',
+                isAnimating && 'opacity-50 cursor-not-allowed'
+              )}
+              aria-label="Previous slide"
+            >
+              <ChevronLeft size={20} />
+            </button>
+
+            <button
+              onClick={nextSlide}
+              disabled={isAnimating}
+              className={cn(
+                'absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-gray-200/80 hover:bg-gray-300 text-gray-700 rounded-full',
+                'focus:outline-none transition-colors z-10',
+                isAnimating && 'opacity-50 cursor-not-allowed'
+              )}
+              aria-label="Next slide"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </>
         )}
       </div>
 
-      {/* Mobile navigation buttons - positioned at the edges of the screen */}
-      {totalSlides > 1 && isMobile && (
-        <>
-          <button
-            onClick={prevSlide}
-            className="absolute left-0 top-1/2 -translate-y-1/2 transform p-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full focus:outline-none transition-colors z-10"
-            aria-label="Previous slide"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          <button
-            onClick={nextSlide}
-            className="absolute right-0 top-1/2 -translate-y-1/2 transform p-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full focus:outline-none transition-colors z-10"
-            aria-label="Next slide"
-          >
-            <ChevronRight size={20} />
-          </button>
-        </>
-      )}
-
-      {/* Pagination Dots */}
+      {/* Pagination Dots - now outside and below the slideshow */}
       {totalSlides > 1 && (
-        <div className="flex justify-center space-x-2 mt-4">
+        <div className="flex justify-center space-x-2 mt-2">
           {slides.map((_, index) => (
             <button
               key={index}
-              onClick={() => goToSlide(index)}
+              onClick={() => changeSlide(index)}
+              disabled={isAnimating}
               className={cn(
                 'h-2 w-2 rounded-full transition-colors',
-                currentSlide === index ? 'bg-indigo-600' : 'bg-gray-300 hover:bg-gray-400'
+                currentSlide === index ? 'bg-indigo-600' : 'bg-gray-300 hover:bg-gray-400',
+                isAnimating && 'opacity-50 cursor-not-allowed'
               )}
               aria-label={`Go to slide ${index + 1}`}
+              aria-current={currentSlide === index}
             />
           ))}
         </div>
