@@ -85,7 +85,7 @@ export const transformContribution = (raw: any): BountyContribution => {
     return {
       id: raw.id || 0,
       amount: raw.amount || '0',
-      createdBy: transformUser(raw.created_by),
+      createdBy: transformUser(raw.created_by || null),
       status: raw.status || 'ACTIVE',
       raw,
     };

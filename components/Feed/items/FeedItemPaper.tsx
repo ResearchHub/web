@@ -10,8 +10,8 @@ import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { truncateText } from '@/utils/stringUtils';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/styles';
-import Icon from '@/components/ui/icons/Icon';
 import { JournalStatusBadge } from '@/components/ui/JournalStatusBadge';
+import { FeedItemMetadataSection } from '@/components/Feed/FeedItemMetadataSection';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
@@ -94,9 +94,18 @@ const FeedItemPaperBody: FC<{
       </div>
 
       {/* Truncated Content */}
-      <div className="text-sm text-gray-700">
+      <div className="text-sm text-gray-700 mb-4">
         <p>{truncateText(paper.textPreview, 300)}</p>
       </div>
+
+      {/* Bounties and Reviews Section */}
+      <FeedItemMetadataSection
+        id={paper.id}
+        slug={paper.slug}
+        bounties={paper.bounties}
+        reviews={paper.reviews}
+        contentType="paper"
+      />
     </div>
   );
 };

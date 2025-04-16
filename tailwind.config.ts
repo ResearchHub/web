@@ -7,6 +7,7 @@ export default {
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  safelist: ['md:max-w-md', 'md:max-w-lg'],
   darkMode: 'class',
   theme: {
     extend: {

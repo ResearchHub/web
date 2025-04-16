@@ -10,6 +10,7 @@ import { truncateText } from '@/utils/stringUtils';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { FeedItemMetadataSection } from '@/components/Feed/FeedItemMetadataSection';
 
 interface FeedItemPostProps {
   entry: FeedEntry;
@@ -92,6 +93,15 @@ const FeedItemPostBody: FC<{
           </div>
         )}
       </div>
+
+      {/* Bounties and Reviews Section */}
+      <FeedItemMetadataSection
+        id={post.id}
+        slug={post.slug}
+        bounties={post.bounties}
+        reviews={post.reviews}
+        contentType="post"
+      />
     </div>
   );
 };
@@ -121,7 +131,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({ entry, href, showTooltips 
   const isClickable = !!href;
 
   // Use a placeholder image for now since FeedPostContent doesn't have an image property
-  const imageUrl = undefined;
+  const imageUrl = post.previewImage || undefined;
 
   // Mobile image display (for small screens only)
   const MobileImage = () => {

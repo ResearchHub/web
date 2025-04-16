@@ -8,6 +8,7 @@ import Icon from '@/components/ui/icons/Icon';
 import { cn } from '@/utils/styles';
 import Link from 'next/link';
 import { BountyCarouselItem } from './BountyCarouselItem';
+import { Carousel } from '@/components/ui/Carousel';
 
 /**
  * Props for the BountiesCarousel component.
@@ -20,47 +21,6 @@ const CAROUSEL_ITEM_WIDTH = 250 + 12; // width + gap
 export const BountiesCarousel: FC<BountiesCarouselProps> = () => {
   // Let's specifically fetch review bounties for our carousel
   const { entries, isLoading, error } = useBountiesFeed(10, 'OPEN', 'REVIEW');
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [isAtStart, setIsAtStart] = useState(true);
-  const [isAtEnd, setIsAtEnd] = useState(false);
-
-  const handleScroll = () => {
-    if (scrollContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-      setIsAtStart(scrollLeft <= 5); // Allow some tolerance
-      setIsAtEnd(scrollLeft >= scrollWidth - clientWidth - 5); // Allow some tolerance
-    }
-  };
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = CAROUSEL_ITEM_WIDTH * 2; // Scroll by 2 items
-      scrollContainerRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth',
-      });
-    }
-  };
-
-  // useEffect to handle scroll state updates on mount, scroll, and resize
-  useEffect(() => {
-    const currentRef = scrollContainerRef.current;
-    const checkScroll = () => handleScroll();
-
-    // Initial check
-    const timer = setTimeout(checkScroll, 100); // Check shortly after mount
-
-    // Listeners
-    window.addEventListener('resize', checkScroll);
-    currentRef?.addEventListener('scroll', checkScroll);
-
-    // Cleanup
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('resize', checkScroll);
-      currentRef?.removeEventListener('scroll', checkScroll);
-    };
-  }, []); // Empty dependency array ensures this runs only on mount and unmount
 
   if (isLoading) {
     // Simple loading state
@@ -102,79 +62,18 @@ export const BountiesCarousel: FC<BountiesCarouselProps> = () => {
         </Link>
       </div>
 
-      {/* Carousel Container */}
+      {/* Carousel Container - Use the new Carousel component */}
       <div className="relative group">
-        {/* Carousel Scroll Area */}
-        <div
-          ref={scrollContainerRef}
-          onScroll={handleScroll}
-          className="flex space-x-3 overflow-x-auto pb-1 scrollbar-hide relative" // pb-1 to prevent cutting off bottom border
-        >
+        <Carousel itemWidth={CAROUSEL_ITEM_WIDTH} scrollAmountMultiplier={2}>
           {entries.map((entry: FeedEntry, index: number) => (
             <div
               key={entry.id}
-              className={cn(
-                'flex-shrink-0',
-                // Apply dimming effect to the last visible item when not at end
-                !isAtEnd && index === entries.length - 1 ? 'opacity-60' : 'opacity-100'
-              )}
+              className="flex-shrink-0" // Removed dimming logic, could be added back if needed
             >
               <BountyCarouselItem entry={entry} />
             </div>
           ))}
-          {/* Add an extra invisible item to ensure last real item can scroll fully into view */}
-          <div className="flex-shrink-0 w-px h-px"></div>
-        </div>
-
-        {/* Blur effect on the right side when more content is available */}
-        {!isAtEnd && (
-          <div
-            className="absolute right-0 top-0 bottom-0 w-16 pointer-events-none z-10"
-            style={{
-              background: 'linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,0.7))',
-            }}
-          ></div>
-        )}
-
-        {/* Blur effect on the left side when scrolled */}
-        {!isAtStart && (
-          <div
-            className="absolute left-0 top-0 bottom-0 w-16 pointer-events-none z-10"
-            style={{
-              background: 'linear-gradient(to left, rgba(255,255,255,0), rgba(255,255,255,0.7))',
-            }}
-          ></div>
-        )}
-
-        {/* Left Scroll Button - shown when not at start */}
-        {!isAtStart && (
-          <div className="absolute left-0 top-0 bottom-0 flex items-center z-20">
-            <button
-              onClick={() => scroll('left')}
-              className="flex items-center justify-center h-full w-16 focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-              aria-label="Scroll left"
-            >
-              <div className="flex items-center justify-center h-10 w-10 bg-black bg-opacity-40 hover:bg-opacity-60 rounded-full text-white">
-                <ChevronLeft size={20} />
-              </div>
-            </button>
-          </div>
-        )}
-
-        {/* Right Scroll Button - shown when not at end */}
-        {!isAtEnd && (
-          <div className="absolute right-[-20px] top-0 bottom-0 flex items-center z-20">
-            <button
-              onClick={() => scroll('right')}
-              className="flex items-center justify-center h-full w-16 focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-              aria-label="Scroll right"
-            >
-              <div className="flex items-center justify-center h-10 w-10 bg-black bg-opacity-40 hover:bg-opacity-60 rounded-full text-white">
-                <ChevronRight size={20} />
-              </div>
-            </button>
-          </div>
-        )}
+        </Carousel>
       </div>
 
       {/* Header bar with verification message */}

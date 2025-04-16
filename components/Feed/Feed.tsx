@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useRef, useState, useEffect } from 'react';
+import { FC, useRef, useState, useEffect, Suspense } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { Sparkles, Globe } from 'lucide-react';
 import { useFeed, FeedTab, FeedSource } from '@/hooks/useFeed';
@@ -146,15 +146,17 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   return (
     <PageLayout>
       {!isCustomizing ? (
-        <FeedContent
-          entries={entries}
-          isLoading={combinedIsLoading}
-          hasMore={hasMore}
-          loadMore={loadMore}
-          header={header}
-          tabs={feedTabs}
-          // filters={sourceFilters}
-        />
+        <>
+          <FeedContent
+            entries={entries}
+            isLoading={combinedIsLoading}
+            hasMore={hasMore}
+            loadMore={loadMore}
+            header={header}
+            tabs={feedTabs}
+            // filters={sourceFilters}
+          />
+        </>
       ) : (
         <>
           <div className="pt-4 pb-7">{header}</div>

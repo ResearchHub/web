@@ -8,6 +8,7 @@ interface TooltipProps {
   children: React.ReactNode;
   content: React.ReactNode;
   className?: string;
+  wrapperClassName?: string;
   delay?: number; // Delay before showing tooltip in ms
   position?: 'top' | 'bottom' | 'left' | 'right';
   width?: string; // Width class for the tooltip (e.g., 'w-38', 'w-80', 'w-96')
@@ -104,6 +105,7 @@ export function Tooltip({
   children,
   content,
   className,
+  wrapperClassName,
   delay = 100,
   position = 'bottom',
   width = 'w-38',
@@ -151,7 +153,7 @@ export function Tooltip({
         onMouseLeave={hideTooltip}
         onFocus={showTooltip}
         onBlur={hideTooltip}
-        className="inline-flex h-full"
+        className={cn('inline-flex h-full', wrapperClassName)}
       >
         {children}
       </div>

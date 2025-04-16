@@ -46,6 +46,38 @@ export interface Author {
   description?: string;
 }
 
+// Add this interface for the update payload
+export interface AuthorUpdatePayload {
+  first_name?: string;
+  last_name?: string;
+  description?: string;
+  // Using a more generic education type that accepts both string and number for id
+  education?: Array<{
+    id?: string | number;
+    name?: string;
+    // Allow other properties
+    [key: string]: any;
+  }>;
+  headline?: { title: string; isPublic?: boolean } | string | null;
+  linkedin?: string | null;
+  twitter?: string | null;
+  orcid_id?: string | null;
+  google_scholar?: string | null;
+}
+
+// Helper function (can be kept or removed if not needed elsewhere)
+// Restore this function
+async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+  return blob;
+}
+
+// Interface for the update payload parameters
+export interface AuthorUpdateParams extends AuthorUpdatePayload {
+  profileImageDataUrl?: string | null; // Add image data URL
+}
+
 export class AuthorService {
   private static readonly BASE_PATH = '/api/search/person';
   private static readonly AUTHORS_PATH = '/api/author';
@@ -83,22 +115,13 @@ export class AuthorService {
   static async getAuthorInfo(authorId: number): Promise<User> {
     // Check if we already have cached data for this author
     if (this.authorCache[authorId]) {
-      console.log(`Using cached data for author ID: ${authorId}`);
       return this.authorCache[authorId];
     }
 
     try {
-      // Add debug logging
-      console.log(`Fetching author info for ID: ${authorId}`);
-
       const response = await ApiClient.get<AuthorProfileResponse>(
         `${this.AUTHORS_PATH}/${authorId}/minimal_overview/`
       );
-
-      // Enhanced debugging
-      console.log('Author info response structure:', Object.keys(response || {}));
-      console.log('Author has first_name:', !!response?.first_name);
-      console.log('Author has last_name:', !!response?.last_name);
 
       // Check response structure and ensure it contains expected fields
       if (!response) {
@@ -131,10 +154,6 @@ export class AuthorService {
         throw new Error('Response does not contain expected author data');
       }
 
-      console.log('Transformed user data:', userData);
-      console.log('Has author profile:', !!userData.authorProfile);
-      console.log('Author fullName:', userData.fullName);
-
       // Cache the result
       this.authorCache[authorId] = userData;
 
@@ -165,7 +184,6 @@ export class AuthorService {
             orcid_id: response.orcid_id,
           },
         });
-        console.log('Alternative method transformed data:', userData);
 
         // Cache the result
         this.authorCache[authorId] = userData;
@@ -175,6 +193,67 @@ export class AuthorService {
         console.error(`Both fetch methods failed for author ID ${authorId}:`, secondError);
         throw error; // Throw the original error
       }
+    }
+  }
+
+  /**
+   * Update author profile data using JSON
+   */
+  static async updateAuthorProfileData(
+    authorId: number,
+    params: AuthorUpdatePayload
+  ): Promise<void> {
+    try {
+      // Send JSON payload using PATCH
+      await ApiClient.patch(`${this.AUTHORS_PATH}/${authorId}/`, params);
+      // Invalidate cache
+      delete this.authorCache[authorId];
+    } catch (error) {
+      console.error(`Error updating author data via PATCH JSON for ID ${authorId}:`, error);
+      throw error; // Re-throw
+    }
+  }
+
+  /**
+   * Update author profile image using FormData
+   */
+  static async updateAuthorProfileImage(authorId: number, imageDataUrl: string): Promise<void> {
+    if (!imageDataUrl || !imageDataUrl.startsWith('data:image')) {
+      throw new Error('Invalid image data URL');
+    }
+
+    const formData = new FormData();
+
+    try {
+      // Convert data URL to Blob and append
+      const imageBlob = await dataUrlToBlob(imageDataUrl);
+      formData.append('profile_image', imageBlob, 'profile_image.png');
+
+      // Send FormData using PATCH
+      await ApiClient.patch(`${this.AUTHORS_PATH}/${authorId}/`, formData);
+      // Invalidate cache
+      delete this.authorCache[authorId];
+    } catch (error) {
+      console.error(`Error updating author image via PATCH FormData for ID ${authorId}:`, error);
+      throw error; // Re-throw
+    }
+  }
+
+  /**
+   * Legacy method for backward compatibility
+   * @deprecated Use updateAuthorProfileData and updateAuthorProfileImage instead
+   */
+  static async updateInfo(authorId: number, params: AuthorUpdateParams): Promise<void> {
+    const { profileImageDataUrl, ...jsonData } = params;
+
+    // Update profile data if there is any
+    if (Object.keys(jsonData).length > 0) {
+      await this.updateAuthorProfileData(authorId, jsonData);
+    }
+
+    // Update profile image if provided
+    if (profileImageDataUrl && profileImageDataUrl.startsWith('data:image')) {
+      await this.updateAuthorProfileImage(authorId, profileImageDataUrl);
     }
   }
 

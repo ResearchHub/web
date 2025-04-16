@@ -3,6 +3,7 @@
 import { ReactNode, useState, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { Search } from '@/components/Search/Search';
+import { OnboardingRedirect } from '@/components/OnboardingRedirect';
 
 // Dynamically import sidebar components
 const LeftSidebar = dynamic(() => import('./LeftSidebar').then((mod) => mod.LeftSidebar), {
@@ -53,6 +54,9 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
 
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
+      {/* Check if user should be redirected to onboarding */}
+      <OnboardingRedirect />
+
       {/* Mobile overlay */}
       {isLeftSidebarOpen && (
         <div
