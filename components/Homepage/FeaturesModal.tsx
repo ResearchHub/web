@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 import { Icon, IconName } from '@/components/ui/icons/Icon';
@@ -82,39 +82,41 @@ export function FeaturesModal() {
         {/* Modal header */}
         <div className="text-center mb-4">
           <h2 className="text-xl font-semibold text-gray-800 mb-1">Welcome to ResearchHub!</h2>
-          <p className="text-sm text-gray-600">Take a quick tour of key features:</p>
+          <p className="text-md text-gray-600">Take a quick look at some key features:</p>
         </div>
 
         {/* Feature slides using Slideshow component */}
-        <Slideshow className="mb-4 w-full flex-1 flex items-center justify-center md:flex-none">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className="bg-blue-50 rounded-lg p-4 flex flex-col items-center w-full"
-            >
-              {/* Icon */}
-              <div className="mb-3">
-                {typeof feature.icon === 'string' ? (
-                  <Icon name={feature.icon as IconName} size={40} color="#4f46e5" />
-                ) : (
-                  <FontAwesomeIcon icon={feature.icon} className="text-indigo-600" size="2x" />
-                )}
-              </div>
-
-              {/* Content */}
-              <h3 className="font-semibold text-lg mb-2 text-center">{feature.title}</h3>
-              <p className="text-center text-sm text-gray-600 mb-3">{feature.description}</p>
-
-              {/* CTA Button */}
-              <Link
-                href={feature.link}
-                className="text-primary-600 text-sm font-medium hover:underline"
+        <div className="mb-4 w-full flex-1 flex items-center justify-center md:flex-none md:relative md:px-6">
+          <Slideshow className="w-full">
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className="bg-blue-50 rounded-lg p-4 flex flex-col items-center w-full md:max-w-[85%] md:mx-auto"
               >
-                {feature.cta}
-              </Link>
-            </div>
-          ))}
-        </Slideshow>
+                {/* Icon */}
+                <div className="mb-3">
+                  {typeof feature.icon === 'string' ? (
+                    <Icon name={feature.icon as IconName} size={40} color="#4f46e5" />
+                  ) : (
+                    <FontAwesomeIcon icon={feature.icon} className="text-indigo-600" size="2x" />
+                  )}
+                </div>
+
+                {/* Content */}
+                <h3 className="font-semibold text-lg mb-2 text-center">{feature.title}</h3>
+                <p className="text-center text-sm text-gray-600 mb-3">{feature.description}</p>
+
+                {/* CTA Button */}
+                <Link
+                  href={feature.link}
+                  className="text-primary-600 text-sm font-medium hover:underline"
+                >
+                  {feature.cta}
+                </Link>
+              </div>
+            ))}
+          </Slideshow>
+        </div>
 
         {/* Close button */}
         <Button onClick={closeModal} variant="default" size="lg" className="w-full">

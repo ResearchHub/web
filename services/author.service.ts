@@ -47,21 +47,26 @@ export interface Author {
 }
 
 // Add this interface for the update payload
-interface AuthorUpdatePayload {
+export interface AuthorUpdatePayload {
   first_name?: string;
   last_name?: string;
   description?: string;
-  // Assuming education updates are handled separately or structure is known
-  // education?: Array<{ id?: number; name?: string; /* ... other fields ... */ }>;
-  headline?: { title: string; isPublic?: boolean } | string | null; // Allow object or string based on sample vs existing types
+  // Using a more generic education type that accepts both string and number for id
+  education?: Array<{
+    id?: string | number;
+    name?: string;
+    // Allow other properties
+    [key: string]: any;
+  }>;
+  headline?: { title: string; isPublic?: boolean } | string | null;
   linkedin?: string | null;
   twitter?: string | null;
   orcid_id?: string | null;
   google_scholar?: string | null;
-  // profile_image update might be handled via a separate endpoint/method like AvatarUpload uses
 }
 
 // Helper function (can be kept or removed if not needed elsewhere)
+// Restore this function
 async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
   const response = await fetch(dataUrl);
   const blob = await response.blob();
@@ -69,7 +74,6 @@ async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
 }
 
 // Interface for the update payload parameters
-// Export this interface
 export interface AuthorUpdateParams extends AuthorUpdatePayload {
   profileImageDataUrl?: string | null; // Add image data URL
 }
@@ -193,67 +197,63 @@ export class AuthorService {
   }
 
   /**
-   * Update author profile information, potentially including profile image via FormData.
-   * NOTE: Requires API and ApiClient.patch support for multipart/form-data on PATCH.
+   * Update author profile data using JSON
    */
-  static async updateInfo(authorId: number, params: AuthorUpdateParams): Promise<void> {
-    const formData = new FormData();
-    const { profileImageDataUrl, ...jsonData } = params;
-
-    // Append JSON data fields to FormData
-    Object.entries(jsonData).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        // Special handling for headline
-        if (key === 'headline') {
-          // Ensure value is a non-empty string before formatting
-          if (typeof value === 'string' && value.trim() !== '') {
-            const headlineObject = { title: value, isPublic: true }; // Default isPublic to true
-            formData.append(key, JSON.stringify(headlineObject));
-          } else {
-            // If headline is empty or not a string, append null or omit based on API needs
-            // Omitting for now if empty/invalid
-            // formData.append(key, null); // Or handle as backend expects
-          }
-        }
-        // Handle other non-object fields
-        else if (typeof value !== 'object') {
-          formData.append(key, String(value));
-        }
-        // Skipping other complex objects for now
-        // else if (typeof value === 'object') { ... }
-      }
-    });
-
-    // Append profile image if provided
-    if (profileImageDataUrl && profileImageDataUrl.startsWith('data:image')) {
-      try {
-        const imageBlob = await dataUrlToBlob(profileImageDataUrl);
-        formData.append('profile_image', imageBlob, 'profile_image.png');
-      } catch (error) {
-        console.error('Error converting image data URL to Blob:', error);
-        throw new Error('Failed to process profile image.');
-      }
-    }
-
-    // Check if there's anything to send
-    let hasDataToSend = false;
-    for (const _ of formData.entries()) {
-      hasDataToSend = true;
-      break;
-    }
-    if (!hasDataToSend) {
-      console.log('No data fields or image to update.');
-      return;
-    }
-
+  static async updateAuthorProfileData(
+    authorId: number,
+    params: AuthorUpdatePayload
+  ): Promise<void> {
     try {
-      // Send FormData using PATCH
-      await ApiClient.patch(`${this.AUTHORS_PATH}/${authorId}/`, formData);
-      // Optionally invalidate cache
+      // Send JSON payload using PATCH
+      await ApiClient.patch(`${this.AUTHORS_PATH}/${authorId}/`, params);
+      // Invalidate cache
       delete this.authorCache[authorId];
     } catch (error) {
-      console.error(`Error updating author info via PATCH FormData for ID ${authorId}:`, error);
+      console.error(`Error updating author data via PATCH JSON for ID ${authorId}:`, error);
       throw error; // Re-throw
+    }
+  }
+
+  /**
+   * Update author profile image using FormData
+   */
+  static async updateAuthorProfileImage(authorId: number, imageDataUrl: string): Promise<void> {
+    if (!imageDataUrl || !imageDataUrl.startsWith('data:image')) {
+      throw new Error('Invalid image data URL');
+    }
+
+    const formData = new FormData();
+
+    try {
+      // Convert data URL to Blob and append
+      const imageBlob = await dataUrlToBlob(imageDataUrl);
+      formData.append('profile_image', imageBlob, 'profile_image.png');
+
+      // Send FormData using PATCH
+      await ApiClient.patch(`${this.AUTHORS_PATH}/${authorId}/`, formData);
+      // Invalidate cache
+      delete this.authorCache[authorId];
+    } catch (error) {
+      console.error(`Error updating author image via PATCH FormData for ID ${authorId}:`, error);
+      throw error; // Re-throw
+    }
+  }
+
+  /**
+   * Legacy method for backward compatibility
+   * @deprecated Use updateAuthorProfileData and updateAuthorProfileImage instead
+   */
+  static async updateInfo(authorId: number, params: AuthorUpdateParams): Promise<void> {
+    const { profileImageDataUrl, ...jsonData } = params;
+
+    // Update profile data if there is any
+    if (Object.keys(jsonData).length > 0) {
+      await this.updateAuthorProfileData(authorId, jsonData);
+    }
+
+    // Update profile image if provided
+    if (profileImageDataUrl && profileImageDataUrl.startsWith('data:image')) {
+      await this.updateAuthorProfileImage(authorId, profileImageDataUrl);
     }
   }
 

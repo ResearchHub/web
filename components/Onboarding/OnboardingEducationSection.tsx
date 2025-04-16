@@ -1,0 +1,62 @@
+'use client';
+
+import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGraduationCap } from '@fortawesome/free-solid-svg-icons';
+import { Button } from '@/components/ui/Button';
+import { OnboardingEducationCard } from './OnboardingEducationCard'; // Update import name and path
+import type { EducationEntry } from './OnboardingWizard'; // Adjust path if needed
+
+interface OnboardingEducationSectionProps {
+  // Rename interface
+  education: EducationEntry[];
+  onAdd: () => void;
+  onEdit: (index: number) => void;
+  onRemove: (index: number) => void;
+  onSetMain: (index: number) => void;
+}
+
+export function OnboardingEducationSection({
+  // Rename function
+  education,
+  onAdd,
+  onEdit,
+  onRemove,
+  onSetMain,
+}: OnboardingEducationSectionProps) {
+  // Update interface usage
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between items-center">
+        <label className="block text-sm font-medium text-gray-700">Education</label>
+      </div>
+
+      {education.length > 0 ? (
+        <div className="space-y-2">
+          {education.map((edu, index) => (
+            <OnboardingEducationCard
+              key={`edu-${index}`}
+              education={edu}
+              index={index}
+              onEdit={() => onEdit(index)}
+              onRemove={() => onRemove(index)}
+              onSetMain={() => onSetMain(index)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="text-sm text-gray-500 italic">No education added yet</div>
+      )}
+
+      <Button
+        variant="outlined"
+        size="sm"
+        onClick={onAdd}
+        className="mt-2 text-blue-600 border-blue-300 hover:bg-blue-50"
+      >
+        <FontAwesomeIcon icon={faGraduationCap} className="mr-2" />
+        Add Education
+      </Button>
+    </div>
+  );
+}

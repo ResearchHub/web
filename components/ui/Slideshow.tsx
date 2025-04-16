@@ -163,26 +163,26 @@ export const Slideshow: FC<SlideshowProps> = ({ children, className }) => {
               onClick={prevSlide}
               disabled={isAnimating}
               className={cn(
-                'absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-gray-200/80 hover:bg-gray-300 text-gray-700 rounded-full',
+                'absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-gray-200/80 hover:bg-gray-300 text-gray-700 rounded-full md:bg-gray-200/90 md:shadow-sm',
                 'focus:outline-none transition-colors z-10',
                 isAnimating && 'opacity-50 cursor-not-allowed'
               )}
               aria-label="Previous slide"
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
             </button>
 
             <button
               onClick={nextSlide}
               disabled={isAnimating}
               className={cn(
-                'absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-gray-200/80 hover:bg-gray-300 text-gray-700 rounded-full',
+                'absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-gray-200/80 hover:bg-gray-300 text-gray-700 rounded-full md:bg-gray-200/90 md:shadow-sm',
                 'focus:outline-none transition-colors z-10',
                 isAnimating && 'opacity-50 cursor-not-allowed'
               )}
               aria-label="Next slide"
             >
-              <ChevronRight size={20} />
+              <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
             </button>
           </>
         )}
