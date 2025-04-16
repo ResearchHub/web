@@ -1,4 +1,5 @@
 import { ApiClient } from './client';
+import { ApiError } from './types';
 
 export interface WithdrawalRequest {
   to_address: string;
@@ -27,31 +28,8 @@ export class WithdrawalService {
     try {
       return await ApiClient.post<WithdrawalResponse>(`${this.WITHDRAWAL_PATH}/`, withdrawalData);
     } catch (error: unknown) {
-      // Handle API errors with proper error message extraction
-      if (
-        error instanceof Response ||
-        (typeof error === 'object' && error !== null && 'status' in error)
-      ) {
-        try {
-          // Try to read the response as text first
-          const responseText = await (error as Response).text();
-
-          // If it's valid JSON, parse it
-          try {
-            const data = JSON.parse(responseText);
-            const errorMessage = data.detail || data.message || data.error || JSON.stringify(data);
-            throw new Error(errorMessage);
-          } catch (jsonError) {
-            // Not JSON, use the text directly as the error message
-            throw new Error(responseText);
-          }
-        } catch (responseError) {
-          // If we can't read the response, use the original error
-          if (error instanceof Error) {
-            throw error;
-          }
-          throw new Error('Failed to process withdrawal');
-        }
+      if (error instanceof ApiError) {
+        throw new Error(error.message);
       } else if (error instanceof Error) {
         throw error;
       }
