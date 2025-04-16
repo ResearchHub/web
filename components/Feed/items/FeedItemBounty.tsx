@@ -211,8 +211,8 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
     ? formatRSC({ amount: parseFloat(bounty.amount) })
     : '';
   const bountyActionText = bounty.amount
-    ? `Opened a bounty for ${formattedBountyAmount} RSC`
-    : 'Opened a bounty';
+    ? `created a bounty for ${formattedBountyAmount} RSC`
+    : 'created a bounty';
 
   // Handle click on the card (navigate to bounty page) - only if href is provided
   const handleCardClick = () => {
@@ -328,7 +328,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         className={cn(
           'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden',
           isClickable &&
-            'group hover:shadow-md hover:border-blue-200 transition-all duration-200 cursor-pointer'
+            'group hover:shadow-md hover:border-indigo-100 transition-all duration-200 cursor-pointer'
         )}
       >
         <div className="p-4">

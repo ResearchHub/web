@@ -62,7 +62,7 @@ const FeedItemFundraiseBody: FC<{
         {/* Left side content */}
         <div className="flex-1 min-w-0">
           {/* Title */}
-          <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
             {post.title}
           </h2>
 
@@ -183,7 +183,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         author={author}
         actionText={
           hasFundraise
-            ? `published a funding request for ${goalAmountRSC.toLocaleString()} RSC`
+            ? `applied for crowdfunding for ${goalAmountRSC.toLocaleString()} RSC`
             : 'published a post'
         }
         contributors={hasFundraise ? extractContributors(post.fundraise) : []}
@@ -196,7 +196,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         className={cn(
           'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden',
           isClickable &&
-            'group hover:shadow-md hover:border-blue-200 transition-all duration-200 cursor-pointer'
+            'group hover:shadow-md hover:border-indigo-100 transition-all duration-200 cursor-pointer'
         )}
       >
         <div className="p-4">

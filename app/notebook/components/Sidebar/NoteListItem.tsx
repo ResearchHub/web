@@ -12,32 +12,50 @@ import {
 } from '@/hooks/useNote';
 import type { Note } from '@/types/note';
 import toast from 'react-hot-toast';
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 
 interface NoteListItemProps {
   note: Note;
-  isSelected?: boolean;
+  disabled: boolean;
+  startTransition: (callback: () => void) => void;
 }
 
 /**
  * A single note item in the sidebar list
  */
-export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) => {
+export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, startTransition }) => {
   const router = useRouter();
-  const { refreshNotes, setNotes } = useNotebookContext();
+  const { refreshNotes, setNotes, noteIdFromParams } = useNotebookContext();
   const [{ isLoading: isDeleting }, deleteNote] = useDeleteNote();
   const [{ isLoading: isDuplicating }, duplicateNote] = useDuplicateNote();
   const [{ isLoading: isMakingPrivate }, makeNotePrivate] = useMakeNotePrivate();
   const [{ isLoading: isUpdatingPermissions }, updateNotePermissions] = useUpdateNotePermissions();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const itemRef = useRef<HTMLDivElement>(null);
 
   const isPrivate = note.access === 'PRIVATE';
   const isProcessing = isDeleting || isDuplicating || isMakingPrivate || isUpdatingPermissions;
+  const isSelected = note.id.toString() === noteIdFromParams;
 
-  const handleClick = () => {
-    router.replace(`/notebook/${note.organization.slug}/${note.id}`);
-  };
+  useEffect(() => {
+    if (isSelected && itemRef.current) {
+      const timeoutId = setTimeout(() => {
+        itemRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+        });
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isSelected]);
+
+  const handleClick = React.useCallback(() => {
+    startTransition(() => {
+      router.push(`/notebook/${note.organization.slug}/${note.id}`, { scroll: false });
+    });
+  }, [router, note.organization.slug, note.id, startTransition]);
 
   const handleDuplicate = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -103,20 +121,20 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) 
         bg-gray-50 hover:bg-gray-200 text-gray-500 hover:text-gray-700
         ${isMenuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
       onClick={(e) => e.stopPropagation()}
-      disabled={isProcessing}
+      disabled={isProcessing || disabled}
     >
       <MoreHorizontal className="h-4 w-4" />
     </button>
   );
 
   return (
-    <div className={`group relative ${isProcessing ? 'opacity-50' : ''}`}>
+    <div ref={itemRef} className={`group relative ${isProcessing || disabled ? 'opacity-50' : ''}`}>
       <Button
         variant="ghost"
         className={`w-full justify-start px-2.5 py-1.5 h-8 text-sm font-normal text-gray-700 group
           ${isSelected ? 'bg-gray-100 hover:bg-gray-100' : 'hover:bg-gray-50'}`}
         onClick={handleClick}
-        disabled={isProcessing}
+        disabled={isProcessing || disabled}
         title={note.title}
       >
         {isProcessing ? (
@@ -132,7 +150,12 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, isSelected }) 
       </Button>
 
       <div className="absolute right-2 top-1/2 -translate-y-1/2">
-        <BaseMenu trigger={menuTriggerButton} className="p-1" onOpenChange={setIsMenuOpen}>
+        <BaseMenu
+          trigger={menuTriggerButton}
+          className="p-1"
+          onOpenChange={setIsMenuOpen}
+          disabled={isProcessing || disabled}
+        >
           <BaseMenuItem onClick={handleDuplicate} disabled={isProcessing}>
             <div className="flex items-center gap-2">
               {isDuplicating ? (
