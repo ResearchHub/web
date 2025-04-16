@@ -117,11 +117,43 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
         // If the error is directly a string
         errorMessage = error;
       } else if (error instanceof Error) {
-        errorMessage = error.message;
+        // For regular Error objects, check if they contain additional context
+        // The actual API error message might be in the cause property or in error.response
+        if ('cause' in error && error.cause) {
+          errorMessage = String(error.cause);
+        } else if (error.message && !error.message.includes('Request failed')) {
+          errorMessage = error.message;
+        }
       }
 
       // If it's a response from fetch or axios with specific error data
       if (error && typeof error === 'object') {
+        // Check if the error object has a json method (fetch Response object)
+        if ('json' in error && typeof (error as any).json === 'function') {
+          try {
+            const jsonData = await (error as any).json();
+            if (jsonData) {
+              if (typeof jsonData === 'string') {
+                errorMessage = jsonData;
+              } else if (jsonData.detail) {
+                errorMessage = jsonData.detail;
+              } else if (jsonData.message) {
+                errorMessage = jsonData.message;
+              } else if (jsonData.error) {
+                errorMessage = jsonData.error;
+              }
+            }
+          } catch (e) {
+            // If JSON parsing fails, try text instead
+            try {
+              const text = await (error as any).text();
+              if (text) errorMessage = text;
+            } catch (textError) {
+              // Ignore text extraction errors
+            }
+          }
+        }
+
         // Direct response data (could be a string message)
         if ('data' in error && error.data) {
           if (typeof error.data === 'string') {
@@ -134,16 +166,26 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                 ? String(dataObj.detail)
                 : 'message' in dataObj
                   ? String(dataObj.message)
-                  : JSON.stringify(dataObj);
+                  : 'error' in dataObj
+                    ? String(dataObj.error)
+                    : JSON.stringify(dataObj);
           }
         }
 
-        // Response object structure (common in axios)
+        // Response object structure (common in axios or fetch wrappers)
         if ('response' in error && error.response) {
-          const apiError = error as { response?: { data?: unknown; status?: number } };
+          const apiError = error as {
+            response?: { data?: unknown; status?: number; statusText?: string };
+          };
+
+          // Sometimes the error message is in response.statusText
+          if (apiError.response?.statusText && apiError.response.statusText !== 'OK') {
+            errorMessage = apiError.response.statusText;
+          }
+
+          // Check response.data for error details
           if (apiError.response?.data) {
             if (typeof apiError.response.data === 'string') {
-              // Direct string response from API
               errorMessage = apiError.response.data;
             } else if (
               typeof apiError.response.data === 'object' &&
@@ -156,16 +198,50 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                   ? String(responseData.detail)
                   : 'message' in responseData
                     ? String(responseData.message)
-                    : JSON.stringify(responseData);
+                    : 'error' in responseData
+                      ? String(responseData.error)
+                      : errorMessage; // Keep existing if no match
             }
           }
         }
 
         // For fetch API errors that might have the message in a text() response
-        if ('body' in error && typeof (error as any).text === 'function') {
+        if ('body' in error && error.body) {
           try {
-            const textError = await (error as any).text();
-            if (textError) errorMessage = textError;
+            // Try to read the response body
+            if (typeof (error as any).text === 'function') {
+              const textError = await (error as any).text();
+              if (textError) {
+                // Try to parse as JSON first
+                try {
+                  const jsonError = JSON.parse(textError);
+                  if (jsonError.detail) errorMessage = jsonError.detail;
+                  else if (jsonError.message) errorMessage = jsonError.message;
+                  else if (jsonError.error) errorMessage = jsonError.error;
+                  else errorMessage = textError;
+                } catch {
+                  // If not valid JSON, use the text directly
+                  errorMessage = textError;
+                }
+              }
+            } else if (
+              typeof error.body === 'object' &&
+              error.body !== null &&
+              'getReader' in error.body
+            ) {
+              // Handle ReadableStream body
+              const reader = (error.body as ReadableStream).getReader();
+              const { value } = await reader.read();
+              if (value) {
+                const text = new TextDecoder().decode(value);
+                try {
+                  const jsonError = JSON.parse(text);
+                  errorMessage = jsonError.detail || jsonError.message || jsonError.error || text;
+                } catch {
+                  errorMessage = text;
+                }
+              }
+            }
           } catch (e) {
             // Ignore text extraction errors
           }
