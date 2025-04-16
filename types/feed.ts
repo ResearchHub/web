@@ -57,6 +57,13 @@ const transformNestedParentComment = (rawParent: any): ParentCommentPreview | un
   }
 };
 
+// First, let's add a Review interface
+export interface Review {
+  id: number;
+  score: number;
+  author: AuthorProfile;
+}
+
 // New FeedPostEntry type for RESEARCHHUBPOST content
 export interface FeedPostContent {
   id: number;
@@ -70,6 +77,8 @@ export interface FeedPostContent {
   authors: AuthorProfile[];
   topics: Topic[];
   createdBy: AuthorProfile;
+  bounties?: Bounty[]; // Add bounties property
+  reviews?: Review[]; // Also add reviews property for consistency
 }
 
 export interface FeedBountyContent {
@@ -127,6 +136,7 @@ export interface FeedPaperContent {
   journal: Journal;
   workType?: 'paper' | 'preprint' | 'published';
   bounties?: Bounty[];
+  reviews?: Review[]; // Add reviews property
 }
 
 // Simplified Content type - now Work, Bounty, Comment, or FeedPostEntry
@@ -365,6 +375,13 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           bounties: Array.isArray(content_object.bounties)
             ? content_object.bounties.map(transformBounty)
             : [],
+          reviews: content_object.reviews
+            ? content_object.reviews.map((review: any) => ({
+                id: review.id,
+                score: review.score,
+                author: transformAuthorProfile(review.author),
+              }))
+            : [],
         };
 
         content = paperEntry;
@@ -518,6 +535,14 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               ]
             : [],
           createdBy: transformAuthorProfile(author),
+          bounties: content_object.bounties ? content_object.bounties.map(transformBounty) : [],
+          reviews: content_object.reviews
+            ? content_object.reviews.map((review: any) => ({
+                id: review.id,
+                score: review.score,
+                author: transformAuthorProfile(review.author),
+              }))
+            : [],
         };
 
         // Add fundraise data if it's a PREREGISTRATION and has fundraise data

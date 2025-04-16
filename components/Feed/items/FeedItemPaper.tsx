@@ -2,7 +2,6 @@
 
 import { FC } from 'react';
 import { FeedPaperContent, FeedEntry } from '@/types/feed';
-import { Bounty, BountyContribution } from '@/types/bounty';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
@@ -11,12 +10,8 @@ import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { truncateText } from '@/utils/stringUtils';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/styles';
-import Icon from '@/components/ui/icons/Icon';
 import { JournalStatusBadge } from '@/components/ui/JournalStatusBadge';
-import { formatRSC } from '@/utils/number';
-import { AvatarStack } from '@/components/ui/AvatarStack';
-import Link from 'next/link';
-import { Avatar } from '@/components/ui/Avatar';
+import { FeedItemMetadataSection } from '@/components/Feed/FeedItemMetadataSection';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
@@ -103,60 +98,14 @@ const FeedItemPaperBody: FC<{
         <p>{truncateText(paper.textPreview, 300)}</p>
       </div>
 
-      {/* --- Condensed Bounty Info --- */}
-      {paper.bounties &&
-        paper.bounties.filter((b: Bounty) => b.status === 'OPEN').length > 0 &&
-        (() => {
-          const firstOpenBounty = paper.bounties!.find((b: Bounty) => b.status === 'OPEN');
-          const amountAsNumber = parseFloat(firstOpenBounty?.totalAmount || '0');
-          const formattedAmount = formatRSC({ amount: amountAsNumber, shorten: true });
-          const creatorProfile = firstOpenBounty?.createdBy?.authorProfile;
-
-          // Get contributors and prepare items for AvatarStack
-          const contributors = firstOpenBounty?.contributions || [];
-          const contributorItems = contributors.map((c: BountyContribution) => ({
-            src: c.createdBy.authorProfile?.profileImage || '',
-            alt: c.createdBy.authorProfile?.fullName || 'Contributor',
-            authorId: c.createdBy.authorProfile?.id,
-          }));
-
-          return (
-            <Link
-              href={`/paper/${paper.id}/${paper.slug}?tab=bounties`}
-              onClick={(e) => e.stopPropagation()} // Prevent card click propagation
-              className="block mt-3" // Removed border and other styles from Link
-            >
-              {/* New container with background and padding */}
-              <div className="flex items-center justify-between bg-yellow-50 hover:bg-yellow-100 p-3 rounded-lg transition-colors duration-150">
-                {/* Left side: Icon, Amount, Text */}
-                <div className="flex items-center space-x-2">
-                  <Icon name="RSC" className="w-5 h-5 text-orange-600" />
-                  <span className="text-sm text-orange-800 font-medium">{formattedAmount} RSC</span>
-                  <span className="text-sm text-gray-600">to peer review</span>
-                </div>
-
-                {/* Right side: AvatarStack or Creator Avatar */}
-                {contributorItems.length > 0 ? (
-                  <AvatarStack
-                    items={contributorItems}
-                    size="xs"
-                    maxItems={3} // Show max 3 contributors initially
-                    spacing={-6} // Adjust overlap
-                    showExtraCount={true} // Show +N if more than maxItems
-                  />
-                ) : creatorProfile ? (
-                  // Fallback to creator avatar if no contributors
-                  <Avatar
-                    src={creatorProfile.profileImage || ''}
-                    alt={creatorProfile.fullName || 'Creator'}
-                    size="xs"
-                    authorId={creatorProfile.id}
-                  />
-                ) : null}
-              </div>
-            </Link>
-          );
-        })()}
+      {/* Bounties and Reviews Section */}
+      <FeedItemMetadataSection
+        id={paper.id}
+        slug={paper.slug}
+        bounties={paper.bounties}
+        reviews={paper.reviews}
+        contentType="paper"
+      />
     </div>
   );
 };
