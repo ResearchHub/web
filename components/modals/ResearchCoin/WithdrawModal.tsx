@@ -113,24 +113,61 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
       let errorMessage = 'Unknown error occurred';
 
       // Handle different error types from the API
-      if (error instanceof Error) {
+      if (typeof error === 'string') {
+        // If the error is directly a string
+        errorMessage = error;
+      } else if (error instanceof Error) {
         errorMessage = error.message;
       }
 
       // If it's a response from fetch or axios with specific error data
-      if (error && typeof error === 'object' && 'response' in error) {
-        const apiError = error as { response?: { data?: any; status?: number } };
-        if (apiError.response?.data) {
-          // API might return plain text errors
-          if (typeof apiError.response.data === 'string') {
-            errorMessage = apiError.response.data;
-          }
-          // Or it might return a JSON object with error details
-          else if (typeof apiError.response.data === 'object' && apiError.response.data !== null) {
+      if (error && typeof error === 'object') {
+        // Direct response data (could be a string message)
+        if ('data' in error && error.data) {
+          if (typeof error.data === 'string') {
+            errorMessage = error.data;
+          } else if (typeof error.data === 'object' && error.data !== null) {
+            // Check if specific properties exist before accessing them
+            const dataObj = error.data as Record<string, unknown>;
             errorMessage =
-              apiError.response.data.detail ||
-              apiError.response.data.message ||
-              JSON.stringify(apiError.response.data);
+              'detail' in dataObj
+                ? String(dataObj.detail)
+                : 'message' in dataObj
+                  ? String(dataObj.message)
+                  : JSON.stringify(dataObj);
+          }
+        }
+
+        // Response object structure (common in axios)
+        if ('response' in error && error.response) {
+          const apiError = error as { response?: { data?: unknown; status?: number } };
+          if (apiError.response?.data) {
+            if (typeof apiError.response.data === 'string') {
+              // Direct string response from API
+              errorMessage = apiError.response.data;
+            } else if (
+              typeof apiError.response.data === 'object' &&
+              apiError.response.data !== null
+            ) {
+              // Type-safe access to object properties
+              const responseData = apiError.response.data as Record<string, unknown>;
+              errorMessage =
+                'detail' in responseData
+                  ? String(responseData.detail)
+                  : 'message' in responseData
+                    ? String(responseData.message)
+                    : JSON.stringify(responseData);
+            }
+          }
+        }
+
+        // For fetch API errors that might have the message in a text() response
+        if ('body' in error && typeof (error as any).text === 'function') {
+          try {
+            const textError = await (error as any).text();
+            if (textError) errorMessage = textError;
+          } catch (e) {
+            // Ignore text extraction errors
           }
         }
       }
@@ -282,13 +319,25 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                   </div>
 
                   {/* Action Button */}
-                  <button
-                    onClick={handleWithdraw}
-                    disabled={isButtonDisabled}
-                    className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                  >
-                    {txStatus.state === 'pending' ? 'Processing...' : 'Withdraw RSC'}
-                  </button>
+                  {txStatus.state === 'success' ? (
+                    <a
+                      href={`${BLOCK_EXPLORER_URL}/tx/${txStatus.txHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors flex items-center justify-center shadow-md"
+                    >
+                      View Transaction
+                      <ExternalLink className="h-4 w-4 ml-2" />
+                    </a>
+                  ) : (
+                    <button
+                      onClick={handleWithdraw}
+                      disabled={isButtonDisabled}
+                      className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                    >
+                      {txStatus.state === 'pending' ? 'Processing...' : 'Withdraw RSC'}
+                    </button>
+                  )}
 
                   {/* Transaction Status Display */}
                   {txStatus.state !== 'idle' && (
@@ -306,15 +355,6 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                             <Check className="mr-2 h-5 w-5" />
                             <span className="font-medium">Withdrawal successful!</span>
                           </div>
-                          <a
-                            href={`${BLOCK_EXPLORER_URL}/tx/${txStatus.txHash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-primary-600 hover:text-primary-700 flex items-center mt-2"
-                          >
-                            View transaction on block explorer
-                            <ExternalLink className="h-4 w-4 ml-1" />
-                          </a>
                         </div>
                       )}
 
@@ -324,9 +364,7 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                             <AlertCircle className="mr-2 h-5 w-5" />
                             <span className="font-medium">Withdrawal failed</span>
                           </div>
-                          <p className="text-sm text-gray-600 mt-2 p-3 bg-red-50 border border-red-100 rounded-md">
-                            {txStatus.message}
-                          </p>
+                          <p className="text-sm text-gray-600 mt-2 p-3">{txStatus.message}</p>
                         </div>
                       )}
                     </div>
