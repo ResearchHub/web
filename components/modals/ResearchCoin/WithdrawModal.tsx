@@ -112,140 +112,77 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
       // Extract the error message from the API response
       let errorMessage = 'Unknown error occurred';
 
-      // Handle different error types from the API
-      if (typeof error === 'string') {
-        // If the error is directly a string
-        errorMessage = error;
-      } else if (error instanceof Error) {
-        // For regular Error objects, check if they contain additional context
-        // The actual API error message might be in the cause property or in error.response
-        if ('cause' in error && error.cause) {
-          errorMessage = String(error.cause);
-        } else if (error.message && !error.message.includes('Request failed')) {
-          errorMessage = error.message;
-        }
-      }
-
-      // If it's a response from fetch or axios with specific error data
-      if (error && typeof error === 'object') {
-        // Check if the error object has a json method (fetch Response object)
-        if ('json' in error && typeof (error as any).json === 'function') {
-          try {
-            const jsonData = await (error as any).json();
-            if (jsonData) {
-              if (typeof jsonData === 'string') {
-                errorMessage = jsonData;
-              } else if (jsonData.detail) {
-                errorMessage = jsonData.detail;
-              } else if (jsonData.message) {
-                errorMessage = jsonData.message;
-              } else if (jsonData.error) {
-                errorMessage = jsonData.error;
-              }
-            }
-          } catch (e) {
-            // If JSON parsing fails, try text instead
-            try {
-              const text = await (error as any).text();
-              if (text) errorMessage = text;
-            } catch (textError) {
-              // Ignore text extraction errors
-            }
-          }
-        }
-
-        // Direct response data (could be a string message)
-        if ('data' in error && error.data) {
-          if (typeof error.data === 'string') {
-            errorMessage = error.data;
-          } else if (typeof error.data === 'object' && error.data !== null) {
-            // Check if specific properties exist before accessing them
-            const dataObj = error.data as Record<string, unknown>;
-            errorMessage =
-              'detail' in dataObj
-                ? String(dataObj.detail)
-                : 'message' in dataObj
-                  ? String(dataObj.message)
-                  : 'error' in dataObj
-                    ? String(dataObj.error)
-                    : JSON.stringify(dataObj);
-          }
-        }
-
-        // Response object structure (common in axios or fetch wrappers)
-        if ('response' in error && error.response) {
-          const apiError = error as {
-            response?: { data?: unknown; status?: number; statusText?: string };
-          };
-
-          // Sometimes the error message is in response.statusText
-          if (apiError.response?.statusText && apiError.response.statusText !== 'OK') {
-            errorMessage = apiError.response.statusText;
-          }
-
-          // Check response.data for error details
-          if (apiError.response?.data) {
-            if (typeof apiError.response.data === 'string') {
-              errorMessage = apiError.response.data;
-            } else if (
-              typeof apiError.response.data === 'object' &&
-              apiError.response.data !== null
-            ) {
-              // Type-safe access to object properties
-              const responseData = apiError.response.data as Record<string, unknown>;
+      try {
+        // For axios errors that contain the response data directly
+        if (error && typeof error === 'object' && 'response' in error) {
+          const axiosError = error as { response?: { data?: any } };
+          if (axiosError.response?.data) {
+            if (typeof axiosError.response.data === 'string') {
+              errorMessage = axiosError.response.data;
+            } else if (typeof axiosError.response.data === 'object') {
+              // Check common error fields
               errorMessage =
-                'detail' in responseData
-                  ? String(responseData.detail)
-                  : 'message' in responseData
-                    ? String(responseData.message)
-                    : 'error' in responseData
-                      ? String(responseData.error)
-                      : errorMessage; // Keep existing if no match
+                axiosError.response.data.detail ||
+                axiosError.response.data.message ||
+                axiosError.response.data.error ||
+                JSON.stringify(axiosError.response.data);
             }
+            // If we found an error message, use it and stop processing
+            setTxStatus({ state: 'error', message: errorMessage });
+            return;
           }
         }
 
-        // For fetch API errors that might have the message in a text() response
-        if ('body' in error && error.body) {
-          try {
-            // Try to read the response body
-            if (typeof (error as any).text === 'function') {
-              const textError = await (error as any).text();
-              if (textError) {
-                // Try to parse as JSON first
-                try {
-                  const jsonError = JSON.parse(textError);
-                  if (jsonError.detail) errorMessage = jsonError.detail;
-                  else if (jsonError.message) errorMessage = jsonError.message;
-                  else if (jsonError.error) errorMessage = jsonError.error;
-                  else errorMessage = textError;
-                } catch {
-                  // If not valid JSON, use the text directly
-                  errorMessage = textError;
+        // Look for API error message in cause or any nested structure
+        if (error instanceof Error) {
+          if ('cause' in error && error.cause) {
+            errorMessage = String(error.cause);
+          } else if (error.message && !error.message.includes('Request failed')) {
+            errorMessage = error.message;
+          }
+
+          // Check for Response object or error.response
+          if ('response' in error && error.response) {
+            // Add type assertion to inform TypeScript that response has json method
+            const response = error.response as { json?: () => Promise<any> };
+
+            if (response.json) {
+              try {
+                const responseData = await response.json().catch(() => null);
+                if (responseData) {
+                  errorMessage =
+                    responseData.detail ||
+                    responseData.message ||
+                    responseData.error ||
+                    JSON.stringify(responseData);
+                  setTxStatus({ state: 'error', message: errorMessage });
+                  return;
                 }
-              }
-            } else if (
-              typeof error.body === 'object' &&
-              error.body !== null &&
-              'getReader' in error.body
-            ) {
-              // Handle ReadableStream body
-              const reader = (error.body as ReadableStream).getReader();
-              const { value } = await reader.read();
-              if (value) {
-                const text = new TextDecoder().decode(value);
-                try {
-                  const jsonError = JSON.parse(text);
-                  errorMessage = jsonError.detail || jsonError.message || jsonError.error || text;
-                } catch {
-                  errorMessage = text;
-                }
+              } catch {
+                // Ignore JSON parsing errors
               }
             }
-          } catch (e) {
-            // Ignore text extraction errors
           }
         }
+        // Direct string error
+        if (typeof error === 'string') {
+          errorMessage = error;
+        }
+
+        // Handle the case where the error might be the Response object itself
+        if (
+          error instanceof Response ||
+          (typeof error === 'object' && error !== null && 'status' in error && 'json' in error)
+        ) {
+          try {
+            const data = await (error as Response).json();
+            errorMessage = data.detail || data.message || data.error || JSON.stringify(data);
+            setTxStatus({ state: 'error', message: errorMessage });
+            return;
+          } catch {}
+        }
+      } catch (parseError) {
+        console.error('Error while parsing error response:', parseError);
       }
 
       setTxStatus({
