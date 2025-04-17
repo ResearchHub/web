@@ -85,7 +85,7 @@ const FeedItemCommentBody: FC<{
   const comment = commentEntry.comment;
   const isReview = comment.commentType === 'REVIEW';
   const reviewScore = comment.reviewScore || commentEntry.review?.score || comment.score || 0;
-  console.log('parentComment', parentComment);
+
   // Get related work if available
   const relatedWork = entry.relatedWork;
   return (
@@ -141,7 +141,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   const comment = commentEntry.comment;
   const router = useRouter();
   const parentComment = commentEntry.parentComment;
-  console.log('---parentComment', parentComment);
+
   // Get the author from the comment entry
   const author = commentEntry.createdBy;
 

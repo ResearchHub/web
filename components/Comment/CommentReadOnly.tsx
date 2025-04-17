@@ -74,15 +74,6 @@ export const CommentReadOnly = ({
         : JSON.stringify(content);
 
   const shouldTruncate = textContent.length > maxLength;
-  // Debug logs
-  console.log('||initiallyExpanded', initiallyExpanded);
-  console.log('||showReadMoreButton', showReadMoreButton);
-  console.log('||shouldTruncate', shouldTruncate);
-  console.log('||textContent.length', textContent.length);
-  console.log('||isExpanded', isExpanded);
-  console.log('||maxLength', maxLength);
-  console.log('||truncate param to TipTapRenderer', shouldTruncate && !isExpanded);
-  console.log('||parsedContent first 100 chars', JSON.stringify(parsedContent).substring(0, 100));
 
   const getFormattedContent = () => {
     if (!parsedContent) {
@@ -96,7 +87,6 @@ export const CommentReadOnly = ({
 
     // Use the correct renderer based on actual content format
     if (isQuillFormat) {
-      console.log('Content appears to be in Quill format, using QuillRenderer');
       try {
         renderedContent = [
           <QuillRenderer
@@ -105,7 +95,7 @@ export const CommentReadOnly = ({
             containerClass="quill-content"
             truncate={shouldTruncate && !isExpanded}
             maxLength={maxLength}
-            debug={true}
+            debug={false}
           />,
         ];
       } catch (error) {
@@ -129,12 +119,6 @@ export const CommentReadOnly = ({
             debug={debugEnabled}
           />,
         ];
-
-        console.log('||TipTapRenderer props sent:', {
-          truncate: shouldTruncate && !isExpanded,
-          maxLength,
-          debug: debugEnabled,
-        });
       } catch (error) {
         console.error('[CommentReadOnly] Error rendering TIPTAP content:', error);
       }
