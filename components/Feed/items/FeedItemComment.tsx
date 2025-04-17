@@ -48,7 +48,8 @@ const RenderParentComment: FC<{ comment: ParentCommentPreview; level: number }> 
         />
       </div>
       {/* Recursive call for the next parent level */}
-      {comment.parentComment && (
+
+      {level === 0 && comment.parentComment && (
         <RenderParentComment comment={comment.parentComment} level={level + 1} />
       )}
     </div>

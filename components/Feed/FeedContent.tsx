@@ -167,14 +167,13 @@ export const FeedContent: FC<FeedContentProps> = ({
             entries.map((entry, index) => (
               <React.Fragment key={entry.id}>
                 {renderFeedEntry(entry, index)}
-                {/* TODO: These carousel insertions feel a bit random. Consider a more structured approach? */}
                 {index === 2 && <FundingCarousel />}
                 {index === 8 && <BountiesCarousel />}
               </React.Fragment>
             ))}
 
           {/* Show skeletons when loading (initial or load more) */}
-          {isLoading && (
+          {true && (
             <>
               {[...Array(3)].map((_, index) => (
                 // Add margin-top if it's not the very first skeleton overall (i.e., if there are entries or previous skeletons)
