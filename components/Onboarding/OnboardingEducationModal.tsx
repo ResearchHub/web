@@ -339,9 +339,6 @@ export function OnboardingEducationModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Year of Graduation
-            </label>
             <YearDropdown value={year} onChange={setYear} required />
           </div>
 
