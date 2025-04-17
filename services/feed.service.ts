@@ -3951,7 +3951,7 @@ export class FeedService {
       const transformedEntries = response.results
         .map((entry) => {
           try {
-            return transformFeedEntry(entry);
+            return transformFeedEntry(entry as any);
           } catch (error) {
             console.error('Error transforming feed entry:', error, entry);
             return null;

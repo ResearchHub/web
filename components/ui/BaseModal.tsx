@@ -58,11 +58,11 @@ export const BaseModal: FC<BaseModalProps> = ({
                 className={cn(
                   'transform overflow-hidden text-left align-middle shadow-xl transition-all bg-white',
                   // Full width on mobile, constrained width on larger screens
-                  'w-full md:w-auto',
+                  'w-full md:!w-auto',
                   // Full height on mobile, auto height on md+
-                  'h-screen md:h-auto',
+                  'h-screen md:!h-auto',
                   // No rounded corners on mobile, rounded on md+
-                  'md:rounded-2xl',
+                  'md:!rounded-2xl',
                   // Apply padding from props
                   padding,
                   // Only apply max width on md and up

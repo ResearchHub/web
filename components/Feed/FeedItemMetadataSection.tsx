@@ -54,7 +54,7 @@ export const FeedItemMetadataSection: FC<FeedItemMetadataSectionProps> = ({
   }
 
   return (
-    <div className="flex flex-col tablet:flex-row gap-4 mt-4">
+    <div className="flex flex-col tablet:!flex-row gap-4 mt-4">
       {/* Bounty section */}
       {hasOpenBounties ? (
         <div className="w-full tablet:max-w-[300px] tablet:w-1/2">
