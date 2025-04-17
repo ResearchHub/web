@@ -194,7 +194,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
 
   // Determine if card should have clickable styles
   const isClickable = !!href;
-
+  console.log('commentEntry', commentEntry);
   return (
     <div className="space-y-3">
       {/* Header */}
@@ -240,8 +240,8 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                 metrics={entry.metrics}
                 feedContentType="COMMENT"
                 votableEntityId={comment.id}
-                relatedDocumentId={comment.thread?.objectId}
-                relatedDocumentContentType={contentType}
+                relatedDocumentId={Number(commentEntry.relatedDocumentId)}
+                relatedDocumentContentType={commentEntry.relatedDocumentContentType}
                 userVote={entry.userVote}
                 actionLabels={actionLabels}
                 onComment={onReply}
