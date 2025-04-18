@@ -1,5 +1,4 @@
 import { ApiClient } from './client';
-import { ApiError } from './types';
 
 export interface WithdrawalRequest {
   to_address: string;
@@ -26,14 +25,38 @@ export class WithdrawalService {
    */
   static async withdrawRSC(withdrawalData: WithdrawalRequest): Promise<WithdrawalResponse> {
     try {
-      return await ApiClient.post<WithdrawalResponse>(`${this.WITHDRAWAL_PATH}/`, withdrawalData);
+      const token = ApiClient.getGlobalAuthToken();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Token ${token}`;
+      }
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${this.WITHDRAWAL_PATH}/`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(withdrawalData),
+        mode: 'cors',
+        cache: 'no-cache',
+      });
+
+      if (!response.ok) {
+        const contentType = response.headers.get('content-type');
+        if (contentType?.includes('application/json')) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Request failed');
+        } else {
+          const errorText = await response.text();
+          throw new Error(errorText || 'Request failed');
+        }
+      }
+      return await response.json();
     } catch (error: unknown) {
-      if (error instanceof ApiError) {
-        throw new Error(error.message);
-      } else if (error instanceof Error) {
+      if (error instanceof Error) {
         throw error;
       }
-
       throw new Error('Unknown error during withdrawal');
     }
   }
