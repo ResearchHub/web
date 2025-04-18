@@ -12,6 +12,7 @@ import { FeedItemComment } from './items/FeedItemComment';
 import { FeedItemPost } from './items/FeedItemPost';
 import { FundingCarousel } from '@/components/Fund/FundingCarousel';
 import { BountiesCarousel } from '@/components/Earn/BountiesCarousel';
+import { FeedTab } from '@/hooks/useFeed'; // Import FeedTab type
 
 interface FeedContentProps {
   entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry
@@ -22,6 +23,7 @@ interface FeedContentProps {
   tabs?: ReactNode;
   filters?: ReactNode; // New prop for source filters
   disableCardLinks?: boolean; // Optional prop to disable all card links
+  activeTab: FeedTab; // Add the activeTab prop
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -33,6 +35,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   tabs,
   filters,
   disableCardLinks = false,
+  activeTab, // Destructure activeTab
 }) => {
   // Generate appropriate href for each feed item type
   const generateHref = (entry: FeedEntry): string | undefined => {
@@ -167,13 +170,13 @@ export const FeedContent: FC<FeedContentProps> = ({
             entries.map((entry, index) => (
               <React.Fragment key={entry.id}>
                 {renderFeedEntry(entry, index)}
-                {index === 2 && <FundingCarousel />}
-                {index === 8 && <BountiesCarousel />}
+                {activeTab === 'popular' && index === 2 && <FundingCarousel />}
+                {activeTab === 'popular' && index === 8 && <BountiesCarousel />}
               </React.Fragment>
             ))}
 
           {/* Show skeletons when loading (initial or load more) */}
-          {true && (
+          {isLoading && (
             <>
               {[...Array(3)].map((_, index) => (
                 // Add margin-top if it's not the very first skeleton overall (i.e., if there are entries or previous skeletons)

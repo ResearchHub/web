@@ -202,7 +202,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
             </div>
 
             {/* Sidebar Content */}
-            <div className="px-4">
+            <div className="">
               <Suspense fallback={<RightSidebarSkeleton />}>
                 {typeof rightSidebar === 'boolean' ? <RightSidebar /> : rightSidebar}
               </Suspense>

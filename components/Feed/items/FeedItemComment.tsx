@@ -194,7 +194,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
 
   // Determine if card should have clickable styles
   const isClickable = !!href;
-  console.log('commentEntry', commentEntry);
+
   return (
     <div className="space-y-3">
       {/* Header */}

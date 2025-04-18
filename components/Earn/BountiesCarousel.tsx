@@ -75,27 +75,6 @@ export const BountiesCarousel: FC<BountiesCarouselProps> = () => {
           ))}
         </Carousel>
       </div>
-
-      {/* Header bar with verification message */}
-      <div className="mt-4">
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 border border-blue-200 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <UserCheck size={20} className="text-blue-600" />
-              <span className="text-sm text-gray-700">
-                Verify identity to see earning opportunities relevant to your research interests.
-              </span>
-            </div>
-            <Link
-              href="/verify"
-              className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-md text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors border border-blue-200"
-            >
-              Verify Now
-              <ArrowRight size={14} />
-            </Link>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
