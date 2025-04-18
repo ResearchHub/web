@@ -29,11 +29,6 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
   const { address } = useAccount();
   const [{ txStatus, isLoading }, withdrawRSC] = useWithdrawRSC();
 
-  // Log txStatus changes
-  useEffect(() => {
-    console.log('[WithdrawModal] Transaction status updated:', txStatus);
-  }, [txStatus]);
-
   // Reset state when modal is closed
   useEffect(() => {
     setAmount('');
@@ -84,15 +79,9 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
 
   const handleWithdraw = useCallback(async () => {
     if (!address || !amount || isButtonDisabled) {
-      console.log('[WithdrawModal] Withdraw button clicked but disabled conditions met', {
-        hasAddress: !!address,
-        hasAmount: !!amount,
-        isButtonDisabled,
-      });
       return;
     }
 
-    console.log('[WithdrawModal] Initiating withdraw with amount:', amount);
     await withdrawRSC({
       to_address: address,
       agreed_to_terms: true,
@@ -100,7 +89,6 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
       transaction_fee: '0',
       network: 'BASE',
     });
-    console.log('[WithdrawModal] Withdraw call completed');
   }, [address, amount, isButtonDisabled, withdrawRSC]);
 
   // If no wallet is connected, show nothing
@@ -288,12 +276,7 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                             <AlertCircle className="mr-2 h-5 w-5" />
                             <span className="font-medium">Withdrawal failed</span>
                           </div>
-                          <p className="text-sm text-gray-600 mt-2 p-3">
-                            {`Error message: ${txStatus.message}`}
-                          </p>
-                          <div className="text-xs text-gray-500 mt-1">
-                            Debug info: {JSON.stringify(txStatus)}
-                          </div>
+                          <p className="text-sm text-gray-600 mt-2 p-3">{txStatus.message}</p>
                         </div>
                       )}
                     </div>
