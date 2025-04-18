@@ -83,6 +83,7 @@ export default function TopicFeedPage() {
         loadMore={loadMore}
         header={header}
         tabs={tabs}
+        activeTab={activeTab}
       />
     </PageLayout>
   );

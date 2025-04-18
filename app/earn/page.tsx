@@ -101,6 +101,7 @@ export default function EarnPage() {
         loadMore={loadMore}
         header={renderHeader()}
         tabs={renderTabs()}
+        activeTab={activeTab as any}
       />
     </PageLayout>
   );

@@ -38,7 +38,13 @@ export default function FundingPage() {
     <PageLayout>
       <div className="pt-4 pb-7">{header}</div>
       <FundingTabs activeTab={activeTab} onTabChange={handleTabChange} isLoading={isLoading} />
-      <FeedContent entries={entries} isLoading={isLoading} hasMore={hasMore} loadMore={loadMore} />
+      <FeedContent
+        entries={entries}
+        isLoading={isLoading}
+        hasMore={hasMore}
+        loadMore={loadMore}
+        activeTab={activeTab as any}
+      />
     </PageLayout>
   );
 }

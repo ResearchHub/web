@@ -294,13 +294,13 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading, tabs }
       feedEntries.slice(0, 2).forEach((entry, index) => {
         components.push(
           <div key={entry.id} className={index > 0 ? 'mt-12' : ''}>
-            {/* This would be your FeedItemPaper component normally */}
             <FeedContent
               entries={[entry]}
               isLoading={false}
               hasMore={false}
               loadMore={() => {}}
               header={null}
+              activeTab={'popular' as any}
             />
           </div>
         );
@@ -323,6 +323,7 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading, tabs }
               hasMore={false}
               loadMore={() => {}}
               header={null}
+              activeTab={'popular' as any}
             />
           </div>
         );
@@ -343,6 +344,7 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading, tabs }
         hasMore={false}
         loadMore={() => {}} // No-op since we don't have pagination for now
         header={feedHeader}
+        activeTab={'popular' as any}
       />
     );
   };
