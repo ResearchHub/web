@@ -42,7 +42,7 @@ interface DepositModalProps {
 type TransactionStatus =
   | { state: 'idle' }
   | { state: 'buildingTransaction' }
-  | { state: 'pending' }
+  | { state: 'pending'; txHash?: string }
   | { state: 'success'; txHash: string }
   | { state: 'error'; message: string };
 
@@ -112,9 +112,10 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
         setTxStatus({ state: 'pending' });
       } else if (status.statusName === 'transactionLegacyExecuted') {
         const txHash = status.statusData.transactionHashList[0];
+        setTxStatus({ state: 'pending', txHash });
+      } else if (status.statusName === 'success') {
+        const txHash = status.statusData.transactionReceipts[0].transactionHash;
         setTxStatus({ state: 'success', txHash });
-
-        // Still save the deposit record in the background
         TransactionService.saveDeposit({
           amount: depositAmount,
           transaction_hash: txHash,
