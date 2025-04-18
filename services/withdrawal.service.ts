@@ -66,7 +66,13 @@ export class WithdrawalService {
           console.log('[WithdrawalService] Processing JSON error response');
           const errorData = await response.json();
           console.log('[WithdrawalService] JSON error data:', errorData);
-          const errorMessage = errorData.message || errorData.detail || 'Request failed';
+
+          // Fix: Check if errorData is directly a string or has message/detail properties
+          const errorMessage =
+            typeof errorData === 'string'
+              ? errorData
+              : errorData.message || errorData.detail || 'Request failed';
+
           console.log('[WithdrawalService] Throwing error with message:', errorMessage);
           throw new Error(errorMessage);
         } else {
