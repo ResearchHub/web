@@ -10,7 +10,7 @@ import { useAccount } from 'wagmi';
 import { useWithdrawRSC } from '@/hooks/useWithdrawRSC';
 
 // Network configuration based on environment
-const IS_PRODUCTION = process.env.VERCEL_ENV === 'production';
+const IS_PRODUCTION = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production';
 const NETWORK_NAME = IS_PRODUCTION ? 'Base' : 'Base Sepolia';
 const NETWORK_DESCRIPTION = IS_PRODUCTION
   ? 'Withdrawals are processed on Base L2'

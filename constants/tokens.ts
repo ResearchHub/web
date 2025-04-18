@@ -1,6 +1,6 @@
 import { Token } from '@coinbase/onchainkit/token';
 
-const IS_PRODUCTION = process.env.VERCEL_ENV === 'production';
+const IS_PRODUCTION = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production';
 const CHAIN_ID = IS_PRODUCTION
   ? 8453 // Base mainnet
   : 84532; // Base Sepolia testnet

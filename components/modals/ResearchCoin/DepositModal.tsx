@@ -9,7 +9,7 @@ import { useAccount } from 'wagmi';
 import { useWalletRSCBalance } from '@/hooks/useWalletRSCBalance';
 import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction';
 import { Interface } from 'ethers';
-import { ResearchCoinService } from '@/services/researchcoin.service';
+import { TransactionService } from '@/services/transaction.service';
 import { RSC, TRANSFER_ABI } from '@/constants/tokens';
 
 const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_WALLET_ADDRESS;
@@ -19,7 +19,7 @@ if (!HOT_WALLET_ADDRESS_ENV || HOT_WALLET_ADDRESS_ENV.trim() === '') {
 const HOT_WALLET_ADDRESS = HOT_WALLET_ADDRESS_ENV as `0x${string}`;
 
 // Network configuration based on environment
-const IS_PRODUCTION = process.env.VERCEL_ENV === 'production';
+const IS_PRODUCTION = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production';
 const NETWORK_NAME = IS_PRODUCTION ? 'Base' : 'Base Sepolia';
 const NETWORK_DESCRIPTION = IS_PRODUCTION
   ? 'Deposits are processed on Base L2'
@@ -115,7 +115,7 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
         setTxStatus({ state: 'success', txHash });
 
         // Still save the deposit record in the background
-        ResearchCoinService.saveDeposit({
+        TransactionService.saveDeposit({
           amount: depositAmount,
           transaction_hash: txHash,
           from_address: address!,
