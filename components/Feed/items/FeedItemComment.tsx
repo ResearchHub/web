@@ -48,7 +48,8 @@ const RenderParentComment: FC<{ comment: ParentCommentPreview; level: number }> 
         />
       </div>
       {/* Recursive call for the next parent level */}
-      {comment.parentComment && (
+
+      {level === 0 && comment.parentComment && (
         <RenderParentComment comment={comment.parentComment} level={level + 1} />
       )}
     </div>
@@ -85,7 +86,7 @@ const FeedItemCommentBody: FC<{
   const comment = commentEntry.comment;
   const isReview = comment.commentType === 'REVIEW';
   const reviewScore = comment.reviewScore || commentEntry.review?.score || comment.score || 0;
-  console.log('parentComment', parentComment);
+
   // Get related work if available
   const relatedWork = entry.relatedWork;
   return (
@@ -141,7 +142,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   const comment = commentEntry.comment;
   const router = useRouter();
   const parentComment = commentEntry.parentComment;
-  console.log('---parentComment', parentComment);
+
   // Get the author from the comment entry
   const author = commentEntry.createdBy;
 
@@ -239,8 +240,8 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                 metrics={entry.metrics}
                 feedContentType="COMMENT"
                 votableEntityId={comment.id}
-                relatedDocumentId={comment.thread?.objectId}
-                relatedDocumentContentType={contentType}
+                relatedDocumentId={Number(commentEntry.relatedDocumentId)}
+                relatedDocumentContentType={commentEntry.relatedDocumentContentType}
                 userVote={entry.userVote}
                 actionLabels={actionLabels}
                 onComment={onReply}

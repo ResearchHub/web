@@ -72,7 +72,7 @@ const FeedItemFundraiseBody: FC<{
             <div className="mt-1 mb-3">
               <AuthorList
                 authors={authors}
-                size="sm"
+                size="xs"
                 className="text-gray-600 font-normal"
                 delimiter="•"
               />

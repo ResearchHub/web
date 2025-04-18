@@ -175,22 +175,6 @@ export const FundingCarousel: FC<FundingCarouselProps> = () => {
           </div>
         )}
       </div>
-
-      {/* Promotional Section */}
-      <div className="mt-6 p-4 border border-gray-200 flex flex-row items-start items-center justify-between gap-4 bg-gray-100 rounded-lg ">
-        <div className="flex items-center gap-2 text-sm text-gray-700">
-          <span className=" text-md text-gray-700 flex items-center gap-2">
-            <Coins size={24} />
-            Need funding for your research? Publish a preregistration.
-          </span>
-        </div>
-        <Link href="/notebook?newFunding=true">
-          <Button variant="default" size="sm" className="flex-shrink-0">
-            Create a Preregistration
-            <ArrowRight size={22} className="ml-2" />
-          </Button>
-        </Link>
-      </div>
     </div>
   );
 };

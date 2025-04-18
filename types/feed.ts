@@ -652,12 +652,14 @@ export const transformCommentToFeedItem = (
   contentType: ContentType,
   relatedDocument?: Work
 ): FeedEntry => {
+  console.log('111comment', comment);
+
   // Create a FeedCommentContent object from the comment
   const commentContent: FeedCommentContent = {
     id: comment.id,
     contentType: 'COMMENT',
     createdDate: comment.createdDate,
-    createdBy: (comment as any).author,
+    createdBy: comment.createdBy.authorProfile!, // Add non-null assertion since we know it exists
     comment: {
       id: comment.id,
       content: comment.content,

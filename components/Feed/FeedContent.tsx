@@ -12,6 +12,7 @@ import { FeedItemComment } from './items/FeedItemComment';
 import { FeedItemPost } from './items/FeedItemPost';
 import { FundingCarousel } from '@/components/Fund/FundingCarousel';
 import { BountiesCarousel } from '@/components/Earn/BountiesCarousel';
+import { FeedTab } from '@/hooks/useFeed'; // Import FeedTab type
 
 interface FeedContentProps {
   entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry
@@ -22,6 +23,7 @@ interface FeedContentProps {
   tabs?: ReactNode;
   filters?: ReactNode; // New prop for source filters
   disableCardLinks?: boolean; // Optional prop to disable all card links
+  activeTab: FeedTab; // Add the activeTab prop
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -33,6 +35,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   tabs,
   filters,
   disableCardLinks = false,
+  activeTab, // Destructure activeTab
 }) => {
   // Generate appropriate href for each feed item type
   const generateHref = (entry: FeedEntry): string | undefined => {
@@ -162,35 +165,45 @@ export const FeedContent: FC<FeedContentProps> = ({
         {filters && <div className="py-3">{filters}</div>}
 
         <div className="mt-8">
-          {isLoading ? (
-            // Show skeletons when loading
+          {/* Render existing entries */}
+          {entries.length > 0 &&
+            entries.map((entry, index) => (
+              <React.Fragment key={entry.id}>
+                {renderFeedEntry(entry, index)}
+                {activeTab === 'popular' && index === 2 && <FundingCarousel />}
+                {activeTab === 'popular' && index === 8 && <BountiesCarousel />}
+              </React.Fragment>
+            ))}
+
+          {/* Show skeletons when loading (initial or load more) */}
+          {isLoading && (
             <>
               {[...Array(3)].map((_, index) => (
-                <div key={`skeleton-${index}`} className={index > 0 ? 'mt-12' : ''}>
+                // Add margin-top if it's not the very first skeleton overall (i.e., if there are entries or previous skeletons)
+                <div
+                  key={`skeleton-${index}`}
+                  className={index > 0 || entries.length > 0 ? 'mt-12' : ''}
+                >
                   <FeedItemSkeleton />
                 </div>
               ))}
             </>
-          ) : entries.length === 0 ? (
+          )}
+
+          {/* Show 'No entries' message only if not loading and entries are empty */}
+          {!isLoading && entries.length === 0 && (
             <div className="text-center py-8">
               <p className="text-gray-500">No feed entries found</p>
             </div>
-          ) : (
-            entries.map((entry, index) => (
-              <React.Fragment key={entry.id}>
-                {renderFeedEntry(entry, index)}
-                {index === 2 && <FundingCarousel />}
-                {index === 8 && <BountiesCarousel />}
-              </React.Fragment>
-            ))
           )}
         </div>
 
+        {/* Load More button */}
         {!isLoading && hasMore && (
           <div className="mt-8 text-center">
             <button
               onClick={loadMore}
-              disabled={isLoading}
+              // No need for disabled={isLoading} here as the whole block is conditional on !isLoading
               className="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-500"
             >
               Load More

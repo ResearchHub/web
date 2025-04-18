@@ -116,7 +116,6 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
   useEffect(() => {
     // Call clearCache once to ensure we're getting fresh data
     AuthorService.clearCache();
-    console.log('AuthorTooltip: Cleared author cache on initialization');
   }, []);
 
   const fetchAuthorData = async () => {
@@ -126,9 +125,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
       setLoading(true);
       setHasError(false);
       hasTriedFetching.current = true;
-      console.log('AuthorTooltip: Starting to fetch author data for ID:', authorId);
       const user = await AuthorService.getAuthorInfo(authorId);
-      console.log('AuthorTooltip: Received user data:', user);
 
       if (!user || !user.authorProfile) {
         console.error('AuthorTooltip: Invalid user data received:', user);
@@ -147,7 +144,6 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
   // Reset fetch state when authorId changes
   useEffect(() => {
     if (authorId) {
-      console.log('AuthorTooltip: Author ID changed to:', authorId);
       hasTriedFetching.current = false;
       setUserData(null);
       setHasError(false);
@@ -170,7 +166,6 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
       setIsTooltipVisible(true);
 
       if (!hasTriedFetching.current && authorId) {
-        console.log('AuthorTooltip: Mouse enter triggered data fetch');
         fetchAuthorData();
       }
     }, showDelay);
@@ -225,9 +220,6 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
         </div>
       );
     }
-
-    // Debug logging for profile data
-    console.log('AuthorTooltip: Rendering profile with data:', userData.authorProfile);
 
     return (
       <div className="p-4">

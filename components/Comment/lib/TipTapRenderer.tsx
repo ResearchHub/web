@@ -91,9 +91,6 @@ const TipTapRenderer: React.FC<TipTapRendererProps> = ({
   truncate = false,
   maxLength = 300,
 }) => {
-  // Log regardless of debug flag to ensure we see this
-  console.log('TipTapRenderer COMPONENT RENDER STARTED');
-
   if (debug) {
     console.log('||TipTapRenderer props received:', {
       truncate,
