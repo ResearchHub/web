@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import {
-  WithdrawalService,
+  ResearchCoinService,
   WithdrawalRequest,
   WithdrawalResponse,
-} from '@/services/withdrawal.service';
+} from '@/services/researchcoin.service';
 
 // Define transaction status type
 export type TransactionStatus =
@@ -37,7 +37,7 @@ export function useWithdrawRSC(): UseWithdrawRSCReturn {
     try {
       setTxStatus({ state: 'pending' });
 
-      const response = await WithdrawalService.withdrawRSC(withdrawalData);
+      const response = await ResearchCoinService.withdrawRSC(withdrawalData);
 
       setTxStatus({
         state: 'success',

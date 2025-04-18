@@ -9,7 +9,7 @@ import { useAccount } from 'wagmi';
 import { useWalletRSCBalance } from '@/hooks/useWalletRSCBalance';
 import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction';
 import { Interface } from 'ethers';
-import { DepositService } from '@/services/deposit.service';
+import { ResearchCoinService } from '@/services/researchcoin.service';
 import { RSC, TRANSFER_ABI } from '@/constants/tokens';
 
 const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_WALLET_ADDRESS;
@@ -115,7 +115,7 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
         setTxStatus({ state: 'success', txHash });
 
         // Still save the deposit record in the background
-        DepositService.saveDeposit({
+        ResearchCoinService.saveDeposit({
           amount: depositAmount,
           transaction_hash: txHash,
           from_address: address!,

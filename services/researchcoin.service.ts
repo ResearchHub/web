@@ -1,5 +1,14 @@
 import { ApiClient } from './client';
 
+// Deposit interfaces
+export interface DepositRequest {
+  amount: number;
+  transaction_hash: string;
+  from_address: string;
+  network: string;
+}
+
+// Withdrawal interfaces
 export interface WithdrawalRequest {
   to_address: string;
   agreed_to_terms: boolean;
@@ -14,8 +23,25 @@ export interface WithdrawalResponse {
   to_address: string;
 }
 
-export class WithdrawalService {
+export class ResearchCoinService {
+  private static readonly DEPOSIT_PATH = '/api/deposit/start_deposit_rsc';
   private static readonly WITHDRAWAL_PATH = '/api/withdrawal';
+
+  /**
+   * Saves a deposit transaction to the backend
+   * @param depositData - The deposit transaction data
+   * @throws Error when the API request fails
+   */
+  static async saveDeposit(depositData: DepositRequest): Promise<void> {
+    try {
+      await ApiClient.post<void>(`${this.DEPOSIT_PATH}/`, depositData);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to save deposit: ${error.message}`);
+      }
+      throw new Error('Failed to save deposit: Unknown error');
+    }
+  }
 
   /**
    * Initiates a withdrawal of RSC to the specified wallet address
