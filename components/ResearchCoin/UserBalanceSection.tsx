@@ -4,6 +4,7 @@ import { ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 import { useState } from 'react';
 import { DepositModal } from '../modals/ResearchCoin/DepositModal';
 import { WithdrawModal } from '../modals/ResearchCoin/WithdrawModal';
+import { SwapModal } from '@/components/modals/ResearchCoin/SwapModal';
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { WalletDefault } from '@coinbase/onchainkit/wallet';
@@ -21,6 +22,7 @@ interface UserBalanceSectionProps {
 export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBalanceSectionProps) {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [isSwapModalOpen, setIsSwapModalOpen] = useState(false);
 
   // Check if wallet is connected
   const { isConnected } = useAccount();
@@ -70,6 +72,14 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
                     </div>
                     <div className="flex items-center gap-4">
                       <Button
+                        onClick={() => setIsSwapModalOpen(true)}
+                        variant="default"
+                        size="lg"
+                        className="gap-2"
+                      >
+                        Buy RSC
+                      </Button>
+                      <Button
                         onClick={() => setIsDepositModalOpen(true)}
                         variant="default"
                         size="lg"
@@ -90,6 +100,7 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
                         <ArrowUpFromLine className="h-5 w-5" />
                         Withdraw
                       </Button>
+
                       <WalletDefault />
                     </div>
                   </>
@@ -123,6 +134,7 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
             onClose={() => setIsWithdrawModalOpen(false)}
             availableBalance={balance?.raw || 0}
           />
+          <SwapModal isOpen={isSwapModalOpen} onClose={() => setIsSwapModalOpen(false)} />
         </>
       )}
     </>
