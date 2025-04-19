@@ -4,6 +4,7 @@ import { FC, useState, ReactNode } from 'react';
 import React from 'react';
 import { FeedContentType, FeedEntry } from '@/types/feed';
 import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star } from 'lucide-react';
+import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
 import { useVote } from '@/hooks/useVote';
 import { UserVoteType } from '@/types/reaction';
@@ -13,6 +14,7 @@ import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { ContentType } from '@/types/work';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useRouter } from 'next/navigation';
+import { TipContentModal } from '@/components/modals/TipContentModal';
 
 interface ActionButtonProps {
   icon: any;
@@ -77,6 +79,8 @@ interface FeedItemActionsProps {
   menuItems?: Array<{
     icon: any;
     label: string;
+    tooltip?: string;
+    disabled?: boolean;
     onClick: (e?: React.MouseEvent) => void;
   }>;
   rightSideActionButton?: ReactNode; // New property for a custom action button on the right side
@@ -104,6 +108,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
+
+  // State for Tip Modal
+  const [tipModalState, setTipModalState] = useState<{
+    isOpen: boolean;
+    contentId?: number;
+  }>({ isOpen: false });
 
   const { vote, isVoting } = useVote({
     votableEntityId,
@@ -145,6 +155,14 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     if (href) {
       router.push(`${href}/reviews`);
     }
+  };
+
+  // Handle opening the tip modal
+  const handleOpenTipModal = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    executeAuthenticatedAction(() => {
+      setTipModalState({ isOpen: true, contentId: votableEntityId });
+    });
   };
 
   const handleReport = () => {
@@ -213,6 +231,14 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               onClick={handleReviewClick}
             />
           )}
+          {/* Tip Button */}
+          <ActionButton
+            icon={(props: any) => <Icon name="tipRSC" {...props} size={33} />}
+            tooltip="Tip RSC"
+            label="Tip"
+            onClick={handleOpenTipModal}
+            showTooltip={showTooltips}
+          />
           {children} {/* Render additional action buttons */}
         </div>
 
@@ -272,6 +298,16 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           documentId={contentToFlag.documentId}
           workType={contentToFlag.contentType}
           commentId={contentToFlag.commentId}
+        />
+      )}
+
+      {/* Tip Content Modal */}
+      {tipModalState.isOpen && tipModalState.contentId && (
+        <TipContentModal
+          isOpen={tipModalState.isOpen}
+          onClose={() => setTipModalState({ isOpen: false })}
+          contentId={tipModalState.contentId}
+          feedContentType={feedContentType}
         />
       )}
     </>
