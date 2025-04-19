@@ -8,11 +8,13 @@ import Link from 'next/link';
 interface AvatarProps {
   src?: string | null;
   alt: string;
-  size?: 'xxs' | 'xs' | 'sm' | 'md' | number;
+  size?: 'xxxs' | 'xxs' | 'xs' | 'sm' | 'md' | number;
   className?: string;
   onClick?: (e: MouseEvent<HTMLDivElement>) => void;
   authorId?: number;
   disableTooltip?: boolean;
+  label?: string;
+  labelClassName?: string;
 }
 
 // Define a set of background colors for avatars without images
@@ -61,6 +63,8 @@ export const Avatar: FC<AvatarProps> = ({
   onClick,
   authorId,
   disableTooltip = false,
+  label,
+  labelClassName,
 }) => {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -90,6 +94,7 @@ export const Avatar: FC<AvatarProps> = ({
   };
 
   const sizeClasses = {
+    xxxs: 'h-3 w-3',
     xxs: 'h-5 w-5',
     xs: 'h-6 w-6',
     sm: 'h-8 w-8',
@@ -156,7 +161,18 @@ export const Avatar: FC<AvatarProps> = ({
       }}
       onClick={onClick}
     >
-      {shouldShowInitials ? (
+      {label ? (
+        <span
+          className={cn(
+            'absolute inset-0 flex items-center justify-center font-medium',
+            'text-gray-600',
+            getTextSizeClass(label),
+            labelClassName
+          )}
+        >
+          {label}
+        </span>
+      ) : shouldShowInitials ? (
         <span
           className={cn(
             'absolute inset-0 flex items-center justify-center font-medium',

@@ -2,8 +2,9 @@
 
 import { FC, useState, ReactNode } from 'react';
 import React from 'react';
-import { FeedContentType, FeedEntry } from '@/types/feed';
+import { FeedContentType, FeedEntry, Review } from '@/types/feed';
 import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star } from 'lucide-react';
+import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
 import { useVote } from '@/hooks/useVote';
 import { UserVoteType } from '@/types/reaction';
@@ -13,6 +14,27 @@ import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { ContentType } from '@/types/work';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useRouter } from 'next/navigation';
+import { TipContentModal } from '@/components/modals/TipContentModal';
+import { AvatarStack } from '@/components/ui/AvatarStack';
+import { Bounty } from '@/types/bounty';
+import { formatRSC } from '@/utils/number';
+import { extractBountyAvatars } from '@/components/Bounty/lib/bountyUtil';
+import { Tooltip } from '@/components/ui/Tooltip';
+
+// Define interfaces for the types we're using
+interface Author {
+  id: number;
+  fullName: string;
+  profileImage: string;
+}
+
+// Extend the ContentMetrics type
+interface ExtendedContentMetrics {
+  votes: number;
+  comments: number;
+  reviewScore?: number;
+  commentAuthors?: Author[];
+}
 
 interface ActionButtonProps {
   icon: any;
@@ -25,6 +47,12 @@ interface ActionButtonProps {
   className?: string;
   showLabel?: boolean;
   showTooltip?: boolean;
+  avatars?: {
+    src: string;
+    alt: string;
+    tooltip?: string;
+    authorId?: number;
+  }[];
 }
 
 // Export ActionButton so it can be used in other components
@@ -39,11 +67,14 @@ export const ActionButton: FC<ActionButtonProps> = ({
   className = '',
   showLabel = false,
   showTooltip = true,
+  avatars = [],
 }) => (
   <Button
     variant="ghost"
     size="sm"
-    className={`flex items-center space-x-1.5 ${isActive ? 'text-primary-600' : 'text-gray-900'} hover:text-gray-900 ${className}`}
+    className={`flex items-center space-x-1.5 border border-gray-200 rounded-full py-1 px-3
+      ${isActive ? 'text-primary-600' : 'text-gray-900'} 
+      hover:text-gray-900 hover:bg-gray-50 ${className}`}
     tooltip={showTooltip ? tooltip : undefined}
     onClick={onClick}
     disabled={isDisabled}
@@ -54,11 +85,22 @@ export const ActionButton: FC<ActionButtonProps> = ({
     ) : count !== undefined ? (
       <span className="text-sm font-medium">{count}</span>
     ) : null}
+
+    {avatars.length > 0 && (
+      <AvatarStack
+        items={avatars}
+        size="xxs"
+        maxItems={3}
+        spacing={-4}
+        className="ml-1"
+        showExtraCount={true}
+      />
+    )}
   </Button>
 );
 
 interface FeedItemActionsProps {
-  metrics?: FeedEntry['metrics'];
+  metrics?: Partial<ExtendedContentMetrics>;
   feedContentType: FeedContentType;
   votableEntityId: number;
   relatedDocumentId?: number;
@@ -77,10 +119,14 @@ interface FeedItemActionsProps {
   menuItems?: Array<{
     icon: any;
     label: string;
+    tooltip?: string;
+    disabled?: boolean;
     onClick: (e?: React.MouseEvent) => void;
   }>;
   rightSideActionButton?: ReactNode; // New property for a custom action button on the right side
   href?: string; // URL to use for navigation
+  reviews?: Review[]; // New property for reviews
+  bounties?: Bounty[]; // Updated to use imported Bounty type
 }
 
 export const FeedItemActions: FC<FeedItemActionsProps> = ({
@@ -99,11 +145,19 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   menuItems = [], // Default to empty array for additional menu items
   rightSideActionButton, // Accept custom action button
   href,
+  reviews = [],
+  bounties = [],
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
+
+  // State for Tip Modal
+  const [tipModalState, setTipModalState] = useState<{
+    isOpen: boolean;
+    contentId?: number;
+  }>({ isOpen: false });
 
   const { vote, isVoting } = useVote({
     votableEntityId,
@@ -147,6 +201,21 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     }
   };
 
+  const handleBountyClick = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (href) {
+      router.push(`${href}/bounties`);
+    }
+  };
+
+  // Handle opening the tip modal
+  const handleOpenTipModal = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    executeAuthenticatedAction(() => {
+      setTipModalState({ isOpen: true, contentId: votableEntityId });
+    });
+  };
+
   const handleReport = () => {
     executeAuthenticatedAction(() => {
       // Map feedContentType to ContentType
@@ -178,6 +247,42 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     });
   };
 
+  // Get comment avatars if any
+  const commentAvatars =
+    metrics?.commentAuthors?.map((author: Author) => ({
+      src: author.profileImage || '/images/default-avatar.png',
+      alt: author.fullName || 'User',
+      tooltip: author.fullName,
+      authorId: author.id,
+    })) || [];
+
+  // Get review avatars
+  const reviewAvatars = reviews.map((review) => ({
+    src: review.author.profileImage || '/images/default-avatar.png',
+    alt: review.author.fullName || 'Reviewer',
+    tooltip: review.author.fullName,
+    authorId: review.author.id,
+  }));
+
+  // Get bounty avatars using the utility function
+  const bountyAvatars = extractBountyAvatars(bounties);
+
+  // Format score to show with one decimal place
+  const formatScore = (score: number): string => {
+    return score.toFixed(1);
+  };
+
+  // Check if we have open bounties
+  const hasOpenBounties = bounties && bounties.filter((b) => b.status === 'OPEN').length > 0;
+
+  // Calculate total bounty amount for open bounties
+  const totalBountyAmount = bounties
+    .filter((b) => b.status === 'OPEN')
+    .reduce((total, bounty) => {
+      const amount = parseFloat(bounty.totalAmount || bounty.amount || '0');
+      return total + amount;
+    }, 0);
+
   return (
     <>
       <div className="flex items-center justify-between w-full">
@@ -201,18 +306,71 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               onClick={handleComment}
               showLabel={Boolean(actionLabels?.comment)}
               showTooltip={showTooltips}
+              avatars={commentAvatars}
             />
           )}
-          {metrics?.reviewScore !== undefined && metrics.reviewScore > 0 && (
+          {reviews.length > 0 && (
             <ActionButton
               icon={Star}
-              count={metrics.reviewScore.toFixed(1)}
+              count={
+                metrics?.reviewScore !== 0 ? formatScore(metrics?.reviewScore || 0) : '3.0' // Default to 3.0 when we have reviewers but no specific score
+              }
               tooltip="Peer Review"
               label="Peer Review"
               showTooltip={showTooltips}
               onClick={handleReviewClick}
+              avatars={reviewAvatars}
             />
           )}
+          {hasOpenBounties &&
+            (showTooltips ? (
+              <Tooltip
+                content={
+                  <div className="flex items-start gap-3 text-left">
+                    <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center">
+                      <Icon name="earn1" size={24} color="#374151" />
+                    </div>
+                    <div>
+                      <div className="font-medium mb-1">ResearchCoin Earning Opportunity</div>
+                      <div>
+                        Complete tasks to earn{' '}
+                        {formatRSC({ amount: totalBountyAmount, shorten: true })} RSC
+                      </div>
+                    </div>
+                  </div>
+                }
+                position="top"
+                width="w-[380px]"
+              >
+                <ActionButton
+                  icon={(props: any) => <Icon name="earn1" {...props} size={18} />}
+                  tooltip=""
+                  label="Bounties"
+                  count={formatRSC({ amount: totalBountyAmount, shorten: true })}
+                  showTooltip={false}
+                  onClick={handleBountyClick}
+                  avatars={bountyAvatars}
+                />
+              </Tooltip>
+            ) : (
+              <ActionButton
+                icon={(props: any) => <Icon name="earn1" {...props} size={18} />}
+                tooltip="Bounties"
+                label="Bounties"
+                count={formatRSC({ amount: totalBountyAmount, shorten: true })}
+                showTooltip={false}
+                onClick={handleBountyClick}
+                avatars={bountyAvatars}
+              />
+            ))}
+          {/* Tip Button */}
+          <ActionButton
+            icon={(props: any) => <Icon name="tipRSC" {...props} size={33} />}
+            tooltip="Tip RSC"
+            label="Tip"
+            onClick={handleOpenTipModal}
+            showTooltip={showTooltips}
+          />
           {children} {/* Render additional action buttons */}
         </div>
 
@@ -272,6 +430,16 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           documentId={contentToFlag.documentId}
           workType={contentToFlag.contentType}
           commentId={contentToFlag.commentId}
+        />
+      )}
+
+      {/* Tip Content Modal */}
+      {tipModalState.isOpen && tipModalState.contentId && (
+        <TipContentModal
+          isOpen={tipModalState.isOpen}
+          onClose={() => setTipModalState({ isOpen: false })}
+          contentId={tipModalState.contentId}
+          feedContentType={feedContentType}
         />
       )}
     </>

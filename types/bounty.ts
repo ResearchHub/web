@@ -70,6 +70,8 @@ export const transformSolution = (raw: any): BountySolution => {
 };
 
 export const transformContribution = (raw: any): BountyContribution => {
+  console.log('raw', raw);
+
   if (!raw) {
     console.warn('Received null or undefined contribution data');
     return {
@@ -81,11 +83,25 @@ export const transformContribution = (raw: any): BountyContribution => {
     };
   }
 
+  // This is a shim to mitigate inconsistency in the API response
+  let shim = {
+    ...raw,
+  };
+  if (raw?.author?.user) {
+    shim = {
+      ...shim,
+      user: { ...raw.author.user },
+    };
+    shim.user.author_profile = raw.author;
+    delete shim.user.author_profile.user;
+    raw = shim;
+  }
+
   try {
     return {
       id: raw.id || 0,
       amount: raw.amount || '0',
-      createdBy: transformUser(raw.created_by || null),
+      createdBy: transformUser(raw.user || null),
       status: raw.status || 'ACTIVE',
       raw,
     };

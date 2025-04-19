@@ -94,7 +94,8 @@ export type IconName =
   | 'workType'
   | 'solidEarn'
   | 'giveRSC'
-  | 'researchhubVector';
+  | 'researchhubVector'
+  | 'tipRSC';
 
 interface IconProps {
   /**

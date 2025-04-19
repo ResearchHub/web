@@ -1,9 +1,39 @@
 import { ApiClient } from './client';
+import { v4 as uuidv4 } from 'uuid'; // Import uuid here
 import type {
   TransactionAPIResponse,
   UserBalanceResponse,
   TransactionAPIRequest,
-} from './types/transaction.dto';
+} from './types/transaction.dto'; // Assuming types are here
+import { ApiError } from './types'; // Import from ./types
+
+// Define the type for content type mapping result used internally
+type TipContentType = 'researchhubpost' | 'paper' | 'rhcommentmodel';
+
+// Define the request payload type for the API call (snake_case)
+interface TipApiPayload {
+  content_type: TipContentType;
+  object_id: number;
+  client_id: string;
+  amount: number;
+  purchase_type: 'BOOST';
+  purchase_method: 'OFF_CHAIN';
+}
+
+// Define a potential response type (adjust as needed based on actual API)
+interface TipResponse {
+  // Define expected fields from the API response after a successful tip
+  success: boolean;
+  message?: string;
+  // Add other relevant fields
+}
+
+// Define the arguments for the service function (camelCase)
+interface TipServiceArgs {
+  contentType: TipContentType;
+  objectId: number;
+  amount: number;
+}
 
 // Deposit interfaces
 export interface DepositRequest {
@@ -32,6 +62,7 @@ export class TransactionService {
   private static readonly BASE_PATH = '/api/transactions';
   private static readonly WITHDRAWAL_PATH = '/api/withdrawal';
   private static readonly DEPOSIT_PATH = '/api/deposit/start_deposit_rsc';
+  private static readonly PURCHASE_PATH = '/api/purchase/'; // Define purchase path
 
   /**
    * Fetches transactions for the current user
@@ -132,5 +163,26 @@ export class TransactionService {
       }
       throw new Error('Unknown error during withdrawal');
     }
+  }
+
+  /* Sends a tip for a specific piece of content.
+   * Accepts camelCase arguments and maps them to the API payload.
+   */
+  static async tipContentTransaction(args: TipServiceArgs): Promise<TipResponse> {
+    const { contentType, objectId, amount } = args;
+
+    // Map to the API payload format
+    const payload: TipApiPayload = {
+      content_type: contentType,
+      object_id: objectId,
+      amount: amount,
+      client_id: uuidv4(), // Generate client_id here
+      purchase_type: 'BOOST',
+      purchase_method: 'OFF_CHAIN',
+    };
+
+    // Note: The actual response type might differ. Adjust TipResponse accordingly.
+    const response = await ApiClient.post<TipResponse>(this.PURCHASE_PATH, payload);
+    return response;
   }
 }

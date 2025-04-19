@@ -13,7 +13,7 @@ interface AvatarStackProps {
     tooltip?: string;
     authorId?: number;
   }[];
-  size?: 'xxs' | 'xs' | 'sm' | 'md';
+  size?: 'xxxs' | 'xxs' | 'xs' | 'sm' | 'md';
   maxItems?: number;
   /** Spacing in pixels between avatars. Negative values create overlap. */
   spacing?: number;
@@ -47,7 +47,7 @@ export const AvatarStack: FC<AvatarStackProps> = ({
   spacing = -8,
   reverseOrder = false,
   disableTooltip = false,
-  ringColorClass = 'ring-gray-300',
+  ringColorClass = 'ring-white',
   showExtraCount = false,
   totalItemsCount,
   allItems,
@@ -67,6 +67,8 @@ export const AvatarStack: FC<AvatarStackProps> = ({
   // Size mapping for the Avatar component
   const getAvatarSize = (avatarSize: string) => {
     switch (avatarSize) {
+      case 'xxxs':
+        return { width: '12px', height: '12px' };
       case 'xxs':
         return { width: '16px', height: '16px' };
       case 'xs':
@@ -81,14 +83,27 @@ export const AvatarStack: FC<AvatarStackProps> = ({
   // Get font size for the extra count based on avatar size
   const getExtraCountFontSize = () => {
     switch (size) {
-      case 'xxs':
+      case 'xxxs':
         return '8px';
+      case 'xxs':
+        return '9px';
       case 'xs':
         return '10px';
       case 'md':
         return '14px';
       default:
-        return '12px'; // 'sm'
+        return '11px'; // 'sm'
+    }
+  };
+
+  // Determine ring width based on size
+  const getRingWidth = () => {
+    switch (size) {
+      case 'xxxs':
+      case 'xxs':
+        return 'ring-1';
+      default:
+        return 'ring-2';
     }
   };
 
@@ -106,7 +121,7 @@ export const AvatarStack: FC<AvatarStackProps> = ({
           alt={item.alt}
           size={size}
           disableTooltip={disableTooltip}
-          className={`ring-2 ${ringColorClass}`}
+          className={`${getRingWidth()} ${ringColorClass}`}
           authorId={item.authorId}
         />
       </div>
@@ -179,15 +194,15 @@ export const AvatarStack: FC<AvatarStackProps> = ({
               position="top"
               width={extraItems.length > 0 ? 'w-[200px]' : undefined}
             >
-              <div
-                className={`flex items-center justify-center rounded-full bg-gray-100 ring-2 ${ringColorClass} text-gray-600 font-medium`}
-                style={{
-                  fontSize: getExtraCountFontSize(),
-                  ...getAvatarSize(size),
-                }}
-              >
-                +{extraCount}
-              </div>
+              <Avatar
+                src={null}
+                alt={`+${extraCount}`}
+                size={size}
+                className={`${getRingWidth()} ${ringColorClass} bg-gray-100`}
+                disableTooltip
+                label={`+${extraCount}`}
+                labelClassName="font-bold text-[100%]"
+              />
             </Tooltip>
           </div>
         )}

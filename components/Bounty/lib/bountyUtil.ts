@@ -372,3 +372,82 @@ export const extractContributorsForDisplay = (bounty: Bounty): Contributor[] => 
 export const hasBounties = (comment?: any): boolean => {
   return !!(comment?.bounties && comment.bounties.length > 0);
 };
+
+// Add avatar interface
+export interface BountyAvatar {
+  src: string;
+  alt: string;
+  tooltip?: string;
+  authorId?: number;
+}
+
+/**
+ * Extracts avatar information from bounties for use in UI components
+ * @param bounties Array of bounties to extract avatars from
+ * @param openOnly Whether to only include open bounties (default: true)
+ * @returns Array of avatar objects ready for display
+ */
+export const extractBountyAvatars = (
+  bounties: Bounty[],
+  openOnly: boolean = true
+): BountyAvatar[] => {
+  // Filter bounties if openOnly is true
+  const filteredBounties = openOnly
+    ? bounties.filter((bounty) => bounty.status === 'OPEN')
+    : bounties;
+
+  // Extract avatars from each bounty
+  const avatars = filteredBounties.flatMap((bounty) => {
+    const result = [];
+
+    // Add creator avatar if available
+    if (bounty.createdBy) {
+      // Try to access profile information from raw data
+      const creatorRaw = bounty.raw?.created_by || {};
+      const authorProfile = bounty.createdBy.authorProfile || {};
+
+      // Use explicit type casting to avoid TypeScript errors with optional fields
+      const profileImage = (authorProfile as any).profileImage || (creatorRaw as any).profile_image;
+      const fullName = (authorProfile as any).fullName || (creatorRaw as any).full_name;
+      const id = (authorProfile as any).id || (creatorRaw as any).id;
+
+      result.push({
+        src: profileImage || '/images/default-avatar.png',
+        alt: fullName || 'Creator',
+        tooltip: fullName,
+        authorId: id,
+      });
+    }
+
+    // Add contributor avatars if available
+    if (bounty.contributions && bounty.contributions.length > 0) {
+      const contributorAvatars = bounty.contributions.map((contribution) => {
+        const contributorRaw = contribution.raw?.user?.author_profile || {};
+        const authorProfile = contribution.createdBy?.authorProfile || {};
+
+        // Use explicit type casting to avoid TypeScript errors with optional fields
+        const profileImage =
+          (authorProfile as any).profileImage || (contributorRaw as any).profile_image;
+        const fullName = (authorProfile as any).fullName || (contributorRaw as any).full_name;
+        const id = (authorProfile as any).id || (contributorRaw as any).id;
+
+        return {
+          src: profileImage || '/images/default-avatar.png',
+          alt: fullName || 'Contributor',
+          tooltip: fullName,
+          authorId: id,
+        };
+      });
+
+      result.push(...contributorAvatars);
+    }
+
+    return result;
+  });
+
+  // Remove duplicates by authorId
+  return avatars.filter(
+    (avatar, index, self) =>
+      avatar.authorId && index === self.findIndex((a) => a.authorId === avatar.authorId)
+  );
+};
