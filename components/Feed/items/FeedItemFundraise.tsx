@@ -13,7 +13,6 @@ import { useRouter } from 'next/navigation';
 import { Flag } from 'lucide-react';
 import Image from 'next/image';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import { FeedItemMetadataSection } from '@/components/Feed/FeedItemMetadataSection';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
@@ -100,15 +99,6 @@ const FeedItemFundraiseBody: FC<{
           </div>
         )}
       </div>
-
-      {/* Bounties and Reviews Section */}
-      <FeedItemMetadataSection
-        id={post.id}
-        slug={post.slug}
-        bounties={post.bounties}
-        reviews={post.reviews}
-        contentType="fundraise"
-      />
     </div>
   );
 };
@@ -237,6 +227,8 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                 userVote={entry.userVote}
                 showTooltips={showTooltips}
                 href={fundingPageUrl}
+                reviews={post.reviews}
+                bounties={post.bounties}
               />
             </div>
           </div>

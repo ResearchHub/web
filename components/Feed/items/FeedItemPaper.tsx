@@ -11,7 +11,6 @@ import { truncateText } from '@/utils/stringUtils';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/styles';
 import { JournalStatusBadge } from '@/components/ui/JournalStatusBadge';
-import { FeedItemMetadataSection } from '@/components/Feed/FeedItemMetadataSection';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
@@ -97,15 +96,6 @@ const FeedItemPaperBody: FC<{
       <div className="text-sm text-gray-700 mb-4">
         <p>{truncateText(paper.textPreview, 300)}</p>
       </div>
-
-      {/* Bounties and Reviews Section */}
-      <FeedItemMetadataSection
-        id={paper.id}
-        slug={paper.slug}
-        bounties={paper.bounties}
-        reviews={paper.reviews}
-        contentType="paper"
-      />
     </div>
   );
 };
@@ -185,6 +175,8 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry, href, showTooltip
                 userVote={entry.userVote}
                 showTooltips={showTooltips}
                 href={paperPageUrl}
+                reviews={paper.reviews}
+                bounties={paper.bounties}
               />
             </div>
           </div>

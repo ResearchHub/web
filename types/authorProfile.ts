@@ -43,7 +43,6 @@ export type TransformedAuthorProfile = AuthorProfile & BaseTransformed;
 
 export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw) => {
   if (!raw) {
-    console.warn('Received null or undefined author profile data');
     return {
       id: 0,
       fullName: 'Unknown Author',

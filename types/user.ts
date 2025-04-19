@@ -20,7 +20,6 @@ export type TransformedUser = User & BaseTransformed;
 const baseTransformUser = (raw: any): User => {
   // Handle null or undefined raw data
   if (!raw) {
-    console.warn('Received null or undefined user data in baseTransformUser');
     return {
       id: 0,
       email: '',
@@ -51,7 +50,6 @@ const baseTransformUser = (raw: any): User => {
 export const transformUser = (raw: any): TransformedUser => {
   // Handle null or undefined raw data
   if (!raw) {
-    console.warn('Received null or undefined user data in transformUser');
     return {
       id: 0,
       email: '',
