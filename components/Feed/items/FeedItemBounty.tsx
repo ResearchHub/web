@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
-
+import { Icon } from '@/components/ui/icons/Icon';
 /**
  * Internal component for rendering bounty details
  */
@@ -203,6 +203,9 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   const isExpiring = isActive && isExpiringSoon(bounty.expirationDate);
   const bountyStatus = isExpiring ? 'expiring' : isActive ? 'open' : 'closed';
 
+  // Check if there are solutions to award
+  const hasSolutions = bounty.solutions && bounty.solutions.length > 0;
+
   // Use provided href or create default bounty page URL
   const bountyPageUrl = href || `/bounty/${bounty.id}`;
 
@@ -232,6 +235,16 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
     setIsContributeModalOpen(true);
   };
 
+  // Handle awarding the bounty
+  const handleAwardBounty = (e: React.MouseEvent | undefined) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    if (onAward) {
+      onAward();
+    }
+  };
+
   // Create menu items array for FeedItemActions
   const menuItems = [];
 
@@ -247,22 +260,18 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
     });
   }
 
-  // Award button as a custom action button (to be displayed next to upvote)
+  // Create the award button styled like the contribute button
   const awardButton =
     showCreatorActions && isAuthor && isOpenBounty(bounty) && onAward ? (
-      <ActionButton
-        icon={Trophy}
-        label="Award"
-        tooltip={showTooltips ? 'Award this bounty to a solution' : undefined}
-        onClick={(e) => {
-          e?.stopPropagation();
-          onAward();
-        }}
-        showLabel={true}
-        showTooltip={showTooltips}
-        isActive={false}
-        isDisabled={false}
-      />
+      <Button
+        onClick={handleAwardBounty}
+        size="sm"
+        variant="default"
+        className="text-sm text-xs font-medium gap-2 bg-amber-300 hover:bg-amber-400 ml-2 text-gray-900"
+      >
+        <Trophy size={16} className="text-gray-900" />
+        Award bounty
+      </Button>
     ) : null;
 
   // Add Contributors action to menu if applicable
@@ -295,10 +304,10 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         <Button
           onClick={handleOpenContributeModal}
           size="sm"
-          variant="outlined"
-          className="text-sm text-xs font-medium gap-2 border-orange-400 text-orange-600"
+          variant="default"
+          className="text-sm text-xs font-medium gap-2 bg-orange-500 hover:bg-orange-600"
         >
-          <ResearchCoinIcon size={16} contribute />
+          <Icon size={24} name="tipRSC" color="white" />
           Support this bounty
         </Button>
       </Tooltip>
@@ -341,7 +350,12 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
               showRelatedWork={showRelatedWork}
               onViewSolution={onViewSolution}
             />
-            {contributeButton}
+            {(contributeButton || awardButton) && (
+              <div className="flex items-center mt-2">
+                {contributeButton}
+                {awardButton}
+              </div>
+            )}
           </div>
 
           {/* Action Buttons - Full width */}
@@ -355,15 +369,13 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
                 relatedDocumentId={bountyEntry.relatedDocumentId}
                 relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
                 userVote={entry.userVote}
+                tips={entry.tips}
                 showTooltips={showTooltips}
                 actionLabels={actionLabels}
                 hideCommentButton={isAuthor}
                 menuItems={menuItems}
                 bounties={[bountyEntry.bounty]}
-              >
-                {/* Award button appears next to upvote and comment buttons */}
-                {awardButton}
-              </FeedItemActions>
+              />
             </div>
           </div>
         </div>
