@@ -87,7 +87,7 @@ export const transformContribution = (raw: any): BountyContribution => {
   let shim = {
     ...raw,
   };
-  if (raw.author.user) {
+  if (raw?.author?.user) {
     shim = {
       ...shim,
       user: { ...raw.author.user },

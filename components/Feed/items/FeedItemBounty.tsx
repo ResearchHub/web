@@ -359,6 +359,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
                 actionLabels={actionLabels}
                 hideCommentButton={isAuthor}
                 menuItems={menuItems}
+                bounties={[bountyEntry.bounty]}
               >
                 {/* Award button appears next to upvote and comment buttons */}
                 {awardButton}
