@@ -305,6 +305,7 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
 
                     {/* Transaction Button */}
                     <Transaction
+                      isSponsored={true}
                       chainId={RSC.chainId}
                       calls={callsCallback}
                       onStatus={handleOnStatus}
