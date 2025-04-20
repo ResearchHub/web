@@ -186,6 +186,14 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                     )}
                   </div>
 
+                  {/* Fee Note */}
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                    <p className="text-sm text-gray-700 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />A fee of 1 RSC will be
+                      charged for this withdrawal.
+                    </p>
+                  </div>
+
                   {/* Withdrawal Address Display */}
                   <div className="space-y-2">
                     <div className="flex items-center">
