@@ -86,7 +86,7 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
       to_address: address,
       agreed_to_terms: true,
       amount: amount,
-      transaction_fee: '0',
+      transaction_fee: '1',
       network: 'BASE',
     });
   }, [address, amount, isButtonDisabled, withdrawRSC]);
