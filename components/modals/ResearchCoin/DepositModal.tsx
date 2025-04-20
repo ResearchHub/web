@@ -11,6 +11,7 @@ import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction
 import { Interface } from 'ethers';
 import { TransactionService } from '@/services/transaction.service';
 import { RSC, TRANSFER_ABI } from '@/constants/tokens';
+import { useIsEOA } from '@/hooks/useIsEOA';
 
 const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_WALLET_ADDRESS;
 if (!HOT_WALLET_ADDRESS_ENV || HOT_WALLET_ADDRESS_ENV.trim() === '') {
@@ -51,6 +52,7 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
   const { address } = useAccount();
   const { balance: walletBalance } = useWalletRSCBalance();
   const [txStatus, setTxStatus] = useState<TransactionStatus>({ state: 'idle' });
+  const { isEOA, isLoading: isEOALoading } = useIsEOA(isOpen);
 
   // Reset transaction status when modal is closed
   useEffect(() => {
@@ -69,7 +71,7 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
 
-    // Only allow numbers and a single decimal point
+    // Allow numbers and a single decimal point
     if (value === '' || /^(\d+)?(\.\d*)?$/.test(value)) {
       setAmount(value);
     }
@@ -84,19 +86,27 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
   );
 
   const isButtonDisabled = useMemo(
-    () => !amount || depositAmount <= 0 || depositAmount > walletBalance,
-    [amount, depositAmount, walletBalance]
+    () =>
+      !address ||
+      !isEOA ||
+      isEOALoading ||
+      !amount ||
+      depositAmount <= 0 ||
+      depositAmount > walletBalance,
+    [address, isEOA, isEOALoading, amount, depositAmount, walletBalance]
   );
 
   // Function to check if inputs should be disabled
   const isInputDisabled = useCallback(() => {
     return (
       !address ||
+      !isEOA ||
+      isEOALoading ||
       txStatus.state === 'buildingTransaction' ||
       txStatus.state === 'pending' ||
       txStatus.state === 'success'
     );
-  }, [address, txStatus.state]);
+  }, [address, isEOA, isEOALoading, txStatus.state]);
 
   const handleOnStatus = useCallback(
     (status: any) => {
@@ -220,6 +230,20 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
                         </div>
                       </div>
                     </div>
+
+                    {/* Smart Wallet Warning */}
+                    {isEOA === false && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                        <div className="flex items-start">
+                          <div>
+                            <p className="mt-1 text-sm text-amber-700">
+                              Deposits from smart wallets are not yet supported. Please connect with
+                              an externally owned account to make a deposit.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Wallet RSC Balance */}
                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
