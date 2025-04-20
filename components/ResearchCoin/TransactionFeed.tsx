@@ -251,7 +251,8 @@ export function TransactionFeed({ onExport, exchangeRate, isExporting }: Transac
                 onClick={handleLoadMore}
                 disabled={isLoadingMore}
                 variant="link"
-                className="text-indigo-600 hover:text-indigo-500"
+                size="default"
+                className="w-full py-3 sm:w-auto sm:py-0 text-indigo-600 hover:text-indigo-500"
               >
                 {isLoadingMore ? 'Loading...' : 'Load more'}
               </Button>
