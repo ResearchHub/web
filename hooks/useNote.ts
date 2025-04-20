@@ -219,8 +219,8 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
   const [error, setError] = useState<Error | null>(null);
   const titleRef = useRef<string>('');
 
-  const debouncedUpdate = useRef<DebouncedFunc<(editor: Editor) => Promise<void>>>(
-    debounce(async (editor: Editor) => {
+  const debouncedUpdate = useRef<DebouncedFunc<(editor: Editor, noteId: ID) => Promise<void>>>(
+    debounce(async (editor: Editor, noteId: ID) => {
       if (!editor || !noteId) {
         console.error('Editor or noteId is undefined in debouncedUpdate', { editor, noteId });
         return;
@@ -277,7 +277,7 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
         console.error('Editor is undefined in updateNote');
         return;
       }
-      debouncedUpdate.current(editor);
+      debouncedUpdate.current(editor, noteId);
     },
     [noteId]
   );
