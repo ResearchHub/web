@@ -152,6 +152,9 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
     if (depositAmount > walletBalance) {
       throw new Error('Deposit amount exceeds wallet balance');
     }
+    if (!isEOA) {
+      throw new Error('Deposits from smart wallets are not supported');
+    }
     const amountInWei = (parseFloat(amount) * 1e18).toFixed(0);
 
     const transferInterface = new Interface(TRANSFER_ABI);
@@ -167,7 +170,7 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
     };
 
     return [transferCall];
-  }, [amount, depositAmount, walletBalance]);
+  }, [amount, depositAmount, walletBalance, isEOA]);
 
   // If no wallet is connected, show nothing - assuming modal shouldn't open in this state
   if (!address) {
