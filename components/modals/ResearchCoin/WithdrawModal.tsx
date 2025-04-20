@@ -86,7 +86,7 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
       to_address: address,
       agreed_to_terms: true,
       amount: amount,
-      transaction_fee: '0',
+      transaction_fee: '1',
       network: 'BASE',
     });
   }, [address, amount, isButtonDisabled, withdrawRSC]);
@@ -184,6 +184,14 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
                         Withdrawal amount exceeds your available balance.
                       </p>
                     )}
+                  </div>
+
+                  {/* Fee Note */}
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                    <p className="text-sm text-gray-700 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />A fee of 1 RSC will be
+                      charged for this withdrawal.
+                    </p>
                   </div>
 
                   {/* Withdrawal Address Display */}

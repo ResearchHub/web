@@ -12,6 +12,13 @@ import {
 } from '@coinbase/onchainkit/swap';
 import { ETH, RSC, USDC } from '@/constants/tokens';
 
+// Network configuration based on environment
+const IS_PRODUCTION = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production';
+const NETWORK_NAME = IS_PRODUCTION ? 'Base' : 'Base Sepolia';
+const NETWORK_DESCRIPTION = IS_PRODUCTION
+  ? 'Swaps are processed on Base L2'
+  : 'Swaps are processed on Base Sepolia testnet';
+
 interface SwapModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -60,6 +67,17 @@ export function SwapModal({ isOpen, onClose }: SwapModalProps) {
                   >
                     <XIcon className="h-5 w-5" />
                   </button>
+                </div>
+
+                {/* Network Info */}
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-md mb-6">
+                  <div className="flex items-center gap-3">
+                    <img src="/base-logo.svg" alt={`${NETWORK_NAME} Network`} className="h-6 w-6" />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-900">{NETWORK_NAME}</span>
+                      <span className="text-xs text-gray-500">{NETWORK_DESCRIPTION}</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="py-4">
