@@ -67,8 +67,7 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
                   <>
                     <div className="flex gap-4">
                       <p className="text-base text-gray-600">
-                        Wallet successfully connected. You can now purchase, deposit or withdraw
-                        RSC.
+                        Wallet successfully connected. You can now buy, deposit or withdraw RSC.
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
@@ -109,7 +108,7 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
                   <>
                     <div className="flex gap-4">
                       <p className="text-base text-gray-600">
-                        To purchase, deposit or withdraw RSC, start by connecting your wallet.
+                        To buy, deposit or withdraw RSC, start by connecting your wallet.
                       </p>
                     </div>
                     <WalletDefault />
