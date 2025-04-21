@@ -360,7 +360,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
   return (
     <div
       ref={tooltipWrapperRef}
-      className="relative inline-block"
+      className="relative inline-flex items-center"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >

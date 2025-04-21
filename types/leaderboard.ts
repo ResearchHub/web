@@ -46,6 +46,12 @@ export interface LeaderboardOverviewResponse {
   funders: RawTopFunder[];
 }
 
+// Define the structure for the detailed reviewers list API response
+export type LeaderboardReviewersResponse = RawTopReviewer[];
+
+// Define the structure for the detailed funders list API response
+export type LeaderboardFundersResponse = RawTopFunder[];
+
 // Transformer for TopReviewer
 export const transformTopReviewer = createTransformer<RawTopReviewer, TopReviewer>(
   (raw: RawTopReviewer) => {

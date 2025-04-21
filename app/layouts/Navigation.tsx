@@ -9,14 +9,15 @@ import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
+import { ChartNoAxesColumnIncreasing } from 'lucide-react';
 
 // Define icon mapping for navigation items with both light and solid variants
 interface NavIcon {
   light: IconName;
-  solid?: IconName;
+  solid: IconName;
 }
 
-type NavIconKey = 'earn' | 'fund' | 'journal' | 'notebook' | 'home';
+type NavIconKey = 'earn' | 'fund' | 'journal' | 'notebook' | 'home' | 'leaderboard';
 
 interface NavigationItem {
   label: string;
@@ -37,8 +38,8 @@ interface NavigationProps {
 // Map navigation icons to their light and solid variants
 const navIconMap: Record<NavIconKey, NavIcon> = {
   home: {
-    light: 'home' as IconName,
-    solid: 'home' as IconName,
+    light: 'home1',
+    solid: 'home2',
   },
   earn: {
     light: 'earn1',
@@ -55,6 +56,10 @@ const navIconMap: Record<NavIconKey, NavIcon> = {
   notebook: {
     light: 'labNotebook2',
     solid: 'notebookBold',
+  },
+  leaderboard: {
+    light: 'gold1',
+    solid: 'gold2',
   },
 };
 
@@ -100,11 +105,9 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Read and publish research papers',
     },
     {
-      label: 'Lab Notebook',
-      href: '/notebook',
-      iconKey: 'notebook',
-      description: 'Access your research notebook',
-      requiresAuth: true,
+      label: 'Leaderboard',
+      href: '/leaderboard',
+      description: 'View the ResearchHub Leaderboard',
     },
   ];
 
@@ -131,6 +134,11 @@ export const Navigation: React.FC<NavigationProps> = ({
     // Special case for notebook page - match any route that starts with /notebook
     if (path === '/notebook') {
       return currentPath.startsWith('/notebook');
+    }
+
+    // Special case for leaderboard page
+    if (path === '/leaderboard') {
+      return currentPath.startsWith('/leaderboard');
     }
 
     // Default case - exact match
@@ -174,6 +182,9 @@ export const Navigation: React.FC<NavigationProps> = ({
       router.push(item.href);
     };
 
+    // Determine if the current item is the Home item using FontAwesome
+    const isHomeIcon = item.isFontAwesome && item.iconKey === 'home';
+
     // Conditionally apply minimized classes
     const iconContainerClass = forceMinimize
       ? 'h-[26px] w-[26px] mr-0 flex items-center justify-center'
@@ -186,14 +197,22 @@ export const Navigation: React.FC<NavigationProps> = ({
     return (
       <Button onClick={handleClick} className={buttonStyles} variant="ghost">
         <div className={iconContainerClass}>
-          {item.isFontAwesome && item.iconKey === 'home' ? (
+          {item.href === '/leaderboard' ? (
+            <ChartNoAxesColumnIncreasing
+              size={22}
+              color={iconColor}
+              strokeWidth={isActive ? 2.5 : 2}
+            />
+          ) : isHomeIcon ? (
             <FontAwesomeIcon
               icon={isActive ? faHouseSolid : faHouseLight}
               fontSize={20}
               color={iconColor}
             />
+          ) : item.iconKey ? (
+            <Icon name={getIconName() as IconName} size={26} color={iconColor} />
           ) : (
-            item.iconKey && <Icon name={getIconName() as IconName} size={26} color={iconColor} />
+            <div className="w-[26px] h-[26px]" />
           )}
         </div>
         <div className={textContainerClass}>
