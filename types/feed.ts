@@ -261,10 +261,13 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         }
 
         // Transform the bounty using the transformBounty function with proper error handling
-        const bounty = transformBounty({
-          created_by: author || null,
-          ...content_object,
-        });
+        const bounty = transformBounty(
+          {
+            created_by: author || null,
+            ...content_object,
+          },
+          { ignoreBaseAmount: true }
+        );
 
         // If the bounty has a paper, transform it to a Work and set as relatedWork
         const relatedDocumentId = content_object.paper?.id || content_object.post?.id || undefined;
