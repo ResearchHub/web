@@ -108,10 +108,13 @@ export class TransactionService {
   }
 
   /**
-   * Fetches all deposits for the current user
+   * Fetches deposits for the current user with optional pagination
+   * @param page - The page number to fetch (defaults to 1)
    */
-  static async getDeposits(): Promise<PendingDepositResponse> {
-    const response = await ApiClient.get<PendingDepositResponse>(`${this.DEPOSITS_PATH}/`);
+  static async getDeposits(page: number = 1): Promise<PendingDepositResponse> {
+    const response = await ApiClient.get<PendingDepositResponse>(
+      `${this.DEPOSITS_PATH}/?page=${page}`
+    );
 
     if (!response?.results) {
       throw new Error('Invalid response format');
