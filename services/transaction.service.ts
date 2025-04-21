@@ -43,6 +43,29 @@ export interface DepositRequest {
   network: string;
 }
 
+// Define the pending deposit response interface
+export interface PendingDeposit {
+  id: number;
+  user: {
+    id: number;
+    username: string;
+  };
+  amount: number;
+  from_address: string;
+  transaction_hash: string;
+  paid_status: 'PENDING' | 'PAID' | 'FAILED';
+  paid_date: string | null;
+  created_date: string;
+  updated_date: string;
+  network: string;
+}
+
+export interface PendingDepositResponse {
+  results: PendingDeposit[];
+  next: string | null;
+  count: number;
+}
+
 // Withdrawal interfaces
 export interface WithdrawalRequest {
   to_address: string;
@@ -62,6 +85,7 @@ export class TransactionService {
   private static readonly BASE_PATH = '/api/transactions';
   private static readonly WITHDRAWAL_PATH = '/api/withdrawal';
   private static readonly DEPOSIT_PATH = '/api/deposit/start_deposit_rsc';
+  private static readonly DEPOSITS_PATH = '/api/deposit';
   private static readonly PURCHASE_PATH = '/api/purchase/'; // Define purchase path
 
   /**
@@ -81,6 +105,25 @@ export class TransactionService {
       results: response.results,
       next: response.next,
     };
+  }
+
+  /**
+   * Fetches deposits for the current user with optional status filter
+   * @param status - Filter deposits by status (e.g., 'PENDING')
+   */
+  static async getPendingDeposits(
+    status?: 'PENDING' | 'PAID' | 'FAILED'
+  ): Promise<PendingDepositResponse> {
+    const queryParams = status ? `?paid_status=${status}` : '';
+    const response = await ApiClient.get<PendingDepositResponse>(
+      `${this.DEPOSITS_PATH}/${queryParams}`
+    );
+
+    if (!response?.results) {
+      throw new Error('Invalid response format');
+    }
+
+    return response;
   }
 
   /**

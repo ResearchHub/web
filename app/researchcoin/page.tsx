@@ -5,6 +5,7 @@ import { PageLayout } from '../layouts/PageLayout';
 import { ResearchCoinRightSidebar } from '@/components/ResearchCoin/ResearchCoinRightSidebar';
 import { UserBalanceSection } from '@/components/ResearchCoin/UserBalanceSection';
 import { TransactionFeed } from '@/components/ResearchCoin/TransactionFeed';
+import { PendingDeposits } from '@/components/ResearchCoin/PendingDeposits';
 import { ExportFilterModal } from '@/components/modals/ResearchCoin/ExportFilterModal';
 import { TransactionService } from '@/services/transaction.service';
 import { useSession } from 'next-auth/react';
@@ -55,6 +56,9 @@ export default function ResearchCoinPage() {
                 balance={balance ? formatBalance(balance, exchangeRate) : null}
                 isFetchingExchangeRate={isFetchingExchangeRate}
               />
+
+              {/* Add the PendingDeposits component */}
+              <PendingDeposits exchangeRate={exchangeRate} />
 
               <TransactionFeed
                 onExport={handleExport}
