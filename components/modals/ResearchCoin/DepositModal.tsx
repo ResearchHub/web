@@ -354,7 +354,7 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
                               <span className="font-medium">Deposit successful!</span>
                             </div>
                             <p className="text-sm text-gray-600 mt-2">
-                              It can take up to five minutes for the deposit to appear in your
+                              It can take up to 10-20 minutes for the deposit to appear in your
                               account.
                             </p>
                           </div>

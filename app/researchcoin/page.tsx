@@ -5,13 +5,14 @@ import { PageLayout } from '../layouts/PageLayout';
 import { ResearchCoinRightSidebar } from '@/components/ResearchCoin/ResearchCoinRightSidebar';
 import { UserBalanceSection } from '@/components/ResearchCoin/UserBalanceSection';
 import { TransactionFeed } from '@/components/ResearchCoin/TransactionFeed';
-import { PendingDeposits } from '@/components/ResearchCoin/PendingDeposits';
+import { PendingDepositFeed } from '@/components/ResearchCoin/PendingDepositFeed';
 import { ExportFilterModal } from '@/components/modals/ResearchCoin/ExportFilterModal';
 import { TransactionService } from '@/services/transaction.service';
 import { useSession } from 'next-auth/react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatBalance } from '@/components/ResearchCoin/lib/types';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { usePendingDeposits } from '@/hooks/usePendingDeposits';
 
 export default function ResearchCoinPage() {
   const { data: session, status } = useSession();
@@ -19,6 +20,7 @@ export default function ResearchCoinPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
   const { exchangeRate, isLoading: isFetchingExchangeRate } = useExchangeRate();
+  const { hasPendingDepositFeed, isLoading: isLoadingPendingDeposits } = usePendingDeposits();
 
   // Fetch initial data
   useEffect(() => {
@@ -57,7 +59,9 @@ export default function ResearchCoinPage() {
                 isFetchingExchangeRate={isFetchingExchangeRate}
               />
 
-              <PendingDeposits exchangeRate={exchangeRate} />
+              {(hasPendingDepositFeed || isLoadingPendingDeposits) && (
+                <PendingDepositFeed exchangeRate={exchangeRate} />
+              )}
 
               <TransactionFeed
                 onExport={handleExport}
