@@ -2,8 +2,9 @@
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { AuthService } from '@/services/auth.service';
+import { AuthError, AuthService } from '@/services/auth.service';
 import type { User } from '@/types/user';
+import { AuthSharingService } from '@/services/auth-sharing.service';
 
 interface UserContextType {
   user: User | null;
@@ -33,6 +34,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const user = userData.results[0] || null;
       setUser(user);
     } catch (err) {
+      if (err instanceof AuthError) {
+        if (err.code === 401) {
+          await AuthSharingService.signOutFromBothApps();
+        }
+      }
       setError(err instanceof Error ? err : new Error('Failed to load user data'));
     } finally {
       setIsLoading(false);
