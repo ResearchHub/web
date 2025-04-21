@@ -46,18 +46,18 @@ export interface DepositRequest {
 // Define the pending deposit response interface
 export interface PendingDeposit {
   id: number;
-  user: {
-    id: number;
-    username: string;
-  };
-  amount: number;
+  user: number;
+  amount: string;
   from_address: string;
   transaction_hash: string;
-  paid_status: 'PENDING' | 'PAID' | 'FAILED';
+  paid_status: 'PENDING' | 'PAID' | 'FAILED' | null;
   paid_date: string | null;
   created_date: string;
   updated_date: string;
   network: string;
+  is_public: boolean;
+  is_removed: boolean;
+  is_removed_date: string | null;
 }
 
 export interface PendingDepositResponse {

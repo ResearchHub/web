@@ -57,7 +57,6 @@ export default function ResearchCoinPage() {
                 isFetchingExchangeRate={isFetchingExchangeRate}
               />
 
-              {/* Add the PendingDeposits component */}
               <PendingDeposits exchangeRate={exchangeRate} />
 
               <TransactionFeed

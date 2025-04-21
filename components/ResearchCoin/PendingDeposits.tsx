@@ -141,7 +141,7 @@ export function PendingDeposits({ exchangeRate }: PendingDepositsProps) {
       const pendingDeposits = allDeposits.filter(
         (deposit) =>
           deposit.paid_status === 'PENDING' ||
-          (deposit.amount !== 0 && deposit.paid_status === null)
+          (deposit.amount !== '0' && deposit.paid_status === null)
       );
 
       // Sort deposits by date in descending order (most recent first)
