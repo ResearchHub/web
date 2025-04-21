@@ -192,6 +192,11 @@ export function WithdrawModal({
                         <span className="text-gray-500">RSC</span>
                       </div>
                     </div>
+                    {withdrawAmount > availableBalance && (
+                      <p className="text-sm text-red-600" role="alert">
+                        Withdrawal amount exceeds your available balance.
+                      </p>
+                    )}
                   </div>
 
                   {/* Fee and Net Amount Display */}
