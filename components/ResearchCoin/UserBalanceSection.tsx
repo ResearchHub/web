@@ -17,9 +17,14 @@ interface UserBalanceSectionProps {
     raw: number;
   } | null;
   isFetchingExchangeRate: boolean;
+  onTransactionSuccess?: () => void;
 }
 
-export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBalanceSectionProps) {
+export function UserBalanceSection({
+  balance,
+  isFetchingExchangeRate,
+  onTransactionSuccess,
+}: UserBalanceSectionProps) {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [isSwapModalOpen, setIsSwapModalOpen] = useState(false);
@@ -129,11 +134,13 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
             isOpen={isDepositModalOpen}
             onClose={() => setIsDepositModalOpen(false)}
             currentBalance={balance?.raw || 0}
+            onSuccess={onTransactionSuccess}
           />
           <WithdrawModal
             isOpen={isWithdrawModalOpen}
             onClose={() => setIsWithdrawModalOpen(false)}
             availableBalance={balance?.raw || 0}
+            onSuccess={onTransactionSuccess}
           />
           <SwapModal isOpen={isSwapModalOpen} onClose={() => setIsSwapModalOpen(false)} />
         </>

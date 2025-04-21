@@ -93,6 +93,7 @@ export default function ResearchCoinPage() {
               <UserBalanceSection
                 balance={balance ? formatBalance(balance, exchangeRate) : null}
                 isFetchingExchangeRate={isFetchingExchangeRate}
+                onTransactionSuccess={handleRefresh}
               />
 
               {(hasPendingDepositFeed || isLoadingPendingDeposits) && (

@@ -21,9 +21,15 @@ interface WithdrawModalProps {
   isOpen: boolean;
   onClose: () => void;
   availableBalance: number;
+  onSuccess?: () => void;
 }
 
-export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawModalProps) {
+export function WithdrawModal({
+  isOpen,
+  onClose,
+  availableBalance,
+  onSuccess,
+}: WithdrawModalProps) {
   const [amount, setAmount] = useState<string>('');
   const { exchangeRate } = useExchangeRate();
   const { address } = useAccount();
@@ -82,14 +88,19 @@ export function WithdrawModal({ isOpen, onClose, availableBalance }: WithdrawMod
       return;
     }
 
-    await withdrawRSC({
+    const result = await withdrawRSC({
       to_address: address,
       agreed_to_terms: true,
       amount: amount,
       transaction_fee: '1',
       network: 'BASE',
     });
-  }, [address, amount, isButtonDisabled, withdrawRSC]);
+
+    // Call onSuccess callback when withdrawal is successful
+    if (result && txStatus.state === 'success' && onSuccess) {
+      onSuccess();
+    }
+  }, [address, amount, isButtonDisabled, withdrawRSC, txStatus.state, onSuccess]);
 
   // If no wallet is connected, show nothing
   if (!address) {
