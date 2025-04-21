@@ -27,20 +27,10 @@ interface AwardBountyModalProps {
 
 // Explanation banner component
 const ExplanationBanner: FC = () => (
-  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-    <div className="flex items-start">
-      <div className="mr-3 mt-0.5">
-        <Trophy className="h-5 w-5 text-blue-500" />
-      </div>
-      <div>
-        <h3 className="text-sm font-medium text-blue-800">Award your bounty</h3>
-        <p className="text-sm text-blue-600 mt-1">
-          Select which comments you'd like to award your bounty to. You can distribute the bounty
-          amount among multiple comments or award it all to a single comment. You must allocate 100%
-          of the bounty to proceed.
-        </p>
-      </div>
-    </div>
+  <div className="flex items-center mb-6">
+    <span className="text-md text-gray-700">
+      Distribute your bounty to all comments you'd like to award.
+    </span>
   </div>
 );
 
@@ -53,14 +43,14 @@ const PercentageSelector: FC<{
   const percentageOptions = [0, 25, 50, 75, 100];
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
       {percentageOptions.map((percentage) => (
         <button
           key={`${commentId}-${percentage}`}
           type="button"
           onClick={() => onPercentageClick(commentId, percentage)}
           className={cn(
-            'px-2 py-1 text-xs rounded-md transition-colors',
+            'px-3 py-1.5 text-sm rounded-md transition-colors flex-1 sm:flex-none',
             selectedPercentage === percentage
               ? 'bg-blue-100 text-blue-700'
               : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
@@ -106,8 +96,8 @@ const AmountInput: FC<{
   };
 
   return (
-    <div className="flex items-center gap-2 ml-auto">
-      <div className="relative">
+    <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">
+      <div className="relative w-full sm:w-auto">
         <Input
           type="number"
           min={0}
@@ -115,14 +105,16 @@ const AmountInput: FC<{
           step={0.1}
           value={inputValue}
           onChange={handleInputChange}
-          className="w-24 pr-12 text-right"
+          className="w-full sm:w-40 pr-12 text-right"
           placeholder="0.0"
         />
         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
           <span className="text-gray-500 sm:text-sm">RSC</span>
         </div>
       </div>
-      <div className="text-xs text-gray-500">({percentageOfTotal.toFixed(1)}%)</div>
+      <div className="text-xs text-gray-500 whitespace-nowrap">
+        ({percentageOfTotal.toFixed(1)}%)
+      </div>
     </div>
   );
 };
@@ -148,21 +140,37 @@ const AwardableCommentCard: FC<{
   onAwardChange,
 }) => {
   const percentageOfTotal = (awardAmount / totalBountyAmount) * 100;
+  const isReply = !!comment.parentId;
 
   // Memoize CommentItem to prevent unnecessary re-renders
   const MemoizedCommentItem = useMemo(
-    () => <CommentItem comment={comment} contentType={contentType} showTooltips={false} />,
+    () => (
+      <CommentItem
+        comment={comment}
+        contentType={contentType}
+        showTooltips={false}
+        includeReplies={false}
+      />
+    ),
     [comment, contentType]
   );
 
   return (
-    <div className="p-4 hover:bg-gray-50 transition-colors">
+    <div
+      className={cn(
+        'p-4 hover:bg-gray-50 transition-colors',
+        isReply && 'pl-8 border-l-2 border-l-gray-100'
+      )}
+    >
+      {isReply && (
+        <div className="text-xs text-gray-500 mb-2">Reply to comment #{comment.parentId}</div>
+      )}
       <div className="flex-grow mb-4">{MemoizedCommentItem}</div>
 
       {/* Award allocation UI */}
       <div className="mt-4 pt-3 border-t border-gray-100">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="text-sm font-medium text-gray-700 mr-2">Award:</div>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="text-sm font-medium text-gray-700">Award:</div>
 
           {/* Percentage buttons */}
           <PercentageSelector
@@ -261,15 +269,15 @@ const QuickAllocationActions: FC<{
   onClearAll: () => void;
   onDistributeEqually: (commentIds: number[]) => void;
 }> = ({ eligibleCommentIds, onClearAll, onDistributeEqually }) => (
-  <div className="flex flex-wrap gap-2">
-    <Button size="sm" variant="outlined" onClick={onClearAll} className="text-xs">
+  <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
+    <Button size="sm" variant="outlined" onClick={onClearAll} className="text-xs w-full sm:w-auto">
       Clear All
     </Button>
     <Button
       size="sm"
       variant="secondary"
       onClick={() => onDistributeEqually(eligibleCommentIds)}
-      className="text-xs"
+      className="text-xs w-full sm:w-auto"
     >
       Distribute Equally
     </Button>
@@ -366,13 +374,30 @@ const FilteredCommentFeed = ({
     };
   }, [documentId, contentType, stableOnLoadingChange]);
 
-  // Filter out comments that have bounties
+  // Filter out comments that have bounties and flatten the comment tree
   const commentsWithoutBounties = useMemo(() => {
-    return allComments.filter((comment) => {
-      const isBountyComment = comment.commentType === 'BOUNTY' || hasBounties(comment);
-      const isTopLevelComment = !comment.parentId;
-      return !isBountyComment && isTopLevelComment;
-    });
+    // Helper function to flatten a comment tree
+    const flattenComments = (comments: Comment[]): Comment[] => {
+      return comments.reduce<Comment[]>((acc, comment) => {
+        // Check if the comment is eligible
+        const isBountyComment = comment.commentType === 'BOUNTY' || hasBounties(comment);
+
+        // Add eligible comments to the result
+        if (!isBountyComment) {
+          acc.push(comment);
+        }
+
+        // Recursively process replies if they exist
+        if (comment.replies && comment.replies.length > 0) {
+          acc.push(...flattenComments(comment.replies));
+        }
+
+        return acc;
+      }, []);
+    };
+
+    // Start with top-level comments and flatten
+    return flattenComments(allComments);
   }, [allComments]);
 
   // Notify parent component about eligible comments when they change
@@ -399,7 +424,8 @@ const FilteredCommentFeed = ({
     return (
       <div className="py-8 text-center">
         <p className="text-gray-500">
-          No comments available to award. Any user can comment to be eligible for this bounty.
+          No comments available to award. Any user can comment or reply to be eligible for this
+          bounty.
         </p>
       </div>
     );
@@ -585,7 +611,7 @@ export const AwardBountyModal = ({
         {/* Explanation banner instead of the bounty display */}
         <ExplanationBanner />
 
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
           <div className="text-sm text-gray-600 font-medium">
             Total bounty amount: {formatRSC({ amount: totalBountyAmount })} RSC
           </div>

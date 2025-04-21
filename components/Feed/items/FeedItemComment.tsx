@@ -70,6 +70,7 @@ interface FeedItemCommentProps {
     upvote?: string;
   };
   showTooltips?: boolean; // New property for controlling tooltips
+  hideActions?: boolean; // New property to hide action buttons completely
 }
 
 /**
@@ -136,6 +137,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   showReadMoreCTA = true, // Default to showing "Read more" button
   actionLabels,
   showTooltips = true, // Default to showing tooltips
+  hideActions = false, // Default to not hiding actions
 }) => {
   // Extract the comment entry from the entry's content
   const commentEntry = entry.content as FeedCommentContent;
@@ -233,23 +235,25 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
           </div>
 
           {/* Action Buttons - Full width */}
-          <div className="mt-4 pt-3 border-t border-gray-200">
-            <div onClick={(e) => e.stopPropagation()}>
-              {/* Standard Feed Item Actions with Reply functionality */}
-              <FeedItemActions
-                metrics={entry.metrics}
-                feedContentType="COMMENT"
-                votableEntityId={comment.id}
-                relatedDocumentId={Number(commentEntry.relatedDocumentId)}
-                relatedDocumentContentType={commentEntry.relatedDocumentContentType}
-                userVote={entry.userVote}
-                actionLabels={actionLabels}
-                onComment={onReply}
-                showTooltips={showTooltips}
-                menuItems={menuItems}
-              />
+          {!hideActions && (
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <div onClick={(e) => e.stopPropagation()}>
+                {/* Standard Feed Item Actions with Reply functionality */}
+                <FeedItemActions
+                  metrics={entry.metrics}
+                  feedContentType="COMMENT"
+                  votableEntityId={comment.id}
+                  relatedDocumentId={Number(commentEntry.relatedDocumentId)}
+                  relatedDocumentContentType={commentEntry.relatedDocumentContentType}
+                  userVote={entry.userVote}
+                  actionLabels={actionLabels}
+                  onComment={onReply}
+                  showTooltips={showTooltips}
+                  menuItems={menuItems}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
