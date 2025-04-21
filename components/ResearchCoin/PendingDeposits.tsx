@@ -108,11 +108,16 @@ export function PendingDeposits({ exchangeRate }: PendingDepositsProps) {
 
     try {
       setIsLoading(true);
-      // Filter at the API level by passing 'PENDING' status
-      const response = await TransactionService.getPendingDeposits('PENDING');
+      // Get all deposits first
+      const response = await TransactionService.getDeposits();
+
+      // Filter for pending deposits only
+      const pendingDeposits = response.results.filter(
+        (deposit) => deposit.paid_status === 'PENDING'
+      );
 
       // Sort deposits by date in descending order (most recent first)
-      const sortedDeposits = [...response.results].sort((a, b) => {
+      const sortedDeposits = [...pendingDeposits].sort((a, b) => {
         return new Date(b.created_date).getTime() - new Date(a.created_date).getTime();
       });
 

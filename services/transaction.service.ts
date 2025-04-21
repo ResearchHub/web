@@ -108,16 +108,10 @@ export class TransactionService {
   }
 
   /**
-   * Fetches deposits for the current user with optional status filter
-   * @param status - Filter deposits by status (e.g., 'PENDING')
+   * Fetches all deposits for the current user
    */
-  static async getPendingDeposits(
-    status?: 'PENDING' | 'PAID' | 'FAILED'
-  ): Promise<PendingDepositResponse> {
-    const queryParams = status ? `?paid_status=${status}` : '';
-    const response = await ApiClient.get<PendingDepositResponse>(
-      `${this.DEPOSITS_PATH}/${queryParams}`
-    );
+  static async getDeposits(): Promise<PendingDepositResponse> {
+    const response = await ApiClient.get<PendingDepositResponse>(`${this.DEPOSITS_PATH}/`);
 
     if (!response?.results) {
       throw new Error('Invalid response format');
