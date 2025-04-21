@@ -40,28 +40,34 @@ function PendingDepositItem({ deposit, exchangeRate }: PendingDepositItemProps) 
   };
 
   return (
-    <div className="p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors">
+    <div className="p-4 bg-white">
       <div className="flex justify-between items-start">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-900">Deposit</span>
+        <div className="flex gap-3">
+          <div className="mt-0.5">
+            <div className="bg-green-100 rounded-full p-2 flex items-center justify-center">
+              <Coins className="h-4 w-4 text-green-600" />
+            </div>
           </div>
-          <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
-            <span>
-              {formattedDate} at {formattedTime}
-            </span>
-            <span>•</span>
-            <div className="flex items-center gap-1">
-              <span>{NETWORK_NAME}</span>
-              <a
-                href={getExplorerLink()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 transition-colors"
-              >
-                View transaction
-                <ExternalLink className="h-3 w-3" />
-              </a>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-900">Deposit</span>
+            </div>
+            <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+              <span>
+                {formattedDate} at {formattedTime}
+              </span>
+              <span>•</span>
+              <div className="flex items-center gap-1">
+                <a
+                  href={getExplorerLink()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 transition-colors"
+                >
+                  View transaction
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -104,7 +110,13 @@ export function PendingDeposits({ exchangeRate }: PendingDepositsProps) {
       setIsLoading(true);
       // Filter at the API level by passing 'PENDING' status
       const response = await TransactionService.getPendingDeposits('PENDING');
-      setDeposits(response.results);
+
+      // Sort deposits by date in descending order (most recent first)
+      const sortedDeposits = [...response.results].sort((a, b) => {
+        return new Date(b.created_date).getTime() - new Date(a.created_date).getTime();
+      });
+
+      setDeposits(sortedDeposits);
     } catch (err) {
       console.error('Error fetching pending deposits:', err);
       setError('Failed to load pending deposits');
@@ -122,10 +134,10 @@ export function PendingDeposits({ exchangeRate }: PendingDepositsProps) {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200 mb-8">
-        <div className="p-4 border-b border-gray-100">
+      <div className="mb-8 w-full">
+        <div className="p-4 bg-white">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-gray-800">Pending Deposits</h2>
+            <h2 className="text-xl font-semibold text-gray-800">Pending Deposits</h2>
             <div className="group relative">
               <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help transition-colors" />
               <div
@@ -143,7 +155,7 @@ export function PendingDeposits({ exchangeRate }: PendingDepositsProps) {
             </div>
           </div>
         </div>
-        <div className="space-y-0">
+        <div className="bg-white space-y-0">
           {[...Array(LOADING_SKELETON_COUNT)].map((_, index) => (
             <TransactionSkeleton key={index} />
           ))}
@@ -153,10 +165,10 @@ export function PendingDeposits({ exchangeRate }: PendingDepositsProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 mb-8">
-      <div className="p-4 border-b border-gray-100">
+    <div className="mb-8 w-full">
+      <div className="p-4 bg-white">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold text-gray-800">Pending Deposits</h2>
+          <h2 className="text-xl font-semibold text-gray-800">Pending Deposits</h2>
           <div className="group relative">
             <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help transition-colors" />
             <div
@@ -175,14 +187,10 @@ export function PendingDeposits({ exchangeRate }: PendingDepositsProps) {
         </div>
       </div>
 
-      <div>
+      <div className="space-y-0">
         {deposits.map((deposit) => (
           <PendingDepositItem key={deposit.id} deposit={deposit} exchangeRate={exchangeRate} />
         ))}
-      </div>
-
-      <div className="p-4 bg-gray-50 text-xs text-gray-500">
-        Deposits typically take 10-20 minutes to process once confirmed on the blockchain.
       </div>
     </div>
   );
