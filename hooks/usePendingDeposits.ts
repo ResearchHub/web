@@ -65,14 +65,29 @@ export function usePendingDeposits(): usePendingDepositsReturn {
         const allDeposits = await fetchAllDeposits();
 
         // Filter for pending deposits only
-        const PendingDepositFeed = allDeposits.filter(
+        const pendingDeposits = allDeposits.filter(
           (deposit) =>
             deposit.paid_status === 'PENDING' ||
             (deposit.amount !== '0' && deposit.paid_status === null)
         );
 
+        // Deduplicate deposits with the same transaction hash
+        const uniqueDeposits = new Map<string, PendingDeposit>();
+        pendingDeposits.forEach((deposit) => {
+          // Use transaction hash as the unique key
+          const uniqueKey = deposit.transaction_hash;
+
+          // If this hash is new or more recent than existing entry, store it
+          if (!uniqueDeposits.has(uniqueKey)) {
+            uniqueDeposits.set(uniqueKey, deposit);
+          }
+        });
+
+        // Convert back to array
+        const dedupedDeposits = Array.from(uniqueDeposits.values());
+
         // Sort deposits by date in descending order (most recent first)
-        const sortedDeposits = [...PendingDepositFeed].sort((a, b) => {
+        const sortedDeposits = [...dedupedDeposits].sort((a, b) => {
           return new Date(b.created_date).getTime() - new Date(a.created_date).getTime();
         });
 
