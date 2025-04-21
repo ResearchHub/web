@@ -43,6 +43,29 @@ export interface DepositRequest {
   network: string;
 }
 
+// Define the pending deposit response interface
+export interface PendingDeposit {
+  id: number;
+  user: number;
+  amount: string;
+  from_address: string;
+  transaction_hash: string;
+  paid_status: 'PENDING' | 'PAID' | 'FAILED' | null;
+  paid_date: string | null;
+  created_date: string;
+  updated_date: string;
+  network: string;
+  is_public: boolean;
+  is_removed: boolean;
+  is_removed_date: string | null;
+}
+
+export interface PendingDepositResponse {
+  results: PendingDeposit[];
+  next: string | null;
+  count: number;
+}
+
 // Withdrawal interfaces
 export interface WithdrawalRequest {
   to_address: string;
@@ -62,7 +85,40 @@ export class TransactionService {
   private static readonly BASE_PATH = '/api/transactions';
   private static readonly WITHDRAWAL_PATH = '/api/withdrawal';
   private static readonly DEPOSIT_PATH = '/api/deposit/start_deposit_rsc';
+  private static readonly DEPOSITS_PATH = '/api/deposit';
   private static readonly PURCHASE_PATH = '/api/purchase/'; // Define purchase path
+
+  /**
+   * Fetches the current transaction fee for withdrawal on the BASE network
+   * @returns The transaction fee amount in RSC
+   * @throws Error when the API request fails
+   */
+  static async getWithdrawalFee(): Promise<number> {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}${this.WITHDRAWAL_PATH}/transaction_fee/?network=BASE`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch transaction fee: ${response.status}`);
+      }
+
+      // The API returns the fee as a single decimal number
+      const fee = await response.json();
+      return parseFloat(fee);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Unknown error while fetching transaction fee');
+    }
+  }
 
   /**
    * Fetches transactions for the current user
@@ -81,6 +137,22 @@ export class TransactionService {
       results: response.results,
       next: response.next,
     };
+  }
+
+  /**
+   * Fetches deposits for the current user with optional pagination
+   * @param page - The page number to fetch (defaults to 1)
+   */
+  static async getDeposits(page: number = 1): Promise<PendingDepositResponse> {
+    const response = await ApiClient.get<PendingDepositResponse>(
+      `${this.DEPOSITS_PATH}/?page=${page}`
+    );
+
+    if (!response?.results) {
+      throw new Error('Invalid response format');
+    }
+
+    return response;
   }
 
   /**

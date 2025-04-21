@@ -23,15 +23,23 @@ import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
+import { TipContentModal } from '@/components/modals/TipContentModal';
+import { Icon } from '@/components/ui/icons/Icon';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 
 interface WorkLineItemsProps {
   work: Work;
   showClaimButton?: boolean;
+  insightsButton?: React.ReactNode;
 }
 
-export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsProps) => {
+export const WorkLineItems = ({
+  work,
+  showClaimButton = true,
+  insightsButton,
+}: WorkLineItemsProps) => {
   const [claimModalOpen, setClaimModalOpen] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
+  const [isTipModalOpen, setIsTipModalOpen] = useState(false);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { vote, isVoting } = useVote({
     votableEntityId: work.id,
@@ -90,6 +98,11 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
     }
   }, [work.contentType, work.note, selectedOrg, router]);
 
+  const handleTipSuccess = (amount: number) => {
+    toast.success(`Successfully tipped ${amount} RSC`);
+    setIsTipModalOpen(false);
+  };
+
   return (
     <div>
       {/* Primary Actions */}
@@ -109,16 +122,15 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
           </button>
 
           <button
-            onClick={() => setIsSaved(!isSaved)}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
-              isSaved
-                ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
-                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-            }`}
+            onClick={() => executeAuthenticatedAction(() => setIsTipModalOpen(true))}
+            className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
           >
-            <Bookmark className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
-            <span>{isSaved ? 'Saved' : 'Save'}</span>
+            <Icon name="tipRSC" size={20} />
+            <span>Tip RSC</span>
           </button>
+
+          {/* Render insights button if provided */}
+          {insightsButton}
 
           {/* More Actions Dropdown */}
           <Menu as="div" className="relative">
@@ -210,6 +222,15 @@ export const WorkLineItems = ({ work, showClaimButton = true }: WorkLineItemsPro
         onClose={() => setIsFlagModalOpen(false)}
         documentId={work.id.toString()}
         workType={work.contentType}
+      />
+
+      {/* Tip Modal */}
+      <TipContentModal
+        isOpen={isTipModalOpen}
+        onClose={() => setIsTipModalOpen(false)}
+        contentId={work.id}
+        feedContentType={work.contentType === 'paper' ? 'PAPER' : 'POST'}
+        onTipSuccess={handleTipSuccess}
       />
     </div>
   );

@@ -161,7 +161,7 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
               {shorten ? formatRSC({ amount, shorten: true }) : Math.round(amount).toLocaleString()}
             </span>
             {showText && <span className={cn(colors.rscLabel, 'ml-1')}>RSC</span>}
-            {/* {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>} */}
+            {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>}
           </div>
         ) : (
           <div className="flex items-center">
@@ -169,7 +169,7 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
               {shorten ? formatRSC({ amount, shorten: true }) : Math.round(amount).toLocaleString()}
             </span>
             {showText && <span className={cn(colors.rscLabel, 'ml-1')}>RSC</span>}
-            {/* {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>} */}
+            {label && <span className={cn(colors.textDark, 'ml-1')}>{label}</span>}
           </div>
         )}
       </div>

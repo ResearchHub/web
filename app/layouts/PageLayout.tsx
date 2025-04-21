@@ -185,7 +185,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
           ref={rightSidebarWrapperRef}
           className="sticky top-0 h-screen overflow-hidden
                     lg:!block !hidden right-sidebar:!block w-80 bg-white
-                     flex-shrink-0"
+                     flex-shrink-0 pr-4"
         >
           <div
             ref={rightSidebarRef}

@@ -87,11 +87,11 @@ export const FundingTimelineModal: React.FC<FundingTimelineModalProps> = ({ isOp
                           Add authors and topics in the sidebar. Include the funding goal from your
                           document.
                         </p>
-                        <div className="mt-3">
+                        {/* <div className="mt-3">
                           <span className="text-sm text-primary-600 bg-primary-50 rounded-lg px-3 py-2">
                             ✨ Boost your campaign by uploading a research image for NFT rewards
                           </span>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
 

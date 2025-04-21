@@ -211,14 +211,19 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
       {/* Title & Actions */}
       {work.type === 'preprint' && <ContentTypeBadge type="preprint" size="lg" />}
       <PageHeader title={work.title} className="text-3xl mt-2" />
-      <button
-        className="lg:!hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
-        onClick={() => setShowMobileMetrics(true)}
-      >
-        <BarChart2 className="h-4 w-4" />
-        <span>Insights</span>
-      </button>
-      <WorkLineItems work={work} />
+
+      <WorkLineItems
+        work={work}
+        insightsButton={
+          <button
+            className="lg:!hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+            onClick={() => setShowMobileMetrics(true)}
+          >
+            <BarChart2 className="h-4 w-4" />
+            <span>Insights</span>
+          </button>
+        }
+      />
 
       {/* Navigation */}
       <WorkTabs
@@ -240,7 +245,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
         onClick={() => setShowMobileMetrics(false)}
       >
         <div
-          className={`absolute right-0 top-0 bottom-0 w-80 bg-white shadow-xl transition-transform duration-200 ${
+          className={`absolute right-0 top-0 bottom-0 w-80 bg-white shadow-xl transition-transform duration-200 p-4 ${
             showMobileMetrics ? 'translate-x-0' : 'translate-x-full'
           }`}
           onClick={(e) => e.stopPropagation()}

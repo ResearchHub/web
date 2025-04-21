@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react';
-import { Fragment, useCallback, useMemo, useState, useEffect } from 'react';
+import { Fragment, useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { X as XIcon, Check, AlertCircle } from 'lucide-react';
 import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
@@ -37,6 +37,7 @@ interface DepositModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentBalance: number;
+  onSuccess?: () => void;
 }
 
 // Define transaction status type to include all relevant states
@@ -47,17 +48,19 @@ type TransactionStatus =
   | { state: 'success'; txHash: string }
   | { state: 'error'; message: string };
 
-export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalProps) {
+export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: DepositModalProps) {
   const [amount, setAmount] = useState<string>('');
   const { address } = useAccount();
   const { balance: walletBalance } = useWalletRSCBalance();
   const [txStatus, setTxStatus] = useState<TransactionStatus>({ state: 'idle' });
   const { isEOA, isLoading: isEOALoading } = useIsEOA(isOpen);
+  const hasCalledSuccessRef = useRef(false);
 
   // Reset transaction status when modal is closed
   useEffect(() => {
     setTxStatus({ state: 'idle' });
     setAmount('');
+    hasCalledSuccessRef.current = false;
   }, [isOpen]);
 
   // Handle custom close with state reset
@@ -134,6 +137,11 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
         }).catch((error) => {
           console.error('Failed to record deposit:', error);
         });
+
+        if (onSuccess && !hasCalledSuccessRef.current) {
+          hasCalledSuccessRef.current = true;
+          onSuccess();
+        }
       } else if (status.statusName === 'error') {
         console.error('Transaction error full status:', JSON.stringify(status, null, 2));
         setTxStatus({
@@ -142,7 +150,7 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
         });
       }
     },
-    [depositAmount, address]
+    [depositAmount, address, onSuccess]
   );
 
   const callsCallback = useCallback(async () => {
@@ -354,7 +362,7 @@ export function DepositModal({ isOpen, onClose, currentBalance }: DepositModalPr
                               <span className="font-medium">Deposit successful!</span>
                             </div>
                             <p className="text-sm text-gray-600 mt-2">
-                              It can take up to five minutes for the deposit to appear in your
+                              It can take up to 10-20 minutes for the deposit to appear in your
                               account.
                             </p>
                           </div>

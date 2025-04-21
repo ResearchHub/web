@@ -56,7 +56,6 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
   // Determine if the profile is claimed based on:
   // If a 'user' property exists and is not null
   const isClaimed = !!raw.user && raw.user !== null;
-
   return {
     id: raw.id || 0,
     fullName:
