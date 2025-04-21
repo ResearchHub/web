@@ -89,6 +89,38 @@ export class TransactionService {
   private static readonly PURCHASE_PATH = '/api/purchase/'; // Define purchase path
 
   /**
+   * Fetches the current transaction fee for withdrawal on the BASE network
+   * @returns The transaction fee amount in RSC
+   * @throws Error when the API request fails
+   */
+  static async getWithdrawalFee(): Promise<number> {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}${this.WITHDRAWAL_PATH}/transaction_fee/?network=BASE`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch transaction fee: ${response.status}`);
+      }
+
+      // The API returns the fee as a single decimal number
+      const fee = await response.json();
+      return parseFloat(fee);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Unknown error while fetching transaction fee');
+    }
+  }
+
+  /**
    * Fetches transactions for the current user
    */
   static async getTransactions(page: number = 1): Promise<{

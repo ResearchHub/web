@@ -2,12 +2,13 @@
 
 import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react';
 import { Fragment, useCallback, useMemo, useState, useEffect } from 'react';
-import { X as XIcon, Check, AlertCircle, ExternalLink } from 'lucide-react';
+import { X as XIcon, Check, AlertCircle, ExternalLink, Loader2 } from 'lucide-react';
 import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useAccount } from 'wagmi';
 import { useWithdrawRSC } from '@/hooks/useWithdrawRSC';
+import { cn } from '@/utils/styles';
 
 // Network configuration based on environment
 const IS_PRODUCTION = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production';
@@ -33,23 +34,18 @@ export function WithdrawModal({
   const [amount, setAmount] = useState<string>('');
   const { exchangeRate } = useExchangeRate();
   const { address } = useAccount();
-  const [{ txStatus, isLoading }, withdrawRSC] = useWithdrawRSC();
+  const [{ txStatus, isLoading, fee, isFeeLoading, feeError }, withdrawRSC] = useWithdrawRSC();
 
   // Reset state when modal is closed
   useEffect(() => {
-    setAmount('');
+    if (!isOpen) {
+      setAmount('');
+    }
   }, [isOpen]);
-
-  // Handle custom close with state reset
-  const handleClose = useCallback(() => {
-    setAmount('');
-    onClose();
-  }, [onClose]);
 
   // Handle amount input change with validation
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-
     // Only allow numbers and a single decimal point
     if (value === '' || /^(\d+)?(\.\d*)?$/.test(value)) {
       setAmount(value);
@@ -59,18 +55,27 @@ export function WithdrawModal({
   // Memoize derived values
   const withdrawAmount = useMemo(() => parseFloat(amount || '0'), [amount]);
 
-  const calculateNewBalance = useCallback(
-    (): number => availableBalance - withdrawAmount,
-    [availableBalance, withdrawAmount]
-  );
+  // Calculate new balance after withdrawal and fee
+  const calculateNetAmount = useCallback((): number => {
+    if (!fee) return withdrawAmount;
+    return Math.max(0, withdrawAmount - fee);
+  }, [withdrawAmount, fee]);
 
+  const calculateNewBalance = useCallback((): number => {
+    if (!fee) return availableBalance - withdrawAmount;
+    return availableBalance - withdrawAmount;
+  }, [availableBalance, withdrawAmount, fee]);
+
+  // Determine if withdraw button should be disabled
   const isButtonDisabled = useMemo(
     () =>
       !amount ||
       withdrawAmount <= 0 ||
       withdrawAmount > availableBalance ||
-      txStatus.state === 'pending',
-    [amount, withdrawAmount, availableBalance, txStatus.state]
+      txStatus.state === 'pending' ||
+      isFeeLoading ||
+      !fee,
+    [amount, withdrawAmount, availableBalance, txStatus.state, isFeeLoading, fee]
   );
 
   // Function to check if inputs should be disabled
@@ -79,12 +84,14 @@ export function WithdrawModal({
   }, [address, txStatus.state]);
 
   const handleMaxAmount = useCallback(() => {
-    if (isInputDisabled()) return;
-    setAmount(availableBalance.toString());
-  }, [availableBalance, isInputDisabled]);
+    if (isInputDisabled() || !fee) return;
+    // Set max amount ensuring there's enough to cover the fee
+    const maxWithdrawable = Math.max(0, availableBalance - fee);
+    setAmount(maxWithdrawable > 0 ? maxWithdrawable.toString() : '0');
+  }, [availableBalance, isInputDisabled, fee]);
 
   const handleWithdraw = useCallback(async () => {
-    if (!address || !amount || isButtonDisabled) {
+    if (!address || !amount || isButtonDisabled || !fee) {
       return;
     }
 
@@ -92,7 +99,6 @@ export function WithdrawModal({
       to_address: address,
       agreed_to_terms: true,
       amount: amount,
-      transaction_fee: '1',
       network: 'BASE',
     });
 
@@ -100,7 +106,7 @@ export function WithdrawModal({
     if (result && txStatus.state === 'success' && onSuccess) {
       onSuccess();
     }
-  }, [address, amount, isButtonDisabled, withdrawRSC, txStatus.state, onSuccess]);
+  }, [address, amount, isButtonDisabled, withdrawRSC, txStatus.state, onSuccess, fee]);
 
   // If no wallet is connected, show nothing
   if (!address) {
@@ -109,7 +115,7 @@ export function WithdrawModal({
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={handleClose}>
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -139,7 +145,7 @@ export function WithdrawModal({
                     Withdraw RSC
                   </DialogTitle>
                   <button
-                    onClick={handleClose}
+                    onClick={onClose}
                     className="text-gray-400 hover:text-gray-500 transition-colors rounded-full p-1 hover:bg-gray-100"
                     aria-label="Close"
                   >
@@ -169,7 +175,7 @@ export function WithdrawModal({
                       <span className="text-[15px] text-gray-700">Amount to Withdraw</span>
                       <button
                         onClick={handleMaxAmount}
-                        disabled={isInputDisabled()}
+                        disabled={isInputDisabled() || isFeeLoading || !fee}
                         className="text-sm text-primary-500 font-medium hover:text-primary-600 disabled:opacity-50 disabled:text-gray-400 disabled:hover:text-gray-400"
                       >
                         MAX
@@ -184,7 +190,11 @@ export function WithdrawModal({
                         placeholder="0.00"
                         disabled={isInputDisabled()}
                         aria-label="Amount to withdraw"
-                        className={`w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200 ${isInputDisabled() ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                        className={cn(
+                          'w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400',
+                          'focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200',
+                          isInputDisabled() && 'bg-gray-100 cursor-not-allowed'
+                        )}
                       />
                       <div className="absolute inset-y-0 right-0 flex items-center pr-4">
                         <span className="text-gray-500">RSC</span>
@@ -199,10 +209,22 @@ export function WithdrawModal({
 
                   {/* Fee Note */}
                   <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-                    <p className="text-sm text-gray-700 flex items-center">
-                      <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />A fee of 1 RSC will be
-                      charged for this withdrawal.
-                    </p>
+                    {isFeeLoading ? (
+                      <p className="text-sm text-gray-700 flex items-center">
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Calculating network fee...
+                      </p>
+                    ) : feeError ? (
+                      <p className="text-sm text-red-600 flex items-center">
+                        <AlertCircle className="h-4 w-4 mr-2" />
+                        Unable to fetch fee: {feeError}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-gray-700 flex items-center">
+                        <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />A fee of {fee} RSC
+                        will be charged for this withdrawal.
+                      </p>
+                    )}
                   </div>
 
                   {/* Withdrawal Address Display */}
@@ -237,7 +259,12 @@ export function WithdrawModal({
                         <div className="flex items-center gap-2">
                           <ResearchCoinIcon size={16} />
                           <span
-                            className={`text-sm font-semibold ${withdrawAmount > 0 && withdrawAmount <= availableBalance ? 'text-red-600' : 'text-gray-900'}`}
+                            className={cn(
+                              'text-sm font-semibold',
+                              withdrawAmount > 0 && withdrawAmount <= availableBalance
+                                ? 'text-red-600'
+                                : 'text-gray-900'
+                            )}
                           >
                             {withdrawAmount > 0 && withdrawAmount <= availableBalance
                               ? formatRSC({ amount: calculateNewBalance() })
@@ -264,9 +291,17 @@ export function WithdrawModal({
                     <button
                       onClick={handleWithdraw}
                       disabled={isButtonDisabled}
-                      className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                      className={cn(
+                        'w-full h-12 bg-primary-500 text-white rounded-lg font-medium',
+                        'hover:bg-primary-600 transition-colors shadow-md',
+                        isButtonDisabled && 'opacity-50 cursor-not-allowed'
+                      )}
                     >
-                      {txStatus.state === 'pending' ? 'Processing...' : 'Withdraw RSC'}
+                      {isFeeLoading
+                        ? 'Loading fee...'
+                        : txStatus.state === 'pending'
+                          ? 'Processing...'
+                          : 'Withdraw RSC'}
                     </button>
                   )}
 
@@ -275,17 +310,15 @@ export function WithdrawModal({
                     <div className="mt-4 p-4 rounded-lg border">
                       {txStatus.state === 'pending' && (
                         <div className="flex items-center text-amber-600">
-                          <div className="animate-spin mr-2 h-5 w-5 border-2 border-amber-600 border-t-transparent rounded-full"></div>
+                          <Loader2 className="animate-spin mr-2 h-5 w-5" />
                           <span>Withdrawal in progress...</span>
                         </div>
                       )}
 
                       {txStatus.state === 'success' && (
-                        <div className="space-y-2">
-                          <div className="flex items-center text-green-600">
-                            <Check className="mr-2 h-5 w-5" />
-                            <span className="font-medium">Withdrawal successful!</span>
-                          </div>
+                        <div className="flex items-center text-green-600">
+                          <Check className="mr-2 h-5 w-5" />
+                          <span className="font-medium">Withdrawal successful!</span>
                         </div>
                       )}
 
