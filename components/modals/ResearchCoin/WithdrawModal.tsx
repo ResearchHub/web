@@ -55,27 +55,20 @@ export function WithdrawModal({
   // Memoize derived values
   const withdrawAmount = useMemo(() => parseFloat(amount || '0'), [amount]);
 
-  // Calculate new balance after withdrawal and fee
+  // Calculate net amount user will receive after fee
   const calculateNetAmount = useCallback((): number => {
     if (!fee) return withdrawAmount;
     return Math.max(0, withdrawAmount - fee);
   }, [withdrawAmount, fee]);
 
   const calculateNewBalance = useCallback((): number => {
-    if (!fee) return availableBalance - withdrawAmount;
-    return availableBalance - withdrawAmount;
-  }, [availableBalance, withdrawAmount, fee]);
+    return Math.max(0, availableBalance - withdrawAmount);
+  }, [availableBalance, withdrawAmount]);
 
   // Determine if withdraw button should be disabled
   const isButtonDisabled = useMemo(
-    () =>
-      !amount ||
-      withdrawAmount <= 0 ||
-      withdrawAmount > availableBalance ||
-      txStatus.state === 'pending' ||
-      isFeeLoading ||
-      !fee,
-    [amount, withdrawAmount, availableBalance, txStatus.state, isFeeLoading, fee]
+    () => !amount || withdrawAmount <= 0 || txStatus.state === 'pending' || isFeeLoading || !fee,
+    [amount, withdrawAmount, txStatus.state, isFeeLoading, fee]
   );
 
   // Function to check if inputs should be disabled
@@ -84,11 +77,10 @@ export function WithdrawModal({
   }, [address, txStatus.state]);
 
   const handleMaxAmount = useCallback(() => {
-    if (isInputDisabled() || !fee) return;
-    // Set max amount ensuring there's enough to cover the fee
-    const maxWithdrawable = Math.max(0, availableBalance - fee);
-    setAmount(maxWithdrawable > 0 ? maxWithdrawable.toString() : '0');
-  }, [availableBalance, isInputDisabled, fee]);
+    if (isInputDisabled()) return;
+    // Set max amount to the full balance
+    setAmount(availableBalance > 0 ? availableBalance.toString() : '0');
+  }, [availableBalance, isInputDisabled]);
 
   const handleWithdraw = useCallback(async () => {
     if (!address || !amount || isButtonDisabled || !fee) {
@@ -175,7 +167,7 @@ export function WithdrawModal({
                       <span className="text-[15px] text-gray-700">Amount to Withdraw</span>
                       <button
                         onClick={handleMaxAmount}
-                        disabled={isInputDisabled() || isFeeLoading || !fee}
+                        disabled={isInputDisabled()}
                         className="text-sm text-primary-500 font-medium hover:text-primary-600 disabled:opacity-50 disabled:text-gray-400 disabled:hover:text-gray-400"
                       >
                         MAX
@@ -200,14 +192,9 @@ export function WithdrawModal({
                         <span className="text-gray-500">RSC</span>
                       </div>
                     </div>
-                    {withdrawAmount > availableBalance && (
-                      <p className="text-sm text-red-600" role="alert">
-                        Withdrawal amount exceeds your available balance.
-                      </p>
-                    )}
                   </div>
 
-                  {/* Fee Note */}
+                  {/* Fee and Net Amount Display */}
                   <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
                     {isFeeLoading ? (
                       <p className="text-sm text-gray-700 flex items-center">
@@ -220,10 +207,20 @@ export function WithdrawModal({
                         Unable to fetch fee: {feeError}
                       </p>
                     ) : (
-                      <p className="text-sm text-gray-700 flex items-center">
-                        <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />A fee of {fee} RSC
-                        will be charged for this withdrawal.
-                      </p>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-700 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />A fee of {fee} RSC
+                          will be charged for this withdrawal.
+                        </p>
+                        {withdrawAmount > 0 && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-700">You will receive:</span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {formatRSC({ amount: calculateNetAmount() })} RSC
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
 
@@ -261,12 +258,10 @@ export function WithdrawModal({
                           <span
                             className={cn(
                               'text-sm font-semibold',
-                              withdrawAmount > 0 && withdrawAmount <= availableBalance
-                                ? 'text-red-600'
-                                : 'text-gray-900'
+                              withdrawAmount > 0 ? 'text-red-600' : 'text-gray-900'
                             )}
                           >
-                            {withdrawAmount > 0 && withdrawAmount <= availableBalance
+                            {withdrawAmount > 0
                               ? formatRSC({ amount: calculateNewBalance() })
                               : formatRSC({ amount: availableBalance })}
                           </span>
