@@ -4,10 +4,17 @@ import { useState, useEffect } from 'react';
 import { TransactionService, PendingDeposit } from '@/services/transaction.service';
 import { TransactionSkeleton } from '@/components/skeletons/TransactionSkeleton';
 import { useSession } from 'next-auth/react';
-import { Coins, AlertCircle, ExternalLink } from 'lucide-react';
+import { Coins, HelpCircle, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const LOADING_SKELETON_COUNT = 2;
+
+// Network configuration based on environment
+const IS_PRODUCTION = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production';
+const NETWORK_NAME = IS_PRODUCTION ? 'Base' : 'Base Sepolia';
+const BLOCK_EXPLORER_URL = IS_PRODUCTION
+  ? 'https://basescan.org/tx/'
+  : 'https://sepolia.basescan.org/tx/';
 
 interface PendingDepositItemProps {
   deposit: PendingDeposit;
@@ -27,11 +34,9 @@ function PendingDepositItem({ deposit, exchangeRate }: PendingDepositItemProps) 
     minute: '2-digit',
   });
 
-  // Determine which blockchain explorer to use based on network
+  // Get explorer link based on environment rather than network type
   const getExplorerLink = () => {
-    const baseUrl =
-      deposit.network === 'ETHEREUM' ? 'https://etherscan.io/tx/' : 'https://basescan.org/tx/';
-    return `${baseUrl}${deposit.transaction_hash}`;
+    return `${BLOCK_EXPLORER_URL}${deposit.transaction_hash}`;
   };
 
   return (
@@ -39,25 +44,25 @@ function PendingDepositItem({ deposit, exchangeRate }: PendingDepositItemProps) 
       <div className="flex justify-between items-start">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-900">Deposit (Pending)</span>
-            <span className="px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-              Pending
-            </span>
+            <span className="text-sm font-medium text-gray-900">Deposit</span>
           </div>
           <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
             <span>
               {formattedDate} at {formattedTime}
             </span>
             <span>•</span>
-            <a
-              href={getExplorerLink()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 transition-colors"
-            >
-              View transaction
-              <ExternalLink className="h-3 w-3" />
-            </a>
+            <div className="flex items-center gap-1">
+              <span>{NETWORK_NAME}</span>
+              <a
+                href={getExplorerLink()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 transition-colors"
+              >
+                View transaction
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
           </div>
         </div>
         <div className="text-right">
@@ -121,6 +126,21 @@ export function PendingDeposits({ exchangeRate }: PendingDepositsProps) {
         <div className="p-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold text-gray-800">Pending Deposits</h2>
+            <div className="group relative">
+              <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help transition-colors" />
+              <div
+                className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 
+                bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible
+                group-hover:opacity-100 group-hover:visible transition-all duration-200
+                whitespace-nowrap shadow-lg z-10 w-max max-w-md"
+              >
+                Deposits are typically confirmed within 10-20 minutes
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 top-full
+                  border-4 border-transparent border-t-gray-900"
+                ></div>
+              </div>
+            </div>
           </div>
         </div>
         <div className="space-y-0">
@@ -137,9 +157,20 @@ export function PendingDeposits({ exchangeRate }: PendingDepositsProps) {
       <div className="p-4 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold text-gray-800">Pending Deposits</h2>
-          <div className="flex items-center px-2 py-0.5 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-700">
-            <AlertCircle className="h-3 w-3 mr-1" />
-            Processing
+          <div className="group relative">
+            <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help transition-colors" />
+            <div
+              className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 
+              bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible
+              group-hover:opacity-100 group-hover:visible transition-all duration-200
+              whitespace-nowrap shadow-lg z-10 w-max max-w-md"
+            >
+              Deposits are typically confirmed within 10-20 minutes
+              <div
+                className="absolute left-1/2 -translate-x-1/2 top-full
+                border-4 border-transparent border-t-gray-900"
+              ></div>
+            </div>
           </div>
         </div>
       </div>
