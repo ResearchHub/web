@@ -73,9 +73,6 @@ function PendingDepositItem({ deposit, exchangeRate }: PendingDepositItemProps) 
         </div>
         <div className="text-right">
           <div className="text-sm font-semibold text-green-600">+{deposit.amount} RSC</div>
-          <div className="text-xs text-gray-500">
-            ~${(deposit.amount * exchangeRate).toFixed(2)} USD
-          </div>
         </div>
       </div>
     </div>
@@ -141,7 +138,11 @@ export function PendingDeposits({ exchangeRate }: PendingDepositsProps) {
       const allDeposits = await fetchAllDeposits();
 
       // Filter for pending deposits only
-      const pendingDeposits = allDeposits.filter((deposit) => deposit.paid_status === 'PENDING');
+      const pendingDeposits = allDeposits.filter(
+        (deposit) =>
+          deposit.paid_status === 'PENDING' ||
+          (deposit.amount !== 0 && deposit.paid_status === null)
+      );
 
       // Sort deposits by date in descending order (most recent first)
       const sortedDeposits = [...pendingDeposits].sort((a, b) => {
