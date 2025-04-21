@@ -1,6 +1,6 @@
 'use client';
 
-import { HelpCircle, RefreshCw } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 import { TransactionSkeleton } from '@/components/skeletons/TransactionSkeleton';
 import { usePendingDeposits } from '@/hooks/usePendingDeposits';
 import { PendingDepositItem } from './PendingDepositItem';
@@ -12,7 +12,7 @@ interface PendingDepositFeedProps {
 }
 
 export function PendingDepositFeed({ exchangeRate }: PendingDepositFeedProps) {
-  const { deposits, isLoading, isRefreshing, refreshDeposits } = usePendingDeposits();
+  const { deposits, isLoading } = usePendingDeposits();
 
   if (isLoading) {
     return (
@@ -37,7 +37,6 @@ export function PendingDepositFeed({ exchangeRate }: PendingDepositFeedProps) {
                 </div>
               </div>
             </div>
-            <RefreshCw className="h-5 w-5 text-gray-400" />
           </div>
           <div className="space-y-1">
             {[...Array(LOADING_SKELETON_COUNT)].map((_, index) => (
@@ -77,10 +76,6 @@ export function PendingDepositFeed({ exchangeRate }: PendingDepositFeedProps) {
               </div>
             </div>
           </div>
-          <RefreshCw
-            className={`h-5 w-5 ${isRefreshing ? 'animate-spin text-gray-400' : 'text-gray-600 hover:text-gray-800 cursor-pointer transition-colors'}`}
-            onClick={() => !isRefreshing && refreshDeposits()}
-          />
         </div>
 
         <div className="space-y-1">

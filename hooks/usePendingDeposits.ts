@@ -14,7 +14,7 @@ interface usePendingDepositsReturn {
   hasPendingDepositFeed: boolean;
 }
 
-export function usePendingDeposits(pollingInterval = 60000): usePendingDepositsReturn {
+export function usePendingDeposits(): usePendingDepositsReturn {
   const { data: session, status } = useSession();
   const [deposits, setDeposits] = useState<PendingDeposit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -104,17 +104,11 @@ export function usePendingDeposits(pollingInterval = 60000): usePendingDepositsR
 
     fetchPendingDepositFeed();
 
-    // Set up polling to check for updates regularly
-    const intervalId = setInterval(() => {
-      fetchPendingDepositFeed(true);
-    }, pollingInterval);
-
-    // Clean up on component unmount
-    return () => clearInterval(intervalId);
-  }, [session, status, pollingInterval, fetchPendingDepositFeed]);
+    // No more polling interval here since it will be handled by the parent
+  }, [session, status, fetchPendingDepositFeed]);
 
   const refreshDeposits = useCallback(() => {
-    return fetchPendingDepositFeed();
+    return fetchPendingDepositFeed(true);
   }, [fetchPendingDepositFeed]);
 
   return {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PageLayout } from '../layouts/PageLayout';
 import { ResearchCoinRightSidebar } from '@/components/ResearchCoin/ResearchCoinRightSidebar';
 import { UserBalanceSection } from '@/components/ResearchCoin/UserBalanceSection';
@@ -13,14 +13,21 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatBalance } from '@/components/ResearchCoin/lib/types';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { usePendingDeposits } from '@/hooks/usePendingDeposits';
+import { RefreshCw } from 'lucide-react';
 
 export default function ResearchCoinPage() {
   const { data: session, status } = useSession();
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
   const { exchangeRate, isLoading: isFetchingExchangeRate } = useExchangeRate();
-  const { hasPendingDepositFeed, isLoading: isLoadingPendingDeposits } = usePendingDeposits();
+  const {
+    hasPendingDepositFeed,
+    isLoading: isLoadingPendingDeposits,
+    refreshDeposits,
+  } = usePendingDeposits();
+  const transactionFeedRef = useRef<{ refresh: () => Promise<void> }>(null);
 
   // Fetch initial data
   useEffect(() => {
@@ -30,17 +37,36 @@ export default function ResearchCoinPage() {
       return;
     }
 
-    const fetchInitialData = async () => {
-      try {
-        const balanceResponse = await TransactionService.getUserBalance();
-        setBalance(balanceResponse);
-      } catch (error) {
-        console.error('Failed to fetch initial data:', error);
-      }
-    };
-
-    fetchInitialData();
+    fetchBalance();
   }, [session, status]);
+
+  const fetchBalance = async () => {
+    try {
+      const balanceResponse = await TransactionService.getUserBalance();
+      setBalance(balanceResponse);
+    } catch (error) {
+      console.error('Failed to fetch balance:', error);
+    }
+  };
+
+  const handleRefresh = async () => {
+    if (isRefreshing) return;
+
+    setIsRefreshing(true);
+    try {
+      // Refresh all data in parallel
+      await Promise.all([
+        refreshDeposits(),
+        fetchBalance(),
+        // Also refresh transaction feed if ref is available
+        transactionFeedRef.current?.refresh() || Promise.resolve(),
+      ]);
+    } catch (error) {
+      console.error('Failed to refresh data:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleExport = () => {
     setIsExportModalOpen(true);
@@ -49,7 +75,17 @@ export default function ResearchCoinPage() {
   return (
     <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
       <div className="w-full">
-        <PageHeader title="My ResearchCoin" />
+        <div className="flex justify-between items-center">
+          <PageHeader title="My ResearchCoin" />
+          <button
+            className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            aria-label="Refresh"
+          >
+            <RefreshCw className={`h-5 w-5 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
 
         <div className="py-6">
           <div className="flex">
@@ -64,6 +100,7 @@ export default function ResearchCoinPage() {
               )}
 
               <TransactionFeed
+                ref={transactionFeedRef}
                 onExport={handleExport}
                 exchangeRate={exchangeRate}
                 isExporting={isExporting}
