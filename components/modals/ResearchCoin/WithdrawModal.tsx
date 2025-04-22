@@ -89,10 +89,10 @@ export function WithdrawModal({
   }, [address, txStatus.state]);
 
   const handleMaxAmount = useCallback(() => {
-    if (isInputDisabled()) return;
-    // Set max amount to the full balance
-    setAmount(availableBalance > 0 ? availableBalance.toString() : '0');
-  }, [availableBalance, isInputDisabled]);
+    if (isInputDisabled() || !fee) return;
+    const maxWithdrawAmount = Math.floor(Math.max(0, availableBalance - fee));
+    setAmount(maxWithdrawAmount > 0 ? maxWithdrawAmount.toString() : '0');
+  }, [availableBalance, isInputDisabled, fee]);
 
   const handleWithdraw = useCallback(async () => {
     if (!address || !amount || isButtonDisabled || !fee) {
@@ -176,9 +176,7 @@ export function WithdrawModal({
                   {/* Amount Input */}
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-[15px] text-gray-700">
-                        Amount to Withdraw (Integer Only)
-                      </span>
+                      <span className="text-[15px] text-gray-700">Amount to Withdraw</span>
                       <button
                         onClick={handleMaxAmount}
                         disabled={isInputDisabled()}
@@ -263,6 +261,7 @@ export function WithdrawModal({
 
                     <div className="my-2 border-t border-gray-200" />
                     <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">After Withdrawal:</span>
                       <div className="text-right flex items-center gap-2">
                         <div className="flex items-center gap-2">
                           <ResearchCoinIcon size={16} />
