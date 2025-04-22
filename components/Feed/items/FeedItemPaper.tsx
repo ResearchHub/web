@@ -94,7 +94,7 @@ const FeedItemPaperBody: FC<{
 
       {/* Truncated Content */}
       <div className="text-sm text-gray-700 mb-4">
-        <p>{truncateText(paper.textPreview, 300)}</p>
+        <p>{truncateText(paper.textPreview, 150)}</p>
       </div>
     </div>
   );

@@ -135,7 +135,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
       {/* Left Sidebar Container (Sticky) */}
       <div
         className={`
-          sticky top-0 h-screen bg-white border-r border-gray-200
+          tablet:!sticky tablet:!top-0 h-screen bg-white border-r border-gray-200
           z-50 tablet:z-30
           transition-all duration-200 ease-in-out
           flex-shrink-0
@@ -144,7 +144,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
           tablet:sidebar-compact:!w-72
           tablet:max-sidebar-compact:!w-[70px]
 
-          ${isLeftSidebarOpen ? '!translate-x-0 w-[280px] block' : '!-translate-x-full w-[280px] hidden'}
+          ${isLeftSidebarOpen ? 'fixed top-0 !translate-x-0 w-[280px] block' : 'fixed top-0 !-translate-x-full w-[280px] hidden'}
 
           tablet:!block tablet:w-72
         `}
@@ -164,9 +164,10 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 px-4 tablet:!px-8 py-8" style={{ maxWidth: '100vw' }}>
+        <main className="flex-1 px-4 tablet:!px-8 py-4 flex" style={{ maxWidth: '100vw' }}>
           <div
             className="mx-auto
+              flex-1
               max-w-full
               tablet:!max-w-2xl
               content-md:!max-w-2xl
@@ -176,40 +177,39 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
           >
             {children}
           </div>
+          {/* Right Sidebar (Sticky) */}
+          {rightSidebar && (
+            <aside
+              ref={rightSidebarWrapperRef}
+              className="sticky top-0 h-screen overflow-hidden
+                        lg:!block !hidden right-sidebar:!block w-80 bg-white
+                        flex-shrink-0 pr-4"
+            >
+              <div
+                ref={rightSidebarRef}
+                style={{ transform: `translateY(${sidebarTransform}px)` }}
+                // Added transition for smoother movement
+                className="transition-transform duration-150 ease-out"
+              >
+                {/* Search Bar */}
+                <div className="sticky top-0 z-40 bg-white pt-2 pb-4">
+                  <Search
+                    placeholder="Search..."
+                    className="[&_input]:rounded-full [&_input]:bg-[#F8F9FC]"
+                  />
+                </div>
+
+                {/* Sidebar Content */}
+                <div className="">
+                  <Suspense fallback={<RightSidebarSkeleton />}>
+                    {typeof rightSidebar === 'boolean' ? <RightSidebar /> : rightSidebar}
+                  </Suspense>
+                </div>
+              </div>
+            </aside>
+          )}
         </main>
       </div>
-
-      {/* Right Sidebar (Sticky) */}
-      {rightSidebar && (
-        <aside
-          ref={rightSidebarWrapperRef}
-          className="sticky top-0 h-screen overflow-hidden
-                    lg:!block !hidden right-sidebar:!block w-80 bg-white
-                     flex-shrink-0 pr-4"
-        >
-          <div
-            ref={rightSidebarRef}
-            style={{ transform: `translateY(${sidebarTransform}px)` }}
-            // Added transition for smoother movement
-            className="transition-transform duration-150 ease-out"
-          >
-            {/* Search Bar */}
-            <div className="sticky top-0 z-10 bg-white pt-8 pb-4">
-              <Search
-                placeholder="Search..."
-                className="[&_input]:rounded-full [&_input]:bg-[#F8F9FC]"
-              />
-            </div>
-
-            {/* Sidebar Content */}
-            <div className="">
-              <Suspense fallback={<RightSidebarSkeleton />}>
-                {typeof rightSidebar === 'boolean' ? <RightSidebar /> : rightSidebar}
-              </Suspense>
-            </div>
-          </div>
-        </aside>
-      )}
     </div>
   );
 }

@@ -19,6 +19,7 @@ import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useSession } from 'next-auth/react';
 import { CommentEmptyState } from './CommentEmptyState';
 import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
+import { comment } from 'postcss';
 
 interface CommentFeedProps {
   documentId: number;
@@ -263,7 +264,12 @@ function CommentFeedContent({
 
             {commentType === 'BOUNTY' && <div className="h-px bg-gray-200 my-4"></div>}
 
-            <CommentList comments={filteredComments} isRootList={true} contentType={contentType} />
+            <CommentList
+              commentType={commentType}
+              comments={filteredComments}
+              isRootList={true}
+              contentType={contentType}
+            />
 
             {filteredComments.length < count && (
               <div className="flex justify-center mt-4">

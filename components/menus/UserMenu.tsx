@@ -12,6 +12,7 @@ import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import Link from 'next/link';
 import { AuthSharingService } from '@/services/auth-sharing.service';
+import { navigateToAuthorProfile } from '@/utils/navigation';
 
 interface UserMenuProps {
   user: User;
@@ -113,9 +114,9 @@ export default function UserMenu({
       {/* Menu items */}
       <div className="py-4">
         <div
-          className="px-6 py-2 hover:bg-gray-50"
+          className="px-6 py-2 hover:bg-gray-50 cursor-pointer"
           onClick={() => {
-            onViewProfile();
+            navigateToAuthorProfile(user.authorProfile?.id);
             setMenuOpenState(false);
           }}
         >
@@ -222,7 +223,10 @@ export default function UserMenu({
 
           {/* Menu items */}
           <div className="py-1">
-            <BaseMenuItem onClick={onViewProfile} className="w-full px-4 py-2">
+            <BaseMenuItem
+              onClick={() => navigateToAuthorProfile(user.authorProfile?.id)}
+              className="w-full px-4 py-2"
+            >
               <div className="flex items-center">
                 <UserIcon className="h-4 w-4 mr-3 text-gray-500" />
                 <span className="text-sm text-gray-700">View Profile</span>

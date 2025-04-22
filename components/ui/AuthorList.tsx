@@ -3,6 +3,7 @@
 import { useState, Fragment } from 'react';
 import { Plus, Minus, BadgeCheck } from 'lucide-react';
 import { cn } from 'utils/styles';
+import { VerifiedBadge } from './VerifiedBadge';
 
 export interface Author {
   name: string;
@@ -196,8 +197,6 @@ const AuthorItem = ({
     >
       {author.name}
     </span>
-    {author.verified && (
-      <BadgeCheck className={`${size === 'xs' ? 'w-3 h-3' : 'w-4 h-4'} ml-1 text-blue-500`} />
-    )}
+    {author.verified && <VerifiedBadge className="ml-1" size={'xs'} />}
   </span>
 );

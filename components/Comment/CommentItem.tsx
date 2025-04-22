@@ -57,7 +57,9 @@ export const CommentItem = ({
     loading,
     forceRefresh,
     updateCommentVote,
+    bountyFilter,
   } = useComments();
+
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAwardModal, setShowAwardModal] = useState(false);
   const [selectedSolution, setSelectedSolution] = useState<SolutionViewEvent | null>(null);
@@ -199,6 +201,11 @@ export const CommentItem = ({
 
     // For bounty comments, use FeedItemBounty
     if (isBountyComment && comment.bounties) {
+      if (commentType === 'GENERIC_COMMENT') {
+        // Shim to skip showing bounties in conversation tab until we implement in API
+        return null;
+      }
+
       try {
         // Transform the comment to a feed entry for FeedItemBounty
         const feedEntry = transformBountyCommentToFeedItem(comment, contentType);

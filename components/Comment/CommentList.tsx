@@ -1,5 +1,5 @@
 import React from 'react';
-import { Comment } from '@/types/comment';
+import { Comment, CommentType } from '@/types/comment';
 import { CommentItem } from './CommentItem';
 import { ContentType } from '@/types/work';
 
@@ -8,6 +8,7 @@ interface CommentListProps {
   parentComment?: Comment;
   isRootList?: boolean;
   contentType: ContentType;
+  commentType?: CommentType;
 }
 
 const CommentList: React.FC<CommentListProps> = ({
@@ -15,11 +16,17 @@ const CommentList: React.FC<CommentListProps> = ({
   parentComment,
   isRootList = false,
   contentType,
+  commentType,
 }) => {
   return (
     <div className="space-y-8">
       {comments.map((comment) => (
-        <CommentItem key={`comment-${comment.id}`} comment={comment} contentType={contentType} />
+        <CommentItem
+          commentType={commentType}
+          key={`comment-${comment.id}`}
+          comment={comment}
+          contentType={contentType}
+        />
       ))}
     </div>
   );

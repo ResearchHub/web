@@ -7,9 +7,10 @@ import { Avatar } from '@/components/ui/Avatar';
 import { RSCBadge } from '@/components/ui/RSCBadge';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-// Assuming you are using the Pro Solid set; adjust if needed
 import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { formatRSC } from '@/utils/number';
+import { navigateToAuthorProfile } from '@/utils/navigation';
 
 // Skeleton Loader for leaderboard sections
 const LeaderboardSkeleton = () => (
@@ -17,7 +18,6 @@ const LeaderboardSkeleton = () => (
     {[...Array(3)].map((_, i) => (
       <div key={i} className="flex items-center justify-between p-1">
         <div className="flex items-center gap-2">
-          {/* Updated skeleton for rank area to better match final layout */}
           <div className="w-6 h-6 bg-gray-200 rounded-full mr-1"></div>
           <div className="w-5 h-5 bg-gray-200 rounded-full"></div>
           <div className="h-4 bg-gray-200 rounded w-20"></div>
@@ -58,19 +58,23 @@ export const LeaderboardOverview = () => {
   const renderRank = (rank: number) => {
     if (rank === 1) {
       return (
-        <div className="relative w-6 h-6 flex items-center justify-center">
+        <div className="relative w-8 h-8 flex items-center justify-center">
           <FontAwesomeIcon icon={faWreathLaurel} className="text-yellow-500 text-2xl absolute" />
           <span className="relative text-gray-600 text-[11px] font-bold z-10">1</span>
         </div>
       );
     }
-    return <span className="font-semibold text-[11px] w-6 text-center text-gray-600">{rank}</span>;
+    return (
+      <div className="relative w-8 h-8 flex items-center justify-center">
+        <span className="text-gray-600 text-[11px] font-semibold">{rank}</span>
+      </div>
+    );
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-0">
       {/* Top Peer Reviewers Section */}
-      <div className="mb-4 bg-white rounded-lg p-4 pl-0">
+      <div className="mb-4 bg-white rounded-lg p-2">
         <div className="flex justify-between items-center mb-3">
           <h2 className="font-semibold text-gray-900">Top Peer Reviewers</h2>
           <Link href="/leaderboard?tab=reviewers" className="text-xs text-blue-600 hover:underline">
@@ -82,18 +86,21 @@ export const LeaderboardOverview = () => {
         ) : error ? (
           <p className="text-xs text-red-600">{error}</p>
         ) : reviewers.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-0">
             {reviewers.map((reviewer, index) => {
               const rank = index + 1;
               const authorId = reviewer.authorProfile?.id; // Get author ID safely
               return (
-                <Link
+                <div
                   key={reviewer.id}
-                  href={reviewer.authorProfile.profileUrl}
-                  className="flex items-center justify-between hover:bg-gray-50 p-1 rounded-md"
+                  onClick={() => authorId && navigateToAuthorProfile(authorId, false)}
+                  className="flex items-center hover:bg-gray-50 p-2 rounded-md cursor-pointer"
                 >
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
-                    {renderRank(rank)}
+                  {/* Fixed-width container for rank */}
+                  <div className="w-8 flex-shrink-0">{renderRank(rank)}</div>
+
+                  {/* Avatar with consistent sizing */}
+                  <div className="w-10 flex-shrink-0 ml-2 ">
                     {authorId ? (
                       <AuthorTooltip authorId={authorId}>
                         <Avatar
@@ -110,25 +117,37 @@ export const LeaderboardOverview = () => {
                         size="sm"
                       />
                     )}
+                  </div>
+
+                  {/* Name with flex-grow to push RSC badge to the right */}
+                  <div className="flex-grow min-w-0 mr-1 -mt-1">
                     {authorId ? (
                       <AuthorTooltip authorId={authorId}>
-                        <span className="text-sm font-medium text-gray-900 truncate">
+                        <span className="text-xs font-medium text-gray-900 block break-words">
                           {reviewer.authorProfile.fullName}
                         </span>
                       </AuthorTooltip>
                     ) : (
-                      <span className="text-sm font-medium text-gray-900 truncate">
+                      <span className="text-xs font-medium text-gray-900 block break-words">
                         {reviewer.authorProfile.fullName}
                       </span>
                     )}
                   </div>
-                  <RSCBadge
-                    amount={reviewer.earnedRsc}
-                    variant="text"
-                    size="sm"
-                    showExchangeRate={false}
-                  />
-                </Link>
+
+                  {/* RSC badge with fixed width */}
+                  <div className="flex-shrink-0 w-16 text-right">
+                    <RSCBadge
+                      amount={reviewer.earnedRsc}
+                      variant="text"
+                      size="sm"
+                      showExchangeRate={true}
+                      shorten={true}
+                      showIcon={false}
+                      showText={true}
+                      className="justify-end"
+                    />
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -138,7 +157,7 @@ export const LeaderboardOverview = () => {
       </div>
 
       {/* Top Funders Section */}
-      <div className="mb-4 bg-white rounded-lg p-4 pl-0">
+      <div className="mb-4 bg-white rounded-lg p-2">
         <div className="flex justify-between items-center mb-3">
           <h2 className="font-semibold text-gray-900">Top Funders</h2>
           <Link href="/leaderboard?tab=funders" className="text-xs text-blue-600 hover:underline">
@@ -150,18 +169,21 @@ export const LeaderboardOverview = () => {
         ) : error ? (
           <p className="text-xs text-red-600">{error}</p>
         ) : funders.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-0">
             {funders.map((funder, index) => {
               const rank = index + 1;
               const authorId = funder.authorProfile?.id; // Get author ID safely
               return (
-                <Link
+                <div
                   key={funder.id}
-                  href={funder.authorProfile.profileUrl}
-                  className="flex items-center justify-between hover:bg-gray-50 p-1 rounded-md"
+                  onClick={() => authorId && navigateToAuthorProfile(authorId, false)}
+                  className="flex items-center hover:bg-gray-50 p-2 rounded-md cursor-pointer"
                 >
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
-                    {renderRank(rank)}
+                  {/* Fixed-width container for rank */}
+                  <div className="w-8 flex-shrink-0">{renderRank(rank)}</div>
+
+                  {/* Avatar with consistent sizing */}
+                  <div className="w-10 flex-shrink-0 ml-2 ">
                     {authorId ? (
                       <AuthorTooltip authorId={authorId}>
                         <Avatar
@@ -178,25 +200,37 @@ export const LeaderboardOverview = () => {
                         size="sm"
                       />
                     )}
+                  </div>
+
+                  {/* Name with flex-grow to push RSC badge to the right */}
+                  <div className="flex-grow min-w-0 mr-1 -mt-1">
                     {authorId ? (
                       <AuthorTooltip authorId={authorId}>
-                        <span className="text-sm font-medium text-gray-900 truncate">
+                        <span className="text-xs font-medium text-gray-900 block break-words">
                           {funder.authorProfile.fullName}
                         </span>
                       </AuthorTooltip>
                     ) : (
-                      <span className="text-sm font-medium text-gray-900 truncate">
+                      <span className="text-xs font-medium text-gray-900 block break-words">
                         {funder.authorProfile.fullName}
                       </span>
                     )}
                   </div>
-                  <RSCBadge
-                    amount={funder.totalFunding}
-                    variant="text"
-                    size="sm"
-                    showExchangeRate={false}
-                  />
-                </Link>
+
+                  {/* RSC badge with fixed width */}
+                  <div className="flex-shrink-0 w-16 text-right">
+                    <RSCBadge
+                      amount={funder.totalFunding}
+                      variant="text"
+                      size="sm"
+                      showExchangeRate={true}
+                      shorten={true}
+                      showIcon={false}
+                      showText={true}
+                      className="justify-end"
+                    />
+                  </div>
+                </div>
               );
             })}
           </div>

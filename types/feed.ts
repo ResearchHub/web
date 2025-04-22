@@ -379,7 +379,9 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
             description: '',
           },
           bounties: Array.isArray(content_object.bounties)
-            ? content_object.bounties.map(transformBounty)
+            ? content_object.bounties.map((bounty: any) =>
+                transformBounty(bounty, { ignoreBaseAmount: true })
+              )
             : [],
           reviews: content_object.reviews
             ? content_object.reviews.map((review: any) => ({
@@ -541,7 +543,11 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               ]
             : [],
           createdBy: transformAuthorProfile(author),
-          bounties: content_object.bounties ? content_object.bounties.map(transformBounty) : [],
+          bounties: content_object.bounties
+            ? content_object.bounties.map((bounty: any) =>
+                transformBounty(bounty, { ignoreBaseAmount: true })
+              )
+            : [],
           reviews: content_object.reviews
             ? content_object.reviews.map((review: any) => ({
                 id: review.id,

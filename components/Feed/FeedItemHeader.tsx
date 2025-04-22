@@ -8,6 +8,7 @@ import { cn } from '@/utils/styles';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { formatTimeAgo } from '@/utils/date';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 
 interface Contributor {
   profileImage?: string;
@@ -65,22 +66,25 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
         <div className="flex flex-col">
           <div className="flex items-center gap-1.5 text-[15px]">
             {author ? (
-              authorId ? (
-                <AuthorTooltip authorId={authorId}>
-                  <a
-                    href="#"
-                    className="font-semibold hover:text-indigo-600 cursor-pointer"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigateToAuthorProfile(authorId);
-                    }}
-                  >
-                    {author.fullName}
-                  </a>
-                </AuthorTooltip>
-              ) : (
-                <span className="font-semibold">{author.fullName}</span>
-              )
+              <div className="flex items-center gap-1">
+                {authorId ? (
+                  <AuthorTooltip authorId={authorId}>
+                    <a
+                      href="#"
+                      className="font-semibold hover:text-indigo-600 cursor-pointer"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigateToAuthorProfile(authorId);
+                      }}
+                    >
+                      {author.fullName}
+                    </a>
+                  </AuthorTooltip>
+                ) : (
+                  <span className="font-semibold">{author.fullName}</span>
+                )}
+                {author.user?.isVerified && <VerifiedBadge size="sm" />}
+              </div>
             ) : null}
 
             <span className="text-gray-600">{actionText}</span>
