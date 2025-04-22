@@ -5,7 +5,6 @@ import { Fragment, useCallback, useMemo, useState, useEffect } from 'react';
 import { X as XIcon, Check, AlertCircle, ExternalLink, Loader2 } from 'lucide-react';
 import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useAccount } from 'wagmi';
 import { useWithdrawRSC } from '@/hooks/useWithdrawRSC';
 import { cn } from '@/utils/styles';
@@ -32,7 +31,6 @@ export function WithdrawModal({
   onSuccess,
 }: WithdrawModalProps) {
   const [amount, setAmount] = useState<string>('');
-  const { exchangeRate } = useExchangeRate();
   const { address } = useAccount();
   const [{ txStatus, isLoading, fee, isFeeLoading, feeError }, withdrawRSC] = useWithdrawRSC();
 
@@ -46,29 +44,41 @@ export function WithdrawModal({
   // Handle amount input change with validation
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Only allow numbers and a single decimal point
-    if (value === '' || /^(\d+)?(\.\d*)?$/.test(value)) {
+    // Only allow positive integers
+    if (value === '' || /^\d+$/.test(value)) {
       setAmount(value);
     }
   }, []);
 
   // Memoize derived values
-  const withdrawAmount = useMemo(() => parseFloat(amount || '0'), [amount]);
+  const withdrawAmount = useMemo(() => parseInt(amount || '0', 10), [amount]);
 
-  // Calculate net amount user will receive after fee
-  const calculateNetAmount = useCallback((): number => {
+  // Calculate total amount needed (withdrawal + fee)
+  const calculateTotalWithFee = useCallback((): number => {
     if (!fee) return withdrawAmount;
-    return Math.max(0, withdrawAmount - fee);
+    return withdrawAmount + fee;
   }, [withdrawAmount, fee]);
 
   const calculateNewBalance = useCallback((): number => {
-    return Math.max(0, availableBalance - withdrawAmount);
-  }, [availableBalance, withdrawAmount]);
+    return Math.max(0, availableBalance - calculateTotalWithFee());
+  }, [availableBalance, calculateTotalWithFee]);
+
+  // Check if user has enough balance for withdrawal + fee
+  const hasInsufficientBalance = useMemo(
+    () => fee !== null && withdrawAmount > 0 && calculateTotalWithFee() > availableBalance,
+    [fee, withdrawAmount, calculateTotalWithFee, availableBalance]
+  );
 
   // Determine if withdraw button should be disabled
   const isButtonDisabled = useMemo(
-    () => !amount || withdrawAmount <= 0 || txStatus.state === 'pending' || isFeeLoading || !fee,
-    [amount, withdrawAmount, txStatus.state, isFeeLoading, fee]
+    () =>
+      !amount ||
+      withdrawAmount <= 0 ||
+      txStatus.state === 'pending' ||
+      isFeeLoading ||
+      !fee ||
+      hasInsufficientBalance,
+    [amount, withdrawAmount, txStatus.state, isFeeLoading, fee, hasInsufficientBalance]
   );
 
   // Function to check if inputs should be disabled
@@ -77,10 +87,10 @@ export function WithdrawModal({
   }, [address, txStatus.state]);
 
   const handleMaxAmount = useCallback(() => {
-    if (isInputDisabled()) return;
-    // Set max amount to the full balance
-    setAmount(availableBalance > 0 ? availableBalance.toString() : '0');
-  }, [availableBalance, isInputDisabled]);
+    if (isInputDisabled() || !fee) return;
+    const maxWithdrawAmount = Math.floor(Math.max(0, availableBalance - fee));
+    setAmount(maxWithdrawAmount > 0 ? maxWithdrawAmount.toString() : '0');
+  }, [availableBalance, isInputDisabled, fee]);
 
   const handleWithdraw = useCallback(async () => {
     if (!address || !amount || isButtonDisabled || !fee) {
@@ -176,10 +186,11 @@ export function WithdrawModal({
                     <div className="relative">
                       <input
                         type="text"
-                        inputMode="decimal"
+                        inputMode="numeric"
+                        pattern="\d*"
                         value={amount}
                         onChange={handleAmountChange}
-                        placeholder="0.00"
+                        placeholder="0"
                         disabled={isInputDisabled()}
                         aria-label="Amount to withdraw"
                         className={cn(
@@ -192,14 +203,14 @@ export function WithdrawModal({
                         <span className="text-gray-500">RSC</span>
                       </div>
                     </div>
-                    {withdrawAmount > availableBalance && (
+                    {hasInsufficientBalance && (
                       <p className="text-sm text-red-600" role="alert">
-                        Withdrawal amount exceeds your available balance.
+                        Withdrawal amount plus fee exceeds your available balance.
                       </p>
                     )}
                   </div>
 
-                  {/* Fee and Net Amount Display */}
+                  {/* Fee Display */}
                   <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
                     {isFeeLoading ? (
                       <p className="text-sm text-gray-700 flex items-center">
@@ -214,17 +225,9 @@ export function WithdrawModal({
                     ) : (
                       <div className="space-y-2">
                         <p className="text-sm text-gray-700 flex items-center">
-                          <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />A fee of {fee} RSC
-                          will be charged for this withdrawal.
+                          <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />A network fee of{' '}
+                          {fee} RSC will be charged in addition to your withdrawal amount.
                         </p>
-                        {withdrawAmount > 0 && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-700">You will receive:</span>
-                            <span className="text-sm font-medium text-gray-900">
-                              {formatRSC({ amount: calculateNetAmount() })} RSC
-                            </span>
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
