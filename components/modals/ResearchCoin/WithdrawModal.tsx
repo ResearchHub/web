@@ -5,7 +5,6 @@ import { Fragment, useCallback, useMemo, useState, useEffect } from 'react';
 import { X as XIcon, Check, AlertCircle, ExternalLink, Loader2 } from 'lucide-react';
 import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useAccount } from 'wagmi';
 import { useWithdrawRSC } from '@/hooks/useWithdrawRSC';
 import { cn } from '@/utils/styles';
@@ -32,7 +31,6 @@ export function WithdrawModal({
   onSuccess,
 }: WithdrawModalProps) {
   const [amount, setAmount] = useState<string>('');
-  const { exchangeRate } = useExchangeRate();
   const { address } = useAccount();
   const [{ txStatus, isLoading, fee, isFeeLoading, feeError }, withdrawRSC] = useWithdrawRSC();
 
