@@ -90,15 +90,16 @@ export default function ResearchCoinPage() {
         <div className="py-6">
           <div className="flex">
             <div className="flex-1">
-              <UserBalanceSection
-                balance={balance ? formatBalance(balance, exchangeRate) : null}
-                isFetchingExchangeRate={isFetchingExchangeRate}
-                onTransactionSuccess={handleRefresh}
-              />
-
-              {(hasPendingDepositFeed || isLoadingPendingDeposits) && (
-                <PendingDepositFeed exchangeRate={exchangeRate} />
+              {status === 'authenticated' && (
+                <UserBalanceSection
+                  balance={balance ? formatBalance(balance, exchangeRate) : null}
+                  isFetchingExchangeRate={isFetchingExchangeRate}
+                  onTransactionSuccess={handleRefresh}
+                />
               )}
+
+              {(hasPendingDepositFeed || isLoadingPendingDeposits) &&
+                status === 'authenticated' && <PendingDepositFeed exchangeRate={exchangeRate} />}
 
               <TransactionFeed
                 ref={transactionFeedRef}
