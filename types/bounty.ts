@@ -70,8 +70,6 @@ export const transformSolution = (raw: any): BountySolution => {
 };
 
 export const transformContribution = (raw: any): BountyContribution => {
-  console.log('raw', raw);
-
   if (!raw) {
     console.warn('Received null or undefined contribution data');
     return {

@@ -450,7 +450,7 @@ function LeaderboardPageContent() {
       <p className="text-gray-600 mb-6">See top earners on ResearchHub for a given period.</p>
 
       <div className="max-w-4xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
+        <div className="flex flex-col md:!flex-row md:!items-center md:!justify-between mb-4 gap-4">
           <Tabs
             tabs={leaderboardTabs}
             activeTab={activeTab}

@@ -72,8 +72,6 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
 
   // Render tab content based on activeTab - memoized to prevent unnecessary re-renders
   const renderTabContent = useMemo(() => {
-    console.log(`Rendering tab content for: ${activeTab}`);
-
     switch (activeTab) {
       case 'paper':
         return (

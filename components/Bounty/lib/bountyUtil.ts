@@ -350,17 +350,6 @@ export const extractContributorsForDisplay = (bounty: Bounty): Contributor[] => 
     ? contributorsFromContributions
     : [...contributorsFromContributions, creator];
 
-  // Debug log the result
-  console.log('extractContributorsForDisplay result:', {
-    bountyId: bounty.id,
-    contributorsCount: result.length,
-    contributors: result.map((c) => ({
-      fullName: c.profile.fullName,
-      amount: c.amount,
-      isCreator: c.isCreator,
-    })),
-  });
-
   return result;
 };
 

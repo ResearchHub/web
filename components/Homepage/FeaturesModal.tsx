@@ -15,21 +15,6 @@ import { Slideshow } from '@/components/ui/Slideshow';
 // Define features array
 const features = [
   {
-    title: 'Earn 150 USD for Peer Reviews',
-    description: 'Get paid to peer-review papers based on your expertise.',
-    cta: 'Become a Reviewer',
-    link: 'https://airtable.com/apptLQP8XMy1kaiID/pag5tkxt0V18Xobje/form',
-    icon: 'solidEarn',
-  },
-  {
-    title: 'Fund Promising Research',
-    description:
-      'Funders: Fund promising research via RSC. Researchers: Get your experiment funded.',
-    cta: 'Explore Funding',
-    link: '/fund',
-    icon: 'solidHand',
-  },
-  {
     title: 'Discover and Discuss Science',
     description: 'Discuss papers with the community and get customized content recommendations.',
     cta: 'Browse Papers',
@@ -42,6 +27,21 @@ const features = [
     cta: 'Submit Manuscript',
     link: '/paper/create',
     icon: 'rhJournal2',
+  },
+  {
+    title: 'Earn $150 for Peer Reviews',
+    description: 'Get paid to peer-review papers based on your expertise.',
+    cta: 'Become a Reviewer',
+    link: 'https://airtable.com/apptLQP8XMy1kaiID/pag5tkxt0V18Xobje/form',
+    icon: 'solidEarn',
+  },
+  {
+    title: 'Fund Promising Research',
+    description:
+      'Funders: Fund promising research via RSC. Researchers: Get your experiment funded.',
+    cta: 'Explore Funding',
+    link: '/fund',
+    icon: 'solidHand',
   },
 ];
 
@@ -81,7 +81,7 @@ export function FeaturesModal() {
       <div className="p-5 flex flex-col w-full min-h-[70vh] md:min-h-0 justify-between md:justify-start md:w-96 lg:w-[500px]">
         {/* Modal header */}
         <div className="text-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-800 mb-1">Welcome to ResearchHub!</h2>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-1">Welcome to ResearchHub 👋</h2>
           <p className="text-md text-gray-600">Take a quick look at some key features:</p>
         </div>
 
@@ -107,21 +107,15 @@ export function FeaturesModal() {
                 <p className="text-center text-sm text-gray-600 mb-3">{feature.description}</p>
 
                 {/* CTA Button */}
-                <Link
-                  href={feature.link}
-                  className="text-primary-600 text-sm font-medium hover:underline"
-                >
-                  {feature.cta}
+                <Link href={feature.link}>
+                  <Button variant="default" size="sm">
+                    {feature.cta}
+                  </Button>
                 </Link>
               </div>
             ))}
           </Slideshow>
         </div>
-
-        {/* Close button */}
-        <Button onClick={closeModal} variant="default" size="lg" className="w-full">
-          Got it
-        </Button>
       </div>
     </BaseModal>
   );

@@ -42,7 +42,7 @@ export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], docum
   return (
     <section>
       <div className="flex items-center gap-2 mb-3">
-        <Icon name="openGrant" size={18} className="text-gray-700" />
+        <Icon name="openGrant" size={22} color="#6b7280" />
         <h3 className="text-base font-semibold text-gray-900">Supporters</h3>
       </div>
 

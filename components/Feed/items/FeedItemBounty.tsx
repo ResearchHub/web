@@ -17,15 +17,16 @@ import { ID } from '@/types/root';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { BountyContribution, BountyType } from '@/types/bounty';
 import { formatRSC } from '@/utils/number';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { cn } from '@/utils/styles';
-import { Trophy, Pen, Plus, Users, ArrowBigUpDash } from 'lucide-react';
+import { Trophy, Pen, Plus, Users, ArrowBigUpDash, MessageSquareReply } from 'lucide-react';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Button } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
 import { Icon } from '@/components/ui/icons/Icon';
+import { buildWorkUrl } from '@/utils/url';
 /**
  * Internal component for rendering bounty details
  */
@@ -128,7 +129,6 @@ const FeedItemBountyBody: FC<{
       {/* Bounty Metadata Line with badges and status */}
       <div onClick={(e) => e.stopPropagation()}>
         <BountyMetadataLine
-          bountyType={bounty.bountyType}
           amount={parseFloat(bounty.totalAmount)}
           expirationDate={bounty.expirationDate}
           isOpen={isOpen}
@@ -191,6 +191,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   const bountyEntry = entry.content as FeedBountyContent;
   const bounty = bountyEntry.bounty;
   const router = useRouter();
+  const params = useParams();
 
   // State for contribute modal
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
@@ -206,26 +207,23 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   // Check if there are solutions to award
   const hasSolutions = bounty.solutions && bounty.solutions.length > 0;
 
-  // Use provided href or create default bounty page URL
-  const bountyPageUrl = href || `/bounty/${bounty.id}`;
-
   // Format the bounty amount for display in the action text
-  const formattedBountyAmount = bounty.amount
-    ? formatRSC({ amount: parseFloat(bounty.amount) })
+  const formattedBountyAmount = bounty.totalAmount
+    ? formatRSC({ amount: parseFloat(bounty.totalAmount) })
     : '';
-  const bountyActionText = bounty.amount
+  const bountyActionText = bounty.totalAmount
     ? `created a bounty for ${formattedBountyAmount} RSC`
     : 'created a bounty';
 
-  // Handle click on the card (navigate to bounty page) - only if href is provided
-  const handleCardClick = () => {
-    if (href) {
-      router.push(bountyPageUrl);
-    }
-  };
-
   // Determine if card should have clickable styles
   const isClickable = !!href;
+
+  // Handle click on the card (simplified since bountyPageUrl was removed)
+  const handleCardClick = () => {
+    if (href) {
+      window.location.href = href;
+    }
+  };
 
   // Handle opening the contribute modal
   const handleOpenContributeModal = (e: React.MouseEvent | undefined) => {
@@ -233,6 +231,39 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       e.stopPropagation();
     }
     setIsContributeModalOpen(true);
+  };
+
+  // Handle CTA button click (Add Review/Add Solution)
+  const handleSolution = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click navigation
+
+    // Destructure the URL params directly
+    const { id, slug } = params;
+    const contentType = bountyEntry.relatedDocumentContentType;
+
+    // Determine the appropriate tab based on bounty type
+    const tab = bounty.bountyType === 'REVIEW' ? 'reviews' : 'conversation';
+
+    // Make sure we have the required params
+    if (id && contentType) {
+      // Build the work URL with the tab
+      const workUrl = buildWorkUrl({
+        id: id as string,
+        contentType: contentType as any,
+        slug: slug as string,
+        tab,
+      });
+
+      // Use window.location for full page navigation
+      window.location.href = workUrl;
+    } else {
+      // Fallback to using the current path if params are missing
+      const currentPath = window.location.pathname;
+      const basePath = currentPath.endsWith('/bounties')
+        ? currentPath.substring(0, currentPath.lastIndexOf('/'))
+        : currentPath;
+      window.location.href = `${basePath}/${tab}`;
+    }
   };
 
   // Handle awarding the bounty
@@ -331,34 +362,48 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         totalContributorsCount={bounty.contributions?.length || 0}
       />
 
-      {/* Main Content Card - Using onClick instead of wrapping with Link */}
+      {/* Main Content Card - Restoring border and styles */}
       <div
-        onClick={handleCardClick}
         className={cn(
-          'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden',
+          'w-full bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden', // Restored card styles
           isClickable &&
-            'group hover:shadow-md hover:border-indigo-100 transition-all duration-200 cursor-pointer'
+            'group hover:shadow-md hover:border-indigo-100 transition-all duration-200 cursor-pointer' // Restored hover styles
         )}
+        onClick={handleCardClick}
       >
         <div className="p-4">
-          {/* Content area */}
-          <div className="mb-4">
-            {/* Body Content */}
-            <FeedItemBountyBody
-              entry={entry}
-              showSolutions={showSolutions}
-              showRelatedWork={showRelatedWork}
-              onViewSolution={onViewSolution}
-            />
-            {(contributeButton || awardButton) && (
-              <div className="flex items-center mt-2">
-                {contributeButton}
-                {awardButton}
-              </div>
+          {' '}
+          {/* Added padding back */}
+          <FeedItemBountyBody
+            entry={entry}
+            showSolutions={showSolutions}
+            showRelatedWork={showRelatedWork}
+            onViewSolution={onViewSolution}
+          />
+          {/* Container for Support and CTA buttons */}
+          <div className="mt-4 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+            {/* Contribute Button - Conditionally shown */}
+            {isActive && showContributeButton && (
+              <Button variant="contribute" size="sm" onClick={handleOpenContributeModal}>
+                <ResearchCoinIcon size={20} variant="orange" contribute />
+                Support this bounty
+              </Button>
+            )}
+
+            {/* Add Solution/Review CTA Button - shown only if bounty is open */}
+            {isActive && (
+              <Button
+                variant="default"
+                size="sm"
+                className="flex-1 md:flex-none flex items-center gap-1.5"
+                onClick={handleSolution}
+              >
+                <MessageSquareReply size={18} /> {/* Added icon */}
+                {bounty.bountyType === 'REVIEW' ? 'Add your Review' : 'Add Solution'}
+              </Button>
             )}
           </div>
-
-          {/* Action Buttons - Full width */}
+          {/* Action Buttons - Full width - Moved inside the padded div */}
           <div className="mt-4 pt-3 border-t border-gray-200">
             <div onClick={(e) => e.stopPropagation()}>
               {/* Standard Feed Item Actions */}
@@ -372,7 +417,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
                 tips={entry.tips}
                 showTooltips={showTooltips}
                 actionLabels={actionLabels}
-                hideCommentButton={isAuthor}
+                hideCommentButton={true}
                 menuItems={menuItems}
                 bounties={[bountyEntry.bounty]}
               />
