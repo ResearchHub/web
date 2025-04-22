@@ -40,10 +40,10 @@ interface ResearchCoinIconProps {
    */
   strokeWidth?: number;
   /**
-   * Visual variant of the icon (changes the gradient)
+   * Visual variant of the icon (changes the gradient or fill)
    * @default 'orange'
    */
-  variant?: 'orange' | 'green';
+  variant?: 'orange' | 'green' | 'solid';
 }
 
 function ContributeVariant({ size, color }: { size: number; color: string }) {
@@ -130,6 +130,8 @@ export function ResearchCoinIcon({
 
   // Define gradient IDs based on variant
   const gradientId = variant === 'green' ? 'greenCoinGradient' : 'coinGradient';
+  // Determine fill based on variant
+  const coinFill = variant === 'solid' ? color : `url(#${gradientId})`;
 
   return (
     <svg width={size} height={size} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14">
@@ -164,7 +166,7 @@ export function ResearchCoinIcon({
         fillRule="evenodd"
         clipRule="evenodd"
         d="M7.96539 1.07912C11.2355 1.61221 13.4541 4.6951 12.9209 7.96525C12.3877 11.2355 9.30472 13.454 6.03461 12.9209C2.7645 12.3876 0.545902 9.30493 1.07911 6.03456C1.61231 2.7643 4.69517 0.545903 7.96539 1.07912Z"
-        fill={`url(#${gradientId})`}
+        fill={coinFill}
       />
 
       <path

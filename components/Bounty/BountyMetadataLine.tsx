@@ -2,9 +2,9 @@ import { formatDeadline } from '@/utils/date';
 import { RSCBadge } from '@/components/ui/RSCBadge';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
+import { Check } from 'lucide-react';
 
 interface BountyMetadataLineProps {
-  bountyType?: string;
   amount: number;
   expirationDate?: string;
   isOpen: boolean;
@@ -34,13 +34,19 @@ export const BountyMetadataLine = ({
         {/* Badges */}
         <div className="flex flex-wrap gap-2">
           <ContentTypeBadge type="bounty" />
-          <RSCBadge amount={amount} size="sm" />
+          <RSCBadge amount={amount} size="sm" variant={isOpen ? 'badge' : 'disabled'} />
         </div>
 
-        {/* Deadline with RadiatingDot */}
+        {/* Deadline with RadiatingDot or Check icon */}
         <div className="flex items-center gap-2 text-sm">
-          <RadiatingDot size={12} dotSize={6} isRadiating={isOpen} className="flex-shrink-0" />
-          <span className={`${expiringSoon ? 'text-orange-600 font-medium' : 'text-gray-700'}`}>
+          {isOpen ? (
+            <RadiatingDot size={12} dotSize={6} isRadiating={isOpen} className="flex-shrink-0" />
+          ) : (
+            <Check size={14} className="text-green-600 flex-shrink-0" />
+          )}
+          <span
+            className={`${isOpen ? (expiringSoon ? 'text-orange-600 font-medium' : 'text-gray-700') : 'text-green-700 font-medium'}`}
+          >
             {deadlineText}
           </span>
         </div>

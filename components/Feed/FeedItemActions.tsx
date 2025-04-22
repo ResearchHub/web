@@ -23,6 +23,7 @@ import { extractBountyAvatars } from '@/components/Bounty/lib/bountyUtil';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useUser } from '@/contexts/UserContext';
 import { dedupeAvatars } from '@/utils/avatarUtil';
+import { cn } from '@/utils/styles';
 
 // Define interfaces for the types we're using
 interface Author {
@@ -131,6 +132,7 @@ interface FeedItemActionsProps {
   reviews?: Review[]; // New property for reviews
   bounties?: Bounty[]; // Updated to use imported Bounty type
   tips?: Tip[]; // Added tips prop
+  awardedBountyAmount?: number; // Add awarded bounty amount
 }
 
 // Define interface for avatar items used in local state
@@ -160,6 +162,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   reviews = [],
   bounties = [],
   tips = [],
+  awardedBountyAmount = 0, // Destructure awardedBountyAmount with default value
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser(); // Get current user
@@ -363,6 +366,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       return total + amount;
     }, 0);
 
+  // Calculate total earned amount (Tips + Awarded Bounty)
+  const totalEarnedAmount = localTotalTipAmount + awardedBountyAmount;
+
   return (
     <>
       <div className="flex items-center justify-between w-full">
@@ -405,8 +411,17 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               <Tooltip
                 content={
                   <div className="flex items-start gap-3 text-left">
-                    <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center">
-                      <Icon name="earn1" size={24} color="#374151" />
+                    <div
+                      className={cn(
+                        'p-2 rounded-md flex items-center justify-center',
+                        hasOpenBounties ? 'bg-orange-100' : 'bg-gray-100'
+                      )}
+                    >
+                      <Icon
+                        name="earn1"
+                        size={24}
+                        color={hasOpenBounties ? '#F97316' : '#374151'}
+                      />
                     </div>
                     <div>
                       <div className="font-medium mb-1">ResearchCoin Earning Opportunity</div>
@@ -421,34 +436,66 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 width="w-[380px]"
               >
                 <ActionButton
-                  icon={(props: any) => <Icon name="earn1" {...props} size={18} />}
+                  icon={(props: any) => (
+                    <Icon
+                      name="earn1"
+                      {...props}
+                      size={18}
+                      color={hasOpenBounties ? '#F97316' : undefined}
+                    />
+                  )}
                   tooltip=""
                   label="Bounties"
                   count={formatRSC({ amount: totalBountyAmount, shorten: true })}
                   showTooltip={false}
                   onClick={handleBountyClick}
                   avatars={dedupedBountyAvatars}
+                  className={
+                    hasOpenBounties
+                      ? 'text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700'
+                      : ''
+                  }
                 />
               </Tooltip>
             ) : (
               <ActionButton
-                icon={(props: any) => <Icon name="earn1" {...props} size={18} />}
+                icon={(props: any) => (
+                  <Icon
+                    name="earn1"
+                    {...props}
+                    size={18}
+                    color={hasOpenBounties ? '#F97316' : undefined}
+                  />
+                )}
                 tooltip="Bounties"
                 label="Bounties"
                 count={formatRSC({ amount: totalBountyAmount, shorten: true })}
                 showTooltip={false}
                 onClick={handleBountyClick}
                 avatars={dedupedBountyAvatars}
+                className={
+                  hasOpenBounties
+                    ? 'text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700'
+                    : ''
+                }
               />
             ))}
           <ActionButton
-            icon={(props: any) => <Icon name="tipRSC" {...props} size={33} />}
+            icon={(props: any) => (
+              <Icon
+                name="tipRSC"
+                {...props}
+                size={20}
+                color={totalEarnedAmount > 0 ? '#16A34A' : undefined}
+              />
+            )}
             tooltip="Tip RSC"
             label="Tip"
             onClick={handleOpenTipModal}
             showTooltip={showTooltips}
-            {...(localTotalTipAmount > 0 && {
-              count: formatRSC({ amount: localTotalTipAmount, shorten: true }),
+            {...(totalEarnedAmount > 0 && {
+              count: `+${formatRSC({ amount: totalEarnedAmount, shorten: true })}`,
+              className: 'text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700',
               avatars: localTipAvatars,
             })}
           />

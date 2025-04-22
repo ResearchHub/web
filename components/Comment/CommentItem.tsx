@@ -205,7 +205,6 @@ export const CommentItem = ({
 
         // Create a custom href for the FeedItemBounty to prevent navigation
         const customHref = undefined; // Setting to undefined to prevent navigation
-
         // Check if this is an open bounty
         const isBountyOpen = comment.bounties.some((b) => isOpenBounty(b));
 

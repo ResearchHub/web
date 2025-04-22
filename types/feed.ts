@@ -164,6 +164,7 @@ export interface FeedEntry {
   tips?: Tip[];
   raw?: RawApiFeedEntry;
   userVote?: UserVoteType;
+  awardedBountyAmount?: number;
 }
 
 export interface RawApiFeedEntry {
@@ -616,6 +617,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           ? 'NEUTRAL'
           : undefined,
     tips: [], // Default empty tips
+    awardedBountyAmount: (content as any)?.awardedBountyAmount,
   } as FeedEntry;
 };
 
@@ -706,6 +708,7 @@ export const transformCommentToFeedItem = (
     },
     userVote: comment.userVote,
     tips: comment.tips,
+    awardedBountyAmount: comment.awardedBountyAmount,
   };
 };
 
@@ -762,5 +765,6 @@ export const transformBountyCommentToFeedItem = (
     },
     userVote: comment.userVote,
     tips: comment.tips,
+    awardedBountyAmount: comment.awardedBountyAmount,
   };
 };

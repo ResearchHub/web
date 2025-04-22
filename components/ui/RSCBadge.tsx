@@ -13,7 +13,7 @@ interface RSCBadgeProps {
   amount: number;
   className?: string;
   size?: 'xxs' | 'xs' | 'sm' | 'md';
-  variant?: 'inline' | 'badge' | 'contribute' | 'text' | 'award' | 'received';
+  variant?: 'inline' | 'badge' | 'contribute' | 'text' | 'award' | 'received' | 'disabled';
   /** Whether to show "RSC" text after the amount */
   showText?: boolean;
   /** Whether to show the RSC icon */
@@ -79,6 +79,11 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
     receivedBg: 'bg-green-50',
     receivedBorder: 'border-green-200',
     receivedText: 'text-green-700',
+    // Add gray colors for disabled variant
+    disabledBg: 'bg-gray-100',
+    disabledBorder: 'border-gray-300',
+    disabledText: 'text-gray-500',
+    disabledIconColor: '#6B7280', // gray-500
   };
 
   // Map our custom variants to classes
@@ -89,6 +94,7 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
     text: '',
     award: `${colors.awardBg} ${colors.awardBorder}`,
     received: `${colors.receivedBg} ${colors.receivedBorder}`,
+    disabled: `${colors.disabledBg} ${colors.disabledBorder}`,
   };
 
   // Map our size to Badge size
@@ -178,7 +184,11 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
 
   return wrapWithTooltip(
     <Badge
-      variant={variant === 'award' ? 'default' : variant === 'received' ? 'default' : 'orange'}
+      variant={
+        variant === 'award' || variant === 'received' || variant === 'disabled'
+          ? 'default'
+          : 'orange'
+      }
       size={badgeSize}
       className={cn(
         'flex items-center',
@@ -187,7 +197,8 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
         variant === 'badge' ||
           variant === 'contribute' ||
           variant === 'award' ||
-          variant === 'received'
+          variant === 'received' ||
+          variant === 'disabled'
           ? 'py-1 px-2'
           : '',
         size === 'xxs' && 'py-0 px-1',
@@ -202,10 +213,12 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
               ? colors.awardIconColor
               : variant === 'received'
                 ? '#16A34A'
-                : colors.iconColor
+                : variant === 'disabled'
+                  ? colors.disabledIconColor
+                  : colors.iconColor
           }
           outlined={false}
-          variant={variant === 'received' ? 'green' : 'orange'}
+          variant={variant === 'received' ? 'green' : variant === 'disabled' ? 'solid' : 'orange'}
         />
       )}
       {variant === 'award' ? (
@@ -221,6 +234,13 @@ export const RSCBadge: FC<RSCBadgeProps> = ({
             + {shorten ? formatRSC({ amount, shorten: true }) : Math.round(amount).toLocaleString()}
           </span>
           {showText && <span className={cn(colors.receivedText, 'ml-1')}>RSC</span>}
+        </div>
+      ) : variant === 'disabled' ? (
+        <div className="flex items-center">
+          <span className={cn(colors.disabledText, 'font-semibold')}>
+            {shorten ? formatRSC({ amount, shorten: true }) : Math.round(amount).toLocaleString()}
+          </span>
+          {showText && <span className={cn(colors.disabledText, 'ml-1')}>RSC</span>}
         </div>
       ) : inverted ? (
         <div className="flex items-center">

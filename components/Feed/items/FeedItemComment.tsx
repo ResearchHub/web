@@ -141,6 +141,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
 }) => {
   // Extract the comment entry from the entry's content
   const commentEntry = entry.content as FeedCommentContent;
+
   const comment = commentEntry.comment;
   const router = useRouter();
   const parentComment = commentEntry.parentComment;
@@ -250,6 +251,8 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                   onComment={onReply}
                   showTooltips={showTooltips}
                   menuItems={menuItems}
+                  awardedBountyAmount={entry.awardedBountyAmount}
+                  tips={entry.tips}
                 />
               </div>
             </div>
