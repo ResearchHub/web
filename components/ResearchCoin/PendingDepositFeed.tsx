@@ -7,11 +7,7 @@ import { PendingDepositItem } from './PendingDepositItem';
 
 const LOADING_SKELETON_COUNT = 2;
 
-interface PendingDepositFeedProps {
-  exchangeRate: number;
-}
-
-export function PendingDepositFeed({ exchangeRate }: PendingDepositFeedProps) {
+export function PendingDepositFeed() {
   const { deposits, isLoading } = usePendingDeposits();
 
   if (isLoading) {

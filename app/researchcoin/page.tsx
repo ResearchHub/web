@@ -99,7 +99,7 @@ export default function ResearchCoinPage() {
               )}
 
               {(hasPendingDepositFeed || isLoadingPendingDeposits) &&
-                status === 'authenticated' && <PendingDepositFeed exchangeRate={exchangeRate} />}
+                status === 'authenticated' && <PendingDepositFeed />}
 
               <TransactionFeed
                 ref={transactionFeedRef}
