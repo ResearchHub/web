@@ -8,6 +8,8 @@ import { FeedEntry } from '@/types/feed';
 import { Tabs } from '@/components/ui/Tabs';
 import { EarnRightSidebar } from '@/components/Earn/EarnRightSidebar';
 import { Coins } from 'lucide-react';
+import { MainPageHeader } from '@/components/ui/MainPageHeader';
+import Icon from '@/components/ui/icons/Icon';
 
 export default function EarnPage() {
   const [bounties, setBounties] = useState<FeedEntry[]>([]);
@@ -86,10 +88,11 @@ export default function EarnPage() {
   );
 
   const renderHeader = () => (
-    <h1 className="text-xl text-gray-600 flex items-center gap-2">
-      <Coins className="w-6 h-6 text-indigo-500" />
-      Earn ResearchCoin by completing scientific bounties
-    </h1>
+    <MainPageHeader
+      icon={<Icon name="earn1" size={26} color="#4f46e5" />}
+      title="Earn ResearchCoin"
+      subtitle="Earn ResearchCoin by completing scientific bounties"
+    />
   );
 
   return (

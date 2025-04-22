@@ -10,9 +10,10 @@ import { truncateText } from '@/utils/stringUtils';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { useRouter } from 'next/navigation';
-import { Flag } from 'lucide-react';
+import { Flag, Users } from 'lucide-react';
 import Image from 'next/image';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { formatRSC } from '@/utils/number';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
@@ -68,11 +69,12 @@ const FeedItemFundraiseBody: FC<{
 
           {/* Authors list below title */}
           {authors.length > 0 && (
-            <div className="mt-1 mb-3">
+            <div className="mt-1 mb-3 flex items-center gap-1.5">
+              <Users className="w-4 h-4 text-gray-500" />
               <AuthorList
                 authors={authors}
                 size="xs"
-                className="text-gray-600 font-normal"
+                className="text-gray-500 font-normal text-sm"
                 delimiter="•"
               />
             </div>
@@ -181,11 +183,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       <FeedItemHeader
         timestamp={post.createdDate}
         author={author}
-        actionText={
-          hasFundraise
-            ? `applied for crowdfunding for ${goalAmountRSC.toLocaleString()} RSC`
-            : 'published a post'
-        }
+        actionText={hasFundraise ? `is seeking funding` : 'published a post'}
         contributors={hasFundraise ? extractContributors(post.fundraise) : []}
         contributorsLabel="Funding Contributors"
       />

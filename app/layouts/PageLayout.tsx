@@ -155,7 +155,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
       </div>
 
       {/* Center Content Area (Scrolling) */}
-      <div ref={mainContentRef} className="flex-1 flex flex-col overflow-y-auto">
+      <div ref={mainContentRef} className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
         {/* TopBar (Sticky within Center Column) */}
         <div className="topbar-hide:!hidden sticky top-0 z-40 bg-white flex-shrink-0">
           <Suspense fallback={<TopBarSkeleton />}>
