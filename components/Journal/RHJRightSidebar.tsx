@@ -66,7 +66,7 @@ export function RHJRightSidebar() {
         <h3 className="text-lg font-semibold text-gray-800">Editorial Board</h3>
         <div className="space-y-4">
           {displayEditors.map((editor) => (
-            <EditorCard key={editor.name} editor={editor} variant="sidebar" />
+            <EditorCard key={editor.name} editor={editor} />
           ))}
         </div>
         <a
