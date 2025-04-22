@@ -181,7 +181,8 @@ export const EditorCard: FC<EditorCardProps> = ({ editor, variant = 'default', c
               )}
             </div>
           </div>
-          <div className="flex-grow pt-0 md:pt-2">
+          {/* Right Column (Text Content) */}
+          <div className="flex-1 pt-0 md:pt-2">
             {/* Default Name Element (clickable) */}
             <h3
               className={cn(`text-lg font-medium text-gray-900 mb-1`, {
