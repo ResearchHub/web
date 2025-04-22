@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, CirclePlus } from 'lucide-react';
 import { useState } from 'react';
 import { DepositModal } from '../modals/ResearchCoin/DepositModal';
 import { WithdrawModal } from '../modals/ResearchCoin/WithdrawModal';
@@ -70,41 +70,36 @@ export function UserBalanceSection({
 
                 {isConnected ? (
                   <>
-                    <div className="flex gap-4">
-                      <p className="text-base text-gray-600">
-                        Wallet successfully connected. You can now purchase, deposit or withdraw
-                        RSC.
-                      </p>
-                    </div>
                     <div className="flex items-center gap-4">
                       <Button
                         onClick={() => setIsSwapModalOpen(true)}
                         variant="default"
                         size="lg"
-                        className="gap-2"
+                        className="gap-2 px-3 sm:px-4"
                       >
-                        Buy RSC
+                        <CirclePlus className="h-5 w-5" />
+                        <span className="hidden sm:inline">Buy RSC</span>
                       </Button>
                       <Button
                         onClick={() => setIsDepositModalOpen(true)}
-                        variant="default"
+                        variant="outlined"
                         size="lg"
-                        className="gap-2"
+                        className="gap-2 px-3 sm:px-4"
                         disabled={!isBalanceReady}
                         data-action="deposit"
                       >
                         <ArrowDownToLine className="h-5 w-5" />
-                        Deposit
+                        <span className="hidden sm:inline">Deposit</span>
                       </Button>
                       <Button
                         onClick={() => setIsWithdrawModalOpen(true)}
                         variant="outlined"
                         size="lg"
-                        className="gap-2"
+                        className="gap-2 px-3 sm:px-4"
                         disabled={!isBalanceReady}
                       >
                         <ArrowUpFromLine className="h-5 w-5" />
-                        Withdraw
+                        <span className="hidden sm:inline">Withdraw</span>
                       </Button>
 
                       <WalletDefault />
