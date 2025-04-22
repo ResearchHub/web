@@ -4,20 +4,13 @@ import { FC, useMemo, ReactNode } from 'react';
 import { Book, BookOpen, Check, Zap, Eye, Globe, Award } from 'lucide-react';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { journalPapers } from '@/store/journalPaperStore';
-import {
-  FeedEntry,
-  RawApiFeedEntry,
-  transformFeedEntry,
-  FeedPaperContent,
-  FeedActionType,
-} from '@/types/feed';
+import { FeedEntry, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
 import Link from 'next/link';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 
 interface JournalFeedProps {
   activeTab: string;
   isLoading: boolean;
-  tabs: React.ReactNode;
 }
 
 // Adapter to transform journal papers to RawApiFeedEntry format
@@ -103,7 +96,7 @@ const adaptJournalPapersToFeedEntries = (): FeedEntry[] => {
   });
 };
 
-export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading, tabs }) => {
+export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading }) => {
   // Transform journal papers to feed entries
   const allFeedEntries = useMemo(() => adaptJournalPapersToFeedEntries(), []);
 
@@ -402,11 +395,5 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading, tabs }
     </>
   );
 
-  return (
-    <div className="space-y-4">
-      {tabs}
-
-      {renderFeedEntries()}
-    </div>
-  );
+  return <div className="space-y-4">{renderFeedEntries()}</div>;
 };
