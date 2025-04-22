@@ -54,7 +54,7 @@ export const EditorCard: FC<EditorCardProps> = ({ editor, variant = 'default', c
     <div
       className={cn(
         {
-          'bg-white border border-gray-200 rounded-lg p-8 sm:p-6 md:p-8 lg:p-10 xl:p-12 hover:bg-gray-50/50 hover:border-gray-300 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 ease-in-out':
+          'bg-white border border-gray-200 rounded-lg p-8 hover:bg-gray-50/50 hover:border-gray-300 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 ease-in-out':
             !isSidebar,
           'border-b border-gray-200 pb-4 last:border-b-0': isSidebar,
         },
@@ -132,8 +132,8 @@ export const EditorCard: FC<EditorCardProps> = ({ editor, variant = 'default', c
         </div>
       ) : (
         // Default Layout
-        <div className="flex flex-col sm:flex-row gap-8 items-start">
-          <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full sm:w-auto">
+        <div className="flex flex-col md:flex-row gap-8 items-start">
+          <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto">
             {/* Link wrapper for image in default view */}
             {editor.authorId ? (
               <Link href={`/author/${editor.authorId}`} passHref legacyBehavior>
