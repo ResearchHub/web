@@ -7,6 +7,8 @@ import { FeedContent } from '@/components/Feed/FeedContent';
 import { useState } from 'react';
 import { FundingTabs } from '@/components/Fund/FundingTabs';
 import { FundRightSidebar } from '@/components/Fund/FundRightSidebar';
+import { MainPageHeader } from '@/components/ui/MainPageHeader';
+import Icon from '@/components/ui/icons/Icon';
 
 export default function FundingPage() {
   const [activeTab, setActiveTab] = useState<FundingTab>('all');
@@ -29,10 +31,11 @@ export default function FundingPage() {
   };
 
   const header = (
-    <h2 className="text-xl text-gray-600 flex items-center gap-2">
-      <HandCoins className="w-5 h-5 text-indigo-500" />
-      Fund breakthrough research shaping tomorrow
-    </h2>
+    <MainPageHeader
+      icon={<Icon name="solidHand" size={26} color="#4f46e5" />}
+      title="Fund Science"
+      subtitle="Fund breakthrough research shaping tomorrow"
+    />
   );
 
   return (

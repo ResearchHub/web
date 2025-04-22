@@ -11,6 +11,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { FeedEntry } from '@/types/feed';
 import Icon from '@/components/ui/icons/Icon';
+import { MainPageHeader } from '@/components/ui/MainPageHeader';
 
 interface FeedProps {
   defaultTab: FeedTab;
@@ -91,10 +92,11 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   ];
 
   const header = (
-    <h1 className="text-xl text-gray-600 flex items-center gap-2">
-      <Sparkles className="w-5 h-5 text-indigo-500" />
-      Discover trending research, earning, and funding opportunities
-    </h1>
+    <MainPageHeader
+      icon={<Sparkles className="w-6 h-6 text-indigo-500" />}
+      title="Explore"
+      subtitle="Discover trending research, earning, and funding opportunities"
+    />
   );
 
   const feedTabs = (

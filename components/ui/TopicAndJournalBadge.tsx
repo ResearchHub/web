@@ -51,7 +51,12 @@ export const TopicAndJournalBadge = ({
           className="ring-1 ring-indigo-200"
         />
       )}
-      <span className={`text-indigo-700 ${type === 'topic' ? 'capitalize' : ''}`}>{name}</span>
+      <span className={`text-indigo-700 ${type === 'topic' ? 'capitalize' : ''}`}>
+        <span className="block md:!hidden">
+          {name.length > 30 ? `${name.slice(0, 30)}...` : name}
+        </span>
+        <span className="hidden md:!block">{name}</span>
+      </span>
     </>
   );
 

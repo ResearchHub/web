@@ -53,7 +53,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
             disabled={isLoading}
           >
             <Settings className="w-5 h-5" />
-            Customize
+            <span className="hidden md:inline">Customize</span>
           </Button>
         )}
       </div>

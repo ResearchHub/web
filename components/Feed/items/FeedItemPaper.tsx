@@ -11,6 +11,7 @@ import { truncateText } from '@/utils/stringUtils';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/styles';
 import { JournalStatusBadge } from '@/components/ui/JournalStatusBadge';
+import { Users, BookText } from 'lucide-react';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
@@ -44,19 +45,11 @@ const FeedItemPaperBody: FC<{
   };
 
   return (
-    <div className="mb-4">
+    <div>
       {/* Badges and Topics */}
       <div className="flex flex-wrap gap-2 mb-3" onClick={(e) => e.stopPropagation()}>
         <ContentTypeBadge type={getPaperBadgeType()} />
 
-        {paper.journal && paper.journal.name && (
-          <TopicAndJournalBadge
-            type="journal"
-            name={paper.journal.name}
-            slug={paper.journal.slug || ''}
-            imageUrl={paper.journal.imageUrl}
-          />
-        )}
         {topics.map((topic, index) => (
           <TopicAndJournalBadge
             key={index}
@@ -66,20 +59,16 @@ const FeedItemPaperBody: FC<{
             imageUrl={topic.imageUrl}
           />
         ))}
-
-        {/* Status badge - only show for ResearchHub Journal */}
-        {paper.journal && paper.journal.name === 'ResearchHub Journal' && (
-          <JournalStatusBadge status={getJournalStatus()} />
-        )}
       </div>
 
-      {/* Paper Title */}
+      {/* Original Paper Title - Ensure only one exists */}
       <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
         {paper.title}
       </h2>
 
       {/* Authors */}
-      <div className="mb-3">
+      <div className="mb-3 flex items-center gap-1.5">
+        <Users className="w-4 h-4 text-gray-500" />
         <AuthorList
           authors={paper.authors.map((author) => ({
             name: author.fullName,
@@ -87,13 +76,28 @@ const FeedItemPaperBody: FC<{
             profileUrl: author.profileUrl,
           }))}
           size="xs"
-          className="text-gray-600 font-normal"
+          className="text-gray-500 font-normal text-sm"
           delimiter="•"
         />
       </div>
 
+      {/* Journal Link */}
+      {paper.journal && paper.journal.name && (
+        <div className="mb-3 text-sm text-gray-500 flex items-center gap-1.5">
+          <BookText className="w-4 h-4 text-gray-500" />
+          <a
+            href={paper.journal.slug ? `/journal/${paper.journal.slug}` : '#'}
+            rel="noopener noreferrer"
+            className="hover:text-indigo-600 underline cursor-pointer"
+            onClick={(e) => e.stopPropagation()} // Prevent card click when clicking link
+          >
+            {paper.journal.name}
+          </a>
+        </div>
+      )}
+
       {/* Truncated Content */}
-      <div className="text-sm text-gray-700 mb-4">
+      <div className="text-sm text-gray-700">
         <p>{truncateText(paper.textPreview, 150)}</p>
       </div>
     </div>

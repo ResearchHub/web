@@ -92,12 +92,10 @@ export const FundingCarousel: FC<FundingCarouselProps> = () => {
             </span>
             Fund Promising Research
           </h2>
-          <p className="text-sm text-gray-600 font-medium mt-1">
-            Support groundbreaking research with ResearchCoin.
-          </p>
+          <p className="text-sm text-gray-600 font-medium mt-1">Support groundbreaking research.</p>
         </div>
         <Link href="/fund" className="text-blue-600 hover:text-blue-700 flex items-center text-xs">
-          View All Funding
+          All Funding
           <ArrowRight size={14} className="ml-1" />
         </Link>
       </div>

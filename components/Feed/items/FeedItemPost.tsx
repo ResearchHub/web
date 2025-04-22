@@ -10,6 +10,7 @@ import { truncateText } from '@/utils/stringUtils';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { Users } from 'lucide-react';
 
 interface FeedItemPostProps {
   entry: FeedEntry;
@@ -61,11 +62,12 @@ const FeedItemPostBody: FC<{
 
           {/* Authors list below title */}
           {authors.length > 0 && (
-            <div className="mt-1 mb-3">
+            <div className="mt-1 mb-3 flex items-center gap-1.5">
+              <Users className="w-4 h-4 text-gray-500" />
               <AuthorList
                 authors={authors}
                 size="sm"
-                className="text-gray-600 font-normal"
+                className="text-gray-500 font-normal text-sm"
                 delimiter="•"
               />
             </div>

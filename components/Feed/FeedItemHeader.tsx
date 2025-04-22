@@ -64,7 +64,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
         />
 
         <div className="flex flex-col">
-          <div className="flex items-center gap-1.5 text-[15px]">
+          <div className="flex flex-wrap items-baseline gap-1.5 text-[15px]">
             {author ? (
               <div className="flex items-center gap-1">
                 {authorId ? (
