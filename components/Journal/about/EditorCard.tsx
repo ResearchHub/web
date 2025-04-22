@@ -133,7 +133,7 @@ export const EditorCard: FC<EditorCardProps> = ({ editor, variant = 'default', c
       ) : (
         // Default Layout
         <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-start">
-          <div className="flex flex-col items-center gap-4 flex-shrink-0 w-full md:w-auto">
+          <div className="flex flex-col items-center gap-4 flex-shrink-0 md:w-auto">
             {/* Link wrapper for image in default view */}
             {editor.authorId ? (
               <Link href={`/author/${editor.authorId}`} passHref legacyBehavior>
