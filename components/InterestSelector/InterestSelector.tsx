@@ -1,145 +1,201 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
-import { BookOpen, Hash, Save } from 'lucide-react';
+import { BookOpen, Hash } from 'lucide-react';
 import { InterestSkeleton } from '@/components/skeletons/InterestSkeleton';
 import { InterestCard } from './InterestCard';
 import { HubService } from '@/services/hub.service';
-import { Topic } from '@/types/topic';
+import { SearchService } from '@/services/search.service';
+import { Topic, transformTopic } from '@/types/topic';
+import { EntityType, SearchSuggestion } from '@/types/search';
 import { toast } from 'react-hot-toast';
+import debounce from 'lodash-es/debounce';
 
 type TopicType = 'journal' | 'topic';
 
+// Switch order: Topics first
 const interestTypes = [
-  { id: 'journal' as TopicType, label: 'Journals', icon: BookOpen },
   { id: 'topic' as TopicType, label: 'Topics', icon: Hash },
+  { id: 'journal' as TopicType, label: 'Journals', icon: BookOpen },
 ] as const;
 
 interface InterestSelectorProps {
   mode: 'onboarding' | 'preferences';
-  onSaveComplete?: () => void;
+  onSaveComplete?: () => void; // Kept for potential future use, though not strictly needed for auto-save
 }
 
 export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps) {
-  const [activeType, setActiveType] = useState<TopicType>('journal');
+  const [activeType, setActiveType] = useState<TopicType>('topic'); // Default to 'topic'
   const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false); // Loading state specifically for search
   const [topics, setTopics] = useState<Topic[]>([]);
   const [followedIds, setFollowedIds] = useState<number[]>([]);
-  const [pendingChangesByType, setPendingChangesByType] = useState<
-    Record<TopicType, Map<number, boolean>>
-  >({
-    journal: new Map(),
-    topic: new Map(),
-  });
-  const [isSaving, setIsSaving] = useState(false);
-
-  const pendingChanges = pendingChangesByType[activeType] || new Map();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const descriptions = {
     journal: 'Select journals to stay updated with the latest research in your field',
     topic: "Choose topics you're interested in to get personalized recommendations",
   };
 
-  const fetchTopics = async (type: TopicType): Promise<Topic[]> => {
+  // Fetch initial list of topics/journals (not search results)
+  const fetchInitialTopics = async (type: TopicType): Promise<Topic[]> => {
     try {
       if (type === 'journal') {
         return await HubService.getHubs({ namespace: 'journal' });
       }
-
       if (type === 'topic') {
+        // Assuming 'hub' without namespace=journal means topics
         return await HubService.getHubs({ excludeJournals: true });
       }
-
       return [];
     } catch (error) {
-      console.error(`Error fetching ${type}s:`, error);
+      console.error(`Error fetching initial ${type}s:`, error);
+      toast.error(`Failed to load ${type}s.`);
       return [];
     }
   };
 
+  // Fetch search suggestions
+  const fetchSearchSuggestions = async (query: string, type: TopicType): Promise<Topic[]> => {
+    if (!query) return [];
+    setIsSearching(true);
+    try {
+      // Use 'hub' index for both topics and journals as API returns entity_type 'hub'
+      const index: EntityType = 'hub';
+      const suggestions: SearchSuggestion[] = await SearchService.getSuggestions(query, index);
+
+      // Map SearchSuggestion (for hubs/journals) back to Topic type
+      return suggestions
+        .map((suggestion): Topic | null => {
+          // We only care about 'hub' type suggestions from the search
+          if (suggestion.entityType === 'hub') {
+            // Map available SearchSuggestion fields back to Topic fields
+            return {
+              id: suggestion.id,
+              name: suggestion.displayName,
+              slug: suggestion.slug || '',
+              // Optional fields from SearchSuggestion if available
+              description: suggestion.description || '',
+              paperCount: suggestion.paperCount || 0,
+              imageUrl: suggestion.imageUrl,
+              // Add defaults for other optional Topic fields if needed by InterestCard
+              // namespace: type === 'journal' ? 'journal' : 'topic', // We could infer namespace here
+            };
+          }
+          return null;
+        })
+        .filter((t): t is Topic => t !== null); // Filter out nulls and assert type
+    } catch (error) {
+      console.error(`Error searching ${type}s:`, error);
+      toast.error(`Failed to search ${type}s.`);
+      return [];
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Effect to load data based on activeType and searchQuery
   useEffect(() => {
-    const loadTopics = async () => {
+    const loadData = async () => {
       setIsLoading(true);
+      setTopics([]); // Clear topics before loading new ones
+
       try {
-        const [data, followedItems] = await Promise.all([
-          fetchTopics(activeType),
-          HubService.getFollowedHubs(),
-        ]);
-        setTopics(data);
+        let fetchedTopics: Topic[] = [];
+        // Fetch followed IDs regardless of search
+        const followedItemsPromise = HubService.getFollowedHubs();
+
+        if (searchQuery) {
+          fetchedTopics = await fetchSearchSuggestions(searchQuery, activeType);
+        } else {
+          fetchedTopics = await fetchInitialTopics(activeType);
+        }
+
+        const followedItems = await followedItemsPromise;
+        setTopics(fetchedTopics);
         setFollowedIds(followedItems);
       } catch (error) {
-        console.error('Error loading topics:', error);
+        // Error handling is done within fetch functions
+        console.error('Error loading data:', error);
         setTopics([]);
-        setFollowedIds([]);
+        setFollowedIds([]); // Ensure consistency on error
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadTopics();
-  }, [activeType]);
+    // Debounced search triggers loadData directly
+    if (searchQuery) {
+      loadData(); // No debounce needed here as fetchSearchSuggestions handles loading state
+    } else {
+      // Load initial data immediately on type change or initial load
+      loadData();
+    }
+  }, [activeType, searchQuery]); // Depend on searchQuery
+
+  // Debounced handler for search input changes
+  const debouncedSearch = useCallback(
+    debounce((query: string) => {
+      setSearchQuery(query);
+    }, 300), // 300ms debounce delay
+    [activeType] // Recreate debounce if activeType changes, though likely not necessary
+  );
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    debouncedSearch(e.target.value);
+  };
 
   const handleTypeChange = (type: TopicType) => {
+    setSearchQuery(''); // Clear search when changing type
     setActiveType(type);
   };
 
-  const handleFollowToggle = (topicId: number, isFollowing: boolean) => {
-    setPendingChangesByType((prev) => {
-      const newChanges = new Map(prev[activeType] || new Map());
-      if (newChanges.has(topicId)) {
-        newChanges.delete(topicId);
-      } else {
-        newChanges.set(topicId, !isFollowing);
-      }
-      return {
-        ...prev,
-        [activeType]: newChanges,
-      };
-    });
+  const handleFollowToggle = async (topicId: number, isCurrentlyFollowing: boolean) => {
+    const originalFollowedIds = [...followedIds];
 
+    // Optimistic UI update
     setFollowedIds((prev) => {
       const newFollowedIds = new Set(prev);
-      if (isFollowing) {
+      if (isCurrentlyFollowing) {
         newFollowedIds.delete(topicId);
       } else {
         newFollowedIds.add(topicId);
       }
       return Array.from(newFollowedIds);
     });
-  };
-
-  const handleSaveChanges = async () => {
-    if (isSaving) return;
-    setIsSaving(true);
 
     try {
-      const allPromises = Object.entries(pendingChangesByType).flatMap(([type, changes]) => {
-        return Array.from(changes.entries()).map(([topicId, shouldFollow]) => {
-          return shouldFollow ? HubService.followHub(topicId) : HubService.unfollowHub(topicId);
-        });
-      });
-
-      await Promise.all(allPromises);
-      setPendingChangesByType({
-        journal: new Map(),
-        topic: new Map(),
-      });
-      toast.success('Changes saved successfully');
-      onSaveComplete?.();
+      if (isCurrentlyFollowing) {
+        await HubService.unfollowHub(topicId);
+        toast.success('Unfollowed successfully');
+      } else {
+        await HubService.followHub(topicId);
+        toast.success('Followed successfully');
+      }
+      // Optional: Call onSaveComplete if needed for external state updates - REMOVED
+      // onSaveComplete?.();
     } catch (error) {
-      console.error('Error saving changes:', error);
-      toast.error('Failed to save some changes. Please try again.');
-    } finally {
-      setIsSaving(false);
+      console.error('Error updating follow status:', error);
+      toast.error('Failed to update follow status. Please try again.');
+      // Revert UI on error
+      setFollowedIds(originalFollowedIds);
     }
   };
 
-  const totalPendingChanges = Object.values(pendingChangesByType).reduce(
-    (total, changes) => total + changes.size,
-    0
-  );
-
   return (
-    <div className="max-w-4xl relative">
+    <div className="max-w-4xl relative pb-10">
+      {' '}
+      {/* Add padding-bottom */}
+      {/* Search bar at the top */}
+      <div className="mb-6">
+        <input
+          type="search"
+          placeholder={`Search ${activeType}s...`}
+          className="w-full px-4 py-2 border rounded-lg"
+          onChange={handleSearchInputChange} // Use the debounced handler indirectly
+          // We don't set the value directly to searchQuery to avoid laggy input
+          // The actual search is triggered by the debounced function updating searchQuery state
+        />
+      </div>
       <div className="space-y-6">
         <p className="text-gray-600">{descriptions[activeType]}</p>
 
@@ -153,6 +209,7 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
                 variant={activeType === type.id ? 'default' : 'secondary'}
                 onClick={() => handleTypeChange(type.id)}
                 className="flex items-center gap-2"
+                disabled={isLoading || isSearching} // Disable while loading anything
               >
                 <Icon className="w-4 h-4" />
                 {type.label}
@@ -163,7 +220,7 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
 
         {/* Topic grid */}
         <div>
-          {isLoading ? (
+          {isLoading || isSearching ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[...Array(6)].map((_, i) => (
                 <InterestSkeleton key={i} />
@@ -174,27 +231,12 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
               topics={topics}
               followedIds={followedIds}
               onFollowToggle={handleFollowToggle}
+              searchQuery={searchQuery} // Pass searchQuery to determine sorting behavior
             />
           )}
         </div>
       </div>
-
-      {/* Sticky Save Bar */}
-      {totalPendingChanges > 0 && (
-        <div className="sticky bottom-0 bg-white border-t shadow-lg p-4 mt-8 flex justify-between items-center">
-          <div className="text-sm text-gray-600">
-            {totalPendingChanges} unsaved {totalPendingChanges === 1 ? 'change' : 'changes'}
-          </div>
-          <Button
-            onClick={handleSaveChanges}
-            disabled={isSaving}
-            className="flex items-center gap-2"
-          >
-            <Save className="w-4 h-4" />
-            {isSaving ? 'Saving...' : 'Save Changes'}
-          </Button>
-        </div>
-      )}
+      {/* Removed Sticky Save Bar */}
     </div>
   );
 }
@@ -203,38 +245,40 @@ interface TopicGridProps {
   topics: Topic[];
   followedIds: number[];
   onFollowToggle: (topicId: number, isFollowing: boolean) => void;
+  searchQuery: string; // Receive searchQuery to control sorting
 }
 
-function TopicGrid({ topics, followedIds, onFollowToggle }: TopicGridProps) {
-  const [searchQuery, setSearchQuery] = useState('');
+function TopicGrid({ topics, followedIds, onFollowToggle, searchQuery }: TopicGridProps) {
+  // Sort topics only if there is no active search query
+  const sortedTopics = searchQuery
+    ? topics // If searching, display results as is (already filtered by API)
+    : [...topics].sort((a, b) => {
+        const aIsFollowed = followedIds.includes(Number(a.id));
+        const bIsFollowed = followedIds.includes(Number(b.id));
+        if (aIsFollowed && !bIsFollowed) return -1; // a (followed) comes first
+        if (!aIsFollowed && bIsFollowed) return 1; // b (followed) comes first
+        return a.name.localeCompare(b.name); // Then sort alphabetically
+      });
 
-  const filteredTopics = topics.filter((topic) =>
-    topic.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  if (!sortedTopics || sortedTopics.length === 0) {
+    return (
+      <p className="text-gray-500 italic">
+        No {searchQuery ? 'results found' : 'items available'}.
+      </p>
+    );
+  }
+
   return (
-    <div>
-      {/* Search bar */}
-      <div className="mb-6">
-        <input
-          type="search"
-          placeholder="Search..."
-          className="w-full px-4 py-2 border rounded-lg"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+    // Removed Search bar div
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {sortedTopics.map((topic) => (
+        <InterestCard
+          key={topic.id}
+          topic={topic}
+          isFollowing={followedIds.includes(Number(topic.id))}
+          onFollowToggle={onFollowToggle}
         />
-      </div>
-
-      {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredTopics.map((topic) => (
-          <InterestCard
-            key={topic.id}
-            topic={topic}
-            isFollowing={followedIds.includes(Number(topic.id))}
-            onFollowToggle={onFollowToggle}
-          />
-        ))}
-      </div>
+      ))}
     </div>
   );
 }
