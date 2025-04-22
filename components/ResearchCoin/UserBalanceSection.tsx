@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowDownToLine, ArrowUpFromLine, CirclePlus } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { DepositModal } from '../modals/ResearchCoin/DepositModal';
 import { WithdrawModal } from '../modals/ResearchCoin/WithdrawModal';
@@ -77,7 +77,7 @@ export function UserBalanceSection({
                         size="lg"
                         className="gap-2 px-3 sm:px-4"
                       >
-                        <CirclePlus className="h-5 w-5" />
+                        <Plus className="h-5 w-5" />
                         <span className="hidden sm:inline">Buy RSC</span>
                       </Button>
                       <Button

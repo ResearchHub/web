@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CollapsibleSection, CollapsibleItem } from '@/components/ui/CollapsibleSection';
 import { Icon } from '@/components/ui/icons/Icon';
-import { BookCheck, TicketCheck, TextSelect, Dna } from 'lucide-react';
+import { BookCheck, TicketCheck, TextSelect, Dna, Check } from 'lucide-react';
 import Link from 'next/link';
 
 export const FundRightSidebar = () => {
@@ -27,10 +27,17 @@ export const FundRightSidebar = () => {
           <p className="text-indigo-700 mb-3 text-sm">
             We believe funding should be simple, transparent, and efficient.
           </p>
-          <ul className="list-disc list-inside text-indigo-700 mb-4 text-sm space-y-1 pl-2">
-            <li>Preregistered by default</li>
-            <li>Fast & open expert review</li>
-            <li>
+          <ul className="text-indigo-700 mb-4 text-sm space-y-1">
+            <li className="flex items-center gap-2">
+              <Check className="w-4 h-4 flex-shrink-0 text-indigo-500" strokeWidth={3} />
+              Preregistered by default
+            </li>
+            <li className="flex items-center gap-2">
+              <Check className="w-4 h-4 flex-shrink-0 text-indigo-500" strokeWidth={3} />
+              Fast & open expert review
+            </li>
+            <li className="flex items-center gap-2">
+              <Check className="w-4 h-4 flex-shrink-0 text-indigo-500" strokeWidth={3} />
               <strong>Tax-deductible donations</strong>
             </li>
           </ul>
