@@ -54,6 +54,7 @@ import { TableOfContentsNode } from './TableOfContentsNode';
 import { isChangeOrigin } from '@tiptap/extension-collaboration';
 import { AnyExtension } from '@tiptap/core';
 import { PlaceholderOptions } from '@tiptap/extension-placeholder';
+import { Youtube } from './Youtube';
 
 interface ExtensionKitProps {
   provider?: HocuspocusProvider | null;
@@ -171,6 +172,7 @@ export const ExtensionKit = ({
     width: 2,
     class: 'ProseMirror-dropcursor border-black',
   }),
+  Youtube,
 ];
 
 export default ExtensionKit;

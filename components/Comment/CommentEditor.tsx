@@ -188,7 +188,7 @@ export const CommentEditor = ({
       />
 
       {/* Editor content */}
-      <div ref={editorRef} className="relative">
+      <div ref={editorRef} className="relative comment-editor-content">
         <EditorContent editor={editor} />
       </div>
 

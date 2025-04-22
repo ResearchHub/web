@@ -53,7 +53,9 @@
   }
 
   a.link {
-    @apply text-blue-500 font-extrabold dark:text-blue-400;
+    @apply text-blue-600 font-normal hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300;
+    @apply transition-colors duration-200;
+    @apply decoration-2 underline underline-offset-2;
   }
 
   mark {

@@ -9,6 +9,16 @@ import {
 import type { User } from '@/types/user';
 import { transformUser } from '@/types/user';
 
+export class AuthError extends Error {
+  constructor(
+    message: string,
+    public readonly code?: number
+  ) {
+    super(message);
+    this.name = 'AuthError';
+  }
+}
+
 export class AuthService {
   private static readonly BASE_PATH = '/api';
 
@@ -53,7 +63,7 @@ export class AuthService {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch user data');
+      throw new AuthError('Failed to fetch user data', response.status);
     }
 
     const data = await response.json();
