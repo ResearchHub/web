@@ -10,6 +10,7 @@ import { useWithdrawRSC } from '@/hooks/useWithdrawRSC';
 import { cn } from '@/utils/styles';
 
 // Network configuration based on environment
+
 const IS_PRODUCTION = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production';
 const NETWORK_NAME = IS_PRODUCTION ? 'Base' : 'Base Sepolia';
 const NETWORK_DESCRIPTION = IS_PRODUCTION
