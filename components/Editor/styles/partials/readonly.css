@@ -1,0 +1,10 @@
+.readonly-node {
+  position: relative;
+  pointer-events: none; /* Prevents interaction with the content */
+}
+
+/* Allow interaction with iframes/videos inside readonly nodes */
+.readonly-node iframe,
+.readonly-node video {
+  pointer-events: all;
+}

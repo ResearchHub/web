@@ -55,6 +55,7 @@ import { isChangeOrigin } from '@tiptap/extension-collaboration';
 import { AnyExtension } from '@tiptap/core';
 import { PlaceholderOptions } from '@tiptap/extension-placeholder';
 import { Youtube } from './Youtube';
+import { ReadOnlyFigure } from './ReadOnlyFigure';
 
 interface ExtensionKitProps {
   provider?: HocuspocusProvider | null;
@@ -173,6 +174,7 @@ export const ExtensionKit = ({
     class: 'ProseMirror-dropcursor border-black',
   }),
   Youtube,
+  ReadOnlyFigure,
 ];
 
 export default ExtensionKit;
