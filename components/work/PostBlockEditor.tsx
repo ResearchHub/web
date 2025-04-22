@@ -2,6 +2,7 @@
 
 import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
 import { useEffect } from 'react';
+import { removeTitleFromHTML } from '../Editor/lib/utils/documentTitle';
 
 interface PostBlockEditorProps {
   content: string;
@@ -34,7 +35,7 @@ export const PostBlockEditor = ({ content }: PostBlockEditorProps) => {
 
   return (
     <div className="post-content bg-white rounded-lg shadow-sm border p-6 mb-6">
-      <BlockEditorClientWrapper content={content} editable={false} />
+      <BlockEditorClientWrapper content={removeTitleFromHTML(content)} editable={false} />
     </div>
   );
 };
