@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { DepositModal } from '../modals/ResearchCoin/DepositModal';
 import { WithdrawModal } from '../modals/ResearchCoin/WithdrawModal';
@@ -17,9 +17,14 @@ interface UserBalanceSectionProps {
     raw: number;
   } | null;
   isFetchingExchangeRate: boolean;
+  onTransactionSuccess?: () => void;
 }
 
-export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBalanceSectionProps) {
+export function UserBalanceSection({
+  balance,
+  isFetchingExchangeRate,
+  onTransactionSuccess,
+}: UserBalanceSectionProps) {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [isSwapModalOpen, setIsSwapModalOpen] = useState(false);
@@ -65,41 +70,36 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
 
                 {isConnected ? (
                   <>
-                    <div className="flex gap-4">
-                      <p className="text-base text-gray-600">
-                        Wallet successfully connected. You can now purchase, deposit or withdraw
-                        RSC.
-                      </p>
-                    </div>
                     <div className="flex items-center gap-4">
                       <Button
                         onClick={() => setIsSwapModalOpen(true)}
                         variant="default"
                         size="lg"
-                        className="gap-2"
+                        className="gap-2 px-3 sm:px-4"
                       >
-                        Buy RSC
+                        <Plus className="h-5 w-5" />
+                        <span className="hidden sm:inline">Buy RSC</span>
                       </Button>
                       <Button
                         onClick={() => setIsDepositModalOpen(true)}
-                        variant="default"
+                        variant="outlined"
                         size="lg"
-                        className="gap-2"
+                        className="gap-2 px-3 sm:px-4"
                         disabled={!isBalanceReady}
                         data-action="deposit"
                       >
                         <ArrowDownToLine className="h-5 w-5" />
-                        Deposit
+                        <span className="hidden sm:inline">Deposit</span>
                       </Button>
                       <Button
                         onClick={() => setIsWithdrawModalOpen(true)}
                         variant="outlined"
                         size="lg"
-                        className="gap-2"
+                        className="gap-2 px-3 sm:px-4"
                         disabled={!isBalanceReady}
                       >
                         <ArrowUpFromLine className="h-5 w-5" />
-                        Withdraw
+                        <span className="hidden sm:inline">Withdraw</span>
                       </Button>
 
                       <WalletDefault />
@@ -129,11 +129,13 @@ export function UserBalanceSection({ balance, isFetchingExchangeRate }: UserBala
             isOpen={isDepositModalOpen}
             onClose={() => setIsDepositModalOpen(false)}
             currentBalance={balance?.raw || 0}
+            onSuccess={onTransactionSuccess}
           />
           <WithdrawModal
             isOpen={isWithdrawModalOpen}
             onClose={() => setIsWithdrawModalOpen(false)}
             availableBalance={balance?.raw || 0}
+            onSuccess={onTransactionSuccess}
           />
           <SwapModal isOpen={isSwapModalOpen} onClose={() => setIsSwapModalOpen(false)} />
         </>

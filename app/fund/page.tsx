@@ -6,6 +6,7 @@ import { useFeed, FundingTab } from '@/hooks/useFeed';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { useState } from 'react';
 import { FundingTabs } from '@/components/Fund/FundingTabs';
+import { FundRightSidebar } from '@/components/Fund/FundRightSidebar';
 
 export default function FundingPage() {
   const [activeTab, setActiveTab] = useState<FundingTab>('all');
@@ -35,7 +36,7 @@ export default function FundingPage() {
   );
 
   return (
-    <PageLayout>
+    <PageLayout rightSidebar={<FundRightSidebar />}>
       <div className="pt-4 pb-7">{header}</div>
       <FundingTabs activeTab={activeTab} onTabChange={handleTabChange} isLoading={isLoading} />
       <FeedContent

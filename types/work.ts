@@ -7,6 +7,8 @@ import { Hub } from './hub';
 import { NoteWithContent, transformNoteWithContent } from './note';
 import { ProxyService } from '../services/proxy.service';
 import { stripHtml } from '../utils/stringUtils';
+import { transformUser, TransformedUser } from './user';
+import { transformTip, Tip } from './tip';
 
 export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration' | 'funding_request';
 
@@ -76,6 +78,7 @@ export interface Work {
   unifiedDocumentId?: number | null;
   postType?: string;
   fundraise?: any;
+  tips?: Tip[];
 }
 
 export interface FundingRequest extends Work {
@@ -155,6 +158,9 @@ export const transformWork = createTransformer<any, Work>((raw) => {
           }))
         : [];
 
+  // Transform tips from purchases
+  const tips = Array.isArray(raw.purchases) ? raw.purchases.map(transformTip) : [];
+
   return {
     id: raw.id,
     type: raw.work_type as WorkType,
@@ -214,6 +220,7 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     previewContent: raw.full_markdown || '',
     contentUrl: raw.post_src,
     image: raw.image,
+    tips: tips,
   };
 });
 

@@ -34,6 +34,7 @@ interface CommentItemProps {
   onCommentUpdate?: (newComment: Comment, parentId?: number) => void;
   onCommentDelete?: (commentId: number) => void;
   showTooltips?: boolean;
+  includeReplies?: boolean;
 }
 
 export const CommentItem = ({
@@ -42,7 +43,8 @@ export const CommentItem = ({
   commentType = 'GENERIC_COMMENT',
   onCommentUpdate,
   onCommentDelete,
-  showTooltips = false,
+  showTooltips = true,
+  includeReplies = true,
 }: CommentItemProps) => {
   const {
     updateComment,
@@ -55,7 +57,9 @@ export const CommentItem = ({
     loading,
     forceRefresh,
     updateCommentVote,
+    bountyFilter,
   } = useComments();
+
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAwardModal, setShowAwardModal] = useState(false);
   const [selectedSolution, setSelectedSolution] = useState<SolutionViewEvent | null>(null);
@@ -68,11 +72,6 @@ export const CommentItem = ({
   // Determine if this comment is being edited or replied to
   const isEditing = editingCommentId === comment.id;
   const isReplying = replyingToCommentId === comment.id;
-
-  // Handle viewing a solution
-  const handleViewSolution = (event: SolutionViewEvent) => {
-    setSelectedSolution(event);
-  };
 
   // Handle editing a comment
   const handleEdit = async (params: {
@@ -202,13 +201,17 @@ export const CommentItem = ({
 
     // For bounty comments, use FeedItemBounty
     if (isBountyComment && comment.bounties) {
+      if (commentType === 'GENERIC_COMMENT') {
+        // Shim to skip showing bounties in conversation tab until we implement in API
+        return null;
+      }
+
       try {
         // Transform the comment to a feed entry for FeedItemBounty
         const feedEntry = transformBountyCommentToFeedItem(comment, contentType);
 
         // Create a custom href for the FeedItemBounty to prevent navigation
         const customHref = undefined; // Setting to undefined to prevent navigation
-
         // Check if this is an open bounty
         const isBountyOpen = comment.bounties.some((b) => isOpenBounty(b));
 
@@ -284,6 +287,7 @@ export const CommentItem = ({
           onDelete={() => handleDelete()}
           showCreatorActions={isAuthor}
           showTooltips={showTooltips}
+          hideActions={!includeReplies}
           actionLabels={{
             comment: 'Reply',
           }}
@@ -377,8 +381,8 @@ export const CommentItem = ({
       {/* Comment content */}
       {renderContent()}
 
-      {/* Replies section */}
-      {comment.replies && comment.replies.length > 0 ? (
+      {/* Replies section - conditionally rendered based on includeReplies prop */}
+      {includeReplies && comment.replies && comment.replies.length > 0 ? (
         <div className="-mt-1 pt-5 pl-6 border-l border-gray-200">
           {comment.replies.map((reply) => (
             <CommentItem
@@ -392,6 +396,7 @@ export const CommentItem = ({
               onCommentUpdate={onCommentUpdate}
               onCommentDelete={onCommentDelete}
               showTooltips={showTooltips}
+              includeReplies={includeReplies}
             />
           ))}
 
@@ -406,7 +411,7 @@ export const CommentItem = ({
             </div>
           )}
         </div>
-      ) : comment.childrenCount > 0 ? (
+      ) : includeReplies && comment.childrenCount > 0 ? (
         // No replies loaded yet, but there are replies to load
         <div className="mt-4">
           <div className="mt-2">

@@ -70,8 +70,6 @@ export const transformSolution = (raw: any): BountySolution => {
 };
 
 export const transformContribution = (raw: any): BountyContribution => {
-  console.log('raw', raw);
-
   if (!raw) {
     console.warn('Received null or undefined contribution data');
     return {
@@ -158,7 +156,7 @@ export const groupBountiesWithContributions = (bounties: any[]): Bounty[] => {
   return result;
 };
 
-export const transformBounty: BaseTransformer<any, Bounty> = (raw) => {
+export const transformBounty = (raw: any, options?: { ignoreBaseAmount?: boolean }): Bounty => {
   if (!raw) {
     console.warn('Received null or undefined bounty data');
     return {
@@ -175,6 +173,8 @@ export const transformBounty: BaseTransformer<any, Bounty> = (raw) => {
     };
   }
 
+  const { ignoreBaseAmount = false } = options || {};
+
   try {
     // Transform contributions if they exist
     const contributions = Array.isArray(raw.contributions)
@@ -182,7 +182,7 @@ export const transformBounty: BaseTransformer<any, Bounty> = (raw) => {
       : [];
 
     // Calculate total amount (base amount + all contributions)
-    const baseAmount = parseFloat(raw.amount) || 0;
+    const baseAmount = ignoreBaseAmount ? 0 : parseFloat(raw.amount) || 0;
     const contributionsTotal = contributions.reduce(
       (total: number, contribution: BountyContribution) => {
         return total + (parseFloat(contribution.amount) || 0);

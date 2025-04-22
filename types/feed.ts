@@ -10,6 +10,7 @@ import { Journal } from './journal';
 import { UserVoteType } from './reaction';
 import { User } from './user';
 import { stripHtml } from '@/utils/stringUtils';
+import { Tip } from './tip';
 
 export type FeedActionType = 'contribute' | 'open' | 'publish' | 'post';
 
@@ -160,8 +161,10 @@ export interface FeedEntry {
   contentType: FeedContentType; // New field to easily identify the type of content
   metrics?: ContentMetrics;
   relatedWork?: Work;
+  tips?: Tip[];
   raw?: RawApiFeedEntry;
   userVote?: UserVoteType;
+  awardedBountyAmount?: number;
 }
 
 export interface RawApiFeedEntry {
@@ -259,10 +262,13 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         }
 
         // Transform the bounty using the transformBounty function with proper error handling
-        const bounty = transformBounty({
-          created_by: author || null,
-          ...content_object,
-        });
+        const bounty = transformBounty(
+          {
+            created_by: author || null,
+            ...content_object,
+          },
+          { ignoreBaseAmount: true }
+        );
 
         // If the bounty has a paper, transform it to a Work and set as relatedWork
         const relatedDocumentId = content_object.paper?.id || content_object.post?.id || undefined;
@@ -373,7 +379,9 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
             description: '',
           },
           bounties: Array.isArray(content_object.bounties)
-            ? content_object.bounties.map(transformBounty)
+            ? content_object.bounties.map((bounty: any) =>
+                transformBounty(bounty, { ignoreBaseAmount: true })
+              )
             : [],
           reviews: content_object.reviews
             ? content_object.reviews.map((review: any) => ({
@@ -535,7 +543,11 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               ]
             : [],
           createdBy: transformAuthorProfile(author),
-          bounties: content_object.bounties ? content_object.bounties.map(transformBounty) : [],
+          bounties: content_object.bounties
+            ? content_object.bounties.map((bounty: any) =>
+                transformBounty(bounty, { ignoreBaseAmount: true })
+              )
+            : [],
           reviews: content_object.reviews
             ? content_object.reviews.map((review: any) => ({
                 id: review.id,
@@ -610,6 +622,8 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         : feedEntry.user_vote?.vote_type === 0
           ? 'NEUTRAL'
           : undefined,
+    tips: [], // Default empty tips
+    awardedBountyAmount: (content as any)?.awardedBountyAmount,
   } as FeedEntry;
 };
 
@@ -652,8 +666,6 @@ export const transformCommentToFeedItem = (
   contentType: ContentType,
   relatedDocument?: Work
 ): FeedEntry => {
-  console.log('111comment', comment);
-
   // Create a FeedCommentContent object from the comment
   const commentContent: FeedCommentContent = {
     id: comment.id,
@@ -701,6 +713,8 @@ export const transformCommentToFeedItem = (
       reviewScore: comment.commentType === 'REVIEW' ? comment.reviewScore || comment.score || 0 : 0,
     },
     userVote: comment.userVote,
+    tips: comment.tips,
+    awardedBountyAmount: comment.awardedBountyAmount,
   };
 };
 
@@ -756,5 +770,7 @@ export const transformBountyCommentToFeedItem = (
       reviewScore: 0, // Default value for reviewScore
     },
     userVote: comment.userVote,
+    tips: comment.tips,
+    awardedBountyAmount: comment.awardedBountyAmount,
   };
 };

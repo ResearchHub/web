@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState, useEffect } from 'react';
+import { Fragment, useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Alert } from '@/components/ui/Alert';
@@ -13,11 +13,12 @@ import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { FeedContentType } from '@/types/feed';
 import { useTip } from '@/hooks/useTip'; // Import the useTip hook
+import { formatRSC } from '@/utils/number';
 
 interface TipContentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onTipSuccess?: (response: any, amount: number) => void; // Callback on successful tip
+  onTipSuccess?: (amount: number) => void; // Added onTipSuccess prop
   contentId: number; // ID of the content being tipped
   feedContentType: FeedContentType; // Type of content being tipped
   recipientName?: string; // Optional: Name of the recipient for display
@@ -108,17 +109,17 @@ export function TipContentModal({
   const { tip, isTipping } = useTip({
     contentId,
     feedContentType,
-    onTipSuccess: (response, amount) => {
-      // Call the passed-in success handler if provided
+    onTipSuccess: (response, tippedAmount) => {
+      // Call the passed-in success handler
       if (onTipSuccess) {
-        onTipSuccess(response, amount);
+        onTipSuccess(tippedAmount);
       }
       // Close the modal on success
       onClose();
     },
     onTipError: (err) => {
       // Let the hook handle toast notifications, just set local error if needed
-      // setError(err instanceof Error ? err.message : 'Failed to send tip.');
+      setError(err instanceof Error ? err.message : 'Failed to send tip.');
     },
   });
 

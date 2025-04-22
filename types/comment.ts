@@ -3,6 +3,7 @@ import { BaseTransformer } from './transformer';
 import { Bounty, transformBounty, groupBountiesWithContributions } from './bounty';
 import { UserVoteType } from './reaction';
 import { transformUser, User } from './user';
+import { Tip, transformTip } from './tip';
 
 export type CommentFilter = 'BOUNTY' | 'DISCUSSION' | 'REVIEW';
 export type CommentSort = 'BEST' | 'NEWEST' | 'TOP' | 'CREATED_DATE';
@@ -61,6 +62,7 @@ export interface Comment {
   parentId?: number | null;
   raw: any;
   bounties: Bounty[];
+  tips?: Tip[];
   thread: Thread;
   userVote?: UserVoteType;
   metadata?: {
@@ -116,6 +118,9 @@ export const transformComment = (raw: any): Comment => {
   // Group bounties with their contributions
   const bounties = groupBountiesWithContributions(raw.bounties || []);
 
+  // Transform tips
+  const tips = (raw.purchases || []).map(transformTip);
+
   // Determine the comment type - if it has bounties, it should be a BOUNTY type
   const commentType = raw.comment_type || (bounties.length > 0 ? 'BOUNTY' : 'GENERIC_COMMENT');
 
@@ -140,6 +145,7 @@ export const transformComment = (raw: any): Comment => {
     isRemoved: raw.is_removed,
     parentId: raw.parent?.id || raw.parent_id,
     bounties,
+    tips,
     thread: transformThread(raw.thread),
     userVote,
     raw,

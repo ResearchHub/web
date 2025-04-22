@@ -19,32 +19,39 @@ export const buildWorkUrl = ({
   contentType,
   doi,
   slug,
+  tab,
 }: {
   id?: string | number | null;
   contentType: 'paper' | 'post' | 'funding_request' | 'preregistration';
   doi?: string | null;
   slug?: string;
+  tab?: 'reviews' | 'bounties' | 'conversation';
 }) => {
+  let baseUrl = '';
+
   if (contentType === 'post') {
     if (!id) return '#'; // Return a safe fallback for posts without ID
-    return `/post/${id}`;
-  }
-
-  if (contentType === 'funding_request' || contentType === 'preregistration') {
+    baseUrl = `/post/${id}`;
+  } else if (contentType === 'funding_request' || contentType === 'preregistration') {
     if (!id) return '#'; // Return a safe fallback for funding requests without ID
-    return slug ? `/fund/${id}/${slug}` : `/fund/${id}`;
+    baseUrl = slug ? `/fund/${id}/${slug}` : `/fund/${id}`;
+  } else {
+    // For papers
+    if (id) {
+      baseUrl = slug ? `/paper/${id}/${slug}` : `/paper/${id}`;
+    } else if (doi) {
+      baseUrl = `/paper?doi=${encodeURIComponent(doi)}`;
+    } else {
+      return '#'; // Return a safe fallback URL when neither id nor doi is available
+    }
   }
 
-  // For papers
-  if (id) {
-    return slug ? `/paper/${id}/${slug}` : `/paper/${id}`;
+  // Append tab if provided
+  if (tab) {
+    baseUrl += `/${tab}`;
   }
 
-  if (doi) {
-    return `/paper?doi=${encodeURIComponent(doi)}`;
-  }
-
-  return '#'; // Return a safe fallback URL when neither id nor doi is available
+  return baseUrl;
 };
 
 /**

@@ -24,14 +24,6 @@ export const MetricsSection = ({ metrics }: MetricsSectionProps) => {
           </div>
           <span className="text-sm font-medium text-gray-900">{metrics.reviewScore || 0}</span>
         </div>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Eye className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-600">Views</span>
-          </div>
-          <span className="text-sm font-medium text-gray-900">{metrics.views || 0}</span>
-        </div>
       </div>
     </section>
   );
