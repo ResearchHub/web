@@ -13,7 +13,7 @@ export const JournalEditorialBoard = () => {
             systems that compensate peer reviewers for their contributions.
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-8">
+        <div className="grid grid-cols-1 gap-8 px-8">
           {editors.map((editor: Editor) => (
             <EditorCard key={editor.name} editor={editor} />
           ))}

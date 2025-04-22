@@ -25,7 +25,7 @@ export const JournalHero: FC<JournalHeroProps> = ({ onSubmitNow, onLearnMore }) 
           <span className="">that's why we pay our peer reviewers</span>
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-5 mt-3 mb-3 w-full max-w-sm sm:max-w-none justify-center">
+        <div className="flex flex-row gap-5 mt-3 mb-3 w-full justify-center">
           <Button variant="default" size="lg" onClick={onSubmitNow}>
             Submit Now
           </Button>
