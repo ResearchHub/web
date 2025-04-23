@@ -121,13 +121,15 @@ export const WorkLineItems = ({
             <span>{voteCount}</span>
           </button>
 
-          <button
-            onClick={() => executeAuthenticatedAction(() => setIsTipModalOpen(true))}
-            className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
-          >
-            <Icon name="tipRSC" size={20} />
-            <span>Tip RSC</span>
-          </button>
+          {work.contentType !== 'preregistration' && (
+            <button
+              onClick={() => executeAuthenticatedAction(() => setIsTipModalOpen(true))}
+              className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+            >
+              <Icon name="tipRSC" size={20} />
+              <span>Tip RSC</span>
+            </button>
+          )}
 
           {/* Render insights button if provided */}
           {insightsButton}

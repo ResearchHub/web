@@ -32,6 +32,7 @@ import Icon from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
+import { navigateToAuthorProfile } from '@/utils/navigation';
 
 // Skeleton for the list items
 const LeaderboardListSkeleton = () => (
@@ -298,11 +299,13 @@ function LeaderboardPageContent() {
       try {
         if (activeTab === 'reviewers') {
           const data = await LeaderboardService.fetchReviewers(startStr, endStr);
-          setReviewers(data);
+          // Filter out reviewers with 0 RSC
+          setReviewers(data.filter((reviewer) => reviewer.earnedRsc > 0));
           setFunders([]);
         } else {
           const data = await LeaderboardService.fetchFunders(startStr, endStr);
-          setFunders(data);
+          // Filter out funders with 0 RSC
+          setFunders(data.filter((funder) => funder.totalFunding > 0));
           setReviewers([]);
         }
       } catch (err) {
@@ -509,10 +512,13 @@ function LeaderboardPageContent() {
                 const rank = index + 1;
                 const authorId = reviewer.authorProfile?.id;
                 return (
-                  <Link
+                  <div
                     key={reviewer.id}
-                    href={reviewer.authorProfile.profileUrl}
-                    className="flex items-center justify-between hover:bg-gray-100 p-4 rounded-lg border"
+                    onClick={() =>
+                      reviewer.authorProfile?.id &&
+                      navigateToAuthorProfile(reviewer.authorProfile.id)
+                    }
+                    className="flex items-center justify-between hover:bg-gray-100 p-4 rounded-lg border cursor-pointer"
                   >
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                       {renderRank(rank)}
@@ -560,7 +566,7 @@ function LeaderboardPageContent() {
                       textColor="text-orange-500"
                       rscLabelColor="text-orange-500"
                     />
-                  </Link>
+                  </div>
                 );
               })}
             </div>
@@ -573,10 +579,12 @@ function LeaderboardPageContent() {
               const rank = index + 1;
               const authorId = funder.authorProfile?.id;
               return (
-                <Link
+                <div
                   key={funder.id}
-                  href={funder.authorProfile.profileUrl}
-                  className="flex items-center justify-between hover:bg-gray-100 p-4 rounded-lg border"
+                  onClick={() =>
+                    funder.authorProfile?.id && navigateToAuthorProfile(funder.authorProfile.id)
+                  }
+                  className="flex items-center justify-between hover:bg-gray-100 p-4 rounded-lg border cursor-pointer"
                 >
                   <div className="flex items-center gap-4 flex-1 min-w-0">
                     {renderRank(rank)}
@@ -624,7 +632,7 @@ function LeaderboardPageContent() {
                     textColor="text-orange-500"
                     rscLabelColor="text-orange-500"
                   />
-                </Link>
+                </div>
               );
             })}
           </div>

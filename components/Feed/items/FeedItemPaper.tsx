@@ -75,9 +75,10 @@ const FeedItemPaperBody: FC<{
             verified: author.user?.isVerified,
             profileUrl: author.profileUrl,
           }))}
-          size="xs"
-          className="text-gray-500 font-normal text-sm"
+          size="sm"
+          className="text-gray-500 font-normal"
           delimiter="•"
+          showAbbreviatedInMobile={true}
         />
       </div>
 
