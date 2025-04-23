@@ -260,6 +260,20 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                   </div>
 
                   <div className="space-y-6">
+                    {/* Deposit Suspension Notice */}
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                      <div className="flex items-start">
+                        <AlertCircle className="h-5 w-5 text-amber-600 mr-3 mt-0.5" />
+                        <div>
+                          <h3 className="text-sm font-medium text-amber-800">Deposits Suspended</h3>
+                          <p className="mt-1 text-sm text-amber-700">
+                            Deposits are suspended for the time being. Please be patient as we work
+                            to turn deposits back on.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Network Info */}
                     <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-md">
                       <div className="flex items-center gap-3">
@@ -381,7 +395,8 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                     >
                       <TransactionButton
                         className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                        disabled={isButtonDisabled || txStatus.state === 'pending'}
+                        // disabled={isButtonDisabled || txStatus.state === 'pending'}
+                        disabled={true}
                         text={'Deposit RSC'}
                       />
                     </Transaction>
