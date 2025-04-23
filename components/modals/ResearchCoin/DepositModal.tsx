@@ -55,12 +55,16 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const [txStatus, setTxStatus] = useState<TransactionStatus>({ state: 'idle' });
   const { isEOA, isLoading: isEOALoading } = useIsEOA(isOpen);
   const hasCalledSuccessRef = useRef(false);
+  const hasProcessedDepositRef = useRef(false);
+  const processedTxHashRef = useRef<string | null>(null);
 
   // Reset transaction status when modal is closed
   useEffect(() => {
     setTxStatus({ state: 'idle' });
     setAmount('');
     hasCalledSuccessRef.current = false;
+    hasProcessedDepositRef.current = false;
+    processedTxHashRef.current = null;
   }, [isOpen]);
 
   // Handle custom close with state reset
@@ -73,15 +77,14 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   // Handle amount input change with validation
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-
-    // Allow numbers and a single decimal point
-    if (value === '' || /^(\d+)?(\.\d*)?$/.test(value)) {
+    // Only allow positive integers
+    if (value === '' || /^\d+$/.test(value)) {
       setAmount(value);
     }
   }, []);
 
   // Memoize derived values
-  const depositAmount = useMemo(() => parseFloat(amount || '0'), [amount]);
+  const depositAmount = useMemo(() => parseInt(amount || '0', 10), [amount]);
 
   const calculateNewBalance = useCallback(
     (): number => currentBalance + depositAmount,
@@ -113,40 +116,69 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
 
   const handleOnStatus = useCallback(
     (status: any) => {
-      console.log('Transaction status:', status);
+      console.log('Transaction status:', status.statusName, status);
 
-      // Updated to handle all lifecycle states
-      if (
-        status.statusName === 'buildingTransaction' ||
-        status.statusName === 'transactionPending'
-      ) {
+      // Handle building/pending states
+      if (status.statusName === 'buildingTransaction') {
         setTxStatus({ state: 'buildingTransaction' });
-      } else if (status.statusName === 'transactionPending') {
+        return;
+      }
+
+      if (status.statusName === 'transactionPending') {
         setTxStatus({ state: 'pending' });
-      } else if (status.statusName === 'transactionLegacyExecuted') {
+        return;
+      }
+
+      if (
+        status.statusName === 'transactionLegacyExecuted' &&
+        status.statusData?.transactionHashList?.[0]
+      ) {
         const txHash = status.statusData.transactionHashList[0];
         setTxStatus({ state: 'pending', txHash });
-      } else if (status.statusName === 'success') {
+        return;
+      }
+
+      if (
+        status.statusName === 'success' &&
+        status.statusData?.transactionReceipts?.[0]?.transactionHash
+      ) {
         const txHash = status.statusData.transactionReceipts[0].transactionHash;
+
+        // Set success state regardless of whether we've processed it
         setTxStatus({ state: 'success', txHash });
-        TransactionService.saveDeposit({
-          amount: depositAmount,
-          transaction_hash: txHash,
-          from_address: address!,
-          network: 'BASE',
-        }).catch((error) => {
-          console.error('Failed to record deposit:', error);
-        });
+
+        // Prevent duplicate API calls by checking if we've processed this specific transaction
+        if (!hasProcessedDepositRef.current && processedTxHashRef.current !== txHash) {
+          console.log('Processing deposit for transaction:', txHash);
+
+          // Mark as processed first to prevent race conditions
+          hasProcessedDepositRef.current = true;
+          processedTxHashRef.current = txHash;
+
+          TransactionService.saveDeposit({
+            amount: depositAmount,
+            transaction_hash: txHash,
+            from_address: address!,
+            network: 'BASE',
+          }).catch((error) => {
+            console.error('Failed to record deposit:', error);
+          });
+        } else {
+          console.log('Skipping duplicate deposit processing for transaction:', txHash);
+        }
 
         if (onSuccess && !hasCalledSuccessRef.current) {
           hasCalledSuccessRef.current = true;
           onSuccess();
         }
-      } else if (status.statusName === 'error') {
+        return;
+      }
+
+      if (status.statusName === 'error') {
         console.error('Transaction error full status:', JSON.stringify(status, null, 2));
         setTxStatus({
           state: 'error',
-          message: status.statusData.message,
+          message: status.statusData?.message || 'Transaction failed',
         });
       }
     },
@@ -163,12 +195,13 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     if (!isEOA) {
       throw new Error('Deposits from smart wallets are not supported');
     }
-    const amountInWei = (parseFloat(amount) * 1e18).toFixed(0);
+
+    const amountInWei = BigInt(depositAmount) * BigInt(10 ** 18);
 
     const transferInterface = new Interface(TRANSFER_ABI);
     const encodedData = transferInterface.encodeFunctionData('transfer', [
       HOT_WALLET_ADDRESS,
-      amountInWei,
+      amountInWei.toString(),
     ]);
 
     // Cast the result to Call type with proper hex type
@@ -227,6 +260,20 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                   </div>
 
                   <div className="space-y-6">
+                    {/* Deposit Suspension Notice */}
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                      <div className="flex items-start">
+                        <AlertCircle className="h-5 w-5 text-amber-600 mr-3 mt-0.5" />
+                        <div>
+                          <h3 className="text-sm font-medium text-amber-800">Deposits Suspended</h3>
+                          <p className="mt-1 text-sm text-amber-700">
+                            Deposits are suspended for the time being. Please be patient as we work
+                            to turn deposits back on.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Network Info */}
                     <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-md">
                       <div className="flex items-center gap-3">
@@ -275,7 +322,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                       <div className="flex justify-between items-center">
                         <span className="text-[15px] text-gray-700">Amount to Deposit</span>
                         <button
-                          onClick={() => setAmount(walletBalance.toString())}
+                          onClick={() => setAmount(Math.floor(walletBalance).toString())}
                           className="text-sm text-primary-500 font-medium hover:text-primary-600 disabled:opacity-50 disabled:text-gray-400 disabled:hover:text-gray-400"
                           disabled={isInputDisabled()}
                         >
@@ -285,10 +332,11 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                       <div className="relative">
                         <input
                           type="text"
-                          inputMode="decimal"
+                          inputMode="numeric"
+                          pattern="\d*"
                           value={amount}
                           onChange={handleAmountChange}
-                          placeholder="0.00"
+                          placeholder="0"
                           disabled={isInputDisabled()}
                           aria-label="Amount to deposit"
                           className={`w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200 ${isInputDisabled() ? 'bg-gray-100 cursor-not-allowed' : ''}`}
@@ -347,7 +395,8 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                     >
                       <TransactionButton
                         className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                        disabled={isButtonDisabled || txStatus.state === 'pending'}
+                        // disabled={isButtonDisabled || txStatus.state === 'pending'}
+                        disabled={true}
                         text={'Deposit RSC'}
                       />
                     </Transaction>

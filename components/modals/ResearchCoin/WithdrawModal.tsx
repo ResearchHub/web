@@ -5,7 +5,6 @@ import { Fragment, useCallback, useMemo, useState, useEffect } from 'react';
 import { X as XIcon, Check, AlertCircle, ExternalLink, Loader2 } from 'lucide-react';
 import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useAccount } from 'wagmi';
 import { useWithdrawRSC } from '@/hooks/useWithdrawRSC';
 import { cn } from '@/utils/styles';
@@ -17,6 +16,9 @@ const NETWORK_DESCRIPTION = IS_PRODUCTION
   ? 'Withdrawals are processed on Base L2'
   : 'Withdrawals are processed on Base Sepolia testnet';
 const BLOCK_EXPLORER_URL = IS_PRODUCTION ? 'https://basescan.org' : 'https://sepolia.basescan.org';
+
+// Minimum withdrawal amount in RSC
+const MIN_WITHDRAWAL_AMOUNT = 150;
 
 interface WithdrawModalProps {
   isOpen: boolean;
@@ -32,7 +34,6 @@ export function WithdrawModal({
   onSuccess,
 }: WithdrawModalProps) {
   const [amount, setAmount] = useState<string>('');
-  const { exchangeRate } = useExchangeRate();
   const { address } = useAccount();
   const [{ txStatus, isLoading, fee, isFeeLoading, feeError }, withdrawRSC] = useWithdrawRSC();
 
@@ -46,29 +47,63 @@ export function WithdrawModal({
   // Handle amount input change with validation
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Only allow numbers and a single decimal point
-    if (value === '' || /^(\d+)?(\.\d*)?$/.test(value)) {
+    // Only allow positive integers
+    if (value === '' || /^\d+$/.test(value)) {
       setAmount(value);
     }
   }, []);
 
   // Memoize derived values
-  const withdrawAmount = useMemo(() => parseFloat(amount || '0'), [amount]);
+  const withdrawAmount = useMemo(() => parseInt(amount || '0', 10), [amount]);
 
-  // Calculate net amount user will receive after fee
-  const calculateNetAmount = useCallback((): number => {
-    if (!fee) return withdrawAmount;
+  // Calculate the amount the user will actually receive
+  const amountUserWillReceive = useMemo((): number => {
+    if (!fee) return 0;
     return Math.max(0, withdrawAmount - fee);
   }, [withdrawAmount, fee]);
 
+  // Check if the withdrawal amount is below minimum
+  const isBelowMinimum = useMemo(
+    () => withdrawAmount > 0 && withdrawAmount < MIN_WITHDRAWAL_AMOUNT,
+    [withdrawAmount]
+  );
+
+  // Calculate total amount needed (withdrawal amount)
+  const calculateTotalWithFee = useCallback((): number => {
+    return withdrawAmount;
+  }, [withdrawAmount]);
+
   const calculateNewBalance = useCallback((): number => {
-    return Math.max(0, availableBalance - withdrawAmount);
-  }, [availableBalance, withdrawAmount]);
+    return Math.max(0, availableBalance - calculateTotalWithFee());
+  }, [availableBalance, calculateTotalWithFee]);
+
+  // Check if user has enough balance for withdrawal
+  const hasInsufficientBalance = useMemo(
+    () => withdrawAmount > 0 && withdrawAmount > availableBalance,
+    [withdrawAmount, availableBalance]
+  );
 
   // Determine if withdraw button should be disabled
   const isButtonDisabled = useMemo(
-    () => !amount || withdrawAmount <= 0 || txStatus.state === 'pending' || isFeeLoading || !fee,
-    [amount, withdrawAmount, txStatus.state, isFeeLoading, fee]
+    () =>
+      !amount ||
+      withdrawAmount <= 0 ||
+      txStatus.state === 'pending' ||
+      isFeeLoading ||
+      !fee ||
+      hasInsufficientBalance ||
+      isBelowMinimum ||
+      amountUserWillReceive <= 0,
+    [
+      amount,
+      withdrawAmount,
+      txStatus.state,
+      isFeeLoading,
+      fee,
+      hasInsufficientBalance,
+      isBelowMinimum,
+      amountUserWillReceive,
+    ]
   );
 
   // Function to check if inputs should be disabled
@@ -77,10 +112,10 @@ export function WithdrawModal({
   }, [address, txStatus.state]);
 
   const handleMaxAmount = useCallback(() => {
-    if (isInputDisabled()) return;
-    // Set max amount to the full balance
-    setAmount(availableBalance > 0 ? availableBalance.toString() : '0');
-  }, [availableBalance, isInputDisabled]);
+    if (isInputDisabled() || !fee) return;
+    const maxWithdrawAmount = Math.floor(availableBalance);
+    setAmount(maxWithdrawAmount > 0 ? maxWithdrawAmount.toString() : '0');
+  }, [availableBalance, isInputDisabled, fee]);
 
   const handleWithdraw = useCallback(async () => {
     if (!address || !amount || isButtonDisabled || !fee) {
@@ -176,10 +211,11 @@ export function WithdrawModal({
                     <div className="relative">
                       <input
                         type="text"
-                        inputMode="decimal"
+                        inputMode="numeric"
+                        pattern="\d*"
                         value={amount}
                         onChange={handleAmountChange}
-                        placeholder="0.00"
+                        placeholder="0"
                         disabled={isInputDisabled()}
                         aria-label="Amount to withdraw"
                         className={cn(
@@ -192,14 +228,19 @@ export function WithdrawModal({
                         <span className="text-gray-500">RSC</span>
                       </div>
                     </div>
-                    {withdrawAmount > availableBalance && (
+                    {isBelowMinimum && (
+                      <p className="text-sm text-red-600" role="alert">
+                        Minimum withdrawal amount is {MIN_WITHDRAWAL_AMOUNT} RSC.
+                      </p>
+                    )}
+                    {hasInsufficientBalance && (
                       <p className="text-sm text-red-600" role="alert">
                         Withdrawal amount exceeds your available balance.
                       </p>
                     )}
                   </div>
 
-                  {/* Fee and Net Amount Display */}
+                  {/* Fee Display */}
                   <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
                     {isFeeLoading ? (
                       <p className="text-sm text-gray-700 flex items-center">
@@ -214,15 +255,30 @@ export function WithdrawModal({
                     ) : (
                       <div className="space-y-2">
                         <p className="text-sm text-gray-700 flex items-center">
-                          <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />A fee of {fee} RSC
-                          will be charged for this withdrawal.
+                          <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />A network fee of{' '}
+                          {fee} RSC will be deducted from your withdrawal amount.
                         </p>
-                        {withdrawAmount > 0 && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-700">You will receive:</span>
-                            <span className="text-sm font-medium text-gray-900">
-                              {formatRSC({ amount: calculateNetAmount() })} RSC
-                            </span>
+
+                        {/* Added "You will receive" row */}
+                        {withdrawAmount > 0 && fee && (
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-gray-700">
+                                You will receive:
+                              </span>
+                              <div className="flex items-center gap-1">
+                                <ResearchCoinIcon size={16} />
+                                <span className="text-sm font-semibold text-gray-900">
+                                  {formatRSC({ amount: amountUserWillReceive })}
+                                </span>
+                                <span className="text-sm text-gray-500">RSC</span>
+                              </div>
+                            </div>
+                            {amountUserWillReceive <= 0 && withdrawAmount > 0 && (
+                              <p className="text-xs text-red-600 mt-1">
+                                Withdrawal amount must be greater than the network fee.
+                              </p>
+                            )}
                           </div>
                         )}
                       </div>

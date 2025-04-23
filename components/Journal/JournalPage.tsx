@@ -1,10 +1,11 @@
 'use client';
 
 import { FC, useState } from 'react';
-import { Icon } from '@/components/ui/icons/Icon';
 import { JournalFeed } from './JournalFeed';
 import { JournalTabs } from './JournalTabs';
 import { JournalAboutTab } from './JournalAboutTab';
+import Icon from '@/components/ui/icons/Icon';
+import { MainPageHeader } from '@/components/ui/MainPageHeader';
 
 type JournalTab = 'all' | 'in-review' | 'published' | 'about';
 
@@ -40,10 +41,11 @@ export const JournalPage: FC = () => {
   ];
 
   const header = (
-    <h1 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
-      <Icon name="rhJournal2" size={24} className="text-indigo-500" />
-      ResearchHub Journal
-    </h1>
+    <MainPageHeader
+      icon={<Icon name="rhJournal2" size={26} color="#4f46e5" />}
+      title="ResearchHub Journal"
+      subtitle="Accelerating science through open access publishing and peer review."
+    />
   );
 
   const description = (
@@ -63,10 +65,7 @@ export const JournalPage: FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="pt-2 pb-4">
-        {header}
-        {description}
-      </div>
+      <div className="pt-4 pb-7">{header}</div>
 
       <JournalTabs
         activeTab={activeTab}

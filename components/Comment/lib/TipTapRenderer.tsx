@@ -364,7 +364,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
   }
 
   // Handle code block nodes
-  if (node.type === 'code_block') {
+  if (node.type === 'code_block' || node.type === 'codeBlock') {
     return (
       <pre
         className={`tiptap-code-block bg-gray-800 text-gray-100 p-4 rounded my-4 overflow-x-auto`}

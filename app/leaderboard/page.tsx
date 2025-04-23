@@ -31,6 +31,8 @@ import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import Icon from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
+import { MainPageHeader } from '@/components/ui/MainPageHeader';
+import { navigateToAuthorProfile } from '@/utils/navigation';
 
 // Skeleton for the list items
 const LeaderboardListSkeleton = () => (
@@ -65,8 +67,8 @@ const getDatesFromPreset = (preset: string): { start: Date; end: Date } => {
 const presetOptions = [
   { value: 'lastWeek', label: 'Last 7 Days' },
   { value: 'lastMonth', label: 'Last 30 Days' },
-  { value: 'lastYear', label: 'Last 365 Days' },
-  { value: 'custom', label: 'Custom Range' },
+  // { value: 'lastYear', label: 'Last 365 Days' },
+  // { value: 'custom', label: 'Custom Range' },
 ];
 
 // Function to determine preset based on dates
@@ -297,11 +299,13 @@ function LeaderboardPageContent() {
       try {
         if (activeTab === 'reviewers') {
           const data = await LeaderboardService.fetchReviewers(startStr, endStr);
-          setReviewers(data);
+          // Filter out reviewers with 0 RSC
+          setReviewers(data.filter((reviewer) => reviewer.earnedRsc > 0));
           setFunders([]);
         } else {
           const data = await LeaderboardService.fetchFunders(startStr, endStr);
-          setFunders(data);
+          // Filter out funders with 0 RSC
+          setFunders(data.filter((funder) => funder.totalFunding > 0));
           setReviewers([]);
         }
       } catch (err) {
@@ -386,7 +390,7 @@ function LeaderboardPageContent() {
             </Button>
           )
       )}
-      <Button
+      {/* <Button
         variant={isDrawerCustom ? 'default' : 'outlined'}
         onClick={() => {
           setIsDrawerCustom(true);
@@ -398,7 +402,7 @@ function LeaderboardPageContent() {
         className="w-full justify-start"
       >
         Custom Range
-      </Button>
+      </Button> */}
 
       {isDrawerCustom && (
         <div className="space-y-3 pt-3 border-t mt-3">
@@ -443,11 +447,13 @@ function LeaderboardPageContent() {
 
   return (
     <div className="px-0 py-0">
-      <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-        <ChartNoAxesColumnIncreasing size={28} />
-        ResearchHub Leaderboard
-      </h1>
-      <p className="text-gray-600 mb-6">See top earners on ResearchHub for a given period.</p>
+      <div className="pt-4 pb-7">
+        <MainPageHeader
+          icon={<ChartNoAxesColumnIncreasing size={28} />}
+          title="Leaderboard"
+          subtitle="See top earners on ResearchHub for a given period."
+        />
+      </div>
 
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col md:!flex-row md:!items-center md:!justify-between mb-4 gap-4">
@@ -506,10 +512,13 @@ function LeaderboardPageContent() {
                 const rank = index + 1;
                 const authorId = reviewer.authorProfile?.id;
                 return (
-                  <Link
+                  <div
                     key={reviewer.id}
-                    href={reviewer.authorProfile.profileUrl}
-                    className="flex items-center justify-between hover:bg-gray-100 p-4 rounded-lg border"
+                    onClick={() =>
+                      reviewer.authorProfile?.id &&
+                      navigateToAuthorProfile(reviewer.authorProfile.id)
+                    }
+                    className="flex items-center justify-between hover:bg-gray-100 p-4 rounded-lg border cursor-pointer"
                   >
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                       {renderRank(rank)}
@@ -557,7 +566,7 @@ function LeaderboardPageContent() {
                       textColor="text-orange-500"
                       rscLabelColor="text-orange-500"
                     />
-                  </Link>
+                  </div>
                 );
               })}
             </div>
@@ -570,10 +579,12 @@ function LeaderboardPageContent() {
               const rank = index + 1;
               const authorId = funder.authorProfile?.id;
               return (
-                <Link
+                <div
                   key={funder.id}
-                  href={funder.authorProfile.profileUrl}
-                  className="flex items-center justify-between hover:bg-gray-100 p-4 rounded-lg border"
+                  onClick={() =>
+                    funder.authorProfile?.id && navigateToAuthorProfile(funder.authorProfile.id)
+                  }
+                  className="flex items-center justify-between hover:bg-gray-100 p-4 rounded-lg border cursor-pointer"
                 >
                   <div className="flex items-center gap-4 flex-1 min-w-0">
                     {renderRank(rank)}
@@ -621,7 +632,7 @@ function LeaderboardPageContent() {
                     textColor="text-orange-500"
                     rscLabelColor="text-orange-500"
                   />
-                </Link>
+                </div>
               );
             })}
           </div>
