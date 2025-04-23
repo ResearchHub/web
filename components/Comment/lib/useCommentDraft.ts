@@ -124,7 +124,6 @@ export const useCommentDraft = ({
 
         // Store loaded content
         if (parsedData.content) {
-          console.log('setting loaded content', parsedData.content);
           setLoadedContent(parsedData.content);
           contentRef.current = parsedData.content;
 
