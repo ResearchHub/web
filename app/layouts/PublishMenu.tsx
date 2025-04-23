@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus } from 'lucide-react';
+import { Plus, PenLine } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
@@ -77,6 +77,27 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
                       Preprint or peer reviewed publication
+                    </div>
+                  </div>
+                </div>
+              </BaseMenuItem>
+
+              <BaseMenuItem
+                onClick={() => executeAuthenticatedAction(() => router.push('/notebook'))}
+                className="w-full px-2"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                      <PenLine size={24} color="#2563eb" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
+                      Draft a new Note
+                    </div>
+                    <div className="text-xs text-gray-600 mt-0.5">
+                      Draft and publish your research
                     </div>
                   </div>
                 </div>
@@ -175,6 +196,27 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
                       Preprint or peer reviewed publication
+                    </div>
+                  </div>
+                </div>
+              </BaseMenuItem>
+
+              <BaseMenuItem
+                onClick={() => executeAuthenticatedAction(() => router.push('/notebook'))}
+                className="w-full px-2"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                      <PenLine size={24} color="#2563eb" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
+                      Draft a new Note
+                    </div>
+                    <div className="text-xs text-gray-600 mt-0.5">
+                      Capture your research ideas and notes
                     </div>
                   </div>
                 </div>

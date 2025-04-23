@@ -274,8 +274,6 @@ export class BountyService {
           },
         };
 
-        console.log('feedEntry', feedEntry);
-
         return transformFeedEntry(feedEntry);
       });
 

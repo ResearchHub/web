@@ -13,6 +13,7 @@ import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import Link from 'next/link';
 import { AuthSharingService } from '@/services/auth-sharing.service';
 import { navigateToAuthorProfile } from '@/utils/navigation';
+import Icon from '@/components/ui/icons/Icon';
 
 interface UserMenuProps {
   user: User;
@@ -114,7 +115,7 @@ export default function UserMenu({
       {/* Menu items */}
       <div className="py-4">
         <div
-          className="px-6 py-2 hover:bg-gray-50 cursor-pointer"
+          className="px-6 py-2 hover:bg-gray-50 cursor-pointer hidden sidebar-compact:block"
           onClick={() => {
             navigateToAuthorProfile(user.authorProfile?.id);
             setMenuOpenState(false);
@@ -126,7 +127,11 @@ export default function UserMenu({
           </div>
         </div>
 
-        <Link href="/notifications" className="block" onClick={() => setMenuOpenState(false)}>
+        <Link
+          href="/notifications"
+          className="block sidebar-compact:hidden"
+          onClick={() => setMenuOpenState(false)}
+        >
           <div className="px-6 py-2 hover:bg-gray-50">
             <div className="flex items-center">
               <Bell className="h-5 w-5 mr-3 text-gray-500" />
@@ -135,11 +140,24 @@ export default function UserMenu({
           </div>
         </Link>
 
-        <Link href="/researchcoin" className="block" onClick={() => setMenuOpenState(false)}>
+        <Link
+          href="/researchcoin"
+          className="block sidebar-compact:hidden"
+          onClick={() => setMenuOpenState(false)}
+        >
           <div className="px-6 py-2 hover:bg-gray-50">
             <div className="flex items-center">
               <ResearchCoinIcon outlined className="h-5 w-5 mr-3 text-gray-500" color="#676767" />
               <span className="text-base text-gray-700">My ResearchCoin</span>
+            </div>
+          </div>
+        </Link>
+
+        <Link href="/notebook" className="block" onClick={() => setMenuOpenState(false)}>
+          <div className="px-6 py-2 hover:bg-gray-50">
+            <div className="flex items-center">
+              <Icon name="labNotebook2" size={22} className="mr-3 text-gray-500" />
+              <span className="text-base text-gray-700">Lab Notebook</span>
             </div>
           </div>
         </Link>
@@ -225,7 +243,7 @@ export default function UserMenu({
           <div className="py-1">
             <BaseMenuItem
               onClick={() => navigateToAuthorProfile(user.authorProfile?.id)}
-              className="w-full px-4 py-2"
+              className="w-full px-4 py-2 hidden sidebar-compact:block"
             >
               <div className="flex items-center">
                 <UserIcon className="h-4 w-4 mr-3 text-gray-500" />
@@ -233,7 +251,11 @@ export default function UserMenu({
               </div>
             </BaseMenuItem>
 
-            <Link href="/notifications" className="block" onClick={() => setMenuOpenState(false)}>
+            <Link
+              href="/notifications"
+              className="block sidebar-compact:hidden"
+              onClick={() => setMenuOpenState(false)}
+            >
               <div className="w-full px-4 py-2 hover:bg-gray-50">
                 <div className="flex items-center">
                   <Bell className="h-4 w-4 mr-3 text-gray-500" />
@@ -242,7 +264,11 @@ export default function UserMenu({
               </div>
             </Link>
 
-            <Link href="/researchcoin" className="block" onClick={() => setMenuOpenState(false)}>
+            <Link
+              href="/researchcoin"
+              className="block sidebar-compact:hidden"
+              onClick={() => setMenuOpenState(false)}
+            >
               <div className="w-full px-4 py-2 hover:bg-gray-50">
                 <div className="flex items-center">
                   <ResearchCoinIcon
@@ -251,6 +277,15 @@ export default function UserMenu({
                     color="#676767"
                   />
                   <span className="text-sm text-gray-700">My ResearchCoin</span>
+                </div>
+              </div>
+            </Link>
+
+            <Link href="/notebook" className="block" onClick={() => setMenuOpenState(false)}>
+              <div className="w-full px-4 py-2 hover:bg-gray-50">
+                <div className="flex items-center">
+                  <Icon name="labNotebook2" size={18} className="mr-3 text-gray-500" />
+                  <span className="text-sm text-gray-700">Lab Notebook</span>
                 </div>
               </div>
             </Link>

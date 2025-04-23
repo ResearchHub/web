@@ -56,11 +56,11 @@ export const BountyCarouselItem: FC<BountyCarouselItemProps> = ({ entry }) => {
 
   return (
     <div
-      className="bg-white rounded-lg border border-gray-200 overflow-hidden w-[250px] h-[200px] cursor-pointer hover:shadow-md transition-shadow duration-200"
+      className="bg-white rounded-lg border border-gray-200 overflow-hidden w-[250px] cursor-pointer hover:shadow-md transition-shadow duration-200 flex flex-col"
       onClick={handleCardClick}
     >
       {/* Paper info section */}
-      <div className="p-3 pb-2">
+      <div className="p-3 pb-2 flex-grow">
         {/* Topic badge */}
         <div className="mb-2 inline-flex">
           {topic && (
@@ -90,7 +90,7 @@ export const BountyCarouselItem: FC<BountyCarouselItemProps> = ({ entry }) => {
               className="font-normal text-gray-600"
               size="xs"
               delimiter="•"
-              abbreviated={true}
+              maxLength={1}
             />
           )}
         </div>

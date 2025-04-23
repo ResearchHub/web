@@ -24,6 +24,10 @@ interface AuthorListProps {
   delimiter?: any;
   /** Whether to show abbreviated format (first, last, et al.) */
   abbreviated?: boolean;
+  /** Maximum number of authors to display before showing 'et al.' */
+  maxLength?: number;
+  /** Whether to show abbreviated version (first author + et al.) on mobile only */
+  showAbbreviatedInMobile?: boolean;
 }
 
 export const AuthorList = ({
@@ -34,6 +38,8 @@ export const AuthorList = ({
   delimiterClassName,
   delimiter = '•',
   abbreviated = false,
+  maxLength,
+  showAbbreviatedInMobile = false,
 }: AuthorListProps) => {
   const [showAll, setShowAll] = useState(false);
 
@@ -53,7 +59,33 @@ export const AuthorList = ({
     }
   };
 
+  // Render the full author list (for desktop or non-mobile-responsive version)
   const renderAuthors = () => {
+    // Handle maxLength format if provided
+    if (maxLength !== undefined && maxLength > 0 && filteredAuthors.length > 0) {
+      const authorsToShow = filteredAuthors.slice(0, maxLength);
+      const showEtAl = filteredAuthors.length > maxLength;
+
+      return (
+        <>
+          {authorsToShow.map((author, index) => (
+            <Fragment key={author.name + index}>
+              <AuthorItem author={author} showDot={false} size={size} className={className} />
+              {index < authorsToShow.length - 1 && (
+                <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
+              )}
+            </Fragment>
+          ))}
+          {showEtAl && (
+            <>
+              <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
+              <span className={cn(getTextSize(), 'text-gray-500')}>et al.</span>
+            </>
+          )}
+        </>
+      );
+    }
+
     // Handle abbreviated format
     if (abbreviated) {
       if (filteredAuthors.length === 1) {
@@ -162,9 +194,38 @@ export const AuthorList = ({
     );
   };
 
+  // Render mobile-abbreviated list (first author + et al.)
+  const renderMobileAbbreviatedAuthors = () => {
+    if (filteredAuthors.length <= 1) {
+      return (
+        <AuthorItem author={filteredAuthors[0]} showDot={false} size={size} className={className} />
+      );
+    }
+
+    return (
+      <>
+        <AuthorItem author={filteredAuthors[0]} showDot={false} size={size} className={className} />
+        <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
+        <span className={cn(getTextSize(), 'text-gray-500')}>et al.</span>
+      </>
+    );
+  };
+
   return (
     <div className="flex flex-wrap items-center">
-      {renderAuthors()}
+      {showAbbreviatedInMobile ? (
+        <>
+          {/* Mobile-only abbreviated view - Using flex-nowrap to prevent line breaks */}
+          <div className="md:!hidden flex flex-nowrap items-center overflow-hidden">
+            {renderMobileAbbreviatedAuthors()}
+          </div>
+          {/* Desktop-only full view */}
+          <div className="hidden md:!flex md:!flex-wrap md:!items-center">{renderAuthors()}</div>
+        </>
+      ) : (
+        renderAuthors()
+      )}
+
       {timestamp && (
         <>
           <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>

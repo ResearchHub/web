@@ -25,6 +25,29 @@ import { useUser } from '@/contexts/UserContext';
 import { dedupeAvatars } from '@/utils/avatarUtil';
 import { cn } from '@/utils/styles';
 
+// Basic media query hook (can be moved to a utility file later)
+const useMediaQuery = (query: string): boolean => {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return; // Check if window is defined
+
+    const media = window.matchMedia(query);
+    const listener = () => setMatches(media.matches);
+
+    // Initial check
+    listener();
+
+    // Add listener for changes
+    media.addEventListener('change', listener);
+
+    // Cleanup listener on component unmount
+    return () => media.removeEventListener('change', listener);
+  }, [query]);
+
+  return matches;
+};
+
 // Define interfaces for the types we're using
 interface Author {
   id: number;
@@ -76,18 +99,29 @@ export const ActionButton: FC<ActionButtonProps> = ({
   <Button
     variant="ghost"
     size="sm"
-    className={`flex items-center space-x-1.5 border border-gray-200 rounded-full py-1 px-3
-      ${isActive ? 'text-primary-600' : 'text-gray-900'} 
-      hover:text-gray-900 hover:bg-gray-50 ${className}`}
+    className={cn(
+      `flex items-center space-x-1 border border-gray-200 rounded-full`,
+      // Responsive padding
+      'py-0.5 px-2 md:!py-1 md:!px-3',
+      isActive ? 'text-primary-600' : 'text-gray-900',
+      'hover:text-gray-900 hover:bg-gray-50',
+      className
+    )}
     tooltip={showTooltip ? tooltip : undefined}
     onClick={onClick}
     disabled={isDisabled}
   >
-    <Icon className={`w-5 h-5 ${isActive ? 'text-primary-600' : ''}`} />
+    <Icon
+      className={cn(
+        // Responsive icon size
+        'w-4 h-4 md:!w-5 md:!h-5',
+        isActive ? 'text-primary-600' : ''
+      )}
+    />
     {showLabel ? (
-      <span className="text-sm font-medium">{label}</span>
+      <span className="text-xs md:!text-sm font-medium">{label}</span>
     ) : count !== undefined ? (
-      <span className="text-sm font-medium">{count}</span>
+      <span className="text-xs md:!text-sm font-medium">{count}</span>
     ) : null}
 
     {avatars.length > 0 && (
@@ -126,6 +160,7 @@ interface FeedItemActionsProps {
     tooltip?: string;
     disabled?: boolean;
     onClick: (e?: React.MouseEvent) => void;
+    className?: string; // Add optional className for styling menu items
   }>;
   rightSideActionButton?: ReactNode; // New property for a custom action button on the right side
   href?: string; // URL to use for navigation
@@ -369,6 +404,42 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   // Calculate total earned amount (Tips + Awarded Bounty)
   const totalEarnedAmount = localTotalTipAmount + awardedBountyAmount;
 
+  // Use media queries to determine screen size
+  const isMobile = useMediaQuery('(max-width: 480px)');
+  const isTabletOrSmaller = useMediaQuery('(max-width: 768px)');
+
+  // Prepare Tip menu item for smaller screens
+  const tipMenuItem = {
+    icon: (props: any) => (
+      <Icon
+        name="tipRSC"
+        {...props}
+        size={16} // Slightly smaller icon for menu
+        color={totalEarnedAmount > 0 ? '#16A34A' : undefined}
+      />
+    ),
+    label:
+      totalEarnedAmount > 0
+        ? `Tip / Earned +${formatRSC({ amount: totalEarnedAmount, shorten: true })}`
+        : 'Tip RSC',
+    tooltip: 'Tip RSC',
+    onClick: handleOpenTipModal,
+    className: totalEarnedAmount > 0 ? 'text-green-600' : '',
+  };
+
+  // Combine menu items, conditionally adding the tip item
+  const combinedMenuItems = [...menuItems, ...(isTabletOrSmaller ? [tipMenuItem] : [])];
+
+  // Add separator if needed before Report
+  const showSeparator =
+    (!hideReportButton && combinedMenuItems.length > 0 && !isTabletOrSmaller) || // Original condition
+    (!hideReportButton && combinedMenuItems.length > 1 && isTabletOrSmaller); // Adjusted for tip in menu
+
+  // Determine which buttons to show inline based on screen size
+  const showInlineReviews = reviews.length > 0 && (!isMobile || (isMobile && !hasOpenBounties));
+  const showInlineBounties = hasOpenBounties && (!isMobile || isMobile); // Show bounties on mobile if they exist
+  const showInlineTip = !isTabletOrSmaller;
+
   return (
     <>
       <div className="flex items-center justify-between w-full">
@@ -395,7 +466,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               avatars={commentAvatars}
             />
           )}
-          {reviews.length > 0 && (
+          {showInlineReviews && (
             <ActionButton
               icon={Star}
               count={metrics?.reviewScore !== 0 ? formatScore(metrics?.reviewScore || 0) : '3.0'}
@@ -406,7 +477,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               avatars={dedupedReviewAvatars}
             />
           )}
-          {hasOpenBounties &&
+          {showInlineBounties &&
             (showTooltips ? (
               <Tooltip
                 content={
@@ -480,25 +551,27 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 }
               />
             ))}
-          <ActionButton
-            icon={(props: any) => (
-              <Icon
-                name="tipRSC"
-                {...props}
-                size={20}
-                color={totalEarnedAmount > 0 ? '#16A34A' : undefined}
-              />
-            )}
-            tooltip="Tip RSC"
-            label="Tip"
-            onClick={handleOpenTipModal}
-            showTooltip={showTooltips}
-            {...(totalEarnedAmount > 0 && {
-              count: `+${formatRSC({ amount: totalEarnedAmount, shorten: true })}`,
-              className: 'text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700',
-              avatars: localTipAvatars,
-            })}
-          />
+          {showInlineTip && (
+            <ActionButton
+              icon={(props: any) => (
+                <Icon
+                  name="tipRSC"
+                  {...props}
+                  size={16}
+                  color={totalEarnedAmount > 0 ? '#16A34A' : undefined}
+                />
+              )}
+              tooltip="Tip RSC"
+              label="Tip"
+              onClick={handleOpenTipModal}
+              showTooltip={showTooltips}
+              {...(totalEarnedAmount > 0 && {
+                count: `+${formatRSC({ amount: totalEarnedAmount, shorten: true })}`,
+                className: 'text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700',
+                avatars: localTipAvatars,
+              })}
+            />
+          )}
           {children}
         </div>
 
@@ -518,20 +591,18 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               }
               align="end"
             >
-              {menuItems.map((item, index) => (
+              {combinedMenuItems.map((item, index) => (
                 <BaseMenuItem
                   key={`menu-item-${index}`}
                   onClick={item.onClick}
-                  className="flex items-center gap-2"
+                  className={cn('flex items-center gap-2', item.className)} // Apply potential class for color
                 >
                   {item.icon && <item.icon className="w-4 h-4" />}
                   <span>{item.label}</span>
                 </BaseMenuItem>
               ))}
 
-              {!hideReportButton && menuItems.length > 0 && (
-                <div className="h-px my-1 bg-gray-200" />
-              )}
+              {showSeparator && <div className="h-px my-1 bg-gray-200" />}
 
               {!hideReportButton && (
                 <BaseMenuItem onClick={handleReport} className="flex items-center gap-2">
