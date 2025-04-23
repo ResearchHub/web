@@ -56,6 +56,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const { isEOA, isLoading: isEOALoading } = useIsEOA(isOpen);
   const hasCalledSuccessRef = useRef(false);
   const hasProcessedDepositRef = useRef(false);
+  const processedTxHashRef = useRef<string | null>(null);
 
   // Reset transaction status when modal is closed
   useEffect(() => {
@@ -63,6 +64,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     setAmount('');
     hasCalledSuccessRef.current = false;
     hasProcessedDepositRef.current = false;
+    processedTxHashRef.current = null;
   }, [isOpen]);
 
   // Handle custom close with state reset
@@ -114,26 +116,45 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
 
   const handleOnStatus = useCallback(
     (status: any) => {
-      console.log('Transaction status:', status);
+      console.log('Transaction status:', status.statusName, status);
 
-      // Updated to handle all lifecycle states
-      if (
-        status.statusName === 'buildingTransaction' ||
-        status.statusName === 'transactionPending'
-      ) {
+      // Handle building/pending states
+      if (status.statusName === 'buildingTransaction') {
         setTxStatus({ state: 'buildingTransaction' });
-      } else if (status.statusName === 'transactionPending') {
+        return;
+      }
+
+      if (status.statusName === 'transactionPending') {
         setTxStatus({ state: 'pending' });
-      } else if (status.statusName === 'transactionLegacyExecuted') {
+        return;
+      }
+
+      if (
+        status.statusName === 'transactionLegacyExecuted' &&
+        status.statusData?.transactionHashList?.[0]
+      ) {
         const txHash = status.statusData.transactionHashList[0];
         setTxStatus({ state: 'pending', txHash });
-      } else if (status.statusName === 'success') {
+        return;
+      }
+
+      if (
+        status.statusName === 'success' &&
+        status.statusData?.transactionReceipts?.[0]?.transactionHash
+      ) {
         const txHash = status.statusData.transactionReceipts[0].transactionHash;
+
+        // Set success state regardless of whether we've processed it
         setTxStatus({ state: 'success', txHash });
 
-        // Only save deposit if it hasn't been processed yet
-        if (!hasProcessedDepositRef.current) {
+        // Prevent duplicate API calls by checking if we've processed this specific transaction
+        if (!hasProcessedDepositRef.current && processedTxHashRef.current !== txHash) {
+          console.log('Processing deposit for transaction:', txHash);
+
+          // Mark as processed first to prevent race conditions
           hasProcessedDepositRef.current = true;
+          processedTxHashRef.current = txHash;
+
           TransactionService.saveDeposit({
             amount: depositAmount,
             transaction_hash: txHash,
@@ -142,17 +163,22 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
           }).catch((error) => {
             console.error('Failed to record deposit:', error);
           });
+        } else {
+          console.log('Skipping duplicate deposit processing for transaction:', txHash);
         }
 
         if (onSuccess && !hasCalledSuccessRef.current) {
           hasCalledSuccessRef.current = true;
           onSuccess();
         }
-      } else if (status.statusName === 'error') {
+        return;
+      }
+
+      if (status.statusName === 'error') {
         console.error('Transaction error full status:', JSON.stringify(status, null, 2));
         setTxStatus({
           state: 'error',
-          message: status.statusData.message,
+          message: status.statusData?.message || 'Transaction failed',
         });
       }
     },
