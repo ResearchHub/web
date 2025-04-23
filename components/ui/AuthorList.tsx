@@ -45,7 +45,7 @@ export const AuthorList = ({
 
   // Filter out "et al" variations
   const filteredAuthors = authors.filter(
-    (author) => !author.name.toLowerCase().match(/^et\.?\s*al\.?$/i)
+    (author) => !(author?.name || '').toLowerCase().match(/^et\.?\s*al\.?$/i)
   );
 
   const getTextSize = () => {
@@ -69,7 +69,7 @@ export const AuthorList = ({
       return (
         <>
           {authorsToShow.map((author, index) => (
-            <Fragment key={author.name + index}>
+            <Fragment key={author?.name + index}>
               <AuthorItem author={author} showDot={false} size={size} className={className} />
               {index < authorsToShow.length - 1 && (
                 <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
@@ -147,7 +147,7 @@ export const AuthorList = ({
       return (
         <>
           {filteredAuthors.map((author, index) => (
-            <Fragment key={author.name + index}>
+            <Fragment key={author?.name + index}>
               <AuthorItem author={author} showDot={false} size={size} className={className} />
               {index < filteredAuthors.length - 2 && (
                 <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
@@ -256,8 +256,8 @@ const AuthorItem = ({
         className
       )}
     >
-      {author.name}
+      {author?.name}
     </span>
-    {author.verified && <VerifiedBadge className="ml-1" size={'xs'} />}
+    {author?.verified && <VerifiedBadge className="ml-1" size={'xs'} />}
   </span>
 );
