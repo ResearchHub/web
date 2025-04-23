@@ -57,12 +57,13 @@ export const FundDocument = ({
               documentId={work.id}
               contentType={work.contentType}
               commentType="REVIEW"
+              key={`review-feed-${work.id}`}
               editorProps={{
                 placeholder: 'Write your review...',
                 initialRating: 0,
                 commentType: 'REVIEW',
+                storageKey: `review-feed-${work.id}`,
               }}
-              key={`review-feed-${work.id}`}
             />
           </div>
         );
@@ -76,6 +77,9 @@ export const FundDocument = ({
               renderCommentActions={false}
               hideEditor={true}
               key={`bounty-feed-${work.id}`}
+              editorProps={{
+                storageKey: `bounty-feed-${work.id}`,
+              }}
             />
           </div>
         );
@@ -87,6 +91,9 @@ export const FundDocument = ({
               contentType={work.contentType}
               commentType="GENERIC_COMMENT"
               key={`comment-feed-${work.id}`}
+              editorProps={{
+                storageKey: `comment-feed-${work.id}`,
+              }}
             />
           </div>
         );

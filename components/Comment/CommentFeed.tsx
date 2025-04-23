@@ -113,21 +113,10 @@ function CommentFeedContent({
 
   const { filteredComments, count, loading, createComment, loadMore } = useCommentsContext();
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { status } = useSession();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
 
   const handleSubmit = useCallback(
-    async ({
-      content,
-      rating: overallRating,
-      sectionRatings,
-    }: {
-      content: CommentContent;
-      rating?: number;
-      sectionRatings?: Record<string, number>;
-    }) => {
-      setIsSubmitting(true);
+    async ({ content, rating: overallRating }: { content: CommentContent; rating?: number }) => {
       const toastId = toast.loading('Submitting comment...');
 
       try {
@@ -163,8 +152,6 @@ function CommentFeedContent({
         console.error('Error creating comment:', error);
         toast.error('Failed to submit comment. Please try again.', { id: toastId });
         return false;
-      } finally {
-        setIsSubmitting(false);
       }
     },
     [commentType, createComment]
