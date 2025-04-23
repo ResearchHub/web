@@ -20,22 +20,25 @@ export const FooterLinks: React.FC = () => (
       </a>
     </div>
     <div className="flex flex-wrap gap-3 text-gray-500">
-      <a href="#" className="hover:text-gray-700">
+      <a href="https://www.researchhub.com/about/tos" className="hover:text-gray-700">
         Terms
       </a>
-      <a href="#" className="hover:text-gray-700">
+      <a href="https://www.researchhub.com/about/privacy" className="hover:text-gray-700">
         Privacy
       </a>
-      <a href="#" className="hover:text-gray-700">
+      <a
+        href="https://github.com/ResearchHub/issues/issues/new/choose"
+        className="hover:text-gray-700"
+      >
         Issues
       </a>
-      <a href="#" className="hover:text-gray-700">
+      <a href="https://docs.researchhub.com/" className="hover:text-gray-700">
         Docs
       </a>
-      <a href="#" className="hover:text-gray-700">
-        Community
+      <a href="https://researchhub.foundation/" className="hover:text-gray-700">
+        Foundation
       </a>
-      <a href="#" className="hover:text-gray-700">
+      <a href="https://www.researchhub.com/about" className="hover:text-gray-700">
         About
       </a>
     </div>

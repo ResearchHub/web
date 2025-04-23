@@ -52,7 +52,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   };
 
   return (
-    <div className="border-b">
+    <div className="">
       <div className="flex items-center justify-between">
         {isCustomizing ? (
           <div className="flex items-center gap-2 flex-1 min-w-0 py-2">

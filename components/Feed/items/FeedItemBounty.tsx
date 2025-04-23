@@ -395,7 +395,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
               <Button
                 variant="default"
                 size="sm"
-                className="flex-1 md:flex-none flex items-center gap-1.5"
+                className="flex-1 md:!flex-none flex items-center gap-1.5"
                 onClick={handleSolution}
               >
                 <MessageSquareReply size={18} /> {/* Added icon */}
