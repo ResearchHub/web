@@ -38,8 +38,8 @@ export function PendingDepositItem({ deposit }: PendingDepositItemProps) {
       <div className="relative py-3 rounded-lg px-4 -mx-4">
         <div className="flex items-center justify-between">
           <div className="flex gap-3 w-full">
-            <div className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-green-50">
-              <Coins className="h-4 w-4 text-green-600" />
+            <div className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-orange-50">
+              <Coins className="h-4 w-4 text-orange-600" />
             </div>
 
             <div className="flex-1">
@@ -64,7 +64,7 @@ export function PendingDepositItem({ deposit }: PendingDepositItemProps) {
             <div className="flex flex-col items-end min-w-[140px]">
               <div className="flex items-center justify-end w-full">
                 <div className="flex flex-col items-end">
-                  <span className="text-base font-medium text-green-600">
+                  <span className="text-base font-medium text-orange-600">
                     +{deposit.amount} RSC
                   </span>
                 </div>
