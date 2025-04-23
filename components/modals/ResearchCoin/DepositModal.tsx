@@ -73,15 +73,14 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   // Handle amount input change with validation
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-
-    // Allow numbers and a single decimal point
-    if (value === '' || /^(\d+)?(\.\d*)?$/.test(value)) {
+    // Only allow positive integers
+    if (value === '' || /^\d+$/.test(value)) {
       setAmount(value);
     }
   }, []);
 
   // Memoize derived values
-  const depositAmount = useMemo(() => parseFloat(amount || '0'), [amount]);
+  const depositAmount = useMemo(() => parseInt(amount || '0', 10), [amount]);
 
   const calculateNewBalance = useCallback(
     (): number => currentBalance + depositAmount,
@@ -163,12 +162,13 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     if (!isEOA) {
       throw new Error('Deposits from smart wallets are not supported');
     }
-    const amountInWei = (parseFloat(amount) * 1e18).toFixed(0);
+
+    const amountInWei = BigInt(depositAmount) * BigInt(10 ** 18);
 
     const transferInterface = new Interface(TRANSFER_ABI);
     const encodedData = transferInterface.encodeFunctionData('transfer', [
       HOT_WALLET_ADDRESS,
-      amountInWei,
+      amountInWei.toString(),
     ]);
 
     // Cast the result to Call type with proper hex type
@@ -275,7 +275,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                       <div className="flex justify-between items-center">
                         <span className="text-[15px] text-gray-700">Amount to Deposit</span>
                         <button
-                          onClick={() => setAmount(walletBalance.toString())}
+                          onClick={() => setAmount(Math.floor(walletBalance).toString())}
                           className="text-sm text-primary-500 font-medium hover:text-primary-600 disabled:opacity-50 disabled:text-gray-400 disabled:hover:text-gray-400"
                           disabled={isInputDisabled()}
                         >
@@ -285,10 +285,11 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                       <div className="relative">
                         <input
                           type="text"
-                          inputMode="decimal"
+                          inputMode="numeric"
+                          pattern="\d*"
                           value={amount}
                           onChange={handleAmountChange}
-                          placeholder="0.00"
+                          placeholder="0"
                           disabled={isInputDisabled()}
                           aria-label="Amount to deposit"
                           className={`w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200 ${isInputDisabled() ? 'bg-gray-100 cursor-not-allowed' : ''}`}
