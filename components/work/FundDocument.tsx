@@ -9,6 +9,7 @@ import { WorkTabs, TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
+import { useStorageKey } from '@/utils/storageKeys';
 
 interface FundDocumentProps {
   work: Work;
@@ -24,6 +25,7 @@ export const FundDocument = ({
   defaultTab = 'paper',
 }: FundDocumentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
+  const storageKey = useStorageKey('rh-comments');
   console.log('&metadata', metadata);
   console.log('&work', work);
   // Handle tab change
@@ -62,7 +64,7 @@ export const FundDocument = ({
                 placeholder: 'Write your review...',
                 initialRating: 0,
                 commentType: 'REVIEW',
-                storageKey: `review-feed-${work.id}`,
+                storageKey: `${storageKey}-review-feed-${work.id}`,
               }}
             />
           </div>
@@ -78,7 +80,7 @@ export const FundDocument = ({
               hideEditor={true}
               key={`bounty-feed-${work.id}`}
               editorProps={{
-                storageKey: `bounty-feed-${work.id}`,
+                storageKey: `${storageKey}-bounty-feed-${work.id}`,
               }}
             />
           </div>
@@ -92,7 +94,7 @@ export const FundDocument = ({
               commentType="GENERIC_COMMENT"
               key={`comment-feed-${work.id}`}
               editorProps={{
-                storageKey: `comment-feed-${work.id}`,
+                storageKey: `${storageKey}-comment-feed-${work.id}`,
               }}
             />
           </div>
@@ -100,7 +102,7 @@ export const FundDocument = ({
       default:
         return null;
     }
-  }, [activeTab, work, metadata, content]);
+  }, [activeTab, work, metadata, content, storageKey]);
 
   return (
     <div>

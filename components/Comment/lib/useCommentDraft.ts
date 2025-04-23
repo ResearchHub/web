@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { toast } from 'react-hot-toast';
+import {
+  getCommentDraftById,
+  setCommentDraft,
+  removeCommentDraftById,
+} from './commentDraftStorage';
 
 interface DraftData {
   content: any;
@@ -81,7 +85,8 @@ export const useCommentDraft = ({
             sectionRatings: isReview ? sectionRatingsRef.current : undefined,
             timestamp: new Date().toISOString(),
           };
-          localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+
+          setCommentDraft(storageKey, dataToSave);
           setLastSaved(new Date());
           setSaveStatus('saved');
         } catch (error) {
@@ -96,7 +101,7 @@ export const useCommentDraft = ({
   // Clear draft from localStorage
   const clearDraft = useCallback(() => {
     try {
-      localStorage.removeItem(storageKey);
+      removeCommentDraftById(storageKey);
       setLastSaved(null);
       setSaveStatus('idle');
       setLoadedContent(null);
@@ -104,7 +109,7 @@ export const useCommentDraft = ({
       ratingRef.current = isReview ? initialRating : undefined;
       sectionRatingsRef.current = isReview ? initialSectionRatings : undefined;
     } catch (error) {
-      console.error('Failed to clear localStorage:', error);
+      console.error('Failed to clear draft:', error);
     }
   }, [storageKey, isReview, initialRating, initialSectionRatings]);
 
@@ -113,13 +118,13 @@ export const useCommentDraft = ({
     if (isReadOnly) return;
 
     try {
-      const savedData = localStorage.getItem(storageKey);
-
+      const savedData = getCommentDraftById(storageKey);
       if (savedData && (!initialContent || initialContent === '')) {
-        const parsedData: DraftData = JSON.parse(savedData);
+        const parsedData: DraftData = savedData;
 
         // Store loaded content
         if (parsedData.content) {
+          console.log('setting loaded content', parsedData.content);
           setLoadedContent(parsedData.content);
           contentRef.current = parsedData.content;
 
