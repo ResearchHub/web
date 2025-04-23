@@ -55,12 +55,14 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const [txStatus, setTxStatus] = useState<TransactionStatus>({ state: 'idle' });
   const { isEOA, isLoading: isEOALoading } = useIsEOA(isOpen);
   const hasCalledSuccessRef = useRef(false);
+  const hasProcessedDepositRef = useRef(false);
 
   // Reset transaction status when modal is closed
   useEffect(() => {
     setTxStatus({ state: 'idle' });
     setAmount('');
     hasCalledSuccessRef.current = false;
+    hasProcessedDepositRef.current = false;
   }, [isOpen]);
 
   // Handle custom close with state reset
@@ -128,14 +130,19 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       } else if (status.statusName === 'success') {
         const txHash = status.statusData.transactionReceipts[0].transactionHash;
         setTxStatus({ state: 'success', txHash });
-        TransactionService.saveDeposit({
-          amount: depositAmount,
-          transaction_hash: txHash,
-          from_address: address!,
-          network: 'BASE',
-        }).catch((error) => {
-          console.error('Failed to record deposit:', error);
-        });
+
+        // Only save deposit if it hasn't been processed yet
+        if (!hasProcessedDepositRef.current) {
+          hasProcessedDepositRef.current = true;
+          TransactionService.saveDeposit({
+            amount: depositAmount,
+            transaction_hash: txHash,
+            from_address: address!,
+            network: 'BASE',
+          }).catch((error) => {
+            console.error('Failed to record deposit:', error);
+          });
+        }
 
         if (onSuccess && !hasCalledSuccessRef.current) {
           hasCalledSuccessRef.current = true;
