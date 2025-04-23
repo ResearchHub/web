@@ -22,7 +22,7 @@ const CommentList: React.FC<CommentListProps> = ({
     <div className="space-y-8">
       {comments.map((comment) => (
         <CommentItem
-          commentType={commentType}
+          commentType={comment.commentType}
           key={`comment-${comment.id}`}
           comment={comment}
           contentType={contentType}

@@ -181,7 +181,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
   currentLength = 0,
 }) => {
   // Log regardless of debug flag
-  console.log('RenderNode FUNCTION CALLED', node?.type || 'unknown type');
+  if (debug) console.log('RenderNode FUNCTION CALLED', node?.type || 'unknown type');
 
   if (!node) {
     if (debug) console.log('No node to render');
@@ -280,20 +280,21 @@ const RenderNode: React.FC<RenderNodeProps> = ({
   // Handle text nodes
   if (node.type === 'text') {
     const text = node.text || '';
-    console.log(
-      'TEXT NODE',
-      text.substring(0, 20) + '...',
-      'truncate:',
-      truncate,
-      'textLengthSoFar:',
-      textLengthSoFar
-    );
+    if (debug)
+      console.log(
+        'TEXT NODE',
+        text.substring(0, 20) + '...',
+        'truncate:',
+        truncate,
+        'textLengthSoFar:',
+        textLengthSoFar
+      );
 
     // For truncation, we may need to cut the text
     if (truncate && textLengthSoFar + text.length > maxLength) {
       const remainingLength = maxLength - textLengthSoFar;
       const truncatedText = text.substring(0, remainingLength);
-      console.log('TRUNCATING TEXT to', truncatedText + '...');
+      if (debug) console.log('TRUNCATING TEXT to', truncatedText + '...');
       return (
         <>
           {renderTextWithMarks(truncatedText, node.marks || [])}

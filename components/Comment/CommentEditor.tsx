@@ -31,6 +31,7 @@ export interface CommentEditorProps {
   compactToolbar?: boolean;
   debug?: boolean;
   autoFocus?: boolean;
+  editing?: boolean;
 }
 
 export const CommentEditor = ({
@@ -47,6 +48,7 @@ export const CommentEditor = ({
   compactToolbar = false,
   debug = false,
   autoFocus = false,
+  editing = false,
 }: CommentEditorProps) => {
   const { data: session, status } = useSession();
   const editorRef = useRef<HTMLDivElement>(null);
@@ -173,7 +175,7 @@ export const CommentEditor = ({
         isReview={isReview}
         rating={rating}
         onRatingChange={setRating}
-        isReadOnly={isReadOnly}
+        isReadOnly={isReadOnly || editing}
       />
 
       {/* Editor toolbar */}
