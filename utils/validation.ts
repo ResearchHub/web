@@ -10,3 +10,11 @@ export const isValidPassword = (password: string): boolean => {
 export const isValidName = (name: string): boolean => {
   return name.trim().length > 0;
 };
+
+export const isValidListName = (name: string): boolean => {
+  return name.trim().length > 0 && name.length < 200;
+};
+
+export const isValidListItemName = (name: string): boolean => {
+  return name.trim().length > 0 && name.length < 200;
+};

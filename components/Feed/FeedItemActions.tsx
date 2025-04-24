@@ -3,7 +3,7 @@
 import { FC, useState, ReactNode, useEffect, useRef } from 'react';
 import React from 'react';
 import { FeedContentType, FeedEntry, Review } from '@/types/feed';
-import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star } from 'lucide-react';
+import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star, X } from 'lucide-react';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
 import { useVote } from '@/hooks/useVote';
@@ -24,6 +24,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { useUser } from '@/contexts/UserContext';
 import { dedupeAvatars } from '@/utils/avatarUtil';
 import { cn } from '@/utils/styles';
+import SaveContentButton from '../UserSaved/SaveContentButton';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -169,6 +170,8 @@ interface FeedItemActionsProps {
   bounties?: Bounty[]; // Updated to use imported Bounty type
   tips?: Tip[]; // Added tips prop
   awardedBountyAmount?: number; // Add awarded bounty amount
+  isRenderingSavedList?: boolean; // Conditional rendering for user saved content
+  deleteUserSavedContent?: () => void; // Optional prop to delete user saved content
 }
 
 // Define interface for avatar items used in local state
@@ -199,6 +202,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   bounties = [],
   tips = [],
   awardedBountyAmount = 0, // Destructure awardedBountyAmount with default value
+  isRenderingSavedList = false,
+  deleteUserSavedContent = () => {},
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser(); // Get current user
@@ -210,6 +215,14 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const [tipModalState, setTipModalState] = useState<{ isOpen: boolean; contentId?: number }>({
     isOpen: false,
   });
+
+  if (isRenderingSavedList) {
+    menuItems.unshift({
+      icon: X,
+      label: 'Remove',
+      onClick: deleteUserSavedContent,
+    });
+  }
 
   // Calculate initial tip amount and avatars from props
   const initialTotalTipAmount = tips.reduce((total, tip) => total + (tip.amount || 0), 0);
@@ -466,135 +479,151 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     <>
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center space-x-4">
-          <ActionButton
-            icon={ArrowUp}
-            count={localVoteCount}
-            tooltip="Upvote"
-            label={actionLabels?.upvote || 'Upvote'}
-            onClick={handleVote}
-            isActive={localUserVote === 'UPVOTE'}
-            isDisabled={isVoting}
-            showTooltip={showTooltips}
-          />
-          {!hideCommentButton && (
-            <ActionButton
-              icon={MessageCircle}
-              count={actionLabels?.comment ? undefined : metrics?.comments}
-              tooltip="Comment"
-              label={actionLabels?.comment || 'Comment'}
-              onClick={handleComment}
-              showLabel={Boolean(actionLabels?.comment)}
-              showTooltip={showTooltips}
-              avatars={commentAvatars}
-            />
-          )}
-          {showInlineReviews && (
-            <ActionButton
-              icon={Star}
-              count={metrics?.reviewScore !== 0 ? formatScore(metrics?.reviewScore || 0) : '3.0'}
-              tooltip="Peer Review"
-              label="Peer Review"
-              showTooltip={showTooltips}
-              onClick={handleReviewClick}
-              avatars={dedupedReviewAvatars}
-            />
-          )}
-          {showInlineBounties &&
-            (showTooltips ? (
-              <Tooltip
-                content={
-                  <div className="flex items-start gap-3 text-left">
-                    <div
-                      className={cn(
-                        'p-2 rounded-md flex items-center justify-center',
-                        hasOpenBounties ? 'bg-orange-100' : 'bg-gray-100'
+          {!isRenderingSavedList && (
+            <>
+              <ActionButton
+                icon={ArrowUp}
+                count={localVoteCount}
+                tooltip="Upvote"
+                label={actionLabels?.upvote || 'Upvote'}
+                onClick={handleVote}
+                isActive={localUserVote === 'UPVOTE'}
+                isDisabled={isVoting}
+                showTooltip={showTooltips}
+              />
+              {!hideCommentButton && (
+                <ActionButton
+                  icon={MessageCircle}
+                  count={actionLabels?.comment ? undefined : metrics?.comments}
+                  tooltip="Comment"
+                  label={actionLabels?.comment || 'Comment'}
+                  onClick={handleComment}
+                  showLabel={Boolean(actionLabels?.comment)}
+                  showTooltip={showTooltips}
+                  avatars={commentAvatars}
+                />
+              )}
+              {showInlineReviews && (
+                <ActionButton
+                  icon={Star}
+                  count={
+                    metrics?.reviewScore !== 0 ? formatScore(metrics?.reviewScore || 0) : '3.0'
+                  }
+                  tooltip="Peer Review"
+                  label="Peer Review"
+                  showTooltip={showTooltips}
+                  onClick={handleReviewClick}
+                  avatars={dedupedReviewAvatars}
+                />
+              )}
+              {showInlineBounties &&
+                (showTooltips ? (
+                  <Tooltip
+                    content={
+                      <div className="flex items-start gap-3 text-left">
+                        <div
+                          className={cn(
+                            'p-2 rounded-md flex items-center justify-center',
+                            hasOpenBounties ? 'bg-orange-100' : 'bg-gray-100'
+                          )}
+                        >
+                          <Icon
+                            name="earn1"
+                            size={24}
+                            color={hasOpenBounties ? '#F97316' : '#374151'}
+                          />
+                        </div>
+                        <div>
+                          <div className="font-medium mb-1">ResearchCoin Earning Opportunity</div>
+                          <div>
+                            This content includes a bounty. Complete tasks to earn{' '}
+                            {formatRSC({ amount: totalBountyAmount, shorten: true })} RSC.
+                          </div>
+                        </div>
+                      </div>
+                    }
+                    position="top"
+                    width="w-[380px]"
+                  >
+                    <ActionButton
+                      icon={(props: any) => (
+                        <Icon
+                          name="earn1"
+                          {...props}
+                          size={18}
+                          color={hasOpenBounties ? '#F97316' : undefined}
+                        />
                       )}
-                    >
+                      tooltip=""
+                      label="Bounties"
+                      count={formatRSC({ amount: totalBountyAmount, shorten: true })}
+                      showTooltip={false}
+                      onClick={handleBountyClick}
+                      avatars={dedupedBountyAvatars}
+                      className={
+                        hasOpenBounties
+                          ? 'text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700'
+                          : ''
+                      }
+                    />
+                  </Tooltip>
+                ) : (
+                  <ActionButton
+                    icon={(props: any) => (
                       <Icon
                         name="earn1"
-                        size={24}
-                        color={hasOpenBounties ? '#F97316' : '#374151'}
+                        {...props}
+                        size={18}
+                        color={hasOpenBounties ? '#F97316' : undefined}
                       />
-                    </div>
-                    <div>
-                      <div className="font-medium mb-1">ResearchCoin Earning Opportunity</div>
-                      <div>
-                        This content includes a bounty. Complete tasks to earn{' '}
-                        {formatRSC({ amount: totalBountyAmount, shorten: true })} RSC.
-                      </div>
-                    </div>
-                  </div>
-                }
-                position="top"
-                width="w-[380px]"
-              >
+                    )}
+                    tooltip="Bounties"
+                    label="Bounties"
+                    count={formatRSC({ amount: totalBountyAmount, shorten: true })}
+                    showTooltip={false}
+                    onClick={handleBountyClick}
+                    avatars={dedupedBountyAvatars}
+                    className={
+                      hasOpenBounties
+                        ? 'text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700'
+                        : ''
+                    }
+                  />
+                ))}
+
+              {/* Only allow saving content we have rending logic for (papers to start) */}
+              {feedContentType === 'PAPER' && (
+                <SaveContentButton
+                  userSavedIdentifier={{ id: votableEntityId, idType: 'paperId' }}
+                  styling="feed"
+                />
+              )}
+
+              {showInlineTip && (
                 <ActionButton
                   icon={(props: any) => (
                     <Icon
-                      name="earn1"
+                      name="tipRSC"
                       {...props}
-                      size={18}
-                      color={hasOpenBounties ? '#F97316' : undefined}
+                      size={20}
+                      color={totalEarnedAmount > 0 ? '#16A34A' : undefined}
                     />
                   )}
-                  tooltip=""
-                  label="Bounties"
-                  count={formatRSC({ amount: totalBountyAmount, shorten: true })}
-                  showTooltip={false}
-                  onClick={handleBountyClick}
-                  avatars={dedupedBountyAvatars}
-                  className={
-                    hasOpenBounties
-                      ? 'text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700'
-                      : ''
-                  }
-                />
-              </Tooltip>
-            ) : (
-              <ActionButton
-                icon={(props: any) => (
-                  <Icon
-                    name="earn1"
-                    {...props}
-                    size={18}
-                    color={hasOpenBounties ? '#F97316' : undefined}
-                  />
-                )}
-                tooltip="Bounties"
-                label="Bounties"
-                count={formatRSC({ amount: totalBountyAmount, shorten: true })}
-                showTooltip={false}
-                onClick={handleBountyClick}
-                avatars={dedupedBountyAvatars}
-                className={
-                  hasOpenBounties
-                    ? 'text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700'
-                    : ''
-                }
-              />
-            ))}
-          {showInlineTip && (
-            <ActionButton
-              icon={(props: any) => (
-                <Icon
-                  name="tipRSC"
-                  {...props}
-                  size={16}
-                  color={totalEarnedAmount > 0 ? '#16A34A' : undefined}
+                  tooltip="Tip RSC"
+                  label="Tip"
+                  onClick={handleOpenTipModal}
+                  showTooltip={showTooltips}
+                  {...(totalEarnedAmount > 0 && {
+                    count: `+${formatRSC({ amount: totalEarnedAmount, shorten: true })}`,
+                    className:
+                      'text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700',
+                    avatars: localTipAvatars,
+                  })}
                 />
               )}
-              tooltip="Tip RSC"
-              label="Tip"
-              onClick={handleOpenTipModal}
-              showTooltip={showTooltips}
-              {...(totalEarnedAmount > 0 && {
-                count: `+${formatRSC({ amount: totalEarnedAmount, shorten: true })}`,
-                className: 'text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700',
-                avatars: localTipAvatars,
-              })}
-            />
+              {children}
+            </>
           )}
-          {children}
         </div>
 
         <div className="flex-grow flex justify-end items-center gap-3">

@@ -1,20 +1,8 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
-import {
-  ArrowUp,
-  Download,
-  Flag,
-  Edit,
-  Share2,
-  MoreHorizontal,
-  Coins,
-  UserPlus,
-  Bookmark,
-  FileUp,
-  Plus,
-} from 'lucide-react';
+import { ArrowUp, Flag, Edit, MoreHorizontal } from 'lucide-react';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
@@ -32,6 +20,7 @@ import { useUser } from '@/contexts/UserContext';
 import { Contact } from '@/types/note';
 import { WorkEditModal } from './WorkEditModal';
 import { WorkMetadata } from '@/services/metadata.service';
+import SaveContentButton from '@/components/UserSaved/SaveContentButton';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -48,7 +37,6 @@ export const WorkLineItems = ({
 }: WorkLineItemsProps) => {
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { vote, isVoting } = useVote({
     votableEntityId: work.id,
@@ -116,64 +104,6 @@ export const WorkLineItems = ({
     setIsTipModalOpen(false);
   };
 
-  // Determine if the latest version has already been published
-  const latestVersion = work.versions?.find((v) => v.isLatest);
-  const isPublished = latestVersion?.publicationStatus === 'PUBLISHED';
-  // Determine if current user is a moderator
-  const isModerator = !!user?.isModerator;
-
-  const handlePublish = useCallback(async () => {
-    if (isPublished) return;
-
-    setIsPublishing(true);
-    try {
-      await PaperService.publishPaper(work.id);
-      toast.success('Paper published to ResearchHub Journal');
-
-      // Refresh the page data to reflect new publication status
-      if (typeof router.refresh === 'function') {
-        router.refresh();
-      } else if (typeof window !== 'undefined') {
-        window.location.reload();
-      }
-    } catch (error: any) {
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to publish paper. Please try again.'
-      );
-    } finally {
-      setIsPublishing(false);
-    }
-  }, [work.id, isPublished, router]);
-
-  const isAuthor = useMemo(() => {
-    if (!user) return false;
-    return work.authors?.some((a) => a.authorProfile.id === user!.authorProfile!.id);
-  }, [user, work.authors]);
-
-  const handleAddVersion = useCallback(() => {
-    if (!user) return; // should be authenticated already
-
-    // Determine the latest version's paperId to pre-populate the form with the most recent data
-    let latestPaperId = work.id;
-
-    if (work.versions && work.versions.length > 0) {
-      // Try to use the version flagged as latest first
-      const latestFlag = work.versions.find((v) => v.isLatest);
-
-      if (latestFlag) {
-        latestPaperId = latestFlag.paperId;
-      } else {
-        // Fallback: pick the version with newest publishedDate
-        const sorted = [...work.versions].sort(
-          (a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
-        );
-        latestPaperId = sorted[0].paperId;
-      }
-    }
-
-    router.push(`/paper/${latestPaperId}/create/version`);
-  }, [work.id, work.versions, user, router]);
-
   return (
     <div>
       {/* Primary Actions */}
@@ -202,6 +132,11 @@ export const WorkLineItems = ({
             </button>
           )}
 
+          <SaveContentButton
+            styling="work_item"
+            userSavedIdentifier={{ id: work.id, idType: 'paperId' }}
+          />
+
           {/* Render insights button if provided */}
           {insightsButton}
 
@@ -211,7 +146,7 @@ export const WorkLineItems = ({
               <MoreHorizontal className="h-5 w-5" />
             </MenuButton>
 
-            <MenuItems className="absolute left-0 mt-2 w-48 origin-top-left bg-white rounded-lg shadow-lg border border-gray-200 py-1 focus:outline-none z-10">
+            <MenuItems className="absolute left-0 mt-2 w-48 origin-top-left bg-white rounded-lg shadow-lg border border-gray-200 py-1 focus:outline-none">
               <MenuItem>
                 <Button
                   variant="ghost"
@@ -225,35 +160,6 @@ export const WorkLineItems = ({
                   <span>Edit</span>
                 </Button>
               </MenuItem>
-              {isAuthor && (
-                <MenuItem>
-                  {({ focus }) => (
-                    <Button
-                      variant="ghost"
-                      onClick={() => executeAuthenticatedAction(handleAddVersion)}
-                      className={`${focus ? 'bg-gray-50' : ''} w-full justify-start`}
-                    >
-                      <FileUp className="h-4 w-4 mr-2" />
-                      <span>Upload New Version</span>
-                    </Button>
-                  )}
-                </MenuItem>
-              )}
-              {!isPublished && isModerator && (
-                <MenuItem>
-                  {({ focus }) => (
-                    <Button
-                      variant="ghost"
-                      disabled={isPublishing}
-                      onClick={() => executeAuthenticatedAction(handlePublish)}
-                      className={`${focus ? 'bg-gray-50' : ''} w-full justify-start`}
-                    >
-                      <Icon name="rhJournal1" size={16} className="mr-2" />
-                      <span>Publish to Journal</span>
-                    </Button>
-                  )}
-                </MenuItem>
-              )}
               <MenuItem>
                 {({ focus }) => (
                   <Button

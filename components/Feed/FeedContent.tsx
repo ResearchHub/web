@@ -21,6 +21,7 @@ import { BountiesCarousel } from '@/components/Earn/BountiesCarousel';
 import { FeedTab } from '@/hooks/useFeed'; // Import FeedTab type
 import { Button } from '../ui/Button';
 import { FeedItemGrant } from './items/FeedItemGrant';
+import { UserSavedIdentifier } from '@/types/userSaved';
 
 interface FeedContentProps {
   entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry
@@ -41,6 +42,8 @@ interface FeedContentProps {
   maxLength?: number;
   showGrantHeaders?: boolean; // Prop to control grant header visibility
   showReadMoreCTA?: boolean; // Prop to control read more CTA visibility
+  isRenderingSavedList?: boolean; // Prop indicating we are rendering a user saved list
+  deleteUserSavedContent?: (identifier: UserSavedIdentifier) => void; // Optional prop to delete user saved list item
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -62,6 +65,8 @@ export const FeedContent: FC<FeedContentProps> = ({
   maxLength,
   showGrantHeaders = true, // Default to true
   showReadMoreCTA = false,
+  isRenderingSavedList = false,
+  deleteUserSavedContent,
 }) => {
   // Generate appropriate href for each feed item type
   const generateHref = (entry: FeedEntry): string | undefined => {
@@ -151,6 +156,8 @@ export const FeedContent: FC<FeedContentProps> = ({
         case 'PAPER':
           content = (
             <FeedItemPaper
+              isRenderingSavedList={isRenderingSavedList}
+              deleteUserSavedContent={deleteUserSavedContent}
               entry={entry}
               href={href}
               showActions={!hideActions}
