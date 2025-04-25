@@ -60,15 +60,20 @@ const nextConfig = {
     'lodash-es': {
       transform: 'lodash-es/{{member}}',
     },
-    'lucide-react': {
-      transform: 'lucide-react/dist/esm/icons/{{member}}',
-      skipDefaultConversion: true,
-    },
   },
   compress: true,
-  i18n: {
-    locales: ['en'],
-    defaultLocale: 'en',
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+      },
+    },
+    resolveAlias: {
+      '@': __dirname,
+    },
   },
   experimental: {
     optimizeCss: true,
