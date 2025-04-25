@@ -5,10 +5,15 @@ import dynamic from 'next/dynamic';
 import { Loader2 } from 'lucide-react';
 import DocumentSkeleton from '@/components/skeletons/DocumentSkeleton';
 
-// Dynamically import PDFViewer to reduce initial bundle size
+// Dynamically import PDFViewer (client-side only)
 const PDFViewer = dynamic(() => import('./PDFViewer'), {
   ssr: false,
-  loading: () => null,
+  // Simple loading fallback while the chunk is being fetched
+  loading: () => (
+    <div className="flex items-center justify-center py-8 text-gray-500">
+      <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading PDF viewer…
+    </div>
+  ),
 });
 
 interface DocumentViewerProps {
@@ -64,14 +69,7 @@ export const DocumentViewer = ({ url, className, onLoaded }: DocumentViewerProps
         </div>
       )}
       <div className={isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-300'}>
-        <PDFViewer
-          pdfUrl={url}
-          scale={1.0}
-          onReady={handleReady}
-          onLoadError={handleError}
-          enableTextSelection={true}
-          showWhenLoading={null}
-        />
+        <PDFViewer url={url} onReady={handleReady} onError={handleError} />
       </div>
     </div>
   );
