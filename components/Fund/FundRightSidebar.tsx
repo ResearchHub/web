@@ -41,11 +41,12 @@ export const FundRightSidebar = () => {
               <strong>Tax-deductible donations</strong>
             </li>
           </ul>
-          {/* Button to send email */}
+          {/* Button to link to Airtable form */}
           <Button asChild className="w-full bg-indigo-600 hover:bg-indigo-700">
             <a
-              href="mailto:pat@researchhub.com,tyler@researchhub.com?subject=ResearchHub%20Funding%20Request&body=Hey%20Patrick%20and%20Tyler%2C%0A%0AI%20want%20to%20fund%20research%20with%20the%20following%20details%3A%0A%0AResearch%20Focus%3A%0A-%20%5Be.g.%2C%20research%20field%2C%20person%2C%20disease%2C%20etc.%5D%0A%0ALevel%20of%20involvement%3A%0A-%20%5B%22I%20want%20to%20just%20provide%20the%20funds...%22%20or%20%22I'd%20like%20to%20meet%20with%20potential%20researchers...%22%5D%0A%0ATimeline%3A%0A-%20%5B%22No%20specific%20timeline%22%20or%20%22ASAP%22%20or%20%22Flexible%2C%20within%201-year%22%5D%0A%0AFunding%20Amount%3A%0A-%20%5Bi.e.%2C%20Estimates%20are%20great.%5D%0A"
-              className="inline-flex items-center justify-center w-full"
+              href="https://airtable.com/appZxEWpnNR2IEHpu/pagsytsewpnWbeLR0/form"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               Give a grant
             </a>

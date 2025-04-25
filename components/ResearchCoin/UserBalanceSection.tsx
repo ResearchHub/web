@@ -78,7 +78,7 @@ export function UserBalanceSection({
                         className="gap-2 px-3 sm:px-4"
                       >
                         <Plus className="h-5 w-5" />
-                        <span className="hidden sm:inline">Buy RSC</span>
+                        <span className="hidden sm:inline-block sm:flex-shrink-0">Buy RSC</span>
                       </Button>
                       <Button
                         onClick={() => setIsDepositModalOpen(true)}
@@ -89,7 +89,7 @@ export function UserBalanceSection({
                         data-action="deposit"
                       >
                         <ArrowDownToLine className="h-5 w-5" />
-                        <span className="hidden sm:inline">Deposit</span>
+                        <span className="hidden sm:inline-block sm:flex-shrink-0">Deposit</span>
                       </Button>
                       <Button
                         onClick={() => setIsWithdrawModalOpen(true)}
@@ -99,7 +99,7 @@ export function UserBalanceSection({
                         disabled={!isBalanceReady}
                       >
                         <ArrowUpFromLine className="h-5 w-5" />
-                        <span className="hidden sm:inline">Withdraw</span>
+                        <span className="hidden sm:inline-block sm:flex-shrink-0">Withdraw</span>
                       </Button>
 
                       <WalletDefault />
