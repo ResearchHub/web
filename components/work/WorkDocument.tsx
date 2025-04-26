@@ -55,6 +55,11 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   const [rewardModalOpen, setRewardModalOpen] = useState(false);
   const [showMobileMetrics, setShowMobileMetrics] = useState(false);
 
+  // Determine if we should auto focus the review editor based on query param
+  const shouldFocusReviewEditor = useMemo(() => {
+    return searchParams?.get('focus') === 'true';
+  }, [searchParams]);
+
   // Only log metadata once to reduce console noise
   useEffect(() => {
     console.log('metadata', metadata);
@@ -130,6 +135,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
                 placeholder: 'Write your review...',
                 initialRating: 0,
                 commentType: 'REVIEW',
+                autoFocus: shouldFocusReviewEditor,
               }}
               key={`review-feed-${work.id}`}
             />
@@ -162,7 +168,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
       default:
         return null;
     }
-  }, [activeTab, work.id, work.contentType, work.abstract, work.formats]);
+  }, [activeTab, work.id, work.contentType, work.abstract, work.formats, shouldFocusReviewEditor]);
 
   return (
     <div>

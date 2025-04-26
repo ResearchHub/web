@@ -17,7 +17,7 @@ import { ID } from '@/types/root';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { BountyContribution, BountyType } from '@/types/bounty';
 import { formatRSC } from '@/utils/number';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { cn } from '@/utils/styles';
 import { Trophy, Pen, Plus, Users, ArrowBigUpDash, MessageSquareReply } from 'lucide-react';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
@@ -190,7 +190,6 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   // Extract the bounty entry from the entry's content
   const bountyEntry = entry.content as FeedBountyContent;
   const bounty = bountyEntry.bounty;
-  const router = useRouter();
   const params = useParams();
 
   // State for contribute modal
@@ -237,33 +236,47 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   const handleSolution = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click navigation
 
-    // Destructure the URL params directly
-    const { id, slug } = params;
-    const contentType = bountyEntry.relatedDocumentContentType;
+    // Attempt to derive the work details from the feed entry first
+    let workId: string | number | undefined;
+    let workSlug: string | undefined;
+    let workContentType: string | undefined;
 
-    // Determine the appropriate tab based on bounty type
-    const tab = bounty.bountyType === 'REVIEW' ? 'reviews' : 'conversation';
-
-    // Make sure we have the required params
-    if (id && contentType) {
-      // Build the work URL with the tab
-      const workUrl = buildWorkUrl({
-        id: id as string,
-        contentType: contentType as any,
-        slug: slug as string,
-        tab,
-      });
-
-      // Use window.location for full page navigation
-      window.location.href = workUrl;
+    if (entry.relatedWork) {
+      workId = entry.relatedWork.id;
+      workSlug = entry.relatedWork.slug;
+      workContentType = entry.relatedWork.contentType;
     } else {
-      // Fallback to using the current path if params are missing
-      const currentPath = window.location.pathname;
-      const basePath = currentPath.endsWith('/bounties')
-        ? currentPath.substring(0, currentPath.lastIndexOf('/'))
-        : currentPath;
-      window.location.href = `${basePath}/${tab}`;
+      // Fallback to next/router params (works when rendered on a work page)
+      const { id: paramId, slug: paramSlug } = params;
+      workId = paramId as string | number | undefined;
+      workSlug = paramSlug as string | undefined;
+      workContentType = bountyEntry.relatedDocumentContentType;
     }
+
+    // Ensure we have enough information to build the URL
+    if (!workId || !workContentType) {
+      console.error('FeedItemBounty: Unable to determine destination for CTA', {
+        workId,
+        workSlug,
+        workContentType,
+        entry,
+      });
+      return;
+    }
+
+    // Always redirect to the reviews tab
+    const workUrl = buildWorkUrl({
+      id: workId.toString(),
+      contentType: workContentType as any,
+      slug: workSlug,
+      tab: 'reviews',
+    });
+
+    // Add focus flag to query params so the page can focus the editor
+    const urlWithFocus = `${workUrl}?focus=true`;
+
+    // Full page navigation
+    window.location.href = urlWithFocus;
   };
 
   // Handle awarding the bounty
@@ -316,33 +329,6 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       },
     });
   }
-
-  // Contribute button as a custom right side action
-  const contributeButton =
-    isOpenBounty(bounty) && !isAuthor && showContributeButton ? (
-      <Tooltip
-        content={
-          <div className="flex items-start gap-3 text-left">
-            <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center text-gray-600">
-              <ArrowBigUpDash size={24} />
-            </div>
-            <div>Support this bounty with RSC to increase its visibility and reward amount</div>
-          </div>
-        }
-        position="top"
-        width="w-[350px]"
-      >
-        <Button
-          onClick={handleOpenContributeModal}
-          size="sm"
-          variant="default"
-          className="text-sm text-xs font-medium gap-2 bg-orange-500 hover:bg-orange-600"
-        >
-          <Icon size={24} name="tipRSC" color="white" />
-          Support this bounty
-        </Button>
-      </Tooltip>
-    ) : undefined;
 
   return (
     <div className="space-y-3">
