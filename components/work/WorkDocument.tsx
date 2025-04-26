@@ -42,7 +42,6 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
-
   // Initialize activeTab from URL or props
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     // Check if URL contains a tab indicator
@@ -129,6 +128,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
           <div className="space-y-6" key="reviews-tab">
             <CommentFeed
               documentId={work.id}
+              unifiedDocumentId={work.unifiedDocumentId}
               contentType={work.contentType}
               commentType="REVIEW"
               editorProps={{
@@ -146,6 +146,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
           <div className="space-y-6" key="bounties-tab">
             <CommentFeed
               documentId={work.id}
+              unifiedDocumentId={work.unifiedDocumentId}
               contentType={work.contentType}
               commentType="BOUNTY"
               renderCommentActions={false}
@@ -159,6 +160,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
           <div className="space-y-6" key="comments-tab">
             <CommentFeed
               documentId={work.id}
+              unifiedDocumentId={work.unifiedDocumentId}
               contentType={work.contentType}
               commentType="GENERIC_COMMENT"
               key={`comment-feed-${work.id}`}

@@ -30,6 +30,7 @@ interface CommentFeedProps {
   renderCommentActions?: boolean;
   hideEditor?: boolean;
   debug?: boolean;
+  unifiedDocumentId?: number | null;
 }
 
 function CommentFeed({
@@ -41,6 +42,7 @@ function CommentFeed({
   renderCommentActions = true,
   hideEditor = false,
   debug = false,
+  unifiedDocumentId,
 }: CommentFeedProps) {
   // Add debugging for mount/unmount if debug is enabled
   useEffect(() => {
@@ -79,6 +81,7 @@ function CommentFeed({
           contentType={contentType}
           debug={debug}
           onCreateBounty={handleCreateBounty}
+          unifiedDocumentId={unifiedDocumentId}
         />
       </div>
       <CreateBountyModal
@@ -99,6 +102,7 @@ function CommentFeedContent({
   commentType,
   contentType,
   debug = false,
+  unifiedDocumentId,
   onCreateBounty,
 }: Omit<CommentFeedProps, 'documentId'> & { onCreateBounty: () => void }) {
   // Add debugging for content component if debug is enabled
@@ -141,7 +145,7 @@ function CommentFeedContent({
         if (commentType === 'REVIEW' && overallRating !== undefined && result) {
           try {
             await CommentService.createCommunityReview({
-              unifiedDocumentId: result.thread.objectId,
+              unifiedDocumentId: unifiedDocumentId,
               commentId: result.id,
               score: overallRating,
             });
