@@ -38,6 +38,7 @@ export default function NotePage() {
     noteError,
     updateNoteTitle,
     isLoading,
+    setEditor,
   } = useNotebookContext();
   const { selectedOrg } = useOrganizationContext();
 
@@ -104,6 +105,7 @@ export default function NotePage() {
                 isLoading={false}
                 onUpdate={isLegacyNote ? undefined : updateNote}
                 editable={!(isLegacyNote && isFeatureEnabled('legacyNoteBanner'))}
+                setEditor={setEditor}
               />
             </div>
           </div>

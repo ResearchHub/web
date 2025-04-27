@@ -9,6 +9,7 @@ import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { formatTimeAgo } from '@/utils/date';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface Contributor {
   profileImage?: string;
@@ -89,7 +90,11 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
 
             <span className="text-gray-600">{actionText}</span>
             <span className="text-gray-400">•</span>
-            <span className="text-gray-500">{formatTimeAgo(formattedDate.toISOString())}</span>
+            <Tooltip content={formattedDate.toLocaleString()}>
+              <span className="text-gray-500 cursor-default">
+                {formatTimeAgo(formattedDate.toISOString())}
+              </span>
+            </Tooltip>
           </div>
         </div>
       </div>

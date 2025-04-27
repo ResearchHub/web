@@ -42,7 +42,6 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
-
   // Initialize activeTab from URL or props
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     // Check if URL contains a tab indicator
@@ -54,6 +53,11 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
 
   const [rewardModalOpen, setRewardModalOpen] = useState(false);
   const [showMobileMetrics, setShowMobileMetrics] = useState(false);
+
+  // Determine if we should auto focus the review editor based on query param
+  const shouldFocusReviewEditor = useMemo(() => {
+    return searchParams?.get('focus') === 'true';
+  }, [searchParams]);
 
   // Only log metadata once to reduce console noise
   useEffect(() => {
@@ -124,12 +128,14 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
           <div className="space-y-6" key="reviews-tab">
             <CommentFeed
               documentId={work.id}
+              unifiedDocumentId={work.unifiedDocumentId}
               contentType={work.contentType}
               commentType="REVIEW"
               editorProps={{
                 placeholder: 'Write your review...',
                 initialRating: 0,
                 commentType: 'REVIEW',
+                autoFocus: shouldFocusReviewEditor,
               }}
               key={`review-feed-${work.id}`}
             />
@@ -140,6 +146,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
           <div className="space-y-6" key="bounties-tab">
             <CommentFeed
               documentId={work.id}
+              unifiedDocumentId={work.unifiedDocumentId}
               contentType={work.contentType}
               commentType="BOUNTY"
               renderCommentActions={false}
@@ -153,6 +160,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
           <div className="space-y-6" key="comments-tab">
             <CommentFeed
               documentId={work.id}
+              unifiedDocumentId={work.unifiedDocumentId}
               contentType={work.contentType}
               commentType="GENERIC_COMMENT"
               key={`comment-feed-${work.id}`}
@@ -162,7 +170,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
       default:
         return null;
     }
-  }, [activeTab, work.id, work.contentType, work.abstract, work.formats]);
+  }, [activeTab, work.id, work.contentType, work.abstract, work.formats, shouldFocusReviewEditor]);
 
   return (
     <div>
