@@ -12,6 +12,7 @@ import { EditorToolbar } from './components/EditorToolbar';
 import { EditorFooter } from './components/EditorFooter';
 import { EditorModals } from './components/EditorModals';
 import { CommentContent } from './lib/types';
+import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 
 export interface CommentEditorProps {
   onSubmit: (content: {
@@ -52,6 +53,13 @@ export const CommentEditor = ({
 }: CommentEditorProps) => {
   const { data: session, status } = useSession();
   const editorRef = useRef<HTMLDivElement>(null);
+
+  // Initialize dismissable feature for review banner
+  const {
+    isDismissed: isReviewBannerDismissed,
+    dismissFeature: dismissReviewBanner,
+    dismissStatus: reviewBannerStatus,
+  } = useDismissableFeature('comment_editor_review_banner');
 
   // Debug session information
   useEffect(() => {
@@ -191,6 +199,23 @@ export const CommentEditor = ({
 
       {/* Editor content */}
       <div ref={editorRef} className="relative comment-editor-content">
+        {/* Informative banner displayed inside editing area */}
+        {isReview && reviewBannerStatus === 'checked' && !isReviewBannerDismissed && (
+          <div className="mb-3 flex flex-col sm:!flex-row items-start sm:!items-center justify-between bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-md p-2 sm:!p-3 text-xs sm:!text-sm">
+            <p className="pr-0 sm:!pr-2 mb-1 sm:!mb-0">
+              <span className="font-semibold">Add your review.</span> If your review is part of a
+              bounty, please make sure to view bounty guidelines in the bounties tab first.
+            </p>
+            <button
+              onClick={dismissReviewBanner}
+              aria-label="Dismiss notice"
+              className="mt-1 sm:!mt-0 inline-flex items-center px-2 py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded text-xs font-medium"
+            >
+              Got it
+            </button>
+          </div>
+        )}
+
         <EditorContent editor={editor} />
       </div>
 

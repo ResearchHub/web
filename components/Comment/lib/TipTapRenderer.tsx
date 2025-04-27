@@ -2,6 +2,8 @@ import React, { ReactNode, useState } from 'react';
 import { SectionHeaderProps } from './renderUtils';
 import hljs from 'highlight.js';
 import { useEffect } from 'react';
+import { buildWorkUrl } from '@/utils/url';
+import { navigateToAuthorProfile } from '@/utils/navigation';
 
 interface TipTapRendererProps {
   content: any;
@@ -70,6 +72,17 @@ export const extractPlainText = (node: any): string => {
   // If it's a text node, return its text content
   if (node.type === 'text') {
     return node.text || '';
+  }
+
+  // If it's a mention node, return its label or displayName (including @ for people mentions)
+  if (node.type === 'mention') {
+    const entityType = node.attrs?.entityType;
+    const name = node.attrs?.displayName || node.attrs?.label || '';
+    // Add '@' prefix for user/author mentions, else just name
+    if (entityType === 'user' || entityType === 'author') {
+      return `@${name}`;
+    }
+    return name;
   }
 
   // If it has content, recursively extract text from all children
@@ -511,6 +524,65 @@ const RenderNode: React.FC<RenderNodeProps> = ({
         height={node.attrs?.height}
       />
     );
+  }
+
+  // Handle mention nodes (user, author, paper, post, etc.)
+  if (node.type === 'mention') {
+    const entityType = node.attrs?.entityType;
+    const id = node.attrs?.id;
+    const label = node.attrs?.displayName || node.attrs?.label || '';
+
+    // Determine rendering based on entity type
+    if (entityType === 'user' || entityType === 'author') {
+      const displayText = `@${label}`;
+      return (
+        <span
+          className="mention text-blue-600 hover:underline cursor-pointer"
+          onClick={() => navigateToAuthorProfile(id, true)}
+        >
+          {displayText}
+        </span>
+      );
+    }
+
+    // For papers
+    if (entityType === 'paper') {
+      const href = buildWorkUrl({ id, doi: node.attrs?.doi, contentType: 'paper' });
+      if (!href || href === '#') {
+        return <span className="mention">{label}</span>;
+      }
+      return (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mention text-blue-600 hover:underline"
+        >
+          {label}
+        </a>
+      );
+    }
+
+    // For posts
+    if (entityType === 'post') {
+      const href = buildWorkUrl({ id, contentType: 'post' });
+      if (!href || href === '#') {
+        return <span className="mention">{label}</span>;
+      }
+      return (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mention text-blue-600 hover:underline"
+        >
+          {label}
+        </a>
+      );
+    }
+
+    // Default fallback
+    return <span className="mention">{label}</span>;
   }
 
   // Handle section header (custom node type for reviews)
