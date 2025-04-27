@@ -53,6 +53,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'iiif.elifesciences.org',
       },
+      {
+        protocol: 'https',
+        hostname: 'researchhub-dev-storage.s3.amazonaws.com',
+      },
     ],
   },
   productionBrowserSourceMaps: process.env.VERCEL_ENV === 'preview',
