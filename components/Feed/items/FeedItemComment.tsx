@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import React from 'react';
 import { FeedEntry, FeedCommentContent, ParentCommentPreview } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
@@ -14,6 +14,7 @@ import { Reply, Pen, Trash2 } from 'lucide-react';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 import { Avatar } from '@/components/ui/Avatar';
+import { LegacyCommentBanner } from '@/components/LegacyCommentBanner';
 
 // Define the recursive rendering component for parent comments
 const RenderParentComment: FC<{ comment: ParentCommentPreview; level: number }> = ({
@@ -71,6 +72,7 @@ interface FeedItemCommentProps {
   };
   showTooltips?: boolean; // New property for controlling tooltips
   hideActions?: boolean; // New property to hide action buttons completely
+  workContentType?: ContentType;
 }
 
 /**
@@ -138,7 +140,9 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   actionLabels,
   showTooltips = true, // Default to showing tooltips
   hideActions = false, // Default to not hiding actions
+  workContentType,
 }) => {
+  let [showLegacyCommentBanner, setShowLegacyCommentBanner] = useState(false);
   // Extract the comment entry from the entry's content
   const commentEntry = entry.content as FeedCommentContent;
 
@@ -151,6 +155,8 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
 
   // Determine if this is a review comment
   const isReview = comment.commentType === 'REVIEW';
+
+  const isLegacyComment = comment.contentFormat === 'QUILL_EDITOR';
 
   // Get the review score from either comment.reviewScore, commentEntry.review.score, or comment.score
   const reviewScore = comment.reviewScore || commentEntry.review?.score || comment.score || 0;
@@ -178,7 +184,11 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
         label: 'Edit',
         onClick: (e?: React.MouseEvent) => {
           e?.stopPropagation();
-          onEdit();
+          if (isLegacyComment) {
+            setShowLegacyCommentBanner(true);
+          } else {
+            onEdit();
+          }
         },
       });
     }
@@ -206,7 +216,12 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
         author={author}
         actionText={isReview ? `submitted a peer review` : 'Added a comment'}
       />
-
+      {showLegacyCommentBanner && (
+        <LegacyCommentBanner
+          contentType={workContentType}
+          onClose={() => setShowLegacyCommentBanner(false)}
+        />
+      )}
       {/* Main Content Card - Using onClick instead of wrapping with Link */}
       <div
         onClick={handleCardClick}

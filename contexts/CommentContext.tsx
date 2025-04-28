@@ -42,6 +42,7 @@ interface CommentContextType {
   filteredComments: Comment[];
   editingCommentId: number | null;
   replyingToCommentId: number | null;
+  workContentType: ContentType;
 
   // Actions
   fetchComments: (page?: number) => Promise<void>;
@@ -789,6 +790,7 @@ export const CommentProvider = ({
     filteredComments,
     editingCommentId: state.editingCommentId,
     replyingToCommentId: state.replyingToCommentId,
+    workContentType: contentType,
     fetchComments,
     refresh,
     loadMore,
