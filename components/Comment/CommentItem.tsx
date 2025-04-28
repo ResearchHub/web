@@ -190,7 +190,7 @@ export const CommentItem = ({
 
     const isLegacyComment = comment.contentFormat === 'QUILL_EDITOR';
 
-    // If we're editing, show the editor
+    // If we're editing and the comment is not a legacy comment(QUILL_EDITOR), show the editor
     if (isEditing && !isLegacyComment) {
       return (
         <CommentEditor
