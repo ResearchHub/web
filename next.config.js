@@ -53,6 +53,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'iiif.elifesciences.org',
       },
+      {
+        protocol: 'https',
+        hostname: 'researchhub-dev-storage.s3.amazonaws.com',
+      },
     ],
   },
   productionBrowserSourceMaps: process.env.VERCEL_ENV === 'preview',
@@ -60,15 +64,20 @@ const nextConfig = {
     'lodash-es': {
       transform: 'lodash-es/{{member}}',
     },
-    'lucide-react': {
-      transform: 'lucide-react/dist/esm/icons/{{member}}',
-      skipDefaultConversion: true,
-    },
   },
   compress: true,
-  i18n: {
-    locales: ['en'],
-    defaultLocale: 'en',
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+      },
+    },
+    resolveAlias: {
+      '@': __dirname,
+    },
   },
   experimental: {
     optimizeCss: true,
