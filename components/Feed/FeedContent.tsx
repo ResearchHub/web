@@ -128,6 +128,7 @@ export const FeedContent: FC<FeedContentProps> = ({
               entry={entry}
               href={href}
               showCreatorActions={true}
+              workContentType={entry.relatedWork?.contentType}
             />
           );
           break;

@@ -58,6 +58,7 @@ export const CommentItem = ({
     forceRefresh,
     updateCommentVote,
     bountyFilter,
+    workContentType,
   } = useComments();
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -187,8 +188,10 @@ export const CommentItem = ({
       comment.commentType === 'BOUNTY' ||
       (!!comment.bounties && Array.isArray(comment.bounties) && comment.bounties.length > 0);
 
+    const isLegacyComment = comment.contentFormat === 'QUILL_EDITOR';
+
     // If we're editing, show the editor
-    if (isEditing) {
+    if (isEditing && !isLegacyComment) {
       return (
         <CommentEditor
           initialContent={comment.content}
@@ -294,6 +297,7 @@ export const CommentItem = ({
           actionLabels={{
             comment: 'Reply',
           }}
+          workContentType={workContentType}
         />
 
         {/* If we're replying, show the reply editor */}
