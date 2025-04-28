@@ -31,6 +31,7 @@ import { RadioGroup as HeadlessRadioGroup, Listbox } from '@headlessui/react';
 import { useSession } from 'next-auth/react';
 import { SessionProvider } from 'next-auth/react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { useStorageKey } from '@/utils/storageKeys';
 
 type Step = 'details' | 'payment';
 type BountyLength = '14' | '30' | '60' | 'custom';
@@ -541,6 +542,9 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
     </div>
   );
 
+  const baseStorageKey = `bounty-editor-draft-${workId || 'new'}`;
+  const storageKey = useStorageKey(baseStorageKey);
+
   return (
     <div className={className}>
       <div className="mb-4 flex items-center">
@@ -753,7 +757,7 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
                   commentType="GENERIC_COMMENT"
                   onCancel={() => {}}
                   compactToolbar={true}
-                  storageKey={`bounty-editor-draft-${workId || 'new'}`}
+                  storageKey={storageKey}
                   debug={true}
                 />
               </div>

@@ -18,17 +18,18 @@ export interface BlockEditorProps {
   isLoading?: boolean;
   onUpdate?: (editor: Editor) => void;
   editable?: boolean;
+  setEditor?: (editor: Editor | null) => void;
 }
 
 export const BlockEditor: React.FC<BlockEditorProps> = ({
   content,
   contentJson,
   onUpdate,
+  setEditor,
   isLoading = false,
   editable = true,
 }) => {
   const menuContainerRef = useRef(null);
-  const { setEditor } = useNotebookContext();
 
   const { editor } = useBlockEditor({
     content,
@@ -48,7 +49,9 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   }, [editor, content, contentJson]);
 
   useEffect(() => {
-    setEditor(editor);
+    if (setEditor) {
+      setEditor(editor);
+    }
   }, [editor, setEditor]);
 
   if (isLoading) {

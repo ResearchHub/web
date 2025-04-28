@@ -30,6 +30,7 @@ interface CommentFeedProps {
   renderCommentActions?: boolean;
   hideEditor?: boolean;
   debug?: boolean;
+  unifiedDocumentId?: number | null;
 }
 
 function CommentFeed({
@@ -41,6 +42,7 @@ function CommentFeed({
   renderCommentActions = true,
   hideEditor = false,
   debug = false,
+  unifiedDocumentId,
 }: CommentFeedProps) {
   // Add debugging for mount/unmount if debug is enabled
   useEffect(() => {
@@ -79,6 +81,7 @@ function CommentFeed({
           contentType={contentType}
           debug={debug}
           onCreateBounty={handleCreateBounty}
+          unifiedDocumentId={unifiedDocumentId}
         />
       </div>
       <CreateBountyModal
@@ -99,6 +102,7 @@ function CommentFeedContent({
   commentType,
   contentType,
   debug = false,
+  unifiedDocumentId,
   onCreateBounty,
 }: Omit<CommentFeedProps, 'documentId'> & { onCreateBounty: () => void }) {
   // Add debugging for content component if debug is enabled
@@ -113,21 +117,10 @@ function CommentFeedContent({
 
   const { filteredComments, count, loading, createComment, loadMore } = useCommentsContext();
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { status } = useSession();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
 
   const handleSubmit = useCallback(
-    async ({
-      content,
-      rating: overallRating,
-      sectionRatings,
-    }: {
-      content: CommentContent;
-      rating?: number;
-      sectionRatings?: Record<string, number>;
-    }) => {
-      setIsSubmitting(true);
+    async ({ content, rating: overallRating }: { content: CommentContent; rating?: number }) => {
       const toastId = toast.loading('Submitting comment...');
 
       try {
@@ -141,7 +134,7 @@ function CommentFeedContent({
         if (commentType === 'REVIEW' && overallRating !== undefined && result) {
           try {
             await CommentService.createCommunityReview({
-              unifiedDocumentId: result.thread.objectId,
+              unifiedDocumentId: unifiedDocumentId,
               commentId: result.id,
               score: overallRating,
             });
@@ -163,8 +156,6 @@ function CommentFeedContent({
         console.error('Error creating comment:', error);
         toast.error('Failed to submit comment. Please try again.', { id: toastId });
         return false;
-      } finally {
-        setIsSubmitting(false);
       }
     },
     [commentType, createComment]

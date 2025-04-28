@@ -192,9 +192,12 @@ export const CommentItem = ({
       return (
         <CommentEditor
           initialContent={comment.content}
+          commentType={commentType}
           onSubmit={handleEdit}
           onCancel={() => setEditingCommentId(null)}
           autoFocus={true}
+          initialRating={comment.reviewScore}
+          editing={isEditing}
         />
       );
     }
