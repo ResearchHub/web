@@ -6,6 +6,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { useNonprofitSelector } from '@/hooks/useNonprofitSelector';
 import { NonprofitOrg } from '@/types/nonprofit';
+import { ExternalLink } from 'lucide-react';
 
 import { NonprofitHeader } from './NonprofitHeader';
 import { NonprofitSearchBox } from './NonprofitSearchBox';
@@ -297,6 +298,21 @@ function NonprofitSearchSectionInner({
                         <span className="font-medium break-words">
                           {selectedInfoNonprofit.endaomentOrgId}
                         </span>
+
+                        {/* Inserted Endaoment Link */}
+                        <span className="text-gray-500 col-span-2 pt-2 border-t border-gray-100"></span>
+                        <span className="col-span-2">
+                          <a
+                            href={`https://app.endaoment.org/orgs/${selectedInfoNonprofit.ein.substring(0, 2)}-${selectedInfoNonprofit.ein.substring(2)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary-600 hover:underline flex items-center gap-1 break-all"
+                          >
+                            View on Endaoment
+                            <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                          </a>
+                        </span>
+                        {/* End Insert */}
                       </div>
 
                       {selectedInfoNonprofit.description && (
