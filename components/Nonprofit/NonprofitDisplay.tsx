@@ -85,19 +85,6 @@ export default function NonprofitDisplay({
           />
         </div>
       )}
-
-      {/* Endaoment Link */}
-      <div className="mt-3 pt-2 border-t border-gray-100">
-        <a
-          href={`https://app.endaoment.org/orgs/${nonprofit.ein.substring(0, 2)}-${nonprofit.ein.substring(2)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-primary-600 hover:underline flex items-center gap-1"
-        >
-          View Nonprofit on Endaoment
-          <ExternalLink className="h-3 w-3" />
-        </a>
-      </div>
     </div>
   );
 }
