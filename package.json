@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -13,7 +13,6 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@awesome.me/kit-5edf49e0db": "^1.0.4",
     "@coinbase/onchainkit": "^0.37.3",
     "@fontsource/inter": "^5.1.0",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
