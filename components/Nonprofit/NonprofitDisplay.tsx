@@ -35,22 +35,23 @@ export default function NonprofitDisplay({
       <div className="flex justify-between items-start">
         <div className="flex-1 pr-2">
           <h4 className="text-xs font-medium text-gray-800">{nonprofit.name}</h4>
-          <p className="text-xs text-gray-500">
-            EIN: {nonprofit.ein.substring(0, 2) + '-' + nonprofit.ein.substring(2)}
+          <p className="text-xs text-gray-500 flex items-center">
+            <span>EIN: {nonprofit.ein.substring(0, 2) + '-' + nonprofit.ein.substring(2)}</span>
+            <Button
+              type="button"
+              onClick={onInfoClick}
+              className={cn(
+                'ml-1 p-0 h-auto',
+                isInfoOpen ? 'text-primary-600 bg-transparent' : 'text-gray-400 hover:text-gray-600'
+              )}
+              variant="ghost"
+              size="icon"
+            >
+              <Info className="h-3 w-3" />
+            </Button>
           </p>
         </div>
         <div className="flex items-center shrink-0">
-          <Button
-            type="button"
-            onClick={onInfoClick}
-            className={cn(
-              isInfoOpen ? 'text-primary-600 bg-gray-200' : 'text-gray-400 hover:text-gray-600'
-            )}
-            variant="ghost"
-            size="icon"
-          >
-            <Info className="h-4 w-4" />
-          </Button>
           {(!readOnly || allowClear) && (
             <Button
               type="button"
