@@ -48,17 +48,18 @@ export function EndaomentInfoPopover({
   const alternateContent = (
     <>
       <p>
-        <span className="font-medium text-gray-800">Tax-Deductible Donations</span> are processed
-        through this nonprofit foundation, making contributions over $1,000 eligible for tax
-        deductions while supporting the researcher's work.
+        <strong>Donations to this project are tax-deductible</strong> and will be processed as a
+        grant to the nonprofit organization listed. Donors who contribute $500 or more will
+        automatically receive a tax receipt from our grant-making partner, Endaoment, upon the
+        successful completion of this fundraiser.
       </p>
 
       <div>
         <h4 className="text-xs font-medium text-gray-700 mb-1">Benefits:</h4>
         <ul className="list-disc pl-5 space-y-1">
-          <li>Contributions over $1,000 are generally tax-deductible</li>
-          <li>Endaoment handles all payment processing</li>
-          <li>Support for multiple asset types including crypto and cash</li>
+          <li>Grants are sent directly to the researcher's account or lab</li>
+          <li>Endaoment handles all processing and conversion of RSC</li>
+          <li>Donors receive tax relief for their contribution to science</li>
         </ul>
       </div>
     </>
@@ -77,7 +78,7 @@ export function EndaomentInfoPopover({
       <div className="p-4">
         <div className="flex justify-between items-start mb-3">
           <h3 className="text-base font-semibold text-gray-900">
-            {useAlternateText ? 'Tax-deductible donations' : 'About nonprofit support'}
+            {useAlternateText ? 'Supporting Research Institutions' : 'About nonprofit support'}
           </h3>
           <Button
             className="nonprofit-popover-close text-gray-400 hover:text-gray-600"
@@ -94,7 +95,7 @@ export function EndaomentInfoPopover({
 
           <div className="pt-2">
             <a
-              href="https://endaoment.org"
+              href="https://app.endaoment.org/researchhub"
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary-600 hover:underline flex items-center gap-1"
