@@ -33,6 +33,7 @@ export interface CommentEditorProps {
   debug?: boolean;
   autoFocus?: boolean;
   editing?: boolean;
+  hideSubmit?: boolean;
 }
 
 export const CommentEditor = ({
@@ -50,6 +51,7 @@ export const CommentEditor = ({
   debug = false,
   autoFocus = false,
   editing = false,
+  hideSubmit = false,
 }: CommentEditorProps) => {
   const { data: session, status } = useSession();
   const editorRef = useRef<HTMLDivElement>(null);
@@ -229,6 +231,7 @@ export const CommentEditor = ({
         onSubmit={handleSubmit}
         clearDraft={clearDraft}
         isSubmitting={isSubmitting}
+        hideSubmit={hideSubmit}
       />
 
       {/* Modals */}
