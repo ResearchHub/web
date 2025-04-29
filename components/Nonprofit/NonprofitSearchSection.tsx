@@ -248,13 +248,23 @@ function NonprofitSearchSectionInner({
                 <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-white p-6 shadow-xl transition-all">
                   {selectedInfoNonprofit && (
                     <div className="space-y-4">
-                      <div className="flex justify-between items-center">
+                      <div className="flex justify-between items-center mb-2">
                         <Dialog.Title className="text-lg font-medium text-gray-900">
                           {selectedInfoNonprofit.name}
                         </Dialog.Title>
+                        <a
+                          href={`https://app.endaoment.org/orgs/${selectedInfoNonprofit.ein.substring(0, 2)}-${selectedInfoNonprofit.ein.substring(2)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary-600 hover:underline flex items-center gap-1"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          View on Endaoment
+                          <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                        </a>
                         <Button
                           onClick={() => setShowInfoDialog(false)}
-                          className="text-gray-400 hover:text-gray-600"
+                          className="text-gray-400 hover:text-gray-600 ml-2"
                           variant="ghost"
                           size="icon"
                         >
@@ -298,21 +308,6 @@ function NonprofitSearchSectionInner({
                         <span className="font-medium break-words">
                           {selectedInfoNonprofit.endaomentOrgId}
                         </span>
-
-                        {/* Inserted Endaoment Link */}
-                        <span className="text-gray-500 col-span-2 pt-2 border-t border-gray-100"></span>
-                        <span className="col-span-2">
-                          <a
-                            href={`https://app.endaoment.org/orgs/${selectedInfoNonprofit.ein.substring(0, 2)}-${selectedInfoNonprofit.ein.substring(2)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary-600 hover:underline flex items-center gap-1 break-all"
-                          >
-                            View on Endaoment
-                            <ExternalLink className="h-3 w-3 flex-shrink-0" />
-                          </a>
-                        </span>
-                        {/* End Insert */}
                       </div>
 
                       {selectedInfoNonprofit.description && (

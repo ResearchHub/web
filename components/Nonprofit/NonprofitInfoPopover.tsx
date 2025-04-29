@@ -44,8 +44,18 @@ export function NonprofitInfoPopover({ nonprofit, position, onClose }: Nonprofit
         <div className="p-4">
           <div className="flex justify-between items-start mb-3 sticky top-0 bg-white z-10">
             <h3 className="text-base font-semibold text-gray-900">{nonprofit.name}</h3>
+            <a
+              href={`https://app.endaoment.org/orgs/${nonprofit.ein.substring(0, 2)}-${nonprofit.ein.substring(2)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-primary-600 hover:underline flex items-center gap-1 pt-0.5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              View on Endaoment
+              <ExternalLink className="h-3 w-3 flex-shrink-0" />
+            </a>
             <Button
-              className="nonprofit-popover-close text-gray-400 hover:text-gray-600"
+              className="nonprofit-popover-close text-gray-400 hover:text-gray-600 ml-2"
               onClick={onClose}
               variant="ghost"
               size="icon"
@@ -73,20 +83,6 @@ export function NonprofitInfoPopover({ nonprofit, position, onClose }: Nonprofit
 
               <span className="text-gray-500">Endaoment ID:</span>
               <span className="font-medium break-words">{endaomentId}</span>
-
-              <span className="text-gray-500 col-span-2 pt-2 border-t border-gray-100"></span>
-              <span className="col-span-2">
-                <a
-                  href={`https://app.endaoment.org/orgs/${nonprofit.ein.substring(0, 2)}-${nonprofit.ein.substring(2)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary-600 hover:underline flex items-center gap-1 break-all"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  View on Endaoment
-                  <ExternalLink className="h-3 w-3 flex-shrink-0" />
-                </a>
-              </span>
 
               {baseDeployment && (
                 <>
