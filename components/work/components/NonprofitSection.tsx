@@ -40,7 +40,7 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
     <section className={className}>
       <div className="flex items-center space-x-2 mb-4">
         <Building className="h-5 w-5 text-gray-500" />
-        <h2 className="text-base font-semibold text-gray-900">Nonprofit support</h2>
+        <h2 className="text-base font-semibold text-gray-900">Nonprofit Recipient</h2>
         <Button
           className="text-gray-400 hover:text-gray-600"
           onClick={() => setShowEndaomentInfo(true)}
@@ -128,7 +128,11 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
 
                       <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
                         <span className="text-gray-500">EIN:</span>
-                        <span className="font-medium">{selectedNonprofit.ein}</span>
+                        <span className="font-medium">
+                          {selectedNonprofit.ein.substring(0, 2) +
+                            '-' +
+                            selectedNonprofit.ein.substring(2)}
+                        </span>
 
                         <span className="text-gray-500">Location:</span>
                         <span>
@@ -191,7 +195,7 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <Dialog.Title className="text-lg font-medium text-gray-900">
-                        Tax-deductible donations
+                        Supporting Research Institutions
                       </Dialog.Title>
                       <Button
                         onClick={() => setShowEndaomentInfo(false)}
@@ -218,23 +222,24 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
 
                     <div className="text-sm text-gray-600 space-y-4">
                       <p>
-                        <span className="font-medium text-gray-800">Tax-deductible donations</span>{' '}
-                        are processed through this nonprofit foundation, making contributions over
-                        $1,000 eligible for tax deductions while supporting the researcher's work.
+                        Donations to this project are tax-deductible and will be processed as a
+                        grant to the nonprofit organization listed. Donors who contribute $500 or
+                        more will automatically receive a tax receipt from our grant-making partner,
+                        Endaoment, upon the successful completion of this fundraiser.
                       </p>
 
                       <div>
                         <h4 className="text-sm font-medium text-gray-700 mb-1">Benefits:</h4>
                         <ul className="list-disc pl-5 space-y-1">
-                          <li>Contributions over $1,000 are generally tax-deductible</li>
-                          <li>Endaoment handles all payment processing</li>
-                          <li>Support for multiple asset types including crypto and cash</li>
+                          <li>Grants are sent directly to the researcher's account or lab</li>
+                          <li>Endaoment handles all processing and conversion of RSC</li>
+                          <li>Donors receive tax relief for their contribution to science</li>
                         </ul>
                       </div>
 
                       <div className="pt-2">
                         <a
-                          href="https://endaoment.org"
+                          href="https://app.endaoment.org/researchhub"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-primary-600 hover:underline flex items-center gap-1"

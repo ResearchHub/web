@@ -1,7 +1,7 @@
 'use client';
 
 import { NonprofitOrg } from '@/types/nonprofit';
-import { Info, X } from 'lucide-react';
+import { Info, X, ExternalLink } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Input } from '@/components/ui/form/Input';
 import { Button } from '@/components/ui/Button';
@@ -35,7 +35,9 @@ export default function NonprofitDisplay({
       <div className="flex justify-between items-start">
         <div className="flex-1 pr-2">
           <h4 className="text-xs font-medium text-gray-800">{nonprofit.name}</h4>
-          <p className="text-xs text-gray-500">EIN: {nonprofit.ein}</p>
+          <p className="text-xs text-gray-500">
+            EIN: {nonprofit.ein.substring(0, 2) + '-' + nonprofit.ein.substring(2)}
+          </p>
         </div>
         <div className="flex items-center shrink-0">
           <Button
@@ -67,13 +69,13 @@ export default function NonprofitDisplay({
       {readOnly ? (
         note && (
           <div className="mt-2 text-xs text-gray-700">
-            <span className="font-medium">Note:</span> {note}
+            <span className="font-medium">Designated for:</span> {note}
           </div>
         )
       ) : (
         <div className="mt-2">
           <Input
-            label="Note"
+            label="Designated for"
             placeholder="Smith Lab, School of Mechanical Engineering"
             value={note || ''}
             onChange={(e) => onNoteChange(e.target.value)}
@@ -82,6 +84,19 @@ export default function NonprofitDisplay({
           />
         </div>
       )}
+
+      {/* Endaoment Link */}
+      <div className="mt-3 pt-2 border-t border-gray-100">
+        <a
+          href={`https://app.endaoment.org/orgs/${nonprofit.ein.substring(0, 2)}-${nonprofit.ein.substring(2)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-primary-600 hover:underline flex items-center gap-1"
+        >
+          View Nonprofit on Endaoment
+          <ExternalLink className="h-3 w-3" />
+        </a>
+      </div>
     </div>
   );
 }

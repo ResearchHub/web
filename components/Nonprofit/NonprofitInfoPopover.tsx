@@ -57,7 +57,9 @@ export function NonprofitInfoPopover({ nonprofit, position, onClose }: Nonprofit
           <div className="space-y-3">
             <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
               <span className="text-gray-500">EIN:</span>
-              <span className="font-medium">{nonprofit.ein}</span>
+              <span className="font-medium">
+                {nonprofit.ein.substring(0, 2) + '-' + nonprofit.ein.substring(2)}
+              </span>
 
               <span className="text-gray-500">Location:</span>
               <span>

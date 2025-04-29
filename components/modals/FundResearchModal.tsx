@@ -332,7 +332,7 @@ export function FundResearchModal({
           <Alert variant="special">
             {nftRewardsEnabled ? (
               <p className="text-green-700">
-                Contributions of $1,000 or more will receive a limited edition acknowledgement NFT.
+                Contributions of $500 or more will receive a limited edition acknowledgement NFT.
               </p>
             ) : (
               <p className="text-green-700">

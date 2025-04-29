@@ -71,8 +71,8 @@ export const FundRightSidebar = () => {
             isOpen={openSections.includes('tax-benefits')}
             onToggle={() => toggleSection('tax-benefits')}
           >
-            For qualifying projects with nonprofit support, US-based donors contributing over $1,000
-            will receive tax deduction documentation via our partner{' '}
+            For donations of $500+ to projects at qualifying nonprofits, you'll receive a
+            tax-deductible receipt for your RSC contribution from our partner{' '}
             <Link
               href="https://endaoment.org"
               target="_blank"
