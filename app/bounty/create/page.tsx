@@ -95,23 +95,21 @@ export default function CreateBountyPage() {
   // Review comment editor content (peer review branch)
   const [reviewContent, setReviewContent] = useState<CommentContent | null>(null);
 
-  const defaultBountyText = `I am assigning an incentive of $150 in ResearchCoin (RSC) per review (up to 2 reviews) for a high-quality, rigorous, and constructive peer review of this manuscript. If your expertise aligns well with this research, please read ResearchHub's Peer Review Guide with details about the process and examples of awarded reviews.
-
-Requirements:
-
-Submit your review within 14 days of the date this bounty was initiated.
-
-Disclose AI use. Please refer to the AI Policy for additional details.
-
-Disclose conflicts of interest.
-
-Use the rating system in the "Peer Reviews" tab for all 5 criteria: overall assessment, introduction, methods, results, and discussion.
-
-Please enhance the scientific quality, rigor, and content of the manuscript and avoid summaries.
-
-Please critically assess the figures and tables.
-
-I will review and award up to 2 high-quality peer reviews within 1 week following the 14 day submission window.`;
+  // Define the formatted bounty text as a TipTap JSON structure
+  const defaultBountyText = {
+    type: 'doc',
+    content: [
+      {
+        type: 'paragraph',
+        content: [
+          {
+            type: 'text',
+            text: "I am looking for a high-quality, rigorous, and constructive peer review of this manuscript. If your expertise aligns well with this research, please submit your review within the bounty's time limit.",
+          },
+        ],
+      },
+    ],
+  };
 
   // Initialise amount once exchange rate loads (150 USD equivalent)
   useEffect(() => {
@@ -473,17 +471,9 @@ I will review and award up to 2 high-quality peer reviews within 1 week followin
 
           try {
             const identifier = (sugg.id ? sugg.id.toString() : null) || sugg.doi || sugg.openalexId;
-            const contentJson = {
-              type: 'doc',
-              content: [
-                {
-                  type: 'paragraph',
-                  content: [{ type: 'text', text: defaultBountyText }],
-                },
-              ],
-            } as any;
 
-            setReviewContent(contentJson);
+            // Use the pre-formatted defaultBountyText directly
+            setReviewContent(defaultBountyText);
 
             const paper = await PaperService.get(identifier);
             setPaperId(paper.id);
@@ -557,6 +547,8 @@ I will review and award up to 2 high-quality peer reviews within 1 week followin
               placeholder="Describe your question..."
               compactToolbar={true}
               storageKey={`question-editor-draft`}
+              showHeader={false}
+              showFooter={false}
             />
           </div>
         </div>
@@ -670,7 +662,8 @@ I will review and award up to 2 high-quality peer reviews within 1 week followin
         placeholder="Edit your bounty description..."
         compactToolbar={true}
         storageKey={`peer-review-editor-draft-${paperId}`}
-        hideSubmit={true}
+        showHeader={false}
+        showFooter={false}
       />
     </div>
   );
