@@ -6,6 +6,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { useNonprofitSelector } from '@/hooks/useNonprofitSelector';
 import { NonprofitOrg } from '@/types/nonprofit';
+import { ExternalLink } from 'lucide-react';
 
 import { NonprofitHeader } from './NonprofitHeader';
 import { NonprofitSearchBox } from './NonprofitSearchBox';
@@ -248,7 +249,7 @@ function NonprofitSearchSectionInner({
                   {selectedInfoNonprofit && (
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
-                        <Dialog.Title className="text-lg font-medium text-gray-900">
+                        <Dialog.Title className="text-lg font-medium text-gray-900 flex-1 mr-2">
                           {selectedInfoNonprofit.name}
                         </Dialog.Title>
                         <Button
@@ -273,8 +274,18 @@ function NonprofitSearchSectionInner({
                           </svg>
                         </Button>
                       </div>
+                      <a
+                        href={`https://app.endaoment.org/orgs/${selectedInfoNonprofit.ein.substring(0, 2)}-${selectedInfoNonprofit.ein.substring(2)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary-600 hover:underline flex items-center gap-1 mb-2 block"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        View on Endaoment
+                        <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                      </a>
 
-                      <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
+                      <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm pt-1">
                         <span className="text-gray-500">EIN:</span>
                         <span className="font-medium">
                           {selectedInfoNonprofit.ein.substring(0, 2) +
