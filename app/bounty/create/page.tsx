@@ -409,7 +409,6 @@ export default function CreateBountyPage() {
     <div className="space-y-6">
       <div>
         <div className="flex items-center gap-2 mb-1">
-          <HelpCircle className="h-5 w-5 text-gray-600" />
           <h3 className="text-lg font-medium text-gray-900">What is this bounty for?</h3>
         </div>
         <p className="text-sm text-gray-500 mb-4">
