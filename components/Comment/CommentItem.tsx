@@ -66,7 +66,6 @@ export const CommentItem = ({
   const [selectedSolution, setSelectedSolution] = useState<SolutionViewEvent | null>(null);
 
   const { user } = useUser();
-  console.log('commentType', commentType);
   // Check if the current user is the author of the comment
   const isAuthor = user?.authorProfile?.id === comment?.createdBy?.authorProfile?.id;
 
