@@ -68,6 +68,7 @@ interface FeedItemBountyProps {
   }) => void;
   onAward?: () => void; // Prop for Award action
   onEdit?: () => void; // Prop for Edit action
+  onReply?: () => void; // Prop for Reply action
   onContributeSuccess?: () => void; // Prop for handling successful contribution
   isAuthor?: boolean; // Prop to determine if current user is the author
   showCreatorActions?: boolean; // Prop to determine whether to show creator actions
@@ -182,6 +183,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   onViewSolution,
   onAward,
   onEdit,
+  onReply,
   onContributeSuccess,
   isAuthor = false,
   showCreatorActions = true, // Default to showing creator actions
@@ -403,9 +405,9 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
                 tips={entry.tips}
                 showTooltips={showTooltips}
                 actionLabels={actionLabels}
-                hideCommentButton={true}
                 menuItems={menuItems}
                 bounties={[bountyEntry.bounty]}
+                onComment={onReply}
               />
             </div>
           </div>
