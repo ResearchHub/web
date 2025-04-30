@@ -248,7 +248,7 @@ function NonprofitSearchSectionInner({
                 <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-white p-6 shadow-xl transition-all">
                   {selectedInfoNonprofit && (
                     <div className="space-y-4">
-                      <div className="flex justify-between items-center mb-1">
+                      <div className="flex justify-between items-center">
                         <Dialog.Title className="text-lg font-medium text-gray-900 flex-1 mr-2">
                           {selectedInfoNonprofit.name}
                         </Dialog.Title>

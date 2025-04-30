@@ -42,7 +42,7 @@ export function NonprofitInfoPopover({ nonprofit, position, onClose }: Nonprofit
     >
       <div className="overflow-y-auto">
         <div className="p-4">
-          <div className="flex justify-between items-start mb-1 sticky top-0 bg-white z-10">
+          <div className="flex justify-between items-start sticky top-0 bg-white z-10">
             <h3 className="text-base font-semibold text-gray-900 flex-1 mr-2">{nonprofit.name}</h3>
             <Button
               className="nonprofit-popover-close text-gray-400 hover:text-gray-600"
