@@ -248,23 +248,13 @@ function NonprofitSearchSectionInner({
                 <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-white p-6 shadow-xl transition-all">
                   {selectedInfoNonprofit && (
                     <div className="space-y-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <Dialog.Title className="text-lg font-medium text-gray-900">
+                      <div className="flex justify-between items-center mb-1">
+                        <Dialog.Title className="text-lg font-medium text-gray-900 flex-1 mr-2">
                           {selectedInfoNonprofit.name}
                         </Dialog.Title>
-                        <a
-                          href={`https://app.endaoment.org/orgs/${selectedInfoNonprofit.ein.substring(0, 2)}-${selectedInfoNonprofit.ein.substring(2)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-primary-600 hover:underline flex items-center gap-1"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          View on Endaoment
-                          <ExternalLink className="h-3 w-3 flex-shrink-0" />
-                        </a>
                         <Button
                           onClick={() => setShowInfoDialog(false)}
-                          className="text-gray-400 hover:text-gray-600 ml-2"
+                          className="text-gray-400 hover:text-gray-600"
                           variant="ghost"
                           size="icon"
                         >
@@ -284,6 +274,16 @@ function NonprofitSearchSectionInner({
                           </svg>
                         </Button>
                       </div>
+                      <a
+                        href={`https://app.endaoment.org/orgs/${selectedInfoNonprofit.ein.substring(0, 2)}-${selectedInfoNonprofit.ein.substring(2)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary-600 hover:underline flex items-center gap-1 mb-3 block"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        View on Endaoment
+                        <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                      </a>
 
                       <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
                         <span className="text-gray-500">EIN:</span>
