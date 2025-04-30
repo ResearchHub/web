@@ -14,6 +14,7 @@ import { OnchainProvider } from '@/contexts/OnchainContext';
 import { FollowProvider } from '@/contexts/FollowContext';
 import '@coinbase/onchainkit/styles.css';
 import { AuthSharingWrapper } from '@/components/AuthSharingWrapper';
+import { OnboardingModalWrapper } from '@/components/Onboarding/OnboardingModalWrapper';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -61,7 +62,10 @@ export default async function RootLayout({
                   <ExchangeRateProvider>
                     <NotificationProvider>
                       <OrganizationProvider>
-                        <FollowProvider>{children}</FollowProvider>
+                        <FollowProvider>
+                          {children}
+                          <OnboardingModalWrapper />
+                        </FollowProvider>
                       </OrganizationProvider>
                     </NotificationProvider>
                   </ExchangeRateProvider>

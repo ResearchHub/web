@@ -65,14 +65,6 @@ export interface AuthorUpdatePayload {
   google_scholar?: string | null;
 }
 
-// Helper function (can be kept or removed if not needed elsewhere)
-// Restore this function
-async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
-  const response = await fetch(dataUrl);
-  const blob = await response.blob();
-  return blob;
-}
-
 // Interface for the update payload parameters
 export interface AuthorUpdateParams extends AuthorUpdatePayload {
   profileImageDataUrl?: string | null; // Add image data URL
@@ -217,17 +209,14 @@ export class AuthorService {
   /**
    * Update author profile image using FormData
    */
-  static async updateAuthorProfileImage(authorId: number, imageDataUrl: string): Promise<void> {
-    if (!imageDataUrl || !imageDataUrl.startsWith('data:image')) {
+  static async updateAuthorProfileImage(authorId: number, coverImage: File | Blob): Promise<void> {
+    if (!coverImage) {
       throw new Error('Invalid image data URL');
     }
 
-    const formData = new FormData();
-
     try {
-      // Convert data URL to Blob and append
-      const imageBlob = await dataUrlToBlob(imageDataUrl);
-      formData.append('profile_image', imageBlob, 'profile_image.png');
+      const formData = new FormData();
+      formData.append('profile_image', coverImage);
 
       // Send FormData using PATCH
       await ApiClient.patch(`${this.AUTHORS_PATH}/${authorId}/`, formData);
@@ -236,24 +225,6 @@ export class AuthorService {
     } catch (error) {
       console.error(`Error updating author image via PATCH FormData for ID ${authorId}:`, error);
       throw error; // Re-throw
-    }
-  }
-
-  /**
-   * Legacy method for backward compatibility
-   * @deprecated Use updateAuthorProfileData and updateAuthorProfileImage instead
-   */
-  static async updateInfo(authorId: number, params: AuthorUpdateParams): Promise<void> {
-    const { profileImageDataUrl, ...jsonData } = params;
-
-    // Update profile data if there is any
-    if (Object.keys(jsonData).length > 0) {
-      await this.updateAuthorProfileData(authorId, jsonData);
-    }
-
-    // Update profile image if provided
-    if (profileImageDataUrl && profileImageDataUrl.startsWith('data:image')) {
-      await this.updateAuthorProfileImage(authorId, profileImageDataUrl);
     }
   }
 

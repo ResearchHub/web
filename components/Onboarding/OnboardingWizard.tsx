@@ -34,6 +34,14 @@ import { OnboardingEducationModal } from './OnboardingEducationModal';
 
 const TOTAL_STEPS = 4; // Welcome, Profile, Verify, Interests (Removed Features)
 
+// Helper function (can be kept or removed if not needed elsewhere)
+// Restore this function
+async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+  return blob;
+}
+
 export interface UserProfileData {
   firstName: string;
   lastName: string;
@@ -148,7 +156,10 @@ export function OnboardingWizard() {
     try {
       // Immediately save the avatar using the new dedicated method
       if (user?.authorProfile?.id) {
-        await AuthorService.updateAuthorProfileImage(user.authorProfile.id, imageDataUrl);
+        // Convert data URL to Blob and append
+        const imageBlob = await dataUrlToBlob(imageDataUrl);
+
+        await AuthorService.updateAuthorProfileImage(user.authorProfile.id, imageBlob);
       } else {
         console.error('User profile ID not available. Cannot save avatar.');
       }
