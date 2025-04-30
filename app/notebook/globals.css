@@ -1,8 +1,8 @@
+@import './editor.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import './editor.css';
 
 @layer base {
   body {

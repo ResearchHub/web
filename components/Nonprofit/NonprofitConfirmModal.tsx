@@ -19,7 +19,7 @@ export function NonprofitConfirmModal({
   const nonprofitDisplay = (
     <span className="font-semibold">
       ({nonprofitName}
-      {ein ? `, EIN: ${ein}` : ''})
+      {ein ? `, EIN: ${ein.substring(0, 2) + '-' + ein.substring(2)}` : ''})
     </span>
   );
 

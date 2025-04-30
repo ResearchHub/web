@@ -105,6 +105,13 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Read and publish research papers',
     },
     {
+      label: 'Notebook',
+      href: '/notebook',
+      iconKey: 'notebook',
+      description: 'Access your research notes',
+      requiresAuth: true,
+    },
+    {
       label: 'Leaderboard',
       href: '/leaderboard',
       description: 'View the ResearchHub Leaderboard',

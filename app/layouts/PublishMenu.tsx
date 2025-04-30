@@ -1,11 +1,13 @@
 'use client';
 
-import { Plus, PenLine } from 'lucide-react';
+import { Plus, PenLine, UserCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import Icon from '@/components/ui/icons/Icon';
+import { useUser } from '@/contexts/UserContext';
+import { navigateToAuthorProfile } from '@/utils/navigation';
 
 interface PublishMenuProps {
   children?: React.ReactNode;
@@ -15,6 +17,7 @@ interface PublishMenuProps {
 export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimize = false }) => {
   const router = useRouter();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const { user } = useUser();
 
   const handleFundResearch = () => {
     router.push('/notebook?newFunding=true');
@@ -22,6 +25,10 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
 
   const handleCreateBounty = () => {
     router.push('/bounty/create');
+  };
+
+  const handleViewProfile = () => {
+    navigateToAuthorProfile(user?.id, false);
   };
 
   // Regular trigger for standard mode
@@ -94,7 +101,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
-                      Draft a new Note
+                      Draft a Note
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
                       Draft and publish your research
@@ -159,6 +166,27 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                   </div>
                 </div>
               </BaseMenuItem>
+
+              <BaseMenuItem
+                onClick={() => executeAuthenticatedAction(handleCreateBounty)}
+                className="w-full px-2"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                      <Icon name="earn1" size={24} color="#2563eb" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
+                      Create a bounty
+                    </div>
+                    <div className="text-xs text-gray-600 mt-0.5">
+                      Incentivize researchers to problem solve
+                    </div>
+                  </div>
+                </div>
+              </BaseMenuItem>
             </div>
           </div>
         </div>
@@ -213,10 +241,10 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
-                      Draft a new Note
+                      Draft a Note
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
-                      Capture your research ideas and notes
+                      Draft and publish your research
                     </div>
                   </div>
                 </div>
@@ -232,24 +260,6 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
               </h3>
             </div>
             <div className="space-y-2">
-              <BaseMenuItem onClick={handleCreateBounty} className="w-full px-2">
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                      <Icon name="earn1" size={24} color="#2563eb" />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
-                      Create a bounty
-                    </div>
-                    <div className="text-xs text-gray-600 mt-0.5">
-                      Reward experts for doing research tasks
-                    </div>
-                  </div>
-                </div>
-              </BaseMenuItem>
-
               <BaseMenuItem
                 onClick={() => executeAuthenticatedAction(handleFundResearch)}
                 className="w-full px-2"
@@ -292,6 +302,27 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
                       Donate to fund a specific area of science
+                    </div>
+                  </div>
+                </div>
+              </BaseMenuItem>
+
+              <BaseMenuItem
+                onClick={() => executeAuthenticatedAction(handleCreateBounty)}
+                className="w-full px-2"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                      <Icon name="earn1" size={24} color="#2563eb" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
+                      Create a bounty
+                    </div>
+                    <div className="text-xs text-gray-600 mt-0.5">
+                      Incentivize researchers to problem solve
                     </div>
                   </div>
                 </div>

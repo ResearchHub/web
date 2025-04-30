@@ -42,8 +42,8 @@ export function NonprofitInfoPopover({ nonprofit, position, onClose }: Nonprofit
     >
       <div className="overflow-y-auto">
         <div className="p-4">
-          <div className="flex justify-between items-start mb-3 sticky top-0 bg-white z-10">
-            <h3 className="text-base font-semibold text-gray-900">{nonprofit.name}</h3>
+          <div className="flex justify-between items-start sticky top-0 bg-white z-10">
+            <h3 className="text-base font-semibold text-gray-900 flex-1 mr-2">{nonprofit.name}</h3>
             <Button
               className="nonprofit-popover-close text-gray-400 hover:text-gray-600"
               onClick={onClose}
@@ -53,11 +53,23 @@ export function NonprofitInfoPopover({ nonprofit, position, onClose }: Nonprofit
               <X className="h-4 w-4" />
             </Button>
           </div>
+          <a
+            href={`https://app.endaoment.org/orgs/${nonprofit.ein.substring(0, 2)}-${nonprofit.ein.substring(2)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-primary-600 hover:underline flex items-center gap-1 mb-2 block"
+            onClick={(e) => e.stopPropagation()}
+          >
+            View on Endaoment
+            <ExternalLink className="h-3 w-3 flex-shrink-0" />
+          </a>
 
-          <div className="space-y-3">
+          <div className="space-y-3 pt-1">
             <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
               <span className="text-gray-500">EIN:</span>
-              <span className="font-medium">{nonprofit.ein}</span>
+              <span className="font-medium">
+                {nonprofit.ein.substring(0, 2) + '-' + nonprofit.ein.substring(2)}
+              </span>
 
               <span className="text-gray-500">Location:</span>
               <span>

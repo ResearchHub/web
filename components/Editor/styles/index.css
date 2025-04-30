@@ -1,3 +1,13 @@
+@import './partials/animations.css';
+@import './partials/blocks.css';
+@import './partials/code.css';
+@import './partials/collab.css';
+@import './partials/lists.css';
+@import './partials/placeholder.css';
+@import './partials/table.css';
+@import './partials/typography.css';
+@import './partials/readonly.css';
+
 .ProseMirror {
   @apply caret-black dark:caret-white outline-0 pr-8 pl-20 py-16 z-0 lg:pl-8 lg:pr-8 mx-auto max-w-4xl;
 
@@ -35,13 +45,3 @@
 [data-theme='slash-command'] {
   width: 1000vw;
 }
-
-@import './partials/animations.css';
-@import './partials/blocks.css';
-@import './partials/code.css';
-@import './partials/collab.css';
-@import './partials/lists.css';
-@import './partials/placeholder.css';
-@import './partials/table.css';
-@import './partials/typography.css';
-@import './partials/readonly.css';
