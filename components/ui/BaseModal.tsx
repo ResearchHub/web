@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, Fragment, ReactNode } from 'react';
+import { FC, Fragment, ReactNode, useRef, useLayoutEffect, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { X } from 'lucide-react';
 import { cn } from '@/utils/styles';
@@ -27,6 +27,23 @@ export const BaseModal: FC<BaseModalProps> = ({
   showCloseButton = true,
   padding = 'p-6', // Default padding
 }) => {
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
+
+  useLayoutEffect(() => {
+    if (headerRef.current) {
+      setHeaderHeight(headerRef.current.offsetHeight);
+    }
+
+    const handleResize = () => {
+      if (headerRef.current) {
+        setHeaderHeight(headerRef.current.offsetHeight);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" initialFocus={initialFocus} onClose={onClose}>
@@ -71,7 +88,7 @@ export const BaseModal: FC<BaseModalProps> = ({
                 )}
               >
                 {(showCloseButton || title) && (
-                  <div className="relative">
+                  <div ref={headerRef} className="relative">
                     {/* Header with close button - only show for non-INTRO steps */}
                     <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
                       {title ? (
@@ -98,7 +115,17 @@ export const BaseModal: FC<BaseModalProps> = ({
                   </div>
                 )}
                 {/* Modal Content */}
-                <div className={cn(padding)}>{children}</div>
+                <div
+                  className={cn(padding)}
+                  style={{
+                    maxHeight: headerHeight
+                      ? `calc(100vh - ${headerHeight}px)`
+                      : 'calc(100vh - 72px)', // fallback (40+16+16)
+                    overflowY: 'auto',
+                  }}
+                >
+                  {children}
+                </div>
               </Dialog.Panel>
             </Transition.Child>
           </div>

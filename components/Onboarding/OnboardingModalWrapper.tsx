@@ -8,15 +8,14 @@ import { ProfileInformationForm } from './ProfileInformationForm';
 import { useUpdateAuthorProfileData } from '@/hooks/useAuthor';
 import toast from 'react-hot-toast';
 import { ProfileInformationFormValues } from './ProfileInformationForm/schema';
+import { RecommendationsStep } from './Recommendations';
 
-const onboardingSteps = [
-  { id: 'PROFILE_INFORMATION', label: 'Profile Information' },
-  { id: 'TOPICS', label: "Choose topics you're interested in" },
-];
+type OnboardingStep = 'PROFILE_INFORMATION' | 'TOPICS';
 
 export function OnboardingModalWrapper() {
   const { user, isLoading } = useUser();
   const [showModal, setShowModal] = useState(false);
+  const [currentStep, setCurrentStep] = useState<OnboardingStep>('PROFILE_INFORMATION');
 
   const [
     { isLoading: updateAuthorProfileDataLoading, error: updateAuthorProfileDataError },
@@ -54,23 +53,54 @@ export function OnboardingModalWrapper() {
         twitter: data.twitter || undefined,
         google_scholar: data.google_scholar || undefined,
       });
-      handleClose();
+      setCurrentStep('TOPICS');
+      //   handleClose();
     } catch (e) {
       toast.error('Failed to save profile.');
     }
   };
 
+  const modalTitle = () => {
+    switch (currentStep) {
+      case 'PROFILE_INFORMATION':
+        return 'Welcome!';
+      case 'TOPICS':
+        return 'Almost there!';
+      default:
+        return 'ResearchHub Onboarding';
+    }
+  };
+
   return (
-    <BaseModal isOpen={showModal} onClose={handleClose} title="ResearchHub Onboarding">
+    <BaseModal isOpen={showModal} onClose={handleClose} title={modalTitle()}>
       <div>
-        <h2 className="text-xl font-semibold mb-4">First, tell us a little about yourself.</h2>
-        <div className="min-w-0 sm:min-w-[600px]">
-          <ProfileInformationForm
-            onSubmit={handleProfileFormSubmit}
-            simplifiedView={true}
-            submitLabel="Continue"
-            loading={updateAuthorProfileDataLoading}
-          />
+        <div className="min-w-0 sm:min-w-[600px] max-w-md sm:max-w-lg w-full mx-auto">
+          {currentStep === 'PROFILE_INFORMATION' && (
+            <>
+              <h2 className="text-xl font-semibold mb-4">
+                First, tell us a little about yourself.
+              </h2>
+              <ProfileInformationForm
+                onSubmit={handleProfileFormSubmit}
+                simplifiedView={true}
+                submitLabel="Continue"
+                loading={updateAuthorProfileDataLoading}
+              />
+            </>
+          )}
+
+          {currentStep === 'TOPICS' && (
+            <>
+              <h2 className="text-xl font-semibold mb-4">
+                Just let us know what topics you're interested in to get personalized
+                recommendations.
+              </h2>
+              <RecommendationsStep
+                onBack={() => setCurrentStep('PROFILE_INFORMATION')}
+                onDone={handleClose}
+              />
+            </>
+          )}
         </div>
       </div>
     </BaseModal>
