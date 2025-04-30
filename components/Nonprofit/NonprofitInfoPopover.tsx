@@ -57,14 +57,14 @@ export function NonprofitInfoPopover({ nonprofit, position, onClose }: Nonprofit
             href={`https://app.endaoment.org/orgs/${nonprofit.ein.substring(0, 2)}-${nonprofit.ein.substring(2)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-primary-600 hover:underline flex items-center gap-1 mb-3 block"
+            className="text-xs text-primary-600 hover:underline flex items-center gap-1 mb-2 block"
             onClick={(e) => e.stopPropagation()}
           >
             View on Endaoment
             <ExternalLink className="h-3 w-3 flex-shrink-0" />
           </a>
 
-          <div className="space-y-3">
+          <div className="space-y-3 pt-1">
             <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
               <span className="text-gray-500">EIN:</span>
               <span className="font-medium">
