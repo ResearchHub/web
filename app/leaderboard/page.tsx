@@ -627,7 +627,7 @@ function LeaderboardPageContent() {
                     amount={funder.totalFunding}
                     variant="text"
                     size="md"
-                    label="earned"
+                    label="contributed"
                     showExchangeRate={false}
                     textColor="text-orange-500"
                     rscLabelColor="text-orange-500"
