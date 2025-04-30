@@ -33,6 +33,8 @@ export interface CommentEditorProps {
   debug?: boolean;
   autoFocus?: boolean;
   editing?: boolean;
+  showFooter?: boolean;
+  showHeader?: boolean;
 }
 
 export const CommentEditor = ({
@@ -50,6 +52,8 @@ export const CommentEditor = ({
   debug = false,
   autoFocus = false,
   editing = false,
+  showFooter = true,
+  showHeader = true,
 }: CommentEditorProps) => {
   const { data: session, status } = useSession();
   const editorRef = useRef<HTMLDivElement>(null);
@@ -179,12 +183,14 @@ export const CommentEditor = ({
   return (
     <div className="relative border border-gray-200 rounded-lg overflow-hidden bg-white focus-within:ring-blue-500 focus-within:border-blue-500 transition-all duration-200">
       {/* User info header */}
-      <EditorHeader
-        isReview={isReview}
-        rating={rating}
-        onRatingChange={setRating}
-        isReadOnly={isReadOnly || editing}
-      />
+      {showHeader && (
+        <EditorHeader
+          isReview={isReview}
+          rating={rating}
+          onRatingChange={setRating}
+          isReadOnly={isReadOnly || editing}
+        />
+      )}
 
       {/* Editor toolbar */}
       <EditorToolbar
@@ -220,16 +226,18 @@ export const CommentEditor = ({
       </div>
 
       {/* Editor footer */}
-      <EditorFooter
-        saveStatus={saveStatus}
-        lastSaved={lastSaved}
-        formatLastSaved={formatLastSaved}
-        onCancel={onCancel}
-        onReset={onReset}
-        onSubmit={handleSubmit}
-        clearDraft={clearDraft}
-        isSubmitting={isSubmitting}
-      />
+      {showFooter && (
+        <EditorFooter
+          saveStatus={saveStatus}
+          lastSaved={lastSaved}
+          formatLastSaved={formatLastSaved}
+          onCancel={onCancel}
+          onReset={onReset}
+          onSubmit={handleSubmit}
+          clearDraft={clearDraft}
+          isSubmitting={isSubmitting}
+        />
+      )}
 
       {/* Modals */}
       <EditorModals
