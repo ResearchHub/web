@@ -115,7 +115,7 @@ export default function UserMenu({
       {/* Menu items */}
       <div className="py-4">
         <div
-          className="px-6 py-2 hover:bg-gray-50 cursor-pointer hidden sidebar-compact:block"
+          className="px-6 py-2 hover:bg-gray-50 cursor-pointer"
           onClick={() => {
             navigateToAuthorProfile(user.authorProfile?.id);
             setMenuOpenState(false);
@@ -234,7 +234,7 @@ export default function UserMenu({
           <div className="py-1">
             <BaseMenuItem
               onClick={() => navigateToAuthorProfile(user.authorProfile?.id)}
-              className="w-full px-4 py-2 hidden sidebar-compact:block"
+              className="w-full px-4 py-2"
             >
               <div className="flex items-center">
                 <UserIcon className="h-4 w-4 mr-3 text-gray-500" />
