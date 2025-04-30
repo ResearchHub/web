@@ -12,7 +12,7 @@ import { RecommendationsStep } from './Recommendations';
 
 type OnboardingStep = 'PROFILE_INFORMATION' | 'TOPICS';
 
-export function OnboardingModalWrapper() {
+export function OnboardingModal() {
   const { user, isLoading } = useUser();
   const [showModal, setShowModal] = useState(false);
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('PROFILE_INFORMATION');
@@ -29,6 +29,20 @@ export function OnboardingModalWrapper() {
       setShowModal(false);
     }
   }, [user, isLoading]);
+
+  // Mark onboarding as completed as soon as the component mounts
+  useEffect(() => {
+    const markOnboardingCompleted = async () => {
+      try {
+        await UserService.setCompletedOnboarding();
+        // await refreshUser();
+      } catch (error) {
+        console.error('Error automatically marking onboarding as completed:', error);
+      }
+    };
+
+    markOnboardingCompleted();
+  }, []);
 
   const handleClose = () => {
     setShowModal(false);

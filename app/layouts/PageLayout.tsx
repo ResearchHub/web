@@ -122,7 +122,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
 
   return (
     <div className="flex h-screen">
-      <OnboardingRedirect />
+      {/* <OnboardingRedirect /> */}
 
       {/* Mobile overlay */}
       {isLeftSidebarOpen && (

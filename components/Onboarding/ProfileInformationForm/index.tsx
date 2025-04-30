@@ -56,7 +56,7 @@ export function ProfileInformationForm({
     resolver: zodResolver(getProfileInformationSchema(simplifiedView)),
     mode: 'onChange',
     defaultValues: {
-      education: [],
+      education: user?.authorProfile?.education || [],
       first_name: user?.firstName || '',
       last_name: user?.lastName || '',
       headline: user?.authorProfile?.headline || '',

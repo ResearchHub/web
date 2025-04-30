@@ -13,7 +13,7 @@ export interface Education {
   };
   major: string;
   state: string;
-  degree: {
+  degree?: {
     label: string;
     value: string;
   };
