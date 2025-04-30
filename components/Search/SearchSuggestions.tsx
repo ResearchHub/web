@@ -3,6 +3,7 @@ import { FileText, History, Search, X, ArrowRight, User, Hash, HelpCircle } from
 import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
 import { cn } from '@/utils/styles';
 import { SearchSuggestion } from '@/types/search';
+import type { EntityType } from '@/types/search';
 import { FollowTopicButton } from '@/components/ui/FollowTopicButton';
 
 interface SearchSuggestionsProps {
@@ -11,6 +12,7 @@ interface SearchSuggestionsProps {
   onSelect?: (suggestion: SearchSuggestion) => void;
   displayMode?: 'dropdown' | 'inline';
   showSuggestionsOnFocus?: boolean;
+  indices?: EntityType[];
 }
 
 // Maximum number of search results to display
@@ -30,10 +32,12 @@ export function SearchSuggestions({
   onSelect,
   displayMode = 'dropdown',
   showSuggestionsOnFocus = true,
+  indices,
 }: SearchSuggestionsProps) {
   const [erroredSuggestions, setErroredSuggestions] = useState<Set<string>>(new Set());
   const { loading, suggestions, hasLocalSuggestions, clearSearchHistory } = useSearchSuggestions({
     query,
+    indices,
     includeLocalSuggestions: true,
   });
 

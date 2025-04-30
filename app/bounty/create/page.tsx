@@ -24,9 +24,24 @@ import { CommentContent } from '@/components/Comment/lib/types';
 import { BalanceInfo } from '@/components/modals/BalanceInfo';
 import { useUser } from '@/contexts/UserContext';
 import { Progress } from '@/components/ui/Progress';
-import { Star, MessageCircleQuestion, Loader2 } from 'lucide-react';
+import {
+  Star,
+  MessageCircleQuestion,
+  Loader2,
+  ArrowLeft,
+  ListCheck,
+  FileText,
+  DollarSign,
+  BookOpen,
+  HelpCircle,
+  ChevronDown,
+} from 'lucide-react';
 import { PaperService } from '@/services/paper.service';
 import { buildWorkUrl } from '@/utils/url';
+import { Alert } from '@/components/ui/Alert';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { Icon } from '@/components/ui/icons/Icon';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 
 // Wizard steps.
 // We intentionally separate review-specific and answer-specific steps.
@@ -115,7 +130,9 @@ I will review and award up to 2 high-quality peer reviews within 1 week followin
 
   const validateAmount = (amount: number) => {
     if (amount <= 0) return 'Please enter an amount';
-    if (amount < 10) return 'Minimum bounty amount is 10 RSC';
+    // Calculate net after 9% fee
+    const net = Math.round(amount * 0.91 * 100) / 100;
+    if (net < 10) return 'Minimum bounty amount is 10 RSC (after fees)';
     return undefined;
   };
 
@@ -147,6 +164,50 @@ I will review and award up to 2 high-quality peer reviews within 1 week followin
     }
   };
 
+  /* ---------- Fees ---------- */
+  const platformFee = Math.floor(rscAmount * 0.09);
+  const netBountyAmount = rscAmount - platformFee;
+  const totalAmount = rscAmount + platformFee;
+
+  const FeeBreakdown = () => (
+    <div className="bg-gray-50 rounded-lg p-4 space-y-4 border border-gray-200">
+      <div className="flex justify-between items-center">
+        <span className="text-gray-900">Your contribution:</span>
+        <span className="text-gray-900">{rscAmount.toLocaleString()} RSC</span>
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1">
+            <span className="text-gray-600">Platform fees (9%)</span>
+            <Tooltip
+              content="This fee is used to maintain the platform and support the community"
+              className="max-w-xs"
+            >
+              <div className="text-gray-400 hover:text-gray-500">
+                <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+            </Tooltip>
+          </div>
+          <span className="text-gray-600">+ {platformFee.toLocaleString()} RSC</span>
+        </div>
+      </div>
+
+      <div className="border-t border-gray-200" />
+
+      <div className="flex justify-between items-center">
+        <span className="font-semibold text-gray-900">Total:</span>
+        <span className="font-semibold text-gray-900">{totalAmount.toLocaleString()} RSC</span>
+      </div>
+    </div>
+  );
+
   /* ---------- Submission ---------- */
 
   const handleSubmit = async () => {
@@ -177,7 +238,7 @@ I will review and award up to 2 high-quality peer reviews within 1 week followin
             typeof reviewContent === 'string' ? reviewContent : JSON.stringify(reviewContent),
           contentFormat: 'TIPTAP',
           commentType: 'GENERIC_COMMENT',
-          bountyAmount: rscAmount,
+          bountyAmount: totalAmount,
           bountyType: 'REVIEW',
           expirationDate,
           privacyType: 'PUBLIC',
@@ -233,7 +294,7 @@ I will review and award up to 2 high-quality peer reviews within 1 week followin
     }
     const toastId = toast.loading('Publishing question...');
     try {
-      await PostService.upsert({
+      const post = await PostService.upsert({
         assign_doi: false,
         document_type: 'QUESTION',
         full_src: html,
@@ -241,8 +302,41 @@ I will review and award up to 2 high-quality peer reviews within 1 week followin
         hubs: selectedHubs.map((h) => Number(h.id)),
         title: questionTitle,
       });
-      toast.success('Question published!', { id: toastId });
-      router.push('/bounties');
+      // After post creation, create the bounty comment with platform fee applied
+      const expirationDate = (() => {
+        const date = new Date();
+        date.setDate(date.getDate() + 30);
+        return date.toISOString();
+      })();
+
+      const bountyCommentContent = {
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [
+              {
+                type: 'text',
+                text: `Offering a bounty of ${netBountyAmount} RSC to the best answer to this question.`,
+              },
+            ],
+          },
+        ],
+      } as any;
+
+      await CommentService.createComment({
+        workId: post.id.toString(),
+        contentType: 'post',
+        content: bountyCommentContent,
+        bountyAmount: totalAmount,
+        bountyType: 'ANSWER',
+        expirationDate,
+        privacyType: 'PUBLIC',
+        commentType: 'GENERIC_COMMENT',
+      });
+
+      toast.success('Question published & bounty created!', { id: toastId });
+      router.push(`/post/${post.id}/${post.slug}`);
     } catch (err) {
       console.error(err);
       let errorMessage = 'Failed to publish question';
@@ -315,7 +409,15 @@ I will review and award up to 2 high-quality peer reviews within 1 week followin
 
   const renderTypeStep = () => (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">What is this bounty for?</h2>
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <HelpCircle className="h-5 w-5 text-gray-600" />
+          <h3 className="text-lg font-medium text-gray-900">What is this bounty for?</h3>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">
+          Choose the type of content you'd like to incentivize with your bounty
+        </p>
+      </div>
       <div className="space-y-4">
         <Button
           variant={bountyType === 'REVIEW' ? 'default' : 'outlined'}
@@ -335,13 +437,26 @@ I will review and award up to 2 high-quality peer reviews within 1 week followin
           <MessageCircleQuestion className="h-5 w-5 mr-2" />
           Answer to Question
         </Button>
+
+        <Alert variant="info">
+          Don't see an option you are looking for? That's okay - Choose "Answer to Question" and add
+          your details even though it may not be a perfect fit.
+        </Alert>
       </div>
     </div>
   );
 
   const renderWorkStep = () => (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">Which work is this bounty for?</h2>
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <BookOpen className="h-5 w-5 text-gray-600" />
+          <h3 className="text-lg font-medium text-gray-900">Which work is this bounty for?</h3>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">
+          Search for the research paper you want to receive peer reviews for
+        </p>
+      </div>
       <Search
         onSelect={async (sugg) => {
           if (sugg.entityType !== 'paper') return;
@@ -383,6 +498,7 @@ I will review and award up to 2 high-quality peer reviews within 1 week followin
         displayMode="inline"
         placeholder="Search for work..."
         className="w-full [&_input]:bg-white"
+        indices={['paper', 'post']}
       />
       {/* Show selected paper summary */}
       {selectedPaper && (
@@ -402,107 +518,150 @@ I will review and award up to 2 high-quality peer reviews within 1 week followin
           </Button>
         </div>
       )}
-
-      {/* Comment editor will now be shown in the next step (DESCRIPTION) */}
     </div>
   );
 
   const renderDetailsStep = () => (
     <div className="space-y-8">
-      <h2 className="text-xl font-semibold text-gray-900">Question details</h2>
-      <Input
-        value={questionTitle}
-        onChange={(e) => setQuestionTitle(e.target.value)}
-        placeholder="Question title..."
-      />
-      <div className="p-2 comment-editor-no-header-footer">
-        {/* Hide header & footer using global styles */}
-        <style jsx>{`
-          :global(.comment-editor-no-header-footer > .border-b:first-of-type) {
-            display: none;
-          }
-          :global(.comment-editor-no-header-footer .border-t) {
-            display: none;
-          }
-        `}</style>
-        <SessionAwareCommentEditor
-          onSubmit={async () => {}}
-          onUpdate={(content: CommentContent) => setQuestionContent(content)}
-          placeholder="Describe your question..."
-          compactToolbar={true}
-          storageKey={`question-editor-draft`}
+      <div className="space-y-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <ListCheck className="h-5 w-5 text-gray-600" />
+            <h3 className="text-lg font-medium text-gray-900">Question details</h3>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">
+            Provide the details of your question for others to answer
+          </p>
+        </div>
+        <Input
+          label="Question title"
+          value={questionTitle}
+          onChange={(e) => setQuestionTitle(e.target.value)}
+          placeholder="Question title..."
         />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Details</label>
+          <div className="p-2 pl-0 comment-editor-no-header-footer">
+            {/* Hide header & footer using global styles */}
+            <style jsx>{`
+              :global(.comment-editor-no-header-footer > .border-b:first-of-type) {
+                display: none;
+              }
+              :global(.comment-editor-no-header-footer .border-t) {
+                display: none;
+              }
+            `}</style>
+            <SessionAwareCommentEditor
+              onSubmit={async () => {}}
+              onUpdate={(content: CommentContent) => setQuestionContent(content)}
+              placeholder="Describe your question..."
+              compactToolbar={true}
+              storageKey={`question-editor-draft`}
+            />
+          </div>
+        </div>
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-2">Select relevant topics</h3>
         <HubsSelector selectedHubs={selectedHubs} onChange={setSelectedHubs} error={null} />
       </div>
     </div>
   );
 
-  const renderAmountStep = () => (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">How much are you offering?</h2>
-      <Input
-        value={inputAmount === 0 ? '' : inputAmount.toString()}
-        onChange={handleAmountChange}
-        placeholder="0.00"
-        rightElement={
-          <button
-            type="button"
-            onClick={toggleCurrency}
-            className="flex items-center gap-1 pr-3 text-gray-900 hover:text-gray-600"
-          >
-            <span className="font-medium">{currency}</span>
-          </button>
-        }
-        inputMode="numeric"
-        className="w-full h-12 text-left"
-      />
-      {amountError && <p className="text-red-500 text-sm">{amountError}</p>}
-      {!amountError && (
-        <p className="text-gray-500 text-sm">
-          Suggested amount:{' '}
-          {isExchangeRateLoading
-            ? 'Loading...'
-            : currency === 'USD'
-              ? '150 USD'
-              : `${Math.round(150 / exchangeRate)} RSC`}
-        </p>
-      )}
+  const renderAmountStep = () => {
+    const suggestedAmount = isExchangeRateLoading
+      ? 'Loading...'
+      : currency === 'USD'
+        ? '150 USD'
+        : `${Math.round(150 / exchangeRate)} RSC`;
 
-      {/* User balance */}
-      <BalanceInfo amount={rscAmount} showWarning={userBalance < rscAmount} />
+    return (
+      <div className="space-y-6">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <ResearchCoinIcon size={20} color="#6B7280" />
+            <h3 className="text-lg font-medium text-gray-900">How much are you offering?</h3>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">
+            Set the bounty amount you're willing to pay for a quality response
+          </p>
+        </div>
 
-      <div className="flex flex-col gap-4">
-        <Button
-          variant="default"
-          size="lg"
-          className="w-full"
-          onClick={handleSubmit}
-          disabled={!!amountError || rscAmount < 10 || isSubmitting}
-        >
-          {isSubmitting ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : bountyType === 'REVIEW' ? (
-            'Create Bounty'
-          ) : (
-            'Publish Question'
+        <div className="relative">
+          <Input
+            name="amount"
+            value={inputAmount === 0 ? '' : inputAmount.toString()}
+            onChange={handleAmountChange}
+            required
+            label="I am offering"
+            placeholder="0.00"
+            type="text"
+            inputMode="numeric"
+            className={`w-full text-left h-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${amountError ? 'border-red-500' : ''}`}
+            rightElement={
+              <button
+                type="button"
+                onClick={toggleCurrency}
+                className="flex items-center gap-1 pr-3 text-gray-900 hover:text-gray-600"
+              >
+                <span className="font-medium">{currency}</span>
+                <ChevronDown className="w-4 h-4" />
+              </button>
+            }
+          />
+          {amountError && <p className="mt-1.5 text-xs text-red-500">{amountError}</p>}
+          {!amountError && (
+            <p className="mt-1.5 text-xs text-gray-500">
+              Suggested amount: {suggestedAmount}
+              {currency === 'RSC' && !isExchangeRateLoading && ' (150 USD)'}
+            </p>
           )}
-        </Button>
-      </div>
+        </div>
 
-      {/* Back button */}
-      <Button variant="ghost" size="lg" className="w-full" onClick={prevStep}>
-        Back
-      </Button>
-    </div>
-  );
+        {/* Fees breakdown */}
+        <FeeBreakdown />
+
+        {/* User balance */}
+        <BalanceInfo amount={totalAmount} showWarning={userBalance < totalAmount} />
+
+        <div className="flex flex-col gap-4">
+          <Button
+            variant="default"
+            size="lg"
+            className="w-full"
+            onClick={handleSubmit}
+            disabled={!!amountError || netBountyAmount < 10 || isSubmitting}
+          >
+            {isSubmitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : bountyType === 'REVIEW' ? (
+              'Create Bounty'
+            ) : (
+              'Publish Question'
+            )}
+          </Button>
+
+          {/* Info Alert */}
+          <Alert variant="info" className="text-left">
+            If no solution satisfies your request, the full bounty amount (excluding platform fee)
+            will be refunded to you
+          </Alert>
+        </div>
+      </div>
+    );
+  };
 
   const renderDescriptionStep = () => (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold text-gray-900">Bounty Description</h2>
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <FileText className="h-5 w-5 text-gray-600" />
+          <h3 className="text-lg font-medium text-gray-900">Bounty Description</h3>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">
+          Provide details about your bounty requirements for peer reviewers
+        </p>
+      </div>
       <SessionAwareCommentEditor
         key={`editor-${paperId}`}
         initialContent={reviewContent || ''}
@@ -535,16 +694,86 @@ I will review and award up to 2 high-quality peer reviews within 1 week followin
 
   /* ---------- Page ---------- */
 
+  // Contributors for the avatar display
+  const journalContributors = [
+    {
+      src: 'https://www.researchhub.com/static/editorial-board/MaulikDhandha.jpeg',
+      alt: 'Maulik Dhandha',
+      tooltip: 'Maulik Dhandha, Editor',
+    },
+    {
+      src: 'https://www.researchhub.com/static/editorial-board/EmilioMerheb.jpeg',
+      alt: 'Emilio Merheb',
+      tooltip: 'Emilio Merheb, Editor',
+    },
+    {
+      src: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2024/05/07/blob_48esqmw',
+      alt: 'Journal Editor',
+      tooltip: 'Editorial Board Member',
+    },
+    {
+      src: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2025/03/04/blob_pxj9rsH',
+      alt: 'Journal Editor',
+      tooltip: 'Editorial Board Member',
+    },
+    {
+      src: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2024/04/01/blob_Ut50nMY',
+      alt: 'Journal Editor',
+      tooltip: 'Editorial Board Member',
+    },
+  ];
+
   return (
     <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
       <div className="w-full max-w-3xl mx-auto space-y-8">
         {/* Header */}
-        <div className="mt-4">
-          <h1 className="text-3xl font-bold text-gray-900">Create a Bounty</h1>
-          <p className="mt-2 text-gray-600">
-            Engage the world's brightest minds by offering ResearchCoin for peer reviews or answers
-            to your research questions.
-          </p>
+        <div className={`mt-4 ${step === 'TYPE' ? 'text-center' : 'text-left'}`}>
+          <div className={`flex flex-col ${step === 'TYPE' ? 'items-center' : ''} gap-3`}>
+            {step !== 'TYPE' && (
+              <button
+                type="button"
+                onClick={prevStep}
+                className="self-start p-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            )}
+            {step === 'TYPE' && (
+              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 ">
+                <Icon name="earn1" size={32} className="ml-1" color="#2563eb" />
+              </div>
+            )}
+            <h1
+              className={`text-3xl font-bold text-gray-900 ${step !== 'TYPE' ? 'self-start' : ''}`}
+            >
+              Create a Bounty
+            </h1>
+            {/* Contributors avatars - only show on TYPE step */}
+            {step === 'TYPE' && (
+              <div className="flex items-center justify-center mt-4 bg-blue-50 rounded-lg py-3 px-4 border border-blue-100 flex-col gap-3 w-full">
+                <div className="flex -space-x-2">
+                  {journalContributors.map((contributor, i) => (
+                    <div
+                      key={i}
+                      className="w-8 h-8 rounded-full ring-2 ring-white overflow-hidden"
+                      title={contributor.tooltip}
+                    >
+                      <img
+                        src={contributor.src}
+                        alt={contributor.alt}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <span className="text-sm text-blue-700 font-medium">
+                  Engage{' '}
+                  <span className="border-b border-blue-700 border-b-2 pb-0.5">thousands</span> of
+                  researchers and academics to help with your inquiry
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Progress */}
@@ -594,18 +823,12 @@ I will review and award up to 2 high-quality peer reviews within 1 week followin
           </div>
         )}
 
-        {/* Add extra space below progress bar */}
-        {bountyType && <div className="h-4"></div>}
-
         {/* Wizard body */}
         <div className="min-h-[300px]">{renderStep()}</div>
 
-        {/* Navigation controls (except on AMOUNT, where submit is primary) */}
-        <div className="flex justify-between pt-4">
-          <Button variant="ghost" size="lg" onClick={prevStep} disabled={step === 'TYPE'}>
-            Back
-          </Button>
-          {step !== 'AMOUNT' && (
+        {/* Navigation controls (Next only, except on AMOUNT) */}
+        {step !== 'AMOUNT' && (
+          <div className="flex justify-end pt-4">
             <Button
               variant="default"
               size="lg"
@@ -630,8 +853,8 @@ I will review and award up to 2 high-quality peer reviews within 1 week followin
                 'Next'
               )}
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </PageLayout>
   );
