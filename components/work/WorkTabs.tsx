@@ -1,10 +1,11 @@
 'use client';
 
-import { FileText, Star, Activity, MessagesSquare } from 'lucide-react';
+import { FileText, Star, MessagesSquare } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Icon from '@/components/ui/icons/Icon';
+import { Tabs } from '@/components/ui/Tabs';
 
 export type TabType = 'paper' | 'reviews' | 'bounties' | 'conversation';
 
@@ -73,89 +74,80 @@ export const WorkTabs = ({
     return 'Post';
   };
 
+  const tabs = [
+    {
+      id: 'paper',
+      label: (
+        <div className="flex items-center">
+          <FileText className="h-4 w-4 mr-2" />
+          {getMainTabLabel()}
+        </div>
+      ),
+    },
+    {
+      id: 'conversation',
+      label: (
+        <div className="flex items-center">
+          <MessagesSquare className="h-4 w-4 mr-2" />
+          <span>Conversation</span>
+          <span
+            className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+              activeTab === 'conversation'
+                ? 'bg-indigo-100 text-indigo-600'
+                : 'bg-gray-100 text-gray-600'
+            }`}
+          >
+            {metadata.metrics.comments}
+          </span>
+        </div>
+      ),
+    },
+    {
+      id: 'bounties',
+      label: (
+        <div className="flex items-center">
+          <Icon name="earn1" size={16} color={activeTab === 'bounties' ? '#4f46e5' : '#6B7280'} />
+          <span className="ml-2">Bounties</span>
+          <span
+            className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+              activeTab === 'bounties'
+                ? 'bg-indigo-100 text-indigo-600'
+                : 'bg-gray-100 text-gray-600'
+            }`}
+          >
+            {metadata.openBounties || 0}
+          </span>
+        </div>
+      ),
+    },
+    {
+      id: 'reviews',
+      label: (
+        <div className="flex items-center">
+          <Star className="h-4 w-4 mr-2" />
+          <span>Reviews</span>
+          <span
+            className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+              activeTab === 'reviews'
+                ? 'bg-indigo-100 text-indigo-600'
+                : 'bg-gray-100 text-gray-600'
+            }`}
+          >
+            {metadata.metrics.reviews}
+          </span>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="border-b mb-6">
-      <nav className="flex space-x-8 mt-6">
-        <button
-          className={`px-1 py-4 text-md font-medium border-b-2 ${
-            activeTab === 'paper'
-              ? 'text-indigo-600 border-indigo-600'
-              : 'text-gray-500 border-transparent hover:text-gray-700'
-          }`}
-          onClick={() => handleTabChange('paper')}
-        >
-          <div className="flex items-center">
-            <FileText className="h-4 w-4 mr-2" />
-            {getMainTabLabel()}
-          </div>
-        </button>
-        <button
-          className={`px-1 py-4 text-md font-medium ${
-            activeTab === 'conversation'
-              ? 'text-indigo-600 border-b-2 border-indigo-600'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => handleTabChange('conversation')}
-        >
-          <div className="flex items-center">
-            <MessagesSquare className="h-4 w-4 mr-2" />
-            Conversation
-            <span
-              className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                activeTab === 'conversation'
-                  ? 'bg-indigo-100 text-indigo-600'
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              {metadata.metrics.comments}
-            </span>
-          </div>
-        </button>
-        <button
-          className={`px-1 py-4 text-md font-medium ${
-            activeTab === 'bounties'
-              ? 'text-indigo-600 border-b-2 border-indigo-600'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => handleTabChange('bounties')}
-        >
-          <div className="flex items-center">
-            <Icon name="earn1" size={16} color={activeTab === 'bounties' ? '#4f46e5' : '#6B7280'} />
-            <span className="ml-2">Bounties</span>
-            <span
-              className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                activeTab === 'bounties'
-                  ? 'bg-indigo-100 text-indigo-600'
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              {metadata.openBounties || 0}
-            </span>
-          </div>
-        </button>
-        <button
-          className={`px-1 py-4 text-md font-medium ${
-            activeTab === 'reviews'
-              ? 'text-indigo-600 border-b-2 border-indigo-600'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => handleTabChange('reviews')}
-        >
-          <div className="flex items-center">
-            <Star className="h-4 w-4 mr-2" />
-            Reviews
-            <span
-              className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                activeTab === 'reviews'
-                  ? 'bg-indigo-100 text-indigo-600'
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              {metadata.metrics.reviews}
-            </span>
-          </div>
-        </button>
-      </nav>
+      <Tabs
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={(id) => handleTabChange(id as TabType)}
+        className="mt-6"
+      />
     </div>
   );
 };

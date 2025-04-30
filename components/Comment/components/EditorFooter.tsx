@@ -9,6 +9,7 @@ interface EditorFooterProps {
   onSubmit: () => void;
   clearDraft: () => void;
   isSubmitting: boolean;
+  hideSubmit?: boolean;
 }
 
 export const EditorFooter = ({
@@ -20,6 +21,7 @@ export const EditorFooter = ({
   onSubmit,
   clearDraft,
   isSubmitting,
+  hideSubmit = false,
 }: EditorFooterProps) => {
   return (
     <div className="flex justify-between items-center px-4 py-2 border-t border-gray-200">
@@ -45,9 +47,11 @@ export const EditorFooter = ({
             Cancel
           </Button>
         )}
-        <Button variant="default" size="sm" onClick={onSubmit} disabled={isSubmitting}>
-          {isSubmitting ? 'Submitting...' : 'Submit'}
-        </Button>
+        {!hideSubmit && (
+          <Button variant="default" size="sm" onClick={onSubmit} disabled={isSubmitting}>
+            {isSubmitting ? 'Submitting...' : 'Submit'}
+          </Button>
+        )}
       </div>
     </div>
   );

@@ -153,15 +153,6 @@ export default function UserMenu({
           </div>
         </Link>
 
-        <Link href="/notebook" className="block" onClick={() => setMenuOpenState(false)}>
-          <div className="px-6 py-2 hover:bg-gray-50">
-            <div className="flex items-center">
-              <Icon name="labNotebook2" size={22} className="mr-3 text-gray-500" />
-              <span className="text-base text-gray-700">Lab Notebook</span>
-            </div>
-          </div>
-        </Link>
-
         {!user.isVerified && (
           <div
             className="px-6 py-2 hover:bg-gray-50"
@@ -277,15 +268,6 @@ export default function UserMenu({
                     color="#676767"
                   />
                   <span className="text-sm text-gray-700">My ResearchCoin</span>
-                </div>
-              </div>
-            </Link>
-
-            <Link href="/notebook" className="block" onClick={() => setMenuOpenState(false)}>
-              <div className="w-full px-4 py-2 hover:bg-gray-50">
-                <div className="flex items-center">
-                  <Icon name="labNotebook2" size={18} className="mr-3 text-gray-500" />
-                  <span className="text-sm text-gray-700">Lab Notebook</span>
                 </div>
               </div>
             </Link>
