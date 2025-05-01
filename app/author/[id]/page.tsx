@@ -150,7 +150,7 @@ function AuthorProfileView({
             src={author.profileImage}
             alt={fullName}
             size={120}
-            showProfileCompletion
+            showProfileCompletion={isOwnProfile}
             profileCompletionPercent={percent}
             showProfileCompletionNumber
             missing={missing}

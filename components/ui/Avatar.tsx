@@ -323,7 +323,7 @@ export const Avatar: FC<AvatarProps> = ({
                 </ul>
               </div>
             }
-            position="top"
+            position="bottom"
             width="w-48"
           >
             <div className="absolute left-1/2 -translate-x-1/2 bottom-0 bg-white text-xs rounded-full px-1 py-0.5 shadow text-gray-700 font-semibold z-20 cursor-default">
