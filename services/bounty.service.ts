@@ -142,6 +142,7 @@ export class BountyService {
     onlyParentBounties?: boolean;
     page?: number;
     pageSize?: number;
+    hubIds?: (string | number)[]; // Array of hub IDs to filter by
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean; total: number }> {
     // Set default parameters
     const defaultParams = {
@@ -182,6 +183,15 @@ export class BountyService {
       queryParams.append('only_parent_bounties', params.onlyParentBounties.toString());
     } else {
       queryParams.append('only_parent_bounties', defaultParams.only_parent_bounties.toString());
+    }
+
+    // hub_ids parameters (can appear multiple times)
+    if (params?.hubIds && params.hubIds.length > 0) {
+      params.hubIds.forEach((id) => {
+        if (id !== undefined && id !== null) {
+          queryParams.append('hub_ids', id.toString());
+        }
+      });
     }
 
     // Pagination parameters

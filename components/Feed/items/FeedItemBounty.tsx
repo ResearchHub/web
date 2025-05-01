@@ -76,6 +76,7 @@ interface FeedItemBountyProps {
     upvote?: string;
     comment?: string;
   }; // Prop for customizing action labels
+  showFooter?: boolean; // Prop to control footer visibility
 }
 
 /**
@@ -138,6 +139,13 @@ const FeedItemBountyBody: FC<{
         />
       </div>
 
+      {/* Related Work - show if available */}
+      {relatedWork && showRelatedWork && (
+        <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+          <RelatedWorkCard size="sm" work={relatedWork} />
+        </div>
+      )}
+
       {/* Bounty Details */}
       <div className="mt-4">
         <BountyDetails
@@ -146,13 +154,6 @@ const FeedItemBountyBody: FC<{
           bountyType={bounty.bountyType}
         />
       </div>
-
-      {/* Related Work - show if available */}
-      {relatedWork && showRelatedWork && (
-        <div className="mt-4" onClick={(e) => e.stopPropagation()}>
-          <RelatedWorkCard size="sm" work={relatedWork} />
-        </div>
-      )}
 
       {/* Solutions section for closed bounties */}
       {!isOpen && hasSolutions && showSolutions && (
@@ -188,6 +189,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   isAuthor = false,
   showCreatorActions = true, // Default to showing creator actions
   actionLabels,
+  showFooter = true, // Default to showing the footer
 }) => {
   // Extract the bounty entry from the entry's content
   const bountyEntry = entry.content as FeedBountyContent;
@@ -392,25 +394,27 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
             )}
           </div>
           {/* Action Buttons - Full width - Moved inside the padded div */}
-          <div className="mt-4 pt-3 border-t border-gray-200">
-            <div onClick={(e) => e.stopPropagation()}>
-              {/* Standard Feed Item Actions */}
-              <FeedItemActions
-                metrics={entry.metrics}
-                feedContentType="BOUNTY"
-                votableEntityId={bountyEntry.comment.id}
-                relatedDocumentId={bountyEntry.relatedDocumentId}
-                relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
-                userVote={entry.userVote}
-                tips={entry.tips}
-                showTooltips={showTooltips}
-                actionLabels={actionLabels}
-                menuItems={menuItems}
-                bounties={[bountyEntry.bounty]}
-                onComment={onReply}
-              />
+          {showFooter && (
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <div onClick={(e) => e.stopPropagation()}>
+                {/* Standard Feed Item Actions */}
+                <FeedItemActions
+                  metrics={entry.metrics}
+                  feedContentType="BOUNTY"
+                  votableEntityId={bountyEntry.comment.id}
+                  relatedDocumentId={bountyEntry.relatedDocumentId}
+                  relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
+                  userVote={entry.userVote}
+                  tips={entry.tips}
+                  showTooltips={showTooltips}
+                  actionLabels={actionLabels}
+                  menuItems={menuItems}
+                  bounties={[bountyEntry.bounty]}
+                  onComment={onReply}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
