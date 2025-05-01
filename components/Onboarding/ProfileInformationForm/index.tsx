@@ -1,3 +1,5 @@
+'use client';
+
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getProfileInformationSchema, ProfileInformationFormValues } from './schema';
