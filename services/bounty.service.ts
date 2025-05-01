@@ -1,5 +1,5 @@
 import { ApiClient } from './client';
-import { ID } from '@/types/root';
+import { ID, transformUnifiedDocument } from '@/types/root';
 import { BountyType } from '@/types/bounty';
 import { FeedEntry, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
 
@@ -211,7 +211,6 @@ export class BountyService {
 
     try {
       const response = await ApiClient.get<FetchBountiesResponse>(url);
-
       // Transform the raw bounties into the format expected by transformFeedEntry
       const transformedEntries = response.results.map((rawBounty) => {
         // Map the raw bounty to the expected RawApiFeedEntry format
@@ -234,27 +233,47 @@ export class BountyService {
                   comment_type: rawBounty.item.comment_type,
                 }
               : undefined,
-            // Map the paper data if available
+            // Transform the unified document if available
             paper:
               rawBounty.unified_document && rawBounty.unified_document.document_type === 'PAPER'
-                ? {
-                    id: rawBounty.unified_document.documents.id,
-                    title: rawBounty.unified_document.documents.title,
-                    abstract: rawBounty.unified_document.documents.abstract,
-                    slug: rawBounty.unified_document.documents.slug,
-                    authors: rawBounty.unified_document.documents.authors,
-                    hub:
-                      rawBounty.hubs && rawBounty.hubs.length > 0 ? rawBounty.hubs[0] : undefined,
-                  }
+                ? (() => {
+                    const transformedDoc = transformUnifiedDocument(rawBounty.unified_document);
+                    return {
+                      id: transformedDoc?.document.id,
+                      title: transformedDoc?.document.title,
+                      abstract: transformedDoc?.document.abstract,
+                      slug: transformedDoc?.document.slug,
+                      authors: transformedDoc?.document.authors,
+                      hub:
+                        rawBounty.hubs && rawBounty.hubs.length > 0 ? rawBounty.hubs[0] : undefined,
+                    };
+                  })()
                 : undefined,
             // Map the post data if available
             post:
               rawBounty.unified_document && rawBounty.unified_document.document_type !== 'PAPER'
-                ? {
-                    id: rawBounty.unified_document.documents.id,
-                    title: rawBounty.unified_document.documents.title,
-                    slug: rawBounty.unified_document.documents.slug,
-                  }
+                ? (() => {
+                    const transformedDoc = transformUnifiedDocument(rawBounty.unified_document);
+                    return {
+                      id: transformedDoc?.document.id,
+                      title: transformedDoc?.document.title,
+                      slug: transformedDoc?.document.slug,
+                      abstract: transformedDoc?.document.abstract,
+                      // Required fields for transformPost / transformWork
+                      content_type: 'post',
+                      created_date: rawBounty.created_date,
+                      // Indicate PREREGISTRATION via type and unified_document
+                      type: rawBounty.unified_document.document_type,
+                      unified_document: {
+                        document_type: rawBounty.unified_document.document_type,
+                      },
+                      // Provide authors and hubs for richer transformation
+                      authors: transformedDoc?.document.authors,
+                      hubs: rawBounty.hubs,
+                      hub:
+                        rawBounty.hubs && rawBounty.hubs.length > 0 ? rawBounty.hubs[0] : undefined,
+                    };
+                  })()
                 : undefined,
             // Include hubs
             hubs: rawBounty.hubs,

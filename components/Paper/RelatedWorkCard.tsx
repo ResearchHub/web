@@ -27,9 +27,9 @@ export const RelatedWorkCard = ({ work, onClick, size = 'default' }: RelatedWork
     } else if (work.id && work.slug) {
       // Default behavior: open the document in a new tab
       let path;
-      if (work.contentType === 'preregistration' && work.fundraise) {
+      if (work.contentType === 'preregistration') {
         path = `/fund/${work.id}/${work.slug}`;
-      } else if (work.contentType === 'preregistration' || work.contentType === 'post') {
+      } else if (work.contentType === 'post') {
         path = `/post/${work.id}/${work.slug}`;
       } else if (work.contentType === 'paper') {
         path = `/paper/${work.id}/${work.slug}`;
@@ -51,14 +51,12 @@ export const RelatedWorkCard = ({ work, onClick, size = 'default' }: RelatedWork
     | 'preprint'
     | 'published' => {
     // If it's a fundraise preregistration, show funding badge
-    if (work.contentType === 'preregistration' && work.fundraise) {
+    if (work.contentType === 'preregistration') {
       return 'funding';
     }
 
     // Map content types to badge types
     switch (work.contentType) {
-      case 'preregistration':
-        return 'article';
       case 'post':
         return 'article';
       case 'paper':

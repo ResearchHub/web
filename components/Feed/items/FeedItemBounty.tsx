@@ -191,6 +191,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   actionLabels,
   showFooter = true, // Default to showing the footer
 }) => {
+  console.log('entry', entry);
   // Extract the bounty entry from the entry's content
   const bountyEntry = entry.content as FeedBountyContent;
   const bounty = bountyEntry.bounty;
