@@ -7,7 +7,8 @@ import {
 } from '@/components/ui/form/SearchableMultiSelect';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { X } from 'lucide-react';
+import { X, ChevronDown, Filter } from 'lucide-react';
+import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { HubService } from '@/services/hub.service';
 import { Topic } from '@/types/topic';
 
@@ -22,9 +23,15 @@ interface HubsSelectorProps {
   selectedHubs: Hub[];
   onChange: (hubs: Hub[]) => void;
   error?: string | null;
+  displayCountOnly?: boolean;
 }
 
-export function HubsSelector({ selectedHubs, onChange, error }: HubsSelectorProps) {
+export function HubsSelector({
+  selectedHubs,
+  onChange,
+  error,
+  displayCountOnly = false,
+}: HubsSelectorProps) {
   // Convert hubs to the format expected by SearchableMultiSelect
   const hubsToOptions = (hubs: Hub[]): MultiSelectOption[] => {
     return hubs.map((hub) => ({
@@ -102,6 +109,46 @@ export function HubsSelector({ selectedHubs, onChange, error }: HubsSelectorProp
       ))}
     </div>
   );
+
+  if (displayCountOnly) {
+    // Compact mode: show trigger with count badge
+    const trigger = (
+      <button
+        className="flex items-center gap-2 border border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-lg px-3 py-1.5 text-sm"
+        type="button"
+      >
+        <Filter className="h-4 w-4 text-gray-500" />
+        <span className="text-gray-700">Topics</span>
+        <ChevronDown className="h-4 w-4 text-gray-500" />
+        {selectedHubs.length > 0 && (
+          <span className="ml-1 text-xs font-semibold text-indigo-700 bg-indigo-100 rounded-full px-1.5">
+            {selectedHubs.length}
+          </span>
+        )}
+      </button>
+    );
+
+    return (
+      <BaseMenu
+        trigger={trigger}
+        align="start"
+        sideOffset={5}
+        className="overflow-visible border-none p-0 shadow-lg w-80 max-w-full"
+      >
+        <div className="p-2 w-72">
+          <SearchableMultiSelect
+            value={hubsToOptions(selectedHubs)}
+            onChange={handleChange}
+            onAsyncSearch={fetchHubs}
+            placeholder="Search for topics..."
+            minSearchLength={1}
+            error={error || undefined}
+            className="w-full border-0"
+          />
+        </div>
+      </BaseMenu>
+    );
+  }
 
   return (
     <div className="space-y-4">
