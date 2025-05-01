@@ -4,7 +4,7 @@ import { getProfileInformationSchema, ProfileInformationFormValues } from './sch
 import { Input } from '@/components/ui/form/Input';
 import { Textarea } from '@/components/ui/form/Textarea';
 import { Button } from '@/components/ui/Button';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { OnboardingEducationSection } from '../OnboardingEducationSection';
 import { OnboardingEducationModal } from '../OnboardingEducationModal';
 import type { EducationEntry } from '../OnboardingWizard';
@@ -12,10 +12,7 @@ import { faXTwitter, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGraduationCap } from '@fortawesome/free-solid-svg-icons';
 import { SocialIcon } from '@/components/ui/SocialIcon';
-import { AvatarUpload } from '@/components/AvatarUpload';
-import { AuthorService } from '@/services/author.service';
 import { useUser } from '@/contexts/UserContext';
-import { toast } from 'react-hot-toast';
 import { ImageUploadModal } from '@/components/modals/ImageUploadModal';
 import { useUpdateAuthorProfileImage } from '@/hooks/useAuthor';
 interface ProfileInformationFormProps {

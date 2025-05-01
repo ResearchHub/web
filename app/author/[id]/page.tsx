@@ -6,7 +6,6 @@ import { ProfileInformationFormValues } from '@/components/Onboarding/ProfileInf
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { useAuthorInfo, useUpdateAuthorProfileData } from '@/hooks/useAuthor';
-import { User } from '@/types/user';
 import { useUser } from '@/contexts/UserContext';
 import { Avatar } from '@/components/ui/Avatar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -33,28 +32,40 @@ function toNumberOrNull(value: any): number | null {
 
 function AuthorProfileSkeleton() {
   return (
-    <div className="animate-pulse">
-      {/* Header section */}
-      <div className="flex justify-between items-start mb-8">
-        <div>
-          <div className="h-9 bg-gray-200 rounded w-48 mb-3" /> {/* Title placeholder */}
-          <div className="h-5 bg-gray-200 rounded w-64" /> {/* Headline placeholder */}
-        </div>
-        <div className="w-28 h-10 bg-gray-200 rounded" /> {/* Button placeholder */}
+    <div className="flex gap-6 animate-pulse">
+      {/* Left column - Avatar */}
+      <div className="flex-shrink-0">
+        <div className="w-28 h-28 bg-gray-200 rounded-full ring-4 ring-white" />
       </div>
 
-      {/* Profile content */}
-      <div className="flex items-start gap-8">
-        {/* Avatar skeleton */}
-        <div className="w-28 h-28 bg-gray-200 rounded-full flex-shrink-0" />
-
-        {/* Profile info skeleton */}
-        <div className="flex-1">
-          <div className="space-y-3">
-            <div className="h-4 bg-gray-200 rounded w-full" />
-            <div className="h-4 bg-gray-200 rounded w-5/6" />
-            <div className="h-4 bg-gray-200 rounded w-4/6" />
-          </div>
+      {/* Right column - Content */}
+      <div className="flex-1 min-w-0">
+        {/* Header with name */}
+        <div className="flex flex-col items-start gap-2 mb-4">
+          <div className="h-9 bg-gray-200 rounded w-48" />
+          <div className="h-5 bg-gray-200 rounded w-64" />
+        </div>
+        {/* Education */}
+        <div className="flex items-center gap-2 mb-1">
+          <div className="h-4 w-4 bg-gray-200 rounded" />
+          <div className="h-5 bg-gray-200 rounded w-64" />
+        </div>
+        {/* Member since */}
+        <div className="flex items-center gap-2 mb-4">
+          <div className="h-4 w-4 bg-gray-200 rounded" />
+          <div className="h-4 bg-gray-200 rounded w-48" />
+        </div>
+        {/* Description */}
+        <div className="mb-4 space-y-2">
+          <div className="h-4 bg-gray-200 rounded w-full" />
+          <div className="h-4 bg-gray-200 rounded w-5/6" />
+          <div className="h-4 bg-gray-200 rounded w-4/6" />
+        </div>
+        {/* Social Icons */}
+        <div className="flex gap-2 mt-2">
+          <div className="w-8 h-8 bg-gray-200 rounded" />
+          <div className="w-8 h-8 bg-gray-200 rounded" />
+          <div className="w-8 h-8 bg-gray-200 rounded" />
         </div>
       </div>
     </div>
@@ -70,9 +81,15 @@ function AuthorProfileError({ error }: { error: string }) {
   );
 }
 
-function AuthorProfileView({ author }: { author: AuthorProfile }) {
+function AuthorProfileView({
+  author,
+  refetchAuthorInfo,
+}: {
+  author: AuthorProfile;
+  refetchAuthorInfo: () => Promise<void>;
+}) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const { user: currentUser } = useUser();
+  const { user: currentUser, refreshUser } = useUser();
   const isOwnProfile = currentUser?.authorProfile?.id === author.id;
   const fullName = author.fullName;
 
@@ -88,7 +105,7 @@ function AuthorProfileView({ author }: { author: AuthorProfile }) {
   const [{ isLoading: updateLoading }, updateAuthorProfileData] = useUpdateAuthorProfileData();
 
   const handleProfileFormSubmit = async (data: ProfileInformationFormValues) => {
-    if (author.id) {
+    if (!author.id) {
       toast.error('User information not available. Cannot save profile.');
       return false;
     }
@@ -96,16 +113,18 @@ function AuthorProfileView({ author }: { author: AuthorProfile }) {
     try {
       await updateAuthorProfileData(author.id, {
         ...data,
-        education: data.education.length > 0 ? data.education : undefined,
-        description: data.description || undefined,
-        headline: data.headline || undefined,
-        linkedin: data.linkedin || undefined,
-        orcid_id: data.orcid_id || undefined,
-        twitter: data.twitter || undefined,
-        google_scholar: data.google_scholar || undefined,
+        education: data.education.length > 0 ? data.education : [],
+        description: data.description,
+        headline: data.headline,
+        linkedin: data.linkedin,
+        orcid_id: data.orcid_id,
+        twitter: data.twitter,
+        google_scholar: data.google_scholar,
       });
+      await refetchAuthorInfo();
       toast.success('Profile updated successfully');
       setIsEditModalOpen(false);
+      await refreshUser();
     } catch (e) {
       toast.error('Failed to save profile.');
     }
@@ -257,16 +276,19 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const resolvedParams = use(params);
   const { isLoading: isUserLoading, error: userError } = useUser();
   const authorId = toNumberOrNull(resolvedParams.id);
-  const [{ author: user, isLoading, error }] = useAuthorInfo(authorId);
-
-  if (isLoading || isUserLoading) return <AuthorProfileSkeleton />;
-  if (error || userError)
-    return <AuthorProfileError error={error || userError?.message || 'Unknown error'} />;
-  if (!user || !user.authorProfile) return <AuthorProfileError error="Author not found" />;
+  const [{ author: user, isLoading, error }, refetchAuthorInfo] = useAuthorInfo(authorId);
 
   return (
     <Card className="mt-4 bg-gray-50">
-      <AuthorProfileView author={user.authorProfile} />
+      {isLoading || isUserLoading ? (
+        <AuthorProfileSkeleton />
+      ) : error || userError ? (
+        <AuthorProfileError error={error || userError?.message || 'Unknown error'} />
+      ) : !user || !user.authorProfile ? (
+        <AuthorProfileError error="Author not found" />
+      ) : (
+        <AuthorProfileView author={user.authorProfile} refetchAuthorInfo={refetchAuthorInfo} />
+      )}
     </Card>
   );
 }
