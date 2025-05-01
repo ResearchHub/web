@@ -13,7 +13,7 @@ import { RecommendationsStep } from './Recommendations';
 type OnboardingStep = 'PROFILE_INFORMATION' | 'TOPICS';
 
 export function OnboardingModal() {
-  const { user, isLoading } = useUser();
+  const { user, isLoading, refreshUser } = useUser();
   const [showModal, setShowModal] = useState(false);
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('PROFILE_INFORMATION');
 
@@ -41,11 +41,20 @@ export function OnboardingModal() {
       }
     };
 
-    markOnboardingCompleted();
-  }, []);
+    if (showModal) {
+      markOnboardingCompleted();
+    }
+  }, [showModal]);
+
+  // useEffect(() => {
+  //   return () => {
+  //     refreshUser();
+  //   };
+  // }, [refreshUser]);
 
   const handleClose = () => {
     setShowModal(false);
+    refreshUser();
   };
 
   const handleProfileFormSubmit = async (data: ProfileInformationFormValues) => {

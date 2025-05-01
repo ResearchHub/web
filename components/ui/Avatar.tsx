@@ -4,8 +4,12 @@ import { FC, useState, useEffect, CSSProperties, MouseEvent } from 'react';
 import { cn } from '@/utils/styles';
 import { AuthorTooltip } from './AuthorTooltip';
 import Link from 'next/link';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { ProfileField, PROFILE_FIELD_WEIGHTS } from '@/utils/profileCompletion';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleCheck, faCircle } from '@fortawesome/free-solid-svg-icons';
 
-interface AvatarProps {
+export interface AvatarProps {
   src?: string | null;
   alt: string;
   size?: 'xxxs' | 'xxs' | 'xs' | 'sm' | 'md' | number;
@@ -15,6 +19,10 @@ interface AvatarProps {
   disableTooltip?: boolean;
   label?: string;
   labelClassName?: string;
+  showProfileCompletion?: boolean;
+  profileCompletionPercent?: number;
+  showProfileCompletionNumber?: boolean;
+  missing?: ProfileField[];
 }
 
 // Define a set of background colors for avatars without images
@@ -55,6 +63,25 @@ const getColorIndex = (str: string): number => {
   return index;
 };
 
+// Map string sizes to pixel values
+const sizeMap = {
+  xxxs: 12,
+  xxs: 20,
+  xs: 24,
+  sm: 32,
+  md: 40,
+};
+
+const ProfileFieldLabel: Record<ProfileField, string> = {
+  [ProfileField.Name]: 'Name',
+  [ProfileField.Photo]: 'Photo',
+  [ProfileField.Headline]: 'Headline',
+  [ProfileField.Verification]: 'Verification',
+  [ProfileField.Education]: 'Education',
+  [ProfileField.About]: 'About',
+  [ProfileField.Social]: 'Social Account',
+};
+
 export const Avatar: FC<AvatarProps> = ({
   src,
   alt,
@@ -65,6 +92,10 @@ export const Avatar: FC<AvatarProps> = ({
   disableTooltip = false,
   label,
   labelClassName,
+  showProfileCompletion = false,
+  profileCompletionPercent,
+  showProfileCompletionNumber = false,
+  missing,
 }) => {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -144,6 +175,10 @@ export const Avatar: FC<AvatarProps> = ({
     customStyle.height = `${size}px`;
   }
 
+  const basePx = typeof size === 'number' ? size : (sizeMap[size] ?? sizeMap.md);
+  const strokeWidth = basePx <= 20 ? 2 : 4;
+  const px = basePx + strokeWidth * 2;
+
   const avatarElement = (
     <div
       className={cn(
@@ -215,6 +250,88 @@ export const Avatar: FC<AvatarProps> = ({
       <Link href={href} prefetch={false}>
         {avatarElement}
       </Link>
+    );
+  }
+
+  if (showProfileCompletion && typeof profileCompletionPercent === 'number') {
+    const radius = px / 2 - strokeWidth / 2;
+    const circumference = 2 * Math.PI * radius;
+    const progress = Math.max(0, Math.min(profileCompletionPercent, 100));
+    const offset = circumference - (progress / 100) * circumference;
+    let color = '#f97316';
+    if (progress === 100) color = '#22c55e';
+    else if (progress >= 60) color = '#eab308';
+    return (
+      <div className="relative inline-block" style={{ width: px, height: px }}>
+        <svg
+          width={px}
+          height={px}
+          className="absolute z-0"
+          style={{
+            top: -strokeWidth,
+            left: -strokeWidth,
+            position: 'absolute',
+            transform: 'rotate(-90deg)',
+          }}
+        >
+          <circle
+            cx={px / 2}
+            cy={px / 2}
+            r={radius}
+            fill="none"
+            stroke="#e5e7eb"
+            strokeWidth={strokeWidth}
+          />
+          <circle
+            cx={px / 2}
+            cy={px / 2}
+            r={radius}
+            fill="none"
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+          />
+        </svg>
+        <div className="relative z-10">{avatarElement}</div>
+        {showProfileCompletionNumber && (
+          <Tooltip
+            content={
+              <div className="text-left">
+                <div className="font-semibold mb-2">Profile Completion</div>
+                <ul className="space-y-1">
+                  {Object.entries(PROFILE_FIELD_WEIGHTS).map(([field, weight]) => {
+                    const isMissing = missing?.includes(field as ProfileField);
+                    return (
+                      <li key={field} className="flex items-center gap-2">
+                        {isMissing ? (
+                          <FontAwesomeIcon icon={faCircle} className="text-gray-400 w-4 h-4" />
+                        ) : (
+                          <FontAwesomeIcon
+                            icon={faCircleCheck}
+                            className="text-green-500 w-4 h-4"
+                          />
+                        )}
+                        <span>
+                          {ProfileFieldLabel[field as ProfileField] || field}{' '}
+                          <span className="text-xs text-gray-400">({weight}%)</span>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            }
+            position="top"
+            width="w-48"
+          >
+            <div className="absolute left-1/2 -translate-x-1/2 bottom-0 bg-white text-xs rounded-full px-1 py-0.5 shadow text-gray-700 font-semibold z-20 cursor-default">
+              {`${progress}%`}
+            </div>
+          </Tooltip>
+        )}
+      </div>
     );
   }
 

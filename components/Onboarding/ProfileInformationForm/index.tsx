@@ -49,19 +49,21 @@ export function ProfileInformationForm({
 
   const { user, refreshUser } = useUser();
 
+  const authorProfile = user?.authorProfile;
+
   const methods = useForm<ProfileInformationFormValues>({
     resolver: zodResolver(getProfileInformationSchema(simplifiedView)),
     mode: 'onChange',
     defaultValues: {
-      education: user?.authorProfile?.education || [],
-      first_name: user?.firstName || '',
-      last_name: user?.lastName || '',
-      headline: user?.authorProfile?.headline || '',
-      description: user?.authorProfile?.description || '',
-      linkedin: user?.authorProfile?.linkedin || '',
-      orcid_id: user?.authorProfile?.orcidId || '',
-      twitter: user?.authorProfile?.twitter || '',
-      google_scholar: user?.authorProfile?.googleScholar || '',
+      education: authorProfile?.education || [],
+      first_name: authorProfile?.firstName || '',
+      last_name: authorProfile?.lastName || '',
+      headline: authorProfile?.headline || '',
+      description: authorProfile?.description || '',
+      linkedin: authorProfile?.linkedin || '',
+      orcid_id: authorProfile?.orcidId || '',
+      twitter: authorProfile?.twitter || '',
+      google_scholar: authorProfile?.googleScholar || '',
     },
   });
 

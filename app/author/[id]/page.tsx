@@ -23,6 +23,7 @@ import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { formatTimeAgo } from '@/utils/date';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { AuthorProfile } from '@/types/authorProfile';
+import { calculateProfileCompletion } from '@/utils/profileCompletion';
 
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
@@ -102,6 +103,10 @@ function AuthorProfileView({
 
   const primaryEducation = (author.education || []).find((e) => e.is_public);
 
+  const { percent, missing } = currentUser
+    ? calculateProfileCompletion(currentUser)
+    : { percent: 0, missing: [] };
+
   const [{ isLoading: updateLoading }, updateAuthorProfileData] = useUpdateAuthorProfileData();
 
   const handleProfileFormSubmit = async (data: ProfileInformationFormValues) => {
@@ -145,7 +150,10 @@ function AuthorProfileView({
             src={author.profileImage}
             alt={fullName}
             size={120}
-            className="ring-4 ring-white"
+            showProfileCompletion
+            profileCompletionPercent={percent}
+            showProfileCompletionNumber
+            missing={missing}
           />
         </div>
 
@@ -156,7 +164,7 @@ function AuthorProfileView({
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold text-gray-900">{fullName}</h1>
-                <VerifiedBadge />
+                {currentUser?.isVerified && <VerifiedBadge />}
               </div>
               {author.headline && (
                 <div className="flex items-center gap-2 text-gray-600 font-sm">

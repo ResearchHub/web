@@ -38,6 +38,8 @@ const transformNestedParentComment = (rawParent: any): ParentCommentPreview | un
       : {
           id: 0,
           fullName: 'Unknown User',
+          firstName: '',
+          lastName: '',
           profileImage: '',
           headline: '',
           profileUrl: '/profile/0',
@@ -355,6 +357,8 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                     id: 0,
                     fullName:
                       `${content_object.raw_authors[0].first_name || ''} ${content_object.raw_authors[0].last_name || ''}`.trim(),
+                    firstName: content_object.raw_authors[0].first_name || '',
+                    lastName: content_object.raw_authors[0].last_name || '',
                     profileImage: '',
                     headline: '',
                     profileUrl: '/profile/0',
@@ -363,6 +367,8 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                 : {
                     id: 0,
                     fullName: 'Unknown Author',
+                    firstName: '',
+                    lastName: '',
                     profileImage: '',
                     headline: '',
                     profileUrl: '/profile/0',

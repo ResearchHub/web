@@ -130,6 +130,8 @@ export class FeedService {
           id: safeAuthor.id || 0,
           fullName:
             `${safeAuthor.first_name || ''} ${safeAuthor.last_name || ''}`.trim() || 'Unknown User',
+          firstName: safeAuthor.first_name || '',
+          lastName: safeAuthor.last_name || '',
           profileImage: safeAuthor.profile_image || '',
           headline: safeAuthor.description || '',
           profileUrl: `/profile/${safeAuthor.id || 0}`,

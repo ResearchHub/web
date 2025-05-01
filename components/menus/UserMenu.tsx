@@ -14,6 +14,9 @@ import Link from 'next/link';
 import { AuthSharingService } from '@/services/auth-sharing.service';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import Icon from '@/components/ui/icons/Icon';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPen } from '@fortawesome/free-solid-svg-icons';
+import { calculateProfileCompletion } from '@/utils/profileCompletion';
 
 interface UserMenuProps {
   user: User;
@@ -36,6 +39,8 @@ export default function UserMenu({
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const [internalMenuOpen, setInternalMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  const { percent } = user ? calculateProfileCompletion(user) : { percent: 0 };
 
   // Use controlled or uncontrolled menu state
   const menuOpenState = isMenuOpen !== undefined ? isMenuOpen : internalMenuOpen;
@@ -106,6 +111,13 @@ export default function UserMenu({
             <p className="text-base font-medium text-gray-900 flex items-center gap-1">
               {user.fullName}
               {user.isVerified && <VerifiedBadge size="sm" />}
+              <Link
+                href={`/author/${user.authorProfile?.id}`}
+                className="ml-1 p-1 rounded hover:bg-gray-100 transition"
+                title="Edit Profile"
+              >
+                <FontAwesomeIcon icon={faPen} className="h-4 w-4 text-gray-500" />
+              </Link>
             </p>
             <p className="text-lg text-gray-500">{user.email}</p>
           </div>
@@ -219,11 +231,24 @@ export default function UserMenu({
           {/* User info section */}
           <div className="px-4 py-3 border-b border-gray-200">
             <div className="flex items-center">
-              <Avatar src={user.authorProfile?.profileImage} alt={user.fullName} size="md" />
+              <Avatar
+                src={user.authorProfile?.profileImage}
+                alt={user.fullName}
+                size="md"
+                showProfileCompletion
+                profileCompletionPercent={percent}
+              />
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
                   {user.fullName}
                   {user.isVerified && <VerifiedBadge size="sm" />}
+                  <Link
+                    href={`/author/${user.authorProfile?.id}`}
+                    className="ml-1 p-1 rounded hover:bg-gray-100 transition"
+                    title="Edit Profile"
+                  >
+                    <FontAwesomeIcon icon={faPen} className="h-4 w-4 text-gray-500" />
+                  </Link>
                 </p>
                 <p className="text-xs text-gray-500">{user.email}</p>
               </div>
