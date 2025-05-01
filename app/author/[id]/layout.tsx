@@ -3,7 +3,7 @@ import { ResearchCoinRightSidebar } from '@/components/ResearchCoin/ResearchCoin
 
 export default function AuthorProfileLayout({ children }: { children: React.ReactNode }) {
   return (
-    <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
+    <PageLayout rightSidebar={null}>
       <div className="w-full">{children}</div>
     </PageLayout>
   );

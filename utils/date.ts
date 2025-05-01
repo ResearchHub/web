@@ -7,10 +7,11 @@ dayjs.extend(relativeTime);
 /**
  * Converts an ISO timestamp to a relative time string (e.g. "2h ago")
  * @param timestamp ISO timestamp string
+ * @param withoutSuffix Optional boolean to show the relative time without the suffix (e.g. "2h")
  * @returns Relative time string
  */
-export function formatTimeAgo(timestamp: string): string {
-  return dayjs(timestamp).fromNow();
+export function formatTimeAgo(timestamp: string, withoutSuffix?: boolean): string {
+  return dayjs(timestamp).fromNow(withoutSuffix);
 }
 
 /**

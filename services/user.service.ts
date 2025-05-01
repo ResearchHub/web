@@ -53,7 +53,7 @@ export class UserService {
    */
   static shouldRedirectToOnboarding(user: User | null): boolean {
     // If no user or user is already onboarded, no redirection needed
-    if (!user /*|| user.hasCompletedOnboarding*/) {
+    if (!user || user.hasCompletedOnboarding) {
       return false;
     }
 

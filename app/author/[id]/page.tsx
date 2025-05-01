@@ -1,23 +1,29 @@
 'use client';
 
 import { use } from 'react';
-import { useRouter } from 'next/navigation';
-import { PageLayout } from '@/app/layouts/PageLayout';
-import { ResearchCoinRightSidebar } from '@/components/ResearchCoin/ResearchCoinRightSidebar';
 import { ProfileInformationForm } from '@/components/Onboarding/ProfileInformationForm';
 import { ProfileInformationFormValues } from '@/components/Onboarding/ProfileInformationForm/schema';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Pencil, X } from 'lucide-react';
 import { useAuthorInfo, useUpdateAuthorProfileData } from '@/hooks/useAuthor';
 import { User } from '@/types/user';
 import { useUser } from '@/contexts/UserContext';
 import { Avatar } from '@/components/ui/Avatar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faXTwitter, faLinkedin } from '@fortawesome/free-brands-svg-icons';
-import { faGraduationCap } from '@fortawesome/free-solid-svg-icons';
+import { faXTwitter, faLinkedin, faGoogle } from '@fortawesome/free-brands-svg-icons';
+import {
+  faGraduationCap,
+  faBuilding,
+  faBirthdayCake,
+  faPen,
+} from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-hot-toast';
 import { SocialIcon } from '@/components/ui/SocialIcon';
+import { Card } from '@/components/ui/Card';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
+import { formatTimeAgo } from '@/utils/date';
+import { BaseModal } from '@/components/ui/BaseModal';
+import { AuthorProfile } from '@/types/authorProfile';
 
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
@@ -64,143 +70,31 @@ function AuthorProfileError({ error }: { error: string }) {
   );
 }
 
-function AuthorProfileView({ author, onEdit }: { author: User; onEdit: () => void }) {
-  const { user } = useUser();
-  const isOwnProfile = user?.authorProfile?.id === author.authorProfile?.id;
-  const fullName = `${author.firstName} ${author.lastName}`;
+function AuthorProfileView({ author }: { author: AuthorProfile }) {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const { user: currentUser } = useUser();
+  const isOwnProfile = currentUser?.authorProfile?.id === author.id;
+  const fullName = author.fullName;
 
-  const socialLinkMeta = {
-    linkedin: {
-      icon: <FontAwesomeIcon icon={faLinkedin} className="h-5 w-5" />,
-      label: 'LinkedIn',
-      url: author.authorProfile?.linkedin,
-    },
-    orcid_id: {
-      icon: <FontAwesomeIcon icon={faGraduationCap} className="h-5 w-5" />,
-      label: 'ORCID',
-      url: author.authorProfile?.orcidId,
-    },
-    twitter: {
-      icon: <FontAwesomeIcon icon={faXTwitter} className="h-5 w-5" />,
-      label: 'X (Twitter)',
-      url: author.authorProfile?.twitter,
-    },
-    google_scholar: {
-      icon: <FontAwesomeIcon icon={faGraduationCap} className="h-5 w-5" />,
-      label: 'Google Scholar',
-      url: author.authorProfile?.googleScholar,
-    },
-  } as const;
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
-  const hasSocialLinks = Object.values(socialLinkMeta).some((link) => link.url);
+  const description = author.description || '';
+  const shouldTruncate = description.length > 300;
+  const displayedDescription =
+    shouldTruncate && !isDescriptionExpanded ? `${description.slice(0, 300)}...` : description;
 
-  const education = author.authorProfile?.education || [];
+  const primaryEducation = (author.education || []).find((e) => e.is_public);
 
-  return (
-    <div>
-      <div className="flex justify-between items-start mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">{fullName}</h1>
-          {author.authorProfile?.headline && (
-            <p className="mt-2 text-gray-600">{author.authorProfile.headline}</p>
-          )}
-        </div>
-        {isOwnProfile && (
-          <Button onClick={onEdit} variant="outlined" className="flex items-center gap-2">
-            <Pencil className="h-4 w-4" />
-            Edit Profile
-          </Button>
-        )}
-      </div>
+  const [{ isLoading: updateLoading }, updateAuthorProfileData] = useUpdateAuthorProfileData();
 
-      <div className="flex gap-8">
-        <div className="flex-shrink-0">
-          <Avatar src={author.authorProfile?.profileImage} alt={fullName} size={112} />
-        </div>
-
-        <div className="flex-1 space-y-6">
-          {author.authorProfile?.description && (
-            <div>
-              <h3 className="text-lg font-semibold mb-2">About</h3>
-              <p className="text-gray-600">{author.authorProfile.description}</p>
-            </div>
-          )}
-
-          {education.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Education</h3>
-              <ul className="space-y-2">
-                {education.map((edu, idx) => (
-                  <li key={idx} className="flex flex-col">
-                    {edu.degree && (
-                      <span className="font-medium text-gray-800">{edu.degree.label}</span>
-                    )}
-                    <span className="text-gray-600">
-                      {edu.summary || `${edu.degree?.label} in ${edu.major}, ${edu.name}`}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {hasSocialLinks && (
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Social Links</h3>
-              <div className="space-y-3">
-                {Object.entries(socialLinkMeta).map(([key, { icon, label, url }]) => {
-                  if (!url) return null;
-
-                  return (
-                    <a
-                      key={key}
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50 inline-block"
-                    >
-                      <span className="text-gray-500">{icon}</span>
-                      <span>{label}</span>
-                    </a>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function AuthorProfilePage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
-  const [isEditing, setIsEditing] = useState(false);
-  const { user, isLoading: isUserLoading, error: userError, refreshUser } = useUser();
-  const authorId = toNumberOrNull(resolvedParams.id);
-  const [{ author, isLoading, error }] = useAuthorInfo(authorId);
-  const [
-    { isLoading: updateAuthorProfileDataLoading, error: updateAuthorProfileDataError },
-    updateAuthorProfileData,
-  ] = useUpdateAuthorProfileData();
-
-  const isOwnProfile = user?.authorProfile?.id === author?.authorProfile?.id;
-
-  useEffect(() => {
-    if (!isOwnProfile) {
-      setIsEditing(false);
-    }
-  }, [isOwnProfile]);
-
-  const handleSubmit = async (data: ProfileInformationFormValues) => {
-    if (!user?.authorProfile?.id) {
+  const handleProfileFormSubmit = async (data: ProfileInformationFormValues) => {
+    if (author.id) {
       toast.error('User information not available. Cannot save profile.');
       return false;
     }
 
-    const authorId = user.authorProfile.id;
     try {
-      await updateAuthorProfileData(authorId, {
+      await updateAuthorProfileData(author.id, {
         ...data,
         education: data.education.length > 0 ? data.education : undefined,
         description: data.description || undefined,
@@ -210,44 +104,169 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
         twitter: data.twitter || undefined,
         google_scholar: data.google_scholar || undefined,
       });
-      setIsEditing(false);
-      refreshUser();
+      toast.success('Profile updated successfully');
+      setIsEditModalOpen(false);
     } catch (e) {
       toast.error('Failed to save profile.');
     }
   };
 
+  useEffect(() => {
+    if (!isOwnProfile) {
+      setIsEditModalOpen(false);
+    }
+  }, [isOwnProfile]);
+
+  return (
+    <>
+      <div className="flex gap-6">
+        {/* Left column - Avatar */}
+        <div className="flex-shrink-0">
+          <Avatar
+            src={author.profileImage}
+            alt={fullName}
+            size={120}
+            className="ring-4 ring-white"
+          />
+        </div>
+
+        {/* Right column - Content */}
+        <div className="flex flex-col flex-1 min-w-0 gap-4">
+          {/* Header with name and edit button */}
+          <div className="flex justify-between items-start">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-gray-900">{fullName}</h1>
+                <VerifiedBadge />
+              </div>
+              {author.headline && (
+                <div className="flex items-center gap-2 text-gray-600 font-sm">
+                  <span>{author.headline}</span>
+                </div>
+              )}
+            </div>
+            {isOwnProfile && (
+              <Button
+                onClick={() => setIsEditModalOpen(true)}
+                variant="outlined"
+                className="flex items-center gap-2"
+              >
+                <FontAwesomeIcon icon={faPen} className="h-4 w-4" />
+                Edit Profile
+              </Button>
+            )}
+          </div>
+
+          <div>
+            {/* Primary Education */}
+            {primaryEducation && (
+              <div className="flex items-center gap-2 text-gray-600">
+                <FontAwesomeIcon icon={faBuilding} className="h-4 w-4" />
+                {primaryEducation.summary ? (
+                  <span>{primaryEducation.summary}</span>
+                ) : (
+                  <span>
+                    {primaryEducation.degree?.label}{' '}
+                    {primaryEducation.major && `in ${primaryEducation.major}`}
+                    {primaryEducation.year?.value && ` '${primaryEducation.year.value.slice(2)}'`}
+                    {primaryEducation.name && `, ${primaryEducation.name}`}
+                  </span>
+                )}
+              </div>
+            )}
+            {/* Member since */}
+            {currentUser?.createdDate && (
+              <div className="flex items-center gap-2 text-gray-600">
+                <FontAwesomeIcon icon={faBirthdayCake} className="h-4 w-4" />
+                <span>Member for {formatTimeAgo(currentUser.createdDate, true)}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Description with Show more/less */}
+          {description && (
+            <div>
+              <p className="text-gray-600">{displayedDescription}</p>
+              {shouldTruncate && (
+                <button
+                  onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                  className="text-blue-600 hover:text-blue-700 text-sm mt-1"
+                >
+                  {isDescriptionExpanded ? 'Show less' : 'Show more'}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Social Links */}
+          <div className="flex gap-2">
+            {author.orcidId && (
+              <SocialIcon
+                icon={<FontAwesomeIcon icon={faGraduationCap} />}
+                href={author.orcidId}
+                label="ORCID"
+                className="text-[#A6CE39]"
+              />
+            )}
+            {author.linkedin && (
+              <SocialIcon
+                icon={<FontAwesomeIcon icon={faLinkedin} />}
+                href={author.linkedin}
+                label="LinkedIn"
+                className="text-[#0077B5]"
+              />
+            )}
+            {author.twitter && (
+              <SocialIcon
+                icon={<FontAwesomeIcon icon={faXTwitter} />}
+                href={author.twitter}
+                label="Twitter"
+                className="text-[#000]"
+              />
+            )}
+            {author.googleScholar && (
+              <SocialIcon
+                icon={<FontAwesomeIcon icon={faGoogle} />}
+                href={author.googleScholar}
+                label="Google Scholar"
+                className="text-[#4285F4]"
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      <BaseModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        title="Edit Profile"
+      >
+        <div className="min-w-0 sm:min-w-[600px] max-w-md sm:max-w-lg w-full mx-auto">
+          <ProfileInformationForm
+            onSubmit={handleProfileFormSubmit}
+            submitLabel="Save Changes"
+            loading={updateLoading}
+          />
+        </div>
+      </BaseModal>
+    </>
+  );
+}
+
+export default function AuthorProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const { isLoading: isUserLoading, error: userError } = useUser();
+  const authorId = toNumberOrNull(resolvedParams.id);
+  const [{ author: user, isLoading, error }] = useAuthorInfo(authorId);
+
   if (isLoading || isUserLoading) return <AuthorProfileSkeleton />;
   if (error || userError)
     return <AuthorProfileError error={error || userError?.message || 'Unknown error'} />;
-  if (!author) return <AuthorProfileError error="Author not found" />;
+  if (!user || !user.authorProfile) return <AuthorProfileError error="Author not found" />;
 
-  return isEditing && isOwnProfile ? (
-    <>
-      <div className="mb-8 flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Edit Profile</h1>
-          <p className="mt-2 text-gray-600">
-            Update your profile information to help others learn more about you.
-          </p>
-        </div>
-        <Button
-          type="button"
-          variant="outlined"
-          onClick={() => setIsEditing(false)}
-          className="flex items-center gap-2"
-        >
-          <X className="h-4 w-4" />
-          Cancel
-        </Button>
-      </div>
-      <ProfileInformationForm
-        onSubmit={handleSubmit}
-        submitLabel="Save Changes"
-        loading={updateAuthorProfileDataLoading}
-      />
-    </>
-  ) : (
-    <AuthorProfileView author={author} onEdit={() => setIsEditing(true)} />
+  return (
+    <Card className="mt-4 bg-gray-50">
+      <AuthorProfileView author={user.authorProfile} />
+    </Card>
   );
 }

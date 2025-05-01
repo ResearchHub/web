@@ -33,19 +33,19 @@ export function ProfileInformationForm({
 }: ProfileInformationFormProps) {
   const socialLinkMeta = {
     linkedin: {
-      icon: <FontAwesomeIcon icon={faLinkedin} className="h-5 w-5" />,
+      icon: <FontAwesomeIcon icon={faLinkedin} className="h-5 w-5 text-[#0077B5]" />,
       label: 'LinkedIn Profile URL',
     },
     orcid_id: {
-      icon: <FontAwesomeIcon icon={faGraduationCap} className="h-5 w-5" />,
+      icon: <FontAwesomeIcon icon={faGraduationCap} className="h-5 w-5 text-[#A6CE39]" />,
       label: 'ORCID URL',
     },
     twitter: {
-      icon: <FontAwesomeIcon icon={faXTwitter} className="h-5 w-5" />,
+      icon: <FontAwesomeIcon icon={faXTwitter} className="h-5 w-5 text-[#000]" />,
       label: 'X (Twitter) Profile URL',
     },
     google_scholar: {
-      icon: <FontAwesomeIcon icon={faGraduationCap} className="h-5 w-5" />,
+      icon: <FontAwesomeIcon icon={faGraduationCap} className="h-5 w-5 text-[#4285F4]" />,
       label: 'Google Scholar Profile URL',
     },
   } as const;
