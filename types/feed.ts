@@ -174,6 +174,7 @@ export interface RawApiFeedEntry {
   created_date: string;
   action: string;
   action_date: string;
+  is_nonprofit?: boolean;
   user_vote?: {
     id: number;
     content_type: number;

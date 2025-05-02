@@ -539,7 +539,7 @@ export const CommentProvider = ({
           content: apiContent,
           contentFormat: 'TIPTAP',
           parentId: realParentId,
-          commentType,
+          commentType: 'GENERIC_COMMENT',
         });
         console.log(`API response for reply creation:`, newReply);
 

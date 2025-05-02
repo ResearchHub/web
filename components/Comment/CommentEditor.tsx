@@ -1,7 +1,7 @@
 'use client';
 
 import { EditorContent } from '@tiptap/react';
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import 'highlight.js/styles/atom-one-dark.css';
 import { CommentType } from '@/types/comment';
@@ -33,6 +33,9 @@ export interface CommentEditorProps {
   debug?: boolean;
   autoFocus?: boolean;
   editing?: boolean;
+  showFooter?: boolean;
+  showHeader?: boolean;
+  isBountyReply?: boolean;
 }
 
 export const CommentEditor = ({
@@ -50,22 +53,14 @@ export const CommentEditor = ({
   debug = false,
   autoFocus = false,
   editing = false,
+  showFooter = true,
+  showHeader = true,
+  isBountyReply = false,
 }: CommentEditorProps) => {
   const { data: session, status } = useSession();
   const editorRef = useRef<HTMLDivElement>(null);
-
-  // Initialize dismissable feature for review banner
-  const {
-    isDismissed: isReviewBannerDismissed,
-    dismissFeature: dismissReviewBanner,
-    dismissStatus: reviewBannerStatus,
-  } = useDismissableFeature('comment_editor_review_banner');
-
-  // Debug session information
-  useEffect(() => {
-    console.log('CommentEditor - Session Status:', status);
-    console.log('CommentEditor - Session Data:', session);
-  }, [session, status]);
+  const [isReviewBannerDismissed, setIsReviewBannerDismissed] = useState(false);
+  const [isBountyReplyBannerDismissed, setIsBountyReplyBannerDismissed] = useState(false);
 
   // Adapt the onSubmit function to the format expected by useEditorHandlers
   const adaptedOnSubmit = useCallback(
@@ -179,12 +174,14 @@ export const CommentEditor = ({
   return (
     <div className="relative border border-gray-200 rounded-lg overflow-hidden bg-white focus-within:ring-blue-500 focus-within:border-blue-500 transition-all duration-200">
       {/* User info header */}
-      <EditorHeader
-        isReview={isReview}
-        rating={rating}
-        onRatingChange={setRating}
-        isReadOnly={isReadOnly || editing}
-      />
+      {showHeader && (
+        <EditorHeader
+          isReview={isReview}
+          rating={rating}
+          onRatingChange={setRating}
+          isReadOnly={isReadOnly || editing}
+        />
+      )}
 
       {/* Editor toolbar */}
       <EditorToolbar
@@ -200,16 +197,34 @@ export const CommentEditor = ({
       {/* Editor content */}
       <div ref={editorRef} className="relative comment-editor-content">
         {/* Informative banner displayed inside editing area */}
-        {isReview && reviewBannerStatus === 'checked' && !isReviewBannerDismissed && (
+        {isReview && !isReviewBannerDismissed && (
           <div className="mb-3 flex flex-col sm:!flex-row items-start sm:!items-center justify-between bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-md p-2 sm:!p-3 text-xs sm:!text-sm">
             <p className="pr-0 sm:!pr-2 mb-1 sm:!mb-0">
               <span className="font-semibold">Add your review.</span> If your review is part of a
               bounty, please make sure to view bounty guidelines in the bounties tab first.
             </p>
             <button
-              onClick={dismissReviewBanner}
+              onClick={() => setIsReviewBannerDismissed(true)}
               aria-label="Dismiss notice"
               className="mt-1 sm:!mt-0 inline-flex items-center px-2 py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded text-xs font-medium"
+            >
+              Got it
+            </button>
+          </div>
+        )}
+
+        {/* Bounty reply banner */}
+        {isBountyReply && !isBountyReplyBannerDismissed && (
+          <div className="mb-3 flex flex-col sm:!flex-row items-start sm:!items-center justify-between bg-blue-50 border border-blue-200 text-blue-800 rounded-md p-2 sm:!p-3 text-xs sm:!text-sm">
+            <p className="pr-0 sm:!pr-2 mb-1 sm:!mb-0">
+              Use this section to ask for clarifying questions.{' '}
+              <span className="font-semibold">Do not submit your bounty solution in here.</span>{' '}
+              Instead, follow the instructions provided in the bounty to submit.
+            </p>
+            <button
+              onClick={() => setIsBountyReplyBannerDismissed(true)}
+              aria-label="Dismiss notice"
+              className="mt-1 sm:!mt-0 inline-flex items-center px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded text-xs font-medium min-w-[60px]"
             >
               Got it
             </button>
@@ -220,16 +235,18 @@ export const CommentEditor = ({
       </div>
 
       {/* Editor footer */}
-      <EditorFooter
-        saveStatus={saveStatus}
-        lastSaved={lastSaved}
-        formatLastSaved={formatLastSaved}
-        onCancel={onCancel}
-        onReset={onReset}
-        onSubmit={handleSubmit}
-        clearDraft={clearDraft}
-        isSubmitting={isSubmitting}
-      />
+      {showFooter && (
+        <EditorFooter
+          saveStatus={saveStatus}
+          lastSaved={lastSaved}
+          formatLastSaved={formatLastSaved}
+          onCancel={onCancel}
+          onReset={onReset}
+          onSubmit={handleSubmit}
+          clearDraft={clearDraft}
+          isSubmitting={isSubmitting}
+        />
+      )}
 
       {/* Modals */}
       <EditorModals

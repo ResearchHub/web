@@ -66,7 +66,6 @@ export const CommentItem = ({
   const [selectedSolution, setSelectedSolution] = useState<SolutionViewEvent | null>(null);
 
   const { user } = useUser();
-
   // Check if the current user is the author of the comment
   const isAuthor = user?.authorProfile?.id === comment?.createdBy?.authorProfile?.id;
 
@@ -233,6 +232,7 @@ export const CommentItem = ({
               showCreatorActions={isAuthor}
               onAward={() => setShowAwardModal(true)}
               onEdit={() => setEditingCommentId(comment.id)}
+              onReply={() => setReplyingToCommentId(comment.id)}
               onContributeSuccess={() => {
                 // After successful contribution, refresh the comments
                 forceRefresh();
@@ -263,6 +263,7 @@ export const CommentItem = ({
                   onCancel={() => setReplyingToCommentId(null)}
                   placeholder="Write your reply..."
                   autoFocus={true}
+                  isBountyReply={true}
                 />
               </div>
             )}
@@ -309,6 +310,7 @@ export const CommentItem = ({
               onCancel={() => setReplyingToCommentId(null)}
               placeholder="Write your reply..."
               autoFocus={true}
+              isBountyReply={true}
             />
           </div>
         )}

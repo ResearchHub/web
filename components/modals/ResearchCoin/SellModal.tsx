@@ -19,12 +19,12 @@ const NETWORK_DESCRIPTION = IS_PRODUCTION
   ? 'Swaps are processed on Base L2'
   : 'Swaps are processed on Base Sepolia testnet';
 
-interface SwapModalProps {
+interface SellModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function SwapModal({ isOpen, onClose }: SwapModalProps) {
+export function SellModal({ isOpen, onClose }: SellModalProps) {
   const handleClose = useCallback(() => {
     onClose();
   }, [onClose]);
@@ -58,7 +58,7 @@ export function SwapModal({ isOpen, onClose }: SwapModalProps) {
               <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 shadow-xl transition-all">
                 <div className="flex items-center justify-between mb-8">
                   <DialogTitle className="text-2xl font-semibold text-gray-900">
-                    Buy RSC
+                    Sell RSC
                   </DialogTitle>
                   <button
                     onClick={handleClose}
@@ -85,14 +85,14 @@ export function SwapModal({ isOpen, onClose }: SwapModalProps) {
                   <Swap isSponsored={true} title="">
                     <SwapAmountInput
                       label="Pay with"
-                      swappableTokens={[ETH, USDC]}
-                      token={ETH}
+                      swappableTokens={[RSC]}
+                      token={RSC}
                       type="from"
                     />
                     <SwapAmountInput
                       label="Receive"
-                      swappableTokens={[RSC]}
-                      token={RSC}
+                      swappableTokens={[ETH, USDC]}
+                      token={ETH}
                       type="to"
                     />
                     <SwapButton />

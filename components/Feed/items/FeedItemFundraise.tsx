@@ -14,11 +14,13 @@ import { Flag, Users } from 'lucide-react';
 import Image from 'next/image';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { formatRSC } from '@/utils/number';
+import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
   href?: string; // Optional href prop
   showTooltips?: boolean; // Property for controlling tooltips
+  badgeVariant?: 'default' | 'icon-only'; // New prop for tax-deductible badge variant
 }
 
 /**
@@ -27,12 +29,17 @@ interface FeedItemFundraiseProps {
 const FeedItemFundraiseBody: FC<{
   entry: FeedEntry;
   imageUrl?: string;
-}> = ({ entry, imageUrl }) => {
+  badgeVariant?: 'default' | 'icon-only';
+}> = ({ entry, imageUrl, badgeVariant = 'default' }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
 
   // Get topics/tags for display
   const topics = post.topics || [];
+
+  // Check if the entry has the is_nonprofit flag and is a funding type
+  const isNonprofit =
+    entry.raw?.is_nonprofit === true && post.contentType === 'PREREGISTRATION' && post.fundraise;
 
   // Convert authors to the format expected by AuthorList
   const authors =
@@ -47,6 +54,7 @@ const FeedItemFundraiseBody: FC<{
       {/* Badges - Always at the top */}
       <div className="flex flex-wrap gap-2 mb-3" onClick={(e) => e.stopPropagation()}>
         <ContentTypeBadge type="funding" />
+        {isNonprofit && <TaxDeductibleBadge variant={badgeVariant} />}
         {topics.map((topic, index) => (
           <TopicAndJournalBadge
             key={index}
@@ -127,6 +135,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   entry,
   href,
   showTooltips = true,
+  badgeVariant = 'default',
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
@@ -199,7 +208,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       >
         <div className="p-4">
           {/* Body Content with desktop image integrated */}
-          <FeedItemFundraiseBody entry={entry} imageUrl={imageUrl} />
+          <FeedItemFundraiseBody entry={entry} imageUrl={imageUrl} badgeVariant={badgeVariant} />
           {/* Mobile image (shown only on small screens) */}
           <MobileImage />
           {/* Fundraise Progress (only for preregistrations with fundraise) */}

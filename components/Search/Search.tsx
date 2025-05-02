@@ -2,11 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search as SearchIcon, X, Loader2 } from 'lucide-react';
+import { Search as SearchIcon, X } from 'lucide-react';
 import { SearchSuggestions } from './SearchSuggestions';
 import { cn } from '@/utils/styles';
 import { SearchSuggestion } from '@/types/search';
-import toast from 'react-hot-toast';
+import type { EntityType } from '@/types/search';
 
 interface SearchProps {
   onSelect?: (suggestion: SearchSuggestion) => void;
@@ -14,6 +14,7 @@ interface SearchProps {
   showSuggestionsOnFocus?: boolean;
   className?: string;
   placeholder?: string;
+  indices?: EntityType[];
 }
 
 export function Search({
@@ -22,6 +23,7 @@ export function Search({
   showSuggestionsOnFocus = true,
   className,
   placeholder = 'Search',
+  indices,
 }: SearchProps) {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
@@ -56,22 +58,7 @@ export function Search({
       // Close the dropdown
       setIsFocused(false);
 
-      // Show loading toast
-      toast(
-        (t) => (
-          <div className="flex items-center space-x-3 py-1">
-            <Loader2 className="h-5 w-5 text-primary animate-spin" />
-            <span>Navigating to {truncateTitle(suggestion.displayName)}</span>
-          </div>
-        ),
-        {
-          duration: 5000, // 5 seconds or until page loads
-          position: 'bottom-center',
-          className: 'bg-white shadow-md border border-gray-200',
-        }
-      );
-
-      // If onSelect is provided, use that instead of default behavior
+      // If onSelect is provided, delegate selection handling and skip default behavior
       if (onSelect) {
         onSelect(suggestion);
         return;
@@ -132,11 +119,6 @@ export function Search({
     }
   };
 
-  // Helper to truncate long titles for the toast
-  const truncateTitle = (title: string) => {
-    return title.length > 30 ? `${title.substring(0, 30)}...` : title;
-  };
-
   return (
     <div ref={containerRef} className={cn('relative', className)}>
       <div className="relative">
@@ -167,6 +149,7 @@ export function Search({
         onSelect={handleSelect}
         displayMode={displayMode}
         showSuggestionsOnFocus={showSuggestionsOnFocus}
+        indices={indices}
       />
     </div>
   );
