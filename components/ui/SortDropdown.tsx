@@ -40,23 +40,43 @@ export const SortDropdown: FC<SortDropdownProps> = ({
   );
 
   const menuContent = (
-    <BaseMenu trigger={trigger} align="start" sideOffset={5} open={open} onOpenChange={setOpen}>
-      {options.map((opt) => (
-        <BaseMenuItem
-          key={opt.value}
-          onSelect={() => {
-            onChange(opt);
-            setOpen(false);
-          }}
-          className={opt.value === value ? 'bg-gray-100 text-gray-900' : ''}
-        >
-          {opt.label}
-        </BaseMenuItem>
-      ))}
+    <BaseMenu
+      trigger={trigger}
+      align="start"
+      sideOffset={5}
+      open={open}
+      onOpenChange={setOpen}
+      className="w-[var(--trigger-width)]"
+    >
+      <div className="w-full" style={{ minWidth: 'var(--trigger-width)' }}>
+        {options.map((opt) => (
+          <BaseMenuItem
+            key={opt.value}
+            onSelect={() => {
+              onChange(opt);
+              setOpen(false);
+            }}
+            className={opt.value === value ? 'bg-gray-100 text-gray-900' : ''}
+          >
+            {opt.label}
+          </BaseMenuItem>
+        ))}
+      </div>
     </BaseMenu>
   );
 
-  return menuContent;
+  // Set CSS variable for trigger width when button mounts
+  const setTriggerWidth = (node: HTMLElement | null) => {
+    if (node) {
+      document.documentElement.style.setProperty('--trigger-width', `${node.offsetWidth}px`);
+    }
+  };
+
+  return (
+    <div ref={setTriggerWidth} className="w-full">
+      {menuContent}
+    </div>
+  );
 };
 
 export default SortDropdown;
