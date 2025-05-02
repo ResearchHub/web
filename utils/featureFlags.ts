@@ -75,6 +75,13 @@ export const FeatureFlags = {
   legacyNoteBanner: (): boolean => {
     return true; // Always enabled for now, but can be changed later
   },
+
+  /**
+   * 2-step onboarding flow feature
+   */
+  simplifiedOnboarding: (): boolean => {
+    return !isProduction();
+  },
 };
 
 /**

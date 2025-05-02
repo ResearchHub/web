@@ -15,7 +15,7 @@ import { FollowProvider } from '@/contexts/FollowContext';
 import '@coinbase/onchainkit/styles.css';
 import { AuthSharingWrapper } from '@/components/AuthSharingWrapper';
 import { OnboardingModal } from '@/components/Onboarding/OnboardingModal';
-
+import { isFeatureEnabled } from '@/utils/featureFlags';
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
   variable: '--font-geist-sans',
@@ -64,7 +64,7 @@ export default async function RootLayout({
                       <OrganizationProvider>
                         <FollowProvider>
                           {children}
-                          <OnboardingModal />
+                          {isFeatureEnabled('simplifiedOnboarding') && <OnboardingModal />}
                         </FollowProvider>
                       </OrganizationProvider>
                     </NotificationProvider>
