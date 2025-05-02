@@ -2,14 +2,26 @@ import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { truncateText } from '@/utils/stringUtils';
+import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { Topic } from '@/types/topic';
+import { useClickContext } from '@/contexts/ClickContext';
 
 interface RelatedWorkCardProps {
   work: Work;
   onClick?: () => void;
+  onTopicClick?: (topic: Topic) => void;
+  onEvent?: (event: { type: string; payload: any }) => void;
   size?: 'default' | 'sm' | 'lg' | 'xs';
 }
 
-export const RelatedWorkCard = ({ work, onClick, size = 'default' }: RelatedWorkCardProps) => {
+export const RelatedWorkCard = ({
+  work,
+  onClick,
+  onTopicClick,
+  onEvent,
+  size = 'default',
+}: RelatedWorkCardProps) => {
+  const { triggerEvent } = useClickContext();
   if (!work) return null;
 
   // Convert work authors to the format expected by AuthorList
@@ -27,9 +39,9 @@ export const RelatedWorkCard = ({ work, onClick, size = 'default' }: RelatedWork
     } else if (work.id && work.slug) {
       // Default behavior: open the document in a new tab
       let path;
-      if (work.contentType === 'preregistration' && work.fundraise) {
+      if (work.contentType === 'preregistration') {
         path = `/fund/${work.id}/${work.slug}`;
-      } else if (work.contentType === 'preregistration' || work.contentType === 'post') {
+      } else if (work.contentType === 'post') {
         path = `/post/${work.id}/${work.slug}`;
       } else if (work.contentType === 'paper') {
         path = `/paper/${work.id}/${work.slug}`;
@@ -51,14 +63,12 @@ export const RelatedWorkCard = ({ work, onClick, size = 'default' }: RelatedWork
     | 'preprint'
     | 'published' => {
     // If it's a fundraise preregistration, show funding badge
-    if (work.contentType === 'preregistration' && work.fundraise) {
+    if (work.contentType === 'preregistration') {
       return 'funding';
     }
 
     // Map content types to badge types
     switch (work.contentType) {
-      case 'preregistration':
-        return 'article';
       case 'post':
         return 'article';
       case 'paper':
@@ -113,9 +123,32 @@ export const RelatedWorkCard = ({ work, onClick, size = 'default' }: RelatedWork
       className={`bg-gray-50 rounded-lg border border-l-2 border-l-gray-600 border-gray-200 rounded-tl-none rounded-bl-none p-4 ${onClick ? 'cursor-pointer hover:bg-gray-100' : ''}`}
       onClick={handleClick}
     >
-      {/* Paper badge above title - full width */}
-      <div className="mb-3">
+      {/* Badge and Topics */}
+      <div className="flex flex-wrap gap-2 mb-3">
         <ContentTypeBadge size={size} type={getBadgeType()} />
+        {(work.topics || []).slice(0, 2).map((topic) => (
+          <div
+            key={topic.id || topic.slug}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onTopicClick) {
+                onTopicClick(topic);
+              } else if (onEvent) {
+                onEvent({ type: 'topic', payload: topic });
+              } else {
+                triggerEvent({ type: 'topic', payload: topic });
+              }
+            }}
+          >
+            <TopicAndJournalBadge
+              type="topic"
+              name={topic.name}
+              slug={topic.slug}
+              disableLink={true}
+              imageUrl={topic.imageUrl}
+            />
+          </div>
+        ))}
       </div>
 
       {/* Paper title */}

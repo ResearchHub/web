@@ -9,10 +9,11 @@ import { EarnRightSidebar } from '@/components/Earn/EarnRightSidebar';
 import { Coins } from 'lucide-react';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import Icon from '@/components/ui/icons/Icon';
-import { HubsSelector, Hub } from '@/app/paper/create/components/HubsSelector';
+import { BountyHubSelector as HubsSelector, Hub } from '@/components/Earn/BountyHubSelector';
 import SortDropdown, { SortOption } from '@/components/ui/SortDropdown';
 import { Badge } from '@/components/ui/Badge';
 import { X } from 'lucide-react';
+import { useClickContext } from '@/contexts/ClickContext';
 
 export default function EarnPage() {
   const [bounties, setBounties] = useState<FeedEntry[]>([]);
@@ -23,6 +24,9 @@ export default function EarnPage() {
   const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
   const [sort, setSort] = useState<string>('personalized');
 
+  // Click context for topic filter
+  const { event, clearEvent } = useClickContext();
+
   // Available sort options
   const sortOptions = [
     { label: 'Best', value: 'personalized' },
@@ -32,6 +36,10 @@ export default function EarnPage() {
   ];
 
   const fetchBounties = async (reset = false, hubs: Hub[] = selectedHubs) => {
+    if (reset) {
+      // Clear current bounties so skeleton loaders show instead of stale data
+      setBounties([]);
+    }
     setIsLoading(true);
     try {
       const currentPage = reset ? 1 : page;
@@ -92,12 +100,31 @@ export default function EarnPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sort]);
 
+  // Apply clicked topic filter
+  useEffect(() => {
+    if (event && event.type === 'topic') {
+      const topic = event.payload;
+      const newHub: Hub = {
+        id: topic.id,
+        name: topic.name,
+        description: topic.description,
+      };
+      setSelectedHubs([newHub]);
+      setPage(1);
+      fetchBounties(true, [newHub]);
+      clearEvent();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event]);
+
   const renderFilters = () => (
     <div className="mt-4 space-y-3">
       {/* Top filter bar */}
-      <div className="flex items-center gap-4 flex-wrap">
-        <HubsSelector selectedHubs={selectedHubs} onChange={handleHubsChange} displayCountOnly />
-        <div className="ml-auto">
+      <div className="flex items-center gap-0 sm:gap-2 flex-wrap justify-between">
+        <div className="w-1/2 sm:!w-[220px] flex-1 sm:!flex-none pr-1 sm:!pr-0">
+          <HubsSelector selectedHubs={selectedHubs} onChange={handleHubsChange} displayCountOnly />
+        </div>
+        <div className="w-1/2 sm:!w-[120px] flex-1 sm:!flex-none pl-1 sm:!pl-0">
           <SortDropdown
             value={sort}
             onChange={(opt: SortOption) => setSort(opt.value)}

@@ -2,6 +2,7 @@
 
 import { FC, useState } from 'react';
 import { FeedEntry, FeedBountyContent } from '@/types/feed';
+import { Topic } from '@/types/topic';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions, ActionButton } from '@/components/Feed/FeedItemActions';
 import { BountyMetadataLine } from '@/components/Bounty/BountyMetadataLine';
@@ -77,6 +78,7 @@ interface FeedItemBountyProps {
     comment?: string;
   }; // Prop for customizing action labels
   showFooter?: boolean; // Prop to control footer visibility
+  onTopicClick?: (topic: Topic) => void;
 }
 
 /**
@@ -91,7 +93,8 @@ const FeedItemBountyBody: FC<{
     authorName: string;
     awardedAmount?: string;
   }) => void;
-}> = ({ entry, showSolutions = true, showRelatedWork = true, onViewSolution }) => {
+  onTopicClick?: (topic: Topic) => void;
+}> = ({ entry, showSolutions = true, showRelatedWork = true, onViewSolution, onTopicClick }) => {
   // Extract the bounty entry from the entry's content
   const bountyEntry = entry.content as FeedBountyContent;
   const bounty = bountyEntry.bounty;
@@ -142,7 +145,7 @@ const FeedItemBountyBody: FC<{
       {/* Related Work - show if available */}
       {relatedWork && showRelatedWork && (
         <div className="mt-4" onClick={(e) => e.stopPropagation()}>
-          <RelatedWorkCard size="sm" work={relatedWork} />
+          <RelatedWorkCard size="sm" work={relatedWork} onTopicClick={onTopicClick} />
         </div>
       )}
 
@@ -190,7 +193,9 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   showCreatorActions = true, // Default to showing creator actions
   actionLabels,
   showFooter = true, // Default to showing the footer
+  onTopicClick,
 }) => {
+  console.log('entry', entry);
   // Extract the bounty entry from the entry's content
   const bountyEntry = entry.content as FeedBountyContent;
   const bounty = bountyEntry.bounty;
@@ -369,6 +374,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
             showSolutions={showSolutions}
             showRelatedWork={showRelatedWork}
             onViewSolution={onViewSolution}
+            onTopicClick={onTopicClick}
           />
           {/* Container for Support and CTA buttons */}
           <div className="mt-4 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>

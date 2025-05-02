@@ -282,6 +282,12 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           } catch (paperError) {
             console.error('Error transforming paper for bounty:', paperError);
           }
+        } else if (content_object.post) {
+          try {
+            relatedWork = transformPost(content_object.post);
+          } catch (postError) {
+            console.error('Error transforming post for bounty:', postError);
+          }
         }
 
         // Create a FeedBountyEntry object
