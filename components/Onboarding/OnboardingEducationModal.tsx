@@ -291,10 +291,6 @@ export function OnboardingEducationModal({
     };
 
     onSave(educationEntry);
-
-    if (isPublic) {
-      setAsMain();
-    }
   };
 
   return (

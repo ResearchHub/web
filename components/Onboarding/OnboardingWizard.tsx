@@ -321,7 +321,7 @@ export function OnboardingWizard() {
       case 3: // Verify Profile Info
         return <OnboardingVerifyProfileStep openVerifyModal={() => setIsVerifyModalOpen(true)} />;
       case 4: // Interest Selection (Moved from step 5)
-        return <InterestSelector mode="onboarding" />;
+        return <InterestSelector mode="preferences" />;
       default:
         return <div>Invalid Step</div>;
     }

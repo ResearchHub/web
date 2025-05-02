@@ -6,7 +6,7 @@ import { getProfileInformationSchema, ProfileInformationFormValues } from './sch
 import { Input } from '@/components/ui/form/Input';
 import { Textarea } from '@/components/ui/form/Textarea';
 import { Button } from '@/components/ui/Button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { OnboardingEducationSection } from '../OnboardingEducationSection';
 import { OnboardingEducationModal } from '../OnboardingEducationModal';
 import type { EducationEntry } from '../OnboardingWizard';
@@ -17,6 +17,7 @@ import { SocialIcon } from '@/components/ui/SocialIcon';
 import { useUser } from '@/contexts/UserContext';
 import { ImageUploadModal } from '@/components/modals/ImageUploadModal';
 import { useUpdateAuthorProfileImage } from '@/hooks/useAuthor';
+
 interface ProfileInformationFormProps {
   onSubmit: (data: ProfileInformationFormValues) => void;
   simplifiedView?: boolean;
@@ -77,13 +78,21 @@ export function ProfileInformationForm({
     register,
     setValue,
     watch,
+    getValues,
   } = methods;
+
+  useEffect(() => {
+    register('education');
+  }, [register]);
 
   // Education state and handlers
   const [isEducationModalOpen, setIsEducationModalOpen] = useState(false);
   const [activeEducationIndex, setActiveEducationIndex] = useState<number | null>(null);
 
   const education = watch('education') || [];
+
+  const educationValue = watch('education');
+  useEffect(() => {}, [educationValue]);
 
   const handleAddEducation = () => {
     setActiveEducationIndex(education.length);
@@ -179,8 +188,8 @@ export function ProfileInformationForm({
         isLoading={isUploadingAvatar}
       />
 
-      <div className="flex flex-col sm:flex-row gap-8 items-center sm:items-start">
-        {/* Left column: Avatar */}
+      <div className="flex flex-col gap-8 items-center">
+        {/* Avatar */}
         <div className="flex flex-col items-center" style={{ width: 120, minWidth: 120 }}>
           <div
             className="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-300 overflow-hidden"
@@ -198,11 +207,11 @@ export function ProfileInformationForm({
           </Button>
         </div>
 
-        {/* Right column: The rest of the form */}
+        {/* The rest of the form */}
         <div className="flex-1 w-full">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="w-full sm:w-1/2">
+            <div className="flex flex-col sm:!flex-row gap-4">
+              <div className="w-full sm:!w-1/2">
                 <Input
                   label="First Name"
                   {...register('first_name')}
@@ -210,7 +219,7 @@ export function ProfileInformationForm({
                   required
                 />
               </div>
-              <div className="w-full sm:w-1/2">
+              <div className="w-full sm:!w-1/2">
                 <Input
                   label="Last Name"
                   {...register('last_name')}
