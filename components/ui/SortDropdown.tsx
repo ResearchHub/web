@@ -32,7 +32,7 @@ export const SortDropdown: FC<SortDropdownProps> = ({
   const trigger = (
     <button
       type="button"
-      className={`flex items-center gap-2 border border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-lg px-3 py-1.5 text-sm min-w-[120px] justify-between ${className}`}
+      className={`flex w-full items-center gap-2 border border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-lg px-3 py-1.5 text-sm min-w-[120px] justify-between ${className}`}
     >
       <span className="text-gray-700 truncate">{activeOption.label}</span>
       <ChevronDown className="h-4 w-4 text-gray-500" />

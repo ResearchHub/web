@@ -2,6 +2,7 @@ import { ApiClient } from './client';
 import { ID, transformUnifiedDocument } from '@/types/root';
 import { BountyType } from '@/types/bounty';
 import { FeedEntry, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
+import { Topic } from '@/types/topic';
 
 interface BountyAwardPayload {
   content_type: 'rhcommentmodel';
@@ -319,6 +320,25 @@ export class BountyService {
         hasMore: false,
         total: 0,
       };
+    }
+  }
+
+  // Fetch all hubs available for bounties (no pagination, one call)
+  static async getBountyHubs(): Promise<Topic[]> {
+    const path = `${this.BASE_PATH}/bounty/hubs/`;
+    try {
+      const response = await ApiClient.get<any[]>(path);
+      // Use transformTopic to normalize
+      return response.map((raw) => ({
+        id: raw.id,
+        name: raw.name || '',
+        slug: raw.slug || '',
+        description: raw.description,
+        imageUrl: raw.hub_image || undefined,
+      }));
+    } catch (error) {
+      console.error('Error fetching bounty hubs', error);
+      return [];
     }
   }
 }

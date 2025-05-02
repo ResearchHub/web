@@ -12,6 +12,7 @@ import { UserProvider } from '@/contexts/UserContext';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { OnchainProvider } from '@/contexts/OnchainContext';
 import { FollowProvider } from '@/contexts/FollowContext';
+import { ClickProvider } from '@/contexts/ClickContext';
 import '@coinbase/onchainkit/styles.css';
 import { AuthSharingWrapper } from '@/components/AuthSharingWrapper';
 
@@ -53,24 +54,26 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <OnchainProvider>
-          <NextAuthProvider session={session}>
-            <AuthSharingWrapper>
-              <AuthModalProvider>
-                <UserProvider>
-                  <ExchangeRateProvider>
-                    <NotificationProvider>
-                      <OrganizationProvider>
-                        <FollowProvider>{children}</FollowProvider>
-                      </OrganizationProvider>
-                    </NotificationProvider>
-                  </ExchangeRateProvider>
-                </UserProvider>
-              </AuthModalProvider>
-            </AuthSharingWrapper>
-          </NextAuthProvider>
-          <ToasterProvider />
-        </OnchainProvider>
+        <ClickProvider>
+          <OnchainProvider>
+            <NextAuthProvider session={session}>
+              <AuthSharingWrapper>
+                <AuthModalProvider>
+                  <UserProvider>
+                    <ExchangeRateProvider>
+                      <NotificationProvider>
+                        <OrganizationProvider>
+                          <FollowProvider>{children}</FollowProvider>
+                        </OrganizationProvider>
+                      </NotificationProvider>
+                    </ExchangeRateProvider>
+                  </UserProvider>
+                </AuthModalProvider>
+              </AuthSharingWrapper>
+            </NextAuthProvider>
+            <ToasterProvider />
+          </OnchainProvider>
+        </ClickProvider>
       </body>
     </html>
   );
