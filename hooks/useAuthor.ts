@@ -1,4 +1,3 @@
-// hooks/useAuthor.ts
 import { useState, useCallback, useEffect } from 'react';
 import { AuthorService } from '@/services/author.service';
 import type { AuthorUpdatePayload } from '@/services/author.service';

@@ -17,6 +17,7 @@ import { SocialIcon } from '@/components/ui/SocialIcon';
 import { useUser } from '@/contexts/UserContext';
 import { ImageUploadModal } from '@/components/modals/ImageUploadModal';
 import { useUpdateAuthorProfileImage } from '@/hooks/useAuthor';
+import toast from 'react-hot-toast';
 
 interface ProfileInformationFormProps {
   onSubmit: (data: ProfileInformationFormValues) => void;
@@ -50,7 +51,7 @@ export function ProfileInformationForm({
     },
   } as const;
 
-  const { user, refreshUser } = useUser();
+  const { user } = useUser();
 
   const authorProfile = user?.authorProfile;
 
@@ -70,7 +71,8 @@ export function ProfileInformationForm({
     },
   });
 
-  const [{ isLoading, error }, updateAuthorProfileImage] = useUpdateAuthorProfileImage();
+  const [{ isLoading: isUploadingAvatar }, updateAuthorProfileImage] =
+    useUpdateAuthorProfileImage();
 
   const {
     handleSubmit,
@@ -147,24 +149,19 @@ export function ProfileInformationForm({
   // Avatar state and handlers
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const [avatar, setAvatar] = useState<string | null>(user?.authorProfile?.profileImage || null);
-  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   const handleAvatarSave = async (blob: Blob) => {
-    setIsUploadingAvatar(true);
     try {
       if (user?.authorProfile?.id) {
         await updateAuthorProfileImage(user.authorProfile.id, blob);
-      } else {
-        console.error('User profile ID not available. Cannot save avatar.');
       }
 
-      // If you want to just use a local preview:
+      // local preview:
       const imageUrl = URL.createObjectURL(blob);
       setAvatar(imageUrl);
-      //   await refreshUser(); // Refresh user data to get updated avatar URL
       setIsAvatarModalOpen(false);
-    } finally {
-      setIsUploadingAvatar(false);
+    } catch (error) {
+      toast.error('Error saving avatar');
     }
   };
 

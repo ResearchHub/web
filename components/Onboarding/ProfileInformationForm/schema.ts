@@ -54,31 +54,7 @@ export const getProfileInformationSchema = (simplified: boolean = false) =>
     linkedin: httpsUrl,
     orcid_id: httpsUrl,
     twitter: httpsUrl,
-    education: z
-      .array(
-        z.object({
-          id: z.union([z.string(), z.number()]).optional(),
-          is_public: z.boolean().optional(),
-          major: z.string().optional(),
-          name: z.string().optional(),
-          summary: z.string().optional(),
-          degree: z.object({ value: z.string(), label: z.string() }).optional(),
-          university: z
-            .object({
-              id: z.union([z.string(), z.number()]),
-              name: z.string(),
-              city: z.string().optional(),
-              country: z.string().optional(),
-              createdDate: z.string().optional(),
-              state: z.string().optional(),
-              updated_date: z.string().optional(),
-            })
-            .optional(),
-          year: z.object({ value: z.string(), label: z.string() }).optional(),
-        })
-      )
-      .optional()
-      .default([]),
+    education: z.array(EducationEntrySchema).optional().default([]),
   });
 
 export type ProfileInformationFormValues = z.infer<ReturnType<typeof getProfileInformationSchema>>;

@@ -30,12 +30,10 @@ export function OnboardingModal() {
     }
   }, [user, isLoading]);
 
-  // Mark onboarding as completed as soon as the component mounts
   useEffect(() => {
     const markOnboardingCompleted = async () => {
       try {
         await UserService.setCompletedOnboarding();
-        // await refreshUser();
       } catch (error) {
         console.error('Error automatically marking onboarding as completed:', error);
       }
@@ -45,12 +43,6 @@ export function OnboardingModal() {
       markOnboardingCompleted();
     }
   }, [showModal]);
-
-  // useEffect(() => {
-  //   return () => {
-  //     refreshUser();
-  //   };
-  // }, [refreshUser]);
 
   const handleClose = () => {
     setShowModal(false);
@@ -62,7 +54,6 @@ export function OnboardingModal() {
       toast.error('User information not available. Cannot save profile.');
       return false;
     }
-    console.log(data);
 
     const authorId = user.authorProfile.id;
     try {
@@ -77,7 +68,6 @@ export function OnboardingModal() {
         google_scholar: data.google_scholar || undefined,
       });
       setCurrentStep('TOPICS');
-      //   handleClose();
     } catch (e) {
       toast.error('Failed to save profile.');
     }

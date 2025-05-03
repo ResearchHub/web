@@ -82,7 +82,7 @@ function AuthorProfileError({ error }: { error: string }) {
   );
 }
 
-function AuthorProfileView({
+function AuthorProfileCard({
   author,
   refetchAuthorInfo,
 }: {
@@ -268,7 +268,7 @@ function AuthorProfileView({
         onClose={() => setIsEditModalOpen(false)}
         title="Edit Profile"
       >
-        <div className="min-w-0 sm:min-w-[600px] max-w-md sm:max-w-lg w-full mx-auto">
+        <div className="min-w-0  max-w-md w-full mx-auto">
           <ProfileInformationForm
             onSubmit={handleProfileFormSubmit}
             submitLabel="Save Changes"
@@ -295,7 +295,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
       ) : !user || !user.authorProfile ? (
         <AuthorProfileError error="Author not found" />
       ) : (
-        <AuthorProfileView author={user.authorProfile} refetchAuthorInfo={refetchAuthorInfo} />
+        <AuthorProfileCard author={user.authorProfile} refetchAuthorInfo={refetchAuthorInfo} />
       )}
     </Card>
   );
