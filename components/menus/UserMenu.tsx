@@ -19,6 +19,7 @@ import { faPen } from '@fortawesome/free-solid-svg-icons';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { isFeatureEnabled } from '@/utils/featureFlags';
 import { FeatureFlag } from '@/utils/featureFlags';
+import { Button } from '@/components/ui/Button';
 
 interface UserMenuProps {
   user: User;
@@ -113,13 +114,20 @@ export default function UserMenu({
             <p className="text-base font-medium text-gray-900 flex items-center gap-1">
               {user.fullName}
               {user.isVerified && <VerifiedBadge size="sm" />}
-              <Link
-                href={`/author/${user.authorProfile?.id}`}
-                className="ml-1 p-1 rounded hover:bg-gray-100 transition"
-                title="Edit Profile"
-              >
-                <FontAwesomeIcon icon={faPen} className="h-4 w-4 text-gray-500" />
-              </Link>
+              {isFeatureEnabled(FeatureFlag.SimplifiedOnboarding) && (
+                <Button
+                  onClick={() => {
+                    navigateToAuthorProfile(user.authorProfile?.id, false);
+                    setMenuOpenState(false);
+                  }}
+                  className="ml-1 p-1 rounded hover:bg-gray-100 transition"
+                  title="Edit Profile"
+                  variant="ghost"
+                  size="icon"
+                >
+                  <FontAwesomeIcon icon={faPen} className="h-4 w-4 text-gray-500" />
+                </Button>
+              )}
             </p>
             <p className="text-lg text-gray-500">{user.email}</p>
           </div>
@@ -244,13 +252,20 @@ export default function UserMenu({
                 <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
                   {user.fullName}
                   {user.isVerified && <VerifiedBadge size="sm" />}
-                  <Link
-                    href={`/author/${user.authorProfile?.id}`}
-                    className="ml-1 p-1 rounded hover:bg-gray-100 transition"
-                    title="Edit Profile"
-                  >
-                    <FontAwesomeIcon icon={faPen} className="h-4 w-4 text-gray-500" />
-                  </Link>
+                  {isFeatureEnabled(FeatureFlag.SimplifiedOnboarding) && (
+                    <Button
+                      onClick={() => {
+                        navigateToAuthorProfile(user.authorProfile?.id, false);
+                        setMenuOpenState(false);
+                      }}
+                      className="ml-1 p-1 rounded hover:bg-gray-100 transition"
+                      title="Edit Profile"
+                      variant="ghost"
+                      size="icon"
+                    >
+                      <FontAwesomeIcon icon={faPen} className="h-4 w-4 text-gray-500" />
+                    </Button>
+                  )}
                 </p>
                 <p className="text-xs text-gray-500">{user.email}</p>
               </div>
