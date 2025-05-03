@@ -17,6 +17,8 @@ import Icon from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
+import { isFeatureEnabled } from '@/utils/featureFlags';
+import { FeatureFlag } from '@/utils/featureFlags';
 
 interface UserMenuProps {
   user: User;
@@ -235,7 +237,7 @@ export default function UserMenu({
                 src={user.authorProfile?.profileImage}
                 alt={user.fullName}
                 size="md"
-                showProfileCompletion
+                showProfileCompletion={isFeatureEnabled(FeatureFlag.SimplifiedOnboarding)}
                 profileCompletionPercent={percent}
               />
               <div className="ml-3">

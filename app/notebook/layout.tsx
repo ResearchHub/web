@@ -24,7 +24,7 @@ import { NotebookProvider, useNotebookContext } from '@/contexts/NotebookContext
 import { RightSidebar } from './RightSidebar';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { TopBarDesktop } from './components/TopBarDesktop';
-import { isFeatureEnabled } from '@/utils/featureFlags';
+import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 
 function NotebookLayoutContent({ children }: { children: ReactNode }) {
   const {
@@ -43,7 +43,7 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
   const { currentNote, isLoading } = useNotebookContext();
 
   const isLegacyNote =
-    currentNote && !currentNote.contentJson && isFeatureEnabled('legacyNoteBanner');
+    currentNote && !currentNote.contentJson && isFeatureEnabled(FeatureFlag.LegacyNoteBanner);
   const shouldShowRightSidebar = (currentNote || isLoading) && !isLegacyNote;
 
   const { xlAndUp, lgAndUp, mdAndDown, current } = useScreenSize();

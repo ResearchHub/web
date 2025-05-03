@@ -2,6 +2,20 @@
  * Simple feature flag system for ResearchHub
  */
 
+export enum FeatureFlag {
+  NonprofitIntegration = 'nonprofitIntegration',
+  LegacyNoteBanner = 'legacyNoteBanner',
+  SimplifiedOnboarding = 'simplifiedOnboarding',
+}
+
+function getLocalStorageFlag(key: string): boolean | undefined {
+  if (typeof window === 'undefined') return undefined;
+  const value = window.localStorage.getItem(`featureFlag:${key}`);
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return undefined;
+}
+
 /**
  * Determine if the current environment is production
  */
@@ -59,41 +73,29 @@ export function isProduction(): boolean {
  * Each flag is a function that determines if the feature is enabled.
  * Centralize all feature flag logic here.
  */
-export const FeatureFlags = {
-  /**
-   * Nonprofit integration feature
-   */
-  nonprofitIntegration: (): boolean => {
-    return true; // Always enabled in all environments
-  },
+export const FeatureFlags: Record<FeatureFlag, () => boolean> = {
+  [FeatureFlag.NonprofitIntegration]: () => true,
+  [FeatureFlag.LegacyNoteBanner]: () => true,
+  [FeatureFlag.SimplifiedOnboarding]: () => {
+    // Never enable in production, regardless of overrides
+    if (isProduction()) return false;
 
-  /**
-   * Legacy note banner feature
-   * Controls whether legacy note banners and restrictions are shown
-   * Enabled in all environments
-   */
-  legacyNoteBanner: (): boolean => {
-    return true; // Always enabled for now, but can be changed later
-  },
+    const local = getLocalStorageFlag(FeatureFlag.SimplifiedOnboarding);
+    if (typeof local === 'boolean') return local;
 
-  /**
-   * 2-step onboarding flow feature
-   */
-  simplifiedOnboarding: (): boolean => {
-    return !isProduction();
+    return false;
   },
 };
 
 /**
  * Check if a feature is enabled
  */
-export function isFeatureEnabled(featureName: keyof typeof FeatureFlags): boolean {
-  const flagFunction = FeatureFlags[featureName];
+export function isFeatureEnabled(feature: FeatureFlag): boolean {
+  const flagFunction = FeatureFlags[feature];
   if (!flagFunction) {
-    console.warn(`Feature flag "${featureName}" is not defined.`);
+    console.warn(`Feature flag "${feature}" is not defined.`);
     return false;
   }
-
   return flagFunction();
 }
 
