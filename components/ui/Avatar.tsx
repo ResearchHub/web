@@ -176,7 +176,7 @@ export const Avatar: FC<AvatarProps> = ({
   }
 
   const basePx = typeof size === 'number' ? size : (sizeMap[size] ?? sizeMap.md);
-  const strokeWidth = basePx <= 20 ? 2 : 4;
+  const strokeWidth = basePx <= 40 ? 5 : 10;
   const px = basePx + strokeWidth * 2;
 
   const avatarElement = (
@@ -271,7 +271,7 @@ export const Avatar: FC<AvatarProps> = ({
             top: -strokeWidth,
             left: -strokeWidth,
             position: 'absolute',
-            transform: 'rotate(-90deg)',
+            transform: 'rotate(90deg)',
           }}
         >
           <circle
@@ -326,8 +326,13 @@ export const Avatar: FC<AvatarProps> = ({
             position="bottom"
             width="w-48"
           >
-            <div className="absolute left-1/2 -translate-x-1/2 bottom-0 bg-white text-xs rounded-full px-1 py-0.5 shadow text-gray-700 font-semibold z-20 cursor-default">
-              {`${progress}%`}
+            <div className="w-full">
+              <div
+                className="text-xs rounded-full h-4 px-1 shadow text-white font-semibold z-20 cursor-default"
+                style={{ backgroundColor: color }}
+              >
+                {`${progress}%`}
+              </div>
             </div>
           </Tooltip>
         )}
