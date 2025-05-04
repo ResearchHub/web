@@ -9,10 +9,12 @@ import { ProfileField, PROFILE_FIELD_WEIGHTS } from '@/utils/profileCompletion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck, faCircle } from '@fortawesome/free-solid-svg-icons';
 
+type AvatarSize = 'xxxs' | 'xxs' | 'xs' | 'sm' | 'md';
+
 export interface AvatarProps {
   src?: string | null;
   alt: string;
-  size?: 'xxxs' | 'xxs' | 'xs' | 'sm' | 'md' | number;
+  size?: AvatarSize | number;
   className?: string;
   onClick?: (e: MouseEvent<HTMLDivElement>) => void;
   authorId?: number;
@@ -82,6 +84,128 @@ const ProfileFieldLabel: Record<ProfileField, string> = {
   [ProfileField.Social]: 'Social Account',
 };
 
+interface ProfileCompletionCircleProps {
+  size: AvatarSize | number;
+  showProfileCompletionNumber: boolean;
+  progressPercent: number;
+  avatarElement: React.ReactNode;
+  textPercentSizeClasses: (size: AvatarSize | number) => string;
+  missing?: ProfileField[];
+}
+
+const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
+  size,
+  showProfileCompletionNumber,
+  progressPercent,
+  avatarElement,
+  textPercentSizeClasses,
+  missing,
+}) => {
+  const sizeMap = {
+    xxxs: 12,
+    xxs: 20,
+    xs: 24,
+    sm: 32,
+    md: 40,
+  };
+  const basePx = typeof size === 'number' ? size : (sizeMap[size as AvatarSize] ?? sizeMap.md);
+  const strokeWidth = basePx <= 40 ? 5 : 10;
+  const px = basePx + strokeWidth * 2;
+
+  const radius = px / 2 - strokeWidth / 2;
+  const circumference = 2 * Math.PI * radius;
+  const progress = Math.max(0, Math.min(progressPercent, 100));
+  const offset = circumference - (progress / 100) * circumference;
+
+  let color = '#f97316';
+  if (progress === 100) color = '#22c55e';
+  else if (progress >= 60) color = '#eab308';
+
+  // Tooltip content logic here
+  const tooltipContent = (
+    <div className="text-left">
+      <div className="font-semibold mb-2">Profile Completion</div>
+      <ul className="space-y-1">
+        {Object.entries(PROFILE_FIELD_WEIGHTS).map(([field, weight]) => {
+          const isMissing = missing?.includes(field as ProfileField);
+          return (
+            <li key={field} className="flex items-center gap-2">
+              {isMissing ? (
+                <FontAwesomeIcon icon={faCircle} className="text-gray-400 w-4 h-4" />
+              ) : (
+                <FontAwesomeIcon icon={faCircleCheck} className="text-green-500 w-4 h-4" />
+              )}
+              <span>
+                {ProfileFieldLabel[field as ProfileField] || field}{' '}
+                <span className="text-xs text-gray-400">({weight}%)</span>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+
+  return (
+    <div className="relative inline-block">
+      <svg
+        width={px}
+        height={px}
+        className="absolute z-0"
+        style={{
+          top: -strokeWidth,
+          left: -strokeWidth,
+          position: 'absolute',
+          transform: 'rotate(90deg)',
+        }}
+      >
+        <circle
+          cx={px / 2}
+          cy={px / 2}
+          r={radius}
+          fill="none"
+          stroke="#e5e7eb"
+          strokeWidth={strokeWidth}
+        />
+        <circle
+          cx={px / 2}
+          cy={px / 2}
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+        />
+      </svg>
+      <div className="relative z-10">{avatarElement}</div>
+      {showProfileCompletionNumber && (
+        <Tooltip
+          content={tooltipContent}
+          position="bottom"
+          width="w-48"
+          wrapperClassName={`h-auto w-full relative`}
+        >
+          <div
+            className="w-auto z-20 absolute left-1/2 -translate-x-1/2"
+            style={{ bottom: `${strokeWidth / 2}px` }}
+          >
+            <div
+              className="rounded-full h-6 px-1 shadow text-white font-semibold z-20 cursor-pointer"
+              style={{ backgroundColor: color }}
+            >
+              <span
+                className={`select-none ${textPercentSizeClasses(size)}`}
+              >{`${progress}%`}</span>
+            </div>
+          </div>
+        </Tooltip>
+      )}
+    </div>
+  );
+};
+
 export const Avatar: FC<AvatarProps> = ({
   src,
   alt,
@@ -132,7 +256,7 @@ export const Avatar: FC<AvatarProps> = ({
     md: 'h-10 w-10',
   };
 
-  const textPercentSizeClasses = (size: number | string) => {
+  const textPercentSizeClasses = (size: AvatarSize | number) => {
     if (typeof size === 'number') {
       if (size > 100) return 'text-md';
       if (size > 60) return 'text-sm';
@@ -189,17 +313,13 @@ export const Avatar: FC<AvatarProps> = ({
     customStyle.height = `${size}px`;
   }
 
-  const basePx = typeof size === 'number' ? size : (sizeMap[size] ?? sizeMap.md);
-  const strokeWidth = basePx <= 40 ? 5 : 10;
-  const px = basePx + strokeWidth * 2;
-
   const avatarElement = (
     <div
       className={cn(
         'relative inline-flex rounded-full overflow-hidden',
         'flex items-center justify-center flex-shrink-0',
         shouldShowInitials ? backgroundColorClass : 'bg-gray-100',
-        typeof size !== 'number' ? sizeClasses[size] : '',
+        typeof size !== 'number' ? sizeClasses[size as AvatarSize] : '',
         onClick ? 'cursor-pointer' : '',
         authorId ? 'cursor-pointer' : '',
         className
@@ -268,95 +388,15 @@ export const Avatar: FC<AvatarProps> = ({
   }
 
   if (showProfileCompletion && typeof profileCompletionPercent === 'number') {
-    const radius = px / 2 - strokeWidth / 2;
-    const circumference = 2 * Math.PI * radius;
-    const progress = Math.max(0, Math.min(profileCompletionPercent, 100));
-    const offset = circumference - (progress / 100) * circumference;
-    let color = '#f97316';
-    if (progress === 100) color = '#22c55e';
-    else if (progress >= 60) color = '#eab308';
     return (
-      <div className="relative inline-block" style={customStyle}>
-        <svg
-          width={px}
-          height={px}
-          className="absolute z-0"
-          style={{
-            top: -strokeWidth,
-            left: -strokeWidth,
-            position: 'absolute',
-            transform: 'rotate(90deg)',
-          }}
-        >
-          <circle
-            cx={px / 2}
-            cy={px / 2}
-            r={radius}
-            fill="none"
-            stroke="#e5e7eb"
-            strokeWidth={strokeWidth}
-          />
-          <circle
-            cx={px / 2}
-            cy={px / 2}
-            r={radius}
-            fill="none"
-            stroke={color}
-            strokeWidth={strokeWidth}
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-          />
-        </svg>
-        <div className="relative z-10">{avatarElement}</div>
-        {showProfileCompletionNumber && (
-          <Tooltip
-            content={
-              <div className="text-left">
-                <div className="font-semibold mb-2">Profile Completion</div>
-                <ul className="space-y-1">
-                  {Object.entries(PROFILE_FIELD_WEIGHTS).map(([field, weight]) => {
-                    const isMissing = missing?.includes(field as ProfileField);
-                    return (
-                      <li key={field} className="flex items-center gap-2">
-                        {isMissing ? (
-                          <FontAwesomeIcon icon={faCircle} className="text-gray-400 w-4 h-4" />
-                        ) : (
-                          <FontAwesomeIcon
-                            icon={faCircleCheck}
-                            className="text-green-500 w-4 h-4"
-                          />
-                        )}
-                        <span>
-                          {ProfileFieldLabel[field as ProfileField] || field}{' '}
-                          <span className="text-xs text-gray-400">({weight}%)</span>
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            }
-            position="bottom"
-            width="w-48"
-            wrapperClassName={`h-auto w-full relative`}
-          >
-            <div
-              className="w-auto z-20 mx-auto relative"
-              style={{ bottom: `${strokeWidth / 2}px` }}
-            >
-              <div
-                className="rounded-full h-6 px-1 shadow text-white font-semibold z-20 cursor-pointer"
-                style={{ backgroundColor: color }}
-              >
-                <span className={`select-none ${textPercentSizeClasses(size)}`}>
-                  {`${progress}%`}
-                </span>
-              </div>
-            </div>
-          </Tooltip>
-        )}
-      </div>
+      <ProfileCompletionCircle
+        size={size}
+        showProfileCompletionNumber={showProfileCompletionNumber}
+        progressPercent={profileCompletionPercent}
+        avatarElement={avatarElement}
+        textPercentSizeClasses={textPercentSizeClasses}
+        missing={missing}
+      />
     );
   }
 
