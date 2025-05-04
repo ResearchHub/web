@@ -132,6 +132,20 @@ export const Avatar: FC<AvatarProps> = ({
     md: 'h-10 w-10',
   };
 
+  const textPercentSizeClasses = (size: number | string) => {
+    if (typeof size === 'number') {
+      if (size > 100) return 'text-md';
+      if (size > 60) return 'text-sm';
+      return 'text-xs';
+    }
+    if (size === 'xxxs') return 'text-[6px]';
+    if (size === 'xxs') return 'text-[8px]';
+    if (size === 'xs') return 'text-[10px]';
+    if (size === 'sm') return 'text-xs';
+    if (size === 'md') return 'text-sm';
+    return 'text-xs';
+  };
+
   const getTextSizeClass = (initials: string) => {
     const length = initials.length;
 
@@ -262,7 +276,7 @@ export const Avatar: FC<AvatarProps> = ({
     if (progress === 100) color = '#22c55e';
     else if (progress >= 60) color = '#eab308';
     return (
-      <div className="relative inline-block" style={{ width: px, height: px }}>
+      <div className="relative inline-block" style={customStyle}>
         <svg
           width={px}
           height={px}
@@ -325,13 +339,19 @@ export const Avatar: FC<AvatarProps> = ({
             }
             position="bottom"
             width="w-48"
+            wrapperClassName={`h-auto w-full relative`}
           >
-            <div className="w-full">
+            <div
+              className="w-auto z-20 mx-auto relative"
+              style={{ bottom: `${strokeWidth / 2}px` }}
+            >
               <div
-                className="text-xs rounded-full h-4 px-1 shadow text-white font-semibold z-20 cursor-default"
+                className="rounded-full h-6 px-1 shadow text-white font-semibold z-20 cursor-pointer"
                 style={{ backgroundColor: color }}
               >
-                {`${progress}%`}
+                <span className={`select-none ${textPercentSizeClasses(size)}`}>
+                  {`${progress}%`}
+                </span>
               </div>
             </div>
           </Tooltip>
