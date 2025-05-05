@@ -26,6 +26,7 @@ export const JournalPage: FC = () => {
   }, [searchParams]);
 
   const handleTabChange = (tab: JournalTab) => {
+    if (tab === activeTab) return; // Skip if tab is already active
     setIsLoading(true);
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', tab);
