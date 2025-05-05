@@ -335,6 +335,7 @@ export const Avatar: FC<AvatarProps> = ({
         typeof size !== 'number' ? sizeClasses[size as AvatarSize] : '',
         onClick ? 'cursor-pointer' : '',
         authorId ? 'cursor-pointer' : '',
+        'focus:outline-none focus-visible:outline-none',
         className
       )}
       style={{
