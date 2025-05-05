@@ -387,12 +387,15 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
           {/* Container for Support and CTA buttons */}
           <div className="mt-4 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             {/* Contribute Button - Conditionally shown */}
-            {isActive && showContributeButton && (
+            {isActive && showContributeButton && !isAuthor && (
               <Button variant="contribute" size="sm" onClick={handleOpenContributeModal}>
                 <ResearchCoinIcon size={20} variant="orange" contribute />
                 Support this bounty
               </Button>
             )}
+
+            {/* Award Button - shown instead of "Support this bounty" if user is author */}
+            {awardButton}
 
             {/* Add Solution/Review CTA Button - shown only if bounty is open */}
             {isActive && (

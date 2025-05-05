@@ -306,7 +306,7 @@ export const CommentItem = ({
               onCancel={() => setReplyingToCommentId(null)}
               placeholder="Write your reply..."
               autoFocus={true}
-              isBountyReply={true}
+              isBountyReply={false}
             />
           </div>
         )}
