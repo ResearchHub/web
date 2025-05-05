@@ -1,6 +1,6 @@
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { JournalPage } from '@/components/Journal/JournalPage';
-import { JournalRightSidebar } from '@/components/Journal/JournalRightSidebar';
+import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function JournalHomePage() {
   return (
-    <PageLayout rightSidebar={<JournalRightSidebar />}>
+    <PageLayout rightSidebar={<RHJRightSidebar />}>
       <JournalPage />
     </PageLayout>
   );
