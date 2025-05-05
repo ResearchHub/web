@@ -99,6 +99,8 @@ export default function UserMenu({
         className="font-semibold"
         alt={user.fullName}
         size={effectiveAvatarSize}
+        // showProfileCompletion={isFeatureEnabled(FeatureFlag.SimplifiedOnboarding)}
+        profileCompletionPercent={percent}
       />
     </button>
   );
@@ -109,7 +111,13 @@ export default function UserMenu({
       {/* User info section */}
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex items-center">
-          <Avatar src={user.authorProfile?.profileImage} alt={user.fullName} size="md" />
+          <Avatar
+            src={user.authorProfile?.profileImage}
+            alt={user.fullName}
+            size="md"
+            // showProfileCompletion={isFeatureEnabled(FeatureFlag.SimplifiedOnboarding)}
+            profileCompletionPercent={percent}
+          />
           <div className="ml-3">
             <p className="text-base font-medium text-gray-900 flex items-center gap-1">
               {user.fullName}
@@ -245,7 +253,7 @@ export default function UserMenu({
                 src={user.authorProfile?.profileImage}
                 alt={user.fullName}
                 size="md"
-                showProfileCompletion={isFeatureEnabled(FeatureFlag.SimplifiedOnboarding)}
+                // showProfileCompletion={isFeatureEnabled(FeatureFlag.SimplifiedOnboarding)}
                 profileCompletionPercent={percent}
               />
               <div className="ml-3">

@@ -387,7 +387,11 @@ export const Avatar: FC<AvatarProps> = ({
     );
   }
 
-  if (showProfileCompletion && typeof profileCompletionPercent === 'number') {
+  if (
+    showProfileCompletion &&
+    typeof profileCompletionPercent === 'number' &&
+    profileCompletionPercent < 100
+  ) {
     return (
       <ProfileCompletionCircle
         size={size}
