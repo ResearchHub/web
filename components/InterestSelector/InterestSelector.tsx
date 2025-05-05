@@ -20,10 +20,15 @@ const interestTypes = [
 
 interface InterestSelectorProps {
   mode: 'onboarding' | 'preferences';
+  showToastOnSuccess?: boolean;
   onSaveComplete?: () => void; // Kept for potential future use, though not strictly needed for auto-save
 }
 
-export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps) {
+export function InterestSelector({
+  mode,
+  onSaveComplete,
+  showToastOnSuccess = true,
+}: InterestSelectorProps) {
   const [activeType, setActiveType] = useState<TopicType>('topic'); // Default to 'topic'
   const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false); // Loading state specifically for search
@@ -33,7 +38,7 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
 
   const descriptions = {
     journal: 'Select journals to stay updated with the latest research in your field',
-    topic: "Choose topics you're interested in to get personalized recommendations",
+    topic: 'Choose topics to get personalized recommendations',
   };
 
   // Fetch initial list of topics/journals (not search results)
@@ -95,6 +100,18 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
 
   // Effect to load data based on activeType and searchQuery
   useEffect(() => {
+    // Sort topics only if there is no active search query
+    const sortTopics = (searchQuery: string, topics: Topic[], followedIds: number[]) =>
+      searchQuery
+        ? topics // If searching, display results as is (already filtered by API)
+        : [...topics].sort((a, b) => {
+            const aIsFollowed = followedIds.includes(Number(a.id));
+            const bIsFollowed = followedIds.includes(Number(b.id));
+            if (aIsFollowed && !bIsFollowed) return -1;
+            if (!aIsFollowed && bIsFollowed) return 1;
+            return a.name.localeCompare(b.name);
+          });
+
     const loadData = async () => {
       setIsLoading(true);
       setTopics([]); // Clear topics before loading new ones
@@ -111,7 +128,10 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
         }
 
         const followedItems = await followedItemsPromise;
-        setTopics(fetchedTopics);
+
+        const sortedTopics = sortTopics(searchQuery, fetchedTopics, followedItems);
+        setTopics(sortedTopics);
+
         setFollowedIds(followedItems);
       } catch (error) {
         // Error handling is done within fetch functions
@@ -166,16 +186,16 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
     try {
       if (isCurrentlyFollowing) {
         await HubService.unfollowHub(topicId);
-        toast.success('Unfollowed successfully');
+        if (showToastOnSuccess) toast.success('Unfollowed successfully');
       } else {
         await HubService.followHub(topicId);
-        toast.success('Followed successfully');
+        if (showToastOnSuccess) toast.success('Followed successfully');
       }
       // Optional: Call onSaveComplete if needed for external state updates - REMOVED
       // onSaveComplete?.();
     } catch (error) {
       console.error('Error updating follow status:', error);
-      toast.error('Failed to update follow status. Please try again.');
+      if (showToastOnSuccess) toast.error('Failed to update follow status. Please try again.');
       // Revert UI on error
       setFollowedIds(originalFollowedIds);
     }
@@ -260,18 +280,7 @@ function TopicGrid({
   searchQuery,
   gridClass,
 }: TopicGridProps) {
-  // Sort topics only if there is no active search query
-  const sortedTopics = searchQuery
-    ? topics // If searching, display results as is (already filtered by API)
-    : [...topics].sort((a, b) => {
-        const aIsFollowed = followedIds.includes(Number(a.id));
-        const bIsFollowed = followedIds.includes(Number(b.id));
-        if (aIsFollowed && !bIsFollowed) return -1; // a (followed) comes first
-        if (!aIsFollowed && bIsFollowed) return 1; // b (followed) comes first
-        return a.name.localeCompare(b.name); // Then sort alphabetically
-      });
-
-  if (!sortedTopics || sortedTopics.length === 0) {
+  if (!topics || topics.length === 0) {
     return (
       <p className="text-gray-500 italic">
         No {searchQuery ? 'results found' : 'items available'}.
@@ -282,7 +291,7 @@ function TopicGrid({
   return (
     // Removed Search bar div
     <div className={gridClass}>
-      {sortedTopics.map((topic) => (
+      {topics.map((topic) => (
         <InterestCard
           key={topic.id}
           topic={topic}

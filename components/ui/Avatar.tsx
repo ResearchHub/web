@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { ProfileField, PROFILE_FIELD_WEIGHTS } from '@/utils/profileCompletion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleCheck, faCircle } from '@fortawesome/free-solid-svg-icons';
+import { faCircleCheck, faCircle } from '@fortawesome/pro-light-svg-icons';
 
 type AvatarSize = 'xxxs' | 'xxs' | 'xs' | 'sm' | 'md';
 
@@ -79,7 +79,7 @@ const ProfileFieldLabel: Record<ProfileField, string> = {
   [ProfileField.Name]: 'Name',
   [ProfileField.Photo]: 'Photo',
   [ProfileField.Headline]: 'Headline',
-  [ProfileField.Verification]: 'Verification',
+  // [ProfileField.Verification]: 'Verification',
   [ProfileField.Education]: 'Education',
   [ProfileField.About]: 'About',
   [ProfileField.Social]: 'Social Account',
@@ -139,7 +139,11 @@ const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
   // Tooltip content logic here
   const tooltipContent = (
     <div className="text-left">
-      <div className="font-semibold mb-2">Profile Completion</div>
+      <div className="font-semibold mb-1">Complete Your Profile</div>
+      <div className="text-xs text-gray-500 mb-3">
+        Completing your profile unlocks more features and helps you stand out in the community.
+      </div>
+      <div className="font-semibold mb-2">Profile Progress</div>
       <ul className="space-y-1">
         {Object.entries(PROFILE_FIELD_WEIGHTS).map(([field, weight]) => {
           const isMissing = missing?.includes(field as ProfileField);
@@ -150,10 +154,7 @@ const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
               ) : (
                 <FontAwesomeIcon icon={faCircleCheck} className="text-green-500 w-4 h-4" />
               )}
-              <span>
-                {ProfileFieldLabel[field as ProfileField] || field}{' '}
-                <span className="text-xs text-gray-400">({weight}%)</span>
-              </span>
+              <span>{ProfileFieldLabel[field as ProfileField] || field}</span>
             </li>
           );
         })}

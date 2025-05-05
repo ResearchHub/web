@@ -4,20 +4,20 @@ export enum ProfileField {
   Name = 'name',
   Photo = 'photo',
   Headline = 'headline',
-  Verification = 'verification',
+  //   Verification = 'verification',
   Education = 'education',
   About = 'about',
   Social = 'social',
 }
 
 export const PROFILE_FIELD_WEIGHTS: Record<ProfileField, number> = {
-  [ProfileField.Name]: 10,
-  [ProfileField.Photo]: 10,
-  [ProfileField.Headline]: 15,
-  [ProfileField.Verification]: 25,
+  [ProfileField.Name]: 15,
+  [ProfileField.Photo]: 15,
+  [ProfileField.Headline]: 20,
+  //   [ProfileField.Verification]: 25, //TODO: remove it from the calculation for now until the is_verified is fixed
   [ProfileField.Education]: 20,
-  [ProfileField.About]: 10,
-  [ProfileField.Social]: 10,
+  [ProfileField.About]: 15,
+  [ProfileField.Social]: 15,
 };
 
 export function calculateProfileCompletion(user: User): {
@@ -41,8 +41,8 @@ export function calculateProfileCompletion(user: User): {
   else missing.push(ProfileField.Headline);
 
   // Verification
-  if (user.isVerified) percent += PROFILE_FIELD_WEIGHTS[ProfileField.Verification];
-  else missing.push(ProfileField.Verification);
+  // if (user.isVerified) percent += PROFILE_FIELD_WEIGHTS[ProfileField.Verification];
+  // else missing.push(ProfileField.Verification);
 
   // Education
   if (user.authorProfile?.education && user.authorProfile.education.length > 0)

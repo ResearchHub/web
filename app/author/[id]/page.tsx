@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useId } from 'react';
 import { ProfileInformationForm } from '@/components/Onboarding/ProfileInformationForm';
 import { ProfileInformationFormValues } from '@/components/Onboarding/ProfileInformationForm/schema';
 import { useState, useEffect } from 'react';
@@ -89,6 +89,7 @@ function AuthorProfileCard({
   author: AuthorProfile;
   refetchAuthorInfo: () => Promise<void>;
 }) {
+  const formId = useId();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { user: currentUser, refreshUser } = useUser();
   const isOwnProfile = currentUser?.authorProfile?.id === author.id;
@@ -268,13 +269,14 @@ function AuthorProfileCard({
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         title="Edit Profile"
+        footer={
+          <Button type="submit" form={formId} disabled={updateLoading} className="w-full">
+            {updateLoading ? 'Saving...' : 'Save Changes'}
+          </Button>
+        }
       >
         <div className="min-w-0  max-w-md w-full mx-auto">
-          <ProfileInformationForm
-            onSubmit={handleProfileFormSubmit}
-            submitLabel="Save Changes"
-            loading={updateLoading}
-          />
+          <ProfileInformationForm onSubmit={handleProfileFormSubmit} formId={formId} />
         </div>
       </BaseModal>
     </>

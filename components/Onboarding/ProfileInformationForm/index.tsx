@@ -22,15 +22,13 @@ import toast from 'react-hot-toast';
 interface ProfileInformationFormProps {
   onSubmit: (data: ProfileInformationFormValues) => void;
   simplifiedView?: boolean;
-  submitLabel?: string;
-  loading?: boolean;
+  formId?: string;
 }
 
 export function ProfileInformationForm({
   onSubmit,
   simplifiedView = false,
-  submitLabel = 'Save',
-  loading = false,
+  formId,
 }: ProfileInformationFormProps) {
   const socialLinkMeta = {
     linkedin: {
@@ -206,7 +204,7 @@ export function ProfileInformationForm({
 
         {/* The rest of the form */}
         <div className="flex-1 w-full">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form id={formId} onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="flex flex-col sm:!flex-row gap-4">
               <div className="w-full sm:!w-1/2">
                 <Input
@@ -280,12 +278,6 @@ export function ProfileInformationForm({
                 </div>
               </>
             )}
-
-            <div className="flex justify-end">
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Saving...' : submitLabel}
-              </Button>
-            </div>
           </form>
         </div>
       </div>
