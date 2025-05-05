@@ -44,6 +44,8 @@ export const createOptimisticComment = (
       balance: 0,
       authorProfile: {
         id: authorId,
+        firstName: authorName.split(' ')[0],
+        lastName: authorName.split(' ').slice(1).join(' '),
         fullName: authorName,
         profileImage: authorProfileImage || '',
         headline: '',

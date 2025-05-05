@@ -49,6 +49,7 @@ export function OnboardingEducationSection({
       )}
 
       <Button
+        type="button"
         variant="outlined"
         size="sm"
         onClick={onAdd}

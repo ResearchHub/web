@@ -1,15 +1,17 @@
 'use client';
 
-import { FC, Fragment, ReactNode } from 'react';
+import { FC, Fragment, ReactNode, useRef, useLayoutEffect, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { X } from 'lucide-react';
 import { cn } from '@/utils/styles';
+import { Button } from '@/components/ui/Button';
 
 interface BaseModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: ReactNode;
   initialFocus?: React.MutableRefObject<HTMLElement | null>;
+  title?: string;
   maxWidth?: string; // e.g., 'max-w-md', 'max-w-xl', 'max-w-4xl'
   showCloseButton?: boolean;
   padding?: string; // e.g., 'p-4', 'p-6', 'p-8'
@@ -20,10 +22,28 @@ export const BaseModal: FC<BaseModalProps> = ({
   onClose,
   children,
   initialFocus,
+  title,
   maxWidth = 'max-w-tablet', // Default max width for larger screens
   showCloseButton = true,
   padding = 'p-6', // Default padding
 }) => {
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
+
+  useLayoutEffect(() => {
+    if (headerRef.current) {
+      setHeaderHeight(headerRef.current.offsetHeight);
+    }
+
+    const handleResize = () => {
+      if (headerRef.current) {
+        setHeaderHeight(headerRef.current.offsetHeight);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" initialFocus={initialFocus} onClose={onClose}>
@@ -63,24 +83,49 @@ export const BaseModal: FC<BaseModalProps> = ({
                   'h-screen md:!h-auto',
                   // No rounded corners on mobile, rounded on md+
                   'md:!rounded-2xl',
-                  // Apply padding from props
-                  padding,
                   // Only apply max width on md and up
                   `md:${maxWidth}`
                 )}
               >
-                {/* Optional Close Button */}
-                {showCloseButton && (
-                  <button
-                    onClick={onClose}
-                    className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 focus:outline-none z-10"
-                    aria-label="Close modal"
-                  >
-                    <X size={20} />
-                  </button>
+                {(showCloseButton || title) && (
+                  <div ref={headerRef} className="relative">
+                    {/* Header with close button - only show for non-INTRO steps */}
+                    <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                      {title ? (
+                        <div className="flex items-center">
+                          <Dialog.Title as="h2" className="text-lg font-medium text-gray-900">
+                            {title}
+                          </Dialog.Title>
+                        </div>
+                      ) : (
+                        <div />
+                      )}
+                      {showCloseButton && (
+                        <Button
+                          onClick={onClose}
+                          variant="ghost"
+                          size="icon"
+                          className="text-gray-400 hover:text-gray-500"
+                          aria-label="Close"
+                        >
+                          <X className="h-5 w-5" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 )}
                 {/* Modal Content */}
-                {children}
+                <div
+                  className={cn(padding)}
+                  style={{
+                    maxHeight: headerHeight
+                      ? `calc(100vh - ${headerHeight}px)`
+                      : 'calc(100vh - 72px)', // fallback (40+16+16)
+                    overflowY: 'auto',
+                  }}
+                >
+                  {children}
+                </div>
               </Dialog.Panel>
             </Transition.Child>
           </div>

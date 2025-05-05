@@ -26,7 +26,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         >
           <textarea
             className={cn(
-              'w-full px-4 py-2 text-sm outline-none border-none rounded-lg resize-none',
+              'w-full px-4 py-2 text-sm outline-none border-none rounded-lg resize-vertical',
               'placeholder:text-gray-500 min-h-[100px]',
               className?.includes('bg-') ? className : 'bg-white'
             )}

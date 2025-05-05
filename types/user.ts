@@ -12,6 +12,7 @@ export interface User {
   authorProfile?: AuthorProfile;
   balance: number;
   hasCompletedOnboarding?: boolean;
+  createdDate?: string;
 }
 
 export type TransformedUser = User & BaseTransformed;
@@ -30,6 +31,7 @@ const baseTransformUser = (raw: any): User => {
       authorProfile: undefined,
       balance: 0,
       hasCompletedOnboarding: false,
+      createdDate: undefined,
     };
   }
 
@@ -43,6 +45,7 @@ const baseTransformUser = (raw: any): User => {
     authorProfile: undefined,
     balance: raw.balance || 0,
     hasCompletedOnboarding: raw.has_completed_onboarding || false,
+    createdDate: raw.created_date || undefined,
   };
 };
 
