@@ -150,6 +150,7 @@ export class CommentService {
     }
 
     const path = `${this.BASE_PATH}/${contentTypePath}/${documentId}/comments/?${queryParams.toString()}`;
+
     const response = await ApiClient.get<CommentResponse>(path);
 
     return {
