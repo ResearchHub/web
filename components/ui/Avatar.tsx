@@ -25,6 +25,7 @@ export interface AvatarProps {
   profileCompletionPercent?: number;
   showProfileCompletionNumber?: boolean;
   missing?: ProfileField[];
+  showTooltip?: boolean;
 }
 
 // Define a set of background colors for avatars without images
@@ -89,8 +90,8 @@ interface ProfileCompletionCircleProps {
   showProfileCompletionNumber: boolean;
   progressPercent: number;
   avatarElement: React.ReactNode;
-  textPercentSizeClasses: (size: AvatarSize | number) => string;
   missing?: ProfileField[];
+  showTooltip?: boolean;
 }
 
 const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
@@ -98,8 +99,8 @@ const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
   showProfileCompletionNumber,
   progressPercent,
   avatarElement,
-  textPercentSizeClasses,
   missing,
+  showTooltip = false,
 }) => {
   const sizeMap = {
     xxxs: 12,
@@ -120,6 +121,20 @@ const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
   let color = '#f97316';
   if (progress === 100) color = '#22c55e';
   else if (progress >= 60) color = '#eab308';
+
+  const textPercentSizeClasses = (size: AvatarSize | number) => {
+    if (typeof size === 'number') {
+      if (size > 100) return 'text-md';
+      if (size > 60) return 'text-sm';
+      return 'text-xs';
+    }
+    if (size === 'xxxs') return 'text-[6px]';
+    if (size === 'xxs') return 'text-[8px]';
+    if (size === 'xs') return 'text-[10px]';
+    if (size === 'sm') return 'text-xs';
+    if (size === 'md') return 'text-xs';
+    return 'text-xs';
+  };
 
   // Tooltip content logic here
   const tooltipContent = (
@@ -146,8 +161,28 @@ const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
     </div>
   );
 
+  const renderPercentageValue = () => {
+    return (
+      <div
+        className="w-auto z-20 absolute left-1/2 -translate-x-1/2"
+        style={{ bottom: `${strokeWidth / 2}px` }}
+      >
+        <div
+          className={cn(
+            'rounded-full px-1 shadow text-white font-semibold z-20 flex items-center justify-center',
+            typeof size === 'number' && size > 100 ? 'h-6' : 'h-4',
+            showTooltip && 'cursor-pointer'
+          )}
+          style={{ backgroundColor: color }}
+        >
+          <span className={`select-none ${textPercentSizeClasses(size)}`}>{`${progress}%`}</span>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="relative inline-block">
+    <div className="relative block">
       <svg
         width={px}
         height={px}
@@ -180,28 +215,19 @@ const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
         />
       </svg>
       <div className="relative z-10">{avatarElement}</div>
-      {showProfileCompletionNumber && (
-        <Tooltip
-          content={tooltipContent}
-          position="bottom"
-          width="w-48"
-          wrapperClassName={`h-auto w-full relative`}
-        >
-          <div
-            className="w-auto z-20 absolute left-1/2 -translate-x-1/2"
-            style={{ bottom: `${strokeWidth / 2}px` }}
+      {showProfileCompletionNumber &&
+        (showTooltip ? (
+          <Tooltip
+            content={tooltipContent}
+            position="bottom"
+            width="w-48"
+            wrapperClassName={`h-auto w-full relative`}
           >
-            <div
-              className="rounded-full h-6 px-1 shadow text-white font-semibold z-20 cursor-pointer"
-              style={{ backgroundColor: color }}
-            >
-              <span
-                className={`select-none ${textPercentSizeClasses(size)}`}
-              >{`${progress}%`}</span>
-            </div>
-          </div>
-        </Tooltip>
-      )}
+            {renderPercentageValue()}
+          </Tooltip>
+        ) : (
+          <div className="inline-flex h-auto w-full relative">{renderPercentageValue()}</div>
+        ))}
     </div>
   );
 };
@@ -220,6 +246,7 @@ export const Avatar: FC<AvatarProps> = ({
   profileCompletionPercent,
   showProfileCompletionNumber = false,
   missing,
+  showTooltip = false,
 }) => {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -254,20 +281,6 @@ export const Avatar: FC<AvatarProps> = ({
     xs: 'h-6 w-6',
     sm: 'h-8 w-8',
     md: 'h-10 w-10',
-  };
-
-  const textPercentSizeClasses = (size: AvatarSize | number) => {
-    if (typeof size === 'number') {
-      if (size > 100) return 'text-md';
-      if (size > 60) return 'text-sm';
-      return 'text-xs';
-    }
-    if (size === 'xxxs') return 'text-[6px]';
-    if (size === 'xxs') return 'text-[8px]';
-    if (size === 'xs') return 'text-[10px]';
-    if (size === 'sm') return 'text-xs';
-    if (size === 'md') return 'text-sm';
-    return 'text-xs';
   };
 
   const getTextSizeClass = (initials: string) => {
@@ -398,8 +411,8 @@ export const Avatar: FC<AvatarProps> = ({
         showProfileCompletionNumber={showProfileCompletionNumber}
         progressPercent={profileCompletionPercent}
         avatarElement={avatarElement}
-        textPercentSizeClasses={textPercentSizeClasses}
         missing={missing}
+        showTooltip={showTooltip}
       />
     );
   }

@@ -154,6 +154,7 @@ function AuthorProfileCard({
             profileCompletionPercent={percent}
             showProfileCompletionNumber
             missing={missing}
+            showTooltip
           />
         </div>
 

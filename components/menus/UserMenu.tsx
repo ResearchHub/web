@@ -99,7 +99,7 @@ export default function UserMenu({
         className="font-semibold"
         alt={user.fullName}
         size={effectiveAvatarSize}
-        // showProfileCompletion={isFeatureEnabled(FeatureFlag.SimplifiedOnboarding)}
+        showProfileCompletion={isFeatureEnabled(FeatureFlag.SimplifiedOnboarding)}
         profileCompletionPercent={percent}
       />
     </button>
@@ -115,8 +115,9 @@ export default function UserMenu({
             src={user.authorProfile?.profileImage}
             alt={user.fullName}
             size="md"
-            // showProfileCompletion={isFeatureEnabled(FeatureFlag.SimplifiedOnboarding)}
+            showProfileCompletion={isFeatureEnabled(FeatureFlag.SimplifiedOnboarding)}
             profileCompletionPercent={percent}
+            showProfileCompletionNumber
           />
           <div className="ml-3">
             <p className="text-base font-medium text-gray-900 flex items-center gap-1">
@@ -253,8 +254,9 @@ export default function UserMenu({
                 src={user.authorProfile?.profileImage}
                 alt={user.fullName}
                 size="md"
-                // showProfileCompletion={isFeatureEnabled(FeatureFlag.SimplifiedOnboarding)}
+                showProfileCompletion={isFeatureEnabled(FeatureFlag.SimplifiedOnboarding)}
                 profileCompletionPercent={percent}
+                showProfileCompletionNumber
               />
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
