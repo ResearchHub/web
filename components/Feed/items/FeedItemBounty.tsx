@@ -78,6 +78,7 @@ interface FeedItemBountyProps {
     comment?: string;
   }; // Prop for customizing action labels
   showFooter?: boolean; // Prop to control footer visibility
+  hideActions?: boolean; // Prop to hide actions, similar to FeedItemComment
   onTopicClick?: (topic: Topic) => void;
 }
 
@@ -193,6 +194,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   showCreatorActions = true, // Default to showing creator actions
   actionLabels,
   showFooter = true, // Default to showing the footer
+  hideActions = false, // Prop to hide actions, similar to FeedItemComment
   onTopicClick,
 }) => {
   console.log('entry', entry);
@@ -339,6 +341,12 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
     });
   }
 
+  // Check if actions should be hidden:
+  // 1. Explicitly via hideActions prop, or
+  // 2. If the associated comment has been removed (accessing raw API data)
+  const shouldHideActions =
+    hideActions || Boolean((entry.raw as any)?.content_object?.comment?.is_removed);
+
   return (
     <div className="space-y-3">
       {/* Header */}
@@ -379,12 +387,15 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
           {/* Container for Support and CTA buttons */}
           <div className="mt-4 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             {/* Contribute Button - Conditionally shown */}
-            {isActive && showContributeButton && (
+            {isActive && showContributeButton && !isAuthor && (
               <Button variant="contribute" size="sm" onClick={handleOpenContributeModal}>
                 <ResearchCoinIcon size={20} variant="orange" contribute />
                 Support this bounty
               </Button>
             )}
+
+            {/* Award Button - shown instead of "Support this bounty" if user is author */}
+            {awardButton}
 
             {/* Add Solution/Review CTA Button - shown only if bounty is open */}
             {isActive && (
@@ -400,7 +411,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
             )}
           </div>
           {/* Action Buttons - Full width - Moved inside the padded div */}
-          {showFooter && (
+          {showFooter && !shouldHideActions && (
             <div className="mt-4 pt-3 border-t border-gray-200">
               <div onClick={(e) => e.stopPropagation()}>
                 {/* Standard Feed Item Actions */}
