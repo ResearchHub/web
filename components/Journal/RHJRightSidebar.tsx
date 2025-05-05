@@ -5,16 +5,18 @@ import { useRouter } from 'next/navigation';
 import { TopicAndJournalBadge } from '../ui/TopicAndJournalBadge';
 import { Button } from '../ui/Button';
 import { Check } from 'lucide-react';
-import { Feather, Users, ArrowUpRightSquare } from 'lucide-react';
+import { Feather, Users, ArrowUpRightSquare, Clock, FileText, Unlock } from 'lucide-react';
 import { editors, HUBS } from './lib/journalConstants';
 import { getHubSlug } from './lib/hubUtils';
 import { EditorCard } from './about/EditorCard';
+import { CollapsibleItem } from '@/components/ui/CollapsibleSection';
+import { Icon } from '../ui/icons/Icon';
+import { RHJBanner } from './RHJBanner';
 
 const keyFeatures = [
-  { text: '14 days to peer reviews' },
-  { text: '$150 paid to peer reviewers' },
-  { text: 'Immediate preprint publication' },
-  { text: 'Open access by default' },
+  { text: '14 days to peer reviews', highlight: true, icon: Clock },
+  { text: 'Immediate preprints', icon: FileText },
+  { text: 'Open access by default', icon: Unlock },
 ];
 
 const quickLinks = [
@@ -30,36 +32,82 @@ const quickLinks = [
   },
 ];
 
+// FAQ items from JournalRightSidebar
+const faqItems = [
+  {
+    id: 'who-can-submit',
+    question: 'Who can submit to ResearchHub Journal?',
+    answer:
+      'Any researcher can submit their work to ResearchHub Journal. We welcome submissions from researchers at all career stages and from all institutions.',
+  },
+  {
+    id: 'review-timeline',
+    question: 'How long does the review process take?',
+    answer:
+      'Our peer review process is designed to be efficient. Peer reviews are typically completed within 14 days, and a publication decision is made within 21 days of submission.',
+  },
+  {
+    id: 'reviewer-compensation',
+    question: 'Do you compensate peer reviewers?',
+    answer:
+      'Yes, we value the expertise and time of our peer reviewers. Reviewers receive $150 per review.',
+  },
+  {
+    id: 'become-reviewer',
+    question: 'How do I become a reviewer?',
+    answer: (
+      <>
+        <p className="mb-4">
+          If you're interested in becoming a reviewer, please contact us at review@researchhub.com
+          with your CV and areas of expertise, or apply directly using the button below.
+        </p>
+        <a
+          href="https://airtable.com/apptLQP8XMy1kaiID/pag5tkxt0V18Xobje/form"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700 transition-colors"
+        >
+          Apply to be a peer reviewer
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M7 17l9.2-9.2M17 17V7H7" />
+          </svg>
+        </a>
+      </>
+    ),
+  },
+];
+
 export function RHJRightSidebar() {
   const router = useRouter();
   const [isHubsExpanded, setIsHubsExpanded] = useState(false);
+  const [openFaqId, setOpenFaqId] = useState<string | null>(null);
 
   const displayedHubs = isHubsExpanded ? HUBS : HUBS.slice(0, 5);
   const displayEditors = editors.filter((editor) => editor.authorId !== null);
 
-  return (
-    <aside className="w-full max-w-xs space-y-6 p-4 sticky top-[88px] h-[calc(100vh-88px)] overflow-y-auto no-scrollbar">
-      {/* Submit Button and Key Features Banner */}
-      <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 shadow-sm space-y-4">
-        {/* Key Features List inside banner */}
-        <ul className="space-y-2">
-          {keyFeatures.map((feature, index) => (
-            <li key={index} className="flex items-center space-x-2 text-blue-800 text-sm">
-              <Check className="text-blue-600 w-4 h-4 flex-shrink-0" />
-              <span>{feature.text}</span>
-            </li>
-          ))}
-        </ul>
+  const handleFaqToggle = (id: string) => {
+    setOpenFaqId(openFaqId === id ? null : id);
+  };
 
-        <Button
-          variant="default"
-          size="md"
-          className="w-full font-medium"
-          onClick={() => router.push('/paper/create')}
-        >
-          Submit Manuscript
-        </Button>
-      </div>
+  return (
+    <aside className="w-full max-w-xs space-y-6 p-4">
+      {/* Submit Button and Key Features Banner */}
+      <RHJBanner
+        features={keyFeatures}
+        variant="default"
+        title="Publish Faster."
+        buttonText="Submit Your Manuscript"
+      />
 
       {/* --- Editorial Board Section --- */}
       <div className="space-y-3">
@@ -125,6 +173,23 @@ export function RHJRightSidebar() {
             );
           })}
         </ul>
+      </div>
+
+      {/* FAQ Section */}
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold text-gray-800">Frequently Asked Questions</h3>
+        <div className="space-y-1">
+          {faqItems.map((item) => (
+            <CollapsibleItem
+              key={item.id}
+              title={item.question}
+              isOpen={openFaqId === item.id}
+              onToggle={() => handleFaqToggle(item.id)}
+            >
+              <div className="text-sm text-gray-600">{item.answer}</div>
+            </CollapsibleItem>
+          ))}
+        </div>
       </div>
     </aside>
   );

@@ -2,7 +2,6 @@
 
 import React, { FC, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { JournalHero } from './about/JournalHero';
 import { JournalFeatures } from './about/JournalFeatures';
 import { JournalEditorialBoard } from './about/JournalEditorialBoard';
 import { JournalHowItWorks } from './about/JournalHowItWorks';
@@ -27,10 +26,11 @@ export const JournalAboutTab: FC = () => {
 
   return (
     <div className="w-full">
-      <JournalHero onSubmitNow={handleSubmitNow} onLearnMore={scrollToHowItWorks} />
-      <JournalFeatures />
-      <JournalEditorialBoard />
-      <JournalHowItWorks openItemId={openHowItWorksId} onToggleItem={handleHowItWorksToggle} />
+      <div className="max-w-4xl mx-auto">
+        <JournalFeatures />
+        <JournalEditorialBoard />
+        <JournalHowItWorks openItemId={openHowItWorksId} onToggleItem={handleHowItWorksToggle} />
+      </div>
     </div>
   );
 };

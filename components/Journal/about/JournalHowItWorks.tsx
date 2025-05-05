@@ -1,5 +1,5 @@
 import React, { FC } from 'react';
-import { CollapsibleItem } from '@/components/ui/CollapsibleSection'; // Assuming path
+import { HowItWorksCard } from './HowItWorksCard';
 
 // Define data locally
 const howItWorksItems = [
@@ -101,7 +101,7 @@ const howItWorksItems = [
             href="https://docs.google.com/document/d/1a3WrTSDOCvWXxWetbPn-TDav56Y7EFwpyzK5B8Ll3Io/edit?tab=t.0"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700 transition-colors"
           >
             View Author Guidelines
             <svg
@@ -139,7 +139,7 @@ const howItWorksItems = [
               href="https://drive.google.com/file/d/1t7NpL39ghnBY9ImWjuunbc6gzmzrhqUt/view?ref=blog.researchhub.foundation"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
+              className="text-primary-600 hover:text-primary-700 hover:underline"
             >
               structured review template
             </a>
@@ -168,7 +168,7 @@ const howItWorksItems = [
               href="https://drive.google.com/file/d/1t7NpL39ghnBY9ImWjuunbc6gzmzrhqUt/view?ref=blog.researchhub.foundation"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
+              className="text-primary-600 hover:text-primary-700 hover:underline"
             >
               structured review template
             </a>
@@ -194,7 +194,7 @@ const howItWorksItems = [
             href="https://airtable.com/apptLQP8XMy1kaiID/pag5tkxt0V18Xobje/form"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700 transition-colors"
           >
             Apply to be a peer reviewer
             <svg
@@ -261,7 +261,7 @@ const howItWorksItems = [
             href="https://www.crossref.org/services/content-registration/#:~:text=When%20you%20join%20Crossref%20as,via%20machine%20or%20human%20interfaces."
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
+            className="text-primary-600 hover:text-primary-700 hover:underline"
           >
             CrossRef
           </a>{' '}
@@ -319,20 +319,24 @@ interface JournalHowItWorksProps {
 
 export const JournalHowItWorks: FC<JournalHowItWorksProps> = ({ openItemId, onToggleItem }) => {
   return (
-    <div id="how-it-works" className="py-16 px-4 bg-gray-50 border-b border-gray-200">
-      <div className="max-w-3xl mx-auto">
-        <h2 className="text-3xl font-medium text-gray-900 text-center mb-10">How it Works</h2>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 divide-y divide-gray-200">
+    <div id="how-it-works" className="py-16 px-4 bg-white border-t border-b border-gray-200">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-12 max-w-3xl mx-auto">
+          <h2 className="text-3xl font-medium text-gray-900 mb-4 text-left">How it Works</h2>
+          <p className="text-lg text-gray-600 text-left">
+            Learn about our publication process, peer review system, and how we accelerate
+            scientific discovery through open access and fair compensation.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-4">
           {howItWorksItems.map((item) => (
-            <div key={item.id} className="px-5">
-              <CollapsibleItem
-                title={item.title}
-                isOpen={openItemId === item.id}
-                onToggle={() => onToggleItem(item.id)}
-              >
-                <div className="pb-4 text-gray-700 leading-relaxed">{item.content}</div>
-              </CollapsibleItem>
-            </div>
+            <HowItWorksCard
+              key={item.id}
+              title={item.title}
+              content={item.content}
+              isOpen={openItemId === item.id}
+              onToggle={() => onToggleItem(item.id)}
+            />
           ))}
         </div>
       </div>
