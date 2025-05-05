@@ -30,7 +30,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const roundedClass = isRoundedFull ? 'rounded-full' : 'rounded-lg';
 
     return (
-      <div className={wrapperClassName}>
+      <div className={cn('w-full', wrapperClassName)}>
         {label && (
           <label className="block text-sm font-semibold text-gray-700 mb-1" htmlFor={props.id}>
             {label} {required && <span className="text-gray-700">*</span>}
@@ -41,7 +41,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             'relative flex border border-gray-200 transition-all',
             roundedClass,
             error && 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20',
-            className
+            className,
+            'w-full'
           )}
         >
           {icon && <div className="absolute left-4 top-1/2 -translate-y-1/2">{icon}</div>}
@@ -54,7 +55,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               className?.includes('bg-') ? className : 'bg-white'
             )}
             ref={ref}
-            required={required}
             {...props}
           />
           {rightElement && <div className="flex">{rightElement}</div>}

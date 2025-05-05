@@ -181,6 +181,9 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
     }
   };
 
+  const maxCols = mode === 'onboarding' ? 2 : 3;
+  const gridClass = `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${maxCols} gap-4`;
+
   return (
     <div className="max-w-4xl relative pb-10">
       {' '}
@@ -221,7 +224,7 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
         {/* Topic grid */}
         <div>
           {isLoading || isSearching ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className={gridClass}>
               {[...Array(6)].map((_, i) => (
                 <InterestSkeleton key={i} />
               ))}
@@ -231,7 +234,8 @@ export function InterestSelector({ mode, onSaveComplete }: InterestSelectorProps
               topics={topics}
               followedIds={followedIds}
               onFollowToggle={handleFollowToggle}
-              searchQuery={searchQuery} // Pass searchQuery to determine sorting behavior
+              searchQuery={searchQuery}
+              gridClass={gridClass}
             />
           )}
         </div>
@@ -245,10 +249,17 @@ interface TopicGridProps {
   topics: Topic[];
   followedIds: number[];
   onFollowToggle: (topicId: number, isFollowing: boolean) => void;
-  searchQuery: string; // Receive searchQuery to control sorting
+  searchQuery: string;
+  gridClass: string;
 }
 
-function TopicGrid({ topics, followedIds, onFollowToggle, searchQuery }: TopicGridProps) {
+function TopicGrid({
+  topics,
+  followedIds,
+  onFollowToggle,
+  searchQuery,
+  gridClass,
+}: TopicGridProps) {
   // Sort topics only if there is no active search query
   const sortedTopics = searchQuery
     ? topics // If searching, display results as is (already filtered by API)
@@ -270,7 +281,7 @@ function TopicGrid({ topics, followedIds, onFollowToggle, searchQuery }: TopicGr
 
   return (
     // Removed Search bar div
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className={gridClass}>
       {sortedTopics.map((topic) => (
         <InterestCard
           key={topic.id}

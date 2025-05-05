@@ -42,6 +42,27 @@ export class AuthService {
     }
   }
 
+  static async verifyEmail(key: string) {
+    try {
+      return await ApiClient.post<{ key: string }>(
+        `${this.BASE_PATH}/auth/register/verify-email/`,
+        { key }
+      );
+    } catch (error: any) {
+      if (error instanceof ApiError) {
+        const errorValues = Object.values(error.errors as Record<string, string[]>)?.[0];
+        const errorMessage = Array.isArray(errorValues)
+          ? errorValues[0]
+          : typeof errorValues === 'string'
+            ? errorValues
+            : 'Email verification failed';
+        throw new ApiError(errorMessage, error.status, error.errors);
+      }
+
+      throw new ApiError('Email verification failed', 500);
+    }
+  }
+
   static async resetPassword(email: string) {
     return ApiClient.post(`${this.BASE_PATH}/reset-password/`, { email });
   }

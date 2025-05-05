@@ -291,17 +291,11 @@ export function OnboardingEducationModal({
     };
 
     onSave(educationEntry);
-
-    if (isPublic) {
-      setAsMain();
-    }
   };
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose}>
+    <BaseModal isOpen={isOpen} onClose={onClose} title="Add Education">
       <div className="p-4">
-        <h2 className="text-xl font-semibold mb-4">Add Education</h2>
-
         <div className="space-y-4">
           <EducationAutocomplete
             label="School"

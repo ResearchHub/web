@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { FundingTimelineModal } from '@/components/modals/FundingTimelineModal';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useUpdateNote } from '@/hooks/useNote';
-import { isFeatureEnabled } from '@/utils/featureFlags';
+import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { LegacyNoteBanner } from '@/components/LegacyNoteBanner';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 
@@ -65,7 +65,7 @@ export default function NotePage() {
       return;
     }
 
-    const isLegacy = !note.contentJson && isFeatureEnabled('legacyNoteBanner');
+    const isLegacy = !note.contentJson && isFeatureEnabled(FeatureFlag.LegacyNoteBanner);
     setIsLegacyNote(isLegacy);
   }, [note, noteError, isLoadingNote]);
 
@@ -104,7 +104,7 @@ export default function NotePage() {
                 contentJson={note.contentJson}
                 isLoading={false}
                 onUpdate={isLegacyNote ? undefined : updateNote}
-                editable={!(isLegacyNote && isFeatureEnabled('legacyNoteBanner'))}
+                editable={!(isLegacyNote && isFeatureEnabled(FeatureFlag.LegacyNoteBanner))}
                 setEditor={setEditor}
               />
             </div>

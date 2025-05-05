@@ -270,7 +270,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
             <ul className="space-y-1">
               {userData.authorProfile.education.map((edu) => (
                 <li key={edu.id} className="text-sm text-gray-700">
-                  {edu.summary || `${edu.degree.label} in ${edu.major}, ${edu.name}`}
+                  {edu.summary || `${edu.degree?.label} in ${edu.major}, ${edu.name}`}
                 </li>
               ))}
             </ul>

@@ -13,7 +13,7 @@ export interface Education {
   };
   major: string;
   state: string;
-  degree: {
+  degree?: {
     label: string;
     value: string;
   };
@@ -25,6 +25,8 @@ export interface Education {
 export interface AuthorProfile {
   id: number;
   fullName: string;
+  firstName: string;
+  lastName: string;
   profileImage: string;
   headline?: string;
   profileUrl: string;
@@ -46,6 +48,8 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
     return {
       id: 0,
       fullName: 'Unknown Author',
+      firstName: '',
+      lastName: '',
       profileImage: '',
       headline: '',
       profileUrl: '/profile/0',
@@ -62,6 +66,8 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
       raw.first_name || raw.last_name
         ? `${raw.first_name || ''} ${raw.last_name || ''}`.trim()
         : 'Unknown Author',
+    firstName: raw.first_name || '',
+    lastName: raw.last_name || '',
     profileImage: raw.profile_image || '',
     headline: typeof raw.headline === 'string' ? raw.headline : raw.headline?.title || '',
     profileUrl: `/profile/${raw.id || 0}`,

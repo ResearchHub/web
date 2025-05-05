@@ -13,7 +13,7 @@ import {
 } from '@/types/nonprofit';
 import { ApiClient } from './client';
 import { ID } from '@/types/root';
-import { isFeatureEnabled } from '@/utils/featureFlags';
+import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { ApiError } from './types';
 
 export class NonprofitFeatureDisabledError extends Error {
@@ -34,7 +34,7 @@ export class NonprofitService {
   private static readonly BASE_PATH = '/api/organizations/non-profit';
 
   private static checkFeatureEnabled(): void {
-    if (!isFeatureEnabled('nonprofitIntegration')) {
+    if (!isFeatureEnabled(FeatureFlag.NonprofitIntegration)) {
       throw new NonprofitFeatureDisabledError();
     }
   }
