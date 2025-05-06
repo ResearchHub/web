@@ -38,7 +38,8 @@ export default function VerifyEmailPage() {
           router.replace('/');
         } else {
           // Do not show an error.
-          // just show email has been verified message and allow clients to login manually
+          // Show a success message indicating the email is already verified.
+          // Allow the user to log in manually.
           setStatus('VERIFIED');
         }
       } catch (err: any) {
