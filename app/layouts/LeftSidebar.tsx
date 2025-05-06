@@ -120,18 +120,6 @@ const UserSidebarSection = ({ forceMinimize = false }: { forceMinimize?: boolean
               showAvatarOnly={forceMinimize}
             />
           </div>
-
-          <div
-            className={`flex items-center min-w-0 ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
-          >
-            <div className="text-[14px] font-medium text-gray-800 group-hover:text-gray-900 truncate">
-              {user.firstName}
-            </div>
-            <ChevronDown
-              size={16}
-              className="ml-2 text-gray-600 group-hover:text-gray-600 flex-shrink-0"
-            />
-          </div>
         </div>
 
         {/* Separator */}
@@ -139,32 +127,12 @@ const UserSidebarSection = ({ forceMinimize = false }: { forceMinimize?: boolean
           className={`mx-2 h-6 w-px bg-gray-200 flex-shrink-0 ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
         ></div>
 
-        {/* Right side: Wallet and Notification icons */}
+        {/* Right side: Wallet and Notification icons REMOVED */}
         <div
           className={`flex items-center space-x-1 flex-shrink-0 ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
         >
-          {/* Wallet icon */}
-          <Tooltip content="Your ResearchCoin Wallet" position="bottom">
-            <Link href="/researchcoin" className="flex items-center">
-              <div className="flex items-center justify-center p-2.5 hover:bg-gray-100 rounded-md transition-colors">
-                <ResearchCoinIcon outlined color="#676767" size={24} />
-              </div>
-            </Link>
-          </Tooltip>
-
-          {/* Notification icon */}
-          <Tooltip content="Notifications" position="bottom">
-            <Link href="/notifications" className="flex items-center">
-              <div className="flex items-center justify-center p-2.5 hover:bg-gray-100 rounded-md transition-colors relative">
-                <Icon name="notification" size={22} className="text-gray-500" />
-                {unreadCount > 0 && (
-                  <div className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full bg-indigo-600 text-white flex items-center justify-center">
-                    <span className="font-medium text-[10px]">{unreadCount}</span>
-                  </div>
-                )}
-              </div>
-            </Link>
-          </Tooltip>
+          {/* Wallet icon REMOVED */}
+          {/* Notification icon REMOVED */}
         </div>
       </div>
     </div>
@@ -219,7 +187,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false 
       <div
         className={`bg-gray-50 mt-2 ${forceMinimize ? '!bg-transparent !border-none' : 'tablet:max-sidebar-compact:!bg-transparent tablet:max-sidebar-compact:!border-none'}`}
       >
-        <UserSidebarSection forceMinimize={forceMinimize} />
+        {/* <UserSidebarSection forceMinimize={forceMinimize} /> */}
       </div>
       <div className={`px-4 mt-6 ${forceMinimize ? '!px-2' : 'tablet:max-sidebar-compact:!px-2'}`}>
         <PublishMenu forceMinimize={forceMinimize} />

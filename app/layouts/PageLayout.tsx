@@ -6,6 +6,9 @@ import { Search } from '@/components/Search/Search';
 import { OnboardingRedirect } from '@/components/OnboardingRedirect';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { OnboardingModal } from '@/components/Onboarding/OnboardingModal';
+import { RightSidebarActions } from './RightSidebarActions';
+import { SearchModal } from '../components/Search/SearchModal';
+
 // Dynamically import sidebar components
 const LeftSidebar = dynamic(() => import('./LeftSidebar').then((mod) => mod.LeftSidebar), {
   ssr: true,
@@ -52,6 +55,7 @@ interface PageLayoutProps {
 
 export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
   const rightSidebarRef = useRef<HTMLDivElement>(null);
   const rightSidebarWrapperRef = useRef<HTMLDivElement>(null);
@@ -196,16 +200,11 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
                 // Added transition for smoother movement
                 className="transition-transform duration-150 ease-out"
               >
-                {/* Search Bar */}
-                <div className="sticky top-0 z-40 bg-white pt-2 pb-4">
-                  <Search
-                    placeholder="Search..."
-                    className="[&_input]:rounded-full [&_input]:bg-[#F8F9FC]"
-                  />
-                </div>
+                {/* Actions Bar (replaces Search Bar) */}
+                <RightSidebarActions onOpenSearchModal={() => setIsSearchModalOpen(true)} />
 
                 {/* Sidebar Content */}
-                <div className="">
+                <div className="pt-2">
                   <Suspense fallback={<RightSidebarSkeleton />}>
                     {typeof rightSidebar === 'boolean' ? <RightSidebar /> : rightSidebar}
                   </Suspense>
@@ -215,6 +214,9 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
           )}
         </main>
       </div>
+
+      {/* Render SearchModal at the top level */}
+      {isSearchModalOpen && <SearchModal onClose={() => setIsSearchModalOpen(false)} />}
     </div>
   );
 }
