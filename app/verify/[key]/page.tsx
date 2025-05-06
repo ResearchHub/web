@@ -37,8 +37,9 @@ export default function VerifyEmailPage() {
           setStatus('VERIFIED');
           router.replace('/');
         } else {
-          setStatus('ERROR');
-          setErrorMessage('No token returned from server.');
+          // Do not show an error.
+          // just show email has been verified message and allow clients to login manually
+          setStatus('VERIFIED');
         }
       } catch (err: any) {
         setStatus('ERROR');
