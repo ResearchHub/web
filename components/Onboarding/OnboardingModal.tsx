@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useId } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { UserService } from '@/services/user.service';
 import { BaseModal } from '@/components/ui/BaseModal';
@@ -17,6 +18,7 @@ type OnboardingStep = 'PROFILE_INFORMATION' | 'TOPICS';
 
 export function OnboardingModal() {
   const { user, isLoading, refreshUser } = useUser();
+  const searchParams = useSearchParams();
   const [showModal, setShowModal] = useState(false);
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('PROFILE_INFORMATION');
   const formId = useId();
@@ -27,12 +29,13 @@ export function OnboardingModal() {
   ] = useUpdateAuthorProfileData();
 
   useEffect(() => {
-    if (UserService.shouldRedirectToOnboarding(user)) {
+    const shouldShowFromParam = searchParams.get('showOnboarding');
+    if (UserService.shouldRedirectToOnboarding(user) || shouldShowFromParam) {
       setShowModal(true);
     } else {
       setShowModal(false);
     }
-  }, [user, isLoading]);
+  }, [user, isLoading, searchParams]);
 
   useEffect(() => {
     const markOnboardingCompleted = async () => {

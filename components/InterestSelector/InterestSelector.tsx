@@ -1,304 +1,187 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
-import { BookOpen, Hash } from 'lucide-react';
+// import { BookOpen, Hash, Users } from 'lucide-react'; // No longer needed
 import { InterestSkeleton } from '@/components/skeletons/InterestSkeleton';
-import { InterestCard } from './InterestCard';
-import { HubService } from '@/services/hub.service';
-import { SearchService } from '@/services/search.service';
-import { Topic, transformTopic } from '@/types/topic';
-import { EntityType, SearchSuggestion } from '@/types/search';
+// import { InterestCard } from './InterestCard'; // No longer needed
+import { AuthorSuggestionCard } from './AuthorSuggestionCard';
+// import { HubService } from '@/services/hub.service'; // No longer needed
+// import { SearchService } from '@/services/search.service'; // No longer needed
+import { UserService } from '@/services/user.service'; // Keep for potential follow API
+// import { Topic, transformTopic } from '@/types/topic'; // No longer needed
+// import { EntityType, SearchSuggestion } from '@/types/search'; // No longer needed
+// import { AuthorProfile } from '@/types/authorProfile'; // No longer needed (using AuthorSuggestion)
 import { toast } from 'react-hot-toast';
-import debounce from 'lodash-es/debounce';
+// import debounce from 'lodash-es/debounce'; // No longer needed
+import { authors as mockAuthors, AuthorSuggestion } from '@/store/authorStore'; // Import mock data and type
 
-type TopicType = 'journal' | 'topic';
+// Define the possible interest types - REMOVED
+// type InterestEntityType = 'topic' | 'author' | 'hub';
 
-// Switch order: Topics first
-const interestTypes = [
-  // { id: 'topic' as TopicType, label: 'Topics', icon: Hash },
-  // { id: 'journal' as TopicType, label: 'Journals', icon: BookOpen },
-] as const;
+// Placeholder Author type - REMOVED
+// export interface SuggestedAuthor extends AuthorProfile {
+//   suggestionReason?: string;
+//   followerCount?: number;
+//   hIndex?: number;
+//   worksCount?: number;
+// }
+
+// Update interest types array - REMOVED
+// const interestTypes = [
+//   { id: 'topic' as InterestEntityType, label: 'Topics', icon: Hash },
+//   { id: 'author' as InterestEntityType, label: 'Authors', icon: Users },
+//   { id: 'hub' as InterestEntityType, label: 'Hubs', icon: BookOpen },
+// ] as const;
 
 interface InterestSelectorProps {
   mode: 'onboarding' | 'preferences';
   showToastOnSuccess?: boolean;
-  onSaveComplete?: () => void; // Kept for potential future use, though not strictly needed for auto-save
+  onSaveComplete?: () => void; // Keep for potential future use
 }
 
 export function InterestSelector({
-  mode,
+  mode, // mode might still be useful for layout (e.g., grid cols)
   onSaveComplete,
   showToastOnSuccess = true,
 }: InterestSelectorProps) {
-  const [activeType, setActiveType] = useState<TopicType>('topic'); // Default to 'topic'
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSearching, setIsSearching] = useState(false); // Loading state specifically for search
-  const [topics, setTopics] = useState<Topic[]>([]);
-  const [followedIds, setFollowedIds] = useState<number[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  // const [activeType, setActiveType] = useState<InterestEntityType>('topic'); // REMOVED
+  const [isLoading, setIsLoading] = useState(true); // Keep for initial load simulation
+  // const [isSearching, setIsSearching] = useState(false); // REMOVED
+  // State to hold different types of data - Simplified
+  // const [topics, setTopics] = useState<Topic[]>([]); // REMOVED
+  const [authors, setAuthors] = useState<AuthorSuggestion[]>([]); // Use AuthorSuggestion type
+  // const [hubs, setHubs] = useState<Topic[]>([]); // REMOVED
+  // State for followed IDs - Simplified
+  // const [followedTopicIds, setFollowedTopicIds] = useState<number[]>([]); // REMOVED
+  const [followedAuthorIds, setFollowedAuthorIds] = useState<number[]>([]);
+  // const [followedHubIds, setFollowedHubIds] = useState<number[]>([]); // REMOVED
 
-  const descriptions = {
-    journal: 'Select journals to stay updated with the latest research in your field',
-    topic: 'Choose topics to get personalized recommendations',
-  };
+  // const [searchQuery, setSearchQuery] = useState(''); // REMOVED
 
-  // Fetch initial list of topics/journals (not search results)
-  const fetchInitialTopics = async (type: TopicType): Promise<Topic[]> => {
-    try {
-      if (type === 'journal') {
-        return await HubService.getHubs({ namespace: 'journal' });
-      }
-      if (type === 'topic') {
-        // Assuming 'hub' without namespace=journal means topics
-        return await HubService.getHubs({ excludeJournals: true });
-      }
-      return [];
-    } catch (error) {
-      console.error(`Error fetching initial ${type}s:`, error);
-      toast.error(`Failed to load ${type}s.`);
-      return [];
-    }
-  };
+  const description = 'Follow authors to see their latest work and activity'; // Simplified description
 
-  // Fetch search suggestions
-  const fetchSearchSuggestions = async (query: string, type: TopicType): Promise<Topic[]> => {
-    if (!query) return [];
-    setIsSearching(true);
-    try {
-      // Use 'hub' index for both topics and journals as API returns entity_type 'hub'
-      const index: EntityType = 'hub';
-      const suggestions: SearchSuggestion[] = await SearchService.getSuggestions(query, index);
+  // Fetch initial list - REMOVED
+  // const fetchInitialData = async (type: InterestEntityType): Promise<any[]> => { ... };
 
-      // Map SearchSuggestion (for hubs/journals) back to Topic type
-      return suggestions
-        .map((suggestion): Topic | null => {
-          // We only care about 'hub' type suggestions from the search
-          if (suggestion.entityType === 'hub') {
-            // Map available SearchSuggestion fields back to Topic fields
-            return {
-              id: suggestion.id,
-              name: suggestion.displayName,
-              slug: suggestion.slug || '',
-              // Optional fields from SearchSuggestion if available
-              description: suggestion.description || '',
-              paperCount: suggestion.paperCount || 0,
-              imageUrl: suggestion.imageUrl,
-              // Add defaults for other optional Topic fields if needed by InterestCard
-              // namespace: type === 'journal' ? 'journal' : 'topic', // We could infer namespace here
-            };
-          }
-          return null;
-        })
-        .filter((t): t is Topic => t !== null); // Filter out nulls and assert type
-    } catch (error) {
-      console.error(`Error searching ${type}s:`, error);
-      toast.error(`Failed to search ${type}s.`);
-      return [];
-    } finally {
-      setIsSearching(false);
-    }
-  };
+  // Fetch search suggestions - REMOVED
+  // const fetchSearchSuggestions = async ( ... ) => { ... };
 
-  // Effect to load data based on activeType and searchQuery
+  // Effect to load mock data on mount
   useEffect(() => {
-    // Sort topics only if there is no active search query
-    const sortTopics = (searchQuery: string, topics: Topic[], followedIds: number[]) =>
-      searchQuery
-        ? topics // If searching, display results as is (already filtered by API)
-        : [...topics].sort((a, b) => {
-            const aIsFollowed = followedIds.includes(Number(a.id));
-            const bIsFollowed = followedIds.includes(Number(b.id));
-            if (aIsFollowed && !bIsFollowed) return -1;
-            if (!aIsFollowed && bIsFollowed) return 1;
-            return a.name.localeCompare(b.name);
-          });
+    setIsLoading(true);
+    // Simulate API call delay for loading state
+    const timer = setTimeout(() => {
+      setAuthors(mockAuthors);
+      // TODO: Fetch actual followed author IDs if needed for initial state
+      // For now, assume none are followed initially
+      setFollowedAuthorIds([]);
+      setIsLoading(false);
+    }, 500); // 500ms delay simulation
 
-    const loadData = async () => {
-      setIsLoading(true);
-      setTopics([]); // Clear topics before loading new ones
+    return () => clearTimeout(timer); // Cleanup timer
+  }, []); // Run only once on mount
 
-      try {
-        let fetchedTopics: Topic[] = [];
-        // Fetch followed IDs regardless of search
-        const followedItemsPromise = HubService.getFollowedHubs();
+  // Debounced handler for search input changes - REMOVED
+  // const debouncedSearch = useCallback( ... );
 
-        if (searchQuery) {
-          fetchedTopics = await fetchSearchSuggestions(searchQuery, activeType);
-        } else {
-          fetchedTopics = await fetchInitialTopics(activeType);
-        }
+  // Handle search input change - REMOVED
+  // const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => { ... };
 
-        const followedItems = await followedItemsPromise;
+  // Handle type change - REMOVED
+  // const handleTypeChange = (type: InterestEntityType) => { ... };
 
-        const sortedTopics = sortTopics(searchQuery, fetchedTopics, followedItems);
-        setTopics(sortedTopics);
-
-        setFollowedIds(followedItems);
-      } catch (error) {
-        // Error handling is done within fetch functions
-        console.error('Error loading data:', error);
-        setTopics([]);
-        setFollowedIds([]); // Ensure consistency on error
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    // Debounced search triggers loadData directly
-    if (searchQuery) {
-      loadData(); // No debounce needed here as fetchSearchSuggestions handles loading state
-    } else {
-      // Load initial data immediately on type change or initial load
-      loadData();
-    }
-  }, [activeType, searchQuery]); // Depend on searchQuery
-
-  // Debounced handler for search input changes
-  const debouncedSearch = useCallback(
-    debounce((query: string) => {
-      setSearchQuery(query);
-    }, 300), // 300ms debounce delay
-    [activeType] // Recreate debounce if activeType changes, though likely not necessary
-  );
-
-  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    debouncedSearch(e.target.value);
-  };
-
-  const handleTypeChange = (type: TopicType) => {
-    setSearchQuery(''); // Clear search when changing type
-    setActiveType(type);
-  };
-
-  const handleFollowToggle = async (topicId: number, isCurrentlyFollowing: boolean) => {
-    const originalFollowedIds = [...followedIds];
+  // Simplified Follow Toggle Handler for Authors only
+  const handleFollowToggle = async (authorId: number, isCurrentlyFollowing: boolean) => {
+    const originalFollowedIds = [...followedAuthorIds];
 
     // Optimistic UI update
-    setFollowedIds((prev) => {
+    setFollowedAuthorIds((prev) => {
       const newFollowedIds = new Set(prev);
       if (isCurrentlyFollowing) {
-        newFollowedIds.delete(topicId);
+        newFollowedIds.delete(authorId);
       } else {
-        newFollowedIds.add(topicId);
+        newFollowedIds.add(authorId);
       }
       return Array.from(newFollowedIds);
     });
 
     try {
+      let successMessage = '';
+      // Placeholder for author follow/unfollow API calls
       if (isCurrentlyFollowing) {
-        await HubService.unfollowHub(topicId);
-        if (showToastOnSuccess) toast.success('Unfollowed successfully');
+        // await UserService.unfollowAuthor(authorId); // Hypothetical
+        console.log('TODO: Unfollow Author API Call', authorId);
+        successMessage = 'Unfollowed author';
       } else {
-        await HubService.followHub(topicId);
-        if (showToastOnSuccess) toast.success('Followed successfully');
+        // await UserService.followAuthor(authorId); // Hypothetical
+        console.log('TODO: Follow Author API Call', authorId);
+        successMessage = 'Followed author';
       }
-      // Optional: Call onSaveComplete if needed for external state updates - REMOVED
-      // onSaveComplete?.();
+
+      if (showToastOnSuccess) toast.success(successMessage);
     } catch (error) {
-      console.error('Error updating follow status:', error);
-      if (showToastOnSuccess) toast.error('Failed to update follow status. Please try again.');
+      console.error(`Error updating follow status for author ${authorId}:`, error);
+      if (showToastOnSuccess) toast.error(`Failed to update follow status. Please try again.`);
       // Revert UI on error
-      setFollowedIds(originalFollowedIds);
+      setFollowedAuthorIds(originalFollowedIds);
     }
   };
 
-  const maxCols = mode === 'onboarding' ? 2 : 3;
+  const maxCols = mode === 'onboarding' ? 2 : 3; // Keep mode for grid layout
+  // Grid class for authors
   const gridClass = `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${maxCols} gap-4`;
+
+  // Simplified check for author follow status
+  const isFollowing = (id: number): boolean => {
+    return followedAuthorIds.includes(id);
+  };
+
+  // --- Simplified Render Logic ---
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className={gridClass}>
+          {[...Array(mockAuthors.length || 6)].map(
+            (
+              _,
+              i // Show skeleton count based on mock data
+            ) => (
+              <InterestSkeleton key={i} />
+            )
+          )}
+        </div>
+      );
+    }
+
+    // Always render authors
+    return authors.length > 0 ? (
+      <div className={gridClass}>
+        {authors.map((author) => (
+          <AuthorSuggestionCard
+            key={author.id}
+            author={author}
+            isFollowing={isFollowing(author.id)}
+            onFollowToggle={handleFollowToggle} // Directly pass the simplified handler
+          />
+        ))}
+      </div>
+    ) : (
+      <p>No authors found.</p> // Should not happen with mock data unless empty
+    );
+  };
 
   return (
     <div className="max-w-4xl relative pb-10">
-      {' '}
-      {/* Add padding-bottom */}
-      {/* Search bar at the top */}
-      <div className="mb-6">
-        <input
-          type="search"
-          placeholder={`Search ${activeType}s...`}
-          className="w-full px-4 py-2 border rounded-lg"
-          onChange={handleSearchInputChange} // Use the debounced handler indirectly
-          // We don't set the value directly to searchQuery to avoid laggy input
-          // The actual search is triggered by the debounced function updating searchQuery state
-        />
-      </div>
+      {/* Search bar - REMOVED */}
+      {/* <div className="mb-6"> ... </div> */}
       <div className="space-y-6">
-        <p className="text-gray-600">{descriptions[activeType]}</p>
+        <p className="text-gray-600">{description}</p>
 
-        {/* Interest type selector */}
-        {/* <div className="flex gap-4">
-          {interestTypes.map((type) => {
-            const Icon = type.icon;
-            return (
-              <Button
-                key={type.id}
-                variant={activeType === type.id ? 'default' : 'secondary'}
-                onClick={() => handleTypeChange(type.id)}
-                className="flex items-center gap-2"
-                disabled={isLoading || isSearching} // Disable while loading anything
-              >
-                <Icon className="w-4 h-4" />
-                {type.label}
-              </Button>
-            );
-          })}
-        </div> */}
+        {/* Interest type selector - REMOVED */}
+        {/* <div className="flex gap-4 border-b pb-4 mb-4"> ... </div> */}
 
-        {/* Topic grid */}
-        <div>
-          {isLoading || isSearching ? (
-            <div className={gridClass}>
-              {[...Array(6)].map((_, i) => (
-                <InterestSkeleton key={i} />
-              ))}
-            </div>
-          ) : (
-            <TopicGrid
-              topics={topics}
-              followedIds={followedIds}
-              onFollowToggle={handleFollowToggle}
-              searchQuery={searchQuery}
-              gridClass={gridClass}
-            />
-          )}
-        </div>
+        <div>{renderContent()}</div>
       </div>
       {/* Removed Sticky Save Bar */}
-    </div>
-  );
-}
-
-interface TopicGridProps {
-  topics: Topic[];
-  followedIds: number[];
-  onFollowToggle: (topicId: number, isFollowing: boolean) => void;
-  searchQuery: string;
-  gridClass: string;
-}
-
-function TopicGrid({
-  topics,
-  followedIds,
-  onFollowToggle,
-  searchQuery,
-  gridClass,
-}: TopicGridProps) {
-  if (!topics || topics.length === 0) {
-    return (
-      <p className="text-gray-500 italic">
-        No {searchQuery ? 'results found' : 'items available'}.
-      </p>
-    );
-  }
-
-  return (
-    // Removed Search bar div
-    <div className={gridClass}>
-      {topics.map((topic) => (
-        <InterestCard
-          key={topic.id}
-          topic={topic}
-          isFollowing={followedIds.includes(Number(topic.id))}
-          onFollowToggle={onFollowToggle}
-        />
-      ))}
     </div>
   );
 }

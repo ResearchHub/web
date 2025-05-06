@@ -5,4 +5,8 @@ export type Hub = {
   id: number;
   imageUrl?: string;
   description?: string;
+  headline?: string;
+  verified?: boolean;
+  editors?: number[]; // ids referencing author profiles
+  followersCount?: number;
 };

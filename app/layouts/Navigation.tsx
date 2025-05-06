@@ -17,7 +17,7 @@ interface NavIcon {
   solid: IconName;
 }
 
-type NavIconKey = 'earn' | 'fund' | 'journal' | 'notebook' | 'home' | 'leaderboard';
+type NavIconKey = 'earn' | 'fund' | 'journal' | 'notebook' | 'home' | 'leaderboard' | 'hubs';
 
 interface NavigationItem {
   label: string;
@@ -61,6 +61,10 @@ const navIconMap: Record<NavIconKey, NavIcon> = {
     light: 'gold1',
     solid: 'gold2',
   },
+  hubs: {
+    light: 'topics',
+    solid: 'topics',
+  },
 };
 
 export const Navigation: React.FC<NavigationProps> = ({
@@ -103,6 +107,12 @@ export const Navigation: React.FC<NavigationProps> = ({
       href: '/journal',
       iconKey: 'journal',
       description: 'Read and publish research papers',
+    },
+    {
+      label: 'Hubs',
+      href: '/hubs',
+      iconKey: 'hubs',
+      description: 'Explore research communities',
     },
     {
       label: 'Notebook',
