@@ -7,7 +7,7 @@ export const JournalFeatures: FC = () => {
     <div className="bg-gray-50 py-16 px-4">
       <div className="max-w-5xl mx-auto text-center">
         <h2 className="text-3xl font-medium text-gray-900 mb-4 text-left">About this journal</h2>
-        <p className="text-lg text-gray-600 mb-12 max-w-3xl mx-auto text-left">
+        <p className="text-lg text-gray-600 mb-12 max-w-3xl text-left">
           The ResearchHub Journal aims to accelerate the pace of science through novel incentive
           structures that reward authors for reproducible research and compensate peer reviewers for
           their expertise. Authors receive rapid, constructive feedback through 2+ expert open peer

@@ -321,7 +321,7 @@ export const JournalHowItWorks: FC<JournalHowItWorksProps> = ({ openItemId, onTo
   return (
     <div id="how-it-works" className="py-16 px-4 bg-white border-t border-b border-gray-200">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-12 max-w-3xl mx-auto">
+        <div className="mb-12 max-w-3xl">
           <h2 className="text-3xl font-medium text-gray-900 mb-4 text-left">How it Works</h2>
           <p className="text-lg text-gray-600 text-left">
             Learn about our publication process, peer review system, and how we accelerate
