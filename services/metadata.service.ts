@@ -42,7 +42,7 @@ function transformWorkMetadata(response: any): WorkMetadata {
       comments: document.discussion_aggregates.discussion_count,
       saves: 0, // Not provided in metadata response
       reviewScore: response.reviews.avg,
-      reviews: response.reviews.count, // Properly mapping from the response
+      reviews: document.discussion_aggregates.review_count,
     },
     fundraising: response.fundraise ? transformFundraise(response.fundraise) : undefined,
     bounties: bounties,

@@ -6,16 +6,36 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 export const FooterLinks: React.FC = () => (
   <div className="px-4 py-6 border-t text-sm">
     <div className="flex items-center space-x-4 mb-4">
-      <a href="#" className="text-gray-500 hover:text-gray-700">
+      <a
+        href="https://x.com/researchhub"
+        className="text-gray-500 hover:text-gray-700"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         <FontAwesomeIcon icon={faXTwitter} className="h-5 w-5" />
       </a>
-      <a href="#" className="text-gray-500 hover:text-gray-700">
+      <a
+        href="https://discord.com/invite/ZcCYgcnUp5"
+        className="text-gray-500 hover:text-gray-700"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         <FontAwesomeIcon icon={faDiscord} className="h-5 w-5" />
       </a>
-      <a href="#" className="text-gray-500 hover:text-gray-700">
+      <a
+        href="https://github.com/ResearchHub"
+        className="text-gray-500 hover:text-gray-700"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         <FontAwesomeIcon icon={faGithub} className="h-5 w-5" />
       </a>
-      <a href="#" className="text-gray-500 hover:text-gray-700">
+      <a
+        href="https://www.linkedin.com/company/researchhubtechnologies"
+        className="text-gray-500 hover:text-gray-700"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         <FontAwesomeIcon icon={faLinkedin} className="h-5 w-5" />
       </a>
     </div>

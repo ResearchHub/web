@@ -61,7 +61,8 @@ export class FileService {
 
       // Extract the absolute URL from the presigned URL
       const path = presigned_url.split('?')[0].split('.com/')[1];
-      const storageDomain = process.env.NEXT_PUBLIC_STORAGE_DOMAIN || 'storage.researchhub.com';
+      const storageDomain =
+        process.env.NEXT_PUBLIC_STORAGE_DOMAIN || 'storage.prod.researchhub.com';
       const absoluteUrl = `https://${storageDomain}/${path}`;
 
       return {

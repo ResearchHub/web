@@ -103,7 +103,7 @@ export const ActionButton: FC<ActionButtonProps> = ({
       `flex items-center space-x-1 border border-gray-200 rounded-full`,
       // Responsive padding
       'py-0.5 px-2 md:!py-1 md:!px-3',
-      isActive ? 'text-primary-600' : 'text-gray-900',
+      isActive ? 'text-green-600 border-green-300' : 'text-gray-900',
       'hover:text-gray-900 hover:bg-gray-50',
       className
     )}
@@ -115,7 +115,7 @@ export const ActionButton: FC<ActionButtonProps> = ({
       className={cn(
         // Responsive icon size
         'w-4 h-4 md:!w-5 md:!h-5',
-        isActive ? 'text-primary-600' : ''
+        isActive ? 'text-green-600' : ''
       )}
     />
     {showLabel ? (
