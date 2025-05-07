@@ -1,21 +1,19 @@
 'use client';
 
 import { X, BadgeCheck, ChevronRight } from 'lucide-react';
+import { useVerification } from '@/contexts/VerificationContext';
 
 interface VerificationBannerProps {
   onClose: () => void;
-  onLearnMore?: () => void;
   onMenuClose?: () => void;
 }
 
-export default function VerificationBanner({
-  onClose,
-  onLearnMore,
-  onMenuClose,
-}: VerificationBannerProps) {
+export default function VerificationBanner({ onClose, onMenuClose }: VerificationBannerProps) {
+  const { openVerificationModal } = useVerification();
+
   const handleLearnMoreClick = (e: React.MouseEvent) => {
     onMenuClose?.();
-    onLearnMore?.();
+    openVerificationModal();
   };
 
   return (

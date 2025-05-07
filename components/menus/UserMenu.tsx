@@ -6,20 +6,19 @@ import type { User } from '@/types/user';
 import VerificationBanner from '@/components/banners/VerificationBanner';
 import { Avatar } from '@/components/ui/Avatar';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { VerifyIdentityModal } from '@/components/modals/VerifyIdentityModal';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import Link from 'next/link';
 import { AuthSharingService } from '@/services/auth-sharing.service';
 import { navigateToAuthorProfile } from '@/utils/navigation';
-import Icon from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { isFeatureEnabled } from '@/utils/featureFlags';
 import { FeatureFlag } from '@/utils/featureFlags';
 import { Button } from '@/components/ui/Button';
+import { useVerification } from '@/contexts/VerificationContext';
 
 interface UserMenuProps {
   user: User;
@@ -39,9 +38,9 @@ export default function UserMenu({
   showAvatarOnly = false,
 }: UserMenuProps) {
   const [showVerificationBanner, setShowVerificationBanner] = useState(true);
-  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const [internalMenuOpen, setInternalMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const { openVerificationModal } = useVerification();
 
   const { percent } = user ? calculateProfileCompletion(user) : { percent: 0 };
 
@@ -70,18 +69,6 @@ export default function UserMenu({
     // Cleanup
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
-  const handleLearnMore = () => {
-    setIsVerifyModalOpen(true);
-  };
-
-  const handleVerifyAccount = () => {
-    setIsVerifyModalOpen(true);
-  };
-
-  const handleCloseVerifyModal = () => {
-    setIsVerifyModalOpen(false);
-  };
 
   const handleCloseMenu = () => {
     setMenuOpenState(false);
@@ -188,7 +175,7 @@ export default function UserMenu({
           <div
             className="px-6 py-2 hover:bg-gray-50"
             onClick={() => {
-              handleVerifyAccount();
+              //TODO call the method from the context
               setMenuOpenState(false);
             }}
           >
@@ -217,7 +204,6 @@ export default function UserMenu({
         <div className="px-6 py-4 mt-auto border-t border-gray-200">
           <VerificationBanner
             onClose={() => setShowVerificationBanner(false)}
-            onLearnMore={handleLearnMore}
             onMenuClose={handleCloseMenu}
           />
         </div>
@@ -325,7 +311,7 @@ export default function UserMenu({
             </Link>
 
             {!user.isVerified && (
-              <BaseMenuItem onClick={handleVerifyAccount} className="w-full px-4 py-2">
+              <BaseMenuItem onClick={openVerificationModal} className="w-full px-4 py-2">
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center">
                     <BadgeCheck className="h-4 w-4 mr-3 text-gray-500" />
@@ -351,16 +337,12 @@ export default function UserMenu({
             <div className="pb-3 px-3 mt-2">
               <VerificationBanner
                 onClose={() => setShowVerificationBanner(false)}
-                onLearnMore={handleLearnMore}
                 onMenuClose={handleCloseMenu}
               />
             </div>
           )}
         </BaseMenu>
       )}
-
-      {/* Modals */}
-      <VerifyIdentityModal isOpen={isVerifyModalOpen} onClose={handleCloseVerifyModal} />
     </>
   );
 }

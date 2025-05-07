@@ -8,6 +8,8 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { ProfileField, PROFILE_FIELD_WEIGHTS } from '@/utils/profileCompletion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck, faCircle } from '@fortawesome/pro-light-svg-icons';
+import { useVerification } from '@/contexts/VerificationContext';
+import { Button } from '@/components/ui/Button';
 
 type AvatarSize = 'xxxs' | 'xxs' | 'xs' | 'sm' | 'md';
 
@@ -79,7 +81,7 @@ const ProfileFieldLabel: Record<ProfileField, string> = {
   [ProfileField.Name]: 'Name',
   [ProfileField.Photo]: 'Photo',
   [ProfileField.Headline]: 'Headline',
-  // [ProfileField.Verification]: 'Verification',
+  [ProfileField.Verification]: 'Verification',
   [ProfileField.Education]: 'Education',
   [ProfileField.About]: 'About',
   [ProfileField.Social]: 'Social Account',
@@ -102,6 +104,7 @@ const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
   missing,
   showTooltip = false,
 }) => {
+  const { openVerificationModal } = useVerification();
   const sizeMap = {
     xxxs: 12,
     xxs: 20,
@@ -155,6 +158,19 @@ const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
                 <FontAwesomeIcon icon={faCircleCheck} className="text-green-500 w-4 h-4" />
               )}
               <span>{ProfileFieldLabel[field as ProfileField] || field}</span>
+              {isMissing && field === ProfileField.Verification && (
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openVerificationModal();
+                  }}
+                  variant="link"
+                  size="sm"
+                  className="text-indigo-600 hover:text-indigo-700 p-0 h-auto whitespace-nowrap"
+                >
+                  Verify now
+                </Button>
+              )}
             </li>
           );
         })}
