@@ -34,7 +34,6 @@ export default function VerifyEmailPage() {
             authToken: res.key,
             redirect: false,
           });
-          setStatus('VERIFIED');
           router.replace('/');
         } else {
           // Do not show an error.
@@ -67,6 +66,9 @@ export default function VerifyEmailPage() {
             <>
               <FontAwesomeIcon icon={faCheckCircle} className="text-green-600 text-4xl mb-2" />
               <h1 className="text-xl font-semibold mb-2">Email Verified!</h1>
+              <Button className="w-full h-12" onClick={() => router.replace('/auth/signin')}>
+                Go to Login
+              </Button>
             </>
           )}
           {status === 'ERROR' && (
