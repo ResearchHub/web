@@ -308,7 +308,8 @@ export const Avatar: FC<AvatarProps> = ({
       if (size <= 20) return length > 1 ? 'text-[6px]' : 'text-[8px]';
       if (size <= 24) return length > 1 ? 'text-[8px]' : 'text-[10px]';
       if (size <= 32) return length > 1 ? 'text-[10px]' : 'text-xs';
-      return length > 1 ? 'text-xs' : 'text-sm';
+      const textSize = Math.floor(size / 2);
+      return `text-[${textSize}px]`;
     }
 
     // Original logic for string-based sizes
