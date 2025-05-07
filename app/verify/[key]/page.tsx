@@ -67,7 +67,6 @@ export default function VerifyEmailPage() {
             <>
               <FontAwesomeIcon icon={faCheckCircle} className="text-green-600 text-4xl mb-2" />
               <h1 className="text-xl font-semibold mb-2">Email Verified!</h1>
-              <p className="text-gray-500">Redirecting to your homepage…</p>
             </>
           )}
           {status === 'ERROR' && (
