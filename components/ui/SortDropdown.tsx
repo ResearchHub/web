@@ -73,7 +73,7 @@ export const SortDropdown: FC<SortDropdownProps> = ({
   };
 
   return (
-    <div ref={setTriggerWidth} className="w-full">
+    <div ref={setTriggerWidth} className="">
       {menuContent}
     </div>
   );

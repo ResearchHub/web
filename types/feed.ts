@@ -82,6 +82,24 @@ export interface FeedPostContent {
   createdBy: AuthorProfile;
   bounties?: Bounty[]; // Add bounties property
   reviews?: Review[]; // Also add reviews property for consistency
+  institution?: string; // Added institution field
+}
+
+// Details specific to a grant application
+export interface ApplicationDetails {
+  authors: AuthorProfile[];
+  institution?: string;
+  objectiveAlignment: string; // "Why will your preregistration address funder's objectives?"
+}
+
+// Content type for a grant application feed entry
+export interface FeedApplicationContent {
+  id: number; // Unique ID for the application itself
+  contentType: 'APPLICATION';
+  createdDate: string; // Submission date of the application
+  createdBy: AuthorProfile; // The primary applicant or submitting user
+  applicationDetails: ApplicationDetails;
+  preregistration: FeedPostContent; // The linked preregistration
 }
 
 export interface FeedBountyContent {
@@ -150,10 +168,17 @@ export type Content =
   | FeedPostContent
   | FeedPaperContent
   | FeedBountyContent
-  | FeedCommentContent;
+  | FeedCommentContent
+  | FeedApplicationContent;
 
 // Define a union type for all possible content types
-export type FeedContentType = 'PAPER' | 'POST' | 'PREREGISTRATION' | 'BOUNTY' | 'COMMENT';
+export type FeedContentType =
+  | 'PAPER'
+  | 'POST'
+  | 'PREREGISTRATION'
+  | 'BOUNTY'
+  | 'COMMENT'
+  | 'APPLICATION';
 
 export interface FeedEntry {
   id: string;
@@ -540,7 +565,11 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           slug: content_object.slug || '',
           title: stripHtml(content_object.title || ''),
           previewImage: content_object.image_url || '',
-          authors: [transformAuthorProfile(author)],
+          authors:
+            content_object.authors && content_object.authors.length > 0
+              ? content_object.authors.map(transformAuthorProfile)
+              : [transformAuthorProfile(author)],
+          institution: content_object.institution, // Populate institution
           topics: content_object.hub
             ? [
                 content_object.hub.id
@@ -784,3 +813,6 @@ export const transformBountyCommentToFeedItem = (
     awardedBountyAmount: comment.awardedBountyAmount,
   };
 };
+
+export type { AuthorProfile };
+export type { Fundraise };
