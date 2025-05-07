@@ -173,7 +173,9 @@ export const WorkLineItems = ({
       <div className="mt-6 space-y-2 text-sm text-gray-600">
         <div>
           <div className="flex items-start">
-            <span className="font-medium text-gray-900 w-24">Authors</span>
+            <span className="font-medium text-gray-900 w-28">
+              {work.contentType === 'funding_request' ? 'Funder(s)' : 'Authors'}
+            </span>
             <div className="flex-1">
               <div className="mb-1.5">
                 <AuthorList
@@ -195,7 +197,7 @@ export const WorkLineItems = ({
         {/* Journal */}
         {work.journal && (
           <div className="flex items-start">
-            <span className="font-medium text-gray-900 w-24">Journal</span>
+            <span className="font-medium text-gray-900 w-28">Journal</span>
             <div className="flex-1">
               <span>{work.journal.name}</span>
             </div>
@@ -205,7 +207,7 @@ export const WorkLineItems = ({
         {/* Published Date */}
         {work.publishedDate && (
           <div className="flex items-start">
-            <span className="font-medium text-gray-900 w-24">Published</span>
+            <span className="font-medium text-gray-900 w-28">Published</span>
             <div className="flex-1">
               <span>
                 {new Date(work.publishedDate).toLocaleDateString('en-US', {

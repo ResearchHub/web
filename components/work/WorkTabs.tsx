@@ -1,6 +1,6 @@
 'use client';
 
-import { FileText, Star, MessagesSquare } from 'lucide-react';
+import { FileText, Star, MessagesSquare, Users } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useState } from 'react';
@@ -13,7 +13,7 @@ interface WorkTabsProps {
   work: Work;
   metadata: WorkMetadata;
   defaultTab?: TabType;
-  contentType?: 'paper' | 'post' | 'fund'; // To customize tab labels based on content type
+  contentType?: 'paper' | 'post' | 'fund' | 'grant'; // To customize tab labels based on content type
   onTabChange: (tab: TabType) => void;
 }
 
@@ -51,7 +51,9 @@ export const WorkTabs = ({
           ? `/paper/${work.id}/${work.slug}`
           : contentType === 'fund'
             ? `/fund/${work.id}/${work.slug}`
-            : `/post/${work.id}/${work.slug}`;
+            : contentType === 'grant'
+              ? `/grant/${work.id}/${work.slug}`
+              : `/post/${work.id}/${work.slug}`;
 
       const newUrl =
         tab === 'conversation'
@@ -71,6 +73,7 @@ export const WorkTabs = ({
   const getMainTabLabel = () => {
     if (contentType === 'paper') return 'Paper';
     if (contentType === 'fund') return 'Project';
+    if (contentType === 'grant') return 'Grant';
     return 'Post';
   };
 
@@ -103,29 +106,15 @@ export const WorkTabs = ({
       ),
     },
     {
-      id: 'bounties',
-      label: (
-        <div className="flex items-center">
-          <Icon name="earn1" size={16} color={activeTab === 'bounties' ? '#4f46e5' : '#6B7280'} />
-          <span className="ml-2">Bounties</span>
-          <span
-            className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-              activeTab === 'bounties'
-                ? 'bg-indigo-100 text-indigo-600'
-                : 'bg-gray-100 text-gray-600'
-            }`}
-          >
-            {metadata.openBounties || 0}
-          </span>
-        </div>
-      ),
-    },
-    {
       id: 'reviews',
       label: (
         <div className="flex items-center">
-          <Star className="h-4 w-4 mr-2" />
-          <span>Reviews</span>
+          {contentType === 'grant' ? (
+            <Users className="h-4 w-4 mr-2" />
+          ) : (
+            <Star className="h-4 w-4 mr-2" />
+          )}
+          <span>{contentType === 'grant' ? 'Applicants' : 'Reviews'}</span>
           <span
             className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
               activeTab === 'reviews'
@@ -133,11 +122,38 @@ export const WorkTabs = ({
                 : 'bg-gray-100 text-gray-600'
             }`}
           >
-            {metadata.metrics.reviews}
+            {contentType === 'grant' ? metadata.metrics.comments : metadata.metrics.reviews}
           </span>
         </div>
       ),
     },
+    // Show Bounties tab only if not grant
+    ...(contentType === 'grant'
+      ? []
+      : [
+          {
+            id: 'bounties',
+            label: (
+              <div className="flex items-center">
+                <Icon
+                  name="earn1"
+                  size={16}
+                  color={activeTab === 'bounties' ? '#4f46e5' : '#6B7280'}
+                />
+                <span className="ml-2">Bounties</span>
+                <span
+                  className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                    activeTab === 'bounties'
+                      ? 'bg-indigo-100 text-indigo-600'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  {metadata.openBounties || 0}
+                </span>
+              </div>
+            ),
+          },
+        ]),
   ];
 
   return (

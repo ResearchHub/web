@@ -8,8 +8,10 @@ import { cn } from '@/utils/styles';
 import Icon from '@/components/ui/icons/Icon';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import { RSCBadge } from '@/components/ui/RSCBadge';
+import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { AvatarStack } from '@/components/ui/AvatarStack';
+import { DeadlineDisplay } from '@/components/ui/DeadlineDisplay';
+import { formatDistanceStrict } from 'date-fns';
 
 interface BountyCarouselItemProps {
   entry: FeedEntry;
@@ -102,14 +104,14 @@ export const BountyCarouselItem: FC<BountyCarouselItemProps> = ({ entry }) => {
           <div className="flex items-center justify-between">
             <div>
               <div className="text-amber-700 flex items-center">
-                <RSCBadge
+                <CurrencyBadge
                   amount={parseFloat(bounty.totalAmount)}
                   size="xs"
                   variant="inline"
                   className="font-semibold"
-                  label=""
-                  textColor="text-amber-600"
-                  rscLabelColor="text-amber-600"
+                  label="Bounty"
+                  textColor="text-amber-700"
+                  currencyLabelColor="text-amber-700"
                 />
                 <div className="text-amber-600 text-xs">
                   {isPeerReviewBounty ? 'to peer review' : 'to answer'}

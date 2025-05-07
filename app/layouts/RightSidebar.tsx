@@ -4,7 +4,7 @@ import { Suspense, memo } from 'react';
 import dynamic from 'next/dynamic';
 import { LoadingSkeleton } from './components/LoadingSkeleton';
 import { Avatar } from '@/components/ui/Avatar';
-import { RSCBadge } from '@/components/ui/RSCBadge';
+import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { JournalStatusBadge } from '@/components/ui/JournalStatusBadge';
 import { AuthorList, Author } from '@/components/ui/AuthorList';
@@ -17,6 +17,9 @@ import { useFeed } from '@/hooks/useFeed';
 import { ArrowRightIcon } from 'lucide-react';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { LeaderboardOverview } from '@/components/Leaderboard/LeaderboardOverview';
+import { useRecentWorks } from '@/hooks/useRecentWorks';
+import { Work } from '@/types';
+import { useTrendingWorks } from '@/hooks/useTrendingWorks';
 
 // Dynamically import InfoBanner component
 const InfoBanner = dynamic(() => import('./components/InfoBanner').then((mod) => mod.InfoBanner), {

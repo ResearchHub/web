@@ -235,7 +235,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
             <span className={cn(isUSD ? textColor || colors.text : colors.text, 'font-semibold')}>
               {displayAmount}
             </span>
-            {showText && <span className={cn(colors.rscLabel, 'ml-1')}>{currencyText}</span>}
+            {/* {showText && <span className={cn(colors.rscLabel, 'ml-1')}>{currencyText}</span>} */}
             {label && (
               <span className={cn(isUSD ? textColor || colors.textDark : colors.textDark, 'ml-1')}>
                 {label}

@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { LeaderboardService } from '@/services/leaderboard.service';
 import { TopReviewer, TopFunder } from '@/types/leaderboard';
 import { Avatar } from '@/components/ui/Avatar';
-import { RSCBadge } from '@/components/ui/RSCBadge';
+import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Button } from '@/components/ui/Button';
 import { Tabs } from '@/components/ui/Tabs';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
@@ -33,6 +33,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { navigateToAuthorProfile } from '@/utils/navigation';
+import { faMedal, faRibbon, faStar } from '@fortawesome/pro-solid-svg-icons';
 
 // Skeleton for the list items
 const LeaderboardListSkeleton = () => (
@@ -557,14 +558,14 @@ function LeaderboardPageContent() {
                         )}
                       </div>
                     </div>
-                    <RSCBadge
+                    <CurrencyBadge
                       amount={reviewer.earnedRsc}
                       variant="text"
                       size="md"
-                      label="earned"
+                      label="RSC Earned"
                       showExchangeRate={true}
-                      textColor="text-orange-500"
-                      rscLabelColor="text-orange-500"
+                      textColor="text-gray-700"
+                      currencyLabelColor="text-gray-500"
                     />
                   </div>
                 );
@@ -623,14 +624,14 @@ function LeaderboardPageContent() {
                       )}
                     </div>
                   </div>
-                  <RSCBadge
+                  <CurrencyBadge
                     amount={funder.totalFunding}
                     variant="text"
                     size="md"
-                    label="contributed"
+                    label="RSC Funded"
                     showExchangeRate={true}
-                    textColor="text-orange-500"
-                    rscLabelColor="text-orange-500"
+                    textColor="text-gray-700"
+                    currencyLabelColor="text-gray-500"
                   />
                 </div>
               );

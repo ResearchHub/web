@@ -9,7 +9,7 @@ import { formatDeadline } from '@/utils/date';
 import type { Fundraise } from '@/types/funding';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
-import { RSCBadge } from '@/components/ui/RSCBadge';
+import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { formatRSC } from '@/utils/number';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -157,7 +157,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
               <div className="font-medium text-gray-700">{actualPercentage}% funded</div>
             ) : (
               <div className="flex items-center gap-1">
-                <RSCBadge
+                <CurrencyBadge
                   amount={Math.round(fundraise.amountRaised.rsc)}
                   variant="text"
                   size="xs"
@@ -166,7 +166,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   shorten
                 />
                 <span className="font-medium text-gray-700 mx-0.5">/</span>
-                <RSCBadge
+                <CurrencyBadge
                   amount={Math.round(fundraise.goalAmount.rsc)}
                   variant="text"
                   size="xs"
@@ -250,7 +250,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                 <div className="text-lg font-medium text-gray-700">{actualPercentage}% funded</div>
               ) : (
                 <div className="flex items-center">
-                  <RSCBadge
+                  <CurrencyBadge
                     amount={Math.round(fundraise.amountRaised.rsc)}
                     variant="text"
                     size="md"
@@ -259,7 +259,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     className="font-medium text-orange-500 text-lg pl-0"
                   />
                   <span className="text-gray-500 text-lg">raised of</span>
-                  <RSCBadge
+                  <CurrencyBadge
                     amount={Math.round(fundraise.goalAmount.rsc)}
                     variant="text"
                     size="md"
