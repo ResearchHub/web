@@ -48,10 +48,10 @@ export const TopicAndJournalBadge = ({
           src={imageUrl}
           alt={name}
           size={size === 'lg' ? 'xs' : 'xxs'}
-          className="ring-1 ring-indigo-200"
+          className="ring-1 ring-blue-200"
         />
       )}
-      <span className={`text-indigo-700 ${type === 'topic' ? 'capitalize' : ''}`}>
+      <span className={`text-blue-700 ${type === 'topic' ? 'capitalize' : ''}`}>
         <span className="block md:!hidden">
           {name.length > 30 ? `${name.slice(0, 30)}...` : name}
         </span>
@@ -61,7 +61,7 @@ export const TopicAndJournalBadge = ({
   );
 
   // Common styles for the badge
-  const badgeStyles = `flex items-center gap-1.5 rounded-full font-medium border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 transition-colors ${sizeStyles[size]} ${className}`;
+  const badgeStyles = `flex items-center gap-1.5 rounded-full font-medium border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors ${sizeStyles[size]} ${className}`;
 
   // Return either a link or a div based on the disableLink prop
   return disableLink ? (

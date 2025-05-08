@@ -112,8 +112,8 @@ const JournalSpotlight = () => {
   return (
     <Link href={paperUrl} className="block">
       <div className="relative bg-white rounded-lg mb-4 border border-gray-200 hover:bg-gray-50 transition-colors duration-150 overflow-hidden cursor-pointer">
-        <h2 className="absolute top-[-1px] left-[-1px] z-10 bg-indigo-50 text-indigo-600 rounded-lg py-2 px-4 text-sm font-medium flex items-center">
-          <Icon name="rhJournal1" size={16} className="mr-1.5" color="#4f46e5" />
+        <h2 className="absolute top-[-1px] left-[-1px] z-10 bg-blue-50 text-blue-600 rounded-lg py-2 px-4 text-sm font-medium flex items-center">
+          <Icon name="rhJournal1" size={16} className="mr-1.5" color="#3971FF" />
           RH Journal Spotlight
         </h2>
         <div className="space-y-3 px-4 pb-4 pt-12">
@@ -203,8 +203,8 @@ const FundingSpotlight = () => {
   return (
     <Link href={fundingUrl} className="block">
       <div className="relative bg-white rounded-lg mb-4 border border-gray-200 p-4 hover:bg-gray-50 transition-colors duration-150 cursor-pointer">
-        <h2 className="absolute top-[-1px] left-[-1px] z-10 bg-indigo-50 text-indigo-600 rounded-lg py-2 px-4 text-sm font-medium flex items-center">
-          <Icon name="fund" size={16} className="mr-1.5" color="#4f46e5" />
+        <h2 className="absolute top-[-1px] left-[-1px] z-10 bg-blue-50 text-blue-600 rounded-lg py-2 px-4 text-sm font-medium flex items-center">
+          <Icon name="fund" size={16} className="mr-1.5" color="#3971FF" />
           Funding Spotlight
         </h2>
         <div className="pt-8">

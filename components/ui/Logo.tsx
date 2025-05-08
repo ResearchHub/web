@@ -21,7 +21,7 @@ export const Logo = ({ className, noText = false, size }: LogoProps) => {
 
   return (
     <Image
-      src="/logo.png"
+      src="/logo_blue.png"
       alt="ResearchHub Logo"
       width={dimensions.width}
       height={dimensions.height}
