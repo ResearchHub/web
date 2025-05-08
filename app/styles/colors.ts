@@ -1,16 +1,16 @@
 export const colors = {
   primary: {
-    50: '#eef2ff',
-    100: '#e0e7ff',
-    200: '#c7d2fe',
-    300: '#a5b4fc',
-    400: '#818cf8',
-    500: '#6366f1',
-    600: '#4f46e5', // New primary indigo
-    700: '#4338ca',
-    800: '#3730a3',
-    900: '#312e81',
-    950: '#1e1b4b',
+    50: '#EBF3FE',
+    100: '#D8E6FD',
+    200: '#B1CEFB',
+    300: '#8AB5FA',
+    400: '#639CF8',
+    500: '#3B82F6',
+    600: '#0B60EA', // New primary blue
+    700: '#0848B0',
+    800: '#053075',
+    900: '#03183B',
+    950: '#010C1D',
   },
   // Add other color scales as needed
   gray: {

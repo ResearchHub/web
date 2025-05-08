@@ -62,7 +62,7 @@ const FeedItemPaperBody: FC<{
       </div>
 
       {/* Original Paper Title - Ensure only one exists */}
-      <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
+      <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
         {paper.title}
       </h2>
 
@@ -76,7 +76,7 @@ const FeedItemPaperBody: FC<{
             profileUrl: author.profileUrl,
           }))}
           size="sm"
-          className="text-gray-500 font-normal"
+          className="text-gray-500 font-normal                                                                                                                                                                                                                                                                                                                                                                          ,"
           delimiter="•"
           showAbbreviatedInMobile={true}
         />
@@ -89,7 +89,7 @@ const FeedItemPaperBody: FC<{
           <a
             href={paper.journal.slug ? `/journal/${paper.journal.slug}` : '#'}
             rel="noopener noreferrer"
-            className="hover:text-indigo-600 underline cursor-pointer"
+            className="hover:text-blue-600 underline cursor-pointer"
             onClick={(e) => e.stopPropagation()} // Prevent card click when clicking link
           >
             {paper.journal.name}
@@ -144,7 +144,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry, href, showTooltip
         className={cn(
           'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden',
           isClickable &&
-            'group hover:shadow-md hover:border-indigo-100 transition-all duration-200 cursor-pointer'
+            'group hover:shadow-md hover:border-blue-100 transition-all duration-200 cursor-pointer'
         )}
       >
         <div className="p-4">
