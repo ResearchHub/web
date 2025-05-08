@@ -93,7 +93,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
 
   const header = (
     <MainPageHeader
-      icon={<Sparkles className="w-6 h-6 text-indigo-500" />}
+      icon={<Sparkles className="w-6 h-6 text-blue-500" />}
       title="Explore"
       subtitle="Discover trending research, earning, and funding opportunities"
     />
