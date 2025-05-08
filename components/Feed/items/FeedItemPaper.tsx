@@ -129,14 +129,14 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry, href, showTooltip
   // Determine if card should have clickable styles
   const isClickable = !!href;
 
+  // Construct the dynamic action text
+  const journalName = paper.journal?.name;
+  const actionText = journalName ? `published in ${journalName}` : 'published in a journal';
+
   return (
     <div className="space-y-3">
       {/* Header */}
-      <FeedItemHeader
-        timestamp={paper.createdDate}
-        author={author}
-        actionText="published a paper"
-      />
+      <FeedItemHeader timestamp={paper.createdDate} author={author} actionText={actionText} />
 
       {/* Main Content Card - Using onClick instead of wrapping with Link */}
       <div
