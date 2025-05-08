@@ -628,7 +628,7 @@ function LeaderboardPageContent() {
                     variant="text"
                     size="md"
                     label="contributed"
-                    showExchangeRate={false}
+                    showExchangeRate={true}
                     textColor="text-orange-500"
                     rscLabelColor="text-orange-500"
                   />

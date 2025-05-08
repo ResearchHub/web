@@ -23,7 +23,8 @@ interface FeedContentProps {
   tabs?: ReactNode;
   filters?: ReactNode; // New prop for source filters
   disableCardLinks?: boolean; // Optional prop to disable all card links
-  activeTab: FeedTab; // Add the activeTab prop
+  activeTab?: FeedTab; // Add the activeTab prop as optional
+  showBountyFooter?: boolean; // Prop to control bounty item footer visibility
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -36,6 +37,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   filters,
   disableCardLinks = false,
   activeTab, // Destructure activeTab
+  showBountyFooter = true, // Default to true
 }) => {
   // Generate appropriate href for each feed item type
   const generateHref = (entry: FeedEntry): string | undefined => {
@@ -116,6 +118,7 @@ export const FeedContent: FC<FeedContentProps> = ({
               relatedDocumentId={entry.relatedWork?.id}
               href={href}
               showContributeButton={false}
+              showFooter={showBountyFooter}
             />
           );
           break;

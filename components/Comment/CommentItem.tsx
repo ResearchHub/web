@@ -35,6 +35,7 @@ interface CommentItemProps {
   onCommentDelete?: (commentId: number) => void;
   showTooltips?: boolean;
   includeReplies?: boolean;
+  showDebugInfo?: boolean;
 }
 
 export const CommentItem = ({
@@ -45,6 +46,7 @@ export const CommentItem = ({
   onCommentDelete,
   showTooltips = true,
   includeReplies = true,
+  showDebugInfo = false,
 }: CommentItemProps) => {
   const {
     updateComment,
@@ -66,7 +68,6 @@ export const CommentItem = ({
   const [selectedSolution, setSelectedSolution] = useState<SolutionViewEvent | null>(null);
 
   const { user } = useUser();
-
   // Check if the current user is the author of the comment
   const isAuthor = user?.authorProfile?.id === comment?.createdBy?.authorProfile?.id;
 
@@ -207,19 +208,12 @@ export const CommentItem = ({
 
     // For bounty comments, use FeedItemBounty
     if (isBountyComment && comment.bounties) {
-      if (commentType === 'GENERIC_COMMENT') {
-        // Shim to skip showing bounties in conversation tab until we implement in API
-        return null;
-      }
-
       try {
         // Transform the comment to a feed entry for FeedItemBounty
         const feedEntry = transformBountyCommentToFeedItem(comment, contentType);
 
         // Create a custom href for the FeedItemBounty to prevent navigation
         const customHref = undefined; // Setting to undefined to prevent navigation
-        // Check if this is an open bounty
-        const isBountyOpen = comment.bounties.some((b) => isOpenBounty(b));
 
         return (
           <div className="space-y-4">
@@ -228,11 +222,13 @@ export const CommentItem = ({
               showSolutions={true}
               showRelatedWork={true}
               href={customHref}
+              hideActions={comment.isRemoved}
               showTooltips={showTooltips}
               isAuthor={isAuthor}
               showCreatorActions={isAuthor}
               onAward={() => setShowAwardModal(true)}
               onEdit={() => setEditingCommentId(comment.id)}
+              onReply={() => setReplyingToCommentId(comment.id)}
               onContributeSuccess={() => {
                 // After successful contribution, refresh the comments
                 forceRefresh();
@@ -263,6 +259,7 @@ export const CommentItem = ({
                   onCancel={() => setReplyingToCommentId(null)}
                   placeholder="Write your reply..."
                   autoFocus={true}
+                  isBountyReply={true}
                 />
               </div>
             )}
@@ -293,7 +290,7 @@ export const CommentItem = ({
           onDelete={() => handleDelete()}
           showCreatorActions={isAuthor}
           showTooltips={showTooltips}
-          hideActions={!includeReplies}
+          hideActions={!includeReplies || comment.isRemoved}
           actionLabels={{
             comment: 'Reply',
           }}
@@ -309,6 +306,7 @@ export const CommentItem = ({
               onCancel={() => setReplyingToCommentId(null)}
               placeholder="Write your reply..."
               autoFocus={true}
+              isBountyReply={false}
             />
           </div>
         )}
@@ -318,6 +316,16 @@ export const CommentItem = ({
 
   return (
     <div className="mt-4" id={`comment-${comment.id}`}>
+      {/* Debug information for comment ID */}
+      {showDebugInfo && (
+        <div className="bg-gray-100 p-2 mb-2 rounded-md border border-gray-300">
+          <span className="text-lg font-bold text-gray-700">Comment ID: {comment.id}</span>
+          {comment.parentId && (
+            <span className="ml-3 text-sm text-gray-500">(Reply to: {comment.parentId})</span>
+          )}
+        </div>
+      )}
+
       <style jsx global>{`
         /* Comment Content Styles */
         .prose blockquote {

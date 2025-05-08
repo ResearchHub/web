@@ -113,7 +113,7 @@ export const WorkLineItems = ({
             disabled={isVoting || isLoadingVotes}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
               isUpvoted
-                ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+                ? 'bg-green-50 text-green-600 hover:bg-green-100'
                 : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
             } ${isVoting || isLoadingVotes ? 'opacity-50 cursor-not-allowed' : ''}`}
           >

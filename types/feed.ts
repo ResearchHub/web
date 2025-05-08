@@ -176,6 +176,7 @@ export interface RawApiFeedEntry {
   created_date: string;
   action: string;
   action_date: string;
+  is_nonprofit?: boolean;
   user_vote?: {
     id: number;
     content_type: number;
@@ -282,6 +283,12 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
             relatedWork = transformPaper(content_object.paper);
           } catch (paperError) {
             console.error('Error transforming paper for bounty:', paperError);
+          }
+        } else if (content_object.post) {
+          try {
+            relatedWork = transformPost(content_object.post);
+          } catch (postError) {
+            console.error('Error transforming post for bounty:', postError);
           }
         }
 

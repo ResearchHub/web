@@ -1,10 +1,11 @@
 'use client';
 
-import { ArrowDownToLine, ArrowUpFromLine, Plus } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, Plus, Minus } from 'lucide-react';
 import { useState } from 'react';
 import { DepositModal } from '../modals/ResearchCoin/DepositModal';
 import { WithdrawModal } from '../modals/ResearchCoin/WithdrawModal';
-import { SwapModal } from '@/components/modals/ResearchCoin/SwapModal';
+import { BuyModal } from '@/components/modals/ResearchCoin/BuyModal';
+import { SellModal } from '@/components/modals/ResearchCoin/SellModal';
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { WalletDefault } from '@coinbase/onchainkit/wallet';
@@ -27,7 +28,8 @@ export function UserBalanceSection({
 }: UserBalanceSectionProps) {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
-  const [isSwapModalOpen, setIsSwapModalOpen] = useState(false);
+  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
+  const [isSellModalOpen, setIsSellModalOpen] = useState(false);
 
   // Check if wallet is connected
   const { isConnected } = useAccount();
@@ -72,13 +74,22 @@ export function UserBalanceSection({
                   <>
                     <div className="flex items-center gap-4">
                       <Button
-                        onClick={() => setIsSwapModalOpen(true)}
+                        onClick={() => setIsBuyModalOpen(true)}
                         variant="default"
                         size="lg"
                         className="gap-2 px-3 sm:px-4"
                       >
                         <Plus className="h-5 w-5" />
                         <span className="hidden sm:inline-block sm:flex-shrink-0">Buy RSC</span>
+                      </Button>
+                      <Button
+                        onClick={() => setIsSellModalOpen(true)}
+                        variant="default"
+                        size="lg"
+                        className="gap-2 px-3 sm:px-4"
+                      >
+                        <Minus className="h-5 w-5" />
+                        <span className="hidden sm:inline-block sm:flex-shrink-0">Sell RSC</span>
                       </Button>
                       <Button
                         onClick={() => setIsDepositModalOpen(true)}
@@ -109,7 +120,7 @@ export function UserBalanceSection({
                   <>
                     <div className="flex gap-4">
                       <p className="text-base text-gray-600">
-                        To purchase, deposit or withdraw RSC, start by connecting your wallet.
+                        To buy, sell, deposit or withdraw RSC, start by connecting your wallet.
                       </p>
                     </div>
                     <WalletDefault />
@@ -137,7 +148,8 @@ export function UserBalanceSection({
             availableBalance={balance?.raw || 0}
             onSuccess={onTransactionSuccess}
           />
-          <SwapModal isOpen={isSwapModalOpen} onClose={() => setIsSwapModalOpen(false)} />
+          <BuyModal isOpen={isBuyModalOpen} onClose={() => setIsBuyModalOpen(false)} />
+          <SellModal isOpen={isSellModalOpen} onClose={() => setIsSellModalOpen(false)} />
         </>
       )}
     </>

@@ -1,7 +1,8 @@
 import { ApiClient } from './client';
-import { ID } from '@/types/root';
+import { ID, transformUnifiedDocument } from '@/types/root';
 import { BountyType } from '@/types/bounty';
 import { FeedEntry, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
+import { Topic } from '@/types/topic';
 
 interface BountyAwardPayload {
   content_type: 'rhcommentmodel';
@@ -142,6 +143,7 @@ export class BountyService {
     onlyParentBounties?: boolean;
     page?: number;
     pageSize?: number;
+    hubIds?: (string | number)[]; // Array of hub IDs to filter by
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean; total: number }> {
     // Set default parameters
     const defaultParams = {
@@ -184,6 +186,15 @@ export class BountyService {
       queryParams.append('only_parent_bounties', defaultParams.only_parent_bounties.toString());
     }
 
+    // hub_ids parameters (can appear multiple times)
+    if (params?.hubIds && params.hubIds.length > 0) {
+      params.hubIds.forEach((id) => {
+        if (id !== undefined && id !== null) {
+          queryParams.append('hub_ids', id.toString());
+        }
+      });
+    }
+
     // Pagination parameters
     if (params?.page !== undefined) {
       queryParams.append('page', params.page.toString());
@@ -201,7 +212,6 @@ export class BountyService {
 
     try {
       const response = await ApiClient.get<FetchBountiesResponse>(url);
-
       // Transform the raw bounties into the format expected by transformFeedEntry
       const transformedEntries = response.results.map((rawBounty) => {
         // Map the raw bounty to the expected RawApiFeedEntry format
@@ -224,27 +234,47 @@ export class BountyService {
                   comment_type: rawBounty.item.comment_type,
                 }
               : undefined,
-            // Map the paper data if available
+            // Transform the unified document if available
             paper:
               rawBounty.unified_document && rawBounty.unified_document.document_type === 'PAPER'
-                ? {
-                    id: rawBounty.unified_document.documents.id,
-                    title: rawBounty.unified_document.documents.title,
-                    abstract: rawBounty.unified_document.documents.abstract,
-                    slug: rawBounty.unified_document.documents.slug,
-                    authors: rawBounty.unified_document.documents.authors,
-                    hub:
-                      rawBounty.hubs && rawBounty.hubs.length > 0 ? rawBounty.hubs[0] : undefined,
-                  }
+                ? (() => {
+                    const transformedDoc = transformUnifiedDocument(rawBounty.unified_document);
+                    return {
+                      id: transformedDoc?.document.id,
+                      title: transformedDoc?.document.title,
+                      abstract: transformedDoc?.document.abstract,
+                      slug: transformedDoc?.document.slug,
+                      authors: transformedDoc?.document.authors,
+                      hub:
+                        rawBounty.hubs && rawBounty.hubs.length > 0 ? rawBounty.hubs[0] : undefined,
+                    };
+                  })()
                 : undefined,
             // Map the post data if available
             post:
               rawBounty.unified_document && rawBounty.unified_document.document_type !== 'PAPER'
-                ? {
-                    id: rawBounty.unified_document.documents.id,
-                    title: rawBounty.unified_document.documents.title,
-                    slug: rawBounty.unified_document.documents.slug,
-                  }
+                ? (() => {
+                    const transformedDoc = transformUnifiedDocument(rawBounty.unified_document);
+                    return {
+                      id: transformedDoc?.document.id,
+                      title: transformedDoc?.document.title,
+                      slug: transformedDoc?.document.slug,
+                      abstract: transformedDoc?.document.abstract,
+                      // Required fields for transformPost / transformWork
+                      content_type: 'post',
+                      created_date: rawBounty.created_date,
+                      // Indicate PREREGISTRATION via type and unified_document
+                      type: rawBounty.unified_document.document_type,
+                      unified_document: {
+                        document_type: rawBounty.unified_document.document_type,
+                      },
+                      // Provide authors and hubs for richer transformation
+                      authors: transformedDoc?.document.authors,
+                      hubs: rawBounty.hubs,
+                      hub:
+                        rawBounty.hubs && rawBounty.hubs.length > 0 ? rawBounty.hubs[0] : undefined,
+                    };
+                  })()
                 : undefined,
             // Include hubs
             hubs: rawBounty.hubs,
@@ -290,6 +320,25 @@ export class BountyService {
         hasMore: false,
         total: 0,
       };
+    }
+  }
+
+  // Fetch all hubs available for bounties (no pagination, one call)
+  static async getBountyHubs(): Promise<Topic[]> {
+    const path = `${this.BASE_PATH}/bounty/hubs/`;
+    try {
+      const response = await ApiClient.get<any[]>(path);
+      // Use transformTopic to normalize
+      return response.map((raw) => ({
+        id: raw.id,
+        name: raw.name || '',
+        slug: raw.slug || '',
+        description: raw.description,
+        imageUrl: raw.hub_image || undefined,
+      }));
+    } catch (error) {
+      console.error('Error fetching bounty hubs', error);
+      return [];
     }
   }
 }
