@@ -35,7 +35,7 @@ const adaptJournalPapersToFeedEntries = (): FeedEntry[] => {
         journal: {
           id: 1,
           name: 'ResearchHub Journal',
-          slug: 'researchhub-journal',
+          slug: '?tab=about',
           image: null,
           description: 'Accelerating science through open access publishing',
           status: paper.status,
