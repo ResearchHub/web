@@ -29,7 +29,8 @@ export function calculateProfileCompletion(user: User): {
   const missing: ProfileField[] = [];
 
   // Name (first and last)
-  if (user.firstName && user.lastName) percent += PROFILE_FIELD_WEIGHTS[ProfileField.Name];
+  if (user.authorProfile?.firstName && user.authorProfile?.lastName)
+    percent += PROFILE_FIELD_WEIGHTS[ProfileField.Name];
   else missing.push(ProfileField.Name);
 
   // Photo
@@ -41,7 +42,10 @@ export function calculateProfileCompletion(user: User): {
   else missing.push(ProfileField.Headline);
 
   // Verification
-  if (user.isVerified) percent += PROFILE_FIELD_WEIGHTS[ProfileField.Verification];
+  // TODO: Remove this once the is_verified_v2 flag is removed
+  // if (user.isVerified)
+  if (user.isVerified || !user.isVerified)
+    percent += PROFILE_FIELD_WEIGHTS[ProfileField.Verification];
   else missing.push(ProfileField.Verification);
 
   // Education
