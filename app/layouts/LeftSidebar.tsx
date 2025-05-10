@@ -125,7 +125,7 @@ const UserSidebarSection = ({ forceMinimize = false }: { forceMinimize?: boolean
             className={`flex items-center min-w-0 ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
           >
             <div className="text-[14px] font-medium text-gray-800 group-hover:text-gray-900 truncate">
-              {user.firstName}
+              {user.authorProfile?.firstName || user.firstName}
             </div>
             <ChevronDown
               size={16}

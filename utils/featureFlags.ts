@@ -76,7 +76,15 @@ export function isProduction(): boolean {
 export const FeatureFlags: Record<FeatureFlag, () => boolean> = {
   [FeatureFlag.NonprofitIntegration]: () => true,
   [FeatureFlag.LegacyNoteBanner]: () => true,
-  [FeatureFlag.SimplifiedOnboarding]: () => true,
+  [FeatureFlag.SimplifiedOnboarding]: () => {
+    // Never enable in production, regardless of overrides
+    if (isProduction()) return false;
+
+    const local = getLocalStorageFlag(FeatureFlag.SimplifiedOnboarding);
+    if (typeof local === 'boolean') return local;
+
+    return false;
+  },
 };
 
 /**

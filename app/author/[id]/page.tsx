@@ -24,6 +24,8 @@ import { formatTimeAgo } from '@/utils/date';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { AuthorProfile } from '@/types/authorProfile';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
+import { useRouter } from 'next/navigation';
+import { isProduction } from '@/utils/featureFlags';
 
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
@@ -288,6 +290,14 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const { isLoading: isUserLoading, error: userError } = useUser();
   const authorId = toNumberOrNull(resolvedParams.id);
   const [{ author: user, isLoading, error }, refetchAuthorInfo] = useAuthorInfo(authorId);
+  const router = useRouter();
+
+  // TODO: Remove it when the page is ready for production
+  useEffect(() => {
+    if (isProduction()) {
+      router.push('/');
+    }
+  }, [router]);
 
   return (
     <Card className="mt-4 bg-gray-50">
