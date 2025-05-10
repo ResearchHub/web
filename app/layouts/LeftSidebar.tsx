@@ -106,7 +106,7 @@ const UserSidebarSection = ({ forceMinimize = false }: { forceMinimize?: boolean
         {/* Left side: Avatar, Name and Caret */}
         <div
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className={`flex items-center cursor-pointer transition-colors hover:bg-gray-100 ${forceMinimize ? 'p-0' : 'p-1 pr-2 pl-2'} rounded-lg group flex-shrink min-w-0`}
+          className={`flex items-center cursor-pointer transition-colors ${forceMinimize ? 'p-0' : 'p-1 pr-2 pl-2'} rounded-lg group flex-shrink min-w-0`}
         >
           <div
             className="flex-shrink-0 mr-2 tablet:max-sidebar-compact:!mr-0 tablet:max-sidebar-compact:!scale-125"
@@ -125,7 +125,7 @@ const UserSidebarSection = ({ forceMinimize = false }: { forceMinimize?: boolean
             className={`flex items-center min-w-0 ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
           >
             <div className="text-[14px] font-medium text-gray-800 group-hover:text-gray-900 truncate">
-              {user.firstName}
+              {user.authorProfile?.firstName || user.firstName}
             </div>
             <ChevronDown
               size={16}

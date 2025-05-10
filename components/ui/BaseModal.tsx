@@ -15,6 +15,8 @@ interface BaseModalProps {
   maxWidth?: string; // e.g., 'max-w-md', 'max-w-xl', 'max-w-4xl'
   showCloseButton?: boolean;
   padding?: string; // e.g., 'p-4', 'p-6', 'p-8'
+  footer?: ReactNode;
+  headerAction?: ReactNode;
 }
 
 export const BaseModal: FC<BaseModalProps> = ({
@@ -26,18 +28,28 @@ export const BaseModal: FC<BaseModalProps> = ({
   maxWidth = 'max-w-tablet', // Default max width for larger screens
   showCloseButton = true,
   padding = 'p-6', // Default padding
+  footer,
+  headerAction,
 }) => {
   const headerRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
+  const [footerHeight, setFooterHeight] = useState(0);
 
   useLayoutEffect(() => {
     if (headerRef.current) {
       setHeaderHeight(headerRef.current.offsetHeight);
     }
+    if (footerRef.current) {
+      setFooterHeight(footerRef.current.offsetHeight);
+    }
 
     const handleResize = () => {
       if (headerRef.current) {
         setHeaderHeight(headerRef.current.offsetHeight);
+      }
+      if (footerRef.current) {
+        setFooterHeight(footerRef.current.offsetHeight);
       }
     };
     window.addEventListener('resize', handleResize);
@@ -86,20 +98,25 @@ export const BaseModal: FC<BaseModalProps> = ({
                   // Only apply max width on md and up
                   `md:${maxWidth}`
                 )}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  maxHeight: '100vh',
+                }}
               >
                 {(showCloseButton || title) && (
                   <div ref={headerRef} className="relative">
                     {/* Header with close button - only show for non-INTRO steps */}
                     <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                      {title ? (
-                        <div className="flex items-center">
-                          <Dialog.Title as="h2" className="text-lg font-medium text-gray-900">
+                      {/* Left: headerAction */}
+                      <div className="flex items-center">
+                        {headerAction}
+                        {title && (
+                          <Dialog.Title as="h2" className="text-lg font-medium text-gray-900 ml-2">
                             {title}
                           </Dialog.Title>
-                        </div>
-                      ) : (
-                        <div />
-                      )}
+                        )}
+                      </div>
                       {showCloseButton && (
                         <Button
                           onClick={onClose}
@@ -116,16 +133,25 @@ export const BaseModal: FC<BaseModalProps> = ({
                 )}
                 {/* Modal Content */}
                 <div
-                  className={cn(padding)}
+                  className={cn(padding, 'flex-1 overflow-y-auto')}
                   style={{
-                    maxHeight: headerHeight
-                      ? `calc(100vh - ${headerHeight}px)`
-                      : 'calc(100vh - 72px)', // fallback (40+16+16)
-                    overflowY: 'auto',
+                    maxHeight: `calc(100vh - ${headerHeight + footerHeight}px)`,
                   }}
                 >
                   {children}
                 </div>
+                {/* Sticky Footer */}
+                {footer && (
+                  <div
+                    ref={footerRef}
+                    className="border-t border-gray-200 px-6 py-4 bg-white sticky bottom-0 z-10"
+                    style={{
+                      boxShadow: '0 -4px 12px -4px rgba(0,0,0,0.10)', // Only top shadow
+                    }}
+                  >
+                    {footer}
+                  </div>
+                )}
               </Dialog.Panel>
             </Transition.Child>
           </div>

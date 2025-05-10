@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useId } from 'react';
 import { ProfileInformationForm } from '@/components/Onboarding/ProfileInformationForm';
 import { ProfileInformationFormValues } from '@/components/Onboarding/ProfileInformationForm/schema';
 import { useState, useEffect } from 'react';
@@ -24,6 +24,8 @@ import { formatTimeAgo } from '@/utils/date';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { AuthorProfile } from '@/types/authorProfile';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
+import { useRouter } from 'next/navigation';
+import { isProduction } from '@/utils/featureFlags';
 
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
@@ -89,6 +91,7 @@ function AuthorProfileCard({
   author: AuthorProfile;
   refetchAuthorInfo: () => Promise<void>;
 }) {
+  const formId = useId();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { user: currentUser, refreshUser } = useUser();
   const isOwnProfile = currentUser?.authorProfile?.id === author.id;
@@ -154,6 +157,7 @@ function AuthorProfileCard({
             profileCompletionPercent={percent}
             showProfileCompletionNumber
             missing={missing}
+            showTooltip
           />
         </div>
 
@@ -267,13 +271,14 @@ function AuthorProfileCard({
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         title="Edit Profile"
+        footer={
+          <Button type="submit" form={formId} disabled={updateLoading} className="w-full">
+            {updateLoading ? 'Saving...' : 'Save Changes'}
+          </Button>
+        }
       >
         <div className="min-w-0  max-w-md w-full mx-auto">
-          <ProfileInformationForm
-            onSubmit={handleProfileFormSubmit}
-            submitLabel="Save Changes"
-            loading={updateLoading}
-          />
+          <ProfileInformationForm onSubmit={handleProfileFormSubmit} formId={formId} />
         </div>
       </BaseModal>
     </>
@@ -285,6 +290,14 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const { isLoading: isUserLoading, error: userError } = useUser();
   const authorId = toNumberOrNull(resolvedParams.id);
   const [{ author: user, isLoading, error }, refetchAuthorInfo] = useAuthorInfo(authorId);
+  const router = useRouter();
+
+  // TODO: Remove it when the page is ready for production
+  useEffect(() => {
+    if (isProduction()) {
+      router.push('/');
+    }
+  }, [router]);
 
   return (
     <Card className="mt-4 bg-gray-50">
