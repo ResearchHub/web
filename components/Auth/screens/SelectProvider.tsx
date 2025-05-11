@@ -67,7 +67,20 @@ export default function SelectProvider({
 
   return (
     <div>
-      {showHeader && <h2 className="text-xl font-semibold mb-6">Welcome to ResearchHub</h2>}
+      {showHeader && (
+        <>
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+            Welcome to ResearchHub{' '}
+            <span role="img" aria-label="wave">
+              👋
+            </span>
+          </h2>
+          <p className="mt-2 mb-6 text-base text-gray-700">
+            We are an open-science platform that enables discussions, peer-reviews, publications and
+            more.
+          </p>
+        </>
+      )}
 
       {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">{error}</div>}
 
@@ -84,7 +97,7 @@ export default function SelectProvider({
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-blue-600 text-white p-3 rounded mb-4 hover:bg-blue-700 disabled:opacity-50"
+          className="w-full bg-indigo-600 text-white p-3 rounded mb-4 hover:bg-indigo-700 disabled:opacity-50"
         >
           {isLoading ? 'Loading...' : 'Continue'}
         </button>
