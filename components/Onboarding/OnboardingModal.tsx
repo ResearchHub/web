@@ -152,8 +152,8 @@ export function OnboardingModal() {
               </h2>
               <ProfileInformationForm
                 onSubmit={handleProfileFormSubmit}
-                simplifiedView={true}
                 formId={formId}
+                fields={['first_name', 'last_name', 'headline']}
               />
             </>
           )}

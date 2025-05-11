@@ -3,6 +3,8 @@ import { AuthService } from '@/services/auth.service';
 import { ApiError } from '@/services/types/api';
 import { BaseScreenProps } from '../types';
 import { Eye, EyeOff } from 'lucide-react';
+import { useAutoFocus } from '@/hooks/useAutoFocus';
+import { parseFullName } from '@/utils/nameUtils';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
@@ -23,21 +25,15 @@ export default function Signup({
   onBack,
   onVerify,
 }: Props) {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const fullNameInputRef = useAutoFocus<HTMLInputElement>(true);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firstName || !lastName) {
+    if (!fullName) {
       setError('Please fill in all fields');
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
       return;
     }
 
@@ -45,16 +41,17 @@ export default function Signup({
     setError(null);
 
     try {
+      const { firstName, lastName } = parseFullName(fullName);
       await AuthService.register({
         email,
         password1: password,
-        password2: confirmPassword,
+        password2: password,
         first_name: firstName,
         last_name: lastName,
       });
       onVerify();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Signup failed');
+      setError(err instanceof Error ? err.message : 'Signup failed');
     } finally {
       setIsLoading(false);
     }
@@ -67,22 +64,14 @@ export default function Signup({
       {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">{error}</div>}
 
       <form onSubmit={handleSignup}>
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <input
-            type="text"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            placeholder="First name"
-            className="p-3 border rounded"
-          />
-          <input
-            type="text"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            placeholder="Last name"
-            className="p-3 border rounded"
-          />
-        </div>
+        <input
+          type="text"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          placeholder="Full name (e.g. John Smith)"
+          className="w-full p-3 border rounded mb-4"
+          ref={fullNameInputRef}
+        />
 
         <input
           type="email"
@@ -105,23 +94,6 @@ export default function Signup({
             className="absolute right-3 top-[50%] -translate-y-[50%] text-gray-500 hover:text-gray-700"
           >
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-          </button>
-        </div>
-
-        <div className="relative mb-4">
-          <input
-            type={showConfirmPassword ? 'text' : 'password'}
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Confirm password"
-            className="w-full p-3 border rounded pr-12"
-          />
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-3 top-[50%] -translate-y-[50%] text-gray-500 hover:text-gray-700"
-          >
-            {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>
         </div>
 

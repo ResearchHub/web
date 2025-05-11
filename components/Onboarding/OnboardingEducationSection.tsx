@@ -27,10 +27,6 @@ export function OnboardingEducationSection({
   // Update interface usage
   return (
     <div className="space-y-2">
-      <div className="flex justify-between items-center">
-        <label className="block text-sm font-medium text-gray-700">Education</label>
-      </div>
-
       {education.length > 0 ? (
         <div className="space-y-2">
           {education.map((edu, index) => (

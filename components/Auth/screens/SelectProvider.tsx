@@ -2,8 +2,7 @@ import { signIn } from 'next-auth/react';
 import { AuthService } from '@/services/auth.service';
 import { ApiError } from '@/services/types/api';
 import { isValidEmail } from '@/utils/validation';
-import { BaseScreenProps } from '../types';
-
+import { useAutoFocus } from '@/hooks/useAutoFocus';
 interface SelectProviderProps {
   onContinue: () => void;
   onSignup: () => void;
@@ -25,6 +24,8 @@ export default function SelectProvider({
   setError,
   showHeader = true,
 }: SelectProviderProps) {
+  const emailInputRef = useAutoFocus<HTMLInputElement>(true);
+
   const handleCheckAccount = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!isValidEmail(email)) {
@@ -77,7 +78,7 @@ export default function SelectProvider({
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email"
           className="w-full p-3 border rounded mb-4"
-          autoFocus
+          ref={emailInputRef}
         />
 
         <button

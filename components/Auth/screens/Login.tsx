@@ -3,6 +3,7 @@ import { BaseScreenProps } from '../types';
 import { Eye, EyeOff } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
+import { useAutoFocus } from '@/hooks/useAutoFocus';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
@@ -25,6 +26,7 @@ export default function Login({
   const [showPassword, setShowPassword] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
+  const passwordInputRef = useAutoFocus<HTMLInputElement>(true);
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!password) {
@@ -84,7 +86,7 @@ export default function Login({
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             className="w-full p-3 border rounded pr-12"
-            autoFocus
+            ref={passwordInputRef}
           />
           <Button
             type="button"

@@ -16,7 +16,7 @@ function SignInContent() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="text-center mb-8">
         <Image
-          src="/images/logo.png"
+          src="/RSC.webp"
           alt="ResearchHub Logo"
           width={48}
           height={48}
