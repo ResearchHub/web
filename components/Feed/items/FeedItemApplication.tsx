@@ -1,19 +1,54 @@
 'use client';
 
 import { FC } from 'react';
-import { FeedEntry, FeedApplicationContent, FeedPostContent, AuthorProfile } from '@/types/feed';
+import {
+  FeedEntry,
+  FeedApplicationContent,
+  FeedPostContent,
+  AuthorProfile,
+  FeedContentType,
+  Review,
+} from '@/types/feed';
+import { UserVoteType } from '@/types/reaction';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Building, Users } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
-import { Work, AuthorPosition } from '@/types/work';
+import { Work, AuthorPosition, ContentType } from '@/types/work';
+import { FeedItemActions, ExtendedContentMetrics } from '@/components/Feed/FeedItemActions';
+import { Tip } from '@/types/tip';
+import { Bounty } from '@/types/bounty';
 
 interface FeedItemApplicationProps {
   entry: FeedEntry;
+  metrics?: Partial<ExtendedContentMetrics>;
+  feedContentType: FeedContentType;
+  votableEntityId: number;
+  relatedDocumentId?: number;
+  relatedDocumentContentType?: ContentType;
+  userVote?: UserVoteType;
+  href?: string;
+  reviews?: Review[];
+  bounties?: Bounty[];
+  tips?: Tip[];
+  awardedBountyAmount?: number;
 }
 
-export const FeedItemApplication: FC<FeedItemApplicationProps> = ({ entry }) => {
+export const FeedItemApplication: FC<FeedItemApplicationProps> = ({
+  entry,
+  metrics,
+  feedContentType,
+  votableEntityId,
+  relatedDocumentId,
+  relatedDocumentContentType,
+  userVote,
+  href,
+  reviews,
+  bounties,
+  tips,
+  awardedBountyAmount,
+}) => {
   const applicationContent = entry.content as FeedApplicationContent;
   const { createdBy, createdDate, applicationDetails, preregistration } = applicationContent;
 
@@ -94,6 +129,22 @@ export const FeedItemApplication: FC<FeedItemApplicationProps> = ({ entry }) => 
             fundraiseData={preregistration.fundraise}
             size="sm"
           />
+          <div className="mt-4 pt-3 border-t border-gray-200">
+            <FeedItemActions
+              metrics={metrics}
+              feedContentType={feedContentType}
+              votableEntityId={votableEntityId}
+              relatedDocumentId={relatedDocumentId}
+              relatedDocumentContentType={relatedDocumentContentType}
+              userVote={userVote}
+              href={href}
+              reviews={reviews}
+              bounties={bounties}
+              tips={tips}
+              awardedBountyAmount={awardedBountyAmount}
+              hideCommentButton={!href}
+            />
+          </div>
         </div>
       </div>
     </div>

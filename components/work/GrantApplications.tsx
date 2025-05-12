@@ -12,8 +12,15 @@ import {
   ApplicationDetails,
   FeedApplicationContent,
   AuthorProfile,
+  FeedContentType,
 } from '@/types/feed';
 import { FeedItemApplication } from '@/components/Feed/items/FeedItemApplication';
+import {
+  ApplyToGrantModal,
+  PreregistrationForModal,
+  mockPreregistrations,
+} from '@/components/modals/ApplyToGrantModal';
+import { ContentType } from '@/types/work';
 
 interface GrantApplicationsProps {
   grantId: number;
@@ -237,6 +244,8 @@ const mockRawApplicationsData: MockApplicationRawData[] = [
  */
 export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
   const [sortBy, setSortBy] = useState<string>('personalized');
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [selectedPreregId, setSelectedPreregId] = useState<string | null>(null);
 
   const entries = useMemo(() => {
     try {
@@ -305,6 +314,23 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
     }
   }, []);
 
+  const handleUseSelectedPrereg = (prereg: PreregistrationForModal) => {
+    console.log(
+      'Apply using selected preregistration from GrantApplications:',
+      prereg,
+      'for grantId:',
+      grantId
+    );
+    setIsApplyModalOpen(false);
+    setSelectedPreregId(null);
+  };
+
+  const handleDraftNewPrereg = () => {
+    console.log('Draft new preregistration from GrantApplications for grantId:', grantId);
+    setIsApplyModalOpen(false);
+    setSelectedPreregId(null);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Row with bottom divider */}
@@ -313,28 +339,43 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
         <SortDropdown value={sortBy} onChange={(opt) => setSortBy(opt.value)} className="w-auto" />
 
         {/* CTA (right) */}
-        <BaseMenu
-          trigger={
-            <Button size="sm" className="flex items-center gap-1">
-              <Plus className="h-4 w-4" /> Submit Application <ChevronDown className="h-4 w-4" />
-            </Button>
-          }
-          align="end"
-          sideOffset={4}
+        <Button
+          size="sm"
+          className="flex items-center gap-1"
+          onClick={() => {
+            setSelectedPreregId(null);
+            setIsApplyModalOpen(true);
+          }}
         >
-          <BaseMenuItem onSelect={() => console.log('new-prereg')}>
-            Add new preregistration
-          </BaseMenuItem>
-          <BaseMenuItem onSelect={() => console.log('submit-existing')}>
-            Submit existing preregistration
-          </BaseMenuItem>
-        </BaseMenu>
+          <Plus className="h-4 w-4" /> Submit Application
+        </Button>
       </div>
 
       {/* Render Application Feed Items */}
-      {entries.map((entry) => (
-        <FeedItemApplication key={entry.id} entry={entry} />
-      ))}
+      {entries.map((entry) => {
+        const appContent = entry.content as FeedApplicationContent;
+        const preregSlug = appContent.preregistration?.slug;
+        const href = preregSlug ? `/post/${preregSlug}` : undefined;
+
+        return (
+          <div key={entry.id} className="mb-4">
+            <FeedItemApplication
+              entry={entry}
+              metrics={entry.metrics}
+              feedContentType={entry.contentType as FeedContentType}
+              votableEntityId={appContent.id}
+              relatedDocumentId={appContent.preregistration.id}
+              relatedDocumentContentType={'post' as ContentType}
+              href={href}
+              userVote={undefined}
+              reviews={[]}
+              bounties={[]}
+              tips={[]}
+              awardedBountyAmount={0}
+            />
+          </div>
+        );
+      })}
 
       {/* Fallback if no entries, or if FeedContent is preferred later for loading/hasMore states */}
       {/* <FeedContent
@@ -344,6 +385,16 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
         loadMore={() => {}} 
         activeTab={undefined as any} 
       /> */}
+
+      <ApplyToGrantModal
+        isOpen={isApplyModalOpen}
+        onClose={() => setIsApplyModalOpen(false)}
+        preregistrations={mockPreregistrations} // Using mock data for now
+        selectedPreregId={selectedPreregId}
+        onSelectPreregId={setSelectedPreregId}
+        onUseSelected={handleUseSelectedPrereg}
+        onDraftNew={handleDraftNewPrereg}
+      />
     </div>
   );
 };

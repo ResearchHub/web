@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Textarea } from '@/components/ui/form/Textarea';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
-import { Icon } from '@/components/ui/icons/Icon';
 import {
   DollarSign,
   CalendarDays,
@@ -38,9 +37,7 @@ export default function CreateGrantPage() {
   };
 
   const handleSubmit = () => {
-    // Handle form submission logic
     console.log({
-      // Basic console log for now
       objectives,
       fundingAmount,
       fundingTimeline,
@@ -48,13 +45,11 @@ export default function CreateGrantPage() {
       contactPreference,
       contactDetail,
     });
-    // Potentially call a service, show toast, and navigate
   };
 
   return (
     <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
       <div className="w-full max-w-3xl mx-auto space-y-8 py-8">
-        {/* Header */}
         <div className="text-center pb-8">
           <div className="flex flex-col items-center gap-3">
             <h1 className="text-4xl font-bold text-gray-900">Open a Grant</h1>
@@ -64,7 +59,6 @@ export default function CreateGrantPage() {
 
         {!showForm && (
           <>
-            {/* Get Started Button (Moved Above) */}
             <div className="text-center pt-4 mb-8">
               <Button
                 size="lg"
@@ -75,7 +69,6 @@ export default function CreateGrantPage() {
               </Button>
             </div>
 
-            {/* Benefits Banner (Teaser Step) */}
             <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-1 rounded-xl shadow-lg my-8">
               <div className="bg-white p-6 md:p-8 rounded-lg space-y-6">
                 <h2 className="text-3xl font-bold text-center text-gray-800">
@@ -166,9 +159,7 @@ export default function CreateGrantPage() {
 
         {showForm && (
           <>
-            {/* Form Sections will go here */}
             <div className="space-y-10">
-              {/* Objectives Section */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Target size={20} className="text-gray-600" />
@@ -186,7 +177,6 @@ export default function CreateGrantPage() {
                 />
               </div>
 
-              {/* Funding Amount Section */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <DollarSign size={20} className="text-gray-600" />
@@ -204,7 +194,6 @@ export default function CreateGrantPage() {
                 />
               </div>
 
-              {/* Funding Timeline Section */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <CalendarDays size={20} className="text-gray-600" />
@@ -236,7 +225,6 @@ export default function CreateGrantPage() {
                 </Dropdown>
               </div>
 
-              {/* Expert Help Section */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Users size={20} className="text-gray-600" />
@@ -268,7 +256,6 @@ export default function CreateGrantPage() {
                 </div>
               </div>
 
-              {/* Contact Preference Section (Conditional) */}
               {needsExpertHelp && (
                 <div className="space-y-4 pt-4 border-t border-gray-200 mt-6">
                   <div className="space-y-2">
@@ -337,14 +324,8 @@ export default function CreateGrantPage() {
                 </div>
               )}
 
-              {/* Submit Button */}
               <div className="pt-6 border-t border-gray-200">
-                <Button
-                  size="lg"
-                  className="w-full"
-                  onClick={handleSubmit}
-                  // Add disabled logic based on required fields if necessary
-                >
+                <Button size="lg" className="w-full" onClick={handleSubmit}>
                   Submit Grant Application
                 </Button>
               </div>
