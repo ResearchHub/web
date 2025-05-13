@@ -76,6 +76,7 @@ export default function SelectProvider({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email"
+          autoCapitalize="none"
           className="w-full p-3 border rounded mb-4"
           autoFocus
         />
