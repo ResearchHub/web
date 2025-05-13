@@ -11,7 +11,7 @@ import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import Icon from '@/components/ui/icons/Icon';
 
 export default function FundingPage() {
-  const [activeTab, setActiveTab] = useState<FundingTab>('all');
+  const [activeTab, setActiveTab] = useState<FundingTab>('open');
 
   // Determine the fundraiseStatus based on the active tab
   const getFundraiseStatus = (tab: FundingTab): 'OPEN' | 'CLOSED' | undefined => {
