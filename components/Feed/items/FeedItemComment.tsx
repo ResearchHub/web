@@ -213,6 +213,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
       {/* Header */}
       <FeedItemHeader
         timestamp={commentEntry.createdDate}
+        updatedTimestamp={commentEntry.updatedDate}
         author={author}
         actionText={isReview ? `submitted a peer review` : 'added a comment'}
       />

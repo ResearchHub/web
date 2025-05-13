@@ -20,6 +20,7 @@ interface Contributor {
 
 interface FeedItemHeaderProps {
   timestamp: string | Date;
+  updatedTimestamp?: string | Date;
   className?: string;
   size?: 'xs' | 'sm' | 'md';
   author?: AuthorProfile;
@@ -32,6 +33,7 @@ interface FeedItemHeaderProps {
 
 export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   timestamp,
+  updatedTimestamp,
   className,
   size = 'sm',
   author,
@@ -43,6 +45,12 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
 }) => {
   // Format date consistently
   const formattedDate = timestamp instanceof Date ? timestamp : new Date(timestamp);
+  const formattedUpdatedDate =
+    updatedTimestamp instanceof Date
+      ? updatedTimestamp
+      : updatedTimestamp
+        ? new Date(updatedTimestamp)
+        : null;
 
   // Determine avatar size based on the size prop
   const avatarSize = size === 'xs' ? 'xs' : size === 'md' ? 'md' : 'sm';
@@ -95,6 +103,14 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
                 {formatTimeAgo(formattedDate.toISOString())}
               </span>
             </Tooltip>
+            {formattedUpdatedDate &&
+              formattedUpdatedDate.toISOString() !== formattedDate.toISOString() && (
+                <Tooltip content={`Edited: ${formattedUpdatedDate.toLocaleString()}`}>
+                  <span className="text-gray-400 text-xs cursor-default ml-1">
+                    (Edited: {formatTimeAgo(formattedUpdatedDate.toISOString())})
+                  </span>
+                </Tooltip>
+              )}
           </div>
         </div>
       </div>
