@@ -104,7 +104,8 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
               </span>
             </Tooltip>
             {formattedUpdatedDate &&
-              formattedUpdatedDate.toISOString() !== formattedDate.toISOString() && (
+              formattedUpdatedDate.getTime() !== formattedDate.getTime() &&
+              formattedUpdatedDate.getTime() - formattedDate.getTime() > 60000 && (
                 <Tooltip content={`Edited: ${formattedUpdatedDate.toLocaleString()}`}>
                   <span className="text-gray-400 text-xs cursor-default ml-1">
                     (Edited: {formatTimeAgo(formattedUpdatedDate.toISOString())})
