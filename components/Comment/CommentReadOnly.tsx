@@ -232,15 +232,21 @@ export const CommentReadOnly = ({
           {renderedContent}
         </div>
         {((shouldTruncate && showReadMoreButton) || showEditedStatus) && (
-          <div className="flex items-center space-x-2 mt-1">
-            {shouldTruncate && showReadMoreButton && (
+          <div className="flex items-center justify-between mt-1">
+            {/* Left side: Button or Spacer */}
+            {shouldTruncate && showReadMoreButton ? (
               <button
                 className="text-blue-600 hover:text-blue-800 hover:underline text-sm cursor-pointer"
                 onClick={() => setIsExpanded(!isExpanded)}
               >
                 {isExpanded ? 'Show less' : 'Read more'}
               </button>
-            )}
+            ) : showEditedStatus ? (
+              /* Spacer to push edited status to the right if no button */
+              <div />
+            ) : null}
+
+            {/* Right side: Edited Status */}
             {showEditedStatus && (
               <Tooltip content={editedTooltipContent}>
                 <span className="text-xs text-gray-500 cursor-default">
