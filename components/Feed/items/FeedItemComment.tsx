@@ -269,9 +269,20 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
             />
           </div>
 
+          {/* Edited Timestamp - Placed after body, before actions */}
+          {showEditedStatus && (
+            <div className="flex justify-end -mt-2 mb-3">
+              <Tooltip content={editedTooltipContent}>
+                <span className="text-xs text-gray-500 cursor-default">
+                  (Edited: {editedTimestampString})
+                </span>
+              </Tooltip>
+            </div>
+          )}
+
           {/* Action Buttons - Full width */}
           {!hideActions && (
-            <div className="mt-4 pt-3 border-t border-gray-200">
+            <div className="pt-3 border-t border-gray-200">
               <div onClick={(e) => e.stopPropagation()}>
                 {/* Standard Feed Item Actions with Reply functionality */}
                 <FeedItemActions
@@ -289,17 +300,6 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                   tips={entry.tips}
                 />
               </div>
-            </div>
-          )}
-
-          {/* Edited Timestamp - Bottom Right */}
-          {showEditedStatus && (
-            <div className="flex justify-end mt-2">
-              <Tooltip content={editedTooltipContent}>
-                <span className="text-xs text-gray-500 cursor-default">
-                  (Edited: {editedTimestampString})
-                </span>
-              </Tooltip>
             </div>
           )}
         </div>
