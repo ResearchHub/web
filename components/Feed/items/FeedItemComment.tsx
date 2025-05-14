@@ -85,7 +85,16 @@ const FeedItemCommentBody: FC<{
   parentComment?: ParentCommentPreview;
   showRelatedWork?: boolean;
   showReadMoreCTA?: boolean;
-}> = ({ entry, parentComment, showRelatedWork = true, showReadMoreCTA = true }) => {
+  createdDate?: string | Date;
+  updatedDate?: string | Date;
+}> = ({
+  entry,
+  parentComment,
+  showRelatedWork = true,
+  showReadMoreCTA = true,
+  createdDate,
+  updatedDate,
+}) => {
   // Extract the comment entry from the entry's content
   const commentEntry = entry.content as FeedCommentContent;
   const comment = commentEntry.comment;
@@ -111,6 +120,8 @@ const FeedItemCommentBody: FC<{
           contentFormat={comment.contentFormat}
           initiallyExpanded={false}
           showReadMoreButton={showReadMoreCTA}
+          createdDate={createdDate}
+          updatedDate={updatedDate}
         />
       </div>
 
@@ -210,23 +221,6 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   // Determine if card should have clickable styles
   const isClickable = !!href;
 
-  // Logic for displaying "Edited" timestamp
-  const createdDate = new Date(commentEntry.createdDate);
-  const updatedDate = commentEntry.updatedDate ? new Date(commentEntry.updatedDate) : null;
-  let showEditedStatus = false;
-  let editedTimestampString = '';
-  let editedTooltipContent = '';
-
-  if (
-    updatedDate &&
-    updatedDate.getTime() !== createdDate.getTime() &&
-    updatedDate.getTime() - createdDate.getTime() > 60000
-  ) {
-    showEditedStatus = true;
-    editedTimestampString = formatTimeAgo(updatedDate.toISOString());
-    editedTooltipContent = `Edited: ${updatedDate.toLocaleString()}`;
-  }
-
   return (
     <div className="space-y-3">
       {/* Header */}
@@ -266,19 +260,10 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
               parentComment={parentComment}
               showRelatedWork={showRelatedWork}
               showReadMoreCTA={showReadMoreCTA}
+              createdDate={commentEntry.createdDate}
+              updatedDate={commentEntry.updatedDate}
             />
           </div>
-
-          {/* Edited Timestamp - Placed after body, before actions */}
-          {showEditedStatus && (
-            <div className="flex justify-start -mt-2 mb-3">
-              <Tooltip content={editedTooltipContent}>
-                <span className="text-xs text-gray-500 cursor-default">
-                  (Edited: {editedTimestampString})
-                </span>
-              </Tooltip>
-            </div>
-          )}
 
           {/* Action Buttons - Full width */}
           {!hideActions && (
