@@ -271,7 +271,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
 
           {/* Edited Timestamp - Placed after body, before actions */}
           {showEditedStatus && (
-            <div className="flex justify-end -mt-2 mb-3">
+            <div className="flex justify-start -mt-2 mb-3">
               <Tooltip content={editedTooltipContent}>
                 <span className="text-xs text-gray-500 cursor-default">
                   (Edited: {editedTimestampString})
