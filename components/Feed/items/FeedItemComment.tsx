@@ -15,6 +15,8 @@ import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 import { Avatar } from '@/components/ui/Avatar';
 import { LegacyCommentBanner } from '@/components/LegacyCommentBanner';
+import { formatTimeAgo } from '@/utils/date';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 // Define the recursive rendering component for parent comments
 const RenderParentComment: FC<{ comment: ParentCommentPreview; level: number }> = ({
@@ -208,12 +210,28 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   // Determine if card should have clickable styles
   const isClickable = !!href;
 
+  // Logic for displaying "Edited" timestamp
+  const createdDate = new Date(commentEntry.createdDate);
+  const updatedDate = commentEntry.updatedDate ? new Date(commentEntry.updatedDate) : null;
+  let showEditedStatus = false;
+  let editedTimestampString = '';
+  let editedTooltipContent = '';
+
+  if (
+    updatedDate &&
+    updatedDate.getTime() !== createdDate.getTime() &&
+    updatedDate.getTime() - createdDate.getTime() > 60000
+  ) {
+    showEditedStatus = true;
+    editedTimestampString = formatTimeAgo(updatedDate.toISOString());
+    editedTooltipContent = `Edited: ${updatedDate.toLocaleString()}`;
+  }
+
   return (
     <div className="space-y-3">
       {/* Header */}
       <FeedItemHeader
         timestamp={commentEntry.createdDate}
-        updatedTimestamp={commentEntry.updatedDate}
         author={author}
         actionText={isReview ? `submitted a peer review` : 'added a comment'}
       />
@@ -271,6 +289,17 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                   tips={entry.tips}
                 />
               </div>
+            </div>
+          )}
+
+          {/* Edited Timestamp - Bottom Right */}
+          {showEditedStatus && (
+            <div className="flex justify-end mt-2">
+              <Tooltip content={editedTooltipContent}>
+                <span className="text-xs text-gray-500 cursor-default">
+                  (Edited: {editedTimestampString})
+                </span>
+              </Tooltip>
             </div>
           )}
         </div>
