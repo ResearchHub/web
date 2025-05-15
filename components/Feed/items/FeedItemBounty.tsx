@@ -80,6 +80,8 @@ interface FeedItemBountyProps {
   showFooter?: boolean; // Prop to control footer visibility
   hideActions?: boolean; // Prop to hide actions, similar to FeedItemComment
   onTopicClick?: (topic: Topic) => void;
+  showSupportAndCTAButtons?: boolean; // Show container for Support and CTA buttons
+  showDeadline?: boolean; // Show deadline in metadata line
 }
 
 /**
@@ -95,7 +97,15 @@ const FeedItemBountyBody: FC<{
     awardedAmount?: string;
   }) => void;
   onTopicClick?: (topic: Topic) => void;
-}> = ({ entry, showSolutions = true, showRelatedWork = true, onViewSolution, onTopicClick }) => {
+  showDeadline?: boolean;
+}> = ({
+  entry,
+  showSolutions = true,
+  showRelatedWork = true,
+  onViewSolution,
+  onTopicClick,
+  showDeadline = true,
+}) => {
   // Extract the bounty entry from the entry's content
   const bountyEntry = entry.content as FeedBountyContent;
   const bounty = bountyEntry.bounty;
@@ -140,6 +150,7 @@ const FeedItemBountyBody: FC<{
           isOpen={isOpen}
           expiringSoon={expiringSoon}
           solutionsCount={solutionsCount}
+          showDeadline={showDeadline}
         />
       </div>
 
@@ -196,8 +207,10 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   showFooter = true, // Default to showing the footer
   hideActions = false, // Prop to hide actions, similar to FeedItemComment
   onTopicClick,
+  showSupportAndCTAButtons = true, // Show container for Support and CTA buttons
+  showDeadline = true, // Show deadline in metadata line
 }) => {
-  console.log('entry', entry);
+  console.log('entry - Bounty', entry);
   // Extract the bounty entry from the entry's content
   const bountyEntry = entry.content as FeedBountyContent;
   const bounty = bountyEntry.bounty;
@@ -383,33 +396,36 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
             showRelatedWork={showRelatedWork}
             onViewSolution={onViewSolution}
             onTopicClick={onTopicClick}
+            showDeadline={showDeadline}
           />
           {/* Container for Support and CTA buttons */}
-          <div className="mt-4 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-            {/* Contribute Button - Conditionally shown */}
-            {isActive && showContributeButton && !isAuthor && (
-              <Button variant="contribute" size="sm" onClick={handleOpenContributeModal}>
-                <ResearchCoinIcon size={20} variant="orange" contribute />
-                Support this bounty
-              </Button>
-            )}
+          {showSupportAndCTAButtons && (
+            <div className="mt-4 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              {/* Contribute Button - Conditionally shown */}
+              {isActive && showContributeButton && !isAuthor && (
+                <Button variant="contribute" size="sm" onClick={handleOpenContributeModal}>
+                  <ResearchCoinIcon size={20} variant="orange" contribute />
+                  Support this bounty
+                </Button>
+              )}
 
-            {/* Award Button - shown instead of "Support this bounty" if user is author */}
-            {awardButton}
+              {/* Award Button - shown instead of "Support this bounty" if user is author */}
+              {awardButton}
 
-            {/* Add Solution/Review CTA Button - shown only if bounty is open */}
-            {isActive && (
-              <Button
-                variant="default"
-                size="sm"
-                className="flex-1 md:!flex-none flex items-center gap-1.5"
-                onClick={handleSolution}
-              >
-                <MessageSquareReply size={18} /> {/* Added icon */}
-                {bounty.bountyType === 'REVIEW' ? 'Add your Review' : 'Add Solution'}
-              </Button>
-            )}
-          </div>
+              {/* Add Solution/Review CTA Button - shown only if bounty is open */}
+              {isActive && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="flex-1 md:!flex-none flex items-center gap-1.5"
+                  onClick={handleSolution}
+                >
+                  <MessageSquareReply size={18} /> {/* Added icon */}
+                  {bounty.bountyType === 'REVIEW' ? 'Add your Review' : 'Add Solution'}
+                </Button>
+              )}
+            </div>
+          )}
           {/* Action Buttons - Full width - Moved inside the padded div */}
           {showFooter && !shouldHideActions && (
             <div className="mt-4 pt-3 border-t border-gray-200">

@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useId } from 'react';
+import { use, useId, useTransition } from 'react';
 import { ProfileInformationForm } from '@/components/Onboarding/ProfileInformationForm';
 import { ProfileInformationFormValues } from '@/components/Onboarding/ProfileInformationForm/schema';
 import { useState, useEffect } from 'react';
@@ -24,8 +24,13 @@ import { formatTimeAgo } from '@/utils/date';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { AuthorProfile } from '@/types/authorProfile';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { isProduction } from '@/utils/featureFlags';
+import { Tabs } from '@/components/ui/Tabs';
+import { useContributions } from '@/hooks/useContributions';
+import { ContributionType } from '@/services/contribution.service';
+import { transformContributionToFeedEntry } from '@/types/contribution';
+import { FeedContent } from '@/components/Feed/FeedContent';
 
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
@@ -231,38 +236,30 @@ function AuthorProfileCard({
 
           {/* Social Links */}
           <div className="flex gap-2">
-            {author.orcidId && (
-              <SocialIcon
-                icon={<FontAwesomeIcon icon={faGraduationCap} />}
-                href={author.orcidId}
-                label="ORCID"
-                className="text-[#A6CE39]"
-              />
-            )}
-            {author.linkedin && (
-              <SocialIcon
-                icon={<FontAwesomeIcon icon={faLinkedin} />}
-                href={author.linkedin}
-                label="LinkedIn"
-                className="text-[#0077B5]"
-              />
-            )}
-            {author.twitter && (
-              <SocialIcon
-                icon={<FontAwesomeIcon icon={faXTwitter} />}
-                href={author.twitter}
-                label="Twitter"
-                className="text-[#000]"
-              />
-            )}
-            {author.googleScholar && (
-              <SocialIcon
-                icon={<FontAwesomeIcon icon={faGoogle} />}
-                href={author.googleScholar}
-                label="Google Scholar"
-                className="text-[#4285F4]"
-              />
-            )}
+            <SocialIcon
+              icon={<FontAwesomeIcon icon={faGraduationCap} />}
+              href={author.orcidId}
+              label="ORCID"
+              className="[&>svg]:text-[#A6CE39] [&>svg]:hover:text-[#82A629]"
+            />
+            <SocialIcon
+              icon={<FontAwesomeIcon icon={faLinkedin} />}
+              href={author.linkedin}
+              label="LinkedIn"
+              className="[&>svg]:text-[#0077B5] [&>svg]:hover:text-[#005582]"
+            />
+            <SocialIcon
+              icon={<FontAwesomeIcon icon={faXTwitter} />}
+              href={author.twitter}
+              label="Twitter"
+              className="[&>svg]:text-[#000] [&>svg]:hover:text-[#000]"
+            />
+            <SocialIcon
+              icon={<FontAwesomeIcon icon={faGoogle} />}
+              href={author.googleScholar}
+              label="Google Scholar"
+              className="[&>svg]:text-[#4285F4] [&>svg]:hover:text-[#21429F]"
+            />
           </div>
         </div>
       </div>
@@ -285,6 +282,79 @@ function AuthorProfileCard({
   );
 }
 
+// Add this mapping at the component level
+const TAB_TO_CONTRIBUTION_TYPE: Record<string, ContributionType> = {
+  contributions: 'ALL',
+  publications: 'ARTICLE',
+  'peer-reviews': 'REVIEW',
+  comments: 'CONVERSATION',
+  bounties: 'BOUNTY',
+};
+
+function AuthorTabs({ authorId }: { authorId: number }) {
+  const [isPending, startTransition] = useTransition();
+  const tabs = [
+    { id: 'contributions', label: 'Contributions' },
+    { id: 'publications', label: 'Publications' },
+    { id: 'peer-reviews', label: 'Peer Reviews' },
+    { id: 'comments', label: 'Comments' },
+    { id: 'bounties', label: 'Bounties' },
+  ];
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get('tab') || 'contributions';
+
+  // Get the contribution type based on the current tab
+  const contributionType = TAB_TO_CONTRIBUTION_TYPE[currentTab] || 'ALL';
+
+  const { contributions, isLoading, error, hasMore, loadMore, isLoadingMore } = useContributions({
+    contribution_type: contributionType,
+    author_id: authorId,
+  });
+
+  const handleTabChange = (tabId: string) => {
+    startTransition(() => {
+      const params = new URLSearchParams(searchParams);
+      params.set('tab', tabId);
+      router.replace(`/author/${authorId}?${params.toString()}`, { scroll: false });
+    });
+  };
+
+  const renderTabContent = () => {
+    if (error) {
+      return <div>Error: {error.message}</div>;
+    }
+
+    let formattedContributions = contributions.map((contribution) =>
+      transformContributionToFeedEntry(contribution)
+    );
+
+    return (
+      <div>
+        <FeedContent
+          entries={isPending ? [] : formattedContributions}
+          isLoading={isLoading || isPending}
+          hasMore={hasMore}
+          loadMore={loadMore}
+          showBountyFooter={false}
+          hideActions={true}
+          isLoadingMore={isLoadingMore}
+          showBountySupportAndCTAButtons={false}
+          showBountyDeadline={false}
+        />
+      </div>
+    );
+  };
+
+  return (
+    <div className="mt-8">
+      <Tabs tabs={tabs} activeTab={currentTab} onTabChange={handleTabChange} variant="underline" />
+      <div className="mt-6">{renderTabContent()}</div>
+    </div>
+  );
+}
+
 export default function AuthorProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const { isLoading: isUserLoading, error: userError } = useUser();
@@ -299,17 +369,28 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     }
   }, [router]);
 
-  return (
-    <Card className="mt-4 bg-gray-50">
-      {isLoading || isUserLoading ? (
+  if (isLoading || isUserLoading) {
+    return (
+      <Card className="mt-4 bg-gray-50">
         <AuthorProfileSkeleton />
-      ) : error || userError ? (
-        <AuthorProfileError error={error || userError?.message || 'Unknown error'} />
-      ) : !user || !user.authorProfile ? (
-        <AuthorProfileError error="Author not found" />
-      ) : (
+      </Card>
+    );
+  }
+
+  if (error || userError) {
+    return <AuthorProfileError error={error || userError?.message || 'Unknown error'} />;
+  }
+
+  if (!user || !user.authorProfile) {
+    return <AuthorProfileError error="Author not found" />;
+  }
+
+  return (
+    <>
+      <Card className="mt-4 bg-gray-50">
         <AuthorProfileCard author={user.authorProfile} refetchAuthorInfo={refetchAuthorInfo} />
-      )}
-    </Card>
+      </Card>
+      <AuthorTabs authorId={user.authorProfile.id} />
+    </>
   );
 }

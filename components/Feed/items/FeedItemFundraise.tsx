@@ -21,6 +21,7 @@ interface FeedItemFundraiseProps {
   href?: string; // Optional href prop
   showTooltips?: boolean; // Property for controlling tooltips
   badgeVariant?: 'default' | 'icon-only'; // New prop for tax-deductible badge variant
+  showActions?: boolean; // Property for controlling actions
 }
 
 /**
@@ -136,6 +137,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   href,
   showTooltips = true,
   badgeVariant = 'default',
+  showActions = true,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
@@ -224,21 +226,23 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
           )}
 
           {/* Action Buttons - Full width */}
-          <div className="mt-4 pt-3 border-t border-gray-200">
-            <div onClick={(e) => e.stopPropagation()}>
-              {/* Standard Feed Item Actions */}
-              <FeedItemActions
-                metrics={entry.metrics}
-                feedContentType={post.contentType}
-                votableEntityId={post.id}
-                userVote={entry.userVote}
-                showTooltips={showTooltips}
-                href={fundingPageUrl}
-                reviews={post.reviews}
-                bounties={post.bounties}
-              />
+          {showActions && (
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <div onClick={(e) => e.stopPropagation()}>
+                {/* Standard Feed Item Actions */}
+                <FeedItemActions
+                  metrics={entry.metrics}
+                  feedContentType={post.contentType}
+                  votableEntityId={post.id}
+                  userVote={entry.userVote}
+                  showTooltips={showTooltips}
+                  href={fundingPageUrl}
+                  reviews={post.reviews}
+                  bounties={post.bounties}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

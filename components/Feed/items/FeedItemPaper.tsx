@@ -17,6 +17,7 @@ interface FeedItemPaperProps {
   entry: FeedEntry;
   href?: string; // Optional href prop
   showTooltips?: boolean; // Property for controlling tooltips
+  showActions?: boolean; // Property for controlling actions
 }
 
 /**
@@ -108,7 +109,12 @@ const FeedItemPaperBody: FC<{
 /**
  * Main component for rendering a paper feed item
  */
-export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry, href, showTooltips = true }) => {
+export const FeedItemPaper: FC<FeedItemPaperProps> = ({
+  entry,
+  href,
+  showTooltips = true,
+  showActions = true,
+}) => {
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
   const router = useRouter();
@@ -170,21 +176,23 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry, href, showTooltip
           </div>
 
           {/* Action Buttons - Full width */}
-          <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
-            <div className="w-full" onClick={(e) => e.stopPropagation()}>
-              {/* Standard Feed Item Actions */}
-              <FeedItemActions
-                metrics={entry.metrics}
-                feedContentType="PAPER"
-                votableEntityId={paper.id}
-                userVote={entry.userVote}
-                showTooltips={showTooltips}
-                href={paperPageUrl}
-                reviews={paper.reviews}
-                bounties={paper.bounties}
-              />
+          {showActions && (
+            <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
+              <div className="w-full" onClick={(e) => e.stopPropagation()}>
+                {/* Standard Feed Item Actions */}
+                <FeedItemActions
+                  metrics={entry.metrics}
+                  feedContentType="PAPER"
+                  votableEntityId={paper.id}
+                  userVote={entry.userVote}
+                  showTooltips={showTooltips}
+                  href={paperPageUrl}
+                  reviews={paper.reviews}
+                  bounties={paper.bounties}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
