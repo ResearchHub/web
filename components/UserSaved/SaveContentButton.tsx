@@ -129,7 +129,7 @@ const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentButtonPr
         />
       )}
 
-      <Modal title="Save to List" isOpen={isOpen} onClose={toggleModal}>
+      <Modal title="Save to List" isOpen={isOpen} onClose={toggleModal} useGreyBackground={true}>
         <div className="max-h-64 overflow-y-auto">
           {lists.length === 0 ? (
             <p className="text-gray-500">No lists available. Create one below.</p>

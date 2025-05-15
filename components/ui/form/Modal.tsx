@@ -7,9 +7,16 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  useGreyBackground?: boolean;
 }
 
-export const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
+export const Modal = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  useGreyBackground = false,
+}: ModalProps) => {
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
@@ -22,7 +29,9 @@ export const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
+          <div
+            className={`fixed inset-0 ${useGreyBackground ? 'bg-gray-800' : 'bg-black'} bg-opacity-25`}
+          />
         </TransitionChild>
 
         <div className="fixed inset-0 overflow-y-auto">
