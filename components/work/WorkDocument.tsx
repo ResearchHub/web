@@ -11,8 +11,9 @@ import {
   Star,
   AlertTriangle,
   FlaskConicalOff,
+  History,
 } from 'lucide-react';
-import { Work } from '@/types/work';
+import { Work, DocumentVersion } from '@/types/work';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { WorkRightSidebar } from './WorkRightSidebar';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -25,11 +26,13 @@ import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { calculateOpenBountiesAmount } from '@/components/Bounty/lib/bountyUtil';
 import { WorkTabs, TabType } from './WorkTabs';
+import { WorkHistoryDisplay } from './WorkHistoryDisplay';
 import { Badge } from '@/components/ui/Badge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Button } from '@/components/ui/Button';
+import { useUser } from '@/contexts/UserContext';
 
 interface WorkDocumentProps {
   work: Work;
@@ -42,12 +45,14 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
-  // Initialize activeTab from URL or props
+  const { user } = useUser();
+
+  // State for active tab
   const [activeTab, setActiveTab] = useState<TabType>(() => {
-    // Check if URL contains a tab indicator
     if (pathname.includes('/conversation')) return 'conversation';
     if (pathname.includes('/reviews')) return 'reviews';
     if (pathname.includes('/bounties')) return 'bounties';
+    if (pathname.includes('/history')) return 'history';
     return defaultTab;
   });
 
@@ -69,13 +74,48 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
     console.log(`WorkDocument RENDERED - activeTab: ${activeTab}`);
   });
 
-  // Handle tab change
+  // Update active tab if defaultTab prop changes
+  useEffect(() => {
+    setActiveTab(defaultTab);
+  }, [defaultTab]);
+
+  // Handle tab change (updates URL via WorkTabs now)
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
   };
 
+  const isAuthor = useMemo(() => {
+    if (!user) return false;
+    return work.authors?.some((a) => a.authorProfile.id === user!.authorProfile!.id);
+  }, [user, work.authors]);
+
+  const handleAddVersion = () => {
+    if (!user) return; // should be authenticated already
+
+    // Determine the latest version's paperId to pre-populate the form with the most recent data
+    let latestPaperId = work.id;
+
+    if (work.versions && work.versions.length > 0) {
+      // Try to use the version flagged as latest first
+      const latestFlag = work.versions.find((v) => v.isLatest);
+
+      if (latestFlag) {
+        latestPaperId = latestFlag.paperId;
+      } else {
+        // Fallback: pick the version with newest publishedDate
+        const sorted = [...work.versions].sort(
+          (a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
+        );
+        latestPaperId = sorted[0].paperId;
+      }
+    }
+
+    router.push(`/paper/${latestPaperId}/create/version`);
+  };
+
   // Render tab content based on activeTab - memoized to prevent unnecessary re-renders
   const renderTabContent = useMemo(() => {
+    console.log(`Rendering tab: ${activeTab}`); // Debugging
     switch (activeTab) {
       case 'paper':
         return (
@@ -167,11 +207,40 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
             />
           </div>
         );
+      case 'history':
+        return (
+          <>
+            {isAuthor && (
+              <div className="mb-4 flex justify-end">
+                <Button size="sm" variant="default" onClick={handleAddVersion}>
+                  Add New Version
+                </Button>
+              </div>
+            )}
+            <WorkHistoryDisplay
+              versions={work.versions || []}
+              currentPaperId={work.id}
+              slug={work.slug}
+            />
+          </>
+        );
       default:
         return null;
     }
-  }, [activeTab, work.id, work.contentType, work.abstract, work.formats, shouldFocusReviewEditor]);
-
+  }, [
+    activeTab,
+    work.id,
+    work.contentType,
+    work.abstract,
+    work.formats,
+    shouldFocusReviewEditor,
+    work.versions,
+    work.slug,
+    router,
+    isAuthor,
+    handleAddVersion,
+  ]);
+  console.log('isAuthor', isAuthor);
   return (
     <div>
       {/* Rewards Banner - Show when there are open bounties */}

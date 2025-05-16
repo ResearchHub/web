@@ -71,7 +71,7 @@ export class PaperService {
     } else {
       response = await ApiClient.get(`${this.BASE_PATH}/${identifier}/`);
     }
-
+    console.log('response', response);
     return transformPaper(response);
   }
 
@@ -113,6 +113,11 @@ export class PaperService {
     // Set pdf_url
     if (payload.fileUrl) {
       apiPayload.pdf_url = payload.fileUrl;
+    }
+
+    // Add previous_paper_id if provided (for creating new versions)
+    if (payload.previousPaperId) {
+      apiPayload.previous_paper_id = payload.previousPaperId;
     }
 
     // Format authors exactly as in the working example

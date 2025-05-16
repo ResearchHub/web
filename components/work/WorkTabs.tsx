@@ -1,13 +1,13 @@
 'use client';
 
-import { FileText, Star, MessagesSquare } from 'lucide-react';
+import { FileText, Star, MessagesSquare, History } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useState } from 'react';
 import Icon from '@/components/ui/icons/Icon';
 import { Tabs } from '@/components/ui/Tabs';
 
-export type TabType = 'paper' | 'reviews' | 'bounties' | 'conversation';
+export type TabType = 'paper' | 'reviews' | 'bounties' | 'conversation' | 'history';
 
 interface WorkTabsProps {
   work: Work;
@@ -32,6 +32,7 @@ export const WorkTabs = ({
       if (path.includes('/conversation')) return 'conversation';
       if (path.includes('/reviews')) return 'reviews';
       if (path.includes('/bounties')) return 'bounties';
+      if (path.includes('/history')) return 'history';
     }
     return defaultTab;
   });
@@ -60,7 +61,9 @@ export const WorkTabs = ({
             ? `${baseUrl}/reviews`
             : tab === 'bounties'
               ? `${baseUrl}/bounties`
-              : baseUrl;
+              : tab === 'history'
+                ? `${baseUrl}/history`
+                : baseUrl;
 
       // Use history.replaceState to update URL without navigation
       window.history.replaceState(null, '', newUrl);
@@ -134,6 +137,24 @@ export const WorkTabs = ({
             }`}
           >
             {metadata.metrics.reviews}
+          </span>
+        </div>
+      ),
+    },
+    {
+      id: 'history',
+      label: (
+        <div className="flex items-center">
+          <History className="h-4 w-4 mr-2" />
+          <span>History</span>
+          <span
+            className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+              activeTab === 'history'
+                ? 'bg-indigo-100 text-indigo-600'
+                : 'bg-gray-100 text-gray-600'
+            }`}
+          >
+            {work.versions?.length || 0}
           </span>
         </div>
       ),

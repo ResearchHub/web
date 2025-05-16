@@ -38,7 +38,7 @@ export interface Authorship {
 
 // TODO: Create a transformer function
 export type DocumentVersion = {
-  workId: number;
+  paperId: number;
   version: string;
   isLatest: boolean;
   publishedDate: string;
@@ -131,7 +131,7 @@ export const transformJournal = (raw: any): TransformedJournal | undefined => {
 };
 
 export const transformDocumentVersion = createTransformer<any, DocumentVersion>((raw) => ({
-  workId: raw.paper_id,
+  paperId: raw.paper_id,
   version: raw.version,
   isLatest: raw.is_latest,
   publishedDate: raw.published_date,
@@ -139,6 +139,7 @@ export const transformDocumentVersion = createTransformer<any, DocumentVersion>(
 }));
 
 export const transformWork = createTransformer<any, Work>((raw) => {
+  console.log('Raw work data:', raw);
   // Process fullName fields from raw authors if needed
   const processedAuthors =
     Array.isArray(raw.authors) && raw.authors.length > 0
