@@ -123,11 +123,11 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
 
   return (
     <div className="flex h-screen">
-      {isFeatureEnabled(FeatureFlag.SimplifiedOnboarding) ? (
+      {/* {isFeatureEnabled(FeatureFlag.SimplifiedOnboarding) ? (
         <OnboardingModal />
-      ) : (
-        <OnboardingRedirect />
-      )}
+      ) : ( */}
+      <OnboardingRedirect />
+      {/* )} */}
 
       {/* Mobile overlay */}
       {isLeftSidebarOpen && (

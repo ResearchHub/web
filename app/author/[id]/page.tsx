@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import {
   useAuthorAchievements,
   useAuthorInfo,
+  useAuthorSummaryStats,
   useUpdateAuthorProfileData,
 } from '@/hooks/useAuthor';
 import { useUser } from '@/contexts/UserContext';
@@ -36,6 +37,7 @@ import { ContributionType } from '@/services/contribution.service';
 import { transformContributionToFeedEntry } from '@/types/contribution';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import AuthorHeaderAchievements from './components/AuthorHeaderAchievements';
+import AuthorHeaderKeyStats from './components/AuthorHeaderKeyStats';
 
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
@@ -156,9 +158,9 @@ function AuthorProfileCard({
 
   return (
     <>
-      <div className="flex gap-6">
+      <div className="flex flex-col sm:flex-row gap-6">
         {/* Left column - Avatar */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 flex justify-center sm:justify-start">
           <Avatar
             src={author.profileImage}
             alt={fullName}
@@ -174,14 +176,14 @@ function AuthorProfileCard({
         {/* Right column - Content */}
         <div className="flex flex-col flex-1 min-w-0 gap-4">
           {/* Header with name and edit button */}
-          <div className="flex justify-between items-start">
-            <div className="flex flex-col">
+          <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4">
+            <div className="flex flex-col items-center sm:items-start">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold text-gray-900">{fullName}</h1>
                 {currentUser?.isVerified && <VerifiedBadge />}
               </div>
               {author.headline && (
-                <div className="flex items-center gap-2 text-gray-600 font-sm">
+                <div className="flex items-center gap-2 text-gray-600 font-sm text-center sm:text-left">
                   <span>{author.headline}</span>
                 </div>
               )}
@@ -198,7 +200,7 @@ function AuthorProfileCard({
             )}
           </div>
 
-          <div>
+          <div className="flex flex-col items-center sm:items-start">
             {/* Primary Education */}
             {primaryEducation && (
               <div className="flex items-center gap-2 text-gray-600">
@@ -226,7 +228,7 @@ function AuthorProfileCard({
 
           {/* Description with Show more/less */}
           {description && (
-            <div>
+            <div className="text-center sm:text-left">
               <p className="text-gray-600">{displayedDescription}</p>
               {shouldTruncate && (
                 <button
@@ -240,7 +242,7 @@ function AuthorProfileCard({
           )}
 
           {/* Social Links */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-center sm:justify-start">
             <SocialIcon
               icon={<FontAwesomeIcon icon={faGraduationCap} />}
               href={author.orcidId}
@@ -373,6 +375,8 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const [{ author: user, isLoading, error }, refetchAuthorInfo] = useAuthorInfo(authorId);
   const [{ achievements, isLoading: isAchievementsLoading, error: achievementsError }] =
     useAuthorAchievements(authorId);
+  const [{ summaryStats, isLoading: isSummaryStatsLoading, error: summaryStatsError }] =
+    useAuthorSummaryStats(authorId);
 
   const router = useRouter();
 
@@ -406,11 +410,15 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
       </Card>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="mt-4 bg-gray-50">
+          <h3 className="text-base font-base uppercase text-gray-500 mb-3">Achievements</h3>
           <AuthorHeaderAchievements achievements={achievements} />
         </Card>
-        <Card className="mt-4 bg-gray-50">
-          <AuthorHeaderAchievements achievements={achievements} />
-        </Card>
+        {summaryStats && (
+          <Card className="mt-4 bg-gray-50">
+            <h3 className="text-base font-base uppercase text-gray-500 mb-3">Key Stats</h3>
+            <AuthorHeaderKeyStats summaryStats={summaryStats} profile={user} />
+          </Card>
+        )}
       </div>
       <AuthorTabs authorId={user.authorProfile.id} />
     </>

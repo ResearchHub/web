@@ -1,4 +1,9 @@
-import { Achievement, transformAuthorAchievements } from '@/types/authorProfile';
+import {
+  Achievement,
+  AuthorSummaryStats,
+  transformAuthorAchievements,
+  transformAuthorSummaryStats,
+} from '@/types/authorProfile';
 import { ApiClient } from './client';
 import { User, transformUser } from '@/types/user';
 
@@ -257,6 +262,19 @@ export class AuthorService {
       return transformAuthorAchievements(response);
     } catch (error) {
       console.error(`Error fetching achievements for author ID ${authorId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch summary statistics for a specific author
+   */
+  static async getAuthorSummaryStats(authorId: number): Promise<AuthorSummaryStats> {
+    try {
+      const response = await ApiClient.get<any>(`${this.AUTHORS_PATH}/${authorId}/summary_stats/`);
+      return transformAuthorSummaryStats(response);
+    } catch (error) {
+      console.error(`Error fetching summary stats for author ID ${authorId}:`, error);
       throw error;
     }
   }

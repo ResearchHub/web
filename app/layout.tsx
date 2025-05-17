@@ -1,6 +1,7 @@
 import NextAuthProvider from '@/components/providers/NextAuthProvider';
 import ToasterProvider from '@/components/providers/ToasterProvider';
 import localFont from 'next/font/local';
+import '@coinbase/onchainkit/styles.css';
 import './globals.css';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { ExchangeRateProvider } from '@/contexts/ExchangeRateContext';
@@ -13,7 +14,7 @@ import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { OnchainProvider } from '@/contexts/OnchainContext';
 import { FollowProvider } from '@/contexts/FollowContext';
 import { ClickProvider } from '@/contexts/ClickContext';
-import '@coinbase/onchainkit/styles.css';
+
 import { AuthSharingWrapper } from '@/components/AuthSharingWrapper';
 import { VerificationProvider } from '@/contexts/VerificationContext';
 

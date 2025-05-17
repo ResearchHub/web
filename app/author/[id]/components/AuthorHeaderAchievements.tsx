@@ -113,7 +113,7 @@ const AuthorHeaderAchievements: React.FC<AuthorHeaderAchievementsProps> = ({ ach
   }
 
   return (
-    <div className="flex flex-col gap-1 py-2">
+    <div className="flex flex-col gap-2.5">
       {achievements.map((achievement) => {
         const achievementDetails = getAchievementDetails({ achievement });
         return (
@@ -122,19 +122,21 @@ const AuthorHeaderAchievements: React.FC<AuthorHeaderAchievementsProps> = ({ ach
             content={getTooltipContent(achievement, achievementDetails)}
             position="bottom"
             delay={100}
-            width="w-auto" // Let content define width
-            className="bg-gray-800 text-white shadow-xl border-gray-700" // Custom tooltip styling
+            width="w-auto"
+            className="bg-gray-800 text-white shadow-xl border-gray-700"
             wrapperClassName="w-full"
           >
             <div
               className={cn(
-                'flex items-center gap-2 p-2 h-10 text-sm rounded hover:bg-gray-100 dark:hover:bg-gray-700 cursor-default w-full'
+                'flex items-center gap-2 text-sm font-medium rounded hover:bg-gray-100 dark:hover:bg-gray-700 cursor-default w-full'
               )}
             >
-              {React.cloneElement(achievementDetails.icon, {
-                style: { ...achievementDetails.icon.props.style, fontSize: '18px' },
-              })}
-              <span>{achievementDetails.title}</span>
+              <div className="w-6 flex justify-center">
+                {React.cloneElement(achievementDetails.icon, {
+                  style: { ...achievementDetails.icon.props.style, fontSize: '18px' },
+                })}
+              </div>
+              <span className="flex-1">{achievementDetails.title}</span>
             </div>
           </Tooltip>
         );

@@ -3,6 +3,7 @@ import { AuthorService } from '@/services/author.service';
 import type { AuthorUpdatePayload } from '@/services/author.service';
 import type { User } from '@/types/user';
 import { Achievement } from '@/types/authorProfile';
+import { AuthorSummaryStats } from '@/types/authorProfile';
 
 interface UseUpdateAuthorProfileImageState {
   isLoading: boolean;
@@ -159,4 +160,46 @@ export function useAuthorAchievements(authorId: number | null): UseAuthorAchieve
   }, [authorId, fetchAuthorAchievements]);
 
   return [{ achievements, isLoading, error }, fetchAuthorAchievements];
+}
+
+interface UseAuthorSummaryStatsState {
+  summaryStats: AuthorSummaryStats | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+type FetchAuthorSummaryStatsFn = () => Promise<void>;
+
+type UseAuthorSummaryStatsReturn = [UseAuthorSummaryStatsState, FetchAuthorSummaryStatsFn];
+
+export function useAuthorSummaryStats(authorId: number | null): UseAuthorSummaryStatsReturn {
+  const [summaryStats, setSummaryStats] = useState<AuthorSummaryStats | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchAuthorSummaryStats = useCallback(async () => {
+    if (!authorId) {
+      setSummaryStats(null);
+      setError('Author ID is required');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await AuthorService.getAuthorSummaryStats(authorId);
+      setSummaryStats(data);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to fetch author summary stats');
+      setSummaryStats(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [authorId]);
+
+  useEffect(() => {
+    fetchAuthorSummaryStats();
+  }, [authorId, fetchAuthorSummaryStats]);
+
+  return [{ summaryStats, isLoading, error }, fetchAuthorSummaryStats];
 }
