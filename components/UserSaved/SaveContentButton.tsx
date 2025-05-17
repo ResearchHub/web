@@ -122,7 +122,7 @@ const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentButtonPr
 
       {styling === 'feed' && (
         <ActionButton
-          icon={(props: any) => <Bookmark />}
+          icon={(props: any) => <Bookmark size={18} />}
           tooltip="Save"
           label="Tip"
           onClick={toggleModal}

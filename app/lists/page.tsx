@@ -7,7 +7,7 @@ import useUserSaved from '@/hooks/useUserSaved';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import UserListOverview from '@/components/UserSaved/UserListOverview';
-import { List } from 'lucide-react';
+import { Bookmark } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 
@@ -43,7 +43,7 @@ export default function SavedPage() {
 
   const renderHeader = () => (
     <MainPageHeader
-      icon={<List className="w-6 h-6 text-indigo-500" />}
+      icon={<Bookmark className="w-6 h-6 text-indigo-500" />}
       title="My Lists"
       subtitle="Save and revisit your favorite research"
     />
