@@ -14,7 +14,7 @@ function SignInContent() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="text-center mb-8">
+      <div className="text-center mb-8 max-w-md">
         <Image
           src="/RSC.webp"
           alt="ResearchHub Logo"
@@ -22,7 +22,7 @@ function SignInContent() {
           height={48}
           className="mx-auto mb-4"
         />
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+        <h2 className="text-xl font-bold tracking-tight text-gray-900">
           Welcome to ResearchHub{' '}
           <span role="img" aria-label="wave">
             👋

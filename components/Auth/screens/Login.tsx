@@ -4,12 +4,15 @@ import { Eye, EyeOff } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { useAutoFocus } from '@/hooks/useAutoFocus';
+import { faChevronLeft } from '@fortawesome/pro-light-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
   onSuccess?: () => void;
+  modalView?: boolean;
 }
 
 export default function Login({
@@ -21,6 +24,7 @@ export default function Login({
   error,
   setError,
   onBack,
+  modalView = false,
 }: Props) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -67,7 +71,15 @@ export default function Login({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-6">Welcome back</h2>
+      <div className="flex items-center gap-2 mb-6">
+        {modalView && (
+          <Button type="button" onClick={onBack} variant="ghost" size="icon">
+            <FontAwesomeIcon icon={faChevronLeft} className="h-5 w-5" />
+          </Button>
+        )}
+
+        <h2 className="text-xl font-semibold mr-6 !leading-10">Welcome back</h2>
+      </div>
 
       {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">{error}</div>}
 

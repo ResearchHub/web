@@ -5,6 +5,9 @@ import { BaseScreenProps } from '../types';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAutoFocus } from '@/hooks/useAutoFocus';
 import { parseFullName } from '@/utils/nameUtils';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronLeft } from '@fortawesome/pro-light-svg-icons';
+import { Button } from '@/components/ui/Button';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
@@ -13,6 +16,7 @@ interface Props extends BaseScreenProps {
   setIsLoading: (loading: boolean) => void;
   error: string | null;
   setError: (error: string | null) => void;
+  modalView?: boolean;
 }
 
 export default function Signup({
@@ -24,6 +28,7 @@ export default function Signup({
   setError,
   onBack,
   onVerify,
+  modalView = false,
 }: Props) {
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
@@ -58,8 +63,16 @@ export default function Signup({
   };
 
   return (
-    <div>
-      <h2 className="text-xl font-semibold mb-6">Create your account</h2>
+    <div className="relative">
+      <div className="flex items-center gap-2 mb-6">
+        {modalView && (
+          <Button type="button" onClick={onBack} variant="ghost" size="icon">
+            <FontAwesomeIcon icon={faChevronLeft} className="h-5 w-5" />
+          </Button>
+        )}
+
+        <h2 className="text-xl font-semibold mr-6">Create your account</h2>
+      </div>
 
       {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">{error}</div>}
 
@@ -71,13 +84,6 @@ export default function Signup({
           placeholder="Full name (e.g. John Smith)"
           className="w-full p-3 border rounded mb-4"
           ref={fullNameInputRef}
-        />
-
-        <input
-          type="email"
-          value={email}
-          className="w-full p-3 border rounded mb-4 bg-gray-50"
-          disabled
         />
 
         <div className="relative mb-4">
@@ -100,15 +106,17 @@ export default function Signup({
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-blue-600 text-white p-3 rounded mb-4 hover:bg-blue-700 disabled:opacity-50"
+          className="w-full bg-indigo-600 text-white p-3 rounded mb-4 hover:bg-indigo-700 disabled:opacity-50"
         >
           {isLoading ? 'Creating account...' : 'Create account'}
         </button>
       </form>
 
-      <button onClick={onBack} className="w-full text-gray-600 hover:text-gray-800">
-        ← Back
-      </button>
+      {!modalView && (
+        <button onClick={onBack} className="w-full text-gray-600 hover:text-gray-800">
+          ← Back
+        </button>
+      )}
     </div>
   );
 }
