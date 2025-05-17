@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { AuthorService } from '@/services/author.service';
 import type { AuthorUpdatePayload } from '@/services/author.service';
-import type { User } from '@/types/user'; // Adjust the import path if needed
+import type { User } from '@/types/user';
+import { Achievement } from '@/types/authorProfile';
 
 interface UseUpdateAuthorProfileImageState {
   isLoading: boolean;
@@ -115,4 +116,47 @@ export function useAuthorInfo(authorId: number | null): UseFetchAuthorInfoReturn
   }, [authorId, fetchAuthorInfo]);
 
   return [{ author, isLoading, error }, fetchAuthorInfo];
+}
+
+interface UseAuthorAchievementsState {
+  achievements: Achievement[];
+  isLoading: boolean;
+  error: string | null;
+}
+
+type FetchAuthorAchievementsFn = () => Promise<void>;
+
+type UseAuthorAchievementsReturn = [UseAuthorAchievementsState, FetchAuthorAchievementsFn];
+
+export function useAuthorAchievements(authorId: number | null): UseAuthorAchievementsReturn {
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchAuthorAchievements = useCallback(async () => {
+    if (!authorId) {
+      setAchievements([]);
+      setError('Author ID is required');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await AuthorService.getAuthorAchievements(authorId);
+      console.log('data', data);
+      setAchievements(data);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to fetch author achievements');
+      setAchievements([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [authorId]);
+
+  useEffect(() => {
+    fetchAuthorAchievements();
+  }, [authorId, fetchAuthorAchievements]);
+
+  return [{ achievements, isLoading, error }, fetchAuthorAchievements];
 }

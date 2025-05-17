@@ -5,7 +5,11 @@ import { ProfileInformationForm } from '@/components/Onboarding/ProfileInformati
 import { ProfileInformationFormValues } from '@/components/Onboarding/ProfileInformationForm/schema';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
-import { useAuthorInfo, useUpdateAuthorProfileData } from '@/hooks/useAuthor';
+import {
+  useAuthorAchievements,
+  useAuthorInfo,
+  useUpdateAuthorProfileData,
+} from '@/hooks/useAuthor';
 import { useUser } from '@/contexts/UserContext';
 import { Avatar } from '@/components/ui/Avatar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -31,6 +35,7 @@ import { useContributions } from '@/hooks/useContributions';
 import { ContributionType } from '@/services/contribution.service';
 import { transformContributionToFeedEntry } from '@/types/contribution';
 import { FeedContent } from '@/components/Feed/FeedContent';
+import AuthorHeaderAchievements from './components/AuthorHeaderAchievements';
 
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
@@ -360,6 +365,9 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const { isLoading: isUserLoading, error: userError } = useUser();
   const authorId = toNumberOrNull(resolvedParams.id);
   const [{ author: user, isLoading, error }, refetchAuthorInfo] = useAuthorInfo(authorId);
+  const [{ achievements, isLoading: isAchievementsLoading, error: achievementsError }] =
+    useAuthorAchievements(authorId);
+
   const router = useRouter();
 
   // TODO: Remove it when the page is ready for production
@@ -389,6 +397,9 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     <>
       <Card className="mt-4 bg-gray-50">
         <AuthorProfileCard author={user.authorProfile} refetchAuthorInfo={refetchAuthorInfo} />
+      </Card>
+      <Card className="mt-4 bg-gray-50">
+        <AuthorHeaderAchievements achievements={achievements} />
       </Card>
       <AuthorTabs authorId={user.authorProfile.id} />
     </>

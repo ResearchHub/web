@@ -1,3 +1,4 @@
+import { Achievement, transformAuthorAchievements } from '@/types/authorProfile';
 import { ApiClient } from './client';
 import { User, transformUser } from '@/types/user';
 
@@ -36,6 +37,16 @@ interface AuthorProfileResponse {
   google_scholar?: string | null;
   education?: any[];
   [key: string]: any; // Allow other properties
+}
+
+// Add this interface for the achievements response
+interface AuthorAchievementsResponse {
+  id: number;
+  name: string;
+  description: string;
+  image: string;
+  date_earned: string;
+  // Add any other fields that come from the API
 }
 
 export interface Author {
@@ -233,5 +244,20 @@ export class AuthorService {
    */
   static clearCache(): void {
     this.authorCache = {};
+  }
+
+  /**
+   * Fetch achievements for a specific author
+   */
+  static async getAuthorAchievements(authorId: number): Promise<Achievement[]> {
+    try {
+      const response = await ApiClient.get<Achievement[]>(
+        `${this.AUTHORS_PATH}/${authorId}/achievements/`
+      );
+      return transformAuthorAchievements(response);
+    } catch (error) {
+      console.error(`Error fetching achievements for author ID ${authorId}:`, error);
+      throw error;
+    }
   }
 }

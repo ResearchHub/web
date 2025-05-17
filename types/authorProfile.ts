@@ -82,3 +82,60 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
     isClaimed: isClaimed,
   };
 });
+
+export type AchievementType =
+  | 'CITED_AUTHOR'
+  | 'OPEN_ACCESS'
+  | 'OPEN_SCIENCE_SUPPORTER'
+  | 'EXPERT_PEER_REVIEWER'
+  | 'HIGHLY_UPVOTED';
+
+export type Achievement = {
+  type: AchievementType;
+  value: number;
+  currentMilestoneIndex: number;
+  milestones: Array<number>;
+  pctProgress: number;
+};
+
+export const transformAuthorAchievements = (raw: any): Achievement[] => {
+  const achievements: Achievement[] = [];
+
+  for (const key in raw.achievements) {
+    const rawAchievement = raw.achievements[key as AchievementType];
+    const hasAchievementUnlocked = rawAchievement.value >= rawAchievement.milestones[0];
+
+    if (hasAchievementUnlocked) {
+      const achievement: Achievement = {
+        type: key as AchievementType,
+        value: rawAchievement.value,
+        milestones: rawAchievement.milestones,
+        currentMilestoneIndex: 0,
+        pctProgress: 0,
+      };
+
+      // Find current milestone user is in
+      for (let i = 0; i < rawAchievement.milestones.length; i++) {
+        if (achievement.value >= rawAchievement.milestones[i]) {
+          achievement.currentMilestoneIndex = i;
+        }
+      }
+
+      // Calculate progress percentage
+      achievement.pctProgress =
+        achievement.value /
+        (achievement.milestones[achievement.currentMilestoneIndex + 1] ||
+          achievement.milestones[achievement.currentMilestoneIndex]);
+
+      achievements.push(achievement);
+    }
+  }
+
+  // Sort achievements by highest tier first, then by percentage progress
+  return achievements.sort((a, b) => {
+    if (b.currentMilestoneIndex !== a.currentMilestoneIndex) {
+      return b.currentMilestoneIndex - a.currentMilestoneIndex;
+    }
+    return b.pctProgress - a.pctProgress;
+  });
+};
