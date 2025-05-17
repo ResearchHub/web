@@ -72,7 +72,7 @@ export default function SavedPage() {
           )}
         </div>
         <UserListOverview
-          userSavedItems={lists}
+          userSavedLists={lists}
           loading={isLoading}
           error={error}
           handleTakeFocus={handleFocusList}

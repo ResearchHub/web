@@ -21,17 +21,12 @@ export default function UserListFocusView({
   focusedList,
   deleteListDocument,
 }: UserListFocusViewProps) {
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-  if (listItems.length === 0) {
+  if (!loading && listItems.length === 0) {
     return (
-      <>
-        <Alert className="my-4">
-          You haven't saved any items. You may save papers by clicking the Save button on the feed
-          or while viewing a paper.
-        </Alert>
-      </>
+      <Alert className="my-4">
+        You haven't saved any items. You may save papers by clicking the Save button on the feed or
+        while viewing a paper.
+      </Alert>
     );
   }
   return (

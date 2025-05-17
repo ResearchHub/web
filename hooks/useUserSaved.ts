@@ -7,7 +7,7 @@ import Error from 'next/error';
 const useUserSaved = () => {
   const [lists, setLists] = useState<string[]>([]); // Array of list names
   const [listItems, setListItems] = useState<FeedEntry[]>([]); // Array of feed entries for the selected list
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchLists = useCallback(async () => {
