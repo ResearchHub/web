@@ -10,15 +10,14 @@ import UserListOverview from '@/components/UserSaved/UserListOverview';
 import { Bookmark } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
-
-const MAX_SAVED_CONTENT_NAME_LENGTH = 200;
+import { isValidListName } from '@/utils/validation';
 
 export default function SavedPage() {
   const router = useRouter();
   const { lists, isLoading, error, fetchLists, createList, deleteList } = useUserSaved();
 
   let [newListName, setNewListName] = useState<string>('');
-  let [inputValid, setInputValid] = useState<boolean>(true);
+  let [inputValid, setInputValid] = useState<boolean>(false);
 
   useEffect(() => {
     fetchLists();
@@ -32,12 +31,12 @@ export default function SavedPage() {
     createList(newListName);
     toast.success(`List "${newListName}" created`);
     setNewListName('');
+    setInputValid(false);
   };
 
   const handleListInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValid(
-      e.target.value.length < MAX_SAVED_CONTENT_NAME_LENGTH && !lists.includes(e.target.value)
-    );
+    const isValid = isValidListName(e.target.value);
+    setInputValid(isValid && !lists.includes(e.target.value));
     setNewListName(e.target.value);
   };
 
@@ -60,16 +59,21 @@ export default function SavedPage() {
             value={newListName}
             onChange={handleListInput}
             placeholder="Your list name"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && inputValid) {
+                handleCreateList();
+              }
+            }}
           />
-          {inputValid ? (
-            <Button size={'md'} onClick={handleCreateList} title="Create New List" className="mb-2">
-              Create
-            </Button>
-          ) : (
-            <Button className="bg-red-400" title="Invalid Input">
-              Invalid
-            </Button>
-          )}
+          <Button
+            size={'md'}
+            onClick={handleCreateList}
+            title="Create New List"
+            className={`mb-2 ${inputValid ? 'bg-indigo-500' : 'bg-gray-400'}`}
+            disabled={!inputValid}
+          >
+            Create
+          </Button>
         </div>
         <UserListOverview
           userSavedLists={lists}

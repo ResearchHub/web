@@ -71,7 +71,7 @@ export default function UserListOverview({
                 handleDelete(listName);
               }}
             >
-              Delete
+              Remove
             </BaseMenuItem>
           </BaseMenu>
         </div>
