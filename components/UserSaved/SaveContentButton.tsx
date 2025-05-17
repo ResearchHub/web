@@ -1,16 +1,16 @@
 'use client';
 
 import useUserSaved from '@/hooks/useUserSaved';
-import { useState, useEffect, useCallback, ChangeEvent } from 'react';
-import { Button } from '../ui/Button';
-import { Modal } from '../ui/form/Modal';
+import { useState, useCallback, ChangeEvent } from 'react';
 import { Checkbox } from '../ui/form/Checkbox';
-import { Input } from '../ui/form/Input';
 import { isValidListName } from '@/utils/validation';
 import toast from 'react-hot-toast';
 import { ActionButton } from '../Feed/FeedItemActions';
-import { Bookmark } from 'lucide-react';
+import { Bookmark, Plus } from 'lucide-react';
 import { UserSavedIdentifier } from '@/types/userSaved';
+import { BaseModal } from '../ui/BaseModal';
+import { Input } from '../ui/form/Input';
+import { Button } from '../ui/Button';
 
 interface SaveContentButtonProps {
   styling: 'feed' | 'work_item';
@@ -29,8 +29,9 @@ const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentButtonPr
   } = useUserSaved();
 
   const [isOpen, setIsOpen] = useState<boolean>(false); // Modal open state
-  const [newListName, setNewListName] = useState<string>(''); // New list input
+  const [newListName, setNewListName] = useState<string>('New List'); // New list input
   const [newListValid, setNewListValid] = useState<boolean>(false); // New list input valid
+  const [isCreatingList, setIsCreatingList] = useState<boolean>(false); // Create list input open state
   const [selectedLists, setSelectedLists] = useState<Set<string>>(new Set()); // Track checked lists
 
   const handleToggleList = useCallback((listName: string) => {
@@ -87,6 +88,8 @@ const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentButtonPr
 
   const toggleModal = async (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+    setIsCreatingList(false);
+    setNewListName('');
     if (!isOpen) {
       try {
         await fetchLists();
@@ -123,58 +126,75 @@ const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentButtonPr
       {styling === 'feed' && (
         <ActionButton
           icon={(props: any) => <Bookmark size={18} />}
-          tooltip="Save"
+          tooltip="Save to List"
           label="Tip"
           onClick={toggleModal}
         />
       )}
 
-      <Modal title="Save to List" isOpen={isOpen} onClose={toggleModal} useGreyBackground={true}>
-        <div className="max-h-64 overflow-y-auto">
-          {lists.length === 0 ? (
-            <p className="text-gray-500">No lists available. Create one below.</p>
-          ) : (
-            lists.map((listName: string) => (
-              <div
-                key={listName}
-                className="flex items-center space-x-2 py-2 cursor-pointer rounded-md hover:bg-gray-100"
-              >
-                <Checkbox
-                  id={listName}
-                  checked={selectedLists.has(listName)}
-                  onCheckedChange={() => handleToggleList(listName)}
+      <BaseModal
+        title="Save to List"
+        isOpen={isOpen}
+        onClose={toggleModal}
+        showCloseButton={true}
+        headerAction={<Bookmark />}
+      >
+        <div className="max-h-128 overflow-y-auto">
+          {lists.map((listName: string) => (
+            <div
+              key={listName}
+              className="flex items-center space-x-2 py-2 cursor-pointer rounded-md hover:bg-gray-100"
+              onClick={() => {
+                handleToggleList(listName);
+              }}
+            >
+              <Checkbox
+                id={listName}
+                checked={selectedLists.has(listName)}
+                disabled={isLoading}
+                className="pl-1"
+              />
+              <label htmlFor={listName} className="text-sm font-medium cursor-pointer">
+                {listName}
+              </label>
+            </div>
+          ))}
+          {!isCreatingList && (
+            <div
+              className="flex items-center space-x-2 py-2 cursor-pointer rounded-md hover:bg-gray-100"
+              onClick={() => setIsCreatingList(true)}
+            >
+              <Plus id={'create-new-list'} className="pl-1" />
+              <label htmlFor={'create-new-list'} className="text-sm font-medium cursor-pointer">
+                Create New List
+              </label>
+            </div>
+          )}
+          {isCreatingList && (
+            <>
+              <div className="mt-1">
+                <Input
+                  id="newListName"
+                  value={newListName}
+                  onChange={handleNewListInput}
+                  placeholder="Enter list name"
                   disabled={isLoading}
-                  className="pl-1"
                 />
-                <label htmlFor={listName} className="text-sm font-medium cursor-pointer">
-                  {listName}
-                </label>
               </div>
-            ))
+              <Button
+                onClick={() => {
+                  handleCreateList();
+                  setIsCreatingList(false);
+                }}
+                disabled={!newListValid}
+                className="mt-1"
+              >
+                Create
+              </Button>
+            </>
           )}
         </div>
-
-        <div className="mt-1">
-          <label htmlFor="newListName" className="text-sm font-medium">
-            Create New List
-          </label>
-          <div className="flex space-x-2 mt-1">
-            <Input
-              id="newListName"
-              value={newListName}
-              onChange={handleNewListInput}
-              placeholder="Enter list name"
-              disabled={isLoading}
-            />
-            <Button onClick={handleCreateList} disabled={!newListValid}>
-              Create
-            </Button>
-          </div>
-          <Button onClick={toggleModal} className="mt-1">
-            Done
-          </Button>
-        </div>
-      </Modal>
+      </BaseModal>
     </div>
   );
 };
