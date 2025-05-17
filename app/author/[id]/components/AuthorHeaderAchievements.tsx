@@ -13,7 +13,6 @@ interface AuthorHeaderAchievementsProps {
 }
 
 const AuthorHeaderAchievements: React.FC<AuthorHeaderAchievementsProps> = ({ achievements }) => {
-  console.log('achievements', achievements);
   const getTooltipContent = (
     achievement: Achievement,
     achievementDetails: { icon: ReactElement; title: string }
@@ -121,7 +120,7 @@ const AuthorHeaderAchievements: React.FC<AuthorHeaderAchievementsProps> = ({ ach
           <Tooltip
             key={achievement.type}
             content={getTooltipContent(achievement, achievementDetails)}
-            position="right"
+            position="bottom"
             delay={100}
             width="w-auto" // Let content define width
             className="bg-gray-800 text-white shadow-xl border-gray-700" // Custom tooltip styling

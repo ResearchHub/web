@@ -245,25 +245,31 @@ function AuthorProfileCard({
               icon={<FontAwesomeIcon icon={faGraduationCap} />}
               href={author.orcidId}
               label="ORCID"
-              className="[&>svg]:text-[#A6CE39] [&>svg]:hover:text-[#82A629]"
+              className={
+                author.orcidId ? '[&>svg]:text-[#A6CE39] [&>svg]:hover:text-[#82A629]' : ''
+              }
             />
             <SocialIcon
               icon={<FontAwesomeIcon icon={faLinkedin} />}
               href={author.linkedin}
               label="LinkedIn"
-              className="[&>svg]:text-[#0077B5] [&>svg]:hover:text-[#005582]"
+              className={
+                author.linkedin ? '[&>svg]:text-[#0077B5] [&>svg]:hover:text-[#005582]' : ''
+              }
             />
             <SocialIcon
               icon={<FontAwesomeIcon icon={faXTwitter} />}
               href={author.twitter}
               label="Twitter"
-              className="[&>svg]:text-[#000] [&>svg]:hover:text-[#000]"
+              className={author.twitter ? '[&>svg]:text-[#000] [&>svg]:hover:text-[#000]' : ''}
             />
             <SocialIcon
               icon={<FontAwesomeIcon icon={faGoogle} />}
               href={author.googleScholar}
               label="Google Scholar"
-              className="[&>svg]:text-[#4285F4] [&>svg]:hover:text-[#21429F]"
+              className={
+                author.googleScholar ? '[&>svg]:text-[#4285F4] [&>svg]:hover:text-[#21429F]' : ''
+              }
             />
           </div>
         </div>
@@ -398,9 +404,14 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
       <Card className="mt-4 bg-gray-50">
         <AuthorProfileCard author={user.authorProfile} refetchAuthorInfo={refetchAuthorInfo} />
       </Card>
-      <Card className="mt-4 bg-gray-50">
-        <AuthorHeaderAchievements achievements={achievements} />
-      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="mt-4 bg-gray-50">
+          <AuthorHeaderAchievements achievements={achievements} />
+        </Card>
+        <Card className="mt-4 bg-gray-50">
+          <AuthorHeaderAchievements achievements={achievements} />
+        </Card>
+      </div>
       <AuthorTabs authorId={user.authorProfile.id} />
     </>
   );

@@ -83,7 +83,7 @@ export const FeatureFlags: Record<FeatureFlag, () => boolean> = {
     const local = getLocalStorageFlag(FeatureFlag.SimplifiedOnboarding);
     if (typeof local === 'boolean') return local;
 
-    return false;
+    return true;
   },
 };
 
