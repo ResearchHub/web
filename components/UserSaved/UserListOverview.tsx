@@ -1,5 +1,7 @@
-import { Trash } from 'lucide-react';
+import { MoreHorizontal, Trash } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { BaseMenuItem } from '../ui/form/BaseMenu';
+import { BaseMenu } from '../ui/form/BaseMenu';
 
 interface UserSavedListProps {
   userSavedItems: string[];
@@ -38,30 +40,32 @@ export default function UserListOverview({
 
   return (
     <div className="flex flex-col">
-      <>
-        {userSavedItems.map((listName) => (
-          <div key={listName} className="flex flex-row rounded-lg mb-2 hover:bg-gray-100">
-            <div className="my-auto ml-2">{listName}</div>
-            <Button
-              className="ml-auto mr-2"
-              size={'icon'}
-              onClick={() => {
-                handleTakeFocus(listName);
-              }}
-            >
-              View
-            </Button>
-            <Button
-              size={'icon'}
-              onClick={() => {
+      {userSavedItems.map((listName) => (
+        <div
+          key={listName}
+          className="flex flex-row rounded-lg mb-2 hover:bg-gray-100 cursor-pointer"
+          onClick={() => handleTakeFocus(listName)}
+        >
+          <div className="my-auto ml-2">{listName}</div>
+          <BaseMenu
+            trigger={
+              <Button variant="ghost" size="lg" className="ml-auto">
+                <MoreHorizontal className="w-5 h-5" />
+              </Button>
+            }
+            align="start"
+          >
+            <BaseMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
                 handleDelete(listName);
               }}
             >
-              <Trash />
-            </Button>
-          </div>
-        ))}
-      </>
+              Delete
+            </BaseMenuItem>
+          </BaseMenu>
+        </div>
+      ))}
     </div>
   );
 }
