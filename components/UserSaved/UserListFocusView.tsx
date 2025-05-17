@@ -11,14 +11,6 @@ interface UserListFocusViewProps {
   deleteListDocument: (listName: string, identifier: UserSavedIdentifier) => void;
 }
 
-const renderHeader = (focusedList: string, listItems: FeedEntry[]) => (
-  <MainPageHeader
-    icon={<List size={24} className="text-indigo-500" />}
-    title={focusedList}
-    subtitle={`${listItems.length} items`}
-  />
-);
-
 /**
  * This is a debug view for User Saved Content.
  * It is here for reference and for manipulating lists, or testing, not necessarily for deployment.
@@ -35,7 +27,6 @@ export default function UserListFocusView({
   if (listItems.length === 0) {
     return (
       <>
-        {renderHeader(focusedList, listItems)}
         <Alert className="my-4">
           You haven't saved any items. You may save papers by clicking the Save button on the feed
           or while viewing a paper.
@@ -45,7 +36,6 @@ export default function UserListFocusView({
   }
   return (
     <FeedContent
-      header={renderHeader(focusedList, listItems)}
       isRenderingSavedList={true}
       deleteUserSavedContent={(identifier: UserSavedIdentifier) =>
         deleteListDocument(focusedList, identifier)
