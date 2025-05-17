@@ -17,7 +17,7 @@ interface SaveContentButtonProps {
   userSavedIdentifier: UserSavedIdentifier;
 }
 
-const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentButtonProps) => {
+export const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentButtonProps) => {
   const {
     lists,
     isLoading,
@@ -118,7 +118,7 @@ const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentButtonPr
           className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
           disabled={isLoading}
         >
-          <Bookmark />
+          <Bookmark className="text-black" size={18} />
           <span>Save</span>
         </button>
       )}
