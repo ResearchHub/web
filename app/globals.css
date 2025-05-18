@@ -1,3 +1,4 @@
+/* These are required for Tailwind to work */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,20 +6,6 @@
 /* Define more specific layers */
 @layer base, components, utilities, onchainkit;
 
-/* Your app's styles */
-@layer base {
-  @tailwind base;
-}
-
-@layer components {
-  @tailwind components;
-}
-
-@layer utilities {
-  @tailwind utilities;
-}
-
-/* onchainkit styles in their own layer */
 @layer onchainkit {
   @import '@coinbase/onchainkit/styles.css';
 }
@@ -27,10 +14,6 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  /* Override onchainkit variables */
-  --ock-bg-primary: your-color;
-  --ock-text-foreground: your-color;
-  /* Add other overrides as needed */
 }
 
 /* @media (prefers-color-scheme: dark) {
