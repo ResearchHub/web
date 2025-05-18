@@ -1,6 +1,6 @@
 import NextAuthProvider from '@/components/providers/NextAuthProvider';
 import ToasterProvider from '@/components/providers/ToasterProvider';
-import '@coinbase/onchainkit/styles.css';
+// import '@coinbase/onchainkit/styles.css';
 import localFont from 'next/font/local';
 import './globals.css';
 import { NotificationProvider } from '@/contexts/NotificationContext';
