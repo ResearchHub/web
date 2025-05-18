@@ -141,6 +141,7 @@ function AuthorProfileCard({
         twitter: data.twitter,
         google_scholar: data.google_scholar,
       });
+
       await refetchAuthorInfo();
       toast.success('Profile updated successfully');
       setIsEditModalOpen(false);
