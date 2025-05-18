@@ -1,4 +1,6 @@
-import { X } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faXmark } from '@fortawesome/pro-light-svg-icons';
 import AuthContent from '@/components/Auth/AuthContent';
 
 interface AuthModalProps {
@@ -23,14 +25,22 @@ export default function AuthModal({ isOpen, onClose, onSuccess, initialError }: 
       onClick={handleBackgroundClick}
     >
       <div className="bg-white rounded-lg w-full max-w-md p-6 relative">
-        <button
+        <Button
+          type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
+          variant="ghost"
+          size="icon"
+          className="absolute top-6 right-6 z-10"
         >
-          <X className="h-5 w-5" />
-        </button>
+          <FontAwesomeIcon icon={faXmark} className="h-5 w-5" />
+        </Button>
 
-        <AuthContent onClose={onClose} onSuccess={onSuccess} initialError={initialError} />
+        <AuthContent
+          onClose={onClose}
+          onSuccess={onSuccess}
+          initialError={initialError}
+          modalView={true}
+        />
       </div>
     </div>
   );

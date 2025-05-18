@@ -300,28 +300,23 @@ export const Avatar: FC<AvatarProps> = ({
     md: 'h-10 w-10',
   };
 
-  const getTextSizeClass = (initials: string) => {
-    const length = initials.length;
+  const getTextSizeClass = (size: number, length: number) => {
+    if (size > 100) return length > 1 ? 'text-5xl' : 'text-6xl';
 
-    if (typeof size === 'number') {
-      // Calculate text size based on pixel size
-      if (size <= 20) return length > 1 ? 'text-[6px]' : 'text-[8px]';
-      if (size <= 24) return length > 1 ? 'text-[8px]' : 'text-[10px]';
-      if (size <= 32) return length > 1 ? 'text-[10px]' : 'text-xs';
-      const textSize = Math.floor(size / 2);
-      return `text-[${textSize}px]`;
-    }
+    const textSize = Math.floor(size / 10);
+    const sizes = {
+      2: 'text-xs',
+      3: 'text-sm',
+      4: 'text-base',
+      5: 'text-lg',
+      6: 'text-xl',
+      7: 'text-2xl',
+      8: 'text-3xl',
+      9: 'text-4xl',
+      10: 'text-5xl',
+    };
 
-    // Original logic for string-based sizes
-    if (size === 'md') {
-      return length > 1 ? 'text-xs' : 'text-sm';
-    } else if (size === 'sm') {
-      return length > 1 ? 'text-[10px]' : 'text-xs';
-    } else if (size === 'xs') {
-      return length > 1 ? 'text-[8px]' : 'text-[10px]';
-    } else {
-      return length > 1 ? 'text-[6px]' : 'text-[8px]';
-    }
+    return sizes[textSize as keyof typeof sizes] || 'text-base';
   };
 
   const handleImageError = () => {
@@ -367,7 +362,10 @@ export const Avatar: FC<AvatarProps> = ({
           className={cn(
             'absolute inset-0 flex items-center justify-center font-medium',
             'text-gray-600',
-            getTextSizeClass(label),
+            getTextSizeClass(
+              typeof size === 'number' ? size : sizeMap[size as AvatarSize],
+              label.length
+            ),
             labelClassName
           )}
         >
@@ -378,7 +376,10 @@ export const Avatar: FC<AvatarProps> = ({
           className={cn(
             'absolute inset-0 flex items-center justify-center font-medium',
             textColorClass,
-            getTextSizeClass(initials)
+            getTextSizeClass(
+              typeof size === 'number' ? size : sizeMap[size as AvatarSize],
+              initials.length
+            )
           )}
         >
           {initials}

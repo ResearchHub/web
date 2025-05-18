@@ -190,7 +190,7 @@ export function OnboardingWizard() {
         return (
           <>
             <h2 className="text-xl font-semibold mb-8 mt-4">Which topics are you interested in?</h2>
-            <InterestSelector mode="preferences" />
+            <InterestSelector mode="onboarding" />
           </>
         );
       default:
@@ -214,7 +214,7 @@ export function OnboardingWizard() {
 
   return (
     <div className="min-h-screen max-h-screen bg-gradient-to-br from-indigo-50 to-violet-100 flex flex-col items-center justify-center p-8 relative">
-      <div className="flex flex-col bg-white rounded-lg shadow-2xl max-w-4xl w-full relative overflow-hidden">
+      <div className="flex flex-col bg-white rounded-lg shadow-2xl max-w-xl w-full relative overflow-hidden">
         <div className="bg-gradient-to-r from-indigo-500 to-indigo-700 flex items-center px-8 py-4">
           <span className="text-white text-lg font-semibold">{title()}</span>
         </div>
@@ -249,9 +249,6 @@ export function OnboardingWizard() {
           )}
         </div>
       </div>
-      <Link href="/" className="mt-4 text-md text-blue-800  hover:text-gray-800">
-        Skip onboarding and go to homepage
-      </Link>
     </div>
   );
 }

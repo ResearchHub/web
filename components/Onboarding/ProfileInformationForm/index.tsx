@@ -24,6 +24,7 @@ import { ImageUploadModal } from '@/components/modals/ImageUploadModal';
 import { useUpdateAuthorProfileImage } from '@/hooks/useAuthor';
 import toast from 'react-hot-toast';
 import { Accordion, AccordionItem } from '@/components/ui/Accordion';
+import { faUserCircle, faUpload } from '@fortawesome/pro-light-svg-icons';
 
 interface ProfileInformationFormProps {
   onSubmit: (data: ProfileInformationFormValues) => void;
@@ -197,8 +198,9 @@ export function ProfileInformationForm({
         title: (
           <>
             <span className="flex items-baseline gap-2 text-base">
-              <FontAwesomeIcon icon={faUser} />
-              About <span className="text-gray-400 text-xs">(Optional)</span>
+              <FontAwesomeIcon icon={faUser} className="relative bottom-[-2px]" />
+              <span className="text-md">About</span>
+              <span className="text-gray-400 text-xs">(Optional)</span>
             </span>
             <span className="text-gray-500 text-sm">
               Let others know about you and your experience.
@@ -227,8 +229,9 @@ export function ProfileInformationForm({
         title: (
           <>
             <span className="flex items-baseline gap-2 text-base">
-              <FontAwesomeIcon icon={faGraduationCap} />
-              Education <span className="text-gray-400 text-xs">(Optional)</span>
+              <FontAwesomeIcon icon={faGraduationCap} className="relative bottom-[-2px]" />
+              <span className="text-md">Education</span>
+              <span className="text-gray-400 text-xs">(Optional)</span>
             </span>
             <span className="text-gray-500 text-sm">Add your educational experience.</span>
           </>
@@ -275,8 +278,9 @@ export function ProfileInformationForm({
         title: (
           <>
             <span className="flex items-baseline gap-2 text-base">
-              <FontAwesomeIcon icon={faShareNodes} />
-              Social Presence <span className="text-gray-400 text-xs">(Optional)</span>
+              <FontAwesomeIcon icon={faShareNodes} className="relative bottom-[-2px]" />
+              <span className="text-md">Social Presence</span>
+              <span className="text-gray-400 text-xs">(Optional)</span>
             </span>
             <span className="text-gray-500 text-sm">Add links to your social profiles.</span>
           </>
@@ -355,10 +359,7 @@ export function ProfileInformationForm({
       <div className={`flex flex-col gap-8 items-start`}>
         {/* Avatar */}
         {showAvatar && (
-          <div
-            className={`flex flex-col items-center mx-auto`}
-            style={{ width: 120, minWidth: 120 }}
-          >
+          <div className="flex flex-col items-center mx-auto gap-4" style={{ minWidth: 120 }}>
             <div
               className="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-300 overflow-hidden"
               onClick={() => setIsAvatarModalOpen(true)}
@@ -367,11 +368,20 @@ export function ProfileInformationForm({
               {avatar ? (
                 <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-gray-500 text-sm">Upload Photo</span>
+                <FontAwesomeIcon
+                  icon={faUserCircle}
+                  className="text-gray-400"
+                  style={{ fontSize: 96 }}
+                />
               )}
             </div>
-            <Button variant="link" onClick={() => setIsAvatarModalOpen(true)} className="text-sm">
-              {avatar ? 'Change Photo' : 'Upload Photo'}
+            <Button
+              variant="default"
+              className="w-full flex items-center justify-center px-4 py-2"
+              onClick={() => setIsAvatarModalOpen(true)}
+            >
+              <FontAwesomeIcon icon={faUpload} className="mr-2" />
+              <span className="whitespace-nowrap">Upload photo</span>
             </Button>
           </div>
         )}
@@ -407,7 +417,8 @@ export function ProfileInformationForm({
                 {...headlineRest}
                 ref={headlineRef}
                 error={errors.headline?.message}
-                helperText="e.g., ML Researcher at Rice University"
+                placeholder="e.g., ML Researcher at Rice University"
+                helperText="Let others know how you are at a glance."
               />
             )}
 

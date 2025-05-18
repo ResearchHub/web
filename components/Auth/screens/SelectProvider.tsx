@@ -69,7 +69,7 @@ export default function SelectProvider({
     <div>
       {showHeader && (
         <>
-          <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+          <h2 className="text-xl font-bold tracking-tight text-gray-900 !leading-10 mr-6">
             Welcome to ResearchHub{' '}
             <span role="img" aria-label="wave">
               👋
@@ -97,13 +97,13 @@ export default function SelectProvider({
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-indigo-600 text-white p-3 rounded mb-4 hover:bg-indigo-700 disabled:opacity-50"
+          className="w-full bg-indigo-600 text-white p-3 rounded hover:bg-indigo-700 disabled:opacity-50"
         >
           {isLoading ? 'Loading...' : 'Continue'}
         </button>
 
         <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
+          <div className="absolute top-[2px] inset-x-0 bottom-0 flex items-center">
             <div className="w-full border-t border-gray-300" />
           </div>
           <div className="relative flex justify-center text-sm">

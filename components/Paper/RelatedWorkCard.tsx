@@ -24,6 +24,8 @@ export const RelatedWorkCard = ({
   const { triggerEvent } = useClickContext();
   if (!work) return null;
 
+  console.log({ relatedWork: work });
+
   // Convert work authors to the format expected by AuthorList
   const authors =
     work.authors?.map((author) => ({
