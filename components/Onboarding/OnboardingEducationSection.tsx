@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGraduationCap } from '@fortawesome/free-solid-svg-icons';
+import { faPlus } from '@fortawesome/pro-light-svg-icons';
 import { Button } from '@/components/ui/Button';
 import { OnboardingEducationCard } from './OnboardingEducationCard'; // Update import name and path
 import type { EducationEntry } from './OnboardingWizard'; // Adjust path if needed
@@ -27,7 +27,7 @@ export function OnboardingEducationSection({
   // Update interface usage
   return (
     <div className="space-y-2">
-      {education.length > 0 ? (
+      {education.length > 0 && (
         <div className="space-y-2">
           {education.map((edu, index) => (
             <OnboardingEducationCard
@@ -40,8 +40,6 @@ export function OnboardingEducationSection({
             />
           ))}
         </div>
-      ) : (
-        <div className="text-sm text-gray-500 italic">No education added yet</div>
       )}
 
       <Button
@@ -49,9 +47,9 @@ export function OnboardingEducationSection({
         variant="outlined"
         size="sm"
         onClick={onAdd}
-        className="mt-2 text-blue-600 border-blue-300 hover:bg-blue-50"
+        className="text-blue-600 border-blue-300 hover:bg-blue-50"
       >
-        <FontAwesomeIcon icon={faGraduationCap} className="mr-2" />
+        <FontAwesomeIcon icon={faPlus} className="mr-2" />
         Add Education
       </Button>
     </div>

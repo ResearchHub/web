@@ -131,7 +131,7 @@ const AuthorHeaderAchievements: React.FC<AuthorHeaderAchievementsProps> = ({ ach
                 'flex items-center gap-2 text-sm font-medium rounded hover:bg-gray-100 dark:hover:bg-gray-700 cursor-default w-full'
               )}
             >
-              <div className="w-6 flex justify-center">
+              <div className="flex justify-center">
                 {React.cloneElement(achievementDetails.icon, {
                   style: { ...achievementDetails.icon.props.style, fontSize: '18px' },
                 })}

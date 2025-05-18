@@ -17,10 +17,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter, faLinkedin, faGoogle } from '@fortawesome/free-brands-svg-icons';
 import {
   faGraduationCap,
-  faBuilding,
+  faBuildingColumns,
   faBirthdayCake,
   faPen,
-} from '@fortawesome/free-solid-svg-icons';
+} from '@fortawesome/pro-solid-svg-icons';
 import { toast } from 'react-hot-toast';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { Card } from '@/components/ui/Card';
@@ -30,7 +30,6 @@ import { BaseModal } from '@/components/ui/BaseModal';
 import { AuthorProfile } from '@/types/authorProfile';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { isProduction } from '@/utils/featureFlags';
 import { Tabs } from '@/components/ui/Tabs';
 import { useContributions } from '@/hooks/useContributions';
 import { ContributionType } from '@/services/contribution.service';
@@ -110,13 +109,21 @@ function AuthorProfileCard({
   const fullName = author.fullName;
 
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [showAllEducations, setShowAllEducations] = useState(false);
 
   const description = author.description || '';
   const shouldTruncate = description.length > 300;
   const displayedDescription =
     shouldTruncate && !isDescriptionExpanded ? `${description.slice(0, 300)}...` : description;
 
-  const primaryEducation = (author.education || []).find((e) => e.is_public);
+  // Get all educations, primary first
+  const educations = author.education ?? [];
+  const primaryEducation = educations.find((e) => e.is_public);
+  const otherEducations = educations.filter((e) => e.id !== primaryEducation?.id);
+  const displayedEducations = showAllEducations
+    ? [primaryEducation, ...otherEducations].filter(Boolean)
+    : [primaryEducation, ...otherEducations].filter(Boolean).slice(0, 2);
+  const remainingCount = educations.length - displayedEducations.length;
 
   const { percent, missing } = currentUser
     ? calculateProfileCompletion(currentUser)
@@ -159,9 +166,9 @@ function AuthorProfileCard({
 
   return (
     <>
-      <div className="flex flex-col sm:flex-row gap-6">
+      <div className="flex flex-col sm:!flex-row gap-6">
         {/* Left column - Avatar */}
-        <div className="flex-shrink-0 flex justify-center sm:justify-start">
+        <div className="flex-shrink-0 flex justify-center sm:!justify-start">
           <Avatar
             src={author.profileImage}
             alt={fullName}
@@ -177,14 +184,14 @@ function AuthorProfileCard({
         {/* Right column - Content */}
         <div className="flex flex-col flex-1 min-w-0 gap-4">
           {/* Header with name and edit button */}
-          <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4">
-            <div className="flex flex-col items-center sm:items-start">
+          <div className="flex flex-col sm:!flex-row justify-between items-center sm:!items-start gap-4">
+            <div className="flex flex-col items-center sm:!items-start">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold text-gray-900">{fullName}</h1>
                 {currentUser?.isVerified && <VerifiedBadge />}
               </div>
               {author.headline && (
-                <div className="flex items-center gap-2 text-gray-600 font-sm text-center sm:text-left">
+                <div className="flex items-center gap-2 text-gray-600 font-sm text-left">
                   <span>{author.headline}</span>
                 </div>
               )}
@@ -201,35 +208,52 @@ function AuthorProfileCard({
             )}
           </div>
 
-          <div className="flex flex-col items-center sm:items-start">
-            {/* Primary Education */}
-            {primaryEducation && (
-              <div className="flex items-center gap-2 text-gray-600">
-                <FontAwesomeIcon icon={faBuilding} className="h-4 w-4" />
-                {primaryEducation.summary ? (
-                  <span>{primaryEducation.summary}</span>
-                ) : (
-                  <span>
-                    {primaryEducation.degree?.label}{' '}
-                    {primaryEducation.major && `in ${primaryEducation.major}`}
-                    {primaryEducation.year?.value && ` '${primaryEducation.year.value.slice(2)}'`}
-                    {primaryEducation.name && `, ${primaryEducation.name}`}
-                  </span>
-                )}
-              </div>
-            )}
-            {/* Member since */}
-            {currentUser?.createdDate && (
-              <div className="flex items-center gap-2 text-gray-600">
-                <FontAwesomeIcon icon={faBirthdayCake} className="h-4 w-4" />
-                <span>Member for {formatTimeAgo(currentUser.createdDate, true)}</span>
+          <div className="flex flex-col items-center sm:!items-start">
+            {/* Render educations, separated by commas */}
+            {educations.length > 0 && (
+              <div className="flex items-baseline gap-2 text-gray-600">
+                <FontAwesomeIcon
+                  icon={faBuildingColumns}
+                  className="h-4 w-4 relative bottom-[-2px]"
+                />
+                <span className="inline">
+                  {displayedEducations
+                    .filter((edu) => edu !== undefined)
+                    .map((edu, idx) => (
+                      <span key={edu.id}>
+                        {edu.summary
+                          ? edu.summary
+                          : `${edu.degree?.label || ''}${edu.major ? ` in ${edu.major}` : ''}${edu.year?.value ? ` '${edu.year.value.slice(2)}` : ''}${edu.name ? `, ${edu.name}` : ''}`}
+                        {idx < displayedEducations.length - 1 && ', '}
+                      </span>
+                    ))}
+
+                  {(remainingCount > 0 || showAllEducations) && (
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="ml-1 p-0 h-auto align-baseline"
+                      onClick={() => setShowAllEducations(!showAllEducations)}
+                    >
+                      {showAllEducations ? 'Show less' : `+${remainingCount} more`}
+                    </Button>
+                  )}
+                </span>
               </div>
             )}
           </div>
 
+          {/* Member since */}
+          {currentUser?.createdDate && (
+            <div className="flex items-baseline gap-2 text-gray-600">
+              <FontAwesomeIcon icon={faBirthdayCake} className="h-4 w-4 relative bottom-[-2px]" />
+              <span>Member for {formatTimeAgo(currentUser.createdDate, true)}</span>
+            </div>
+          )}
+
           {/* Description with Show more/less */}
           {description && (
-            <div className="text-center sm:text-left">
+            <div className="text-justify">
               <p className="text-gray-600">{displayedDescription}</p>
               {shouldTruncate && (
                 <button
@@ -243,7 +267,7 @@ function AuthorProfileCard({
           )}
 
           {/* Social Links */}
-          <div className="flex gap-2 justify-center sm:justify-start">
+          <div className="flex gap-2 justify-center sm:!justify-start">
             <SocialIcon
               icon={<FontAwesomeIcon icon={faGraduationCap} />}
               href={author.orcidId}
@@ -378,15 +402,6 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     useAuthorAchievements(authorId);
   const [{ summaryStats, isLoading: isSummaryStatsLoading, error: summaryStatsError }] =
     useAuthorSummaryStats(authorId);
-
-  const router = useRouter();
-
-  // TODO: Remove it when the page is ready for production
-  useEffect(() => {
-    if (isProduction()) {
-      router.push('/');
-    }
-  }, [router]);
 
   if (isLoading || isUserLoading) {
     return (

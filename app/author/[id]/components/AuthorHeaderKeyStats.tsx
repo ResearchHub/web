@@ -1,5 +1,4 @@
-import { Icon } from '@/components/ui/icons';
-import { useAuthorSummaryStats } from '@/hooks/useAuthor';
+import { Icon } from '@/components/ui/icons/Icon';
 import { AuthorSummaryStats } from '@/types/authorProfile';
 import { User } from '@/types/user';
 
@@ -43,7 +42,7 @@ export default function AuthorHeaderKeyStats({ summaryStats, profile }: AuthorHe
         <div className="flex items-center gap-1.5">
           <span className="font-medium">Amount funded:</span>
           <span className="flex items-center gap-1">
-            <Icon name="fund" size={16} color="#FFBF00" />
+            <Icon name="gold2" size={18} />
             {summaryStats.amountFunded.toLocaleString()}
           </span>
         </div>
