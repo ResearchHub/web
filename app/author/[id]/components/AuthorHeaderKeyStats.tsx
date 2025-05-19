@@ -9,7 +9,7 @@ interface AuthorHeaderKeyStatsProps {
 
 export default function AuthorHeaderKeyStats({ summaryStats, profile }: AuthorHeaderKeyStatsProps) {
   return (
-    <div className="flex flex-col gap-2.5 text-sm">
+    <div className="flex flex-col gap-3 text-sm">
       <div className="flex items-center gap-1.5">
         <span className="font-medium">Upvotes received:</span>
         <span>{summaryStats.upvotesReceived}</span>

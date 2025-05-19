@@ -15,7 +15,7 @@ import { useState, useEffect } from 'react';
 import { OnboardingEducationSection } from '../OnboardingEducationSection';
 import { OnboardingEducationModal } from '../OnboardingEducationModal';
 import type { EducationEntry } from '../OnboardingWizard';
-import { faXTwitter, faLinkedin } from '@fortawesome/free-brands-svg-icons';
+import { faXTwitter, faLinkedin, faGoogle, faOrcid } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGraduationCap, faShareNodes, faUser } from '@fortawesome/pro-solid-svg-icons';
 import { SocialIcon } from '@/components/ui/SocialIcon';
@@ -45,20 +45,21 @@ export function ProfileInformationForm({
 }: ProfileInformationFormProps) {
   const socialLinkMeta = {
     linkedin: {
-      icon: <FontAwesomeIcon icon={faLinkedin} className="h-5 w-5 text-[#0077B5]" />,
+      icon: <FontAwesomeIcon icon={faLinkedin} className="h-6 w-6 text-[#0077B5]" />,
       label: 'LinkedIn Profile URL',
     },
+    google_scholar: {
+      icon: <FontAwesomeIcon icon={faGoogle} className="h-6 w-6 text-[#4285F4]" />,
+      label: 'Google Scholar Profile URL',
+    },
     orcid_id: {
-      icon: <FontAwesomeIcon icon={faGraduationCap} className="h-5 w-5 text-[#A6CE39]" />,
+      icon: <FontAwesomeIcon icon={faOrcid} className="h-6 w-6 text-[#A6CE39]" />,
       label: 'ORCID URL',
     },
+
     twitter: {
-      icon: <FontAwesomeIcon icon={faXTwitter} className="h-5 w-5 text-[#000]" />,
+      icon: <FontAwesomeIcon icon={faXTwitter} className="h-6 w-6 text-[#000]" />,
       label: 'X (Twitter) Profile URL',
-    },
-    google_scholar: {
-      icon: <FontAwesomeIcon icon={faGraduationCap} className="h-5 w-5 text-[#4285F4]" />,
-      label: 'Google Scholar Profile URL',
     },
   } as const;
 

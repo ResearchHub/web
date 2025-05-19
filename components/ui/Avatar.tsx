@@ -84,7 +84,7 @@ const ProfileFieldLabel: Record<ProfileField, string> = {
   [ProfileField.Verification]: 'Verification',
   [ProfileField.Education]: 'Education',
   [ProfileField.About]: 'About',
-  [ProfileField.Social]: 'Social Account',
+  [ProfileField.Social]: 'Social presence',
 };
 
 interface ProfileCompletionCircleProps {
@@ -144,7 +144,7 @@ const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
     <div className="text-left">
       <div className="font-semibold mb-1">Complete Your Profile</div>
       <div className="text-xs text-gray-500 mb-3">
-        Completing your profile unlocks more features and helps you stand out in the community.
+        Completing your profile helps you stand out in the community.
       </div>
       <div className="font-semibold mb-2">Profile Progress</div>
       <ul className="space-y-1">
@@ -186,7 +186,7 @@ const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
       >
         <div
           className={cn(
-            'rounded-full px-1 shadow text-white font-semibold z-20 flex items-center justify-center',
+            'rounded-full px-2 shadow text-white font-semibold z-20 flex items-center justify-center',
             typeof size === 'number' && size > 100 ? 'h-6' : 'h-4',
             showTooltip && 'cursor-pointer'
           )}
@@ -203,11 +203,11 @@ const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
       <svg
         width={px}
         height={px}
-        className="absolute z-0"
+        className="relative z-0"
         style={{
-          top: -strokeWidth,
-          left: -strokeWidth,
-          position: 'absolute',
+          // top: -strokeWidth,
+          // left: -strokeWidth,
+          // position: 'absolute',
           transform: 'rotate(90deg)',
         }}
       >
@@ -231,7 +231,16 @@ const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
           strokeLinecap="round"
         />
       </svg>
-      <div className="relative z-10">{avatarElement}</div>
+      <div
+        className="relative z-10"
+        style={{
+          top: strokeWidth,
+          left: strokeWidth,
+          position: 'absolute',
+        }}
+      >
+        {avatarElement}
+      </div>
       {showProfileCompletionNumber &&
         (showTooltip ? (
           <Tooltip

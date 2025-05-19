@@ -104,7 +104,6 @@ export default function UserMenu({
             size="md"
             showProfileCompletion={isFeatureEnabled(FeatureFlag.SimplifiedOnboarding)}
             profileCompletionPercent={percent}
-            showProfileCompletionNumber
           />
           <div className="ml-3">
             <p className="text-base font-medium text-gray-900 flex items-center gap-1">
@@ -242,7 +241,6 @@ export default function UserMenu({
                 size="md"
                 showProfileCompletion={isFeatureEnabled(FeatureFlag.SimplifiedOnboarding)}
                 profileCompletionPercent={percent}
-                showProfileCompletionNumber
               />
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
@@ -254,10 +252,10 @@ export default function UserMenu({
                         navigateToAuthorProfile(user.authorProfile?.id, false);
                         setMenuOpenState(false);
                       }}
-                      className="ml-1 p-1 rounded hover:bg-gray-100 transition"
+                      className="ml-1 p-1 rounded hover:bg-gray-100 transition max-h-6"
                       title="Edit Profile"
                       variant="ghost"
-                      size="icon"
+                      size="sm"
                     >
                       <FontAwesomeIcon icon={faPen} className="h-4 w-4 text-gray-500" />
                     </Button>

@@ -14,13 +14,8 @@ import {
 import { useUser } from '@/contexts/UserContext';
 import { Avatar } from '@/components/ui/Avatar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faXTwitter, faLinkedin, faGoogle } from '@fortawesome/free-brands-svg-icons';
-import {
-  faGraduationCap,
-  faBuildingColumns,
-  faBirthdayCake,
-  faPen,
-} from '@fortawesome/pro-solid-svg-icons';
+import { faXTwitter, faLinkedin, faGoogle, faOrcid } from '@fortawesome/free-brands-svg-icons';
+import { faBuildingColumns, faBirthdayCake, faPen } from '@fortawesome/pro-solid-svg-icons';
 import { toast } from 'react-hot-toast';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { Card } from '@/components/ui/Card';
@@ -37,6 +32,7 @@ import { transformContributionToFeedEntry } from '@/types/contribution';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import AuthorHeaderAchievements from './components/AuthorHeaderAchievements';
 import AuthorHeaderKeyStats from './components/AuthorHeaderKeyStats';
+import { SearchEmpty } from '@/components/ui/SearchEmpty';
 
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
@@ -172,7 +168,7 @@ function AuthorProfileCard({
           <Avatar
             src={author.profileImage}
             alt={fullName}
-            size={120}
+            size={128}
             showProfileCompletion={isOwnProfile}
             profileCompletionPercent={percent}
             showProfileCompletionNumber
@@ -208,60 +204,64 @@ function AuthorProfileCard({
             )}
           </div>
 
-          <div className="flex flex-col items-center sm:!items-start">
-            {/* Render educations, separated by commas */}
-            {educations.length > 0 && (
-              <div className="flex items-baseline gap-2 text-gray-600">
-                <FontAwesomeIcon
-                  icon={faBuildingColumns}
-                  className="h-4 w-4 relative bottom-[-2px]"
-                />
-                <span className="inline">
-                  {displayedEducations
-                    .filter((edu) => edu !== undefined)
-                    .map((edu, idx) => (
-                      <span key={edu.id}>
-                        {edu.summary
-                          ? edu.summary
-                          : `${edu.degree?.label || ''}${edu.major ? ` in ${edu.major}` : ''}${edu.year?.value ? ` '${edu.year.value.slice(2)}` : ''}${edu.name ? `, ${edu.name}` : ''}`}
-                        {idx < displayedEducations.length - 1 && ', '}
-                      </span>
-                    ))}
+          <div>
+            <div className="flex flex-col items-center sm:!items-start">
+              {/* Render educations, separated by commas */}
+              {educations.length > 0 && (
+                <div className="flex items-baseline gap-2 text-gray-600">
+                  <FontAwesomeIcon
+                    icon={faBuildingColumns}
+                    className="h-4 w-4 relative bottom-[-2px]"
+                  />
+                  <span className="inline">
+                    {displayedEducations
+                      .filter((edu) => edu !== undefined)
+                      .map((edu, idx) => (
+                        <span key={edu.id}>
+                          {edu.summary
+                            ? edu.summary
+                            : `${edu.degree?.label || ''}${edu.major ? ` in ${edu.major}` : ''}${edu.year?.value ? ` '${edu.year.value.slice(2)}` : ''}${edu.name ? `, ${edu.name}` : ''}`}
+                          {idx < displayedEducations.length - 1 && ', '}
+                        </span>
+                      ))}
 
-                  {(remainingCount > 0 || showAllEducations) && (
-                    <Button
-                      variant="link"
-                      size="sm"
-                      className="ml-1 p-0 h-auto align-baseline"
-                      onClick={() => setShowAllEducations(!showAllEducations)}
-                    >
-                      {showAllEducations ? 'Show less' : `+${remainingCount} more`}
-                    </Button>
-                  )}
-                </span>
+                    {(remainingCount > 0 || showAllEducations) && (
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="ml-1 p-0 h-auto align-baseline text-base"
+                        onClick={() => setShowAllEducations(!showAllEducations)}
+                      >
+                        {showAllEducations ? 'Show less' : `+${remainingCount} more`}
+                      </Button>
+                    )}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Member since */}
+            {currentUser?.createdDate && (
+              <div className="flex items-baseline gap-2 text-gray-600">
+                <FontAwesomeIcon icon={faBirthdayCake} className="h-4 w-4 relative bottom-[-2px]" />
+                <span>Member for {formatTimeAgo(currentUser.createdDate, true)}</span>
               </div>
             )}
           </div>
-
-          {/* Member since */}
-          {currentUser?.createdDate && (
-            <div className="flex items-baseline gap-2 text-gray-600">
-              <FontAwesomeIcon icon={faBirthdayCake} className="h-4 w-4 relative bottom-[-2px]" />
-              <span>Member for {formatTimeAgo(currentUser.createdDate, true)}</span>
-            </div>
-          )}
 
           {/* Description with Show more/less */}
           {description && (
             <div className="text-justify">
               <p className="text-gray-600">{displayedDescription}</p>
               {shouldTruncate && (
-                <button
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="mt-1 p-0 h-auto align-baseline text-base"
                   onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                  className="text-blue-600 hover:text-blue-700 text-sm mt-1"
                 >
                   {isDescriptionExpanded ? 'Show less' : 'Show more'}
-                </button>
+                </Button>
               )}
             </div>
           )}
@@ -269,7 +269,23 @@ function AuthorProfileCard({
           {/* Social Links */}
           <div className="flex gap-2 justify-center sm:!justify-start">
             <SocialIcon
-              icon={<FontAwesomeIcon icon={faGraduationCap} />}
+              icon={<FontAwesomeIcon icon={faLinkedin} className="h-6 w-6" />}
+              href={author.linkedin}
+              label="LinkedIn"
+              className={
+                author.linkedin ? '[&>svg]:text-[#0077B5] [&>svg]:hover:text-[#005582] pl-0' : ''
+              }
+            />
+            <SocialIcon
+              icon={<FontAwesomeIcon icon={faGoogle} className="h-6 w-6" />}
+              href={author.googleScholar}
+              label="Google Scholar"
+              className={
+                author.googleScholar ? '[&>svg]:text-[#4285F4] [&>svg]:hover:text-[#21429F]' : ''
+              }
+            />
+            <SocialIcon
+              icon={<FontAwesomeIcon icon={faOrcid} className="h-6 w-6" />}
               href={author.orcidId}
               label="ORCID"
               className={
@@ -277,26 +293,10 @@ function AuthorProfileCard({
               }
             />
             <SocialIcon
-              icon={<FontAwesomeIcon icon={faLinkedin} />}
-              href={author.linkedin}
-              label="LinkedIn"
-              className={
-                author.linkedin ? '[&>svg]:text-[#0077B5] [&>svg]:hover:text-[#005582]' : ''
-              }
-            />
-            <SocialIcon
-              icon={<FontAwesomeIcon icon={faXTwitter} />}
+              icon={<FontAwesomeIcon icon={faXTwitter} className="h-6 w-6" />}
               href={author.twitter}
               label="Twitter"
               className={author.twitter ? '[&>svg]:text-[#000] [&>svg]:hover:text-[#000]' : ''}
-            />
-            <SocialIcon
-              icon={<FontAwesomeIcon icon={faGoogle} />}
-              href={author.googleScholar}
-              label="Google Scholar"
-              className={
-                author.googleScholar ? '[&>svg]:text-[#4285F4] [&>svg]:hover:text-[#21429F]' : ''
-              }
             />
           </div>
         </div>
@@ -380,6 +380,9 @@ function AuthorTabs({ authorId }: { authorId: number }) {
           isLoadingMore={isLoadingMore}
           showBountySupportAndCTAButtons={false}
           showBountyDeadline={false}
+          noEntriesElement={
+            <SearchEmpty title="No author activity found in this section." className="mb-10" />
+          }
         />
       </div>
     );
@@ -426,12 +429,12 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
       </Card>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="mt-4 bg-gray-50">
-          <h3 className="text-base font-base uppercase text-gray-500 mb-3">Achievements</h3>
+          <h3 className="text-sm font-base uppercase text-gray-500 mb-3">Achievements</h3>
           <AuthorHeaderAchievements achievements={achievements} />
         </Card>
         {summaryStats && (
           <Card className="mt-4 bg-gray-50">
-            <h3 className="text-base font-base uppercase text-gray-500 mb-3">Key Stats</h3>
+            <h3 className="text-sm font-base uppercase text-gray-500 mb-3">Key Stats</h3>
             <AuthorHeaderKeyStats summaryStats={summaryStats} profile={user} />
           </Card>
         )}

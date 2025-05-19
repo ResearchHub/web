@@ -113,7 +113,7 @@ const AuthorHeaderAchievements: React.FC<AuthorHeaderAchievementsProps> = ({ ach
   }
 
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className="flex flex-col gap-3">
       {achievements.map((achievement) => {
         const achievementDetails = getAchievementDetails({ achievement });
         return (

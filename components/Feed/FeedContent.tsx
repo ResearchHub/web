@@ -30,6 +30,7 @@ interface FeedContentProps {
   isLoadingMore?: boolean;
   showBountySupportAndCTAButtons?: boolean; // Show container for Support and CTA buttons for bounty items
   showBountyDeadline?: boolean; // Show deadline in metadata line
+  noEntriesElement?: ReactNode; // Element to render if there are no entries
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -47,6 +48,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   isLoadingMore = false,
   showBountySupportAndCTAButtons = true, // Show container for Support and CTA buttons
   showBountyDeadline = true, // Show deadline in metadata line
+  noEntriesElement,
 }) => {
   // Generate appropriate href for each feed item type
   const generateHref = (entry: FeedEntry): string | undefined => {
@@ -207,11 +209,13 @@ export const FeedContent: FC<FeedContentProps> = ({
           )}
 
           {/* Show 'No entries' message only if not loading and entries are empty */}
-          {!isLoading && entries.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-gray-500">No feed entries found</p>
-            </div>
-          )}
+          {!isLoading &&
+            entries.length === 0 &&
+            (noEntriesElement || (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No feed entries found</p>
+              </div>
+            ))}
         </div>
 
         {/* Load More button */}
