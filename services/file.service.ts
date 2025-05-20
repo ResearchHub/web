@@ -40,14 +40,14 @@ export class FileService {
       }
 
       const data = await response.json();
-      const { presigned_url, object_key, object_url } = data;
+      const { presigned_url: presignedUrl, object_key: objectKey, object_url: objectUrl } = data;
 
-      if (!presigned_url || !object_key) {
+      if (!presignedUrl || !objectKey) {
         throw new Error('Invalid response from server');
       }
 
       // Upload the file to S3 using the presigned URL
-      const uploadResponse = await fetch(presigned_url, {
+      const uploadResponse = await fetch(presignedUrl, {
         method: 'PUT',
         body: file,
         headers: {
@@ -60,8 +60,8 @@ export class FileService {
       }
 
       return {
-        objectKey: object_key,
-        absoluteUrl: object_url,
+        objectKey: objectKey,
+        absoluteUrl: objectUrl,
         fileName: file.name,
       };
     } catch (error) {
