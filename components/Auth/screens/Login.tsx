@@ -73,6 +73,8 @@ export default function Login({
         <input
           type="email"
           value={email}
+          autoCapitalize="none"
+          autoComplete="email"
           className="w-full p-3 border rounded mb-4 bg-gray-50"
           disabled
         />
