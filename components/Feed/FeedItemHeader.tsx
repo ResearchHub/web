@@ -10,6 +10,9 @@ import { navigateToAuthorProfile } from '@/utils/navigation';
 import { formatTimeAgo } from '@/utils/date';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { EditorBadge } from '@/components/ui/EditorBadge';
+import { AuthorBadge } from '@/components/ui/AuthorBadge';
+import { Work } from '@/types/work';
 
 interface Contributor {
   profileImage?: string;
@@ -28,6 +31,7 @@ interface FeedItemHeaderProps {
   contributorsLabel?: string;
   isBounty?: boolean;
   totalContributorsCount?: number;
+  work?: Work;
 }
 
 export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
@@ -40,6 +44,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   contributorsLabel = 'Contributors',
   isBounty = false,
   totalContributorsCount,
+  work,
 }) => {
   // Format date consistently
   const formattedDate = timestamp instanceof Date ? timestamp : new Date(timestamp);
@@ -50,6 +55,11 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
 
   // Determine if we have author ID to show tooltip
   const authorId = author?.id;
+  // Check if author is an editor of any hub
+  const isEditor = author?.editorOfHubs && author.editorOfHubs.length > 0;
+
+  // Check if author is also an author of the work
+  const isAuthorOfWork = work?.authors?.some((a) => a.authorProfile.id === authorId);
 
   // Standard header format (non-bounty)
   return (
@@ -85,6 +95,18 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
                   <span className="font-semibold">{author.fullName}</span>
                 )}
                 {author.user?.isVerified && <VerifiedBadge size="sm" />}
+                {/* Show AuthorBadge with priority over EditorBadge */}
+                {isAuthorOfWork && (
+                  <div className="flex items-center px-1">
+                    <AuthorBadge size={size === 'xs' ? 'sm' : 'md'} />
+                  </div>
+                )}
+                {/* Only show EditorBadge if not an author of the work */}
+                {isEditor && !isAuthorOfWork && (
+                  <div className="flex items-center px-1">
+                    <EditorBadge hubs={author.editorOfHubs} size={'md'} />
+                  </div>
+                )}
               </div>
             ) : null}
 

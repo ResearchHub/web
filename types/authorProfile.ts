@@ -2,6 +2,7 @@ import { formatTimestamp } from '@/utils/date';
 import { ID } from './root';
 import { createTransformer, BaseTransformed } from './transformer';
 import { User, transformUser } from './user';
+import { Hub } from './hub';
 
 export interface Education {
   id: number;
@@ -41,6 +42,7 @@ export interface AuthorProfile {
   isClaimed: boolean;
   hIndex?: number;
   i10Index?: number;
+  editorOfHubs?: Hub[];
 }
 
 export type TransformedAuthorProfile = AuthorProfile & BaseTransformed;
@@ -62,6 +64,15 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
   // Determine if the profile is claimed based on:
   // If a 'user' property exists and is not null
   const isClaimed = !!raw.user && raw.user !== null;
+
+  const editorOfHubs = raw.editor_of?.map((group: any) => {
+    return {
+      id: group?.source?.id,
+      name: group?.source?.name,
+      slug: group?.source?.slug,
+    };
+  });
+
   return {
     id: raw.id || 0,
     fullName:
@@ -167,6 +178,14 @@ export const transformAuthorSummaryStats = createTransformer<any, AuthorSummaryS
     };
   }
 
+  const editorOfHubs = raw.editor_of?.map((group: any) => {
+    return {
+      id: group?.source?.id,
+      name: group?.source?.name,
+      slug: group?.source?.slug,
+    };
+  });
+
   return {
     worksCount: raw.summary_stats.works_count || 0,
     citationCount: raw.summary_stats.citation_count || 0,
@@ -175,5 +194,6 @@ export const transformAuthorSummaryStats = createTransformer<any, AuthorSummaryS
     amountFunded: raw.summary_stats.amount_funded || 0,
     openAccessPct: Math.round((raw.summary_stats.open_access_pct || 0) * 100),
     peerReviewCount: raw.summary_stats.peer_review_count || 0,
+    editorOfHubs: editorOfHubs,
   };
 });

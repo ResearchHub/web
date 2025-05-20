@@ -215,6 +215,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
         timestamp={commentEntry.createdDate}
         author={author}
         actionText={isReview ? `submitted a peer review` : 'added a comment'}
+        work={entry.relatedWork}
       />
       {showLegacyCommentBanner && (
         <LegacyCommentBanner

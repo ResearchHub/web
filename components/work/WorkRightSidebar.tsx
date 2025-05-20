@@ -9,6 +9,7 @@ import { TopicsSection } from './components/TopicsSection';
 import { DOISection } from './components/DOISection';
 import { LicenseSection } from './components/LicenseSection';
 import { FormatsSection } from './components/FormatsSection';
+import { VersionsSection } from './components/VersionsSection';
 
 interface WorkRightSidebarProps {
   work: Work;
@@ -18,9 +19,7 @@ interface WorkRightSidebarProps {
 export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
   return (
     <div className="space-y-8">
-      {/* <HaveYouPublishedBanner /> */}
-      {/* <PublishInJournalBanner /> */}
-
+      <VersionsSection versions={work.versions || []} currentPaperId={work.id} />
       <SupportersSection tips={work.tips || []} documentId={work.id} />
       <TopicsSection topics={metadata.topics || []} />
       {work.doi && <DOISection doi={work.doi} />}

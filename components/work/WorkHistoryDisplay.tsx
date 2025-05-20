@@ -1,6 +1,7 @@
 import { Work, DocumentVersion } from '@/types/work';
 import { ChevronsLeftRight } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '@/utils/styles';
 
 interface WorkHistoryDisplayProps {
   versions: DocumentVersion[];
@@ -38,21 +39,32 @@ export const WorkHistoryDisplay = ({ versions, currentPaperId, slug }: WorkHisto
           const versionUrl = `/paper/${version.paperId}/${slug}`;
 
           return (
-            <Link
-              key={version.version}
-              href={versionUrl}
-              className={
-                isViewingThisCard ? 'cursor-default pointer-events-none' : 'cursor-pointer'
-              }
-            >
-              <div className="flex">
-                {/* Card */}
-                <div className="flex-1">
-                  <div className="group border border-gray-200 rounded-lg bg-white shadow-sm hover:shadow transition-shadow p-6 flex items-center justify-between">
+            <div key={version.version} className="group/card">
+              <Link
+                href={versionUrl}
+                className={cn(
+                  'block no-underline text-inherit',
+                  isViewingThisCard ? 'pointer-events-none' : ''
+                )}
+              >
+                <div
+                  className={cn(
+                    'border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden',
+                    'transition-all duration-200',
+                    !isViewingThisCard && 'hover:shadow-md hover:border-indigo-100',
+                    'cursor-pointer'
+                  )}
+                >
+                  <div className="p-6 flex items-center justify-between">
                     {/* Left */}
                     <div>
                       <div className="flex items-center flex-wrap gap-2 mb-1">
-                        <h3 className="text-base font-medium group-hover:underline text-gray-800">
+                        <h3
+                          className={cn(
+                            'text-base font-medium text-gray-800',
+                            !isViewingThisCard && 'group-hover/card:text-indigo-600'
+                          )}
+                        >
                           {version.description || `Version ${version.version}`}
                         </h3>
                         {version.isLatest && (
@@ -82,17 +94,10 @@ export const WorkHistoryDisplay = ({ versions, currentPaperId, slug }: WorkHisto
                         </span>
                       </div>
                     </div>
-
-                    {/* CTA icon */}
-                    {!isViewingThisCard && (
-                      <div className="rounded-md p-2 text-gray-500 group-hover:text-indigo-600">
-                        <ChevronsLeftRight className="h-5 w-5" />
-                      </div>
-                    )}
                   </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+            </div>
           );
         })}
       </div>

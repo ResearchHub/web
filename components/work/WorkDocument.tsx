@@ -178,6 +178,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
                 autoFocus: shouldFocusReviewEditor,
               }}
               key={`review-feed-${work.id}`}
+              work={work}
             />
           </div>
         );
@@ -192,6 +193,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
               renderCommentActions={false}
               hideEditor={true}
               key={`bounty-feed-${work.id}`}
+              work={work}
             />
           </div>
         );
@@ -204,6 +206,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
               contentType={work.contentType}
               commentType="GENERIC_COMMENT"
               key={`comment-feed-${work.id}`}
+              work={work}
             />
           </div>
         );
@@ -240,7 +243,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
     isAuthor,
     handleAddVersion,
   ]);
-  console.log('isAuthor', isAuthor);
+
   return (
     <div>
       {/* Rewards Banner - Show when there are open bounties */}

@@ -3,9 +3,10 @@
 import { FileText, Star, MessagesSquare, History } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icons/Icon';
 import { Tabs } from '@/components/ui/Tabs';
+import { usePathname } from 'next/navigation';
 
 export type TabType = 'paper' | 'reviews' | 'bounties' | 'conversation' | 'history';
 
@@ -24,18 +25,34 @@ export const WorkTabs = ({
   contentType = 'paper',
   onTabChange,
 }: WorkTabsProps) => {
+  const pathname = usePathname();
+
+  // Get the active tab based on current path
+  const getActiveTabFromPath = (path: string): TabType => {
+    if (path.includes('/conversation')) return 'conversation';
+    if (path.includes('/reviews')) return 'reviews';
+    if (path.includes('/bounties')) return 'bounties';
+    if (path.includes('/history')) return 'history';
+    return 'paper';
+  };
+
   // Initialize activeTab from URL or props
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     // Check if URL contains a tab indicator
     if (typeof window !== 'undefined') {
-      const path = window.location.pathname;
-      if (path.includes('/conversation')) return 'conversation';
-      if (path.includes('/reviews')) return 'reviews';
-      if (path.includes('/bounties')) return 'bounties';
-      if (path.includes('/history')) return 'history';
+      return getActiveTabFromPath(window.location.pathname);
     }
     return defaultTab;
   });
+
+  // Update active tab when pathname changes
+  useEffect(() => {
+    const tabFromPath = getActiveTabFromPath(pathname);
+    if (tabFromPath !== activeTab) {
+      setActiveTab(tabFromPath);
+      onTabChange(tabFromPath);
+    }
+  }, [pathname, onTabChange]);
 
   // Handle tab change
   const handleTabChange = (tab: TabType) => {

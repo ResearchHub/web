@@ -375,6 +375,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         }
         isBounty={true}
         totalContributorsCount={bounty.contributions?.length || 0}
+        work={entry.relatedWork}
       />
 
       {/* Main Content Card - Restoring border and styles */}
