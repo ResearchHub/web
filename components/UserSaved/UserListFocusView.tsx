@@ -23,10 +23,10 @@ export default function UserListFocusView({
 }: UserListFocusViewProps) {
   if (!loading && listItems.length === 0) {
     return (
-      <Alert className="my-4">
-        You haven't saved any items. You may save papers by clicking the Save button on the feed or
-        while viewing a paper.
-      </Alert>
+      <div className="bg-gray-100 p-3 rounded-md text-sm text-gray-600 text-center">
+        You haven't saved any items yet. You can save content by clicking the Save button on the
+        feed or while viewing it.
+      </div>
     );
   }
   return (
