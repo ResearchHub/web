@@ -73,13 +73,10 @@ export const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentB
   );
 
   const handleCreateList = useCallback(async () => {
-    if (!newListName.trim()) {
-      toast.error('List name cannot be empty');
-      return;
-    }
     try {
       await createList(newListName);
       setNewListName(''); // Clear input
+      setNewListValid(false);
       toast.success(`Created List: ${newListName}`);
     } catch (err: any) {
       toast.error(err.message || 'Failed to create list');
@@ -90,6 +87,7 @@ export const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentB
     if (e) e.stopPropagation();
     setIsCreatingList(false);
     setNewListName('');
+    setNewListValid(false);
     if (!isOpen) {
       try {
         await fetchLists();
@@ -103,9 +101,7 @@ export const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentB
   };
 
   const handleNewListInput = (e: ChangeEvent<HTMLInputElement>) => {
-    const valid: boolean =
-      isValidListName(e.target.value) && !isLoading && !lists.includes(e.target.value);
-
+    const valid: boolean = isValidListName(e.target.value, lists);
     setNewListValid(valid);
     setNewListName(e.target.value);
   };

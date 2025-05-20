@@ -35,8 +35,8 @@ export default function SavedPage() {
   };
 
   const handleListInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const isValid = isValidListName(e.target.value);
-    setInputValid(isValid && !lists.includes(e.target.value));
+    const isValid = isValidListName(e.target.value, lists);
+    setInputValid(isValid);
     setNewListName(e.target.value);
   };
 

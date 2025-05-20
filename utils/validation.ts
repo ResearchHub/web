@@ -11,10 +11,12 @@ export const isValidName = (name: string): boolean => {
   return name.trim().length > 0;
 };
 
-export const isValidListName = (name: string): boolean => {
-  return name.trim().length > 0 && name.length < 200;
+const MAX_LIST_NAME_LENGTH = 200;
+
+export const isValidListName = (name: string, lists: string[]): boolean => {
+  return name.trim().length > 0 && name.length < MAX_LIST_NAME_LENGTH && !lists.includes(name);
 };
 
 export const isValidListItemName = (name: string): boolean => {
-  return name.trim().length > 0 && name.length < 200;
+  return name.trim().length > 0 && name.length < MAX_LIST_NAME_LENGTH;
 };
