@@ -116,14 +116,16 @@ export default function Login({
         </Button>
       </form>
 
-      <Button
-        onClick={onBack}
-        disabled={isLoading || isRedirecting}
-        variant="ghost"
-        className="w-full text-gray-600 hover:text-gray-800"
-      >
-        ← Back
-      </Button>
+      {!modalView && (
+        <Button
+          onClick={onBack}
+          disabled={isLoading || isRedirecting}
+          variant="ghost"
+          className="w-full text-gray-600 hover:text-gray-800"
+        >
+          ← Back
+        </Button>
+      )}
     </div>
   );
 }

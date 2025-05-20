@@ -8,11 +8,27 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { cn } from '@/utils/styles';
 import { faTrophyStar } from '@fortawesome/pro-light-svg-icons';
 
-interface AchievementsProps {
-  achievements: Achievement[];
+export function AchievementsSkeleton() {
+  return (
+    <div className="flex flex-col gap-3 p-2">
+      {[...Array(4)].map((_, i) => (
+        <div key={i} className="flex items-center gap-2 text-sm font-medium rounded w-full">
+          <div className="flex justify-center">
+            <div className="w-7 h-7 rounded-full bg-gray-200 animate-pulse" />
+          </div>
+          <div className="flex-1 h-5 bg-gray-200 rounded animate-pulse" />
+        </div>
+      ))}
+    </div>
+  );
 }
 
-const Achievements: React.FC<AchievementsProps> = ({ achievements }) => {
+interface AchievementsProps {
+  achievements: Achievement[];
+  isLoading: boolean;
+}
+
+const Achievements: React.FC<AchievementsProps> = ({ achievements, isLoading }) => {
   const getTooltipContent = (
     achievement: Achievement,
     achievementDetails: { icon: ReactElement; title: string }
@@ -98,6 +114,10 @@ const Achievements: React.FC<AchievementsProps> = ({ achievements }) => {
       </div>
     );
   };
+
+  if (isLoading) {
+    return <AchievementsSkeleton />;
+  }
 
   if (achievements.length === 0) {
     return (

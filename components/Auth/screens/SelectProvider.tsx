@@ -102,7 +102,7 @@ export default function SelectProvider({
           {isLoading ? 'Loading...' : 'Continue'}
         </button>
 
-        <div className="relative my-6">
+        <div className="relative my-8">
           <div className="absolute top-[2px] inset-x-0 bottom-0 flex items-center">
             <div className="w-full border-t border-gray-300" />
           </div>

@@ -16,6 +16,26 @@ import { FormField, ProfileInformationFormValues } from './ProfileInformationFor
 import { University } from './EducationAutocomplete';
 import { OnboardingAccordionSkeleton } from './OnboardingAccordionSkeleton';
 
+type DotStepperProps = {
+  total: number;
+  current: number;
+};
+
+export function DotStepper({ total, current }: DotStepperProps) {
+  return (
+    <div className="flex justify-center items-center gap-2 mt-6">
+      {Array.from({ length: total }).map((_, idx) => (
+        <span
+          key={idx}
+          className={`h-3 w-3 rounded-full transition-colors ${
+            idx <= current ? 'bg-indigo-500' : 'bg-gray-300'
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
 type OnboardingStep = 'PERSONAL_INFORMATION' | 'ADDITIONAL_INFORMATION' | 'TOPICS';
 
 export interface EducationEntry {
@@ -141,7 +161,7 @@ export function OnboardingWizard() {
       // Refresh user data to update the hasCompletedOnboarding flag
       await refreshUser();
 
-      router.push('/');
+      router.replace('/');
     } catch (error) {
       console.error('Error finishing onboarding:', error);
       toast.error('An error occurred while completing setup.');
@@ -212,6 +232,22 @@ export function OnboardingWizard() {
     }
   };
 
+  let current = 0;
+  switch (currentStep) {
+    case 'PERSONAL_INFORMATION':
+      current = 0;
+      break;
+    case 'ADDITIONAL_INFORMATION':
+      current = 1;
+      break;
+    case 'TOPICS':
+      current = 2;
+      break;
+    default:
+      current = 0;
+      break;
+  }
+
   return (
     <div className="min-h-screen max-h-screen bg-gradient-to-br from-indigo-50 to-violet-100 flex flex-col items-center justify-center p-8 relative">
       <div className="flex flex-col bg-white rounded-lg shadow-2xl max-w-xl w-full relative overflow-hidden">
@@ -224,7 +260,7 @@ export function OnboardingWizard() {
         </div>
 
         <div
-          className="flex justify-between items-center border-t p-4 bg-white"
+          className="flex justify-between items-center border-t py-4 px-8 bg-gradient-to-b from-indigo-50/80 to-white"
           style={{
             boxShadow: '0 -4px 12px -4px rgba(0,0,0,0.10)', // Only top shadow
           }}
@@ -249,6 +285,7 @@ export function OnboardingWizard() {
           )}
         </div>
       </div>
+      <DotStepper total={3} current={current} />
     </div>
   );
 }

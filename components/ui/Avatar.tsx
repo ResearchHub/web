@@ -186,7 +186,7 @@ const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
       >
         <div
           className={cn(
-            'rounded-full px-2 shadow text-white font-semibold z-20 flex items-center justify-center',
+            'rounded-full px-2 shadow text-white font-semibold z-20 flex items-center justify-center border border-solid border-white',
             typeof size === 'number' && size > 100 ? 'h-6' : 'h-4',
             showTooltip && 'cursor-pointer'
           )}
