@@ -16,7 +16,7 @@ interface JournalsApiResponse {
 
 export class JournalService {
   private static readonly BASE_PATH = '/api/search/journal';
-  private static readonly JOURNAL_FEED_PATH = '/api/journal-feed';
+  private static readonly JOURNAL_FEED_PATH = '/api/journal_feed';
 
   static async getJournals(): Promise<Journal[]> {
     const response = await ApiClient.get<JournalsApiResponse>(`${this.BASE_PATH}/`);
