@@ -3,16 +3,16 @@
 import React, { ReactElement } from 'react';
 import { Achievement } from '@/types/authorProfile';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { getAchievementDetails, TIER_COLORS, TIER_INDICES } from './AuthorAchievements.utils';
+import { getAchievementDetails, TIER_COLORS, TIER_INDICES } from './Achievements.utils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { cn } from '@/utils/styles';
 import { faTrophyStar } from '@fortawesome/pro-light-svg-icons';
 
-interface AuthorHeaderAchievementsProps {
+interface AchievementsProps {
   achievements: Achievement[];
 }
 
-const AuthorHeaderAchievements: React.FC<AuthorHeaderAchievementsProps> = ({ achievements }) => {
+const Achievements: React.FC<AchievementsProps> = ({ achievements }) => {
   const getTooltipContent = (
     achievement: Achievement,
     achievementDetails: { icon: ReactElement; title: string }
@@ -145,4 +145,4 @@ const AuthorHeaderAchievements: React.FC<AuthorHeaderAchievementsProps> = ({ ach
   );
 };
 
-export default AuthorHeaderAchievements;
+export default Achievements;

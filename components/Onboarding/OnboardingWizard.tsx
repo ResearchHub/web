@@ -202,8 +202,8 @@ export function OnboardingWizard() {
     switch (currentStep) {
       case 'PERSONAL_INFORMATION':
       case 'ADDITIONAL_INFORMATION':
-        return user?.authorProfile
-          ? `Welcome, ${user?.authorProfile?.firstName}!`
+        return user?.authorProfile?.firstName
+          ? `Welcome, ${user.authorProfile.firstName.split(' ')[0]}.`
           : 'Welcome to ResearchHub!';
       case 'TOPICS':
         return 'Almost there!';

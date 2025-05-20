@@ -5,6 +5,7 @@ import { transformTopic } from './topic';
 import { transformBounty } from './bounty';
 import { transformComment } from './comment';
 import { transformPost, Work } from './work';
+import { ContributionType } from '@/services/contribution.service';
 
 export interface Hub {
   id: ID;
@@ -113,7 +114,13 @@ const transformUnifiedDocumentToWork = ({ raw, hubs }: { raw: any; hubs: Hub[] }
 };
 
 // Transform a contribution to a FeedEntry
-export const transformContributionToFeedEntry = (contribution: Contribution): FeedEntry => {
+export const transformContributionToFeedEntry = ({
+  contribution,
+  contributionType,
+}: {
+  contribution: Contribution;
+  contributionType?: ContributionType;
+}): FeedEntry => {
   const { content_type, created_by, created_date, hubs, item } = contribution;
 
   // Base feed entry properties
@@ -177,7 +184,10 @@ export const transformContributionToFeedEntry = (contribution: Contribution): Fe
           id: item.id,
           content: item.comment_content_json,
           contentFormat: 'TIPTAP',
-          commentType: item.thread?.thread_type || 'GENERIC_COMMENT',
+          commentType:
+            contributionType === 'REVIEW'
+              ? 'REVIEW'
+              : item.thread?.thread_type || 'GENERIC_COMMENT',
           thread: item.thread
             ? {
                 id: item.thread.content_object.id,
@@ -253,7 +263,11 @@ export const transformContributionToFeedEntry = (contribution: Contribution): Fe
 // Transform a list of contributions to FeedEntries
 export const transformContributionsToFeedEntries = (contributions: Contribution[]): FeedEntry[] => {
   return contributions
-    .map(transformContributionToFeedEntry)
+    .map((contribution) =>
+      transformContributionToFeedEntry({
+        contribution,
+      })
+    )
     .filter((entry): entry is FeedEntry => entry !== null);
 };
 

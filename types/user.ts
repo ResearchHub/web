@@ -1,6 +1,7 @@
 import { createTransformer, BaseTransformed } from './transformer';
 import type { AuthorProfile } from './authorProfile';
 import { transformAuthorProfile } from './authorProfile';
+import { ID } from './root';
 
 export interface User {
   id: number;
@@ -13,6 +14,7 @@ export interface User {
   balance: number;
   hasCompletedOnboarding?: boolean;
   createdDate?: string;
+  moderator: boolean;
 }
 
 export type TransformedUser = User & BaseTransformed;
@@ -32,6 +34,7 @@ const baseTransformUser = (raw: any): User => {
       balance: 0,
       hasCompletedOnboarding: false,
       createdDate: undefined,
+      moderator: false,
     };
   }
 
@@ -46,6 +49,7 @@ const baseTransformUser = (raw: any): User => {
     balance: raw.balance || 0,
     hasCompletedOnboarding: raw.has_completed_onboarding || false,
     createdDate: raw.created_date || undefined,
+    moderator: raw.moderator || false,
   };
 };
 
@@ -63,6 +67,7 @@ export const transformUser = (raw: any): TransformedUser => {
       authorProfile: undefined,
       hasCompletedOnboarding: false,
       balance: 0,
+      moderator: false,
       raw: null,
     };
   }
@@ -76,4 +81,56 @@ export const transformUser = (raw: any): TransformedUser => {
     }
   }
   return base;
+};
+
+export type UserDetailsForModerator = {
+  id: ID;
+  isProbableSpammer: boolean;
+  isSuspended: boolean;
+  email: string;
+  createdData: string;
+  riskScore: number;
+  verification: {
+    createdDate: string;
+    externalId: string;
+    firstName: string;
+    lastName: string;
+    verifiedVia: string;
+    status: string;
+  } | null;
+};
+
+// Add this after the existing UserDetailsForModerator type definition
+export const transformUserDetailsForModerator = (raw: any): UserDetailsForModerator => {
+  // Handle null or undefined raw data
+  if (!raw) {
+    return {
+      id: 0,
+      isProbableSpammer: false,
+      isSuspended: false,
+      email: '',
+      createdData: '',
+      riskScore: 0,
+      verification: null,
+    };
+  }
+
+  return {
+    id: raw.id || 0,
+    isProbableSpammer: raw.probable_spammer || false,
+    isSuspended: raw.is_suspended || false,
+    email: raw.email || '',
+    createdData: raw.created_date || '',
+    riskScore: raw.risk_score || 0,
+    verification: raw.verification
+      ? {
+          createdDate: raw.verification.created_date || '',
+          externalId: raw.verification.external_id || '',
+          firstName: raw.verification.first_name || '',
+          lastName: raw.verification.last_name || '',
+          verifiedVia: raw.verification.verified_by || '',
+          status: raw.verification.status || '',
+        }
+      : null,
+  };
 };

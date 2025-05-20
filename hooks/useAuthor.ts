@@ -4,6 +4,8 @@ import type { AuthorUpdatePayload } from '@/services/author.service';
 import type { User } from '@/types/user';
 import { Achievement } from '@/types/authorProfile';
 import { AuthorSummaryStats } from '@/types/authorProfile';
+import { UserService } from '@/services/user.service';
+import { UserDetailsForModerator } from '@/types/user';
 
 interface UseUpdateAuthorProfileImageState {
   isLoading: boolean;
@@ -145,7 +147,6 @@ export function useAuthorAchievements(authorId: number | null): UseAuthorAchieve
     setError(null);
     try {
       const data = await AuthorService.getAuthorAchievements(authorId);
-      console.log('data', data);
       setAchievements(data);
     } catch (err: any) {
       setError(err?.message || 'Failed to fetch author achievements');
@@ -202,4 +203,51 @@ export function useAuthorSummaryStats(authorId: number | null): UseAuthorSummary
   }, [authorId, fetchAuthorSummaryStats]);
 
   return [{ summaryStats, isLoading, error }, fetchAuthorSummaryStats];
+}
+
+interface UseUserDetailsForModeratorState {
+  userDetails: UserDetailsForModerator | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+type FetchUserDetailsForModeratorFn = () => Promise<void>;
+
+type UseUserDetailsForModeratorReturn = [
+  UseUserDetailsForModeratorState,
+  FetchUserDetailsForModeratorFn,
+];
+
+export function useUserDetailsForModerator(
+  userId: string | null
+): UseUserDetailsForModeratorReturn {
+  const [userDetails, setUserDetails] = useState<UserDetailsForModerator | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchUserDetails = useCallback(async () => {
+    if (!userId) {
+      setUserDetails(null);
+      setError('User ID is required');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await UserService.fetchUserDetails(userId);
+      setUserDetails(data);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to fetch user details for moderation');
+      setUserDetails(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    fetchUserDetails();
+  }, [userId, fetchUserDetails]);
+
+  return [{ userDetails, isLoading, error }, fetchUserDetails];
 }

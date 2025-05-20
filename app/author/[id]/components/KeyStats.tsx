@@ -2,12 +2,12 @@ import { Icon } from '@/components/ui/icons/Icon';
 import { AuthorSummaryStats } from '@/types/authorProfile';
 import { User } from '@/types/user';
 
-interface AuthorHeaderKeyStatsProps {
+interface KeyStatsProps {
   summaryStats: AuthorSummaryStats;
   profile: User;
 }
 
-export default function AuthorHeaderKeyStats({ summaryStats, profile }: AuthorHeaderKeyStatsProps) {
+export default function KeyStats({ summaryStats, profile }: KeyStatsProps) {
   return (
     <div className="flex flex-col gap-3 text-sm">
       <div className="flex items-center gap-1.5">

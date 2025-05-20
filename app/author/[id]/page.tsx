@@ -30,9 +30,10 @@ import { useContributions } from '@/hooks/useContributions';
 import { ContributionType } from '@/services/contribution.service';
 import { transformContributionToFeedEntry } from '@/types/contribution';
 import { FeedContent } from '@/components/Feed/FeedContent';
-import AuthorHeaderAchievements from './components/AuthorHeaderAchievements';
-import AuthorHeaderKeyStats from './components/AuthorHeaderKeyStats';
+import Achievements from './components/Achievements';
+import KeyStats from './components/KeyStats';
 import { SearchEmpty } from '@/components/ui/SearchEmpty';
+import Moderation from './components/Moderation';
 
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
@@ -112,7 +113,6 @@ function AuthorProfileCard({
   const displayedDescription =
     shouldTruncate && !isDescriptionExpanded ? `${description.slice(0, 300)}...` : description;
 
-  // Get all educations, primary first
   const educations = author.education ?? [];
   const primaryEducation = educations.find((e) => e.is_public);
   const otherEducations = educations.filter((e) => e.id !== primaryEducation?.id);
@@ -164,7 +164,7 @@ function AuthorProfileCard({
     <>
       <div className="flex flex-col sm:!flex-row gap-6">
         {/* Left column - Avatar */}
-        <div className="flex-shrink-0 flex justify-center sm:!justify-start">
+        <div className="flex-shrink-0 flex justify-between items-start">
           <Avatar
             src={author.profileImage}
             alt={fullName}
@@ -175,19 +175,29 @@ function AuthorProfileCard({
             missing={missing}
             showTooltip
           />
+          {isOwnProfile && (
+            <Button
+              onClick={() => setIsEditModalOpen(true)}
+              variant="outlined"
+              className="flex sm:!hidden items-center gap-2"
+            >
+              <FontAwesomeIcon icon={faPen} className="h-4 w-4" />
+              Edit Profile
+            </Button>
+          )}
         </div>
 
         {/* Right column - Content */}
         <div className="flex flex-col flex-1 min-w-0 gap-4">
           {/* Header with name and edit button */}
-          <div className="flex flex-col sm:!flex-row justify-between items-center sm:!items-start gap-4">
-            <div className="flex flex-col items-center sm:!items-start">
+          <div className="flex flex-col sm:!flex-row justify-between items-start gap-4">
+            <div className="flex flex-col items-start">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold text-gray-900">{fullName}</h1>
-                {currentUser?.isVerified && <VerifiedBadge />}
+                {!currentUser?.isVerified && <VerifiedBadge />}
               </div>
               {author.headline && (
-                <div className="flex items-center gap-2 text-gray-600 font-sm text-left">
+                <div className="text-gray-600 font-sm text-left">
                   <span>{author.headline}</span>
                 </div>
               )}
@@ -196,7 +206,7 @@ function AuthorProfileCard({
               <Button
                 onClick={() => setIsEditModalOpen(true)}
                 variant="outlined"
-                className="flex items-center gap-2"
+                className="hidden sm:!flex items-center gap-2"
               >
                 <FontAwesomeIcon icon={faPen} className="h-4 w-4" />
                 Edit Profile
@@ -267,7 +277,7 @@ function AuthorProfileCard({
           )}
 
           {/* Social Links */}
-          <div className="flex gap-2 justify-center sm:!justify-start">
+          <div className="flex gap-2 justify-start">
             <SocialIcon
               icon={<FontAwesomeIcon icon={faLinkedin} className="h-6 w-6" />}
               href={author.linkedin}
@@ -365,7 +375,10 @@ function AuthorTabs({ authorId }: { authorId: number }) {
     }
 
     let formattedContributions = contributions.map((contribution) =>
-      transformContributionToFeedEntry(contribution)
+      transformContributionToFeedEntry({
+        contribution,
+        contributionType,
+      })
     );
 
     return (
@@ -401,6 +414,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const { isLoading: isUserLoading, error: userError } = useUser();
   const authorId = toNumberOrNull(resolvedParams.id);
   const [{ author: user, isLoading, error }, refetchAuthorInfo] = useAuthorInfo(authorId);
+  const { user: currentUser } = useUser();
   const [{ achievements, isLoading: isAchievementsLoading, error: achievementsError }] =
     useAuthorAchievements(authorId);
   const [{ summaryStats, isLoading: isSummaryStatsLoading, error: summaryStatsError }] =
@@ -427,15 +441,21 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
       <Card className="mt-4 bg-gray-50">
         <AuthorProfileCard author={user.authorProfile} refetchAuthorInfo={refetchAuthorInfo} />
       </Card>
+      {currentUser?.moderator && (
+        <Card className="mt-4 bg-gray-50">
+          <h3 className="text-sm font-base uppercase text-gray-500 mb-3">Moderation</h3>
+          <Moderation userId={currentUser.id.toString()} />
+        </Card>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="mt-4 bg-gray-50">
           <h3 className="text-sm font-base uppercase text-gray-500 mb-3">Achievements</h3>
-          <AuthorHeaderAchievements achievements={achievements} />
+          <Achievements achievements={achievements} />
         </Card>
         {summaryStats && (
           <Card className="mt-4 bg-gray-50">
             <h3 className="text-sm font-base uppercase text-gray-500 mb-3">Key Stats</h3>
-            <AuthorHeaderKeyStats summaryStats={summaryStats} profile={user} />
+            <KeyStats summaryStats={summaryStats} profile={user} />
           </Card>
         )}
       </div>

@@ -236,6 +236,7 @@ export const Tabs: React.FC<TabsProps> = ({
     return (
       <button
         {...commonButtonProps}
+        key={tab.id}
         ref={(el) => {
           tabRefs.current[tab.id] = el;
         }}

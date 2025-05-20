@@ -210,7 +210,6 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   showSupportAndCTAButtons = true, // Show container for Support and CTA buttons
   showDeadline = true, // Show deadline in metadata line
 }) => {
-  console.log('entry - Bounty', entry);
   // Extract the bounty entry from the entry's content
   const bountyEntry = entry.content as FeedBountyContent;
   const bounty = bountyEntry.bounty;
