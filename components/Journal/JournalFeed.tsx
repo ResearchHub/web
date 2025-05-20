@@ -1,122 +1,108 @@
 'use client';
 
-import { FC, useMemo, ReactNode } from 'react';
+import { FC, useMemo, ReactNode, useState, useEffect } from 'react';
 import { Book, BookOpen, Check, Zap, Eye, Globe, Award } from 'lucide-react';
 import { FeedContent } from '@/components/Feed/FeedContent';
-import { journalPapers } from '@/store/journalPaperStore';
 import { FeedEntry, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
 import Link from 'next/link';
 import { AvatarStack } from '@/components/ui/AvatarStack';
+import { JournalService } from '@/services/journal.service';
 
 interface JournalFeedProps {
   activeTab: string;
   isLoading: boolean;
 }
 
-// Adapter to transform journal papers to RawApiFeedEntry format
-const adaptJournalPapersToFeedEntries = (): FeedEntry[] => {
-  return journalPapers.map((paper) => {
-    // Determine the work type based on paper status
-    const workType = paper.status === 'preprint' ? 'preprint' : 'published';
+export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initialLoading }) => {
+  const [feedEntries, setFeedEntries] = useState<FeedEntry[]>([]);
+  const [loading, setLoading] = useState(initialLoading);
+  const [hasMore, setHasMore] = useState(false);
+  const [page, setPage] = useState(1);
 
-    // Create a RawApiFeedEntry compatible object from a journal paper
-    const rawFeedEntry: RawApiFeedEntry = {
-      id: paper.id,
-      content_type: 'PAPER',
-      content_object: {
-        id: paper.id,
-        title: paper.title,
-        abstract: paper.abstract,
-        slug: paper.slug,
-        created_date: paper.created_date,
-        authors: paper.authors,
-        hub: paper.unified_document?.hubs?.[0] || null,
-        workType: workType,
-        journal: {
-          id: 1,
-          name: 'ResearchHub Journal',
-          slug: 'researchhub-journal',
-          image: null,
-          description: 'Accelerating science through open access publishing',
-          status: paper.status,
-        },
-      },
-      created_date: paper.created_date,
-      action: 'PUBLISH',
-      action_date: paper.created_date,
-      metrics: {
-        votes: paper.score || 0,
-        comments: paper.discussion_count || 0,
-        review_metrics: paper.unified_document?.reviews || { avg: 0, count: 0 },
-      },
-      author: paper.uploaded_by
-        ? {
-            id: paper.uploaded_by.author_profile.id,
-            first_name: paper.uploaded_by.first_name,
-            last_name: paper.uploaded_by.last_name,
-            description: '',
-            profile_image: paper.uploaded_by.author_profile.profile_image || '',
-            user: {
-              id: paper.uploaded_by.id,
-              first_name: paper.uploaded_by.first_name,
-              last_name: paper.uploaded_by.last_name,
-              email: '',
-              is_verified: paper.uploaded_by.is_verified || false,
-            },
-          }
-        : {
-            // Default author when no uploader is available
-            id: 0,
-            first_name: 'Unknown',
-            last_name: 'Author',
-            description: '',
-            profile_image: '',
-            user: {
-              id: 0,
-              first_name: 'Unknown',
-              last_name: 'Author',
-              email: '',
-              is_verified: false,
-            },
-          },
-      user_vote: paper.user_vote
-        ? {
-            id: 0,
-            content_type: 0,
-            created_by: 0,
-            created_date: '',
-            vote_type: paper.user_vote === 'UPVOTE' ? 1 : 0,
-            item: 0,
-          }
-        : undefined,
+  // Map active tab to API filter value
+  const getPublicationStatus = () => {
+    switch (activeTab) {
+      case 'in-review':
+        return 'PREPRINT';
+      case 'published':
+        return 'PUBLISHED';
+      default:
+        return 'ALL';
+    }
+  };
+
+  // Load journal papers on mount and when tab changes
+  useEffect(() => {
+    const fetchJournalPapers = async () => {
+      setLoading(true);
+      try {
+        const publicationStatus = getPublicationStatus();
+        const response = await JournalService.getJournalPapers({
+          page: 1,
+          pageSize: 10,
+          publicationStatus,
+        });
+
+        // Transform API response to FeedEntry objects
+        const entries = response.results
+          .map((entry) => {
+            try {
+              return transformFeedEntry(entry);
+            } catch (error) {
+              console.error('Error transforming feed entry:', error);
+              return null;
+            }
+          })
+          .filter((entry): entry is FeedEntry => !!entry);
+
+        setFeedEntries(entries);
+        setHasMore(!!response.next);
+        setPage(1);
+      } catch (error) {
+        console.error('Failed to fetch journal papers:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    // Transform the raw feed entry to a proper FeedEntry
-    return transformFeedEntry(rawFeedEntry);
-  });
-};
+    fetchJournalPapers();
+  }, [activeTab]);
 
-export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading }) => {
-  // Transform journal papers to feed entries
-  const allFeedEntries = useMemo(() => adaptJournalPapersToFeedEntries(), []);
+  // Function to load more entries
+  const loadMore = async () => {
+    if (!hasMore || loading) return;
 
-  // Filter entries based on the active tab
-  const feedEntries = useMemo(() => {
-    if (activeTab === 'all') {
-      return allFeedEntries;
-    } else if (activeTab === 'in-review') {
-      return allFeedEntries.filter((entry) => {
-        const rawData = entry.raw?.content_object;
-        return rawData?.journal?.status === 'preprint';
+    setLoading(true);
+    try {
+      const publicationStatus = getPublicationStatus();
+      const nextPage = page + 1;
+      const response = await JournalService.getJournalPapers({
+        page: nextPage,
+        pageSize: 10,
+        publicationStatus,
       });
-    } else if (activeTab === 'published') {
-      return allFeedEntries.filter((entry) => {
-        const rawData = entry.raw?.content_object;
-        return rawData?.journal?.status === 'published';
-      });
+
+      // Transform and append new entries
+      const newEntries = response.results
+        .map((entry) => {
+          try {
+            return transformFeedEntry(entry);
+          } catch (error) {
+            console.error('Error transforming feed entry:', error);
+            return null;
+          }
+        })
+        .filter((entry): entry is FeedEntry => !!entry);
+
+      setFeedEntries([...feedEntries, ...newEntries]);
+      setHasMore(!!response.next);
+      setPage(nextPage);
+    } catch (error) {
+      console.error('Failed to load more journal papers:', error);
+    } finally {
+      setLoading(false);
     }
-    return allFeedEntries;
-  }, [activeTab, allFeedEntries]);
+  };
 
   // Sample journal contributors for social proof
   const journalContributors = [
@@ -333,9 +319,9 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading }) => {
     return (
       <FeedContent
         entries={feedEntries}
-        isLoading={isLoading}
-        hasMore={false}
-        loadMore={() => {}} // No-op since we don't have pagination for now
+        isLoading={loading}
+        hasMore={hasMore}
+        loadMore={loadMore}
         header={feedHeader}
         activeTab={'popular' as any}
       />
