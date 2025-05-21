@@ -343,9 +343,9 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
   };
 
   // Journal-specific header
-  const feedHeader = (
-    <>
-      {activeTab === 'in-review' ? (
+  const feedHeader =
+    activeTab === 'in-review' ? (
+      <>
         <div className="bg-[#fff9e6] border-l-4 border-[#dc9814] p-6 relative">
           <div className="absolute left-6 top-9">
             <span className="h-2 w-2 rounded-full bg-[#dc9814] block"></span>
@@ -384,9 +384,8 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
             </Link>
           </div>
         </div>
-      ) : null}
-    </>
-  );
+      </>
+    ) : null;
 
   return <div className="space-y-4">{renderFeedEntries()}</div>;
 };
