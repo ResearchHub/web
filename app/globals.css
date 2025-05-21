@@ -1,7 +1,16 @@
+/* These are required for Tailwind to work */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Define more specific layers */
+@layer base, components, utilities, onchainkit;
+
+@layer onchainkit {
+  @import '@coinbase/onchainkit/styles.css';
+}
+
+/* Add your overrides after the layers */
 :root {
   --background: #ffffff;
   --foreground: #171717;
