@@ -11,6 +11,7 @@ interface AuthContentProps {
   initialError?: string | null;
   initialScreen?: AuthScreen;
   showHeader?: boolean;
+  modalView?: boolean;
 }
 
 export default function AuthContent({
@@ -19,6 +20,7 @@ export default function AuthContent({
   initialError,
   initialScreen = 'SELECT_PROVIDER',
   showHeader = true,
+  modalView = false,
 }: AuthContentProps) {
   const [screen, setScreen] = useState<AuthScreen>(initialScreen);
   const [email, setEmail] = useState('');
@@ -35,6 +37,7 @@ export default function AuthContent({
     error,
     setError,
     showHeader,
+    modalView,
   };
 
   return (

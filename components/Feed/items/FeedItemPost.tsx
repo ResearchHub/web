@@ -16,6 +16,7 @@ interface FeedItemPostProps {
   entry: FeedEntry;
   href?: string; // Optional href prop
   showTooltips?: boolean; // Property for controlling tooltips
+  showActions?: boolean; // Property for controlling actions
 }
 
 /**
@@ -101,7 +102,12 @@ const FeedItemPostBody: FC<{
 /**
  * Main component for rendering a post feed item
  */
-export const FeedItemPost: FC<FeedItemPostProps> = ({ entry, href, showTooltips = true }) => {
+export const FeedItemPost: FC<FeedItemPostProps> = ({
+  entry,
+  href,
+  showTooltips = true,
+  showActions = true,
+}) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
   const router = useRouter();
@@ -170,21 +176,23 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({ entry, href, showTooltips 
           <FeedItemPostBody entry={entry} imageUrl={imageUrl} />
 
           {/* Action Buttons - Full width */}
-          <div className="mt-4 pt-3 border-t border-gray-200">
-            <div onClick={(e) => e.stopPropagation()}>
-              {/* Standard Feed Item Actions */}
-              <FeedItemActions
-                metrics={entry.metrics}
-                feedContentType={post.contentType}
-                votableEntityId={post.id}
-                userVote={entry.userVote}
-                showTooltips={showTooltips}
-                href={postPageUrl}
-                reviews={post.reviews}
-                bounties={post.bounties}
-              />
+          {showActions && (
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <div onClick={(e) => e.stopPropagation()}>
+                {/* Standard Feed Item Actions */}
+                <FeedItemActions
+                  metrics={entry.metrics}
+                  feedContentType={post.contentType}
+                  votableEntityId={post.id}
+                  userVote={entry.userVote}
+                  showTooltips={showTooltips}
+                  href={postPageUrl}
+                  reviews={post.reviews}
+                  bounties={post.bounties}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

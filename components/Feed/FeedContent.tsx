@@ -13,6 +13,7 @@ import { FeedItemPost } from './items/FeedItemPost';
 import { FundingCarousel } from '@/components/Fund/FundingCarousel';
 import { BountiesCarousel } from '@/components/Earn/BountiesCarousel';
 import { FeedTab } from '@/hooks/useFeed'; // Import FeedTab type
+import { Button } from '../ui/Button';
 
 interface FeedContentProps {
   entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry
@@ -25,6 +26,11 @@ interface FeedContentProps {
   disableCardLinks?: boolean; // Optional prop to disable all card links
   activeTab?: FeedTab; // Add the activeTab prop as optional
   showBountyFooter?: boolean; // Prop to control bounty item footer visibility
+  hideActions?: boolean; // Prop to control comment item actions visibility
+  isLoadingMore?: boolean;
+  showBountySupportAndCTAButtons?: boolean; // Show container for Support and CTA buttons for bounty items
+  showBountyDeadline?: boolean; // Show deadline in metadata line
+  noEntriesElement?: ReactNode; // Element to render if there are no entries
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -38,6 +44,11 @@ export const FeedContent: FC<FeedContentProps> = ({
   disableCardLinks = false,
   activeTab, // Destructure activeTab
   showBountyFooter = true, // Default to true
+  hideActions = false,
+  isLoadingMore = false,
+  showBountySupportAndCTAButtons = true, // Show container for Support and CTA buttons
+  showBountyDeadline = true, // Show deadline in metadata line
+  noEntriesElement,
 }) => {
   // Generate appropriate href for each feed item type
   const generateHref = (entry: FeedEntry): string | undefined => {
@@ -99,15 +110,15 @@ export const FeedContent: FC<FeedContentProps> = ({
       // Use the contentType field on the FeedEntry object to determine the type of content
       switch (entry.contentType) {
         case 'POST':
-          content = <FeedItemPost entry={entry} href={href} />;
+          content = <FeedItemPost entry={entry} href={href} showActions={!hideActions} />;
           break;
 
         case 'PREREGISTRATION':
-          content = <FeedItemFundraise entry={entry} href={href} />;
+          content = <FeedItemFundraise entry={entry} href={href} showActions={!hideActions} />;
           break;
 
         case 'PAPER':
-          content = <FeedItemPaper entry={entry} href={href} />;
+          content = <FeedItemPaper entry={entry} href={href} showActions={!hideActions} />;
           break;
 
         case 'BOUNTY':
@@ -119,6 +130,8 @@ export const FeedContent: FC<FeedContentProps> = ({
               href={href}
               showContributeButton={false}
               showFooter={showBountyFooter}
+              showSupportAndCTAButtons={showBountySupportAndCTAButtons}
+              showDeadline={showBountyDeadline}
             />
           );
           break;
@@ -132,6 +145,7 @@ export const FeedContent: FC<FeedContentProps> = ({
               href={href}
               showCreatorActions={true}
               workContentType={entry.relatedWork?.contentType}
+              hideActions={hideActions}
             />
           );
           break;
@@ -195,23 +209,26 @@ export const FeedContent: FC<FeedContentProps> = ({
           )}
 
           {/* Show 'No entries' message only if not loading and entries are empty */}
-          {!isLoading && entries.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-gray-500">No feed entries found</p>
-            </div>
-          )}
+          {!isLoading &&
+            entries.length === 0 &&
+            (noEntriesElement || (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No feed entries found</p>
+              </div>
+            ))}
         </div>
 
         {/* Load More button */}
         {!isLoading && hasMore && (
           <div className="mt-8 text-center">
-            <button
+            <Button
               onClick={loadMore}
-              // No need for disabled={isLoading} here as the whole block is conditional on !isLoading
-              className="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-500"
+              disabled={isLoadingMore}
+              variant="link"
+              className="text-indigo-600 hover:text-indigo-500"
             >
-              Load More
-            </button>
+              {isLoadingMore ? 'Loading...' : 'Load more'}
+            </Button>
           </div>
         )}
       </div>

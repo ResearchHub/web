@@ -14,8 +14,8 @@ type TopicType = 'journal' | 'topic';
 
 // Switch order: Topics first
 const interestTypes = [
-  // { id: 'topic' as TopicType, label: 'Topics', icon: Hash },
-  // { id: 'journal' as TopicType, label: 'Journals', icon: BookOpen },
+  { id: 'topic' as TopicType, label: 'Topics', icon: Hash },
+  { id: 'journal' as TopicType, label: 'Journals', icon: BookOpen },
 ] as const;
 
 interface InterestSelectorProps {
@@ -223,7 +223,7 @@ export function InterestSelector({
         <p className="text-gray-600">{descriptions[activeType]}</p>
 
         {/* Interest type selector */}
-        {/* <div className="flex gap-4">
+        <div className="flex gap-4">
           {interestTypes.map((type) => {
             const Icon = type.icon;
             return (
@@ -239,7 +239,7 @@ export function InterestSelector({
               </Button>
             );
           })}
-        </div> */}
+        </div>
 
         {/* Topic grid */}
         <div>

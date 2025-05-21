@@ -1,7 +1,7 @@
 import { ApiClient } from './client';
 import { FeedEntry, FeedApiResponse, transformFeedEntry, RawApiFeedEntry } from '@/types/feed';
 import { Bounty, BountyType, transformBounty } from '@/types/bounty';
-import { transformUser } from '@/types/user';
+import { transformUser, User } from '@/types/user';
 import { transformAuthorProfile } from '@/types/authorProfile';
 import { Fundraise, transformFundraise } from '@/types/funding';
 
@@ -98,7 +98,7 @@ export class FeedService {
     const safeAuthor = author || defaultAuthor;
 
     // Transform the author to a User object
-    let user;
+    let user: User;
     try {
       if (safeAuthor.user) {
         user = transformUser(safeAuthor.user);
@@ -126,6 +126,7 @@ export class FeedService {
           `${safeAuthor.first_name || ''} ${safeAuthor.last_name || ''}`.trim() || 'Unknown User',
         isVerified: safeAuthor.user?.is_verified || false,
         balance: 0,
+        moderator: false,
         authorProfile: {
           id: safeAuthor.id || 0,
           fullName:
@@ -145,6 +146,7 @@ export class FeedService {
               'Unknown User',
             isVerified: safeAuthor.user?.is_verified || false,
             balance: 0,
+            moderator: false,
           },
           isClaimed: !!safeAuthor.user,
         },

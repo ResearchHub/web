@@ -95,7 +95,11 @@ export type IconName =
   | 'solidEarn'
   | 'giveRSC'
   | 'researchhubVector'
-  | 'tipRSC';
+  | 'tipRSC'
+  | 'education'
+  | 'socialMedia'
+  | 'memberFor'
+  | 'edit';
 
 interface IconProps {
   /**

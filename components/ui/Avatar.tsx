@@ -84,7 +84,7 @@ const ProfileFieldLabel: Record<ProfileField, string> = {
   [ProfileField.Verification]: 'Verification',
   [ProfileField.Education]: 'Education',
   [ProfileField.About]: 'About',
-  [ProfileField.Social]: 'Social Account',
+  [ProfileField.Social]: 'Social presence',
 };
 
 interface ProfileCompletionCircleProps {
@@ -144,7 +144,7 @@ const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
     <div className="text-left">
       <div className="font-semibold mb-1">Complete Your Profile</div>
       <div className="text-xs text-gray-500 mb-3">
-        Completing your profile unlocks more features and helps you stand out in the community.
+        Completing your profile helps you stand out in the community.
       </div>
       <div className="font-semibold mb-2">Profile Progress</div>
       <ul className="space-y-1">
@@ -186,7 +186,7 @@ const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
       >
         <div
           className={cn(
-            'rounded-full px-1 shadow text-white font-semibold z-20 flex items-center justify-center',
+            'rounded-full px-2 shadow text-white font-semibold z-20 flex items-center justify-center border border-solid border-white',
             typeof size === 'number' && size > 100 ? 'h-6' : 'h-4',
             showTooltip && 'cursor-pointer'
           )}
@@ -203,11 +203,11 @@ const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
       <svg
         width={px}
         height={px}
-        className="absolute z-0"
+        className="relative z-0"
         style={{
-          top: -strokeWidth,
-          left: -strokeWidth,
-          position: 'absolute',
+          // top: -strokeWidth,
+          // left: -strokeWidth,
+          // position: 'absolute',
           transform: 'rotate(90deg)',
         }}
       >
@@ -231,7 +231,16 @@ const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
           strokeLinecap="round"
         />
       </svg>
-      <div className="relative z-10">{avatarElement}</div>
+      <div
+        className="relative z-10"
+        style={{
+          top: strokeWidth,
+          left: strokeWidth,
+          position: 'absolute',
+        }}
+      >
+        {avatarElement}
+      </div>
       {showProfileCompletionNumber &&
         (showTooltip ? (
           <Tooltip
@@ -300,28 +309,23 @@ export const Avatar: FC<AvatarProps> = ({
     md: 'h-10 w-10',
   };
 
-  const getTextSizeClass = (initials: string) => {
-    const length = initials.length;
+  const getTextSizeClass = (size: number, length: number) => {
+    if (size > 100) return length > 1 ? 'text-5xl' : 'text-6xl';
 
-    if (typeof size === 'number') {
-      // Calculate text size based on pixel size
-      if (size <= 20) return length > 1 ? 'text-[6px]' : 'text-[8px]';
-      if (size <= 24) return length > 1 ? 'text-[8px]' : 'text-[10px]';
-      if (size <= 32) return length > 1 ? 'text-[10px]' : 'text-xs';
-      const textSize = Math.floor(size / 2);
-      return `text-[${textSize}px]`;
-    }
+    const textSize = Math.floor(size / 10);
+    const sizes = {
+      2: 'text-xs',
+      3: 'text-sm',
+      4: 'text-base',
+      5: 'text-lg',
+      6: 'text-xl',
+      7: 'text-2xl',
+      8: 'text-3xl',
+      9: 'text-4xl',
+      10: 'text-5xl',
+    };
 
-    // Original logic for string-based sizes
-    if (size === 'md') {
-      return length > 1 ? 'text-xs' : 'text-sm';
-    } else if (size === 'sm') {
-      return length > 1 ? 'text-[10px]' : 'text-xs';
-    } else if (size === 'xs') {
-      return length > 1 ? 'text-[8px]' : 'text-[10px]';
-    } else {
-      return length > 1 ? 'text-[6px]' : 'text-[8px]';
-    }
+    return sizes[textSize as keyof typeof sizes] || 'text-base';
   };
 
   const handleImageError = () => {
@@ -367,7 +371,10 @@ export const Avatar: FC<AvatarProps> = ({
           className={cn(
             'absolute inset-0 flex items-center justify-center font-medium',
             'text-gray-600',
-            getTextSizeClass(label),
+            getTextSizeClass(
+              typeof size === 'number' ? size : sizeMap[size as AvatarSize],
+              label.length
+            ),
             labelClassName
           )}
         >
@@ -378,7 +385,10 @@ export const Avatar: FC<AvatarProps> = ({
           className={cn(
             'absolute inset-0 flex items-center justify-center font-medium',
             textColorClass,
-            getTextSizeClass(initials)
+            getTextSizeClass(
+              typeof size === 'number' ? size : sizeMap[size as AvatarSize],
+              initials.length
+            )
           )}
         >
           {initials}
