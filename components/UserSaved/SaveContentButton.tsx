@@ -154,7 +154,7 @@ export const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentB
       )}
 
       <BaseModal
-        title="Save to List"
+        title={isCreatingList ? 'Create List' : 'Save to List'}
         isOpen={isOpen}
         onClose={toggleModal}
         showCloseButton={true}
@@ -190,6 +190,7 @@ export const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentB
             <>
               <div className="mt-1">
                 <Input
+                  className="mb-2"
                   ref={inputRef}
                   id="newListName"
                   value={newListName}
@@ -208,15 +209,6 @@ export const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentB
                 <Button
                   className="mr-auto"
                   onClick={() => {
-                    handleCreateList();
-                    setIsCreatingList(false);
-                  }}
-                  disabled={!newListValid}
-                >
-                  Create
-                </Button>
-                <Button
-                  onClick={() => {
                     setIsCreatingList(false);
                     setNewListName('');
                     setNewListValid(false);
@@ -224,6 +216,15 @@ export const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentB
                   variant="secondary"
                 >
                   Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    handleCreateList();
+                    setIsCreatingList(false);
+                  }}
+                  disabled={!newListValid}
+                >
+                  Create
                 </Button>
               </div>
             </>
