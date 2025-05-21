@@ -159,6 +159,7 @@ export const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentB
         onClose={toggleModal}
         showCloseButton={true}
         headerAction={<Bookmark />}
+        maxWidth="max-w-xl"
         minWidth="min-w-[400px]"
         footer={getFooter()}
         showFooterShadow={false}
