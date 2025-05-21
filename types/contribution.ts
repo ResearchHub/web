@@ -91,13 +91,13 @@ const getContentType = (contentType: string): FeedContentType => {
 
 const transformUnifiedDocumentToWork = ({ raw, hubs }: { raw: any; hubs: Hub[] }): Work => {
   const contentType =
-    raw.unified_document.document_type === 'PAPER'
+    raw.unified_document?.document_type === 'PAPER'
       ? 'paper'
-      : raw.unified_document.document_type === 'PREREGISTRATION'
+      : raw.unified_document?.document_type === 'PREREGISTRATION'
         ? 'preregistration'
         : 'post';
   const relatedUnifiedDocument =
-    contentType === 'paper' ? raw.unified_document.documents : raw.unified_document.documents[0];
+    contentType === 'paper' ? raw.unified_document?.documents : raw.unified_document?.documents[0];
 
   return {
     id: raw.id,
