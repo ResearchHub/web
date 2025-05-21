@@ -6,7 +6,7 @@ import { FeedContent } from '@/components/Feed/FeedContent';
 import { FeedEntry, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
 import Link from 'next/link';
 import { AvatarStack } from '@/components/ui/AvatarStack';
-import { JournalService } from '@/services/journal.service';
+import { RHJournalService } from '@/services/rh-journal.service';
 
 interface JournalFeedProps {
   activeTab: string;
@@ -37,7 +37,7 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
       setLoading(true);
       try {
         const publicationStatus = getPublicationStatus();
-        const response = await JournalService.getJournalPapers({
+        const response = await RHJournalService.getJournalPapers({
           page: 1,
           pageSize: 10,
           publicationStatus,
@@ -76,7 +76,7 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
     try {
       const publicationStatus = getPublicationStatus();
       const nextPage = page + 1;
-      const response = await JournalService.getJournalPapers({
+      const response = await RHJournalService.getJournalPapers({
         page: nextPage,
         pageSize: 10,
         publicationStatus,
