@@ -160,9 +160,9 @@ export const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentB
               className="flex items-center space-x-2 py-2 cursor-pointer rounded-md hover:bg-gray-100"
               onClick={() => setIsCreatingList(true)}
             >
-              <Plus id={'create-new-list'} className="pl-1" />
-              <label htmlFor={'create-new-list'} className="text-sm font-medium cursor-pointer">
-                Create New List
+              <Plus id={'create-list'} className="pl-1" />
+              <label htmlFor={'create-list'} className="text-sm font-medium cursor-pointer">
+                Create List
               </label>
             </div>
           )}
