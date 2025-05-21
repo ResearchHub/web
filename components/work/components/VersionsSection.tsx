@@ -3,7 +3,9 @@
 import { History } from 'lucide-react';
 import { DocumentVersion } from '@/types/work';
 import { Badge } from '@/components/ui/Badge';
+import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import Link from 'next/link';
+import { cn } from '@/utils/styles';
 
 interface VersionsSectionProps {
   versions: DocumentVersion[];
@@ -12,31 +14,18 @@ interface VersionsSectionProps {
 
 export const VersionsSection = ({ versions, currentPaperId }: VersionsSectionProps) => {
   // If there are no versions or only one version, don't show the section
-  if (!versions || versions.length <= 1) {
+  if (!versions || versions.length < 1) {
     return null;
   }
 
-  // Sort versions with newer versions first
-  // First try to sort by version number (assuming higher version = newer)
-  // If that fails, fall back to publishedDate
-  const sortedVersions = [...versions].sort((a, b) => {
-    // First try to parse as numbers for more reliable sorting
-    const versionA = parseFloat(a.version);
-    const versionB = parseFloat(b.version);
-
-    if (!isNaN(versionA) && !isNaN(versionB)) {
-      return versionB - versionA; // Higher version numbers first
-    }
-
-    // Fallback to date-based sorting
-    return new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime();
-  });
+  // Sort versions with newer versions first by version number
+  const sortedVersions = [...versions].sort((a, b) => b.version - a.version);
 
   return (
     <div>
       <div className="flex items-center space-x-2 mb-4">
         <History className="h-5 w-5 text-gray-500" />
-        <h3 className="text-base font-medium">Versions</h3>
+        <h3 className="text-base font-medium">Available Versions</h3>
       </div>
 
       <div className="space-y-2">
@@ -58,9 +47,21 @@ export const VersionsSection = ({ versions, currentPaperId }: VersionsSectionPro
                     v{version.version}
                   </span>
                 </div>
-                <Badge variant="default" className="text-xs mr-2">
-                  Preprint
-                </Badge>
+                <ContentTypeBadge
+                  type={version.publicationStatus === 'PUBLISHED' ? 'published' : 'preprint'}
+                  size="xs"
+                  showTooltip={false}
+                  className="mr-2 !py-0.5 !px-2"
+                />
+
+                {version.isVersionOfRecord && (
+                  <Badge
+                    variant="default"
+                    className="text-xs mr-2 bg-blue-50 text-blue-700 border-blue-200"
+                  >
+                    Version of Record
+                  </Badge>
+                )}
 
                 {/* Spacer to push date and view link to the right */}
                 <div className="flex-grow" />
@@ -68,8 +69,8 @@ export const VersionsSection = ({ versions, currentPaperId }: VersionsSectionPro
                 <span className="text-xs text-gray-500 ml-auto">{formattedDate}</span>
               </div>
 
-              {version.description && (
-                <p className="text-xs text-gray-600 mt-1.5 line-clamp-2">{version.description}</p>
+              {version.message && (
+                <p className="text-xs text-gray-600 mt-1.5 line-clamp-2">{version.message}</p>
               )}
             </>
           );

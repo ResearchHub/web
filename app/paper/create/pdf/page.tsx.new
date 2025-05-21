@@ -335,14 +335,14 @@ export default function UploadPDFPage() {
       case 'content':
         return (
           <div className="space-y-8">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-2">
-                <FileText className="h-5 w-5 text-gray-600" />
-                <h3 className="text-lg font-medium text-gray-900">Paper Details</h3>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-gray-600" />
+                  <h3 className="text-lg font-medium text-gray-900">Paper Details</h3>
+                </div>
+                <p className="text-sm text-gray-500">Provide basic information about your paper</p>
               </div>
-              <p className="text-sm text-gray-500 mb-4">
-                Provide basic information about your paper
-              </p>
               <div>
                 <Input
                   label="Title"
@@ -364,10 +364,12 @@ export default function UploadPDFPage() {
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-2">
-                <FileUp className="h-5 w-5 text-gray-600" />
-                <h3 className="text-lg font-medium text-gray-900">Upload Paper</h3>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <FileUp className="h-5 w-5 text-gray-600" />
+                  <h3 className="text-lg font-medium text-gray-900">Upload Paper</h3>
+                </div>
               </div>
               <div>
                 <FileUpload
@@ -382,34 +384,37 @@ export default function UploadPDFPage() {
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-gray-600" />
-                <h3 className="text-lg font-medium text-gray-900">Authors</h3>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-gray-600" />
+                  <h3 className="text-lg font-medium text-gray-900">Authors</h3>
+                </div>
+                <p className="text-sm text-gray-500">
+                  Add all the authors associated with this paper
+                </p>
               </div>
-              <p className="text-sm text-gray-500 mb-4">
-                Add all the authors associated with this paper
-              </p>
               <div>
                 <AuthorsAndAffiliations authors={authors} onChange={handleAuthorsChange} />
                 {errors.authors && <p className="text-sm text-red-600 mt-2">{errors.authors}</p>}
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Tags className="h-5 w-5 text-gray-600" />
-                <h3 className="text-lg font-medium text-gray-900">Topics</h3>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Tags className="h-5 w-5 text-gray-600" />
+                  <h3 className="text-lg font-medium text-gray-900">Topics</h3>
+                </div>
+                <p className="text-sm text-gray-500">
+                  Select topics that best describe your research
+                </p>
               </div>
-              <p className="text-sm text-gray-500 mb-4">
-                Select topics that best describe your research
-              </p>
               <div>
                 <HubsSelector
                   selectedHubs={selectedHubs}
                   onChange={handleHubsChange}
                   error={errors.hubs || null}
-                  hideSelectedItems={true}
                 />
               </div>
             </div>
@@ -427,41 +432,52 @@ export default function UploadPDFPage() {
             </div>
 
             <div className="space-y-6">
-              <DeclarationCheckbox
-                id="terms"
-                checked={acceptedTerms}
-                onChange={handleTermsChange}
-                label="I accept the terms and conditions"
-                description="By checking this box, you confirm that you have read and agree to the ResearchHub terms of service."
-                error={errors.terms || null}
-              />
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-medium text-gray-900">Declarations</h3>
+                </div>
+                <p className="text-sm text-gray-500">
+                  Please read and accept the following declarations to proceed
+                </p>
+              </div>
 
-              <DeclarationCheckbox
-                id="license"
-                checked={acceptedLicense}
-                onChange={handleLicenseChange}
-                label="I agree to publish under the CC BY 4.0 License"
-                description="By checking this box, you license your work under the Creative Commons Attribution 4.0 International License."
-                error={errors.license || null}
-              />
+              <div className="space-y-6">
+                <DeclarationCheckbox
+                  id="terms"
+                  checked={acceptedTerms}
+                  onChange={handleTermsChange}
+                  label="I accept the terms and conditions"
+                  description="By checking this box, you confirm that you have read and agree to the ResearchHub terms of service."
+                  error={errors.terms || null}
+                />
 
-              <DeclarationCheckbox
-                id="authorship"
-                checked={acceptedAuthorship}
-                onChange={handleAuthorshipChange}
-                label="I confirm that all authors have agreed to publish this work"
-                description="By checking this box, you confirm that all authors listed have consented to this submission."
-                error={errors.authorship || null}
-              />
+                <DeclarationCheckbox
+                  id="license"
+                  checked={acceptedLicense}
+                  onChange={handleLicenseChange}
+                  label="I agree to publish under the CC BY 4.0 License"
+                  description="By checking this box, you license your work under the Creative Commons Attribution 4.0 International License."
+                  error={errors.license || null}
+                />
 
-              <DeclarationCheckbox
-                id="originality"
-                checked={acceptedOriginality}
-                onChange={handleOriginalityChange}
-                label="I confirm this work is original and does not infringe on any copyrights"
-                description="By checking this box, you confirm this work is original and does not infringe on anyone else's copyright."
-                error={errors.originality || null}
-              />
+                <DeclarationCheckbox
+                  id="authorship"
+                  checked={acceptedAuthorship}
+                  onChange={handleAuthorshipChange}
+                  label="I confirm that all authors have agreed to publish this work"
+                  description="By checking this box, you confirm that all authors listed have consented to this submission."
+                  error={errors.authorship || null}
+                />
+
+                <DeclarationCheckbox
+                  id="originality"
+                  checked={acceptedOriginality}
+                  onChange={handleOriginalityChange}
+                  label="I confirm this work is original and does not infringe on any copyrights"
+                  description="By checking this box, you confirm this work is original and does not infringe on anyone else's copyright."
+                  error={errors.originality || null}
+                />
+              </div>
             </div>
           </div>
         );
@@ -478,125 +494,140 @@ export default function UploadPDFPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div
-                className={`border rounded-lg p-6 flex flex-col cursor-pointer ${!submitToJournal ? 'border-indigo-500 ring-2 ring-indigo-500 shadow-lg' : 'border-gray-300 hover:shadow-md transition-shadow'}`}
-                onClick={() => setSubmitToJournal(false)}
-              >
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Publish on ResearchHub</h4>
-                <ul className="space-y-3 mb-6 flex-grow">
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-700">Open Access Publication</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-700">DOI Assignment</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-700">Indexed on ResearchHub</span>
-                  </li>
-                  <li className="flex items-center">
-                    <X className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-500">Formal Peer Review</span>
-                  </li>
-                  <li className="flex items-center">
-                    <X className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-500">Editorial Oversight</span>
-                  </li>
-                  <li className="flex items-center">
-                    <X className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-500">
-                      Journal Indexing (e.g. Google Scholar)
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-700 font-medium">Free</span>
-                  </li>
-                </ul>
-                <Button
-                  variant={!submitToJournal ? 'default' : 'outlined'}
-                  className="w-full mt-auto"
-                  aria-pressed={!submitToJournal}
-                >
-                  {!submitToJournal && <Check className="h-4 w-4 mr-2" />}
-                  Select Standard Publish
-                </Button>
+            <div className="space-y-8">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Choose your publishing option
+                  </h3>
+                </div>
+                <p className="text-sm text-gray-500">
+                  Select how you want to publish your research on ResearchHub.
+                </p>
               </div>
 
-              <div
-                className={`border rounded-lg p-6 flex flex-col cursor-pointer ${submitToJournal ? 'border-indigo-500 ring-2 ring-indigo-500 shadow-lg' : 'border-gray-300 hover:shadow-md transition-shadow'}`}
-                onClick={() => setSubmitToJournal(true)}
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <h4 className="text-lg font-semibold text-indigo-900">Publish in RH Journal</h4>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 flex-shrink-0 ml-2">
-                    Limited time: Free!
-                  </span>
-                </div>
-                <ul className="space-y-3 mb-6 flex-grow">
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-700">Open Access Publication</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-700">DOI Assignment</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-700">Indexed on ResearchHub</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-700">
-                      Formal Peer Review (Paid Reviewers)
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-700">Editorial Oversight</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-700">
-                      Journal Indexing (e.g. Google Scholar)
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span className="text-sm text-gray-700 font-medium">
-                      Free <span className="line-through text-gray-400 ml-1">$200</span> (Limited
-                      Time Offer)
-                    </span>
-                  </li>
-                </ul>
-                <div className="mt-4 mb-6 text-center">
-                  <p className="text-sm text-gray-700 font-medium mb-2">
-                    Join Open Science Advocates
-                  </p>
-                  <div className="flex justify-center">
-                    <AvatarStack
-                      items={journalEditors}
-                      size="sm"
-                      maxItems={7}
-                      spacing={-4}
-                      showExtraCount={false}
-                      ringColorClass="ring-white"
-                      disableTooltip={true}
-                    />
-                  </div>
-                </div>
-                <Button
-                  variant={submitToJournal ? 'default' : 'outlined'}
-                  className="w-full mt-auto"
-                  aria-pressed={submitToJournal}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div
+                  className={`border rounded-lg p-6 flex flex-col cursor-pointer ${!submitToJournal ? 'border-indigo-500 ring-2 ring-indigo-500 shadow-lg' : 'border-gray-300 hover:shadow-md transition-shadow'}`}
+                  onClick={() => setSubmitToJournal(false)}
                 >
-                  {submitToJournal && <Check className="h-4 w-4 mr-2" />}
-                  Select Journal Publish
-                </Button>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                    Publish on ResearchHub
+                  </h4>
+                  <ul className="space-y-3 mb-6 flex-grow">
+                    <li className="flex items-center">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                      <span className="text-sm text-gray-700">Open Access Publication</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                      <span className="text-sm text-gray-700">DOI Assignment</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                      <span className="text-sm text-gray-700">Indexed on ResearchHub</span>
+                    </li>
+                    <li className="flex items-center">
+                      <X className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />{' '}
+                      <span className="text-sm text-gray-500">Formal Peer Review</span>
+                    </li>
+                    <li className="flex items-center">
+                      <X className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />{' '}
+                      <span className="text-sm text-gray-500">Editorial Oversight</span>
+                    </li>
+                    <li className="flex items-center">
+                      <X className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />{' '}
+                      <span className="text-sm text-gray-500">
+                        Journal Indexing (e.g. Google Scholar)
+                      </span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                      <span className="text-sm text-gray-700 font-medium">Free</span>
+                    </li>
+                  </ul>
+                  <Button
+                    variant={!submitToJournal ? 'default' : 'outlined'}
+                    className="w-full mt-auto"
+                    aria-pressed={!submitToJournal}
+                  >
+                    {!submitToJournal && <Check className="h-4 w-4 mr-2" />}
+                    Select Standard Publish
+                  </Button>
+                </div>
+
+                <div
+                  className={`border rounded-lg p-6 flex flex-col cursor-pointer ${submitToJournal ? 'border-indigo-500 ring-2 ring-indigo-500 shadow-lg' : 'border-gray-300 hover:shadow-md transition-shadow'}`}
+                  onClick={() => setSubmitToJournal(true)}
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <h4 className="text-lg font-semibold text-indigo-900">Publish in RH Journal</h4>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 flex-shrink-0 ml-2">
+                      Limited time: Free!
+                    </span>
+                  </div>
+                  <ul className="space-y-3 mb-6 flex-grow">
+                    <li className="flex items-center">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                      <span className="text-sm text-gray-700">Open Access Publication</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                      <span className="text-sm text-gray-700">DOI Assignment</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                      <span className="text-sm text-gray-700">Indexed on ResearchHub</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                      <span className="text-sm text-gray-700">
+                        Formal Peer Review (Paid Reviewers)
+                      </span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                      <span className="text-sm text-gray-700">Editorial Oversight</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
+                      <span className="text-sm text-gray-700">
+                        Journal Indexing (e.g. Google Scholar)
+                      </span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                      <span className="text-sm text-gray-700 font-medium">
+                        Free <span className="line-through text-gray-400 ml-1">$200</span> (Limited
+                        Time Offer)
+                      </span>
+                    </li>
+                  </ul>
+                  <div className="mt-4 mb-6 text-center">
+                    <p className="text-sm text-gray-700 font-medium mb-2">
+                      Join Open Science Advocates
+                    </p>
+                    <div className="flex justify-center">
+                      <AvatarStack
+                        items={journalEditors}
+                        size="sm"
+                        maxItems={7}
+                        spacing={-4}
+                        showExtraCount={false}
+                        ringColorClass="ring-white"
+                        disableTooltip={true}
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    variant={submitToJournal ? 'default' : 'outlined'}
+                    className="w-full mt-auto"
+                    aria-pressed={submitToJournal}
+                  >
+                    {submitToJournal && <Check className="h-4 w-4 mr-2" />}
+                    Select Journal Publish
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

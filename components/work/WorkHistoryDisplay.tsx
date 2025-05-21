@@ -2,6 +2,8 @@ import { Work, DocumentVersion } from '@/types/work';
 import { ChevronsLeftRight } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
+import { Badge } from '@/components/ui/Badge';
+import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 
 interface WorkHistoryDisplayProps {
   versions: DocumentVersion[];
@@ -18,13 +20,8 @@ export const WorkHistoryDisplay = ({ versions, currentPaperId, slug }: WorkHisto
   const sortedVersions = [...versions].sort((a, b) => {
     const dateDiff = new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime();
     if (dateDiff !== 0) return dateDiff;
-    const numA = parseFloat(a.version);
-    const numB = parseFloat(b.version);
-    if (!isNaN(numA) && !isNaN(numB)) {
-      return numB - numA; // newest version number first
-    }
-    // Fallback to lexicographical
-    return b.version.localeCompare(a.version);
+    // Compare version numbers
+    return b.version - a.version;
   });
 
   return (
@@ -65,17 +62,32 @@ export const WorkHistoryDisplay = ({ versions, currentPaperId, slug }: WorkHisto
                             !isViewingThisCard && 'group-hover/card:text-indigo-600'
                           )}
                         >
-                          {version.description || `Version ${version.version}`}
+                          {version.message || `Version ${version.version}`}
                         </h3>
                         {version.isLatest && (
                           <span className="inline-flex items-center px-2 py-0.5 bg-green-50 border border-green-200 text-green-700 rounded-full text-xs">
                             Latest
                           </span>
                         )}
+                        {version.isVersionOfRecord && (
+                          <span className="inline-flex items-center px-2 py-0.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-full text-xs">
+                            Version of Record
+                          </span>
+                        )}
                         {isViewingThisCard && (
                           <span className="inline-flex items-center px-2 py-0.5 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-full text-xs">
                             Currently Viewing
                           </span>
+                        )}
+                        {version.publicationStatus && (
+                          <ContentTypeBadge
+                            type={
+                              version.publicationStatus === 'PUBLISHED' ? 'published' : 'preprint'
+                            }
+                            size="sm"
+                            showTooltip={false}
+                            className="!py-0.5 !px-2"
+                          />
                         )}
                       </div>
                       <div className="text-xs text-gray-500">

@@ -39,10 +39,12 @@ export interface Authorship {
 // TODO: Create a transformer function
 export type DocumentVersion = {
   paperId: number;
-  version: string;
+  version: number;
   isLatest: boolean;
   publishedDate: string;
-  description: string;
+  message: string;
+  publicationStatus: string;
+  isVersionOfRecord: boolean;
 };
 
 export interface FormatType {
@@ -132,10 +134,12 @@ export const transformJournal = (raw: any): TransformedJournal | undefined => {
 
 export const transformDocumentVersion = createTransformer<any, DocumentVersion>((raw) => ({
   paperId: raw.paper_id,
-  version: raw.version,
+  version: typeof raw.version === 'number' ? raw.version : parseFloat(raw.version) || 0,
   isLatest: raw.is_latest,
   publishedDate: raw.published_date,
-  description: raw.description || '',
+  message: raw.message || '',
+  publicationStatus: raw.publication_status || '',
+  isVersionOfRecord: raw.is_version_of_record || false,
 }));
 
 export const transformWork = createTransformer<any, Work>((raw) => {

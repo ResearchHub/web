@@ -554,7 +554,12 @@ export default function CreateBountyPage() {
       </div>
 
       <div>
-        <HubsSelector selectedHubs={selectedHubs} onChange={setSelectedHubs} error={null} />
+        <HubsSelector
+          selectedHubs={selectedHubs}
+          onChange={setSelectedHubs}
+          error={null}
+          hideSelectedItems={true}
+        />
       </div>
     </div>
   );

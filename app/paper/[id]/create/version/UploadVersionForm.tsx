@@ -13,7 +13,7 @@ import {
   SelectedAuthor,
 } from '@/app/paper/create/components/AuthorsAndAffiliations';
 import { HubsSelector, Hub } from '@/app/paper/create/components/HubsSelector';
-import { FileText, FileUp, Users, Tags, ArrowLeft } from 'lucide-react';
+import { FileText, FileUp, Users, Tags, ArrowLeft, Info, MessageCircle } from 'lucide-react';
 import { UploadFileResult } from '@/services/file.service';
 import { PaperService } from '@/services/paper.service';
 import toast from 'react-hot-toast';
@@ -32,10 +32,11 @@ export default function UploadVersionForm({
   metadata,
 }: UploadVersionFormProps) {
   const router = useRouter();
-
+  console.log('previousPaperId', previousPaperId);
   // Form state with initial values from the existing paper
   const [title, setTitle] = useState(initialPaper.title || '');
   const [abstract, setAbstract] = useState(initialPaper.abstract || '');
+  const [changeDescription, setChangeDescription] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [authors, setAuthors] = useState<SelectedAuthor[]>(() =>
     initialPaper.authors.map((auth) => ({
@@ -77,6 +78,10 @@ export default function UploadVersionForm({
     if (errors.abstract) {
       setErrors({ ...errors, abstract: null });
     }
+  };
+
+  const handleChangeDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setChangeDescription(e.target.value);
   };
 
   const handleFileSelect = (file: File) => {
@@ -155,7 +160,7 @@ export default function UploadVersionForm({
         title,
         abstract,
         fileUrl: fileUploadResult.absoluteUrl,
-        changeDescription: 'New version',
+        changeDescription,
         authors: authors.map((selectedAuthor, index) => {
           const id =
             typeof selectedAuthor.author.id === 'number'
@@ -200,22 +205,22 @@ export default function UploadVersionForm({
   return (
     <PageLayout>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div className="mb-6 sm:mb-8">
-          <PageHeader title="Create a new version" className="mb-2" />
-          <p className="text-gray-600">Update your paper and upload a new PDF</p>
+        <div className="mb-8 sm:mb-8">
+          <PageHeader title="Submit a new version" className="mb-2" />
+          <p className="text-gray-600">Update your paper PDF and metadata</p>
         </div>
 
         {/* Content Form */}
         <div className="space-y-8 mb-10">
           {/* Paper Details */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-2">
-              <FileText className="h-5 w-5 text-gray-600" />
-              <h3 className="text-lg font-medium text-gray-900">Paper Details</h3>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-gray-600" />
+                <h3 className="text-lg font-medium text-gray-900">Paper Details</h3>
+              </div>
+              <p className="text-sm text-gray-500">Provide updated information about your paper</p>
             </div>
-            <p className="text-sm text-gray-500 mb-4">
-              Provide updated information about your paper
-            </p>
             <div>
               <Input
                 label="Title"
@@ -238,10 +243,12 @@ export default function UploadVersionForm({
           </div>
 
           {/* Upload Paper */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-2">
-              <FileUp className="h-5 w-5 text-gray-600" />
-              <h3 className="text-lg font-medium text-gray-900">Upload Updated PDF</h3>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <FileUp className="h-5 w-5 text-gray-600" />
+                <h3 className="text-lg font-medium text-gray-900">Upload Updated PDF</h3>
+              </div>
             </div>
             <div>
               <FileUpload
@@ -257,14 +264,16 @@ export default function UploadVersionForm({
           </div>
 
           {/* Authors */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-gray-600" />
-              <h3 className="text-lg font-medium text-gray-900">Authors</h3>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-gray-600" />
+                <h3 className="text-lg font-medium text-gray-900">Authors</h3>
+              </div>
+              <p className="text-sm text-gray-500">
+                Update the list of authors associated with this version
+              </p>
             </div>
-            <p className="text-sm text-gray-500 mb-4">
-              Update the list of authors associated with this version
-            </p>
             <div>
               <AuthorsAndAffiliations authors={authors} onChange={handleAuthorsChange} />
               {errors.authors && <p className="text-sm text-red-600 mt-2">{errors.authors}</p>}
@@ -272,19 +281,45 @@ export default function UploadVersionForm({
           </div>
 
           {/* Topics */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Tags className="h-5 w-5 text-gray-600" />
-              <h3 className="text-lg font-medium text-gray-900">Topics</h3>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Tags className="h-5 w-5 text-gray-600" />
+                <h3 className="text-lg font-medium text-gray-900">Topics</h3>
+              </div>
+              <p className="text-sm text-gray-500">
+                Update the topics that best describe your research
+              </p>
             </div>
-            <p className="text-sm text-gray-500 mb-4">
-              Update the topics that best describe your research
-            </p>
             <div>
               <HubsSelector
                 selectedHubs={selectedHubs}
                 onChange={handleHubsChange}
                 error={errors.hubs || null}
+                displayCountOnly={false}
+                hideSelectedItems={true}
+              />
+            </div>
+          </div>
+
+          {/* Change Description */}
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <MessageCircle className="h-5 w-5 text-gray-600" />
+                <h3 className="text-lg font-medium text-gray-900">Change Description</h3>
+              </div>
+              <p className="text-sm text-gray-500">
+                Provide a brief description of what changed in this version
+              </p>
+            </div>
+            <div>
+              <Textarea
+                label="Change Description"
+                value={changeDescription}
+                onChange={handleChangeDescriptionChange}
+                rows={3}
+                placeholder="Describe the changes made in this version (e.g., 'Fixed methodology section', 'Updated results', etc.)"
               />
             </div>
           </div>
