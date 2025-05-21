@@ -54,6 +54,9 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
+      <head>
+        <title>ResearchHub | Open Science Community</title>
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ClickProvider>
           <OnchainProvider>
