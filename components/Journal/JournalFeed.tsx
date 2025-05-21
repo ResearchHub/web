@@ -15,7 +15,7 @@ interface JournalFeedProps {
 
 export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initialLoading }) => {
   const [feedEntries, setFeedEntries] = useState<FeedEntry[]>([]);
-  const [loading, setLoading] = useState(initialLoading);
+  const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(false);
   const [page, setPage] = useState(1);
 
@@ -45,7 +45,7 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
 
         // Transform API response to FeedEntry objects
         const entries = response.results
-          .map((entry) => {
+          .map((entry: RawApiFeedEntry) => {
             try {
               return transformFeedEntry(entry);
             } catch (error) {
@@ -84,7 +84,7 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
 
       // Transform and append new entries
       const newEntries = response.results
-        .map((entry) => {
+        .map((entry: RawApiFeedEntry) => {
           try {
             return transformFeedEntry(entry);
           } catch (error) {
@@ -265,12 +265,26 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
 
   // Custom rendering for feed entries that allows for inserting the promo banner
   const renderFeedEntries = () => {
+    // Don't show empty state if we're loading
+    if (loading) {
+      return (
+        <FeedContent
+          entries={[]}
+          isLoading={true}
+          hasMore={false}
+          loadMore={() => {}}
+          header={feedHeader}
+          activeTab={'popular' as any}
+        />
+      );
+    }
+
     if (activeTab === 'all' && feedEntries.length >= 2) {
       // Create components array with entries and banner
       const components: ReactNode[] = [];
 
       // Add first two entries
-      feedEntries.slice(0, 2).forEach((entry, index) => {
+      feedEntries.slice(0, 2).forEach((entry: FeedEntry, index) => {
         components.push(
           <div key={entry.id} className={index > 0 ? 'mt-12' : ''}>
             <FeedContent
@@ -293,7 +307,7 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
       );
 
       // Add remaining entries
-      feedEntries.slice(2).forEach((entry) => {
+      feedEntries.slice(2).forEach((entry: FeedEntry) => {
         components.push(
           <div key={entry.id} className="mt-12">
             <FeedContent
@@ -370,14 +384,7 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
             </Link>
           </div>
         </div>
-      ) : (
-        <h1 className="text-xl text-gray-600 flex items-center gap-2">
-          <Book className="w-5 h-5 text-indigo-500" />
-          {activeTab === 'published'
-            ? 'Published research in ResearchHub Journal'
-            : 'All submissions in ResearchHub Journal'}
-        </h1>
-      )}
+      ) : null}
     </>
   );
 
