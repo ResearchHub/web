@@ -58,7 +58,6 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
               >
                 <User size={20} />
               </Button>
-              // <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
             )}
           </div>
         </div>

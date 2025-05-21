@@ -4,8 +4,6 @@ import { ReactNode, useState, Suspense, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Search } from '@/components/Search/Search';
 import { OnboardingRedirect } from '@/components/OnboardingRedirect';
-import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
-import { OnboardingModal } from '@/components/Onboarding/OnboardingModal';
 // Dynamically import sidebar components
 const LeftSidebar = dynamic(() => import('./LeftSidebar').then((mod) => mod.LeftSidebar), {
   ssr: true,
@@ -123,11 +121,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
 
   return (
     <div className="flex h-screen">
-      {/* {isFeatureEnabled(FeatureFlag.SimplifiedOnboarding) ? (
-        <OnboardingModal />
-      ) : ( */}
       <OnboardingRedirect />
-      {/* )} */}
 
       {/* Mobile overlay */}
       {isLeftSidebarOpen && (

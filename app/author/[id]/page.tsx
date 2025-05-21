@@ -13,7 +13,7 @@ import { FeedContent } from '@/components/Feed/FeedContent';
 import Achievements, { AchievementsSkeleton } from './components/Achievements';
 import KeyStats, { KeyStatsSkeleton } from './components/KeyStats';
 import { SearchEmpty } from '@/components/ui/SearchEmpty';
-import Moderation, { ModerationSkeleton } from './components/Moderation';
+import Moderation from './components/Moderation';
 import AuthorProfile from './components/AuthorProfile';
 
 function toNumberOrNull(value: any): number | null {
