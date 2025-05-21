@@ -1,6 +1,3 @@
-import { useRouter } from 'next/navigation';
-import { FeatureFlag, isFeatureEnabled, isProduction } from './featureFlags';
-
 /**
  * Opens an author profile using the appropriate routing mechanism
  * @param authorId The ID of the author to navigate to
@@ -9,11 +6,9 @@ import { FeatureFlag, isFeatureEnabled, isProduction } from './featureFlags';
 export const navigateToAuthorProfile = (authorId: number | string | undefined, newTab = true) => {
   if (!authorId) return;
 
-  const baseUrl = isProduction() ? 'https://researchhub.com' : '';
-  const url = `${baseUrl}/author/${authorId}`;
+  const url = `/author/${authorId}`;
 
-  if (newTab || isProduction()) {
-    // For production or when explicitly requested, open in a new tab
+  if (newTab) {
     window.open(url, '_blank');
   } else {
     // For development, use router

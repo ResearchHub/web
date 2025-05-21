@@ -132,7 +132,7 @@ export default function UserMenu({
         <div
           className="px-6 py-2 hover:bg-gray-50 cursor-pointer"
           onClick={() => {
-            navigateToAuthorProfile(user.authorProfile?.id);
+            navigateToAuthorProfile(user.authorProfile?.id, false);
             setMenuOpenState(false);
           }}
         >
@@ -265,7 +265,7 @@ export default function UserMenu({
           {/* Menu items */}
           <div className="py-1">
             <BaseMenuItem
-              onClick={() => navigateToAuthorProfile(user.authorProfile?.id)}
+              onClick={() => navigateToAuthorProfile(user.authorProfile?.id, false)}
               className="w-full px-4 py-2"
             >
               <div className="flex items-center">
