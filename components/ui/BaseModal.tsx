@@ -18,6 +18,7 @@ interface BaseModalProps {
   padding?: string; // e.g., 'p-4', 'p-6', 'p-8'
   footer?: ReactNode;
   headerAction?: ReactNode;
+  showFooterShadow?: boolean;
 }
 
 export const BaseModal: FC<BaseModalProps> = ({
@@ -32,6 +33,7 @@ export const BaseModal: FC<BaseModalProps> = ({
   padding = 'p-6', // Default padding
   footer,
   headerAction,
+  showFooterShadow = true,
 }) => {
   const headerRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
@@ -150,7 +152,7 @@ export const BaseModal: FC<BaseModalProps> = ({
                     ref={footerRef}
                     className="border-t border-gray-200 px-6 py-4 bg-white sticky bottom-0 z-10"
                     style={{
-                      boxShadow: '0 -4px 12px -4px rgba(0,0,0,0.10)', // Only top shadow
+                      boxShadow: showFooterShadow ? '0 -4px 12px -4px rgba(0,0,0,0.10)' : 'none', // Only top shadow
                     }}
                   >
                     {footer}
