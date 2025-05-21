@@ -134,6 +134,7 @@ export const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentB
         onClose={toggleModal}
         showCloseButton={true}
         headerAction={<Bookmark />}
+        minWidth="min-w-[400px]"
       >
         <div className="max-h-128 overflow-y-auto">
           {lists.map((listName: string) => (
@@ -149,6 +150,7 @@ export const SaveContentButton = ({ styling, userSavedIdentifier }: SaveContentB
                 checked={selectedLists.has(listName)}
                 disabled={isLoading}
                 className="pl-1"
+                onClick={(e) => e.stopPropagation()}
               />
               <label htmlFor={listName} className="text-sm font-medium cursor-pointer">
                 {listName}

@@ -13,6 +13,7 @@ interface BaseModalProps {
   initialFocus?: React.MutableRefObject<HTMLElement | null>;
   title?: string;
   maxWidth?: string; // e.g., 'max-w-md', 'max-w-xl', 'max-w-4xl'
+  minWidth?: string; // e.g., 'min-w-[200px]', 'min-w-[400px]', 'min-w-[600px]'
   showCloseButton?: boolean;
   padding?: string; // e.g., 'p-4', 'p-6', 'p-8'
   footer?: ReactNode;
@@ -26,6 +27,7 @@ export const BaseModal: FC<BaseModalProps> = ({
   initialFocus,
   title,
   maxWidth = 'max-w-tablet', // Default max width for larger screens
+  minWidth = 'min-w-[200px]', // Default minimum width
   showCloseButton = true,
   padding = 'p-6', // Default padding
   footer,
@@ -96,7 +98,9 @@ export const BaseModal: FC<BaseModalProps> = ({
                   // No rounded corners on mobile, rounded on md+
                   'md:!rounded-2xl',
                   // Only apply max width on md and up
-                  `md:${maxWidth}`
+                  `md:${maxWidth}`,
+                  // Apply minimum width
+                  minWidth
                 )}
                 style={{
                   display: 'flex',
