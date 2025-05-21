@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter, faLinkedin, faGoogle, faOrcid } from '@fortawesome/free-brands-svg-icons';
-import { faBuildingColumns, faBirthdayCake, faPen } from '@fortawesome/pro-solid-svg-icons';
+import { faBirthdayCake } from '@fortawesome/pro-light-svg-icons';
 import { toast } from 'react-hot-toast';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
@@ -140,12 +140,12 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
             )}
           </div>
 
-          <div>
+          <div className="flex flex-col gap-1">
             <div className="flex flex-col items-center sm:!items-start">
               {/* Render educations, separated by commas */}
               {educations.length > 0 && (
                 <div className="flex items-baseline gap-2 text-gray-600">
-                  <Icon name="education" className="h-5 w-5 self-start" />
+                  <Icon name="education" className="h-5 w-5 self-start min-w-5" color="#6B7280" />
                   <span className="inline">
                     {displayedEducations
                       .filter((edu) => edu !== undefined)
@@ -176,7 +176,10 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
             {/* Member since */}
             {currentUser?.createdDate && (
               <div className="flex items-baseline gap-2 text-gray-600">
-                <Icon name="memberFor" className="h-5 w-5 self-start" />
+                <FontAwesomeIcon
+                  icon={faBirthdayCake}
+                  className="h-5 w-5 self-start text-[#6B7280]"
+                />
                 <span>Member for {formatTimeAgo(currentUser.createdDate, true)}</span>
               </div>
             )}
@@ -206,7 +209,9 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
               href={author.linkedin}
               label="LinkedIn"
               className={
-                author.linkedin ? '[&>svg]:text-[#0077B5] [&>svg]:hover:text-[#005582] pl-0' : ''
+                author.linkedin
+                  ? '[&>svg]:text-[#0077B5] [&>svg]:hover:text-[#005582] px-0'
+                  : 'px-0'
               }
             />
             <SocialIcon
@@ -214,7 +219,9 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
               href={author.googleScholar}
               label="Google Scholar"
               className={
-                author.googleScholar ? '[&>svg]:text-[#4285F4] [&>svg]:hover:text-[#21429F]' : ''
+                author.googleScholar
+                  ? '[&>svg]:text-[#4285F4] [&>svg]:hover:text-[#21429F] px-0'
+                  : 'px-0'
               }
             />
             <SocialIcon
@@ -222,14 +229,16 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
               href={author.orcidId}
               label="ORCID"
               className={
-                author.orcidId ? '[&>svg]:text-[#A6CE39] [&>svg]:hover:text-[#82A629]' : ''
+                author.orcidId ? '[&>svg]:text-[#A6CE39] [&>svg]:hover:text-[#82A629] px-0' : 'px-0'
               }
             />
             <SocialIcon
               icon={<FontAwesomeIcon icon={faXTwitter} className="h-6 w-6" />}
               href={author.twitter}
               label="Twitter"
-              className={author.twitter ? '[&>svg]:text-[#000] [&>svg]:hover:text-[#000]' : ''}
+              className={
+                author.twitter ? '[&>svg]:text-[#000] [&>svg]:hover:text-[#000] px-0' : 'px-0'
+              }
             />
           </div>
         </div>

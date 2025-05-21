@@ -419,7 +419,7 @@ export function ProfileInformationForm({
                 ref={headlineRef}
                 error={errors.headline?.message}
                 placeholder="e.g., ML Researcher at Rice University"
-                helperText="Let others know how you are at a glance."
+                helperText="Let others know who you are at a glance."
               />
             )}
 

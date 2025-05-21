@@ -174,9 +174,6 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
         <Card className="mt-4 bg-gray-50">
           <AuthorProfileSkeleton />
         </Card>
-        <Card className="mt-4 bg-gray-50">
-          <ModerationSkeleton />
-        </Card>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="mt-4 bg-gray-50">
             <h3 className="text-sm font-base uppercase text-gray-500 mb-3">Achievements</h3>
