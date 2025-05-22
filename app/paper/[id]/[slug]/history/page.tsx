@@ -31,12 +31,9 @@ async function getWorkData(id: string): Promise<{ work: Work; metadata: any }> {
   }
 }
 
-export async function generateMetadata({
-  params: routeParams,
-}: {
-  params: { id: string; slug: string };
-}): Promise<Metadata> {
-  const workForMeta = await PaperService.get(routeParams.id).catch(() => null);
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const resolvedParams = await params;
+  const workForMeta = await PaperService.get(resolvedParams.id).catch(() => null);
   if (!workForMeta) {
     return { title: 'History Not Found' };
   }

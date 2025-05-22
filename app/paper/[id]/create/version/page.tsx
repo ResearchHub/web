@@ -3,15 +3,16 @@ import { MetadataService, WorkMetadata } from '@/services/metadata.service';
 import { Work } from '@/types/work';
 import UploadVersionForm from './UploadVersionForm';
 
-interface PageProps {
-  params: {
+interface Props {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default async function Page({ params }: PageProps) {
+export default async function Page({ params }: Props) {
+  const resolvedParams = await params;
   // Fetch the existing paper data on the server so that we can pre-populate the form.
-  const paper: Work = await PaperService.get(params.id);
+  const paper: Work = await PaperService.get(resolvedParams.id);
 
   // Fetch metadata (topics) if unifiedDocumentId is available
   let metadata: WorkMetadata | undefined = undefined;
@@ -26,7 +27,7 @@ export default async function Page({ params }: PageProps) {
   return (
     <UploadVersionForm
       initialPaper={paper}
-      previousPaperId={Number(params.id)}
+      previousPaperId={Number(resolvedParams.id)}
       metadata={metadata}
     />
   );
