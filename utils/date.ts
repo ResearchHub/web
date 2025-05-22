@@ -65,10 +65,8 @@ export function formatDeadline(deadline: string): string {
 }
 
 export function specificTimeSince(dateInput: string | Date): string {
-  console.log('dateInput', dateInput);
   const now = dayjs.utc();
   const joined = dayjs.utc(dateInput);
-  console.log({ now, joined });
 
   // If the date is in the future, swap so we always count up
   const from = joined.isAfter(now) ? now : joined;
