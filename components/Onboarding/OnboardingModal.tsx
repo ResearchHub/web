@@ -282,7 +282,7 @@ export function OnboardingModal() {
       }
     >
       <div>
-        <div className="min-w-0 sm:min-w-[600px] max-w-md sm:max-w-lg w-full mx-auto">
+        <div className="min-w-0 sm:!min-w-[600px] max-w-md sm:!max-w-lg w-full mx-auto">
           {renderStepContent()}
         </div>
       </div>
