@@ -533,7 +533,7 @@ export default function UploadPDFPage() {
                 <div className="flex justify-between items-start mb-4">
                   <h4 className="text-lg font-semibold text-indigo-900">Publish in RH Journal</h4>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 flex-shrink-0 ml-2">
-                    Limited time: Free!
+                    Limited time: $300
                   </span>
                 </div>
                 <ul className="space-y-3 mb-6 flex-grow">
@@ -567,10 +567,7 @@ export default function UploadPDFPage() {
                   </li>
                   <li className="flex items-center">
                     <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span className="text-sm text-gray-700 font-medium">
-                      Free <span className="line-through text-gray-400 ml-1">$200</span> (Limited
-                      Time Offer)
-                    </span>
+                    <span className="text-sm text-gray-700">$300 (Limited Time Offer)</span>
                   </li>
                 </ul>
                 <div className="mt-4 mb-6 text-center">
@@ -638,7 +635,7 @@ export default function UploadPDFPage() {
               'Submitting...'
             ) : currentStepIndex === steps.length - 1 ? (
               submitToJournal ? (
-                'Submit & Pay'
+                'Submit'
               ) : (
                 'Submit'
               )

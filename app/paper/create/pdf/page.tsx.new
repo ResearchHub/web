@@ -563,7 +563,7 @@ export default function UploadPDFPage() {
                   <div className="flex justify-between items-start mb-4">
                     <h4 className="text-lg font-semibold text-indigo-900">Publish in RH Journal</h4>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 flex-shrink-0 ml-2">
-                      Limited time: Free!
+                      Limited time: $300
                     </span>
                   </div>
                   <ul className="space-y-3 mb-6 flex-grow">
