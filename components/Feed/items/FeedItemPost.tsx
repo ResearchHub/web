@@ -17,6 +17,7 @@ interface FeedItemPostProps {
   href?: string; // Optional href prop
   showTooltips?: boolean; // Property for controlling tooltips
   showActions?: boolean; // Property for controlling actions
+  maxLength?: number;
 }
 
 /**
@@ -25,7 +26,8 @@ interface FeedItemPostProps {
 const FeedItemPostBody: FC<{
   entry: FeedEntry;
   imageUrl?: string;
-}> = ({ entry, imageUrl }) => {
+  maxLength?: number;
+}> = ({ entry, imageUrl, maxLength = 150 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
 
@@ -76,7 +78,7 @@ const FeedItemPostBody: FC<{
 
           {/* Truncated Content */}
           <div className="text-sm text-gray-700">
-            <p>{truncateText(post.textPreview)}</p>
+            <p>{truncateText(post.textPreview, maxLength)}</p>
           </div>
         </div>
 
@@ -107,6 +109,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   href,
   showTooltips = true,
   showActions = true,
+  maxLength,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
@@ -173,7 +176,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
           <MobileImage />
 
           {/* Body Content with desktop image integrated */}
-          <FeedItemPostBody entry={entry} imageUrl={imageUrl} />
+          <FeedItemPostBody entry={entry} imageUrl={imageUrl} maxLength={maxLength} />
 
           {/* Action Buttons - Full width */}
           {showActions && (

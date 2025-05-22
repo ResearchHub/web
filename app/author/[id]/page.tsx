@@ -90,7 +90,7 @@ const TAB_TO_CONTRIBUTION_TYPE: Record<string, ContributionType> = {
 function AuthorTabs({ authorId }: { authorId: number }) {
   const [isPending, startTransition] = useTransition();
   const tabs = [
-    { id: 'contributions', label: 'Contributions' },
+    { id: 'contributions', label: 'Overview' },
     { id: 'publications', label: 'Publications' },
     { id: 'peer-reviews', label: 'Peer Reviews' },
     { id: 'comments', label: 'Comments' },
@@ -144,6 +144,7 @@ function AuthorTabs({ authorId }: { authorId: number }) {
           noEntriesElement={
             <SearchEmpty title="No author activity found in this section." className="mb-10" />
           }
+          maxLength={150}
         />
       </div>
     );
