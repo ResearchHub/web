@@ -18,6 +18,7 @@ interface FeedItemPaperProps {
   href?: string; // Optional href prop
   showTooltips?: boolean; // Property for controlling tooltips
   showActions?: boolean; // Property for controlling actions
+  maxLength?: number;
 }
 
 /**
@@ -25,7 +26,8 @@ interface FeedItemPaperProps {
  */
 const FeedItemPaperBody: FC<{
   entry: FeedEntry;
-}> = ({ entry }) => {
+  maxLength?: number;
+}> = ({ entry, maxLength = 150 }) => {
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
 
@@ -100,7 +102,7 @@ const FeedItemPaperBody: FC<{
 
       {/* Truncated Content */}
       <div className="text-sm text-gray-700">
-        <p>{truncateText(paper.textPreview, 150)}</p>
+        <p>{truncateText(paper.textPreview, maxLength)}</p>
       </div>
     </div>
   );
@@ -114,6 +116,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   href,
   showTooltips = true,
   showActions = true,
+  maxLength,
 }) => {
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
@@ -159,7 +162,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
             {/* Left side content */}
             <div className="flex-1 pr-4">
               {/* Body Content */}
-              <FeedItemPaperBody entry={entry} />
+              <FeedItemPaperBody entry={entry} maxLength={maxLength} />
             </div>
 
             {/* Right side image - if available */}

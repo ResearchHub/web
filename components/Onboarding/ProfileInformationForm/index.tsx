@@ -17,14 +17,14 @@ import { OnboardingEducationModal } from '../OnboardingEducationModal';
 import type { EducationEntry } from '../OnboardingWizard';
 import { faXTwitter, faLinkedin, faGoogle, faOrcid } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGraduationCap, faShareNodes, faUser } from '@fortawesome/pro-solid-svg-icons';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { useUser } from '@/contexts/UserContext';
 import { ImageUploadModal } from '@/components/modals/ImageUploadModal';
 import { useUpdateAuthorProfileImage } from '@/hooks/useAuthor';
 import toast from 'react-hot-toast';
 import { Accordion, AccordionItem } from '@/components/ui/Accordion';
-import { faUserCircle, faUpload } from '@fortawesome/pro-light-svg-icons';
+import { faUpload, faGraduationCap, faShareNodes, faUser } from '@fortawesome/pro-light-svg-icons';
+import Icon from '@/components/ui/icons/Icon';
 
 interface ProfileInformationFormProps {
   onSubmit: (data: ProfileInformationFormValues) => void;
@@ -362,18 +362,14 @@ export function ProfileInformationForm({
         {showAvatar && (
           <div className="flex flex-col items-center mx-auto gap-4" style={{ minWidth: 120 }}>
             <div
-              className="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-300 overflow-hidden"
+              className="w-28 h-28 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-100 overflow-hidden"
               onClick={() => setIsAvatarModalOpen(true)}
               title="Click to upload avatar"
             >
               {avatar ? (
                 <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <FontAwesomeIcon
-                  icon={faUserCircle}
-                  className="text-gray-400"
-                  style={{ fontSize: 96 }}
-                />
+                <Icon name="userCircle" size={96} color="#d1d5db" />
               )}
             </div>
             <Button

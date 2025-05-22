@@ -35,7 +35,8 @@ const BountyDetails: FC<{
   content: any;
   contentFormat: ContentFormat | undefined;
   bountyType: BountyType;
-}> = ({ content, contentFormat, bountyType }) => {
+  maxLength?: number;
+}> = ({ content, contentFormat, bountyType, maxLength }) => {
   if (!content || Object.keys(content).length === 0) {
     return null;
   }
@@ -48,7 +49,7 @@ const BountyDetails: FC<{
         </div>
       </div>
       <div className="text-gray-600">
-        <CommentReadOnly content={content} contentFormat={contentFormat} />
+        <CommentReadOnly content={content} contentFormat={contentFormat} maxLength={maxLength} />
       </div>
     </div>
   );
@@ -82,6 +83,7 @@ interface FeedItemBountyProps {
   onTopicClick?: (topic: Topic) => void;
   showSupportAndCTAButtons?: boolean; // Show container for Support and CTA buttons
   showDeadline?: boolean; // Show deadline in metadata line
+  maxLength?: number;
 }
 
 /**
@@ -98,6 +100,7 @@ const FeedItemBountyBody: FC<{
   }) => void;
   onTopicClick?: (topic: Topic) => void;
   showDeadline?: boolean;
+  maxLength?: number;
 }> = ({
   entry,
   showSolutions = true,
@@ -105,6 +108,7 @@ const FeedItemBountyBody: FC<{
   onViewSolution,
   onTopicClick,
   showDeadline = true,
+  maxLength,
 }) => {
   // Extract the bounty entry from the entry's content
   const bountyEntry = entry.content as FeedBountyContent;
@@ -167,6 +171,7 @@ const FeedItemBountyBody: FC<{
           content={bountyEntry.comment.content}
           contentFormat={bountyEntry.comment.contentFormat}
           bountyType={bounty.bountyType}
+          maxLength={maxLength}
         />
       </div>
 
@@ -209,6 +214,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   onTopicClick,
   showSupportAndCTAButtons = true, // Show container for Support and CTA buttons
   showDeadline = true, // Show deadline in metadata line
+  maxLength,
 }) => {
   // Extract the bounty entry from the entry's content
   const bountyEntry = entry.content as FeedBountyContent;
@@ -397,6 +403,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
             onViewSolution={onViewSolution}
             onTopicClick={onTopicClick}
             showDeadline={showDeadline}
+            maxLength={maxLength}
           />
           {/* Container for Support and CTA buttons */}
           {showSupportAndCTAButtons && (

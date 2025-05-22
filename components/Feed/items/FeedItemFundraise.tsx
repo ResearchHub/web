@@ -22,6 +22,7 @@ interface FeedItemFundraiseProps {
   showTooltips?: boolean; // Property for controlling tooltips
   badgeVariant?: 'default' | 'icon-only'; // New prop for tax-deductible badge variant
   showActions?: boolean; // Property for controlling actions
+  maxLength?: number;
 }
 
 /**
@@ -31,7 +32,8 @@ const FeedItemFundraiseBody: FC<{
   entry: FeedEntry;
   imageUrl?: string;
   badgeVariant?: 'default' | 'icon-only';
-}> = ({ entry, imageUrl, badgeVariant = 'default' }) => {
+  maxLength?: number;
+}> = ({ entry, imageUrl, badgeVariant = 'default', maxLength }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
 
@@ -91,7 +93,7 @@ const FeedItemFundraiseBody: FC<{
 
           {/* Truncated Content */}
           <div className="text-sm text-gray-700">
-            <p>{truncateText(post.textPreview)}</p>
+            <p>{truncateText(post.textPreview, maxLength)}</p>
           </div>
         </div>
 
@@ -138,6 +140,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   showTooltips = true,
   badgeVariant = 'default',
   showActions = true,
+  maxLength,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
@@ -210,7 +213,12 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       >
         <div className="p-4">
           {/* Body Content with desktop image integrated */}
-          <FeedItemFundraiseBody entry={entry} imageUrl={imageUrl} badgeVariant={badgeVariant} />
+          <FeedItemFundraiseBody
+            entry={entry}
+            imageUrl={imageUrl}
+            badgeVariant={badgeVariant}
+            maxLength={maxLength}
+          />
           {/* Mobile image (shown only on small screens) */}
           <MobileImage />
           {/* Fundraise Progress (only for preregistrations with fundraise) */}

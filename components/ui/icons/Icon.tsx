@@ -102,7 +102,8 @@ export type IconName =
   | 'edit'
   | 'editor'
   | 'admin'
-  | 'tipRSC';
+  | 'tipRSC'
+  | 'userCircle';
 
 interface IconProps {
   /**

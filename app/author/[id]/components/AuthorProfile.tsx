@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter, faLinkedin, faGoogle, faOrcid } from '@fortawesome/free-brands-svg-icons';
-import { faBirthdayCake } from '@fortawesome/pro-light-svg-icons';
+import { faBirthdayCake, faGraduationCap } from '@fortawesome/pro-light-svg-icons';
 import { toast } from 'react-hot-toast';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
@@ -145,7 +145,10 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
               {/* Render educations, separated by commas */}
               {educations.length > 0 && (
                 <div className="flex items-baseline gap-2 text-gray-600">
-                  <Icon name="education" className="h-5 w-5 self-start min-w-5" color="#6B7280" />
+                  <FontAwesomeIcon
+                    icon={faGraduationCap}
+                    className="h-5 w-5 self-start text-[#6B7280]"
+                  />
                   <span className="inline">
                     {displayedEducations
                       .filter((edu) => edu !== undefined)
@@ -203,7 +206,7 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
           )}
 
           {/* Social Links */}
-          <div className="flex gap-2 justify-start">
+          <div className="flex gap-3 justify-start">
             <SocialIcon
               icon={<FontAwesomeIcon icon={faLinkedin} className="h-6 w-6" />}
               href={author.linkedin}
