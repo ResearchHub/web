@@ -1,8 +1,12 @@
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import duration from 'dayjs/plugin/duration';
+import utc from 'dayjs/plugin/utc';
 
 // Extend dayjs with relative time plugin
 dayjs.extend(relativeTime);
+dayjs.extend(duration);
+dayjs.extend(utc);
 
 /**
  * Converts an ISO timestamp to a relative time string (e.g. "2h ago")
@@ -57,5 +61,39 @@ export function formatDeadline(deadline: string): string {
     return `${diffDays} days left`;
   } else {
     return `Ends ${formatTimestamp(deadline)}`;
+  }
+}
+
+export function specificTimeSince(dateInput: string | Date): string {
+  console.log('dateInput', dateInput);
+  const now = dayjs.utc();
+  const joined = dayjs.utc(dateInput);
+  console.log({ now, joined });
+
+  // If the date is in the future, swap so we always count up
+  const from = joined.isAfter(now) ? now : joined;
+  const to = joined.isAfter(now) ? joined : now;
+
+  let years = to.diff(from, 'year');
+  let afterYears = from.add(years, 'year');
+
+  let months = to.diff(afterYears, 'month');
+  let afterMonths = afterYears.add(months, 'month');
+
+  let days = to.diff(afterMonths, 'day');
+
+  let result = [];
+  if (years > 0) result.push(`${years} year${years > 1 ? 's' : ''}`);
+  if (months > 0) result.push(`${months} month${months > 1 ? 's' : ''}`);
+  if (days > 0) result.push(`${days} day${days > 1 ? 's' : ''}`);
+
+  if (result.length === 0) {
+    return 'just joined';
+  } else if (result.length === 1) {
+    return result[0];
+  } else if (result.length === 2) {
+    return `${result[0]} and ${result[1]}`;
+  } else {
+    return `${result[0]}, ${result[1]} and ${result[2]}`;
   }
 }

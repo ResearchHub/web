@@ -9,7 +9,7 @@ import { faBirthdayCake, faGraduationCap } from '@fortawesome/pro-light-svg-icon
 import { toast } from 'react-hot-toast';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
-import { formatTimeAgo } from '@/utils/date';
+import { formatTimeAgo, specificTimeSince } from '@/utils/date';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { AuthorProfile as AuthorProfileType } from '@/types/authorProfile';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
@@ -40,8 +40,9 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
     shouldTruncate && !isDescriptionExpanded ? `${description.slice(0, 300)}...` : description;
 
   const educations = author.education ?? [];
-  const primaryEducation = educations.find((e) => e.is_public);
-  const otherEducations = educations.filter((e) => e.id !== primaryEducation?.id);
+  const primaryIndex = educations.findIndex((e) => e.is_public);
+  const primaryEducation = primaryIndex !== -1 ? educations[primaryIndex] : undefined;
+  const otherEducations = educations.filter((_, idx) => idx !== primaryIndex);
   const displayedEducations = showAllEducations
     ? [primaryEducation, ...otherEducations].filter(Boolean)
     : [primaryEducation, ...otherEducations].filter(Boolean).slice(0, 2);
@@ -120,7 +121,7 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
             <div className="flex flex-col items-start">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold text-gray-900">{fullName}</h1>
-                {currentUser?.isVerified && <VerifiedBadge />}
+                {author.user?.isVerified && <VerifiedBadge />}
               </div>
               {author.headline && (
                 <div className="text-gray-600 font-sm text-left">
@@ -153,7 +154,7 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
                     {displayedEducations
                       .filter((edu) => edu !== undefined)
                       .map((edu, idx) => (
-                        <span key={edu.id}>
+                        <span key={`edu-${edu.id}-${idx}`}>
                           {edu.summary
                             ? edu.summary
                             : `${edu.degree?.label || ''}${edu.major ? ` in ${edu.major}` : ''}${edu.year?.value ? ` '${edu.year.value.slice(2)}` : ''}${edu.name ? `, ${edu.name}` : ''}`}
@@ -177,13 +178,13 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
             </div>
 
             {/* Member since */}
-            {currentUser?.createdDate && (
+            {author.user?.createdDate && (
               <div className="flex items-baseline gap-2 text-gray-600">
                 <FontAwesomeIcon
                   icon={faBirthdayCake}
                   className="h-5 w-5 self-start text-[#6B7280]"
                 />
-                <span>Member for {formatTimeAgo(currentUser.createdDate, true)}</span>
+                <span>Member for {specificTimeSince(author.user.createdDate)}</span>
               </div>
             )}
           </div>

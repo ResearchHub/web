@@ -64,6 +64,7 @@ export function OnboardingEducationCard({
 
           {/* Remove button */}
           <button
+            type="button"
             className={`text-gray-400 hover:text-red-500 transition-colors ${hover ? 'opacity-100' : 'opacity-0'}`}
             onClick={(e) => {
               e.stopPropagation();

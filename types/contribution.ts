@@ -123,6 +123,8 @@ export const transformContributionToFeedEntry = ({
 }): FeedEntry => {
   const { content_type, created_by, created_date, hubs, item } = contribution;
 
+  const effectiveHubs: Hub[] = hubs?.length ? hubs : item?.hubs?.length ? item.hubs : [];
+
   // Base feed entry properties
   const baseFeedEntry: Partial<FeedEntry> = {
     id: contribution.item.id?.toString() || '',
@@ -167,7 +169,7 @@ export const transformContributionToFeedEntry = ({
       if (item.item?.thread?.content_object) {
         relatedWork = transformUnifiedDocumentToWork({
           raw: item.item?.thread?.content_object,
-          hubs,
+          hubs: effectiveHubs,
         });
       }
 
@@ -204,7 +206,7 @@ export const transformContributionToFeedEntry = ({
       if (item.thread?.content_object) {
         relatedWork = transformUnifiedDocumentToWork({
           raw: item.thread.content_object,
-          hubs,
+          hubs: effectiveHubs,
         });
       }
       break;
@@ -219,7 +221,7 @@ export const transformContributionToFeedEntry = ({
         slug: item.slug,
         title: item.title,
         authors: [transformAuthorProfile(created_by.author_profile)],
-        topics: hubs.map((hub) => transformTopic(hub)),
+        topics: effectiveHubs.map((hub) => transformTopic(hub)),
         createdBy: transformAuthorProfile(created_by.author_profile),
       };
       break;
@@ -234,7 +236,7 @@ export const transformContributionToFeedEntry = ({
         slug: item.slug,
         title: item.title,
         authors: [transformAuthorProfile(created_by.author_profile)],
-        topics: hubs.map((hub) => transformTopic(hub)),
+        topics: effectiveHubs.map((hub) => transformTopic(hub)),
         createdBy: transformAuthorProfile(created_by.author_profile),
         journal: item.journal || {
           id: 0,
