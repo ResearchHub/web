@@ -72,6 +72,16 @@ export function OnboardingModal() {
   ] = useUpdateAuthorProfileData();
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has('onboarding')) {
+      url.searchParams.append('onboarding', 'true');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, []);
+
+  useEffect(() => {
     const shouldShowOnboarding =
       UserService.shouldRedirectToOnboarding(user) || searchParams.get('onboarding') === 'true';
 
