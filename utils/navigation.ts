@@ -3,7 +3,7 @@
  * @param authorId The ID of the author to navigate to
  * @param newTab Whether to open in a new tab (defaults to true)
  */
-export const navigateToAuthorProfile = (authorId: number | string | undefined, newTab = true) => {
+export const navigateToAuthorProfile = (authorId: number | string | undefined, newTab = false) => {
   if (!authorId) return;
 
   const url = `/author/${authorId}`;

@@ -203,24 +203,9 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
         </div>
       </div>
 
-      <div className="bg-blue-50 p-3 rounded-md border border-blue-100 flex items-center mb-5">
-        <svg
-          className="h-4 w-4 text-blue-800 mr-2"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      </div>
+      <div className="border-t border-gray-200 my-6"></div>
 
-      <div className="flex flex-col md:flex-row justify-between items-center gap-5">
+      <div className="flex flex-col md:!flex-row justify-between items-center gap-5">
         <div>
           <p className="text-sm text-gray-700 font-medium mb-2">
             Join these researchers who've already published:
@@ -379,6 +364,22 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
                 </svg>
               </button>
             </Link>
+          </div>
+        </div>
+      </>
+    ) : activeTab === 'published' ? (
+      <>
+        <div className="bg-green-50 border-l-4 border-green-500 p-6 relative">
+          <div className="absolute left-6 top-9">
+            <span className="h-2 w-2 rounded-full bg-green-500 block"></span>
+          </div>
+          <div className="ml-5">
+            <h1 className="text-xl font-semibold text-gray-800 mb-2">
+              The following papers have been peer reviewed and approved by our editorial team.
+            </h1>
+            <p className="text-gray-600 text-sm">
+              These works have successfully completed our rigorous peer review process.
+            </p>
           </div>
         </div>
       </>
