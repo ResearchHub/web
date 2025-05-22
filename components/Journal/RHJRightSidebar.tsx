@@ -13,6 +13,10 @@ import { CollapsibleItem } from '@/components/ui/CollapsibleSection';
 import { Icon } from '../ui/icons/Icon';
 import { RHJBanner } from './RHJBanner';
 
+interface RHJRightSidebarProps {
+  showBanner?: boolean;
+}
+
 const keyFeatures = [
   { text: '14 days to peer reviews', highlight: true, icon: Clock },
   { text: 'Immediate preprints', icon: FileText },
@@ -87,7 +91,7 @@ const faqItems = [
   },
 ];
 
-export function RHJRightSidebar() {
+export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
   const router = useRouter();
   const [isHubsExpanded, setIsHubsExpanded] = useState(false);
   const [openFaqId, setOpenFaqId] = useState<string | null>(null);
@@ -102,12 +106,14 @@ export function RHJRightSidebar() {
   return (
     <aside className="w-full max-w-xs space-y-6 p-4">
       {/* Submit Button and Key Features Banner */}
-      <RHJBanner
-        features={keyFeatures}
-        variant="default"
-        title="Publish Faster."
-        buttonText="Submit Your Manuscript"
-      />
+      {showBanner && (
+        <RHJBanner
+          features={keyFeatures}
+          variant="default"
+          title="Publish Faster."
+          buttonText="Submit Your Manuscript"
+        />
+      )}
 
       {/* --- Editorial Board Section --- */}
       <div className="space-y-3">
