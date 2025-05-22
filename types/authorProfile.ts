@@ -97,6 +97,7 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
     hIndex: raw.h_index || undefined,
     i10Index: raw.i10_index || undefined,
     userId: raw.user_id || undefined,
+    editorOfHubs: editorOfHubs,
   };
 });
 
@@ -180,14 +181,6 @@ export const transformAuthorSummaryStats = createTransformer<any, AuthorSummaryS
     };
   }
 
-  const editorOfHubs = raw.editor_of?.map((group: any) => {
-    return {
-      id: group?.source?.id,
-      name: group?.source?.name,
-      slug: group?.source?.slug,
-    };
-  });
-
   return {
     worksCount: raw.summary_stats.works_count || 0,
     citationCount: raw.summary_stats.citation_count || 0,
@@ -196,6 +189,5 @@ export const transformAuthorSummaryStats = createTransformer<any, AuthorSummaryS
     amountFunded: raw.summary_stats.amount_funded || 0,
     openAccessPct: Math.round((raw.summary_stats.open_access_pct || 0) * 100),
     peerReviewCount: raw.summary_stats.peer_review_count || 0,
-    editorOfHubs: editorOfHubs,
   };
 });
