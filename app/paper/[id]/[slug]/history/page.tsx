@@ -9,6 +9,13 @@ import { WorkDocument } from '@/components/work/WorkDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 
+interface Props {
+  params: Promise<{
+    id: string;
+    slug: string;
+  }>;
+}
+
 async function getWorkData(id: string): Promise<{ work: Work; metadata: any }> {
   if (!id || !id.match(/^\d+$/)) {
     notFound();
@@ -39,12 +46,9 @@ export async function generateMetadata({
   };
 }
 
-export default async function WorkHistoryPage({
-  params: routeParams,
-}: {
-  params: { id: string; slug: string };
-}) {
-  const { work, metadata } = await getWorkData(routeParams.id);
+export default async function WorkHistoryPage({ params }: Props) {
+  const resolvedParams = await params;
+  const { work, metadata } = await getWorkData(resolvedParams.id);
 
   return (
     <PageLayout rightSidebar={<WorkRightSidebar work={work} metadata={metadata} />}>
