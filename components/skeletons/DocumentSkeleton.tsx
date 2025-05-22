@@ -21,7 +21,7 @@ interface DocumentSkeletonProps {
 
 export function DocumentSkeleton({
   className,
-  lines = 20,
+  lines = 15,
   lineHeight = '0.85rem',
   gap = '0.65rem',
 }: DocumentSkeletonProps) {

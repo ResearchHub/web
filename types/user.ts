@@ -2,6 +2,7 @@ import { createTransformer, BaseTransformed } from './transformer';
 import type { AuthorProfile } from './authorProfile';
 import { transformAuthorProfile } from './authorProfile';
 import { ID } from './root';
+import { Hub } from './hub';
 
 export interface User {
   id: number;
@@ -15,6 +16,8 @@ export interface User {
   hasCompletedOnboarding?: boolean;
   createdDate?: string;
   moderator: boolean;
+  editorOfHubs?: Hub[];
+  isModerator?: boolean;
 }
 
 export type TransformedUser = User & BaseTransformed;
@@ -35,7 +38,20 @@ const baseTransformUser = (raw: any): User => {
       hasCompletedOnboarding: false,
       createdDate: undefined,
       moderator: false,
+      isModerator: false,
     };
+  }
+
+  const editorOfHubs = raw.editor_of?.map((group: any) => {
+    return {
+      id: group?.source?.id,
+      name: group?.source?.name,
+      slug: group?.source?.slug,
+    };
+  });
+
+  if (raw.editor_of && typeof raw.author_profile === 'object') {
+    raw.author_profile.editor_of = raw.editor_of;
   }
 
   return {
@@ -50,6 +66,8 @@ const baseTransformUser = (raw: any): User => {
     hasCompletedOnboarding: raw.has_completed_onboarding || false,
     createdDate: raw.created_date || undefined,
     moderator: raw.moderator || false,
+    editorOfHubs: editorOfHubs,
+    isModerator: raw.moderator || false,
   };
 };
 
@@ -69,6 +87,7 @@ export const transformUser = (raw: any): TransformedUser => {
       balance: 0,
       moderator: false,
       raw: null,
+      isModerator: false,
     };
   }
 

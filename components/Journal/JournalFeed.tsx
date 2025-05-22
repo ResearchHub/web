@@ -218,9 +218,6 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <p className="text-sm text-blue-800 font-medium">
-          Limited time offer: Journal submissions are currently free!
-        </p>
       </div>
 
       <div className="flex flex-col md:flex-row justify-between items-center gap-5">

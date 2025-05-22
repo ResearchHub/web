@@ -3,7 +3,7 @@
 import { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
 import { Comment, CommentFilter, CommentSort, CommentType, QuillContent } from '@/types/comment';
 import { UserVoteType } from '@/types/reaction';
-import { ContentType } from '@/types/work';
+import { ContentType, Work } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
 import {
   findCommentById,
@@ -43,6 +43,7 @@ interface CommentContextType {
   editingCommentId: number | null;
   replyingToCommentId: number | null;
   workContentType: ContentType;
+  work?: Work;
 
   // Actions
   fetchComments: (page?: number) => Promise<void>;
@@ -102,12 +103,14 @@ export const CommentProvider = ({
   contentType,
   commentType = 'GENERIC_COMMENT',
   debug = true,
+  work,
 }: {
   children: React.ReactNode;
   documentId: number;
   contentType: ContentType;
   commentType?: CommentType;
   debug?: boolean;
+  work?: Work;
 }) => {
   const [state, dispatch] = useReducer(commentReducer, {
     ...initialCommentState,
@@ -791,6 +794,7 @@ export const CommentProvider = ({
     editingCommentId: state.editingCommentId,
     replyingToCommentId: state.replyingToCommentId,
     workContentType: contentType,
+    work,
     fetchComments,
     refresh,
     loadMore,

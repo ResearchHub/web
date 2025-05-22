@@ -99,7 +99,10 @@ export type IconName =
   | 'education'
   | 'socialMedia'
   | 'memberFor'
-  | 'edit';
+  | 'edit'
+  | 'editor'
+  | 'admin'
+  | 'tipRSC';
 
 interface IconProps {
   /**
