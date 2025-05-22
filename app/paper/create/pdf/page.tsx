@@ -506,12 +506,6 @@ export default function UploadPDFPage() {
                     <span className="text-sm text-gray-500">Editorial Oversight</span>
                   </li>
                   <li className="flex items-center">
-                    <X className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-500">
-                      Journal Indexing (e.g. Google Scholar)
-                    </span>
-                  </li>
-                  <li className="flex items-center">
                     <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
                     <span className="text-sm text-gray-700 font-medium">Free</span>
                   </li>
@@ -558,12 +552,6 @@ export default function UploadPDFPage() {
                   <li className="flex items-center">
                     <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
                     <span className="text-sm text-gray-700">Editorial Oversight</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-700">
-                      Journal Indexing (e.g. Google Scholar)
-                    </span>
                   </li>
                   <li className="flex items-center">
                     <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
