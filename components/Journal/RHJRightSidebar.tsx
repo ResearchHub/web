@@ -57,6 +57,18 @@ const faqItems = [
       'Yes, we value the expertise and time of our peer reviewers. Reviewers receive $150 per review.',
   },
   {
+    id: 'who-reviews-work',
+    question: 'Who will peer review my work?',
+    answer:
+      'We recruit experts in your field for invited peer reviews. While any user can also share a review, you may choose to address or disregard comments from non-invited reviewers. Our staff editors screen all reviews to ensure you receive high-quality, constructive feedback.',
+  },
+  {
+    id: 'what-happens-if-tipped',
+    question: 'What happens if someone tips my work?',
+    answer:
+      'Users on ResearchHub can tip ResearchCoin (RSC) to any work, including ResearchHub Journal publications. When a paper receives a tip, the RSC is evenly distributed among all its authors.',
+  },
+  {
     id: 'become-reviewer',
     question: 'How do I become a reviewer?',
     answer: (
