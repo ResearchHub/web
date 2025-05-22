@@ -202,10 +202,10 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
       <Card className="mt-4 bg-gray-50">
         <AuthorProfile author={user.authorProfile} refetchAuthorInfo={refetchAuthorInfo} />
       </Card>
-      {currentUser?.moderator && (
+      {currentUser?.moderator && user.authorProfile?.userId && (
         <Card className="mt-4 bg-gray-50">
           <h3 className="text-sm font-base uppercase text-gray-500 mb-3">Moderation</h3>
-          <Moderation userId={currentUser.id.toString()} />
+          <Moderation userId={user.authorProfile?.userId?.toString() || ''} />
         </Card>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -42,6 +42,7 @@ export interface AuthorProfile {
   isClaimed: boolean;
   hIndex?: number;
   i10Index?: number;
+  userId?: number;
   editorOfHubs?: Hub[];
 }
 
@@ -95,6 +96,7 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
     isClaimed: isClaimed,
     hIndex: raw.h_index || undefined,
     i10Index: raw.i10_index || undefined,
+    userId: raw.user_id || undefined,
   };
 });
 
