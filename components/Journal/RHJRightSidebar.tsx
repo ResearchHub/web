@@ -117,12 +117,6 @@ export function RHJRightSidebar() {
             <EditorCard key={editor.name} editor={editor} />
           ))}
         </div>
-        <a
-          href={`mailto:maulik.editor@researchhub.foundation?subject=Joining%20ResearchHub%20Journal%20Editorial%20Board`}
-          className="block text-sm text-blue-600 hover:underline pt-2"
-        >
-          Interested in joining?
-        </a>
       </div>
 
       {/* Relevant Fields - Updated to link to Hubs and use TopicAndJournalBadge */}
