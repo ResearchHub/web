@@ -72,14 +72,14 @@ export function OnboardingModal() {
   ] = useUpdateAuthorProfileData();
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || !showModal) return;
 
     const url = new URL(window.location.href);
     if (!url.searchParams.has('onboarding')) {
       url.searchParams.append('onboarding', 'true');
       window.history.replaceState({}, '', url.toString());
     }
-  }, []);
+  }, [showModal]);
 
   useEffect(() => {
     const shouldShowOnboarding =
