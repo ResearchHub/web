@@ -178,13 +178,13 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
             </div>
 
             {/* Member since */}
-            {author.user?.createdDate && (
+            {author.createdDate && (
               <div className="flex items-baseline gap-2 text-gray-600">
                 <FontAwesomeIcon
                   icon={faBirthdayCake}
                   className="h-5 w-5 self-start text-[#6B7280]"
                 />
-                <span>Member for {specificTimeSince(author.user.createdDate)}</span>
+                <span>Member for {specificTimeSince(author.createdDate)}</span>
               </div>
             )}
           </div>
