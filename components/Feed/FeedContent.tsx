@@ -31,6 +31,7 @@ interface FeedContentProps {
   showBountySupportAndCTAButtons?: boolean; // Show container for Support and CTA buttons for bounty items
   showBountyDeadline?: boolean; // Show deadline in metadata line
   noEntriesElement?: ReactNode; // Element to render if there are no entries
+  maxLength?: number;
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -49,6 +50,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   showBountySupportAndCTAButtons = true, // Show container for Support and CTA buttons
   showBountyDeadline = true, // Show deadline in metadata line
   noEntriesElement,
+  maxLength,
 }) => {
   // Generate appropriate href for each feed item type
   const generateHref = (entry: FeedEntry): string | undefined => {
@@ -110,15 +112,36 @@ export const FeedContent: FC<FeedContentProps> = ({
       // Use the contentType field on the FeedEntry object to determine the type of content
       switch (entry.contentType) {
         case 'POST':
-          content = <FeedItemPost entry={entry} href={href} showActions={!hideActions} />;
+          content = (
+            <FeedItemPost
+              entry={entry}
+              href={href}
+              showActions={!hideActions}
+              maxLength={maxLength}
+            />
+          );
           break;
 
         case 'PREREGISTRATION':
-          content = <FeedItemFundraise entry={entry} href={href} showActions={!hideActions} />;
+          content = (
+            <FeedItemFundraise
+              entry={entry}
+              href={href}
+              showActions={!hideActions}
+              maxLength={maxLength}
+            />
+          );
           break;
 
         case 'PAPER':
-          content = <FeedItemPaper entry={entry} href={href} showActions={!hideActions} />;
+          content = (
+            <FeedItemPaper
+              entry={entry}
+              href={href}
+              showActions={!hideActions}
+              maxLength={maxLength}
+            />
+          );
           break;
 
         case 'BOUNTY':
@@ -132,6 +155,7 @@ export const FeedContent: FC<FeedContentProps> = ({
               showFooter={showBountyFooter}
               showSupportAndCTAButtons={showBountySupportAndCTAButtons}
               showDeadline={showBountyDeadline}
+              maxLength={maxLength}
             />
           );
           break;
@@ -146,6 +170,7 @@ export const FeedContent: FC<FeedContentProps> = ({
               showCreatorActions={true}
               workContentType={entry.relatedWork?.contentType}
               hideActions={hideActions}
+              maxLength={maxLength}
             />
           );
           break;

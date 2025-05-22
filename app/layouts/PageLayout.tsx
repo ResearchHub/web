@@ -6,6 +6,7 @@ import { Search } from '@/components/Search/Search';
 import { OnboardingRedirect } from '@/components/OnboardingRedirect';
 import { usePathname } from 'next/navigation';
 import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
+import { OnboardingModal } from '@/components/Onboarding/OnboardingModal';
 // Dynamically import sidebar components
 const LeftSidebar = dynamic(() => import('./LeftSidebar').then((mod) => mod.LeftSidebar), {
   ssr: true,
@@ -124,7 +125,8 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
 
   return (
     <div className="flex h-screen">
-      <OnboardingRedirect />
+      {/* <OnboardingRedirect /> */}
+      <OnboardingModal />
 
       {/* Mobile overlay */}
       {isLeftSidebarOpen && (
