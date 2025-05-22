@@ -80,7 +80,7 @@ function AuthorProfileError({ error }: { error: string }) {
 
 // Add this mapping at the component level
 const TAB_TO_CONTRIBUTION_TYPE: Record<string, ContributionType> = {
-  contributions: 'ALL',
+  // contributions: 'ALL',
   publications: 'ARTICLE',
   'peer-reviews': 'REVIEW',
   comments: 'CONVERSATION',
@@ -90,7 +90,7 @@ const TAB_TO_CONTRIBUTION_TYPE: Record<string, ContributionType> = {
 function AuthorTabs({ authorId }: { authorId: number }) {
   const [isPending, startTransition] = useTransition();
   const tabs = [
-    { id: 'contributions', label: 'Overview' },
+    // { id: 'contributions', label: 'Overview' },
     { id: 'publications', label: 'Publications' },
     { id: 'peer-reviews', label: 'Peer Reviews' },
     { id: 'comments', label: 'Comments' },
@@ -99,7 +99,7 @@ function AuthorTabs({ authorId }: { authorId: number }) {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentTab = searchParams.get('tab') || 'contributions';
+  const currentTab = searchParams.get('tab') || 'publications';
 
   // Get the contribution type based on the current tab
   const contributionType = TAB_TO_CONTRIBUTION_TYPE[currentTab] || 'ALL';
@@ -202,10 +202,10 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
       <Card className="mt-4 bg-gray-50">
         <AuthorProfile author={user.authorProfile} refetchAuthorInfo={refetchAuthorInfo} />
       </Card>
-      {currentUser?.moderator && (
+      {currentUser?.moderator && user.authorProfile?.userId && (
         <Card className="mt-4 bg-gray-50">
           <h3 className="text-sm font-base uppercase text-gray-500 mb-3">Moderation</h3>
-          <Moderation userId={currentUser.id.toString()} />
+          <Moderation userId={user.authorProfile?.userId?.toString() || ''} />
         </Card>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CommentContent } from './types';
 import { Star } from 'lucide-react';
 import { cn } from '@/utils/styles';
+import { navigateToAuthorProfile } from '@/utils/navigation';
 
 interface QuillRendererProps {
   content: CommentContent;
@@ -195,21 +196,31 @@ const QuillRenderer: React.FC<QuillRendererProps> = ({
     // Preprocessor to rebuild the document structure
     processedOps.forEach((op: any, index: number) => {
       if (typeof op.insert === 'object') {
-        // Special object insert (like peer-review-rating)
-        // Finish any current block
-        if (currentBlock.content.length > 0) {
-          documentStructure.push(currentBlock);
+        if (Object.keys(op.insert).includes('user')) {
+          // For user mentions, we want to keep the content inline
+          // Add the user mention to the current block
+          currentBlock.content.push({
+            type: 'user-mention',
+            content: op.insert,
+            index,
+          });
+        } else {
+          // For other special objects (like peer-review-rating)
+          // Finish any current block
+          if (currentBlock.content.length > 0) {
+            documentStructure.push(currentBlock);
+          }
+
+          // Add the special block
+          documentStructure.push({
+            type: 'special',
+            content: op.insert,
+            index,
+          });
+
+          // Start a new paragraph
+          currentBlock = { type: 'paragraph', content: [], attributes: {} };
         }
-
-        // Add the special block
-        documentStructure.push({
-          type: 'special',
-          content: op.insert,
-          index,
-        });
-
-        // Start a new paragraph
-        currentBlock = { type: 'paragraph', content: [], attributes: {} };
       } else if (typeof op.insert === 'string') {
         const text = op.insert;
         const attributes = op.attributes || {};
@@ -365,12 +376,43 @@ const QuillRenderer: React.FC<QuillRendererProps> = ({
 
           return (
             <p key={`p-${blockIndex}`} className="my-2">
-              {block.content.map((contentItem: any, idx: number) => (
-                <React.Fragment key={`content-${contentItem.index || idx}`}>
-                  {formatText(contentItem.text, contentItem.attributes, `p-${blockIndex}-${idx}`)}
-                </React.Fragment>
-              ))}
+              {block.content.map((contentItem: any, idx: number) => {
+                if (contentItem.type === 'user-mention') {
+                  const user = contentItem.content.user;
+                  const id = user.authorProfileId || user.userId;
+                  const label = [user.firstName, user.lastName].filter(Boolean).join(' ').trim();
+                  return (
+                    <span
+                      key={`mention-${id}-${blockIndex}-${idx}`}
+                      className="mention text-blue-600 hover:underline cursor-pointer"
+                      onClick={() => navigateToAuthorProfile(id, true)}
+                    >
+                      @{label}
+                    </span>
+                  );
+                }
+                return (
+                  <React.Fragment key={`content-${contentItem.index || idx}`}>
+                    {formatText(contentItem.text, contentItem.attributes, `p-${blockIndex}-${idx}`)}
+                  </React.Fragment>
+                );
+              })}
             </p>
+          );
+        }
+
+        if (block.type === 'special' && block.content['user']) {
+          const user = block.content['user'];
+          const id = user.authorProfileId || user.userId;
+          const label = [user.firstName, user.lastName].filter(Boolean).join(' ').trim();
+          return (
+            <span
+              key={`mention-${id}-${blockIndex}`}
+              className="mention text-blue-600 hover:underline cursor-pointer"
+              onClick={() => navigateToAuthorProfile(id, true)}
+            >
+              @{label}
+            </span>
           );
         }
 

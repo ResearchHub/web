@@ -246,7 +246,7 @@ const ProfileCompletionCircle: FC<ProfileCompletionCircleProps> = ({
           <Tooltip
             content={tooltipContent}
             position="bottom"
-            width="w-48"
+            width="w-56"
             wrapperClassName={`h-auto w-full relative`}
           >
             {renderPercentageValue()}

@@ -156,6 +156,7 @@ export class AuthorService {
             profile_image: response.profile_image,
             description: response.description,
             orcid_id: response.orcid_id,
+            user_id: response.user,
           },
         });
       } else {
