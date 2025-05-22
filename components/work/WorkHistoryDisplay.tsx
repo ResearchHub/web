@@ -1,9 +1,8 @@
-import { Work, DocumentVersion } from '@/types/work';
-import { ChevronsLeftRight } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
-import { Badge } from '@/components/ui/Badge';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
+import { DocumentVersion } from '@/types/work';
+import { VersionOfRecordBadge } from '@/components/ui/VersionOfRecordBadge';
 
 interface WorkHistoryDisplayProps {
   versions: DocumentVersion[];
@@ -26,7 +25,7 @@ export const WorkHistoryDisplay = ({ versions, currentPaperId, slug }: WorkHisto
 
   return (
     <div className="mt-8">
-      <div className="space-y-8">
+      <div className="space-y-4">
         {sortedVersions.map((version) => {
           const isViewingThisCard = version.paperId === currentPaperId;
           const isLatest = version.isLatest;
@@ -36,7 +35,7 @@ export const WorkHistoryDisplay = ({ versions, currentPaperId, slug }: WorkHisto
           const versionUrl = `/paper/${version.paperId}/${slug}`;
 
           return (
-            <div key={version.version} className="group/card">
+            <div key={version.version}>
               <Link
                 href={versionUrl}
                 className={cn(
@@ -46,9 +45,11 @@ export const WorkHistoryDisplay = ({ versions, currentPaperId, slug }: WorkHisto
               >
                 <div
                   className={cn(
-                    'border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden',
+                    'border rounded-lg overflow-hidden',
                     'transition-all duration-200',
-                    !isViewingThisCard && 'hover:shadow-md hover:border-indigo-100',
+                    isViewingThisCard
+                      ? 'bg-blue-50 border-blue-100 shadow-sm'
+                      : 'bg-white border-gray-200 shadow-sm hover:shadow-md hover:border-indigo-100',
                     'cursor-pointer'
                   )}
                 >
@@ -58,50 +59,35 @@ export const WorkHistoryDisplay = ({ versions, currentPaperId, slug }: WorkHisto
                       <div className="flex items-center flex-wrap gap-2 mb-1">
                         <h3
                           className={cn(
-                            'text-base font-medium text-gray-800',
+                            'text-base font-medium',
+                            isViewingThisCard ? 'text-blue-700' : 'text-gray-800',
                             !isViewingThisCard && 'group-hover/card:text-indigo-600'
                           )}
                         >
-                          {version.message || `Version ${version.version}`}
+                          Version {version.version}
                         </h3>
-                        {version.isLatest && (
-                          <span className="inline-flex items-center px-2 py-0.5 bg-green-50 border border-green-200 text-green-700 rounded-full text-xs">
-                            Latest
-                          </span>
-                        )}
-                        {version.isVersionOfRecord && (
-                          <span className="inline-flex items-center px-2 py-0.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-full text-xs">
-                            Version of Record
-                          </span>
-                        )}
-                        {isViewingThisCard && (
-                          <span className="inline-flex items-center px-2 py-0.5 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-full text-xs">
-                            Currently Viewing
-                          </span>
-                        )}
-                        {version.publicationStatus && (
+                        {version.isVersionOfRecord && <VersionOfRecordBadge />}
+                        {version.publicationStatus !== 'PUBLISHED' && (
                           <ContentTypeBadge
-                            type={
-                              version.publicationStatus === 'PUBLISHED' ? 'published' : 'preprint'
-                            }
+                            type="preprint"
                             size="sm"
                             showTooltip={false}
                             className="!py-0.5 !px-2"
                           />
                         )}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      {version.message && (
+                        <p className="text-sm text-gray-600 mt-1.5 line-clamp-2">
+                          {version.message}
+                        </p>
+                      )}
+                      <div className="text-xs text-gray-500 mt-1">
                         <span>
-                          Published:{' '}
+                          Published{' '}
                           {publishedDate.toLocaleDateString(undefined, {
                             year: 'numeric',
                             month: 'long',
                             day: 'numeric',
-                          })}
-                          ,{' '}
-                          {publishedDate.toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
                           })}
                         </span>
                       </div>

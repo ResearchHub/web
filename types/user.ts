@@ -17,6 +17,7 @@ export interface User {
   createdDate?: string;
   moderator: boolean;
   editorOfHubs?: Hub[];
+  isModerator?: boolean;
 }
 
 export type TransformedUser = User & BaseTransformed;
@@ -37,6 +38,7 @@ const baseTransformUser = (raw: any): User => {
       hasCompletedOnboarding: false,
       createdDate: undefined,
       moderator: false,
+      isModerator: false,
     };
   }
 
@@ -65,6 +67,7 @@ const baseTransformUser = (raw: any): User => {
     createdDate: raw.created_date || undefined,
     moderator: raw.moderator || false,
     editorOfHubs: editorOfHubs,
+    isModerator: raw.moderator || false,
   };
 };
 
@@ -84,6 +87,7 @@ export const transformUser = (raw: any): TransformedUser => {
       balance: 0,
       moderator: false,
       raw: null,
+      isModerator: false,
     };
   }
 

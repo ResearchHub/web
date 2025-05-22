@@ -19,16 +19,14 @@ export const AuthorBadge: FC<AuthorBadgeProps> = ({ size = 'md', className, show
   };
 
   return (
-    <Tooltip content="Paper Author">
-      <div
-        className={cn(
-          'flex items-center justify-center rounded-full bg-amber-50 px-2 py-1',
-          className
-        )}
-      >
-        <Feather className={cn('text-amber-600 mr-1', sizeClasses[size])} />
-        {showText && <span className="text-amber-600 text-xs font-medium">Author</span>}
-      </div>
-    </Tooltip>
+    <div
+      className={cn(
+        'flex items-center justify-center rounded-full bg-amber-50 px-2 py-1',
+        className
+      )}
+    >
+      <Feather className={cn('text-amber-600 mr-1', sizeClasses[size])} />
+      {showText && <span className="text-amber-600 text-xs font-medium">Author</span>}
+    </div>
   );
 };

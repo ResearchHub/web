@@ -161,4 +161,17 @@ export class PaperService {
       paper: paperId,
     });
   }
+
+  /**
+   * Publish a preprint paper to the ResearchHub Journal. Once published, the paper
+   * becomes the version of record and its latest version will have the
+   *  `publicationStatus` set to `PUBLISHED` as well as `isVersionOfRecord = true`.
+   *
+   * @param paperId - The id of the paper to publish
+   */
+  static async publishPaper(paperId: number) {
+    return ApiClient.post(`${this.BASE_PATH}/publish_to_researchhub_journal/`, {
+      previous_paper_id: paperId,
+    });
+  }
 }

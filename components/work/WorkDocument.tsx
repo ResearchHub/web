@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   FlaskConicalOff,
   History,
+  Plus,
 } from 'lucide-react';
 import { Work, DocumentVersion } from '@/types/work';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
@@ -213,13 +214,20 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
       case 'history':
         return (
           <>
-            {isAuthor && (
-              <div className="mb-4 flex justify-end">
-                <Button size="sm" variant="default" onClick={handleAddVersion}>
-                  Add New Version
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-medium">Version History</h2>
+              {isAuthor && (
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={handleAddVersion}
+                  className="inline-flex items-center gap-1"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Add New Version</span>
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
             <WorkHistoryDisplay
               versions={work.versions || []}
               currentPaperId={work.id}

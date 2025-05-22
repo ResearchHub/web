@@ -3,7 +3,7 @@
 import { FileText, Star, MessagesSquare, History } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Icon from '@/components/ui/icons/Icon';
 import { Tabs } from '@/components/ui/Tabs';
 import { usePathname } from 'next/navigation';
@@ -27,12 +27,17 @@ export const WorkTabs = ({
 }: WorkTabsProps) => {
   const pathname = usePathname();
 
+  // Check if any version is part of the ResearchHub journal
+  const hasResearchHubJournalVersions = useMemo(() => {
+    return (work.versions || []).some((version) => version.isResearchHubJournal);
+  }, [work.versions]);
+
   // Get the active tab based on current path
   const getActiveTabFromPath = (path: string): TabType => {
     if (path.includes('/conversation')) return 'conversation';
     if (path.includes('/reviews')) return 'reviews';
     if (path.includes('/bounties')) return 'bounties';
-    if (path.includes('/history')) return 'history';
+    if (path.includes('/history') && hasResearchHubJournalVersions) return 'history';
     return 'paper';
   };
 
@@ -52,7 +57,7 @@ export const WorkTabs = ({
       setActiveTab(tabFromPath);
       onTabChange(tabFromPath);
     }
-  }, [pathname, onTabChange]);
+  }, [pathname, onTabChange, hasResearchHubJournalVersions]);
 
   // Handle tab change
   const handleTabChange = (tab: TabType) => {
@@ -94,7 +99,8 @@ export const WorkTabs = ({
     return 'Post';
   };
 
-  const tabs = [
+  // Define base tabs
+  const baseTabs = [
     {
       id: 'paper',
       label: (
@@ -158,25 +164,35 @@ export const WorkTabs = ({
         </div>
       ),
     },
-    {
-      id: 'history',
-      label: (
-        <div className="flex items-center">
-          <History className="h-4 w-4 mr-2" />
-          <span>History</span>
-          <span
-            className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-              activeTab === 'history'
-                ? 'bg-indigo-100 text-indigo-600'
-                : 'bg-gray-100 text-gray-600'
-            }`}
-          >
-            {work.versions?.length || 0}
-          </span>
-        </div>
-      ),
-    },
   ];
+
+  // Add history tab only if any version is part of ResearchHub Journal
+  const tabs = useMemo(() => {
+    if (hasResearchHubJournalVersions) {
+      return [
+        ...baseTabs,
+        {
+          id: 'history',
+          label: (
+            <div className="flex items-center">
+              <History className="h-4 w-4 mr-2" />
+              <span>History</span>
+              <span
+                className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                  activeTab === 'history'
+                    ? 'bg-indigo-100 text-indigo-600'
+                    : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {work.versions?.length || 0}
+              </span>
+            </div>
+          ),
+        },
+      ];
+    }
+    return baseTabs;
+  }, [baseTabs, hasResearchHubJournalVersions, activeTab, work.versions?.length]);
 
   return (
     <div className="border-b mb-6">

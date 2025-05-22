@@ -41,9 +41,9 @@ export const ContentTypeBadge = ({
       <Badge
         variant="default"
         size={size}
-        className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
+        className={cn('gap-1 py-1 border-gray-300 cursor-pointer', className)}
       >
-        <Icon name="preprint" size={16} color="#6B7280" />
+        <Icon name="preprint" size={12} color="#6B7280" />
         <span>Preprint</span>
       </Badge>
     );

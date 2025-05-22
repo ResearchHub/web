@@ -50,7 +50,7 @@ export const EditorBadge: FC<EditorBadgeProps> = ({ hubs, size = 'sm', className
     },
     md: {
       badge: 'px-2.5 py-1 text-sm text-xs flex items-center',
-      iconSize: 20,
+      iconSize: 16,
       marginRight: 'mr-1',
     },
   };
@@ -59,16 +59,16 @@ export const EditorBadge: FC<EditorBadgeProps> = ({ hubs, size = 'sm', className
     <Tooltip content={tooltipContent}>
       <div
         className={cn(
-          'inline-flex items-center justify-center rounded-full font-medium',
-          'bg-gradient-to-r from-blue-50 to-blue-75 text-blue-700 border border-blue-200',
+          'inline-flex items-center justify-center rounded-full font-medium bg-blue-100',
+          'text-blue-900',
           sizeClasses[size].badge,
           className
         )}
       >
         <div className="flex items-center justify-center">
           <Icon
-            name="flaskFrame"
-            color="#3971ff"
+            name="editor"
+            color="blue"
             size={sizeClasses[size].iconSize}
             className={sizeClasses[size].marginRight}
           />

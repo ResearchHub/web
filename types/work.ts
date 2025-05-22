@@ -45,6 +45,7 @@ export type DocumentVersion = {
   message: string;
   publicationStatus: string;
   isVersionOfRecord: boolean;
+  isResearchHubJournal: boolean;
 };
 
 export interface FormatType {
@@ -140,6 +141,7 @@ export const transformDocumentVersion = createTransformer<any, DocumentVersion>(
   message: raw.message || '',
   publicationStatus: raw.publication_status || '',
   isVersionOfRecord: raw.is_version_of_record || false,
+  isResearchHubJournal: !!raw.publication_status,
 }));
 
 export const transformWork = createTransformer<any, Work>((raw) => {
