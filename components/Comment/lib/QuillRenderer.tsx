@@ -102,7 +102,6 @@ const QuillRenderer: React.FC<QuillRendererProps> = ({
   maxLength = 100,
 }) => {
   const [parsedContent, setParsedContent] = useState<any>(null);
-  console.log('content', content);
 
   useEffect(() => {
     // Parse the content if it's a string
@@ -314,8 +313,6 @@ const QuillRenderer: React.FC<QuillRendererProps> = ({
         processedStructure.push(block);
       }
     });
-
-    console.log('processedStructure', processedStructure);
 
     // Add any final list
     if (currentList) {
