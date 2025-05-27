@@ -14,7 +14,7 @@ import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Building, Users } from 'lucide-react';
 import { cn } from '@/utils/styles';
-import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
+import { FeedItemFundraise } from './FeedItemFundraise';
 import { Work, AuthorPosition, ContentType } from '@/types/work';
 import { FeedItemActions, ExtendedContentMetrics } from '@/components/Feed/FeedItemActions';
 import { Tip } from '@/types/tip';
@@ -52,101 +52,43 @@ export const FeedItemApplication: FC<FeedItemApplicationProps> = ({
   const applicationContent = entry.content as FeedApplicationContent;
   const { createdBy, createdDate, applicationDetails, preregistration } = applicationContent;
 
-  const displayAuthors = applicationDetails.authors || [createdBy];
-
-  const preregistrationAsWork: Work = {
-    ...preregistration,
-    authors: preregistration.authors.map((ap, index, arr) => {
-      let position: AuthorPosition;
-      if (index === 0) {
-        position = 'first';
-      } else if (index === arr.length - 1) {
-        position = 'last';
-      } else {
-        position = 'middle';
-      }
-      return {
-        authorProfile: ap,
-        id: ap.id,
-        order: index,
-        isSubmitter: createdBy.id === ap.id,
-        isCorresponding: index === 0,
-        position: position,
-      };
-    }),
-    abstract: preregistration.textPreview,
-    contentType: preregistration.contentType === 'PREREGISTRATION' ? 'preregistration' : 'post',
-    formats: [],
-    figures: [],
-  } as Work;
+  // Convert preregistration to FeedEntry format for FeedItemFundraise
+  const preregistrationFeedEntry: FeedEntry = {
+    id: preregistration.id.toString(),
+    timestamp: createdDate,
+    action: 'publish' as const,
+    contentType: 'PREREGISTRATION' as const,
+    content: {
+      ...preregistration,
+      createdBy: createdBy,
+      createdDate: createdDate,
+      contentType: 'PREREGISTRATION' as const,
+      textPreview: preregistration.textPreview || '',
+      authors: preregistration.authors || [],
+      topics: preregistration.topics || [],
+      institution: applicationDetails.institution,
+      reviews: reviews || [],
+      bounties: bounties || [],
+    } as FeedPostContent,
+    metrics: {
+      votes: metrics?.votes || 0,
+      comments: metrics?.comments || 0,
+      saves: 0,
+    },
+    userVote: userVote,
+    raw: entry.raw,
+  };
 
   return (
     <div className="space-y-3">
-      <FeedItemHeader
-        timestamp={createdDate}
-        author={createdBy}
-        actionText="submitted an application"
+      <FeedItemFundraise
+        entry={preregistrationFeedEntry}
+        href={href}
+        showTooltips={true}
+        badgeVariant="default"
+        showActions={true}
+        customActionText="applied to grant"
       />
-      <div className={cn('bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden')}>
-        <div className="p-4">
-          <div className="mb-3">
-            <h3 className="text-md font-semibold text-gray-800 mb-4">Application Details:</h3>
-
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                <Users className="w-4 h-4 text-gray-500" />
-                <AuthorList
-                  authors={displayAuthors.map((a) => ({
-                    name: a.fullName,
-                    profileUrl: a.profileUrl,
-                    verified: a.isClaimed,
-                  }))}
-                  size="xs"
-                  delimiter=", "
-                />
-              </div>
-
-              {applicationDetails.institution && (
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
-                  <Building className="w-4 h-4 text-gray-500" />
-                  <span>{applicationDetails.institution}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="mt-3">
-              <p className="text-sm font-medium text-gray-700 mb-1">
-                How will your research address funder's objectives?
-              </p>
-              <p className="text-sm text-gray-600 whitespace-pre-wrap bg-gray-50 p-2 rounded">
-                {applicationDetails.objectiveAlignment}
-              </p>
-            </div>
-          </div>
-
-          <RelatedWorkCard
-            work={preregistrationAsWork}
-            fundraiseData={preregistration.fundraise}
-            size="sm"
-          />
-          <div className="mt-4 pt-3 border-t border-gray-200">
-            <FeedItemActions
-              metrics={metrics}
-              feedContentType={feedContentType}
-              votableEntityId={votableEntityId}
-              relatedDocumentId={relatedDocumentId}
-              relatedDocumentContentType={relatedDocumentContentType}
-              userVote={userVote}
-              href={href}
-              reviews={reviews}
-              bounties={bounties}
-              tips={tips}
-              awardedBountyAmount={awardedBountyAmount}
-              hideCommentButton={!href}
-            />
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

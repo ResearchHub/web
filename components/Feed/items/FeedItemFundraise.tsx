@@ -23,6 +23,7 @@ interface FeedItemFundraiseProps {
   badgeVariant?: 'default' | 'icon-only'; // New prop for tax-deductible badge variant
   showActions?: boolean; // Property for controlling actions
   maxLength?: number;
+  customActionText?: string; // Custom action text for the header
 }
 
 /**
@@ -150,6 +151,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   badgeVariant = 'default',
   showActions = true,
   maxLength,
+  customActionText,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
@@ -206,7 +208,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       <FeedItemHeader
         timestamp={post.createdDate}
         author={author}
-        actionText={hasFundraise ? `is seeking funding` : 'published a post'}
+        actionText={customActionText || (hasFundraise ? `is seeking funding` : 'published a post')}
         contributors={hasFundraise ? extractContributors(post.fundraise) : []}
         contributorsLabel="Funding Contributors"
       />
