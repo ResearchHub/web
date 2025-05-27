@@ -71,7 +71,7 @@ export class PaperService {
     } else {
       response = await ApiClient.get(`${this.BASE_PATH}/${identifier}/`);
     }
-
+    console.log('response', response);
     return transformPaper(response);
   }
 
@@ -115,6 +115,11 @@ export class PaperService {
       apiPayload.pdf_url = payload.fileUrl;
     }
 
+    // Add previous_paper_id if provided (for creating new versions)
+    if (payload.previousPaperId) {
+      apiPayload.previous_paper_id = payload.previousPaperId;
+    }
+
     // Format authors exactly as in the working example
     apiPayload.authors = payload.authors.map((author) => {
       const authorObj: any = {
@@ -154,6 +159,19 @@ export class PaperService {
       success_url: successUrl,
       failure_url: failureUrl,
       paper: paperId,
+    });
+  }
+
+  /**
+   * Publish a preprint paper to the ResearchHub Journal. Once published, the paper
+   * becomes the version of record and its latest version will have the
+   *  `publicationStatus` set to `PUBLISHED` as well as `isVersionOfRecord = true`.
+   *
+   * @param paperId - The id of the paper to publish
+   */
+  static async publishPaper(paperId: number) {
+    return ApiClient.post(`${this.BASE_PATH}/publish_to_researchhub_journal/`, {
+      previous_paper_id: paperId,
     });
   }
 }

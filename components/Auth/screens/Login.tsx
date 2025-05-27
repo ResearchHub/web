@@ -3,12 +3,16 @@ import { BaseScreenProps } from '../types';
 import { Eye, EyeOff } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
+import { useAutoFocus } from '@/hooks/useAutoFocus';
+import { faChevronLeft } from '@fortawesome/pro-light-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
   onSuccess?: () => void;
+  modalView?: boolean;
 }
 
 export default function Login({
@@ -20,11 +24,13 @@ export default function Login({
   error,
   setError,
   onBack,
+  modalView = false,
 }: Props) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
+  const passwordInputRef = useAutoFocus<HTMLInputElement>(true);
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!password) {
@@ -65,7 +71,15 @@ export default function Login({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-6">Welcome back</h2>
+      <div className="flex items-center gap-2 mb-6">
+        {modalView && (
+          <Button type="button" onClick={onBack} variant="ghost" size="icon">
+            <FontAwesomeIcon icon={faChevronLeft} className="h-5 w-5" />
+          </Button>
+        )}
+
+        <h2 className="text-xl font-semibold mr-6 !leading-10">Welcome back</h2>
+      </div>
 
       {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">{error}</div>}
 
@@ -73,6 +87,8 @@ export default function Login({
         <input
           type="email"
           value={email}
+          autoCapitalize="none"
+          autoComplete="email"
           className="w-full p-3 border rounded mb-4 bg-gray-50"
           disabled
         />
@@ -84,7 +100,7 @@ export default function Login({
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             className="w-full p-3 border rounded pr-12"
-            autoFocus
+            ref={passwordInputRef}
           />
           <Button
             type="button"
@@ -102,14 +118,16 @@ export default function Login({
         </Button>
       </form>
 
-      <Button
-        onClick={onBack}
-        disabled={isLoading || isRedirecting}
-        variant="ghost"
-        className="w-full text-gray-600 hover:text-gray-800"
-      >
-        ← Back
-      </Button>
+      {!modalView && (
+        <Button
+          onClick={onBack}
+          disabled={isLoading || isRedirecting}
+          variant="ghost"
+          className="w-full text-gray-600 hover:text-gray-800"
+        >
+          ← Back
+        </Button>
+      )}
     </div>
   );
 }

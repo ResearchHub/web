@@ -21,6 +21,8 @@ interface FeedItemFundraiseProps {
   href?: string; // Optional href prop
   showTooltips?: boolean; // Property for controlling tooltips
   badgeVariant?: 'default' | 'icon-only'; // New prop for tax-deductible badge variant
+  showActions?: boolean; // Property for controlling actions
+  maxLength?: number;
 }
 
 /**
@@ -30,7 +32,8 @@ const FeedItemFundraiseBody: FC<{
   entry: FeedEntry;
   imageUrl?: string;
   badgeVariant?: 'default' | 'icon-only';
-}> = ({ entry, imageUrl, badgeVariant = 'default' }) => {
+  maxLength?: number;
+}> = ({ entry, imageUrl, badgeVariant = 'default', maxLength }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
   const institution = post.institution;
@@ -99,7 +102,7 @@ const FeedItemFundraiseBody: FC<{
 
           {/* Truncated Content */}
           <div className="text-sm text-gray-700">
-            <p>{truncateText(post.textPreview)}</p>
+            <p>{truncateText(post.textPreview, maxLength)}</p>
           </div>
         </div>
 
@@ -145,6 +148,8 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   href,
   showTooltips = true,
   badgeVariant = 'default',
+  showActions = true,
+  maxLength,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
@@ -217,7 +222,12 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       >
         <div className="p-4">
           {/* Body Content with desktop image integrated */}
-          <FeedItemFundraiseBody entry={entry} imageUrl={imageUrl} badgeVariant={badgeVariant} />
+          <FeedItemFundraiseBody
+            entry={entry}
+            imageUrl={imageUrl}
+            badgeVariant={badgeVariant}
+            maxLength={maxLength}
+          />
           {/* Mobile image (shown only on small screens) */}
           <MobileImage />
           {/* Fundraise Progress (only for preregistrations with fundraise) */}
@@ -233,21 +243,23 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
           )}
 
           {/* Action Buttons - Full width */}
-          <div className="mt-4 pt-3 border-t border-gray-200">
-            <div onClick={(e) => e.stopPropagation()}>
-              {/* Standard Feed Item Actions */}
-              <FeedItemActions
-                metrics={entry.metrics}
-                feedContentType={post.contentType}
-                votableEntityId={post.id}
-                userVote={entry.userVote}
-                showTooltips={showTooltips}
-                href={fundingPageUrl}
-                reviews={post.reviews}
-                bounties={post.bounties}
-              />
+          {showActions && (
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <div onClick={(e) => e.stopPropagation()}>
+                {/* Standard Feed Item Actions */}
+                <FeedItemActions
+                  metrics={entry.metrics}
+                  feedContentType={post.contentType}
+                  votableEntityId={post.id}
+                  userVote={entry.userVote}
+                  showTooltips={showTooltips}
+                  href={fundingPageUrl}
+                  reviews={post.reviews}
+                  bounties={post.bounties}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

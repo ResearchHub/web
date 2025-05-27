@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, User } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { Search } from '@/components/Search/Search';
 import UserMenu from '@/components/menus/UserMenu';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/Button';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -14,6 +16,7 @@ interface TopBarProps {
 export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const { user, isLoading } = useUser();
   const router = useRouter();
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
 
   const handleViewProfile = () => {
     if (user?.authorProfile?.profileUrl) {
@@ -48,7 +51,13 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
             {user && !isLoading ? (
               <UserMenu user={user} onViewProfile={handleViewProfile} avatarSize={40} />
             ) : (
-              <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+              <Button
+                variant="ghost"
+                className="w-8 h-8 rounded-full bg-gray-200 p-0"
+                onClick={() => executeAuthenticatedAction(() => router.push('/'))}
+              >
+                <User size={20} />
+              </Button>
             )}
           </div>
         </div>

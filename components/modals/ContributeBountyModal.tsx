@@ -25,7 +25,7 @@ interface ContributeBountyModalProps {
   contentType: ContentType;
   bountyTitle?: string;
   bountyType: BountyType;
-  expirationDate: string;
+  expirationDate?: string;
 }
 
 // Currency Input Component
@@ -204,7 +204,7 @@ export function ContributeBountyModal({
         inputAmount,
         'rhcommentmodel',
         bountyType,
-        expirationDate
+        expirationDate || new Date().toISOString()
       );
 
       toast.success('Your contribution has been successfully added to the bounty.');

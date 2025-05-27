@@ -112,19 +112,21 @@ export function FundingSection({ note }: FundingSectionProps) {
       {fundraise ? (
         <>
           <FundraiseSection fundraise={fundraise} />
-          {(isLoadingNonprofit || nonprofit || isEditingNonprofit) && (
-            <div className="pt-4 border-t border-gray-200">
-              {isEditingNonprofit || !nonprofit ? (
-                <NonprofitSearchSection />
-              ) : (
-                <NonprofitSearchSection
-                  readOnly={false}
-                  allowClear={true}
-                  onClear={() => setIsEditingNonprofit(true)}
-                />
-              )}
-            </div>
-          )}
+          <div className="pt-4 border-t border-gray-200">
+            {isLoadingNonprofit ? (
+              <p className="text-sm text-gray-500 px-1">Loading nonprofit information...</p>
+            ) : isEditingNonprofit || !nonprofit ? (
+              <NonprofitSearchSection />
+            ) : (
+              <NonprofitSearchSection
+                readOnly={false}
+                allowClear={true}
+                onClear={() => {
+                  setIsEditingNonprofit(true);
+                }}
+              />
+            )}
+          </div>
         </>
       ) : (
         <>

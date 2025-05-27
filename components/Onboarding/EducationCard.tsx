@@ -65,6 +65,7 @@ export function EducationCard({
           {/* Remove button */}
           <button
             className={`text-gray-400 hover:text-red-500 transition-colors ${hover ? 'opacity-100' : 'opacity-0'}`}
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               onRemove();

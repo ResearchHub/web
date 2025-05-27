@@ -1,4 +1,5 @@
 'use client';
+// Deprecated file - keeping reference for metrics section
 
 import { FC } from 'react';
 import { Avatar } from '@/components/ui/Avatar';

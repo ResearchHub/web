@@ -14,17 +14,23 @@ function SignInContent() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="text-center mb-8">
+      <div className="text-center mb-8 max-w-md">
         <Image
-          src="/images/logo.png"
+          src="/RSC.webp"
           alt="ResearchHub Logo"
           width={48}
           height={48}
           className="mx-auto mb-4"
         />
-        <h2 className="text-3xl font-bold tracking-tight text-gray-900">Welcome to ResearchHub</h2>
-        <p className="mt-2 text-sm text-gray-600">
-          Join the community of researchers and academics
+        <h2 className="text-xl font-bold tracking-tight text-gray-900">
+          Welcome to ResearchHub{' '}
+          <span role="img" aria-label="wave">
+            👋
+          </span>
+        </h2>
+        <p className="mt-2 text-lg text-gray-700">
+          We are an open-science platform that enables discussions, peer-reviews, publications and
+          more.
         </p>
       </div>
 

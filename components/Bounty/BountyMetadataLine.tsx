@@ -11,6 +11,7 @@ interface BountyMetadataLineProps {
   expiringSoon: boolean;
   className?: string;
   solutionsCount?: number;
+  showDeadline?: boolean;
 }
 
 export const BountyMetadataLine = ({
@@ -19,6 +20,7 @@ export const BountyMetadataLine = ({
   isOpen,
   expiringSoon,
   className = '',
+  showDeadline = true,
 }: BountyMetadataLineProps) => {
   // Format the deadline text
   const deadlineText = isOpen
@@ -37,19 +39,20 @@ export const BountyMetadataLine = ({
           <CurrencyBadge amount={amount} size="sm" variant={isOpen ? 'badge' : 'disabled'} />
         </div>
 
-        {/* Deadline with RadiatingDot or Check icon */}
-        <div className="flex items-center gap-2 text-sm">
-          {isOpen ? (
-            <RadiatingDot size={12} dotSize={6} isRadiating={isOpen} className="flex-shrink-0" />
-          ) : (
-            <Check size={14} className="text-green-600 flex-shrink-0" />
-          )}
-          <span
-            className={`${isOpen ? (expiringSoon ? 'text-orange-600 font-medium' : 'text-gray-700') : 'text-green-700 font-medium'}`}
-          >
-            {deadlineText}
-          </span>
-        </div>
+        {showDeadline && (
+          <div className="flex items-center gap-2 text-sm">
+            {isOpen ? (
+              <RadiatingDot size={12} dotSize={6} isRadiating={isOpen} className="flex-shrink-0" />
+            ) : (
+              <Check size={14} className="text-green-600 flex-shrink-0" />
+            )}
+            <span
+              className={`${isOpen ? (expiringSoon ? 'text-orange-600 font-medium' : 'text-gray-700') : 'text-green-700 font-medium'}`}
+            >
+              {deadlineText}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

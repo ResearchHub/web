@@ -2,7 +2,12 @@
 
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { getProfileInformationSchema, ProfileInformationFormValues } from './schema';
+import {
+  FormField,
+  getProfileInformationSchema,
+  ProfileInformationFormValues,
+  ALL_PROFILE_FIELDS,
+} from './schema';
 import { Input } from '@/components/ui/form/Input';
 import { Textarea } from '@/components/ui/form/Textarea';
 import { Button } from '@/components/ui/Button';
@@ -10,44 +15,51 @@ import { useState, useEffect } from 'react';
 import { OnboardingEducationSection } from '../OnboardingEducationSection';
 import { OnboardingEducationModal } from '../OnboardingEducationModal';
 import type { EducationEntry } from '../OnboardingWizard';
-import { faXTwitter, faLinkedin } from '@fortawesome/free-brands-svg-icons';
+import { faXTwitter, faLinkedin, faGoogle, faOrcid } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGraduationCap } from '@fortawesome/free-solid-svg-icons';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { useUser } from '@/contexts/UserContext';
 import { ImageUploadModal } from '@/components/modals/ImageUploadModal';
 import { useUpdateAuthorProfileImage } from '@/hooks/useAuthor';
 import toast from 'react-hot-toast';
+import { Accordion, AccordionItem } from '@/components/ui/Accordion';
+import { faUpload, faGraduationCap, faShareNodes, faUser } from '@fortawesome/pro-light-svg-icons';
+import Icon from '@/components/ui/icons/Icon';
 
 interface ProfileInformationFormProps {
   onSubmit: (data: ProfileInformationFormValues) => void;
-  simplifiedView?: boolean;
-  submitLabel?: string;
-  loading?: boolean;
+  fields?: FormField[];
+  formId?: string;
+  showAvatar?: boolean;
+  useAccordion?: boolean;
+  autoFocusField?: FormField;
 }
 
 export function ProfileInformationForm({
   onSubmit,
-  simplifiedView = false,
-  submitLabel = 'Save',
-  loading = false,
+  fields = ALL_PROFILE_FIELDS,
+  formId,
+  showAvatar = true,
+  useAccordion = false,
+  autoFocusField,
 }: ProfileInformationFormProps) {
   const socialLinkMeta = {
     linkedin: {
-      icon: <FontAwesomeIcon icon={faLinkedin} className="h-5 w-5 text-[#0077B5]" />,
+      icon: <FontAwesomeIcon icon={faLinkedin} className="h-6 w-6 text-[#0077B5]" />,
       label: 'LinkedIn Profile URL',
     },
+    google_scholar: {
+      icon: <FontAwesomeIcon icon={faGoogle} className="h-6 w-6 text-[#4285F4]" />,
+      label: 'Google Scholar Profile URL',
+    },
     orcid_id: {
-      icon: <FontAwesomeIcon icon={faGraduationCap} className="h-5 w-5 text-[#A6CE39]" />,
+      icon: <FontAwesomeIcon icon={faOrcid} className="h-6 w-6 text-[#A6CE39]" />,
       label: 'ORCID URL',
     },
+
     twitter: {
-      icon: <FontAwesomeIcon icon={faXTwitter} className="h-5 w-5 text-[#000]" />,
+      icon: <FontAwesomeIcon icon={faXTwitter} className="h-6 w-6 text-[#000]" />,
       label: 'X (Twitter) Profile URL',
-    },
-    google_scholar: {
-      icon: <FontAwesomeIcon icon={faGraduationCap} className="h-5 w-5 text-[#4285F4]" />,
-      label: 'Google Scholar Profile URL',
     },
   } as const;
 
@@ -56,7 +68,7 @@ export function ProfileInformationForm({
   const authorProfile = user?.authorProfile;
 
   const methods = useForm<ProfileInformationFormValues>({
-    resolver: zodResolver(getProfileInformationSchema(simplifiedView)),
+    resolver: zodResolver(getProfileInformationSchema({ fields })),
     mode: 'onChange',
     defaultValues: {
       education: authorProfile?.education || [],
@@ -81,11 +93,14 @@ export function ProfileInformationForm({
     setValue,
     watch,
     getValues,
+    setFocus,
   } = methods;
 
   useEffect(() => {
     register('education');
   }, [register]);
+
+  const { ref: headlineRef, ...headlineRest } = register('headline');
 
   // Education state and handlers
   const [isEducationModalOpen, setIsEducationModalOpen] = useState(false);
@@ -165,6 +180,163 @@ export function ProfileInformationForm({
     }
   };
 
+  // Create a function to render the field sections
+  const renderFieldSections = () => {
+    const sections = [];
+
+    // About section
+    if (fields.includes('description')) {
+      const aboutContent = (
+        <Textarea
+          {...register('description')}
+          error={errors.description?.message}
+          placeholder="Tell us a bit about your research interests or background..."
+        />
+      );
+
+      sections.push({
+        id: 'about',
+        title: (
+          <>
+            <span className="flex items-baseline gap-2 text-base">
+              <FontAwesomeIcon icon={faUser} className="relative bottom-[-2px]" />
+              <span className="text-md">About</span>
+              <span className="text-gray-400 text-xs">(Optional)</span>
+            </span>
+            <span className="text-gray-500 text-sm">
+              Let others know about you and your experience.
+            </span>
+          </>
+        ),
+        content: aboutContent,
+        defaultOpen: Boolean(watch('description')),
+      });
+    }
+
+    // Education section
+    if (fields.includes('education')) {
+      const educationContent = (
+        <OnboardingEducationSection
+          education={education}
+          onAdd={handleAddEducation}
+          onEdit={handleEditEducation}
+          onRemove={handleRemoveEducation}
+          onSetMain={setEducationAsMain}
+        />
+      );
+
+      sections.push({
+        id: 'education',
+        title: (
+          <>
+            <span className="flex items-baseline gap-2 text-base">
+              <FontAwesomeIcon icon={faGraduationCap} className="relative bottom-[-2px]" />
+              <span className="text-md">Education</span>
+              <span className="text-gray-400 text-xs">(Optional)</span>
+            </span>
+            <span className="text-gray-500 text-sm">Add your educational experience.</span>
+          </>
+        ),
+        content: educationContent,
+        defaultOpen: Array.isArray(watch('education')) && watch('education').length > 0,
+      });
+    }
+
+    // Social links section
+    if (fields.includes('social_links')) {
+      const socialContent = (
+        <div>
+          <div className="space-y-3">
+            {(Object.keys(socialLinkMeta) as Array<keyof typeof socialLinkMeta>).map((key) => {
+              const meta = socialLinkMeta[key];
+              return (
+                <div key={key} className="flex items-center gap-3">
+                  <SocialIcon
+                    icon={meta.icon}
+                    label={meta.label}
+                    href={null}
+                    size="sm"
+                    className="text-gray-500"
+                  />
+                  <Input
+                    id={key}
+                    name={key}
+                    value={socialLinks[key] || ''}
+                    onChange={handleSocialLinkChange}
+                    error={errors[key]?.message}
+                    placeholder={meta.label}
+                    className="flex-grow"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+
+      sections.push({
+        id: 'social',
+        title: (
+          <>
+            <span className="flex items-baseline gap-2 text-base">
+              <FontAwesomeIcon icon={faShareNodes} className="relative bottom-[-2px]" />
+              <span className="text-md">Social Presence</span>
+              <span className="text-gray-400 text-xs">(Optional)</span>
+            </span>
+            <span className="text-gray-500 text-sm">Add links to your social profiles.</span>
+          </>
+        ),
+        content: socialContent,
+        defaultOpen:
+          Boolean(watch('linkedin')) ||
+          Boolean(watch('orcid_id')) ||
+          Boolean(watch('twitter')) ||
+          Boolean(watch('google_scholar')),
+      });
+    }
+
+    // Render sections based on useAccordion flag
+    if (useAccordion) {
+      return (
+        <Accordion>
+          {sections.map((section) => (
+            <AccordionItem key={section.id} title={section.title} defaultOpen={section.defaultOpen}>
+              {section.content}
+            </AccordionItem>
+          ))}
+        </Accordion>
+      );
+    } else {
+      // Render sections directly
+      return (
+        <div className="space-y-6">
+          {sections.map((section) => (
+            <div key={section.id}>
+              <div className="mb-4">{section.title}</div>
+              {section.content}
+            </div>
+          ))}
+        </div>
+      );
+    }
+  };
+
+  useEffect(() => {
+    switch (autoFocusField) {
+      case 'headline':
+        setFocus('headline');
+        break;
+      case 'first_name':
+        setFocus('first_name');
+        break;
+      case 'description':
+        setFocus('description');
+        break;
+      default:
+        break;
+    }
+  }, [autoFocusField, setFocus]);
+
   return (
     <FormProvider {...methods}>
       {/* Education Modal */}
@@ -185,107 +357,70 @@ export function ProfileInformationForm({
         isLoading={isUploadingAvatar}
       />
 
-      <div className="flex flex-col gap-8 items-center">
+      <div className={`flex flex-col gap-8 items-start`}>
         {/* Avatar */}
-        <div className="flex flex-col items-center" style={{ width: 120, minWidth: 120 }}>
-          <div
-            className="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-300 overflow-hidden"
-            onClick={() => setIsAvatarModalOpen(true)}
-            title="Click to upload avatar"
-          >
-            {avatar ? (
-              <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-gray-500 text-sm">Upload Photo</span>
-            )}
+        {showAvatar && (
+          <div className="flex flex-col items-center mx-auto gap-4" style={{ minWidth: 120 }}>
+            <div
+              className="w-28 h-28 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-100 overflow-hidden"
+              onClick={() => setIsAvatarModalOpen(true)}
+              title="Click to upload avatar"
+            >
+              {avatar ? (
+                <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <Icon name="userCircle" size={96} color="#d1d5db" />
+              )}
+            </div>
+            <Button
+              variant="default"
+              className="w-full flex items-center justify-center px-4 py-2"
+              onClick={() => setIsAvatarModalOpen(true)}
+            >
+              <FontAwesomeIcon icon={faUpload} className="mr-2" />
+              <span className="whitespace-nowrap">Upload photo</span>
+            </Button>
           </div>
-          <Button variant="link" onClick={() => setIsAvatarModalOpen(true)} className="text-sm">
-            {avatar ? 'Change Photo' : 'Upload Photo'}
-          </Button>
-        </div>
+        )}
 
         {/* The rest of the form */}
-        <div className="flex-1 w-full">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <div className={`flex-1 w-full`}>
+          <form id={formId} onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="flex flex-col sm:!flex-row gap-4">
-              <div className="w-full sm:!w-1/2">
-                <Input
-                  label="First Name"
-                  {...register('first_name')}
-                  error={errors.first_name?.message}
-                  required
-                />
-              </div>
-              <div className="w-full sm:!w-1/2">
-                <Input
-                  label="Last Name"
-                  {...register('last_name')}
-                  error={errors.last_name?.message}
-                  required
-                />
-              </div>
-            </div>
-            <Input
-              label="Headline"
-              {...register('headline')}
-              error={errors.headline?.message}
-              helperText="e.g., PhD Student at Uni X, Software Engineer"
-            />
-
-            {!simplifiedView && (
-              <>
-                <Textarea
-                  label="About"
-                  {...register('description')}
-                  error={errors.description?.message}
-                  placeholder="Tell us a bit about your research interests or background..."
-                />
-                {/* Education Section */}
-                <OnboardingEducationSection
-                  education={education}
-                  onAdd={handleAddEducation}
-                  onEdit={handleEditEducation}
-                  onRemove={handleRemoveEducation}
-                  onSetMain={setEducationAsMain}
-                />
-                <div>
-                  <h3 className="text-md font-medium text-gray-600 mb-3">Social Links</h3>
-                  <div className="space-y-3">
-                    {(Object.keys(socialLinkMeta) as Array<keyof typeof socialLinkMeta>).map(
-                      (key) => {
-                        const meta = socialLinkMeta[key];
-                        return (
-                          <div key={key} className="flex items-center gap-3">
-                            <SocialIcon
-                              icon={meta.icon}
-                              label={meta.label}
-                              href={null}
-                              size="sm"
-                              className="text-gray-500"
-                            />
-                            <Input
-                              id={key}
-                              name={key}
-                              value={socialLinks[key] || ''}
-                              onChange={handleSocialLinkChange}
-                              error={errors[key]?.message}
-                              placeholder={meta.label}
-                              className="flex-grow"
-                            />
-                          </div>
-                        );
-                      }
-                    )}
-                  </div>
+              {fields.includes('first_name') && (
+                <div className="w-full sm:!w-1/2">
+                  <Input
+                    label="First Name"
+                    {...register('first_name')}
+                    error={errors.first_name?.message}
+                    required
+                  />
                 </div>
-              </>
+              )}
+              {fields.includes('last_name') && (
+                <div className="w-full sm:!w-1/2">
+                  <Input
+                    label="Last Name"
+                    {...register('last_name')}
+                    error={errors.last_name?.message}
+                    required
+                  />
+                </div>
+              )}
+            </div>
+            {fields.includes('headline') && (
+              <Input
+                label="Headline"
+                {...headlineRest}
+                ref={headlineRef}
+                error={errors.headline?.message}
+                placeholder="e.g., ML Researcher at Rice University"
+                helperText="Let others know who you are at a glance."
+              />
             )}
 
-            <div className="flex justify-end">
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Saving...' : submitLabel}
-              </Button>
-            </div>
+            {/* Render accordion or direct sections */}
+            {renderFieldSections()}
           </form>
         </div>
       </div>

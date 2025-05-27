@@ -13,6 +13,10 @@ import { CollapsibleItem } from '@/components/ui/CollapsibleSection';
 import { Icon } from '../ui/icons/Icon';
 import { RHJBanner } from './RHJBanner';
 
+interface RHJRightSidebarProps {
+  showBanner?: boolean;
+}
+
 const keyFeatures = [
   { text: '14 days to peer reviews', highlight: true, icon: Clock },
   { text: 'Immediate preprints', icon: FileText },
@@ -53,6 +57,18 @@ const faqItems = [
       'Yes, we value the expertise and time of our peer reviewers. Reviewers receive $150 per review.',
   },
   {
+    id: 'who-reviews-work',
+    question: 'Who will peer review my work?',
+    answer:
+      'We recruit experts in your field for invited peer reviews. While any user can also share a review, you may choose to address or disregard comments from non-invited reviewers. Our staff editors screen all reviews to ensure you receive high-quality, constructive feedback.',
+  },
+  {
+    id: 'what-happens-if-tipped',
+    question: 'What happens if someone tips my work?',
+    answer:
+      'Users on ResearchHub can tip ResearchCoin (RSC) to any work, including ResearchHub Journal publications. When a paper receives a tip, the RSC is evenly distributed among all its authors.',
+  },
+  {
     id: 'become-reviewer',
     question: 'How do I become a reviewer?',
     answer: (
@@ -87,7 +103,7 @@ const faqItems = [
   },
 ];
 
-export function RHJRightSidebar() {
+export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
   const router = useRouter();
   const [isHubsExpanded, setIsHubsExpanded] = useState(false);
   const [openFaqId, setOpenFaqId] = useState<string | null>(null);
@@ -102,12 +118,14 @@ export function RHJRightSidebar() {
   return (
     <aside className="w-full max-w-xs space-y-6 p-4">
       {/* Submit Button and Key Features Banner */}
-      <RHJBanner
-        features={keyFeatures}
-        variant="default"
-        title="Publish Faster."
-        buttonText="Submit Your Manuscript"
-      />
+      {showBanner && (
+        <RHJBanner
+          features={keyFeatures}
+          variant="default"
+          title="Publish Faster."
+          buttonText="Submit Your Manuscript"
+        />
+      )}
 
       {/* --- Editorial Board Section --- */}
       <div className="space-y-3">
@@ -117,12 +135,6 @@ export function RHJRightSidebar() {
             <EditorCard key={editor.name} editor={editor} />
           ))}
         </div>
-        <a
-          href={`mailto:maulik.editor@researchhub.foundation?subject=Joining%20ResearchHub%20Journal%20Editorial%20Board`}
-          className="block text-sm text-blue-600 hover:underline pt-2"
-        >
-          Interested in joining?
-        </a>
       </div>
 
       {/* Relevant Fields - Updated to link to Hubs and use TopicAndJournalBadge */}

@@ -78,7 +78,7 @@ export const BountyCarouselItem: FC<BountyCarouselItemProps> = ({ entry }) => {
 
         {/* Paper Title */}
         <div className="font-medium text-gray-900 mb-1 text-sm">
-          <div className="line-clamp-3">
+          <div className="line-clamp-3 min-h-24">
             {isPeerReviewBounty && '[Peer Review Needed] '}
             {relatedWork?.title}
           </div>
@@ -86,15 +86,13 @@ export const BountyCarouselItem: FC<BountyCarouselItemProps> = ({ entry }) => {
 
         {/* Authors - using AuthorList */}
         <div className="text-gray-600 line-clamp-1">
-          {authors.length > 0 && (
-            <AuthorList
-              authors={authors}
-              className="font-normal text-gray-600"
-              size="xs"
-              delimiter="•"
-              maxLength={1}
-            />
-          )}
+          <AuthorList
+            authors={authors}
+            className="font-normal text-gray-600"
+            size="xs"
+            delimiter="•"
+            maxLength={1}
+          />
         </div>
       </div>
 

@@ -4,7 +4,8 @@ import { ReactNode, useState, Suspense, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Search } from '@/components/Search/Search';
 import { OnboardingRedirect } from '@/components/OnboardingRedirect';
-import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
+import { usePathname } from 'next/navigation';
+import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
 import { OnboardingModal } from '@/components/Onboarding/OnboardingModal';
 // Dynamically import sidebar components
 const LeftSidebar = dynamic(() => import('./LeftSidebar').then((mod) => mod.LeftSidebar), {
@@ -57,6 +58,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
   const rightSidebarWrapperRef = useRef<HTMLDivElement>(null);
   const [sidebarTransform, setSidebarTransform] = useState(0);
   const animationFrameId = useRef<number | null>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -123,11 +125,8 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
 
   return (
     <div className="flex h-screen">
-      {isFeatureEnabled(FeatureFlag.SimplifiedOnboarding) ? (
-        <OnboardingModal />
-      ) : (
-        <OnboardingRedirect />
-      )}
+      {/* <OnboardingRedirect /> */}
+      <OnboardingModal />
 
       {/* Mobile overlay */}
       {isLeftSidebarOpen && (
@@ -186,7 +185,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
           {rightSidebar && (
             <aside
               ref={rightSidebarWrapperRef}
-              className="sticky top-0 h-screen overflow-hidden
+              className="sticky top-0 h-full overflow-hidden
                         lg:!block !hidden right-sidebar:!block w-80 bg-white
                         flex-shrink-0 pr-4"
             >
@@ -207,7 +206,13 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
                 {/* Sidebar Content */}
                 <div className="">
                   <Suspense fallback={<RightSidebarSkeleton />}>
-                    {typeof rightSidebar === 'boolean' ? <RightSidebar /> : rightSidebar}
+                    {pathname.startsWith('/paper/create') ? (
+                      <RHJRightSidebar showBanner={false} />
+                    ) : typeof rightSidebar === 'boolean' ? (
+                      <RightSidebar />
+                    ) : (
+                      rightSidebar
+                    )}
                   </Suspense>
                 </div>
               </div>

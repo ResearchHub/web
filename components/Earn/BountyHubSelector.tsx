@@ -24,6 +24,7 @@ interface BountyHubSelectorProps {
   onChange: (hubs: Hub[]) => void;
   error?: string | null;
   displayCountOnly?: boolean;
+  hideSelectedItems?: boolean;
 }
 
 export function BountyHubSelector({
@@ -31,6 +32,7 @@ export function BountyHubSelector({
   onChange,
   error,
   displayCountOnly = false,
+  hideSelectedItems = false,
 }: BountyHubSelectorProps) {
   const [allHubs, setAllHubs] = useState<Topic[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -189,7 +191,7 @@ export function BountyHubSelector({
           minSearchLength={0}
           error={error || undefined}
         />
-        {selectedHubs.length > 0 && <CustomSelectedItems />}
+        {selectedHubs.length > 0 && !hideSelectedItems && <CustomSelectedItems />}
       </div>
     </div>
   );

@@ -2,8 +2,7 @@ import { signIn } from 'next-auth/react';
 import { AuthService } from '@/services/auth.service';
 import { ApiError } from '@/services/types/api';
 import { isValidEmail } from '@/utils/validation';
-import { BaseScreenProps } from '../types';
-
+import { useAutoFocus } from '@/hooks/useAutoFocus';
 interface SelectProviderProps {
   onContinue: () => void;
   onSignup: () => void;
@@ -25,6 +24,8 @@ export default function SelectProvider({
   setError,
   showHeader = true,
 }: SelectProviderProps) {
+  const emailInputRef = useAutoFocus<HTMLInputElement>(true);
+
   const handleCheckAccount = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!isValidEmail(email)) {
@@ -66,7 +67,20 @@ export default function SelectProvider({
 
   return (
     <div>
-      {showHeader && <h2 className="text-xl font-semibold mb-6">Welcome to ResearchHub</h2>}
+      {showHeader && (
+        <>
+          <h2 className="text-xl font-bold tracking-tight text-gray-900 !leading-10 mr-6">
+            Welcome to ResearchHub{' '}
+            <span role="img" aria-label="wave">
+              👋
+            </span>
+          </h2>
+          <p className="mt-2 mb-6 text-base text-gray-700">
+            We are an open-science platform that enables discussions, peer-reviews, publications and
+            more.
+          </p>
+        </>
+      )}
 
       {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">{error}</div>}
 
@@ -76,20 +90,22 @@ export default function SelectProvider({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email"
+          autoCapitalize="none"
+          autoComplete="email"
           className="w-full p-3 border rounded mb-4"
-          autoFocus
+          ref={emailInputRef}
         />
 
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-blue-600 text-white p-3 rounded mb-4 hover:bg-blue-700 disabled:opacity-50"
+          className="w-full bg-indigo-600 text-white p-3 rounded hover:bg-indigo-700 disabled:opacity-50"
         >
           {isLoading ? 'Loading...' : 'Continue'}
         </button>
 
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
+        <div className="relative my-8">
+          <div className="absolute top-[2px] inset-x-0 bottom-0 flex items-center">
             <div className="w-full border-t border-gray-300" />
           </div>
           <div className="relative flex justify-center text-sm">

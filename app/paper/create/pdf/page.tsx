@@ -409,6 +409,7 @@ export default function UploadPDFPage() {
                   selectedHubs={selectedHubs}
                   onChange={handleHubsChange}
                   error={errors.hubs || null}
+                  hideSelectedItems={true}
                 />
               </div>
             </div>
@@ -482,7 +483,10 @@ export default function UploadPDFPage() {
                 className={`border rounded-lg p-6 flex flex-col cursor-pointer ${!submitToJournal ? 'border-indigo-500 ring-2 ring-indigo-500 shadow-lg' : 'border-gray-300 hover:shadow-md transition-shadow'}`}
                 onClick={() => setSubmitToJournal(false)}
               >
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Publish on ResearchHub</h4>
+                <div className="mb-4">
+                  <h4 className="text-lg font-semibold text-gray-900">Preprint on ResearchHub</h4>
+                  <div className="mt-2 py-0.5 text-xs text-transparent">&nbsp;</div>
+                </div>
                 <ul className="space-y-3 mb-6 flex-grow">
                   <li className="flex items-center">
                     <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
@@ -505,12 +509,6 @@ export default function UploadPDFPage() {
                     <span className="text-sm text-gray-500">Editorial Oversight</span>
                   </li>
                   <li className="flex items-center">
-                    <X className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-500">
-                      Journal Indexing (e.g. Google Scholar)
-                    </span>
-                  </li>
-                  <li className="flex items-center">
                     <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
                     <span className="text-sm text-gray-700 font-medium">Free</span>
                   </li>
@@ -521,7 +519,7 @@ export default function UploadPDFPage() {
                   aria-pressed={!submitToJournal}
                 >
                   {!submitToJournal && <Check className="h-4 w-4 mr-2" />}
-                  Select Standard Publish
+                  Select Preprint
                 </Button>
               </div>
 
@@ -529,10 +527,12 @@ export default function UploadPDFPage() {
                 className={`border rounded-lg p-6 flex flex-col cursor-pointer ${submitToJournal ? 'border-indigo-500 ring-2 ring-indigo-500 shadow-lg' : 'border-gray-300 hover:shadow-md transition-shadow'}`}
                 onClick={() => setSubmitToJournal(true)}
               >
-                <div className="flex justify-between items-start mb-4">
-                  <h4 className="text-lg font-semibold text-indigo-900">Publish in RH Journal</h4>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 flex-shrink-0 ml-2">
-                    Limited time: Free!
+                <div className="mb-4">
+                  <h4 className="text-lg font-semibold text-indigo-900">
+                    Publish in ResearchHub Journal
+                  </h4>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-2">
+                    Limited time: $300
                   </span>
                 </div>
                 <ul className="space-y-3 mb-6 flex-grow">
@@ -559,17 +559,8 @@ export default function UploadPDFPage() {
                     <span className="text-sm text-gray-700">Editorial Oversight</span>
                   </li>
                   <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-700">
-                      Journal Indexing (e.g. Google Scholar)
-                    </span>
-                  </li>
-                  <li className="flex items-center">
                     <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span className="text-sm text-gray-700 font-medium">
-                      Free <span className="line-through text-gray-400 ml-1">$200</span> (Limited
-                      Time Offer)
-                    </span>
+                    <span className="text-sm text-gray-700">$300 (Limited Time Offer)</span>
                   </li>
                 </ul>
                 <div className="mt-4 mb-6 text-center">
@@ -637,7 +628,7 @@ export default function UploadPDFPage() {
               'Submitting...'
             ) : currentStepIndex === steps.length - 1 ? (
               submitToJournal ? (
-                'Submit & Pay'
+                'Submit'
               ) : (
                 'Submit'
               )

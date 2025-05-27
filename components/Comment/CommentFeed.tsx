@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useEffect, memo } from 'react';
 import { Comment, CommentType } from '@/types/comment';
-import { ContentType } from '@/types/work';
+import { ContentType, Work } from '@/types/work';
 import { CommentItem } from './CommentItem';
 import { CommentEditor, CommentEditorProps } from './CommentEditor';
 import { Button } from '@/components/ui/Button';
@@ -31,6 +31,7 @@ interface CommentFeedProps {
   hideEditor?: boolean;
   debug?: boolean;
   unifiedDocumentId?: number | null;
+  work?: Work;
 }
 
 function CommentFeed({
@@ -43,6 +44,7 @@ function CommentFeed({
   hideEditor = false,
   debug = false,
   unifiedDocumentId,
+  work,
 }: CommentFeedProps) {
   // Add debugging for mount/unmount if debug is enabled
   useEffect(() => {
@@ -70,6 +72,7 @@ function CommentFeed({
       contentType={contentType}
       commentType={commentType}
       debug={debug}
+      work={work}
     >
       <div className={cn('space-y-6', className)}>
         <CommentFeedContent
@@ -82,6 +85,7 @@ function CommentFeed({
           debug={debug}
           onCreateBounty={handleCreateBounty}
           unifiedDocumentId={unifiedDocumentId}
+          work={work}
         />
       </div>
       <CreateBountyModal
@@ -104,6 +108,7 @@ function CommentFeedContent({
   debug = false,
   unifiedDocumentId,
   onCreateBounty,
+  work,
 }: Omit<CommentFeedProps, 'documentId'> & { onCreateBounty: () => void }) {
   // Add debugging for content component if debug is enabled
   useEffect(() => {

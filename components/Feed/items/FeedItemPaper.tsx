@@ -17,6 +17,8 @@ interface FeedItemPaperProps {
   entry: FeedEntry;
   href?: string; // Optional href prop
   showTooltips?: boolean; // Property for controlling tooltips
+  showActions?: boolean; // Property for controlling actions
+  maxLength?: number;
 }
 
 /**
@@ -24,7 +26,8 @@ interface FeedItemPaperProps {
  */
 const FeedItemPaperBody: FC<{
   entry: FeedEntry;
-}> = ({ entry }) => {
+  maxLength?: number;
+}> = ({ entry, maxLength = 150 }) => {
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
 
@@ -99,7 +102,7 @@ const FeedItemPaperBody: FC<{
 
       {/* Truncated Content */}
       <div className="text-sm text-gray-700">
-        <p>{truncateText(paper.textPreview, 150)}</p>
+        <p>{truncateText(paper.textPreview, maxLength)}</p>
       </div>
     </div>
   );
@@ -108,7 +111,13 @@ const FeedItemPaperBody: FC<{
 /**
  * Main component for rendering a paper feed item
  */
-export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry, href, showTooltips = true }) => {
+export const FeedItemPaper: FC<FeedItemPaperProps> = ({
+  entry,
+  href,
+  showTooltips = true,
+  showActions = true,
+  maxLength,
+}) => {
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
   const router = useRouter();
@@ -129,14 +138,14 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry, href, showTooltip
   // Determine if card should have clickable styles
   const isClickable = !!href;
 
+  // Construct the dynamic action text
+  const journalName = paper.journal?.name;
+  const actionText = journalName ? `published in ${journalName}` : 'published in a journal';
+
   return (
     <div className="space-y-3">
       {/* Header */}
-      <FeedItemHeader
-        timestamp={paper.createdDate}
-        author={author}
-        actionText="published a paper"
-      />
+      <FeedItemHeader timestamp={paper.createdDate} author={author} actionText={actionText} />
 
       {/* Main Content Card - Using onClick instead of wrapping with Link */}
       <div
@@ -153,7 +162,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry, href, showTooltip
             {/* Left side content */}
             <div className="flex-1 pr-4">
               {/* Body Content */}
-              <FeedItemPaperBody entry={entry} />
+              <FeedItemPaperBody entry={entry} maxLength={maxLength} />
             </div>
 
             {/* Right side image - if available */}
@@ -170,21 +179,23 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({ entry, href, showTooltip
           </div>
 
           {/* Action Buttons - Full width */}
-          <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
-            <div className="w-full" onClick={(e) => e.stopPropagation()}>
-              {/* Standard Feed Item Actions */}
-              <FeedItemActions
-                metrics={entry.metrics}
-                feedContentType="PAPER"
-                votableEntityId={paper.id}
-                userVote={entry.userVote}
-                showTooltips={showTooltips}
-                href={paperPageUrl}
-                reviews={paper.reviews}
-                bounties={paper.bounties}
-              />
+          {showActions && (
+            <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
+              <div className="w-full" onClick={(e) => e.stopPropagation()}>
+                {/* Standard Feed Item Actions */}
+                <FeedItemActions
+                  metrics={entry.metrics}
+                  feedContentType="PAPER"
+                  votableEntityId={paper.id}
+                  userVote={entry.userVote}
+                  showTooltips={showTooltips}
+                  href={paperPageUrl}
+                  reviews={paper.reviews}
+                  bounties={paper.bounties}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

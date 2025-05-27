@@ -9,7 +9,7 @@ interface TooltipProps {
   content: React.ReactNode;
   className?: string;
   wrapperClassName?: string;
-  delay?: number; // Delay before showing tooltip in ms
+  delay?: number;
   position?: 'top' | 'bottom' | 'left' | 'right';
   width?: string; // Width class for the tooltip (e.g., 'w-38', 'w-80', 'w-96')
 }
@@ -21,6 +21,8 @@ const TooltipContent = ({
   isVisible,
   position = 'bottom',
   width = 'w-38',
+  onMouseEnter,
+  onMouseLeave,
 }: {
   content: React.ReactNode;
   triggerRect: DOMRect | null;
@@ -28,6 +30,8 @@ const TooltipContent = ({
   isVisible: boolean;
   position?: 'top' | 'bottom' | 'left' | 'right';
   width?: string;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
 }) => {
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
@@ -94,6 +98,8 @@ const TooltipContent = ({
         top: `${tooltipPosition.top}px`,
         left: `${tooltipPosition.left}px`,
       }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       {content}
     </div>,
@@ -111,13 +117,18 @@ export function Tooltip({
   width = 'w-38',
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [isHoveringTooltip, setIsHoveringTooltip] = useState(false);
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const showTooltip = () => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
+    }
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
     }
 
     if (triggerRef.current) {
@@ -133,6 +144,27 @@ export function Tooltip({
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
+
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+    }
+
+    hideTimeoutRef.current = setTimeout(() => {
+      if (!isHoveringTooltip) {
+        setIsVisible(false);
+      }
+    }, 200);
+  };
+
+  const handleTooltipMouseEnter = () => {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+    }
+    setIsHoveringTooltip(true);
+  };
+
+  const handleTooltipMouseLeave = () => {
+    setIsHoveringTooltip(false);
     setIsVisible(false);
   };
 
@@ -141,6 +173,9 @@ export function Tooltip({
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+      }
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
       }
     };
   }, []);
@@ -165,6 +200,8 @@ export function Tooltip({
           isVisible={isVisible}
           position={position}
           width={width}
+          onMouseEnter={handleTooltipMouseEnter}
+          onMouseLeave={handleTooltipMouseLeave}
         />
       )}
     </>

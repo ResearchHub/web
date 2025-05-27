@@ -1,5 +1,10 @@
 import { ApiClient } from './client';
-import { User, transformUser } from '@/types/user';
+import {
+  User,
+  UserDetailsForModerator,
+  transformUser,
+  transformUserDetailsForModerator,
+} from '@/types/user';
 
 interface University {
   id: number;
@@ -77,6 +82,23 @@ export class UserService {
     } catch (error) {
       console.error('Error searching universities:', error);
       return [];
+    }
+  }
+
+  /**
+   * Fetch detailed user information for moderation purposes
+   * @param userId The ID of the user to fetch details for
+   * @returns User details for moderation
+   */
+  static async fetchUserDetails(userId: string): Promise<UserDetailsForModerator> {
+    try {
+      const response = await ApiClient.get<UserDetailsForModerator>(
+        `/api/moderator/${userId}/user_details`
+      );
+      return transformUserDetailsForModerator(response);
+    } catch (error) {
+      console.error(`Error fetching user details for ID ${userId}:`, error);
+      throw error;
     }
   }
 }

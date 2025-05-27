@@ -65,7 +65,7 @@ export const DocumentViewer = ({ url, className, onLoaded }: DocumentViewerProps
     <div className={className}>
       {isLoading && (
         <div className="absolute inset-0 bg-white z-10">
-          <DocumentSkeleton className="min-h-[800px]" lines={30} />
+          <DocumentSkeleton className="min-h-[800px]" lines={22} />
         </div>
       )}
       <div className={isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-300'}>

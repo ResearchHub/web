@@ -15,8 +15,8 @@ export const PROFILE_FIELD_WEIGHTS: Record<ProfileField, number> = {
   [ProfileField.Photo]: 10,
   [ProfileField.Headline]: 15,
   [ProfileField.Verification]: 25,
-  [ProfileField.Education]: 20,
-  [ProfileField.About]: 10,
+  [ProfileField.Education]: 15,
+  [ProfileField.About]: 15,
   [ProfileField.Social]: 10,
 };
 
@@ -29,7 +29,8 @@ export function calculateProfileCompletion(user: User): {
   const missing: ProfileField[] = [];
 
   // Name (first and last)
-  if (user.firstName && user.lastName) percent += PROFILE_FIELD_WEIGHTS[ProfileField.Name];
+  if (user.authorProfile?.firstName && user.authorProfile?.lastName)
+    percent += PROFILE_FIELD_WEIGHTS[ProfileField.Name];
   else missing.push(ProfileField.Name);
 
   // Photo
