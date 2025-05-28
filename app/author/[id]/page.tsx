@@ -80,7 +80,7 @@ function AuthorProfileError({ error }: { error: string }) {
 
 // Add this mapping at the component level
 const TAB_TO_CONTRIBUTION_TYPE: Record<string, ContributionType> = {
-  // contributions: 'ALL',
+  contributions: 'ALL',
   publications: 'ARTICLE',
   'peer-reviews': 'REVIEW',
   comments: 'CONVERSATION',
@@ -90,7 +90,7 @@ const TAB_TO_CONTRIBUTION_TYPE: Record<string, ContributionType> = {
 function AuthorTabs({ authorId }: { authorId: number }) {
   const [isPending, startTransition] = useTransition();
   const tabs = [
-    // { id: 'contributions', label: 'Overview' },
+    { id: 'contributions', label: 'Overview' },
     { id: 'publications', label: 'Publications' },
     { id: 'peer-reviews', label: 'Peer Reviews' },
     { id: 'comments', label: 'Comments' },
@@ -99,7 +99,7 @@ function AuthorTabs({ authorId }: { authorId: number }) {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentTab = searchParams.get('tab') || 'publications';
+  const currentTab = searchParams.get('tab') || 'contributions';
 
   // Get the contribution type based on the current tab
   const contributionType = TAB_TO_CONTRIBUTION_TYPE[currentTab] || 'ALL';

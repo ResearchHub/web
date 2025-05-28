@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ContributionService, ContributionType } from '@/services/contribution.service';
 import type { Contribution, ContributionListResponse } from '@/types/contribution';
 import { ID } from '@/types/root';
+import { getContributionUrl, parseContribution } from '@/types/contributionParser';
 
 interface UseContributionsOptions {
   contribution_type?: ContributionType;
@@ -39,8 +40,21 @@ export const useContributions = (options: UseContributionsOptions = {}) => {
         author_id: options.author_id,
       });
 
-      setContributions(response.results);
-      setCurrentResponse(response);
+      // Filter results by checking if they can be parsed and have a valid URL
+      const filteredResults = response.results.filter((result) => {
+        try {
+          const parsed = parseContribution(result);
+          if (!parsed) return false;
+          getContributionUrl(parsed); // Just to validate, we don't need the URL
+          return true;
+        } catch (error) {
+          console.error('[Contribution] Could not parse contribution', error);
+          return false;
+        }
+      });
+
+      setContributions(filteredResults);
+      setCurrentResponse({ ...response, results: filteredResults });
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to load contributions'));
       console.error('Error loading contributions:', err);
