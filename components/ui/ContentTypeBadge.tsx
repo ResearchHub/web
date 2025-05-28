@@ -7,7 +7,7 @@ import { cn } from '@/utils/styles';
 import Icon from '@/components/ui/icons/Icon';
 
 interface ContentTypeBadgeProps {
-  type: 'paper' | 'funding' | 'bounty' | 'review' | 'article' | 'preprint' | 'published';
+  type: 'paper' | 'funding' | 'bounty' | 'review' | 'article' | 'preprint' | 'published' | 'grant';
   className?: string;
   size?: 'default' | 'sm' | 'lg' | 'xs';
   score?: number;
@@ -117,13 +117,47 @@ export const ContentTypeBadge = ({
     );
   }
 
+  if (type === 'grant') {
+    const badge = (
+      <Badge
+        variant="default"
+        size={size}
+        className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
+      >
+        <Icon name="fund" size={16} color="#374151" />
+        <span>Grant</span>
+      </Badge>
+    );
+
+    if (!showTooltip) {
+      return badge;
+    }
+
+    return (
+      <Tooltip
+        content={
+          <div className="flex items-start gap-3 text-left">
+            <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center">
+              <Icon name="fund" size={24} color="#059669" />
+            </div>
+            <div>Available funding opportunities for researchers to apply for grants.</div>
+          </div>
+        }
+        position="top"
+        width="w-[360px]"
+      >
+        {badge}
+      </Tooltip>
+    );
+  }
+
   if (type === 'funding') {
     return (
       <Tooltip
         content={
           <div className="flex items-start gap-3 text-left">
             <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center">
-              <Icon name="fund" size={24} color="#374151" />
+              <Icon name="createBounty" size={24} color="#374151" />
             </div>
             <div>Preregistrations seeking funding for future research.</div>
           </div>
@@ -136,7 +170,7 @@ export const ContentTypeBadge = ({
           size={size}
           className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
         >
-          <Icon name="fund" size={16} color="#374151" />
+          <Icon name="createBounty" size={16} color="#374151" />
           <span>Preregistration</span>
         </Badge>
       </Tooltip>

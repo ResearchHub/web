@@ -1,9 +1,8 @@
 'use client';
 
 import { FC, useMemo } from 'react';
-import { FeedItemFundraise } from '@/components/Feed/items/FeedItemFundraise';
-import { FeedEntry } from '@/types/feed';
 import { GrantWithMetadata } from '@/store/grantStore';
+import { FeedItemGrant } from './FeedItemGrant';
 
 export type GrantTab = 'open' | 'closed' | 'all';
 
@@ -26,40 +25,6 @@ export const GrantsFeed: FC<GrantsFeedProps> = ({ grants, activeTab, isLoading }
         return grants;
     }
   }, [grants, activeTab]);
-
-  // Convert grants to FeedEntry format for compatibility with FeedItemFundraise
-  const grantFeedEntries: FeedEntry[] = useMemo(() => {
-    return filteredGrants.map((grant) => ({
-      id: grant.work.id.toString(),
-      timestamp: grant.work.createdDate,
-      action: 'publish',
-      contentType: 'PREREGISTRATION',
-      content: {
-        id: grant.work.id,
-        contentType: 'PREREGISTRATION',
-        createdDate: grant.work.createdDate,
-        textPreview: grant.work.abstract || '',
-        slug: grant.work.slug || '',
-        title: grant.work.title,
-        authors: grant.work.authors?.map((author) => author.authorProfile) || [],
-        topics: grant.work.topics || [],
-        createdBy: grant.work.authors?.[0]?.authorProfile || {
-          id: 0,
-          fullName: 'Unknown',
-          profileImage: '',
-          headline: '',
-          profileUrl: '#',
-          isClaimed: false,
-        },
-        fundraise: grant.metadata.fundraising,
-        reviews: [],
-        bounties: [],
-      },
-      metrics: grant.metadata.metrics,
-      userVote: undefined,
-      raw: undefined,
-    }));
-  }, [filteredGrants]);
 
   if (isLoading) {
     return (
@@ -91,16 +56,12 @@ export const GrantsFeed: FC<GrantsFeedProps> = ({ grants, activeTab, isLoading }
   }
 
   return (
-    <div className="space-y-4">
-      {grantFeedEntries.map((entry) => (
-        <FeedItemFundraise
-          key={entry.id}
-          entry={entry}
-          href={`/grant/${entry.content.id}/${(entry.content as any).slug}`}
-          showTooltips={true}
-          badgeVariant="default"
-          showActions={true}
-          customActionText="is offering funding"
+    <div className="space-y-6">
+      {filteredGrants.map((grant) => (
+        <FeedItemGrant
+          key={grant.work.id}
+          grant={grant}
+          href={`/grant/${grant.work.id}/${grant.work.slug}`}
         />
       ))}
     </div>

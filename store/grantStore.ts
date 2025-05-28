@@ -16,6 +16,8 @@ const mockGrant1: GrantWithMetadata = {
     contentType: 'funding_request',
     title: 'Demo Quantum Computing Research Grant',
     slug: 'demo-quantum-computing-grant',
+    shortDescription:
+      'Seeking researchers to develop scalable quantum error-correction protocols and demonstrate entanglement distribution across fiber networks.',
     createdDate: new Date().toISOString(),
     authors: [
       {
@@ -151,6 +153,8 @@ const mockGrant2: GrantWithMetadata = {
     contentType: 'funding_request',
     title: 'Climate Change AI Research Initiative',
     slug: 'climate-change-ai-research',
+    shortDescription:
+      'Building machine learning models to predict extreme weather events and create early warning systems for vulnerable coastal communities.',
     createdDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
     authors: [
       {
