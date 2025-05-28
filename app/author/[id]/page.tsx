@@ -15,6 +15,8 @@ import KeyStats, { KeyStatsSkeleton } from './components/KeyStats';
 import { SearchEmpty } from '@/components/ui/SearchEmpty';
 import Moderation from './components/Moderation';
 import AuthorProfile from './components/AuthorProfile';
+import { useAuthorPublications } from '@/hooks/usePublications';
+import { transformPublicationToFeedEntry } from '@/types/publication';
 
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
@@ -104,9 +106,27 @@ function AuthorTabs({ authorId }: { authorId: number }) {
   // Get the contribution type based on the current tab
   const contributionType = TAB_TO_CONTRIBUTION_TYPE[currentTab] || 'ALL';
 
-  const { contributions, isLoading, error, hasMore, loadMore, isLoadingMore } = useContributions({
+  const {
+    contributions,
+    isLoading: isContributionsLoading,
+    error: contributionsError,
+    hasMore: hasMoreContributions,
+    loadMore: loadMoreContributions,
+    isLoadingMore: isLoadingMoreContributions,
+  } = useContributions({
     contribution_type: contributionType,
     author_id: authorId,
+  });
+
+  const {
+    publications,
+    isLoading: isPublicationsLoading,
+    error: publicationsError,
+    hasMore: hasMorePublications,
+    loadMore: loadMorePublications,
+    isLoadingMore: isLoadingMorePublications,
+  } = useAuthorPublications({
+    authorId,
   });
 
   const handleTabChange = (tabId: string) => {
@@ -118,8 +138,36 @@ function AuthorTabs({ authorId }: { authorId: number }) {
   };
 
   const renderTabContent = () => {
-    if (error) {
-      return <div>Error: {error.message}</div>;
+    if (currentTab === 'publications') {
+      if (publicationsError) {
+        return <div>Error: {publicationsError.message}</div>;
+      }
+
+      return (
+        <div>
+          <FeedContent
+            entries={
+              isPending
+                ? []
+                : publications.map((publication) => transformPublicationToFeedEntry(publication))
+            }
+            isLoading={isPending || isPublicationsLoading}
+            hasMore={hasMorePublications}
+            loadMore={loadMorePublications}
+            showBountyFooter={false}
+            hideActions={true}
+            isLoadingMore={isLoadingMorePublications}
+            showBountySupportAndCTAButtons={false}
+            showBountyDeadline={false}
+            noEntriesElement={<SearchEmpty title="No publications found." className="mb-10" />}
+            maxLength={150}
+          />
+        </div>
+      );
+    }
+
+    if (contributionsError) {
+      return <div>Error: {contributionsError.message}</div>;
     }
 
     let formattedContributions = contributions.map((contribution) =>
@@ -133,12 +181,12 @@ function AuthorTabs({ authorId }: { authorId: number }) {
       <div>
         <FeedContent
           entries={isPending ? [] : formattedContributions}
-          isLoading={isLoading || isPending}
-          hasMore={hasMore}
-          loadMore={loadMore}
+          isLoading={isPending || isContributionsLoading}
+          hasMore={hasMoreContributions}
+          loadMore={loadMoreContributions}
           showBountyFooter={false}
           hideActions={true}
-          isLoadingMore={isLoadingMore}
+          isLoadingMore={isLoadingMoreContributions}
           showBountySupportAndCTAButtons={false}
           showBountyDeadline={false}
           noEntriesElement={

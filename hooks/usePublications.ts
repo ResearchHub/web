@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   PublicationService,
   PublicationSearchParams,
   PublicationError,
   AddPublicationsParams,
+  AuthorPublicationsResponse,
 } from '@/services/publication.service';
 import { OpenAlexWork, OpenAlexAuthor, PublicationSearchResponse } from '@/types/publication';
+import { ID } from '@/types/root';
 
 interface UsePublicationsSearchState {
   data: PublicationSearchResponse | null;
@@ -98,4 +100,86 @@ export function useAddPublications(): UseAddPublicationsReturn {
   }, []);
 
   return [{ isLoading, error }, addPublications];
+}
+
+interface UseAuthorPublicationsOptions {
+  authorId: ID;
+  initialData?: AuthorPublicationsResponse;
+}
+
+interface UseAuthorPublicationsState {
+  publications: any[];
+  isLoading: boolean;
+  isLoadingMore: boolean;
+  error: Error | null;
+  hasMore: boolean;
+}
+
+export function useAuthorPublications(options: UseAuthorPublicationsOptions) {
+  const [publications, setPublications] = useState<any[]>(options.initialData?.results || []);
+  const [isLoading, setIsLoading] = useState(!options.initialData);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [currentResponse, setCurrentResponse] = useState<AuthorPublicationsResponse | null>(
+    options.initialData || null
+  );
+  const [error, setError] = useState<Error | null>(null);
+
+  // Load initial publications
+  useEffect(() => {
+    if (options.initialData) {
+      return;
+    }
+
+    loadPublications();
+  }, [options.authorId]);
+
+  const loadPublications = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await PublicationService.getAuthorPublications({
+        authorId: options.authorId,
+      });
+
+      setPublications(response.results);
+      setCurrentResponse(response);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to load publications'));
+      console.error('Error loading publications:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadMore = async () => {
+    if (!currentResponse?.next || isLoading || isLoadingMore) {
+      return;
+    }
+
+    setIsLoadingMore(true);
+    setError(null);
+
+    try {
+      const nextPage = await PublicationService.loadMoreAuthorPublications(currentResponse);
+
+      setPublications((prev) => [...prev, ...nextPage.results]);
+      setCurrentResponse(nextPage);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to load more publications'));
+      console.error('Error loading more publications:', err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  return {
+    publications,
+    isLoading,
+    error,
+    hasMore: !!currentResponse?.next,
+    loadMore,
+    refresh: loadPublications,
+    isLoadingMore,
+  };
 }
