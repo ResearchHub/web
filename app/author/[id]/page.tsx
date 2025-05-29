@@ -143,13 +143,26 @@ function AuthorTabs({ authorId }: { authorId: number }) {
         return <div>Error: {publicationsError.message}</div>;
       }
 
+      // Filter out invalid publications
+      const validPublications = publications.filter((publication) => {
+        try {
+          const entry = transformPublicationToFeedEntry(publication);
+          return !!entry; // Return true if transformation was successful
+        } catch (error) {
+          console.error('[Publication] Could not parse publication', error);
+          return false;
+        }
+      });
+
       return (
         <div>
           <FeedContent
             entries={
               isPending
                 ? []
-                : publications.map((publication) => transformPublicationToFeedEntry(publication))
+                : validPublications.map((publication) =>
+                    transformPublicationToFeedEntry(publication)
+                  )
             }
             isLoading={isPending || isPublicationsLoading}
             hasMore={hasMorePublications}
