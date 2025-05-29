@@ -159,7 +159,10 @@ export const AuthorList = ({
           ))}
           {showAll && filteredAuthors.length > 3 && (
             <button
-              onClick={() => setShowAll(false)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowAll(false);
+              }}
               className="flex items-center text-blue-500 hover:text-blue-600 ml-2"
             >
               <Minus className="w-3.5 h-3.5 mr-1" />
@@ -177,7 +180,10 @@ export const AuthorList = ({
         <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
         <AuthorItem author={filteredAuthors[1]} showDot={false} size={size} className={className} />
         <button
-          onClick={() => setShowAll(true)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowAll(true);
+          }}
           className="flex items-center text-blue-500 hover:text-blue-600 mx-1"
         >
           <Plus className="w-3.5 h-3.5 mr-1" />

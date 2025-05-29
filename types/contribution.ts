@@ -1,10 +1,9 @@
 import { ID } from './root';
-import { FeedEntry, FeedActionType, FeedContentType, transformFeedEntry } from './feed';
+import { FeedEntry, FeedActionType, FeedContentType } from './feed';
 import { transformAuthorProfile } from './authorProfile';
 import { transformTopic } from './topic';
 import { transformBounty } from './bounty';
-import { transformComment } from './comment';
-import { transformPost, Work } from './work';
+import { Work } from './work';
 import { ContributionType } from '@/services/contribution.service';
 
 export interface Hub {
@@ -81,6 +80,7 @@ const getContentType = (contentType: string): FeedContentType => {
     case 'rhcommentmodel':
       return 'COMMENT';
     case 'researchhubpost':
+    case 'researchhubunifieddocument':
       return 'POST';
     case 'paper':
       return 'PAPER';
@@ -123,19 +123,22 @@ export const transformContributionToFeedEntry = ({
 }): FeedEntry => {
   const { content_type, created_by, created_date, hubs, item } = contribution;
 
-  const effectiveHubs: Hub[] = hubs?.length ? hubs : item?.hubs?.length ? item.hubs : [];
+  const effectiveHubs: Hub[] = (hubs?.length ? hubs : item?.hubs?.length ? item.hubs : []).slice(
+    0,
+    2
+  );
 
   // Base feed entry properties
   const baseFeedEntry: Partial<FeedEntry> = {
     id: contribution.item.id?.toString() || '',
     timestamp: created_date,
     action: getActionType(content_type.name),
-    contentType: getContentType(content_type.name),
   };
 
   // Transform content based on content type
   let content: any;
   let relatedWork: any;
+  let contentType: FeedContentType = getContentType(content_type.name);
 
   switch (content_type.name.toLowerCase()) {
     case 'bounty':
@@ -212,10 +215,15 @@ export const transformContributionToFeedEntry = ({
       break;
 
     case 'researchhubpost':
+    case 'researchhubunifieddocument':
       // Handle post content
+      contentType =
+        item.unified_document?.document_type === 'PREREGISTRATION'
+          ? 'PREREGISTRATION'
+          : contentType;
       content = {
         id: item.id,
-        contentType: 'POST',
+        contentType,
         createdDate: created_date,
         textPreview: item.renderable_text || '',
         slug: item.slug,
@@ -256,6 +264,7 @@ export const transformContributionToFeedEntry = ({
   // Complete the feed entry
   return {
     ...baseFeedEntry,
+    contentType,
     content,
     relatedWork,
     metrics: undefined,
