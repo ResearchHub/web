@@ -43,14 +43,14 @@ export const TopicAndJournalBadge = ({
   // Common content of the badge
   const badgeContent = (
     <>
-      {imageUrl && (
+      {/* {imageUrl && (
         <Avatar
           src={imageUrl}
           alt={name}
           size={size === 'lg' ? 'xs' : 'xxs'}
           className="ring-1 ring-indigo-200"
         />
-      )}
+      )} */}
       <span className={`text-indigo-700 ${type === 'topic' ? 'capitalize' : ''}`}>
         <span className="block md:!hidden">
           {name.length > 30 ? `${name.slice(0, 30)}...` : name}

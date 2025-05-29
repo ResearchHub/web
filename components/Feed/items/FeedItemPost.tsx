@@ -16,6 +16,8 @@ interface FeedItemPostProps {
   entry: FeedEntry;
   href?: string; // Optional href prop
   showTooltips?: boolean; // Property for controlling tooltips
+  showActions?: boolean; // Property for controlling actions
+  maxLength?: number;
 }
 
 /**
@@ -24,7 +26,8 @@ interface FeedItemPostProps {
 const FeedItemPostBody: FC<{
   entry: FeedEntry;
   imageUrl?: string;
-}> = ({ entry, imageUrl }) => {
+  maxLength?: number;
+}> = ({ entry, imageUrl, maxLength = 150 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
 
@@ -75,7 +78,7 @@ const FeedItemPostBody: FC<{
 
           {/* Truncated Content */}
           <div className="text-sm text-gray-700">
-            <p>{truncateText(post.textPreview)}</p>
+            <p>{truncateText(post.textPreview, maxLength)}</p>
           </div>
         </div>
 
@@ -101,7 +104,13 @@ const FeedItemPostBody: FC<{
 /**
  * Main component for rendering a post feed item
  */
-export const FeedItemPost: FC<FeedItemPostProps> = ({ entry, href, showTooltips = true }) => {
+export const FeedItemPost: FC<FeedItemPostProps> = ({
+  entry,
+  href,
+  showTooltips = true,
+  showActions = true,
+  maxLength,
+}) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
   const router = useRouter();
@@ -167,24 +176,26 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({ entry, href, showTooltips 
           <MobileImage />
 
           {/* Body Content with desktop image integrated */}
-          <FeedItemPostBody entry={entry} imageUrl={imageUrl} />
+          <FeedItemPostBody entry={entry} imageUrl={imageUrl} maxLength={maxLength} />
 
           {/* Action Buttons - Full width */}
-          <div className="mt-4 pt-3 border-t border-gray-200">
-            <div onClick={(e) => e.stopPropagation()}>
-              {/* Standard Feed Item Actions */}
-              <FeedItemActions
-                metrics={entry.metrics}
-                feedContentType={post.contentType}
-                votableEntityId={post.id}
-                userVote={entry.userVote}
-                showTooltips={showTooltips}
-                href={postPageUrl}
-                reviews={post.reviews}
-                bounties={post.bounties}
-              />
+          {showActions && (
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <div onClick={(e) => e.stopPropagation()}>
+                {/* Standard Feed Item Actions */}
+                <FeedItemActions
+                  metrics={entry.metrics}
+                  feedContentType={post.contentType}
+                  votableEntityId={post.id}
+                  userVote={entry.userVote}
+                  showTooltips={showTooltips}
+                  href={postPageUrl}
+                  reviews={post.reviews}
+                  bounties={post.bounties}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

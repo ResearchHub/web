@@ -104,7 +104,10 @@ export class ApiClient {
   static async get<T>(path: string): Promise<T> {
     try {
       const headers = await this.getHeaders('GET');
-      const response = await fetch(`${this.baseURL}${path}`, this.getFetchOptions('GET', headers));
+      // Check if the path is already a full URL
+      // If it is, use it as is, otherwise prepend the base URL
+      const url = path.startsWith('http') ? path : `${this.baseURL}${path}`;
+      const response = await fetch(url, this.getFetchOptions('GET', headers));
 
       if (!response.ok) {
         let errorData;

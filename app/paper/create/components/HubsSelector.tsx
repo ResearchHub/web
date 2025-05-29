@@ -24,6 +24,7 @@ interface HubsSelectorProps {
   onChange: (hubs: Hub[]) => void;
   error?: string | null;
   displayCountOnly?: boolean;
+  hideSelectedItems?: boolean;
 }
 
 export function HubsSelector({
@@ -31,6 +32,7 @@ export function HubsSelector({
   onChange,
   error,
   displayCountOnly = false,
+  hideSelectedItems = false,
 }: HubsSelectorProps) {
   // Convert hubs to the format expected by SearchableMultiSelect
   const hubsToOptions = (hubs: Hub[]): MultiSelectOption[] => {
@@ -162,7 +164,7 @@ export function HubsSelector({
           minSearchLength={1}
           error={error || undefined}
         />
-        {selectedHubs.length > 0 && <CustomSelectedItems />}
+        {selectedHubs.length > 0 && !hideSelectedItems && <CustomSelectedItems />}
       </div>
     </div>
   );

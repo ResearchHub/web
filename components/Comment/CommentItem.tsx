@@ -61,6 +61,7 @@ export const CommentItem = ({
     updateCommentVote,
     bountyFilter,
     workContentType,
+    work,
   } = useComments();
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -210,7 +211,7 @@ export const CommentItem = ({
     if (isBountyComment && comment.bounties) {
       try {
         // Transform the comment to a feed entry for FeedItemBounty
-        const feedEntry = transformBountyCommentToFeedItem(comment, contentType);
+        const feedEntry = transformBountyCommentToFeedItem(comment, contentType, work);
 
         // Create a custom href for the FeedItemBounty to prevent navigation
         const customHref = undefined; // Setting to undefined to prevent navigation
@@ -220,7 +221,7 @@ export const CommentItem = ({
             <FeedItemBounty
               entry={feedEntry}
               showSolutions={true}
-              showRelatedWork={true}
+              showRelatedWork={false}
               href={customHref}
               hideActions={comment.isRemoved}
               showTooltips={showTooltips}
@@ -279,7 +280,7 @@ export const CommentItem = ({
 
     // For regular comments, use FeedItemComment
     // Transform the comment to a feed entry
-    const feedEntry = transformCommentToFeedItem(comment, contentType);
+    const feedEntry = transformCommentToFeedItem(comment, contentType, work);
 
     return (
       <div className="space-y-4">
@@ -290,6 +291,7 @@ export const CommentItem = ({
           onDelete={() => handleDelete()}
           showCreatorActions={isAuthor}
           showTooltips={showTooltips}
+          showRelatedWork={false}
           hideActions={!includeReplies || comment.isRemoved}
           actionLabels={{
             comment: 'Reply',

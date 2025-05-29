@@ -86,7 +86,7 @@ export default function UserMenu({
         className="font-semibold"
         alt={user.authorProfile?.fullName || user.fullName}
         size={effectiveAvatarSize}
-        showProfileCompletion={isFeatureEnabled(FeatureFlag.SimplifiedOnboarding)}
+        showProfileCompletion
         profileCompletionPercent={percent}
       />
     </button>
@@ -102,28 +102,25 @@ export default function UserMenu({
             src={user.authorProfile?.profileImage}
             alt={user.authorProfile?.fullName || user.fullName}
             size="md"
-            showProfileCompletion={isFeatureEnabled(FeatureFlag.SimplifiedOnboarding)}
+            showProfileCompletion
             profileCompletionPercent={percent}
-            showProfileCompletionNumber
           />
           <div className="ml-3">
             <p className="text-base font-medium text-gray-900 flex items-center gap-1">
               {user.authorProfile?.fullName || user.fullName}
               {user.isVerified && <VerifiedBadge size="sm" />}
-              {isFeatureEnabled(FeatureFlag.SimplifiedOnboarding) && (
-                <Button
-                  onClick={() => {
-                    navigateToAuthorProfile(user.authorProfile?.id, false);
-                    setMenuOpenState(false);
-                  }}
-                  className="ml-1 p-1 rounded hover:bg-gray-100 transition"
-                  title="Edit Profile"
-                  variant="ghost"
-                  size="icon"
-                >
-                  <FontAwesomeIcon icon={faPen} className="h-4 w-4 text-gray-500" />
-                </Button>
-              )}
+              <Button
+                onClick={() => {
+                  navigateToAuthorProfile(user.authorProfile?.id, false);
+                  setMenuOpenState(false);
+                }}
+                className="ml-1 p-1 rounded hover:bg-gray-100 transition"
+                title="Edit Profile"
+                variant="ghost"
+                size="icon"
+              >
+                <FontAwesomeIcon icon={faPen} className="h-4 w-4 text-gray-500" />
+              </Button>
             </p>
             <p className="text-lg text-gray-500">{user.email}</p>
           </div>
@@ -135,7 +132,7 @@ export default function UserMenu({
         <div
           className="px-6 py-2 hover:bg-gray-50 cursor-pointer"
           onClick={() => {
-            navigateToAuthorProfile(user.authorProfile?.id);
+            navigateToAuthorProfile(user.authorProfile?.id, false);
             setMenuOpenState(false);
           }}
         >
@@ -240,28 +237,25 @@ export default function UserMenu({
                 src={user.authorProfile?.profileImage}
                 alt={user.authorProfile?.fullName || user.fullName}
                 size="md"
-                showProfileCompletion={isFeatureEnabled(FeatureFlag.SimplifiedOnboarding)}
+                showProfileCompletion
                 profileCompletionPercent={percent}
-                showProfileCompletionNumber
               />
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
                   {user.authorProfile?.fullName || user.fullName}
                   {user.isVerified && <VerifiedBadge size="sm" />}
-                  {isFeatureEnabled(FeatureFlag.SimplifiedOnboarding) && (
-                    <Button
-                      onClick={() => {
-                        navigateToAuthorProfile(user.authorProfile?.id, false);
-                        setMenuOpenState(false);
-                      }}
-                      className="ml-1 p-1 rounded hover:bg-gray-100 transition"
-                      title="Edit Profile"
-                      variant="ghost"
-                      size="icon"
-                    >
-                      <FontAwesomeIcon icon={faPen} className="h-4 w-4 text-gray-500" />
-                    </Button>
-                  )}
+                  <Button
+                    onClick={() => {
+                      navigateToAuthorProfile(user.authorProfile?.id, false);
+                      setMenuOpenState(false);
+                    }}
+                    className="ml-1 p-1 rounded hover:bg-gray-100 transition max-h-6"
+                    title="Edit Profile"
+                    variant="ghost"
+                    size="sm"
+                  >
+                    <FontAwesomeIcon icon={faPen} className="h-4 w-4 text-gray-500" />
+                  </Button>
                 </p>
                 <p className="text-xs text-gray-500">{user.email}</p>
               </div>
@@ -271,7 +265,7 @@ export default function UserMenu({
           {/* Menu items */}
           <div className="py-1">
             <BaseMenuItem
-              onClick={() => navigateToAuthorProfile(user.authorProfile?.id)}
+              onClick={() => navigateToAuthorProfile(user.authorProfile?.id, false)}
               className="w-full px-4 py-2"
             >
               <div className="flex items-center">

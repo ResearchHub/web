@@ -36,7 +36,7 @@ export function InterestCard({ topic, isFollowing, onFollowToggle }: InterestCar
   return (
     <button
       onClick={handleClick}
-      className={`p-4 rounded-lg border-2 transition-all duration-200 text-left w-full relative
+      className={`p-4 rounded-lg border-2 transition-all duration-200 text-left w-full relative overflow-hidden
         ${
           isFollowing
             ? 'border-primary-600 bg-primary-50 ring-1 ring-primary-600'
@@ -44,28 +44,30 @@ export function InterestCard({ topic, isFollowing, onFollowToggle }: InterestCar
         }`}
     >
       <div className="flex items-center gap-3">
-        {topic.imageUrl ? (
-          <img
-            src={topic.imageUrl}
-            alt={topic.name}
-            className="w-12 h-12 rounded-full object-cover"
-          />
-        ) : (
-          <div
-            className={`w-12 h-12 rounded-full flex items-center justify-center
-              ${getInitialBgColor(topic.namespace || 'topic')}`}
-          >
-            <span
-              className={`text-xl font-medium ${getInitialTextColor(topic.namespace || 'topic')}`}
+        <div className="min-w-12">
+          {topic.imageUrl ? (
+            <img
+              src={topic.imageUrl}
+              alt={topic.name}
+              className="w-12 h-12 rounded-full object-cover"
+            />
+          ) : (
+            <div
+              className={`w-12 h-12 rounded-full flex items-center justify-center
+                ${getInitialBgColor(topic.namespace || 'topic')}`}
             >
-              {topic.name.charAt(0)}
-            </span>
-          </div>
-        )}
+              <span
+                className={`text-xl font-medium ${getInitialTextColor(topic.namespace || 'topic')}`}
+              >
+                {topic.name.charAt(0)}
+              </span>
+            </div>
+          )}
+        </div>
 
         <div className="flex-1">
           <div className="flex items-center gap-1">
-            <h3 className="font-medium">{topic.name}</h3>
+            <h3 className="font-medium break-words line-clamp-2 text-clip">{topic.name}</h3>
           </div>
           {topic.description && (
             <p className="text-sm text-gray-600 mt-1 line-clamp-2">{topic.description}</p>

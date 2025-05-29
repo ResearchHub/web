@@ -9,6 +9,8 @@ import { TopicsSection } from './components/TopicsSection';
 import { DOISection } from './components/DOISection';
 import { LicenseSection } from './components/LicenseSection';
 import { FormatsSection } from './components/FormatsSection';
+import { VersionsSection } from './components/VersionsSection';
+import { useMemo } from 'react';
 
 interface WorkRightSidebarProps {
   work: Work;
@@ -16,11 +18,16 @@ interface WorkRightSidebarProps {
 }
 
 export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
+  // Check if any version is part of the ResearchHub journal
+  const hasResearchHubJournalVersions = useMemo(() => {
+    return (work.versions || []).some((version) => version.isResearchHubJournal);
+  }, [work.versions]);
+
   return (
     <div className="space-y-8">
-      {/* <HaveYouPublishedBanner /> */}
-      {/* <PublishInJournalBanner /> */}
-
+      {hasResearchHubJournalVersions && (
+        <VersionsSection versions={work.versions || []} currentPaperId={work.id} slug={work.slug} />
+      )}
       <SupportersSection tips={work.tips || []} documentId={work.id} />
       <TopicsSection topics={metadata.topics || []} />
       {work.doi && <DOISection doi={work.doi} />}

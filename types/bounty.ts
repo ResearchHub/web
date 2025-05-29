@@ -29,7 +29,7 @@ export interface Bounty {
   id: number;
   amount: string;
   status: 'OPEN' | 'CLOSED';
-  expirationDate: string;
+  expirationDate?: string;
   bountyType: BountyType;
   createdBy: User;
   solutions: BountySolution[];

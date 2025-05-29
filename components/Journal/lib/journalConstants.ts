@@ -51,11 +51,11 @@ export const editors: Editor[] = [
     },
   },
   {
-    name: 'Interested in joining as an Editor?',
+    name: 'Interested in joining?',
     role: 'Associate Editor',
     bio: "If you're interested in joining the Editorial Board, please apply here by emailing maulik.editor@researchhub.foundation. Relevant qualifications include a PhD, a strong publication record, and a passion for driving scientific progress through innovative peer review systems.",
     image: 'https://www.researchhub.com/static/EinsteinAvatar.png',
-    authorId: null, // No author ID for this placeholder
+    authorId: 'interested-editor', // No author ID for this placeholder
     socialLinks: {
       email: 'maulik.editor@researchhub.foundation',
     },

@@ -7,6 +7,7 @@ import { SearchSuggestions } from './SearchSuggestions';
 import { cn } from '@/utils/styles';
 import { SearchSuggestion } from '@/types/search';
 import type { EntityType } from '@/types/search';
+import { navigateToAuthorProfile } from '@/utils/navigation';
 
 interface SearchProps {
   onSelect?: (suggestion: SearchSuggestion) => void;
@@ -82,19 +83,7 @@ export function Search({
           }
         }
       } else if (suggestion.entityType === 'user' || suggestion.entityType === 'author') {
-        // Handle user/author differently based on environment
-        const isProduction = process.env.NODE_ENV === 'production';
-        const url = isProduction
-          ? `https://researchhub.com/author/${suggestion.authorProfile.id}`
-          : `/author/${suggestion.authorProfile.id}`;
-
-        if (isProduction) {
-          // For production, open in a new tab
-          window.open(url, '_blank');
-        } else {
-          // For development, use router
-          router.push(url);
-        }
+        navigateToAuthorProfile(suggestion.authorProfile.id);
       } else if (suggestion.entityType === 'hub') {
         // Handle topic navigation
         if ('slug' in suggestion && suggestion.slug) {

@@ -75,6 +75,7 @@ interface FeedItemCommentProps {
   showTooltips?: boolean; // New property for controlling tooltips
   hideActions?: boolean; // New property to hide action buttons completely
   workContentType?: ContentType;
+  maxLength?: number;
 }
 
 /**
@@ -87,6 +88,7 @@ const FeedItemCommentBody: FC<{
   showReadMoreCTA?: boolean;
   createdDate?: string | Date;
   updatedDate?: string | Date;
+  maxLength?: number;
 }> = ({
   entry,
   parentComment,
@@ -94,6 +96,7 @@ const FeedItemCommentBody: FC<{
   showReadMoreCTA = true,
   createdDate,
   updatedDate,
+  maxLength,
 }) => {
   // Extract the comment entry from the entry's content
   const commentEntry = entry.content as FeedCommentContent;
@@ -106,7 +109,7 @@ const FeedItemCommentBody: FC<{
   return (
     <div className="mb-4">
       {/* Review information for reviews (optional additional display) */}
-      {isReview && (
+      {isReview && reviewScore > 0 && (
         <div className="mb-4 text-gray-700 text-sm mt-0.5">
           <span className="font-medium">Review score: </span>
           <span className="text-yellow-500 font-medium">{reviewScore}/5</span>
@@ -122,6 +125,7 @@ const FeedItemCommentBody: FC<{
           showReadMoreButton={showReadMoreCTA}
           createdDate={createdDate}
           updatedDate={updatedDate}
+          maxLength={maxLength}
         />
       </div>
 
@@ -154,6 +158,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   showTooltips = true, // Default to showing tooltips
   hideActions = false, // Default to not hiding actions
   workContentType,
+  maxLength,
 }) => {
   let [showLegacyCommentBanner, setShowLegacyCommentBanner] = useState(false);
   // Extract the comment entry from the entry's content
@@ -228,6 +233,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
         timestamp={commentEntry.createdDate}
         author={author}
         actionText={isReview ? `submitted a peer review` : 'added a comment'}
+        work={entry.relatedWork}
       />
       {showLegacyCommentBanner && (
         <LegacyCommentBanner
@@ -262,6 +268,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
               showReadMoreCTA={showReadMoreCTA}
               createdDate={commentEntry.createdDate}
               updatedDate={commentEntry.updatedDate}
+              maxLength={maxLength}
             />
           </div>
 

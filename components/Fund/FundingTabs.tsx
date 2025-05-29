@@ -18,16 +18,16 @@ interface FundingTabsProps {
 export const FundingTabs: FC<FundingTabsProps> = ({ activeTab, onTabChange, isLoading }) => {
   const tabs: TabItem[] = [
     {
-      id: 'all',
-      label: 'All',
-    },
-    {
       id: 'open',
       label: 'Needs Funding',
     },
     {
       id: 'closed',
       label: 'Completed',
+    },
+    {
+      id: 'all',
+      label: 'All',
     },
   ];
 

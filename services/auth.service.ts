@@ -36,9 +36,10 @@ export class AuthService {
     try {
       return await ApiClient.post<User>(`${this.BASE_PATH}/auth/register/`, credentials);
     } catch (error: any) {
-      const { data, status } = JSON.parse(error.message);
+      const { status } = error.message;
+      const data = error instanceof ApiError ? error.errors : {};
       const errorMsg = Object.values(data as Record<string, string[]>)?.[0]?.[0];
-      throw new ApiError(errorMsg || 'Registration failed', status, data);
+      throw new AuthError(errorMsg || 'Registration failed', status);
     }
   }
 

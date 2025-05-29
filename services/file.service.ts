@@ -40,14 +40,14 @@ export class FileService {
       }
 
       const data = await response.json();
-      const { presigned_url, object_key } = data;
+      const { presigned_url: presignedUrl, object_key: objectKey, object_url: objectUrl } = data;
 
-      if (!presigned_url || !object_key) {
+      if (!presignedUrl || !objectKey) {
         throw new Error('Invalid response from server');
       }
 
       // Upload the file to S3 using the presigned URL
-      const uploadResponse = await fetch(presigned_url, {
+      const uploadResponse = await fetch(presignedUrl, {
         method: 'PUT',
         body: file,
         headers: {
@@ -59,15 +59,9 @@ export class FileService {
         throw new Error(`Failed to upload file: ${uploadResponse.statusText}`);
       }
 
-      // Extract the absolute URL from the presigned URL
-      const path = presigned_url.split('?')[0].split('.com/')[1];
-      const storageDomain =
-        process.env.NEXT_PUBLIC_STORAGE_DOMAIN || 'storage.prod.researchhub.com';
-      const absoluteUrl = `https://${storageDomain}/${path}`;
-
       return {
-        objectKey: object_key,
-        absoluteUrl,
+        objectKey: objectKey,
+        absoluteUrl: objectUrl,
         fileName: file.name,
       };
     } catch (error) {

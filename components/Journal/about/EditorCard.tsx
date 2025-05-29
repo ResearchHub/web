@@ -1,10 +1,11 @@
 import React, { FC, useState, MouseEvent } from 'react';
 import { StaticImageData } from 'next/image';
-import { Mail, Linkedin, GraduationCap, ChevronDown, ChevronRight } from 'lucide-react';
+import { Mail, Linkedin, GraduationCap, ChevronDown, ChevronRight, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Editor } from '../lib/journalConstants';
 import { cn } from '@/utils/styles';
 import { Avatar } from '@/components/ui/Avatar';
+import { toast } from 'react-hot-toast';
 
 interface EditorCardProps {
   editor: Editor;
@@ -16,8 +17,9 @@ export const EditorCard: FC<EditorCardProps> = ({ editor, className, size = 'sm'
   const [isBioExpanded, setIsBioExpanded] = useState(false);
   const bioPreviewLength = 150;
   const showExpandButton = editor.bio.length > bioPreviewLength;
+  const [isMailHovered, setIsMailHovered] = useState(false);
 
-  const editorMailto = `mailto:${editor.socialLinks.email}`;
+  const editorEmail = editor.socialLinks.email;
 
   const handleCardClick = () => {
     if (showExpandButton) {
@@ -32,6 +34,15 @@ export const EditorCard: FC<EditorCardProps> = ({ editor, className, size = 'sm'
   const handleExpandButtonClick = (e: MouseEvent) => {
     e.stopPropagation();
     setIsBioExpanded(!isBioExpanded);
+  };
+
+  const handleCopyEmail = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigator.clipboard.writeText(editorEmail);
+    toast.success(`Copied ${editorEmail}`, {
+      className: 'md:min-w-[450px]',
+    });
   };
 
   const handleAvatarClick = (e: MouseEvent) => {
@@ -78,16 +89,22 @@ export const EditorCard: FC<EditorCardProps> = ({ editor, className, size = 'sm'
           </p>
           <p className={cn('text-gray-500', isLarge ? 'text-sm' : 'text-xs')}>{editor.role}</p>
           <div className={cn('flex mt-1', isLarge ? 'space-x-3 mt-2' : 'space-x-2')}>
-            <a
-              href={editorMailto}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-400 hover:text-primary-600"
-              aria-label={`Email ${editor.name}`}
-              onClick={handleSocialLinkClick}
+            <button
+              type="button"
+              className="text-gray-400 hover:text-primary-600 bg-transparent border-none cursor-pointer"
+              aria-label={`Copy ${editorEmail}`}
+              onClick={handleCopyEmail}
+              onMouseEnter={() => setIsMailHovered(true)}
+              onMouseLeave={() => setIsMailHovered(false)}
+              onFocus={() => setIsMailHovered(true)}
+              onBlur={() => setIsMailHovered(false)}
             >
-              <Mail className={isLarge ? 'w-5 h-5' : 'w-3 h-3'} />
-            </a>
+              {isMailHovered ? (
+                <Copy className={isLarge ? 'w-5 h-5' : 'w-3 h-3'} />
+              ) : (
+                <Mail className={isLarge ? 'w-5 h-5' : 'w-3 h-3'} />
+              )}
+            </button>
             {editor.socialLinks.linkedin && (
               <a
                 href={editor.socialLinks.linkedin}

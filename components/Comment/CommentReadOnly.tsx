@@ -125,7 +125,7 @@ export const CommentReadOnly = ({
     } else if (contentFormat === 'TIPTAP') {
       try {
         // Force debug to true to see what's happening
-        const debugEnabled = true;
+        const debugEnabled = false;
 
         // Use the TipTapRenderer component
         renderedContent = [
@@ -237,7 +237,11 @@ export const CommentReadOnly = ({
             {shouldTruncate && showReadMoreButton ? (
               <button
                 className="text-blue-600 hover:text-blue-800 hover:underline text-sm cursor-pointer"
-                onClick={() => setIsExpanded(!isExpanded)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
               >
                 {isExpanded ? 'Show less' : 'Read more'}
               </button>

@@ -1,5 +1,6 @@
 import NextAuthProvider from '@/components/providers/NextAuthProvider';
 import ToasterProvider from '@/components/providers/ToasterProvider';
+import '@coinbase/onchainkit/styles.css';
 import localFont from 'next/font/local';
 import './globals.css';
 import { NotificationProvider } from '@/contexts/NotificationContext';
@@ -13,7 +14,7 @@ import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { OnchainProvider } from '@/contexts/OnchainContext';
 import { FollowProvider } from '@/contexts/FollowContext';
 import { ClickProvider } from '@/contexts/ClickContext';
-import '@coinbase/onchainkit/styles.css';
+
 import { AuthSharingWrapper } from '@/components/AuthSharingWrapper';
 import { VerificationProvider } from '@/contexts/VerificationContext';
 
@@ -54,6 +55,9 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
+      <head>
+        <title>ResearchHub | Open Science Community</title>
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ClickProvider>
           <OnchainProvider>
