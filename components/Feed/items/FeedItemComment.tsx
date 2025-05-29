@@ -15,6 +15,8 @@ import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 import { Avatar } from '@/components/ui/Avatar';
 import { LegacyCommentBanner } from '@/components/LegacyCommentBanner';
+import { formatTimeAgo } from '@/utils/date';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 // Define the recursive rendering component for parent comments
 const RenderParentComment: FC<{ comment: ParentCommentPreview; level: number }> = ({
@@ -84,8 +86,18 @@ const FeedItemCommentBody: FC<{
   parentComment?: ParentCommentPreview;
   showRelatedWork?: boolean;
   showReadMoreCTA?: boolean;
+  createdDate?: string | Date;
+  updatedDate?: string | Date;
   maxLength?: number;
-}> = ({ entry, parentComment, showRelatedWork = true, showReadMoreCTA = true, maxLength }) => {
+}> = ({
+  entry,
+  parentComment,
+  showRelatedWork = true,
+  showReadMoreCTA = true,
+  createdDate,
+  updatedDate,
+  maxLength,
+}) => {
   // Extract the comment entry from the entry's content
   const commentEntry = entry.content as FeedCommentContent;
   const comment = commentEntry.comment;
@@ -111,6 +123,8 @@ const FeedItemCommentBody: FC<{
           contentFormat={comment.contentFormat}
           initiallyExpanded={false}
           showReadMoreButton={showReadMoreCTA}
+          createdDate={createdDate}
+          updatedDate={updatedDate}
           maxLength={maxLength}
         />
       </div>
@@ -252,13 +266,15 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
               parentComment={parentComment}
               showRelatedWork={showRelatedWork}
               showReadMoreCTA={showReadMoreCTA}
+              createdDate={commentEntry.createdDate}
+              updatedDate={commentEntry.updatedDate}
               maxLength={maxLength}
             />
           </div>
 
           {/* Action Buttons - Full width */}
           {!hideActions && (
-            <div className="mt-4 pt-3 border-t border-gray-200">
+            <div className="pt-3 border-t border-gray-200">
               <div onClick={(e) => e.stopPropagation()}>
                 {/* Standard Feed Item Actions with Reply functionality */}
                 <FeedItemActions

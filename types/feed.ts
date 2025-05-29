@@ -104,6 +104,7 @@ export interface FeedCommentContent {
   id: number;
   contentType: 'COMMENT';
   createdDate: string;
+  updatedDate?: string;
   createdBy: AuthorProfile;
   comment: {
     id: number;
@@ -462,6 +463,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           id: content_object.id,
           contentType: 'COMMENT',
           createdDate: content_object.created_date || created_date,
+          updatedDate: content_object.updated_date || created_date,
           createdBy: transformAuthorProfile(author || content_object.author),
           comment: {
             id: content_object.id,
@@ -681,6 +683,7 @@ export const transformCommentToFeedItem = (
     id: comment.id,
     contentType: 'COMMENT',
     createdDate: comment.createdDate,
+    updatedDate: comment.updatedDate,
     createdBy: comment.createdBy.authorProfile!, // Add non-null assertion since we know it exists
     comment: {
       id: comment.id,
