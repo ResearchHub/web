@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ContributionService, ContributionType } from '@/services/contribution.service';
 import type { Contribution, ContributionListResponse } from '@/types/contribution';
 import { ID } from '@/types/root';
-import { getContributionUrl, parseContribution } from '@/types/contributionParser';
+import { getContributionUrl, parseContribution } from '@/types/contributionTransformer';
 
 interface UseContributionsOptions {
   contribution_type?: ContributionType;
