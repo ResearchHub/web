@@ -191,7 +191,7 @@ export const transformPublicationToFeedEntry = (
       journal: {
         id: 0,
         name: '', // TODO do we need this and what is this? DOI? do not think that we have it in the response.. documents.external_source,
-        slug: documents.external_source.toLowerCase().replace(/\s+/g, '-'),
+        slug: '',
         description: '',
       },
     },

@@ -111,6 +111,7 @@ const FeedItemCommentBody: FC<{
           contentFormat={comment.contentFormat}
           initiallyExpanded={false}
           showReadMoreButton={showReadMoreCTA}
+          maxLength={maxLength}
         />
       </div>
 
