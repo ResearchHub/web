@@ -14,7 +14,7 @@ export interface PreregistrationPostParams {
   topics: string[];
 
   // Document related
-  articleType: 'PREREGISTRATION' | 'DISCUSSION';
+  articleType: 'PREREGISTRATION' | 'DISCUSSION' | 'GRANT';
   title: string;
   noteId: ID;
   renderableText: string;
@@ -23,6 +23,9 @@ export interface PreregistrationPostParams {
   assignDOI?: boolean;
   authors: number[];
   image: string | null;
+
+  // Grant specific
+  applicationDeadline?: Date | null;
 }
 
 interface UsePostState {
@@ -72,10 +75,18 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         payload.image = postParams.image;
       }
 
+      // Add application deadline for grants
+      if (postParams.applicationDeadline && postParams.articleType === 'GRANT') {
+        payload.application_deadline = postParams.applicationDeadline.toISOString();
+      }
+
       if (postId) {
         payload.post_id = postId;
-      } else if (postParams.articleType === 'PREREGISTRATION') {
-        // Only include fundraise fields for creation
+      } else if (
+        postParams.articleType === 'PREREGISTRATION' ||
+        postParams.articleType === 'GRANT'
+      ) {
+        // Include fundraise fields for creation of preregistrations and grants
         payload.reward_funders = postParams.rewardFunders;
         payload.nft_supply = postParams.nftSupply;
         payload.fundraise_goal_currency = 'USD';

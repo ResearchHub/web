@@ -1,11 +1,12 @@
 import { useFormContext } from 'react-hook-form';
-import { FileText, ChevronDown, Wallet } from 'lucide-react';
+import { FileText, ChevronDown, Wallet, Gift } from 'lucide-react';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { cn } from '@/utils/styles';
 import { SectionHeader } from './SectionHeader';
 import { PublishingFormData } from '../schema';
 import { Button } from '@/components/ui/Button';
 import { useNotebookContext } from '@/contexts/NotebookContext';
+import { Icon } from '@/components/ui/icons/Icon';
 
 const articleTypes: Record<
   PublishingFormData['articleType'],
@@ -19,6 +20,10 @@ const articleTypes: Record<
     title: 'Preregistration',
     description: 'Get funding by sharing your research plan',
   },
+  grant: {
+    title: 'Grant',
+    description: 'Create a funding opportunity',
+  },
 };
 
 const renderSelectedIcon = (articleType: PublishingFormData['articleType'] | undefined) => {
@@ -27,6 +32,9 @@ const renderSelectedIcon = (articleType: PublishingFormData['articleType'] | und
   }
   if (articleType === 'preregistration') {
     return <Wallet className="h-4 w-4 text-gray-500" />;
+  }
+  if (articleType === 'grant') {
+    return <Icon name="fund" size={16} className="text-gray-500" />;
   }
   return <FileText className="h-4 w-4 text-gray-500" />;
 };
@@ -49,7 +57,7 @@ export function WorkTypeSection() {
         <div className="flex items-start justify-start gap-2">
           <SectionHeader icon={FileText}>Work Type</SectionHeader>
         </div>
-        <div className="mt-2">
+        <div>
           <BaseMenu
             disabled={isPublished}
             sameWidth

@@ -32,6 +32,7 @@ interface FeedItemHeaderProps {
   isBounty?: boolean;
   totalContributorsCount?: number;
   work?: Work;
+  hideAuthorBadge?: boolean;
 }
 
 export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
@@ -45,6 +46,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   isBounty = false,
   totalContributorsCount,
   work,
+  hideAuthorBadge = false,
 }) => {
   // Format date consistently
   const formattedDate = timestamp instanceof Date ? timestamp : new Date(timestamp);
@@ -95,14 +97,14 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
                   <span className="font-semibold">{author.fullName}</span>
                 )}
                 {author.user?.isVerified && <VerifiedBadge size="sm" />}
-                {/* Show AuthorBadge with priority over EditorBadge */}
-                {isAuthorOfWork && (
+                {/* Show AuthorBadge with priority over EditorBadge - only if not hidden */}
+                {!hideAuthorBadge && isAuthorOfWork && (
                   <div className="flex items-center px-1">
                     <AuthorBadge size={size === 'xs' ? 'sm' : 'md'} />
                   </div>
                 )}
-                {/* Only show EditorBadge if not an author of the work */}
-                {isEditor && !isAuthorOfWork && (
+                {/* Only show EditorBadge if not an author of the work and not hidden */}
+                {!hideAuthorBadge && isEditor && !isAuthorOfWork && (
                   <div className="flex items-center px-1">
                     <EditorBadge hubs={author.editorOfHubs} size={'md'} />
                   </div>

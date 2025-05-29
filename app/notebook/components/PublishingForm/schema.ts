@@ -9,7 +9,7 @@ const optionSchema = z.object({
 export const publishingFormSchema = z
   .object({
     workId: z.string().optional(),
-    articleType: z.enum(['discussion', 'preregistration'] as const, {
+    articleType: z.enum(['discussion', 'preregistration', 'grant'] as const, {
       required_error: 'Please select a work type',
       invalid_type_error: 'Please select a valid work type',
     }),
@@ -35,6 +35,10 @@ export const publishingFormSchema = z
     isJournalEnabled: z.boolean().optional(),
     selectedNonprofit: z.any().nullable().optional(),
     departmentLabName: z.string().optional(),
+    shortDescription: z.string().optional(),
+    organization: z.string().optional(),
+    fundingAmount: z.string().optional(),
+    applicationDeadline: z.date().nullable().optional(),
   })
   .superRefine((data, ctx) => {
     // Validate topics
@@ -73,6 +77,61 @@ export const publishingFormSchema = z
           code: z.ZodIssueCode.custom,
           message: 'Cover image is required for preregistration',
           path: ['coverImage'],
+        });
+      }
+    }
+
+    // Grant-specific validations
+    if (data.articleType === 'grant') {
+      // Validate short description
+      if (!data.shortDescription || data.shortDescription.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Short description is required for grants',
+          path: ['shortDescription'],
+        });
+      }
+
+      // Validate organization
+      if (!data.organization || data.organization.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Organization is required for grants',
+          path: ['organization'],
+        });
+      }
+
+      // Validate funding amount
+      const num = parseFloat(data.fundingAmount?.replace(/[^0-9.]/g, '') || '0');
+      if (num <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Funding amount must be greater than 0',
+          path: ['fundingAmount'],
+        });
+      }
+
+      // Validate cover image for grant
+      if (!data.coverImage?.file && !data.coverImage?.url) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Cover image is required for grants',
+          path: ['coverImage'],
+        });
+      }
+
+      // Validate application deadline for grants
+      if (!data.applicationDeadline) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Application deadline is required for grants',
+          path: ['applicationDeadline'],
+        });
+      } else if (data.applicationDeadline <= new Date()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Application deadline must be in the future',
+          path: ['applicationDeadline'],
         });
       }
     }

@@ -6,6 +6,18 @@ export interface GrantWithMetadata {
   metadata: WorkMetadata;
 }
 
+// Define the applicant type for grants
+export interface GrantApplicant {
+  id: number;
+  fullName: string;
+  profileImage: string;
+  profileUrl: string;
+  appliedDate: string;
+  user?: {
+    isVerified?: boolean;
+  };
+}
+
 const baseDate = new Date();
 const futureDate = new Date(baseDate.setMonth(baseDate.getMonth() + 2));
 
@@ -102,6 +114,49 @@ const mockGrant1: GrantWithMetadata = {
       contentJson: '{}',
       content: '',
     },
+    // Add applicants to the work object
+    applicants: [
+      {
+        id: 101,
+        fullName: 'Dr. Sarah Chen',
+        profileImage: '/images/avatars/sarah-chen.jpg',
+        profileUrl: '/profile/sarah-chen',
+        appliedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        user: { isVerified: true },
+      },
+      {
+        id: 102,
+        fullName: 'Prof. Marcus Williams',
+        profileImage: '/images/avatars/marcus-williams.jpg',
+        profileUrl: '/profile/marcus-williams',
+        appliedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        user: { isVerified: true },
+      },
+      {
+        id: 103,
+        fullName: 'Dr. Elena Rodriguez',
+        profileImage: '/images/avatars/elena-rodriguez.jpg',
+        profileUrl: '/profile/elena-rodriguez',
+        appliedDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        user: { isVerified: false },
+      },
+      {
+        id: 104,
+        fullName: 'Dr. James Park',
+        profileImage: '/images/avatars/james-park.jpg',
+        profileUrl: '/profile/james-park',
+        appliedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        user: { isVerified: true },
+      },
+      {
+        id: 105,
+        fullName: 'Dr. Priya Sharma',
+        profileImage: '/images/avatars/priya-sharma.jpg',
+        profileUrl: '/profile/priya-sharma',
+        appliedDate: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+        user: { isVerified: true },
+      },
+    ] as GrantApplicant[],
   } as unknown as Work,
   metadata: {
     id: 999,
@@ -246,6 +301,33 @@ const mockGrant2: GrantWithMetadata = {
       contentJson: '{}',
       content: '',
     },
+    // Add applicants to the work object
+    applicants: [
+      {
+        id: 201,
+        fullName: 'Dr. Alex Thompson',
+        profileImage: '/images/avatars/alex-thompson.jpg',
+        profileUrl: '/profile/alex-thompson',
+        appliedDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        user: { isVerified: true },
+      },
+      {
+        id: 202,
+        fullName: 'Prof. Lisa Zhang',
+        profileImage: '/images/avatars/lisa-zhang.jpg',
+        profileUrl: '/profile/lisa-zhang',
+        appliedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        user: { isVerified: true },
+      },
+      {
+        id: 203,
+        fullName: 'Dr. Mohammed Al-Rashid',
+        profileImage: '/images/avatars/mohammed-al-rashid.jpg',
+        profileUrl: '/profile/mohammed-al-rashid',
+        appliedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        user: { isVerified: false },
+      },
+    ] as GrantApplicant[],
   } as unknown as Work,
   metadata: {
     id: 1000,
