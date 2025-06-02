@@ -41,6 +41,7 @@ export interface VoteOnCommentOptions {
   documentId: ID; // ID of the parent document
   voteType: UserVoteType;
   contentType: VotableContentType;
+  documentType: DocumentType;
 }
 
 export class ReactionService {
@@ -82,12 +83,13 @@ export class ReactionService {
     documentId,
     voteType,
     contentType,
+    documentType,
   }: VoteOnCommentOptions): Promise<any> {
     // Map VotableContentType to ContentType for the API
     let apiContentType: ContentType;
 
     if (contentType === 'comment') {
-      apiContentType = 'paper';
+      apiContentType = documentType === 'researchhubpost' ? 'post' : 'paper';
     } else if (contentType === 'researchhubpost') {
       apiContentType = 'post';
     } else {

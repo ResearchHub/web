@@ -69,6 +69,7 @@ export function useVote({
 
         let response;
         const votableContentType = mapFeedContentTypeToVotable(feedContentType);
+        const documentType = votableContentType === 'paper' ? 'paper' : 'researchhubpost';
 
         // Use the appropriate service method based on feed content type
         if (feedContentType === 'COMMENT' || feedContentType === 'BOUNTY') {
@@ -77,11 +78,10 @@ export function useVote({
             documentId: relatedDocumentId,
             voteType,
             contentType: votableContentType,
+            documentType: documentType,
           });
         } else {
           // For documents (papers, posts, etc.)
-          const documentType = votableContentType === 'paper' ? 'paper' : 'researchhubpost';
-
           // Ensure we have a valid entity ID
           if (!votableEntityId) {
             throw new Error('Entity ID is required for voting');
