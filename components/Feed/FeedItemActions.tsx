@@ -25,6 +25,8 @@ import { useUser } from '@/contexts/UserContext';
 import { dedupeAvatars } from '@/utils/avatarUtil';
 import { cn } from '@/utils/styles';
 import SaveContentButton from '../UserSaved/SaveContentButton';
+import { FeatureFlag } from '@/utils/featureFlags';
+import { isFeatureEnabled } from '@/utils/featureFlags';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -592,7 +594,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 ))}
 
               {/* Only allow saving content we have rending logic for (papers to start) */}
-              {feedContentType === 'PAPER' && (
+              {isFeatureEnabled(FeatureFlag.UserSavedLists) && feedContentType === 'PAPER' && (
                 <SaveContentButton
                   userSavedIdentifier={{ id: votableEntityId, idType: 'paperId' }}
                   styling="feed"

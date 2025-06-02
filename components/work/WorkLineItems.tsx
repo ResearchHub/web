@@ -20,7 +20,8 @@ import { useUser } from '@/contexts/UserContext';
 import { Contact } from '@/types/note';
 import { WorkEditModal } from './WorkEditModal';
 import { WorkMetadata } from '@/services/metadata.service';
-import SaveContentButton from '@/components/UserSaved/SaveContentButton';
+import { SaveContentButton } from '@/components/UserSaved/SaveContentButton';
+import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -132,10 +133,12 @@ export const WorkLineItems = ({
             </button>
           )}
 
-          <SaveContentButton
-            styling="work_item"
-            userSavedIdentifier={{ id: work.id, idType: 'paperId' }}
-          />
+          {isFeatureEnabled(FeatureFlag.UserSavedLists) && (
+            <SaveContentButton
+              styling="work_item"
+              userSavedIdentifier={{ id: work.id, idType: 'paperId' }}
+            />
+          )}
 
           {/* Render insights button if provided */}
           {insightsButton}

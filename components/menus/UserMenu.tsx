@@ -155,18 +155,20 @@ export default function UserMenu({
           </div>
         </Link>
 
-        <Link
-          href="/lists"
-          className="block sidebar-compact:hidden"
-          onClick={() => setMenuOpenState(false)}
-        >
-          <div className="px-6 py-2 hover:bg-gray-50">
-            <div className="flex items-center">
-              <Bookmark className="h-5 w-5 mr-3 text-gray-500" />
-              <span className="text-base text-gray-700">My Lists</span>
+        {isFeatureEnabled(FeatureFlag.UserSavedLists) && (
+          <Link
+            href="/lists"
+            className="block sidebar-compact:hidden"
+            onClick={() => setMenuOpenState(false)}
+          >
+            <div className="px-6 py-2 hover:bg-gray-50">
+              <div className="flex items-center">
+                <Bookmark className="h-5 w-5 mr-3 text-gray-500" />
+                <span className="text-base text-gray-700">My Lists</span>
+              </div>
             </div>
-          </div>
-        </Link>
+          </Link>
+        )}
 
         <Link
           href="/researchcoin"
@@ -300,18 +302,20 @@ export default function UserMenu({
               </div>
             </Link>
 
-            <Link
-              href="/lists"
-              className="block sidebar-compact:hidden"
-              onClick={() => setMenuOpenState(false)}
-            >
-              <div className="w-full px-4 py-2 hover:bg-gray-50">
-                <div className="flex items-center">
-                  <Bookmark className="h-4 w-4 mr-3 text-gray-500" />
-                  <span className="text-sm text-gray-700">My Lists</span>
+            {isFeatureEnabled(FeatureFlag.UserSavedLists) && (
+              <Link
+                href="/lists"
+                className="block sidebar-compact:hidden"
+                onClick={() => setMenuOpenState(false)}
+              >
+                <div className="w-full px-4 py-2 hover:bg-gray-50">
+                  <div className="flex items-center">
+                    <Bookmark className="h-4 w-4 mr-3 text-gray-500" />
+                    <span className="text-sm text-gray-700">My Lists</span>
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+            )}
 
             <Link
               href="/researchcoin"

@@ -5,6 +5,7 @@
 export enum FeatureFlag {
   NonprofitIntegration = 'nonprofitIntegration',
   LegacyNoteBanner = 'legacyNoteBanner',
+  UserSavedLists = 'userSavedLists',
 }
 
 function getLocalStorageFlag(key: string): boolean | undefined {
@@ -75,6 +76,7 @@ export function isProduction(): boolean {
 export const FeatureFlags: Record<FeatureFlag, () => boolean> = {
   [FeatureFlag.NonprofitIntegration]: () => true,
   [FeatureFlag.LegacyNoteBanner]: () => true,
+  [FeatureFlag.UserSavedLists]: () => false,
 };
 
 /**
