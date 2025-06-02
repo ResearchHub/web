@@ -17,6 +17,7 @@ import { ClickProvider } from '@/contexts/ClickContext';
 
 import { AuthSharingWrapper } from '@/components/AuthSharingWrapper';
 import { VerificationProvider } from '@/contexts/VerificationContext';
+import ApmProvider from '@/components/ApmProvider';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -59,6 +60,7 @@ export default async function RootLayout({
         <title>ResearchHub | Open Science Community</title>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ApmProvider />
         <ClickProvider>
           <OnchainProvider>
             <NextAuthProvider session={session}>
