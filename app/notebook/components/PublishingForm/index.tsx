@@ -32,6 +32,7 @@ import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useAssetUpload } from '@/hooks/useAssetUpload';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
 import { NonprofitConfirmModal } from '@/components/Nonprofit';
+import { useCreateGrant } from '@/hooks/useGrant';
 
 // Feature flags for conditionally showing sections
 const FEATURE_FLAG_RESEARCH_COIN = false;
@@ -49,6 +50,7 @@ const getButtonText = ({
   articleType,
   isJournalEnabled,
   hasWorkId,
+  isCreatingGrant,
 }: {
   isLoadingUpsert: boolean;
   isRedirecting: boolean;
@@ -56,9 +58,10 @@ const getButtonText = ({
   articleType: string;
   isJournalEnabled: boolean;
   hasWorkId: boolean;
+  isCreatingGrant: boolean;
 }) => {
   switch (true) {
-    case isLoadingUpsert:
+    case isLoadingUpsert || isCreatingGrant:
       return 'Publishing...';
     case isLinkingNonprofit:
       return 'Linking nonprofit...';
@@ -80,6 +83,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   const [{ loading: isUploadingImage }, uploadAsset] = useAssetUpload();
   const { linkNonprofitToFundraise, isLoading: isLinkingNonprofit } = useNonprofitLink();
   const [showNonprofitConfirmModal, setShowNonprofitConfirmModal] = useState(false);
+  const [{ isLoading: isCreatingGrant }, createGrant] = useCreateGrant();
 
   const methods = useForm<PublishingFormData>({
     defaultValues: {
@@ -93,7 +97,6 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       departmentLabName: '',
       shortDescription: '',
       organization: '',
-      fundingAmount: '',
       applicationDeadline: null,
     },
     resolver: zodResolver(publishingFormSchema),
@@ -116,7 +119,6 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         departmentLabName: '',
         shortDescription: '',
         organization: '',
-        fundingAmount: '',
         applicationDeadline: null,
       });
     }
@@ -144,14 +146,24 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       // Set budget fields based on article type
       if (note.post.contentType === 'preregistration') {
         methods.setValue('budget', note.post.fundraise?.goalAmount.usd.toString());
-      } else if (note.post.contentType === 'funding_request') {
-        methods.setValue('fundingAmount', note.post.fundraise?.goalAmount.usd.toString());
       }
 
       // Set application deadline for grants
-      if (note.post.contentType === 'funding_request' && (note.post as any).applicationDeadline) {
-        const deadline = new Date((note.post as any).applicationDeadline);
+      if (note.post.contentType === 'funding_request' && note.post.grant?.endDate) {
+        const deadline = new Date(note.post.grant.endDate);
         methods.setValue('applicationDeadline', deadline);
+      }
+
+      if (note.post.contentType === 'funding_request' && note.post.grant?.description) {
+        methods.setValue('shortDescription', note.post.grant.description);
+      }
+
+      if (note.post.contentType === 'funding_request' && note.post.grant?.organization) {
+        methods.setValue('organization', note.post.grant.organization);
+      }
+
+      if (note.post.contentType === 'funding_request' && note.post.grant?.amount) {
+        methods.setValue('budget', note.post.grant.amount.usd.toString());
       }
 
       if (note.post.image) {
@@ -185,7 +197,11 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     const storedData = loadPublishingFormFromStorage(note?.id.toString() || '');
     if (storedData) {
       Object.entries(storedData).forEach(([key, value]) => {
-        methods.setValue(key as keyof PublishingFormData, value);
+        if (key === 'applicationDeadline') {
+          methods.setValue(key as keyof PublishingFormData, new Date(value));
+        } else {
+          methods.setValue(key as keyof PublishingFormData, value);
+        }
       });
     }
 
@@ -227,6 +243,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   const isJournalEnabled = watch('isJournalEnabled');
   const selectedNonprofit = watch('selectedNonprofit');
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
+
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const router = useRouter();
 
@@ -319,12 +336,11 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
 
       // Determine the budget value based on article type
       let budgetValue = '0';
-      if (formData.articleType === 'preregistration') {
+      if (formData.articleType === 'preregistration' || formData.articleType === 'grant') {
         budgetValue = formData.budget || '0';
-      } else if (formData.articleType === 'grant') {
-        budgetValue = formData.fundingAmount || '0';
       }
 
+      // Continue with the existing post creation logic
       const response = await upsertPost(
         {
           budget: budgetValue,
@@ -341,13 +357,19 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             .map((author) => author.value)
             .map(Number)
             .filter((id) => !isNaN(id)),
-          articleType:
-            formData.articleType === 'preregistration'
-              ? 'PREREGISTRATION'
-              : formData.articleType === 'grant'
-                ? 'GRANT'
-                : 'DISCUSSION',
+          articleType: (() => {
+            switch (formData.articleType) {
+              case 'preregistration':
+                return 'PREREGISTRATION';
+              case 'grant':
+                return 'GRANT';
+              default:
+                return 'DISCUSSION';
+            }
+          })(),
           image: imagePath,
+          organization: formData.organization,
+          description: formData.shortDescription,
           applicationDeadline: formData.applicationDeadline,
         },
         formData.workId
@@ -414,7 +436,11 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     <FormProvider {...methods}>
       <div className="w-82 flex flex-col sticky right-0 top-0 bg-white relative h-[calc(100vh-64px)] lg:h-screen">
         {/* Processing overlay */}
-        {(isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage) && (
+        {(isLoadingUpsert ||
+          isRedirecting ||
+          isLinkingNonprofit ||
+          isUploadingImage ||
+          isCreatingGrant) && (
           <div className="absolute inset-0 bg-white/50 z-50 flex flex-col items-center justify-center">
             <Loader2 className="h-8 w-8 text-indigo-600 animate-spin mb-2" />
             {isLinkingNonprofit && (
@@ -467,15 +493,22 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             variant="default"
             onClick={handlePublishClick}
             className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage}
+            disabled={
+              isLoadingUpsert ||
+              isRedirecting ||
+              isLinkingNonprofit ||
+              isUploadingImage ||
+              isCreatingGrant
+            }
           >
             {getButtonText({
-              isLoadingUpsert: isLoadingUpsert || isUploadingImage,
+              isLoadingUpsert: isLoadingUpsert || isUploadingImage || isCreatingGrant,
               isRedirecting,
               isLinkingNonprofit,
               articleType,
               isJournalEnabled: isJournalEnabled ?? false,
               hasWorkId: Boolean(methods.watch('workId')),
+              isCreatingGrant,
             })}
           </Button>
         </div>
@@ -497,7 +530,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           onClose={() => setShowConfirmModal(false)}
           onConfirm={handleConfirmPublish}
           title={getDocumentTitleFromEditor(editor) || 'Untitled Research'}
-          isPublishing={isLoadingUpsert || isRedirecting || isUploadingImage}
+          isPublishing={isLoadingUpsert || isRedirecting || isUploadingImage || isCreatingGrant}
           isUpdate={Boolean(methods.watch('workId'))}
         />
       )}

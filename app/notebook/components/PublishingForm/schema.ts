@@ -37,7 +37,6 @@ export const publishingFormSchema = z
     departmentLabName: z.string().optional(),
     shortDescription: z.string().optional(),
     organization: z.string().optional(),
-    fundingAmount: z.string().optional(),
     applicationDeadline: z.date().nullable().optional(),
   })
   .superRefine((data, ctx) => {
@@ -102,12 +101,12 @@ export const publishingFormSchema = z
       }
 
       // Validate funding amount
-      const num = parseFloat(data.fundingAmount?.replace(/[^0-9.]/g, '') || '0');
+      const num = parseFloat(data.budget?.replace(/[^0-9.]/g, '') || '0');
       if (num <= 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'Funding amount must be greater than 0',
-          path: ['fundingAmount'],
+          path: ['budget'],
         });
       }
 

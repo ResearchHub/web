@@ -26,6 +26,8 @@ export interface PreregistrationPostParams {
 
   // Grant specific
   applicationDeadline?: Date | null;
+  organization?: string | null;
+  description?: string | null;
 }
 
 interface UsePostState {
@@ -75,22 +77,22 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         payload.image = postParams.image;
       }
 
-      // Add application deadline for grants
-      if (postParams.applicationDeadline && postParams.articleType === 'GRANT') {
-        payload.application_deadline = postParams.applicationDeadline.toISOString();
-      }
-
       if (postId) {
         payload.post_id = postId;
-      } else if (
-        postParams.articleType === 'PREREGISTRATION' ||
-        postParams.articleType === 'GRANT'
-      ) {
+      } else if (postParams.articleType === 'PREREGISTRATION') {
         // Include fundraise fields for creation of preregistrations and grants
         payload.reward_funders = postParams.rewardFunders;
         payload.nft_supply = postParams.nftSupply;
         payload.fundraise_goal_currency = 'USD';
         payload.fundraise_goal_amount = parseFloat(postParams.budget.replace(/[^0-9.]/g, ''));
+      }
+
+      if (postParams.articleType === 'GRANT') {
+        payload.grant_amount = parseFloat(postParams.budget.replace(/[^0-9.]/g, ''));
+        payload.grant_currency = 'USD';
+        payload.grant_organization = postParams.organization;
+        payload.grant_description = postParams.description;
+        payload.grant_end_date = postParams.applicationDeadline?.toISOString() || null;
       }
 
       const response = (await PostService.upsert(payload)) as TransformedWork;

@@ -8,6 +8,7 @@ import { Fundraise, transformFundraise } from '@/types/funding';
 export class FeedService {
   private static readonly BASE_PATH = '/api/feed';
   private static readonly FUNDING_PATH = '/api/funding_feed';
+  private static readonly GRANT_PATH = '/api/grant_feed';
 
   static async getFeed(params?: {
     page?: number;
@@ -16,7 +17,7 @@ export class FeedService {
     hubSlug?: string;
     contentType?: string;
     source?: 'all' | 'researchhub';
-    endpoint?: 'feed' | 'funding_feed';
+    endpoint?: 'feed' | 'funding_feed' | 'grant_feed';
     fundraiseStatus?: 'OPEN' | 'CLOSED';
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
     const queryParams = new URLSearchParams();
@@ -29,7 +30,12 @@ export class FeedService {
     if (params?.fundraiseStatus) queryParams.append('fundraise_status', params.fundraiseStatus);
 
     // Determine which endpoint to use
-    const basePath = params?.endpoint === 'funding_feed' ? this.FUNDING_PATH : this.BASE_PATH;
+    const basePath =
+      params?.endpoint === 'funding_feed'
+        ? this.FUNDING_PATH
+        : params?.endpoint === 'grant_feed'
+          ? this.GRANT_PATH
+          : this.BASE_PATH;
     const url = `${basePath}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
 
     try {

@@ -5,6 +5,7 @@ import { ID } from './root';
 import { ContentType } from './work';
 import { Fundraise, transformFundraise } from './funding';
 import { Topic, transformTopic } from './topic';
+import { Grant, transformGrant } from './grant';
 export type NoteAccess = 'WORKSPACE' | 'PRIVATE' | 'SHARED';
 
 export type Author = {
@@ -18,6 +19,7 @@ export type Post = {
   slug: string;
   contentType: ContentType;
   fundraise?: Fundraise;
+  grant?: Grant;
   topics?: Topic[];
   authors?: Author[];
   doi?: string;
@@ -76,6 +78,9 @@ export const transformPost = createTransformer<any, Post>((raw) => ({
         : 'post',
   fundraise: raw.unified_document?.fundraise
     ? transformFundraise(raw.unified_document.fundraise)
+    : undefined,
+  grant: raw.unified_document?.grants?.[0]
+    ? transformGrant(raw.unified_document.grants[0])
     : undefined,
   doi: raw.doi,
   topics: Array.isArray(raw.hubs) ? raw.hubs.map((hub: any) => transformTopic(hub)) : undefined,

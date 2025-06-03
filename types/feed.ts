@@ -160,7 +160,47 @@ export interface FeedPaperContent {
   reviews?: Review[]; // Add reviews property
 }
 
-// Simplified Content type - now Work, Bounty, Comment, or FeedPostEntry
+// Add this new interface after the existing content interfaces
+
+export interface FeedGrantContent {
+  id: number;
+  contentType: 'GRANT';
+  createdDate: string;
+  textPreview: string;
+  slug: string;
+  title: string;
+  previewImage?: string;
+  authors: AuthorProfile[];
+  topics: Topic[];
+  createdBy: AuthorProfile;
+  bounties?: Bounty[];
+  reviews?: Review[];
+  grant: {
+    id: number;
+    amount: {
+      usd: number;
+      rsc: number;
+      formatted: string;
+    };
+    organization: string;
+    description: string;
+    status: 'OPEN' | 'CLOSED';
+    startDate: string;
+    endDate: string;
+    isExpired: boolean;
+    isActive: boolean;
+    currency: string;
+    createdBy: any;
+  };
+  organization?: string;
+  grantAmount?: {
+    amount: number;
+    currency: string;
+    formatted: string;
+  };
+  isExpired?: boolean;
+}
+
 export type Content =
   | Work
   | Bounty
@@ -169,16 +209,17 @@ export type Content =
   | FeedPaperContent
   | FeedBountyContent
   | FeedCommentContent
-  | FeedApplicationContent;
+  | FeedApplicationContent
+  | FeedGrantContent;
 
-// Define a union type for all possible content types
 export type FeedContentType =
   | 'PAPER'
   | 'POST'
   | 'PREREGISTRATION'
   | 'BOUNTY'
   | 'COMMENT'
-  | 'APPLICATION';
+  | 'APPLICATION'
+  | 'GRANT';
 
 export interface FeedEntry {
   id: string;
@@ -546,71 +587,122 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       break;
 
     case 'RESEARCHHUBPOST':
-      contentType = 'POST';
-      // For RESEARCHHUBPOST, map directly to FeedPostEntry
-      try {
-        // Extract the necessary data from content_object
-        const isPreregistration = content_object.type === 'PREREGISTRATION';
-
-        if (isPreregistration) {
-          contentType = 'PREREGISTRATION';
+      // Check if it's a grant
+      if (content_object.type === 'GRANT' && content_object?.grant) {
+        // Add this new case for GRANT content
+        contentType = 'GRANT';
+        try {
+          const grantEntry: FeedGrantContent = {
+            id: content_object.id,
+            contentType: 'GRANT',
+            createdDate: content_object.created_date,
+            textPreview: content_object.renderable_text || '',
+            slug: content_object.slug || '',
+            title: stripHtml(content_object.title || ''),
+            previewImage: content_object.image_url || '',
+            authors:
+              content_object.authors && content_object.authors.length > 0
+                ? content_object.authors.map(transformAuthorProfile)
+                : [transformAuthorProfile(author)],
+            topics: content_object.topics ? content_object.topics.map(transformTopic) : [],
+            createdBy: transformAuthorProfile(author),
+            bounties: content_object.bounties
+              ? content_object.bounties.map((bounty: any) =>
+                  transformBounty(bounty, { ignoreBaseAmount: true })
+                )
+              : [],
+            reviews: content_object.reviews || [],
+            grant: {
+              id: content_object.grant.id,
+              amount: content_object.grant.amount,
+              organization: content_object.grant.organization,
+              description: content_object.grant.description,
+              status: content_object.grant.status,
+              startDate: content_object.grant.start_date,
+              endDate: content_object.grant.end_date,
+              isExpired: content_object.grant.is_expired,
+              isActive: content_object.grant.is_active,
+              currency: content_object.grant.currency,
+              createdBy: content_object.grant.created_by,
+            },
+            organization: content_object.grant.organization || '',
+            grantAmount: content_object.grant.amount || {},
+            isExpired: content_object.grant.is_expired || false,
+          };
+          content = grantEntry;
+        } catch (error) {
+          console.error('Error transforming grant content:', error);
+          throw error;
         }
+      } else {
+        // Handle regular RESEARCHHUBPOST content
+        contentType = 'POST';
+        // For RESEARCHHUBPOST, map directly to FeedPostEntry
+        try {
+          // Extract the necessary data from content_object
+          const isPreregistration = content_object.type === 'PREREGISTRATION';
 
-        // Create a FeedPostEntry object
-        const postEntry: FeedPostContent = {
-          id: content_object.id,
-          contentType: isPreregistration ? 'PREREGISTRATION' : 'POST',
-          createdDate: content_object.created_date,
-          textPreview: content_object.renderable_text || '',
-          slug: content_object.slug || '',
-          title: stripHtml(content_object.title || ''),
-          previewImage: content_object.image_url || '',
-          authors:
-            content_object.authors && content_object.authors.length > 0
-              ? content_object.authors.map(transformAuthorProfile)
-              : [transformAuthorProfile(author)],
-          institution: content_object.institution, // Populate institution
-          topics: content_object.hub
-            ? [
-                content_object.hub.id
-                  ? transformTopic(content_object.hub)
-                  : {
-                      id: 0,
-                      name: content_object.hub.name || '',
-                      slug: content_object.hub.slug || '',
-                    },
-              ]
-            : [],
-          createdBy: transformAuthorProfile(author),
-          bounties: content_object.bounties
-            ? content_object.bounties.map((bounty: any) =>
-                transformBounty(bounty, { ignoreBaseAmount: true })
-              )
-            : [],
-          reviews: content_object.reviews
-            ? content_object.reviews.map((review: any) => ({
-                id: review.id,
-                score: review.score,
-                author: transformAuthorProfile(review.author),
-              }))
-            : [],
-        };
-
-        // Add fundraise data if it's a PREREGISTRATION and has fundraise data
-        if (isPreregistration && content_object.fundraise) {
-          try {
-            postEntry.fundraise = transformFundraise(content_object.fundraise);
-          } catch (fundraiseError) {
-            console.error('Error transforming fundraise for preregistration:', fundraiseError);
+          if (isPreregistration) {
+            contentType = 'PREREGISTRATION';
           }
-        }
 
-        content = postEntry;
-      } catch (error) {
-        console.error('Error transforming RESEARCHHUBPOST:', error);
-        throw new Error(`Failed to transform RESEARCHHUBPOST: ${error}`);
+          // Create a FeedPostEntry object
+          const postEntry: FeedPostContent = {
+            id: content_object.id,
+            contentType: isPreregistration ? 'PREREGISTRATION' : 'POST',
+            createdDate: content_object.created_date,
+            textPreview: content_object.renderable_text || '',
+            slug: content_object.slug || '',
+            title: stripHtml(content_object.title || ''),
+            previewImage: content_object.image_url || '',
+            authors:
+              content_object.authors && content_object.authors.length > 0
+                ? content_object.authors.map(transformAuthorProfile)
+                : [transformAuthorProfile(author)],
+            institution: content_object.institution, // Populate institution
+            topics: content_object.hub
+              ? [
+                  content_object.hub.id
+                    ? transformTopic(content_object.hub)
+                    : {
+                        id: 0,
+                        name: content_object.hub.name || '',
+                        slug: content_object.hub.slug || '',
+                      },
+                ]
+              : [],
+            createdBy: transformAuthorProfile(author),
+            bounties: content_object.bounties
+              ? content_object.bounties.map((bounty: any) =>
+                  transformBounty(bounty, { ignoreBaseAmount: true })
+                )
+              : [],
+            reviews: content_object.reviews
+              ? content_object.reviews.map((review: any) => ({
+                  id: review.id,
+                  score: review.score,
+                  author: transformAuthorProfile(review.author),
+                }))
+              : [],
+          };
+
+          // Add fundraise data if it's a PREREGISTRATION and has fundraise data
+          if (isPreregistration && content_object.fundraise) {
+            try {
+              postEntry.fundraise = transformFundraise(content_object.fundraise);
+            } catch (fundraiseError) {
+              console.error('Error transforming fundraise for preregistration:', fundraiseError);
+            }
+          }
+
+          content = postEntry;
+        } catch (error) {
+          console.error('Error transforming RESEARCHHUBPOST:', error);
+          throw new Error(`Failed to transform RESEARCHHUBPOST: ${error}`);
+        }
       }
       break;
+
     default:
       // For unsupported types, try to transform to a Work
       console.warn(

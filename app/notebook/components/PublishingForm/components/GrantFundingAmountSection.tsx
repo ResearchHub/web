@@ -15,12 +15,12 @@ export function GrantFundingAmountSection() {
       <SectionHeader icon={DollarSign}>Funding Amount</SectionHeader>
       <div className="mt-2">
         <Input
-          {...register('fundingAmount')}
+          {...register('budget')}
           placeholder="10,000"
           type="text"
           inputMode="numeric"
           className="w-full"
-          error={errors.fundingAmount?.message?.toString()}
+          error={errors.budget?.message?.toString()}
           rightElement={
             <div className="flex items-center pr-4 font-medium text-sm text-gray-900">USD</div>
           }
@@ -28,7 +28,7 @@ export function GrantFundingAmountSection() {
           required
           onChange={(e) => {
             const numericValue = e.target.value.replace(/[^0-9]/g, '');
-            setValue('fundingAmount', numericValue, { shouldValidate: true });
+            setValue('budget', numericValue, { shouldValidate: true });
 
             if (numericValue) {
               e.target.value = new Intl.NumberFormat('en-US').format(parseInt(numericValue));

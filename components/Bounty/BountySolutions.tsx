@@ -1,18 +1,13 @@
 import { BountySolution } from '@/types/bounty';
-import { ContentType } from '@/types/work';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
-import { RSCBadge } from '@/components/ui/CurrencyBadge';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye } from '@fortawesome/free-solid-svg-icons';
 import { faTrophy } from '@fortawesome/pro-light-svg-icons';
 import { ID } from '@/types/root';
-import { ChevronUp, ChevronDown, MessageCircle, PlusIcon, Reply } from 'lucide-react';
+import { ChevronUp, ChevronDown, MessageCircle, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
-import { Tooltip } from '../ui/Tooltip';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
-import { useComment } from '@/hooks/useComment';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface BountySolutionsProps {
   solutions: BountySolution[];

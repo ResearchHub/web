@@ -3,6 +3,9 @@ import { PublishingFormData } from '../../../../app/notebook/components/Publishi
 const STORAGE_KEY = 'publishing_forms';
 const MAX_STORED_NOTES = 20;
 
+// Fields that should be excluded from storage
+const EXCLUDED_FIELDS = ['coverImage'] as const;
+
 type StoredNote = {
   noteId: string;
   data: Partial<PublishingFormData>;
@@ -20,12 +23,23 @@ const getStoredNotes = (): StoredNote[] => {
   }
 };
 
+// Helper function to remove excluded fields from data
+const removeExcludedFields = (data: Partial<PublishingFormData>): Partial<PublishingFormData> => {
+  const filteredData = { ...data };
+  EXCLUDED_FIELDS.forEach((field) => {
+    delete filteredData[field];
+  });
+  return filteredData;
+};
+
 export const savePublishingFormToStorage = (noteId: string, data: Partial<PublishingFormData>) => {
   if (typeof window === 'undefined') return;
   try {
     const storedNotes = getStoredNotes();
     const currentIndex = storedNotes.findIndex((note) => note.noteId === noteId);
-    const newNote: StoredNote = { noteId, data, timestamp: Date.now() };
+    // Remove excluded fields before storing
+    const filteredData = removeExcludedFields(data);
+    const newNote: StoredNote = { noteId, data: filteredData, timestamp: Date.now() };
 
     if (currentIndex !== -1) {
       // Update existing note
