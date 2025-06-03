@@ -12,6 +12,11 @@ interface ResearchCoinIconProps {
    */
   color?: string;
   /**
+   * Fill color for internal elements
+   * @default 'white'
+   */
+  fill?: string;
+  /**
    * Optional CSS class name
    */
   className?: string;
@@ -46,10 +51,10 @@ interface ResearchCoinIconProps {
   variant?: 'orange' | 'green' | 'solid';
 }
 
-function ContributeVariant({ size, color }: { size: number; color: string }) {
+function ContributeVariant({ size, color, fill }: { size: number; color: string; fill: string }) {
   return (
     <div className="relative">
-      <ResearchCoinIcon size={size} color={color} outlined coin strokeWidth={1.1} />
+      <ResearchCoinIcon size={size} color={color} fill={fill} outlined coin strokeWidth={1.1} />
       <div
         className="absolute -top-0.5 -right-1 rounded-full bg-white shadow-sm border border-white"
         style={{ width: '11px', height: '12px' }}
@@ -71,6 +76,7 @@ function ContributeVariant({ size, color }: { size: number; color: string }) {
 export function ResearchCoinIcon({
   size = 24,
   color = '#F97316',
+  fill = 'white',
   className,
   onClick,
   outlined = false,
@@ -79,7 +85,7 @@ export function ResearchCoinIcon({
   variant = 'orange',
 }: ResearchCoinIconProps) {
   if (contribute) {
-    return <ContributeVariant size={size} color={color} />;
+    return <ContributeVariant size={size} color={color} fill={fill} />;
   }
 
   if (outlined) {
@@ -99,7 +105,7 @@ export function ResearchCoinIcon({
           d="M7.96539 1.07912C11.2355 1.61221 13.4541 4.6951 12.9209 7.96525C12.3877 11.2355 9.30472 13.454 6.03461 12.9209C2.7645 12.3876 0.545902 9.30493 1.07911 6.03456C1.61231 2.7643 4.69517 0.545903 7.96539 1.07912Z"
           stroke={color}
           strokeWidth={strokeWidth}
-          fill="white"
+          fill={fill}
         />
         <g transform="translate(1, 1)">
           <path
@@ -190,31 +196,24 @@ export function ResearchCoinIcon({
           fillRule="evenodd"
           clipRule="evenodd"
           d="M6.76253 6.13023L8.5816 9.00106C8.71656 9.21596 8.74249 9.39999 8.65926 9.55317C8.57612 9.70644 8.40678 9.78308 8.15131 9.78308H3.98532C3.7298 9.78308 3.56043 9.70644 3.47725 9.55317C3.39407 9.39999 3.42 9.21591 3.55497 9.00102L5.37393 6.13019V4.68565L5.37955 4.2511H6.75815L6.76253 4.68564V6.13023ZM5.76572 6.37631L4.90355 7.64457H7.23656L6.37316 6.37631L6.30086 6.26405V6.13013V4.68559H5.83803V6.13013V6.26405L5.76572 6.37631Z"
-          fill="white"
+          fill={fill}
         />
 
         <path
           d="M5.37393 6.13019L3.55497 9.00102C3.42 9.21591 3.39407 9.39999 3.47725 9.55317C3.56043 9.70644 3.7298 9.78308 3.98532 9.78308H8.15131C8.40678 9.78308 8.57612 9.70644 8.65926 9.55317C8.74249 9.39999 8.71656 9.21596 8.5816 9.00106L6.76253 6.13023V4.68564L6.75815 4.2511H5.37955L5.37393 4.68565V6.13019Z"
-          fill="white"
+          fill={fill}
           opacity="0.9"
         />
 
-        <rect
-          x="4.89844"
-          y="4.19885"
-          width="2.33301"
-          height="0.530231"
-          rx="0.265115"
-          fill="white"
-        />
+        <rect x="4.89844" y="4.19885" width="2.33301" height="0.530231" rx="0.265115" fill={fill} />
 
-        <rect x="4.64062" y="2.3689" width="1.1" height="1.1" rx="0.55" fill="white">
+        <rect x="4.64062" y="2.3689" width="1.1" height="1.1" rx="0.55" fill={fill}>
           <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" repeatCount="indefinite" />
         </rect>
-        <rect x="6.5" y="2.3689" width="1.1" height="1.1" rx="0.55" fill="white">
+        <rect x="6.5" y="2.3689" width="1.1" height="1.1" rx="0.55" fill={fill}>
           <animate attributeName="opacity" values="1;0.8;1" dur="3s" repeatCount="indefinite" />
         </rect>
-        <rect x="5.70469" y="1.2854" width="0.85" height="0.85" rx="0.425" fill="white">
+        <rect x="5.70469" y="1.2854" width="0.85" height="0.85" rx="0.425" fill={fill}>
           <animate attributeName="opacity" values="0.9;1;0.9" dur="2.5s" repeatCount="indefinite" />
         </rect>
       </g>

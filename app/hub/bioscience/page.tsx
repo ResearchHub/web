@@ -20,12 +20,12 @@ const mockBioScienceFeed: FeedEntry[] = [
     action: 'publish',
     contentType: 'PAPER',
     content: {
-      id: 1,
+      id: 9400001,
       contentType: 'PAPER',
       createdDate: '2024-01-15T10:30:00Z',
       textPreview:
         'This study investigates the role of CRISPR-Cas9 gene editing in treating inherited retinal diseases. We demonstrate successful correction of mutations in patient-derived retinal organoids, showing restored protein function and improved cellular health. Our findings suggest potential therapeutic applications for previously untreatable genetic blindness conditions.',
-      slug: 'crispr-cas9-retinal-disease-treatment',
+      slug: 'demo/bounties',
       title: 'CRISPR-Cas9 Gene Editing Shows Promise for Treating Inherited Retinal Diseases',
       authors: [
         {

@@ -534,6 +534,30 @@ export const mockAuthors: BrowseAuthor[] = [
     isVerified: true,
     joinedDate: '2018-01-19',
   },
+  {
+    id: 'author-11',
+    name: 'Dr. Catherine Williams',
+    username: 'catherinewilliams',
+    headline: 'Biomedical engineering and regenerative medicine',
+    bio: 'Developing innovative tissue engineering solutions and biomaterial scaffolds for organ regeneration.',
+    avatar:
+      'https://images.unsplash.com/photo-1594736797933-d0d0e32df224?w=150&h=150&fit=crop&crop=face',
+    followerCount: 8340,
+    followingCount: 298,
+    publicationCount: 72,
+    citationCount: 10300,
+    hIndex: 31,
+    affiliation: 'Johns Hopkins University',
+    expertise: [
+      'Biomedical Engineering',
+      'Tissue Engineering',
+      'Regenerative Medicine',
+      'Biomaterials',
+    ],
+    isFollowing: false,
+    isVerified: true,
+    joinedDate: '2019-06-15',
+  },
 ];
 
 // Helper functions for filtering and searching

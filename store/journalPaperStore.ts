@@ -1,5 +1,164 @@
 export const journalPapers: any[] = [
   {
+    id: 9400001,
+    authors: [
+      {
+        id: 5986805,
+        first_name: 'Sarah',
+        last_name: 'Chen',
+        user: 77804,
+        authorship: { position: 'first', is_corresponding: true },
+      },
+      {
+        id: 5986806,
+        first_name: 'Michael',
+        last_name: 'Zhang',
+        user: 77805,
+        authorship: { position: 'middle', is_corresponding: false },
+      },
+      {
+        id: 5986807,
+        first_name: 'Jennifer',
+        last_name: 'Martinez',
+        user: 77806,
+        authorship: { position: 'last', is_corresponding: false },
+      },
+    ],
+    abstract_src_markdown: null,
+    boost_amount: 750,
+    first_preview: null,
+    score: 15,
+    purchases: [
+      {
+        user: {
+          id: 14,
+          author_profile: {
+            id: 22,
+            first_name: 'Patrick',
+            last_name: 'Joyce',
+            profile_image:
+              'https://storage.prod.researchhub.com/uploads/author_profile_images/2019/11/19/blob',
+            is_verified: true,
+          },
+          first_name: 'Patrick',
+          last_name: 'Joyce',
+        },
+        amount: '300',
+      },
+      {
+        user: {
+          id: 77804,
+          author_profile: {
+            id: 5986805,
+            first_name: 'Sarah',
+            last_name: 'Chen',
+            profile_image:
+              'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&h=150&fit=crop&crop=face',
+            is_verified: true,
+          },
+          first_name: 'Sarah',
+          last_name: 'Chen',
+        },
+        amount: '450',
+      },
+    ],
+    unified_document: {
+      id: 7450001,
+      documents: { id: 9400001 },
+      reviews: { avg: 4.2, count: 5 },
+      is_removed: false,
+      document_type: 'PAPER',
+    },
+    uploaded_by: {
+      id: 77804,
+      author_profile: {
+        id: 5986805,
+        first_name: 'Sarah',
+        last_name: 'Chen',
+        profile_image:
+          'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&h=150&fit=crop&crop=face',
+        is_verified: true,
+      },
+      first_name: 'Sarah',
+      last_name: 'Chen',
+      is_verified: true,
+    },
+    file: null,
+    pdf_url:
+      'https://storage.prod.researchhub.com/uploads/papers/users/77804/crispr-retinal-diseases-2024.pdf',
+    pdf_copyright_allows_display: true,
+    peer_reviews: [],
+    version: 1,
+    version_list: [
+      {
+        version: 1,
+        paper_id: 9400001,
+        published_date: '2024-11-15',
+        message: 'Initial submission after peer review',
+        is_latest: true,
+      },
+    ],
+    created_date: '2024-11-15T10:30:00.000000Z',
+    discussion_count: 12,
+    pdf_file_extract: null,
+    is_open_access: true,
+    oa_status: 'gold',
+    external_source: 'Nature Medicine',
+    external_source_slug: 'nature-medicine',
+    external_source_image:
+      'https://media.springernature.com/full/springer-static/image/art%3A10.1038%2Fs41591-019-0548-6/MediaObjects/41591_2019_548_Fig1_HTML.png',
+    title: 'CRISPR-Cas9 Gene Editing Shows Promise for Treating Inherited Retinal Diseases',
+    doi: '10.1038/s41591-024-03245-8',
+    paper_title: 'CRISPR-Cas9 Gene Editing Shows Promise for Treating Inherited Retinal Diseases',
+    paper_publish_date: '2024-11-15',
+    raw_authors: null,
+    abstract:
+      'Inherited retinal diseases (IRDs) affect millions worldwide and are a leading cause of blindness in working-age adults. Here, we demonstrate the therapeutic potential of CRISPR-Cas9 gene editing for treating Leber congenital amaurosis 10 (LCA10), caused by mutations in the CEP290 gene. Using a dual-vector approach, we delivered CRISPR-Cas9 components to photoreceptor cells in a mouse model of LCA10 via subretinal injection. Our results show significant restoration of visual function, with treated mice demonstrating improved electroretinogram responses and behavioral visual acuity tests. Histological analysis revealed preservation of photoreceptor morphology and increased expression of functional CEP290 protein. RNA sequencing confirmed correction of the splice defect in 68% of treated cells with minimal off-target effects. Safety assessments showed no detectable immune responses or unintended genomic modifications. These findings represent a significant advancement in gene therapy for inherited blindness and support the clinical translation of CRISPR-based treatments for retinal diseases. The precise editing capability of CRISPR-Cas9 offers hope for patients with various IRDs where conventional gene replacement therapy faces delivery constraints.',
+    url: null,
+    pdf_license: 'cc-by-4.0',
+    slug: 'crispr-cas9-gene-editing-shows-promise-for-treating-inherited-retinal-diseases',
+    work_type: 'article',
+    user_vote: null,
+    status: 'published',
+    hubs: [
+      {
+        id: 1,
+        name: 'Genetics',
+        slug: 'genetics',
+      },
+      {
+        id: 2,
+        name: 'Gene Therapy',
+        slug: 'gene-therapy',
+      },
+      {
+        id: 3,
+        name: 'Ophthalmology',
+        slug: 'ophthalmology',
+      },
+    ],
+    hub: {
+      id: 1,
+      name: 'Genetics',
+      slug: 'genetics',
+    },
+    metrics: {
+      votes: 15,
+      comments: 12,
+      saves: 8,
+      views: 2456,
+    },
+    saves_count: 8,
+    views_count: 2456,
+    journal: {
+      id: 1,
+      name: 'Nature Medicine',
+      slug: 'nature-medicine',
+      image:
+        'https://media.springernature.com/full/springer-static/image/art%3A10.1038%2Fs41591-019-0548-6/MediaObjects/41591_2019_548_Fig1_HTML.png',
+    },
+  },
+  {
     id: 9267860,
     authors: [
       {

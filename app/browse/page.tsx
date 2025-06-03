@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { Users, Grid3X3, Plus, Globe, List, PenLine } from 'lucide-react';
 import { mockHubs, mockAuthors, BrowseHub, BrowseAuthor } from '@/store/browseStore';
-import { HubCard, AuthorCard } from '@/components/Browse';
+import { HubCard, AuthorCard, BrowseRightSidebar } from '@/components/Browse';
 import { Button } from '@/components/ui/Button';
 import { Tabs } from '@/components/ui/Tabs';
 import { PageLayout } from '@/app/layouts/PageLayout';
@@ -38,11 +38,11 @@ export default function BrowsePage() {
   );
 
   return (
-    <PageLayout rightSidebar={false} maxWidth="wide">
+    <PageLayout rightSidebar={<BrowseRightSidebar />} maxWidth="default">
       <div className="min-h-screen bg-white">
         {/* Hero Section */}
         <div className="bg-white -mx-4 tablet:!-mx-8 px-4 tablet:!px-8">
-          <div className="max-w-6xl mx-auto py-8">
+          <div className="max-w-4xl mx-auto py-8">
             <div className="text-center">
               {/* Globe Icon */}
               <div className="flex justify-center mb-4">
@@ -56,22 +56,12 @@ export default function BrowsePage() {
                 Connect with leading researchers and join specialized hubs where breakthrough
                 science happens.
               </p>
-
-              {/* Create Hub CTA */}
-              <div className="flex justify-center mb-6">
-                <Link href="/hub/create">
-                  <Button className="flex items-center gap-2">
-                    <Plus className="h-4 w-4" />
-                    Create Hub
-                  </Button>
-                </Link>
-              </div>
             </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="max-w-6xl mx-auto py-6">
+        <div className="max-w-4xl mx-auto py-6">
           {/* Navigation Tabs with Edit */}
           <div className="mb-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
@@ -102,12 +92,12 @@ export default function BrowsePage() {
                     Leading Researchers
                   </h2>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-fr">
-                  {mockAuthors.slice(0, 8).map((author) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 auto-rows-fr">
+                  {mockAuthors.slice(0, 9).map((author) => (
                     <AuthorCard key={author.id} author={author} />
                   ))}
                 </div>
-                {mockAuthors.length > 8 && (
+                {mockAuthors.length > 9 && (
                   <div className="mt-6 text-center">
                     <Button variant="outlined">See all authors</Button>
                   </div>
@@ -124,37 +114,18 @@ export default function BrowsePage() {
                     Hubs
                   </h2>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-fr">
-                  {mockHubs.slice(0, 12).map((hub) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 auto-rows-fr">
+                  {mockHubs.slice(0, 9).map((hub) => (
                     <HubCard key={hub.id} hub={hub} />
                   ))}
                 </div>
-                {mockHubs.length > 12 && (
+                {mockHubs.length > 9 && (
                   <div className="mt-6 text-center">
                     <Button variant="outlined">See all hubs</Button>
                   </div>
                 )}
               </section>
             )}
-          </div>
-
-          {/* Call to Action */}
-          <div className="mt-12 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-center text-white">
-            <h3 className="text-xl font-bold mb-3">Ready to Join the Scientific Community?</h3>
-            <p className="text-indigo-100 mb-4 max-w-xl mx-auto">
-              Connect with researchers, contribute to cutting-edge discussions, and help advance
-              human knowledge.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/hub/create">
-                <Button variant="outlined" className="bg-white text-indigo-600 hover:bg-gray-50">
-                  Create a Hub
-                </Button>
-              </Link>
-              <Button variant="outlined" className="bg-white text-indigo-600 hover:bg-gray-50">
-                Join as Researcher
-              </Button>
-            </div>
           </div>
         </div>
       </div>

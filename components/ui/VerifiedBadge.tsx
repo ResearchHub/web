@@ -25,7 +25,7 @@ export function VerifiedBadge({
     <span className={clsx('inline-flex items-center justify-center', sizeMap[size], className)}>
       <FontAwesomeIcon
         icon={faBadgeCheck}
-        className={clsx('w-full h-full', isOrganization ? 'text-purple-500' : 'text-blue-500')}
+        className={clsx('w-full h-full', isOrganization ? 'text-yellow-500' : 'text-blue-500')}
       />
     </span>
   );
