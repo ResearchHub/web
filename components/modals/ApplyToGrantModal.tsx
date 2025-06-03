@@ -7,6 +7,11 @@ import {
   CheckCircle as CheckCircleIcon,
   Circle as CircleIcon,
   ClipboardList as ClipboardListIcon,
+  Info as InfoIcon,
+  Plus as PlusIcon,
+  List as ListIcon,
+  ChevronLeft as ChevronLeftIcon,
+  BookOpen as BookOpenIcon,
 } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 
@@ -72,99 +77,191 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
     }
   }, [isOpen, onSelectPreregId]);
 
+  const handleBack = () => {
+    setShowPreregList(false);
+    onSelectPreregId(null); // Reset selection when going back
+  };
+
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Apply to Grant via Preregistration"
+      title={showPreregList ? 'Select Preregistration' : 'Apply to Grant'}
       maxWidth="max-w-lg"
       padding="p-0"
+      headerAction={
+        showPreregList ? (
+          <Button
+            type="button"
+            variant="outlined"
+            onClick={handleBack}
+            className="flex items-center gap-2"
+            size="icon"
+          >
+            <ChevronLeftIcon className="w-4 h-4" />
+          </Button>
+        ) : null
+      }
     >
-      <div className="p-6 space-y-4">
-        <p className="text-sm text-gray-600">
-          To apply for this grant, you need a preregistration. You can either draft a new one or
-          select from your existing published preregistrations.
-        </p>
+      {!showPreregList ? (
+        // Initial View: Choose action with enhanced styling
+        <div className="relative">
+          {/* Gradient background */}
+          <div className="absolute inset-0" />
 
-        {!showPreregList ? (
-          // Initial View: Choose action
-          <div className="flex flex-col gap-3 pt-4">
-            <Button onClick={onDraftNew} className="w-full">
-              <FileTextIcon size={16} className="mr-2" />
-              Create New Preregistration
-            </Button>
-            <Button variant="outlined" onClick={() => setShowPreregList(true)} className="w-full">
-              <ClipboardListIcon size={16} className="mr-2" />
-              Select Existing Preregistration
-            </Button>
-          </div>
-        ) : (
-          // Preregistration List View
-          <>
-            <p className="text-sm text-gray-500 -mt-2 mb-3">
-              Select one of your published preregistrations. You can also choose to draft a new one.
-            </p>
-            <div className="space-y-2 max-h-60 overflow-y-auto border rounded-md p-3">
-              {preregistrations.filter((p) => p.status === 'published').length > 0 ? (
-                preregistrations.map((prereg) => {
-                  const isSelected = prereg.id === selectedPreregId;
-                  const isDraft = prereg.status === 'draft';
-                  return (
-                    <div
-                      key={prereg.id}
-                      onClick={() => !isDraft && onSelectPreregId(prereg.id)}
-                      className={`p-3 rounded-md border flex items-center justify-between
-                        ${isDraft ? 'opacity-60 cursor-not-allowed bg-gray-50' : 'cursor-pointer hover:bg-gray-100'}
-                        ${isSelected && !isDraft ? 'ring-2 ring-blue-500 border-blue-500' : 'border-gray-200'}`}
-                    >
-                      <div className="flex items-center">
-                        {prereg.status === 'published' ? (
-                          <CheckCircleIcon
-                            size={16}
-                            className="text-green-500 mr-2 flex-shrink-0"
-                          />
-                        ) : (
-                          <CircleIcon
-                            size={8}
-                            className="text-gray-400 fill-current mr-3 ml-1 flex-shrink-0"
-                          />
-                        )}
-                        <span className={`text-sm ${isDraft ? 'text-gray-500' : 'text-gray-700'}`}>
-                          {prereg.title}
-                        </span>
-                      </div>
-                      {isDraft && <span className="text-xs text-gray-400 italic">Draft</span>}
-                    </div>
-                  );
-                })
-              ) : (
-                <p className="text-sm text-gray-500 text-center py-10">
-                  You have no published preregistrations to select. Draft a new one to proceed.
-                </p>
-              )}
+          <div className="relative p-6 space-y-10">
+            {/* Header section */}
+            <div className="space-y-3">
+              <p className="text-base text-gray-700 font-medium leading-relaxed">
+                Applying to grants on ResearchHub happens via preregistrations.
+              </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 mt-4">
+            {/* Action buttons with enhanced styling */}
+            <div className="space-y-3">
               <Button
-                onClick={() => {
-                  if (selectedPrereg) {
-                    onUseSelected(selectedPrereg);
-                  }
-                }}
-                disabled={!selectedPrereg || selectedPrereg.status === 'draft'}
-                className="w-full sm:w-auto flex-grow"
+                variant="outlined"
+                onClick={() => setShowPreregList(true)}
+                className="w-full h-14 border-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 group justify-start px-4"
               >
-                <CheckCircleIcon size={16} className="mr-2" />
-                Use Selected Preregistration
+                <div className="flex items-center space-x-4">
+                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors flex-shrink-0">
+                    <ListIcon size={20} className="text-blue-600" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-medium text-gray-900">Select Existing Preregistration</div>
+                    <div className="text-xs text-gray-500">Choose from your published work</div>
+                  </div>
+                </div>
               </Button>
-              <Button variant="outlined" onClick={onDraftNew} className="w-full sm:w-auto">
-                <FileTextIcon size={16} className="mr-2" />
-                Draft New Preregistration
+
+              <Button
+                onClick={onDraftNew}
+                className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 transition-all duration-200 group shadow-lg justify-start px-4"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:bg-white/30 transition-colors flex-shrink-0">
+                    <PlusIcon size={20} className="text-white" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-medium text-white">Create New Preregistration</div>
+                    <div className="text-xs text-indigo-100">Start from scratch</div>
+                  </div>
+                </div>
               </Button>
             </div>
-          </>
-        )}
-      </div>
+
+            {/* Enhanced Educational Callout Section */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-2xl" />
+              <div className="relative bg-blue-50/80 backdrop-blur-sm border-2 border-blue-200 rounded-2xl p-4 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <InfoIcon className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <h4 className="text-xs font-semibold text-blue-900">
+                      What is a Preregistration?
+                    </h4>
+                    <p className="text-xs text-blue-800 leading-relaxed">
+                      Documenting and sharing your research plan before conducting research as well
+                      as specifying funding requirements.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        // Enhanced Preregistration List View
+        <div className="p-6 space-y-4">
+          {/* Header with icon */}
+          <div className="flex items-center gap-3 pb-2">
+            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+              <BookOpenIcon className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">Your Published Preregistrations</p>
+              <p className="text-xs text-gray-500">Select one to apply with</p>
+            </div>
+          </div>
+
+          {/* Enhanced preregistration list */}
+          <div className="space-y-3 max-h-80 overflow-y-auto">
+            {preregistrations.filter((p) => p.status === 'published').length > 0 ? (
+              preregistrations.map((prereg) => {
+                const isSelected = prereg.id === selectedPreregId;
+                const isDraft = prereg.status === 'draft';
+                return (
+                  <div
+                    key={prereg.id}
+                    onClick={() => {
+                      if (!isDraft) {
+                        onSelectPreregId(prereg.id);
+                        // Automatically use the selected preregistration
+                        onUseSelected(prereg);
+                      }
+                    }}
+                    className={`group relative p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer
+                      ${
+                        isDraft
+                          ? 'opacity-60 cursor-not-allowed bg-gray-50 border-gray-200'
+                          : 'hover:border-green-300 hover:bg-green-50/50 border-gray-200 bg-white hover:shadow-md transform hover:-translate-y-0.5'
+                      }
+                      ${isSelected && !isDraft ? 'ring-2 ring-green-500 border-green-500 bg-green-50' : ''}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                            prereg.status === 'published'
+                              ? 'bg-green-100 group-hover:bg-green-200'
+                              : 'bg-gray-100'
+                          }`}
+                        >
+                          {prereg.status === 'published' ? (
+                            <CheckCircleIcon size={16} className="text-green-600" />
+                          ) : (
+                            <CircleIcon size={12} className="text-gray-400 fill-current" />
+                          )}
+                        </div>
+                        <div>
+                          <span
+                            className={`text-sm font-medium ${
+                              isDraft ? 'text-gray-500' : 'text-gray-900'
+                            }`}
+                          >
+                            {prereg.title}
+                          </span>
+                          {!isDraft && (
+                            <div className="text-xs text-green-600 font-medium">Published</div>
+                          )}
+                        </div>
+                      </div>
+                      {isDraft && (
+                        <span className="px-2 py-1 text-xs text-gray-500 bg-gray-100 rounded-full">
+                          Draft
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center py-12 space-y-3">
+                <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto">
+                  <FileTextIcon className="w-8 h-8 text-gray-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">No published preregistrations</p>
+                  <p className="text-xs text-gray-500">Create a new one to get started</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </BaseModal>
   );
 };

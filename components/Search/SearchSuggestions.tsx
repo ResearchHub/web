@@ -5,6 +5,7 @@ import { cn } from '@/utils/styles';
 import { SearchSuggestion } from '@/types/search';
 import type { EntityType } from '@/types/search';
 import { FollowTopicButton } from '@/components/ui/FollowTopicButton';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface SearchSuggestionsProps {
   query: string;
@@ -13,6 +14,7 @@ interface SearchSuggestionsProps {
   displayMode?: 'dropdown' | 'inline';
   showSuggestionsOnFocus?: boolean;
   indices?: EntityType[];
+  filterSuggestions?: (suggestions: SearchSuggestion[]) => SearchSuggestion[];
 }
 
 // Maximum number of search results to display
@@ -33,13 +35,22 @@ export function SearchSuggestions({
   displayMode = 'dropdown',
   showSuggestionsOnFocus = true,
   indices,
+  filterSuggestions,
 }: SearchSuggestionsProps) {
   const [erroredSuggestions, setErroredSuggestions] = useState<Set<string>>(new Set());
-  const { loading, suggestions, hasLocalSuggestions, clearSearchHistory } = useSearchSuggestions({
+  const {
+    loading,
+    suggestions: rawSuggestions,
+    hasLocalSuggestions,
+    clearSearchHistory,
+  } = useSearchSuggestions({
     query,
     indices,
     includeLocalSuggestions: true,
   });
+
+  // Apply custom filter if provided
+  const suggestions = filterSuggestions ? filterSuggestions(rawSuggestions) : rawSuggestions;
 
   // Only hide when explicitly not focused
   if (isFocused === false) {
@@ -121,7 +132,16 @@ export function SearchSuggestions({
       const getIcon = () => {
         if (suggestion.isRecent) return <History className="h-6 w-6 text-gray-600" />;
         if (isPaperSuggestion) return <FileText className="h-6 w-6 text-gray-600" />;
-        if (isUserSuggestion) return <User className="h-6 w-6 text-gray-600" />;
+        if (isUserSuggestion) {
+          return (
+            <Avatar
+              src={suggestion.authorProfile?.profileImage}
+              alt={suggestion.authorProfile?.fullName || 'User'}
+              size={24}
+              disableTooltip={true}
+            />
+          );
+        }
         if (isTopicSuggestion) return <Hash className="h-6 w-6 text-gray-600" />;
         return <HelpCircle className="h-6 w-6 text-gray-600" />; // Default with a more distinctive fallback icon
       };
@@ -132,8 +152,18 @@ export function SearchSuggestions({
           return <History className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />;
         if (isPaperSuggestion)
           return <FileText className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />;
-        if (isUserSuggestion)
-          return <User className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />;
+        if (isUserSuggestion) {
+          return (
+            <div className="mt-0.5 flex-shrink-0">
+              <Avatar
+                src={suggestion.authorProfile?.profileImage}
+                alt={suggestion.authorProfile?.fullName || 'User'}
+                size={20}
+                disableTooltip={true}
+              />
+            </div>
+          );
+        }
         if (isTopicSuggestion)
           return <Hash className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />;
         return <HelpCircle className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />; // Default

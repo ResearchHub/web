@@ -16,6 +16,7 @@ interface SearchProps {
   className?: string;
   placeholder?: string;
   indices?: EntityType[];
+  filterSuggestions?: (suggestions: SearchSuggestion[]) => SearchSuggestion[];
 }
 
 export function Search({
@@ -25,6 +26,7 @@ export function Search({
   className,
   placeholder = 'Search',
   indices,
+  filterSuggestions,
 }: SearchProps) {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
@@ -139,6 +141,7 @@ export function Search({
         displayMode={displayMode}
         showSuggestionsOnFocus={showSuggestionsOnFocus}
         indices={indices}
+        filterSuggestions={filterSuggestions}
       />
     </div>
   );

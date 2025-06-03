@@ -9,7 +9,7 @@ import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
-import { ChartNoAxesColumnIncreasing } from 'lucide-react';
+import { ChartNoAxesColumnIncreasing, Grid3X3 } from 'lucide-react';
 
 // Define icon mapping for navigation items with both light and solid variants
 interface NavIcon {
@@ -17,7 +17,7 @@ interface NavIcon {
   solid: IconName;
 }
 
-type NavIconKey = 'earn' | 'fund' | 'journal' | 'notebook' | 'home' | 'leaderboard';
+type NavIconKey = 'earn' | 'fund' | 'journal' | 'notebook' | 'home' | 'leaderboard' | 'browse';
 
 interface NavigationItem {
   label: string;
@@ -27,6 +27,7 @@ interface NavigationItem {
   requiresAuth?: boolean;
   isUnimplemented?: boolean;
   isFontAwesome?: boolean;
+  isLucide?: boolean;
 }
 
 interface NavigationProps {
@@ -36,7 +37,7 @@ interface NavigationProps {
 }
 
 // Map navigation icons to their light and solid variants
-const navIconMap: Record<NavIconKey, NavIcon> = {
+const navIconMap: Record<Exclude<NavIconKey, 'browse'>, NavIcon> = {
   home: {
     light: 'home1',
     solid: 'home2',
@@ -87,6 +88,13 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Navigate to the home page',
     },
     {
+      label: 'Browse',
+      href: '/browse',
+      iconKey: 'browse',
+      isLucide: true,
+      description: 'Discover scientific communities',
+    },
+    {
       label: 'Earn',
       href: '/earn',
       iconKey: 'earn',
@@ -128,8 +136,8 @@ export const Navigation: React.FC<NavigationProps> = ({
       : 'tablet:max-sidebar-compact:!px-2 tablet:max-sidebar-compact:!justify-center';
 
     return isActive
-      ? `flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-indigo-600 ${responsiveClasses} bg-indigo-50 rounded-lg group`
-      : `flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-gray-700 ${responsiveClasses} hover:bg-gray-50 rounded-lg group`;
+      ? `flex items-center w-full px-5 py-3 text-[14px] font-medium text-indigo-600 ${responsiveClasses} bg-indigo-50 rounded-lg group`
+      : `flex items-center w-full px-5 py-3 text-[14px] font-medium text-gray-700 ${responsiveClasses} hover:bg-gray-50 rounded-lg group`;
   };
 
   const isPathActive = (path: string) => {
@@ -146,6 +154,11 @@ export const Navigation: React.FC<NavigationProps> = ({
     // Special case for leaderboard page
     if (path === '/leaderboard') {
       return currentPath.startsWith('/leaderboard');
+    }
+
+    // Special case for browse page
+    if (path === '/browse') {
+      return currentPath.startsWith('/browse');
     }
 
     // Default case - exact match
@@ -167,7 +180,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 
     // Get the appropriate icon based on active state
     const getIconName = (): IconName | undefined => {
-      if (!item.iconKey) return undefined;
+      if (!item.iconKey || item.iconKey === 'browse') return undefined;
 
       const iconSet = navIconMap[item.iconKey];
       return isActive && iconSet.solid ? iconSet.solid : iconSet.light;
@@ -191,11 +204,12 @@ export const Navigation: React.FC<NavigationProps> = ({
 
     // Determine if the current item is the Home item using FontAwesome
     const isHomeIcon = item.isFontAwesome && item.iconKey === 'home';
+    const isBrowseIcon = item.isLucide && item.iconKey === 'browse';
 
     // Conditionally apply minimized classes
     const iconContainerClass = forceMinimize
-      ? 'h-[26px] w-[26px] mr-0 flex items-center justify-center'
-      : 'h-[26px] w-[26px] mr-2.5 tablet:max-sidebar-compact:!mr-0 flex items-center justify-center';
+      ? 'h-[22px] w-[22px] mr-0 flex items-center justify-center'
+      : 'h-[22px] w-[22px] mr-2.5 tablet:max-sidebar-compact:!mr-0 flex items-center justify-center';
 
     const textContainerClass = forceMinimize
       ? 'flex items-center justify-between w-full min-w-0 !hidden'
@@ -206,31 +220,33 @@ export const Navigation: React.FC<NavigationProps> = ({
         <div className={iconContainerClass}>
           {item.href === '/leaderboard' ? (
             <ChartNoAxesColumnIncreasing
-              size={22}
+              size={18}
               color={iconColor}
               strokeWidth={isActive ? 2.5 : 2}
             />
+          ) : isBrowseIcon ? (
+            <Grid3X3 size={18} color={iconColor} strokeWidth={isActive ? 2.5 : 2} />
           ) : isHomeIcon ? (
             <FontAwesomeIcon
               icon={isActive ? faHouseSolid : faHouseLight}
-              fontSize={20}
+              fontSize={18}
               color={iconColor}
             />
           ) : item.iconKey ? (
-            <Icon name={getIconName() as IconName} size={26} color={iconColor} />
+            <Icon name={getIconName() as IconName} size={22} color={iconColor} />
           ) : (
-            <div className="w-[26px] h-[26px]" />
+            <div className="w-[22px] h-[22px]" />
           )}
         </div>
         <div className={textContainerClass}>
-          <span className="truncate text-[16px]">{item.label}</span>
+          <span className="truncate text-[15px]">{item.label}</span>
         </div>
       </Button>
     );
   };
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1">
       {navigationItems.map((item) => (
         <NavLink
           key={item.href}

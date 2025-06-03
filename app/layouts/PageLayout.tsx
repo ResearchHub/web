@@ -49,9 +49,14 @@ const RightSidebarSkeleton = () => (
 interface PageLayoutProps {
   children: ReactNode;
   rightSidebar?: boolean | ReactNode;
+  maxWidth?: 'default' | 'wide' | 'full';
 }
 
-export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
+export function PageLayout({
+  children,
+  rightSidebar = true,
+  maxWidth = 'default',
+}: PageLayoutProps) {
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
   const rightSidebarRef = useRef<HTMLDivElement>(null);
@@ -59,6 +64,32 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
   const [sidebarTransform, setSidebarTransform] = useState(0);
   const animationFrameId = useRef<number | null>(null);
   const pathname = usePathname();
+
+  // Generate max width classes based on the prop
+  const getMaxWidthClasses = () => {
+    switch (maxWidth) {
+      case 'wide':
+        return `mx-auto
+          flex-1
+          max-w-full
+          tablet:!max-w-3xl
+          content-md:!max-w-4xl
+          content-lg:!max-w-5xl
+          content-xl:!max-w-6xl`;
+      case 'full':
+        return `mx-auto
+          flex-1
+          max-w-full`;
+      default:
+        return `mx-auto
+          flex-1
+          max-w-full
+          tablet:!max-w-2xl
+          content-md:!max-w-2xl
+          content-lg:!max-w-3xl
+          content-xl:!max-w-4xl`;
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -169,18 +200,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
 
         {/* Main Content */}
         <main className="flex-1 px-4 tablet:!px-8 py-4 flex" style={{ maxWidth: '100vw' }}>
-          <div
-            className="mx-auto
-              flex-1
-              max-w-full
-              tablet:!max-w-2xl
-              content-md:!max-w-2xl
-              content-lg:!max-w-3xl
-              content-xl:!max-w-4xl
-            "
-          >
-            {children}
-          </div>
+          <div className={getMaxWidthClasses()}>{children}</div>
           {/* Right Sidebar (Sticky) */}
           {rightSidebar && (
             <aside
