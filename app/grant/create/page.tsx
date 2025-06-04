@@ -16,6 +16,8 @@ import {
   Target,
   ChevronDown,
   HelpCircle,
+  icons,
+  CheckCircle,
 } from 'lucide-react';
 
 type FundingTimelineOptions = '6m_less' | '6m_1y' | '1y_more';
@@ -131,10 +133,7 @@ export default function CreateGrantPage() {
                       },
                     },
                   ].map((benefit, index) => {
-                    const LucideIcon =
-                      require('lucide-react')[
-                        benefit.iconName as keyof typeof import('lucide-react')
-                      ] || require('lucide-react')['CheckCircle'];
+                    const LucideIcon = icons[benefit.iconName as keyof typeof icons] || CheckCircle;
                     const itemStyle = benefit.style;
                     return (
                       <div key={index} className="flex items-start space-x-4 p-2">
