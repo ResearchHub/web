@@ -33,7 +33,6 @@ import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useAssetUpload } from '@/hooks/useAssetUpload';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
 import { NonprofitConfirmModal } from '@/components/Nonprofit';
-import { useCreateGrant } from '@/hooks/useGrant';
 
 // Feature flags for conditionally showing sections
 const FEATURE_FLAG_RESEARCH_COIN = false;
@@ -51,7 +50,6 @@ const getButtonText = ({
   articleType,
   isJournalEnabled,
   hasWorkId,
-  isCreatingGrant,
 }: {
   isLoadingUpsert: boolean;
   isRedirecting: boolean;
@@ -59,10 +57,9 @@ const getButtonText = ({
   articleType: string;
   isJournalEnabled: boolean;
   hasWorkId: boolean;
-  isCreatingGrant: boolean;
 }) => {
   switch (true) {
-    case isLoadingUpsert || isCreatingGrant:
+    case isLoadingUpsert:
       return 'Publishing...';
     case isLinkingNonprofit:
       return 'Linking nonprofit...';
@@ -84,7 +81,6 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   const [{ loading: isUploadingImage }, uploadAsset] = useAssetUpload();
   const { linkNonprofitToFundraise, isLoading: isLinkingNonprofit } = useNonprofitLink();
   const [showNonprofitConfirmModal, setShowNonprofitConfirmModal] = useState(false);
-  const [{ isLoading: isCreatingGrant }, createGrant] = useCreateGrant();
 
   const methods = useForm<PublishingFormData>({
     defaultValues: {
@@ -349,7 +345,6 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         budgetValue = formData.budget || '0';
       }
 
-      // Continue with the existing post creation logic
       const response = await upsertPost(
         {
           budget: budgetValue,
@@ -449,11 +444,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     <FormProvider {...methods}>
       <div className="w-82 flex flex-col sticky right-0 top-0 bg-white relative h-[calc(100vh-64px)] lg:h-screen">
         {/* Processing overlay */}
-        {(isLoadingUpsert ||
-          isRedirecting ||
-          isLinkingNonprofit ||
-          isUploadingImage ||
-          isCreatingGrant) && (
+        {(isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage) && (
           <div className="absolute inset-0 bg-white/50 z-50 flex flex-col items-center justify-center">
             <Loader2 className="h-8 w-8 text-indigo-600 animate-spin mb-2" />
             {isLinkingNonprofit && (
@@ -506,22 +497,15 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             variant="default"
             onClick={handlePublishClick}
             className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={
-              isLoadingUpsert ||
-              isRedirecting ||
-              isLinkingNonprofit ||
-              isUploadingImage ||
-              isCreatingGrant
-            }
+            disabled={isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage}
           >
             {getButtonText({
-              isLoadingUpsert: isLoadingUpsert || isUploadingImage || isCreatingGrant,
+              isLoadingUpsert: isLoadingUpsert || isUploadingImage,
               isRedirecting,
               isLinkingNonprofit,
               articleType,
               isJournalEnabled: isJournalEnabled ?? false,
               hasWorkId: Boolean(methods.watch('workId')),
-              isCreatingGrant,
             })}
           </Button>
         </div>
@@ -543,7 +527,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           onClose={() => setShowConfirmModal(false)}
           onConfirm={handleConfirmPublish}
           title={getDocumentTitleFromEditor(editor) || 'Untitled Research'}
-          isPublishing={isLoadingUpsert || isRedirecting || isUploadingImage || isCreatingGrant}
+          isPublishing={isLoadingUpsert || isRedirecting || isUploadingImage}
           isUpdate={Boolean(methods.watch('workId'))}
         />
       )}
