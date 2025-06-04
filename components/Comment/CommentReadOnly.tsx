@@ -12,6 +12,8 @@ import { renderQuillContent, truncateContent, SectionHeaderProps } from './lib/r
 import TipTapRenderer from './lib/TipTapRenderer';
 import { CommentContent } from './lib/types';
 import QuillRenderer from './lib/QuillRenderer';
+import { formatTimeAgo } from '@/utils/date';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface CommentReadOnlyProps {
   content: CommentContent;
@@ -21,6 +23,8 @@ interface CommentReadOnlyProps {
   maxLength?: number;
   initiallyExpanded?: boolean;
   showReadMoreButton?: boolean;
+  createdDate?: string | Date;
+  updatedDate?: string | Date;
 }
 
 // Simple read-only stars component for displaying review score
@@ -61,6 +65,8 @@ export const CommentReadOnly = ({
   maxLength = 300,
   initiallyExpanded = false,
   showReadMoreButton = true,
+  createdDate,
+  updatedDate,
 }: CommentReadOnlyProps) => {
   const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
 
@@ -74,6 +80,21 @@ export const CommentReadOnly = ({
         : JSON.stringify(content);
 
   const shouldTruncate = textContent.length > maxLength;
+
+  // Logic for "Edited" timestamp
+  let showEditedStatus = false;
+  let editedTimestampString = '';
+  let editedTooltipContent = '';
+
+  if (createdDate && updatedDate) {
+    const cDate = createdDate instanceof Date ? createdDate : new Date(createdDate);
+    const uDate = updatedDate instanceof Date ? updatedDate : new Date(updatedDate);
+    if (uDate.getTime() !== cDate.getTime() && uDate.getTime() - cDate.getTime() > 60000) {
+      showEditedStatus = true;
+      editedTimestampString = formatTimeAgo(uDate.toISOString());
+      editedTooltipContent = `Edited: ${uDate.toLocaleString()}`;
+    }
+  }
 
   const getFormattedContent = () => {
     if (!parsedContent) {
@@ -210,17 +231,34 @@ export const CommentReadOnly = ({
         <div className={contentFormat === 'QUILL_EDITOR' ? 'quill-content-container' : ''}>
           {renderedContent}
         </div>
-        {shouldTruncate && showReadMoreButton && (
-          <button
-            className="text-blue-600 hover:text-blue-800 hover:underline text-sm cursor-pointer mt-1"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsExpanded(!isExpanded);
-            }}
-          >
-            {isExpanded ? 'Show less' : 'Read more'}
-          </button>
+        {((shouldTruncate && showReadMoreButton) || showEditedStatus) && (
+          <div className="flex items-center justify-between mt-1">
+            {/* Left side: Button or Spacer */}
+            {shouldTruncate && showReadMoreButton ? (
+              <button
+                className="text-blue-600 hover:text-blue-800 hover:underline text-sm cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
+              >
+                {isExpanded ? 'Show less' : 'Read more'}
+              </button>
+            ) : showEditedStatus ? (
+              /* Spacer to push edited status to the right if no button */
+              <div />
+            ) : null}
+
+            {/* Right side: Edited Status */}
+            {showEditedStatus && (
+              <Tooltip content={editedTooltipContent}>
+                <span className="text-xs text-gray-500 cursor-default">
+                  (Edited: {editedTimestampString})
+                </span>
+              </Tooltip>
+            )}
+          </div>
         )}
       </>
     );

@@ -3,7 +3,7 @@ import { ApiError } from './types';
 import type { Contribution, ContributionListResponse } from '@/types/contribution';
 import { ID } from '@/types/root';
 
-export type ContributionType = 'CONVERSATION' | 'ARTICLE' | 'REVIEW' | 'BOUNTY'; // | 'ALL';
+export type ContributionType = 'CONVERSATION' | 'ARTICLE' | 'REVIEW' | 'BOUNTY' | 'ALL';
 
 export interface GetContributionsParams {
   contribution_type?: ContributionType;

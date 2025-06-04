@@ -15,6 +15,8 @@ import KeyStats, { KeyStatsSkeleton } from './components/KeyStats';
 import { SearchEmpty } from '@/components/ui/SearchEmpty';
 import Moderation from './components/Moderation';
 import AuthorProfile from './components/AuthorProfile';
+import { useAuthorPublications } from '@/hooks/usePublications';
+import { transformPublicationToFeedEntry } from '@/types/publication';
 
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
@@ -80,7 +82,7 @@ function AuthorProfileError({ error }: { error: string }) {
 
 // Add this mapping at the component level
 const TAB_TO_CONTRIBUTION_TYPE: Record<string, ContributionType> = {
-  // contributions: 'ALL',
+  contributions: 'ALL',
   publications: 'ARTICLE',
   'peer-reviews': 'REVIEW',
   comments: 'CONVERSATION',
@@ -90,7 +92,7 @@ const TAB_TO_CONTRIBUTION_TYPE: Record<string, ContributionType> = {
 function AuthorTabs({ authorId }: { authorId: number }) {
   const [isPending, startTransition] = useTransition();
   const tabs = [
-    // { id: 'contributions', label: 'Overview' },
+    { id: 'contributions', label: 'Overview' },
     { id: 'publications', label: 'Publications' },
     { id: 'peer-reviews', label: 'Peer Reviews' },
     { id: 'comments', label: 'Comments' },
@@ -99,14 +101,32 @@ function AuthorTabs({ authorId }: { authorId: number }) {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentTab = searchParams.get('tab') || 'publications';
+  const currentTab = searchParams.get('tab') || 'contributions';
 
   // Get the contribution type based on the current tab
   const contributionType = TAB_TO_CONTRIBUTION_TYPE[currentTab] || 'ALL';
 
-  const { contributions, isLoading, error, hasMore, loadMore, isLoadingMore } = useContributions({
+  const {
+    contributions,
+    isLoading: isContributionsLoading,
+    error: contributionsError,
+    hasMore: hasMoreContributions,
+    loadMore: loadMoreContributions,
+    isLoadingMore: isLoadingMoreContributions,
+  } = useContributions({
     contribution_type: contributionType,
     author_id: authorId,
+  });
+
+  const {
+    publications,
+    isLoading: isPublicationsLoading,
+    error: publicationsError,
+    hasMore: hasMorePublications,
+    loadMore: loadMorePublications,
+    isLoadingMore: isLoadingMorePublications,
+  } = useAuthorPublications({
+    authorId,
   });
 
   const handleTabChange = (tabId: string) => {
@@ -118,8 +138,49 @@ function AuthorTabs({ authorId }: { authorId: number }) {
   };
 
   const renderTabContent = () => {
-    if (error) {
-      return <div>Error: {error.message}</div>;
+    if (currentTab === 'publications') {
+      if (publicationsError) {
+        return <div>Error: {publicationsError.message}</div>;
+      }
+
+      // Filter out invalid publications
+      const validPublications = publications.filter((publication) => {
+        try {
+          const entry = transformPublicationToFeedEntry(publication);
+          return !!entry; // Return true if transformation was successful
+        } catch (error) {
+          console.error('[Publication] Could not parse publication', error);
+          return false;
+        }
+      });
+
+      return (
+        <div>
+          <FeedContent
+            entries={
+              isPending
+                ? []
+                : validPublications.map((publication) =>
+                    transformPublicationToFeedEntry(publication)
+                  )
+            }
+            isLoading={isPending || isPublicationsLoading}
+            hasMore={hasMorePublications}
+            loadMore={loadMorePublications}
+            showBountyFooter={false}
+            hideActions={true}
+            isLoadingMore={isLoadingMorePublications}
+            showBountySupportAndCTAButtons={false}
+            showBountyDeadline={false}
+            noEntriesElement={<SearchEmpty title="No publications found." className="mb-10" />}
+            maxLength={150}
+          />
+        </div>
+      );
+    }
+
+    if (contributionsError) {
+      return <div>Error: {contributionsError.message}</div>;
     }
 
     let formattedContributions = contributions.map((contribution) =>
@@ -133,12 +194,12 @@ function AuthorTabs({ authorId }: { authorId: number }) {
       <div>
         <FeedContent
           entries={isPending ? [] : formattedContributions}
-          isLoading={isLoading || isPending}
-          hasMore={hasMore}
-          loadMore={loadMore}
+          isLoading={isPending || isContributionsLoading}
+          hasMore={hasMoreContributions}
+          loadMore={loadMoreContributions}
           showBountyFooter={false}
           hideActions={true}
-          isLoadingMore={isLoadingMore}
+          isLoadingMore={isLoadingMoreContributions}
           showBountySupportAndCTAButtons={false}
           showBountyDeadline={false}
           noEntriesElement={
