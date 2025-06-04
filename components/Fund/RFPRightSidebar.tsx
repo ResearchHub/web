@@ -46,7 +46,6 @@ export const RFPRightSidebar = () => {
           </Button>
         </div>
 
-        {/* The Problem Section */}
         <CollapsibleSection title="85% of funding is wasted">
           <CollapsibleItem
             title="Studies go unreported"
@@ -79,7 +78,6 @@ export const RFPRightSidebar = () => {
           </CollapsibleItem>
         </CollapsibleSection>
 
-        {/* Why Preregistration Section */}
         <CollapsibleSection title="Preregistration solves this">
           <CollapsibleItem
             title="Prevents p-hacking"
@@ -122,7 +120,6 @@ export const RFPRightSidebar = () => {
           </CollapsibleItem>
         </CollapsibleSection>
 
-        {/* How It Works for Funders */}
         <CollapsibleSection title="But wait there's more...">
           <CollapsibleItem
             title="Faster decisions"
