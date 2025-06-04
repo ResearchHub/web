@@ -48,6 +48,7 @@ export function ContactsSection() {
         placeholder="Search for contacts..."
         error={getFieldErrorMessage(errors.contacts, 'Invalid contacts')}
         debounceMs={500}
+        helperText="Add contacts who will be responsible for managing this grant. These contacts will receive important updates about the grant's progress."
       />
     </div>
   );
