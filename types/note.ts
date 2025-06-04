@@ -5,6 +5,7 @@ import { ID } from './root';
 import { ContentType } from './work';
 import { Fundraise, transformFundraise } from './funding';
 import { Topic, transformTopic } from './topic';
+import { Grant, transformGrant } from './grant';
 export type NoteAccess = 'WORKSPACE' | 'PRIVATE' | 'SHARED';
 
 export type Author = {
@@ -13,13 +14,20 @@ export type Author = {
   name: string;
 };
 
+export type Contact = {
+  id: number;
+  name: string;
+};
+
 export type Post = {
   id: number;
   slug: string;
   contentType: ContentType;
   fundraise?: Fundraise;
+  grant?: Grant;
   topics?: Topic[];
   authors?: Author[];
+  contacts?: Contact[];
   doi?: string;
   image?: string;
 };
@@ -65,6 +73,11 @@ export const transformAuthor = createTransformer<any, Author>((raw: any) => ({
   name: `${raw.first_name || ''} ${raw.last_name || ''}`.trim() || 'Unknown',
 }));
 
+export const transformContact = createTransformer<any, Contact>((raw) => ({
+  id: raw.id,
+  name: raw.name,
+}));
+
 export const transformPost = createTransformer<any, Post>((raw) => ({
   id: raw.id,
   slug: raw.slug,
@@ -77,10 +90,14 @@ export const transformPost = createTransformer<any, Post>((raw) => ({
   fundraise: raw.unified_document?.fundraise
     ? transformFundraise(raw.unified_document.fundraise)
     : undefined,
+  grant: raw.unified_document?.grant ? transformGrant(raw.unified_document.grant) : undefined,
   doi: raw.doi,
   topics: Array.isArray(raw.hubs) ? raw.hubs.map((hub: any) => transformTopic(hub)) : undefined,
   authors: Array.isArray(raw.authors)
     ? raw.authors.map((author: any) => transformAuthor(author))
+    : undefined,
+  contacts: Array.isArray(raw.contacts)
+    ? raw.contacts.map((contact: any) => transformContact(contact))
     : undefined,
   image: raw.image_url,
 }));

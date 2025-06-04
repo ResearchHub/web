@@ -10,10 +10,6 @@ import { formatTimestamp } from '@/utils/date';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Avatar } from '@/components/ui/Avatar';
 import { CommentSkeleton } from '@/components/skeletons/CommentSkeleton';
-import { WorkForm } from '../Work/WorkForm';
-import { Work } from '@/types';
-import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface SolutionModalProps {
   isOpen: boolean;

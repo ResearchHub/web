@@ -10,8 +10,6 @@ import { AuthorList } from '@/components/ui/AuthorList';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { AvatarStack } from '@/components/ui/AvatarStack';
-import { DeadlineDisplay } from '@/components/ui/DeadlineDisplay';
-import { formatDistanceStrict } from 'date-fns';
 
 interface BountyCarouselItemProps {
   entry: FeedEntry;

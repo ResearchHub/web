@@ -6,6 +6,7 @@ import { WorkTypeSection } from './components/WorkTypeSection';
 import { WorkImageSection } from './components/WorkImageSection';
 import { FundingSection } from './components/FundingSection';
 import { AuthorsSection } from './components/AuthorsSection';
+import { ContactsSection } from './components/ContactsSection';
 import { TopicsSection } from './components/TopicsSection';
 import { JournalSection } from './components/JournalSection';
 import { GrantDescriptionSection } from './components/GrantDescriptionSection';
@@ -93,7 +94,6 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       departmentLabName: '',
       shortDescription: '',
       organization: '',
-      fundingAmount: '',
       applicationDeadline: null,
     },
     resolver: zodResolver(publishingFormSchema),
@@ -116,7 +116,6 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         departmentLabName: '',
         shortDescription: '',
         organization: '',
-        fundingAmount: '',
         applicationDeadline: null,
       });
     }
@@ -144,14 +143,32 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       // Set budget fields based on article type
       if (note.post.contentType === 'preregistration') {
         methods.setValue('budget', note.post.fundraise?.goalAmount.usd.toString());
-      } else if (note.post.contentType === 'funding_request') {
-        methods.setValue('fundingAmount', note.post.fundraise?.goalAmount.usd.toString());
       }
 
       // Set application deadline for grants
-      if (note.post.contentType === 'funding_request' && (note.post as any).applicationDeadline) {
-        const deadline = new Date((note.post as any).applicationDeadline);
+      if (note.post.contentType === 'funding_request' && note.post.grant?.endDate) {
+        const deadline = new Date(note.post.grant.endDate);
         methods.setValue('applicationDeadline', deadline);
+      }
+
+      if (note.post.contentType === 'funding_request' && note.post.grant?.description) {
+        methods.setValue('shortDescription', note.post.grant.description);
+      }
+
+      if (note.post.contentType === 'funding_request' && note.post.grant?.organization) {
+        methods.setValue('organization', note.post.grant.organization);
+      }
+
+      if (note.post.contentType === 'funding_request' && note.post.grant?.amount) {
+        methods.setValue('budget', note.post.grant.amount.usd.toString());
+      }
+
+      if (note.post.contentType === 'funding_request' && note.post.contacts) {
+        const contactOptions = note.post.contacts.map((contact) => ({
+          value: contact.id.toString(),
+          label: contact.name,
+        }));
+        methods.setValue('contacts', contactOptions);
       }
 
       if (note.post.image) {
@@ -185,7 +202,11 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     const storedData = loadPublishingFormFromStorage(note?.id.toString() || '');
     if (storedData) {
       Object.entries(storedData).forEach(([key, value]) => {
-        methods.setValue(key as keyof PublishingFormData, value);
+        if (key === 'applicationDeadline') {
+          methods.setValue(key as keyof PublishingFormData, new Date(value));
+        } else {
+          methods.setValue(key as keyof PublishingFormData, value);
+        }
       });
     }
 
@@ -227,6 +248,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   const isJournalEnabled = watch('isJournalEnabled');
   const selectedNonprofit = watch('selectedNonprofit');
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
+
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const router = useRouter();
 
@@ -319,10 +341,8 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
 
       // Determine the budget value based on article type
       let budgetValue = '0';
-      if (formData.articleType === 'preregistration') {
+      if (formData.articleType === 'preregistration' || formData.articleType === 'grant') {
         budgetValue = formData.budget || '0';
-      } else if (formData.articleType === 'grant') {
-        budgetValue = formData.fundingAmount || '0';
       }
 
       const response = await upsertPost(
@@ -341,13 +361,23 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             .map((author) => author.value)
             .map(Number)
             .filter((id) => !isNaN(id)),
-          articleType:
-            formData.articleType === 'preregistration'
-              ? 'PREREGISTRATION'
-              : formData.articleType === 'grant'
-                ? 'GRANT'
-                : 'DISCUSSION',
+          contacts: formData.contacts
+            .map((contact) => contact.value)
+            .map(Number)
+            .filter((id) => !isNaN(id)),
+          articleType: (() => {
+            switch (formData.articleType) {
+              case 'preregistration':
+                return 'PREREGISTRATION';
+              case 'grant':
+                return 'GRANT';
+              default:
+                return 'DISCUSSION';
+            }
+          })(),
           image: imagePath,
+          organization: formData.organization,
+          description: formData.shortDescription,
           applicationDeadline: formData.applicationDeadline,
         },
         formData.workId
@@ -436,7 +466,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
                 <GrantOrganizationSection />
               </>
             )}
-            <AuthorsSection />
+            {articleType === 'grant' ? <ContactsSection /> : <AuthorsSection />}
             <TopicsSection />
             {note.post?.doi && (
               <div className="py-3 px-6 space-y-6">

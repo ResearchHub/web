@@ -14,6 +14,7 @@ export const publishingFormSchema = z
       invalid_type_error: 'Please select a valid work type',
     }),
     authors: z.array(optionSchema),
+    contacts: z.array(optionSchema),
     topics: z.array(optionSchema),
     budget: z.string().optional(),
     rewardFunders: z.boolean(),
@@ -37,7 +38,6 @@ export const publishingFormSchema = z
     departmentLabName: z.string().optional(),
     shortDescription: z.string().optional(),
     organization: z.string().optional(),
-    fundingAmount: z.string().optional(),
     applicationDeadline: z.date().nullable().optional(),
   })
   .superRefine((data, ctx) => {
@@ -50,13 +50,25 @@ export const publishingFormSchema = z
       });
     }
 
-    // Validate authors
-    if (data.authors.length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'At least one author is required',
-        path: ['authors'],
-      });
+    // Conditional validation for authors vs contacts based on article type
+    if (data.articleType === 'grant') {
+      // For grants: validate contacts
+      if (data.contacts.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'At least one contact is required for grants',
+          path: ['contacts'],
+        });
+      }
+    } else {
+      // For non-grants: validate authors
+      if (data.authors.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'At least one author is required',
+          path: ['authors'],
+        });
+      }
     }
 
     // Preregistration-specific validations
@@ -92,22 +104,22 @@ export const publishingFormSchema = z
         });
       }
 
-      // Validate organization
-      if (!data.organization || data.organization.trim().length === 0) {
+      // Validate organization (optional, but max 200 chars if provided)
+      if (data.organization && data.organization.trim().length > 200) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Organization is required for grants',
+          message: 'Organization name must be 200 characters or less',
           path: ['organization'],
         });
       }
 
       // Validate funding amount
-      const num = parseFloat(data.fundingAmount?.replace(/[^0-9.]/g, '') || '0');
+      const num = parseFloat(data.budget?.replace(/[^0-9.]/g, '') || '0');
       if (num <= 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'Funding amount must be greater than 0',
-          path: ['fundingAmount'],
+          path: ['budget'],
         });
       }
 

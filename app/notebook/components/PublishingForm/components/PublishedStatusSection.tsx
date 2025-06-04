@@ -27,7 +27,9 @@ export function PublishedStatusSection() {
               href={
                 articleType === 'preregistration'
                   ? `/fund/${workId}/${slug}`
-                  : `/post/${workId}/${slug}`
+                  : articleType === 'funding_request'
+                    ? `/grant/${workId}/${slug}`
+                    : `/post/${workId}/${slug}`
               }
               className="text-gray-400 hover:text-gray-600 transition-colors"
               target="_blank"

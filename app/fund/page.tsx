@@ -24,9 +24,10 @@ export default function FundingPage() {
   };
 
   const { entries, isLoading, hasMore, loadMore } = useFeed(activeFundingTab, {
-    contentType: 'PREREGISTRATION',
-    endpoint: 'funding_feed',
-    fundraiseStatus: getFundraiseStatus(activeFundingTab),
+    contentType: activeMarketplaceTab === 'needs-funding' ? 'PREREGISTRATION' : 'GRANT',
+    endpoint: activeMarketplaceTab === 'needs-funding' ? 'funding_feed' : 'grant_feed',
+    fundraiseStatus:
+      activeMarketplaceTab === 'needs-funding' ? getFundraiseStatus(activeFundingTab) : undefined,
   });
 
   const handleMarketplaceTabChange = (tab: MarketplaceTab) => {
@@ -63,24 +64,13 @@ export default function FundingPage() {
         onStatusChange={handleStatusChange}
       />
 
-      {/* Conditional Content */}
-      {activeMarketplaceTab === 'needs-funding' ? (
-        <>
-          {/* Research Funding Section - No secondary tabs needed since dropdown handles filtering */}
-          <FeedContent
-            entries={entries}
-            isLoading={isLoading}
-            hasMore={hasMore}
-            loadMore={loadMore}
-            activeTab={activeFundingTab as any}
-          />
-        </>
-      ) : (
-        <>
-          {/* Grants Section - No secondary tabs */}
-          <GrantsFeed grants={mockGrants} activeTab="all" isLoading={isLoading} />
-        </>
-      )}
+      <FeedContent
+        entries={entries}
+        isLoading={isLoading}
+        hasMore={hasMore}
+        loadMore={loadMore}
+        activeTab={activeFundingTab as any}
+      />
     </PageLayout>
   );
 }

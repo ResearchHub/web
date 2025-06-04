@@ -17,9 +17,6 @@ import { useFeed } from '@/hooks/useFeed';
 import { ArrowRightIcon } from 'lucide-react';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { LeaderboardOverview } from '@/components/Leaderboard/LeaderboardOverview';
-import { useRecentWorks } from '@/hooks/useRecentWorks';
-import { Work } from '@/types';
-import { useTrendingWorks } from '@/hooks/useTrendingWorks';
 
 // Dynamically import InfoBanner component
 const InfoBanner = dynamic(() => import('./components/InfoBanner').then((mod) => mod.InfoBanner), {

@@ -3,7 +3,13 @@
 import { FC, ReactNode } from 'react';
 import React from 'react';
 import { FeedItemSkeleton } from './FeedItemSkeleton';
-import { FeedEntry, FeedPostContent, FeedPaperContent, FeedBountyContent } from '@/types/feed';
+import {
+  FeedEntry,
+  FeedPostContent,
+  FeedPaperContent,
+  FeedBountyContent,
+  FeedGrantContent,
+} from '@/types/feed';
 import { Comment } from '@/types/comment';
 import { FeedItemFundraise } from './items/FeedItemFundraise';
 import { FeedItemPaper } from './items/FeedItemPaper';
@@ -14,6 +20,7 @@ import { FundingCarousel } from '@/components/Fund/FundingCarousel';
 import { BountiesCarousel } from '@/components/Earn/BountiesCarousel';
 import { FeedTab } from '@/hooks/useFeed'; // Import FeedTab type
 import { Button } from '../ui/Button';
+import { FeedItemGrant } from './items/FeedItemGrant';
 
 interface FeedContentProps {
   entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry
@@ -84,6 +91,10 @@ export const FeedContent: FC<FeedContentProps> = ({
           } else {
             return `/post/${entry?.relatedWork?.id}/${entry?.relatedWork?.slug}/conversation#comment-${comment.id}`;
           }
+
+        case 'GRANT':
+          const grantContent = entry.content as FeedGrantContent;
+          return `/grant/${grantContent.id}/${grantContent.slug}`;
 
         default:
           return undefined;
@@ -170,6 +181,17 @@ export const FeedContent: FC<FeedContentProps> = ({
               showCreatorActions={true}
               workContentType={entry.relatedWork?.contentType}
               hideActions={hideActions}
+              maxLength={maxLength}
+            />
+          );
+          break;
+
+        case 'GRANT':
+          content = (
+            <FeedItemGrant
+              entry={entry}
+              href={href}
+              showActions={!hideActions}
               maxLength={maxLength}
             />
           );
