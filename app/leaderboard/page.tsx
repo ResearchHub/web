@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { LeaderboardService } from '@/services/leaderboard.service';
-import { TopReviewer, TopFunder } from '@/types/leaderboard';
+import { TopReviewer, TopFunder, TopAuthor, TopHub } from '@/types/leaderboard';
 import { Avatar } from '@/components/ui/Avatar';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Button } from '@/components/ui/Button';
@@ -15,6 +15,8 @@ import {
   ChevronDownIcon,
   Calendar as CalendarIcon,
   ChartNoAxesColumnIncreasing,
+  Users,
+  BookOpen,
 } from 'lucide-react';
 import {
   formatDate,
@@ -227,6 +229,8 @@ function LeaderboardPageContent() {
 
   const [reviewers, setReviewers] = useState<TopReviewer[]>([]);
   const [funders, setFunders] = useState<TopFunder[]>([]);
+  const [authors, setAuthors] = useState<TopAuthor[]>([]);
+  const [hubs, setHubs] = useState<TopHub[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -281,6 +285,8 @@ function LeaderboardPageContent() {
       setError('Invalid date range selected.');
       setReviewers([]);
       setFunders([]);
+      setAuthors([]);
+      setHubs([]);
       return;
     }
 
@@ -303,17 +309,35 @@ function LeaderboardPageContent() {
           // Filter out reviewers with 0 RSC
           setReviewers(data.filter((reviewer) => reviewer.earnedRsc > 0));
           setFunders([]);
-        } else {
+          setAuthors([]);
+          setHubs([]);
+        } else if (activeTab === 'funders') {
           const data = await LeaderboardService.fetchFunders(startStr, endStr);
           // Filter out funders with 0 RSC
           setFunders(data.filter((funder) => funder.totalFunding > 0));
           setReviewers([]);
+          setAuthors([]);
+          setHubs([]);
+        } else if (activeTab === 'authors') {
+          const data = await LeaderboardService.fetchAuthors(startStr, endStr);
+          setAuthors(data);
+          setReviewers([]);
+          setFunders([]);
+          setHubs([]);
+        } else if (activeTab === 'hubs') {
+          const data = await LeaderboardService.fetchHubs(startStr, endStr);
+          setHubs(data);
+          setReviewers([]);
+          setFunders([]);
+          setAuthors([]);
         }
       } catch (err) {
         console.error(`Failed to fetch ${activeTab}:`, err);
         setError(`Failed to load ${activeTab} data.`);
         setReviewers([]);
         setFunders([]);
+        setAuthors([]);
+        setHubs([]);
       } finally {
         setIsLoading(false);
       }
@@ -366,6 +390,8 @@ function LeaderboardPageContent() {
   const leaderboardTabs = [
     { id: 'reviewers', label: 'Top Reviewers' },
     { id: 'funders', label: 'Top Funders' },
+    { id: 'authors', label: 'Top Authors' },
+    { id: 'hubs', label: 'Top Hubs' },
   ];
 
   const currentEffectivePreset =
@@ -574,71 +600,175 @@ function LeaderboardPageContent() {
           ) : (
             <p className="text-center text-gray-500 py-4">No reviewers found for this period.</p>
           )
-        ) : funders.length > 0 ? (
-          <div className="space-y-2">
-            {funders.map((funder, index) => {
-              const rank = index + 1;
-              const authorId = funder.authorProfile?.id;
-              return (
-                <div
-                  key={funder.id}
-                  onClick={() =>
-                    funder.authorProfile?.id && navigateToAuthorProfile(funder.authorProfile.id)
-                  }
-                  className="flex items-center justify-between hover:bg-gray-100 p-4 rounded-lg border cursor-pointer"
-                >
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
-                    {renderRank(rank)}
-                    {authorId ? (
-                      <AuthorTooltip authorId={authorId}>
+        ) : activeTab === 'funders' ? (
+          funders.length > 0 ? (
+            <div className="space-y-2">
+              {funders.map((funder, index) => {
+                const rank = index + 1;
+                const authorId = funder.authorProfile?.id;
+                return (
+                  <div
+                    key={funder.id}
+                    onClick={() =>
+                      funder.authorProfile?.id && navigateToAuthorProfile(funder.authorProfile.id)
+                    }
+                    className="flex items-center justify-between hover:bg-gray-100 p-4 rounded-lg border cursor-pointer"
+                  >
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      {renderRank(rank)}
+                      {authorId ? (
+                        <AuthorTooltip authorId={authorId}>
+                          <Avatar
+                            src={funder.authorProfile.profileImage}
+                            alt={funder.authorProfile.fullName}
+                            size="md"
+                            authorId={authorId}
+                          />
+                        </AuthorTooltip>
+                      ) : (
                         <Avatar
                           src={funder.authorProfile.profileImage}
                           alt={funder.authorProfile.fullName}
                           size="md"
-                          authorId={authorId}
                         />
-                      </AuthorTooltip>
-                    ) : (
-                      <Avatar
-                        src={funder.authorProfile.profileImage}
-                        alt={funder.authorProfile.fullName}
-                        size="md"
-                      />
-                    )}
-                    <div className="flex flex-col min-w-0">
-                      {authorId ? (
-                        <AuthorTooltip authorId={authorId}>
+                      )}
+                      <div className="flex flex-col min-w-0">
+                        {authorId ? (
+                          <AuthorTooltip authorId={authorId}>
+                            <span className="text-base font-medium text-gray-900 truncate">
+                              {funder.authorProfile.fullName}
+                            </span>
+                          </AuthorTooltip>
+                        ) : (
                           <span className="text-base font-medium text-gray-900 truncate">
                             {funder.authorProfile.fullName}
                           </span>
+                        )}
+                        {funder.authorProfile.headline && (
+                          <span className="text-sm text-gray-500 truncate block">
+                            {funder.authorProfile.headline}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <CurrencyBadge
+                      amount={funder.totalFunding}
+                      variant="text"
+                      size="md"
+                      label="RSC Funded"
+                      showExchangeRate={true}
+                      textColor="text-gray-700"
+                      currencyLabelColor="text-gray-500"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500 py-4">No funders found for this period.</p>
+          )
+        ) : activeTab === 'authors' ? (
+          authors.length > 0 ? (
+            <div className="space-y-2">
+              {authors.map((author, index) => {
+                const rank = index + 1;
+                const authorId = author.authorProfile?.id;
+                return (
+                  <div
+                    key={author.id}
+                    onClick={() =>
+                      author.authorProfile?.id && navigateToAuthorProfile(author.authorProfile.id)
+                    }
+                    className="flex items-center justify-between hover:bg-gray-100 p-4 rounded-lg border cursor-pointer"
+                  >
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      {renderRank(rank)}
+                      {authorId ? (
+                        <AuthorTooltip authorId={authorId}>
+                          <Avatar
+                            src={author.authorProfile.profileImage}
+                            alt={author.authorProfile.fullName}
+                            size="md"
+                            authorId={authorId}
+                          />
                         </AuthorTooltip>
                       ) : (
-                        <span className="text-base font-medium text-gray-900 truncate">
-                          {funder.authorProfile.fullName}
-                        </span>
+                        <Avatar
+                          src={author.authorProfile.profileImage}
+                          alt={author.authorProfile.fullName}
+                          size="md"
+                        />
                       )}
-                      {funder.authorProfile.headline && (
-                        <span className="text-sm text-gray-500 truncate block">
-                          {funder.authorProfile.headline}
-                        </span>
-                      )}
+                      <div className="flex flex-col min-w-0">
+                        {authorId ? (
+                          <AuthorTooltip authorId={authorId}>
+                            <span className="text-base font-medium text-gray-900 truncate">
+                              {author.authorProfile.fullName}
+                            </span>
+                          </AuthorTooltip>
+                        ) : (
+                          <span className="text-base font-medium text-gray-900 truncate">
+                            {author.authorProfile.fullName}
+                          </span>
+                        )}
+                        {author.authorProfile.headline && (
+                          <span className="text-sm text-gray-500 truncate block">
+                            {author.authorProfile.headline}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-base font-medium text-gray-900 flex items-center gap-1">
+                        <Users className="w-4 h-4" />
+                        {author.impactScore.toLocaleString()}
+                      </div>
+                      <div className="text-sm text-gray-500">followers</div>
                     </div>
                   </div>
-                  <CurrencyBadge
-                    amount={funder.totalFunding}
-                    variant="text"
-                    size="md"
-                    label="RSC Funded"
-                    showExchangeRate={true}
-                    textColor="text-gray-700"
-                    currencyLabelColor="text-gray-500"
-                  />
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500 py-4">No authors found for this period.</p>
+          )
+        ) : hubs.length > 0 ? (
+          <div className="space-y-2">
+            {hubs.map((hub, index) => {
+              const rank = index + 1;
+              return (
+                <div
+                  key={hub.id}
+                  onClick={() => (window.location.href = `/hub/${hub.slug}`)}
+                  className="flex items-center justify-between hover:bg-gray-100 p-4 rounded-lg border cursor-pointer"
+                >
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    {renderRank(rank)}
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                      {hub.name.charAt(0)}
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-base font-medium text-gray-900 truncate">
+                        {hub.name}
+                      </span>
+                      <span className="text-sm text-gray-500 truncate block">
+                        {hub.description}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-base font-medium text-gray-900 flex items-center gap-1">
+                      <Users className="w-4 h-4" />
+                      {hub.totalEngagement.toLocaleString()}
+                    </div>
+                    <div className="text-sm text-gray-500">followers</div>
+                  </div>
                 </div>
               );
             })}
           </div>
         ) : (
-          <p className="text-center text-gray-500 py-4">No funders found for this period.</p>
+          <p className="text-center text-gray-500 py-4">No hubs found for this period.</p>
         )}
       </div>
 

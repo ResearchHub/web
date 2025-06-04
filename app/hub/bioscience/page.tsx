@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { BioScienceRightSidebar } from '@/components/Hub/BioScienceRightSidebar';
+import { JournalHighlightsCarousel } from '@/components/Hub/JournalHighlightsCarousel';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { Tabs } from '@/components/ui/Tabs';
 import { BookOpen, Sparkles, Users } from 'lucide-react';
@@ -11,6 +12,289 @@ import { FeedEntry } from '@/types/feed';
 import Link from 'next/link';
 
 type BioScienceTab = 'all-submissions' | 'in-review' | 'published';
+
+// Mock data for Journal Highlights - featured/pinned content
+const mockJournalHighlights: FeedEntry[] = [
+  {
+    id: 'highlight-1',
+    timestamp: '2024-01-16T08:00:00Z',
+    action: 'publish',
+    contentType: 'PAPER',
+    content: {
+      id: 9500001,
+      contentType: 'PAPER',
+      createdDate: '2024-01-16T08:00:00Z',
+      textPreview:
+        'Revolutionary breakthrough in cancer immunotherapy using engineered CAR-T cells targeting multiple tumor antigens simultaneously. Our novel multi-targeting approach shows unprecedented 95% complete remission rates in clinical trials for previously untreatable pancreatic cancer, opening new avenues for personalized cancer treatment.',
+      slug: 'revolutionary-car-t-cancer-immunotherapy',
+      title:
+        'Revolutionary Multi-Target CAR-T Cell Therapy Achieves 95% Remission in Pancreatic Cancer',
+      authors: [
+        {
+          id: 101,
+          fullName: 'Dr. Maria Gonzalez',
+          firstName: 'Maria',
+          lastName: 'Gonzalez',
+          profileImage:
+            'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=150&h=150&fit=crop&crop=face',
+          headline: 'Cancer Immunologist & CAR-T Researcher',
+          profileUrl: '/author/maria-gonzalez',
+          isClaimed: true,
+        },
+        {
+          id: 102,
+          fullName: 'Dr. Robert Kim',
+          firstName: 'Robert',
+          lastName: 'Kim',
+          profileImage:
+            'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=150&h=150&fit=crop&crop=face',
+          headline: 'Oncologist',
+          profileUrl: '/author/robert-kim',
+          isClaimed: true,
+        },
+      ],
+      topics: [
+        {
+          id: 11,
+          name: 'Cancer Research',
+          slug: 'cancer-research',
+        },
+        {
+          id: 12,
+          name: 'Immunotherapy',
+          slug: 'immunotherapy',
+        },
+      ],
+      createdBy: {
+        id: 101,
+        fullName: 'Dr. Maria Gonzalez',
+        firstName: 'Maria',
+        lastName: 'Gonzalez',
+        profileImage:
+          'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=150&h=150&fit=crop&crop=face',
+        headline: 'Cancer Immunologist & CAR-T Researcher',
+        profileUrl: '/author/maria-gonzalez',
+        isClaimed: true,
+      },
+      journal: {
+        id: 1,
+        name: 'BioScience',
+        slug: 'bioscience',
+        description: 'Leading journal in biological sciences',
+      },
+      workType: 'published',
+    },
+    metrics: {
+      votes: 892,
+      comments: 156,
+      saves: 234,
+    },
+    highlightType: 'breakthrough',
+  } as FeedEntry & { highlightType: string },
+  {
+    id: 'highlight-2',
+    timestamp: '2024-01-15T14:30:00Z',
+    action: 'publish',
+    contentType: 'PAPER',
+    content: {
+      id: 9500002,
+      contentType: 'PAPER',
+      createdDate: '2024-01-15T14:30:00Z',
+      textPreview:
+        "Comprehensive meta-analysis of 50,000 patients reveals that specific gut microbiome signatures can predict Alzheimer's disease onset up to 10 years before clinical symptoms appear. This discovery enables early intervention strategies and represents a major advance in neurodegenerative disease prevention.",
+      slug: 'gut-microbiome-alzheimers-prediction',
+      title: "Gut Microbiome Signatures Predict Alzheimer's Disease 10 Years Before Symptoms",
+      authors: [
+        {
+          id: 103,
+          fullName: 'Dr. Jennifer Wu',
+          firstName: 'Jennifer',
+          lastName: 'Wu',
+          profileImage:
+            'https://images.unsplash.com/photo-1594824911330-82b37e8ae9ef?w=150&h=150&fit=crop&crop=face',
+          headline: 'Microbiome & Neuroscience Researcher',
+          profileUrl: '/author/jennifer-wu',
+          isClaimed: true,
+        },
+      ],
+      topics: [
+        {
+          id: 13,
+          name: 'Neuroscience',
+          slug: 'neuroscience',
+        },
+        {
+          id: 14,
+          name: 'Microbiome',
+          slug: 'microbiome',
+        },
+      ],
+      createdBy: {
+        id: 103,
+        fullName: 'Dr. Jennifer Wu',
+        firstName: 'Jennifer',
+        lastName: 'Wu',
+        profileImage:
+          'https://images.unsplash.com/photo-1594824911330-82b37e8ae9ef?w=150&h=150&fit=crop&crop=face',
+        headline: 'Microbiome & Neuroscience Researcher',
+        profileUrl: '/author/jennifer-wu',
+        isClaimed: true,
+      },
+      journal: {
+        id: 1,
+        name: 'BioScience',
+        slug: 'bioscience',
+        description: 'Leading journal in biological sciences',
+      },
+      workType: 'published',
+    },
+    metrics: {
+      votes: 1247,
+      comments: 203,
+      saves: 456,
+    },
+    highlightType: 'editors-choice',
+  } as FeedEntry & { highlightType: string },
+  {
+    id: 'highlight-3',
+    timestamp: '2024-01-14T16:45:00Z',
+    action: 'publish',
+    contentType: 'PAPER',
+    content: {
+      id: 9500003,
+      contentType: 'PAPER',
+      createdDate: '2024-01-14T16:45:00Z',
+      textPreview:
+        'Novel coral restoration technique using 3D-printed calcium carbonate structures and symbiotic algae cultivation shows remarkable success in reviving bleached reef ecosystems. Our method demonstrates 300% faster coral growth rates and enhanced resistance to ocean acidification.',
+      slug: 'novel-coral-restoration-3d-printing',
+      title: '3D-Printed Coral Restoration Achieves 300% Faster Reef Recovery Rates',
+      authors: [
+        {
+          id: 104,
+          fullName: 'Dr. Ahmed Hassan',
+          firstName: 'Ahmed',
+          lastName: 'Hassan',
+          profileImage:
+            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+          headline: 'Marine Conservation Biologist',
+          profileUrl: '/author/ahmed-hassan',
+          isClaimed: true,
+        },
+        {
+          id: 105,
+          fullName: 'Dr. Lisa Thompson',
+          firstName: 'Lisa',
+          lastName: 'Thompson',
+          profileImage:
+            'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&h=150&fit=crop&crop=face',
+          headline: 'Bioengineering Specialist',
+          profileUrl: '/author/lisa-thompson',
+          isClaimed: true,
+        },
+      ],
+      topics: [
+        {
+          id: 15,
+          name: 'Conservation Biology',
+          slug: 'conservation-biology',
+        },
+        {
+          id: 16,
+          name: 'Bioengineering',
+          slug: 'bioengineering',
+        },
+      ],
+      createdBy: {
+        id: 104,
+        fullName: 'Dr. Ahmed Hassan',
+        firstName: 'Ahmed',
+        lastName: 'Hassan',
+        profileImage:
+          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+        headline: 'Marine Conservation Biologist',
+        profileUrl: '/author/ahmed-hassan',
+        isClaimed: true,
+      },
+      journal: {
+        id: 1,
+        name: 'BioScience',
+        slug: 'bioscience',
+        description: 'Leading journal in biological sciences',
+      },
+      workType: 'published',
+    },
+    metrics: {
+      votes: 658,
+      comments: 89,
+      saves: 178,
+    },
+    highlightType: 'most-cited',
+  } as FeedEntry & { highlightType: string },
+  {
+    id: 'highlight-4',
+    timestamp: '2024-01-13T11:20:00Z',
+    action: 'publish',
+    contentType: 'PAPER',
+    content: {
+      id: 9500004,
+      contentType: 'PAPER',
+      createdDate: '2024-01-13T11:20:00Z',
+      textPreview:
+        'Groundbreaking discovery of photosynthetic mechanisms in deep-sea organisms reveals new possibilities for sustainable energy production. These organisms convert chemical energy with 95% efficiency, potentially revolutionizing renewable energy technologies.',
+      slug: 'deep-sea-photosynthesis-energy-production',
+      title: 'Deep-Sea Organisms Unlock 95% Efficient Energy Conversion for Renewable Technologies',
+      authors: [
+        {
+          id: 106,
+          fullName: 'Dr. Yuki Tanaka',
+          firstName: 'Yuki',
+          lastName: 'Tanaka',
+          profileImage:
+            'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&h=150&fit=crop&crop=face',
+          headline: 'Marine Biochemist',
+          profileUrl: '/author/yuki-tanaka',
+          isClaimed: true,
+        },
+      ],
+      topics: [
+        {
+          id: 17,
+          name: 'Marine Biology',
+          slug: 'marine-biology',
+        },
+        {
+          id: 18,
+          name: 'Renewable Energy',
+          slug: 'renewable-energy',
+        },
+      ],
+      createdBy: {
+        id: 106,
+        fullName: 'Dr. Yuki Tanaka',
+        firstName: 'Yuki',
+        lastName: 'Tanaka',
+        profileImage:
+          'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&h=150&fit=crop&crop=face',
+        headline: 'Marine Biochemist',
+        profileUrl: '/author/yuki-tanaka',
+        isClaimed: true,
+      },
+      journal: {
+        id: 1,
+        name: 'BioScience',
+        slug: 'bioscience',
+        description: 'Leading journal in biological sciences',
+      },
+      workType: 'published',
+    },
+    metrics: {
+      votes: 445,
+      comments: 67,
+      saves: 123,
+    },
+    highlightType: 'trending',
+  } as FeedEntry & { highlightType: string },
+];
 
 // Mock data for BioScience papers
 const mockBioScienceFeed: FeedEntry[] = [
@@ -353,6 +637,9 @@ export default function BioScienceHubPage() {
   return (
     <PageLayout rightSidebar={<BioScienceRightSidebar />} maxWidth="wide">
       <div className="max-w-4xl mx-auto">{header}</div>
+      <div className="max-w-4xl mx-auto">
+        <JournalHighlightsCarousel highlights={mockJournalHighlights} />
+      </div>
       <div className="max-w-4xl mx-auto">
         <div className="border-b">{feedTabs}</div>
         {tabBanner && <div className="mt-6">{tabBanner}</div>}
