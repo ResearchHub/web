@@ -28,6 +28,7 @@ export interface PreregistrationPostParams {
   applicationDeadline?: Date | null;
   organization?: string | null;
   description?: string | null;
+  contacts?: number[];
 }
 
 interface UsePostState {
@@ -93,6 +94,7 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         payload.grant_organization = postParams.organization;
         payload.grant_description = postParams.description;
         payload.grant_end_date = postParams.applicationDeadline?.toISOString() || null;
+        payload.grant_contacts = postParams.contacts;
       }
 
       const response = (await PostService.upsert(payload)) as TransformedWork;

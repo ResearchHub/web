@@ -6,6 +6,7 @@ import { WorkTypeSection } from './components/WorkTypeSection';
 import { WorkImageSection } from './components/WorkImageSection';
 import { FundingSection } from './components/FundingSection';
 import { AuthorsSection } from './components/AuthorsSection';
+import { ContactsSection } from './components/ContactsSection';
 import { TopicsSection } from './components/TopicsSection';
 import { JournalSection } from './components/JournalSection';
 import { GrantDescriptionSection } from './components/GrantDescriptionSection';
@@ -164,6 +165,14 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
 
       if (note.post.contentType === 'funding_request' && note.post.grant?.amount) {
         methods.setValue('budget', note.post.grant.amount.usd.toString());
+      }
+
+      if (note.post.contentType === 'funding_request' && note.post.contacts) {
+        const contactOptions = note.post.contacts.map((contact) => ({
+          value: contact.id.toString(),
+          label: contact.name,
+        }));
+        methods.setValue('contacts', contactOptions);
       }
 
       if (note.post.image) {
@@ -357,6 +366,10 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             .map((author) => author.value)
             .map(Number)
             .filter((id) => !isNaN(id)),
+          contacts: formData.contacts
+            .map((contact) => contact.value)
+            .map(Number)
+            .filter((id) => !isNaN(id)),
           articleType: (() => {
             switch (formData.articleType) {
               case 'preregistration':
@@ -462,7 +475,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
                 <GrantOrganizationSection />
               </>
             )}
-            <AuthorsSection />
+            {articleType === 'grant' ? <ContactsSection /> : <AuthorsSection />}
             <TopicsSection />
             {note.post?.doi && (
               <div className="py-3 px-6 space-y-6">

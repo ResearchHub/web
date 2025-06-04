@@ -20,7 +20,6 @@ export function AuthorsSection() {
   const [authorOptions, setAuthorOptions] = useState<MultiSelectOption[]>([]);
 
   const authors = watch('authors') || [];
-  const articleType = watch('articleType');
 
   useEffect(() => {
     if (users?.users) {
@@ -37,7 +36,7 @@ export function AuthorsSection() {
 
   return (
     <div className="py-3 px-6">
-      <SectionHeader icon={Users}>{articleType === 'grant' ? 'Contacts' : 'Authors'}</SectionHeader>
+      <SectionHeader icon={Users}>Authors</SectionHeader>
       <SearchableMultiSelect
         value={authors}
         onChange={(newAuthors) => setValue('authors', newAuthors, { shouldValidate: true })}
