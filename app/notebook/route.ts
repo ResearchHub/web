@@ -4,6 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/auth.config';
 import { OrganizationService } from '@/services/organization.service';
 import { NoteService } from '@/services/note.service';
 import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
+import rfpTemplate from '@/components/Editor/lib/data/rfpTemplate';
 import { getInitialContent, initialContent } from '@/components/Editor/lib/data/initialContent';
 import { getDocumentTitle } from '@/components/Editor/lib/utils/documentTitle';
 import { selectOrganization } from '@/contexts/utils/organizationSelection';
@@ -19,7 +20,7 @@ async function createNoteWithContent(
     queryParam,
     queryValue,
   }: {
-    template: typeof preregistrationTemplate | typeof initialContent;
+    template: typeof preregistrationTemplate | typeof initialContent | typeof rfpTemplate;
     queryParam?: string;
     queryValue?: string;
   }
@@ -56,6 +57,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const isNewFunding = searchParams.get('newFunding') === 'true';
   const isNewResearch = searchParams.get('newResearch') === 'true';
+  const isNewRfp = searchParams.get('newRfp') === 'true';
   const targetOrgSlug = searchParams.get('orgSlug');
 
   const organizations = await OrganizationService.getUserOrganizations(session);
@@ -80,6 +82,12 @@ export async function GET(request: Request) {
     return createNoteWithContent(selectedOrg.slug, {
       template: getInitialContent('research'),
       queryParam: 'newResearch',
+      queryValue: 'true',
+    });
+  } else if (isNewRfp) {
+    return createNoteWithContent(selectedOrg.slug, {
+      template: rfpTemplate,
+      queryParam: 'newRfp',
       queryValue: 'true',
     });
   }
