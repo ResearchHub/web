@@ -8,8 +8,8 @@ interface DocumentContent {
   content?: Array<{
     type: string;
     text?: string;
-    marks?: Array<{ type: string; [key: string]: any }>; // Added marks for bold/italic etc.
-    content?: DocumentContent[]; // For nested content like list items
+    marks?: Array<{ type: string; [key: string]: any }>;
+    content?: DocumentContent[];
   }>;
 }
 
