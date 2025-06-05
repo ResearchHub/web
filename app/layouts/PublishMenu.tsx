@@ -23,6 +23,10 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
     router.push('/notebook?newFunding=true');
   };
 
+  const handleOpenGrant = () => {
+    router.push('/notebook?newGrant=true');
+  };
+
   const handleCreateBounty = () => {
     router.push('/bounty/create');
   };
@@ -142,12 +146,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
               </BaseMenuItem>
 
               <BaseMenuItem
-                onClick={() =>
-                  window.open(
-                    'https://airtable.com/appZxEWpnNR2IEHpu/pagsytsewpnWbeLR0/form',
-                    '_blank'
-                  )
-                }
+                onClick={() => executeAuthenticatedAction(handleOpenGrant)}
                 className="w-full px-2"
               >
                 <div className="flex items-start gap-3">
@@ -282,12 +281,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
               </BaseMenuItem>
 
               <BaseMenuItem
-                onClick={() =>
-                  window.open(
-                    'https://airtable.com/appZxEWpnNR2IEHpu/pagsytsewpnWbeLR0/form',
-                    '_blank'
-                  )
-                }
+                onClick={() => executeAuthenticatedAction(handleOpenGrant)}
                 className="w-full px-2"
               >
                 <div className="flex items-start gap-3">
