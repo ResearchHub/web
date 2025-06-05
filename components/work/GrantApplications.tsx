@@ -15,11 +15,8 @@ import {
   FeedContentType,
 } from '@/types/feed';
 import { FeedItemApplication } from '@/components/Feed/items/FeedItemApplication';
-import {
-  ApplyToGrantModal,
-  PreregistrationForModal,
-  mockPreregistrations,
-} from '@/components/modals/ApplyToGrantModal';
+import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
+import { PreregistrationForModal } from '@/services/post.service';
 import { ContentType } from '@/types/work';
 
 interface GrantApplicationsProps {
@@ -245,7 +242,6 @@ const mockRawApplicationsData: MockApplicationRawData[] = [
 export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
   const [sortBy, setSortBy] = useState<string>('personalized');
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
-  const [selectedPreregId, setSelectedPreregId] = useState<string | null>(null);
 
   const entries = useMemo(() => {
     try {
@@ -322,13 +318,11 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
       grantId
     );
     setIsApplyModalOpen(false);
-    setSelectedPreregId(null);
   };
 
   const handleDraftNewPrereg = () => {
     console.log('Draft new preregistration from GrantApplications for grantId:', grantId);
     setIsApplyModalOpen(false);
-    setSelectedPreregId(null);
   };
 
   return (
@@ -343,7 +337,6 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
           size="sm"
           className="flex items-center gap-1"
           onClick={() => {
-            setSelectedPreregId(null);
             setIsApplyModalOpen(true);
           }}
         >
@@ -389,11 +382,9 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
       <ApplyToGrantModal
         isOpen={isApplyModalOpen}
         onClose={() => setIsApplyModalOpen(false)}
-        preregistrations={mockPreregistrations} // Using mock data for now
-        selectedPreregId={selectedPreregId}
-        onSelectPreregId={setSelectedPreregId}
         onUseSelected={handleUseSelectedPrereg}
         onDraftNew={handleDraftNewPrereg}
+        grantId={grantId}
       />
     </div>
   );

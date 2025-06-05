@@ -6,11 +6,8 @@ import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatRSC } from '@/utils/number';
 import { Button } from '@/components/ui/Button';
-import {
-  ApplyToGrantModal,
-  PreregistrationForModal,
-  mockPreregistrations,
-} from '@/components/modals/ApplyToGrantModal';
+import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
+import { PreregistrationForModal } from '@/services/post.service';
 import { Work } from '@/types/work';
 
 interface GrantAmountSectionProps {
@@ -22,7 +19,6 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
   const { exchangeRate, isLoading: isLoadingExchangeRate } = useExchangeRate();
 
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
-  const [selectedPreregId, setSelectedPreregId] = useState<string | null>(null);
 
   if (!work.note?.post?.grant?.amount) {
     return null;
@@ -36,13 +32,11 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
       work.id
     );
     setIsApplyModalOpen(false);
-    setSelectedPreregId(null);
   };
 
   const handleDraftNewPrereg = () => {
     console.log('Draft new preregistration from GrantAmountSection for workId:', work.id);
     setIsApplyModalOpen(false);
-    setSelectedPreregId(null);
   };
 
   return (
@@ -83,7 +77,6 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
 
         <Button
           onClick={() => {
-            setSelectedPreregId(null);
             setIsApplyModalOpen(true);
           }}
           className="w-full mt-3"
@@ -96,11 +89,9 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
       <ApplyToGrantModal
         isOpen={isApplyModalOpen}
         onClose={() => setIsApplyModalOpen(false)}
-        preregistrations={mockPreregistrations}
-        selectedPreregId={selectedPreregId}
-        onSelectPreregId={setSelectedPreregId}
         onUseSelected={handleUseSelectedPrereg}
         onDraftNew={handleDraftNewPrereg}
+        grantId={workId || 0}
       />
     </>
   );

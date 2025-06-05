@@ -26,7 +26,7 @@ export const GrantDocument = ({
   defaultTab = 'paper',
 }: GrantDocumentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
-
+  console.log('work', work);
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
   };
@@ -57,7 +57,7 @@ export const GrantDocument = ({
         // Applications tab
         return (
           <div className="space-y-6" key="applications-tab">
-            <GrantApplications grantId={work.id} />
+            <GrantApplications grantId={Number(work.note?.post?.grant?.id)} />
           </div>
         );
       case 'conversation':
