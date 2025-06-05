@@ -27,6 +27,7 @@ export interface Grant {
   startDate: string;
   endDate: string;
   contacts: Contact[];
+  applicants?: AuthorProfile[];
 }
 
 export const transformGrant = createTransformer<any, Grant>((raw) => ({
@@ -50,5 +51,8 @@ export const transformGrant = createTransformer<any, Grant>((raw) => ({
   endDate: raw.end_date,
   contacts: Array.isArray(raw.contacts)
     ? raw.contacts.map((contact: any) => transformContact(contact))
+    : undefined,
+  applicants: Array.isArray(raw.applications)
+    ? raw.applications.map((application: any) => transformAuthorProfile(application.applicant))
     : undefined,
 }));
