@@ -62,6 +62,7 @@ export const GrantsFeed: FC<GrantsFeedProps> = ({ grants, activeTab, isLoading }
           key={grant.work.id}
           grant={grant}
           href={`/grant/${grant.work.id}/${grant.work.slug}`}
+          showHeader={false}
         />
       ))}
     </div>

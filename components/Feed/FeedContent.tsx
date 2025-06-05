@@ -39,6 +39,7 @@ interface FeedContentProps {
   showBountyDeadline?: boolean; // Show deadline in metadata line
   noEntriesElement?: ReactNode; // Element to render if there are no entries
   maxLength?: number;
+  showGrantHeaders?: boolean; // Prop to control grant header visibility
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -58,6 +59,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   showBountyDeadline = true, // Show deadline in metadata line
   noEntriesElement,
   maxLength,
+  showGrantHeaders = true, // Default to true
 }) => {
   // Generate appropriate href for each feed item type
   const generateHref = (entry: FeedEntry): string | undefined => {
@@ -193,6 +195,7 @@ export const FeedContent: FC<FeedContentProps> = ({
               href={href}
               showActions={!hideActions}
               maxLength={maxLength}
+              showHeader={showGrantHeaders}
             />
           );
           break;
