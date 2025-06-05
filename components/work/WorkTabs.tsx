@@ -149,7 +149,7 @@ export const WorkTabs = ({
           ) : (
             <Star className="h-4 w-4 mr-2" />
           )}
-          <span>{contentType === 'grant' ? 'Applicants' : 'Reviews'}</span>
+          <span>{contentType === 'grant' ? 'Applications' : 'Reviews'}</span>
           <span
             className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
               (contentType === 'grant' ? activeTab === 'applications' : activeTab === 'reviews')
@@ -157,7 +157,9 @@ export const WorkTabs = ({
                 : 'bg-gray-100 text-gray-600'
             }`}
           >
-            {contentType === 'grant' ? metadata.metrics.comments : metadata.metrics.reviews}
+            {contentType === 'grant'
+              ? work.note?.post?.grant?.applicants?.length || 0
+              : metadata.metrics.reviews}
           </span>
         </div>
       ),
