@@ -51,6 +51,10 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'storage.dev.researchhub.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'iiif.elifesciences.org',
       },
       {
