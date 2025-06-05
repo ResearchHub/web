@@ -87,8 +87,8 @@ const FeedItemGrantBody: FC<{
   return (
     <div>
       {/* Header with badges and status */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex flex-wrap gap-2 mb-3" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
           <ContentTypeBadge type="grant" />
           {topics.map((topic, index) => (
             <TopicAndJournalBadge
@@ -127,7 +127,7 @@ const FeedItemGrantBody: FC<{
 
           {/* Grant Description */}
           {grant.grant?.description && (
-            <div className="text-base text-gray-700 mb-3">
+            <div className="text-sm text-gray-700 mb-3">
               <p>{truncateText(grant.grant.description, maxLength)}</p>
             </div>
           )}
@@ -228,7 +228,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
       <FeedItemHeader
         timestamp={grant.createdDate}
         author={author}
-        actionText={customActionText || 'is seeking applicants for'}
+        actionText={customActionText || 'opened a grant'}
       />
 
       {/* Main Content Card */}
@@ -247,11 +247,11 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
           {/* Body Content with desktop image integrated */}
           <FeedItemGrantBody entry={entry} imageUrl={imageUrl} maxLength={maxLength} />
 
-          {/* Grant Details */}
-          <div className="space-y-3 mt-4">
+          {/* Grant Details Section - Improved spacing and alignment */}
+          <div className="mt-4 space-y-2">
             {/* Funding Amount */}
             {(grant.grantAmount || grant.grant?.amount) && (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <CurrencyBadge
                   amount={grant.grantAmount?.amount || grant.grant?.amount?.usd || 0}
                   currency={
@@ -277,7 +277,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
 
             {/* Deadline */}
             {deadline && isOpen && (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
                 <span
                   className={cn(
@@ -285,11 +285,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
                     isExpiringSoon ? 'text-amber-600' : 'text-gray-500'
                   )}
                 >
-                  {daysLeft !== null && daysLeft > 0 ? (
-                    <>{daysLeft === 1 ? '1 day' : `${daysLeft} days`} left to apply</>
-                  ) : (
-                    `Deadline: ${format(new Date(deadline), 'MMM d, yyyy')}`
-                  )}
+                  Application deadline: {format(new Date(deadline), 'MMM d, yyyy')}
                 </span>
               </div>
             )}

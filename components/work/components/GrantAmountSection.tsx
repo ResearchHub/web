@@ -11,20 +11,20 @@ import {
   PreregistrationForModal,
   mockPreregistrations,
 } from '@/components/modals/ApplyToGrantModal';
+import { Work } from '@/types/work';
 
 interface GrantAmountSectionProps {
-  metadata: WorkMetadata;
-  workId?: number;
+  work: Work;
 }
 
-export const GrantAmountSection = ({ metadata, workId }: GrantAmountSectionProps) => {
-  const usdAmount = metadata.fundraising?.goalAmount?.usd ?? 0;
+export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
+  const usdAmount = work.note?.post?.grant?.amount?.usd ?? 0;
   const { exchangeRate, isLoading: isLoadingExchangeRate } = useExchangeRate();
 
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [selectedPreregId, setSelectedPreregId] = useState<string | null>(null);
 
-  if (!metadata.fundraising) {
+  if (!work.note?.post?.grant?.amount) {
     return null;
   }
 
@@ -33,14 +33,14 @@ export const GrantAmountSection = ({ metadata, workId }: GrantAmountSectionProps
       'Apply using selected preregistration from GrantAmountSection:',
       prereg,
       'for workId:',
-      workId
+      work.id
     );
     setIsApplyModalOpen(false);
     setSelectedPreregId(null);
   };
 
   const handleDraftNewPrereg = () => {
-    console.log('Draft new preregistration from GrantAmountSection for workId:', workId);
+    console.log('Draft new preregistration from GrantAmountSection for workId:', work.id);
     setIsApplyModalOpen(false);
     setSelectedPreregId(null);
   };

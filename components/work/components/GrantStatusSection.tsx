@@ -1,29 +1,29 @@
 'use client';
 
-import { WorkMetadata } from '@/services/metadata.service';
-import { differenceInCalendarDays, format } from 'date-fns';
+import { Work } from '@/types/work';
+import { format } from 'date-fns';
 import { Clock } from 'lucide-react';
 
 interface GrantStatusSectionProps {
-  metadata: WorkMetadata;
+  work: Work;
 }
 
-export const GrantStatusSection = ({ metadata }: GrantStatusSectionProps) => {
-  if (!metadata.fundraising || !metadata.fundraising.endDate) {
+export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
+  const isOpen = work.note?.post?.grant?.status === 'OPEN';
+
+  if (!work.note?.post?.grant?.endDate) {
     return (
       <div>
         <h3 className="text-base font-semibold text-gray-900 mb-2">Status</h3>
         <div className="flex items-center gap-2 text-gray-800 text-sm">
           <span className="h-2 w-2 rounded-full bg-gray-400 inline-block" />
-          <span>Status TBD</span>
+          <span>Unknown</span>
         </div>
       </div>
     );
   }
 
-  const endDate = new Date(metadata.fundraising.endDate);
-  const daysRemaining = differenceInCalendarDays(endDate, new Date());
-  const isOpen = daysRemaining > 0;
+  const endDate = new Date(work.note?.post?.grant?.endDate);
 
   return (
     <div>

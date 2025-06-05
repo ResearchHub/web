@@ -29,6 +29,7 @@ import { TipContentModal } from '@/components/modals/TipContentModal';
 import { Icon } from '@/components/ui/icons/Icon';
 import { PaperService } from '@/services/paper.service';
 import { useUser } from '@/contexts/UserContext';
+import { Contact } from '@/types/note';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -271,11 +272,19 @@ export const WorkLineItems = ({
             <div className="flex-1">
               <div className="mb-1.5">
                 <AuthorList
-                  authors={work.authors.map((authorship) => ({
-                    name: authorship.authorProfile.fullName,
-                    verified: authorship.authorProfile.user?.isVerified,
-                    profileUrl: `/author/${authorship.authorProfile.id}`,
-                  }))}
+                  authors={
+                    work.contentType === 'funding_request'
+                      ? work.note?.post?.grant?.contacts?.map((contact: Contact) => ({
+                          name: contact.authorProfile?.fullName || contact.name,
+                          verified: contact.authorProfile?.user?.isVerified,
+                          profileUrl: `/author/${contact.authorProfile?.id}`,
+                        })) || []
+                      : work.authors.map((authorship) => ({
+                          name: authorship.authorProfile.fullName,
+                          verified: authorship.authorProfile.user?.isVerified,
+                          profileUrl: `/author/${authorship.authorProfile.id}`,
+                        }))
+                  }
                   size="sm"
                   className="inline-flex items-center text-gray-600 font-medium"
                   delimiterClassName="mx-2 text-gray-400"

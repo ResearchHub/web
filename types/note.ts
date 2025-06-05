@@ -6,6 +6,7 @@ import { ContentType } from './work';
 import { Fundraise, transformFundraise } from './funding';
 import { Topic, transformTopic } from './topic';
 import { Grant, transformGrant } from './grant';
+import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 export type NoteAccess = 'WORKSPACE' | 'PRIVATE' | 'SHARED';
 
 export type Author = {
@@ -17,6 +18,7 @@ export type Author = {
 export type Contact = {
   id: number;
   name: string;
+  authorProfile?: AuthorProfile;
 };
 
 export type Post = {
@@ -76,6 +78,7 @@ export const transformAuthor = createTransformer<any, Author>((raw: any) => ({
 export const transformContact = createTransformer<any, Contact>((raw) => ({
   id: raw.id,
   name: raw.name,
+  authorProfile: raw.author_profile ? transformAuthorProfile(raw.author_profile) : undefined,
 }));
 
 export const transformPost = createTransformer<any, Post>((raw) => ({
