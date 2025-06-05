@@ -256,6 +256,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     votableEntityId,
     feedContentType,
     relatedDocumentId,
+    relatedDocumentContentType,
     onVoteSuccess: (response, voteType) => {
       // Update local state based on vote type
       if (voteType === 'UPVOTE' && localUserVote !== 'UPVOTE') {
