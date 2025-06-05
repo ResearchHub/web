@@ -15,8 +15,8 @@ interface GrantRightSidebarProps {
 export const GrantRightSidebar = ({ work, metadata }: GrantRightSidebarProps) => {
   return (
     <div className="space-y-8">
-      {metadata.fundraising && <GrantAmountSection metadata={metadata} />}
-      {metadata.fundraising && <GrantStatusSection metadata={metadata} />}
+      <GrantAmountSection work={work} />
+      <GrantStatusSection work={work} />
       <ApplicantsSection grantId={work.id} />
       {metadata.topics && metadata.topics.length > 0 && <TopicsSection topics={metadata.topics} />}
     </div>

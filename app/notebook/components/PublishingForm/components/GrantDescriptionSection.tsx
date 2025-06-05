@@ -17,7 +17,6 @@ export function GrantDescriptionSection() {
           {...register('shortDescription')}
           placeholder="Describe what this grant is for and what you're looking to fund"
           error={errors.shortDescription?.message?.toString()}
-          helperText="Describe what this grant is for and what you're looking to fund"
           required
         />
       </div>

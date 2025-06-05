@@ -8,12 +8,23 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundingRightSidebar } from '@/components/work/FundingRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { GrantDocument } from '@/components/work/GrantDocument';
+import { GrantRightSidebar } from '@/components/work/GrantRightSidebar';
 
 interface Props {
   params: Promise<{
     id: string;
     slug: string;
   }>;
+}
+async function getWorkHTMLContent(work: Work): Promise<string | undefined> {
+  if (!work.contentUrl) return undefined;
+
+  try {
+    return await PostService.getContent(work.contentUrl);
+  } catch (error) {
+    console.error('Failed to fetch content:', error);
+    return undefined;
+  }
 }
 
 async function getGrant(id: string): Promise<Work> {
@@ -45,12 +56,12 @@ export default async function GrantPage({ params }: Props) {
   const work = await getGrant(id);
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
-  console.log({ work, metadata });
+  const content = await getWorkHTMLContent(work);
 
   return (
-    <PageLayout rightSidebar={<FundingRightSidebar work={work} metadata={metadata} />}>
+    <PageLayout rightSidebar={<GrantRightSidebar work={work} metadata={metadata} />}>
       <Suspense>
-        <GrantDocument work={work} metadata={metadata} defaultTab="paper" />
+        <GrantDocument work={work} metadata={metadata} content={content} defaultTab="paper" />
         <SearchHistoryTracker work={work} />
       </Suspense>
     </PageLayout>
