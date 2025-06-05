@@ -123,15 +123,6 @@ export const publishingFormSchema = z
         });
       }
 
-      // Validate cover image for grant
-      if (!data.coverImage?.file && !data.coverImage?.url) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Cover image is required for grants',
-          path: ['coverImage'],
-        });
-      }
-
       // Validate application deadline for grants
       if (!data.applicationDeadline) {
         ctx.addIssue({
