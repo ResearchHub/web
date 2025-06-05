@@ -8,7 +8,13 @@ import Icon from '@/components/ui/icons/Icon';
 import { Tabs } from '@/components/ui/Tabs';
 import { usePathname } from 'next/navigation';
 
-export type TabType = 'paper' | 'reviews' | 'bounties' | 'conversation' | 'history';
+export type TabType =
+  | 'paper'
+  | 'reviews'
+  | 'bounties'
+  | 'conversation'
+  | 'history'
+  | 'applications';
 
 interface WorkTabsProps {
   work: Work;
@@ -35,6 +41,7 @@ export const WorkTabs = ({
   // Get the active tab based on current path
   const getActiveTabFromPath = (path: string): TabType => {
     if (path.includes('/conversation')) return 'conversation';
+    if (path.includes('/applications')) return 'applications';
     if (path.includes('/reviews')) return 'reviews';
     if (path.includes('/bounties')) return 'bounties';
     if (path.includes('/history') && hasResearchHubJournalVersions) return 'history';
@@ -83,11 +90,13 @@ export const WorkTabs = ({
           ? `${baseUrl}/conversation`
           : tab === 'reviews'
             ? `${baseUrl}/reviews`
-            : tab === 'bounties'
-              ? `${baseUrl}/bounties`
-              : tab === 'history'
-                ? `${baseUrl}/history`
-                : baseUrl;
+            : tab === 'applications'
+              ? `${baseUrl}/applications`
+              : tab === 'bounties'
+                ? `${baseUrl}/bounties`
+                : tab === 'history'
+                  ? `${baseUrl}/history`
+                  : baseUrl;
 
       // Use history.replaceState to update URL without navigation
       window.history.replaceState(null, '', newUrl);
@@ -132,7 +141,7 @@ export const WorkTabs = ({
       ),
     },
     {
-      id: 'reviews',
+      id: contentType === 'grant' ? 'applications' : 'reviews',
       label: (
         <div className="flex items-center">
           {contentType === 'grant' ? (
@@ -143,7 +152,7 @@ export const WorkTabs = ({
           <span>{contentType === 'grant' ? 'Applicants' : 'Reviews'}</span>
           <span
             className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-              activeTab === 'reviews'
+              (contentType === 'grant' ? activeTab === 'applications' : activeTab === 'reviews')
                 ? 'bg-indigo-100 text-indigo-600'
                 : 'bg-gray-100 text-gray-600'
             }`}

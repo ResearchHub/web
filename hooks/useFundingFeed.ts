@@ -7,12 +7,15 @@ interface UseFundingFeedResult {
   isLoading: boolean;
   error: Error | null;
   fetchFundingFeed: () => Promise<void>;
+  setSortBy: (sort: string) => void;
+  sortBy: string;
 }
 
-export const useFundingFeed = (limit: number = 10): UseFundingFeedResult => {
+export const useFundingFeed = (limit: number = 10, grantId?: number): UseFundingFeedResult => {
   const [entries, setEntries] = useState<FeedEntry[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const [sortBy, setSortBy] = useState<string>('personalized');
 
   const fetchFundingFeed = useCallback(async () => {
     setIsLoading(true);
@@ -23,6 +26,8 @@ export const useFundingFeed = (limit: number = 10): UseFundingFeedResult => {
         endpoint: 'funding_feed',
         pageSize: limit,
         page: 1, // Fetch only the first page
+        grantId, // Pass the grantId to filter results
+        feedView: sortBy === 'personalized' ? 'personalized' : sortBy, // Map sort to feedView
       });
       setEntries(result.entries);
     } catch (err) {
@@ -32,16 +37,18 @@ export const useFundingFeed = (limit: number = 10): UseFundingFeedResult => {
     } finally {
       setIsLoading(false);
     }
-  }, [limit]);
+  }, [limit, grantId, sortBy]); // Add sortBy to dependencies
 
   useEffect(() => {
     fetchFundingFeed();
-  }, [fetchFundingFeed]); // Re-fetch if the limit changes (though it's constant here)
+  }, [fetchFundingFeed]); // Re-fetch when dependencies change
 
   return {
     entries,
     isLoading,
     error,
     fetchFundingFeed,
+    setSortBy,
+    sortBy,
   };
 };

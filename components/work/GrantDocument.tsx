@@ -53,7 +53,7 @@ export const GrantDocument = ({
     switch (activeTab) {
       case 'paper':
         return renderGrantInfo();
-      case 'reviews':
+      case 'applications':
         // Applications tab
         return (
           <div className="space-y-6" key="applications-tab">
