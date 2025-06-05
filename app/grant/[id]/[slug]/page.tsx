@@ -45,6 +45,8 @@ export default async function GrantPage({ params }: Props) {
   const work = await getGrant(id);
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
+  console.log({ work, metadata });
+
   return (
     <PageLayout rightSidebar={<FundingRightSidebar work={work} metadata={metadata} />}>
       <Suspense>

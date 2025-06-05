@@ -235,7 +235,9 @@ export const transformPost = createTransformer<any, Work>((raw) => ({
   contentType:
     raw.unified_document?.document_type === 'PREREGISTRATION' || raw.type === 'PREREGISTRATION'
       ? 'preregistration'
-      : 'post',
+      : raw.unified_document?.document_type === 'GRANT' || raw.type === 'GRANT'
+        ? 'funding_request'
+        : 'post',
   note: raw.note ? transformNoteWithContent(raw.note) : undefined,
   publishedDate: raw.created_date, // Posts use created_date for both
   previewContent: raw.full_markdown || '',

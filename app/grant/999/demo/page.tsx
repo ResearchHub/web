@@ -7,6 +7,7 @@ import { defaultMockGrant } from '@/store/grantStore';
 
 export default function DemoGrantPage() {
   const { work: mockWork, metadata: mockMetadata } = defaultMockGrant;
+  console.log({ mockWork, mockMetadata });
 
   return (
     <PageLayout rightSidebar={<GrantRightSidebar work={mockWork} metadata={mockMetadata} />}>

@@ -1,6 +1,7 @@
 import { Currency, ID } from './root';
 import { createTransformer } from './transformer';
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
+import { Contact, transformContact } from './note';
 
 export type GrantStatus = 'OPEN' | 'CLOSED';
 
@@ -25,6 +26,7 @@ export interface Grant {
   status: GrantStatus;
   startDate: string;
   endDate: string;
+  contacts: Contact[];
 }
 
 export const transformGrant = createTransformer<any, Grant>((raw) => ({
@@ -46,4 +48,7 @@ export const transformGrant = createTransformer<any, Grant>((raw) => ({
   status: raw.status as GrantStatus,
   startDate: raw.start_date,
   endDate: raw.end_date,
+  contacts: Array.isArray(raw.contacts)
+    ? raw.contacts.map((contact: any) => transformContact(contact))
+    : undefined,
 }));
