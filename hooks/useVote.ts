@@ -3,7 +3,7 @@ import { ContentType } from '@/types/work';
 import { toast } from 'react-hot-toast';
 import { useSession } from 'next-auth/react';
 import { ApiError } from '@/services/types';
-import { ReactionService } from '@/services/reaction.service';
+import { ReactionService, DocumentType } from '@/services/reaction.service';
 import { UserVoteType, VotableContentType } from '@/types/reaction';
 import { FeedContentType } from '@/types/feed';
 
@@ -11,6 +11,7 @@ interface UseVoteOptions {
   votableEntityId: number;
   feedContentType?: FeedContentType;
   relatedDocumentId?: number;
+  relatedDocumentContentType?: ContentType;
   onVoteSuccess?: (updatedItem: any, voteType: UserVoteType) => void;
   onVoteError?: (error: any) => void;
 }
@@ -43,6 +44,7 @@ export function useVote({
   votableEntityId,
   feedContentType,
   relatedDocumentId,
+  relatedDocumentContentType,
   onVoteSuccess,
   onVoteError,
 }: UseVoteOptions) {
@@ -69,7 +71,16 @@ export function useVote({
 
         let response;
         const votableContentType = mapFeedContentTypeToVotable(feedContentType);
-        const documentType = votableContentType === 'paper' ? 'paper' : 'researchhubpost';
+
+        // Determine document type
+        let documentType: DocumentType;
+        if (relatedDocumentContentType) {
+          // Use the related document content type when available (e.g., `paper`)
+          documentType = relatedDocumentContentType === 'paper' ? 'paper' : 'researchhubpost';
+        } else {
+          // Fallback to votable content type (e.g., `comment`)
+          documentType = votableContentType === 'paper' ? 'paper' : 'researchhubpost';
+        }
 
         // Use the appropriate service method based on feed content type
         if (feedContentType === 'COMMENT' || feedContentType === 'BOUNTY') {
@@ -126,6 +137,7 @@ export function useVote({
       votableEntityId,
       feedContentType,
       relatedDocumentId,
+      relatedDocumentContentType,
       isVoting,
       session,
       onVoteSuccess,
