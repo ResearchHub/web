@@ -7,7 +7,7 @@ import { ContentType } from '@/types/work';
 import { ID } from '@/types/root';
 import { Loader } from '@/components/ui/Loader';
 import { formatTimestamp } from '@/utils/date';
-import { RSCBadge } from '@/components/ui/RSCBadge';
+import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Avatar } from '@/components/ui/Avatar';
 import { CommentSkeleton } from '@/components/skeletons/CommentSkeleton';
 
@@ -84,7 +84,7 @@ export const SolutionModal = ({
               </div>
               {awardedAmount && (
                 <div className="flex items-center">
-                  <RSCBadge
+                  <CurrencyBadge
                     amount={parseFloat(awardedAmount)}
                     size="sm"
                     variant="award"

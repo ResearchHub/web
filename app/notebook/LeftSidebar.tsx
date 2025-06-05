@@ -17,6 +17,7 @@ import { getInitialContent } from '@/components/Editor/lib/data/initialContent';
 import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
 import toast from 'react-hot-toast';
 import { useNotebookContext } from '@/contexts/NotebookContext';
+import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
 
 /**
  * Left sidebar component for the notebook layout
@@ -68,7 +69,7 @@ export const LeftSidebar = () => {
             contentTemplate = getInitialContent('research');
             break;
           case 'grant':
-            contentTemplate = getInitialContent('grant');
+            contentTemplate = grantTemplate;
             break;
           case 'preregistration':
             contentTemplate = preregistrationTemplate;
@@ -148,21 +149,23 @@ export const LeftSidebar = () => {
         </div>
       </BaseMenuItem>
 
-      {/* <BaseMenuItem
-        onClick={() => handleTemplateSelect(type, 'grant')}
-        className="flex items-center gap-2 py-2"
-        disabled={isCreatingNote || isUpdatingContent}
-      >
-        {isCreatingNote || isUpdatingContent ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <FileText className="h-4 w-4" />
-        )}
-        <div>
-          <div className="font-medium text-gray-900">Grant Proposal</div>
-          <div className="text-xs text-gray-500">Structured grant application</div>
-        </div>
-      </BaseMenuItem> */}
+      {
+        <BaseMenuItem
+          onClick={() => handleTemplateSelect(type, 'grant')}
+          className="flex items-center gap-2 py-2"
+          disabled={isCreatingNote || isUpdatingContent}
+        >
+          {isCreatingNote || isUpdatingContent ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <FileText className="h-4 w-4" />
+          )}
+          <div>
+            <div className="font-medium text-gray-900">Grant Proposal</div>
+            <div className="text-xs text-gray-500">Structured grant application</div>
+          </div>
+        </BaseMenuItem>
+      }
       <BaseMenuItem
         onClick={() => handleTemplateSelect(type, 'preregistration')}
         className="flex items-center gap-2 py-2"

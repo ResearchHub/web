@@ -31,18 +31,31 @@ export function formatRSC({ amount, shorten = false, round = false }: FormatRSCO
   // Round the amount if requested
   const valueToFormat = round ? Math.round(amount) : amount;
 
-  if (!shorten) {
+  if (shorten) {
+    if (valueToFormat >= 1_000_000) {
+      // Handles millions and above
+      const millions = valueToFormat / 1_000_000;
+      let formattedMillions = millions.toFixed(1);
+      if (formattedMillions.endsWith('.0')) {
+        formattedMillions = formattedMillions.slice(0, -2);
+      }
+      return `${formattedMillions}M`;
+    } else if (valueToFormat >= 1_000) {
+      // Handles thousands (1,000 to 999,999)
+      const thousands = valueToFormat / 1_000;
+      let formattedThousands = thousands.toFixed(1);
+      if (formattedThousands.endsWith('.0')) {
+        formattedThousands = formattedThousands.slice(0, -2);
+      }
+      return `${formattedThousands}K`;
+    } else {
+      // For values less than 1,000
+      return valueToFormat.toString();
+    }
+  } else {
+    // shorten is false
     return valueToFormat.toLocaleString();
   }
-
-  if (valueToFormat >= 1000) {
-    const shortened = (valueToFormat / 1000).toFixed(1);
-    // Remove .0 if present
-    const formatted = shortened.endsWith('.0') ? shortened.slice(0, -2) : shortened;
-    return `${formatted}K`;
-  }
-
-  return valueToFormat.toString();
 }
 
 /**

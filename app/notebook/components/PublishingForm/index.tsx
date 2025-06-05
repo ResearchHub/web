@@ -6,8 +6,13 @@ import { WorkTypeSection } from './components/WorkTypeSection';
 import { WorkImageSection } from './components/WorkImageSection';
 import { FundingSection } from './components/FundingSection';
 import { AuthorsSection } from './components/AuthorsSection';
+import { ContactsSection } from './components/ContactsSection';
 import { TopicsSection } from './components/TopicsSection';
 import { JournalSection } from './components/JournalSection';
+import { GrantDescriptionSection } from './components/GrantDescriptionSection';
+import { GrantOrganizationSection } from './components/GrantOrganizationSection';
+import { GrantFundingAmountSection } from './components/GrantFundingAmountSection';
+import { GrantApplicationDeadlineSection } from './components/GrantApplicationDeadlineSection';
 import { Button } from '@/components/ui/Button';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -87,6 +92,9 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       budget: '',
       selectedNonprofit: null,
       departmentLabName: '',
+      shortDescription: '',
+      organization: '',
+      applicationDeadline: null,
     },
     resolver: zodResolver(publishingFormSchema),
     mode: 'onChange',
@@ -106,6 +114,9 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         coverImage: null,
         selectedNonprofit: null,
         departmentLabName: '',
+        shortDescription: '',
+        organization: '',
+        applicationDeadline: null,
       });
     }
   }, [note?.id, methods]);
@@ -122,9 +133,43 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       methods.setValue('workId', note.post.id.toString());
       methods.setValue(
         'articleType',
-        note.post.contentType === 'preregistration' ? 'preregistration' : 'discussion'
+        note.post.contentType === 'preregistration'
+          ? 'preregistration'
+          : note.post.contentType === 'funding_request'
+            ? 'grant'
+            : 'discussion'
       );
-      methods.setValue('budget', note.post.fundraise?.goalAmount.usd.toString());
+
+      // Set budget fields based on article type
+      if (note.post.contentType === 'preregistration') {
+        methods.setValue('budget', note.post.fundraise?.goalAmount.usd.toString());
+      }
+
+      // Set application deadline for grants
+      if (note.post.contentType === 'funding_request' && note.post.grant?.endDate) {
+        const deadline = new Date(note.post.grant.endDate);
+        methods.setValue('applicationDeadline', deadline);
+      }
+
+      if (note.post.contentType === 'funding_request' && note.post.grant?.description) {
+        methods.setValue('shortDescription', note.post.grant.description);
+      }
+
+      if (note.post.contentType === 'funding_request' && note.post.grant?.organization) {
+        methods.setValue('organization', note.post.grant.organization);
+      }
+
+      if (note.post.contentType === 'funding_request' && note.post.grant?.amount) {
+        methods.setValue('budget', note.post.grant.amount.usd.toString());
+      }
+
+      if (note.post.contentType === 'funding_request' && note.post.contacts) {
+        const contactOptions = note.post.contacts.map((contact) => ({
+          value: contact.id.toString(),
+          label: contact.name,
+        }));
+        methods.setValue('contacts', contactOptions);
+      }
 
       if (note.post.image) {
         methods.setValue('coverImage', {
@@ -157,7 +202,11 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     const storedData = loadPublishingFormFromStorage(note?.id.toString() || '');
     if (storedData) {
       Object.entries(storedData).forEach(([key, value]) => {
-        methods.setValue(key as keyof PublishingFormData, value);
+        if (key === 'applicationDeadline') {
+          methods.setValue(key as keyof PublishingFormData, new Date(value));
+        } else {
+          methods.setValue(key as keyof PublishingFormData, value);
+        }
       });
     }
 
@@ -172,7 +221,12 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       } else if (isNewResearch) {
         methods.setValue('articleType', 'discussion');
       } else if (template) {
-        const articleType = template === 'preregistration' ? 'preregistration' : 'discussion';
+        const articleType =
+          template === 'preregistration'
+            ? 'preregistration'
+            : template === 'grant'
+              ? 'grant'
+              : 'discussion';
         methods.setValue('articleType', articleType);
       }
     }
@@ -194,6 +248,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   const isJournalEnabled = watch('isJournalEnabled');
   const selectedNonprofit = watch('selectedNonprofit');
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
+
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const router = useRouter();
 
@@ -231,7 +286,11 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       return;
     }
 
-    if (articleType !== 'preregistration' && articleType !== 'discussion') {
+    if (
+      articleType !== 'preregistration' &&
+      articleType !== 'discussion' &&
+      articleType !== 'grant'
+    ) {
       console.log('Publishing clicked for type:', articleType);
       return;
     }
@@ -262,8 +321,11 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       // Initialize imageUrl variable
       let imagePath = null;
 
-      // Only upload the image for preregistration posts
-      if (formData.articleType === 'preregistration' && formData.coverImage?.file) {
+      // Upload the image for preregistration and grant posts
+      if (
+        (formData.articleType === 'preregistration' || formData.articleType === 'grant') &&
+        formData.coverImage?.file
+      ) {
         try {
           const uploadResult = await uploadAsset(formData.coverImage.file, 'post');
           imagePath = uploadResult.objectKey;
@@ -277,9 +339,15 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       // Get the fundraiseId from the existing post if it exists (for updates)
       const existingFundraiseId = note?.post?.fundraise?.id;
 
+      // Determine the budget value based on article type
+      let budgetValue = '0';
+      if (formData.articleType === 'preregistration' || formData.articleType === 'grant') {
+        budgetValue = formData.budget || '0';
+      }
+
       const response = await upsertPost(
         {
-          budget: formData.budget || '0',
+          budget: budgetValue,
           rewardFunders: formData.rewardFunders,
           nftSupply: formData.nftSupply || '1000',
           title,
@@ -293,17 +361,32 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             .map((author) => author.value)
             .map(Number)
             .filter((id) => !isNaN(id)),
-          articleType:
-            formData.articleType === 'preregistration' ? 'PREREGISTRATION' : 'DISCUSSION',
+          contacts: formData.contacts
+            .map((contact) => contact.value)
+            .map(Number)
+            .filter((id) => !isNaN(id)),
+          articleType: (() => {
+            switch (formData.articleType) {
+              case 'preregistration':
+                return 'PREREGISTRATION';
+              case 'grant':
+                return 'GRANT';
+              default:
+                return 'DISCUSSION';
+            }
+          })(),
           image: imagePath,
+          organization: formData.organization,
+          description: formData.shortDescription,
+          applicationDeadline: formData.applicationDeadline,
         },
         formData.workId
       );
 
-      // If a nonprofit is selected, link it to the fundraise
+      // If a nonprofit is selected, link it to the fundraise (only for preregistration)
       const fundraiseId = response.fundraiseId || existingFundraiseId;
 
-      if (formData.selectedNonprofit && fundraiseId) {
+      if (formData.selectedNonprofit && fundraiseId && formData.articleType === 'preregistration') {
         try {
           // Create the nonprofit and link it to the fundraise using consistent camelCase naming
           const nonprofitData = {
@@ -339,6 +422,8 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
 
       if (formData.articleType === 'preregistration') {
         router.push(`/fund/${response.id}/${response.slug}`);
+      } else if (formData.articleType === 'grant') {
+        router.push(`/grant/${response.id}/${response.slug}`);
       } else {
         router.push(`/post/${response.id}/${response.slug}`);
       }
@@ -374,18 +459,28 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         >
           <div className="pb-6">
             <WorkTypeSection />
-            {articleType === 'preregistration' && <WorkImageSection />}
-            <AuthorsSection />
+            {(articleType === 'preregistration' || articleType === 'grant') && <WorkImageSection />}
+            {articleType === 'grant' && (
+              <>
+                <GrantDescriptionSection />
+                <GrantOrganizationSection />
+              </>
+            )}
+            {articleType === 'grant' ? <ContactsSection /> : <AuthorsSection />}
             <TopicsSection />
             {note.post?.doi && (
               <div className="py-3 px-6 space-y-6">
                 <DOISection doi={note.post.doi} />
               </div>
             )}
+            {articleType === 'grant' && <GrantFundingAmountSection />}
+            {articleType === 'grant' && <GrantApplicationDeadlineSection />}
             {articleType === 'preregistration' && <FundingSection note={note} />}
-            {FEATURE_FLAG_RESEARCH_COIN && articleType !== 'preregistration' && (
-              <ResearchCoinSection bountyAmount={bountyAmount} onBountyClick={onBountyClick} />
-            )}
+            {FEATURE_FLAG_RESEARCH_COIN &&
+              articleType !== 'preregistration' &&
+              articleType !== 'grant' && (
+                <ResearchCoinSection bountyAmount={bountyAmount} onBountyClick={onBountyClick} />
+              )}
             {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && <JournalSection />}
           </div>
         </div>

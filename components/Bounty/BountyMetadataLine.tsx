@@ -1,5 +1,5 @@
 import { formatDeadline } from '@/utils/date';
-import { RSCBadge } from '@/components/ui/RSCBadge';
+import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Check } from 'lucide-react';
@@ -36,7 +36,7 @@ export const BountyMetadataLine = ({
         {/* Badges */}
         <div className="flex flex-wrap gap-2">
           <ContentTypeBadge type="bounty" />
-          <RSCBadge amount={amount} size="sm" variant={isOpen ? 'badge' : 'disabled'} />
+          <CurrencyBadge amount={amount} size="sm" variant={isOpen ? 'badge' : 'disabled'} />
         </div>
 
         {showDeadline && (

@@ -1,15 +1,13 @@
 import { BountySolution } from '@/types/bounty';
-import { ContentType } from '@/types/work';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
-import { RSCBadge } from '@/components/ui/RSCBadge';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye } from '@fortawesome/free-solid-svg-icons';
 import { faTrophy } from '@fortawesome/pro-light-svg-icons';
 import { ID } from '@/types/root';
 import { ChevronUp, ChevronDown, MessageCircle, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
-import { Tooltip } from '../ui/Tooltip';
+import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 
 interface BountySolutionsProps {
   solutions: BountySolution[];
@@ -89,7 +87,7 @@ export const BountySolutions = ({
                           <div className="flex items-center ml-2">
                             {/* lets update this to show the awarded amount in a tooltip */}
                             <PlusIcon className="h-3 w-3 text-orange-500" />
-                            <RSCBadge
+                            <CurrencyBadge
                               amount={parseFloat(solution.awardedAmount)}
                               variant="inline"
                               className="ml-0.5 p-0"
@@ -131,7 +129,7 @@ export const BountySolutions = ({
               <div className="flex justify-end items-center gap-2">
                 <FontAwesomeIcon icon={faTrophy} className="h-4 w-4 text-gray-500" />
                 <span className="text-sm font-medium text-gray-700">Total awarded:</span>
-                <RSCBadge
+                <CurrencyBadge
                   amount={totalAwardedAmount}
                   size="sm"
                   variant="inline"

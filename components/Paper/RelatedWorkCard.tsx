@@ -5,6 +5,10 @@ import { truncateText } from '@/utils/stringUtils';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { Topic } from '@/types/topic';
 import { useClickContext } from '@/contexts/ClickContext';
+import { Fundraise } from '@/types/feed';
+import { TrendingUp, Target } from 'lucide-react';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { formatRSC } from '@/utils/number';
 
 interface RelatedWorkCardProps {
   work: Work;
@@ -12,6 +16,7 @@ interface RelatedWorkCardProps {
   onTopicClick?: (topic: Topic) => void;
   onEvent?: (event: { type: string; payload: any }) => void;
   size?: 'default' | 'sm' | 'lg' | 'xs';
+  fundraiseData?: Fundraise;
 }
 
 export const RelatedWorkCard = ({
@@ -20,8 +25,11 @@ export const RelatedWorkCard = ({
   onTopicClick,
   onEvent,
   size = 'default',
+  fundraiseData,
 }: RelatedWorkCardProps) => {
   const { triggerEvent } = useClickContext();
+  const { exchangeRate, isLoading: isLoadingExchangeRate } = useExchangeRate();
+
   if (!work) return null;
 
   // Convert work authors to the format expected by AuthorList
@@ -169,6 +177,29 @@ export const RelatedWorkCard = ({
       {/* Abstract */}
       {displayAbstract && (
         <div className={`mt-2 text-gray-600 ${getAbstractClass()}`}>{displayAbstract}</div>
+      )}
+
+      {/* Funding Goal */}
+      {fundraiseData?.goalAmount?.usd && (
+        <div className="mt-3 flex items-center text-sm">
+          <span className="font-medium text-gray-700">Funding Goal:</span>
+          <span className="ml-1 font-semibold text-orange-600">
+            {fundraiseData.goalAmount.usd.toLocaleString('en-US', {
+              style: 'currency',
+              currency: 'USD',
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            })}
+            {!isLoadingExchangeRate && exchangeRate && exchangeRate > 0 && (
+              <span className="text-gray-500">
+                {` / ${formatRSC({ amount: fundraiseData.goalAmount.usd / exchangeRate, shorten: true, round: true })} RSC`}
+              </span>
+            )}
+            {isLoadingExchangeRate && (
+              <span className="text-gray-500 italic ml-1">Loading RSC...</span>
+            )}
+          </span>
+        </div>
       )}
     </div>
   );

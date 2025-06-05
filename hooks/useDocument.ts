@@ -14,7 +14,7 @@ export interface PreregistrationPostParams {
   topics: string[];
 
   // Document related
-  articleType: 'PREREGISTRATION' | 'DISCUSSION';
+  articleType: 'PREREGISTRATION' | 'DISCUSSION' | 'GRANT';
   title: string;
   noteId: ID;
   renderableText: string;
@@ -23,6 +23,12 @@ export interface PreregistrationPostParams {
   assignDOI?: boolean;
   authors: number[];
   image: string | null;
+
+  // Grant specific
+  applicationDeadline?: Date | null;
+  organization?: string | null;
+  description?: string | null;
+  contacts?: number[];
 }
 
 interface UsePostState {
@@ -75,11 +81,20 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
       if (postId) {
         payload.post_id = postId;
       } else if (postParams.articleType === 'PREREGISTRATION') {
-        // Only include fundraise fields for creation
+        // Include fundraise fields for creation of preregistrations and grants
         payload.reward_funders = postParams.rewardFunders;
         payload.nft_supply = postParams.nftSupply;
         payload.fundraise_goal_currency = 'USD';
         payload.fundraise_goal_amount = parseFloat(postParams.budget.replace(/[^0-9.]/g, ''));
+      }
+
+      if (postParams.articleType === 'GRANT') {
+        payload.grant_amount = parseFloat(postParams.budget.replace(/[^0-9.]/g, ''));
+        payload.grant_currency = 'USD';
+        payload.grant_organization = postParams.organization;
+        payload.grant_description = postParams.description;
+        payload.grant_end_date = postParams.applicationDeadline?.toISOString() || null;
+        payload.grant_contacts = postParams.contacts;
       }
 
       const response = (await PostService.upsert(payload)) as TransformedWork;

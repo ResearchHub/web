@@ -6,6 +6,7 @@ import { FundraiseSection } from './components/FundraiseSection';
 import { TopicsSection } from './components/TopicsSection';
 import { NonprofitSection } from './components/NonprofitSection';
 import { FundersSection } from './components/FundersSection';
+import { ApplicantsSection } from './components/ApplicantsSection';
 
 interface FundingRightSidebarProps {
   work: Work;
@@ -22,6 +23,8 @@ export const FundingRightSidebar = ({ work, metadata }: FundingRightSidebarProps
         metadata.fundraising.contributors.numContributors > 0 && (
           <FundersSection fundraise={metadata.fundraising} />
         )}
+      {/* Applicants for the grant */}
+      <ApplicantsSection grantId={work.id} />
       <TopicsSection topics={metadata.topics || []} />
       {work.doi && <DOISection doi={work.doi} />}
     </div>

@@ -7,6 +7,7 @@ import preregistrationTemplate from '@/components/Editor/lib/data/preregistratio
 import { getInitialContent, initialContent } from '@/components/Editor/lib/data/initialContent';
 import { getDocumentTitle } from '@/components/Editor/lib/utils/documentTitle';
 import { selectOrganization } from '@/contexts/utils/organizationSelection';
+import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
 // These settings ensure our notebook route always gets fresh data and never uses cached responses.
 export const dynamic = 'force-dynamic'; // Disable static optimization, ensuring fresh data on every request
 export const fetchCache = 'force-no-store'; // Prevent Next.js from caching fetch requests inside this route
@@ -19,7 +20,7 @@ async function createNoteWithContent(
     queryParam,
     queryValue,
   }: {
-    template: typeof preregistrationTemplate | typeof initialContent;
+    template: typeof preregistrationTemplate | typeof initialContent | typeof grantTemplate;
     queryParam?: string;
     queryValue?: string;
   }

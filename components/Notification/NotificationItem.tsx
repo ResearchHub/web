@@ -13,7 +13,7 @@ import { Icon } from '@/components/ui/icons/Icon';
 import clsx from 'clsx';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { ChevronRight } from 'lucide-react';
-import { RSCBadge } from '@/components/ui/RSCBadge';
+import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 
 interface NotificationItemProps {
@@ -85,7 +85,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         )}
         {rscAmount && (
           <div className="inline-block">
-            <RSCBadge
+            <CurrencyBadge
               amount={rscAmount}
               size="xs"
               variant={isReceivedRSC ? 'received' : 'badge'}

@@ -56,7 +56,8 @@ interface Author {
 }
 
 // Extend the ContentMetrics type
-interface ExtendedContentMetrics {
+// Exporting ExtendedContentMetrics
+export interface ExtendedContentMetrics {
   votes: number;
   comments: number;
   reviewScore?: number;

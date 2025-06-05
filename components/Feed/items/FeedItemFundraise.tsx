@@ -10,7 +10,7 @@ import { truncateText } from '@/utils/stringUtils';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { useRouter } from 'next/navigation';
-import { Flag, Users } from 'lucide-react';
+import { Flag, Users, Building } from 'lucide-react';
 import Image from 'next/image';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { formatRSC } from '@/utils/number';
@@ -23,6 +23,7 @@ interface FeedItemFundraiseProps {
   badgeVariant?: 'default' | 'icon-only'; // New prop for tax-deductible badge variant
   showActions?: boolean; // Property for controlling actions
   maxLength?: number;
+  customActionText?: string; // Custom action text for the header
 }
 
 /**
@@ -36,6 +37,7 @@ const FeedItemFundraiseBody: FC<{
 }> = ({ entry, imageUrl, badgeVariant = 'default', maxLength }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
+  const institution = post.institution;
 
   // Get topics/tags for display
   const topics = post.topics || [];
@@ -91,6 +93,14 @@ const FeedItemFundraiseBody: FC<{
             </div>
           )}
 
+          {/* Institution */}
+          {institution && (
+            <div className="mt-1 mb-3 flex items-center gap-1.5 text-sm text-gray-500">
+              <Building className="w-4 h-4" />
+              <span>{institution}</span>
+            </div>
+          )}
+
           {/* Truncated Content */}
           <div className="text-sm text-gray-700">
             <p>{truncateText(post.textPreview, maxLength)}</p>
@@ -141,6 +151,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   badgeVariant = 'default',
   showActions = true,
   maxLength,
+  customActionText,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
@@ -197,7 +208,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       <FeedItemHeader
         timestamp={post.createdDate}
         author={author}
-        actionText={hasFundraise ? `is seeking funding` : 'published a post'}
+        actionText={customActionText || (hasFundraise ? `is seeking funding` : 'published a post')}
         contributors={hasFundraise ? extractContributors(post.fundraise) : []}
         contributorsLabel="Funding Contributors"
       />

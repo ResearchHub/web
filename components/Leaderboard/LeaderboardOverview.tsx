@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { LeaderboardService } from '@/services/leaderboard.service';
 import { TopReviewer, TopFunder } from '@/types/leaderboard';
 import { Avatar } from '@/components/ui/Avatar';
-import { RSCBadge } from '@/components/ui/RSCBadge';
+import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
@@ -140,7 +140,7 @@ export const LeaderboardOverview = () => {
 
                     {/* RSC badge with fixed width */}
                     <div className="flex-shrink-0 w-16 text-right">
-                      <RSCBadge
+                      <CurrencyBadge
                         amount={reviewer.earnedRsc}
                         variant="text"
                         size="sm"
@@ -231,7 +231,7 @@ export const LeaderboardOverview = () => {
 
                     {/* RSC badge with fixed width */}
                     <div className="flex-shrink-0 w-16 text-right">
-                      <RSCBadge
+                      <CurrencyBadge
                         amount={funder.totalFunding}
                         variant="text"
                         size="sm"
