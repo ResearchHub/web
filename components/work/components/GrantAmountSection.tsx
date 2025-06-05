@@ -18,7 +18,6 @@ interface GrantAmountSectionProps {
 }
 
 export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
-  console.log('GrantAmountSection', work);
   const usdAmount = work.note?.post?.grant?.amount?.usd ?? 0;
   const { exchangeRate, isLoading: isLoadingExchangeRate } = useExchangeRate();
 
