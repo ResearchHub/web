@@ -262,37 +262,63 @@ export const WorkLineItems = ({
         </div>
       </div>
 
-      {/* Metadata */}
+      {/* Authors/Contacts */}
       <div className="mt-6 space-y-2 text-sm text-gray-600">
         <div>
-          <div className="flex items-start">
-            <span className="font-medium text-gray-900 w-28">
-              {work.contentType === 'funding_request' ? 'Funder(s)' : 'Authors'}
-            </span>
-            <div className="flex-1">
-              <div className="mb-1.5">
-                <AuthorList
-                  authors={
-                    work.contentType === 'funding_request'
-                      ? work.note?.post?.grant?.contacts?.map((contact: Contact) => ({
-                          name: contact.authorProfile?.fullName || contact.name,
-                          verified: contact.authorProfile?.user?.isVerified,
-                          profileUrl: `/author/${contact.authorProfile?.id}`,
-                        })) || []
-                      : work.authors.map((authorship) => ({
-                          name: authorship.authorProfile.fullName,
-                          verified: authorship.authorProfile.user?.isVerified,
-                          profileUrl: `/author/${authorship.authorProfile.id}`,
-                        }))
-                  }
-                  size="sm"
-                  className="inline-flex items-center text-gray-600 font-medium"
-                  delimiterClassName="mx-2 text-gray-400"
-                  delimiter="•"
-                />
+          {work.contentType === 'funding_request' ? (
+            // Only render if there is an organization OR at least one contact
+            work.note?.post?.grant?.organization ||
+            (work.note?.post?.grant?.contacts && work.note.post.grant.contacts.length > 0) ? (
+              <div className="flex items-start">
+                <span className="font-medium text-gray-900 w-28">
+                  Funder{work.note?.post?.grant?.organization ? '' : '(s)'}
+                </span>
+                <div className="flex-1">
+                  {work.note?.post?.grant?.organization ? (
+                    <span>{work.note.post.grant.organization}</span>
+                  ) : (
+                    <div className="mb-1.5">
+                      <AuthorList
+                        authors={
+                          work.note?.post?.grant?.contacts?.map((contact: Contact) => ({
+                            name: contact.authorProfile?.fullName || contact.name,
+                            verified: contact.authorProfile?.user?.isVerified,
+                            profileUrl: contact.authorProfile
+                              ? `/author/${contact.authorProfile?.id}`
+                              : undefined,
+                          })) || []
+                        }
+                        size="sm"
+                        className="inline-flex items-center text-gray-600 font-medium"
+                        delimiterClassName="mx-2 text-gray-400"
+                        delimiter="•"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : null
+          ) : (
+            // NON-GRANT: Authors section
+            <div className="flex items-start">
+              <span className="font-medium text-gray-900 w-28">Authors</span>
+              <div className="flex-1">
+                <div className="mb-1.5">
+                  <AuthorList
+                    authors={work.authors.map((authorship) => ({
+                      name: authorship.authorProfile.fullName,
+                      verified: authorship.authorProfile.user?.isVerified,
+                      profileUrl: `/author/${authorship.authorProfile.id}`,
+                    }))}
+                    size="sm"
+                    className="inline-flex items-center text-gray-600 font-medium"
+                    delimiterClassName="mx-2 text-gray-400"
+                    delimiter="•"
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Journal */}

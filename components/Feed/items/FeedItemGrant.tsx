@@ -84,6 +84,13 @@ const FeedItemGrantBody: FC<{
 
   const isOpen = grant.grant?.status === 'OPEN' && !grant.grant?.isExpired;
 
+  // Calculate days until deadline
+  const deadline = grant.grant?.endDate;
+  const daysLeft = deadline ? differenceInCalendarDays(new Date(deadline), new Date()) : null;
+
+  // Determine status
+  const isExpiringSoon = daysLeft !== null && daysLeft <= 7 && daysLeft > 0;
+
   return (
     <div>
       {/* Header with badges and status */}
@@ -131,6 +138,47 @@ const FeedItemGrantBody: FC<{
               <p>{truncateText(grant.grant.description, maxLength)}</p>
             </div>
           )}
+
+          {/* Funding Amount */}
+          {(grant.grantAmount || grant.grant?.amount) && (
+            <div className="flex items-center gap-2">
+              <CurrencyBadge
+                amount={grant.grantAmount?.amount || grant.grant?.amount?.usd || 0}
+                currency={
+                  (grant.grantAmount?.currency || grant.grant?.currency || 'USD') as 'USD' | 'RSC'
+                }
+                variant="text"
+                showText={true}
+                showIcon={true}
+                textColor="text-gray-900"
+                className="font-semibold text-2xl"
+                shorten={false}
+              />
+            </div>
+          )}
+
+          {/* Organization */}
+          {(grant.organization || grant.grant?.organization) && (
+            <div className="mt-1 mb-3 flex items-center gap-1.5 text-sm text-gray-500">
+              <Building className="w-4 h-4" />
+              <span>{grant.organization || grant.grant?.organization}</span>
+            </div>
+          )}
+
+          {/* Deadline */}
+          {deadline && isOpen && (
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <span
+                className={cn(
+                  'text-sm font-normal',
+                  isExpiringSoon ? 'text-amber-600' : 'text-gray-500'
+                )}
+              >
+                Application deadline: {format(new Date(deadline), 'MMM d, yyyy')}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Image - Positioned to the right, aligned with title */}
@@ -171,24 +219,8 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
   // Get the author from the grant
   const author = grant.createdBy;
 
-  // Calculate days until deadline
-  const deadline = grant.grant?.endDate;
-  const daysLeft = deadline ? differenceInCalendarDays(new Date(deadline), new Date()) : null;
-
-  // Determine status
-  const isOpen = grant.grant?.status === 'OPEN' && !grant.grant?.isExpired;
-  const isExpiringSoon = daysLeft !== null && daysLeft <= 7 && daysLeft > 0;
-
   // Use provided href or create default grant page URL
   const grantPageUrl = href || `/grant/${grant.id}/${grant.slug}`;
-
-  // Convert authors to the format expected by AuthorList
-  const authors =
-    grant.authors?.map((author) => ({
-      name: author.fullName || `${author.firstName} ${author.lastName}`,
-      verified: author.user?.isVerified,
-      profileUrl: author.profileUrl,
-    })) || [];
 
   // Handle click on the card (navigate to grant page) - only if href is provided
   const handleCardClick = () => {
@@ -246,50 +278,6 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
 
           {/* Body Content with desktop image integrated */}
           <FeedItemGrantBody entry={entry} imageUrl={imageUrl} maxLength={maxLength} />
-
-          {/* Grant Details Section - Improved spacing and alignment */}
-          <div className="mt-4 space-y-2">
-            {/* Funding Amount */}
-            {(grant.grantAmount || grant.grant?.amount) && (
-              <div className="flex items-center gap-2">
-                <CurrencyBadge
-                  amount={grant.grantAmount?.amount || grant.grant?.amount?.usd || 0}
-                  currency={
-                    (grant.grantAmount?.currency || grant.grant?.currency || 'USD') as 'USD' | 'RSC'
-                  }
-                  variant="text"
-                  showText={true}
-                  showIcon={true}
-                  textColor="text-gray-900"
-                  className="font-semibold text-2xl"
-                  shorten={false}
-                />
-              </div>
-            )}
-
-            {/* Organization */}
-            {(grant.organization || grant.grant?.organization) && (
-              <div className="mt-1 mb-3 flex items-center gap-1.5 text-sm text-gray-500">
-                <Building className="w-4 h-4" />
-                <span>{grant.organization || grant.grant?.organization}</span>
-              </div>
-            )}
-
-            {/* Deadline */}
-            {deadline && isOpen && (
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                <span
-                  className={cn(
-                    'text-sm font-normal',
-                    isExpiringSoon ? 'text-amber-600' : 'text-gray-500'
-                  )}
-                >
-                  Application deadline: {format(new Date(deadline), 'MMM d, yyyy')}
-                </span>
-              </div>
-            )}
-          </div>
 
           {/* Action Buttons */}
           {showActions && (

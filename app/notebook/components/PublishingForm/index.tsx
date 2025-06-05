@@ -163,10 +163,14 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         methods.setValue('budget', note.post.grant.amount.usd.toString());
       }
 
-      if (note.post.contentType === 'funding_request' && note.post.contacts) {
-        const contactOptions = note.post.contacts.map((contact) => ({
+      if (
+        note.post.contentType === 'funding_request' &&
+        note.post.grant?.contacts &&
+        note.post.grant.contacts.length > 0
+      ) {
+        const contactOptions = note.post.grant.contacts.map((contact) => ({
           value: contact.id.toString(),
-          label: contact.name,
+          label: contact.authorProfile?.fullName || contact.name,
         }));
         methods.setValue('contacts', contactOptions);
       }

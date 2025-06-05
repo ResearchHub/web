@@ -24,7 +24,7 @@ export const FundingRightSidebar = ({ work, metadata }: FundingRightSidebarProps
           <FundersSection fundraise={metadata.fundraising} />
         )}
       {/* Applicants for the grant */}
-      <ApplicantsSection grantId={work.id} />
+      {/* <ApplicantsSection grantId={work.id} /> */}
       <TopicsSection topics={metadata.topics || []} />
       {work.doi && <DOISection doi={work.doi} />}
     </div>
