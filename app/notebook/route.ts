@@ -57,6 +57,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const isNewFunding = searchParams.get('newFunding') === 'true';
   const isNewResearch = searchParams.get('newResearch') === 'true';
+  const isNewGrant = searchParams.get('newGrant') === 'true';
   const targetOrgSlug = searchParams.get('orgSlug');
 
   const organizations = await OrganizationService.getUserOrganizations(session);
@@ -81,6 +82,12 @@ export async function GET(request: Request) {
     return createNoteWithContent(selectedOrg.slug, {
       template: getInitialContent('research'),
       queryParam: 'newResearch',
+      queryValue: 'true',
+    });
+  } else if (isNewGrant) {
+    return createNoteWithContent(selectedOrg.slug, {
+      template: grantTemplate,
+      queryParam: 'newGrant',
       queryValue: 'true',
     });
   }

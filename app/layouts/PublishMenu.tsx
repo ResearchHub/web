@@ -23,6 +23,10 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
     router.push('/notebook?newFunding=true');
   };
 
+  const handleOpenGrant = () => {
+    router.push('/notebook?newGrant=true');
+  };
+
   const handleCreateBounty = () => {
     router.push('/bounty/create');
   };
@@ -80,7 +84,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
-                      Publish your research
+                      Submit a paper
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
                       Preprint or peer reviewed publication
@@ -101,10 +105,10 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
-                      Draft a Note
+                      Write a research note
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
-                      Draft and publish your research
+                      Share insights, ideas, or work in progress
                     </div>
                   </div>
                 </div>
@@ -132,22 +136,17 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
-                      Apply for funding
+                      Request funding
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
-                      Preregister your work to get crowdfunded
+                      Get crowdfunding for your experiments
                     </div>
                   </div>
                 </div>
               </BaseMenuItem>
 
               <BaseMenuItem
-                onClick={() =>
-                  window.open(
-                    'https://airtable.com/appZxEWpnNR2IEHpu/pagsytsewpnWbeLR0/form',
-                    '_blank'
-                  )
-                }
+                onClick={() => executeAuthenticatedAction(handleOpenGrant)}
                 className="w-full px-2"
               >
                 <div className="flex items-start gap-3">
@@ -158,10 +157,10 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
-                      Open a grant
+                      Give research funding
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
-                      Donate to fund a specific area of science
+                      Fund specific research you care about
                     </div>
                   </div>
                 </div>
@@ -179,10 +178,10 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
-                      Create a bounty
+                      Post a bounty
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
-                      Incentivize researchers to problem solve
+                      Pay experts to solve your problems
                     </div>
                   </div>
                 </div>
@@ -220,7 +219,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
-                      Publish your research
+                      Submit a paper
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
                       Preprint or peer reviewed publication
@@ -241,10 +240,10 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
-                      Draft a Note
+                      Write a research note
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
-                      Draft and publish your research
+                      Share insights, ideas, or work in progress
                     </div>
                   </div>
                 </div>
@@ -272,22 +271,17 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
-                      Apply for funding
+                      Request funding
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
-                      Preregister your work to get crowdfunded
+                      Get crowdfunding for your experiments
                     </div>
                   </div>
                 </div>
               </BaseMenuItem>
 
               <BaseMenuItem
-                onClick={() =>
-                  window.open(
-                    'https://airtable.com/appZxEWpnNR2IEHpu/pagsytsewpnWbeLR0/form',
-                    '_blank'
-                  )
-                }
+                onClick={() => executeAuthenticatedAction(handleOpenGrant)}
                 className="w-full px-2"
               >
                 <div className="flex items-start gap-3">
@@ -298,10 +292,10 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
-                      Open a grant
+                      Give research funding
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
-                      Donate to fund a specific area of science
+                      Fund specific research you care about
                     </div>
                   </div>
                 </div>
@@ -319,10 +313,10 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
-                      Create a bounty
+                      Post a bounty
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
-                      Incentivize researchers to problem solve
+                      Pay experts to solve your problems
                     </div>
                   </div>
                 </div>
