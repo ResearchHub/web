@@ -46,11 +46,6 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
     setIsApplyModalOpen(false);
   };
 
-  const handleDraftNewPrereg = () => {
-    console.log('Draft new preregistration from GrantApplications for grantId:', grantId);
-    setIsApplyModalOpen(false);
-  };
-
   const handleSortChange = (newSort: string) => {
     setSortBy(newSort);
   };
@@ -110,7 +105,6 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
           isOpen={isApplyModalOpen}
           onClose={() => setIsApplyModalOpen(false)}
           onUseSelected={handleUseSelectedPrereg}
-          onDraftNew={handleDraftNewPrereg}
           grantId={grantId}
         />
       </div>
@@ -173,7 +167,6 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
           isOpen={isApplyModalOpen}
           onClose={() => setIsApplyModalOpen(false)}
           onUseSelected={handleUseSelectedPrereg}
-          onDraftNew={handleDraftNewPrereg}
           grantId={grantId}
         />
       </div>
@@ -257,7 +250,6 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
         isOpen={isApplyModalOpen}
         onClose={() => setIsApplyModalOpen(false)}
         onUseSelected={handleUseSelectedPrereg}
-        onDraftNew={handleDraftNewPrereg}
         grantId={grantId}
       />
     </div>

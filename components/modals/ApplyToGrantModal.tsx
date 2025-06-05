@@ -15,6 +15,7 @@ import { BaseModal } from '@/components/ui/BaseModal';
 import { PostService, PreregistrationForModal } from '@/services/post.service';
 import { GrantService } from '@/services/grant.service';
 import { useUser } from '@/contexts/UserContext';
+import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 
 // Loading skeleton component for preregistrations
@@ -43,7 +44,6 @@ interface ApplyToGrantModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUseSelected: (prereg: PreregistrationForModal) => void;
-  onDraftNew: () => void;
   grantId: string | number;
 }
 
@@ -51,7 +51,6 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   isOpen,
   onClose,
   onUseSelected,
-  onDraftNew,
   grantId,
 }) => {
   const [showPreregList, setShowPreregList] = useState(false);
@@ -60,8 +59,15 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { user } = useUser();
+  const router = useRouter();
 
   const selectedPrereg = preregistrations.find((p) => p.id === selectedPreregId);
+
+  // Handle navigation to draft new preregistration
+  const handleDraftNew = () => {
+    onClose(); // Close the modal first
+    router.push('/notebook?newFunding=true');
+  };
 
   // Reset internal state when modal is opened or closed
   useEffect(() => {
@@ -200,7 +206,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                     </button>
 
                     <button
-                      onClick={onDraftNew}
+                      onClick={handleDraftNew}
                       className="inline-flex items-center rounded-lg text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-white focus-visible:ring-primary-500 py-2 w-full h-14 bg-indigo-600 hover:bg-indigo-700 transition-all duration-200 group shadow-lg justify-start px-4"
                     >
                       <div className="flex items-center space-x-4">
@@ -361,7 +367,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                           You have no preregistrations yet.
                         </p>
                         <button
-                          onClick={onDraftNew}
+                          onClick={handleDraftNew}
                           className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
                         >
                           Create your first preregistration
@@ -385,7 +391,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                         </Button>
                         <Button
                           variant="outlined"
-                          onClick={onDraftNew}
+                          onClick={handleDraftNew}
                           className="w-full"
                           size="lg"
                           disabled={submitting}
@@ -402,7 +408,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                     preregistrations.filter((p) => p.status === 'published').length === 0 && (
                       <div className="flex justify-center pt-4 border-t border-gray-200">
                         <Button
-                          onClick={onDraftNew}
+                          onClick={handleDraftNew}
                           className="w-full"
                           size="lg"
                           disabled={submitting}

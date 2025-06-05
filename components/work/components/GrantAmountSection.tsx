@@ -34,11 +34,6 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
     setIsApplyModalOpen(false);
   };
 
-  const handleDraftNewPrereg = () => {
-    console.log('Draft new preregistration from GrantAmountSection for workId:', work.id);
-    setIsApplyModalOpen(false);
-  };
-
   return (
     <>
       <div className="bg-indigo-50 border border-indigo-200 p-4 rounded-lg shadow-sm">
@@ -90,7 +85,6 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
         isOpen={isApplyModalOpen}
         onClose={() => setIsApplyModalOpen(false)}
         onUseSelected={handleUseSelectedPrereg}
-        onDraftNew={handleDraftNewPrereg}
         grantId={work.note?.post?.grant?.id || 0}
       />
     </>
