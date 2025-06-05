@@ -266,34 +266,38 @@ export const WorkLineItems = ({
       <div className="mt-6 space-y-2 text-sm text-gray-600">
         <div>
           {work.contentType === 'funding_request' ? (
-            <div className="flex items-start">
-              <span className="font-medium text-gray-900 w-28">
-                Funder{work.note?.post?.grant?.organization ? '' : '(s)'}
-              </span>
-              <div className="flex-1">
-                {work.note?.post?.grant?.organization ? (
-                  <span>{work.note.post.grant.organization}</span>
-                ) : (
-                  <div className="mb-1.5">
-                    <AuthorList
-                      authors={
-                        work.note?.post?.grant?.contacts?.map((contact: Contact) => ({
-                          name: contact.authorProfile?.fullName || contact.name,
-                          verified: contact.authorProfile?.user?.isVerified,
-                          profileUrl: contact.authorProfile
-                            ? `/author/${contact.authorProfile?.id}`
-                            : undefined,
-                        })) || []
-                      }
-                      size="sm"
-                      className="inline-flex items-center text-gray-600 font-medium"
-                      delimiterClassName="mx-2 text-gray-400"
-                      delimiter="•"
-                    />
-                  </div>
-                )}
+            // Only render if there is an organization OR at least one contact
+            work.note?.post?.grant?.organization ||
+            (work.note?.post?.grant?.contacts && work.note.post.grant.contacts.length > 0) ? (
+              <div className="flex items-start">
+                <span className="font-medium text-gray-900 w-28">
+                  Funder{work.note?.post?.grant?.organization ? '' : '(s)'}
+                </span>
+                <div className="flex-1">
+                  {work.note?.post?.grant?.organization ? (
+                    <span>{work.note.post.grant.organization}</span>
+                  ) : (
+                    <div className="mb-1.5">
+                      <AuthorList
+                        authors={
+                          work.note?.post?.grant?.contacts?.map((contact: Contact) => ({
+                            name: contact.authorProfile?.fullName || contact.name,
+                            verified: contact.authorProfile?.user?.isVerified,
+                            profileUrl: contact.authorProfile
+                              ? `/author/${contact.authorProfile?.id}`
+                              : undefined,
+                          })) || []
+                        }
+                        size="sm"
+                        className="inline-flex items-center text-gray-600 font-medium"
+                        delimiterClassName="mx-2 text-gray-400"
+                        delimiter="•"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            ) : null
           ) : (
             // NON-GRANT: Authors section
             <div className="flex items-start">
