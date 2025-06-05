@@ -12,7 +12,7 @@ import { mockGrants } from '@/store/grantStore';
 import Icon from '@/components/ui/icons/Icon';
 
 export default function FundingPage() {
-  const [activeMarketplaceTab, setActiveMarketplaceTab] = useState<MarketplaceTab>('needs-funding');
+  const [activeMarketplaceTab, setActiveMarketplaceTab] = useState<MarketplaceTab>('grants');
   const [activeFundingTab, setActiveFundingTab] = useState<FundingTab>('open');
   const [fundingStatus, setFundingStatus] = useState<FundingStatus>('open');
 

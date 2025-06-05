@@ -24,12 +24,12 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
 }) => {
   const tabs = [
     {
-      id: 'needs-funding',
-      label: 'Needs Funding',
-    },
-    {
       id: 'grants',
       label: 'Grants',
+    },
+    {
+      id: 'needs-funding',
+      label: 'Needs Funding',
     },
   ];
 
