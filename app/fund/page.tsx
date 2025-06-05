@@ -5,6 +5,7 @@ import { useFeed, FundingTab } from '@/hooks/useFeed';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { useState } from 'react';
 import { FundRightSidebar } from '@/components/Fund/FundRightSidebar';
+import { GrantRightSidebar } from '@/components/Fund/GrantRightSidebar';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { MarketplaceTabs, MarketplaceTab, FundingStatus } from '@/components/Fund/MarketplaceTabs';
 import { GrantsFeed } from '@/components/Fund/GrantsFeed';
@@ -52,8 +53,12 @@ export default function FundingPage() {
     />
   );
 
+  // Conditionally render sidebar based on active tab
+  const rightSidebar =
+    activeMarketplaceTab === 'needs-funding' ? <FundRightSidebar /> : <GrantRightSidebar />;
+
   return (
-    <PageLayout rightSidebar={<FundRightSidebar />}>
+    <PageLayout rightSidebar={rightSidebar}>
       <div className="pt-4 pb-7">{header}</div>
 
       {/* Primary Marketplace Tabs */}

@@ -22,39 +22,33 @@ export const FundRightSidebar = () => {
         <div className="bg-indigo-50 rounded-lg shadow-sm border border-indigo-100 p-5 mb-6">
           <h3 className="text-lg font-semibold mb-1 text-indigo-800 flex items-center gap-2">
             <Icon name="fundYourRsc2" size={20} color="currentColor" />
-            Fund Smarter.
+            Get Funded.
           </h3>
           <p className="text-indigo-700 mb-3 text-sm">
-            We believe funding should be simple, transparent, and efficient.
+            Preregister your research and get crowdfunded by the community.
           </p>
           <ul className="text-indigo-700 mb-4 text-sm space-y-1">
             <li className="flex items-center gap-2">
               <Check className="w-4 h-4 flex-shrink-0 text-indigo-500" strokeWidth={3} />
-              Preregistered by default
+              Early expert feedback
             </li>
             <li className="flex items-center gap-2">
               <Check className="w-4 h-4 flex-shrink-0 text-indigo-500" strokeWidth={3} />
-              Fast & open expert review
+              Donors get tax deductions
             </li>
             <li className="flex items-center gap-2">
               <Check className="w-4 h-4 flex-shrink-0 text-indigo-500" strokeWidth={3} />
-              <strong>Tax-deductible donations</strong>
+              <strong>Fully discretionary funds</strong>
             </li>
           </ul>
-          {/* Button to link to Airtable form */}
+          {/* Button to preregister research */}
           <Button asChild className="w-full bg-indigo-600 hover:bg-indigo-700">
-            <a
-              href="https://airtable.com/appZxEWpnNR2IEHpu/pagsytsewpnWbeLR0/form"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Give a grant
-            </a>
+            <Link href="/notebook?newFunding=true">Request funding</Link>
           </Button>
         </div>
 
         {/* Informational Sections */}
-        <CollapsibleSection title="Why fund on ResearchHub?">
+        <CollapsibleSection title="Crowdfunding for science?">
           <CollapsibleItem
             title="Preregistered by default"
             icon={<BookCheck className="w-4 h-4" strokeWidth={2.5} />}
@@ -124,7 +118,7 @@ export const FundRightSidebar = () => {
             rigor and reproducibility, offering insight into the work.
           </CollapsibleItem>
           <CollapsibleItem
-            title="3. (Optional) Link a nonprofit"
+            title="3. Link a nonprofit (Recommended)"
             isOpen={openSections.includes('tax-deduct')}
             onToggle={() => toggleSection('tax-deduct')}
           >
