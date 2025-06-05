@@ -91,7 +91,7 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
         onClose={() => setIsApplyModalOpen(false)}
         onUseSelected={handleUseSelectedPrereg}
         onDraftNew={handleDraftNewPrereg}
-        grantId={workId || 0}
+        grantId={work.note?.post?.grant?.id || 0}
       />
     </>
   );
