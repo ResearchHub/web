@@ -24,6 +24,7 @@ interface FeedItemGrantProps {
   showActions?: boolean;
   showTooltips?: boolean;
   customActionText?: string;
+  showHeader?: boolean;
 }
 
 export const FeedItemGrant: FC<FeedItemGrantProps> = ({
@@ -33,6 +34,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
   showActions = true,
   showTooltips = true,
   customActionText,
+  showHeader = true,
 }) => {
   const router = useRouter();
   const { work, metadata } = grant;
@@ -86,15 +88,17 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
   return (
     <div className={cn('space-y-3', className)}>
       {/* Header */}
-      <FeedItemHeader
-        timestamp={work.createdDate}
-        author={author}
-        actionText={customActionText || 'is seeking applicants for'}
-        contributors={contributors}
-        contributorsLabel="Grant Applicants"
-        work={work}
-        hideAuthorBadge={true}
-      />
+      {showHeader && (
+        <FeedItemHeader
+          timestamp={work.createdDate}
+          author={author}
+          actionText={customActionText || 'is seeking applicants for'}
+          contributors={contributors}
+          contributorsLabel="Grant Applicants"
+          work={work}
+          hideAuthorBadge={true}
+        />
+      )}
 
       {/* Main Content Card */}
       <div

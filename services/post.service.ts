@@ -6,6 +6,36 @@ interface GetContentOptions {
   cleanIntroEmptyContent?: boolean;
 }
 
+// Interface for Preregistration list response
+export interface PreregistrationListResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: any[];
+}
+
+// Interface for transformed preregistration for modal use
+export interface PreregistrationForModal {
+  id: string;
+  title: string;
+  status: 'published' | 'draft';
+  createdDate: string;
+  doi?: string;
+  postId: number;
+}
+
+// Transform preregistration from API response to modal format
+export const transformPreregistrationForModal = (raw: any): PreregistrationForModal => {
+  return {
+    id: raw.id.toString(),
+    title: raw.title || '',
+    status: raw.doi ? 'published' : 'draft',
+    createdDate: raw.created_date,
+    doi: raw.doi,
+    postId: raw.note?.post?.id || raw.id, // Use note.post.id if available, fallback to raw.id
+  };
+};
+
 export class PostService {
   private static readonly BASE_PATH = '/api/researchhubpost';
 
@@ -17,6 +47,13 @@ export class PostService {
   static async upsert(payload: any): Promise<Work> {
     const rawResponse = await ApiClient.post<any>(`${this.BASE_PATH}/`, payload);
     return transformPost(rawResponse);
+  }
+
+  static async getPreregistrationsByUser(userId: number): Promise<PreregistrationForModal[]> {
+    const response = await ApiClient.get<PreregistrationListResponse>(
+      `${this.BASE_PATH}/?created_by=${userId}&document_type=PREREGISTRATION`
+    );
+    return response.results.map(transformPreregistrationForModal);
   }
 
   static async getContent(url: string, options: GetContentOptions = {}): Promise<string> {

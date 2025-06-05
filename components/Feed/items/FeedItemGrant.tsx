@@ -66,6 +66,7 @@ interface FeedItemGrantProps {
   showTooltips?: boolean;
   customActionText?: string;
   maxLength?: number;
+  showHeader?: boolean;
 }
 
 /**
@@ -211,6 +212,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
   showTooltips = true,
   customActionText,
   maxLength,
+  showHeader = true,
 }) => {
   // Extract the grant from the entry's content
   const grant = entry.content as FeedGrantContent;
@@ -257,11 +259,13 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
   return (
     <div className={cn('space-y-3', className)}>
       {/* Header */}
-      <FeedItemHeader
-        timestamp={grant.createdDate}
-        author={author}
-        actionText={customActionText || 'opened a grant'}
-      />
+      {showHeader && (
+        <FeedItemHeader
+          timestamp={grant.createdDate}
+          author={author}
+          actionText={customActionText || 'opened a grant'}
+        />
+      )}
 
       {/* Main Content Card */}
       <div

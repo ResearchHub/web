@@ -75,6 +75,7 @@ export default function FundingPage() {
         hasMore={hasMore}
         loadMore={loadMore}
         activeTab={activeFundingTab as any}
+        showGrantHeaders={false}
       />
     </PageLayout>
   );
