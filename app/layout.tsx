@@ -44,6 +44,9 @@ export const metadata: Metadata = {
     ],
   },
   manifest: '/favicons/site.webmanifest',
+  title: 'ResearchHub | Open Science Community',
+  description:
+    'ResearchHub is a collaborative community seeking to improve prioritization, collaboration, reproducibility, and funding of scientific research. Join us to discuss and discover academic research.',
 };
 
 export default async function RootLayout({
@@ -55,9 +58,6 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <head>
-        <title>ResearchHub | Open Science Community</title>
-      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ClickProvider>
           <OnchainProvider>
