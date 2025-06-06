@@ -225,7 +225,8 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
       {entries.length > 0 ? (
         entries.map((entry) => {
           const content = entry.content as FeedPostContent;
-          const href = content.slug ? `/post/${content.slug}` : undefined;
+          const href =
+            content.id && content.slug ? `/post/${content.id}/${content.slug}` : undefined;
 
           return (
             <div key={entry.id} className="mb-4">
