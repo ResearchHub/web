@@ -106,6 +106,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       // Reset form to default values when switching notes
       methods.reset({
         authors: [],
+        contacts: [],
         topics: [],
         rewardFunders: false,
         nftSupply: '1000',
