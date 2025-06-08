@@ -106,6 +106,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       // Reset form to default values when switching notes
       methods.reset({
         authors: [],
+        contacts: [],
         topics: [],
         rewardFunders: false,
         nftSupply: '1000',
@@ -262,6 +263,8 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   }, [articleType, clearErrors]);
 
   const handlePublishClick = async () => {
+    console.log('handlePublishClick');
+    console.log(methods.getValues());
     const result = await methods.trigger();
 
     if (!result) {
