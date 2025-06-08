@@ -263,8 +263,6 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   }, [articleType, clearErrors]);
 
   const handlePublishClick = async () => {
-    console.log('handlePublishClick');
-    console.log(methods.getValues());
     const result = await methods.trigger();
 
     if (!result) {
