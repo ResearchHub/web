@@ -26,7 +26,6 @@ export const GrantDocument = ({
   defaultTab = 'paper',
 }: GrantDocumentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
-  console.log('work', work);
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
   };
