@@ -4,6 +4,9 @@ import hljs from 'highlight.js';
 import { useEffect } from 'react';
 import { buildWorkUrl } from '@/utils/url';
 import { navigateToAuthorProfile } from '@/utils/navigation';
+import { Button } from '@/components/ui/Button';
+import { ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface TipTapRendererProps {
   content: any;
@@ -104,6 +107,8 @@ const TipTapRenderer: React.FC<TipTapRendererProps> = ({
   truncate = false,
   maxLength = 300,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   if (debug) {
     console.log('||TipTapRenderer props received:', {
       truncate,
@@ -140,9 +145,11 @@ const TipTapRenderer: React.FC<TipTapRendererProps> = ({
 
   // If truncation is enabled, extract the full text to check length
   let shouldTruncate = false;
-  if (truncate) {
+  let isTextTruncated = false;
+  if (truncate && !isExpanded) {
     const fullText = extractPlainText(documentContent);
     shouldTruncate = fullText.length > maxLength;
+    isTextTruncated = fullText.length > maxLength;
 
     if (debug) {
       console.log('||TipTapRenderer fullText.length', fullText.length);
@@ -160,6 +167,10 @@ const TipTapRenderer: React.FC<TipTapRendererProps> = ({
     });
   }, [content]);
 
+  const handleToggleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
+
   return (
     <div className="tiptap-renderer">
       <RenderNode
@@ -169,6 +180,26 @@ const TipTapRenderer: React.FC<TipTapRendererProps> = ({
         truncate={shouldTruncate}
         maxLength={maxLength}
       />
+      {isTextTruncated && (
+        <Button
+          variant="link"
+          size="sm"
+          onClick={(e) => {
+            e.preventDefault();
+            handleToggleExpand();
+          }}
+          className="flex items-center gap-0.5 mt-1 text-indigo-600 p-0 h-auto"
+        >
+          {isExpanded ? 'Show less' : 'Read more'}
+          <ChevronDown
+            size={14}
+            className={cn(
+              'transition-transform duration-200',
+              isExpanded && 'transform rotate-180'
+            )}
+          />
+        </Button>
+      )}
     </div>
   );
 };
@@ -308,12 +339,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
       const remainingLength = maxLength - textLengthSoFar;
       const truncatedText = text.substring(0, remainingLength);
       if (debug) console.log('TRUNCATING TEXT to', truncatedText + '...');
-      return (
-        <>
-          {renderTextWithMarks(truncatedText, node.marks || [])}
-          <strong style={{ color: 'red' }}>[...]</strong>
-        </>
-      );
+      return renderTextWithMarks(truncatedText, node.marks || []);
     }
 
     return renderTextWithMarks(text, node.marks || []);
