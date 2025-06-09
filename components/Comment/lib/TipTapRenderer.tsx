@@ -189,7 +189,7 @@ const TipTapRenderer: React.FC<TipTapRendererProps> = ({
             e.stopPropagation();
             handleToggleExpand();
           }}
-          className="flex items-center gap-0.5 mt-1 text-indigo-600 p-0 h-auto"
+          className="text-blue-600 hover:text-blue-800 hover:underline text-sm cursor-pointer"
         >
           {isExpanded ? 'Show less' : 'Read more'}
           <ChevronDown
