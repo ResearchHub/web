@@ -196,10 +196,12 @@ export const transformWork = createTransformer<any, Work>((raw) => {
         : [],
     formats: raw.pdf_url
       ? [...(raw.formats || []), { type: 'PDF', url: ProxyService.generateProxyUrl(raw.pdf_url) }]
-      : (raw.formats || []).map((format: FormatType) => ({
-          ...format,
-          url: format.type === 'PDF' ? ProxyService.generateProxyUrl(format.url) : format.url,
-        })),
+      : raw.file
+        ? [...(raw.formats || []), { type: 'PDF', url: ProxyService.generateProxyUrl(raw.file) }]
+        : (raw.formats || []).map((format: FormatType) => ({
+            ...format,
+            url: format.type === 'PDF' ? ProxyService.generateProxyUrl(format.url) : format.url,
+          })),
     license: raw.pdf_license,
     pdfCopyrightAllowsDisplay: raw.pdf_copyright_allows_display,
     figures: raw.first_preview
