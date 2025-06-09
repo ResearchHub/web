@@ -186,6 +186,7 @@ const TipTapRenderer: React.FC<TipTapRendererProps> = ({
           size="sm"
           onClick={(e) => {
             e.preventDefault();
+            e.stopPropagation();
             handleToggleExpand();
           }}
           className="flex items-center gap-0.5 mt-1 text-indigo-600 p-0 h-auto"
