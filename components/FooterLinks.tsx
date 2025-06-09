@@ -55,6 +55,9 @@ export const FooterLinks: React.FC = () => (
       <a href="https://docs.researchhub.com/" className="hover:text-gray-700">
         Docs
       </a>
+      <a href="https://airtable.com/appuhMJaf1kb3ic8e/pagYeh6cB9sgiTIgx/form" className="hover:text-gray-700" target="_blank" rel="noopener noreferrer">
+        Support
+      </a>
       <a href="https://researchhub.foundation/" className="hover:text-gray-700">
         Foundation
       </a>
