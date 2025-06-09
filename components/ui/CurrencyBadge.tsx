@@ -152,7 +152,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
             <ResearchCoinIcon size={14} color={colors.iconColor} />
             <span>{Math.round(amount).toLocaleString()} RSC</span>
           </div>
-          <div className="text-gray-700 text-xs">≈ ${usdEquivalent.toFixed(2)} USD</div>
+          <div className="text-gray-700 text-xs">≈ ${formatNumber(usdEquivalent, shorten)} USD</div>
         </div>
       );
     }
