@@ -6,7 +6,6 @@ import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Badge } from './Badge';
 import { Tooltip } from './Tooltip';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
-import { InfoIcon } from 'lucide-react';
 import { formatRSC } from '@/utils/number';
 
 interface CurrencyBadgeProps {
