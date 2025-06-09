@@ -146,10 +146,10 @@ const TipTapRenderer: React.FC<TipTapRendererProps> = ({
   // If truncation is enabled, extract the full text to check length
   let shouldTruncate = false;
   let isTextTruncated = false;
-  if (truncate && !isExpanded) {
+  if (truncate) {
     const fullText = extractPlainText(documentContent);
-    shouldTruncate = fullText.length > maxLength;
     isTextTruncated = fullText.length > maxLength;
+    shouldTruncate = isTextTruncated && !isExpanded;
 
     if (debug) {
       console.log('||TipTapRenderer fullText.length', fullText.length);
