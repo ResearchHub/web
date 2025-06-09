@@ -5,6 +5,7 @@ import { cn } from '@/utils/styles';
 import { Clock, CheckCircle2, ChevronDown } from 'lucide-react';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
 import { Tabs } from '@/components/ui/Tabs';
+import { useRouter, usePathname } from 'next/navigation';
 
 export type MarketplaceTab = 'grants' | 'needs-funding';
 export type FundingStatus = 'open' | 'completed';
@@ -14,6 +15,7 @@ interface MarketplaceTabsProps {
   onTabChange: (tab: MarketplaceTab) => void;
   fundingStatus: FundingStatus;
   onStatusChange: (status: FundingStatus) => void;
+  disableTabs?: boolean;
 }
 
 export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
@@ -21,7 +23,11 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
   onTabChange,
   fundingStatus,
   onStatusChange,
+  disableTabs,
 }) => {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const tabs = [
     {
       id: 'grants',
@@ -48,6 +54,21 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
 
   const activeStatusOption = statusOptions.find((option) => option.id === fundingStatus);
 
+  const handleTabChange = (tabId: string) => {
+    if (disableTabs) return;
+
+    const tab = tabId as MarketplaceTab;
+
+    // Navigate to the appropriate route
+    if (tab === 'grants') {
+      router.push('/fund/grants');
+    } else if (tab === 'needs-funding') {
+      router.push('/fund/needs-funding');
+    }
+
+    onTabChange(tab);
+  };
+
   return (
     <div className="bg-white pb-6">
       <div className="flex items-end justify-between border-b border-gray-200">
@@ -56,7 +77,7 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
           <Tabs
             tabs={tabs}
             activeTab={activeTab}
-            onTabChange={(tabId) => onTabChange(tabId as MarketplaceTab)}
+            onTabChange={handleTabChange}
             variant="underline"
             className="border-b-0"
           />

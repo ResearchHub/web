@@ -263,12 +263,6 @@ const RenderNode: React.FC<RenderNodeProps> = ({
           );
       }
 
-      // If we truncated, add ellipsis
-      if (currentTextLength >= maxLength && node.content?.length > renderedChildren.length) {
-        if (debug) console.log('||RenderNode: Adding ellipsis');
-        renderedChildren.push(<span key="ellipsis">...</span>);
-      }
-
       return <div className="tiptap-doc">{renderedChildren}</div>;
     }
 
@@ -311,7 +305,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
       return (
         <>
           {renderTextWithMarks(truncatedText, node.marks || [])}
-          <strong style={{ color: 'red' }}>[...]</strong>
+          <span className="text-gray-500 text-sm font-semibold">[...]</span>
         </>
       );
     }

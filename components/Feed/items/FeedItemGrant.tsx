@@ -184,7 +184,7 @@ const FeedItemGrantBody: FC<{
 
         {/* Image - Positioned to the right, aligned with title */}
         {imageUrl && (
-          <div className="flex-shrink-0 w-[280px] max-w-[33%] hidden md:block">
+          <div className="flex-shrink-0 w-[280px] max-w-[33%] hidden md:!block">
             <div className="aspect-[4/3] relative rounded-lg overflow-hidden shadow-sm">
               <Image
                 src={imageUrl}
@@ -242,7 +242,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
     if (!imageUrl) return null;
 
     return (
-      <div className="md:hidden w-full mb-4">
+      <div className="md:!hidden w-full mb-4">
         <div className="aspect-[16/9] relative rounded-lg overflow-hidden shadow-sm">
           <Image
             src={imageUrl}
