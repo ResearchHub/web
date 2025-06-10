@@ -6,7 +6,6 @@ import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Badge } from './Badge';
 import { Tooltip } from './Tooltip';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
-import { InfoIcon } from 'lucide-react';
 import { formatRSC } from '@/utils/number';
 
 interface CurrencyBadgeProps {
@@ -152,7 +151,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
             <ResearchCoinIcon size={14} color={colors.iconColor} />
             <span>{Math.round(amount).toLocaleString()} RSC</span>
           </div>
-          <div className="text-gray-700 text-xs">≈ ${usdEquivalent.toFixed(2)} USD</div>
+          <div className="text-gray-700 text-xs">≈ ${formatNumber(usdEquivalent, shorten)} USD</div>
         </div>
       );
     }
