@@ -4,6 +4,7 @@ import { FC, useState } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatRSC } from '@/utils/number';
 import { Fundraise } from '@/types/funding';
+import { formatDeadline } from '@/utils/date';
 import { ContributorModal } from '@/components/modals/ContributorModal';
 import { Users } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -28,8 +29,10 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise }) => {
   const displayedContributors = topContributors.slice(0, displayLimit);
   const hasMoreContributors = topContributors.length > displayLimit;
 
-  // Check if fundraise is completed or closed
-  const isDisableContribute = fundraise.status === 'COMPLETED' || fundraise.status === 'CLOSED';
+  const deadlineText = fundraise.endDate ? formatDeadline(fundraise.endDate) : undefined;
+
+  // Check if fundraise is active
+  const isActive = fundraise.status === 'OPEN' && deadlineText !== 'Ended';
 
   // Format contributors for modal
   const modalContributors = topContributors.map((contributor) => ({
@@ -104,7 +107,7 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise }) => {
           onClose={() => setIsModalOpen(false)}
           contributors={modalContributors}
           onContribute={handleContributeClick}
-          disableContribute={isDisableContribute}
+          disableContribute={!isActive}
         />
       )}
 
