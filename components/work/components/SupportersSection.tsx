@@ -19,10 +19,11 @@ interface SupportersSectionProps {
 
 export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], documentId, onTip }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showAllSupporters, setShowAllSupporters] = useState(false);
 
   const hasSupporters = tips && tips.length > 0;
   const displayLimit = 5; // Show only top 5 supporters in the sidebar
-  const displayedSupporters = tips.slice(0, displayLimit);
+  const displayedSupporters = showAllSupporters ? tips : tips.slice(0, displayLimit);
   const hasMoreSupporters = tips.length > displayLimit;
 
   const handleTipSuccess = (amount: number) => {
@@ -68,10 +69,10 @@ export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], docum
 
           {hasMoreSupporters && (
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => setShowAllSupporters(!showAllSupporters)}
               className="text-sm text-blue-600 hover:text-blue-800 font-medium mt-3 w-full text-center"
             >
-              View all supporters ({tips.length})
+              {showAllSupporters ? 'Show less' : `View all supporters (${tips.length})`}
             </button>
           )}
         </>
