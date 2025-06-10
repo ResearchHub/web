@@ -28,6 +28,9 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise }) => {
   const displayedContributors = topContributors.slice(0, displayLimit);
   const hasMoreContributors = topContributors.length > displayLimit;
 
+  // Check if fundraise is completed or closed
+  const isDisableContribute = fundraise.status === 'COMPLETED' || fundraise.status === 'CLOSED';
+
   // Format contributors for modal
   const modalContributors = topContributors.map((contributor) => ({
     profile: {
@@ -101,6 +104,7 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise }) => {
           onClose={() => setIsModalOpen(false)}
           contributors={modalContributors}
           onContribute={handleContributeClick}
+          disableContribute={isDisableContribute}
         />
       )}
 
