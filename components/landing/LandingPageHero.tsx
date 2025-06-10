@@ -13,7 +13,7 @@ export function LandingPageHero() {
         <Aurora
           colorStops={[colors.primary[600], colors.rhBlue, colors.primary[400]]}
           blend={0.6}
-          amplitude={1.2}
+          amplitude={0.6}
           speed={0.3}
         />
       </div>
