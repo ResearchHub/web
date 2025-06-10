@@ -40,6 +40,7 @@ interface FeedContentProps {
   noEntriesElement?: ReactNode; // Element to render if there are no entries
   maxLength?: number;
   showGrantHeaders?: boolean; // Prop to control grant header visibility
+  showReadMoreCTA?: boolean; // Prop to control read more CTA visibility
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -60,6 +61,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   noEntriesElement,
   maxLength,
   showGrantHeaders = true, // Default to true
+  showReadMoreCTA = false,
 }) => {
   // Generate appropriate href for each feed item type
   const generateHref = (entry: FeedEntry): string | undefined => {
@@ -177,7 +179,7 @@ export const FeedContent: FC<FeedContentProps> = ({
           // Use FeedItemComment for comment entries
           content = (
             <FeedItemComment
-              showReadMoreCTA={false}
+              showReadMoreCTA={showReadMoreCTA}
               entry={entry}
               href={href}
               showCreatorActions={true}

@@ -192,6 +192,7 @@ export interface FeedGrantContent {
     isActive: boolean;
     currency: string;
     createdBy: any;
+    applicants: AuthorProfile[];
   };
   organization?: string;
   grantAmount?: {
@@ -626,6 +627,9 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               isActive: content_object.grant.is_active,
               currency: content_object.grant.currency,
               createdBy: content_object.grant.created_by,
+              applicants: (content_object.grant.applications || [])
+                .map((application: any) => application.applicant)
+                .map(transformAuthorProfile),
             },
             organization: content_object.grant.organization || '',
             grantAmount: content_object.grant.amount || {},

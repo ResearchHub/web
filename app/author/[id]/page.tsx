@@ -206,6 +206,7 @@ function AuthorTabs({ authorId }: { authorId: number }) {
             <SearchEmpty title="No author activity found in this section." className="mb-10" />
           }
           maxLength={150}
+          showReadMoreCTA={true}
         />
       </div>
     );
