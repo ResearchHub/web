@@ -68,6 +68,9 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   // Check if fundraise is active
   const isActive = fundraise.status === 'OPEN' && deadlineText !== 'Ended';
 
+  // Check if fundraise is completed or closed for disabling contribute
+  const isDisableContribute = fundraise.status === 'COMPLETED' || fundraise.status === 'CLOSED';
+
   // Get status display for the top right when no contributors
   const getStatusDisplay = () => {
     switch (fundraise.status) {
@@ -297,6 +300,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   onContribute={handleContributeClick}
                   label={`Funders`}
                   size="md"
+                  disableContribute={isDisableContribute}
                 />
               </div>
             )}
