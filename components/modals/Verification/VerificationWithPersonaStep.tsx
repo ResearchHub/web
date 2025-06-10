@@ -38,6 +38,9 @@ export function VerificationWithPersonaStep({
       const latestNotification = transformNotification(latestMessage);
 
       if (latestNotification.type === 'IDENTITY_VERIFICATION_UPDATED') {
+        console.log('latestNotification', latestNotification);
+        console.log('latestNotification.raw', latestNotification.raw);
+        console.log('status', latestNotification.raw?.extra?.status);
         if (latestNotification.raw?.data?.extra?.status === 'APPROVED') {
           onVerificationStatusChange?.('success');
         } else {
