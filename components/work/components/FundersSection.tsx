@@ -4,11 +4,9 @@ import { FC, useState } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatRSC } from '@/utils/number';
 import { Fundraise } from '@/types/funding';
-import { formatDeadline } from '@/utils/date';
+import { isDeadlineInFuture } from '@/utils/date';
 import { ContributorModal } from '@/components/modals/ContributorModal';
 import { Users } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 
 interface FundersSectionProps {
@@ -29,10 +27,10 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise }) => {
   const displayedContributors = topContributors.slice(0, displayLimit);
   const hasMoreContributors = topContributors.length > displayLimit;
 
-  const deadlineText = fundraise.endDate ? formatDeadline(fundraise.endDate) : undefined;
-
   // Check if fundraise is active
-  const isActive = fundraise.status === 'OPEN' && deadlineText !== 'Ended';
+  const isActive =
+    fundraise.status === 'OPEN' &&
+    (fundraise.endDate ? isDeadlineInFuture(fundraise.endDate) : true);
 
   // Format contributors for modal
   const modalContributors = topContributors.map((contributor) => ({

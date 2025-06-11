@@ -64,6 +64,17 @@ export function formatDeadline(deadline: string): string {
   }
 }
 
+/**
+ * Checks if a deadline is in the future
+ * @param deadline ISO timestamp string
+ * @returns boolean indicating if the deadline is in the future
+ */
+export function isDeadlineInFuture(deadline: string): boolean {
+  const now = dayjs();
+  const deadlineDate = dayjs(deadline);
+  return deadlineDate.isAfter(now);
+}
+
 export function specificTimeSince(dateInput: string | Date): string {
   const now = dayjs.utc();
   const joined = dayjs.utc(dateInput);
