@@ -5,7 +5,11 @@ import { Work } from '@/types/work';
 import { ID } from '@/types/root';
 import { TransformedWork } from '@/types/work';
 import { ApiError } from '@/services/types';
-import { PaperService, UpdatePaperMetadataPayload } from '@/services/paper.service';
+import {
+  PaperService,
+  UpdatePaperMetadataPayload,
+  UpdatePaperAbstractPayload,
+} from '@/services/paper.service';
 
 export interface PreregistrationPostParams {
   // Funding related
@@ -159,4 +163,40 @@ export const useUpdateWorkMetadata = (): UseUpdateWorkMetadataReturn => {
   };
 
   return [{ isLoading, error }, updateWorkMetadata];
+};
+
+interface UseUpdateWorkAbstractState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type UpdateWorkAbstractFn = (workId: number, payload: UpdatePaperAbstractPayload) => Promise<Work>;
+
+type UseUpdateWorkAbstractReturn = [UseUpdateWorkAbstractState, UpdateWorkAbstractFn];
+
+export const useUpdateWorkAbstract = (): UseUpdateWorkAbstractReturn => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const updateWorkAbstract = async (
+    workId: number,
+    payload: UpdatePaperAbstractPayload
+  ): Promise<Work> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const updatedWork = await PaperService.updateAbstract(workId, payload);
+      return updatedWork;
+    } catch (err) {
+      const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
+      const errorMsg = data?.msg || 'An error occurred while updating the work abstract';
+      setError(errorMsg);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return [{ isLoading, error }, updateWorkAbstract];
 };

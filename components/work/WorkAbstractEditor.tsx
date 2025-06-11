@@ -17,7 +17,7 @@ import { EditorModals } from '@/components/Comment/components/EditorModals';
 
 interface WorkAbstractEditorProps {
   initialContent?: string;
-  onContentChange?: (content: string) => void;
+  onContentChange?: (plainText: string, html: string) => void;
 }
 
 // Initialize lowlight with supported languages
@@ -92,7 +92,8 @@ export function WorkAbstractEditor({
     },
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
-      onContentChange?.(html);
+      const plainText = editor.getText();
+      onContentChange?.(plainText, html);
     },
     immediatelyRender: false,
   });

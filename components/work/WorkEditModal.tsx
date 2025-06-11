@@ -3,7 +3,12 @@
 import { useState, useCallback } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { workEditSchema, type WorkEditFormData } from './schema';
+import {
+  workMetadataSchema,
+  workAbstractSchema,
+  type WorkMetadataFormData,
+  type WorkAbstractFormData,
+} from './schema';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
@@ -18,9 +23,10 @@ import { faChevronDown, faLock, faLockOpen } from '@fortawesome/pro-light-svg-ic
 import { cn } from '@/utils/styles';
 import { WorkAbstractEditor } from '@/components/work/WorkAbstractEditor';
 import { WorkMetadata } from '@/services/metadata.service';
-import { useUpdateWorkMetadata } from '@/hooks/useDocument';
-import { UpdatePaperMetadataPayload } from '@/services/paper.service';
+import { useUpdateWorkMetadata, useUpdateWorkAbstract } from '@/hooks/useDocument';
+import { UpdatePaperMetadataPayload, UpdatePaperAbstractPayload } from '@/services/paper.service';
 import { useRouter } from 'next/navigation';
+import { Editor } from '@tiptap/core';
 
 interface WorkEditModalProps {
   isOpen: boolean;
@@ -118,8 +124,8 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
     router.refresh();
   }, [router]);
 
-  const methods = useForm<WorkEditFormData>({
-    resolver: zodResolver(workEditSchema),
+  const metadataForm = useForm<WorkMetadataFormData>({
+    resolver: zodResolver(workMetadataSchema),
     defaultValues: {
       title: work.title || '',
       doi: work.doi || '',
@@ -132,20 +138,34 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
           label: topic.name,
         })) || [],
       license: work.license || '',
-      abstract: work.abstract || '',
+    },
+  });
+
+  const abstractForm = useForm<WorkAbstractFormData>({
+    resolver: zodResolver(workAbstractSchema),
+    defaultValues: {
+      abstractPlainText: work.abstract || '',
+      abstractHtml: work.abstract || '',
     },
   });
 
   const {
-    handleSubmit,
-    formState: { errors },
-    watch,
-    setValue,
-  } = methods;
+    handleSubmit: handleMetadataSubmit,
+    formState: { errors: metadataErrors },
+    watch: metadataWatch,
+    setValue: setMetadataValue,
+  } = metadataForm;
 
-  const topics = watch('topics') || [];
-  const selectedLicense = watch('license');
-  const abstract = watch('abstract');
+  const {
+    handleSubmit: handleAbstractSubmit,
+    formState: { errors: abstractErrors },
+    watch: abstractWatch,
+    setValue: setAbstractValue,
+  } = abstractForm;
+
+  const topics = metadataWatch('topics') || [];
+  const selectedLicense = metadataWatch('license');
+  const abstractPlainText = abstractWatch('abstractPlainText');
 
   const handleTopicSearch = useCallback(async (query: string) => {
     try {
@@ -160,15 +180,16 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
     }
   }, []);
 
-  const [{ isLoading: isUpdating, error: updateError }, updateWorkMetadata] =
+  const [{ isLoading: isUpdatingMetadata, error: metadataError }, updateWorkMetadata] =
     useUpdateWorkMetadata();
+  const [{ isLoading: isUpdatingAbstract, error: abstractError }, updateWorkAbstract] =
+    useUpdateWorkAbstract();
 
-  const isFormSubmitting = isSubmitting || isUpdating;
+  const isFormSubmitting = isSubmitting || isUpdatingMetadata || isUpdatingAbstract;
 
-  const onSubmit = async (data: WorkEditFormData) => {
+  const onMetadataSubmit = async (data: WorkMetadataFormData) => {
     setIsSubmitting(true);
     try {
-      // Prepare the payload for the API
       const payload: UpdatePaperMetadataPayload = {};
 
       if (data.title && data.title !== work.title) {
@@ -180,12 +201,10 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
       }
 
       if (data.publishedDate) {
-        // Convert from ISO date string (YYYY-MM-DD) to backend format
         payload.publishedDate = data.publishedDate;
       }
 
       if (data.topics) {
-        // Extract topic IDs from the selected topics
         payload.hubs = data.topics.map((topic) => parseInt(topic.value));
       }
 
@@ -193,7 +212,6 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
         payload.license = data.license;
       }
 
-      // Only make the API call if there are changes
       if (Object.keys(payload).length > 0) {
         await updateWorkMetadata(work.id, payload);
         handleWorkRefetch();
@@ -202,6 +220,30 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
       onClose();
     } catch (error) {
       console.error('Error updating work metadata:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const onAbstractSubmit = async (data: WorkAbstractFormData) => {
+    setIsSubmitting(true);
+    try {
+      const payload: UpdatePaperAbstractPayload = {
+        abstract_src: data.abstractHtml || '',
+        abstract: data.abstractPlainText || '',
+        abstract_src_type: 'TEXT_FIELD',
+      };
+
+      // Only make the API call if there are changes
+      const currentAbstract = work.abstract || '';
+      if (data.abstractPlainText !== currentAbstract) {
+        await updateWorkAbstract(work.id, payload);
+        handleWorkRefetch();
+      }
+
+      onClose();
+    } catch (error) {
+      console.error('Error updating work abstract:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -225,42 +267,56 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
           <Button variant="outlined" onClick={onClose} disabled={isFormSubmitting}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit(onSubmit)} disabled={isFormSubmitting} className="min-w-20">
-            {isFormSubmitting ? 'Saving...' : 'Save Changes'}
-          </Button>
+          {activeTab === 'metadata' ? (
+            <Button
+              onClick={handleMetadataSubmit(onMetadataSubmit)}
+              disabled={isFormSubmitting}
+              className="min-w-20"
+            >
+              {isFormSubmitting ? 'Saving...' : 'Save Changes'}
+            </Button>
+          ) : (
+            <Button
+              onClick={handleAbstractSubmit(onAbstractSubmit)}
+              disabled={isFormSubmitting}
+              className="min-w-20"
+            >
+              {isFormSubmitting ? 'Saving...' : 'Save Abstract'}
+            </Button>
+          )}
         </div>
       }
     >
-      <FormProvider {...methods}>
-        <div className="space-y-6 md:!min-w-[500px] md:!max-w-[500px]">
-          {/* Tabs */}
-          <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} variant="underline" />
+      <div className="space-y-6 md:!min-w-[500px] md:!max-w-[500px]">
+        {/* Tabs */}
+        <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} variant="underline" />
 
-          {/* Tab Content */}
-          {activeTab === 'metadata' && (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Tab Content */}
+        {activeTab === 'metadata' && (
+          <FormProvider {...metadataForm}>
+            <form onSubmit={handleMetadataSubmit(onMetadataSubmit)} className="space-y-6">
               {/* Title */}
               <Input
                 label="Title"
                 placeholder="Paper title"
-                error={getFieldErrorMessage(errors.title, 'Invalid title')}
-                {...methods.register('title')}
+                error={getFieldErrorMessage(metadataErrors.title, 'Invalid title')}
+                {...metadataForm.register('title')}
               />
 
               {/* DOI */}
               <Input
                 label="DOI"
                 placeholder="e.g., 10.1000/xyz123"
-                error={getFieldErrorMessage(errors.doi, 'Invalid DOI')}
-                {...methods.register('doi')}
+                error={getFieldErrorMessage(metadataErrors.doi, 'Invalid DOI')}
+                {...metadataForm.register('doi')}
               />
 
               {/* Published Date */}
               <Input
                 label="Published Date"
                 type="date"
-                error={getFieldErrorMessage(errors.publishedDate, 'Invalid date')}
-                {...methods.register('publishedDate')}
+                error={getFieldErrorMessage(metadataErrors.publishedDate, 'Invalid date')}
+                {...metadataForm.register('publishedDate')}
               />
 
               {/* Topics */}
@@ -268,11 +324,13 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Topics</label>
                 <SearchableMultiSelect
                   value={topics}
-                  onChange={(newTopics) => setValue('topics', newTopics, { shouldValidate: true })}
+                  onChange={(newTopics) =>
+                    setMetadataValue('topics', newTopics, { shouldValidate: true })
+                  }
                   onAsyncSearch={handleTopicSearch}
                   placeholder="Search topics..."
                   debounceMs={500}
-                  error={getFieldErrorMessage(errors.topics, 'Invalid topics')}
+                  error={getFieldErrorMessage(metadataErrors.topics, 'Invalid topics')}
                 />
               </div>
 
@@ -283,7 +341,10 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
                   trigger={
                     <Button
                       variant="outlined"
-                      className={cn('w-full justify-between', errors.license && 'border-red-500')}
+                      className={cn(
+                        'w-full justify-between',
+                        metadataErrors.license && 'border-red-500'
+                      )}
                     >
                       <div className="flex items-center gap-2">
                         <span className={selectedLicense ? 'text-gray-900' : 'text-gray-500'}>
@@ -302,7 +363,7 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
                   className="max-w-md"
                 >
                   <DropdownItem
-                    onClick={() => setValue('license', '', { shouldValidate: true })}
+                    onClick={() => setMetadataValue('license', '', { shouldValidate: true })}
                     className={!selectedLicense ? 'bg-gray-50' : ''}
                   >
                     <span className="text-gray-500">Select a license</span>
@@ -310,7 +371,9 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
                   {LICENSE_OPTIONS.map((option) => (
                     <DropdownItem
                       key={option.value}
-                      onClick={() => setValue('license', option.value, { shouldValidate: true })}
+                      onClick={() =>
+                        setMetadataValue('license', option.value, { shouldValidate: true })
+                      }
                       className={
                         selectedLicense === option.value ? 'bg-indigo-50 text-indigo-900' : ''
                       }
@@ -334,26 +397,29 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
                     </DropdownItem>
                   ))}
                 </Dropdown>
-                {getFieldErrorMessage(errors.license, 'Invalid license') && (
+                {getFieldErrorMessage(metadataErrors.license, 'Invalid license') && (
                   <p className="mt-1 text-xs text-red-500">
-                    {getFieldErrorMessage(errors.license, 'Invalid license')}
+                    {getFieldErrorMessage(metadataErrors.license, 'Invalid license')}
                   </p>
                 )}
               </div>
             </form>
-          )}
+          </FormProvider>
+        )}
 
-          {activeTab === 'abstract' && (
-            <WorkAbstractEditor
-              initialContent={abstract}
-              onContentChange={(content: string) =>
-                setValue('abstract', content, { shouldValidate: true })
-              }
-            />
-          )}
-        </div>
-      </FormProvider>
-      {updateError && <div className="text-red-500 text-sm mt-2">{updateError}</div>}
+        {activeTab === 'abstract' && (
+          <WorkAbstractEditor
+            initialContent={abstractPlainText}
+            onContentChange={(plainText: string, html: string) => {
+              setAbstractValue('abstractPlainText', plainText, { shouldValidate: true });
+              setAbstractValue('abstractHtml', html, { shouldValidate: true });
+            }}
+          />
+        )}
+      </div>
+      {(metadataError || abstractError) && (
+        <div className="text-red-500 text-sm mt-2">{metadataError || abstractError}</div>
+      )}
     </BaseModal>
   );
 }

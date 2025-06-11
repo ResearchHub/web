@@ -60,6 +60,12 @@ export interface UpdatePaperMetadataPayload {
   license?: string;
 }
 
+export interface UpdatePaperAbstractPayload {
+  abstract_src: string;
+  abstract: string;
+  abstract_src_type: 'TEXT_FIELD' | 'CK_EDITOR';
+}
+
 export class PaperService {
   private static readonly BASE_PATH = '/api/paper';
   private static readonly PAYMENT_PATH = '/api/payment';
@@ -215,6 +221,14 @@ export class PaperService {
     }
 
     const response = await ApiClient.patch(`${this.BASE_PATH}/${paperId}/`, apiPayload);
+    return transformPaper(response);
+  }
+
+  /**
+   * Update paper abstract
+   */
+  static async updateAbstract(paperId: number, payload: UpdatePaperAbstractPayload): Promise<Work> {
+    const response = await ApiClient.patch(`${this.BASE_PATH}/${paperId}/`, payload);
     return transformPaper(response);
   }
 }
