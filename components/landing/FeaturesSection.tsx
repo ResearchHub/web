@@ -194,13 +194,13 @@ export function FeaturesSection() {
               </div>
 
               {/* Action Buttons */}
-              <div className="space-y-4">
+              <div className={features[activeFeature].secondaryAction ? 'space-y-4' : 'space-y-4'}>
                 {features[activeFeature].secondaryAction ? (
                   // Side by side layout for Fund feature (has both buttons)
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch px-4 sm:px-0">
-                    <div className="flex-1 max-w-sm text-center">
+                  <div className="flex flex-col md:flex-row gap-4 justify-center items-start px-4 sm:px-0">
+                    <div className="w-full md:flex-1 md:max-w-xs text-center">
                       <button
-                        className={`w-full px-6 py-3 sm:py-4 bg-gradient-to-r ${features[activeFeature].gradient} text-white font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 shadow-md text-sm sm:text-base min-w-0`}
+                        className={`w-full px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r ${features[activeFeature].gradient} text-white font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 shadow-md text-sm sm:text-base`}
                       >
                         {features[activeFeature].primaryAction.text}
                       </button>
@@ -208,8 +208,8 @@ export function FeaturesSection() {
                         {features[activeFeature].primaryAction.description}
                       </p>
                     </div>
-                    <div className="flex-1 max-w-sm text-center">
-                      <button className="w-full px-6 py-2.5 sm:py-3.5 border-2 border-gray-300 text-gray-700 bg-white font-semibold rounded-xl hover:border-gray-400 hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-200 text-sm sm:text-base min-w-0">
+                    <div className="w-full md:flex-1 md:max-w-xs text-center">
+                      <button className="w-full px-6 sm:px-8 py-2.5 sm:py-3.5 border-2 border-gray-300 text-gray-700 bg-white font-semibold rounded-xl hover:border-gray-400 hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-200 text-sm sm:text-base">
                         {features[activeFeature].secondaryAction.text}
                       </button>
                       <p className="text-xs sm:text-sm text-gray-500 mt-2">
@@ -219,17 +219,15 @@ export function FeaturesSection() {
                   </div>
                 ) : (
                   // Single button layout for other features
-                  <div className="flex justify-center px-4 sm:px-0">
-                    <div className="w-full max-w-sm text-center">
-                      <button
-                        className={`w-full px-8 py-3 sm:py-4 bg-gradient-to-r ${features[activeFeature].gradient} text-white font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 shadow-md text-sm sm:text-base min-w-0`}
-                      >
-                        {features[activeFeature].primaryAction.text}
-                      </button>
-                      <p className="text-xs sm:text-sm text-gray-500 mt-2">
-                        {features[activeFeature].primaryAction.description}
-                      </p>
-                    </div>
+                  <div className="px-4 sm:px-0 text-center">
+                    <button
+                      className={`w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r ${features[activeFeature].gradient} text-white font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 shadow-md text-sm sm:text-base`}
+                    >
+                      {features[activeFeature].primaryAction.text}
+                    </button>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-2 text-center">
+                      {features[activeFeature].primaryAction.description}
+                    </p>
                   </div>
                 )}
               </div>
