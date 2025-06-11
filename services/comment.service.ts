@@ -251,4 +251,28 @@ export class CommentService {
 
     return { replies, count };
   }
+
+  static async fetchAuthorUpdates({
+    documentId,
+    contentType,
+  }: {
+    documentId: number;
+    contentType: ContentType;
+  }): Promise<Comment[]> {
+    try {
+      const { comments } = await this.fetchComments({
+        documentId,
+        contentType,
+        filter: 'AUTHOR_UPDATE',
+        sort: 'CREATED_DATE',
+        ascending: true,
+        pageSize: 100, // Get all updates
+      });
+
+      return comments;
+    } catch (error) {
+      console.error('Error fetching author updates:', error);
+      return [];
+    }
+  }
 }
