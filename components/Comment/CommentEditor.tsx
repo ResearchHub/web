@@ -36,6 +36,7 @@ export interface CommentEditorProps {
   showFooter?: boolean;
   showHeader?: boolean;
   isBountyReply?: boolean;
+  isAuthor?: boolean;
 }
 
 export const CommentEditor = ({
@@ -56,6 +57,7 @@ export const CommentEditor = ({
   showFooter = true,
   showHeader = true,
   isBountyReply = false,
+  isAuthor = false,
 }: CommentEditorProps) => {
   const { data: session, status } = useSession();
   const editorRef = useRef<HTMLDivElement>(null);
@@ -180,6 +182,7 @@ export const CommentEditor = ({
           rating={rating}
           onRatingChange={setRating}
           isReadOnly={isReadOnly || editing}
+          isAuthor={isAuthor}
         />
       )}
 

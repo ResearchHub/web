@@ -431,7 +431,6 @@ export const CommentProvider = ({
 
       try {
         const apiContent = convertToApiFormat(content);
-
         const newComment = await CommentService.createComment({
           workId: documentId,
           contentType,

@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { BarChart2 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Comment } from '@/types/comment';
@@ -14,6 +15,10 @@ import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { ProgressUpdates } from '@/components/ui/ProgressUpdates';
 import { useStorageKey } from '@/utils/storageKeys';
 import { NewFundingModal } from '@/components/modals/NewFundingModal';
+import { calculateUpdateRate } from '@/components/Fund/lib/FundUtils';
+import { FundingRightSidebar } from './FundingRightSidebar';
+import { useUser } from '@/contexts/UserContext';
+import { UpdateRateBadge } from '@/components/ui/badges/UpdateRateBadge';
 
 interface FundDocumentProps {
   work: Work;
@@ -31,7 +36,19 @@ export const FundDocument = ({
   authorUpdates = [],
 }: FundDocumentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
+  const [showMobileMetrics, setShowMobileMetrics] = useState(false);
   const storageKey = useStorageKey('rh-comments');
+  const { user } = useUser();
+
+  // Check if current user is an author of the work
+  const isCurrentUserAuthor = useMemo(() => {
+    if (!user?.id) return false;
+    return work.authors.some(
+      (authorship) => authorship.authorProfile.id === user?.authorProfile?.id
+    );
+  }, [user?.id, work.authors]);
+
+  console.log('work', work);
 
   // New funding modal logic
   const searchParams = useSearchParams();
@@ -101,7 +118,7 @@ export const FundDocument = ({
         return (
           <div className="space-y-6" key="updates-tab">
             {/* Project Activity Timeline */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 lg:hidden">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <h3 className="text-base font-semibold text-gray-900">Updates Timeline</h3>
@@ -110,26 +127,7 @@ export const FundDocument = ({
                   </p>
                 </div>
                 <div className="flex items-center gap-2 ml-4">
-                  <span className="bg-gray-200 text-gray-700 text-xs font-medium px-2 py-1 rounded-full">
-                    {(() => {
-                      const updateRate =
-                        authorUpdates.length > 0
-                          ? Math.round(
-                              (authorUpdates.filter((update) => {
-                                const updateDate = new Date(update.createdDate);
-                                const now = new Date();
-                                const monthsDiff =
-                                  (now.getFullYear() - updateDate.getFullYear()) * 12 +
-                                  (now.getMonth() - updateDate.getMonth());
-                                return monthsDiff <= 12;
-                              }).length /
-                                12) *
-                                100
-                            )
-                          : 0;
-                      return `${updateRate}% update rate`;
-                    })()}
-                  </span>
+                  <UpdateRateBadge updateRate={calculateUpdateRate(authorUpdates)} />
                 </div>
               </div>
               <ProgressUpdates
@@ -147,6 +145,8 @@ export const FundDocument = ({
               contentType={work.contentType}
               commentType="AUTHOR_UPDATE"
               key={`update-feed-${work.id}`}
+              hideEditor={!isCurrentUserAuthor}
+              workAuthors={work.authors}
               editorProps={{
                 placeholder: 'Write an update...',
                 commentType: 'AUTHOR_UPDATE',
@@ -163,6 +163,7 @@ export const FundDocument = ({
               contentType={work.contentType}
               commentType="REVIEW"
               key={`review-feed-${work.id}`}
+              workAuthors={work.authors}
               editorProps={{
                 placeholder: 'Write your review...',
                 initialRating: 0,
@@ -182,6 +183,7 @@ export const FundDocument = ({
               renderCommentActions={false}
               hideEditor={true}
               key={`bounty-feed-${work.id}`}
+              workAuthors={work.authors}
               editorProps={{
                 storageKey: `${storageKey}-bounty-feed-${work.id}`,
               }}
@@ -196,6 +198,7 @@ export const FundDocument = ({
               contentType={work.contentType}
               commentType="GENERIC_COMMENT"
               key={`comment-feed-${work.id}`}
+              workAuthors={work.authors}
               editorProps={{
                 storageKey: `${storageKey}-comment-feed-${work.id}`,
               }}
@@ -205,7 +208,7 @@ export const FundDocument = ({
       default:
         return null;
     }
-  }, [activeTab, work, metadata, content, storageKey]);
+  }, [activeTab, work, metadata, content, storageKey, isCurrentUserAuthor]);
 
   return (
     <div>
@@ -216,7 +219,21 @@ export const FundDocument = ({
         </div>
       )}
       <PageHeader title={work.title} className="text-3xl mt-2" />
-      <WorkLineItems work={work} showClaimButton={false} metadata={metadata} />
+
+      <WorkLineItems
+        work={work}
+        metadata={metadata}
+        showClaimButton={false}
+        insightsButton={
+          <button
+            className="lg:!hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+            onClick={() => setShowMobileMetrics(true)}
+          >
+            <BarChart2 className="h-4 w-4" />
+            <span>Insights</span>
+          </button>
+        }
+      />
 
       {/* FundraiseProgress - now placed between line items and tabs */}
       {metadata.fundraising && (
@@ -261,6 +278,23 @@ export const FundDocument = ({
 
       {/* Tab Content */}
       {renderTabContent}
+
+      {/* Mobile sidebar overlay */}
+      <div
+        className={`fixed inset-0 bg-black/50 z-30 z-50 lg:hidden ${
+          showMobileMetrics ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setShowMobileMetrics(false)}
+      >
+        <div
+          className={`absolute right-0 top-0 bottom-0 w-80 bg-white shadow-xl transition-transform duration-200 p-4 ${
+            showMobileMetrics ? 'translate-x-0' : 'translate-x-full'
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <FundingRightSidebar work={work} metadata={metadata} authorUpdates={authorUpdates} />
+        </div>
+      </div>
 
       {/* New Funding Modal */}
       <NewFundingModal

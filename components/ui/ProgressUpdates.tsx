@@ -15,12 +15,12 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
   updates = [],
   className = '',
 }) => {
-  // Generate exactly 12 months ending at current date
+  // Generate exactly 12 months starting from current date
   const generateTimeline = () => {
     const timeline = [];
     const now = new Date();
-    const endDate = now;
-    const current = new Date(endDate.getFullYear(), endDate.getMonth() - 11, 1);
+    const startDate = new Date(now.getFullYear(), now.getMonth(), 1); // Start from current month
+    const current = new Date(startDate);
     let monthCount = 0;
 
     while (monthCount < 12) {
@@ -60,7 +60,8 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
         {timeline.map((month) => {
           const now = new Date();
           const monthDate = new Date(month.year, new Date(`${month.monthName} 1, 2000`).getMonth());
-          const isInPast = monthDate < new Date(now.getFullYear(), now.getMonth(), 1);
+          const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+          const isInPast = monthDate < currentMonthStart;
           const isPastWithoutUpdates = isInPast && !month.hasUpdate;
 
           return (

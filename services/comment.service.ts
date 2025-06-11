@@ -96,15 +96,23 @@ export class CommentService {
     expirationDate,
     privacyType = 'PUBLIC',
     commentType = 'GENERIC_COMMENT',
-    threadType = 'GENERIC_COMMENT',
+    threadType,
   }: CreateCommentOptions): Promise<Comment> {
     const contentTypePath = getContentTypePath(contentType);
     const path =
       `${this.BASE_PATH}/${contentTypePath}/${workId}/comments/` +
       (bountyAmount ? 'create_comment_with_bounty/' : 'create_rh_comment/');
+
+    // Default threadType to commentType if not specified
+    const effectiveThreadType = threadType || commentType;
+
+    // Keep thread_type as original value (no mapping)
+    const backendThreadType = effectiveThreadType;
+
     const payload = {
       comment_content_json: content,
       comment_content_type: 'TIPTAP',
+      thread_type: backendThreadType,
       privacy_type: privacyType,
       ...(bountyAmount && { amount: bountyAmount, bounty_type: bountyType }),
       ...(expirationDate && { expiration_date: expirationDate }),
@@ -117,7 +125,9 @@ export class CommentService {
     };
 
     const response = await ApiClient.post<any>(path, payload);
-    return transformComment(response);
+    const transformedComment = transformComment(response);
+
+    return transformedComment;
   }
 
   static async fetchComments({
