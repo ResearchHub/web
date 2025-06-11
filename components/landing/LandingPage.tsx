@@ -5,6 +5,9 @@ import { LandingPageHero } from './LandingPageHero';
 import { StatsSection } from './StatsSection';
 import { FeaturesSection } from './FeaturesSection';
 import { InstitutionsSection } from './InstitutionsSection';
+import { ResearchCoinSection } from './ResearchCoinSection';
+import { RSCPriceSection } from './RSCPriceSection';
+import { FAQSection } from './FAQSection';
 
 export function LandingPage() {
   return (
@@ -13,6 +16,9 @@ export function LandingPage() {
       <StatsSection />
       <FeaturesSection />
       <InstitutionsSection />
+      <ResearchCoinSection />
+      <RSCPriceSection />
+      <FAQSection />
       {/* Additional sections will be added here */}
     </LandingPageLayout>
   );

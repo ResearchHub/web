@@ -112,6 +112,23 @@ export function FeaturesSection() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
+        <div className="text-center mb-16">
+          <h2
+            className="text-4xl md:text-5xl font-bold text-gray-900 mb-6"
+            style={{ fontFamily: 'Cal Sans, sans-serif' }}
+          >
+            Everything you need to{' '}
+            <span className="bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400 bg-clip-text text-transparent">
+              advance science
+            </span>
+          </h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Fund groundbreaking research, earn through peer review, and publish with transparency.
+            ResearchHub provides the complete ecosystem for modern scientific collaboration.
+          </p>
+        </div>
+
         {/* Feature Navigation */}
         <div className="flex justify-center mb-8 sm:mb-12">
           <div className="inline-flex p-1 bg-gray-100 rounded-full flex-wrap sm:flex-nowrap">
@@ -121,8 +138,8 @@ export function FeaturesSection() {
                 onClick={() => setActiveFeature(index)}
                 className={`px-4 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all duration-300 text-sm sm:text-base ${
                   activeFeature === index
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-gradient-to-r from-primary-600 to-primary-400 text-white shadow-lg'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
                 }`}
               >
                 {feature.title}
@@ -216,21 +233,6 @@ export function FeaturesSection() {
               </div>
             </div>
           </SpotlightCard>
-        </div>
-
-        {/* Feature Indicators */}
-        <div className="flex justify-center mt-12 space-x-2">
-          {features.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setActiveFeature(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                activeFeature === index
-                  ? `bg-gradient-to-r ${features[activeFeature].gradient}`
-                  : 'bg-gray-300 hover:bg-gray-400'
-              }`}
-            />
-          ))}
         </div>
       </div>
     </section>
