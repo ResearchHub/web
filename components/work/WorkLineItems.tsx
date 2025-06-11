@@ -31,17 +31,20 @@ import { PaperService } from '@/services/paper.service';
 import { useUser } from '@/contexts/UserContext';
 import { Contact } from '@/types/note';
 import { WorkEditModal } from './WorkEditModal';
+import { WorkMetadata } from '@/services/metadata.service';
 
 interface WorkLineItemsProps {
   work: Work;
   showClaimButton?: boolean;
   insightsButton?: React.ReactNode;
+  metadata: WorkMetadata;
 }
 
 export const WorkLineItems = ({
   work,
   showClaimButton = true,
   insightsButton,
+  metadata,
 }: WorkLineItemsProps) => {
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
@@ -375,6 +378,7 @@ export const WorkLineItems = ({
           isOpen={isWorkEditModalOpen}
           onClose={() => setIsWorkEditModalOpen(false)}
           work={work}
+          metadata={metadata}
         />
       )}
     </div>

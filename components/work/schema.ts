@@ -16,6 +16,7 @@ export const workEditSchema = z.object({
     )
     .optional(),
   license: z.string().optional(),
+  abstract: z.string().optional(),
 });
 
 export type WorkEditFormData = z.infer<typeof workEditSchema>;

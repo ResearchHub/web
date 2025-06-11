@@ -9,17 +9,21 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { SearchableMultiSelect } from '@/components/ui/form/SearchableMultiSelect';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
+import { Tabs } from '@/components/ui/Tabs';
 import { Work } from '@/types/work';
 import { HubService } from '@/services/hub.service';
 import { getFieldErrorMessage } from '@/utils/form';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faLock, faLockOpen } from '@fortawesome/pro-light-svg-icons';
 import { cn } from '@/utils/styles';
+import { WorkAbstractEditor } from '@/components/work/WorkAbstractEditor';
+import { WorkMetadata } from '@/services/metadata.service';
 
 interface WorkEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   work: Work;
+  metadata: WorkMetadata;
 }
 
 // License options with descriptions and lock status
@@ -102,8 +106,9 @@ const LICENSE_OPTIONS = [
   },
 ];
 
-export function WorkEditModal({ isOpen, onClose, work }: WorkEditModalProps) {
+export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState('metadata');
 
   const methods = useForm<WorkEditFormData>({
     resolver: zodResolver(workEditSchema),
@@ -114,11 +119,12 @@ export function WorkEditModal({ isOpen, onClose, work }: WorkEditModalProps) {
         ? new Date(work.publishedDate).toISOString().split('T')[0]
         : '',
       topics:
-        work.topics?.map((topic) => ({
+        metadata.topics?.map((topic) => ({
           value: topic.id.toString(),
           label: topic.name,
         })) || [],
       license: work.license || '',
+      abstract: work.abstract || '',
     },
   });
 
@@ -131,6 +137,7 @@ export function WorkEditModal({ isOpen, onClose, work }: WorkEditModalProps) {
 
   const topics = watch('topics') || [];
   const selectedLicense = watch('license');
+  const abstract = watch('abstract');
 
   const handleTopicSearch = useCallback(async (query: string) => {
     try {
@@ -165,14 +172,22 @@ export function WorkEditModal({ isOpen, onClose, work }: WorkEditModalProps) {
 
   const selectedLicenseOption = LICENSE_OPTIONS.find((option) => option.value === selectedLicense);
 
+  const tabs = [
+    { id: 'metadata', label: 'Metadata' },
+    { id: 'abstract', label: 'Abstract' },
+  ];
+
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Edit Paper Details"
-      maxWidth="max-w-2xl"
+      title="Edit Paper"
+      maxWidth="max-w-[500px]"
       footer={
         <div className="flex justify-end space-x-3">
+          <Button variant="outlined" onClick={onClose} disabled={isSubmitting}>
+            Cancel
+          </Button>
           <Button onClick={handleSubmit(onSubmit)} disabled={isSubmitting} className="min-w-20">
             {isSubmitting ? 'Saving...' : 'Save Changes'}
           </Button>
@@ -180,110 +195,126 @@ export function WorkEditModal({ isOpen, onClose, work }: WorkEditModalProps) {
       }
     >
       <FormProvider {...methods}>
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="space-y-6 md:!min-w-[500px] md:!max-w-[500px]"
-        >
-          {/* Title */}
-          <Input
-            label="Title"
-            placeholder="Paper title"
-            error={getFieldErrorMessage(errors.title, 'Invalid title')}
-            {...methods.register('title')}
-          />
+        <div className="space-y-6 md:!min-w-[500px] md:!max-w-[500px]">
+          {/* Tabs */}
+          <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} variant="underline" />
 
-          {/* DOI */}
-          <Input
-            label="DOI"
-            placeholder="e.g., 10.1000/xyz123"
-            error={getFieldErrorMessage(errors.doi, 'Invalid DOI')}
-            {...methods.register('doi')}
-          />
+          {/* Tab Content */}
+          {activeTab === 'metadata' && (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {/* Title */}
+              <Input
+                label="Title"
+                placeholder="Paper title"
+                error={getFieldErrorMessage(errors.title, 'Invalid title')}
+                {...methods.register('title')}
+              />
 
-          {/* Published Date */}
-          <Input
-            label="Published Date"
-            type="date"
-            error={getFieldErrorMessage(errors.publishedDate, 'Invalid date')}
-            {...methods.register('publishedDate')}
-          />
+              {/* DOI */}
+              <Input
+                label="DOI"
+                placeholder="e.g., 10.1000/xyz123"
+                error={getFieldErrorMessage(errors.doi, 'Invalid DOI')}
+                {...methods.register('doi')}
+              />
 
-          {/* Topics */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Topics</label>
-            <SearchableMultiSelect
-              value={topics}
-              onChange={(newTopics) => setValue('topics', newTopics, { shouldValidate: true })}
-              onAsyncSearch={handleTopicSearch}
-              placeholder="Search topics..."
-              debounceMs={500}
-              error={getFieldErrorMessage(errors.topics, 'Invalid topics')}
-            />
-          </div>
+              {/* Published Date */}
+              <Input
+                label="Published Date"
+                type="date"
+                error={getFieldErrorMessage(errors.publishedDate, 'Invalid date')}
+                {...methods.register('publishedDate')}
+              />
 
-          {/* License */}
-          <div>
-            <Dropdown
-              label="License"
-              trigger={
-                <Button
-                  variant="outlined"
-                  className={cn('w-full justify-between', errors.license && 'border-red-500')}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className={selectedLicense ? 'text-gray-900' : 'text-gray-500'}>
-                      {selectedLicenseOption ? selectedLicenseOption.label : 'Select a license'}
-                    </span>
-                    {selectedLicenseOption && !selectedLicenseOption.isLocked && (
-                      <div className="flex items-center gap-1 px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
-                        <FontAwesomeIcon icon={faLockOpen} className="h-3 w-3" />
-                        PDF Available
+              {/* Topics */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Topics</label>
+                <SearchableMultiSelect
+                  value={topics}
+                  onChange={(newTopics) => setValue('topics', newTopics, { shouldValidate: true })}
+                  onAsyncSearch={handleTopicSearch}
+                  placeholder="Search topics..."
+                  debounceMs={500}
+                  error={getFieldErrorMessage(errors.topics, 'Invalid topics')}
+                />
+              </div>
+
+              {/* License */}
+              <div>
+                <Dropdown
+                  label="License"
+                  trigger={
+                    <Button
+                      variant="outlined"
+                      className={cn('w-full justify-between', errors.license && 'border-red-500')}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={selectedLicense ? 'text-gray-900' : 'text-gray-500'}>
+                          {selectedLicenseOption ? selectedLicenseOption.label : 'Select a license'}
+                        </span>
+                        {selectedLicenseOption && !selectedLicenseOption.isLocked && (
+                          <div className="flex items-center gap-1 px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
+                            <FontAwesomeIcon icon={faLockOpen} className="h-3 w-3" />
+                            PDF Available
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <FontAwesomeIcon icon={faChevronDown} className="h-4 w-4 text-gray-400" />
-                </Button>
-              }
-              className="max-w-md"
-            >
-              <DropdownItem
-                onClick={() => setValue('license', '', { shouldValidate: true })}
-                className={!selectedLicense ? 'bg-gray-50' : ''}
-              >
-                <span className="text-gray-500">Select a license</span>
-              </DropdownItem>
-              {LICENSE_OPTIONS.map((option) => (
-                <DropdownItem
-                  key={option.value}
-                  onClick={() => setValue('license', option.value, { shouldValidate: true })}
-                  className={selectedLicense === option.value ? 'bg-indigo-50 text-indigo-900' : ''}
+                      <FontAwesomeIcon icon={faChevronDown} className="h-4 w-4 text-gray-400" />
+                    </Button>
+                  }
+                  className="max-w-md"
                 >
-                  <div className="flex flex-col w-full">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium">{option.label}</span>
-                      {!option.isLocked ? (
-                        <div className="flex items-center gap-1 px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
-                          <FontAwesomeIcon icon={faLockOpen} className="h-3 w-3" />
-                          PDF Available
+                  <DropdownItem
+                    onClick={() => setValue('license', '', { shouldValidate: true })}
+                    className={!selectedLicense ? 'bg-gray-50' : ''}
+                  >
+                    <span className="text-gray-500">Select a license</span>
+                  </DropdownItem>
+                  {LICENSE_OPTIONS.map((option) => (
+                    <DropdownItem
+                      key={option.value}
+                      onClick={() => setValue('license', option.value, { shouldValidate: true })}
+                      className={
+                        selectedLicense === option.value ? 'bg-indigo-50 text-indigo-900' : ''
+                      }
+                    >
+                      <div className="flex flex-col w-full">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium">{option.label}</span>
+                          {!option.isLocked ? (
+                            <div className="flex items-center gap-1 px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
+                              <FontAwesomeIcon icon={faLockOpen} className="h-3 w-3" />
+                              PDF Available
+                            </div>
+                          ) : (
+                            <FontAwesomeIcon icon={faLock} className="h-3 w-3 text-gray-400" />
+                          )}
                         </div>
-                      ) : (
-                        <FontAwesomeIcon icon={faLock} className="h-3 w-3 text-gray-400" />
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-600 leading-tight text-left">
-                      {option.description}
-                    </p>
-                  </div>
-                </DropdownItem>
-              ))}
-            </Dropdown>
-            {getFieldErrorMessage(errors.license, 'Invalid license') && (
-              <p className="mt-1 text-xs text-red-500">
-                {getFieldErrorMessage(errors.license, 'Invalid license')}
-              </p>
-            )}
-          </div>
-        </form>
+                        <p className="text-xs text-gray-600 leading-tight text-left">
+                          {option.description}
+                        </p>
+                      </div>
+                    </DropdownItem>
+                  ))}
+                </Dropdown>
+                {getFieldErrorMessage(errors.license, 'Invalid license') && (
+                  <p className="mt-1 text-xs text-red-500">
+                    {getFieldErrorMessage(errors.license, 'Invalid license')}
+                  </p>
+                )}
+              </div>
+            </form>
+          )}
+
+          {activeTab === 'abstract' && (
+            <WorkAbstractEditor
+              initialContent={abstract}
+              onContentChange={(content: string) =>
+                setValue('abstract', content, { shouldValidate: true })
+              }
+            />
+          )}
+        </div>
       </FormProvider>
     </BaseModal>
   );
