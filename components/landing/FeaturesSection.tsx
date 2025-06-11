@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SpotlightCard from '@/components/ui/SpotlightCard';
 import { Icon } from '@/components/ui/icons';
 import { colors } from '@/app/styles/colors';
@@ -87,11 +87,37 @@ const features: Feature[] = [
   },
 ];
 
+// Debug component to help identify the responsive issue
+const DebugInfo = () => {
+  const [screenWidth, setScreenWidth] = useState<number | null>(null);
+
+  useEffect(() => {
+    const updateWidth = () => setScreenWidth(window.innerWidth);
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
+  if (typeof window === 'undefined') return null;
+
+  return (
+    <div className="fixed top-4 left-4 bg-black text-white p-2 rounded text-xs z-50 opacity-75">
+      Screen: {screenWidth}px
+      <br />
+      sm: {screenWidth && screenWidth >= 640 ? '✓' : '✗'} (640px+)
+      <br />
+      md: {screenWidth && screenWidth >= 768 ? '✓' : '✗'} (768px+)
+    </div>
+  );
+};
+
 export function FeaturesSection() {
   const [activeFeature, setActiveFeature] = useState(0);
 
   return (
     <section className="py-24 bg-gradient-to-br from-slate-50/50 via-slate-50/20 to-slate-100/40 relative overflow-hidden">
+      {/* Debug info - remove after fixing */}
+      <DebugInfo />
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-primary-600/5 to-transparent transform -skew-y-1"></div>
@@ -130,13 +156,13 @@ export function FeaturesSection() {
         </div>
 
         {/* Feature Navigation */}
-        <div className="flex justify-center mb-8 mobile:mb-12">
-          <div className="inline-flex p-1 bg-gray-100 rounded-full flex-wrap mobile:flex-nowrap">
+        <div className="flex justify-center mb-8 sm:mb-12">
+          <div className="inline-flex p-1 bg-gray-100 rounded-full flex-wrap sm:flex-nowrap">
             {features.map((feature, index) => (
               <button
                 key={feature.id}
                 onClick={() => setActiveFeature(index)}
-                className={`px-4 mobile:px-6 py-2 mobile:py-3 rounded-full font-medium transition-all duration-300 text-sm mobile:text-base ${
+                className={`px-4 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all duration-300 text-sm sm:text-base ${
                   activeFeature === index
                     ? 'bg-gradient-to-r from-primary-600 to-primary-400 text-white shadow-lg'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
@@ -165,67 +191,72 @@ export function FeaturesSection() {
 
                 <div>
                   <h3
-                    className="text-2xl mobile:text-3xl lg:text-4xl font-bold text-gray-900 mb-2"
+                    className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2"
                     style={{ fontFamily: 'Cal Sans, sans-serif' }}
                   >
                     {features[activeFeature].title}
                   </h3>
-                  <p className="text-lg mobile:text-xl text-gray-600">
+                  <p className="text-lg sm:text-xl text-gray-600">
                     {features[activeFeature].subtitle}
                   </p>
                 </div>
               </div>
 
               {/* Description */}
-              <p className="text-base mobile:text-lg text-gray-700 leading-relaxed max-w-xl mx-auto px-4 mobile:px-0">
+              <p className="text-base sm:text-lg text-gray-700 leading-relaxed max-w-xl mx-auto px-4 sm:px-0">
                 {features[activeFeature].description}
               </p>
 
               {/* Benefits Grid */}
-              <div className="grid grid-cols-1 mobile:grid-cols-2 gap-3 mobile:gap-4 max-w-xl mx-auto px-4 mobile:px-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-xl mx-auto px-4 sm:px-0">
                 {features[activeFeature].benefits.map((benefit, index) => (
                   <div key={index} className="flex items-center space-x-3 text-left">
                     <div
                       className={`w-2 h-2 rounded-full bg-gradient-to-r ${features[activeFeature].gradient} flex-shrink-0`}
                     />
-                    <span className="text-gray-700 text-sm mobile:text-base">{benefit}</span>
+                    <span className="text-gray-700 text-sm sm:text-base">{benefit}</span>
                   </div>
                 ))}
               </div>
 
               {/* Action Buttons */}
               <div className={features[activeFeature].secondaryAction ? 'space-y-4' : 'space-y-4'}>
+                {/* Test element to check if responsive classes work */}
+                <div className="bg-red-500 p-2 text-white text-xs sm:bg-green-500 md:bg-blue-500 lg:bg-purple-500">
+                  TEST: Red=mobile, Green=sm(640px+), Blue=md(768px+), Purple=lg(1024px+)
+                </div>
+
                 {features[activeFeature].secondaryAction ? (
                   // Side by side layout for Fund feature (has both buttons)
-                  <div className="flex flex-col tablet:flex-row gap-4 justify-center items-start px-4 mobile:px-0">
-                    <div className="w-full tablet:flex-1 tablet:max-w-xs text-center">
+                  <div className="flex flex-col md:flex-row gap-4 justify-center items-start px-4 sm:px-0">
+                    <div className="w-full md:flex-1 md:max-w-xs text-center">
                       <button
-                        className={`w-full px-6 mobile:px-8 py-3 mobile:py-4 bg-gradient-to-r ${features[activeFeature].gradient} text-white font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 shadow-md text-sm mobile:text-base`}
+                        className={`w-full px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r ${features[activeFeature].gradient} text-white font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 shadow-md text-sm sm:text-base`}
                       >
                         {features[activeFeature].primaryAction.text}
                       </button>
-                      <p className="text-xs mobile:text-sm text-gray-500 mt-2">
+                      <p className="text-xs sm:text-sm text-gray-500 mt-2">
                         {features[activeFeature].primaryAction.description}
                       </p>
                     </div>
-                    <div className="w-full tablet:flex-1 tablet:max-w-xs text-center">
-                      <button className="w-full px-6 mobile:px-8 py-2.5 mobile:py-3.5 border-2 border-gray-300 text-gray-700 bg-white font-semibold rounded-xl hover:border-gray-400 hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-200 text-sm mobile:text-base">
+                    <div className="w-full md:flex-1 md:max-w-xs text-center">
+                      <button className="w-full px-6 sm:px-8 py-2.5 sm:py-3.5 border-2 border-gray-300 text-gray-700 bg-white font-semibold rounded-xl hover:border-gray-400 hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-200 text-sm sm:text-base">
                         {features[activeFeature].secondaryAction.text}
                       </button>
-                      <p className="text-xs mobile:text-sm text-gray-500 mt-2">
+                      <p className="text-xs sm:text-sm text-gray-500 mt-2">
                         {features[activeFeature].secondaryAction.description}
                       </p>
                     </div>
                   </div>
                 ) : (
                   // Single button layout for other features
-                  <div className="px-4 mobile:px-0 text-center">
+                  <div className="px-4 sm:px-0 text-center">
                     <button
-                      className={`w-full mobile:w-auto px-6 mobile:px-8 py-3 mobile:py-4 bg-gradient-to-r ${features[activeFeature].gradient} text-white font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 shadow-md text-sm mobile:text-base`}
+                      className={`w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r ${features[activeFeature].gradient} text-white font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 shadow-md text-sm sm:text-base`}
                     >
                       {features[activeFeature].primaryAction.text}
                     </button>
-                    <p className="text-xs mobile:text-sm text-gray-500 mt-2 text-center">
+                    <p className="text-xs sm:text-sm text-gray-500 mt-2 text-center">
                       {features[activeFeature].primaryAction.description}
                     </p>
                   </div>
