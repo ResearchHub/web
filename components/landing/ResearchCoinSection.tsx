@@ -17,7 +17,7 @@ interface WhyRSCFeature {
 const whyRSCFeatures: WhyRSCFeature[] = [
   {
     id: 'incentives',
-    title: 'Align Incentives',
+    title: 'Incentives',
     subtitle: 'Get paid for science',
     description:
       'Earn ResearchCoin for peer reviews, quality contributions, and collaborative research that traditionally went unrewarded.',
@@ -32,7 +32,7 @@ const whyRSCFeatures: WhyRSCFeature[] = [
   },
   {
     id: 'upside',
-    title: 'Share Upside',
+    title: 'Upside',
     subtitle: 'Benefit from growth',
     description:
       'As ResearchHub creates value for the scientific community, RSC holders benefit from increased utility and ecosystem growth.',
@@ -47,7 +47,7 @@ const whyRSCFeatures: WhyRSCFeature[] = [
   },
   {
     id: 'tools',
-    title: 'Access Tools',
+    title: 'Tools',
     subtitle: 'Unlock research power',
     description:
       'Use RSC to access premium features, post bounties, fund research, publish papers, and accelerate your scientific work.',
@@ -89,12 +89,12 @@ export function ResearchCoinSection() {
       <div className="relative z-10 max-w-7xl mx-auto px-6">
         {/* Header Section */}
         <div className="text-center mb-16 max-w-4xl mx-auto">
-          <div className="flex items-center justify-center space-x-4 mb-6">
-            <div className="w-16 h-16 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+          <div className="flex flex-col items-center space-y-4 mb-6">
+            <div className="w-16 h-16 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
               <Icon name="rscGold" size={32} color="white" />
             </div>
             <h2
-              className="text-5xl font-bold text-gray-900"
+              className="text-4xl font-bold text-gray-900"
               style={{ fontFamily: 'Cal Sans, sans-serif' }}
             >
               Powered by{' '}

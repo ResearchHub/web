@@ -59,29 +59,30 @@ export function RSCPriceSection() {
             className="bg-white/90 backdrop-blur-sm border border-white/20 shadow-2xl"
             spotlightColor="rgba(251, 146, 60, 0.2)"
           >
-            <div className="p-8 flex flex-wrap items-center justify-center gap-8">
-              <div className="text-center min-w-32">
-                <div className="text-sm text-gray-500 mb-2 font-medium">Current value</div>
+            <div className="p-4 flex flex-wrap items-start justify-center gap-6">
+              <div className="text-center">
+                <div className="text-sm text-gray-500 mb-2 font-medium h-5 flex items-center justify-center">
+                  Current value
+                </div>
                 <div className="flex items-center space-x-2 justify-center">
                   {isLoading ? (
                     <div className="animate-pulse">
-                      <div className="h-10 w-28 bg-gray-200 rounded"></div>
+                      <div className="h-8 w-20 bg-gray-200 rounded"></div>
                     </div>
                   ) : (
-                    <>
-                      <span className="text-4xl font-bold text-gray-900">
-                        ${currentPrice.toFixed(2)}
-                      </span>
-                      <span className="text-xl text-gray-600 font-medium">USD</span>
-                    </>
+                    <span className="text-2xl font-bold text-gray-900">
+                      ${currentPrice.toFixed(2)}
+                    </span>
                   )}
                 </div>
               </div>
 
-              <div className="h-12 w-px bg-gray-300"></div>
+              <div className="h-12 w-px bg-gray-300 self-center"></div>
 
-              <div className="text-center min-w-32">
-                <div className="text-sm text-gray-500 mb-2 font-medium">24h change</div>
+              <div className="text-center">
+                <div className="text-sm text-gray-500 mb-2 font-medium h-5 flex items-center justify-center">
+                  24h change
+                </div>
                 <div className="flex items-center space-x-2 justify-center">
                   <TrendingUp
                     className={`w-5 h-5 ${priceChange >= 0 ? 'text-green-500' : 'text-red-500'}`}
@@ -94,8 +95,6 @@ export function RSCPriceSection() {
                   </span>
                 </div>
               </div>
-
-              <div className="h-12 w-px bg-gray-300"></div>
 
               <div className="text-center">
                 <Button
