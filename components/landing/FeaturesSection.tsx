@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import SpotlightCard from '@/components/ui/SpotlightCard';
 import { Icon } from '@/components/ui/icons';
+import { Button } from '@/components/ui/Button';
 import { colors } from '@/app/styles/colors';
 
 interface Feature {
@@ -87,37 +88,11 @@ const features: Feature[] = [
   },
 ];
 
-// Debug component to help identify the responsive issue
-const DebugInfo = () => {
-  const [screenWidth, setScreenWidth] = useState<number | null>(null);
-
-  useEffect(() => {
-    const updateWidth = () => setScreenWidth(window.innerWidth);
-    updateWidth();
-    window.addEventListener('resize', updateWidth);
-    return () => window.removeEventListener('resize', updateWidth);
-  }, []);
-
-  if (typeof window === 'undefined') return null;
-
-  return (
-    <div className="fixed top-4 left-4 bg-black text-white p-2 rounded text-xs z-50 opacity-75">
-      Screen: {screenWidth}px
-      <br />
-      sm: {screenWidth && screenWidth >= 640 ? '✓' : '✗'} (640px+)
-      <br />
-      md: {screenWidth && screenWidth >= 768 ? '✓' : '✗'} (768px+)
-    </div>
-  );
-};
-
 export function FeaturesSection() {
   const [activeFeature, setActiveFeature] = useState(0);
 
   return (
     <section className="py-24 bg-gradient-to-br from-slate-50/50 via-slate-50/20 to-slate-100/40 relative overflow-hidden">
-      {/* Debug info - remove after fixing */}
-      <DebugInfo />
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-primary-600/5 to-transparent transform -skew-y-1"></div>
@@ -221,42 +196,39 @@ export function FeaturesSection() {
 
               {/* Action Buttons */}
               <div className={features[activeFeature].secondaryAction ? 'space-y-4' : 'space-y-4'}>
-                {/* Test element to check if responsive classes work */}
-                <div className="bg-red-500 p-2 text-white text-xs sm:bg-green-500 md:bg-blue-500 lg:bg-purple-500">
-                  TEST: Red=mobile, Green=sm(640px+), Blue=md(768px+), Purple=lg(1024px+)
-                </div>
-
                 {features[activeFeature].secondaryAction ? (
                   // Side by side layout for Fund feature (has both buttons)
-                  <div className="flex flex-col md:flex-row gap-4 justify-center items-start px-4 sm:px-0">
-                    <div className="w-full md:flex-1 md:max-w-xs text-center">
-                      <button
-                        className={`w-full px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r ${features[activeFeature].gradient} text-white font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 shadow-md text-sm sm:text-base`}
+                  <div className="flex flex-wrap gap-4 justify-center items-start max-w-2xl mx-auto">
+                    <div className="flex-1 min-w-64 max-w-80 text-center">
+                      <Button
+                        size="lg"
+                        className={`w-full bg-gradient-to-r ${features[activeFeature].gradient} text-white hover:shadow-lg`}
                       >
                         {features[activeFeature].primaryAction.text}
-                      </button>
-                      <p className="text-xs sm:text-sm text-gray-500 mt-2">
+                      </Button>
+                      <p className="text-sm text-gray-500 mt-2">
                         {features[activeFeature].primaryAction.description}
                       </p>
                     </div>
-                    <div className="w-full md:flex-1 md:max-w-xs text-center">
-                      <button className="w-full px-6 sm:px-8 py-2.5 sm:py-3.5 border-2 border-gray-300 text-gray-700 bg-white font-semibold rounded-xl hover:border-gray-400 hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-200 text-sm sm:text-base">
+                    <div className="flex-1 min-w-64 max-w-80 text-center">
+                      <Button variant="outlined" size="lg" className="w-full">
                         {features[activeFeature].secondaryAction.text}
-                      </button>
-                      <p className="text-xs sm:text-sm text-gray-500 mt-2">
+                      </Button>
+                      <p className="text-sm text-gray-500 mt-2">
                         {features[activeFeature].secondaryAction.description}
                       </p>
                     </div>
                   </div>
                 ) : (
                   // Single button layout for other features
-                  <div className="px-4 sm:px-0 text-center">
-                    <button
-                      className={`w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r ${features[activeFeature].gradient} text-white font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 shadow-md text-sm sm:text-base`}
+                  <div className="text-center">
+                    <Button
+                      size="lg"
+                      className={`bg-gradient-to-r ${features[activeFeature].gradient} text-white hover:shadow-lg`}
                     >
                       {features[activeFeature].primaryAction.text}
-                    </button>
-                    <p className="text-xs sm:text-sm text-gray-500 mt-2 text-center">
+                    </Button>
+                    <p className="text-sm text-gray-500 mt-2 text-center">
                       {features[activeFeature].primaryAction.description}
                     </p>
                   </div>
