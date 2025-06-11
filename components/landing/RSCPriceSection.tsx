@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import SpotlightCard from '@/components/ui/SpotlightCard';
+import { Button } from '@/components/ui/Button';
 import { ExternalLink, TrendingUp } from 'lucide-react';
 
 export function RSCPriceSection() {
@@ -36,10 +37,10 @@ export function RSCPriceSection() {
         ></div>
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-6">
         <div className="text-center mb-12">
           <h2
-            className="text-4xl md:text-5xl font-bold text-white mb-6"
+            className="text-5xl font-bold text-white mb-6"
             style={{ fontFamily: 'Cal Sans, sans-serif' }}
           >
             <span className="bg-gradient-to-r from-amber-200 via-yellow-200 to-amber-300 bg-clip-text text-transparent">
@@ -58,8 +59,8 @@ export function RSCPriceSection() {
             className="bg-white/90 backdrop-blur-sm border border-white/20 shadow-2xl"
             spotlightColor="rgba(251, 146, 60, 0.2)"
           >
-            <div className="p-8 flex flex-col sm:flex-row items-center space-y-6 sm:space-y-0 sm:space-x-8">
-              <div className="text-center">
+            <div className="p-8 flex flex-wrap items-center justify-center gap-8">
+              <div className="text-center min-w-32">
                 <div className="text-sm text-gray-500 mb-2 font-medium">Current value</div>
                 <div className="flex items-center space-x-2 justify-center">
                   {isLoading ? (
@@ -77,9 +78,9 @@ export function RSCPriceSection() {
                 </div>
               </div>
 
-              <div className="hidden sm:block h-12 w-px bg-gray-300"></div>
+              <div className="h-12 w-px bg-gray-300"></div>
 
-              <div className="text-center">
+              <div className="text-center min-w-32">
                 <div className="text-sm text-gray-500 mb-2 font-medium">24h change</div>
                 <div className="flex items-center space-x-2 justify-center">
                   <TrendingUp
@@ -94,13 +95,16 @@ export function RSCPriceSection() {
                 </div>
               </div>
 
-              <div className="hidden sm:block h-12 w-px bg-gray-300"></div>
+              <div className="h-12 w-px bg-gray-300"></div>
 
               <div className="text-center">
-                <button className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center space-x-2 shadow-md">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:shadow-lg flex items-center space-x-2"
+                >
                   <span>Buy ResearchCoin</span>
                   <ExternalLink className="w-5 h-5" />
-                </button>
+                </Button>
                 <p className="text-xs text-gray-500 mt-2">Secure & decentralized</p>
               </div>
             </div>

@@ -86,7 +86,7 @@ export function ResearchCoinSection() {
         ></div>
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-6">
         {/* Header Section */}
         <div className="text-center mb-16 max-w-4xl mx-auto">
           <div className="flex items-center justify-center space-x-4 mb-6">
@@ -94,7 +94,7 @@ export function ResearchCoinSection() {
               <Icon name="rscGold" size={32} color="white" />
             </div>
             <h2
-              className="text-4xl md:text-5xl font-bold text-gray-900"
+              className="text-5xl font-bold text-gray-900"
               style={{ fontFamily: 'Cal Sans, sans-serif' }}
             >
               Powered by{' '}
@@ -113,13 +113,13 @@ export function ResearchCoinSection() {
         </div>
 
         {/* Why ResearchCoin Navigation */}
-        <div className="flex justify-center mb-8 sm:mb-12">
-          <div className="inline-flex p-1 bg-gray-100 rounded-full flex-wrap sm:flex-nowrap">
+        <div className="flex justify-center mb-12">
+          <div className="inline-flex p-1 bg-gray-100 rounded-full overflow-x-auto">
             {whyRSCFeatures.map((feature, index) => (
               <button
                 key={feature.id}
                 onClick={() => setActiveFeature(index)}
-                className={`px-4 sm:px-6 py-2 sm:py-3 rounded-full font-medium transition-all duration-300 text-sm sm:text-base ${
+                className={`px-6 py-3 rounded-full font-medium transition-all duration-300 text-base whitespace-nowrap flex-shrink-0 ${
                   activeFeature === index
                     ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
@@ -150,28 +150,26 @@ export function ResearchCoinSection() {
 
                 <div>
                   <h3
-                    className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2"
+                    className="text-3xl font-bold text-gray-900 mb-2"
                     style={{ fontFamily: 'Cal Sans, sans-serif' }}
                   >
                     {whyRSCFeatures[activeFeature].title}
                   </h3>
-                  <p className="text-lg sm:text-xl text-gray-600">
-                    {whyRSCFeatures[activeFeature].subtitle}
-                  </p>
+                  <p className="text-xl text-gray-600">{whyRSCFeatures[activeFeature].subtitle}</p>
                 </div>
               </div>
 
               {/* Description */}
-              <p className="text-base sm:text-lg text-gray-700 leading-relaxed max-w-xl mx-auto px-4 sm:px-0">
+              <p className="text-lg text-gray-700 leading-relaxed max-w-xl mx-auto px-4">
                 {whyRSCFeatures[activeFeature].description}
               </p>
 
               {/* Benefits Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-xl mx-auto px-4 sm:px-0">
+              <div className="flex flex-wrap gap-4 max-w-xl mx-auto px-4 justify-center">
                 {whyRSCFeatures[activeFeature].benefits.map((benefit, index) => (
-                  <div key={index} className="flex items-center space-x-3 text-left">
+                  <div key={index} className="flex items-center space-x-3 text-left min-w-60">
                     <div className="w-2 h-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 flex-shrink-0" />
-                    <span className="text-gray-700 text-sm sm:text-base">{benefit}</span>
+                    <span className="text-gray-700 text-base">{benefit}</span>
                   </div>
                 ))}
               </div>
