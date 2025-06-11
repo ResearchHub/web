@@ -40,19 +40,19 @@ export function AuthForm({ className = '' }: AuthFormProps) {
       {/* Email Input with Inline Button */}
       <div className="mb-6">
         <label className="block text-sm font-semibold text-gray-800 mb-2">Email address</label>
-        <div className="flex">
+        <div className="space-y-3">
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="flex-1 px-4 py-3.5 border-2 border-gray-200 rounded-l-xl focus:ring-0 focus:border-blue-500 outline-none transition-all duration-200 text-lg bg-white"
+            className="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-blue-500 outline-none transition-all duration-200 text-lg bg-white"
             placeholder="Enter your email"
           />
           <Button
             variant="default"
             size="lg"
             onClick={handleEmailContinue}
-            className="px-8 py-3.5 text-lg font-semibold rounded-l-none rounded-r-xl h-auto"
+            className="w-full px-8 py-3.5 text-lg font-semibold rounded-xl"
           >
             Continue
           </Button>
