@@ -26,7 +26,7 @@ import { WorkMetadata } from '@/services/metadata.service';
 import { useUpdateWorkMetadata, useUpdateWorkAbstract } from '@/hooks/useDocument';
 import { UpdatePaperMetadataPayload, UpdatePaperAbstractPayload } from '@/services/paper.service';
 import { useRouter } from 'next/navigation';
-import { Editor } from '@tiptap/core';
+import toast from 'react-hot-toast';
 
 interface WorkEditModalProps {
   isOpen: boolean;
@@ -215,11 +215,13 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
       if (Object.keys(payload).length > 0) {
         await updateWorkMetadata(work.id, payload);
         handleWorkRefetch();
+        toast.success('Paper metadata updated successfully');
       }
 
       onClose();
     } catch (error) {
       console.error('Error updating work metadata:', error);
+      toast.error('Failed to update paper metadata. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -239,11 +241,13 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
       if (data.abstractPlainText !== currentAbstract) {
         await updateWorkAbstract(work.id, payload);
         handleWorkRefetch();
+        toast.success('Paper abstract updated successfully');
       }
 
       onClose();
     } catch (error) {
       console.error('Error updating work abstract:', error);
+      toast.error('Failed to update paper abstract. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
