@@ -202,13 +202,13 @@ export function FeaturesSection() {
                   </div>
                 ) : (
                   // Single button layout for other features
-                  <div className="px-4 sm:px-0">
+                  <div className="px-4 sm:px-0 text-center">
                     <button
                       className={`w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r ${features[activeFeature].gradient} text-white font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 shadow-md text-sm sm:text-base`}
                     >
                       {features[activeFeature].primaryAction.text}
                     </button>
-                    <p className="text-xs sm:text-sm text-gray-500 mt-2 text-center sm:text-left">
+                    <p className="text-xs sm:text-sm text-gray-500 mt-2 text-center">
                       {features[activeFeature].primaryAction.description}
                     </p>
                   </div>
