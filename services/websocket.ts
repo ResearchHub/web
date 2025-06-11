@@ -1,6 +1,6 @@
 // WebSocket routes
 export const WS_ROUTES = {
-  NOTE: (orgSlug: string) => `${process.env.NEXT_PUBLIC_API_URL}${orgSlug}/notebook/`,
+  NOTE: (orgSlug: string) => `${getWebSocketBaseUrl()}${orgSlug}/notebook/`,
   NOTIFICATIONS: (userId: string | number) => `${getWebSocketBaseUrl()}/notifications/${userId}/`,
   PAPER_SUBMISSION: (userId: string | number) =>
     `${getWebSocketBaseUrl()}/${userId}/paper_submissions/`,
