@@ -18,6 +18,9 @@ import { faChevronDown, faLock, faLockOpen } from '@fortawesome/pro-light-svg-ic
 import { cn } from '@/utils/styles';
 import { WorkAbstractEditor } from '@/components/work/WorkAbstractEditor';
 import { WorkMetadata } from '@/services/metadata.service';
+import { useUpdateWorkMetadata } from '@/hooks/useDocument';
+import { UpdatePaperMetadataPayload } from '@/services/paper.service';
+import { useRouter } from 'next/navigation';
 
 interface WorkEditModalProps {
   isOpen: boolean;
@@ -107,8 +110,13 @@ const LICENSE_OPTIONS = [
 ];
 
 export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModalProps) {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('metadata');
+
+  const handleWorkRefetch = useCallback(() => {
+    router.refresh();
+  }, [router]);
 
   const methods = useForm<WorkEditFormData>({
     resolver: zodResolver(workEditSchema),
@@ -152,19 +160,48 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
     }
   }, []);
 
+  const [{ isLoading: isUpdating, error: updateError }, updateWorkMetadata] =
+    useUpdateWorkMetadata();
+
+  const isFormSubmitting = isSubmitting || isUpdating;
+
   const onSubmit = async (data: WorkEditFormData) => {
     setIsSubmitting(true);
     try {
-      // For now, just console.log the data
-      console.log('Work edit form data:', {
-        workId: work.id,
-        ...data,
-      });
+      // Prepare the payload for the API
+      const payload: UpdatePaperMetadataPayload = {};
 
-      // Close the modal after submission
+      if (data.title && data.title !== work.title) {
+        payload.title = data.title;
+      }
+
+      if (data.doi && data.doi !== work.doi) {
+        payload.doi = data.doi;
+      }
+
+      if (data.publishedDate) {
+        // Convert from ISO date string (YYYY-MM-DD) to backend format
+        payload.publishedDate = data.publishedDate;
+      }
+
+      if (data.topics) {
+        // Extract topic IDs from the selected topics
+        payload.hubs = data.topics.map((topic) => parseInt(topic.value));
+      }
+
+      if (data.license && data.license !== work.license) {
+        payload.license = data.license;
+      }
+
+      // Only make the API call if there are changes
+      if (Object.keys(payload).length > 0) {
+        await updateWorkMetadata(work.id, payload);
+        handleWorkRefetch();
+      }
+
       onClose();
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error('Error updating work metadata:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -185,11 +222,11 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
       maxWidth="max-w-[500px]"
       footer={
         <div className="flex justify-end space-x-3">
-          <Button variant="outlined" onClick={onClose} disabled={isSubmitting}>
+          <Button variant="outlined" onClick={onClose} disabled={isFormSubmitting}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit(onSubmit)} disabled={isSubmitting} className="min-w-20">
-            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          <Button onClick={handleSubmit(onSubmit)} disabled={isFormSubmitting} className="min-w-20">
+            {isFormSubmitting ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       }
@@ -316,6 +353,7 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
           )}
         </div>
       </FormProvider>
+      {updateError && <div className="text-red-500 text-sm mt-2">{updateError}</div>}
     </BaseModal>
   );
 }
