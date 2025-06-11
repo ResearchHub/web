@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Comment } from '@/types/comment';
@@ -12,6 +13,7 @@ import { PostBlockEditor } from './PostBlockEditor';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { ProgressUpdates } from '@/components/ui/ProgressUpdates';
 import { useStorageKey } from '@/utils/storageKeys';
+import { NewFundingModal } from '@/components/modals/NewFundingModal';
 
 interface FundDocumentProps {
   work: Work;
@@ -30,6 +32,47 @@ export const FundDocument = ({
 }: FundDocumentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
   const storageKey = useStorageKey('rh-comments');
+
+  // New funding modal logic
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isNewFundingModalOpen, setIsNewFundingModalOpen] = useState(false);
+
+  useEffect(() => {
+    const newParam = searchParams.get('new');
+    setIsNewFundingModalOpen(newParam === 'true');
+  }, [searchParams]);
+
+  const handleCloseNewFundingModal = () => {
+    setIsNewFundingModalOpen(false);
+
+    // More robust URL parameter removal
+    const url = new URL(window.location.href);
+    url.searchParams.delete('new');
+
+    const newUrl = url.pathname + (url.search || '');
+
+    console.log('Current URL:', window.location.href);
+    console.log('New URL:', newUrl);
+
+    // Use router.replace for navigation
+    router.replace(newUrl, { scroll: false });
+  };
+
+  // Generate clean URL for sharing (without the new=true parameter)
+  const getCleanUrl = () => {
+    if (typeof window === 'undefined') return '';
+
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    current.delete('new');
+
+    const search = current.toString();
+    const query = search ? `?${search}` : '';
+
+    return `${window.location.origin}${pathname}${query}`;
+  };
+
   // Handle tab change
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -218,6 +261,13 @@ export const FundDocument = ({
 
       {/* Tab Content */}
       {renderTabContent}
+
+      {/* New Funding Modal */}
+      <NewFundingModal
+        isOpen={isNewFundingModalOpen}
+        onClose={handleCloseNewFundingModal}
+        preregistrationUrl={getCleanUrl()}
+      />
     </div>
   );
 };
