@@ -58,50 +58,52 @@ export function RSCPriceSection() {
             className="bg-white/90 backdrop-blur-sm border border-white/20 shadow-2xl"
             spotlightColor="rgba(251, 146, 60, 0.2)"
           >
-            <div className="p-8 flex flex-col sm:flex-row items-center space-y-6 sm:space-y-0 sm:space-x-8">
-              <div className="text-center">
-                <div className="text-sm text-gray-500 mb-2 font-medium">Current value</div>
-                <div className="flex items-center space-x-2 justify-center">
-                  {isLoading ? (
-                    <div className="animate-pulse">
-                      <div className="h-10 w-28 bg-gray-200 rounded"></div>
-                    </div>
-                  ) : (
-                    <>
-                      <span className="text-4xl font-bold text-gray-900">
-                        ${currentPrice.toFixed(2)}
-                      </span>
-                      <span className="text-xl text-gray-600 font-medium">USD</span>
-                    </>
-                  )}
+            <div className="p-6 sm:p-8">
+              <div className="flex flex-col lg:flex-row items-center justify-center lg:space-x-6 space-y-6 lg:space-y-0">
+                <div className="lg:flex-shrink-0 text-center">
+                  <div className="text-sm text-gray-500 mb-2 font-medium">Current value</div>
+                  <div className="flex items-center space-x-2 justify-center">
+                    {isLoading ? (
+                      <div className="animate-pulse">
+                        <div className="h-10 w-28 bg-gray-200 rounded"></div>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="text-3xl sm:text-4xl font-bold text-gray-900">
+                          ${currentPrice.toFixed(2)}
+                        </span>
+                        <span className="text-lg sm:text-xl text-gray-600 font-medium">USD</span>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <div className="hidden sm:block h-12 w-px bg-gray-300"></div>
+                <div className="hidden lg:block h-12 w-px bg-gray-300"></div>
 
-              <div className="text-center">
-                <div className="text-sm text-gray-500 mb-2 font-medium">24h change</div>
-                <div className="flex items-center space-x-2 justify-center">
-                  <TrendingUp
-                    className={`w-5 h-5 ${priceChange >= 0 ? 'text-green-500' : 'text-red-500'}`}
-                  />
-                  <span
-                    className={`font-bold text-lg ${priceChange >= 0 ? 'text-green-600' : 'text-red-600'}`}
-                  >
-                    {priceChange >= 0 ? '+' : ''}
-                    {priceChange}%
-                  </span>
+                <div className="lg:flex-shrink-0 text-center">
+                  <div className="text-sm text-gray-500 mb-2 font-medium">24h change</div>
+                  <div className="flex items-center space-x-2 justify-center">
+                    <TrendingUp
+                      className={`w-5 h-5 ${priceChange >= 0 ? 'text-green-500' : 'text-red-500'}`}
+                    />
+                    <span
+                      className={`font-bold text-lg ${priceChange >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                    >
+                      {priceChange >= 0 ? '+' : ''}
+                      {priceChange}%
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="hidden sm:block h-12 w-px bg-gray-300"></div>
+                <div className="hidden lg:block h-12 w-px bg-gray-300"></div>
 
-              <div className="text-center">
-                <button className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center space-x-2 shadow-md">
-                  <span>Buy ResearchCoin</span>
-                  <ExternalLink className="w-5 h-5" />
-                </button>
-                <p className="text-xs text-gray-500 mt-2">Secure & decentralized</p>
+                <div className="lg:flex-shrink-0 text-center">
+                  <button className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center space-x-2 shadow-md whitespace-nowrap">
+                    <span>Buy ResearchCoin</span>
+                    <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </button>
+                  <p className="text-xs text-gray-500 mt-2">Secure & decentralized</p>
+                </div>
               </div>
             </div>
           </SpotlightCard>
