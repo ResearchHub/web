@@ -70,9 +70,9 @@ const nextConfig = {
     },
   },
   compress: true,
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
-  },
+  //compiler: {
+  //  removeConsole: process.env.NODE_ENV === 'production',
+  //},
   turbopack: {
     rules: {
       '*.svg': {
