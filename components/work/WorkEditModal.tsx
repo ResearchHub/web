@@ -27,6 +27,7 @@ import { useUpdateWorkMetadata, useUpdateWorkAbstract } from '@/hooks/useDocumen
 import { UpdatePaperMetadataPayload, UpdatePaperAbstractPayload } from '@/services/paper.service';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { Textarea } from '@/components/ui/form/Textarea';
 
 interface WorkEditModalProps {
   isOpen: boolean;
@@ -145,7 +146,7 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
     resolver: zodResolver(workAbstractSchema),
     defaultValues: {
       abstractPlainText: work.abstract || '',
-      abstractHtml: work.abstract || '',
+      // abstractHtml: work.abstract || '',
     },
   });
 
@@ -231,7 +232,7 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
     setIsSubmitting(true);
     try {
       const payload: UpdatePaperAbstractPayload = {
-        abstract_src: data.abstractHtml || '',
+        // abstract_src: data.abstractHtml || '',
         abstract: data.abstractPlainText || '',
         abstract_src_type: 'TEXT_FIELD',
       };
@@ -412,13 +413,17 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
         )}
 
         {activeTab === 'abstract' && (
-          <WorkAbstractEditor
-            initialContent={abstractPlainText}
-            onContentChange={(plainText: string, html: string) => {
-              setAbstractValue('abstractPlainText', plainText, { shouldValidate: true });
-              setAbstractValue('abstractHtml', html, { shouldValidate: true });
-            }}
-          />
+          <FormProvider {...abstractForm}>
+            <form onSubmit={handleAbstractSubmit(onAbstractSubmit)} className="space-y-6">
+              <Textarea
+                label="Abstract"
+                placeholder="Enter paper abstract..."
+                error={getFieldErrorMessage(abstractErrors.abstractPlainText, 'Invalid abstract')}
+                {...abstractForm.register('abstractPlainText')}
+                className="min-h-[150px]"
+              />
+            </form>
+          </FormProvider>
         )}
       </div>
       {(metadataError || abstractError) && (

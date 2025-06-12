@@ -22,7 +22,7 @@ export const workMetadataSchema = z.object({
 // Schema for abstract tab
 export const workAbstractSchema = z.object({
   abstractPlainText: z.string().min(1, 'Abstract is required'),
-  abstractHtml: z.string().min(1, 'Abstract is required'),
+  // abstractHtml: z.string().min(1, 'Abstract is required'),
 });
 
 // Combined schema for the entire form
