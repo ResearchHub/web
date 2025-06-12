@@ -188,6 +188,7 @@ interface InsertButtonsProps {
   editor: Editor;
   onLinkAdd: () => void;
   onImageAdd: () => void;
+  showMentions?: boolean;
   inDropdown?: boolean;
 }
 
@@ -195,6 +196,7 @@ const InsertButtons = ({
   editor,
   onLinkAdd,
   onImageAdd,
+  showMentions = true,
   inDropdown = false,
 }: InsertButtonsProps) => {
   const buttonClasses = inDropdown ? 'w-full justify-start px-3 py-2' : '';
@@ -222,17 +224,19 @@ const InsertButtons = ({
         {inDropdown && <span className="ml-2">Add Image</span>}
       </ToolbarButton>
 
-      <ToolbarButton
-        onClick={() => {
-          editor.chain().focus().insertContent('@').run();
-        }}
-        tooltip="Mention"
-        className={buttonClasses}
-        inDropdown={inDropdown}
-      >
-        <AtSign className="h-4 w-4" />
-        {inDropdown && <span className="ml-2">Mention</span>}
-      </ToolbarButton>
+      {showMentions && (
+        <ToolbarButton
+          onClick={() => {
+            editor.chain().focus().insertContent('@').run();
+          }}
+          tooltip="Mention"
+          className={buttonClasses}
+          inDropdown={inDropdown}
+        >
+          <AtSign className="h-4 w-4" />
+          {inDropdown && <span className="ml-2">Mention</span>}
+        </ToolbarButton>
+      )}
     </>
   );
 };
@@ -245,6 +249,7 @@ interface EditorToolbarProps {
   isReview?: boolean;
   isReadOnly?: boolean;
   compactToolbar?: boolean;
+  showMentions?: boolean;
 }
 
 export const EditorToolbar = ({
@@ -255,6 +260,7 @@ export const EditorToolbar = ({
   isReview = false,
   isReadOnly = false,
   compactToolbar = false,
+  showMentions = true,
 }: EditorToolbarProps) => {
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -334,7 +340,12 @@ export const EditorToolbar = ({
       <ToolbarDivider />
 
       {/* Insert buttons */}
-      <InsertButtons editor={editor} onLinkAdd={onLinkAdd} onImageAdd={onImageAdd} />
+      <InsertButtons
+        editor={editor}
+        onLinkAdd={onLinkAdd}
+        onImageAdd={onImageAdd}
+        showMentions={showMentions}
+      />
 
       {/* Review categories */}
       {isReview && onAddReviewCategory && (

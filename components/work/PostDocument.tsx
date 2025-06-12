@@ -102,7 +102,7 @@ export const PostDocument = ({
         </div>
       )}
       <PageHeader title={work.title} className="text-3xl mt-2" />
-      <WorkLineItems work={work} />
+      <WorkLineItems work={work} metadata={metadata} />
 
       {/* Tabs */}
       <WorkTabs

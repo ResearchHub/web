@@ -30,17 +30,21 @@ import { Icon } from '@/components/ui/icons/Icon';
 import { PaperService } from '@/services/paper.service';
 import { useUser } from '@/contexts/UserContext';
 import { Contact } from '@/types/note';
+import { WorkEditModal } from './WorkEditModal';
+import { WorkMetadata } from '@/services/metadata.service';
 
 interface WorkLineItemsProps {
   work: Work;
   showClaimButton?: boolean;
   insightsButton?: React.ReactNode;
+  metadata: WorkMetadata;
 }
 
 export const WorkLineItems = ({
   work,
   showClaimButton = true,
   insightsButton,
+  metadata,
 }: WorkLineItemsProps) => {
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
@@ -55,6 +59,7 @@ export const WorkLineItems = ({
   const router = useRouter();
   const { selectedOrg } = useOrganizationContext();
   const { user } = useUser();
+  const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
 
   const {
     data: userVotes,
@@ -97,12 +102,14 @@ export const WorkLineItems = ({
   }, [work.contentType, work.id, isUpvoted, vote, refreshVotes]);
 
   const handleEdit = useCallback(() => {
-    if (selectedOrg && work.note) {
+    if (work.contentType === 'paper' && user?.isModerator) {
+      setIsWorkEditModalOpen(true);
+    } else if (selectedOrg && work.note) {
       router.push(`/notebook/${work.note.organization.slug}/${work.note.id}`);
     } else {
       toast.error('Unable to edit');
     }
-  }, [work.contentType, work.note, selectedOrg, router]);
+  }, [work.contentType, work.note, selectedOrg, router, user]);
 
   const handleTipSuccess = (amount: number) => {
     toast.success(`Successfully tipped ${amount} RSC`);
@@ -208,7 +215,9 @@ export const WorkLineItems = ({
               <MenuItem>
                 <Button
                   variant="ghost"
-                  disabled={!selectedOrg || !work.note}
+                  disabled={
+                    work.contentType === 'paper' ? !isModerator : !selectedOrg || !work.note
+                  }
                   onClick={handleEdit}
                   className="w-full justify-start"
                 >
@@ -363,6 +372,15 @@ export const WorkLineItems = ({
         feedContentType={work.contentType === 'paper' ? 'PAPER' : 'POST'}
         onTipSuccess={handleTipSuccess}
       />
+
+      {work.contentType === 'paper' && (
+        <WorkEditModal
+          isOpen={isWorkEditModalOpen}
+          onClose={() => setIsWorkEditModalOpen(false)}
+          work={work}
+          metadata={metadata}
+        />
+      )}
     </div>
   );
 };

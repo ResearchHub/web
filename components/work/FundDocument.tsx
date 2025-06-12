@@ -113,7 +113,7 @@ export const FundDocument = ({
         </div>
       )}
       <PageHeader title={work.title} className="text-3xl mt-2" />
-      <WorkLineItems work={work} showClaimButton={false} />
+      <WorkLineItems work={work} showClaimButton={false} metadata={metadata} />
 
       {/* FundraiseProgress - now placed between line items and tabs */}
       {metadata.fundraising && (

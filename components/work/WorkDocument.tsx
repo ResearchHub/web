@@ -300,6 +300,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
 
       <WorkLineItems
         work={work}
+        metadata={metadata}
         insightsButton={
           <button
             className="lg:!hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
