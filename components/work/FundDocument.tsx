@@ -48,8 +48,6 @@ export const FundDocument = ({
     );
   }, [user?.id, work.authors]);
 
-  console.log('work', work);
-
   // New funding modal logic
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -69,9 +67,6 @@ export const FundDocument = ({
     url.searchParams.delete('new');
 
     const newUrl = url.pathname + (url.search || '');
-
-    console.log('Current URL:', window.location.href);
-    console.log('New URL:', newUrl);
 
     // Use router.replace for navigation
     router.replace(newUrl, { scroll: false });
