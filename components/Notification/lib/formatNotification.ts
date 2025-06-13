@@ -55,6 +55,10 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
     icon: 'submit2',
     useAvatar: false,
   },
+  PREREGISTRATION_UPDATE: {
+    icon: 'edit',
+    useAvatar: true,
+  },
   PUBLICATIONS_ADDED: {
     icon: 'claimPaper',
     useAvatar: false,
@@ -300,6 +304,9 @@ export function formatNotificationMessage(
     // Moderation notifications
     case 'FLAGGED_CONTENT_VERDICT':
       return 'A moderation decision has been made on your reported content';
+
+    case 'PREREGISTRATION_UPDATE':
+      return `${userName} updated preregistration "${truncatedTitle}"`;
 
     default:
       console.warn(`Unhandled notification type: ${type}`);
