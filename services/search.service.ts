@@ -60,7 +60,8 @@ export class SearchService {
 
   static async getSuggestions(
     query: string,
-    indices?: EntityType | EntityType[]
+    indices?: EntityType | EntityType[],
+    limit?: number
   ): Promise<SearchSuggestion[]> {
     const params = new URLSearchParams({ q: query });
 
@@ -68,6 +69,11 @@ export class SearchService {
     const indicesToUse = indices || this.DEFAULT_INDICES;
     const indexParam = Array.isArray(indicesToUse) ? indicesToUse.join(',') : indicesToUse;
     params.append('index', indexParam);
+
+    // Add limit parameter if provided
+    if (limit) {
+      params.append('limit', limit.toString());
+    }
 
     const response = await ApiClient.get<any[]>(
       `${this.BASE_PATH}/search/suggest/?${params.toString()}`
