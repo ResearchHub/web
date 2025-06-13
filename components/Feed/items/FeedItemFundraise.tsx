@@ -15,6 +15,8 @@ import Image from 'next/image';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { formatRSC } from '@/utils/number';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
+import Link from 'next/link';
+import { CardWrapper } from './CardWrapper';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
@@ -173,13 +175,6 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   // Use provided href or create default funding page URL
   const fundingPageUrl = href || `/fund/${post.id}/${post.slug}`;
 
-  // Handle click on the card (navigate to funding page) - only if href is provided
-  const handleCardClick = () => {
-    if (href) {
-      router.push(fundingPageUrl);
-    }
-  };
-
   // Determine if card should have clickable styles
   const isClickable = !!href;
 
@@ -214,14 +209,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       />
 
       {/* Main Content Card - Using onClick instead of wrapping with Link */}
-      <div
-        onClick={handleCardClick}
-        className={cn(
-          'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden',
-          isClickable &&
-            'group hover:shadow-md hover:border-indigo-100 transition-all duration-200 cursor-pointer'
-        )}
-      >
+      <CardWrapper href={fundingPageUrl} isClickable={isClickable}>
         <div className="p-4">
           {/* Body Content with desktop image integrated */}
           <FeedItemFundraiseBody
@@ -247,7 +235,12 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
           {/* Action Buttons - Full width */}
           {showActions && (
             <div className="mt-4 pt-3 border-t border-gray-200">
-              <div onClick={(e) => e.stopPropagation()}>
+              <div
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
                 {/* Standard Feed Item Actions */}
                 <FeedItemActions
                   metrics={entry.metrics}
@@ -263,7 +256,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             </div>
           )}
         </div>
-      </div>
+      </CardWrapper>
     </div>
   );
 };

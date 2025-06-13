@@ -28,6 +28,8 @@ import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
 import { Icon } from '@/components/ui/icons/Icon';
 import { buildWorkUrl } from '@/utils/url';
+import Link from 'next/link';
+import { CardWrapper } from './CardWrapper';
 /**
  * Internal component for rendering bounty details
  */
@@ -246,16 +248,10 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   // Determine if card should have clickable styles
   const isClickable = !!href;
 
-  // Handle click on the card (simplified since bountyPageUrl was removed)
-  const handleCardClick = () => {
-    if (href) {
-      window.location.href = href;
-    }
-  };
-
   // Handle opening the contribute modal
   const handleOpenContributeModal = (e: React.MouseEvent | undefined) => {
     if (e) {
+      e.preventDefault();
       e.stopPropagation();
     }
     setIsContributeModalOpen(true);
@@ -263,6 +259,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
 
   // Handle CTA button click (Add Review/Add Solution)
   const handleSolution = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation(); // Prevent card click navigation
 
     // Attempt to derive the work details from the feed entry first
@@ -311,6 +308,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   // Handle awarding the bounty
   const handleAwardBounty = (e: React.MouseEvent | undefined) => {
     if (e) {
+      e.preventDefault();
       e.stopPropagation();
     }
     if (onAward) {
@@ -328,6 +326,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       label: 'Edit',
       onClick: (e?: React.MouseEvent) => {
         e?.stopPropagation();
+        e?.preventDefault();
         onEdit();
       },
     });
@@ -353,6 +352,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       icon: Users,
       label: 'View Contributors',
       onClick: (e?: React.MouseEvent) => {
+        e?.preventDefault();
         e?.stopPropagation();
         handleOpenContributeModal(e);
       },
@@ -384,15 +384,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         work={entry.relatedWork}
       />
 
-      {/* Main Content Card - Restoring border and styles */}
-      <div
-        className={cn(
-          'w-full bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden', // Restored card styles
-          isClickable &&
-            'group hover:shadow-md hover:border-indigo-100 transition-all duration-200 cursor-pointer' // Restored hover styles
-        )}
-        onClick={handleCardClick}
-      >
+      <CardWrapper href={href} isClickable={isClickable}>
         <div className="p-4">
           {' '}
           {/* Added padding back */}
@@ -407,7 +399,13 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
           />
           {/* Container for Support and CTA buttons */}
           {showSupportAndCTAButtons && (
-            <div className="mt-4 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="mt-4 flex items-center gap-2"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
               {/* Contribute Button - Conditionally shown */}
               {isActive && showContributeButton && !isAuthor && (
                 <Button variant="contribute" size="sm" onClick={handleOpenContributeModal}>
@@ -435,28 +433,31 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
           )}
           {/* Action Buttons - Full width - Moved inside the padded div */}
           {showFooter && !shouldHideActions && (
-            <div className="mt-4 pt-3 border-t border-gray-200">
-              <div onClick={(e) => e.stopPropagation()}>
-                {/* Standard Feed Item Actions */}
-                <FeedItemActions
-                  metrics={entry.metrics}
-                  feedContentType="BOUNTY"
-                  votableEntityId={bountyEntry.comment.id}
-                  relatedDocumentId={bountyEntry.relatedDocumentId}
-                  relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
-                  userVote={entry.userVote}
-                  tips={entry.tips}
-                  showTooltips={showTooltips}
-                  actionLabels={actionLabels}
-                  menuItems={menuItems}
-                  bounties={[bountyEntry.bounty]}
-                  onComment={onReply}
-                />
-              </div>
+            <div
+              className="mt-4 pt-3 border-t border-gray-200"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
+              <FeedItemActions
+                metrics={entry.metrics}
+                feedContentType="BOUNTY"
+                votableEntityId={bountyEntry.comment.id}
+                relatedDocumentId={bountyEntry.relatedDocumentId}
+                relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
+                userVote={entry.userVote}
+                tips={entry.tips}
+                showTooltips={showTooltips}
+                actionLabels={actionLabels}
+                menuItems={menuItems}
+                bounties={[bountyEntry.bounty]}
+                onComment={onReply}
+              />
             </div>
           )}
         </div>
-      </div>
+      </CardWrapper>
 
       {/* Contribute Bounty Modal */}
       <ContributeBountyModal
