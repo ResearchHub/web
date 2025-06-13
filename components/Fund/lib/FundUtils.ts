@@ -6,6 +6,7 @@ interface Update {
 
 /**
  * Calculate the update rate as a percentage of months with updates in the last 12 months
+ * Only the first update in each month counts towards the rate
  * @param updates - Array of updates with createdDate
  * @returns Percentage (0-100) representing how many months had updates
  */
@@ -23,5 +24,15 @@ export const calculateUpdateRate = (updates: Update[]): number => {
     return monthsDiff <= 12;
   });
 
-  return Math.round((updatesInLast12Months.length / 12) * 100);
+  // Group updates by month-year and only count unique months
+  const uniqueMonths = new Set<string>();
+
+  updatesInLast12Months.forEach((update) => {
+    const updateDate = new Date(update.createdDate);
+    const monthYear = `${updateDate.getFullYear()}-${updateDate.getMonth()}`;
+    uniqueMonths.add(monthYear);
+  });
+
+  // Calculate percentage based on unique months with updates out of 12 months
+  return Math.round((uniqueMonths.size / 12) * 100);
 };
