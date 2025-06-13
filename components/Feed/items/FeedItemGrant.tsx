@@ -196,7 +196,7 @@ const FeedItemGrantBody: FC<{
                   isExpiringSoon ? 'text-amber-600' : 'text-gray-500'
                 )}
               >
-                Application deadline: {format(new Date(deadline), 'MMM d, yyyy')}
+                Apply by: {format(new Date(deadline), 'MMM d, yyyy')}
               </span>
             </div>
           )}
