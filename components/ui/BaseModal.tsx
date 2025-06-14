@@ -13,10 +13,12 @@ interface BaseModalProps {
   initialFocus?: React.MutableRefObject<HTMLElement | null>;
   title?: string;
   maxWidth?: string; // e.g., 'max-w-md', 'max-w-xl', 'max-w-4xl'
+  minWidth?: string; // e.g., 'min-w-[200px]', 'min-w-[400px]', 'min-w-[600px]'
   showCloseButton?: boolean;
   padding?: string; // e.g., 'p-4', 'p-6', 'p-8'
   footer?: ReactNode;
   headerAction?: ReactNode;
+  showFooterShadow?: boolean;
 }
 
 export const BaseModal: FC<BaseModalProps> = ({
@@ -26,10 +28,12 @@ export const BaseModal: FC<BaseModalProps> = ({
   initialFocus,
   title,
   maxWidth = 'max-w-tablet', // Default max width for larger screens
+  minWidth = 'min-w-[200px]', // Default minimum width
   showCloseButton = true,
   padding = 'p-6', // Default padding
   footer,
   headerAction,
+  showFooterShadow = true,
 }) => {
   const headerRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
@@ -96,7 +100,9 @@ export const BaseModal: FC<BaseModalProps> = ({
                   // No rounded corners on mobile, rounded on md+
                   'md:!rounded-2xl',
                   // Only apply max width on md and up
-                  `md:${maxWidth}`
+                  `md:${maxWidth}`,
+                  // Apply minimum width
+                  minWidth
                 )}
                 style={{
                   display: 'flex',
@@ -146,7 +152,7 @@ export const BaseModal: FC<BaseModalProps> = ({
                     ref={footerRef}
                     className="border-t border-gray-200 px-6 py-4 bg-white sticky bottom-0 z-10"
                     style={{
-                      boxShadow: '0 -4px 12px -4px rgba(0,0,0,0.10)', // Only top shadow
+                      boxShadow: showFooterShadow ? '0 -4px 12px -4px rgba(0,0,0,0.10)' : 'none', // Only top shadow
                     }}
                   >
                     {footer}
