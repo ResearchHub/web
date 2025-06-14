@@ -55,7 +55,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
   );
 
   return (
-    <div className="relative">
+    <div className="relative flex justify-center">
       {/* Standard Menu */}
       <BaseMenu
         trigger={standardTrigger}

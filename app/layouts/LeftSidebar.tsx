@@ -34,12 +34,18 @@ const UserSidebarSection = ({ forceMinimize = false }: { forceMinimize?: boolean
 
   if (isInitialLoading) {
     return (
-      <div className="px-3 py-3 tablet:max-sidebar-compact:!px-2 tablet:max-sidebar-compact:!flex tablet:max-sidebar-compact:!justify-center">
+      <div
+        className={`${forceMinimize ? '' : 'px-3 py-3'} tablet:max-sidebar-compact:!px-2 tablet:max-sidebar-compact:!flex tablet:max-sidebar-compact:!justify-center`}
+      >
         {/* Skeleton to match current layout */}
-        <div className="flex items-center justify-between tablet:max-sidebar-compact:!justify-center">
+        <div
+          className={`flex items-center ${forceMinimize ? 'justify-center' : 'justify-between'} tablet:max-sidebar-compact:!justify-center`}
+        >
           {/* Left side skeleton for user profile */}
           <div className="flex items-center p-1 pr-2 pl-2 rounded-lg">
-            <div className="h-8 w-8 flex-shrink-0 mr-2 rounded-full bg-gray-200 animate-pulse tablet:max-sidebar-compact:!mr-0 tablet:max-sidebar-compact:!h-10 tablet:max-sidebar-compact:!w-10"></div>
+            <div
+              className={`h-10 w-10 flex-shrink-0 ${forceMinimize ? 'mr-0' : 'mr-2'} rounded-full bg-gray-200 animate-pulse tablet:max-sidebar-compact:!mr-0 tablet:max-sidebar-compact:!h-10 tablet:max-sidebar-compact:!w-10`}
+            ></div>
             <div
               className={`h-4 w-20 bg-gray-200 rounded animate-pulse ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
             ></div>
@@ -68,13 +74,15 @@ const UserSidebarSection = ({ forceMinimize = false }: { forceMinimize?: boolean
   if (!user) {
     // Logged out state
     return (
-      <div className="px-3 py-3 tablet:max-sidebar-compact:!px-2 tablet:max-sidebar-compact:!flex tablet:max-sidebar-compact:!justify-center">
+      <div
+        className={`${forceMinimize ? '' : 'px-3 py-3'} tablet:max-sidebar-compact:!px-2 tablet:max-sidebar-compact:!flex tablet:max-sidebar-compact:!justify-center`}
+      >
         {/* Enhanced login section */}
         <div className="flex flex-col gap-2 w-full">
           {/* Login button with icon */}
           <Button
             variant="default"
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium flex items-center justify-center gap-2 py-2.5 tablet:max-sidebar-compact:!w-10 tablet:max-sidebar-compact:!h-10 tablet:max-sidebar-compact:!p-0"
+            className="w-full mx-auto bg-indigo-600 hover:bg-indigo-700 text-white font-medium flex items-center justify-center gap-2 py-2.5 tablet:max-sidebar-compact:!w-10 tablet:max-sidebar-compact:!h-10 tablet:max-sidebar-compact:!p-0"
             onClick={() => executeAuthenticatedAction(() => router.push('/'))}
           >
             <User size={18} className="text-white" />
@@ -98,7 +106,9 @@ const UserSidebarSection = ({ forceMinimize = false }: { forceMinimize?: boolean
   }
 
   return (
-    <div className="px-3 py-3 tablet:max-sidebar-compact:!px-2 tablet:max-sidebar-compact:!flex tablet:max-sidebar-compact:!justify-center">
+    <div
+      className={`${forceMinimize ? '' : 'px-3 py-3'} tablet:max-sidebar-compact:!px-2 tablet:max-sidebar-compact:!flex tablet:max-sidebar-compact:!justify-center`}
+    >
       {/* Single row layout with all elements */}
       <div
         className={`flex items-center ${forceMinimize ? 'justify-center' : 'justify-between'} tablet:max-sidebar-compact:!justify-center`}
@@ -109,7 +119,7 @@ const UserSidebarSection = ({ forceMinimize = false }: { forceMinimize?: boolean
           className={`flex items-center cursor-pointer transition-colors ${forceMinimize ? 'p-0' : 'p-1 pr-2 pl-2'} rounded-lg group flex-shrink min-w-0`}
         >
           <div
-            className="flex-shrink-0 mr-2 tablet:max-sidebar-compact:!mr-0 tablet:max-sidebar-compact:!scale-125"
+            className={`flex-shrink-0 ${forceMinimize ? 'mr-0' : 'mr-2'} tablet:max-sidebar-compact:!mr-0 tablet:max-sidebar-compact:!scale-125`}
             onClick={(e) => e.stopPropagation()}
           >
             <UserMenu
