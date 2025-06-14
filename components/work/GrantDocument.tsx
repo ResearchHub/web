@@ -63,6 +63,7 @@ export const GrantDocument = ({
         return (
           <div className="space-y-6" key="conversation-tab">
             <CommentFeed
+              unifiedDocumentId={work.unifiedDocumentId || null}
               documentId={work.id}
               contentType={work.contentType}
               commentType="GENERIC_COMMENT"

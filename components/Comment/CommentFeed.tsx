@@ -30,7 +30,7 @@ interface CommentFeedProps {
   renderCommentActions?: boolean;
   hideEditor?: boolean;
   debug?: boolean;
-  unifiedDocumentId?: number | null;
+  unifiedDocumentId: number | null;
   work?: Work;
 }
 
