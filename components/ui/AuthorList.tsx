@@ -4,11 +4,13 @@ import { useState, Fragment } from 'react';
 import { Plus, Minus, BadgeCheck } from 'lucide-react';
 import { cn } from 'utils/styles';
 import { VerifiedBadge } from './VerifiedBadge';
+import Link from 'next/link';
 
 export interface Author {
   name: string;
   verified?: boolean;
   profileUrl?: string;
+  authorUrl?: string;
 }
 
 interface AuthorListProps {
@@ -255,15 +257,28 @@ const AuthorItem = ({
   className?: string;
 }) => (
   <span className="flex items-center">
-    <span
-      className={cn(
-        size === 'xs' ? 'text-xs' : size === 'sm' ? 'text-sm' : 'text-base',
-        'text-gray-900 hover:text-gray-900 font-semibold',
-        className
-      )}
-    >
-      {author?.name}
-    </span>
+    {author?.authorUrl ? (
+      <Link
+        href={author?.authorUrl}
+        className={cn(
+          size === 'xs' ? 'text-xs' : size === 'sm' ? 'text-sm' : 'text-base',
+          'text-gray-900 hover:text-blue-800 font-semibold hover:underline',
+          className
+        )}
+      >
+        {author?.name}
+      </Link>
+    ) : (
+      <span
+        className={cn(
+          size === 'xs' ? 'text-xs' : size === 'sm' ? 'text-sm' : 'text-base',
+          'text-gray-900 hover:text-gray-900 font-semibold',
+          className
+        )}
+      >
+        {author?.name}
+      </span>
+    )}
     {author?.verified && <VerifiedBadge className="ml-1" size={'xs'} />}
   </span>
 );

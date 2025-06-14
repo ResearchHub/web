@@ -286,23 +286,24 @@ export const WorkLineItems = ({
                   {work.note?.post?.grant?.organization ? (
                     <span>{work.note.post.grant.organization}</span>
                   ) : (
-                    <div className="mb-1.5">
-                      <AuthorList
-                        authors={
-                          work.note?.post?.grant?.contacts?.map((contact: Contact) => ({
-                            name: contact.authorProfile?.fullName || contact.name,
-                            verified: contact.authorProfile?.user?.isVerified,
-                            profileUrl: contact.authorProfile
-                              ? `/author/${contact.authorProfile?.id}`
-                              : undefined,
-                          })) || []
-                        }
-                        size="sm"
-                        className="inline-flex items-center text-gray-600 font-medium"
-                        delimiterClassName="mx-2 text-gray-400"
-                        delimiter="•"
-                      />
-                    </div>
+                    <AuthorList
+                      authors={
+                        work.note?.post?.grant?.contacts?.map((contact: Contact) => ({
+                          name: contact.authorProfile?.fullName || contact.name,
+                          verified: contact.authorProfile?.user?.isVerified,
+                          profileUrl: contact.authorProfile
+                            ? `/author/${contact.authorProfile?.id}`
+                            : undefined,
+                          authorUrl: contact.authorProfile?.user
+                            ? `/author/${contact.authorProfile?.id}`
+                            : undefined,
+                        })) || []
+                      }
+                      size="sm"
+                      className="inline-flex items-center text-gray-600 font-medium"
+                      delimiterClassName="mx-2 text-gray-400"
+                      delimiter="•"
+                    />
                   )}
                 </div>
               </div>
@@ -312,19 +313,20 @@ export const WorkLineItems = ({
             <div className="flex items-start">
               <span className="font-medium text-gray-900 w-28">Authors</span>
               <div className="flex-1">
-                <div className="mb-1.5">
-                  <AuthorList
-                    authors={work.authors.map((authorship) => ({
-                      name: authorship.authorProfile.fullName,
-                      verified: authorship.authorProfile.user?.isVerified,
-                      profileUrl: `/author/${authorship.authorProfile.id}`,
-                    }))}
-                    size="sm"
-                    className="inline-flex items-center text-gray-600 font-medium"
-                    delimiterClassName="mx-2 text-gray-400"
-                    delimiter="•"
-                  />
-                </div>
+                <AuthorList
+                  authors={work.authors.map((authorship) => ({
+                    name: authorship.authorProfile.fullName,
+                    verified: authorship.authorProfile.user?.isVerified,
+                    profileUrl: `/author/${authorship.authorProfile.id}`,
+                    authorUrl: authorship.authorProfile.user
+                      ? `/author/${authorship.authorProfile.id}`
+                      : undefined,
+                  }))}
+                  size="sm"
+                  className="inline-flex items-center text-gray-600 font-medium"
+                  delimiterClassName="mx-2 text-gray-400"
+                  delimiter="•"
+                />
               </div>
             </div>
           )}
