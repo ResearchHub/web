@@ -160,6 +160,7 @@ export const AuthorList = ({
           {showAll && filteredAuthors.length > 3 && (
             <button
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 setShowAll(false);
               }}
@@ -181,6 +182,7 @@ export const AuthorList = ({
         <AuthorItem author={filteredAuthors[1]} showDot={false} size={size} className={className} />
         <button
           onClick={(e) => {
+            e.preventDefault();
             e.stopPropagation();
             setShowAll(true);
           }}

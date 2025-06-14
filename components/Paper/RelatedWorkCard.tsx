@@ -41,7 +41,10 @@ export const RelatedWorkCard = ({
     })) || [];
 
   // Handle click on the paper card
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     if (onClick) {
       onClick();
     } else if (work.id && work.slug) {

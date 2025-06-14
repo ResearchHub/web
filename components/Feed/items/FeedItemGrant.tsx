@@ -17,6 +17,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUserTie } from '@fortawesome/free-solid-svg-icons';
 import { truncateText } from '@/utils/stringUtils';
 import Image from 'next/image';
+import Link from 'next/link';
+import { CardWrapper } from './CardWrapper';
 
 // Grant-specific content type that extends the feed entry structure
 export interface FeedGrantContent {
@@ -107,6 +109,7 @@ const FeedItemGrantBody: FC<{
 
   // Handle apply button click
   const handleApplyClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     // Navigate to grant application page
     router.push(`/grant/${grant.id}/${grant.slug}`);
@@ -116,7 +119,13 @@ const FeedItemGrantBody: FC<{
     <div>
       {/* Header with badges and status */}
       <div className="flex items-start justify-between mb-3">
-        <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="flex flex-wrap gap-2"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
           <ContentTypeBadge type="grant" />
           {topics.map((topic, index) => (
             <TopicAndJournalBadge
@@ -203,7 +212,13 @@ const FeedItemGrantBody: FC<{
 
           {/* Applicants section */}
           {applicants.length > 0 && (
-            <div className="flex items-center gap-3 mb-4" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="flex items-center gap-3 mb-4"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
               <FontAwesomeIcon icon={faUserTie} className="w-4 h-4 text-gray-500 flex-shrink-0" />
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-500 font-normal">
@@ -275,20 +290,12 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
 }) => {
   // Extract the grant from the entry's content
   const grant = entry.content as FeedGrantContent;
-  const router = useRouter();
 
   // Get the author from the grant
   const author = grant.createdBy;
 
   // Use provided href or create default grant page URL
   const grantPageUrl = href || `/grant/${grant.id}/${grant.slug}`;
-
-  // Handle click on the card (navigate to grant page) - only if href is provided
-  const handleCardClick = () => {
-    if (href) {
-      router.push(grantPageUrl);
-    }
-  };
 
   // Determine if card should have clickable styles
   const isClickable = !!href;
@@ -327,14 +334,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
       )}
 
       {/* Main Content Card */}
-      <div
-        onClick={handleCardClick}
-        className={cn(
-          'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden',
-          isClickable &&
-            'group hover:shadow-md hover:border-indigo-100 transition-all duration-200 cursor-pointer'
-        )}
-      >
+      <CardWrapper href={grantPageUrl} isClickable={isClickable}>
         <div className="p-4">
           {/* Mobile image (shown only on small screens) */}
           <MobileImage />
@@ -345,7 +345,12 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
           {/* Action Buttons */}
           {showActions && (
             <div className="mt-4 pt-3 border-t border-gray-200">
-              <div onClick={(e) => e.stopPropagation()}>
+              <div
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
                 <FeedItemActions
                   metrics={entry.metrics}
                   feedContentType="GRANT"
@@ -360,7 +365,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
             </div>
           )}
         </div>
-      </div>
+      </CardWrapper>
     </div>
   );
 };
