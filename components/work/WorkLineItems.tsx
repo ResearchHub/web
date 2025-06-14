@@ -154,7 +154,7 @@ export const WorkLineItems = ({
                 <Button
                   variant="ghost"
                   disabled={
-                    work.contentType === 'paper' ? !isModerator : !selectedOrg || !work.note
+                    work.contentType === 'paper' ? !user?.isModerator : !selectedOrg || !work.note
                   }
                   onClick={handleEdit}
                   className="w-full justify-start"
