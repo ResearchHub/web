@@ -177,6 +177,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
               content-md:!max-w-2xl
               content-lg:!max-w-3xl
               content-xl:!max-w-4xl
+              lg:!mr-6 right-sidebar:!mr-6
             "
           >
             {children}
