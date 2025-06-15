@@ -12,7 +12,9 @@ interface LegacyNoteBannerProps {
  */
 export const LegacyNoteBanner = ({ orgSlug, noteId }: LegacyNoteBannerProps) => {
   // Determine the correct URL based on environment
-  const baseUrl = isProduction() ? 'https://researchhub.com' : 'https://staging.researchhub.com';
+  const baseUrl = isProduction()
+    ? 'https://old.researchhub.com'
+    : 'https://old.staging.researchhub.com';
 
   const legacyNoteUrl = `${baseUrl}/${orgSlug}/notebook/${noteId}`;
 
