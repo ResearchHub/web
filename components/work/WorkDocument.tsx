@@ -169,7 +169,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
           <div className="space-y-6" key="reviews-tab">
             <CommentFeed
               documentId={work.id}
-              unifiedDocumentId={work.unifiedDocumentId}
+              unifiedDocumentId={work.unifiedDocumentId || null}
               contentType={work.contentType}
               commentType="REVIEW"
               editorProps={{
@@ -188,7 +188,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
           <div className="space-y-6" key="bounties-tab">
             <CommentFeed
               documentId={work.id}
-              unifiedDocumentId={work.unifiedDocumentId}
+              unifiedDocumentId={work.unifiedDocumentId || null}
               contentType={work.contentType}
               commentType="BOUNTY"
               renderCommentActions={false}
@@ -203,7 +203,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
           <div className="space-y-6" key="comments-tab">
             <CommentFeed
               documentId={work.id}
-              unifiedDocumentId={work.unifiedDocumentId}
+              unifiedDocumentId={work.unifiedDocumentId || null}
               contentType={work.contentType}
               commentType="GENERIC_COMMENT"
               key={`comment-feed-${work.id}`}
