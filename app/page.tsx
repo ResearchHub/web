@@ -1,5 +1,3 @@
-'use client';
-
 import Feed from '@/components/Feed/Feed';
 import { FeedTab } from '@/hooks/useFeed';
 import { Suspense } from 'react';
