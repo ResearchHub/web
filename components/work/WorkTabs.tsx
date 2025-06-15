@@ -49,13 +49,7 @@ export const WorkTabs = ({
   };
 
   // Initialize activeTab from URL or props
-  const [activeTab, setActiveTab] = useState<TabType>(() => {
-    // Check if URL contains a tab indicator
-    if (typeof window !== 'undefined') {
-      return getActiveTabFromPath(window.location.pathname);
-    }
-    return defaultTab;
-  });
+  const [activeTab, setActiveTab] = useState<TabType>(() => defaultTab);
 
   // Update active tab when pathname changes
   useEffect(() => {

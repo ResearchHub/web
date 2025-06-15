@@ -1,3 +1,6 @@
+import { redirect } from 'next/navigation';
+import { Work } from '@/types/work';
+
 /**
  * Opens an author profile using the appropriate routing mechanism
  * @param authorId The ID of the author to navigate to
@@ -17,3 +20,15 @@ export const navigateToAuthorProfile = (authorId: number | string | undefined, n
     window.location.href = url;
   }
 };
+
+/**
+ * Handles redirection for fundraise posts
+ * @param work The work object to check for fundraise
+ * @param id The post ID
+ * @param slug The post slug
+ */
+export function handleFundraiseRedirect(work: Work, id: string, slug: string) {
+  if (work.note?.post?.fundraise) {
+    redirect(`/fund/${id}/${slug}`);
+  }
+}
