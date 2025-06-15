@@ -11,7 +11,7 @@ const buttonVariants = cva(
       variant: {
         default: 'bg-primary-600 text-white hover:bg-primary-700 focus-visible:ring-primary-500',
         secondary:
-          'bg-indigo-100 text-indigo-900 hover:bg-indigo-200 focus-visible:ring-indigo-500',
+          'bg-primary-100 text-primary-900 hover:bg-primary-200 focus-visible:ring-primary-500',
         outlined: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50',
         ghost: 'hover:bg-gray-100 text-gray-700',
         link: 'p-0 h-auto text-primary-600 underline-offset-4 hover:underline focus-visible:ring-0 !px-0 !py-0',

@@ -140,7 +140,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
                   />
                 ) : (
                   <div className="p-8 text-center">
-                    <FlaskConicalOff className="h-10 w-10 text-indigo-400 mx-auto mb-4" />
+                    <FlaskConicalOff className="h-10 w-10 text-primary-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium mb-2">Content is restricted</h3>
                     <p className="text-gray-600 mb-4">
                       This paper's license is marked as closed access or non-commercial and cannot

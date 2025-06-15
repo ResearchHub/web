@@ -105,7 +105,7 @@ export function DegreeDropdown({
         <button
           type="button"
           className={cn(
-            'flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm leading-6 text-left focus:outline-none focus:ring-2 focus:ring-indigo-500',
+            'flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm leading-6 text-left focus:outline-none focus:ring-primary-500 focus:border-primary-500',
             !value && 'text-gray-500',
             className
           )}

@@ -309,7 +309,7 @@ export function OnboardingEducationModal({
             <label className="block text-sm font-medium text-gray-700 mb-1">Major</label>
             <input
               type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
               placeholder="Field of Study"
               value={major}
               onChange={(e) => setMajor(e.target.value)}
@@ -319,7 +319,7 @@ export function OnboardingEducationModal({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Degree</label>
             <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
               value={degree?.value || ''}
               onChange={handleDegreeChange}
             >
@@ -342,7 +342,7 @@ export function OnboardingEducationModal({
               id="setAsMain"
               checked={isPublic}
               onChange={(e) => setIsPublic(e.target.checked)}
-              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
             />
             <label htmlFor="setAsMain" className="ml-2 block text-sm text-gray-700">
               Set as Main

@@ -14,6 +14,7 @@ export default {
       colors: {
         primary: colors.primary,
         gray: colors.gray,
+        rhBlue: colors.rhBlue,
       },
       screens: {
         mobile: '480px',

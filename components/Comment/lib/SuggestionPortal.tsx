@@ -110,7 +110,7 @@ export const SuggestionPortal = ({
               command(item);
             }}
           >
-            <div className="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-medium group-hover:bg-indigo-200 transition-colors duration-150">
+            <div className="flex-shrink-0 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-medium group-hover:bg-primary-200 transition-colors duration-150">
               {item.firstName?.[0]}
               {item.lastName?.[0]}
             </div>

@@ -19,29 +19,29 @@ export const GrantRightSidebar = () => {
   return (
     <div className="space-y-6 top-[64px] h-[calc(100vh-64px)] w-80 bg-white/95 backdrop-blur-md border-gray-100 overscroll-contain">
       <div className="h-full overflow-y-auto pb-16 px-6 pt-6 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-        <div className="bg-indigo-50 rounded-lg shadow-sm border border-indigo-100 p-5 mb-6">
-          <h3 className="text-lg font-semibold mb-1 text-indigo-800 flex items-center gap-2">
+        <div className="bg-primary-50 rounded-lg shadow-sm border border-primary-100 p-5 mb-6">
+          <h3 className="text-lg font-semibold mb-1 text-primary-800 flex items-center gap-2">
             <Icon name="fund2" size={20} color="currentColor" />
             Fund Smarter.
           </h3>
-          <p className="text-indigo-700 mb-3 text-sm">
+          <p className="text-primary-700 mb-3 text-sm">
             Make every research dollar count with preregistration-based funding.{' '}
           </p>
-          <ul className="text-indigo-700 mb-4 text-sm space-y-1">
+          <ul className="text-primary-700 mb-4 text-sm space-y-1">
             <li className="flex items-center gap-2">
-              <Check className="w-4 h-4 flex-shrink-0 text-indigo-500" strokeWidth={2.5} />
+              <Check className="w-4 h-4 flex-shrink-0 text-primary-500" strokeWidth={2.5} />
               Preregistered research
             </li>
             <li className="flex items-center gap-2">
-              <Check className="w-4 h-4 flex-shrink-0 text-indigo-500" strokeWidth={2.5} />
+              <Check className="w-4 h-4 flex-shrink-0 text-primary-500" strokeWidth={2.5} />
               Open peer review
             </li>
             <li className="flex items-center gap-2">
-              <Check className="w-4 h-4 flex-shrink-0 text-indigo-500" strokeWidth={2.5} />
+              <Check className="w-4 h-4 flex-shrink-0 text-primary-500" strokeWidth={2.5} />
               <strong>Regular progress updates</strong>
             </li>
           </ul>
-          <Button asChild className="w-full bg-indigo-600 hover:bg-indigo-700">
+          <Button asChild className="w-full bg-primary-600 hover:bg-primary-700">
             <Link href="/notebook?newGrant=true">Launch a grant</Link>
           </Button>
         </div>

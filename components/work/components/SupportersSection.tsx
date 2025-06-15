@@ -82,7 +82,7 @@ export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], docum
           <Button
             onClick={handleTipClick}
             variant="outlined"
-            className="w-full flex items-center justify-center gap-2 text-indigo-600 border-indigo-300 hover:bg-indigo-50"
+            className="w-full flex items-center justify-center gap-2 text-primary-600 border-primary-300 hover:bg-primary-50"
           >
             <Icon name="tipRSC" size={20} />
             <span>Tip RSC</span>

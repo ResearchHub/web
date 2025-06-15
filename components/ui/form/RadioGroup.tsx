@@ -40,7 +40,7 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
                   cn(
                     'flex items-start p-3 gap-3 rounded-lg border cursor-pointer',
                     checked
-                      ? 'border-indigo-600 bg-indigo-50'
+                      ? 'border-primary-600 bg-primary-50'
                       : 'border-gray-200 hover:border-gray-300',
                     error && 'border-red-500'
                   )
@@ -52,7 +52,7 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
                       className={cn(
                         'flex-shrink-0 self-center',
                         'h-6 w-6 rounded-full border flex items-center justify-center',
-                        checked ? 'border-indigo-600 bg-indigo-600' : 'border-gray-300 bg-white'
+                        checked ? 'border-primary-600 bg-primary-600' : 'border-gray-300 bg-white'
                       )}
                     >
                       {checked && <div className="h-3 w-3 rounded-full bg-white" />}
@@ -60,14 +60,17 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
                     <div className="flex-1">
                       <Label
                         as="p"
-                        className={cn('font-medium', checked ? 'text-indigo-900' : 'text-gray-900')}
+                        className={cn(
+                          'font-medium',
+                          checked ? 'text-primary-900' : 'text-gray-900'
+                        )}
                       >
                         {option.label}
                       </Label>
                       {option.description && (
                         <Description
                           as="p"
-                          className={cn('text-sm', checked ? 'text-indigo-700' : 'text-gray-500')}
+                          className={cn('text-sm', checked ? 'text-primary-700' : 'text-gray-500')}
                         >
                           {option.description}
                         </Description>

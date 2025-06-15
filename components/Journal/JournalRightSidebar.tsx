@@ -73,7 +73,7 @@ export const JournalRightSidebar: FC = () => {
     {
       label: 'Review Completion',
       value: '14 days',
-      icon: <Zap className="w-4 h-4 text-indigo-500" />,
+      icon: <Zap className="w-4 h-4 text-primary-500" />,
     },
     {
       label: 'Publication Decision',
@@ -133,7 +133,7 @@ export const JournalRightSidebar: FC = () => {
               </div>
             </div>
           ))}
-          <div className="text-sm text-indigo-600 hover:text-indigo-800 cursor-pointer mt-2">
+          <div className="text-sm text-primary-600 hover:text-primary-800 cursor-pointer mt-2">
             Interested in joining as an Editor?
           </div>
         </div>

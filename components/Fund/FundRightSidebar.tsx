@@ -19,30 +19,30 @@ export const FundRightSidebar = () => {
   return (
     <div className="space-y-6 sticky top-[64px] h-[calc(100vh-64px)] w-80 bg-white/95 backdrop-blur-md border-gray-100 overscroll-contain">
       <div className="h-full overflow-y-auto pb-16 px-6 pt-6 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-        <div className="bg-indigo-50 rounded-lg shadow-sm border border-indigo-100 p-5 mb-6">
-          <h3 className="text-lg font-semibold mb-1 text-indigo-800 flex items-center gap-2">
+        <div className="bg-primary-50 rounded-lg shadow-sm border border-primary-100 p-5 mb-6">
+          <h3 className="text-lg font-semibold mb-1 text-primary-800 flex items-center gap-2">
             <Icon name="fundYourRsc2" size={20} color="currentColor" />
             Get Funded.
           </h3>
-          <p className="text-indigo-700 mb-3 text-sm">
+          <p className="text-primary-700 mb-3 text-sm">
             Preregister your research and get crowdfunded by the community.
           </p>
-          <ul className="text-indigo-700 mb-4 text-sm space-y-1">
+          <ul className="text-primary-700 mb-4 text-sm space-y-1">
             <li className="flex items-center gap-2">
-              <Check className="w-4 h-4 flex-shrink-0 text-indigo-500" strokeWidth={3} />
+              <Check className="w-4 h-4 flex-shrink-0 text-primary-500" strokeWidth={3} />
               Early expert feedback
             </li>
             <li className="flex items-center gap-2">
-              <Check className="w-4 h-4 flex-shrink-0 text-indigo-500" strokeWidth={3} />
+              <Check className="w-4 h-4 flex-shrink-0 text-primary-500" strokeWidth={3} />
               Donors get tax deductions
             </li>
             <li className="flex items-center gap-2">
-              <Check className="w-4 h-4 flex-shrink-0 text-indigo-500" strokeWidth={3} />
+              <Check className="w-4 h-4 flex-shrink-0 text-primary-500" strokeWidth={3} />
               <strong>Fully discretionary funds</strong>
             </li>
           </ul>
           {/* Button to preregister research */}
-          <Button asChild className="w-full bg-indigo-600 hover:bg-indigo-700">
+          <Button asChild className="w-full bg-primary-600 hover:bg-primary-700">
             <Link href="/notebook?newFunding=true">Request funding</Link>
           </Button>
         </div>
@@ -71,7 +71,7 @@ export const FundRightSidebar = () => {
               href="https://endaoment.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-indigo-600 hover:underline"
+              className="text-primary-600 hover:underline"
             >
               Endaoment
             </Link>
@@ -143,7 +143,7 @@ export const FundRightSidebar = () => {
               href="https://endaoment.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-indigo-600 hover:underline"
+              className="text-primary-600 hover:underline"
             >
               Endaoment
             </Link>{' '}

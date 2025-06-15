@@ -38,7 +38,7 @@ export const NotebookTransition: React.FC<NotebookTransitionProps> = ({
 
   const transitionContent = (
     <div
-      className="fixed inset-0 flex items-center justify-center bg-indigo-600
+      className="fixed inset-0 flex items-center justify-center bg-primary-600
         transition-opacity duration-500 ease-in-out z-[99999]"
       style={{ opacity }}
     >

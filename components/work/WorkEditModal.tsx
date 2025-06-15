@@ -380,7 +380,7 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
                         setMetadataValue('license', option.value, { shouldValidate: true })
                       }
                       className={
-                        selectedLicense === option.value ? 'bg-indigo-50 text-indigo-900' : ''
+                        selectedLicense === option.value ? 'bg-primary-50 text-primary-900' : ''
                       }
                     >
                       <div className="flex flex-col w-full">

@@ -82,7 +82,7 @@ export const FundingCarousel: FC<FundingCarouselProps> = () => {
   }
 
   return (
-    <div className="border-indigo-100 my-12 relative">
+    <div className="border-primary-100 my-12 relative">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <div>

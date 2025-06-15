@@ -33,13 +33,13 @@ export const ActionButton: FC<ActionButtonProps> = ({
     size="sm"
     onClick={onClick}
     className={`flex items-center space-x-1.5 ${className || 'text-gray-700 hover:text-gray-900'} ${
-      active ? 'text-indigo-600 hover:text-indigo-700' : ''
+      active ? 'text-primary-600 hover:text-primary-700' : ''
     }`}
     tooltip={tooltip}
   >
-    <Icon className={`w-5 h-5 ${active ? 'text-indigo-600' : 'text-gray-800'}`} strokeWidth={2} />
+    <Icon className={`w-5 h-5 ${active ? 'text-primary-600' : 'text-gray-800'}`} strokeWidth={2} />
     {count !== undefined && count > 0 && (
-      <span className={`text-xs font-medium ${active ? 'text-indigo-600' : ''}`}>{count}</span>
+      <span className={`text-xs font-medium ${active ? 'text-primary-600' : ''}`}>{count}</span>
     )}
     {showLabel ? (
       <span className="text-xs">{label}</span>
