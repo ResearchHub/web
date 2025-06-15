@@ -1,14 +1,14 @@
 import { Suspense } from 'react';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { PostService } from '@/services/post.service';
 import { MetadataService } from '@/services/metadata.service';
 import { CommentService } from '@/services/comment.service';
 import { Work } from '@/types/work';
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { FundDocument } from '@/components/work/FundDocument';
 import { FundingRightSidebar } from '@/components/work/FundingRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
+import { FundDocument } from '@/components/work/FundDocument';
 
 interface Props {
   params: Promise<{
@@ -45,12 +45,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const project = await getFundingProject(resolvedParams.id);
   return {
-    title: `${project.title} - Comments`,
+    title: `${project.title} - Updates`,
     description: project.abstract || '',
   };
 }
 
-export default async function FundConversationPage({ params }: Props) {
+export default async function FundUpdatesPage({ params }: Props) {
   const resolvedParams = await params;
   const id = resolvedParams.id;
 
@@ -78,7 +78,7 @@ export default async function FundConversationPage({ params }: Props) {
           work={work}
           metadata={metadata}
           content={content}
-          defaultTab="conversation"
+          defaultTab="updates"
           authorUpdates={authorUpdates}
         />
         <SearchHistoryTracker work={work} />

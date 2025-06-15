@@ -195,10 +195,10 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                 variant="contribute"
                 size="sm"
                 disabled={!isActive}
-                className="flex items-center gap-1 py-1"
+                className="flex items-center gap-1 py-1 bg-orange-400 hover:bg-orange-500 text-white font-semibold transition-all duration-200 border-0"
                 onClick={handleContributeClick}
               >
-                <Icon name="giveRSC" size={18} color="#F97316" />
+                <Icon name="giveRSC" size={18} color="white" />
                 Fund
               </Button>
             )}
@@ -282,12 +282,12 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
             {showContribute && (
               <Button
                 variant="contribute"
-                size="lg"
+                size="md"
                 disabled={!isActive}
-                className="flex items-center gap-1.5"
+                className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-all duration-200 border-0"
                 onClick={handleContributeClick}
               >
-                <Icon name="giveRSC" size={20} color="#F97316" />
+                <Icon name="giveRSC" size={20} color="white" />
                 Fund this research
               </Button>
             )}

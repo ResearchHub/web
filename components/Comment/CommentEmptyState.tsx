@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/Button';
 import { CommentType } from '@/types/comment';
-import { MessageSquare, Plus, Coins, Star } from 'lucide-react';
+import { MessageSquare, Plus, Coins, Star, Bell } from 'lucide-react';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 interface CommentEmptyStateProps {
@@ -16,20 +16,26 @@ export const CommentEmptyState = ({ commentType, onCreateBounty }: CommentEmptyS
       ? 'No reviews yet.'
       : commentType === 'BOUNTY'
         ? 'No bounties yet.'
-        : 'No comments yet. Start the conversation!';
+        : commentType === 'AUTHOR_UPDATE'
+          ? 'No updates from the authors'
+          : 'No comments yet. Start the conversation!';
 
   const description =
     commentType === 'REVIEW'
       ? 'Be the first to review this paper.'
       : commentType === 'BOUNTY'
         ? 'Bounties help attract experts to solve problems or contribute to research.'
-        : 'Your contribution could help open science.';
+        : commentType === 'AUTHOR_UPDATE'
+          ? 'Authors will be providing regular monthly updates'
+          : 'Your contribution could help open science.';
 
   const icon =
     commentType === 'BOUNTY' ? (
       <Coins className="h-6 w-6 text-gray-400" />
     ) : commentType === 'REVIEW' ? (
       <Star className="h-6 w-6 text-gray-400" />
+    ) : commentType === 'AUTHOR_UPDATE' ? (
+      <Bell className="h-6 w-6 text-gray-400" />
     ) : (
       <MessageSquare className="h-6 w-6 text-gray-400" />
     );

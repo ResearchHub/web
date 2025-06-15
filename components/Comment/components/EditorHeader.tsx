@@ -1,12 +1,14 @@
 import { Avatar } from '@/components/ui/Avatar';
 import { ReviewStars } from '../lib/ReviewExtension';
 import { useUser } from '@/contexts/UserContext';
+import { AuthorBadge } from '@/components/ui/AuthorBadge';
 
 interface EditorHeaderProps {
   isReview: boolean;
   rating: number;
   onRatingChange: (rating: number) => void;
   isReadOnly: boolean;
+  isAuthor?: boolean;
 }
 
 export const EditorHeader = ({
@@ -14,6 +16,7 @@ export const EditorHeader = ({
   rating,
   onRatingChange,
   isReadOnly,
+  isAuthor = false,
 }: EditorHeaderProps) => {
   const { user } = useUser();
   if (!user) return null;
@@ -58,6 +61,7 @@ export const EditorHeader = ({
             <span className="font-semibold text-gray-800">
               {user.authorProfile?.fullName || 'User'}
             </span>
+            {isAuthor && <AuthorBadge size="sm" className="ml-1" />}
             <span className="text-gray-600">{isReview ? 'reviewing' : 'commenting'}</span>
           </div>
         </div>

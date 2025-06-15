@@ -5,11 +5,11 @@ import { UserVoteType } from './reaction';
 import { transformUser, User } from './user';
 import { Tip, transformTip } from './tip';
 
-export type CommentFilter = 'BOUNTY' | 'DISCUSSION' | 'REVIEW';
+export type CommentFilter = 'BOUNTY' | 'DISCUSSION' | 'REVIEW' | 'AUTHOR_UPDATE';
 export type CommentSort = 'BEST' | 'NEWEST' | 'TOP' | 'CREATED_DATE';
 export type CommentPrivacyType = 'PUBLIC' | 'PRIVATE';
 export type ContentFormat = 'QUILL_EDITOR' | 'TIPTAP';
-export type CommentType = 'GENERIC_COMMENT' | 'REVIEW' | 'BOUNTY' | 'ANSWER';
+export type CommentType = 'GENERIC_COMMENT' | 'REVIEW' | 'BOUNTY' | 'ANSWER' | 'AUTHOR_UPDATE';
 
 export interface UserMention {
   userId: string | null;
