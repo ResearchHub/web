@@ -15,12 +15,15 @@ import { Users, BookText } from 'lucide-react';
 import Link from 'next/link';
 import { CardWrapper } from './CardWrapper';
 
+import { UserSavedIdentifier } from '@/types/userSaved';
 interface FeedItemPaperProps {
   entry: FeedEntry;
   href?: string; // Optional href prop
   showTooltips?: boolean; // Property for controlling tooltips
   showActions?: boolean; // Property for controlling actions
   maxLength?: number;
+  isRenderingSavedList?: boolean; // Optional prop to disable all card links
+  deleteUserSavedContent?: (identifier: UserSavedIdentifier) => void; // Optional prop to delete user saved content
 }
 
 /**
@@ -119,6 +122,8 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   showTooltips = true,
   showActions = true,
   maxLength,
+  isRenderingSavedList = false,
+  deleteUserSavedContent = () => {},
 }) => {
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
@@ -138,9 +143,13 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   const actionText = journalName ? `published in ${journalName}` : 'published in a journal';
 
   return (
-    <div className="space-y-3">
-      {/* Header */}
-      <FeedItemHeader timestamp={paper.createdDate} author={author} actionText={actionText} />
+    <>
+      {!isRenderingSavedList && (
+        <div className="space-y-3">
+          {/* Header */}
+          <FeedItemHeader timestamp={paper.createdDate} author={author} actionText={actionText} />
+        </div>
+      )}
 
       <CardWrapper href={paperPageUrl} isClickable={isClickable}>
         <div className="p-4">
@@ -177,6 +186,13 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               >
                 {/* Standard Feed Item Actions */}
                 <FeedItemActions
+                  isRenderingSavedList={isRenderingSavedList}
+                  deleteUserSavedContent={() =>
+                    deleteUserSavedContent({
+                      idType: 'paperId',
+                      id: paper.id,
+                    })
+                  }
                   metrics={entry.metrics}
                   feedContentType="PAPER"
                   votableEntityId={paper.id}
@@ -191,6 +207,6 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
           )}
         </div>
       </CardWrapper>
-    </div>
+    </>
   );
 };
