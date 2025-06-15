@@ -28,7 +28,7 @@ export function DotStepper({ total, current }: DotStepperProps) {
         <span
           key={idx}
           className={`h-3 w-3 rounded-full transition-colors ${
-            idx <= current ? 'bg-indigo-500' : 'bg-gray-300'
+            idx <= current ? 'bg-primary-500' : 'bg-gray-300'
           }`}
         />
       ))}
@@ -249,9 +249,9 @@ export function OnboardingWizard() {
   }
 
   return (
-    <div className="min-h-screen max-h-screen bg-gradient-to-br from-indigo-50 to-violet-100 flex flex-col items-center justify-center p-8 relative">
+    <div className="min-h-screen max-h-screen bg-gradient-to-br from-primary-50 to-violet-100 flex flex-col items-center justify-center p-8 relative">
       <div className="flex flex-col bg-white rounded-lg shadow-2xl max-w-xl w-full relative overflow-hidden">
-        <div className="bg-gradient-to-r from-indigo-500 to-indigo-700 flex items-center px-8 py-4">
+        <div className="bg-gradient-to-r from-primary-500 to-primary-700 flex items-center px-8 py-4">
           <span className="text-white text-lg font-semibold">{title()}</span>
         </div>
 
@@ -260,7 +260,7 @@ export function OnboardingWizard() {
         </div>
 
         <div
-          className="flex justify-between items-center border-t py-4 px-8 bg-gradient-to-b from-indigo-50/80 to-white"
+          className="flex justify-between items-center border-t py-4 px-8 bg-gradient-to-b from-primary-50/80 to-white"
           style={{
             boxShadow: '0 -4px 12px -4px rgba(0,0,0,0.10)', // Only top shadow
           }}

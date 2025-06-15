@@ -37,7 +37,7 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
 
   return (
     <>
-      <div className="bg-indigo-50 border border-indigo-200 p-4 rounded-lg shadow-sm">
+      <div className="bg-primary-50 border border-primary-200 p-4 rounded-lg shadow-sm">
         <h3 className="text-lg font-semibold text-gray-900 mb-3">Total Funding Available</h3>
         <div className="flex items-end gap-2 -ml-1">
           <CurrencyBadge
@@ -47,7 +47,7 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
             showIcon={true}
             variant="text"
             size="md"
-            textColor="text-indigo-700"
+            textColor="text-primary-700"
             className="text-4xl font-bold"
             shorten={false}
             showExchangeRate={true}

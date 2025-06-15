@@ -44,7 +44,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
 
   const header = (
     <MainPageHeader
-      icon={<Icon name="solidHand" size={26} color="#4f46e5" />}
+      icon={<Icon name="solidHand" size={26} color="#3971ff" />}
       title="Fund Science"
       subtitle="Fund breakthrough research shaping tomorrow"
     />

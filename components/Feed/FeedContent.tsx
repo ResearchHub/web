@@ -277,7 +277,7 @@ export const FeedContent: FC<FeedContentProps> = ({
               onClick={loadMore}
               disabled={isLoadingMore}
               variant="link"
-              className="text-indigo-600 hover:text-indigo-500"
+              className="text-primary-600 hover:text-primary-500"
             >
               {isLoadingMore ? 'Loading...' : 'Load more'}
             </Button>

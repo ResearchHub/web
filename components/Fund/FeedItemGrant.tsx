@@ -105,7 +105,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
         onClick={handleCardClick}
         className={cn(
           'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden',
-          'group hover:shadow-md hover:border-indigo-100 transition-all duration-200 cursor-pointer'
+          'group hover:shadow-md hover:border-primary-100 transition-all duration-200 cursor-pointer'
         )}
       >
         <div className="p-6">
@@ -141,7 +141,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
           </div>
 
           {/* Title */}
-          <h2 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-indigo-600 transition-colors">
+          <h2 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors">
             {work.title}
           </h2>
 

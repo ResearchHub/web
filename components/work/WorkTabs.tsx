@@ -149,7 +149,7 @@ export const WorkTabs = ({
           <span
             className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
               activeTab === 'conversation'
-                ? 'bg-indigo-100 text-indigo-600'
+                ? 'bg-primary-100 text-primary-600'
                 : 'bg-gray-100 text-gray-600'
             }`}
           >
@@ -171,7 +171,7 @@ export const WorkTabs = ({
           <span
             className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
               (contentType === 'grant' ? activeTab === 'applications' : activeTab === 'reviews')
-                ? 'bg-indigo-100 text-indigo-600'
+                ? 'bg-primary-100 text-primary-600'
                 : 'bg-gray-100 text-gray-600'
             }`}
           >
@@ -193,13 +193,13 @@ export const WorkTabs = ({
                 <Icon
                   name="earn1"
                   size={16}
-                  color={activeTab === 'bounties' ? '#4f46e5' : '#6B7280'}
+                  color={activeTab === 'bounties' ? '#3971ff' : '#6B7280'}
                 />
                 <span className="ml-2">Bounties</span>
                 <span
                   className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
                     activeTab === 'bounties'
-                      ? 'bg-indigo-100 text-indigo-600'
+                      ? 'bg-primary-100 text-primary-600'
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
@@ -225,7 +225,7 @@ export const WorkTabs = ({
               <span
                 className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
                   activeTab === 'history'
-                    ? 'bg-indigo-100 text-indigo-600'
+                    ? 'bg-primary-100 text-primary-600'
                     : 'bg-gray-100 text-gray-600'
                 }`}
               >

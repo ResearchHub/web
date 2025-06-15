@@ -147,10 +147,10 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
 
   // Promotional Banner Component
   const PromoBanner = () => (
-    <div className="bg-gradient-to-b from-indigo-50/80 to-white p-6 rounded-lg border border-indigo-100">
+    <div className="bg-gradient-to-b from-primary-50/80 to-white p-6 rounded-lg border border-primary-100">
       <div className="flex items-center gap-3 mb-4">
-        <BookOpen className="h-7 w-7 text-indigo-700" />
-        <h1 className="text-xl font-semibold text-indigo-900">
+        <BookOpen className="h-7 w-7 text-primary-700" />
+        <h1 className="text-xl font-semibold text-primary-900">
           Accelerate Your Research Impact with ResearchHub Journal
         </h1>
       </div>
@@ -158,8 +158,8 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="space-y-3">
           <div className="flex items-start gap-3">
-            <div className="bg-indigo-100 p-1.5 rounded-full">
-              <Zap className="h-5 w-5 text-indigo-700" />
+            <div className="bg-primary-100 p-1.5 rounded-full">
+              <Zap className="h-5 w-5 text-primary-700" />
             </div>
             <div>
               <h3 className="font-medium text-gray-800">Fast Review Process</h3>
@@ -170,8 +170,8 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
           </div>
 
           <div className="flex items-start gap-3">
-            <div className="bg-indigo-100 p-1.5 rounded-full">
-              <Eye className="h-5 w-5 text-indigo-700" />
+            <div className="bg-primary-100 p-1.5 rounded-full">
+              <Eye className="h-5 w-5 text-primary-700" />
             </div>
             <div>
               <h3 className="font-medium text-gray-800">Enhanced Visibility</h3>
@@ -184,8 +184,8 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
 
         <div className="space-y-3">
           <div className="flex items-start gap-3">
-            <div className="bg-indigo-100 p-1.5 rounded-full">
-              <Award className="h-5 w-5 text-indigo-700" />
+            <div className="bg-primary-100 p-1.5 rounded-full">
+              <Award className="h-5 w-5 text-primary-700" />
             </div>
             <div>
               <h3 className="font-medium text-gray-800">Paid Peer Reviewers</h3>
@@ -194,8 +194,8 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
           </div>
 
           <div className="flex items-start gap-3">
-            <div className="bg-indigo-100 p-1.5 rounded-full">
-              <Globe className="h-5 w-5 text-indigo-700" />
+            <div className="bg-primary-100 p-1.5 rounded-full">
+              <Globe className="h-5 w-5 text-primary-700" />
             </div>
             <div>
               <h3 className="font-medium text-gray-800">Open Science First</h3>
@@ -225,7 +225,7 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
         </div>
 
         <Link href="/paper/create/pdf" className="flex-shrink-0">
-          <button className="px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-md shadow-sm hover:bg-indigo-700 transition-all duration-200 inline-flex items-center">
+          <button className="px-5 py-2.5 bg-primary-600 text-white font-medium rounded-md shadow-sm hover:bg-primary-700 transition-all duration-200 inline-flex items-center">
             Publish your research
             <svg
               className="ml-2 w-4 h-4"
