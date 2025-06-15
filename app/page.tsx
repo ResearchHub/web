@@ -1,5 +1,4 @@
 import { getServerSession } from 'next-auth/next';
-import { FeedTab } from '@/hooks/useFeed';
 import { handleTrendingRedirect } from '@/utils/navigation';
 import { LandingPage } from '@/components/landing/LandingPage';
 
