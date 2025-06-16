@@ -16,7 +16,9 @@ interface LegacyCommentBannerProps {
  */
 export const LegacyCommentBanner = ({ contentType, onClose }: LegacyCommentBannerProps) => {
   // Determine the correct URL based on environment
-  const baseUrl = isProduction() ? 'https://researchhub.com' : 'https://staging.researchhub.com';
+  const baseUrl = isProduction()
+    ? 'https://old.researchhub.com'
+    : 'https://old.staging.researchhub.com';
 
   const { slug, id } = useParams();
 

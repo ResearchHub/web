@@ -66,7 +66,8 @@ export function InterestSelector({
     try {
       // Use 'hub' index for both topics and journals as API returns entity_type 'hub'
       const index: EntityType = 'hub';
-      const suggestions: SearchSuggestion[] = await SearchService.getSuggestions(query, index);
+      // Request more results (20 instead of default 10)
+      const suggestions: SearchSuggestion[] = await SearchService.getSuggestions(query, index, 20);
 
       // Map SearchSuggestion (for hubs/journals) back to Topic type
       return suggestions

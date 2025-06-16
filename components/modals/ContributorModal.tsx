@@ -21,6 +21,7 @@ interface ContributorModalProps {
   onClose: () => void;
   contributors: Contributor[];
   onContribute?: () => void;
+  disableContribute?: boolean;
 }
 
 export const ContributorModal: FC<ContributorModalProps> = ({
@@ -28,6 +29,7 @@ export const ContributorModal: FC<ContributorModalProps> = ({
   onClose,
   contributors = [],
   onContribute,
+  disableContribute,
 }) => {
   const sortedContributors = [...contributors].sort((a, b) => b.amount - a.amount);
   const totalAmount = contributors.reduce((sum, c) => sum + c.amount, 0);
@@ -54,6 +56,7 @@ export const ContributorModal: FC<ContributorModalProps> = ({
                 size="sm"
                 onClick={onContribute}
                 className="flex items-center gap-2"
+                disabled={disableContribute}
               >
                 <ResearchCoinIcon size={16} contribute />
                 Contribute RSC

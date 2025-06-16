@@ -9,6 +9,7 @@ import { WorkDocument } from '@/components/work/WorkDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { PostDocument } from '@/components/work/PostDocument';
+import { handleFundraiseRedirect } from '@/utils/navigation';
 
 interface Props {
   params: Promise<{
@@ -55,6 +56,9 @@ export default async function PostPage({ params }: Props) {
 
   // First fetch the post
   const post = await getPost(id);
+
+  // Handle fundraise redirection
+  handleFundraiseRedirect(post, resolvedParams.id, resolvedParams.slug);
 
   // Then fetch metadata using unifiedDocumentId
   const metadata = await MetadataService.get(post.unifiedDocumentId?.toString() || '');

@@ -56,6 +56,7 @@ export const FundDocument = ({
         return (
           <div className="space-y-6" key="reviews-tab">
             <CommentFeed
+              unifiedDocumentId={work.unifiedDocumentId || null}
               documentId={work.id}
               contentType={work.contentType}
               commentType="REVIEW"
@@ -73,6 +74,7 @@ export const FundDocument = ({
         return (
           <div className="space-y-6" key="bounties-tab">
             <CommentFeed
+              unifiedDocumentId={work.unifiedDocumentId || null}
               documentId={work.id}
               contentType={work.contentType}
               commentType="BOUNTY"
@@ -89,6 +91,7 @@ export const FundDocument = ({
         return (
           <div className="space-y-6" key="conversation-tab">
             <CommentFeed
+              unifiedDocumentId={work.unifiedDocumentId || null}
               documentId={work.id}
               contentType={work.contentType}
               commentType="GENERIC_COMMENT"
@@ -113,7 +116,7 @@ export const FundDocument = ({
         </div>
       )}
       <PageHeader title={work.title} className="text-3xl mt-2" />
-      <WorkLineItems work={work} showClaimButton={false} />
+      <WorkLineItems work={work} showClaimButton={false} metadata={metadata} />
 
       {/* FundraiseProgress - now placed between line items and tabs */}
       {metadata.fundraising && (

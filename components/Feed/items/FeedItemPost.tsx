@@ -11,6 +11,8 @@ import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Users } from 'lucide-react';
+import Link from 'next/link';
+import { CardWrapper } from './CardWrapper';
 
 interface FeedItemPostProps {
   entry: FeedEntry;
@@ -113,20 +115,12 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
-  const router = useRouter();
 
   // Get the author from the post
   const author = post.createdBy;
 
   // Use provided href or create default post page URL
   const postPageUrl = href || `/post/${post.id}/${post.slug}`;
-
-  // Handle click on the card (navigate to post page) - only if href is provided
-  const handleCardClick = () => {
-    if (href) {
-      router.push(postPageUrl);
-    }
-  };
 
   // Determine if card should have clickable styles
   const isClickable = !!href;
@@ -163,14 +157,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
       />
 
       {/* Main Content Card - Using onClick instead of wrapping with Link */}
-      <div
-        onClick={handleCardClick}
-        className={cn(
-          'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden',
-          isClickable &&
-            'group hover:shadow-md hover:border-indigo-100 transition-all duration-200 cursor-pointer'
-        )}
-      >
+      <CardWrapper href={postPageUrl} isClickable={isClickable}>
         <div className="p-4">
           {/* Mobile image (shown only on small screens) */}
           <MobileImage />
@@ -181,7 +168,12 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
           {/* Action Buttons - Full width */}
           {showActions && (
             <div className="mt-4 pt-3 border-t border-gray-200">
-              <div onClick={(e) => e.stopPropagation()}>
+              <div
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
                 {/* Standard Feed Item Actions */}
                 <FeedItemActions
                   metrics={entry.metrics}
@@ -197,7 +189,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
             </div>
           )}
         </div>
-      </div>
+      </CardWrapper>
     </div>
   );
 };

@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/Progress';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Clock } from 'lucide-react';
-import { formatDeadline } from '@/utils/date';
+import { formatDeadline, isDeadlineInFuture } from '@/utils/date';
 import type { Fundraise } from '@/types/funding';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
@@ -66,7 +66,9 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
     })) || [];
 
   // Check if fundraise is active
-  const isActive = fundraise.status === 'OPEN' && deadlineText !== 'Ended';
+  const isActive =
+    fundraise.status === 'OPEN' &&
+    (fundraise.endDate ? isDeadlineInFuture(fundraise.endDate) : true);
 
   // Get status display for the top right when no contributors
   const getStatusDisplay = () => {
@@ -297,6 +299,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   onContribute={handleContributeClick}
                   label={`Funders`}
                   size="md"
+                  disableContribute={!isActive}
                 />
               </div>
             )}

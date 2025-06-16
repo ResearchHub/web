@@ -26,7 +26,6 @@ export const GrantDocument = ({
   defaultTab = 'paper',
 }: GrantDocumentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
-  console.log('work', work);
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
   };
@@ -64,6 +63,7 @@ export const GrantDocument = ({
         return (
           <div className="space-y-6" key="conversation-tab">
             <CommentFeed
+              unifiedDocumentId={work.unifiedDocumentId || null}
               documentId={work.id}
               contentType={work.contentType}
               commentType="GENERIC_COMMENT"
@@ -81,7 +81,7 @@ export const GrantDocument = ({
   return (
     <div>
       <PageHeader title={work.title} className="text-3xl mt-2" />
-      <WorkLineItems work={work} showClaimButton={false} />
+      <WorkLineItems work={work} showClaimButton={false} metadata={metadata} />
 
       {/* Top summary as line items */}
       <div className="space-y-2 text-sm text-gray-600 mt-2">

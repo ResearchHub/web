@@ -52,6 +52,7 @@ export const PostDocument = ({
         return (
           <div className="space-y-6" key="reviews-tab">
             <CommentFeed
+              unifiedDocumentId={work.unifiedDocumentId || null}
               documentId={work.id}
               contentType={work.contentType}
               commentType="REVIEW"
@@ -68,6 +69,7 @@ export const PostDocument = ({
         return (
           <div className="space-y-6" key="bounties-tab">
             <CommentFeed
+              unifiedDocumentId={work.unifiedDocumentId || null}
               documentId={work.id}
               contentType={work.contentType}
               commentType="BOUNTY"
@@ -81,6 +83,7 @@ export const PostDocument = ({
         return (
           <div className="space-y-6" key="conversation-tab">
             <CommentFeed
+              unifiedDocumentId={work.unifiedDocumentId || null}
               documentId={work.id}
               contentType={work.contentType}
               commentType="GENERIC_COMMENT"
@@ -102,7 +105,7 @@ export const PostDocument = ({
         </div>
       )}
       <PageHeader title={work.title} className="text-3xl mt-2" />
-      <WorkLineItems work={work} />
+      <WorkLineItems work={work} metadata={metadata} />
 
       {/* Tabs */}
       <WorkTabs

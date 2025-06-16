@@ -4,10 +4,9 @@ import { FC, useState } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatRSC } from '@/utils/number';
 import { Fundraise } from '@/types/funding';
+import { isDeadlineInFuture } from '@/utils/date';
 import { ContributorModal } from '@/components/modals/ContributorModal';
 import { Users } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 
 interface FundersSectionProps {
@@ -27,6 +26,11 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise }) => {
   const displayLimit = 5; // Show only top 5 contributors in the sidebar
   const displayedContributors = topContributors.slice(0, displayLimit);
   const hasMoreContributors = topContributors.length > displayLimit;
+
+  // Check if fundraise is active
+  const isActive =
+    fundraise.status === 'OPEN' &&
+    (fundraise.endDate ? isDeadlineInFuture(fundraise.endDate) : true);
 
   // Format contributors for modal
   const modalContributors = topContributors.map((contributor) => ({
@@ -101,6 +105,7 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise }) => {
           onClose={() => setIsModalOpen(false)}
           contributors={modalContributors}
           onContribute={handleContributeClick}
+          disableContribute={!isActive}
         />
       )}
 

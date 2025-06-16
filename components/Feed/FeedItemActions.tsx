@@ -271,7 +271,11 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   // Use the flag modal hook
   const { isOpen, contentToFlag, openFlagModal, closeFlagModal } = useFlagModal();
 
-  const handleVote = () => {
+  const handleVote = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     executeAuthenticatedAction(() => {
       // Toggle vote: if already upvoted, neutralize, otherwise upvote
       const newVoteType: UserVoteType = localUserVote === 'UPVOTE' ? 'NEUTRAL' : 'UPVOTE';
@@ -280,7 +284,10 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   };
 
   const handleComment = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (href) {
       router.push(`${href}/conversation`);
     } else if (onComment) {
@@ -289,14 +296,20 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   };
 
   const handleReviewClick = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (href) {
       router.push(`${href}/reviews`);
     }
   };
 
   const handleBountyClick = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (href) {
       router.push(`${href}/bounties`);
     }
@@ -304,7 +317,10 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
   // Handle opening the tip modal
   const handleOpenTipModal = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     executeAuthenticatedAction(() => {
       setTipModalState({ isOpen: true, contentId: votableEntityId });
     });
@@ -334,7 +350,11 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     setTipModalState({ isOpen: false });
   };
 
-  const handleReport = () => {
+  const handleReport = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     executeAuthenticatedAction(() => {
       // Map feedContentType to ContentType
       let contentType: ContentType;

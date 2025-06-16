@@ -17,6 +17,8 @@ import { Avatar } from '@/components/ui/Avatar';
 import { LegacyCommentBanner } from '@/components/LegacyCommentBanner';
 import { formatTimeAgo } from '@/utils/date';
 import { Tooltip } from '@/components/ui/Tooltip';
+import Link from 'next/link';
+import { CardWrapper } from './CardWrapper';
 
 // Define the recursive rendering component for parent comments
 const RenderParentComment: FC<{ comment: ParentCommentPreview; level: number }> = ({
@@ -185,13 +187,6 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   // Use provided href or create default comment page URL
   const commentPageUrl = href || `/comment/${comment.thread?.objectId}/${comment.id}`;
 
-  // Handle click on the card (navigate to comment page) - only if href is provided
-  const handleCardClick = () => {
-    if (href) {
-      router.push(commentPageUrl);
-    }
-  };
-
   // Create menu items for edit and delete actions
   const menuItems = [];
 
@@ -242,14 +237,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
         />
       )}
       {/* Main Content Card - Using onClick instead of wrapping with Link */}
-      <div
-        onClick={handleCardClick}
-        className={cn(
-          'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden',
-          isClickable &&
-            'group hover:shadow-md hover:border-indigo-100 transition-all duration-200 cursor-pointer'
-        )}
-      >
+      <CardWrapper href={commentPageUrl} isClickable={isClickable}>
         <div className="p-4">
           {/* Review Badge and Rating - Only show for reviews */}
           {isReview && (
@@ -275,7 +263,12 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
           {/* Action Buttons - Full width */}
           {!hideActions && (
             <div className="pt-3 border-t border-gray-200">
-              <div onClick={(e) => e.stopPropagation()}>
+              <div
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
                 {/* Standard Feed Item Actions with Reply functionality */}
                 <FeedItemActions
                   metrics={entry.metrics}
@@ -295,7 +288,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
             </div>
           )}
         </div>
-      </div>
+      </CardWrapper>
     </div>
   );
 };

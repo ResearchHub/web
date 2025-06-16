@@ -8,7 +8,7 @@ const nextConfig = {
         {
           key: 'Permissions-Policy',
           value:
-            'camera=(self "https://*.withpersona.com/"), geolocation=(), gyroscope=(), microphone=()',
+            'camera=(self "https://*.withpersona.com/"), geolocation=(), gyroscope=(), microphone=(self "https://*.withpersona.com/")',
         },
         {
           key: 'Referrer-Policy',
@@ -71,7 +71,7 @@ const nextConfig = {
   },
   compress: true,
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: process.env.VERCEL_ENV === 'production',
   },
   turbopack: {
     rules: {

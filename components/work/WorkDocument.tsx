@@ -169,7 +169,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
           <div className="space-y-6" key="reviews-tab">
             <CommentFeed
               documentId={work.id}
-              unifiedDocumentId={work.unifiedDocumentId}
+              unifiedDocumentId={work.unifiedDocumentId || null}
               contentType={work.contentType}
               commentType="REVIEW"
               editorProps={{
@@ -188,7 +188,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
           <div className="space-y-6" key="bounties-tab">
             <CommentFeed
               documentId={work.id}
-              unifiedDocumentId={work.unifiedDocumentId}
+              unifiedDocumentId={work.unifiedDocumentId || null}
               contentType={work.contentType}
               commentType="BOUNTY"
               renderCommentActions={false}
@@ -203,7 +203,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
           <div className="space-y-6" key="comments-tab">
             <CommentFeed
               documentId={work.id}
-              unifiedDocumentId={work.unifiedDocumentId}
+              unifiedDocumentId={work.unifiedDocumentId || null}
               contentType={work.contentType}
               commentType="GENERIC_COMMENT"
               key={`comment-feed-${work.id}`}
@@ -300,6 +300,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
 
       <WorkLineItems
         work={work}
+        metadata={metadata}
         insightsButton={
           <button
             className="lg:!hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"

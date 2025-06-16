@@ -12,6 +12,8 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/styles';
 import { JournalStatusBadge } from '@/components/ui/JournalStatusBadge';
 import { Users, BookText } from 'lucide-react';
+import Link from 'next/link';
+import { CardWrapper } from './CardWrapper';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
@@ -128,13 +130,6 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   // Use provided href or create default paper page URL
   const paperPageUrl = href || `/paper/${paper.id}/${paper.slug}`;
 
-  // Handle click on the card (navigate to paper page) - only if href is provided
-  const handleCardClick = () => {
-    if (href) {
-      router.push(paperPageUrl);
-    }
-  };
-
   // Determine if card should have clickable styles
   const isClickable = !!href;
 
@@ -147,15 +142,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
       {/* Header */}
       <FeedItemHeader timestamp={paper.createdDate} author={author} actionText={actionText} />
 
-      {/* Main Content Card - Using onClick instead of wrapping with Link */}
-      <div
-        onClick={handleCardClick}
-        className={cn(
-          'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden',
-          isClickable &&
-            'group hover:shadow-md hover:border-indigo-100 transition-all duration-200 cursor-pointer'
-        )}
-      >
+      <CardWrapper href={paperPageUrl} isClickable={isClickable}>
         <div className="p-4">
           {/* Content area with image */}
           <div className="flex mb-4">
@@ -181,7 +168,13 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
           {/* Action Buttons - Full width */}
           {showActions && (
             <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
-              <div className="w-full" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="w-full"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
                 {/* Standard Feed Item Actions */}
                 <FeedItemActions
                   metrics={entry.metrics}
@@ -197,7 +190,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
             </div>
           )}
         </div>
-      </div>
+      </CardWrapper>
     </div>
   );
 };
