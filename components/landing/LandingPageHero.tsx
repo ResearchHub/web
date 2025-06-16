@@ -3,6 +3,8 @@
 import { Button } from '@/components/ui/Button';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { HeroCardSwap } from './HeroCardSwap';
+import Aurora from '@/components/ui/Aurora';
+import { colors } from '@/app/styles/colors';
 
 export function LandingPageHero() {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
@@ -15,7 +17,17 @@ export function LandingPageHero() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-white">
+    <div className="relative min-h-screen flex items-center justify-center bg-white overflow-hidden">
+      {/* Aurora Background */}
+      <div className="absolute inset-0 w-full h-full opacity-5 brightness-200">
+        <Aurora
+          colorStops={[colors.rhBlue, colors.rhBlue, colors.rhBlue]}
+          amplitude={0.3}
+          blend={0.3}
+          speed={0.4}
+        />
+      </div>
+
       {/* Content - Unified Responsive Container */}
       <div className="relative z-10 w-full h-full">
         <div
