@@ -179,6 +179,7 @@ export const transformContributionToFeedEntry = ({
       break;
 
     case 'rhcommentmodel':
+      const reviewScore = item.review?.score || undefined;
       // Handle comment content
       content = {
         id: item.id,
@@ -190,7 +191,7 @@ export const transformContributionToFeedEntry = ({
           content: item.comment_content_json,
           contentFormat: 'TIPTAP',
           commentType:
-            contributionType === 'REVIEW'
+            contributionType === 'REVIEW' || reviewScore
               ? 'REVIEW'
               : item.thread?.thread_type || 'GENERIC_COMMENT',
           thread: item.thread
@@ -200,7 +201,9 @@ export const transformContributionToFeedEntry = ({
                 objectId: item.thread.content_object.id,
               }
             : undefined,
+          reviewScore,
         },
+        review: reviewScore ? { score: reviewScore } : undefined,
         relatedDocumentId: item.thread?.content_object?.id,
         relatedDocumentContentType: item.thread?.content_object?.unified_document?.document_type,
       };
