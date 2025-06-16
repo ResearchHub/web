@@ -18,44 +18,44 @@ const whyRSCFeatures: WhyRSCFeature[] = [
   {
     id: 'incentives',
     title: 'Incentives',
-    subtitle: 'Get paid for science',
+    subtitle: 'Addressing the root of the reproducibility crisis',
     description:
-      'Earn ResearchCoin for peer reviews, quality contributions, and collaborative research that traditionally went unrewarded.',
+      'We believe the problems in science are downstream of the incentives. We want to reward open science and collaboration.',
     benefits: [
+      'Funding via preregistration',
+      'Incentivized progress updates',
       'Peer review compensation',
-      'Quality content rewards',
-      'Community recognition',
-      'Transparent reputation system',
+      'Rewards for upvotes',
     ],
     iconName: 'fund2',
     gradient: 'from-[#3971FF] to-[#4A7FFF]',
   },
   {
     id: 'upside',
-    title: 'Upside',
-    subtitle: 'Benefit from growth',
+    title: 'Control',
+    subtitle: 'Your platform, your rules',
     description:
-      'As ResearchHub creates value for the scientific community, RSC holders benefit from increased utility and ecosystem growth.',
+      'ResearchCoin gives researchers direct control over platform governance. You vote on quality standards, reward mechanisms, and feature priorities — no corporate overlords.',
     benefits: [
-      'Ecosystem value capture',
-      'Network effect benefits',
-      'Long-term appreciation',
-      'Utility-driven demand',
+      'Direct voting on platform rules',
+      'Community-controlled algorithms',
+      'Researcher-set quality standards',
+      'Democratic platform governance',
     ],
     iconName: 'upChart1',
     gradient: 'from-orange-500 to-amber-400',
   },
   {
     id: 'tools',
-    title: 'Tools',
-    subtitle: 'Unlock research power',
+    title: 'Features',
+    subtitle: 'Power up your research',
     description:
-      'Use RSC to access premium features, post bounties, fund research, publish papers, and accelerate your scientific work.',
+      'Spend RSC on bounties for expert help, affordable publishing, research funding, and premium tools that supercharge your work.',
     benefits: [
-      'Expert bounty services',
-      'Low-cost publishing',
-      'Research funding',
-      'Premium platform features',
+      'Expert consultation bounties',
+      'Affordable paper publishing',
+      'Project funding access',
+      'Advanced research tools',
     ],
     iconName: 'solidEarn',
     gradient: 'from-gray-600 to-gray-400',
@@ -105,10 +105,9 @@ export function ResearchCoinSection() {
           </div>
 
           <p className="text-xl text-gray-600 leading-relaxed">
-            The digital currency that gives researchers a{' '}
-            <span className="font-semibold text-blue-600">share in scientific progress</span>. Think
-            of it as equity for academia—rewarding your contributions to knowledge while unlocking
-            powerful tools for collaboration.
+            The digital token that makes researchers co-owners of the scientific ecosystem. Earn RSC
+            for your contributions and use it to access powerful tools that accelerate your
+            research.
           </p>
         </div>
 
