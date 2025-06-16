@@ -157,6 +157,7 @@ export class FeedService {
             moderator: false,
           },
           isClaimed: !!safeAuthor.user,
+          isVerified: safeAuthor.user?.is_verified || false,
         },
       };
     }
