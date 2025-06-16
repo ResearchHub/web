@@ -31,7 +31,7 @@ const whyRSCFeatures: WhyRSCFeature[] = [
     gradient: 'from-[#3971FF] to-[#4A7FFF]',
   },
   {
-    id: 'upside',
+    id: 'control',
     title: 'Control',
     subtitle: 'Your platform, your rules',
     description:
