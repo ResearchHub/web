@@ -9,8 +9,10 @@ import React, {
   ReactNode,
   RefObject,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import { gsap } from 'gsap';
 
@@ -31,22 +33,33 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   customClass?: string;
 }
 
-export const Card = forwardRef<HTMLDivElement, CardProps>(({ customClass, ...rest }, ref) => (
-  <div
-    ref={ref}
-    {...rest}
-    className={`absolute rounded-xl border-2 border-white bg-black overflow-hidden text-white shadow-2xl cursor-pointer transition-shadow duration-300 hover:shadow-3xl flex flex-col ${customClass ?? ''} ${rest.className ?? ''}`.trim()}
-    style={{
-      top: '50%',
-      left: '50%',
-      transformStyle: 'preserve-3d',
-      willChange: 'transform',
-      backfaceVisibility: 'hidden',
-      boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
-      ...rest.style,
-    }}
-  />
-));
+export const Card = forwardRef<HTMLDivElement, CardProps>(({ customClass, ...rest }, ref) => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useLayoutEffect(() => {
+    setIsVisible(true);
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      {...rest}
+      className={`absolute rounded-xl border-2 border-white bg-black overflow-hidden text-white shadow-2xl cursor-pointer transition-all duration-300 hover:shadow-3xl flex flex-col ${
+        isVisible ? 'opacity-100' : 'opacity-0'
+      } ${customClass ?? ''} ${rest.className ?? ''}`.trim()}
+      style={{
+        top: '50%',
+        left: '50%',
+        transformStyle: 'preserve-3d',
+        willChange: 'transform',
+        backfaceVisibility: 'hidden',
+        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+        transition: 'opacity 250ms ease-in-out',
+        ...rest.style,
+      }}
+    />
+  );
+});
 Card.displayName = 'Card';
 
 type CardRef = RefObject<HTMLDivElement>;
