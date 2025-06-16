@@ -94,7 +94,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     },
     {
       label: 'Fund',
-      href: '/fund',
+      href: '/fund/grants',
       iconKey: 'fund',
       description: 'Browse grants and fundraising opportunities',
     },

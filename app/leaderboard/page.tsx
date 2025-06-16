@@ -448,13 +448,11 @@ function LeaderboardPageContent() {
 
   return (
     <div className="px-0 py-0">
-      <div className="pt-4 pb-7">
-        <MainPageHeader
-          icon={<ChartNoAxesColumnIncreasing size={28} />}
-          title="Leaderboard"
-          subtitle="See top earners on ResearchHub for a given period."
-        />
-      </div>
+      <MainPageHeader
+        icon={<ChartNoAxesColumnIncreasing size={28} />}
+        title="Leaderboard"
+        subtitle="See top earners on ResearchHub for a given period."
+      />
 
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col md:!flex-row md:!items-center md:!justify-between mb-4 gap-4">

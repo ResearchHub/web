@@ -78,7 +78,7 @@ export const JournalPage: FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="pt-4 pb-7">{header}</div>
+      {header}
 
       <JournalTabs
         activeTab={activeTab}

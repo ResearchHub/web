@@ -161,7 +161,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
         </>
       ) : (
         <>
-          <div className="pt-4 pb-7">{header}</div>
+          {header}
           <div className="max-w-4xl mx-auto">
             {feedTabs}
             <div className="mt-6">

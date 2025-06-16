@@ -128,6 +128,16 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
       {/* <OnboardingRedirect /> */}
       <OnboardingModal />
 
+      {/* Fixed TopBar starting from LeftSidebar edge */}
+      <div
+        className="fixed top-0 right-0 z-50 bg-white
+                      left-0 tablet:!left-72 tablet:sidebar-compact:!left-72 tablet:max-sidebar-compact:!left-[70px]"
+      >
+        <Suspense fallback={<TopBarSkeleton />}>
+          <TopBar onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)} />
+        </Suspense>
+      </div>
+
       {/* Mobile overlay */}
       {isLeftSidebarOpen && (
         <div
@@ -148,7 +158,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
           tablet:sidebar-compact:!w-72
           tablet:max-sidebar-compact:!w-[70px]
 
-          ${isLeftSidebarOpen ? 'fixed top-0 !translate-x-0 w-[280px] block' : 'fixed top-0 !-translate-x-full w-[280px] hidden'}
+          ${isLeftSidebarOpen ? 'fixed top-[64px] !translate-x-0 w-[280px] block' : 'fixed top-[64px] !-translate-x-full w-[280px] hidden'}
 
           tablet:!block tablet:w-72
         `}
@@ -159,14 +169,11 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
       </div>
 
       {/* Center Content Area (Scrolling) */}
-      <div ref={mainContentRef} className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
-        {/* TopBar (Sticky within Center Column) */}
-        <div className="topbar-hide:!hidden sticky top-0 z-40 bg-white flex-shrink-0">
-          <Suspense fallback={<TopBarSkeleton />}>
-            <TopBar onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)} />
-          </Suspense>
-        </div>
-
+      <div
+        ref={mainContentRef}
+        className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden"
+        style={{ marginTop: '64px' }}
+      >
         {/* Main Content */}
         <main className="flex-1 px-4 tablet:!px-8 py-4 flex" style={{ maxWidth: '100vw' }}>
           <div

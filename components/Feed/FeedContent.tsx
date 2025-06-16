@@ -227,7 +227,7 @@ export const FeedContent: FC<FeedContentProps> = ({
 
   return (
     <>
-      {header && <div className="pt-4 pb-7">{header}</div>}
+      {header && <div>{header}</div>}
 
       <div className="max-w-4xl mx-auto">
         {tabs && <div className="border-b">{tabs}</div>}

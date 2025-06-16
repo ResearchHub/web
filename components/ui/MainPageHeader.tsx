@@ -8,7 +8,7 @@ interface MainPageHeaderProps {
 
 export const MainPageHeader: React.FC<MainPageHeaderProps> = ({ title, subtitle, icon }) => {
   return (
-    <div>
+    <div className="block tablet:!hidden pt-4 pb-7">
       <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
         {icon}
         {title}
