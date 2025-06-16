@@ -11,7 +11,7 @@ interface University {
 const universities: University[] = [
   {
     name: 'Harvard University',
-    logo: '/universities/harvard-university.svg',
+    logo: '/universities/harvard-university.png',
     alt: 'Harvard University',
   },
   {
@@ -85,7 +85,7 @@ function UniversityLogo({ university, delay = 0 }: { university: University; del
         style={{
           width: '160px',
           height: '50px',
-          filter: 'brightness(0) invert(1)',
+          filter: 'brightness(0) invert(0.9)',
         }}
       />
     </div>
