@@ -1,69 +1,108 @@
 'use client';
 
-import Aurora from '@/components/ui/Aurora';
-import { colors } from '@/app/styles/colors';
-import { AuthForm } from './AuthForm';
+import { Button } from '@/components/ui/Button';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { HeroCardSwap } from './HeroCardSwap';
 
 export function LandingPageHero() {
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
+
+  const handleSignUp = () => {
+    executeAuthenticatedAction(() => {
+      // Handle sign up action
+      console.log('Sign Up clicked');
+    });
+  };
+
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Aurora Background */}
-      <div className="absolute inset-0 w-full h-full">
-        <Aurora
-          colorStops={[colors.primary[600], colors.rhBlue, colors.primary[400]]}
-          blend={0.6}
-          amplitude={0.6}
-          speed={0.3}
-        />
-      </div>
+    <div className="relative min-h-screen flex items-center justify-center bg-white">
+      {/* Content - Unified Responsive Container */}
+      <div className="relative z-10 w-full h-full">
+        <div
+          className="w-full h-full max-w-none px-0"
+          style={{
+            // SINGLE unified scaling for the entire hero section
+            transform: `scale(clamp(0.75, 0.75 + 0.25 * ((100vw - 320px) / (1600 - 320)), 1))`,
+            transformOrigin: 'center center',
+          }}
+        >
+          {/* Mobile Layout: Text above Graphics (< lg screens) */}
+          <div className="flex flex-col lg:hidden h-full justify-center items-center py-8 space-y-8 px-4">
+            {/* Text Content for Mobile */}
+            <div className="text-center" style={{ maxWidth: '505px' }}>
+              {/* Hero Header - FIXED SIZE, scales with container */}
+              <h1 className="text-5xl font-semibold mb-4 leading-[1.1] text-black">
+                A new economy
+                <br />
+                for science
+              </h1>
 
-      {/* Vignette effect using multiple gradients */}
-      <div className="absolute inset-0">
-        {/* Top gradient */}
-        <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-white/30 to-transparent"></div>
-        {/* Bottom gradient */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/30 to-transparent"></div>
-        {/* Left gradient for sidebar transition */}
-        <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-white/30 to-transparent"></div>
-        {/* Right gradient */}
-        <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-white/30 to-transparent"></div>
-      </div>
+              {/* Hero Description - FIXED SIZE, scales with container */}
+              <p className="text-lg text-gray-600 leading-relaxed mb-8">
+                The world's first scientific economy where researchers earn transactable rewards and
+                funding for their work.
+              </p>
 
-      {/* Overlay to soften the aurora effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-50/70 via-blue-50/60 to-indigo-100/65"></div>
+              {/* Sign Up Button */}
+              <div className="flex flex-col items-center">
+                <Button
+                  variant="default"
+                  size="lg"
+                  onClick={handleSignUp}
+                  className="bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] hover:from-[#2C5EE8] hover:to-[#3971FF] text-white font-semibold px-8 py-3 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border-0"
+                >
+                  Sign up
+                </Button>
+                <p className="text-sm text-gray-600 mt-2">Start earning for open science today.</p>
+              </div>
+            </div>
 
-      {/* Content */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          {/* Left Side - Hero Content + Auth Form */}
-          <div className="text-center lg:text-left">
-            {/* Hero Header */}
-            <h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-[1.1]"
-              style={{ fontFamily: 'Cal Sans, sans-serif' }}
-            >
-              <span className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
-                Scientific research
-              </span>
-              <br />
-              <span className="bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400 bg-clip-text text-transparent">
-                funding, but better.
-              </span>
-            </h1>
-
-            {/* Hero Description */}
-            <p className="text-xl md:text-2xl text-gray-700 max-w-2xl mx-auto lg:mx-0 leading-relaxed mb-8 font-medium">
-              The world's first scientific economy where researchers earn transactable rewards for
-              their work and donations turn into research in real-time.
-            </p>
-
-            {/* Auth Form */}
-            <AuthForm />
+            {/* Hero Cards for Mobile */}
+            <div className="w-full flex justify-center">
+              <HeroCardSwap />
+            </div>
           </div>
 
-          {/* Right Side - Card Swap Component */}
-          <HeroCardSwap />
+          {/* Desktop Layout: Side by Side (>= lg screens) */}
+          <div className="hidden lg:grid lg:grid-cols-2 h-full gap-16">
+            {/* Left Half - Hero Card Swap Component */}
+            <div className="h-full flex items-center justify-center relative pr-8">
+              <HeroCardSwap />
+            </div>
+
+            {/* Right Half - Hero Content + Sign Up Button */}
+            <div className="h-full flex items-center pl-8">
+              <div className="w-full" style={{ maxWidth: '505px' }}>
+                {/* Hero Header - FIXED SIZE, scales with container */}
+                <h1 className="text-6xl font-semibold mb-4 leading-[1.1] text-black">
+                  A new economy
+                  <br />
+                  for science
+                </h1>
+
+                {/* Hero Description - FIXED SIZE, scales with container */}
+                <p className="text-xl text-gray-600 leading-relaxed mb-8">
+                  The world's first scientific economy where researchers earn transactable rewards
+                  and funding for their work.
+                </p>
+
+                {/* Sign Up Button */}
+                <div className="flex flex-col items-start">
+                  <Button
+                    variant="default"
+                    size="lg"
+                    onClick={handleSignUp}
+                    className="bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] hover:from-[#2C5EE8] hover:to-[#3971FF] text-white font-semibold px-8 py-3 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border-0"
+                  >
+                    Sign up
+                  </Button>
+                  <p className="text-lg text-gray-600 mt-2">
+                    Start earning for open science today.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

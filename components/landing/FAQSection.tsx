@@ -109,13 +109,13 @@ export function FAQSection() {
     <section className="py-24 bg-gradient-to-br from-slate-50/50 via-slate-50/20 to-slate-100/40 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-primary-600/5 to-transparent transform -skew-y-1"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNGY0NmU1IiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-[#3971FF]/5 to-transparent transform -skew-y-1"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjM0E3MVBGIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20"></div>
       </div>
 
       {/* Floating Elements */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-10 right-10 w-16 h-16 bg-primary-200/40 rounded-full animate-pulse-slow blur-sm"></div>
+        <div className="absolute top-10 right-10 w-16 h-16 bg-[#3971FF]/40 rounded-full animate-pulse-slow blur-sm"></div>
         <div
           className="absolute bottom-20 left-20 w-12 h-12 bg-blue-300/35 rounded-full animate-pulse-slow blur-sm"
           style={{ animationDelay: '1.5s' }}
@@ -134,7 +134,7 @@ export function FAQSection() {
             style={{ fontFamily: 'Cal Sans, sans-serif' }}
           >
             Frequently Asked{' '}
-            <span className="bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#3971FF] via-[#4A7FFF] to-[#5B8DFF] bg-clip-text text-transparent">
               Questions
             </span>
           </h2>
@@ -150,7 +150,7 @@ export function FAQSection() {
               onClick={() => setSelectedCategory('all')}
               className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 text-sm ${
                 selectedCategory === 'all'
-                  ? 'bg-gradient-to-r from-primary-600 to-primary-400 text-white shadow-lg'
+                  ? 'bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] text-white shadow-lg'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
               }`}
             >
@@ -162,7 +162,7 @@ export function FAQSection() {
                 onClick={() => setSelectedCategory(key)}
                 className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 text-sm ${
                   selectedCategory === key
-                    ? 'bg-gradient-to-r from-primary-600 to-primary-400 text-white shadow-lg'
+                    ? 'bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] text-white shadow-lg'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
                 }`}
               >
@@ -212,7 +212,7 @@ export function FAQSection() {
         {/* Contact CTA */}
         <div className="text-center mt-16">
           <p className="text-gray-600 mb-4">Still have questions? We're here to help.</p>
-          <button className="bg-gradient-to-r from-primary-600 to-primary-400 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
+          <button className="bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
             Contact our team
           </button>
         </div>

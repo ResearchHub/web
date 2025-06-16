@@ -28,7 +28,7 @@ const whyRSCFeatures: WhyRSCFeature[] = [
       'Transparent reputation system',
     ],
     iconName: 'fund2',
-    gradient: 'from-primary-600 to-primary-400',
+    gradient: 'from-[#3971FF] to-[#4A7FFF]',
   },
   {
     id: 'upside',
@@ -69,13 +69,13 @@ export function ResearchCoinSection() {
     <section className="py-24 bg-gradient-to-br from-slate-50/50 via-slate-50/20 to-slate-100/40 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-primary-600/5 to-transparent transform -skew-y-1"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNGY0NmU1IiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-[#3971FF]/5 to-transparent transform -skew-y-1"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjM0E3MVBGIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20"></div>
       </div>
 
       {/* Floating Elements */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-10 right-10 w-16 h-16 bg-primary-200/40 rounded-full animate-pulse-slow blur-sm"></div>
+        <div className="absolute top-10 right-10 w-16 h-16 bg-[#3971FF]/40 rounded-full animate-pulse-slow blur-sm"></div>
         <div
           className="absolute bottom-20 left-20 w-12 h-12 bg-blue-300/35 rounded-full animate-pulse-slow blur-sm"
           style={{ animationDelay: '1.5s' }}
@@ -90,15 +90,15 @@ export function ResearchCoinSection() {
         {/* Header Section */}
         <div className="text-center mb-16 max-w-4xl mx-auto">
           <div className="flex flex-col items-center space-y-4 mb-6">
-            <div className="w-16 h-16 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
-              <Icon name="rscGold" size={32} color="white" />
+            <div className="w-16 h-16 bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
+              <Icon name="blueAndWhite" size={32} />
             </div>
             <h2
               className="text-4xl font-bold text-gray-900"
               style={{ fontFamily: 'Cal Sans, sans-serif' }}
             >
               Powered by{' '}
-              <span className="bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#3971FF] via-[#4A7FFF] to-[#5B8DFF] bg-clip-text text-transparent">
                 ResearchCoin
               </span>
             </h2>
@@ -106,9 +106,9 @@ export function ResearchCoinSection() {
 
           <p className="text-xl text-gray-600 leading-relaxed">
             The digital currency that gives researchers a{' '}
-            <span className="font-semibold text-orange-500">share in scientific progress</span>.
-            Think of it as equity for academia—rewarding your contributions to knowledge while
-            unlocking powerful tools for collaboration.
+            <span className="font-semibold text-blue-600">share in scientific progress</span>. Think
+            of it as equity for academia—rewarding your contributions to knowledge while unlocking
+            powerful tools for collaboration.
           </p>
         </div>
 
@@ -121,7 +121,7 @@ export function ResearchCoinSection() {
                 onClick={() => setActiveFeature(index)}
                 className={`px-6 py-3 rounded-full font-medium transition-all duration-300 text-base whitespace-nowrap flex-shrink-0 ${
                   activeFeature === index
-                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg'
+                    ? 'bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] text-white shadow-lg'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
                 }`}
               >
@@ -140,7 +140,7 @@ export function ResearchCoinSection() {
             <div className="text-center space-y-8">
               {/* Header with Icon */}
               <div className="flex flex-col items-center space-y-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-lg">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] flex items-center justify-center text-white shadow-lg">
                   <Icon
                     name={whyRSCFeatures[activeFeature].iconName as any}
                     size={32}
@@ -168,7 +168,7 @@ export function ResearchCoinSection() {
               <div className="flex flex-wrap gap-4 max-w-xl mx-auto px-4 justify-center">
                 {whyRSCFeatures[activeFeature].benefits.map((benefit, index) => (
                   <div key={index} className="flex items-center space-x-3 text-left min-w-60">
-                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 flex-shrink-0" />
+                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] flex-shrink-0" />
                     <span className="text-gray-700 text-base">{benefit}</span>
                   </div>
                 ))}

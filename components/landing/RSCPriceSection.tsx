@@ -3,11 +3,10 @@
 import { useState, useEffect } from 'react';
 import SpotlightCard from '@/components/ui/SpotlightCard';
 import { Button } from '@/components/ui/Button';
-import { ExternalLink, TrendingUp } from 'lucide-react';
+import { ExternalLink, HelpCircle } from 'lucide-react';
 
 export function RSCPriceSection() {
   const [currentPrice] = useState(0.33); // This would be fetched from an API in real implementation
-  const [priceChange] = useState(+12.5); // Percentage change
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -17,7 +16,7 @@ export function RSCPriceSection() {
   }, []);
 
   return (
-    <section className="py-20 bg-gradient-to-br from-primary-600 via-blue-600 to-purple-600 relative overflow-hidden">
+    <section className="py-20 bg-gradient-to-br from-[#3971FF] via-blue-600 to-[#3971FF] relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-y-1"></div>
@@ -61,8 +60,15 @@ export function RSCPriceSection() {
           >
             <div className="p-4 flex flex-wrap items-start justify-center gap-6">
               <div className="text-center">
-                <div className="text-sm text-gray-500 mb-2 font-medium h-5 flex items-center justify-center">
-                  Current value
+                <div className="text-sm text-gray-500 mb-2 font-medium h-5 flex items-center justify-center space-x-1 z-10">
+                  <span>Current value</span>
+                  <div className="relative group">
+                    <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                      Price fetched hourly from 3rd party sources.
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                    </div>
+                  </div>
                 </div>
                 <div className="flex items-center space-x-2 justify-center">
                   {isLoading ? (
@@ -80,27 +86,7 @@ export function RSCPriceSection() {
               <div className="h-12 w-px bg-gray-300 self-center"></div>
 
               <div className="text-center">
-                <div className="text-sm text-gray-500 mb-2 font-medium h-5 flex items-center justify-center">
-                  24h change
-                </div>
-                <div className="flex items-center space-x-2 justify-center">
-                  <TrendingUp
-                    className={`w-5 h-5 ${priceChange >= 0 ? 'text-green-500' : 'text-red-500'}`}
-                  />
-                  <span
-                    className={`font-bold text-lg ${priceChange >= 0 ? 'text-green-600' : 'text-red-600'}`}
-                  >
-                    {priceChange >= 0 ? '+' : ''}
-                    {priceChange}%
-                  </span>
-                </div>
-              </div>
-
-              <div className="text-center">
-                <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:shadow-lg flex items-center space-x-2"
-                >
+                <Button size="lg" className="hover:shadow-lg flex items-center space-x-2">
                   <span>Buy ResearchCoin</span>
                   <ExternalLink className="w-5 h-5" />
                 </Button>

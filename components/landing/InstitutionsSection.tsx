@@ -15,19 +15,9 @@ const universities: University[] = [
     alt: 'Harvard University',
   },
   {
-    name: 'Stanford University',
-    logo: '/universities/stanford-university.png',
-    alt: 'Stanford University',
-  },
-  {
     name: 'Cornell University',
     logo: '/universities/cornell-university.svg',
     alt: 'Cornell University',
-  },
-  {
-    name: 'Purdue University',
-    logo: '/universities/purdue-university.svg',
-    alt: 'Purdue University',
   },
   {
     name: 'UC Irvine',
@@ -35,19 +25,14 @@ const universities: University[] = [
     alt: 'UC Irvine',
   },
   {
+    name: 'Iowa State University',
+    logo: '/universities/iowa-state-university.svg',
+    alt: 'Iowa State University',
+  },
+  {
     name: 'UC San Diego',
     logo: '/universities/uc-san-diego.svg',
     alt: 'UC San Diego',
-  },
-  {
-    name: 'University of Maryland',
-    logo: '/universities/university-of-maryland-som.svg',
-    alt: 'University of Maryland School of Medicine',
-  },
-  {
-    name: 'Indiana University',
-    logo: '/universities/indiana-university.svg',
-    alt: 'Indiana University',
   },
   {
     name: 'UC Santa Barbara',
@@ -55,9 +40,24 @@ const universities: University[] = [
     alt: 'University of California Santa Barbara',
   },
   {
-    name: 'Iowa State University',
-    logo: '/universities/iowa-state-university.svg',
-    alt: 'Iowa State University',
+    name: 'Indiana University',
+    logo: '/universities/indiana-university.svg',
+    alt: 'Indiana University',
+  },
+  {
+    name: 'Purdue University',
+    logo: '/universities/purdue-university.svg',
+    alt: 'Purdue University',
+  },
+  {
+    name: 'University of Maryland',
+    logo: '/universities/university-of-maryland-som.svg',
+    alt: 'University of Maryland School of Medicine',
+  },
+  {
+    name: 'Stanford University',
+    logo: '/universities/stanford-university.png',
+    alt: 'Stanford University',
   },
 ];
 
@@ -94,7 +94,7 @@ function UniversityLogo({ university, delay = 0 }: { university: University; del
 
 export function InstitutionsSection() {
   return (
-    <section className="py-20 bg-gradient-to-br from-primary-600 via-blue-600 to-purple-600 relative overflow-hidden">
+    <section className="py-20 bg-gradient-to-br from-[#3971FF] via-blue-600 to-[#3971FF] relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-y-1"></div>

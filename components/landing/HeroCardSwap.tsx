@@ -9,24 +9,29 @@ interface HeroCardSwapProps {
 
 export function HeroCardSwap({ className = '' }: HeroCardSwapProps) {
   return (
-    <div className={`flex justify-center lg:justify-center relative ${className}`}>
+    <div className={`w-full h-full flex items-center justify-center relative ${className}`}>
+      {/* FIXED dimensions - scales with container transform only */}
       <div
-        className="transform translate-x-20 translate-y-40"
-        style={{ height: '600px', position: 'relative' }}
+        style={{
+          width: '600px',
+          height: '550px',
+          position: 'relative',
+        }}
       >
         <CardSwap
-          width={960}
-          height={600}
-          cardDistance={50}
-          verticalDistance={100}
-          delay={5000}
+          width={750}
+          height={550}
+          cardDistance={10}
+          verticalDistance={55}
+          delay={15000}
           pauseOnHover={false}
+          skewAmount={0.2}
         >
           <Card customClass="!bg-white !border-gray-200">
-            {/* Header Section with Clean White Background */}
+            {/* Header Section */}
             <div className="flex items-center space-x-3 px-6 py-4 bg-white border-b border-gray-100">
-              <Icon name="earn1" size={20} color="#4f46e5" />
-              <span className="text-xl font-semibold text-primary-600">Earn</span>
+              <Icon name="earn1" size={20} color="black" />
+              <span className="text-xl font-semibold text-black">Earn</span>
             </div>
             {/* Video Section */}
             <div className="p-4 flex-1 bg-gray-50 rounded-b-xl">
@@ -42,11 +47,12 @@ export function HeroCardSwap({ className = '' }: HeroCardSwapProps) {
               </video>
             </div>
           </Card>
+
           <Card customClass="!bg-white !border-gray-200">
-            {/* Header Section with Clean White Background */}
+            {/* Header Section */}
             <div className="flex items-center space-x-3 px-6 py-4 bg-white border-b border-gray-100">
-              <Icon name="fund" size={20} color="#4f46e5" />
-              <span className="text-xl font-semibold text-primary-600">Fund</span>
+              <Icon name="fund" size={20} color="black" />
+              <span className="text-xl font-semibold text-black">Fund</span>
             </div>
             {/* Video Section */}
             <div className="p-4 flex-1 bg-gray-50 rounded-b-xl">
@@ -62,11 +68,12 @@ export function HeroCardSwap({ className = '' }: HeroCardSwapProps) {
               </video>
             </div>
           </Card>
+
           <Card customClass="!bg-white !border-gray-200">
-            {/* Header Section with Clean White Background */}
+            {/* Header Section */}
             <div className="flex items-center space-x-3 px-6 py-4 bg-white border-b border-gray-100">
-              <Icon name="rhJournal2" size={20} color="#4f46e5" />
-              <span className="text-xl font-semibold text-primary-600">Publish</span>
+              <Icon name="rhJournal2" size={20} color="black" />
+              <span className="text-xl font-semibold text-black">Publish</span>
             </div>
             {/* Video Section */}
             <div className="p-4 flex-1 bg-gray-50 rounded-b-xl">

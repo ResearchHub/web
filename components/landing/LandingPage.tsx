@@ -8,6 +8,7 @@ import { InstitutionsSection } from './InstitutionsSection';
 import { ResearchCoinSection } from './ResearchCoinSection';
 import { RSCPriceSection } from './RSCPriceSection';
 import { FAQSection } from './FAQSection';
+import { LandingPageFooter } from './LandingPageFooter';
 
 export function LandingPage() {
   return (
@@ -19,6 +20,7 @@ export function LandingPage() {
       <ResearchCoinSection />
       <RSCPriceSection />
       <FAQSection />
+      <LandingPageFooter />
       {/* Additional sections will be added here */}
     </LandingPageLayout>
   );
