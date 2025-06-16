@@ -13,6 +13,7 @@ export class RHJournalService {
     page?: number;
     pageSize?: number;
     publicationStatus?: 'PREPRINT' | 'PUBLISHED' | 'ALL';
+    journalStatus?: 'IN_JOURNAL' | 'NOT_IN_JOURNAL' | 'ALL';
   }): Promise<FeedApiResponse> {
     const queryParams = new URLSearchParams();
 
@@ -26,6 +27,10 @@ export class RHJournalService {
 
     if (params?.publicationStatus) {
       queryParams.append('publication_status', params.publicationStatus);
+    }
+
+    if (params?.journalStatus) {
+      queryParams.append('journal_status', params.journalStatus);
     }
 
     const url = `${this.JOURNAL_FEED_PATH}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
