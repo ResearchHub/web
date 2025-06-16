@@ -9,8 +9,15 @@ import { ResearchCoinSection } from './ResearchCoinSection';
 import { RSCPriceSection } from './RSCPriceSection';
 import { FAQSection } from './FAQSection';
 import { LandingPageFooter } from './LandingPageFooter';
+import { useUser } from '@/contexts/UserContext';
+import { handleTradingRedirect } from '@/utils/navigation';
 
 export function LandingPage() {
+  const { user } = useUser();
+
+  // If user is logged in, redirect to trending page. There is a server side redirect in the app/page.tsx file, but this is a client side redirect to avoid the flash of content.
+  handleTradingRedirect(!!user);
+
   return (
     <LandingPageLayout>
       <LandingPageHero />
