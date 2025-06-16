@@ -41,6 +41,7 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
           page: 1,
           pageSize: 10,
           publicationStatus,
+          journalStatus: 'IN_JOURNAL',
         });
 
         // Transform API response to FeedEntry objects
@@ -80,6 +81,7 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
         page: nextPage,
         pageSize: 10,
         publicationStatus,
+        journalStatus: 'IN_JOURNAL',
       });
 
       // Transform and append new entries
