@@ -91,7 +91,7 @@ export function ResearchCoinSection() {
         <div className="text-center mb-16 max-w-4xl mx-auto">
           <div className="flex flex-col items-center space-y-4 mb-6">
             <div className="w-16 h-16 bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
-              <Icon name="blueAndWhite" size={32} />
+              <Icon name="flaskFrame" size={32} color="white" />
             </div>
             <h2
               className="text-4xl font-bold text-gray-900"
