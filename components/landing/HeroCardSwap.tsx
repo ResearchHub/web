@@ -17,17 +17,17 @@ export function HeroCardSwap({ className = '' }: HeroCardSwapProps) {
         className="w-full h-full max-w-[800px] max-h-[730px] min-w-[400px] min-h-[365px]"
         style={{
           position: 'relative',
-          aspectRatio: '16/10',
+          aspectRatio: '12/10',
         }}
       >
         <CardSwap
           width="100%"
           height="100%"
-          cardDistance={10}
-          verticalDistance={55}
+          cardDistance={30}
+          verticalDistance={65}
           delay={15000}
           pauseOnHover={false}
-          skewAmount={0.2}
+          skewAmount={0}
         >
           <Card customClass="!bg-white !border-gray-200">
             {/* Header Section */}

@@ -65,7 +65,7 @@ export function LandingPageHero() {
             </div>
 
             {/* Card Swap - Now second on mobile, first on desktop */}
-            <div className="flex items-center justify-center relative mb-8 lg:mb-0 pr-0 lg:pr-16">
+            <div className="flex items-center justify-center relative mb-8 lg:mb-0 pr-0 lg:pr-16 lg:pt-16">
               <HeroCardSwap />
             </div>
           </div>
