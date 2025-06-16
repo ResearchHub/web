@@ -170,63 +170,66 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
 
       {/* Center Content Area (Scrolling) */}
       <div
-        ref={mainContentRef}
-        className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden"
+        className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative"
         style={{ marginTop: '64px' }}
       >
         {/* Main Content */}
-        <main className="flex-1 px-4 tablet:!px-8 py-4 flex" style={{ maxWidth: '100vw' }}>
+        <main
+          ref={mainContentRef}
+          className={`flex-1 px-4 tablet:!px-8 py-4 flex justify-center ${
+            rightSidebar ? 'lg:!pr-80 right-sidebar:!pr-80' : ''
+          }`}
+          style={{ maxWidth: '100vw' }}
+        >
           <div
-            className="mx-auto
-              flex-1
+            className="w-full
               max-w-full
               tablet:!max-w-2xl
               content-md:!max-w-2xl
               content-lg:!max-w-3xl
               content-xl:!max-w-4xl
-              lg:!mr-6 right-sidebar:!mr-6
             "
           >
             {children}
           </div>
-          {/* Right Sidebar (Sticky) */}
-          {rightSidebar && (
-            <aside
-              ref={rightSidebarWrapperRef}
-              className="sticky top-0 h-full overflow-hidden
-                        lg:!block !hidden right-sidebar:!block w-80 bg-white
-                        flex-shrink-0 pr-4"
-            >
-              <div
-                ref={rightSidebarRef}
-                style={{ transform: `translateY(${sidebarTransform}px)` }}
-                // Added transition for smoother movement
-                className="transition-transform duration-150 ease-out"
-              >
-                {/* Search Bar */}
-                <div className="sticky top-0 z-40 bg-white pt-2 pb-4">
-                  <Search
-                    placeholder="Search..."
-                    className="[&_input]:rounded-full [&_input]:bg-[#F8F9FC]"
-                  />
-                </div>
-
-                {/* Sidebar Content */}
-                <div className="">
-                  <Suspense fallback={<RightSidebarSkeleton />}>
-                    {pathname.startsWith('/paper/create') ? (
-                      <RHJRightSidebar showBanner={false} />
-                    ) : typeof rightSidebar === 'boolean' ? (
-                      <RightSidebar />
-                    ) : (
-                      rightSidebar
-                    )}
-                  </Suspense>
-                </div>
-              </div>
-            </aside>
-          )}
         </main>
+
+        {/* Right Sidebar (Fixed to viewport edge) */}
+        {rightSidebar && (
+          <aside
+            ref={rightSidebarWrapperRef}
+            className="fixed top-16 right-0 h-[calc(100vh-64px)] overflow-hidden
+                      lg:!block !hidden right-sidebar:!block w-80 bg-white
+                      z-30"
+          >
+            <div
+              ref={rightSidebarRef}
+              style={{ transform: `translateY(${sidebarTransform}px)` }}
+              className="transition-transform duration-150 ease-out h-full"
+            >
+              {/* Search Bar */}
+              <div className="sticky top-0 z-40 bg-white pt-2 pb-4 px-4">
+                <Search
+                  placeholder="Search..."
+                  className="[&_input]:rounded-full [&_input]:bg-[#F8F9FC]"
+                />
+              </div>
+
+              {/* Sidebar Content */}
+              <div className="px-4">
+                <Suspense fallback={<RightSidebarSkeleton />}>
+                  {pathname.startsWith('/paper/create') ? (
+                    <RHJRightSidebar showBanner={false} />
+                  ) : typeof rightSidebar === 'boolean' ? (
+                    <RightSidebar />
+                  ) : (
+                    rightSidebar
+                  )}
+                </Suspense>
+              </div>
+            </div>
+          </aside>
+        )}
       </div>
     </div>
   );
