@@ -17,7 +17,7 @@ export function HeroCardSwap({ className = '' }: HeroCardSwapProps) {
         className="w-full h-full max-w-[800px] max-h-[730px] min-w-[400px] min-h-[365px]"
         style={{
           position: 'relative',
-          aspectRatio: '12/10',
+          aspectRatio: '16/10',
         }}
       >
         <CardSwap
