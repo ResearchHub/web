@@ -119,7 +119,7 @@ export function InstitutionsSection() {
         </div>
 
         {/* University Logos Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 lg:gap-12 items-center">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-8 gap-y-4 md:gap-y-8 lg:gap-12 items-center">
           {universities.map((university, index) => (
             <UniversityLogo key={university.name} university={university} delay={index * 100} />
           ))}
