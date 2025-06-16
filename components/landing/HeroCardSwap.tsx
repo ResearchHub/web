@@ -9,18 +9,20 @@ interface HeroCardSwapProps {
 
 export function HeroCardSwap({ className = '' }: HeroCardSwapProps) {
   return (
-    <div className={`w-full h-full flex items-center justify-center relative ${className}`}>
-      {/* FIXED dimensions - scales with container transform only */}
+    <div
+      className={`w-full h-full flex items-center justify-center relative pt-16 lg:pt-0 ${className}`}
+    >
+      {/* Responsive container that maintains aspect ratio */}
       <div
+        className="w-full h-full max-w-[800px] max-h-[730px] min-w-[400px] min-h-[365px]"
         style={{
-          width: '600px',
-          height: '550px',
           position: 'relative',
+          aspectRatio: '16/10',
         }}
       >
         <CardSwap
-          width={750}
-          height={550}
+          width="100%"
+          height="100%"
           cardDistance={10}
           verticalDistance={55}
           delay={15000}

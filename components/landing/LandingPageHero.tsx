@@ -26,68 +26,29 @@ export function LandingPageHero() {
             transformOrigin: 'center center',
           }}
         >
-          {/* Mobile Layout: Text above Graphics (< lg screens) */}
-          <div className="flex flex-col lg:hidden h-full justify-center items-center py-8 space-y-8 px-4">
-            {/* Text Content for Mobile */}
-            <div className="text-center" style={{ maxWidth: '505px' }}>
-              {/* Hero Header - FIXED SIZE, scales with container */}
-              <h1 className="text-5xl font-semibold mb-4 leading-[1.1] text-black">
-                A new economy
-                <br />
-                for science
-              </h1>
-
-              {/* Hero Description - FIXED SIZE, scales with container */}
-              <p className="text-lg text-gray-600 leading-relaxed mb-8">
-                The world's first scientific economy where researchers earn transactable rewards and
-                funding for their work.
-              </p>
-
-              {/* Sign Up Button */}
-              <div className="flex flex-col items-center">
-                <Button
-                  variant="default"
-                  size="lg"
-                  onClick={handleSignUp}
-                  className="bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] hover:from-[#2C5EE8] hover:to-[#3971FF] text-white font-semibold px-8 py-3 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border-0"
-                >
-                  Sign up
-                </Button>
-                <p className="text-sm text-gray-600 mt-2">Start earning for open science today.</p>
-              </div>
-            </div>
-
-            {/* Hero Cards for Mobile */}
-            <div className="w-full flex justify-center">
-              <HeroCardSwap />
-            </div>
-          </div>
-
-          {/* Desktop Layout: Side by Side (>= lg screens) */}
-          <div className="hidden lg:grid lg:grid-cols-2 h-full gap-16">
-            {/* Left Half - Hero Card Swap Component */}
-            <div className="h-full flex items-center justify-center relative pr-8">
-              <HeroCardSwap />
-            </div>
-
-            {/* Right Half - Hero Content + Sign Up Button */}
-            <div className="h-full flex items-center pl-8">
-              <div className="w-full" style={{ maxWidth: '505px' }}>
-                {/* Hero Header - FIXED SIZE, scales with container */}
-                <h1 className="text-6xl font-semibold mb-4 leading-[1.1] text-black">
+          {/* Unified Responsive Grid Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 h-full gap-8 lg:gap-16 py-8 px-4">
+            {/* Text Content - Now first on mobile, second on desktop */}
+            <div className="flex items-center pl-0 lg:pl-8">
+              <div
+                className="w-full text-center lg:text-left mx-auto"
+                style={{ maxWidth: '505px' }}
+              >
+                {/* Hero Header */}
+                <h1 className="text-5xl lg:text-6xl font-semibold mb-4 leading-[1.1] text-black">
                   A new economy
                   <br />
                   for science
                 </h1>
 
-                {/* Hero Description - FIXED SIZE, scales with container */}
-                <p className="text-xl text-gray-600 leading-relaxed mb-8">
+                {/* Hero Description */}
+                <p className="text-lg lg:text-xl text-gray-600 leading-relaxed mb-8">
                   The world's first scientific economy where researchers earn transactable rewards
                   and funding for their work.
                 </p>
 
                 {/* Sign Up Button */}
-                <div className="flex flex-col items-start">
+                <div className="flex flex-col items-center lg:items-start">
                   <Button
                     variant="default"
                     size="lg"
@@ -96,11 +57,16 @@ export function LandingPageHero() {
                   >
                     Sign up
                   </Button>
-                  <p className="text-lg text-gray-600 mt-2">
+                  <p className="text-sm lg:text-lg text-gray-600 mt-2">
                     Start earning for open science today.
                   </p>
                 </div>
               </div>
+            </div>
+
+            {/* Card Swap - Now second on mobile, first on desktop */}
+            <div className="flex items-center justify-center relative mb-8 lg:mb-0 pr-0 lg:pr-16">
+              <HeroCardSwap />
             </div>
           </div>
         </div>

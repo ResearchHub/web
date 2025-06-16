@@ -215,7 +215,7 @@ const CardSwap: React.FC<CardSwapProps> = ({
       ? cloneElement(child, {
           key: i,
           ref: refs[i],
-          style: { width, height, ...(child.props.style ?? {}) },
+          style: { width, /*height,*/ ...(child.props.style ?? {}) },
           onClick: (e) => {
             child.props.onClick?.(e as React.MouseEvent<HTMLDivElement>);
             onCardClick?.(i);
@@ -227,7 +227,7 @@ const CardSwap: React.FC<CardSwapProps> = ({
   return (
     <div
       ref={container}
-      className="relative w-full h-full overflow-visible md:scale-75 md:translate-x-6 md:translate-y-6 sm:scale-55 sm:translate-x-6 sm:translate-y-6"
+      className="relative w-full h-full overflow-visible scale-[0.85] translate-y-161 lg:scale-90 lg:translate-x-6 lg:translate-y-6 "
       style={{
         width,
         height,
