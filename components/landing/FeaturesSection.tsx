@@ -53,12 +53,12 @@ const features: Feature[] = [
     title: 'Earn',
     subtitle: 'Get paid for peer review',
     description:
-      'Earn $150 for high-quality peer reviews and contribute to the advancement of scientific knowledge.',
+      'Earn meaningful compensation for your valuable peer review contributions to open access scientific literature.',
     benefits: [
-      'Earn $150 per peer review',
+      'Earn $150 in RSC per review',
+      'Choose preprints to review',
+      'Get feedback from editors',
       'Build your reputation',
-      'Shape scientific discourse',
-      'Flexible review schedule',
     ],
     primaryAction: {
       text: 'Start reviewing',
@@ -77,7 +77,7 @@ const features: Feature[] = [
       'Only $300 APC fee',
       'Open peer review process',
       'Immediate preprint option',
-      'Reviewers paid $150 each',
+      'Reviewers paid $150 in RSC each',
     ],
     primaryAction: {
       text: 'Submit paper',
