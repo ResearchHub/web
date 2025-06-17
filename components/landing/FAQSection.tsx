@@ -208,14 +208,6 @@ export function FAQSection() {
             );
           })}
         </div>
-
-        {/* Contact CTA */}
-        <div className="text-center mt-16">
-          <p className="text-gray-600 mb-4">Still have questions? We're here to help.</p>
-          <button className="bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
-            Contact our team
-          </button>
-        </div>
       </div>
     </section>
   );

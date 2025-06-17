@@ -14,7 +14,7 @@ export function LandingPageFooter() {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   const platformLinks = [
-    { label: 'Home', href: '/' },
+    { label: 'Home', href: '/trending' },
     { label: 'Earn', href: '/earn' },
     { label: 'Fund', href: '/fund' },
     { label: 'RH journal', href: '/journal' },
@@ -28,7 +28,7 @@ export function LandingPageFooter() {
   ];
 
   const supportLinks: Array<{ label: string; href?: string; action?: string }> = [
-    { label: 'Help & support', href: 'https://github.com/ResearchHub/issues/issues/new/choose' },
+    { label: 'Support', href: 'https://airtable.com/appuhMJaf1kb3ic8e/pagYeh6cB9sgiTIgx/form' },
     { label: 'Terms of service', href: 'https://www.researchhub.com/about/tos' },
     { label: 'Privacy policy', href: 'https://www.researchhub.com/about/privacy' },
     { label: 'Contact', action: 'contact' },
@@ -37,7 +37,7 @@ export function LandingPageFooter() {
   const journalLinks = [
     {
       label: 'Submit to journal',
-      href: '/paper/create/pdf',
+      href: '/journal',
       requiresAuth: true,
     },
     {
@@ -234,24 +234,10 @@ export function LandingPageFooter() {
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-gray-200">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="text-gray-500 text-sm">
-              <p>
-                © {new Date().getFullYear()} ResearchHub. Made with ❤️ for the scientific
-                community.
-              </p>
-            </div>
-            <div className="flex items-center space-x-6 mt-4 md:mt-0">
-              <Link
-                href="/researchcoin"
-                className="text-sm transition-colors duration-200"
-                style={{ color: colors.rhBlue }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.8')}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-              >
-                ResearchCoin (RSC)
-              </Link>
-            </div>
+          <div className="text-gray-500 text-sm">
+            <p>
+              © {new Date().getFullYear()} ResearchHub. Made with ❤️ for the scientific community.
+            </p>
           </div>
         </div>
       </div>
