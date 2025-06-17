@@ -41,6 +41,7 @@ export interface AuthorProfile {
   googleScholar?: string | null;
   orcidId?: string | null;
   isClaimed: boolean;
+  isVerified: boolean;
   hIndex?: number;
   i10Index?: number;
   userId?: number;
@@ -60,6 +61,7 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
       headline: '',
       profileUrl: '/profile/0',
       isClaimed: false,
+      isVerified: false,
     };
   }
 
@@ -100,6 +102,7 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
     i10Index: raw.i10_index || undefined,
     userId: raw.user_id || undefined,
     editorOfHubs: editorOfHubs,
+    isVerified: raw.is_verified_v2 || false,
   };
 });
 

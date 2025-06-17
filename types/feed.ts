@@ -44,6 +44,7 @@ const transformNestedParentComment = (rawParent: any): ParentCommentPreview | un
           headline: '',
           profileUrl: '/profile/0',
           isClaimed: false,
+          isVerified: false,
         };
 
     return {
@@ -438,6 +439,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                     headline: '',
                     profileUrl: '/profile/0',
                     isClaimed: false,
+                    isVerified: false,
                   }
                 : {
                     id: 0,
@@ -448,6 +450,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                     headline: '',
                     profileUrl: '/profile/0',
                     isClaimed: false,
+                    isVerified: false,
                   },
           journal: content_object.journal || {
             id: 0,

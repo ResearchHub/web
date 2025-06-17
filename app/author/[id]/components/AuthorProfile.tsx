@@ -121,7 +121,7 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
             <div className="flex flex-col items-start">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold text-gray-900">{fullName}</h1>
-                {author.user?.isVerified && <VerifiedBadge />}
+                {author.isVerified && <VerifiedBadge />}
               </div>
               {author.headline && (
                 <div className="text-gray-600 font-sm text-left">
