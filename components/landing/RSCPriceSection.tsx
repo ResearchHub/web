@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { ExternalLink, HelpCircle } from 'lucide-react';
 
 export function RSCPriceSection() {
-  const [currentPrice] = useState(0.44); // This would be fetched from an API in real implementation
+  const [currentPrice] = useState(0.43); // This would be fetched from an API in real implementation
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -86,7 +86,16 @@ export function RSCPriceSection() {
               <div className="h-12 w-px bg-gray-300 self-center hidden md:!block"></div>
 
               <div className="text-center">
-                <Button size="lg" className="hover:shadow-lg flex items-center space-x-2">
+                <Button
+                  size="lg"
+                  className="hover:shadow-lg flex items-center space-x-2"
+                  onClick={() =>
+                    window.open(
+                      'https://app.uniswap.org/swap?inputCurrency=ETH&outputCurrency=0xd101dcc414f310268c37eeb4cd376ccfa507f571',
+                      '_blank'
+                    )
+                  }
+                >
                   <span>Buy ResearchCoin</span>
                   <ExternalLink className="w-5 h-5" />
                 </Button>
