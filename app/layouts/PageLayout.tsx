@@ -53,6 +53,7 @@ interface PageLayoutProps {
 export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const rightSidebarRef = useRef<HTMLDivElement>(null);
   const rightSidebarWrapperRef = useRef<HTMLDivElement>(null);
   const [sidebarTransform, setSidebarTransform] = useState(0);
@@ -61,7 +62,11 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (!mainContentRef.current || !rightSidebarRef.current || !rightSidebarWrapperRef.current)
+      if (
+        !scrollContainerRef.current ||
+        !rightSidebarRef.current ||
+        !rightSidebarWrapperRef.current
+      )
         return;
 
       // Cancel any pending animation frame to avoid unnecessary updates
@@ -70,15 +75,19 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
       }
 
       animationFrameId.current = requestAnimationFrame(() => {
-        if (!mainContentRef.current || !rightSidebarRef.current || !rightSidebarWrapperRef.current)
+        if (
+          !scrollContainerRef.current ||
+          !rightSidebarRef.current ||
+          !rightSidebarWrapperRef.current
+        )
           return;
 
-        const mainContent = mainContentRef.current;
+        const scrollContainer = scrollContainerRef.current;
         const sidebar = rightSidebarRef.current;
 
         const sidebarHeight = sidebar.scrollHeight;
         const viewportHeight = window.innerHeight; // Use viewport height
-        const scrollTop = mainContent.scrollTop;
+        const scrollTop = scrollContainer.scrollTop;
 
         // Max distance sidebar needs to move up
         const maxScroll = Math.max(0, sidebarHeight - viewportHeight);
@@ -106,14 +115,14 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
       });
     };
 
-    const mainContent = mainContentRef.current;
-    if (mainContent) {
-      mainContent.addEventListener('scroll', handleScroll);
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
       // Initial calculation in case content is already scrolled or fits
       handleScroll();
 
       return () => {
-        mainContent.removeEventListener('scroll', handleScroll);
+        scrollContainer.removeEventListener('scroll', handleScroll);
         // Cancel any pending animation frame on cleanup
         if (animationFrameId.current) {
           cancelAnimationFrame(animationFrameId.current);
@@ -169,6 +178,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
 
       {/* Center Content Area (Scrolling) */}
       <div
+        ref={scrollContainerRef}
         className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative"
         style={{ marginTop: '64px' }}
       >
