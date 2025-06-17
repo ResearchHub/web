@@ -46,28 +46,18 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
             <CurrencyBadge
               amount={usdAmount}
               currency={showUSD ? 'USD' : 'RSC'}
-              showText={true}
+              showText={showUSD}
               showIcon={true}
               variant="text"
               size="md"
-              textColor="text-primary-700"
+              textColor="text-orange-600"
               className="text-2xl sm:text-3xl font-bold min-w-0 flex-shrink truncate"
               shorten={false}
               showExchangeRate={true}
             />
           </div>
           {/* Show conversion hint only when displaying USD and we have exchange rate */}
-          {showUSD &&
-            !isLoadingExchangeRate &&
-            exchangeRate &&
-            exchangeRate > 0 &&
-            usdAmount > 0 && (
-              <div className="flex items-center text-gray-500 -mt-1">
-                <span className="text-sm font-medium">
-                  {formatRSC({ amount: usdAmount / exchangeRate, shorten: true, round: true })} RSC
-                </span>
-              </div>
-            )}
+
           {showUSD && isLoadingExchangeRate && usdAmount > 0 && (
             <div className="text-gray-500 text-base font-medium italic -mt-1">Loading RSC...</div>
           )}

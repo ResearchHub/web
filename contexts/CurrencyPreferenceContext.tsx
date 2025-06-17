@@ -8,18 +8,18 @@ interface CurrencyPreferenceContextType {
 }
 
 const CurrencyPreferenceContext = createContext<CurrencyPreferenceContextType>({
-  showUSD: false,
+  showUSD: true,
   toggleCurrency: () => {},
 });
 
 export function CurrencyPreferenceProvider({ children }: { children: React.ReactNode }) {
-  const [showUSD, setShowUSD] = useState(false);
+  const [showUSD, setShowUSD] = useState(true);
 
   // Load preference from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('currency-preference');
-    if (saved === 'USD') {
-      setShowUSD(true);
+    if (saved === 'RSC') {
+      setShowUSD(false);
     }
   }, []);
 

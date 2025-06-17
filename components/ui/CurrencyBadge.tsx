@@ -82,8 +82,8 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
     text: textColor || 'text-orange-500',
     textDark: textColor || 'text-orange-600',
     textMedium: 'text-gray-600',
-    iconColor: textColor ? textColor : undefined, // Let gold2 icon use its natural color unless overridden
-    rscLabel: currencyLabelColor || textColor || 'text-amber-600', // Fixed trailing quote here
+    iconColor: undefined, // Always let gold2 icon use its natural color - don't override with Tailwind classes
+    rscLabel: currencyLabelColor || textColor || 'text-amber-600',
     // Add gold colors for award variant
     awardBg: 'bg-amber-100',
     awardBorder: 'border-amber-300',
@@ -221,7 +221,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
               $
             </span>
           ) : (
-            <Icon name="gold2" size={effectiveIconSize} color={colors.iconColor} className="mr-1" />
+            <Icon name="gold2" size={effectiveIconSize} className="mr-1" />
           ))}
         {inverted ? (
           <div className="flex items-center">
@@ -319,7 +319,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
                   ? '#16A34A'
                   : variant === 'disabled'
                     ? colors.disabledIconColor
-                    : colors.iconColor
+                    : undefined
             }
           />
         ))}

@@ -13,9 +13,8 @@ import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { differenceInCalendarDays, format } from 'date-fns';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { AvatarStack } from '@/components/ui/AvatarStack';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserTie } from '@fortawesome/free-solid-svg-icons';
 import { truncateText } from '@/utils/stringUtils';
+import Icon from '@/components/ui/icons/Icon';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CardWrapper } from './CardWrapper';
@@ -213,13 +212,13 @@ const FeedItemGrantBody: FC<{
           {/* Applicants section */}
           {applicants.length > 0 && (
             <div
-              className="flex items-center gap-3 mb-4"
+              className="flex items-center gap-2 mb-4"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
               }}
             >
-              <FontAwesomeIcon icon={faUserTie} className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <Icon name="createBounty" size={16} color="#6b7280" className="flex-shrink-0" />
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-500 font-normal">
                   {applicants.length} {applicants.length === 1 ? 'Applicant' : 'Applicants'}
