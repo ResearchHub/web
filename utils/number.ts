@@ -13,6 +13,11 @@ interface FormatRSCOptions {
    * @default false
    */
   round?: boolean;
+  /**
+   * The number of decimal places to format to.
+   * This is ignored if `shorten` is true.
+   */
+  decimalPlaces?: number;
 }
 
 /**
@@ -26,8 +31,14 @@ interface FormatRSCOptions {
  * formatRSC({ amount: 433 }) // "433"
  * formatRSC({ amount: 1234 }) // "1,234"
  * formatRSC({ amount: 1234.567, round: true }) // "1,235"
+ * formatRSC({ amount: 65.102, decimalPlaces: 2 }) // "65.10"
  */
-export function formatRSC({ amount, shorten = false, round = false }: FormatRSCOptions): string {
+export function formatRSC({
+  amount,
+  shorten = false,
+  round = false,
+  decimalPlaces,
+}: FormatRSCOptions): string {
   // Round the amount if requested
   const valueToFormat = round ? Math.round(amount) : amount;
 
@@ -52,10 +63,17 @@ export function formatRSC({ amount, shorten = false, round = false }: FormatRSCO
       // For values less than 1,000
       return valueToFormat.toString();
     }
-  } else {
-    // shorten is false
-    return valueToFormat.toLocaleString();
   }
+
+  if (decimalPlaces !== undefined) {
+    return valueToFormat.toLocaleString('en-US', {
+      minimumFractionDigits: decimalPlaces,
+      maximumFractionDigits: decimalPlaces,
+    });
+  }
+
+  // shorten is false
+  return valueToFormat.toLocaleString();
 }
 
 /**

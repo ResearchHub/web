@@ -110,16 +110,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
     md: isUSD ? 16 : 18,
   };
 
-  const formatNumber = (num: number, useShorten: boolean | undefined) => {
-    if (useShorten) {
-      // Assuming formatRSC can handle generic number shortening.
-      // If formatRSC specifically adds "RSC" text, this needs adjustment.
-      return formatRSC({ amount: num, shorten: true });
-    }
-    return Math.round(num).toLocaleString();
-  };
-
-  const displayAmount = formatNumber(amount, shorten);
+  const displayAmount = formatRSC({ amount, shorten, round: !shorten });
   const currencyText = isUSD ? 'USD' : 'RSC';
 
   // Create tooltip content
@@ -138,7 +129,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
         <div className="p-1">
           <div className="font-semibold text-orange-700 mb-0.5 flex items-center gap-1">
             <ResearchCoinIcon size={14} color={colors.iconColor} />
-            <span>≈ {Math.round(rscEquivalent).toLocaleString()} RSC</span>
+            <span>≈ {formatRSC({ amount: rscEquivalent, round: true })} RSC</span>
           </div>
         </div>
       );
@@ -149,9 +140,11 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
         <div className="p-1">
           <div className="font-semibold text-orange-700 mb-0.5 flex items-center gap-1">
             <ResearchCoinIcon size={14} color={colors.iconColor} />
-            <span>{Math.round(amount).toLocaleString()} RSC</span>
+            <span>{formatRSC({ amount, round: true })} RSC</span>
           </div>
-          <div className="text-gray-700 text-xs">≈ ${formatNumber(usdEquivalent, shorten)} USD</div>
+          <div className="text-gray-700 text-xs">
+            ≈ ${formatRSC({ amount: usdEquivalent, decimalPlaces: 2 })} USD
+          </div>
         </div>
       );
     }

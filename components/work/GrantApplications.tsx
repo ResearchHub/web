@@ -94,7 +94,7 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
             className="flex items-center gap-1"
             onClick={() => setIsApplyModalOpen(true)}
           >
-            <Plus className="h-4 w-4" /> Submit Application
+            <Plus className="h-4 w-4" /> Submit application
           </Button>
         </div>
 
@@ -155,7 +155,7 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
             className="flex items-center gap-1"
             onClick={() => setIsApplyModalOpen(true)}
           >
-            <Plus className="h-4 w-4" /> Submit Application
+            <Plus className="h-4 w-4" /> Submit application
           </Button>
         </div>
 
@@ -217,7 +217,7 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
             setIsApplyModalOpen(true);
           }}
         >
-          <Plus className="h-4 w-4" /> Submit Application
+          <Plus className="h-4 w-4" /> Submit application
         </Button>
       </div>
 
