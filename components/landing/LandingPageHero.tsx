@@ -52,8 +52,8 @@ export function LandingPageHero() {
 
                 {/* Hero Description */}
                 <p className="text-lg lg:!text-xl text-gray-600 leading-relaxed mb-8">
-                  The world's first scientific economy where researchers earn transactable rewards
-                  and funding for their work.
+                  We're building a new model for scientific research where publishing and peer
+                  review lead to funding.
                 </p>
 
                 {/* Sign Up Button */}
