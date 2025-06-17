@@ -136,6 +136,7 @@ export const FundDocument = ({
 
             {/* Comment Feed for posting updates */}
             <CommentFeed
+              unifiedDocumentId={work.unifiedDocumentId || null}
               documentId={work.id}
               contentType={work.contentType}
               commentType="AUTHOR_UPDATE"
