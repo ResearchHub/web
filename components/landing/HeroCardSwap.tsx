@@ -2,12 +2,18 @@
 
 import CardSwap, { Card } from '@/components/ui/CardSwap';
 import { Icon } from '@/components/ui/icons';
+import { useScreenSize } from '@/hooks/useScreenSize';
 
 interface HeroCardSwapProps {
   className?: string;
 }
 
 export function HeroCardSwap({ className = '' }: HeroCardSwapProps) {
+  const { lgAndUp } = useScreenSize();
+
+  // Use cardDistance of 0 for mobile (stacked), 30 for desktop (fanned out)
+  const cardDistance = lgAndUp ? 30 : 0;
+
   return (
     <div
       className={`w-full h-full flex items-center justify-center relative pt-16 lg:pt-0 ${className}`}
@@ -23,7 +29,7 @@ export function HeroCardSwap({ className = '' }: HeroCardSwapProps) {
         <CardSwap
           width="100%"
           height="100%"
-          cardDistance={30}
+          cardDistance={cardDistance}
           verticalDistance={65}
           delay={15000}
           pauseOnHover={false}
