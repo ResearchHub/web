@@ -83,7 +83,7 @@ export function RSCPriceSection() {
                 </div>
               </div>
 
-              <div className="h-12 w-px bg-gray-300 self-center"></div>
+              <div className="h-12 w-px bg-gray-300 self-center hidden md:!block"></div>
 
               <div className="text-center">
                 <Button size="lg" className="hover:shadow-lg flex items-center space-x-2">

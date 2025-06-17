@@ -29,7 +29,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   return (
     <>
       <div className="h-[64px] border-b border-gray-200">
-        <div className="h-full flex items-center justify-between px-4 lg:px-8">
+        <div className="h-full flex items-center justify-between px-4 lg:!px-8">
           <div className="flex items-center">
             <div className="block tablet:!hidden">
               <button onClick={onMenuClick} className="p-2 rounded-lg hover:bg-gray-100">

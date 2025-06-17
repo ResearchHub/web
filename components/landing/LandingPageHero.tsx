@@ -36,28 +36,28 @@ export function LandingPageHero() {
           }}
         >
           {/* Unified Responsive Grid Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 h-full gap-8 lg:gap-16 py-8 px-4">
+          <div className="grid grid-cols-1 lg:!grid-cols-2 h-full gap-8 lg:!gap-16 py-8 px-4">
             {/* Text Content - Now first on mobile, second on desktop */}
-            <div className="flex items-center pl-0 lg:pl-8">
+            <div className="flex items-center pl-0 lg:!pl-8">
               <div
-                className="w-full text-center lg:text-left mx-auto"
+                className="w-full text-center lg:!text-left mx-auto"
                 style={{ maxWidth: '505px' }}
               >
                 {/* Hero Header */}
-                <h1 className="text-5xl lg:text-6xl font-semibold mb-4 leading-[1.1] text-black">
+                <h1 className="text-5xl lg:!text-6xl font-semibold mb-4 leading-[1.1] text-black">
                   A new economy
                   <br />
                   for science
                 </h1>
 
                 {/* Hero Description */}
-                <p className="text-lg lg:text-xl text-gray-600 leading-relaxed mb-8">
+                <p className="text-lg lg:!text-xl text-gray-600 leading-relaxed mb-8">
                   The world's first scientific economy where researchers earn transactable rewards
                   and funding for their work.
                 </p>
 
                 {/* Sign Up Button */}
-                <div className="flex flex-col items-center lg:items-start">
+                <div className="flex flex-col items-center lg:!items-start">
                   <Button
                     variant="default"
                     size="lg"
@@ -66,7 +66,7 @@ export function LandingPageHero() {
                   >
                     Sign up
                   </Button>
-                  <p className="text-sm lg:text-lg text-gray-600 mt-2">
+                  <p className="text-sm lg:!text-lg text-gray-600 mt-2">
                     Start earning for open science today.
                   </p>
                 </div>
@@ -74,7 +74,7 @@ export function LandingPageHero() {
             </div>
 
             {/* Card Swap - Now second on mobile, first on desktop */}
-            <div className="flex items-center justify-center relative mb-8 lg:mb-0 pr-0 lg:pr-16 lg:pt-16">
+            <div className="flex items-center justify-center relative mb-8 lg:!mb-0 pr-0 lg:!pr-16 lg:!pt-16">
               <HeroCardSwap />
             </div>
           </div>
