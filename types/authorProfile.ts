@@ -59,7 +59,7 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
       lastName: '',
       profileImage: '',
       headline: '',
-      profileUrl: '/profile/0',
+      profileUrl: '/author/0',
       isClaimed: false,
       isVerified: false,
     };
@@ -87,7 +87,7 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
     lastName: raw.last_name || '',
     profileImage: raw.profile_image || '',
     headline: typeof raw.headline === 'string' ? raw.headline : raw.headline?.title || '',
-    profileUrl: `/profile/${raw.id || 0}`,
+    profileUrl: `/author/${raw.id || 0}`,
     user: raw.user ? transformUser(raw.user) : undefined,
     description: raw.description || undefined,
     createdDate: raw.created_date || undefined,

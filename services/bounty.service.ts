@@ -284,7 +284,7 @@ export class BountyService {
           action_date: rawBounty.created_date,
           // Map the author data
           author: {
-            id: rawBounty.created_by.id,
+            id: rawBounty.created_by.author_profile.id,
             first_name: rawBounty.created_by.author_profile.first_name,
             last_name: rawBounty.created_by.author_profile.last_name,
             profile_image: rawBounty.created_by.author_profile.profile_image,
