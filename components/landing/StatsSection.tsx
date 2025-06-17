@@ -80,17 +80,6 @@ export function StatsSection() {
           <StatItem value="$1M" label="earned by peer reviewers" delay={200} />
           <StatItem value="6.7K" label="peer reviews completed" delay={400} />
         </div>
-
-        {/* Additional CTA */}
-        {/*         <div className="text-center mt-16">
-          <Button
-            variant="default"
-            size="lg"
-            className="bg-white text-primary-600 hover:bg-gray-100 font-semibold px-10 py-4 text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
-          >
-            Join now
-          </Button>
-        </div> */}
       </div>
     </section>
   );

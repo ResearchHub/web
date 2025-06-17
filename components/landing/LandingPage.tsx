@@ -28,7 +28,6 @@ export function LandingPage() {
       <RSCPriceSection />
       <FAQSection />
       <LandingPageFooter />
-      {/* Additional sections will be added here */}
     </LandingPageLayout>
   );
 }

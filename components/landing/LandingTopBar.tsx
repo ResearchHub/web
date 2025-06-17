@@ -2,23 +2,17 @@
 
 import { Logo } from '@/components/ui/Logo';
 import { Button } from '@/components/ui/Button';
-import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { useAuthModalContext } from '@/contexts/AuthModalContext';
 
 export function LandingTopBar() {
-  const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const { showAuthModal } = useAuthModalContext();
 
   const handleSignUp = () => {
-    executeAuthenticatedAction(() => {
-      // Handle sign up action
-      console.log('Sign Up clicked');
-    });
+    showAuthModal();
   };
 
   const handleLogin = () => {
-    executeAuthenticatedAction(() => {
-      // Handle login action
-      console.log('Log in clicked');
-    });
+    showAuthModal();
   };
 
   return (

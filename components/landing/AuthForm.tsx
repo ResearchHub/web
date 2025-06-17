@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { useAuthModalContext } from '@/contexts/AuthModalContext';
 
 interface AuthFormProps {
   className?: string;
@@ -10,27 +10,18 @@ interface AuthFormProps {
 
 export function AuthForm({ className = '' }: AuthFormProps) {
   const [email, setEmail] = useState('');
-  const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const { showAuthModal } = useAuthModalContext();
 
   const handleEmailContinue = () => {
-    executeAuthenticatedAction(() => {
-      // Handle email authentication
-      console.log('Email authentication clicked with:', email);
-    });
+    showAuthModal();
   };
 
   const handleGoogleAuth = () => {
-    executeAuthenticatedAction(() => {
-      // Handle Google authentication
-      console.log('Google authentication clicked');
-    });
+    showAuthModal();
   };
 
   const handleLogin = () => {
-    executeAuthenticatedAction(() => {
-      // Handle login action
-      console.log('Login clicked');
-    });
+    showAuthModal();
   };
 
   return (

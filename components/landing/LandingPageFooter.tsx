@@ -29,8 +29,8 @@ export function LandingPageFooter() {
 
   const supportLinks: Array<{ label: string; href?: string; action?: string }> = [
     { label: 'Support', href: 'https://airtable.com/appuhMJaf1kb3ic8e/pagYeh6cB9sgiTIgx/form' },
-    { label: 'Terms of service' },
-    { label: 'Privacy policy' },
+    { label: 'Terms of service', href: '/tos' },
+    { label: 'Privacy policy', href: '/privacy' },
     { label: 'Contact', action: 'contact' },
   ];
 
@@ -130,7 +130,7 @@ export function LandingPageFooter() {
                   </Link>
                 </li>
               ))}
-              <li>
+              <li key="notebook">
                 <button
                   onClick={() => handleAuthenticatedLink('/notebook')}
                   className="text-gray-600 hover:opacity-80 transition-colors duration-200 text-left"
@@ -150,7 +150,7 @@ export function LandingPageFooter() {
             </h3>
             <ul className="space-y-3">
               {journalLinks.map((link) => (
-                <li key={link.href}>
+                <li key={link.label}>
                   {link.requiresAuth ? (
                     <button
                       onClick={() => handleAuthenticatedLink(link.href)}
@@ -184,7 +184,7 @@ export function LandingPageFooter() {
             </h3>
             <ul className="space-y-3">
               {resourceLinks.map((link) => (
-                <li key={link.href}>
+                <li key={link.label}>
                   <a
                     href={link.href}
                     target={link.href.startsWith('http') ? '_blank' : undefined}
@@ -204,7 +204,7 @@ export function LandingPageFooter() {
             </h4>
             <ul className="space-y-3">
               {supportLinks.map((link) => (
-                <li key={link.href || link.action}>
+                <li key={link.label}>
                   {link.action === 'contact' ? (
                     <button
                       onClick={() => setIsContactModalOpen(true)}

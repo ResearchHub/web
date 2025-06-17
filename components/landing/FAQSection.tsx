@@ -6,90 +6,107 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 interface FAQItem {
   question: string;
   answer: string;
-  category: 'general' | 'research' | 'financial' | 'technical';
+  category: 'general' | 'funding' | 'crypto' | 'research';
 }
 
 const faqs: FAQItem[] = [
   {
-    question:
-      'Is ResearchHub a legitimate scientific platform or just another cryptocurrency project?',
+    question: 'What exactly is ResearchHub and how does it work?',
     answer:
-      "ResearchHub is a legitimate scientific platform that has been operating since 2019, with over 50,000 researchers and $2M+ in funding distributed. We're backed by Coinbase and have partnerships with major research institutions. ResearchCoin (RSC) is simply the utility token that powers our incentive system - the focus remains on advancing scientific research.",
+      'ResearchHub is a platform where researchers can publish papers, get peer reviews, and earn rewards - while funders can directly support scientific research they care about. Think of it as a scientific marketplace: researchers submit their work, qualified peers review it for compensation, and funders can sponsor specific research areas or projects. Everything happens transparently with faster timelines than traditional publishing.',
     category: 'general',
   },
   {
-    question: 'How does paying $150 for peer review maintain quality standards?',
+    question: 'How do I know my donation will actually support legitimate scientific research?',
     answer:
-      'Our payment system actually improves review quality by attracting expert reviewers and requiring comprehensive feedback. Reviews are validated by our community, and reviewers build reputation scores. Poor reviews result in reduced future opportunities. Studies show incentivized peer review often produces more thorough and timely reviews than traditional unpaid systems.',
-    category: 'research',
+      'All researchers on ResearchHub must verify their academic credentials and institutional affiliations. Research submissions go through editorial screening and expert peer review. You can see exactly where your funding goes - whether to specific papers, research areas, or peer review incentives. We partner with established academic institutions and maintain the same quality standards as traditional journals.',
+    category: 'funding',
   },
   {
-    question: 'Will employers and tenure committees recognize work published on ResearchHub?',
+    question: 'What are the tax benefits of funding research through ResearchHub?',
     answer:
-      "ResearchHub publications are indexed in major databases and count toward academic metrics like h-index. Many institutions already recognize our platform, and we're working toward traditional indexing. Our open peer review model actually provides more transparent evidence of research impact than traditional closed systems.",
-    category: 'research',
+      'ResearchHub offers both tax-deductible and non-tax-deductible funding options. Tax-deductible donations go through our 501(c)(3) nonprofit partner and qualify for standard charitable deductions. Non-tax-deductible funding goes directly to researchers and may offer more flexibility in how funds are used. We recommend consulting your tax advisor for your specific situation.',
+    category: 'funding',
   },
   {
-    question: 'Can ResearchCoin be converted to real currency?',
+    question: 'Can I fund research in specific diseases or areas I care about?',
     answer:
-      'Yes, ResearchCoin can be converted to major cryptocurrencies and then to traditional currency through established exchanges. We also offer direct USD conversion options for researchers who prefer not to handle cryptocurrency directly.',
-    category: 'financial',
-  },
-  {
-    question: 'Is this system sustainable, or will payments disappear once funding runs out?',
-    answer:
-      "Our model is designed for long-term sustainability through multiple revenue streams: publication fees, premium features, and transaction fees. As the platform grows, network effects create value that supports continued researcher payments. We're not dependent on venture funding for operational payments.",
-    category: 'financial',
-  },
-  {
-    question: 'How do you prevent low-quality submissions just to earn review payments?',
-    answer:
-      'We use a multi-layered quality control system: editorial screening, reviewer reputation scores, community validation, and penalties for poor submissions. Authors must stake RSC tokens, which are forfeited for frivolous submissions. Our acceptance rates are comparable to traditional journals.',
-    category: 'research',
-  },
-  {
-    question: 'What happens to my research data and intellectual property?',
-    answer:
-      'You retain full ownership of your intellectual property. ResearchHub operates under standard academic publishing agreements. Your data remains secure on decentralized infrastructure, giving you more control than traditional publishers who may restrict access to your own work.',
-    category: 'technical',
-  },
-  {
-    question: 'How does this compare to traditional journal publishing?',
-    answer:
-      'We offer faster publication (days vs months), transparent peer review, lower fees ($300 vs $3000+ APCs), and researcher compensation. You still get DOIs, indexing, and academic recognition, but with better economics and transparency.',
-    category: 'research',
-  },
-  {
-    question: 'Is ResearchCoin secure and regulated?',
-    answer:
-      "ResearchCoin operates on Ethereum, one of the most secure blockchain networks. We comply with relevant regulations and work with legal experts in both crypto and academic publishing. The token has utility value beyond speculation - it's designed for scientific ecosystem participation.",
-    category: 'technical',
+      'Absolutely. You can create targeted funding calls for specific research areas, diseases, or methodologies. You can also browse existing research and fund papers that align with your interests. Our platform lets you set funding criteria, timelines, and reporting requirements so you can support exactly the science you want to advance.',
+    category: 'funding',
   },
   {
     question: 'Do I need to understand cryptocurrency to use ResearchHub?',
     answer:
-      'No - we handle the technical complexity. You can receive payments in USD, and our interface works like any other academic platform. Understanding crypto basics is helpful but not required. We provide educational resources and support for researchers new to the system.',
-    category: 'technical',
+      'No. While ResearchHub uses ResearchCoin (RSC) internally for incentives, you can participate entirely in traditional currency. Funders can donate in USD, and researchers can receive payments in USD. We handle all the technical complexity behind the scenes. The cryptocurrency aspect is optional and primarily for users who want to engage more deeply with the tokenomics.',
+    category: 'crypto',
   },
   {
-    question: 'How do you ensure peer reviewers are qualified experts?',
+    question: 'What is ResearchCoin (RSC) and why does it exist?',
     answer:
-      'Reviewers must verify their credentials and build reputation through quality reviews. We match papers with reviewers based on expertise, citation history, and previous review quality. Our system actually provides better reviewer matching than many traditional journals.',
+      'ResearchCoin (RSC) is the utility token that powers incentives on ResearchHub. It allows for programmable rewards - automatically paying reviewers when quality reviews are submitted, rewarding researchers for citations, and enabling community governance. RSC can be converted to major cryptocurrencies and then to traditional currency, but many users never need to interact with it directly.',
+    category: 'crypto',
+  },
+  {
+    question: 'Is ResearchCoin regulated and secure?',
+    answer:
+      'RSC operates on Ethereum, a well-established blockchain network. We comply with applicable regulations and work with legal experts in both cryptocurrency and academic publishing. RSC is designed as a utility token for scientific incentives, not as an investment product. We recommend treating it as a tool for research participation rather than a financial investment.',
+    category: 'crypto',
+  },
+  {
+    question: 'Will employers and tenure committees recognize ResearchHub publications?',
+    answer:
+      "Yes. ResearchHub publications receive DOIs, are indexed in major academic databases, and count toward standard academic metrics like h-index. Many institutions already recognize our platform, and we're working toward inclusion in additional traditional indexing systems. Our open peer review model actually provides more transparent evidence of research quality and impact than traditional closed systems.",
     category: 'research',
   },
   {
-    question: 'What if ResearchHub shuts down - what happens to my published work?',
+    question: 'How do you ensure peer reviewers are actually qualified experts?',
     answer:
-      'Your work is permanently stored on decentralized infrastructure (IPFS) and blockchain, making it more durable than traditional publisher databases. Even if ResearchHub ceased operations, your research would remain accessible. We also maintain partnerships with academic archives for additional preservation.',
-    category: 'technical',
+      'All reviewers must verify their academic credentials and build reputation through quality reviews. We match papers with reviewers based on expertise, publication history, and previous review quality. Poor reviews result in reduced future opportunities and lower payments. Our system often provides better reviewer matching than traditional journals because we can track reviewer performance over time.',
+    category: 'research',
+  },
+  {
+    question: 'How much do researchers earn for peer reviewing?',
+    answer:
+      'Peer review compensation typically ranges from $50-$200 per review, depending on paper length and complexity. Payment is based on review quality and timeliness. Unlike traditional unpaid peer review, our compensation attracts expert reviewers and incentivizes thorough, constructive feedback. The exact amount is visible before you accept any review assignment.',
+    category: 'research',
+  },
+  {
+    question: 'How do you prevent low-quality submissions and reviews?',
+    answer:
+      'We use multiple quality controls: editorial pre-screening, reviewer reputation systems, community validation, and economic stakes. Authors must meet academic standards, and frivolous submissions result in penalties. Reviewers are scored on their feedback quality, and consistently poor reviewers lose access to paid opportunities. Our acceptance rates are comparable to traditional journals.',
+    category: 'research',
+  },
+  {
+    question: 'What happens if ResearchHub shuts down - is my research safe?',
+    answer:
+      'Your research is stored on decentralized infrastructure (IPFS) and blockchain, making it more durable than traditional publisher databases. Even if ResearchHub ceased operations, your work would remain permanently accessible. We also maintain partnerships with academic archives for additional preservation. Your intellectual property rights remain fully with you.',
+    category: 'research',
+  },
+  {
+    question: 'How does this compare to traditional journal publishing?',
+    answer:
+      'ResearchHub offers faster publication (days vs months), transparent peer review, lower fees ($150-300 vs $3000+ APCs), and researcher compensation. You still get DOIs, indexing, and academic recognition, but with better economics, transparency, and speed. Many researchers use us alongside traditional journals, especially for timely or interdisciplinary work.',
+    category: 'research',
+  },
+  {
+    question: 'Is this sustainable long-term, or will payments disappear?',
+    answer:
+      "Our model is designed for sustainability through multiple revenue streams: publication fees, premium features, and network transaction fees. As the platform grows, network effects create value that supports continued payments. We're not dependent on venture funding for operational rewards - the economic model is self-sustaining as usage increases.",
+    category: 'general',
+  },
+  {
+    question: 'How can I track the impact of my funding?',
+    answer:
+      "You receive detailed reports on how your funding is used, including which papers were reviewed, researcher outcomes, and research progress. You can see citation metrics, follow-up studies, and real-world applications of the research you supported. Our transparent system lets you track impact in ways traditional funding often doesn't allow.",
+    category: 'funding',
   },
 ];
 
 const categories = {
   general: 'General',
-  research: 'Research & Publishing',
-  financial: 'Financial',
-  technical: 'Technical',
+  funding: 'For Funders',
+  crypto: 'Crypto & RSC',
+  research: 'For Researchers',
 };
 
 export function FAQSection() {
@@ -139,7 +156,7 @@ export function FAQSection() {
             </span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Common questions from researchers about ResearchHub and ResearchCoin
+            Common questions from researchers, funders, and crypto enthusiasts about ResearchHub
           </p>
         </div>
 

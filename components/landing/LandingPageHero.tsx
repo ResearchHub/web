@@ -1,19 +1,16 @@
 'use client';
 
 import { Button } from '@/components/ui/Button';
-import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { useAuthModalContext } from '@/contexts/AuthModalContext';
 import { HeroCardSwap } from './HeroCardSwap';
 import Aurora from '@/components/ui/Aurora';
 import { colors } from '@/app/styles/colors';
 
 export function LandingPageHero() {
-  const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const { showAuthModal } = useAuthModalContext();
 
   const handleSignUp = () => {
-    executeAuthenticatedAction(() => {
-      // Handle sign up action
-      console.log('Sign Up clicked');
-    });
+    showAuthModal();
   };
 
   return (
