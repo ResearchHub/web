@@ -84,7 +84,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
                   <AuthorTooltip authorId={authorId}>
                     <a
                       href="#"
-                      className="font-semibold hover:text-indigo-600 cursor-pointer"
+                      className="font-semibold hover:text-blue-600 cursor-pointer"
                       onClick={(e) => {
                         e.preventDefault();
                         navigateToAuthorProfile(authorId);

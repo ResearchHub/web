@@ -78,7 +78,7 @@ const FeedItemFundraiseBody: FC<{
         {/* Left side content */}
         <div className="flex-1 min-w-0">
           {/* Title */}
-          <h2 className="text-lg font-semibold text-gray-900 mb-3 group-hover:text-indigo-600 transition-colors">
+          <h2 className="text-lg font-semibold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
             {post.title}
           </h2>
 

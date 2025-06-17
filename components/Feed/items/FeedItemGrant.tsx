@@ -156,7 +156,7 @@ const FeedItemGrantBody: FC<{
         {/* Left side content */}
         <div className="flex-1 min-w-0">
           {/* Title */}
-          <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
             {grant.title}
           </h2>
 
