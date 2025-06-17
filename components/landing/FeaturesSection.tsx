@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import SpotlightCard from '@/components/ui/SpotlightCard';
 import { Icon } from '@/components/ui/icons';
 import { Button } from '@/components/ui/Button';
 import { colors } from '@/app/styles/colors';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 interface Feature {
   id: string;
@@ -90,6 +92,37 @@ const features: Feature[] = [
 
 export function FeaturesSection() {
   const [activeFeature, setActiveFeature] = useState(0);
+  const router = useRouter();
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
+
+  const handleGiveResearchFunding = () => {
+    executeAuthenticatedAction(() => router.push('/notebook?newGrant=true'));
+  };
+
+  const handleRequestFunding = () => {
+    executeAuthenticatedAction(() => router.push('/notebook?newFunding=true'));
+  };
+
+  const handleStartReviewing = () => {
+    router.push('/earn');
+  };
+
+  const handleSubmitPaper = () => {
+    router.push('/paper/create/pdf');
+  };
+
+  const getClickHandler = (featureId: string, isPrimary: boolean) => {
+    if (featureId === 'fund') {
+      return isPrimary ? handleGiveResearchFunding : handleRequestFunding;
+    }
+    if (featureId === 'earn') {
+      return handleStartReviewing;
+    }
+    if (featureId === 'publish') {
+      return handleSubmitPaper;
+    }
+    return () => {};
+  };
 
   return (
     <section className="py-24 bg-gradient-to-br from-slate-50/50 via-slate-50/20 to-slate-100/40 relative overflow-hidden">
@@ -203,6 +236,7 @@ export function FeaturesSection() {
                     <div className="flex-1 min-w-64 max-w-80 text-center">
                       <Button
                         size="lg"
+                        onClick={() => getClickHandler(features[activeFeature].id, true)()}
                         className={`w-full bg-gradient-to-r ${features[activeFeature].gradient} text-white hover:shadow-lg`}
                       >
                         {features[activeFeature].primaryAction.text}
@@ -212,7 +246,12 @@ export function FeaturesSection() {
                       </p>
                     </div>
                     <div className="flex-1 min-w-64 max-w-80 text-center">
-                      <Button variant="outlined" size="lg" className="w-full">
+                      <Button
+                        variant="outlined"
+                        size="lg"
+                        onClick={() => getClickHandler(features[activeFeature].id, false)()}
+                        className="w-full"
+                      >
                         {features[activeFeature].secondaryAction.text}
                       </Button>
                       <p className="text-sm text-gray-500 mt-2">
@@ -225,6 +264,7 @@ export function FeaturesSection() {
                   <div className="text-center">
                     <Button
                       size="lg"
+                      onClick={() => getClickHandler(features[activeFeature].id, true)()}
                       className={`bg-gradient-to-r ${features[activeFeature].gradient} text-white hover:shadow-lg`}
                     >
                       {features[activeFeature].primaryAction.text}
