@@ -30,7 +30,7 @@ export function LandingTopBar() {
               variant="ghost"
               size="md"
               onClick={handleLogin}
-              className="hidden sm:block text-gray-700 hover:text-gray-900"
+              className="hidden sm:!block text-gray-700 hover:text-gray-900"
             >
               Log in
             </Button>
