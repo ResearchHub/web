@@ -18,7 +18,7 @@ export function LandingPageHero() {
       {/* Aurora Background */}
       <div className="absolute inset-0 w-full h-full opacity-5 brightness-200">
         <Aurora
-          colorStops={[colors.rhBlue, colors.rhBlue, colors.rhBlue]}
+          colorStops={[colors.rhBlue[500], colors.rhBlue[500], colors.rhBlue[500]]}
           amplitude={0.3}
           blend={0.3}
           speed={0.4}

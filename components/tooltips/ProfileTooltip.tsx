@@ -74,7 +74,7 @@ export const ProfileTooltip = ({
                 </div>
 
                 <div className="flex gap-2">
-                  <button className="flex-1 px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700">
+                  <button className="flex-1 px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700">
                     Follow
                   </button>
                   <button

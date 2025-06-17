@@ -84,7 +84,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
-                      Submit a paper
+                      Submit your paper
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
                       Preprint or peer reviewed publication

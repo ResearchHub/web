@@ -61,8 +61,8 @@ export function EducationAutocomplete({
       >
         <div className="flex items-center gap-3">
           <div className="flex-shrink-0">
-            <div className="h-8 w-8 rounded-md bg-indigo-50 flex items-center justify-center">
-              <School className="h-4 w-4 text-indigo-500" />
+            <div className="h-8 w-8 rounded-md bg-primary-50 flex items-center justify-center">
+              <School className="h-4 w-4 text-primary-500" />
             </div>
           </div>
 
@@ -90,8 +90,8 @@ export function EducationAutocomplete({
     return (
       <div className="flex items-center gap-2">
         <div className="flex-shrink-0">
-          <div className="h-6 w-6 rounded-md bg-indigo-50 flex items-center justify-center">
-            <School className="h-3 w-3 text-indigo-500" />
+          <div className="h-6 w-6 rounded-md bg-primary-50 flex items-center justify-center">
+            <School className="h-3 w-3 text-primary-500" />
           </div>
         </div>
 

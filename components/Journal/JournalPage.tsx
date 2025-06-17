@@ -61,16 +61,10 @@ export const JournalPage: FC = () => {
 
   const header = (
     <MainPageHeader
-      icon={<Icon name="rhJournal2" size={26} color="#4f46e5" />}
+      icon={<Icon name="rhJournal2" size={26} color="#3971ff" />}
       title="ResearchHub Journal"
       subtitle="Accelerating science through open access publishing and peer review."
     />
-  );
-
-  const description = (
-    <p className="text-gray-600 mt-2 mb-6">
-      Accelerating science through open access publishing and peer review.
-    </p>
   );
 
   const journalTabs = (
@@ -84,7 +78,7 @@ export const JournalPage: FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="pt-4 pb-7">{header}</div>
+      {header}
 
       <JournalTabs
         activeTab={activeTab}

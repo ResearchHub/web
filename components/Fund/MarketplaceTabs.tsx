@@ -88,7 +88,7 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
           <div className="flex items-center space-x-2 ml-8 pb-3">
             <Dropdown
               trigger={
-                <button className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <button className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500">
                   {activeStatusOption && <activeStatusOption.icon className="w-4 h-4" />}
                   <span>{activeStatusOption?.label}</span>
                   <ChevronDown className="w-4 h-4" />
@@ -104,7 +104,7 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
                     onClick={() => onStatusChange(option.id)}
                     className={cn(
                       'flex items-center space-x-2',
-                      fundingStatus === option.id && 'bg-indigo-50 text-indigo-700'
+                      fundingStatus === option.id && 'bg-primary-50 text-primary-700'
                     )}
                   >
                     <Icon className="w-4 h-4" />

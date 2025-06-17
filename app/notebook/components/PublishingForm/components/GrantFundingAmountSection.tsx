@@ -22,7 +22,7 @@ export function GrantFundingAmountSection() {
           className="w-full"
           error={errors.budget?.message?.toString()}
           rightElement={
-            <div className="flex items-center pr-4 font-medium text-sm text-gray-900">USD</div>
+            <div className="flex items-center pr-4 font-medium text-sm text-orange-600">USD</div>
           }
           helperText="How much money you are giving for this grant"
           required

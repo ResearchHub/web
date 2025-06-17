@@ -6,17 +6,33 @@ interface SwitchProps {
   onCheckedChange: (checked: boolean) => void;
   disabled?: boolean;
   className?: string;
+  variant?: 'default' | 'currency';
 }
 
-export const Switch = ({ checked, onCheckedChange, disabled, className }: SwitchProps) => {
+export const Switch = ({
+  checked,
+  onCheckedChange,
+  disabled,
+  className,
+  variant = 'default',
+}: SwitchProps) => {
+  const getBackgroundColor = () => {
+    if (variant === 'currency') {
+      // For currency toggle: Both states use gray
+      return 'bg-gray-400';
+    }
+    // Default behavior
+    return checked ? 'bg-primary-600' : 'bg-gray-200';
+  };
+
   return (
     <HeadlessSwitch
       checked={checked}
       onChange={onCheckedChange}
       disabled={disabled}
       className={cn(
-        'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-        checked ? 'bg-indigo-600' : 'bg-gray-200',
+        'inline-flex h-6 w-11 items-center rounded-full border-2 border-transparent transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+        getBackgroundColor(),
         className
       )}
     >

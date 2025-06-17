@@ -9,6 +9,7 @@ import { SellModal } from '@/components/modals/ResearchCoin/SellModal';
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { WalletDefault } from '@coinbase/onchainkit/wallet';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useAccount } from 'wagmi';
 
 interface UserBalanceSectionProps {
@@ -31,8 +32,9 @@ export function UserBalanceSection({
   const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
   const [isSellModalOpen, setIsSellModalOpen] = useState(false);
 
-  // Check if wallet is connected
+  // Check if wallet is connected and get currency preference
   const { isConnected } = useAccount();
+  const { showUSD } = useCurrencyPreference();
 
   // Only consider balance as not ready if we're fetching exchange rate
   // Zero balance (balance = 0) should be treated as a valid state
@@ -58,13 +60,20 @@ export function UserBalanceSection({
                         <ResearchCoinIcon size={28} />
                         <div className="flex items-baseline">
                           <span className="text-4xl font-semibold text-gray-900">
-                            {balance?.formatted || '0.00'}
+                            {showUSD
+                              ? balance?.formattedUsd?.replace(/[^\d.,-]/g, '') || '0.00'
+                              : balance?.formatted || '0.00'}
                           </span>
-                          <span className="text-xl font-medium text-gray-600 ml-2">RSC</span>
+                          <span className="text-xl font-medium text-gray-600 ml-2">
+                            {showUSD ? 'USD' : 'RSC'}
+                          </span>
                         </div>
                       </div>
                       <div className="text-sm font-medium text-gray-600">
-                        ≈ {balance?.formattedUsd || '$0.00'}
+                        ≈{' '}
+                        {showUSD
+                          ? `${balance?.formatted || '0.00'} RSC`
+                          : balance?.formattedUsd || '$0.00'}
                       </div>
                     </>
                   )}
@@ -80,7 +89,9 @@ export function UserBalanceSection({
                         className="gap-2 px-3 sm:px-4"
                       >
                         <Plus className="h-5 w-5" />
-                        <span className="hidden sm:inline-block sm:flex-shrink-0">Buy RSC</span>
+                        <span className="hidden sm:inline-block sm:flex-shrink-0">
+                          Buy {showUSD ? 'USD' : 'RSC'}
+                        </span>
                       </Button>
                       <Button
                         onClick={() => setIsSellModalOpen(true)}
@@ -89,7 +100,9 @@ export function UserBalanceSection({
                         className="gap-2 px-3 sm:px-4"
                       >
                         <Minus className="h-5 w-5" />
-                        <span className="hidden sm:inline-block sm:flex-shrink-0">Sell RSC</span>
+                        <span className="hidden sm:inline-block sm:flex-shrink-0">
+                          Sell {showUSD ? 'USD' : 'RSC'}
+                        </span>
                       </Button>
                       <Button
                         onClick={() => setIsDepositModalOpen(true)}
@@ -120,7 +133,8 @@ export function UserBalanceSection({
                   <>
                     <div className="flex gap-4">
                       <p className="text-base text-gray-600">
-                        To buy, sell, deposit or withdraw RSC, start by connecting your wallet.
+                        To buy, sell, deposit or withdraw {showUSD ? 'USD' : 'RSC'}, start by
+                        connecting your wallet.
                       </p>
                     </div>
                     <WalletDefault />

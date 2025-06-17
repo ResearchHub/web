@@ -34,6 +34,7 @@ import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { faMedal, faRibbon, faStar } from '@fortawesome/pro-solid-svg-icons';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 // Skeleton for the list items
 const LeaderboardListSkeleton = () => (
@@ -181,6 +182,7 @@ const CustomDateRangeModal = ({
 function LeaderboardPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showUSD } = useCurrencyPreference();
 
   const initialTab = searchParams.get('tab') || 'reviewers';
   const initialFromDateStr = searchParams.get('from_date');
@@ -448,13 +450,11 @@ function LeaderboardPageContent() {
 
   return (
     <div className="px-0 py-0">
-      <div className="pt-4 pb-7">
-        <MainPageHeader
-          icon={<ChartNoAxesColumnIncreasing size={28} />}
-          title="Leaderboard"
-          subtitle="See top earners on ResearchHub for a given period."
-        />
-      </div>
+      <MainPageHeader
+        icon={<ChartNoAxesColumnIncreasing size={28} />}
+        title="Leaderboard"
+        subtitle="See top earners on ResearchHub for a given period."
+      />
 
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col md:!flex-row md:!items-center md:!justify-between mb-4 gap-4">
@@ -562,10 +562,12 @@ function LeaderboardPageContent() {
                       amount={reviewer.earnedRsc}
                       variant="text"
                       size="md"
-                      label="RSC Earned"
-                      showExchangeRate={true}
+                      label={showUSD ? 'USD Earned' : 'RSC Earned'}
+                      currency={showUSD ? 'USD' : 'RSC'}
                       textColor="text-gray-700"
                       currencyLabelColor="text-gray-500"
+                      showIcon={true}
+                      showText={true}
                     />
                   </div>
                 );
@@ -628,10 +630,12 @@ function LeaderboardPageContent() {
                     amount={funder.totalFunding}
                     variant="text"
                     size="md"
-                    label="RSC Funded"
-                    showExchangeRate={true}
+                    label={showUSD ? 'USD Funded' : 'RSC Funded'}
+                    currency={showUSD ? 'USD' : 'RSC'}
                     textColor="text-gray-700"
                     currencyLabelColor="text-gray-500"
+                    showIcon={true}
+                    showText={true}
                   />
                 </div>
               );

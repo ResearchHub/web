@@ -37,7 +37,7 @@ export function SearchInput({ placeholder = 'Search...', onSearch, className }: 
         ) : null
       }
       className={cn(
-        'bg-gray-50 focus-within:border-indigo-600 focus-within:ring-indigo-600 focus-within:ring-1 rounded-full',
+        'bg-gray-50 focus-within:border-primary-600 focus-within:ring-primary-600 focus-within:ring-1 rounded-full',
         className
       )}
     />

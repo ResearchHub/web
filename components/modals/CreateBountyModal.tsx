@@ -43,7 +43,7 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
                   <div className="flex justify-between items-center border-b border-gray-200 -mx-6 px-6 pb-4 mb-6">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-md bg-blue-50 flex items-center justify-center">
-                        <Icon name="earn1" size={24} color="#2563eb" />
+                        <Icon name="earn1" size={24} color="#3971ff" />
                       </div>
                       <Dialog.Title as="h2" className="text-xl font-semibold text-gray-900">
                         Create Bounty

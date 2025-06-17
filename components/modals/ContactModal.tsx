@@ -71,9 +71,9 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                     <div className="flex-shrink-0">
                       <div
                         className="flex items-center justify-center w-10 h-10 rounded-lg"
-                        style={{ backgroundColor: `${colors.rhBlue}15` }}
+                        style={{ backgroundColor: `${colors.rhBlue[500]}15` }}
                       >
-                        <Mail className="w-5 h-5" style={{ color: colors.rhBlue }} />
+                        <Mail className="w-5 h-5" style={{ color: colors.rhBlue[500] }} />
                       </div>
                     </div>
                     <div className="flex-1">
@@ -84,7 +84,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                         Have a question about ResearchHub? We'd love to help!
                       </p>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium" style={{ color: colors.rhBlue }}>
+                        <span className="text-sm font-medium" style={{ color: colors.rhBlue[500] }}>
                           hello@researchhub.com
                         </span>
                         <button
@@ -110,9 +110,9 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                     <div className="flex-shrink-0">
                       <div
                         className="flex items-center justify-center w-10 h-10 rounded-lg"
-                        style={{ backgroundColor: `${colors.rhBlue}15` }}
+                        style={{ backgroundColor: `${colors.rhBlue[500]}15` }}
                       >
-                        <HelpCircle className="w-5 h-5" style={{ color: colors.rhBlue }} />
+                        <HelpCircle className="w-5 h-5" style={{ color: colors.rhBlue[500] }} />
                       </div>
                     </div>
                     <div className="flex-1">
@@ -128,7 +128,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center text-sm font-medium hover:opacity-80"
-                        style={{ color: colors.rhBlue }}
+                        style={{ color: colors.rhBlue[500] }}
                       >
                         Submit Support Request
                         <ExternalLink className="w-3 h-3 ml-1" />

@@ -694,27 +694,27 @@ export default function CreateBountyPage() {
   // Contributors for the avatar display
   const journalContributors = [
     {
-      src: 'https://www.researchhub.com/static/editorial-board/MaulikDhandha.jpeg',
+      src: '/people/maulik.jpeg',
       alt: 'Maulik Dhandha',
       tooltip: 'Maulik Dhandha, Editor',
     },
     {
-      src: 'https://www.researchhub.com/static/editorial-board/EmilioMerheb.jpeg',
+      src: '/people/emilio.jpeg',
       alt: 'Emilio Merheb',
       tooltip: 'Emilio Merheb, Editor',
     },
     {
-      src: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2024/05/07/blob_48esqmw',
-      alt: 'Journal Editor',
+      src: '/people/dominikus_brian.jpeg',
+      alt: 'Dominikus Brian',
       tooltip: 'Editorial Board Member',
     },
     {
-      src: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2025/03/04/blob_pxj9rsH',
-      alt: 'Journal Editor',
+      src: '/people/jeffrey_koury.jpeg',
+      alt: 'Jeffrey Koury',
       tooltip: 'Editorial Board Member',
     },
     {
-      src: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2024/04/01/blob_Ut50nMY',
+      src: '/people/blob_48esqmw.jpeg',
       alt: 'Journal Editor',
       tooltip: 'Editorial Board Member',
     },

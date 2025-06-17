@@ -94,7 +94,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     },
     {
       label: 'Fund',
-      href: '/fund',
+      href: '/fund/grants',
       iconKey: 'fund',
       description: 'Browse grants and fundraising opportunities',
     },
@@ -128,7 +128,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       : 'tablet:max-sidebar-compact:!px-2 tablet:max-sidebar-compact:!justify-center';
 
     return isActive
-      ? `flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-indigo-600 ${responsiveClasses} bg-indigo-50 rounded-lg group`
+      ? `flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-primary-600 ${responsiveClasses} bg-primary-50 rounded-lg group`
       : `flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-gray-700 ${responsiveClasses} hover:bg-gray-50 rounded-lg group`;
   };
 
@@ -163,7 +163,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     const isActive = isPathActive(item.href);
 
     // Set icon colors based on active state
-    const iconColor = isActive ? '#4f46e5' : '#404040'; // Indigo-600 for active, gray-600 for inactive
+    const iconColor = isActive ? '#3971ff' : '#404040'; // Primary-500 for active, gray-600 for inactive
 
     // Get the appropriate icon based on active state
     const getIconName = (): IconName | undefined => {

@@ -23,7 +23,7 @@ export const UpdateRateBadge = ({ updateRate, className = '' }: UpdateRateBadgeP
       <span
         className={`bg-gray-200 text-gray-700 text-xs font-medium px-2 py-1 rounded-full cursor-help ${className}`}
       >
-        {updateRate}% update rate
+        100% update rate
       </span>
     </Tooltip>
   );

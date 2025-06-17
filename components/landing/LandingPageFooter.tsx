@@ -86,7 +86,7 @@ export function LandingPageFooter() {
           {/* Company Info */}
           <div className="lg:col-span-2">
             <div className="flex items-center mb-6">
-              <Logo size={48} color={colors.rhBlue} />
+              <Logo size={48} color={colors.rhBlue[500]} />
             </div>
             <p className="text-gray-600 mb-6 leading-relaxed max-w-md">
               The world's first scientific economy where researchers earn transactable rewards for
@@ -101,7 +101,7 @@ export function LandingPageFooter() {
                   rel="noopener noreferrer"
                   className="text-gray-400 transition-colors duration-200"
                   style={{ color: 'inherit' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue)}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue[500])}
                   onMouseLeave={(e) => (e.currentTarget.style.color = '#9ca3af')}
                   aria-label={social.label}
                 >
@@ -122,8 +122,8 @@ export function LandingPageFooter() {
                   <Link
                     href={link.href}
                     className="text-gray-600 hover:opacity-80 transition-colors duration-200"
-                    style={{ '--hover-color': colors.rhBlue } as React.CSSProperties}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue)}
+                    style={{ '--hover-color': colors.rhBlue[500] } as React.CSSProperties}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue[500])}
                     onMouseLeave={(e) => (e.currentTarget.style.color = '#4b5563')}
                   >
                     {link.label}
@@ -134,7 +134,7 @@ export function LandingPageFooter() {
                 <button
                   onClick={() => handleAuthenticatedLink('/notebook')}
                   className="text-gray-600 hover:opacity-80 transition-colors duration-200 text-left"
-                  onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue)}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue[500])}
                   onMouseLeave={(e) => (e.currentTarget.style.color = '#4b5563')}
                 >
                   Notebook
@@ -155,7 +155,7 @@ export function LandingPageFooter() {
                     <button
                       onClick={() => handleAuthenticatedLink(link.href)}
                       className="text-gray-600 hover:opacity-80 transition-colors duration-200 text-left"
-                      onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue)}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue[500])}
                       onMouseLeave={(e) => (e.currentTarget.style.color = '#4b5563')}
                     >
                       {link.label}
@@ -166,7 +166,7 @@ export function LandingPageFooter() {
                       target={link.href.startsWith('http') ? '_blank' : undefined}
                       rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
                       className="text-gray-600 hover:opacity-80 transition-colors duration-200"
-                      onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue)}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue[500])}
                       onMouseLeave={(e) => (e.currentTarget.style.color = '#4b5563')}
                     >
                       {link.label}
@@ -190,7 +190,7 @@ export function LandingPageFooter() {
                     target={link.href.startsWith('http') ? '_blank' : undefined}
                     rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
                     className="text-gray-600 hover:opacity-80 transition-colors duration-200"
-                    onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue)}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue[500])}
                     onMouseLeave={(e) => (e.currentTarget.style.color = '#4b5563')}
                   >
                     {link.label}
@@ -209,7 +209,7 @@ export function LandingPageFooter() {
                     <button
                       onClick={() => setIsContactModalOpen(true)}
                       className="text-gray-600 hover:opacity-80 transition-colors duration-200"
-                      onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue)}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue[500])}
                       onMouseLeave={(e) => (e.currentTarget.style.color = '#4b5563')}
                     >
                       {link.label}
@@ -220,7 +220,7 @@ export function LandingPageFooter() {
                       target={link.href?.startsWith('http') ? '_blank' : undefined}
                       rel={link.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
                       className="text-gray-600 hover:opacity-80 transition-colors duration-200"
-                      onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue)}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue[500])}
                       onMouseLeave={(e) => (e.currentTarget.style.color = '#4b5563')}
                     >
                       {link.label}

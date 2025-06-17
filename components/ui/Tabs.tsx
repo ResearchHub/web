@@ -175,7 +175,9 @@ export const Tabs: React.FC<TabsProps> = ({
     if (variant === 'pill') {
       return cn(
         'px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 flex items-center gap-1 flex-shrink-0 whitespace-nowrap',
-        isActive ? 'bg-indigo-100 text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700',
+        isActive
+          ? 'bg-primary-100 text-primary-600 shadow-sm'
+          : 'text-gray-500 hover:text-gray-700',
         disabled && 'opacity-50 cursor-not-allowed pointer-events-none'
       );
     }
@@ -183,7 +185,7 @@ export const Tabs: React.FC<TabsProps> = ({
     return cn(
       'px-1 py-3 text-sm font-medium border-b-2 transition-colors duration-200 flex items-center gap-1 whitespace-nowrap flex-shrink-0',
       isActive
-        ? 'text-indigo-600 border-indigo-600'
+        ? 'text-primary-600 border-primary-600'
         : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-200',
       disabled && 'opacity-50 cursor-not-allowed pointer-events-none'
     );
@@ -288,7 +290,7 @@ export const Tabs: React.FC<TabsProps> = ({
                 'hover:bg-gray-50', // Adjusted hover state
                 activeTab &&
                   overflowIds.includes(activeTab) &&
-                  'bg-indigo-100 text-indigo-600 border-indigo-200', // Active state with border
+                  'bg-primary-100 text-primary-600 border-primary-200', // Active state with border
                 overflowTabs.length > 0 ? 'text-gray-700' : 'text-transparent pointer-events-none'
               )}
               aria-label="More tabs"
@@ -304,7 +306,7 @@ export const Tabs: React.FC<TabsProps> = ({
               onSelect={() => {
                 onTabChange(tab.id);
               }}
-              className={cn(activeTab === tab.id && 'bg-indigo-50 font-medium')}
+              className={cn(activeTab === tab.id && 'bg-primary-50 font-medium')}
             >
               {tab.label}
             </BaseMenuItem>
