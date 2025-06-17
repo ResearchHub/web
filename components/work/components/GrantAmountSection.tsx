@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
 import { PreregistrationForModal } from '@/services/post.service';
 import { Work } from '@/types/work';
+import { Plus } from 'lucide-react';
 
 interface GrantAmountSectionProps {
   work: Work;
@@ -74,10 +75,10 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
           onClick={() => {
             setIsApplyModalOpen(true);
           }}
-          className="w-full mt-3"
+          className="w-full mt-3 flex items-center justify-center gap-1"
           size="lg"
         >
-          Apply for Grant
+          <Plus className="h-4 w-4" /> Submit application
         </Button>
       </div>
 
