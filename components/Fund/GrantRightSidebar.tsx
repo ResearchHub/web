@@ -46,39 +46,7 @@ export const GrantRightSidebar = () => {
           </Button>
         </div>
 
-        <CollapsibleSection title="85% of funding is wasted">
-          <CollapsibleItem
-            title="Studies go unreported"
-            icon={<ShieldAlert className="w-4 h-4" strokeWidth={2.5} />}
-            isOpen={openSections.includes('unreported-studies')}
-            onToggle={() => toggleSection('unreported-studies')}
-          >
-            Less than half of study outcomes are ever reported. Negative results rarely get
-            published, creating massive blind spots in scientific knowledge.
-          </CollapsibleItem>
-
-          <CollapsibleItem
-            title="Results can't be replicated"
-            icon={<ShieldAlert className="w-4 h-4" strokeWidth={2.5} />}
-            isOpen={openSections.includes('replication-crisis')}
-            onToggle={() => toggleSection('replication-crisis')}
-          >
-            Less than half of published biomedical research can be independently replicated, making
-            much of the scientific record unreliable.
-          </CollapsibleItem>
-
-          <CollapsibleItem
-            title="$200B+ wasted annually"
-            icon={<ShieldAlert className="w-4 h-4" strokeWidth={2.5} />}
-            isOpen={openSections.includes('billions-wasted')}
-            onToggle={() => toggleSection('billions-wasted')}
-          >
-            The Lancet found that traditional grant systems waste hundreds of billions annually
-            through poor incentives and opaque processes.
-          </CollapsibleItem>
-        </CollapsibleSection>
-
-        <CollapsibleSection title="Preregistration solves this">
+        <CollapsibleSection title="Preregistration = better science">
           <CollapsibleItem
             title="Prevents p-hacking"
             icon={<Check className="w-4 h-4" strokeWidth={2.5} />}
