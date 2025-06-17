@@ -1,19 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import SpotlightCard from '@/components/ui/SpotlightCard';
 import { Button } from '@/components/ui/Button';
 import { ExternalLink, HelpCircle } from 'lucide-react';
 
 export function RSCPriceSection() {
-  const [currentPrice] = useState(0.43); // This would be fetched from an API in real implementation
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => setIsLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
+  const { exchangeRate, isLoading, error } = useExchangeRate();
 
   return (
     <section className="py-20 bg-gradient-to-br from-[#3971FF] via-blue-600 to-[#3971FF] relative overflow-hidden">
@@ -75,12 +68,15 @@ export function RSCPriceSection() {
                     <div className="animate-pulse">
                       <div className="h-8 w-20 bg-gray-200 rounded"></div>
                     </div>
+                  ) : error ? (
+                    <span className="text-2xl font-bold text-red-600">Error</span>
                   ) : (
                     <span className="text-2xl font-bold text-gray-900">
-                      ${currentPrice.toFixed(2)}
+                      ${exchangeRate.toFixed(2)}
                     </span>
                   )}
                 </div>
+                {error && <p className="text-xs text-red-500 mt-1">Failed to load current price</p>}
               </div>
 
               <div className="h-12 w-px bg-gray-300 self-center hidden md:!block"></div>
