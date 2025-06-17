@@ -885,7 +885,7 @@ export const transformBountyCommentToFeedItem = (
     contentType: 'BOUNTY',
     createdDate: comment.createdDate,
     bounty: bounty,
-    createdBy: (comment as any).author,
+    createdBy: transformAuthorProfile(comment.createdBy.authorProfile),
     relatedDocumentId: comment.thread?.objectId,
     relatedDocumentContentType: contentType,
     comment: {
