@@ -77,7 +77,7 @@ const features: Feature[] = [
       'Only $300 APC fee',
       'Open peer review process',
       'Immediate preprint option',
-      'Reviewers paid $150 in RSC each',
+      'Reviewers paid $150 in RSC',
     ],
     primaryAction: {
       text: 'Submit paper',
@@ -176,14 +176,17 @@ export function FeaturesSection() {
               </div>
 
               {/* Description */}
-              <p className="text-lg text-gray-700 leading-relaxed max-w-xl mx-auto px-4">
+              <p className="text-base md:text-lg text-gray-700 leading-relaxed max-w-xl mx-auto px-2 md:px-4">
                 {features[activeFeature].description}
               </p>
 
               {/* Benefits Grid */}
-              <div className="flex flex-wrap gap-4 max-w-xl mx-auto px-4 justify-center">
+              <div className="flex flex-wrap gap-4 max-w-xl mx-auto px-2 md:px-4 justify-center">
                 {features[activeFeature].benefits.map((benefit, index) => (
-                  <div key={index} className="flex items-center space-x-3 text-left min-w-60">
+                  <div
+                    key={index}
+                    className="flex items-center space-x-3 text-left w-64 flex-shrink-0"
+                  >
                     <div
                       className={`w-2 h-2 rounded-full bg-gradient-to-r ${features[activeFeature].gradient} flex-shrink-0`}
                     />

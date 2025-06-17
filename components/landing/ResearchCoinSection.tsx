@@ -35,15 +35,15 @@ const whyRSCFeatures: WhyRSCFeature[] = [
     title: 'Control',
     subtitle: 'Your platform, your rules',
     description:
-      'ResearchCoin gives researchers direct control over platform governance. You vote on quality standards, reward mechanisms, and feature priorities — no corporate overlords.',
+      'ResearchCoin gives researchers direct control over platform governance. You vote on quality standards, reward mechanisms, and feature priorities.',
     benefits: [
-      'Direct voting on platform rules',
-      'Community-controlled algorithms',
-      'Researcher-set quality standards',
-      'Democratic platform governance',
+      'Researcher-led governance',
+      'User-driven platform rules',
+      'Voting rights with RSC',
+      'Decentralized control',
     ],
     iconName: 'upChart1',
-    gradient: 'from-orange-500 to-amber-400',
+    gradient: 'from-[#3971FF] to-[#4A7FFF]',
   },
   {
     id: 'tools',
@@ -58,7 +58,7 @@ const whyRSCFeatures: WhyRSCFeature[] = [
       'Advanced research tools',
     ],
     iconName: 'solidEarn',
-    gradient: 'from-gray-600 to-gray-400',
+    gradient: 'from-[#3971FF] to-[#4A7FFF]',
   },
 ];
 
@@ -139,7 +139,9 @@ export function ResearchCoinSection() {
             <div className="text-center space-y-8">
               {/* Header with Icon */}
               <div className="flex flex-col items-center space-y-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] flex items-center justify-center text-white shadow-lg">
+                <div
+                  className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${whyRSCFeatures[activeFeature].gradient} flex items-center justify-center text-white shadow-lg`}
+                >
                   <Icon
                     name={whyRSCFeatures[activeFeature].iconName as any}
                     size={32}
@@ -159,15 +161,20 @@ export function ResearchCoinSection() {
               </div>
 
               {/* Description */}
-              <p className="text-lg text-gray-700 leading-relaxed max-w-xl mx-auto px-4">
+              <p className="text-base md:text-lg text-gray-700 leading-relaxed max-w-xl mx-auto px-2 md:px-4">
                 {whyRSCFeatures[activeFeature].description}
               </p>
 
               {/* Benefits Grid */}
-              <div className="flex flex-wrap gap-4 max-w-xl mx-auto px-4 justify-center">
+              <div className="flex flex-wrap gap-4 max-w-xl mx-auto px-2 md:px-4 justify-center">
                 {whyRSCFeatures[activeFeature].benefits.map((benefit, index) => (
-                  <div key={index} className="flex items-center space-x-3 text-left min-w-60">
-                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] flex-shrink-0" />
+                  <div
+                    key={index}
+                    className="flex items-center space-x-3 text-left w-64 flex-shrink-0"
+                  >
+                    <div
+                      className={`w-2 h-2 rounded-full bg-gradient-to-r ${whyRSCFeatures[activeFeature].gradient} flex-shrink-0`}
+                    />
                     <span className="text-gray-700 text-base">{benefit}</span>
                   </div>
                 ))}
