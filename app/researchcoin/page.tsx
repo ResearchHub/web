@@ -10,6 +10,7 @@ import { ExportFilterModal } from '@/components/modals/ResearchCoin/ExportFilter
 import { TransactionService } from '@/services/transaction.service';
 import { useSession } from 'next-auth/react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { formatBalance } from '@/components/ResearchCoin/lib/types';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { usePendingDeposits } from '@/hooks/usePendingDeposits';
@@ -23,6 +24,7 @@ export default function ResearchCoinPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
   const { exchangeRate, isLoading: isFetchingExchangeRate } = useExchangeRate();
+  const { showUSD } = useCurrencyPreference();
   const {
     hasPendingDepositFeed,
     isLoading: isLoadingPendingDeposits,
@@ -78,8 +80,12 @@ export default function ResearchCoinPage() {
       <div className="w-full">
         {/* Mobile header */}
         <MainPageHeader
-          title="My ResearchCoin"
-          subtitle="Manage your RSC wallet and transactions"
+          title={showUSD ? 'My USD Wallet' : 'My ResearchCoin'}
+          subtitle={
+            showUSD
+              ? 'Manage your USD wallet and transactions'
+              : 'Manage your RSC wallet and transactions'
+          }
           icon={<ResearchCoinIcon outlined size={24} color="#000" />}
         />
 
@@ -101,6 +107,7 @@ export default function ResearchCoinPage() {
                 ref={transactionFeedRef}
                 onExport={handleExport}
                 exchangeRate={exchangeRate}
+                showUSD={showUSD}
                 isExporting={isExporting}
                 onRefresh={handleRefresh}
                 isRefreshing={isRefreshing}

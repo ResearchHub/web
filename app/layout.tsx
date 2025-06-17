@@ -5,6 +5,7 @@ import localFont from 'next/font/local';
 import './globals.css';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { ExchangeRateProvider } from '@/contexts/ExchangeRateContext';
+import { CurrencyPreferenceProvider } from '@/contexts/CurrencyPreferenceContext';
 import { AuthModalProvider } from '@/contexts/AuthModalContext';
 import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
@@ -67,11 +68,13 @@ export default async function RootLayout({
                   <UserProvider>
                     <VerificationProvider>
                       <ExchangeRateProvider>
-                        <NotificationProvider>
-                          <OrganizationProvider>
-                            <FollowProvider>{children}</FollowProvider>
-                          </OrganizationProvider>
-                        </NotificationProvider>
+                        <CurrencyPreferenceProvider>
+                          <NotificationProvider>
+                            <OrganizationProvider>
+                              <FollowProvider>{children}</FollowProvider>
+                            </OrganizationProvider>
+                          </NotificationProvider>
+                        </CurrencyPreferenceProvider>
                       </ExchangeRateProvider>
                     </VerificationProvider>
                   </UserProvider>

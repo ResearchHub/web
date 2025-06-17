@@ -10,6 +10,8 @@ import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Work } from '@/types/work';
 import { TipContentModal } from '@/components/modals/TipContentModal';
+import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 interface SupportersSectionProps {
   tips: Tip[];
@@ -20,6 +22,7 @@ interface SupportersSectionProps {
 export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], documentId, onTip }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showAllSupporters, setShowAllSupporters] = useState(false);
+  const { showUSD } = useCurrencyPreference();
 
   const hasSupporters = tips && tips.length > 0;
   const displayLimit = 5; // Show only top 5 supporters in the sidebar
@@ -60,9 +63,17 @@ export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], docum
                   />
                   <span className="text-sm font-medium text-gray-900">{tip.user.fullName}</span>
                 </div>
-                <span className="text-sm font-medium text-orange-500">
-                  +{formatRSC({ amount: tip.amount, round: true })} RSC
-                </span>
+                <div className="flex items-center text-sm font-medium text-orange-500">
+                  <span className="mr-0.5">+</span>
+                  <CurrencyBadge
+                    amount={tip.amount}
+                    variant="text"
+                    size="xs"
+                    currency={showUSD ? 'USD' : 'RSC'}
+                    showText={true}
+                    className="text-orange-500 font-medium"
+                  />
+                </div>
               </div>
             ))}
           </div>

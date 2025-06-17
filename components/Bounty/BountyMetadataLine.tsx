@@ -3,6 +3,7 @@ import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Check } from 'lucide-react';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 interface BountyMetadataLineProps {
   amount: number;
@@ -22,6 +23,8 @@ export const BountyMetadataLine = ({
   className = '',
   showDeadline = true,
 }: BountyMetadataLineProps) => {
+  const { showUSD } = useCurrencyPreference();
+
   // Format the deadline text
   const deadlineText = isOpen
     ? expirationDate
@@ -36,7 +39,12 @@ export const BountyMetadataLine = ({
         {/* Badges */}
         <div className="flex flex-wrap gap-2">
           <ContentTypeBadge type="bounty" />
-          <CurrencyBadge amount={amount} size="sm" variant={isOpen ? 'badge' : 'disabled'} />
+          <CurrencyBadge
+            amount={amount}
+            size="sm"
+            variant={isOpen ? 'badge' : 'disabled'}
+            currency={showUSD ? 'USD' : 'RSC'}
+          />
         </div>
 
         {showDeadline && (

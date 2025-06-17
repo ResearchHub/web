@@ -15,6 +15,7 @@ import { formatRSC } from '@/utils/number';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { Icon } from '../ui/icons';
 import { AvatarStack } from '@/components/ui/AvatarStack';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 interface FundraiseProgressProps {
   fundraise: Fundraise;
@@ -38,6 +39,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   variant = 'default',
 }) => {
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
+  const { showUSD } = useCurrencyPreference();
 
   if (!fundraise) return null;
 
@@ -166,7 +168,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   variant="text"
                   size="xs"
                   showText={false}
-                  showExchangeRate={true}
+                  currency={showUSD ? 'USD' : 'RSC'}
                   shorten
                 />
                 <span className="font-medium text-gray-700 mx-0.5 text-sm mobile:text-base">/</span>
@@ -175,7 +177,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   variant="text"
                   size="xs"
                   showText={true}
-                  showExchangeRate={true}
+                  currency={showUSD ? 'USD' : 'RSC'}
                   shorten
                 />
               </div>
@@ -263,7 +265,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     variant="text"
                     size="md"
                     showText={false}
-                    showExchangeRate={true}
+                    currency={showUSD ? 'USD' : 'RSC'}
                     className="font-medium text-orange-500 text-base mobile:text-lg pl-0"
                   />
                   <span className="text-gray-500 text-base mobile:text-lg">raised of</span>
@@ -272,8 +274,8 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     variant="text"
                     size="md"
                     showText={true}
-                    showIcon={false}
-                    showExchangeRate={true}
+                    showIcon={true}
+                    currency={showUSD ? 'USD' : 'RSC'}
                     className="text-gray-500 text-base mobile:text-lg"
                   />
                   <span className="text-gray-500 text-base mobile:text-lg">goal</span>

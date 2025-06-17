@@ -19,6 +19,7 @@ import { calculateUpdateRate } from '@/components/Fund/lib/FundUtils';
 import { FundingRightSidebar } from './FundingRightSidebar';
 import { useUser } from '@/contexts/UserContext';
 import { UpdateRateBadge } from '@/components/ui/badges/UpdateRateBadge';
+import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 
 interface FundDocumentProps {
   work: Work;
@@ -210,6 +211,7 @@ export const FundDocument = ({
 
   return (
     <div>
+      <EarningOpportunityBanner work={work} metadata={metadata} />
       {/* Title & Actions */}
       {work.type === 'preprint' && (
         <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">

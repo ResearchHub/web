@@ -20,8 +20,11 @@ import { Bounty } from '@/types/bounty';
 import { Tip } from '@/types/tip';
 import { formatRSC } from '@/utils/number';
 import { extractBountyAvatars } from '@/components/Bounty/lib/bountyUtil';
+import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useUser } from '@/contexts/UserContext';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { dedupeAvatars } from '@/utils/avatarUtil';
 import { cn } from '@/utils/styles';
 
@@ -66,7 +69,7 @@ export interface ExtendedContentMetrics {
 
 interface ActionButtonProps {
   icon: any;
-  count?: number | string;
+  count?: number | string | ReactNode;
   label: string;
   tooltip?: string;
   onClick?: (e?: React.MouseEvent) => void;
@@ -202,6 +205,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser(); // Get current user
+  const { showUSD } = useCurrencyPreference();
+  const { exchangeRate } = useExchangeRate();
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
@@ -442,9 +447,11 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     ),
     label:
       totalEarnedAmount > 0
-        ? `Tip / Earned +${formatRSC({ amount: totalEarnedAmount, shorten: true })}`
-        : 'Tip RSC',
-    tooltip: 'Tip RSC',
+        ? `Tip / Earned +` // The amount will be handled by count prop
+        : showUSD
+          ? 'Tip USD'
+          : 'Tip RSC',
+    tooltip: showUSD ? 'Tip USD' : 'Tip RSC',
     onClick: handleOpenTipModal,
     className: totalEarnedAmount > 0 ? 'text-green-600' : '',
   };
@@ -520,7 +527,17 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                       <div className="font-medium mb-1">ResearchCoin Earning Opportunity</div>
                       <div>
                         This content includes a bounty. Complete tasks to earn{' '}
-                        {formatRSC({ amount: totalBountyAmount, shorten: true })} RSC.
+                        <CurrencyBadge
+                          amount={totalBountyAmount}
+                          variant="text"
+                          size="xs"
+                          currency={showUSD ? 'USD' : 'RSC'}
+                          shorten={true}
+                          showExchangeRate={false}
+                          showIcon={true}
+                          showText={false}
+                        />
+                        .
                       </div>
                     </div>
                   </div>
@@ -539,13 +556,24 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                   )}
                   tooltip=""
                   label="Bounties"
-                  count={formatRSC({ amount: totalBountyAmount, shorten: true })}
+                  count={
+                    <CurrencyBadge
+                      amount={totalBountyAmount}
+                      variant="text"
+                      size="xs"
+                      currency={showUSD ? 'USD' : 'RSC'}
+                      shorten={true}
+                      showExchangeRate={false}
+                      showIcon={true}
+                      showText={false}
+                    />
+                  }
                   showTooltip={false}
                   onClick={handleBountyClick}
                   avatars={dedupedBountyAvatars}
                   className={
                     hasOpenBounties
-                      ? 'text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700'
+                      ? 'text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700 mr-0'
                       : ''
                   }
                 />
@@ -562,7 +590,18 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 )}
                 tooltip="Bounties"
                 label="Bounties"
-                count={formatRSC({ amount: totalBountyAmount, shorten: true })}
+                count={
+                  <CurrencyBadge
+                    amount={totalBountyAmount}
+                    variant="text"
+                    size="xs"
+                    currency={showUSD ? 'USD' : 'RSC'}
+                    shorten={true}
+                    showExchangeRate={false}
+                    showIcon={true}
+                    showText={false}
+                  />
+                }
                 showTooltip={false}
                 onClick={handleBountyClick}
                 avatars={dedupedBountyAvatars}
@@ -583,12 +622,26 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                   color={totalEarnedAmount > 0 ? '#16A34A' : undefined}
                 />
               )}
-              tooltip="Tip RSC"
+              tooltip={showUSD ? 'Tip USD' : 'Tip RSC'}
               label="Tip"
               onClick={handleOpenTipModal}
               showTooltip={showTooltips}
               {...(totalEarnedAmount > 0 && {
-                count: `+${formatRSC({ amount: totalEarnedAmount, shorten: true })}`,
+                count: (
+                  <span className="flex items-center gap-0.5">
+                    +
+                    <CurrencyBadge
+                      amount={totalEarnedAmount}
+                      variant="text"
+                      size="xs"
+                      currency={showUSD ? 'USD' : 'RSC'}
+                      shorten={true}
+                      showExchangeRate={false}
+                      showIcon={true}
+                      showText={false}
+                    />
+                  </span>
+                ),
                 className: 'text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700',
                 avatars: localTipAvatars,
               })}

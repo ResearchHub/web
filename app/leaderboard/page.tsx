@@ -34,6 +34,7 @@ import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { faMedal, faRibbon, faStar } from '@fortawesome/pro-solid-svg-icons';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 // Skeleton for the list items
 const LeaderboardListSkeleton = () => (
@@ -181,6 +182,7 @@ const CustomDateRangeModal = ({
 function LeaderboardPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showUSD } = useCurrencyPreference();
 
   const initialTab = searchParams.get('tab') || 'reviewers';
   const initialFromDateStr = searchParams.get('from_date');
@@ -560,10 +562,12 @@ function LeaderboardPageContent() {
                       amount={reviewer.earnedRsc}
                       variant="text"
                       size="md"
-                      label="RSC Earned"
-                      showExchangeRate={true}
+                      label={showUSD ? 'USD Earned' : 'RSC Earned'}
+                      currency={showUSD ? 'USD' : 'RSC'}
                       textColor="text-gray-700"
                       currencyLabelColor="text-gray-500"
+                      showIcon={true}
+                      showText={true}
                     />
                   </div>
                 );
@@ -626,10 +630,12 @@ function LeaderboardPageContent() {
                     amount={funder.totalFunding}
                     variant="text"
                     size="md"
-                    label="RSC Funded"
-                    showExchangeRate={true}
+                    label={showUSD ? 'USD Funded' : 'RSC Funded'}
+                    currency={showUSD ? 'USD' : 'RSC'}
                     textColor="text-gray-700"
                     currencyLabelColor="text-gray-500"
+                    showIcon={true}
+                    showText={true}
                   />
                 </div>
               );

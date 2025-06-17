@@ -149,16 +149,29 @@ export interface FormattedTransaction extends TransactionAPIRequest {
 
 export function formatTransaction(
   tx: TransactionAPIRequest,
-  exchangeRate: number
+  exchangeRate: number,
+  showUSD: boolean = false
 ): FormattedTransaction {
   const amount = parseFloat(tx.amount);
   const isPositive = amount >= 0;
-  const formattedAmount = formatRSC({ amount: Math.abs(amount) });
+  const absAmount = Math.abs(amount);
+
+  let primaryAmount: string;
+  let secondaryAmount: string;
+
+  if (showUSD && exchangeRate > 0) {
+    const usdAmount = absAmount * exchangeRate;
+    primaryAmount = `${isPositive ? '+' : '-'}$${usdAmount.toFixed(2)}`;
+    secondaryAmount = `${formatRSC({ amount: absAmount })} RSC`;
+  } else {
+    primaryAmount = `${isPositive ? '+' : '-'}${formatRSC({ amount: absAmount })} RSC`;
+    secondaryAmount = formatUsdValue(tx.amount, exchangeRate);
+  }
 
   return {
     ...tx,
-    formattedAmount: `${isPositive ? '+' : '-'}${formattedAmount} RSC`,
-    formattedUsdValue: formatUsdValue(tx.amount, exchangeRate),
+    formattedAmount: primaryAmount,
+    formattedUsdValue: secondaryAmount,
     formattedDate: formatTimestamp(tx.created_date),
     typeInfo: getTransactionTypeInfo(tx),
     isPositive,

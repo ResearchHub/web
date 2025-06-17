@@ -89,6 +89,14 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     };
   }
 
+  if (pathname.startsWith('/bounty/create')) {
+    return {
+      title: 'Create Bounty',
+      subtitle: 'Incentivize the research economy',
+      icon: <Icon name="earn1" size={20} className="text-primary-600" />,
+    };
+  }
+
   if (pathname.startsWith('/bounties')) {
     return {
       title: 'Bounties',

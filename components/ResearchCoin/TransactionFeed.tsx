@@ -15,6 +15,7 @@ const LOADING_SKELETON_COUNT = 3;
 interface TransactionFeedProps {
   onExport: () => void;
   exchangeRate: number;
+  showUSD?: boolean;
   isExporting: boolean;
   onRefresh?: () => Promise<void>;
   isRefreshing?: boolean;
@@ -26,7 +27,7 @@ export type TransactionFeedHandle = {
 
 export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeedProps>(
   function TransactionFeed(
-    { onExport, exchangeRate, isExporting, onRefresh, isRefreshing = false },
+    { onExport, exchangeRate, showUSD = false, isExporting, onRefresh, isRefreshing = false },
     ref
   ) {
     const { data: session, status } = useSession();
@@ -276,7 +277,7 @@ export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeed
               {transactions.map((transaction) => (
                 <TransactionFeedItem
                   key={transaction.id}
-                  transaction={formatTransaction(transaction, exchangeRate)}
+                  transaction={formatTransaction(transaction, exchangeRate, showUSD)}
                 />
               ))}
             </div>

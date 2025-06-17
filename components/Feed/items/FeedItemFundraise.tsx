@@ -13,10 +13,10 @@ import { useRouter } from 'next/navigation';
 import { Flag, Users, Building } from 'lucide-react';
 import Image from 'next/image';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import { formatRSC } from '@/utils/number';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
 import Link from 'next/link';
 import { CardWrapper } from './CardWrapper';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
@@ -158,15 +158,13 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
   const router = useRouter();
+  const { showUSD } = useCurrencyPreference();
 
   // Check if this is a preregistration with fundraise data
   const hasFundraise = post.contentType === 'PREREGISTRATION' && post.fundraise;
 
   // Get the author from the post
   const author = post.createdBy;
-
-  // Convert USD amount to RSC for the header
-  const goalAmountRSC = hasFundraise ? post.fundraise!.goalAmount.rsc : 0;
 
   // Extract contributors if this is a preregistration with fundraise data
   const contributors = hasFundraise ? extractContributors(post.fundraise) : [];

@@ -1,13 +1,18 @@
+'use client';
+
 import { Fundraise } from '@/types/funding';
 import { BarChart3, Users } from 'lucide-react';
 import { Icon } from '@/components/ui/icons/Icon';
 import { formatRSC } from '@/utils/number';
+import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 interface FundraiseSectionProps {
   fundraise: Fundraise;
 }
 
 export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
+  const { showUSD } = useCurrencyPreference();
   const progress = (fundraise.amountRaised.rsc / fundraise.goalAmount.rsc) * 100;
 
   return (
@@ -20,12 +25,22 @@ export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
         {/* Progress Bar */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">
-              {formatRSC({ amount: fundraise.amountRaised.rsc, round: true })} RSC
-            </span>
-            <span className="text-gray-600">
-              {formatRSC({ amount: fundraise.goalAmount.rsc, round: true })} RSC
-            </span>
+            <CurrencyBadge
+              amount={fundraise.amountRaised.rsc}
+              variant="text"
+              size="xs"
+              currency={showUSD ? 'USD' : 'RSC'}
+              showText={true}
+              className="text-gray-600"
+            />
+            <CurrencyBadge
+              amount={fundraise.goalAmount.rsc}
+              variant="text"
+              size="xs"
+              currency={showUSD ? 'USD' : 'RSC'}
+              showText={true}
+              className="text-gray-600"
+            />
           </div>
           <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
             <div
