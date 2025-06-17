@@ -81,7 +81,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   const navigationItems: NavigationItem[] = [
     {
       label: 'Home',
-      href: '/',
+      href: '/trending',
       iconKey: 'home',
       isFontAwesome: true,
       description: 'Navigate to the home page',
