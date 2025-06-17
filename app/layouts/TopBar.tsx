@@ -1,8 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Menu, User, ArrowLeft, Sparkles, ChartNoAxesColumnIncreasing } from 'lucide-react';
+import {
+  Menu,
+  User,
+  ArrowLeft,
+  Sparkles,
+  ChartNoAxesColumnIncreasing,
+  Search as SearchIcon,
+} from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
+import { SearchModal } from '@/components/Search/SearchModal';
 import { Search } from '@/components/Search/Search';
 import UserMenu from '@/components/menus/UserMenu';
 import { useRouter, usePathname } from 'next/navigation';
@@ -67,9 +75,9 @@ const getPageInfo = (pathname: string): PageInfo | null => {
 
   if (pathname === '/researchcoin') {
     return {
-      title: 'ResearchCoin',
+      title: 'My ResearchCoin',
       subtitle: 'Manage your RSC wallet and transactions',
-      icon: <ResearchCoinIcon outlined size={20} color="#000" />,
+      icon: <ResearchCoinIcon outlined size={24} color="#000" />,
     };
   }
 
@@ -242,8 +250,29 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { unreadCount } = useNotifications();
   const goBack = useSmartBack();
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   const pageInfo = getPageInfo(pathname);
+
+  // Global keyboard shortcut for search (Cmd/Ctrl + K)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+        event.preventDefault();
+        setIsSearchModalOpen(true);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  // Detect OS for keyboard shortcut display
+  const isMac =
+    typeof window !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  const shortcutText = isMac ? '⌘K' : 'Ctrl+K';
 
   const handleViewProfile = () => {
     if (user?.authorProfile?.profileUrl) {
@@ -273,7 +302,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                   onClick={goBack}
                   className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  <ArrowLeft className="h-5 w-5 text-gray-600" />
+                  <ArrowLeft className="h-6 w-6 text-gray-600" />
                 </button>
               </div>
             )}
@@ -296,12 +325,13 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
             )}
           </div>
 
-          {/* Center - Search bar (mobile only) */}
+          {/* Center - Search input (mobile only) */}
           <div className="flex-1 flex justify-center px-4 tablet:!hidden">
-            <div className="w-full max-w-xl">
+            <div className="w-full max-w-md">
               <Search
                 placeholder="Search papers, topics..."
-                className="[&_input]:rounded-full [&_input]:bg-[#F8F9FC]"
+                className="[&_input]:rounded-full [&_input]:bg-[#F8F9FC] [&_input]:h-10"
+                displayMode="dropdown"
               />
             </div>
           </div>
@@ -310,13 +340,23 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
           <div className="flex items-center space-x-2">
             {/* Desktop user controls */}
             <div className="hidden tablet:!flex items-center space-x-1">
+              {/* Search icon */}
+              <Tooltip content={`Search (${shortcutText})`} position="bottom">
+                <button
+                  onClick={() => setIsSearchModalOpen(true)}
+                  className="flex items-center justify-center p-2.5 hover:bg-gray-100 rounded-md transition-colors"
+                >
+                  <SearchIcon className="h-6 w-6 text-gray-500" />
+                </button>
+              </Tooltip>
+
               {user && (
                 <>
                   {/* Wallet icon */}
                   <Tooltip content="Your ResearchCoin Wallet" position="bottom">
                     <Link href="/researchcoin" className="flex items-center">
                       <div className="flex items-center justify-center p-2.5 hover:bg-gray-100 rounded-md transition-colors">
-                        <ResearchCoinIcon outlined color="#676767" size={20} />
+                        <ResearchCoinIcon outlined color="#676767" size={24} />
                       </div>
                     </Link>
                   </Tooltip>
@@ -325,7 +365,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                   <Tooltip content="Notifications" position="bottom">
                     <Link href="/notifications" className="flex items-center">
                       <div className="flex items-center justify-center p-2.5 hover:bg-gray-100 rounded-md transition-colors relative">
-                        <Icon name="notification" size={20} className="text-gray-500" />
+                        <Icon name="notification" size={24} className="text-gray-500" />
                         {unreadCount > 0 && (
                           <div className="absolute top-1 right-1 h-3 w-3 rounded-full bg-primary-600 text-white flex items-center justify-center">
                             <span className="font-medium text-[9px]">
@@ -348,7 +388,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                   className="w-8 h-8 rounded-full bg-gray-200 p-0"
                   onClick={() => executeAuthenticatedAction(() => router.push('/'))}
                 >
-                  <User size={18} />
+                  <User size={24} />
                 </Button>
               )}
             </div>
@@ -363,13 +403,16 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                   className="w-8 h-8 rounded-full bg-gray-200 p-0"
                   onClick={() => executeAuthenticatedAction(() => router.push('/'))}
                 >
-                  <User size={20} />
+                  <User size={24} />
                 </Button>
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Search Modal */}
+      <SearchModal isOpen={isSearchModalOpen} onClose={() => setIsSearchModalOpen(false)} />
     </>
   );
 };

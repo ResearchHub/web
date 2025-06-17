@@ -2,7 +2,6 @@
 
 import { ReactNode, useState, Suspense, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { Search } from '@/components/Search/Search';
 import { OnboardingRedirect } from '@/components/OnboardingRedirect';
 import { usePathname } from 'next/navigation';
 import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
@@ -207,16 +206,8 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
               style={{ transform: `translateY(${sidebarTransform}px)` }}
               className="transition-transform duration-150 ease-out h-full"
             >
-              {/* Search Bar */}
-              <div className="sticky top-0 z-40 bg-white pt-2 pb-4 px-4">
-                <Search
-                  placeholder="Search..."
-                  className="[&_input]:rounded-full [&_input]:bg-[#F8F9FC]"
-                />
-              </div>
-
               {/* Sidebar Content */}
-              <div className="px-4">
+              <div className="px-4 pt-4">
                 <Suspense fallback={<RightSidebarSkeleton />}>
                   {pathname.startsWith('/paper/create') ? (
                     <RHJRightSidebar showBanner={false} />

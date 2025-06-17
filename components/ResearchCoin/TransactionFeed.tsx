@@ -6,7 +6,7 @@ import type { TransactionAPIRequest } from '@/services/types/transaction.dto';
 import { formatTransaction } from './lib/types';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
-import { FileDown, Coins, HelpCircle, Plus } from 'lucide-react';
+import { FileDown, Coins, HelpCircle, Plus, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const INITIAL_PAGE = 1;
@@ -16,6 +16,8 @@ interface TransactionFeedProps {
   onExport: () => void;
   exchangeRate: number;
   isExporting: boolean;
+  onRefresh?: () => Promise<void>;
+  isRefreshing?: boolean;
 }
 
 export type TransactionFeedHandle = {
@@ -23,7 +25,10 @@ export type TransactionFeedHandle = {
 };
 
 export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeedProps>(
-  function TransactionFeed({ onExport, exchangeRate, isExporting }, ref) {
+  function TransactionFeed(
+    { onExport, exchangeRate, isExporting, onRefresh, isRefreshing = false },
+    ref
+  ) {
     const { data: session, status } = useSession();
     const [transactions, setTransactions] = useState<TransactionAPIRequest[]>([]);
     const [isLoading, setIsLoading] = useState(true); // For initial load
@@ -111,22 +116,35 @@ export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeed
                 <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help transition-colors" />
                 <div
                   className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 
-                  bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible
-                  group-hover:opacity-100 group-hover:visible transition-all duration-200
-                  whitespace-nowrap shadow-lg z-10 w-max max-w-md"
+                bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible
+                group-hover:opacity-100 group-hover:visible transition-all duration-200
+                whitespace-nowrap shadow-lg z-10 w-max max-w-md"
                 >
                   USD values reflect current exchange rates
                   <div
                     className="absolute left-1/2 -translate-x-1/2 top-full
-                    border-4 border-transparent border-t-gray-900"
+                  border-4 border-transparent border-t-gray-900"
                   ></div>
                 </div>
               </div>
             </div>
-            <Button disabled variant="outlined" size="default" className="gap-2">
-              <FileDown className="h-4 w-4" />
-              Export
-            </Button>
+            <div className="flex items-center gap-2">
+              {onRefresh && (
+                <button
+                  className="flex items-center justify-center p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
+                  onClick={onRefresh}
+                  disabled={isRefreshing}
+                  aria-label="Refresh"
+                  title="Refresh transactions"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                </button>
+              )}
+              <Button disabled variant="outlined" size="default" className="gap-2">
+                <FileDown className="h-4 w-4" />
+                Export
+              </Button>
+            </div>
           </div>
           <div className="space-y-4">
             {[...Array(LOADING_SKELETON_COUNT)].map((_, index) => (
@@ -199,17 +217,30 @@ export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeed
               </div>
             </div>
           </div>
-          <Button
-            onClick={onExport}
-            disabled={isLoading || !transactions.length || isExporting}
-            variant="outlined"
-            size="default"
-            className="gap-2"
-            title={isExporting ? 'Export in progress...' : undefined}
-          >
-            <FileDown className="h-4 w-4" />
-            {isExporting ? 'Exporting...' : 'Export'}
-          </Button>
+          <div className="flex items-center gap-2">
+            {onRefresh && (
+              <button
+                className="flex items-center justify-center p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
+                onClick={onRefresh}
+                disabled={isRefreshing}
+                aria-label="Refresh"
+                title="Refresh transactions"
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </button>
+            )}
+            <Button
+              onClick={onExport}
+              disabled={isLoading || !transactions.length || isExporting}
+              variant="outlined"
+              size="default"
+              className="gap-2"
+              title={isExporting ? 'Export in progress...' : undefined}
+            >
+              <FileDown className="h-4 w-4" />
+              {isExporting ? 'Exporting...' : 'Export'}
+            </Button>
+          </div>
         </div>
 
         {userHasNoTransactions ? (

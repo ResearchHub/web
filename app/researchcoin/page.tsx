@@ -11,9 +11,10 @@ import { TransactionService } from '@/services/transaction.service';
 import { useSession } from 'next-auth/react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatBalance } from '@/components/ResearchCoin/lib/types';
-import { PageHeader } from '@/components/ui/PageHeader';
+import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { usePendingDeposits } from '@/hooks/usePendingDeposits';
 import { RefreshCw } from 'lucide-react';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 
 export default function ResearchCoinPage() {
   const { data: session, status } = useSession();
@@ -75,17 +76,12 @@ export default function ResearchCoinPage() {
   return (
     <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
       <div className="w-full">
-        <div className="flex justify-between items-center">
-          <PageHeader title="My ResearchCoin" />
-          <button
-            className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            aria-label="Refresh"
-          >
-            <RefreshCw className={`h-5 w-5 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
+        {/* Mobile header */}
+        <MainPageHeader
+          title="My ResearchCoin"
+          subtitle="Manage your RSC wallet and transactions"
+          icon={<ResearchCoinIcon outlined size={24} color="#000" />}
+        />
 
         <div className="py-6">
           <div className="flex">
@@ -106,6 +102,8 @@ export default function ResearchCoinPage() {
                 onExport={handleExport}
                 exchangeRate={exchangeRate}
                 isExporting={isExporting}
+                onRefresh={handleRefresh}
+                isRefreshing={isRefreshing}
               />
 
               {isExportModalOpen && (
