@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { ExternalLink, HelpCircle } from 'lucide-react';
 
 export function RSCPriceSection() {
-  const [currentPrice] = useState(0.33); // This would be fetched from an API in real implementation
+  const [currentPrice] = useState(0.44); // This would be fetched from an API in real implementation
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
