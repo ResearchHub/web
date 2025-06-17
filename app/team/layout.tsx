@@ -1,6 +1,6 @@
 import { LeftSidebar as MainLeftSidebar } from '../layouts/LeftSidebar';
 
-export default function AboutLayout({ children }: { children: React.ReactNode }) {
+export default function TeamLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <div

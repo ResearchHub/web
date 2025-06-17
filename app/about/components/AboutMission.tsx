@@ -21,7 +21,7 @@ export const AboutMission = () => {
           </div>
           <div className="relative h-[400px]">
             <Image
-              src="/static/about/about-1.png"
+              src="/about/about-1.png"
               alt="ResearchHub Platform"
               fill
               className="object-contain"
@@ -32,7 +32,7 @@ export const AboutMission = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mt-16">
           <div className="relative h-[400px] order-2 lg:order-1">
             <Image
-              src="/static/about/about-hubs.png"
+              src="/about/about-hubs.png"
               alt="ResearchHub Hubs"
               fill
               className="object-contain"
