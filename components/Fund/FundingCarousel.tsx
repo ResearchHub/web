@@ -84,8 +84,8 @@ export const FundingCarousel: FC<FundingCarouselProps> = () => {
   return (
     <div className="border-primary-100 my-12 relative">
       {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-4 mb-4">
+        <div className="flex-1 min-w-0">
           <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
             <span>
               <Icon name="fund" size={24} />
@@ -94,10 +94,15 @@ export const FundingCarousel: FC<FundingCarouselProps> = () => {
           </h2>
           <p className="text-sm text-gray-600 font-medium mt-1">Support groundbreaking research.</p>
         </div>
-        <Link href="/fund" className="text-blue-600 hover:text-blue-700 flex items-center text-xs">
-          All Funding
-          <ArrowRight size={14} className="ml-1" />
-        </Link>
+        <div className="flex-shrink-0">
+          <Link
+            href="/fund"
+            className="text-blue-600 hover:text-blue-700 flex items-center text-xs font-medium"
+          >
+            All Funding
+            <ArrowRight size={14} className="ml-1" />
+          </Link>
+        </div>
       </div>
 
       {/* Carousel Container */}

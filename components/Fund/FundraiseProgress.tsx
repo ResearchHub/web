@@ -147,7 +147,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   }
 
   const defaultContainerClasses = compact
-    ? 'p-3 mobile:!p-4 bg-white rounded-lg border border-gray-200'
+    ? 'p-3  bg-white rounded-lg border border-gray-200'
     : 'p-4 bg-white rounded-lg border border-gray-200';
 
   if (compact) {
@@ -194,30 +194,23 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
             <Progress value={progressPercentage} variant={getProgressVariant()} size="xs" />
           </div>
 
-          {/* Bottom row: Fund CTA on left, contributors on right - Stack on mobile */}
-          <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between gap-3 mobile:!gap-0">
+          {/* Bottom row: Fund CTA on left, contributors on right - Always in row on mobile and desktop */}
+          <div className="flex items-center justify-between gap-3">
             {showContribute && (
               <Button
                 variant="contribute"
                 size="sm"
                 disabled={!isActive}
-                className="flex items-center gap-1 py-1 bg-orange-400 hover:bg-orange-500 text-white font-semibold transition-all duration-200 border-0"
+                className="flex items-center gap-1 py-1.5 px-3 bg-orange-400 hover:bg-orange-500 text-white font-semibold transition-all duration-200 border-0 text-xs"
                 onClick={handleContributeClick}
               >
-                <Icon name="giveRSC" size={18} color="white" />
+                <Icon name="giveRSC" size={16} color="white" />
                 Fund
               </Button>
             )}
 
             {contributors.length > 0 && (
-              <div
-                className={cn(
-                  showContribute ? '' : 'mobile:!ml-auto',
-                  'cursor-pointer',
-                  'flex justify-center mobile:!justify-end'
-                )}
-                onClick={handleContributeClick}
-              >
+              <div className="cursor-pointer flex-shrink-0" onClick={handleContributeClick}>
                 <AvatarStack
                   items={contributors.map((contributor) => ({
                     src: contributor.profile.profileImage || '',
@@ -235,8 +228,9 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                 />
               </div>
             )}
-            {/* Ensure the div takes space even if empty to maintain layout */}
-            {!showContribute && contributors.length === 0 && <div className="flex-1"></div>}
+
+            {/* Spacer to maintain layout when no contributors */}
+            {contributors.length === 0 && showContribute && <div className="flex-shrink-0"></div>}
           </div>
         </div>
 

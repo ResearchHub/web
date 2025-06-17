@@ -8,10 +8,8 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { WorkTabs, TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { GrantApplications } from './GrantApplications';
-import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { differenceInCalendarDays, format } from 'date-fns';
 import { PostBlockEditor } from './PostBlockEditor';
-import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 interface GrantDocumentProps {
   work: Work;
@@ -27,7 +25,6 @@ export const GrantDocument = ({
   defaultTab = 'paper',
 }: GrantDocumentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
-  const { showUSD } = useCurrencyPreference();
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -93,17 +90,11 @@ export const GrantDocument = ({
           <div className="flex items-start">
             <span className="font-medium text-gray-900 w-28">Amount</span>
             <div className="flex flex-row items-center gap-2">
-              <CurrencyBadge
-                amount={work.note?.post?.grant?.amount.usd}
-                currency={showUSD ? 'USD' : 'RSC'}
-                variant="text"
-                showText={true}
-                showIcon={true}
-                textColor="text-orange-600"
-                className="font-semibold p-0"
-                shorten={false}
-                showExchangeRate={true}
-              />
+              <div className="font-semibold text-orange-500 flex items-center gap-1">
+                <span>$</span>
+                {(work.note?.post?.grant?.amount.usd || 0).toLocaleString()}
+                <span>USD</span>
+              </div>
               <div className="h-4 w-px bg-gray-300" />
               <div className="text-sm text-gray-600">Multiple applicants can be selected</div>
             </div>

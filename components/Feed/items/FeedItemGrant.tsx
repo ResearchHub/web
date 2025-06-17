@@ -6,7 +6,6 @@ import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { cn } from '@/utils/styles';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
-import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useRouter } from 'next/navigation';
 import { Users, Building, Calendar } from 'lucide-react';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
@@ -18,7 +17,6 @@ import Icon from '@/components/ui/icons/Icon';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CardWrapper } from './CardWrapper';
-import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 // Grant-specific content type that extends the feed entry structure
 export interface FeedGrantContent {
@@ -83,7 +81,6 @@ const FeedItemGrantBody: FC<{
   // Extract the grant from the entry's content
   const grant = entry.content as FeedGrantContent;
   const router = useRouter();
-  const { showUSD } = useCurrencyPreference();
 
   // Get topics/tags for display
   const topics = grant.topics || [];
@@ -173,16 +170,10 @@ const FeedItemGrantBody: FC<{
           {/* Funding Amount */}
           {(grant.grantAmount || grant.grant?.amount) && (
             <div className="flex flex-wrap items-baseline gap-1 mb-3">
-              <CurrencyBadge
-                amount={grant.grantAmount?.amount || grant.grant?.amount?.usd || 0}
-                currency={showUSD ? 'USD' : 'RSC'}
-                variant="text"
-                showText={showUSD}
-                showIcon={true}
-                className="font-semibold text-2xl text-gray-900"
-                shorten={false}
-                iconSize={18}
-              />
+              <div className="font-semibold text-2xl text-orange-500 flex items-center gap-1">
+                <span className="text-sm text-orange-500 self-center">$</span>
+                {(grant.grant?.amount?.usd || 0).toLocaleString()}
+              </div>
             </div>
           )}
 
