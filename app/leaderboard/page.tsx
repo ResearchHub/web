@@ -567,7 +567,7 @@ function LeaderboardPageContent() {
                       textColor="text-gray-700"
                       currencyLabelColor="text-gray-500"
                       showIcon={true}
-                      showText={true}
+                      showText={false}
                     />
                   </div>
                 );
@@ -635,7 +635,7 @@ function LeaderboardPageContent() {
                     textColor="text-gray-700"
                     currencyLabelColor="text-gray-500"
                     showIcon={true}
-                    showText={true}
+                    showText={false}
                   />
                 </div>
               );

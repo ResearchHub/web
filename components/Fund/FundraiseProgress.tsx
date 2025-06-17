@@ -147,7 +147,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   }
 
   const defaultContainerClasses = compact
-    ? 'p-3 mobile:p-4 bg-white rounded-lg border border-gray-200'
+    ? 'p-3  bg-white rounded-lg border border-gray-200'
     : 'p-4 bg-white rounded-lg border border-gray-200';
 
   if (compact) {
@@ -156,9 +156,9 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
       <>
         <div className={cn(defaultContainerClasses, className)}>
           {/* Top row: Amount on left, status/time on right - Stack on mobile */}
-          <div className="flex flex-col mobile:flex-row mobile:items-center mobile:justify-between mb-3 mobile:mb-2 gap-2 mobile:gap-0">
+          <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between mb-3 mobile:!mb-2 gap-2 mobile:!gap-0">
             {showPercentage ? (
-              <div className="font-medium text-gray-700 text-sm mobile:text-base">
+              <div className="font-medium text-gray-700 text-sm mobile:!text-base">
                 {actualPercentage}% funded
               </div>
             ) : (
@@ -171,7 +171,9 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   currency={showUSD ? 'USD' : 'RSC'}
                   shorten
                 />
-                <span className="font-medium text-gray-700 mx-0.5 text-sm mobile:text-base">/</span>
+                <span className="font-medium text-gray-700 mx-0.5 text-sm mobile:!text-base">
+                  /
+                </span>
                 <CurrencyBadge
                   amount={Math.round(fundraise.goalAmount.rsc)}
                   variant="text"
@@ -184,38 +186,31 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
             )}
 
             {/* Status/Time Display - Moved to top right on desktop, below on mobile */}
-            <div className="mobile:flex-shrink-0">{getStatusDisplay()}</div>
+            <div className="mobile:!flex-shrink-0">{getStatusDisplay()}</div>
           </div>
 
           {/* Progress bar - Keep as is but with better mobile spacing */}
-          <div className="mb-3 mobile:mb-2">
+          <div className="mb-3 mobile:!mb-2">
             <Progress value={progressPercentage} variant={getProgressVariant()} size="xs" />
           </div>
 
-          {/* Bottom row: Fund CTA on left, contributors on right - Stack on mobile */}
-          <div className="flex flex-col mobile:flex-row mobile:items-center mobile:justify-between gap-3 mobile:gap-0">
+          {/* Bottom row: Fund CTA on left, contributors on right - Always in row on mobile and desktop */}
+          <div className="flex items-center justify-between gap-3">
             {showContribute && (
               <Button
                 variant="contribute"
                 size="sm"
                 disabled={!isActive}
-                className="flex items-center gap-1 py-1 bg-orange-400 hover:bg-orange-500 text-white font-semibold transition-all duration-200 border-0"
+                className="flex items-center gap-1 py-1.5 px-3 bg-orange-400 hover:bg-orange-500 text-white font-semibold transition-all duration-200 border-0 text-xs"
                 onClick={handleContributeClick}
               >
-                <Icon name="giveRSC" size={18} color="white" />
+                <Icon name="giveRSC" size={16} color="white" />
                 Fund
               </Button>
             )}
 
             {contributors.length > 0 && (
-              <div
-                className={cn(
-                  showContribute ? '' : 'mobile:ml-auto',
-                  'cursor-pointer',
-                  'flex justify-center mobile:justify-end'
-                )}
-                onClick={handleContributeClick}
-              >
+              <div className="cursor-pointer flex-shrink-0" onClick={handleContributeClick}>
                 <AvatarStack
                   items={contributors.map((contributor) => ({
                     src: contributor.profile.profileImage || '',
@@ -233,8 +228,9 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                 />
               </div>
             )}
-            {/* Ensure the div takes space even if empty to maintain layout */}
-            {!showContribute && contributors.length === 0 && <div className="flex-1"></div>}
+
+            {/* Spacer to maintain layout when no contributors */}
+            {contributors.length === 0 && showContribute && <div className="flex-shrink-0"></div>}
           </div>
         </div>
 
@@ -253,9 +249,9 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
       <>
         <div className={cn(defaultContainerClasses, className)}>
           <div className="mb-6">
-            <div className="flex flex-col mobile:flex-row mobile:items-center mobile:justify-between mb-4 mobile:mb-3 gap-3 mobile:gap-0">
+            <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between mb-4 mobile:!mb-3 gap-3 mobile:!gap-0">
               {showPercentage ? (
-                <div className="text-lg mobile:text-xl font-medium text-gray-700">
+                <div className="text-lg mobile:!text-xl font-medium text-gray-700">
                   {actualPercentage}% funded
                 </div>
               ) : (
@@ -266,9 +262,9 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     size="md"
                     showText={false}
                     currency={showUSD ? 'USD' : 'RSC'}
-                    className="font-medium text-orange-500 text-base mobile:text-lg pl-0"
+                    className="font-medium text-orange-500 text-base mobile:!text-lg pl-0"
                   />
-                  <span className="text-gray-500 text-base mobile:text-lg">raised of</span>
+                  <span className="text-gray-500 text-base mobile:!text-lg">raised of</span>
                   <CurrencyBadge
                     amount={Math.round(fundraise.goalAmount.rsc)}
                     variant="text"
@@ -276,17 +272,17 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     showText={true}
                     showIcon={true}
                     currency={showUSD ? 'USD' : 'RSC'}
-                    className="text-gray-500 text-base mobile:text-lg"
+                    className="text-gray-500 text-base mobile:!text-lg"
                   />
-                  <span className="text-gray-500 text-base mobile:text-lg">goal</span>
+                  <span className="text-gray-500 text-base mobile:!text-lg">goal</span>
                 </div>
               )}
-              <div className="mobile:flex-shrink-0">{getStatusDisplay()}</div>
+              <div className="mobile:!flex-shrink-0">{getStatusDisplay()}</div>
             </div>
             <Progress value={progressPercentage} variant={getProgressVariant()} className="h-3" />
           </div>
 
-          <div className="flex flex-col mobile:flex-row mobile:items-center mobile:justify-between gap-4 mobile:gap-0">
+          <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between gap-4 mobile:!gap-0">
             {showContribute && (
               <Button
                 variant="contribute"
@@ -304,8 +300,8 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
               <div
                 className={cn(
                   showContribute
-                    ? 'flex justify-center mobile:justify-end'
-                    : 'mobile:ml-auto flex justify-center mobile:justify-end'
+                    ? 'flex justify-center mobile:!justify-end'
+                    : 'mobile:!ml-auto flex justify-center mobile:!justify-end'
                 )}
               >
                 <ContributorsButton

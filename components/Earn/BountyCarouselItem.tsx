@@ -75,18 +75,18 @@ export const BountyCarouselItem: FC<BountyCarouselItemProps> = ({ entry }) => {
         </div>
 
         {/* Paper Title */}
-        <div className="font-medium text-gray-900 mb-1 text-sm">
-          <div className="line-clamp-3 min-h-24">
+        <div className="font-medium text-gray-900 mb-2 text-sm">
+          <div className="line-clamp-3 leading-tight">
             {isPeerReviewBounty && '[Peer Review Needed] '}
             {relatedWork?.title}
           </div>
         </div>
 
         {/* Authors - using AuthorList */}
-        <div className="text-gray-600 line-clamp-1">
+        <div className="text-gray-600 mb-2">
           <AuthorList
             authors={authors}
-            className="font-normal text-gray-600"
+            className="font-normal text-gray-600 text-xs leading-relaxed"
             size="xs"
             delimiter="•"
             maxLength={1}
@@ -95,28 +95,28 @@ export const BountyCarouselItem: FC<BountyCarouselItemProps> = ({ entry }) => {
       </div>
 
       {/* Bounty section - simplified yellow background */}
-      <div className="p-2">
-        <div className="bg-amber-100 rounded-lg p-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-amber-700 flex items-center">
+      <div className="p-2 mt-auto">
+        <div className="bg-amber-100 rounded-lg p-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="text-amber-700 flex flex-col">
                 <CurrencyBadge
                   amount={parseFloat(bounty.totalAmount)}
                   size="xs"
                   variant="inline"
-                  className="font-semibold"
+                  className="font-semibold mb-1"
                   label="Bounty"
                   textColor="text-amber-700"
                   currencyLabelColor="text-amber-700"
                 />
-                <div className="text-amber-600 text-xs">
+                <div className="text-amber-600 text-xs leading-tight">
                   {isPeerReviewBounty ? 'to peer review' : 'to answer'}
                 </div>
               </div>
             </div>
 
             {/* Avatars of the bounty creator/contributors */}
-            <div className="mt-1">
+            <div className="flex-shrink-0">
               <AvatarStack
                 items={[
                   {

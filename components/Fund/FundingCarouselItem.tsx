@@ -48,7 +48,7 @@ export const FundingCarouselItem: FC<FundingCarouselItemProps> = ({ entry }) => 
     <div
       onClick={handleCardClick}
       className={cn(
-        'flex-shrink-0 w-[250px] h-[210px] bg-white rounded-lg border border-gray-200 p-3 flex flex-col justify-between cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all rounded-br-md duration-200'
+        'flex-shrink-0 w-[250px] h-[230px] bg-white rounded-lg border border-gray-200 p-3 flex flex-col justify-between cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all rounded-br-md duration-200'
       )}
     >
       {/* Topic Badges - Simplified rendering like FeedItemFundraise */}

@@ -337,7 +337,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
           <div className="flex-1 flex justify-center px-4 tablet:!hidden">
             <div className="w-full max-w-md">
               <Search
-                placeholder="Search papers, topics..."
+                placeholder="Search..."
                 className="[&_input]:rounded-full [&_input]:bg-[#F8F9FC] [&_input]:h-10"
                 displayMode="dropdown"
               />
