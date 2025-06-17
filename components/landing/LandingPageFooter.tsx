@@ -22,22 +22,22 @@ export function LandingPageFooter() {
   ];
 
   const resourceLinks = [
-    { label: 'About', href: 'https://www.researchhub.com/about' },
+    { label: 'About', href: '/about' },
     { label: 'Documentation', href: 'https://docs.researchhub.com/' },
     { label: 'Foundation', href: 'https://researchhub.foundation/' },
   ];
 
   const supportLinks: Array<{ label: string; href?: string; action?: string }> = [
     { label: 'Support', href: 'https://airtable.com/appuhMJaf1kb3ic8e/pagYeh6cB9sgiTIgx/form' },
-    { label: 'Terms of service', href: 'https://www.researchhub.com/about/tos' },
-    { label: 'Privacy policy', href: 'https://www.researchhub.com/about/privacy' },
+    { label: 'Terms of service' },
+    { label: 'Privacy policy' },
     { label: 'Contact', action: 'contact' },
   ];
 
   const journalLinks = [
     {
       label: 'Submit to journal',
-      href: '/journal',
+      href: '/paper/create/pdf',
       requiresAuth: true,
     },
     {
