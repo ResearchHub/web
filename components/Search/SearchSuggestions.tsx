@@ -143,49 +143,36 @@ export function SearchSuggestions({
         return (
           <li key={suggestionKey}>
             <div
-              className="w-full p-6 rounded-lg border border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm hover:translate-x-1 transition-all duration-200 flex items-start gap-4 text-left group cursor-pointer"
+              className="w-full px-4 py-3 hover:bg-gray-50 transition-colors duration-150 flex items-center gap-3 text-left group cursor-pointer border-l-2 border-transparent hover:border-l-gray-300"
               onClick={(e) => handleSelect(suggestion, e)}
             >
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-lg bg-gray-50 flex items-center justify-center">
-                  {getIcon()}
-                </div>
-              </div>
+              <div className="flex-shrink-0">{getSmallIcon()}</div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-gray-900 cursor-pointer">
+                <h3 className="font-medium text-gray-900 text-sm leading-tight">
                   {truncateText(suggestion.displayName, MAX_TITLE_LENGTH)}
                 </h3>
                 {isPaperSuggestion && (
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-0.5 text-xs text-gray-500 line-clamp-1">
                     {safeGetAuthorsList()}
                     {safeGetPublishedYear()}
                   </p>
                 )}
                 {isUserSuggestion && (
-                  <p className="mt-1 text-sm text-gray-500">
-                    {safeGetHeadline()} • {}
-                  </p>
+                  <p className="mt-0.5 text-xs text-gray-500 line-clamp-1">{safeGetHeadline()}</p>
                 )}
                 {isTopicSuggestion && (
-                  <div className="flex justify-between items-center">
-                    <p className="mt-1 text-sm text-gray-500 cursor-pointer">
-                      Topic • {safeGetPaperCount()}
-                    </p>
-                    {suggestion.id && (
-                      <FollowTopicButton
-                        topicId={suggestion.id}
-                        className="ml-2 follow-topic-btn"
-                      />
-                    )}
-                  </div>
-                )}
-                {isPaperSuggestion && 'doi' in suggestion && suggestion.doi && (
-                  <p className="mt-1 text-xs text-gray-400">DOI: {suggestion.doi}</p>
+                  <p className="mt-0.5 text-xs text-gray-500 line-clamp-1">
+                    Topic • {safeGetPaperCount()}
+                  </p>
                 )}
               </div>
-              <div className="flex-shrink-0 self-center ml-4 cursor-pointer">
-                <ArrowRight className="w-5 h-5 text-gray-400" />
-              </div>
+              {isTopicSuggestion && suggestion.id && (
+                <FollowTopicButton
+                  topicId={suggestion.id}
+                  size="sm"
+                  className="text-xs py-1 px-2 h-6 follow-topic-btn opacity-0 group-hover:opacity-100 transition-opacity"
+                />
+              )}
             </div>
           </li>
         );
@@ -258,11 +245,15 @@ export function SearchSuggestions({
     })
     .slice(0, MAX_RESULTS); // Limit to maximum number of results
 
+  // Group suggestions by recent vs search results for inline mode
+  const recentSuggestions = safeSuggestions.filter((s) => s.isRecent);
+  const searchResults = safeSuggestions.filter((s) => !s.isRecent);
+
   return (
     <div
       className={cn(
         'w-full bg-white rounded-md',
-        displayMode === 'dropdown' ? 'absolute z-50 mt-1 shadow-lg border border-gray-200' : 'mt-4'
+        displayMode === 'dropdown' ? 'absolute z-50 mt-1 shadow-lg border border-gray-200' : ''
       )}
     >
       {/* Local suggestions section */}
@@ -270,11 +261,13 @@ export function SearchSuggestions({
         <div>
           <div
             className={cn(
-              'flex items-center justify-between px-4 py-2',
+              'flex items-center justify-between px-4 py-3',
               displayMode === 'dropdown' ? 'border-b' : ''
             )}
           >
-            <span className="text-xs font-medium text-gray-500">Recent</span>
+            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+              Recent
+            </span>
             <button
               onClick={clearSearchHistory}
               className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1"
@@ -283,35 +276,60 @@ export function SearchSuggestions({
               Clear all
             </button>
           </div>
-          <ul
-            className={cn(
-              displayMode === 'inline' ? 'space-y-3' : 'divide-y divide-gray-100',
-              displayMode === 'dropdown' ? 'py-2' : ''
-            )}
-          >
+          <ul className={displayMode === 'inline' ? '' : 'divide-y divide-gray-100 py-2'}>
             {safeSuggestions.map(renderSuggestion)}
           </ul>
         </div>
       )}
 
-      {/* Combined results section */}
+      {/* Search results sections */}
       {query && (
         <>
           {loading && safeSuggestions.length === 0 && (
-            <div className="px-4 py-3 text-sm text-gray-500">Loading results...</div>
+            <div className="px-4 py-8 text-center text-gray-500">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-300 mx-auto mb-2"></div>
+              <p className="text-sm">Searching...</p>
+            </div>
           )}
 
           {!loading && safeSuggestions.length === 0 && (
-            <div className="px-4 py-3 text-sm text-gray-500">No results found</div>
+            <div className="px-4 py-8 text-center text-gray-500">
+              <Search className="h-8 w-8 mx-auto text-gray-300 mb-2" />
+              <p className="text-sm">No results found</p>
+              <p className="text-xs text-gray-400 mt-1">Try searching with different keywords</p>
+            </div>
           )}
 
-          {safeSuggestions.length > 0 && (
-            <ul
-              className={cn(
-                displayMode === 'inline' ? 'space-y-3' : 'divide-y divide-gray-100',
-                displayMode === 'dropdown' ? 'py-2' : ''
+          {safeSuggestions.length > 0 && displayMode === 'inline' && (
+            <>
+              {/* Recent results section */}
+              {recentSuggestions.length > 0 && (
+                <div>
+                  <div className="px-4 py-3 border-b border-gray-100">
+                    <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                      Recent
+                    </span>
+                  </div>
+                  <ul>{recentSuggestions.map(renderSuggestion)}</ul>
+                </div>
               )}
-            >
+
+              {/* Search results section */}
+              {searchResults.length > 0 && (
+                <div>
+                  <div className="px-4 py-3 border-b border-gray-100">
+                    <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                      Results
+                    </span>
+                  </div>
+                  <ul>{searchResults.map(renderSuggestion)}</ul>
+                </div>
+              )}
+            </>
+          )}
+
+          {safeSuggestions.length > 0 && displayMode === 'dropdown' && (
+            <ul className="divide-y divide-gray-100 py-2">
               {safeSuggestions.map(renderSuggestion)}
             </ul>
           )}

@@ -1,6 +1,6 @@
 'use client';
 
-import { FileText, Star, MessagesSquare, History, Users } from 'lucide-react';
+import { FileText, Star, MessagesSquare, History, Users, Bell } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useState, useEffect, useMemo } from 'react';
@@ -10,6 +10,7 @@ import { usePathname } from 'next/navigation';
 
 export type TabType =
   | 'paper'
+  | 'updates'
   | 'reviews'
   | 'bounties'
   | 'conversation'
@@ -22,6 +23,7 @@ interface WorkTabsProps {
   defaultTab?: TabType;
   contentType?: 'paper' | 'post' | 'fund' | 'grant'; // To customize tab labels based on content type
   onTabChange: (tab: TabType) => void;
+  updatesCount?: number;
 }
 
 export const WorkTabs = ({
@@ -30,6 +32,7 @@ export const WorkTabs = ({
   defaultTab = 'paper',
   contentType = 'paper',
   onTabChange,
+  updatesCount = 0,
 }: WorkTabsProps) => {
   const pathname = usePathname();
 
@@ -40,6 +43,7 @@ export const WorkTabs = ({
 
   // Get the active tab based on current path
   const getActiveTabFromPath = (path: string): TabType => {
+    if (path.includes('/updates')) return 'updates';
     if (path.includes('/conversation')) return 'conversation';
     if (path.includes('/applications')) return 'applications';
     if (path.includes('/reviews')) return 'reviews';
@@ -80,17 +84,19 @@ export const WorkTabs = ({
               : `/post/${work.id}/${work.slug}`;
 
       const newUrl =
-        tab === 'conversation'
-          ? `${baseUrl}/conversation`
-          : tab === 'reviews'
-            ? `${baseUrl}/reviews`
-            : tab === 'applications'
-              ? `${baseUrl}/applications`
-              : tab === 'bounties'
-                ? `${baseUrl}/bounties`
-                : tab === 'history'
-                  ? `${baseUrl}/history`
-                  : baseUrl;
+        tab === 'updates'
+          ? `${baseUrl}/updates`
+          : tab === 'conversation'
+            ? `${baseUrl}/conversation`
+            : tab === 'reviews'
+              ? `${baseUrl}/reviews`
+              : tab === 'applications'
+                ? `${baseUrl}/applications`
+                : tab === 'bounties'
+                  ? `${baseUrl}/bounties`
+                  : tab === 'history'
+                    ? `${baseUrl}/history`
+                    : baseUrl;
 
       // Use history.replaceState to update URL without navigation
       window.history.replaceState(null, '', newUrl);
@@ -116,6 +122,29 @@ export const WorkTabs = ({
         </div>
       ),
     },
+    // Show Updates tab only for fund content type
+    ...(contentType === 'fund'
+      ? [
+          {
+            id: 'updates',
+            label: (
+              <div className="flex items-center">
+                <Bell className="h-4 w-4 mr-2" />
+                <span>Updates</span>
+                <span
+                  className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                    activeTab === 'updates'
+                      ? 'bg-indigo-100 text-indigo-600'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  {updatesCount}
+                </span>
+              </div>
+            ),
+          },
+        ]
+      : []),
     {
       id: 'conversation',
       label: (
@@ -125,7 +154,7 @@ export const WorkTabs = ({
           <span
             className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
               activeTab === 'conversation'
-                ? 'bg-indigo-100 text-indigo-600'
+                ? 'bg-primary-100 text-primary-600'
                 : 'bg-gray-100 text-gray-600'
             }`}
           >
@@ -147,7 +176,7 @@ export const WorkTabs = ({
           <span
             className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
               (contentType === 'grant' ? activeTab === 'applications' : activeTab === 'reviews')
-                ? 'bg-indigo-100 text-indigo-600'
+                ? 'bg-primary-100 text-primary-600'
                 : 'bg-gray-100 text-gray-600'
             }`}
           >
@@ -169,13 +198,13 @@ export const WorkTabs = ({
                 <Icon
                   name="earn1"
                   size={16}
-                  color={activeTab === 'bounties' ? '#4f46e5' : '#6B7280'}
+                  color={activeTab === 'bounties' ? '#3971ff' : '#6B7280'}
                 />
                 <span className="ml-2">Bounties</span>
                 <span
                   className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
                     activeTab === 'bounties'
-                      ? 'bg-indigo-100 text-indigo-600'
+                      ? 'bg-primary-100 text-primary-600'
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
@@ -201,7 +230,7 @@ export const WorkTabs = ({
               <span
                 className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
                   activeTab === 'history'
-                    ? 'bg-indigo-100 text-indigo-600'
+                    ? 'bg-primary-100 text-primary-600'
                     : 'bg-gray-100 text-gray-600'
                 }`}
               >

@@ -93,7 +93,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
 
   const header = (
     <MainPageHeader
-      icon={<Sparkles className="w-6 h-6 text-indigo-500" />}
+      icon={<Sparkles className="w-6 h-6 text-primary-500" />}
       title="Explore"
       subtitle="Discover trending research, earning, and funding opportunities"
     />
@@ -118,7 +118,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
           onClick={() => handleSourceFilterChange('all')}
           className={`transition-colors duration-200 px-1 flex items-center gap-1 ${
             sourceFilter === 'all'
-              ? 'text-indigo-600 font-medium'
+              ? 'text-primary-600 font-medium'
               : 'text-gray-500 hover:text-gray-800'
           }`}
         >
@@ -130,14 +130,14 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
           onClick={() => handleSourceFilterChange('researchhub')}
           className={`transition-colors duration-200 px-1 flex items-center gap-1 ${
             sourceFilter === 'researchhub'
-              ? 'text-indigo-600 font-medium'
+              ? 'text-primary-600 font-medium'
               : 'text-gray-500 hover:text-gray-800'
           }`}
         >
           <Icon
             name="flaskVector"
             size={16}
-            color={sourceFilter === 'researchhub' ? '#4f46e5' : '#6b7280'}
+            color={sourceFilter === 'researchhub' ? '#3971ff' : '#6b7280'}
           />
           ResearchHub
         </button>
@@ -161,7 +161,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
         </>
       ) : (
         <>
-          <div className="pt-4 pb-7">{header}</div>
+          {header}
           <div className="max-w-4xl mx-auto">
             {feedTabs}
             <div className="mt-6">

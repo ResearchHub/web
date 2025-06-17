@@ -32,3 +32,13 @@ export function handleFundraiseRedirect(work: Work, id: string, slug: string) {
     redirect(`/fund/${id}/${slug}`);
   }
 }
+
+/**
+ * Handles redirection to trending page if user is authorized
+ * @param isAuthorized Whether the user is authorized
+ */
+export function handleTrendingRedirect(isAuthorized: boolean) {
+  if (isAuthorized) {
+    redirect(`/trending`);
+  }
+}

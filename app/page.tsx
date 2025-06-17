@@ -1,22 +1,15 @@
-'use client';
+import { getServerSession } from 'next-auth/next';
+import { handleTrendingRedirect } from '@/utils/navigation';
+import { LandingPage } from '@/components/landing/LandingPage';
 
-import Feed from '@/components/Feed/Feed';
-import { FeedTab } from '@/hooks/useFeed';
-import { Suspense } from 'react';
+// This can be a server component
+export default async function Home() {
+  // Get session on the server
+  const session = await getServerSession();
 
-function HomePageContent() {
-  const defaultTab: FeedTab = 'popular';
-  return (
-    <>
-      <Feed defaultTab={defaultTab} />
-    </>
-  );
-}
+  // If user is logged in, redirect to trending page
+  handleTrendingRedirect(!!session?.user);
 
-export default function Home() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <HomePageContent />
-    </Suspense>
-  );
+  // If no user is logged in, show the landing page
+  return <LandingPage />;
 }

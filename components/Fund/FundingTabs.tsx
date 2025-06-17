@@ -43,7 +43,7 @@ export const FundingTabs: FC<FundingTabsProps> = ({ activeTab, onTabChange, isLo
             key={tab.id}
             className={`px-1 py-4 text-md font-medium border-b-2 ${
               activeTab === tab.id
-                ? 'text-indigo-600 border-indigo-600'
+                ? 'text-primary-600 border-primary-600'
                 : 'text-gray-500 border-transparent hover:text-gray-700'
             }`}
             onClick={() => handleTabChange(tab.id)}

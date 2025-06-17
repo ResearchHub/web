@@ -52,6 +52,7 @@ export const createOptimisticComment = (
         headline: '',
         profileUrl: `/profile/${authorId}`,
         isClaimed: true,
+        isVerified: false,
       },
     },
     score: 0,

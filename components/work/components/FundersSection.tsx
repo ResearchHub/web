@@ -8,6 +8,8 @@ import { isDeadlineInFuture } from '@/utils/date';
 import { ContributorModal } from '@/components/modals/ContributorModal';
 import { Users } from 'lucide-react';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
+import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 interface FundersSectionProps {
   fundraise: Fundraise;
@@ -16,6 +18,7 @@ interface FundersSectionProps {
 export const FundersSection: FC<FundersSectionProps> = ({ fundraise }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
+  const { showUSD } = useCurrencyPreference();
 
   const hasContributors =
     fundraise.contributors &&
@@ -76,9 +79,17 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise }) => {
                       {contributor.authorProfile.fullName}
                     </span>
                   </div>
-                  <span className="text-sm font-medium text-orange-500">
-                    +{formatRSC({ amount: contributor.totalContribution, round: true })} RSC
-                  </span>
+                  <div className="flex items-center text-sm font-medium text-orange-500">
+                    <span className="mr-0.5">+</span>
+                    <CurrencyBadge
+                      amount={contributor.totalContribution}
+                      variant="text"
+                      size="xs"
+                      currency={showUSD ? 'USD' : 'RSC'}
+                      showText={true}
+                      className="text-orange-500 font-medium"
+                    />
+                  </div>
                 </div>
               ))}
             </div>

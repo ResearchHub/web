@@ -166,7 +166,11 @@ export const CommentProvider = ({
 
         // Map commentType to valid CommentFilter values
         // Only use commentType as filter if it's a valid CommentFilter value
-        if (commentType === 'REVIEW' || commentType === 'BOUNTY') {
+        if (
+          commentType === 'REVIEW' ||
+          commentType === 'BOUNTY' ||
+          commentType === 'AUTHOR_UPDATE'
+        ) {
           filterToUse = state.filter || commentType;
         }
 
@@ -427,7 +431,6 @@ export const CommentProvider = ({
 
       try {
         const apiContent = convertToApiFormat(content);
-
         const newComment = await CommentService.createComment({
           workId: documentId,
           contentType,

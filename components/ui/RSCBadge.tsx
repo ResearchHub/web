@@ -6,6 +6,7 @@ import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Badge } from './Badge';
 import { Tooltip } from './Tooltip';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { InfoIcon } from 'lucide-react';
 import { formatRSC } from '@/utils/number';
 
@@ -50,10 +51,14 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
   textColor,
   currencyLabelColor,
   shorten,
-  currency = 'RSC',
+  currency, // Remove default value to use global preference
 }) => {
   const { exchangeRate, isLoading } = useExchangeRate();
-  const isUSD = currency === 'USD';
+  const { showUSD } = useCurrencyPreference();
+
+  // Use global currency preference if currency prop is not explicitly provided
+  const effectiveCurrency = currency || (showUSD ? 'USD' : 'RSC');
+  const isUSD = effectiveCurrency === 'USD';
 
   // Custom size classes that override Badge's default sizes
   const sizeClasses = {
@@ -112,6 +117,22 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
   };
 
   const formatNumber = (num: number, useShorten: boolean | undefined) => {
+    if (isUSD) {
+      if (exchangeRate > 0) {
+        const usdAmount = num * exchangeRate;
+        if (useShorten && usdAmount >= 1000) {
+          if (usdAmount >= 1000000) {
+            return `${(usdAmount / 1000000).toFixed(1)}M`;
+          }
+          return `${(usdAmount / 1000).toFixed(1)}K`;
+        }
+        return usdAmount.toFixed(2);
+      } else {
+        // Exchange rate not available, show loading or fallback
+        return isLoading ? '--' : '0.00';
+      }
+    }
+
     if (useShorten) {
       // Assuming formatRSC can handle generic number shortening.
       // If formatRSC specifically adds "RSC" text, this needs adjustment.
@@ -134,12 +155,11 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
 
     if (isUSD) {
       // Main display is USD, tooltip shows RSC equivalent
-      const rscEquivalent = amount / exchangeRate; // Assumes exchangeRate is USD_PER_RSC
       return (
         <div className="p-1">
           <div className="font-semibold text-orange-700 mb-0.5 flex items-center gap-1">
             <ResearchCoinIcon size={14} color={colors.iconColor} />
-            <span>≈ {Math.round(rscEquivalent).toLocaleString()} RSC</span>
+            <span>≈ {Math.round(amount).toLocaleString()} RSC</span>
           </div>
         </div>
       );
@@ -150,9 +170,11 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
         <div className="p-1">
           <div className="font-semibold text-orange-700 mb-0.5 flex items-center gap-1">
             <ResearchCoinIcon size={14} color={colors.iconColor} />
-            <span>{Math.round(amount).toLocaleString()} RSC</span>
+            <span>{formatRSC({ amount, round: true })} RSC</span>
           </div>
-          <div className="text-gray-700 text-xs">≈ ${usdEquivalent.toFixed(2)} USD</div>
+          <div className="text-gray-700 text-xs">
+            ≈ ${formatRSC({ amount: usdEquivalent, decimalPlaces: 2 })} USD
+          </div>
         </div>
       );
     }
