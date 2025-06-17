@@ -116,7 +116,32 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
     md: isUSD ? 16 : 18,
   };
 
-  const displayAmount = formatRSC({ amount, shorten, round: !shorten });
+  const formatNumber = (num: number, useShorten: boolean | undefined) => {
+    if (isUSD) {
+      if (exchangeRate > 0) {
+        const usdAmount = num * exchangeRate;
+        if (useShorten && usdAmount >= 1000) {
+          if (usdAmount >= 1000000) {
+            return `${(usdAmount / 1000000).toFixed(1)}M`;
+          }
+          return `${(usdAmount / 1000).toFixed(1)}K`;
+        }
+        return usdAmount.toFixed(2);
+      } else {
+        // Exchange rate not available, show loading or fallback
+        return isLoading ? '--' : '0.00';
+      }
+    }
+
+    if (useShorten) {
+      // Assuming formatRSC can handle generic number shortening.
+      // If formatRSC specifically adds "RSC" text, this needs adjustment.
+      return formatRSC({ amount: num, shorten: true });
+    }
+    return Math.round(num).toLocaleString();
+  };
+
+  const displayAmount = formatNumber(amount, shorten);
   const currencyText = isUSD ? 'USD' : 'RSC';
 
   // Create tooltip content

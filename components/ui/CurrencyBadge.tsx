@@ -165,9 +165,10 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
       return (
         <div className="p-1">
           <div className="font-semibold text-orange-700 mb-0.5 flex items-center gap-1">
-            <Icon name="gold2" size={14} color={colors.iconColor} />
+            <Icon name="gold2" size={14} />
             <span>{Math.round(amount).toLocaleString()} RSC</span>
           </div>
+          <div className="text-gray-700 text-xs">≈ ${formatNumber(usdEquivalent, shorten)} USD</div>
         </div>
       );
     }
