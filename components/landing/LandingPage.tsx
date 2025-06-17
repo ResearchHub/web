@@ -26,7 +26,6 @@ export function LandingPage() {
       <InstitutionsSection />
       <ResearchCoinSection />
       <RSCPriceSection />
-      <FAQSection />
       <LandingPageFooter />
     </LandingPageLayout>
   );
