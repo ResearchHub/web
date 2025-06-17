@@ -1,7 +1,7 @@
 export function CommentSkeleton({
   commentType = 'GENERIC_COMMENT',
 }: {
-  commentType?: 'GENERIC_COMMENT' | 'REVIEW' | 'BOUNTY' | 'ANSWER';
+  commentType?: 'GENERIC_COMMENT' | 'REVIEW' | 'BOUNTY' | 'ANSWER' | 'AUTHOR_UPDATE';
 }) {
   // For bounty type, render a different skeleton
   if (commentType === 'BOUNTY') {
