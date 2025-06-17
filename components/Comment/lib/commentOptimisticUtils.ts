@@ -50,7 +50,7 @@ export const createOptimisticComment = (
         fullName: authorName,
         profileImage: authorProfileImage || '',
         headline: '',
-        profileUrl: `/profile/${authorId}`,
+        profileUrl: `/author/${authorId}`,
         isClaimed: true,
         isVerified: false,
       },
