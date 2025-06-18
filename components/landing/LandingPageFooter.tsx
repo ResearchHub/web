@@ -29,8 +29,8 @@ export function LandingPageFooter() {
 
   const supportLinks: Array<{ label: string; href?: string; action?: string }> = [
     { label: 'Support', href: 'https://airtable.com/appuhMJaf1kb3ic8e/pagYeh6cB9sgiTIgx/form' },
-    { label: 'Terms of service', href: '/tos' },
-    { label: 'Privacy policy', href: '/privacy' },
+    { label: 'Terms of service', href: '/about/tos' },
+    { label: 'Privacy policy', href: '/about/privacy' },
     { label: 'Contact', action: 'contact' },
   ];
 

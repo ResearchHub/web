@@ -193,7 +193,7 @@ const faqs = [
 ];
 
 export const AboutFAQ = () => {
-  const [openSections, setOpenSections] = useState<string[]>([]);
+  const [openSections, setOpenSections] = useState<string[]>(['faq-0']);
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) =>
