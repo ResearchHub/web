@@ -14,7 +14,7 @@ export const JournalRightSidebar: FC = () => {
       id: '1',
       name: 'Dr. Maulik Dhandha',
       role: 'Editor in Chief',
-      avatar: 'https://www.researchhub.com/static/editorial-board/MaulikDhandha.jpeg',
+      avatar: '/people/maulik.jpeg',
       email: 'maulik.editor@researchhub.foundation',
       linkedin: 'https://www.linkedin.com/in/maulik-dhandha-1836a5227/',
       googleScholar: 'https://scholar.google.com/citations?user=M2JZCWMAAAAJ&hl=en',
@@ -23,7 +23,7 @@ export const JournalRightSidebar: FC = () => {
       id: '2',
       name: 'Dr. Emilio Merheb',
       role: 'Associate Editor',
-      avatar: 'https://www.researchhub.com/static/editorial-board/EmilioMerheb.jpeg',
+      avatar: '/people/emilio.jpeg',
       email: 'emilio.editor@researchhub.foundation',
       linkedin: 'https://www.linkedin.com/in/emilio-merheb-ph-d-29ba10154/',
       googleScholar: 'https://scholar.google.com/citations?user=MY7E-6QAAAAJ&hl=en',
@@ -32,7 +32,7 @@ export const JournalRightSidebar: FC = () => {
       id: '3',
       name: 'Dr. Attila Karsi',
       role: 'Associate Editor',
-      avatar: 'https://www.researchhub.com/static/editorial-board/AttilaKarsi.jpeg',
+      avatar: '/people/attila.jpeg',
       email: 'attila.editor@researchhub.foundation',
       linkedin: 'https://www.linkedin.com/in/attilakarsi/',
       googleScholar: 'https://scholar.google.com/citations?user=kkhhBZgAAAAJ&hl=en',
@@ -133,8 +133,11 @@ export const JournalRightSidebar: FC = () => {
               </div>
             </div>
           ))}
-          <div className="text-sm text-primary-600 hover:text-primary-800 cursor-pointer mt-2">
-            Interested in joining as an Editor?
+          <div className="flex items-center space-x-3 mt-4">
+            <Avatar src="/EinsteinAvatar.png" size="md" alt="Join as Editor" />
+            <div className="text-sm text-primary-600 hover:text-primary-800 cursor-pointer">
+              Interested in joining as an Editor?
+            </div>
           </div>
         </div>
       </div>
