@@ -64,7 +64,7 @@ export const SimpleStepProgress: FC<SimpleStepProgressProps> = ({
       {/* Simple Progress Bar */}
       <div className="w-full bg-gray-200 rounded-full overflow-hidden">
         <div
-          className={cn('bg-indigo-600 transition-all duration-300', heightClass)}
+          className={cn('bg-primary-600 transition-all duration-300', heightClass)}
           style={{ width: `${percentage}%` }}
         />
       </div>

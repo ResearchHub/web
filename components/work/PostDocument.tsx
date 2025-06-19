@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { WorkTabs, TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
+import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 
 interface PostDocumentProps {
   work: Work;
@@ -52,6 +53,7 @@ export const PostDocument = ({
         return (
           <div className="space-y-6" key="reviews-tab">
             <CommentFeed
+              unifiedDocumentId={work.unifiedDocumentId || null}
               documentId={work.id}
               contentType={work.contentType}
               commentType="REVIEW"
@@ -68,6 +70,7 @@ export const PostDocument = ({
         return (
           <div className="space-y-6" key="bounties-tab">
             <CommentFeed
+              unifiedDocumentId={work.unifiedDocumentId || null}
               documentId={work.id}
               contentType={work.contentType}
               commentType="BOUNTY"
@@ -81,6 +84,7 @@ export const PostDocument = ({
         return (
           <div className="space-y-6" key="conversation-tab">
             <CommentFeed
+              unifiedDocumentId={work.unifiedDocumentId || null}
               documentId={work.id}
               contentType={work.contentType}
               commentType="GENERIC_COMMENT"
@@ -95,6 +99,7 @@ export const PostDocument = ({
 
   return (
     <div>
+      <EarningOpportunityBanner work={work} metadata={metadata} />
       {/* Title & Actions */}
       {work.type === 'preprint' && (
         <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">

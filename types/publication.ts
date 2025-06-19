@@ -169,6 +169,7 @@ export const transformPublicationToFeedEntry = (
         fullName: `${author.first_name} ${author.last_name}`,
         profileUrl: '',
         isClaimed: false,
+        isVerified: false,
       })),
       topics: (
         hubs.map((hub: any) => ({
@@ -187,6 +188,7 @@ export const transformPublicationToFeedEntry = (
           `${documents.authors[0]?.first_name || ''} ${documents.authors[0]?.last_name || ''}`.trim(),
         profileUrl: '',
         isClaimed: false,
+        isVerified: false,
       },
       journal: {
         id: 0,

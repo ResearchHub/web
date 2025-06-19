@@ -42,8 +42,9 @@ const transformNestedParentComment = (rawParent: any): ParentCommentPreview | un
           lastName: '',
           profileImage: '',
           headline: '',
-          profileUrl: '/profile/0',
+          profileUrl: '/author/0',
           isClaimed: false,
+          isVerified: false,
         };
 
     return {
@@ -405,7 +406,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                     fullName: `${author.first_name || ''} ${author.last_name || ''}`.trim(),
                     profileImage: '',
                     headline: '',
-                    profileUrl: '/profile/0',
+                    profileUrl: '/author/0',
                     isClaimed: false,
                   }))
                 : [],
@@ -436,8 +437,9 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                     lastName: content_object.raw_authors[0].last_name || '',
                     profileImage: '',
                     headline: '',
-                    profileUrl: '/profile/0',
+                    profileUrl: '/author/0',
                     isClaimed: false,
+                    isVerified: false,
                   }
                 : {
                     id: 0,
@@ -446,8 +448,9 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                     lastName: '',
                     profileImage: '',
                     headline: '',
-                    profileUrl: '/profile/0',
+                    profileUrl: '/author/0',
                     isClaimed: false,
+                    isVerified: false,
                   },
           journal: content_object.journal || {
             id: 0,
@@ -882,7 +885,7 @@ export const transformBountyCommentToFeedItem = (
     contentType: 'BOUNTY',
     createdDate: comment.createdDate,
     bounty: bounty,
-    createdBy: (comment as any).author,
+    createdBy: comment.createdBy.authorProfile!,
     relatedDocumentId: comment.thread?.objectId,
     relatedDocumentContentType: contentType,
     comment: {

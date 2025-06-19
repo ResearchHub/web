@@ -49,7 +49,7 @@ export const WorkHistoryDisplay = ({ versions, currentPaperId, slug }: WorkHisto
                     'transition-all duration-200',
                     isViewingThisCard
                       ? 'bg-blue-50 border-blue-100 shadow-sm'
-                      : 'bg-white border-gray-200 shadow-sm hover:shadow-md hover:border-indigo-100',
+                      : 'bg-white border-gray-200 shadow-sm hover:shadow-md hover:border-primary-100',
                     'cursor-pointer'
                   )}
                 >
@@ -61,7 +61,7 @@ export const WorkHistoryDisplay = ({ versions, currentPaperId, slug }: WorkHisto
                           className={cn(
                             'text-base font-medium',
                             isViewingThisCard ? 'text-blue-700' : 'text-gray-800',
-                            !isViewingThisCard && 'group-hover/card:text-indigo-600'
+                            !isViewingThisCard && 'group-hover/card:text-primary-600'
                           )}
                         >
                           Version {version.version}

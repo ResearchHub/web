@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { CollapsibleSection, CollapsibleItem } from '@/components/ui/CollapsibleSection';
+
 import Icon from '@/components/ui/icons/Icon';
 
 export const ResearchCoinRightSidebar = () => {

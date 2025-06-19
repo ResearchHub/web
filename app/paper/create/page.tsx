@@ -83,9 +83,9 @@ export default function WorkCreatePage() {
             <div className="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 ">
               <FileUp className="h-9 w-9 text-blue-600" />
             </div>
-            <PageHeader title="Publish your research" className="mt-1 mb-1" />
+            <PageHeader title="Submit your paper" className="mt-1 mb-1" />
             <p className="text-lg text-gray-600">
-              Share your original work with the ResearchHub community
+              Share your original work with the ResearchHub community.
             </p>
           </div>
         </div>

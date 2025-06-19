@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { PostService } from '@/services/post.service';
 import { MetadataService } from '@/services/metadata.service';
+import { CommentService } from '@/services/comment.service';
 import { Work } from '@/types/work';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
@@ -56,16 +57,30 @@ export default async function FundConversationPage({ params }: Props) {
   // First fetch the work to get the unifiedDocumentId
   const work = await getFundingProject(id);
 
-  // Then fetch metadata using unifiedDocumentId
-  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
-
-  // Only fetch content after we have the work object with contentUrl
-  const content = await getWorkHTMLContent(work);
+  // Fetch all required data in parallel
+  const [metadata, content, authorUpdates] = await Promise.all([
+    MetadataService.get(work.unifiedDocumentId?.toString() || ''),
+    getWorkHTMLContent(work),
+    CommentService.fetchAuthorUpdates({
+      documentId: work.id,
+      contentType: work.contentType,
+    }),
+  ]);
 
   return (
-    <PageLayout rightSidebar={<FundingRightSidebar work={work} metadata={metadata} />}>
+    <PageLayout
+      rightSidebar={
+        <FundingRightSidebar work={work} metadata={metadata} authorUpdates={authorUpdates} />
+      }
+    >
       <Suspense>
-        <FundDocument work={work} metadata={metadata} content={content} defaultTab="conversation" />
+        <FundDocument
+          work={work}
+          metadata={metadata}
+          content={content}
+          defaultTab="conversation"
+          authorUpdates={authorUpdates}
+        />
         <SearchHistoryTracker work={work} />
       </Suspense>
     </PageLayout>

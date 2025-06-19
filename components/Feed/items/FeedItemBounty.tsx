@@ -18,9 +18,12 @@ import { ID } from '@/types/root';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { BountyContribution, BountyType } from '@/types/bounty';
 import { formatRSC } from '@/utils/number';
+import { formatCurrency } from '@/utils/currency';
 import { useParams } from 'next/navigation';
 import { cn } from '@/utils/styles';
 import { Trophy, Pen, Plus, Users, ArrowBigUpDash, MessageSquareReply } from 'lucide-react';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Button } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -223,6 +226,10 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   const bounty = bountyEntry.bounty;
   const params = useParams();
 
+  // Get currency preference and exchange rate
+  const { showUSD } = useCurrencyPreference();
+  const { exchangeRate } = useExchangeRate();
+
   // State for contribute modal
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
 
@@ -239,10 +246,15 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
 
   // Format the bounty amount for display in the action text
   const formattedBountyAmount = bounty.totalAmount
-    ? formatRSC({ amount: parseFloat(bounty.totalAmount) })
+    ? formatCurrency({
+        amount: parseFloat(bounty.totalAmount),
+        showUSD,
+        exchangeRate,
+        shorten: true,
+      })
     : '';
   const bountyActionText = bounty.totalAmount
-    ? `created a bounty for ${formattedBountyAmount} RSC`
+    ? `created a bounty for ${formattedBountyAmount} ${showUSD ? '' : 'RSC'}`
     : 'created a bounty';
 
   // Determine if card should have clickable styles

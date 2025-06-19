@@ -6,16 +6,14 @@ import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { cn } from '@/utils/styles';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
-import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useRouter } from 'next/navigation';
 import { Users, Building, Calendar } from 'lucide-react';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { differenceInCalendarDays, format } from 'date-fns';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { AvatarStack } from '@/components/ui/AvatarStack';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserTie } from '@fortawesome/free-solid-svg-icons';
 import { truncateText } from '@/utils/stringUtils';
+import Icon from '@/components/ui/icons/Icon';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CardWrapper } from './CardWrapper';
@@ -158,7 +156,7 @@ const FeedItemGrantBody: FC<{
         {/* Left side content */}
         <div className="flex-1 min-w-0">
           {/* Title */}
-          <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
             {grant.title}
           </h2>
 
@@ -171,19 +169,11 @@ const FeedItemGrantBody: FC<{
 
           {/* Funding Amount */}
           {(grant.grantAmount || grant.grant?.amount) && (
-            <div className="flex items-center gap-2 mb-3">
-              <CurrencyBadge
-                amount={grant.grantAmount?.amount || grant.grant?.amount?.usd || 0}
-                currency={
-                  (grant.grantAmount?.currency || grant.grant?.currency || 'USD') as 'USD' | 'RSC'
-                }
-                variant="text"
-                showText={true}
-                showIcon={true}
-                textColor="text-gray-900"
-                className="font-semibold text-2xl"
-                shorten={false}
-              />
+            <div className="flex flex-wrap items-baseline gap-1 mb-3">
+              <div className="font-semibold text-2xl text-orange-500 flex items-center gap-1">
+                <span className="text-sm text-orange-500 self-center">$</span>
+                {(grant.grant?.amount?.usd || 0).toLocaleString()}
+              </div>
             </div>
           )}
 
@@ -213,13 +203,13 @@ const FeedItemGrantBody: FC<{
           {/* Applicants section */}
           {applicants.length > 0 && (
             <div
-              className="flex items-center gap-3 mb-4"
+              className="flex items-center gap-2 mb-4"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
               }}
             >
-              <FontAwesomeIcon icon={faUserTie} className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <Icon name="createBounty" size={16} color="#6b7280" className="flex-shrink-0" />
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-500 font-normal">
                   {applicants.length} {applicants.length === 1 ? 'Applicant' : 'Applicants'}
@@ -243,7 +233,7 @@ const FeedItemGrantBody: FC<{
             <div className="flex items-center gap-3">
               <button
                 onClick={handleApplyClick}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg font-medium text-sm transition-colors duration-200 flex items-center gap-2"
+                className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-lg font-medium text-sm transition-colors duration-200 flex items-center gap-2"
               >
                 Apply
               </button>

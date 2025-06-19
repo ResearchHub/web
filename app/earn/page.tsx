@@ -164,7 +164,7 @@ export default function EarnPage() {
 
   const renderHeader = () => (
     <MainPageHeader
-      icon={<Icon name="earn1" size={26} color="#4f46e5" />}
+      icon={<Icon name="earn1" size={26} color="#3971ff" />}
       title="Earn ResearchCoin"
       subtitle="Earn ResearchCoin by completing scientific bounties"
     />

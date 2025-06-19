@@ -29,7 +29,7 @@ export function convertDeltaToHTML(delta: DeltaContent): string {
       if (typeof op.insert === 'object' && 'user' in op.insert) {
         const user = op.insert.user;
         if (user.firstName && user.lastName) {
-          return `<a href="/user/${user.authorProfileId}" class="text-indigo-600 hover:text-indigo-900">@${user.firstName} ${user.lastName}</a>`;
+          return `<a href="/user/${user.authorProfileId}" class="text-primary-600 hover:text-primary-900">@${user.firstName} ${user.lastName}</a>`;
         }
         return '';
       }

@@ -13,10 +13,10 @@ import { useRouter } from 'next/navigation';
 import { Flag, Users, Building } from 'lucide-react';
 import Image from 'next/image';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import { formatRSC } from '@/utils/number';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
 import Link from 'next/link';
 import { CardWrapper } from './CardWrapper';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
@@ -78,13 +78,13 @@ const FeedItemFundraiseBody: FC<{
         {/* Left side content */}
         <div className="flex-1 min-w-0">
           {/* Title */}
-          <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
+          <h2 className="text-lg font-semibold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
             {post.title}
           </h2>
 
           {/* Authors list below title */}
           {authors.length > 0 && (
-            <div className="mt-1 mb-3 flex items-center gap-1.5">
+            <div className="mb-3 flex items-center gap-1.5">
               <Users className="w-4 h-4 text-gray-500" />
               <AuthorList
                 authors={authors}
@@ -158,15 +158,13 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
   const router = useRouter();
+  const { showUSD } = useCurrencyPreference();
 
   // Check if this is a preregistration with fundraise data
   const hasFundraise = post.contentType === 'PREREGISTRATION' && post.fundraise;
 
   // Get the author from the post
   const author = post.createdBy;
-
-  // Convert USD amount to RSC for the header
-  const goalAmountRSC = hasFundraise ? post.fundraise!.goalAmount.rsc : 0;
 
   // Extract contributors if this is a preregistration with fundraise data
   const contributors = hasFundraise ? extractContributors(post.fundraise) : [];

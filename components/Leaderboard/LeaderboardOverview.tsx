@@ -12,6 +12,7 @@ import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { formatRSC } from '@/utils/number';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { getLastWeekRange, formatDate } from '@/lib/dateUtils';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 // Skeleton Loader for leaderboard sections
 const LeaderboardSkeleton = () => (
@@ -34,6 +35,7 @@ export const LeaderboardOverview = () => {
   const [funders, setFunders] = useState<TopFunder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { showUSD } = useCurrencyPreference();
 
   // Get date range for current week
   const { start: startDate, end: endDate } = getLastWeekRange();
@@ -144,10 +146,10 @@ export const LeaderboardOverview = () => {
                         amount={reviewer.earnedRsc}
                         variant="text"
                         size="sm"
-                        showExchangeRate={true}
+                        currency={showUSD ? 'USD' : 'RSC'}
                         shorten={true}
-                        showIcon={false}
-                        showText={true}
+                        showIcon={true}
+                        showText={showUSD}
                         className="justify-end"
                       />
                     </div>
@@ -235,9 +237,9 @@ export const LeaderboardOverview = () => {
                         amount={funder.totalFunding}
                         variant="text"
                         size="sm"
-                        showExchangeRate={true}
+                        currency={showUSD ? 'USD' : 'RSC'}
                         shorten={true}
-                        showIcon={false}
+                        showIcon={true}
                         showText={true}
                         className="justify-end"
                       />

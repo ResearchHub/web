@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   BarChart2,
-  Coins,
   CheckCircle,
   FileText,
   MessageCircle,
@@ -25,15 +24,15 @@ import { CommentEditor } from '@/components/Comment/CommentEditor';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { calculateOpenBountiesAmount } from '@/components/Bounty/lib/bountyUtil';
 import { WorkTabs, TabType } from './WorkTabs';
 import { WorkHistoryDisplay } from './WorkHistoryDisplay';
 import { Badge } from '@/components/ui/Badge';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
+import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 
 interface WorkDocumentProps {
   work: Work;
@@ -45,7 +44,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
+
   const { user } = useUser();
 
   // State for active tab
@@ -140,7 +139,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
                   />
                 ) : (
                   <div className="p-8 text-center">
-                    <FlaskConicalOff className="h-10 w-10 text-indigo-400 mx-auto mb-4" />
+                    <FlaskConicalOff className="h-10 w-10 text-primary-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium mb-2">Content is restricted</h3>
                     <p className="text-gray-600 mb-4">
                       This paper's license is marked as closed access or non-commercial and cannot
@@ -169,7 +168,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
           <div className="space-y-6" key="reviews-tab">
             <CommentFeed
               documentId={work.id}
-              unifiedDocumentId={work.unifiedDocumentId}
+              unifiedDocumentId={work.unifiedDocumentId || null}
               contentType={work.contentType}
               commentType="REVIEW"
               editorProps={{
@@ -188,7 +187,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
           <div className="space-y-6" key="bounties-tab">
             <CommentFeed
               documentId={work.id}
-              unifiedDocumentId={work.unifiedDocumentId}
+              unifiedDocumentId={work.unifiedDocumentId || null}
               contentType={work.contentType}
               commentType="BOUNTY"
               renderCommentActions={false}
@@ -203,7 +202,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
           <div className="space-y-6" key="comments-tab">
             <CommentFeed
               documentId={work.id}
-              unifiedDocumentId={work.unifiedDocumentId}
+              unifiedDocumentId={work.unifiedDocumentId || null}
               contentType={work.contentType}
               commentType="GENERIC_COMMENT"
               key={`comment-feed-${work.id}`}
@@ -254,46 +253,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
 
   return (
     <div>
-      {/* Rewards Banner - Show when there are open bounties */}
-      {metadata.bounties && metadata.openBounties > 0 && (
-        <div className="mb-6">
-          <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg border border-orange-200">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-orange-100 p-2 rounded-lg">
-                    <Coins className="h-5 w-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-medium text-orange-900">
-                      {(() => {
-                        // Calculate total amount from only OPEN bounties using utility function
-                        const totalAmount = calculateOpenBountiesAmount(metadata.bounties);
-                        // Calculate USD value if exchange rate is available
-                        const usdValue =
-                          !isExchangeRateLoading && exchangeRate > 0
-                            ? (totalAmount * exchangeRate).toFixed(2)
-                            : null;
-
-                        return `${formatRSC({ amount: totalAmount })} RSC${usdValue ? ` (${usdValue} USD)` : ''} Earning Opportunity`;
-                      })()}
-                    </h2>
-                    <p className="mt-1 text-sm text-orange-700">
-                      Earn ResearchCoin by completing bounties on this paper
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleTabChange('bounties')}
-                  className="px-4 py-1.5 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600"
-                >
-                  View Bounties
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <EarningOpportunityBanner work={work} metadata={metadata} />
       {/* Title & Actions */}
       {work.type === 'preprint' && <ContentTypeBadge type="preprint" size="lg" />}
       <PageHeader title={work.title} className="text-3xl mt-2" />

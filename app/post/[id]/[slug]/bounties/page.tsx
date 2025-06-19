@@ -8,6 +8,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { PostDocument } from '@/components/work/PostDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
+import { handleFundraiseRedirect } from '@/utils/navigation';
 
 interface Props {
   params: Promise<{
@@ -51,6 +52,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PostBountiesPage({ params }: Props) {
   const resolvedParams = await params;
   const post = await getPost(resolvedParams.id);
+
+  // Handle fundraise redirection
+  handleFundraiseRedirect(post, resolvedParams.id, resolvedParams.slug);
+
   const metadata = await MetadataService.get(post.unifiedDocumentId?.toString() || '');
   const content = await getPostContent(post);
 

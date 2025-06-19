@@ -70,7 +70,7 @@ const FeedItemPaperBody: FC<{
       </div>
 
       {/* Original Paper Title - Ensure only one exists */}
-      <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
+      <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
         {paper.title}
       </h2>
 
@@ -97,7 +97,7 @@ const FeedItemPaperBody: FC<{
           <a
             href={paper.journal.slug ? `/journal/${paper.journal.slug}` : '#'}
             rel="noopener noreferrer"
-            className="hover:text-indigo-600 underline cursor-pointer"
+            className="hover:text-blue-600 underline cursor-pointer"
             onClick={(e) => e.stopPropagation()} // Prevent card click when clicking link
           >
             {paper.journal.name}

@@ -74,7 +74,7 @@ export const ImageUploadModal = ({ onClose, onImageEmbed }: ImageUploadModalProp
 
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center ${
-            isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'
+            isDragging ? 'border-primary-500 bg-primary-50' : 'border-gray-300'
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -94,7 +94,7 @@ export const ImageUploadModal = ({ onClose, onImageEmbed }: ImageUploadModalProp
               <div className="text-gray-600">Drag and drop an image here, or click to select</div>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="text-indigo-600 hover:text-indigo-800"
+                className="text-primary-600 hover:text-primary-800"
               >
                 Browse files
               </button>
@@ -118,7 +118,7 @@ export const ImageUploadModal = ({ onClose, onImageEmbed }: ImageUploadModalProp
           <button
             onClick={handleUpload}
             disabled={!selectedFile || isUploading}
-            className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isUploading ? 'Uploading...' : 'Upload'}
           </button>

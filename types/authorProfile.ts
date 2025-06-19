@@ -41,6 +41,7 @@ export interface AuthorProfile {
   googleScholar?: string | null;
   orcidId?: string | null;
   isClaimed: boolean;
+  isVerified: boolean;
   hIndex?: number;
   i10Index?: number;
   userId?: number;
@@ -58,8 +59,9 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
       lastName: '',
       profileImage: '',
       headline: '',
-      profileUrl: '/profile/0',
+      profileUrl: '/author/0',
       isClaimed: false,
+      isVerified: false,
     };
   }
 
@@ -85,7 +87,7 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
     lastName: raw.last_name || '',
     profileImage: raw.profile_image || '',
     headline: typeof raw.headline === 'string' ? raw.headline : raw.headline?.title || '',
-    profileUrl: `/profile/${raw.id || 0}`,
+    profileUrl: `/author/${raw.id || 0}`,
     user: raw.user ? transformUser(raw.user) : undefined,
     description: raw.description || undefined,
     createdDate: raw.created_date || undefined,
@@ -100,6 +102,7 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
     i10Index: raw.i10_index || undefined,
     userId: raw.user_id || undefined,
     editorOfHubs: editorOfHubs,
+    isVerified: raw.is_verified_v2 || false,
   };
 });
 

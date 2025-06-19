@@ -2,7 +2,6 @@
 
 import { ReactNode, useState, Suspense, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { Search } from '@/components/Search/Search';
 import { OnboardingRedirect } from '@/components/OnboardingRedirect';
 import { usePathname } from 'next/navigation';
 import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
@@ -54,6 +53,7 @@ interface PageLayoutProps {
 export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const rightSidebarRef = useRef<HTMLDivElement>(null);
   const rightSidebarWrapperRef = useRef<HTMLDivElement>(null);
   const [sidebarTransform, setSidebarTransform] = useState(0);
@@ -62,7 +62,11 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (!mainContentRef.current || !rightSidebarRef.current || !rightSidebarWrapperRef.current)
+      if (
+        !scrollContainerRef.current ||
+        !rightSidebarRef.current ||
+        !rightSidebarWrapperRef.current
+      )
         return;
 
       // Cancel any pending animation frame to avoid unnecessary updates
@@ -71,15 +75,19 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
       }
 
       animationFrameId.current = requestAnimationFrame(() => {
-        if (!mainContentRef.current || !rightSidebarRef.current || !rightSidebarWrapperRef.current)
+        if (
+          !scrollContainerRef.current ||
+          !rightSidebarRef.current ||
+          !rightSidebarWrapperRef.current
+        )
           return;
 
-        const mainContent = mainContentRef.current;
+        const scrollContainer = scrollContainerRef.current;
         const sidebar = rightSidebarRef.current;
 
         const sidebarHeight = sidebar.scrollHeight;
         const viewportHeight = window.innerHeight; // Use viewport height
-        const scrollTop = mainContent.scrollTop;
+        const scrollTop = scrollContainer.scrollTop;
 
         // Max distance sidebar needs to move up
         const maxScroll = Math.max(0, sidebarHeight - viewportHeight);
@@ -107,14 +115,14 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
       });
     };
 
-    const mainContent = mainContentRef.current;
-    if (mainContent) {
-      mainContent.addEventListener('scroll', handleScroll);
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
       // Initial calculation in case content is already scrolled or fits
       handleScroll();
 
       return () => {
-        mainContent.removeEventListener('scroll', handleScroll);
+        scrollContainer.removeEventListener('scroll', handleScroll);
         // Cancel any pending animation frame on cleanup
         if (animationFrameId.current) {
           cancelAnimationFrame(animationFrameId.current);
@@ -127,6 +135,16 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
     <div className="flex h-screen">
       {/* <OnboardingRedirect /> */}
       <OnboardingModal />
+
+      {/* Fixed TopBar starting from LeftSidebar edge */}
+      <div
+        className="fixed top-0 right-0 z-50 bg-white
+                      left-0 tablet:!left-72 tablet:sidebar-compact:!left-72 tablet:max-sidebar-compact:!left-[70px]"
+      >
+        <Suspense fallback={<TopBarSkeleton />}>
+          <TopBar onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)} />
+        </Suspense>
+      </div>
 
       {/* Mobile overlay */}
       {isLeftSidebarOpen && (
@@ -148,7 +166,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
           tablet:sidebar-compact:!w-72
           tablet:max-sidebar-compact:!w-[70px]
 
-          ${isLeftSidebarOpen ? 'fixed top-0 !translate-x-0 w-[280px] block' : 'fixed top-0 !-translate-x-full w-[280px] hidden'}
+          ${isLeftSidebarOpen ? 'fixed top-[64px] !translate-x-0 w-[280px] block' : 'fixed top-[64px] !-translate-x-full w-[280px] hidden'}
 
           tablet:!block tablet:w-72
         `}
@@ -159,19 +177,21 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
       </div>
 
       {/* Center Content Area (Scrolling) */}
-      <div ref={mainContentRef} className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
-        {/* TopBar (Sticky within Center Column) */}
-        <div className="topbar-hide:!hidden sticky top-0 z-40 bg-white flex-shrink-0">
-          <Suspense fallback={<TopBarSkeleton />}>
-            <TopBar onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)} />
-          </Suspense>
-        </div>
-
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative"
+        style={{ marginTop: '64px' }}
+      >
         {/* Main Content */}
-        <main className="flex-1 px-4 tablet:!px-8 py-4 flex" style={{ maxWidth: '100vw' }}>
+        <main
+          ref={mainContentRef}
+          className={`flex-1 px-4 tablet:!px-8 py-4 flex justify-center ${
+            rightSidebar ? 'lg:!pr-80 right-sidebar:!pr-80' : ''
+          }`}
+          style={{ maxWidth: '100vw' }}
+        >
           <div
-            className="mx-auto
-              flex-1
+            className="w-full
               max-w-full
               tablet:!max-w-2xl
               content-md:!max-w-2xl
@@ -181,44 +201,36 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
           >
             {children}
           </div>
-          {/* Right Sidebar (Sticky) */}
-          {rightSidebar && (
-            <aside
-              ref={rightSidebarWrapperRef}
-              className="sticky top-0 h-full overflow-hidden
-                        lg:!block !hidden right-sidebar:!block w-80 bg-white
-                        flex-shrink-0 pr-4"
-            >
-              <div
-                ref={rightSidebarRef}
-                style={{ transform: `translateY(${sidebarTransform}px)` }}
-                // Added transition for smoother movement
-                className="transition-transform duration-150 ease-out"
-              >
-                {/* Search Bar */}
-                <div className="sticky top-0 z-40 bg-white pt-2 pb-4">
-                  <Search
-                    placeholder="Search..."
-                    className="[&_input]:rounded-full [&_input]:bg-[#F8F9FC]"
-                  />
-                </div>
-
-                {/* Sidebar Content */}
-                <div className="">
-                  <Suspense fallback={<RightSidebarSkeleton />}>
-                    {pathname.startsWith('/paper/create') ? (
-                      <RHJRightSidebar showBanner={false} />
-                    ) : typeof rightSidebar === 'boolean' ? (
-                      <RightSidebar />
-                    ) : (
-                      rightSidebar
-                    )}
-                  </Suspense>
-                </div>
-              </div>
-            </aside>
-          )}
         </main>
+
+        {/* Right Sidebar (Fixed to viewport edge) */}
+        {rightSidebar && (
+          <aside
+            ref={rightSidebarWrapperRef}
+            className="fixed top-16 right-0 h-[calc(100vh-64px)] overflow-hidden
+                      lg:!block !hidden right-sidebar:!block w-80 bg-white
+                      z-30"
+          >
+            <div
+              ref={rightSidebarRef}
+              style={{ transform: `translateY(${sidebarTransform}px)` }}
+              className="transition-transform duration-150 ease-out h-full"
+            >
+              {/* Sidebar Content */}
+              <div className="px-4 pt-4">
+                <Suspense fallback={<RightSidebarSkeleton />}>
+                  {pathname.startsWith('/paper/create') ? (
+                    <RHJRightSidebar showBanner={false} />
+                  ) : typeof rightSidebar === 'boolean' ? (
+                    <RightSidebar />
+                  ) : (
+                    rightSidebar
+                  )}
+                </Suspense>
+              </div>
+            </div>
+          </aside>
+        )}
       </div>
     </div>
   );

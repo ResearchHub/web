@@ -143,7 +143,7 @@ export class FeedService {
           lastName: safeAuthor.last_name || '',
           profileImage: safeAuthor.profile_image || '',
           headline: safeAuthor.description || '',
-          profileUrl: `/profile/${safeAuthor.id || 0}`,
+          profileUrl: `/author/${safeAuthor.id || 0}`,
           user: {
             id: safeAuthor.user?.id || safeAuthor.id || 0,
             email: safeAuthor.user?.email || '',
@@ -157,6 +157,7 @@ export class FeedService {
             moderator: false,
           },
           isClaimed: !!safeAuthor.user,
+          isVerified: safeAuthor.user?.is_verified || false,
         },
       };
     }

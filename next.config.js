@@ -1,6 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
+  redirects: async () => [
+    {
+      source: '/fund',
+      destination: '/fund/needs-funding',
+      permanent: false,
+    },
+  ],
   headers: async () => [
     {
       source: '/:path*',

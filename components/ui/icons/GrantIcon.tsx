@@ -25,7 +25,7 @@ interface GrantIconProps {
 
 export function GrantIcon({
   size = 24,
-  color = 'rgb(79, 70, 229)', // Default to indigo-600
+  color = '#3971ff', // Default to primary-500
   className,
   onClick,
 }: GrantIconProps) {

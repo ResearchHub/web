@@ -44,9 +44,13 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
 
   const header = (
     <MainPageHeader
-      icon={<Icon name="solidHand" size={26} color="#4f46e5" />}
-      title="Fund Science"
-      subtitle="Fund breakthrough research shaping tomorrow"
+      icon={<Icon name="solidHand" size={26} color="#3971ff" />}
+      title={marketplaceTab === 'needs-funding' ? 'Funding' : 'Grants'}
+      subtitle={
+        marketplaceTab === 'needs-funding'
+          ? 'Fund breakthrough research shaping tomorrow'
+          : 'Explore available funding opportunities'
+      }
     />
   );
 
@@ -56,7 +60,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
 
   return (
     <PageLayout rightSidebar={rightSidebar}>
-      <div className="pt-4 pb-7">{header}</div>
+      {header}
 
       {/* Primary Marketplace Tabs */}
       <MarketplaceTabs

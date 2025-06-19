@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useEffect, memo } from 'react';
+import { useCallback, useState, useEffect, memo, useMemo } from 'react';
 import { Comment, CommentType } from '@/types/comment';
 import { ContentType, Work } from '@/types/work';
 import { CommentItem } from './CommentItem';
@@ -16,7 +16,7 @@ import { CommentContent } from './lib/types';
 import { CommentService } from '@/services/comment.service';
 import { MessageSquare, Plus } from 'lucide-react';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
-import { useSession } from 'next-auth/react';
+import { useUser } from '@/contexts/UserContext';
 import { CommentEmptyState } from './CommentEmptyState';
 import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
 import { comment } from 'postcss';
@@ -30,8 +30,9 @@ interface CommentFeedProps {
   renderCommentActions?: boolean;
   hideEditor?: boolean;
   debug?: boolean;
-  unifiedDocumentId?: number | null;
+  unifiedDocumentId: number | null;
   work?: Work;
+  workAuthors?: Work['authors'];
 }
 
 function CommentFeed({
@@ -45,6 +46,7 @@ function CommentFeed({
   debug = false,
   unifiedDocumentId,
   work,
+  workAuthors,
 }: CommentFeedProps) {
   // Add debugging for mount/unmount if debug is enabled
   useEffect(() => {
@@ -86,6 +88,7 @@ function CommentFeed({
           onCreateBounty={handleCreateBounty}
           unifiedDocumentId={unifiedDocumentId}
           work={work}
+          workAuthors={workAuthors}
         />
       </div>
       <CreateBountyModal
@@ -109,6 +112,7 @@ function CommentFeedContent({
   unifiedDocumentId,
   onCreateBounty,
   work,
+  workAuthors,
 }: Omit<CommentFeedProps, 'documentId'> & { onCreateBounty: () => void }) {
   // Add debugging for content component if debug is enabled
   useEffect(() => {
@@ -123,6 +127,15 @@ function CommentFeedContent({
   const { filteredComments, count, loading, createComment, loadMore } = useCommentsContext();
 
   const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const { user } = useUser();
+
+  // Check if current user is an author
+  const isCurrentUserAuthor = useMemo(() => {
+    if (!user?.id || !workAuthors) return false;
+    return workAuthors.some(
+      (authorship) => authorship.authorProfile.id === user?.authorProfile?.id
+    );
+  }, [user?.id, user?.authorProfile?.id, workAuthors]);
 
   const handleSubmit = useCallback(
     async ({ content, rating: overallRating }: { content: CommentContent; rating?: number }) => {
@@ -182,10 +195,17 @@ function CommentFeedContent({
   // AuthenticatedCommentEditor component
   const AuthenticatedCommentEditor = useCallback(
     ({ onSubmit, commentType, ...props }: CommentEditorProps) => {
-      const { status } = useSession();
+      const { user: currentUser } = useUser();
 
-      if (status === 'authenticated') {
-        return <CommentEditor onSubmit={onSubmit} commentType={commentType} {...props} />;
+      if (currentUser) {
+        return (
+          <CommentEditor
+            onSubmit={onSubmit}
+            commentType={commentType}
+            isAuthor={isCurrentUserAuthor}
+            {...props}
+          />
+        );
       }
 
       return (
@@ -211,7 +231,7 @@ function CommentFeedContent({
         </div>
       );
     },
-    [executeAuthenticatedAction]
+    [executeAuthenticatedAction, isCurrentUserAuthor]
   );
 
   return (

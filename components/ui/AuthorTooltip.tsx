@@ -235,7 +235,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
             <div className="flex items-center justify-between">
               <a
                 href={userData.authorProfile.profileUrl}
-                className="font-semibold text-gray-900 hover:text-indigo-600 block truncate"
+                className="font-semibold text-gray-900 hover:text-blue-600 block truncate"
               >
                 {userData.fullName}
               </a>
@@ -281,7 +281,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
         <div className="mt-3 text-left">
           <a
             href="#"
-            className="text-xs text-indigo-600 hover:text-indigo-800 font-medium inline-block"
+            className="text-xs text-blue-600 hover:text-blue-800 font-medium inline-block"
             onClick={(e) => {
               e.preventDefault();
               navigateToAuthorProfile(userData.authorProfile?.id || userData.id);

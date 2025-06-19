@@ -55,7 +55,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
   );
 
   return (
-    <div className="relative flex justify-center">
+    <div className={`relative ${forceMinimize ? 'flex justify-center' : ''}`}>
       {/* Standard Menu */}
       <BaseMenu
         trigger={standardTrigger}
@@ -75,7 +75,10 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
               </h3>
             </div>
             <div className="space-y-2">
-              <BaseMenuItem onClick={() => router.push('/paper/create')} className="w-full px-2">
+              <BaseMenuItem
+                onClick={() => executeAuthenticatedAction(() => router.push('/paper/create'))}
+                className="w-full px-2"
+              >
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
                     <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
@@ -84,7 +87,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium tracking-[0.02em] text-gray-900">
-                      Submit a paper
+                      Submit your paper
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
                       Preprint or peer reviewed publication
