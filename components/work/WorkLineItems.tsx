@@ -102,7 +102,10 @@ export const WorkLineItems = ({
   }, [work.contentType, work.id, isUpvoted, vote, refreshVotes]);
 
   const handleEdit = useCallback(() => {
-    if (work.contentType === 'paper' && user?.isModerator) {
+    if (
+      (work.contentType === 'paper' || work.contentType === 'funding_request') &&
+      user?.isModerator
+    ) {
       setIsWorkEditModalOpen(true);
     } else if (selectedOrg && work.note) {
       router.push(`/notebook/${work.note.organization.slug}/${work.note.id}`);
@@ -149,6 +152,19 @@ export const WorkLineItems = ({
     if (!user) return false;
     return work.authors?.some((a) => a.authorProfile.id === user!.authorProfile!.id);
   }, [user, work.authors]);
+
+  const isGrantContact = useMemo(() => {
+    if (!user || work.contentType !== 'funding_request') return false;
+    return work.note?.post?.grant?.contacts?.some(
+      (contact) => contact.authorProfile?.id === user!.authorProfile!.id
+    );
+  }, [user, work.contentType, work.note?.post?.grant?.contacts]);
+
+  const canEdit = useMemo(() => {
+    if (work.contentType === 'paper') return isModerator;
+    if (work.contentType === 'funding_request') return isGrantContact || isAuthor || isModerator;
+    return selectedOrg && work.note;
+  }, [work.contentType, isModerator, isGrantContact, isAuthor, selectedOrg, work.note]);
 
   const handleAddVersion = useCallback(() => {
     if (!user) return; // should be authenticated already
@@ -212,19 +228,14 @@ export const WorkLineItems = ({
             </MenuButton>
 
             <MenuItems className="absolute left-0 mt-2 w-48 origin-top-left bg-white rounded-lg shadow-lg border border-gray-200 py-1 focus:outline-none z-10">
-              <MenuItem>
-                <Button
-                  variant="ghost"
-                  disabled={
-                    work.contentType === 'paper' ? !isModerator : !selectedOrg || !work.note
-                  }
-                  onClick={handleEdit}
-                  className="w-full justify-start"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  <span>Edit</span>
-                </Button>
-              </MenuItem>
+              {canEdit && (
+                <MenuItem>
+                  <Button variant="ghost" onClick={handleEdit} className="w-full justify-start">
+                    <Edit className="h-4 w-4 mr-2" />
+                    <span>Edit</span>
+                  </Button>
+                </MenuItem>
+              )}
               {isAuthor && (
                 <MenuItem>
                   {({ focus }) => (
