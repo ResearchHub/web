@@ -11,7 +11,6 @@ import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction
 import { Interface } from 'ethers';
 import { TransactionService } from '@/services/transaction.service';
 import { RSC, TRANSFER_ABI } from '@/constants/tokens';
-import { useIsEOA } from '@/hooks/useIsEOA';
 
 const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_WALLET_ADDRESS;
 if (!HOT_WALLET_ADDRESS_ENV || HOT_WALLET_ADDRESS_ENV.trim() === '') {
@@ -53,7 +52,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const { address } = useAccount();
   const { balance: walletBalance } = useWalletRSCBalance();
   const [txStatus, setTxStatus] = useState<TransactionStatus>({ state: 'idle' });
-  const { isEOA, isLoading: isEOALoading } = useIsEOA(isOpen);
   const hasCalledSuccessRef = useRef(false);
   const hasProcessedDepositRef = useRef(false);
   const processedTxHashRef = useRef<string | null>(null);
@@ -92,27 +90,19 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   );
 
   const isButtonDisabled = useMemo(
-    () =>
-      !address ||
-      !isEOA ||
-      isEOALoading ||
-      !amount ||
-      depositAmount <= 0 ||
-      depositAmount > walletBalance,
-    [address, isEOA, isEOALoading, amount, depositAmount, walletBalance]
+    () => !address || !amount || depositAmount <= 0 || depositAmount > walletBalance,
+    [address, amount, depositAmount, walletBalance]
   );
 
   // Function to check if inputs should be disabled
   const isInputDisabled = useCallback(() => {
     return (
       !address ||
-      !isEOA ||
-      isEOALoading ||
       txStatus.state === 'buildingTransaction' ||
       txStatus.state === 'pending' ||
       txStatus.state === 'success'
     );
-  }, [address, isEOA, isEOALoading, txStatus.state]);
+  }, [address, txStatus.state]);
 
   const handleOnStatus = useCallback(
     (status: any) => {
@@ -192,9 +182,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     if (depositAmount > walletBalance) {
       throw new Error('Deposit amount exceeds wallet balance');
     }
-    if (!isEOA) {
-      throw new Error('Deposits from smart wallets are not supported');
-    }
 
     const amountInWei = BigInt(depositAmount) * BigInt(10 ** 18);
 
@@ -211,7 +198,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     };
 
     return [transferCall];
-  }, [amount, depositAmount, walletBalance, isEOA]);
+  }, [amount, depositAmount, walletBalance]);
 
   // If no wallet is connected, show nothing - assuming modal shouldn't open in this state
   if (!address) {
@@ -274,20 +261,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                         </div>
                       </div>
                     </div>
-
-                    {/* Smart Wallet Warning */}
-                    {isEOA === false && (
-                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                        <div className="flex items-start">
-                          <div>
-                            <p className="mt-1 text-sm text-amber-700">
-                              Deposits from smart wallets are not yet supported. Please connect with
-                              an externally owned account to make a deposit.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
 
                     {/* Wallet RSC Balance */}
                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
