@@ -233,9 +233,9 @@ export default function CreateBountyPage() {
       try {
         // Extract mentions from the review content
         const mentions =
-          reviewContent === null || typeof reviewContent === 'string'
-            ? []
-            : extractUserMentions(reviewContent as JSONContent);
+          questionContent && typeof questionContent === 'object' && 'content' in questionContent
+            ? extractUserMentions(questionContent)
+            : [];
 
         await CommentService.createComment({
           workId: paperId.toString(),
