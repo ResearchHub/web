@@ -14,5 +14,10 @@ export function getContentTypePath(contentType: ContentType): string {
   if (contentType === 'preregistration') {
     return 'researchhubpost';
   }
+
+  if (contentType === 'funding_request') {
+    return 'researchhubpost';
+  }
+
   return contentType.toLowerCase();
 }

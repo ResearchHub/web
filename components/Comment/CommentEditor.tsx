@@ -23,6 +23,7 @@ export interface CommentEditorProps {
   onCancel?: () => void;
   onReset?: () => void;
   onUpdate?: (content: CommentContent) => void;
+  onContentChange?: (plainText: string, html: string) => void;
   placeholder?: string;
   initialContent?: CommentContent;
   isReadOnly?: boolean;
@@ -44,6 +45,7 @@ export const CommentEditor = ({
   onCancel,
   onReset,
   onUpdate,
+  onContentChange,
   placeholder = 'Write a comment...',
   initialContent = '',
   isReadOnly = false,
@@ -100,6 +102,7 @@ export const CommentEditor = ({
   } = useCommentEditor({
     onSubmit: adaptedOnSubmit,
     onUpdate,
+    onContentChange,
     placeholder,
     initialContent,
     isReadOnly,
