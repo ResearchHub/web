@@ -138,6 +138,7 @@ export interface FeedCommentContent {
       objectId: number;
     };
   };
+  isRemoved?: boolean;
   relatedDocumentId?: number | string;
   relatedDocumentContentType?: ContentType;
   review?: {
@@ -535,6 +536,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           createdDate: content_object.created_date || created_date,
           updatedDate: content_object.updated_date || created_date,
           createdBy: transformAuthorProfile(author || content_object.author),
+          isRemoved: content_object.is_removed,
           comment: {
             id: content_object.id,
             content: content_object.comment_content_json,
@@ -813,6 +815,7 @@ export const transformCommentToFeedItem = (
     createdDate: comment.createdDate,
     updatedDate: comment.updatedDate,
     createdBy: comment.createdBy.authorProfile!, // Add non-null assertion since we know it exists
+    isRemoved: comment.isRemoved,
     comment: {
       id: comment.id,
       content: comment.content,
