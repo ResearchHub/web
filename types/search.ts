@@ -97,19 +97,19 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
     // Handle different entity types
     switch (raw.entity_type) {
       case 'user':
-      case 'person':
         // Process headline to ensure it's a string
-        let headline = '';
+        let userHeadline = '';
         if (raw.headline) {
           if (typeof raw.headline === 'string') {
-            headline = raw.headline;
+            userHeadline = raw.headline;
           } else if (typeof raw.headline === 'object' && raw.headline.title) {
-            headline = String(raw.headline.title);
+            userHeadline = String(raw.headline.title);
           }
         }
+        console.log('transformSearchSuggestion-user', raw);
 
         return {
-          entityType: raw.entity_type === 'person' ? 'author' : 'user',
+          entityType: 'user',
           id: raw.id,
           displayName:
             raw.display_name ||
@@ -121,11 +121,54 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
           isRecent: false,
           createdDate: raw.created_date,
           isVerified: raw.is_verified || false,
+          url: raw.author_profile ? buildAuthorUrl(raw.author_profile.id) : undefined,
+          authorProfile: raw.author_profile
+            ? { ...raw.author_profile, userId: raw.id }
+            : {
+                id: raw.id,
+                headline: userHeadline,
+                profileImage: raw.profile_image || raw.avatar || '',
+                userId: raw.id,
+              },
+        };
+      case 'person':
+        // Process headline to ensure it's a string
+        let headline = '';
+        if (raw.headline) {
+          if (typeof raw.headline === 'string') {
+            headline = raw.headline;
+          } else if (typeof raw.headline === 'object' && raw.headline.title) {
+            headline = String(raw.headline.title);
+          }
+        }
+
+        let fullName =
+          raw.display_name ||
+          raw.full_name ||
+          `${raw.first_name || ''} ${raw.last_name || ''}`.trim() ||
+          'Author';
+
+        return {
+          entityType: 'author',
+          id: raw.id,
+          displayName: fullName,
+          reputation: raw.reputation,
+          source: raw.source || '',
+          isRecent: false,
+          createdDate: raw.created_date,
+          isVerified: raw.is_verified || false,
           url: buildAuthorUrl(raw.id),
-          authorProfile: raw.author_profile || {
+          authorProfile: {
             id: raw.id,
             headline: headline,
             profileImage: raw.profile_image || raw.avatar || '',
+            userId: raw.user_id,
+            fullName: fullName,
+            firstName: raw.first_name || '',
+            lastName: raw.last_name || '',
+            profileUrl: buildAuthorUrl(raw.id),
+            isClaimed: raw.is_claimed || false,
+            isVerified: raw.is_verified || false,
           },
         };
 

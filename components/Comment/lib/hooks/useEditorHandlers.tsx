@@ -3,6 +3,7 @@ import { Editor } from '@tiptap/react';
 import { toast } from 'react-hot-toast';
 import { ReviewCategory } from '../ReviewCategories';
 import { CommentContent } from '../types';
+import { extractUserMentions } from '../commentUtils';
 
 interface UseEditorHandlersProps {
   editor: Editor | null;

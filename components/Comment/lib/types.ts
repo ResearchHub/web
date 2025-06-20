@@ -10,8 +10,10 @@ export interface MentionItem {
   authorProfileId?: string | null;
   isVerified?: boolean;
   authorProfile?: {
+    id: string | null;
     headline: string;
     profileImage: string | null;
+    userId?: string | null;
   };
   // Paper specific fields
   authors?: string[];
