@@ -45,6 +45,7 @@ export interface CreateCommentOptions {
   expirationDate?: string;
   commentType?: CommentType;
   threadType?: string;
+  mentions: string[]; // Array of user IDs to mention
 }
 
 export interface UpdateCommentOptions {
@@ -53,6 +54,7 @@ export interface UpdateCommentOptions {
   contentType: ContentType;
   content: string | QuillContent;
   contentFormat?: ContentFormat;
+  mentions: string[]; // Array of user IDs to mention
 }
 
 export interface DeleteCommentOptions {
@@ -97,6 +99,7 @@ export class CommentService {
     privacyType = 'PUBLIC',
     commentType = 'GENERIC_COMMENT',
     threadType,
+    mentions,
   }: CreateCommentOptions): Promise<Comment> {
     const contentTypePath = getContentTypePath(contentType);
     const path =
@@ -122,6 +125,7 @@ export class CommentService {
         comment_type: commentType,
         thread_type: threadType,
       }),
+      ...(mentions && { mentions }),
     };
 
     const response = await ApiClient.post<any>(path, payload);
@@ -175,12 +179,14 @@ export class CommentService {
     contentType,
     content,
     contentFormat,
+    mentions,
   }: UpdateCommentOptions): Promise<Comment> {
     const contentTypePath = getContentTypePath(contentType);
     const path = `${this.BASE_PATH}/${contentTypePath}/${documentId}/comments/${commentId}/`;
     const payload = {
       comment_content_json: content,
       comment_content_type: contentFormat,
+      ...(mentions && { mentions }),
     };
 
     const response = await ApiClient.patch<any>(path, payload);

@@ -3,11 +3,13 @@ import { Editor } from '@tiptap/react';
 import { toast } from 'react-hot-toast';
 import { ReviewCategory } from '../ReviewCategories';
 import { CommentContent } from '../types';
+import { extractUserMentions } from '../commentUtils';
 
 interface UseEditorHandlersProps {
   editor: Editor | null;
   onSubmit: (content: {
     content: CommentContent;
+    mentions: string[];
     rating?: number;
     sectionRatings?: Record<string, number>;
   }) => Promise<boolean | void> | void;
@@ -81,9 +83,13 @@ export const useEditorHandlers = ({
     try {
       const json = editor.getJSON();
 
+      const mentions = extractUserMentions(json);
+      console.log('useEditorHandlers-mentions', mentions);
+
       const result = await onSubmit({
         content: json as CommentContent,
         rating: isReview ? overallRating : undefined,
+        mentions,
         sectionRatings:
           isReview && Object.keys(currentSectionRatings).length > 0
             ? currentSectionRatings

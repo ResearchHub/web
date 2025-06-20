@@ -32,6 +32,7 @@ import { useSession } from 'next-auth/react';
 import { SessionProvider } from 'next-auth/react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useStorageKey } from '@/utils/storageKeys';
+import { extractUserMentions } from '@/components/Comment/lib/commentUtils';
 
 type Step = 'details' | 'payment';
 type BountyLength = '14' | '30' | '60' | 'custom';
@@ -308,6 +309,10 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
         content: editorContent?.content || [],
       };
 
+      // Extract mentions from the editor content
+      const mentions = extractUserMentions(editorContent || {});
+      console.log('BountyForm-mentions', mentions);
+
       let createdComment;
 
       if (commentContext?.createBounty) {
@@ -315,6 +320,7 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
           commentContent,
           rscAmount,
           bountyType,
+          mentions, // Pass the extracted mentions
           expirationDate,
           workId || selectedPaper?.id
         );
@@ -334,6 +340,7 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
           bountyType,
           expirationDate,
           privacyType: 'PUBLIC',
+          mentions, // Add the mentions parameter
         });
       }
 

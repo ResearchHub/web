@@ -5,25 +5,10 @@ import { Comment, CommentFilter, CommentSort, CommentType, QuillContent } from '
 import { UserVoteType } from '@/types/reaction';
 import { ContentType, Work } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
-import {
-  findCommentById,
-  updateReplyDeep,
-  revertOptimisticUpdate,
-  updateCommentWithApiResponse,
-  updateCommentVoteInList,
-  addReplyDeep,
-  getRealId,
-  traverseCommentTree,
-} from '@/components/Comment/lib/commentUtils/index';
+import { findCommentById, getRealId } from '@/components/Comment/lib/commentUtils/index';
 import { useSession } from 'next-auth/react';
 import { CommentContent } from '@/components/Comment/lib/types';
-import {
-  CommentState,
-  CommentActionType,
-  commentReducer,
-  initialCommentState,
-} from './CommentReducer';
-import { toast } from 'react-hot-toast';
+import { CommentActionType, commentReducer, initialCommentState } from './CommentReducer';
 
 export type BountyFilterType = 'ALL' | 'OPEN' | 'CLOSED';
 
@@ -50,18 +35,28 @@ interface CommentContextType {
   refresh: () => Promise<void>;
   loadMore: () => Promise<void>;
   loadMoreReplies: (commentId: number) => Promise<void>;
-  createComment: (content: CommentContent, rating?: number) => Promise<Comment | null>;
+  createComment: (
+    content: CommentContent,
+    mentions: string[],
+    rating?: number
+  ) => Promise<Comment | null>;
   createBounty: (
     content: CommentContent,
     bountyAmount: number,
     bountyType: CommentType,
+    mentions: string[],
     expirationDate: string,
     customWorkId?: string
   ) => Promise<Comment | null>;
-  createReply: (parentId: number, content: CommentContent) => Promise<Comment | null>;
+  createReply: (
+    parentId: number,
+    content: CommentContent,
+    mentions: string[]
+  ) => Promise<Comment | null>;
   updateComment: (
     commentId: number,
     content: CommentContent,
+    mentions: string[],
     parentId?: number
   ) => Promise<Comment | null>;
   deleteComment: (commentId: number) => Promise<boolean>;
@@ -425,7 +420,11 @@ export const CommentProvider = ({
 
   // Create a new comment
   const createComment = useCallback(
-    async (content: CommentContent, rating?: number): Promise<Comment | null> => {
+    async (
+      content: CommentContent,
+      mentions: string[],
+      rating?: number
+    ): Promise<Comment | null> => {
       dispatch({ type: CommentActionType.CREATE_COMMENT_START });
       dispatch({ type: CommentActionType.SET_ERROR, payload: null });
 
@@ -437,6 +436,7 @@ export const CommentProvider = ({
           content: apiContent,
           contentFormat: 'TIPTAP',
           commentType: rating !== undefined ? 'REVIEW' : commentType,
+          mentions: mentions || [],
         });
 
         // Only update the UI after successful API response
@@ -469,6 +469,7 @@ export const CommentProvider = ({
       content: CommentContent,
       bountyAmount: number,
       bountyType: CommentType,
+      mentions: string[],
       expirationDate: string,
       customWorkId?: string
     ): Promise<Comment | null> => {
@@ -491,6 +492,7 @@ export const CommentProvider = ({
           bountyType, // Keep the bountyType as provided
           expirationDate,
           privacyType: 'PUBLIC',
+          mentions: mentions || [],
         });
 
         // Only update the UI after successful API response
@@ -524,7 +526,11 @@ export const CommentProvider = ({
    * @returns The created reply or null if there was an error
    */
   const createReply = useCallback(
-    async (parentId: number, content: CommentContent): Promise<Comment | null> => {
+    async (
+      parentId: number,
+      content: CommentContent,
+      mentions: string[]
+    ): Promise<Comment | null> => {
       dispatch({ type: CommentActionType.CREATE_REPLY_START });
       dispatch({ type: CommentActionType.SET_ERROR, payload: null });
 
@@ -546,6 +552,7 @@ export const CommentProvider = ({
           contentFormat: 'TIPTAP',
           parentId: realParentId,
           commentType: 'GENERIC_COMMENT',
+          mentions: mentions || [],
         });
         console.log(`API response for reply creation:`, newReply);
 
@@ -590,6 +597,7 @@ export const CommentProvider = ({
     async (
       commentId: number,
       content: CommentContent,
+      mentions: string[],
       parentId?: number
     ): Promise<Comment | null> => {
       dispatch({ type: CommentActionType.UPDATE_COMMENT_START });
@@ -637,6 +645,7 @@ export const CommentProvider = ({
           contentType,
           content: apiContent,
           contentFormat: 'TIPTAP',
+          mentions: mentions || [],
         });
 
         if (response) {

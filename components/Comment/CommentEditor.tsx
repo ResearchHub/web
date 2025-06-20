@@ -18,6 +18,7 @@ export interface CommentEditorProps {
   onSubmit: (content: {
     content: CommentContent;
     rating?: number;
+    mentions: string[];
     sectionRatings?: Record<string, number>;
   }) => Promise<boolean | void> | void;
   onCancel?: () => void;
@@ -59,7 +60,6 @@ export const CommentEditor = ({
   isBountyReply = false,
   isAuthor = false,
 }: CommentEditorProps) => {
-  const { data: session, status } = useSession();
   const editorRef = useRef<HTMLDivElement>(null);
   const [isReviewBannerDismissed, setIsReviewBannerDismissed] = useState(false);
   const [isBountyReplyBannerDismissed, setIsBountyReplyBannerDismissed] = useState(false);
@@ -70,14 +70,17 @@ export const CommentEditor = ({
       content,
       rating,
       sectionRatings,
+      mentions,
     }: {
       content: CommentContent;
+      mentions: string[];
       rating?: number;
       sectionRatings?: Record<string, number>;
     }) => {
       return onSubmit({
         content,
         rating,
+        mentions,
         sectionRatings,
       });
     },

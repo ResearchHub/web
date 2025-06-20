@@ -42,6 +42,7 @@ import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { Icon } from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { extractUserMentions } from '@/components/Comment/lib/commentUtils';
 
 // Wizard steps.
 // We intentionally separate review-specific and answer-specific steps.
@@ -229,6 +230,12 @@ export default function CreateBountyPage() {
       })();
       const toastId = toast.loading('Creating bounty...');
       try {
+        // Extract mentions from the review content
+        const mentions =
+          reviewContent && typeof reviewContent === 'object' && 'content' in reviewContent
+            ? extractUserMentions(reviewContent.content)
+            : [];
+
         await CommentService.createComment({
           workId: paperId.toString(),
           contentType: 'paper',
@@ -240,6 +247,7 @@ export default function CreateBountyPage() {
           bountyType: 'REVIEW',
           expirationDate,
           privacyType: 'PUBLIC',
+          mentions, // Add the mentions parameter
         });
         toast.success('Bounty created!', { id: toastId });
         router.push(
@@ -322,6 +330,12 @@ export default function CreateBountyPage() {
         ],
       } as any;
 
+      // Extract mentions from the question content
+      const mentions =
+        questionContent && typeof questionContent === 'object' && 'content' in questionContent
+          ? extractUserMentions(questionContent)
+          : [];
+
       await CommentService.createComment({
         workId: post.id.toString(),
         contentType: 'post',
@@ -331,6 +345,7 @@ export default function CreateBountyPage() {
         expirationDate,
         privacyType: 'PUBLIC',
         commentType: 'GENERIC_COMMENT',
+        mentions, // Add the mentions parameter
       });
 
       toast.success('Question published & bounty created!', { id: toastId });
