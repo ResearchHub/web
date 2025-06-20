@@ -210,7 +210,6 @@ export default function CreateBountyPage() {
   /* ---------- Submission ---------- */
 
   const handleSubmit = async () => {
-    console.log('BountyPage-handleSubmit');
     if (isSubmitting) return;
 
     if (amountError) return;
@@ -336,18 +335,6 @@ export default function CreateBountyPage() {
         questionContent && typeof questionContent === 'object' && 'content' in questionContent
           ? extractUserMentions(questionContent)
           : [];
-
-      console.log(
-        '2extractUserMentions(reviewContent.content)',
-        reviewContent && typeof reviewContent === 'object' && 'content' in reviewContent
-          ? extractUserMentions(reviewContent.content)
-          : []
-      );
-      console.log(
-        '2extractUserMentions(reviewContent)',
-        extractUserMentions(reviewContent as JSONContent)
-      );
-      console.log('2mentions', mentions);
 
       await CommentService.createComment({
         workId: post.id.toString(),

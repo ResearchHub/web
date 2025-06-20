@@ -45,7 +45,7 @@ export interface CreateCommentOptions {
   expirationDate?: string;
   commentType?: CommentType;
   threadType?: string;
-  mentions: string[]; // Array of user IDs to mention
+  mentions: string[];
 }
 
 export interface UpdateCommentOptions {
@@ -54,7 +54,7 @@ export interface UpdateCommentOptions {
   contentType: ContentType;
   content: string | QuillContent;
   contentFormat?: ContentFormat;
-  mentions: string[]; // Array of user IDs to mention
+  mentions: string[];
 }
 
 export interface DeleteCommentOptions {

@@ -52,7 +52,6 @@ const createDebouncedSearch = () => {
             'author',
           ]);
           const items = suggestions.map(transformSuggestionToMentionItem);
-          console.log('items', items);
           resolve(items);
         } catch (error) {
           console.error('Failed to fetch suggestions:', error);
@@ -68,7 +67,6 @@ const createDebouncedSearch = () => {
 const debouncedSearch = createDebouncedSearch();
 
 const transformUserSuggestion = (userSuggestion: UserSuggestion): MentionItem => {
-  console.log('transformUserSuggestion-userSuggestion', userSuggestion);
   const nameParts = userSuggestion.displayName.split(' ');
   return {
     id: userSuggestion.authorProfile?.id?.toString() || null,
@@ -258,8 +256,6 @@ export const MentionExtension = Mention.extend({
         ];
       }
 
-      console.log('node.attrs', node.attrs);
-
       const url = buildAuthorUrl(node.attrs.id);
       return [
         'a',
@@ -436,7 +432,6 @@ export const MentionExtension = Mention.extend({
     },
     command: ({ editor, range, props: commandProps }) => {
       const item = commandProps as MentionItem;
-      console.log('item', item);
       const attrs: any = {
         id: item.id,
         label: item.label,
