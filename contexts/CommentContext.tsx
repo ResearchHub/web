@@ -5,10 +5,15 @@ import { Comment, CommentFilter, CommentSort, CommentType, QuillContent } from '
 import { UserVoteType } from '@/types/reaction';
 import { ContentType, Work } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
-import { findCommentById, getRealId } from '@/components/Comment/lib/commentUtils/index';
+import {
+  extractUserMentions,
+  findCommentById,
+  getRealId,
+} from '@/components/Comment/lib/commentUtils/index';
 import { useSession } from 'next-auth/react';
 import { CommentContent } from '@/components/Comment/lib/types';
 import { CommentActionType, commentReducer, initialCommentState } from './CommentReducer';
+import { JSONContent } from '@tiptap/core';
 
 export type BountyFilterType = 'ALL' | 'OPEN' | 'CLOSED';
 
@@ -35,28 +40,18 @@ interface CommentContextType {
   refresh: () => Promise<void>;
   loadMore: () => Promise<void>;
   loadMoreReplies: (commentId: number) => Promise<void>;
-  createComment: (
-    content: CommentContent,
-    mentions: string[],
-    rating?: number
-  ) => Promise<Comment | null>;
+  createComment: (content: CommentContent, rating?: number) => Promise<Comment | null>;
   createBounty: (
     content: CommentContent,
     bountyAmount: number,
     bountyType: CommentType,
-    mentions: string[],
     expirationDate: string,
     customWorkId?: string
   ) => Promise<Comment | null>;
-  createReply: (
-    parentId: number,
-    content: CommentContent,
-    mentions: string[]
-  ) => Promise<Comment | null>;
+  createReply: (parentId: number, content: CommentContent) => Promise<Comment | null>;
   updateComment: (
     commentId: number,
     content: CommentContent,
-    mentions: string[],
     parentId?: number
   ) => Promise<Comment | null>;
   deleteComment: (commentId: number) => Promise<boolean>;
@@ -420,16 +415,19 @@ export const CommentProvider = ({
 
   // Create a new comment
   const createComment = useCallback(
-    async (
-      content: CommentContent,
-      mentions: string[],
-      rating?: number
-    ): Promise<Comment | null> => {
+    async (content: CommentContent, rating?: number): Promise<Comment | null> => {
       dispatch({ type: CommentActionType.CREATE_COMMENT_START });
       dispatch({ type: CommentActionType.SET_ERROR, payload: null });
 
       try {
         const apiContent = convertToApiFormat(content);
+
+        // Extract mentions from the question content
+        const mentions =
+          content && typeof content === 'object' && 'content' in content
+            ? extractUserMentions(content as JSONContent)
+            : [];
+
         const newComment = await CommentService.createComment({
           workId: documentId,
           contentType,
@@ -469,7 +467,6 @@ export const CommentProvider = ({
       content: CommentContent,
       bountyAmount: number,
       bountyType: CommentType,
-      mentions: string[],
       expirationDate: string,
       customWorkId?: string
     ): Promise<Comment | null> => {
@@ -478,6 +475,12 @@ export const CommentProvider = ({
 
       try {
         const apiContent = convertToApiFormat(content);
+
+        // Extract mentions from the question content
+        const mentions =
+          content && typeof content === 'object' && 'content' in content
+            ? extractUserMentions(content as JSONContent)
+            : [];
 
         // Always use GENERIC_COMMENT as the commentType
         const commentType = 'GENERIC_COMMENT';
@@ -526,11 +529,7 @@ export const CommentProvider = ({
    * @returns The created reply or null if there was an error
    */
   const createReply = useCallback(
-    async (
-      parentId: number,
-      content: CommentContent,
-      mentions: string[]
-    ): Promise<Comment | null> => {
+    async (parentId: number, content: CommentContent): Promise<Comment | null> => {
       dispatch({ type: CommentActionType.CREATE_REPLY_START });
       dispatch({ type: CommentActionType.SET_ERROR, payload: null });
 
@@ -542,6 +541,12 @@ export const CommentProvider = ({
         console.log(`Real parent ID: ${realParentId}`);
 
         const apiContent = convertToApiFormat(content);
+
+        // Extract mentions from the question content
+        const mentions =
+          content && typeof content === 'object' && 'content' in content
+            ? extractUserMentions(content as JSONContent)
+            : [];
 
         // Make the API call first
         console.log(`Making API call to create reply to parent ${realParentId}`);
@@ -597,7 +602,6 @@ export const CommentProvider = ({
     async (
       commentId: number,
       content: CommentContent,
-      mentions: string[],
       parentId?: number
     ): Promise<Comment | null> => {
       dispatch({ type: CommentActionType.UPDATE_COMMENT_START });
@@ -608,6 +612,12 @@ export const CommentProvider = ({
         const realId = getRealId(commentId);
 
         const apiContent = convertToApiFormat(content);
+
+        // Extract mentions from the question content
+        const mentions =
+          content && typeof content === 'object' && 'content' in content
+            ? extractUserMentions(content as JSONContent)
+            : [];
 
         // Find the comment to update
         const commentToUpdate = findCommentById(state.comments, realId);

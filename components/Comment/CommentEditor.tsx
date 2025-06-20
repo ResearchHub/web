@@ -18,7 +18,6 @@ export interface CommentEditorProps {
   onSubmit: (content: {
     content: CommentContent;
     rating?: number;
-    mentions: string[];
     sectionRatings?: Record<string, number>;
   }) => Promise<boolean | void> | void;
   onCancel?: () => void;
@@ -70,17 +69,14 @@ export const CommentEditor = ({
       content,
       rating,
       sectionRatings,
-      mentions,
     }: {
       content: CommentContent;
-      mentions: string[];
       rating?: number;
       sectionRatings?: Record<string, number>;
     }) => {
       return onSubmit({
         content,
         rating,
-        mentions,
         sectionRatings,
       });
     },

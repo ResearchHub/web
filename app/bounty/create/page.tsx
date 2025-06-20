@@ -11,7 +11,7 @@ import { WorkSuggestion } from '@/types/search';
 import { CommentEditor } from '@/components/Comment/CommentEditor';
 import { extractTextFromTipTap } from '@/components/Comment/lib/commentContentUtils';
 import { StarterKit } from '@tiptap/starter-kit';
-import { generateHTML } from '@tiptap/core';
+import { generateHTML, JSONContent } from '@tiptap/core';
 import { SessionProvider, useSession } from 'next-auth/react';
 import { HubsSelector, Hub } from '@/app/paper/create/components/HubsSelector';
 import { Currency } from '@/types/root';
@@ -210,6 +210,7 @@ export default function CreateBountyPage() {
   /* ---------- Submission ---------- */
 
   const handleSubmit = async () => {
+    console.log('BountyPage-handleSubmit');
     if (isSubmitting) return;
 
     if (amountError) return;
@@ -232,9 +233,9 @@ export default function CreateBountyPage() {
       try {
         // Extract mentions from the review content
         const mentions =
-          reviewContent && typeof reviewContent === 'object' && 'content' in reviewContent
-            ? extractUserMentions(reviewContent.content)
-            : [];
+          reviewContent === null || typeof reviewContent === 'string'
+            ? []
+            : extractUserMentions(reviewContent as JSONContent);
 
         await CommentService.createComment({
           workId: paperId.toString(),
@@ -247,7 +248,7 @@ export default function CreateBountyPage() {
           bountyType: 'REVIEW',
           expirationDate,
           privacyType: 'PUBLIC',
-          mentions, // Add the mentions parameter
+          mentions,
         });
         toast.success('Bounty created!', { id: toastId });
         router.push(
@@ -336,6 +337,18 @@ export default function CreateBountyPage() {
           ? extractUserMentions(questionContent)
           : [];
 
+      console.log(
+        '2extractUserMentions(reviewContent.content)',
+        reviewContent && typeof reviewContent === 'object' && 'content' in reviewContent
+          ? extractUserMentions(reviewContent.content)
+          : []
+      );
+      console.log(
+        '2extractUserMentions(reviewContent)',
+        extractUserMentions(reviewContent as JSONContent)
+      );
+      console.log('2mentions', mentions);
+
       await CommentService.createComment({
         workId: post.id.toString(),
         contentType: 'post',
@@ -345,7 +358,7 @@ export default function CreateBountyPage() {
         expirationDate,
         privacyType: 'PUBLIC',
         commentType: 'GENERIC_COMMENT',
-        mentions, // Add the mentions parameter
+        mentions,
       });
 
       toast.success('Question published & bounty created!', { id: toastId });

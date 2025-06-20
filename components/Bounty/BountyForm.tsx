@@ -311,7 +311,6 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
 
       // Extract mentions from the editor content
       const mentions = extractUserMentions(editorContent || {});
-      console.log('BountyForm-mentions', mentions);
 
       let createdComment;
 
@@ -320,7 +319,6 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
           commentContent,
           rscAmount,
           bountyType,
-          mentions, // Pass the extracted mentions
           expirationDate,
           workId || selectedPaper?.id
         );
@@ -340,7 +338,7 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
           bountyType,
           expirationDate,
           privacyType: 'PUBLIC',
-          mentions, // Add the mentions parameter
+          mentions,
         });
       }
 

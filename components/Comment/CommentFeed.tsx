@@ -138,19 +138,11 @@ function CommentFeedContent({
   }, [user?.id, user?.authorProfile?.id, workAuthors]);
 
   const handleSubmit = useCallback(
-    async ({
-      content,
-      rating: overallRating,
-      mentions,
-    }: {
-      content: CommentContent;
-      rating?: number;
-      mentions: string[];
-    }) => {
+    async ({ content, rating: overallRating }: { content: CommentContent; rating?: number }) => {
       const toastId = toast.loading('Submitting comment...');
 
       try {
-        const result = await createComment(content, mentions, overallRating);
+        const result = await createComment(content, overallRating);
 
         if (!result) {
           toast.error('Failed to submit comment. Please try again.', { id: toastId });

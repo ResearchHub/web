@@ -27,7 +27,6 @@ lowlight.register('python', python);
 export interface UseCommentEditorProps {
   onSubmit: (content: {
     content: CommentContent;
-    mentions: string[];
     rating?: number;
     sectionRatings?: Record<string, number>;
   }) => Promise<boolean | void> | void;

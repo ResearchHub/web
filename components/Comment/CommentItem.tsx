@@ -79,7 +79,6 @@ export const CommentItem = ({
   // Handle editing a comment
   const handleEdit = async (params: {
     content: CommentContent;
-    mentions: string[];
     rating?: number;
     sectionRatings?: Record<string, number>;
   }): Promise<boolean> => {
@@ -91,7 +90,6 @@ export const CommentItem = ({
       const updatedComment = await updateComment(
         comment.id,
         params.content,
-        params.mentions || [],
         typeof comment.parentId === 'number' ? comment.parentId : undefined
       );
 
@@ -125,7 +123,6 @@ export const CommentItem = ({
   // Handle replying to a comment
   const handleReply = async (params: {
     content: CommentContent;
-    mentions: string[];
     rating?: number;
     sectionRatings?: Record<string, number>;
   }): Promise<boolean> => {
@@ -134,7 +131,7 @@ export const CommentItem = ({
       const loadingToastId = toast.loading('Posting your reply...');
 
       // Make the API call through the context
-      const newReply = await createReply(comment.id, params.content, params.mentions);
+      const newReply = await createReply(comment.id, params.content);
 
       // Only clear the replying state after the API call completes
       setReplyingToCommentId(null);
