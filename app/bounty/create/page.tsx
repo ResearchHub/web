@@ -79,7 +79,6 @@ export default function CreateBountyPage() {
 
   // Answer-to-question specific
   const [questionTitle, setQuestionTitle] = useState('');
-  const [questionContent, setQuestionContent] = useState<CommentContent | null>(null);
   const [questionPlainText, setQuestionPlainText] = useState<string>('');
   const [questionHtml, setQuestionHtml] = useState<string>('');
   const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
@@ -266,10 +265,7 @@ export default function CreateBountyPage() {
       setIsSubmitting(false);
       return;
     }
-    if (
-      !questionContent ||
-      (typeof questionContent === 'string' && questionContent.trim() === '')
-    ) {
+    if (!questionPlainText || questionPlainText.trim() === '') {
       toast.error('Please enter the question details');
       setIsSubmitting(false);
       return;
@@ -527,7 +523,6 @@ export default function CreateBountyPage() {
             `}</style>
             <SessionAwareCommentEditor
               onSubmit={async () => {}}
-              onUpdate={(content: CommentContent) => setQuestionContent(content)}
               placeholder="Describe your question..."
               compactToolbar={true}
               storageKey={`question-editor-draft`}
@@ -825,10 +820,8 @@ export default function CreateBountyPage() {
                 (step === 'WORK' && (!selectedPaper || !paperId || isFetchingPaper)) ||
                 (step === 'DETAILS' &&
                   (questionTitle.trim().length === 0 ||
-                    !questionContent ||
-                    (typeof questionContent === 'string'
-                      ? questionContent.trim().length === 0
-                      : false) ||
+                    !questionPlainText ||
+                    questionPlainText.trim().length === 0 ||
                     selectedHubs.length === 0)) ||
                 (step === 'DESCRIPTION' && !reviewContent)
               }
