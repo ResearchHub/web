@@ -185,8 +185,8 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   // Determine the content type for the comment
   const contentType: ContentType = comment.thread?.threadType === 'PAPER' ? 'paper' : 'post';
 
-  // Only use href if explicitly provided, don't create default URLs
-  const commentPageUrl = href; // Remove the default URL generation
+  // Only use href if explicitly provided
+  const commentPageUrl = href;
 
   // Create menu items for edit and delete actions
   const menuItems = [];
