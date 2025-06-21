@@ -11,7 +11,6 @@ import { WorkSuggestion } from '@/types/search';
 import { CommentEditor } from '@/components/Comment/CommentEditor';
 import { extractTextFromTipTap } from '@/components/Comment/lib/commentContentUtils';
 import { StarterKit } from '@tiptap/starter-kit';
-import { generateHTML } from '@tiptap/core';
 import { SessionProvider, useSession } from 'next-auth/react';
 import { HubsSelector, Hub } from '@/app/paper/create/components/HubsSelector';
 import { Currency } from '@/types/root';
@@ -80,7 +79,8 @@ export default function CreateBountyPage() {
 
   // Answer-to-question specific
   const [questionTitle, setQuestionTitle] = useState('');
-  const [questionContent, setQuestionContent] = useState<any>(null);
+  const [questionPlainText, setQuestionPlainText] = useState<string>('');
+  const [questionHtml, setQuestionHtml] = useState<string>('');
   const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
 
   // Shared – amount / currency
@@ -265,38 +265,19 @@ export default function CreateBountyPage() {
       setIsSubmitting(false);
       return;
     }
-    if (
-      !questionContent ||
-      (typeof questionContent === 'string' && questionContent.trim() === '')
-    ) {
+    if (!questionPlainText || questionPlainText.trim() === '') {
       toast.error('Please enter the question details');
       setIsSubmitting(false);
       return;
     }
-    // Convert content to HTML & plain text
-    let html = '';
-    let plain = '';
-    try {
-      if (typeof questionContent === 'string') {
-        html = questionContent;
-        plain = questionContent.replace(/(<([^>]+)>)/gi, '');
-      } else {
-        html = generateHTML(questionContent, [StarterKit]);
-        plain = extractTextFromTipTap(questionContent);
-      }
-    } catch (e) {
-      console.error('Failed to convert content', e);
-      html =
-        typeof questionContent === 'string' ? questionContent : JSON.stringify(questionContent);
-      plain = html.replace(/(<([^>]+)>)/gi, '');
-    }
+
     const toastId = toast.loading('Publishing question...');
     try {
       const post = await PostService.upsert({
         assign_doi: false,
         document_type: 'QUESTION',
-        full_src: html,
-        renderable_text: plain,
+        full_src: questionHtml,
+        renderable_text: questionPlainText,
         hubs: selectedHubs.map((h) => Number(h.id)),
         title: questionTitle,
       });
@@ -542,12 +523,15 @@ export default function CreateBountyPage() {
             `}</style>
             <SessionAwareCommentEditor
               onSubmit={async () => {}}
-              onUpdate={(content: CommentContent) => setQuestionContent(content)}
               placeholder="Describe your question..."
               compactToolbar={true}
               storageKey={`question-editor-draft`}
               showHeader={false}
               showFooter={false}
+              onContentChange={(plainText: string, html: string) => {
+                setQuestionPlainText(plainText);
+                setQuestionHtml(html);
+              }}
             />
           </div>
         </div>
@@ -836,10 +820,8 @@ export default function CreateBountyPage() {
                 (step === 'WORK' && (!selectedPaper || !paperId || isFetchingPaper)) ||
                 (step === 'DETAILS' &&
                   (questionTitle.trim().length === 0 ||
-                    !questionContent ||
-                    (typeof questionContent === 'string'
-                      ? questionContent.trim().length === 0
-                      : false) ||
+                    !questionPlainText ||
+                    questionPlainText.trim().length === 0 ||
                     selectedHubs.length === 0)) ||
                 (step === 'DESCRIPTION' && !reviewContent)
               }

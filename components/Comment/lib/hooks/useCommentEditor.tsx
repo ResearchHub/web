@@ -31,6 +31,7 @@ export interface UseCommentEditorProps {
     sectionRatings?: Record<string, number>;
   }) => Promise<boolean | void> | void;
   onUpdate?: (content: CommentContent) => void;
+  onContentChange?: (plainText: string, html: string) => void;
   placeholder?: string;
   initialContent?: CommentContent;
   isReadOnly?: boolean;
@@ -43,6 +44,7 @@ export interface UseCommentEditorProps {
 
 export const useCommentEditor = ({
   onUpdate,
+  onContentChange,
   placeholder = 'Write a comment...',
   initialContent = '',
   isReadOnly = false,
@@ -169,6 +171,12 @@ export const useCommentEditor = ({
         if (onUpdate) {
           // Use the JSON directly as CommentContent
           onUpdate(json as CommentContent);
+        }
+
+        if (onContentChange) {
+          const plainText = editor.getText();
+          const html = editor.getHTML();
+          onContentChange(plainText, html);
         }
       }
     },

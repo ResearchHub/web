@@ -176,7 +176,7 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     createdDate: raw.created_date,
     publishedDate: raw.paper_publish_date,
     authors: processedAuthors,
-    abstract: raw.abstract || raw.renderable_text || '',
+    abstract: stripHtml(raw.abstract || raw.renderable_text || ''),
     doi: raw.doi,
     journal: transformJournal(raw),
     topics: Array.isArray(raw.hubs)
