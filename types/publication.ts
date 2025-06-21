@@ -1,3 +1,4 @@
+import { stripHtml } from '@/utils/stringUtils';
 import { FeedEntry } from './feed';
 import { createTransformer } from './transformer';
 
@@ -158,7 +159,7 @@ export const transformPublicationToFeedEntry = (
       id: documents.id,
       contentType: 'PAPER',
       createdDate: created_date,
-      textPreview: documents.abstract || '',
+      textPreview: stripHtml(documents.abstract || ''),
       slug: documents.slug,
       title: documents.title,
       authors: documents.authors.map((author) => ({

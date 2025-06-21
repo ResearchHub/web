@@ -5,6 +5,7 @@ import { transformTopic } from './topic';
 import { transformBounty } from './bounty';
 import { Work } from './work';
 import { ContributionType } from '@/services/contribution.service';
+import { stripHtml } from '@/utils/stringUtils';
 
 export interface Hub {
   id: ID;
@@ -106,7 +107,7 @@ const transformUnifiedDocumentToWork = ({ raw, hubs }: { raw: any; hubs: Hub[] }
     slug: relatedUnifiedDocument?.slug,
     createdDate: raw.created_date,
     authors: [],
-    abstract: relatedUnifiedDocument?.renderable_text,
+    abstract: stripHtml(relatedUnifiedDocument?.renderable_text || ''),
     topics: hubs.map((hub) => transformTopic(hub)),
     formats: [], // TODO we need formats here
     figures: [], // TODO we need figures here
@@ -243,7 +244,7 @@ export const transformContributionToFeedEntry = ({
         id: item.id,
         contentType: 'PAPER',
         createdDate: created_date,
-        textPreview: item.abstract || '',
+        textPreview: stripHtml(item.abstract || ''),
         slug: item.slug,
         title: item.title,
         authors: [transformAuthorProfile(created_by.author_profile)],
