@@ -158,7 +158,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
       <div
         className={`
           tablet:!sticky tablet:!top-0 h-screen bg-white border-r border-gray-200
-          z-50 tablet:z-30
+          z-50 tablet:!z-30
           transition-all duration-200 ease-in-out
           flex-shrink-0
 
