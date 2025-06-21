@@ -395,7 +395,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           id: content_object.id,
           contentType: 'PAPER',
           createdDate: content_object.created_date,
-          textPreview: content_object.abstract || '',
+          textPreview: stripHtml(content_object.abstract || ''),
           slug: content_object.slug || '',
           title: stripHtml(content_object.title || ''),
           authors:
