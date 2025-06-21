@@ -40,19 +40,6 @@ interface WorkDocumentProps {
   defaultTab?: TabType;
 }
 
-const renderAbstract = (content: string) => {
-  if (!content) return null;
-
-  // Check if content contains HTML tags
-  const hasHtml = /<[^>]*>/g.test(content);
-
-  if (hasHtml) {
-    return <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: content }} />;
-  }
-
-  return <p className="text-gray-700">{content}</p>;
-};
-
 export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocumentProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -138,7 +125,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
               !work.pdfCopyrightAllowsDisplay) && (
               <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
                 <h2 className="text-xl font-semibold mb-4">Abstract</h2>
-                {renderAbstract(work.abstract)}
+                <p className="text-gray-700">{work.abstract}</p>
               </div>
             )}
 
