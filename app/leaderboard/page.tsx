@@ -463,7 +463,7 @@ function LeaderboardPageContent() {
             activeTab={activeTab}
             onTabChange={setActiveTab}
             className="flex-grow"
-            variant="underline"
+            variant="primary"
           />
 
           <div className="flex-shrink-0">

@@ -78,7 +78,7 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
             tabs={tabs}
             activeTab={activeTab}
             onTabChange={handleTabChange}
-            variant="underline"
+            variant="primary"
             className="border-b-0"
           />
         </div>
