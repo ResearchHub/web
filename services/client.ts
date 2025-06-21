@@ -101,7 +101,7 @@ export class ApiClient {
     };
   }
 
-  static async get<T>(path: string): Promise<T> {
+  static async get<T>(path: string, body?: string): Promise<T> {
     try {
       const headers = await this.getHeaders('GET');
       // Check if the path is already a full URL
@@ -157,6 +157,35 @@ export class ApiClient {
     const response = await fetch(
       `${this.baseURL}${path}`,
       this.getFetchOptions('POST', headers, body)
+    );
+
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { message: 'Invalid JSON response from server' };
+      }
+      throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
+    }
+
+    // Try to parse JSON, but don't fail if there's nothing to parse
+    // Some endpoints return empty responses,
+    // eg when creating a new publication (POST: /api/author/${authorId}/publications/)
+    // In this case, the response is an empty object
+    try {
+      return await response.json();
+    } catch (e) {
+      // If parsing fails, return an empty object
+      return {} as T;
+    }
+  }
+
+  static async put<T>(path: string, body?: any): Promise<T> {
+    const headers = await this.getHeaders('PUT');
+    const response = await fetch(
+      `${this.baseURL}${path}`,
+      this.getFetchOptions('PUT', headers, body)
     );
 
     if (!response.ok) {

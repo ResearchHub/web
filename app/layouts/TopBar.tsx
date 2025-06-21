@@ -8,6 +8,7 @@ import {
   Sparkles,
   ChartNoAxesColumnIncreasing,
   Search as SearchIcon,
+  Bookmark,
 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { SearchModal } from '@/components/Search/SearchModal';
@@ -24,6 +25,7 @@ import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
+import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -391,6 +393,14 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                     </Link>
                   </Tooltip>
                 </>
+              )}
+
+              {isFeatureEnabled(FeatureFlag.UserSavedLists) && (
+                <Link href="/lists" className="flex items-center">
+                  <div className="flex items-center justify-center p-2.5 hover:bg-gray-100 rounded-md transition-colors">
+                    <Bookmark size={24} className="text-gray-500" />
+                  </div>
+                </Link>
               )}
 
               {/* Avatar/Login */}

@@ -27,6 +27,9 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { dedupeAvatars } from '@/utils/avatarUtil';
 import { cn } from '@/utils/styles';
+import { SaveContentButton } from '@/components/UserSaved/SaveContentButton';
+import { isFeatureEnabled, FeatureFlag } from '@/utils/featureFlags';
+import { UserSavedIdentifier } from '@/types/userSaved';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -172,6 +175,8 @@ interface FeedItemActionsProps {
   bounties?: Bounty[]; // Updated to use imported Bounty type
   tips?: Tip[]; // Added tips prop
   awardedBountyAmount?: number; // Add awarded bounty amount
+  isRenderingSavedList?: boolean; // Add isRenderingSavedList prop
+  deleteUserSavedContent?: (identifier: UserSavedIdentifier) => void; // Optional prop to delete user saved content
 }
 
 // Define interface for avatar items used in local state
@@ -202,6 +207,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   bounties = [],
   tips = [],
   awardedBountyAmount = 0, // Destructure awardedBountyAmount with default value
+  isRenderingSavedList = false,
+  deleteUserSavedContent = () => {},
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser(); // Get current user
@@ -645,6 +652,13 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 className: 'text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700',
                 avatars: localTipAvatars,
               })}
+            />
+          )}
+          {/* Only allow saving content we have rending logic for (papers to start) */}
+          {isFeatureEnabled(FeatureFlag.UserSavedLists) && feedContentType === 'PAPER' && (
+            <SaveContentButton
+              userSavedIdentifier={{ id: votableEntityId, idType: 'paperId' }}
+              styling="feed"
             />
           )}
           {children}
