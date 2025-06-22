@@ -55,6 +55,9 @@ export const useAudit = (options: UseAuditOptions = {}) => {
     setIsLoading(true);
     setError(null);
     setSelectedIds([]);
+    // Clear entries immediately to show loading skeleton instead of stale data
+    setEntries([]);
+    setCurrentResponse(null);
 
     try {
       const filters = getApiFilter(options.status);
