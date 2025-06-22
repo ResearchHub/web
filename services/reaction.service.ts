@@ -1,5 +1,16 @@
 import { ID } from '@/types/root';
 import { ApiClient } from './client';
+
+/**
+ * ReactionService - Handles user interactions with content
+ *
+ * This service is for:
+ * - Voting on content (papers, posts, comments)
+ * - Flagging individual content items (user-facing)
+ * - Individual user reactions and engagement
+ *
+ * For administrative moderation operations, use AuditService instead
+ */
 import {
   transformFlag,
   transformVote,
