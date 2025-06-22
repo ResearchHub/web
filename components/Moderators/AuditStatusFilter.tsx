@@ -32,10 +32,13 @@ export const AuditStatusFilter: FC<AuditStatusFilterProps> = ({
   onStatusChange,
   statusCounts,
 }) => {
-  const statuses: AuditStatus[] = ['pending', 'dismissed', 'removed'];
+  // Temporarily disable 'removed' tab due to backend issues
+  const statuses: AuditStatus[] = ['pending', 'dismissed'];
+  const disabledStatuses: AuditStatus[] = ['removed'];
 
   return (
     <div className="flex items-center space-x-1 p-1 bg-gray-100 rounded-lg">
+      {/* Active tabs */}
       {statuses.map((status) => {
         const isActive = activeStatus === status;
         const count = statusCounts?.[status];
@@ -59,6 +62,27 @@ export const AuditStatusFilter: FC<AuditStatusFilterProps> = ({
               >
                 {count}
               </Badge>
+            )}
+          </Button>
+        );
+      })}
+
+      {/* Disabled tabs */}
+      {disabledStatuses.map((status) => {
+        const count = statusCounts?.[status];
+
+        return (
+          <Button
+            key={status}
+            variant="ghost"
+            size="sm"
+            disabled
+            className="flex items-center space-x-2 opacity-50 cursor-not-allowed"
+            title="Temporarily disabled due to server issues"
+          >
+            <span>{statusLabels[status]}</span>
+            {count !== undefined && (
+              <Badge className="text-xs bg-gray-200 text-gray-400">{count}</Badge>
             )}
           </Button>
         );

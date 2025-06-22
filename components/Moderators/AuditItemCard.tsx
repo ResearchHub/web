@@ -15,6 +15,8 @@ import {
   getFlaggedContentDisplayStatus,
 } from './utils/auditUtils';
 import { navigateToAuthorProfile } from '@/utils/navigation';
+import { formatTimestamp } from '@/utils/date';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface AuditItemCardProps {
   entry: FlaggedContent;
@@ -92,7 +94,12 @@ export const AuditItemCard: FC<AuditItemCardProps> = ({ entry, onAction, view = 
           </AuthorTooltip>
         ) : (
           <span className="text-gray-700">{flaggedByName}</span>
-        )}
+        )}{' '}
+        <Tooltip content={new Date(entry.createdDate).toLocaleString()}>
+          <span className="text-gray-500 cursor-default">
+            ({formatTimestamp(entry.createdDate)})
+          </span>
+        </Tooltip>
         {(entry.reason || entry.reasonChoice) && (
           <>
             {' - '}
@@ -104,7 +111,7 @@ export const AuditItemCard: FC<AuditItemCardProps> = ({ entry, onAction, view = 
       {/* Show moderator action for removed content */}
       {verdict && verdict.createdBy && (
         <div className="mb-2 text-sm text-gray-600">
-          <span className="text-gray-500">Removed by:</span>{' '}
+          <span className="text-gray-500">Verdict by:</span>{' '}
           {verdict.createdBy.authorProfile.id ? (
             <AuthorTooltip authorId={Number(verdict.createdBy.authorProfile.id)}>
               <a
@@ -122,7 +129,12 @@ export const AuditItemCard: FC<AuditItemCardProps> = ({ entry, onAction, view = 
             <span className="text-gray-700">
               {`${verdict.createdBy.authorProfile.firstName} ${verdict.createdBy.authorProfile.lastName}`}
             </span>
-          )}
+          )}{' '}
+          <Tooltip content={new Date(verdict.createdDate).toLocaleString()}>
+            <span className="text-gray-500 cursor-default">
+              ({formatTimestamp(verdict.createdDate)})
+            </span>
+          </Tooltip>
           {' - '}
           <span className="text-gray-700">{verdict.verdictChoice}</span>
         </div>

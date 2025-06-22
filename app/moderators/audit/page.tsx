@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAudit, AuditStatus } from '@/hooks/useAudit';
 import { AuditFeedContent } from '@/components/Moderators/AuditFeedContent';
 import { AuditStatusFilter } from '@/components/Moderators/AuditStatusFilter';
@@ -11,6 +11,13 @@ import { ID } from '@/types/root';
 export default function AuditPage() {
   const [activeStatus, setActiveStatus] = useState<AuditStatus>('pending');
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Temporarily redirect away from 'removed' status due to backend issues
+  useEffect(() => {
+    if (activeStatus === 'removed') {
+      setActiveStatus('pending');
+    }
+  }, [activeStatus]);
 
   const {
     entries,
