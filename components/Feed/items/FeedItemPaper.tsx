@@ -147,7 +147,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
           {/* Content area with image */}
           <div className="flex mb-4">
             {/* Left side content */}
-            <div className="flex-1 pr-4">
+            <div className="flex-1">
               {/* Body Content */}
               <FeedItemPaperBody entry={entry} maxLength={maxLength} />
             </div>

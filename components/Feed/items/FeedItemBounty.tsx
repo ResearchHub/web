@@ -17,21 +17,15 @@ import { ContentFormat } from '@/types/comment';
 import { ID } from '@/types/root';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { BountyContribution, BountyType } from '@/types/bounty';
-import { formatRSC } from '@/utils/number';
 import { formatCurrency } from '@/utils/currency';
 import { useParams } from 'next/navigation';
-import { cn } from '@/utils/styles';
-import { Trophy, Pen, Plus, Users, ArrowBigUpDash, MessageSquareReply } from 'lucide-react';
+import { Trophy, Pen, Users, MessageSquareReply } from 'lucide-react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
-import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Button } from '@/components/ui/Button';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
-import { Icon } from '@/components/ui/icons/Icon';
 import { buildWorkUrl } from '@/utils/url';
-import Link from 'next/link';
 import { CardWrapper } from './CardWrapper';
 /**
  * Internal component for rendering bounty details

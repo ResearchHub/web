@@ -5,9 +5,8 @@ import { AuthorProfile, FeedEntry } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { cn } from '@/utils/styles';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
-import { AuthorList } from '@/components/ui/AuthorList';
 import { useRouter } from 'next/navigation';
-import { Users, Building, Calendar } from 'lucide-react';
+import { Building, Calendar } from 'lucide-react';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { differenceInCalendarDays, format } from 'date-fns';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
@@ -15,7 +14,6 @@ import { AvatarStack } from '@/components/ui/AvatarStack';
 import { truncateText } from '@/utils/stringUtils';
 import Icon from '@/components/ui/icons/Icon';
 import Image from 'next/image';
-import Link from 'next/link';
 import { CardWrapper } from './CardWrapper';
 
 // Grant-specific content type that extends the feed entry structure

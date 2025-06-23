@@ -4,20 +4,15 @@ import { FC, useState } from 'react';
 import React from 'react';
 import { FeedEntry, FeedCommentContent, ParentCommentPreview } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
-import { FeedItemActions, ActionButton } from '@/components/Feed/FeedItemActions';
+import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { useRouter } from 'next/navigation';
-import { cn } from '@/utils/styles';
 import { ContentType } from '@/types/work';
-import { Button } from '@/components/ui/Button';
-import { Reply, Pen, Trash2 } from 'lucide-react';
+import { Pen, Trash2 } from 'lucide-react';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 import { Avatar } from '@/components/ui/Avatar';
 import { LegacyCommentBanner } from '@/components/LegacyCommentBanner';
-import { formatTimeAgo } from '@/utils/date';
-import { Tooltip } from '@/components/ui/Tooltip';
-import Link from 'next/link';
 import { CardWrapper } from './CardWrapper';
 
 // Define the recursive rendering component for parent comments

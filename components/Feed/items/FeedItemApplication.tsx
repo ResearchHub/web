@@ -5,18 +5,13 @@ import {
   FeedEntry,
   FeedApplicationContent,
   FeedPostContent,
-  AuthorProfile,
   FeedContentType,
   Review,
 } from '@/types/feed';
 import { UserVoteType } from '@/types/reaction';
-import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
-import { AuthorList } from '@/components/ui/AuthorList';
-import { Building, Users } from 'lucide-react';
-import { cn } from '@/utils/styles';
 import { FeedItemFundraise } from './FeedItemFundraise';
-import { Work, AuthorPosition, ContentType } from '@/types/work';
-import { FeedItemActions, ExtendedContentMetrics } from '@/components/Feed/FeedItemActions';
+import { ContentType } from '@/types/work';
+import { ExtendedContentMetrics } from '@/components/Feed/FeedItemActions';
 import { Tip } from '@/types/tip';
 import { Bounty } from '@/types/bounty';
 

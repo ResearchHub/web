@@ -3,15 +3,12 @@
 import { FC } from 'react';
 import { FeedPostContent, FeedEntry } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
-import { cn } from '@/utils/styles';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { truncateText } from '@/utils/stringUtils';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Users } from 'lucide-react';
-import Link from 'next/link';
 import { CardWrapper } from './CardWrapper';
 
 interface FeedItemPostProps {

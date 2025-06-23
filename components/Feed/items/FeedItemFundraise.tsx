@@ -3,18 +3,16 @@
 import { FC } from 'react';
 import { FeedPostContent, FeedEntry } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
-import { cn } from '@/utils/styles';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { truncateText } from '@/utils/stringUtils';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { useRouter } from 'next/navigation';
-import { Flag, Users, Building } from 'lucide-react';
+import { Users, Building } from 'lucide-react';
 import Image from 'next/image';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
-import Link from 'next/link';
 import { CardWrapper } from './CardWrapper';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
