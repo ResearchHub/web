@@ -4,7 +4,7 @@ import { FC, ReactNode } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
-import { CardWrapper } from './items/CardWrapper';
+import { CardWrapper } from './CardWrapper';
 import { cn } from '@/utils/styles';
 import Image from 'next/image';
 import { truncateText } from '@/utils/stringUtils';
@@ -95,7 +95,7 @@ export const TitleSection: FC<TitleSectionProps> = ({ title, className }) => {
   return (
     <h2
       className={cn(
-        'text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors',
+        'text-md md:!text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors',
         className
       )}
     >

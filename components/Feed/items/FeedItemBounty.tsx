@@ -223,7 +223,6 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       label: 'Edit',
       onClick: (e?: React.MouseEvent) => {
         e?.stopPropagation();
-        e?.preventDefault();
         onEdit();
       },
     });
@@ -247,7 +246,6 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       icon: Users,
       label: 'View Contributors',
       onClick: (e?: React.MouseEvent) => {
-        e?.preventDefault();
         e?.stopPropagation();
         handleOpenContributeModal(e);
       },
