@@ -1,21 +1,19 @@
 'use client';
 
 import { FC } from 'react';
-import { FileText, ExternalLink, Users, Calendar } from 'lucide-react';
+import { Avatar } from '@/components/ui/Avatar';
+import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { FlaggedContent } from '@/services/audit.service';
-import {
-  getFlaggedContentOffendingUser,
-  getStructuredAuditContent,
-  generateAuditContentUrl,
-} from './utils/auditUtils';
+import { Work, ContentType } from '@/types/work';
+import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
+import { getAuditUserInfo, getAuditContentUrl } from './utils/auditUtils';
 import { formatTimestamp } from '@/utils/date';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
-import { AuthorList } from '@/components/ui/AuthorList';
-import { truncateText } from '@/utils/stringUtils';
-import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { navigateToAuthorProfile } from '@/utils/navigation';
 import { ModerationMetadata } from './ModerationMetadata';
 import { ModerationActions } from './ModerationActions';
+import { truncateText } from '@/utils/stringUtils';
 
 interface AuditItemPaperProps {
   entry: FlaggedContent;
@@ -24,143 +22,125 @@ interface AuditItemPaperProps {
 }
 
 export const AuditItemPaper: FC<AuditItemPaperProps> = ({ entry, onAction, view = 'pending' }) => {
-  const offendingUser = getFlaggedContentOffendingUser(entry);
-  const structuredContent = getStructuredAuditContent(entry);
+  const userInfo = getAuditUserInfo(entry);
   const verdict = entry.verdict;
-  const contentUrl = generateAuditContentUrl(entry);
+  const contentUrl = getAuditContentUrl(entry);
+  const item = entry.item!;
 
-  if (structuredContent.type !== 'paper') {
-    return null;
-  }
+  // Extract paper information
+  const paperTitle = item.title || 'Untitled Paper';
+  const paperAbstract = item.abstract || 'No abstract available';
+  const createdDate = item.created_date || entry.createdDate;
 
-  // Convert authors to the format expected by AuthorList
-  const authors = structuredContent.authors.map((author: any) => ({
-    name: author.fullName || `${author.firstName || ''} ${author.lastName || ''}`.trim(),
-    verified: author.user?.isVerified,
-    profileUrl: author.profileUrl,
-  }));
+  // Map document types to content types
+  const getContentType = (docType: string): ContentType => {
+    switch (docType) {
+      case 'PAPER':
+        return 'paper';
+      case 'PREREGISTRATION':
+        return 'preregistration';
+      case 'DISCUSSION':
+      case 'POST':
+      default:
+        return 'post';
+    }
+  };
+
+  // Check if this paper has related work (if it references another document)
+  const relatedDocument = item.thread?.content_object?.unified_document?.documents?.[0];
+  const documentType = item.thread?.content_object?.unified_document?.document_type;
+
+  const relatedWork = relatedDocument
+    ? {
+        id: relatedDocument.id,
+        contentType: documentType ? getContentType(documentType) : 'post',
+        title: relatedDocument.title || 'Untitled',
+        slug: relatedDocument.slug || `item-${relatedDocument.id}`,
+        createdDate: item.created_date || entry.createdDate,
+        authors: [],
+        abstract: relatedDocument.renderable_text || 'No preview available',
+        topics: [],
+        formats: [],
+        figures: [],
+      }
+    : undefined;
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
-      {/* Header with content type */}
-      <div className="flex items-center gap-2 mb-3">
-        <ContentTypeBadge type="paper" />
-        {structuredContent.journal && (
-          <div className="text-sm text-blue-600 font-medium">{structuredContent.journal.name}</div>
-        )}
+      {/* Content type badge */}
+      <div className="mb-3">
+        <ContentTypeBadge type="article" />
       </div>
 
-      {/* Paper title */}
+      {/* User and unified action */}
+      <div className="flex items-center space-x-3 mb-3">
+        <Avatar src={userInfo.avatar} alt={userInfo.name} size="sm" authorId={userInfo.authorId} />
+        <div>
+          {userInfo.authorId ? (
+            <AuthorTooltip authorId={userInfo.authorId}>
+              <a
+                href="#"
+                className="font-medium text-gray-900 hover:text-blue-600 cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateToAuthorProfile(userInfo.authorId!);
+                }}
+              >
+                {userInfo.name}
+              </a>
+            </AuthorTooltip>
+          ) : (
+            <span
+              className={`font-medium ${userInfo.isRemoved ? 'text-gray-500 italic' : 'text-gray-900'}`}
+            >
+              {userInfo.name}
+            </span>
+          )}
+          <div className="text-sm text-gray-500">
+            <span>
+              Published a paper •{' '}
+              <Tooltip content={new Date(createdDate).toLocaleString()}>
+                <span className="cursor-default">{formatTimestamp(createdDate)}</span>
+              </Tooltip>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Paper title with link */}
       <div className="mb-3">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          {structuredContent.title}
-          {contentUrl && (
+        <h3 className="text-lg font-semibold text-gray-900">
+          {contentUrl ? (
             <a
               href={contentUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-2 text-blue-600 hover:text-blue-800 inline-flex"
+              className="text-gray-900 hover:text-blue-600 underline"
             >
-              <ExternalLink className="w-4 h-4" />
+              {paperTitle}
             </a>
+          ) : (
+            paperTitle
           )}
         </h3>
       </div>
 
-      {/* Authors */}
-      {authors.length > 0 && (
-        <div className="mb-3 flex items-center gap-1.5">
-          <Users className="w-4 h-4 text-gray-500" />
-          <AuthorList
-            authors={authors}
-            size="sm"
-            className="text-gray-600 font-normal"
-            delimiter="•"
-            showAbbreviatedInMobile={true}
-          />
-        </div>
-      )}
-
-      {/* Publication date */}
-      {(structuredContent.publishedDate || structuredContent.createdDate) && (
-        <div className="mb-3 flex items-center gap-1.5 text-sm text-gray-500">
-          <Calendar className="w-4 h-4" />
-          <span>
-            {structuredContent.publishedDate ? 'Published' : 'Created'}:{' '}
-            <Tooltip
-              content={new Date(
-                structuredContent.publishedDate || structuredContent.createdDate
-              ).toLocaleString()}
-            >
-              <span className="cursor-default">
-                {formatTimestamp(structuredContent.publishedDate || structuredContent.createdDate)}
-              </span>
-            </Tooltip>
-          </span>
-        </div>
-      )}
-
-      {/* Topics */}
-      {structuredContent.topics && structuredContent.topics.length > 0 && (
-        <div className="mb-3 flex flex-wrap gap-2">
-          {structuredContent.topics.slice(0, 3).map((topic: any, index: number) => (
-            <TopicAndJournalBadge
-              key={index}
-              type="topic"
-              name={topic.name}
-              slug={topic.slug || ''}
-              imageUrl={topic.imageUrl}
-            />
-          ))}
-          {structuredContent.topics.length > 3 && (
-            <span className="text-sm text-gray-500">
-              +{structuredContent.topics.length - 3} more
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Abstract */}
-      {structuredContent.abstract && (
-        <div className="mb-3 p-3 bg-gray-50 rounded border-l-2 border-blue-300">
-          <p className="text-gray-700 text-sm leading-relaxed">
-            {truncateText(structuredContent.abstract, 300)}
-          </p>
-        </div>
-      )}
-
-      {/* DOI */}
-      {structuredContent.doi && (
-        <div className="mb-3 text-sm">
-          <span className="text-gray-500">DOI:</span>{' '}
-          <a
-            href={`https://doi.org/${structuredContent.doi}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800 font-mono"
-          >
-            {structuredContent.doi}
-          </a>
-        </div>
-      )}
-
-      {/* PDF link */}
-      {structuredContent.pdfUrl && (
-        <div className="mb-3">
-          <a
-            href={structuredContent.pdfUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm"
-          >
-            <FileText className="w-4 h-4" />
-            View PDF
-          </a>
-        </div>
-      )}
-
       {/* Moderation metadata */}
       <ModerationMetadata entry={entry} />
+
+      {/* Paper abstract */}
+      <div className="mb-4 p-3 bg-gray-50 rounded border-l-2 border-blue-300">
+        <div className="text-sm text-gray-700">
+          <p>{truncateText(paperAbstract, 400)}</p>
+        </div>
+      </div>
+
+      {/* Related Work - show if available */}
+      {relatedWork && (
+        <div className="mb-4" onClick={(e) => e.stopPropagation()}>
+          <RelatedWorkCard size="sm" work={relatedWork} />
+        </div>
+      )}
 
       {/* Actions */}
       <ModerationActions

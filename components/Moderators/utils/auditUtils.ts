@@ -1,300 +1,173 @@
 import { FlaggedContent } from '@/services/audit.service';
-import { extractTextFromTipTap } from '@/components/Comment/lib/commentContentUtils';
+import { buildWorkUrl } from '@/utils/url';
 
 /**
- * Content type mapping for audit purposes
+ * SIMPLIFIED AUDIT UTILS
+ *
+ * This file now leverages existing utilities instead of duplicating logic:
+ * - buildWorkUrl() from utils/url.ts
+ * - CommentReadOnly component for content rendering
+ * - FeedItemHeader for user/timestamp display
+ *
+ * We avoid importing the audit transformation functions due to type incompatibilities
+ * between @/services/audit.service and @/types/audit FlaggedContent types.
  */
-export type AuditContentType = 'comment' | 'paper' | 'post' | 'unknown';
 
 /**
- * Detect the content type from flagged content entry
+ * Extract user information from flagged content entry
  */
-export const detectAuditContentType = (entry: FlaggedContent): AuditContentType => {
-  const contentTypeName = entry.contentType.name.toLowerCase();
-
-  switch (contentTypeName) {
-    case 'rhcommentmodel':
-      return 'comment';
-    case 'paper':
-      return 'paper';
-    case 'researchhubpost':
-      return 'post';
-    default:
-      return 'unknown';
-  }
-};
-
-/**
- * Get structured content data based on content type
- */
-export const getStructuredAuditContent = (entry: FlaggedContent) => {
-  const contentType = detectAuditContentType(entry);
-  const item = entry.item;
-
-  switch (contentType) {
-    case 'comment':
-      return {
-        type: 'comment' as const,
-        id: item?.id,
-        content: getFlaggedContentPreview(entry),
-        contentFormat: item?.content_format || 'UNKNOWN',
-        createdDate: item?.created_date,
-        isReview: item?.comment_type === 'REVIEW',
-        reviewScore: item?.review_score || item?.score,
-        thread: item?.thread,
-        parentDocument: getFlaggedContentParentDocument(entry),
-      };
-
-    case 'paper':
-      return {
-        type: 'paper' as const,
-        id: item?.id,
-        title: item?.title,
-        abstract: item?.abstract,
-        doi: item?.doi,
-        authors: item?.authors || [],
-        topics: item?.topics || [],
-        journal: item?.journal,
-        createdDate: item?.created_date,
-        publishedDate: item?.published_date,
-        url: item?.url,
-        pdfUrl: item?.pdf_url,
-        previewImage: item?.preview_image,
-      };
-
-    case 'post':
-      return {
-        type: 'post' as const,
-        id: item?.id,
-        title: item?.title,
-        content: item?.renderable_text || item?.text || getFlaggedContentPreview(entry),
-        renderableText:
-          item?.unified_document?.documents?.[0]?.renderable_text ||
-          item?.renderable_text ||
-          getFlaggedContentPreview(entry),
-        documentType: item?.unified_document?.document_type,
-        authors: item?.authors || [],
-        topics: entry?.hubs || item?.topics || [],
-        createdDate: item?.created_date,
-        previewImage: item?.preview_image,
-        postType: item?.post_type,
-        fundraise: item?.fundraise,
-        institution: item?.institution,
-      };
-
-    default:
-      return {
-        type: 'unknown' as const,
-        id: item?.id,
-        content: getFlaggedContentPreview(entry),
-        createdDate: item?.created_date,
-        rawData: item,
-      };
-  }
-};
-
-/**
- * Get parent document information for context
- */
-export const getFlaggedContentParentDocument = (entry: FlaggedContent) => {
-  const documents = entry.item?.thread?.content_object?.unified_document?.documents;
-  if (documents && documents.length > 0) {
-    const doc = documents[0];
-    return {
-      id: doc.id,
-      title: doc.title || 'Untitled Document',
-      contentType: doc.content_type,
-      slug: doc.slug,
-      url: doc.url,
-    };
-  }
-  return null;
-};
-
-/**
- * Get content preview from flagged content entry
- * Note: Does not censor removed content - shows actual content for moderation purposes
- */
-export const getFlaggedContentPreview = (entry: FlaggedContent): string => {
-  if (!entry.item) {
-    return 'Content not available';
-  }
-
-  const contentItem = entry.item;
-
-  // For comments with TipTap or Quill JSON content
-  if (contentItem.comment_content_json) {
-    try {
-      const jsonContent =
-        typeof contentItem.comment_content_json === 'string'
-          ? JSON.parse(contentItem.comment_content_json)
-          : contentItem.comment_content_json;
-
-      // Extract text from Quill format (ops array)
-      if (jsonContent.ops && Array.isArray(jsonContent.ops)) {
-        const extractedText = jsonContent.ops
-          .map((op: any) => op.insert || '')
-          .join('')
-          .trim();
-
-        if (extractedText) {
-          return extractedText;
-        }
-      }
-
-      // Extract text from TipTap format using existing utility
-      if (jsonContent.content || jsonContent.type === 'doc') {
-        const extractedText = extractTextFromTipTap(jsonContent);
-        if (extractedText) {
-          return extractedText.trim();
-        }
-      }
-
-      return 'No readable content found';
-    } catch (e) {
-      console.warn('Failed to parse comment_content_json:', e);
-      return 'Error parsing comment content';
-    }
-  }
-
-  // For posts and papers, get content from thread content object
-  if (contentItem.thread?.content_object?.unified_document?.documents?.[0]) {
-    const document = contentItem.thread.content_object.unified_document.documents[0];
-    return (
-      document.renderable_text ||
-      document.title ||
-      document.abstract ||
-      'No content preview available'
-    );
-  }
-
-  // Fallback to other possible content fields
-  return (
-    contentItem.content ||
-    contentItem.text ||
-    contentItem.title ||
-    contentItem.description ||
-    contentItem.renderable_text ||
-    contentItem.abstract ||
-    'No content preview available'
-  );
-};
-
-/**
- * Get the parent document title from flagged content entry
- */
-export const getFlaggedContentParentDocumentTitle = (entry: FlaggedContent): string => {
-  const documents = entry.item?.thread?.content_object?.unified_document?.documents;
-  if (documents && documents.length > 0) {
-    return documents[0].title || 'Untitled Document';
-  }
-  return 'No parent document';
-};
-
-/**
- * Get offending user information from flagged content entry
- * Note: Shows actual user info even for removed content - moderators need to see this
- */
-export const getFlaggedContentOffendingUser = (entry: FlaggedContent) => {
-  if (entry.item?.created_by) {
-    const createdBy = entry.item.created_by;
-    const authorId = createdBy.author_profile?.id;
-
-    return {
-      name: `${createdBy.first_name || ''} ${createdBy.last_name || ''}`.trim() || 'Unknown User',
-      avatar: createdBy.author_profile?.profile_image || null,
-      authorId: typeof authorId === 'number' ? authorId : undefined,
-      isRemoved: false,
-    };
-  }
-
-  // If created_by is null, this likely means the content was removed
-  // For moderators, we still want to show this information if available from verdict
-  if (entry.verdict?.createdBy) {
-    const removedBy = entry.verdict.createdBy;
-    const authorId = removedBy.authorProfile.id;
-
-    return {
-      name: 'Content Removed by Moderator',
-      avatar: null,
-      authorId: undefined, // Don't link to removed user
-      isRemoved: true,
-      removedBy: {
-        name: `${removedBy.authorProfile.firstName} ${removedBy.authorProfile.lastName}`,
-        authorId: typeof authorId === 'number' ? authorId : undefined,
-      },
-    };
-  }
+export const getAuditUserInfo = (entry: FlaggedContent) => {
+  const createdBy = entry.item?.created_by;
 
   return {
-    name: 'Removed User',
-    avatar: null,
-    authorId: undefined,
-    isRemoved: true,
+    authorId: createdBy?.author_profile?.id || null,
+    name: createdBy
+      ? `${createdBy.first_name || ''} ${createdBy.last_name || ''}`.trim()
+      : 'Unknown User',
+    avatar: createdBy?.author_profile?.profile_image || null,
+    isRemoved: !createdBy || !createdBy.author_profile?.id,
   };
 };
 
 /**
- * Get status color class based on verdict
+ * Generate content URL for audit entry
  */
-export const getFlaggedContentStatusColor = (verdict?: string): string => {
-  if (!verdict) return 'bg-orange-100 text-orange-800';
+export const getAuditContentUrl = (entry: FlaggedContent): string | null => {
+  const item = entry.item;
+  if (!item?.thread?.content_object?.unified_document?.documents?.[0]) {
+    return null;
+  }
 
-  switch (verdict.toLowerCase()) {
-    case 'open':
-      return 'bg-orange-100 text-orange-800';
-    case 'removed':
-      return 'bg-red-100 text-red-800';
-    case 'approved':
-      return 'bg-green-100 text-green-800';
+  const document = item.thread.content_object.unified_document.documents[0];
+  const documentType = item.thread.content_object.unified_document.document_type;
+
+  // Build URL based on document type
+  switch (documentType) {
+    case 'PAPER':
+      return buildWorkUrl({
+        id: document.id,
+        contentType: 'paper',
+        slug: document.slug,
+      });
+    case 'DISCUSSION':
+      return buildWorkUrl({
+        id: document.id,
+        contentType: 'post',
+        slug: document.slug,
+      });
+    case 'PREREGISTRATION':
+      return buildWorkUrl({
+        id: document.id,
+        contentType: 'preregistration',
+        slug: document.slug,
+      });
     default:
-      return 'bg-gray-100 text-gray-800';
+      return `/post/${document.id}/${document.slug || ''}`;
   }
 };
 
 /**
- * Get display status based on verdict
+ * Get content preview text for truncation detection
  */
-export const getFlaggedContentDisplayStatus = (verdict?: string): string => {
-  if (!verdict) return 'Pending';
-
-  switch (verdict.toLowerCase()) {
-    case 'open':
-      return 'Pending';
-    case 'removed':
-      return 'Removed';
-    case 'approved':
-      return 'Dismissed';
-    default:
-      return 'Unknown';
+export const getAuditContentPreview = (entry: FlaggedContent): string => {
+  if (!entry.item) {
+    return 'Content not available';
   }
+
+  const commentContent = entry.item.comment_content_json;
+
+  if (!commentContent) {
+    return 'No content available';
+  }
+
+  // Handle string format (JSON string)
+  if (typeof commentContent === 'string') {
+    try {
+      const parsed = JSON.parse(commentContent);
+      return extractTextFromContentJson(parsed);
+    } catch {
+      return commentContent; // Fallback to raw string
+    }
+  }
+
+  // Handle object format
+  if (typeof commentContent === 'object') {
+    return extractTextFromContentJson(commentContent);
+  }
+
+  return 'Content format not supported';
 };
 
 /**
- * Generate appropriate URL for the flagged content
+ * Extract plain text from various content JSON formats
  */
-export const generateAuditContentUrl = (entry: FlaggedContent): string | null => {
-  const structuredContent = getStructuredAuditContent(entry);
+const extractTextFromContentJson = (contentJson: any): string => {
+  if (!contentJson) return '';
 
-  switch (structuredContent.type) {
-    case 'comment':
-      if (structuredContent.parentDocument) {
-        const doc = structuredContent.parentDocument;
-        if (doc.contentType === 'paper') {
-          return `/paper/${doc.id}/${doc.slug}/conversation#comment-${structuredContent.id}`;
-        } else {
-          return `/post/${doc.id}/${doc.slug}/conversation#comment-${structuredContent.id}`;
+  // Handle Quill Delta format: {"ops": [{"insert": "text"}]}
+  if (contentJson.ops && Array.isArray(contentJson.ops)) {
+    return contentJson.ops
+      .map((op: any) => {
+        if (typeof op.insert === 'string') {
+          return op.insert;
         }
-      }
-      return null;
-
-    case 'paper':
-      return `/paper/${structuredContent.id}`;
-
-    case 'post':
-      return `/post/${structuredContent.id}`;
-
-    default:
-      return null;
+        // Handle mentions: {"insert": {"mention": {"id": 123, "name": "User"}}}
+        if (op.insert && typeof op.insert === 'object' && op.insert.mention) {
+          return `@${op.insert.mention.name || 'User'}`;
+        }
+        return '';
+      })
+      .join('')
+      .trim();
   }
+
+  // Handle TipTap format: {"type": "doc", "content": [...]}
+  if (contentJson.type === 'doc' && contentJson.content) {
+    return extractTextFromTipTapContent(contentJson.content);
+  }
+
+  // Handle direct content array (sometimes TipTap comes without wrapper)
+  if (Array.isArray(contentJson.content)) {
+    return extractTextFromTipTapContent(contentJson.content);
+  }
+
+  // Fallback: try to stringify and extract meaningful text
+  const str = JSON.stringify(contentJson);
+  const textMatch = str.match(/"text":"([^"]+)"/g);
+  if (textMatch) {
+    return textMatch.map((match) => match.replace(/"text":"([^"]+)"/, '$1')).join(' ');
+  }
+
+  return 'Content format not recognized';
+};
+
+/**
+ * Extract text from TipTap content array
+ */
+const extractTextFromTipTapContent = (content: any[]): string => {
+  if (!Array.isArray(content)) return '';
+
+  return content
+    .map((node: any) => {
+      if (node.type === 'text') {
+        return node.text || '';
+      }
+      if (node.content && Array.isArray(node.content)) {
+        return extractTextFromTipTapContent(node.content);
+      }
+      if (node.type === 'mention' && node.attrs?.label) {
+        return `@${node.attrs.label}`;
+      }
+      return '';
+    })
+    .join('')
+    .trim();
+};
+
+/**
+ * Check if content should show truncation based on length
+ */
+export const shouldShowTruncation = (entry: FlaggedContent, maxLength: number = 400): boolean => {
+  const textContent = getAuditContentPreview(entry);
+  return textContent.length > maxLength;
 };
