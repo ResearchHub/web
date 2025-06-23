@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import {
   ArrowUp,
@@ -148,10 +148,9 @@ export const WorkLineItems = ({
     }
   }, [work.id, isPublished, router]);
 
-  const isAuthor = useMemo(() => {
-    if (!user) return false;
-    return work.authors?.some((a) => a.authorProfile.id === user!.authorProfile!.id);
-  }, [user, work.authors]);
+  const isAuthor =
+    user?.authorProfile != null &&
+    work.authors?.some((a) => a.authorProfile.id === user.authorProfile?.id);
 
   const isGrantContact =
     user?.authorProfile != null &&
