@@ -13,7 +13,7 @@ import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 import { Avatar } from '@/components/ui/Avatar';
 import { LegacyCommentBanner } from '@/components/LegacyCommentBanner';
-import { CardWrapper } from './CardWrapper';
+import { BaseFeedItem } from '@/components/Feed/BaseFeedItem';
 
 // Define the recursive rendering component for parent comments
 const RenderParentComment: FC<{ comment: ParentCommentPreview; level: number }> = ({
@@ -76,71 +76,6 @@ interface FeedItemCommentProps {
 }
 
 /**
- * Component for rendering the body content of a comment feed item
- */
-const FeedItemCommentBody: FC<{
-  entry: FeedEntry;
-  parentComment?: ParentCommentPreview;
-  showRelatedWork?: boolean;
-  showReadMoreCTA?: boolean;
-  createdDate?: string | Date;
-  updatedDate?: string | Date;
-  maxLength?: number;
-}> = ({
-  entry,
-  parentComment,
-  showRelatedWork = true,
-  showReadMoreCTA = true,
-  createdDate,
-  updatedDate,
-  maxLength,
-}) => {
-  // Extract the comment entry from the entry's content
-  const commentEntry = entry.content as FeedCommentContent;
-  const comment = commentEntry.comment;
-  const isReview = comment.commentType === 'REVIEW';
-  const reviewScore = comment.reviewScore || commentEntry.review?.score || comment.score || 0;
-  const isRemoved = commentEntry.isRemoved;
-
-  // Get related work if available
-  const relatedWork = entry.relatedWork;
-  return (
-    <div className="mb-4">
-      {/* Review information for reviews (optional additional display) */}
-      {isReview && reviewScore > 0 && !isRemoved && (
-        <div className="mb-4 text-gray-700 text-sm mt-0.5">
-          <span className="font-medium">Review score: </span>
-          <span className="text-yellow-500 font-medium">{reviewScore}/5</span>
-        </div>
-      )}
-
-      {/* Comment Content */}
-      <div className="text-gray-600 mb-4">
-        <CommentReadOnly
-          content={comment.content}
-          contentFormat={comment.contentFormat}
-          initiallyExpanded={false}
-          showReadMoreButton={showReadMoreCTA}
-          createdDate={createdDate}
-          updatedDate={updatedDate}
-          maxLength={maxLength}
-        />
-      </div>
-
-      {/* Initiate recursive rendering of parent comments if they exist */}
-      {parentComment && <RenderParentComment comment={parentComment} level={1} />}
-
-      {/* Related Work - show if available */}
-      {relatedWork && showRelatedWork && (
-        <div className="mt-4" onClick={(e) => e.stopPropagation()}>
-          <RelatedWorkCard size="sm" work={relatedWork} />
-        </div>
-      )}
-    </div>
-  );
-};
-
-/**
  * Main component for rendering a comment feed item
  */
 export const FeedItemComment: FC<FeedItemCommentProps> = ({
@@ -159,33 +94,18 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   maxLength,
 }) => {
   let [showLegacyCommentBanner, setShowLegacyCommentBanner] = useState(false);
-  // Extract the comment entry from the entry's content
   const commentEntry = entry.content as FeedCommentContent;
-
   const comment = commentEntry.comment;
-  const router = useRouter();
   const parentComment = commentEntry.parentComment;
-
-  // Get the author from the comment entry
   const author = commentEntry.createdBy;
-
-  // Determine if this is a review comment
   const isReview = comment.commentType === 'REVIEW';
-
   const isLegacyComment = comment.contentFormat === 'QUILL_EDITOR';
-
-  // Get the review score from either comment.reviewScore, commentEntry.review.score, or comment.score
   const reviewScore = comment.reviewScore || commentEntry.review?.score || comment.score || 0;
-
-  // Determine the content type for the comment
-  const contentType: ContentType = comment.thread?.threadType === 'PAPER' ? 'paper' : 'post';
-
-  // Only use href if explicitly provided
+  const isRemoved = commentEntry.isRemoved;
+  const relatedWork = entry.relatedWork;
   const commentPageUrl = href;
 
-  // Create menu items for edit and delete actions
   const menuItems = [];
-
   if (showCreatorActions) {
     if (onEdit) {
       menuItems.push({
@@ -201,7 +121,6 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
         },
       });
     }
-
     if (onDelete) {
       menuItems.push({
         icon: Trash2,
@@ -214,12 +133,8 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
     }
   }
 
-  // Determine if card should have clickable styles
-  const isClickable = !!href;
-
   return (
     <div className="space-y-3">
-      {/* Header */}
       <FeedItemHeader
         timestamp={commentEntry.createdDate}
         author={author}
@@ -232,59 +147,61 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
           onClose={() => setShowLegacyCommentBanner(false)}
         />
       )}
-      {/* Main Content Card - Using onClick instead of wrapping with Link */}
-      <CardWrapper href={commentPageUrl} isClickable={isClickable}>
-        <div className="p-4">
-          {/* Review Badge and Rating - Only show for reviews */}
-          {isReview && (
-            <div className="flex justify-between items-center mb-3">
-              <ContentTypeBadge type="review" />
-            </div>
-          )}
-
-          {/* Content area */}
-          <div className="mb-4">
-            {/* Body Content */}
-            <FeedItemCommentBody
-              entry={entry}
-              parentComment={parentComment}
-              showRelatedWork={showRelatedWork}
-              showReadMoreCTA={showReadMoreCTA}
-              createdDate={commentEntry.createdDate}
-              updatedDate={commentEntry.updatedDate}
-              maxLength={maxLength}
-            />
+      <BaseFeedItem entry={entry} href={commentPageUrl} showHeader={false} showActions={false}>
+        {isReview && (
+          <div className="flex justify-between items-center mb-3">
+            <ContentTypeBadge type="review" />
           </div>
+        )}
 
-          {/* Action Buttons - Full width */}
-          {!hideActions && (
-            <div className="pt-3 border-t border-gray-200">
-              <div
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-              >
-                {/* Standard Feed Item Actions with Reply functionality */}
-                <FeedItemActions
-                  metrics={entry.metrics}
-                  feedContentType="COMMENT"
-                  votableEntityId={comment.id}
-                  relatedDocumentId={Number(commentEntry.relatedDocumentId)}
-                  relatedDocumentContentType={commentEntry.relatedDocumentContentType}
-                  userVote={entry.userVote}
-                  actionLabels={actionLabels}
-                  onComment={onReply}
-                  showTooltips={showTooltips}
-                  menuItems={menuItems}
-                  awardedBountyAmount={entry.awardedBountyAmount}
-                  tips={entry.tips}
-                />
-              </div>
-            </div>
-          )}
+        {isReview && reviewScore > 0 && !isRemoved && (
+          <div className="mb-4 text-gray-700 text-sm mt-0.5">
+            <span className="font-medium">Review score: </span>
+            <span className="text-yellow-500 font-medium">{reviewScore}/5</span>
+          </div>
+        )}
+
+        <div className="text-gray-600 mb-4">
+          <CommentReadOnly
+            content={comment.content}
+            contentFormat={comment.contentFormat}
+            initiallyExpanded={false}
+            showReadMoreButton={showReadMoreCTA}
+            createdDate={commentEntry.createdDate}
+            updatedDate={commentEntry.updatedDate}
+            maxLength={maxLength}
+          />
         </div>
-      </CardWrapper>
+
+        {parentComment && <RenderParentComment comment={parentComment} level={1} />}
+
+        {relatedWork && showRelatedWork && (
+          <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+            <RelatedWorkCard size="sm" work={relatedWork} />
+          </div>
+        )}
+
+        {!hideActions && (
+          <div className="pt-3 border-t border-gray-200">
+            <div onClick={(e) => e.stopPropagation()}>
+              <FeedItemActions
+                metrics={entry.metrics}
+                feedContentType="COMMENT"
+                votableEntityId={comment.id}
+                relatedDocumentId={Number(commentEntry.relatedDocumentId)}
+                relatedDocumentContentType={commentEntry.relatedDocumentContentType}
+                userVote={entry.userVote}
+                actionLabels={actionLabels}
+                onComment={onReply}
+                showTooltips={showTooltips}
+                menuItems={menuItems}
+                awardedBountyAmount={entry.awardedBountyAmount}
+                tips={entry.tips}
+              />
+            </div>
+          </div>
+        )}
+      </BaseFeedItem>
     </div>
   );
 };

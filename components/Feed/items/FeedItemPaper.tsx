@@ -2,116 +2,32 @@
 
 import { FC } from 'react';
 import { FeedPaperContent, FeedEntry } from '@/types/feed';
-import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
+import {
+  BaseFeedItem,
+  BadgeSection,
+  TitleSection,
+  ContentSection,
+  ImageSection,
+  MetadataSection,
+  FeedItemLayout,
+  FeedItemTopSection,
+} from '@/components/Feed/BaseFeedItem';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
-import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import { truncateText } from '@/utils/stringUtils';
-import { useRouter } from 'next/navigation';
-import { cn } from '@/utils/styles';
-import { JournalStatusBadge } from '@/components/ui/JournalStatusBadge';
 import { Users, BookText } from 'lucide-react';
 import Link from 'next/link';
-import { CardWrapper } from './CardWrapper';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
-  href?: string; // Optional href prop
-  showTooltips?: boolean; // Property for controlling tooltips
-  showActions?: boolean; // Property for controlling actions
+  href?: string;
+  showTooltips?: boolean;
+  showActions?: boolean;
   maxLength?: number;
 }
 
 /**
- * Component for rendering the body content of a paper feed item
- */
-const FeedItemPaperBody: FC<{
-  entry: FeedEntry;
-  maxLength?: number;
-}> = ({ entry, maxLength = 150 }) => {
-  // Extract the paper from the entry's content
-  const paper = entry.content as FeedPaperContent;
-
-  // Get topics/tags for display
-  const topics = paper.topics || [];
-
-  // Determine the badge type based on the paper's status
-  const getPaperBadgeType = () => {
-    // Always use 'paper' for the primary badge
-    return 'paper' as const;
-  };
-
-  // Determine the journal status
-  const getJournalStatus = () => {
-    return (paper.journal as any)?.status === 'preprint' || paper.workType === 'preprint'
-      ? 'in-review'
-      : 'published';
-  };
-
-  return (
-    <div>
-      {/* Badges and Topics */}
-      <div className="flex flex-wrap gap-2 mb-3" onClick={(e) => e.stopPropagation()}>
-        <ContentTypeBadge type={getPaperBadgeType()} />
-
-        {topics.map((topic, index) => (
-          <TopicAndJournalBadge
-            key={index}
-            type="topic"
-            name={topic.name}
-            slug={topic.slug || ''}
-            imageUrl={topic.imageUrl}
-          />
-        ))}
-      </div>
-
-      {/* Original Paper Title - Ensure only one exists */}
-      <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-        {paper.title}
-      </h2>
-
-      {/* Authors */}
-      <div className="mb-3 flex items-center gap-1.5">
-        <Users className="w-4 h-4 text-gray-500" />
-        <AuthorList
-          authors={paper.authors.map((author) => ({
-            name: author.fullName,
-            verified: author.user?.isVerified,
-            profileUrl: author.profileUrl,
-          }))}
-          size="sm"
-          className="text-gray-500 font-normal"
-          delimiter="•"
-          showAbbreviatedInMobile={true}
-        />
-      </div>
-
-      {/* Journal Link */}
-      {paper.journal && paper.journal.name && (
-        <div className="mb-3 text-sm text-gray-500 flex items-center gap-1.5">
-          <BookText className="w-4 h-4 text-gray-500" />
-          <a
-            href={paper.journal.slug ? `/journal/${paper.journal.slug}` : '#'}
-            rel="noopener noreferrer"
-            className="hover:text-blue-600 underline cursor-pointer"
-            onClick={(e) => e.stopPropagation()} // Prevent card click when clicking link
-          >
-            {paper.journal.name}
-          </a>
-        </div>
-      )}
-
-      {/* Truncated Content */}
-      <div className="text-sm text-gray-700">
-        <p>{truncateText(paper.textPreview, maxLength)}</p>
-      </div>
-    </div>
-  );
-};
-
-/**
- * Main component for rendering a paper feed item
+ * Component for rendering a paper feed item using BaseFeedItem
  */
 export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   entry,
@@ -122,7 +38,14 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
 }) => {
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
-  const router = useRouter();
+
+  // Get topics/tags for display
+  const topics = paper.topics || [];
+
+  // Determine the badge type based on the paper's status
+  const getPaperBadgeType = () => {
+    return 'paper' as const;
+  };
 
   // Get the author from the paper
   const author = paper.createdBy || paper.authors[0];
@@ -138,59 +61,95 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   const actionText = journalName ? `published in ${journalName}` : 'published in a journal';
 
   return (
-    <div className="space-y-3">
-      {/* Header */}
-      <FeedItemHeader timestamp={paper.createdDate} author={author} actionText={actionText} />
+    <BaseFeedItem
+      entry={entry}
+      href={paperPageUrl}
+      showActions={showActions}
+      showTooltips={showTooltips}
+      customActionText={actionText}
+      maxLength={maxLength}
+    >
+      {/* Top section with badges and mobile image */}
+      <FeedItemTopSection
+        imageSection={
+          paper.journal?.imageUrl && (
+            <ImageSection
+              imageUrl={paper.journal.imageUrl}
+              alt={paper.journal.name || 'Journal cover'}
+              aspectRatio="16/9"
+            />
+          )
+        }
+        leftContent={
+          <>
+            <ContentTypeBadge type={getPaperBadgeType()} />
+            {topics.map((topic, index) => (
+              <TopicAndJournalBadge
+                key={index}
+                type="topic"
+                name={topic.name}
+                slug={topic.slug || ''}
+                imageUrl={topic.imageUrl}
+              />
+            ))}
+          </>
+        }
+      />
+      {/* Main content layout with desktop image */}
+      <FeedItemLayout
+        leftContent={
+          <>
+            {/* Title */}
+            <TitleSection title={paper.title} />
 
-      <CardWrapper href={paperPageUrl} isClickable={isClickable}>
-        <div className="p-4">
-          {/* Content area with image */}
-          <div className="flex mb-4">
-            {/* Left side content */}
-            <div className="flex-1">
-              {/* Body Content */}
-              <FeedItemPaperBody entry={entry} maxLength={maxLength} />
-            </div>
-
-            {/* Right side image - if available */}
-            {paper.journal && paper.journal.imageUrl && (
-              <div className="w-1/4 rounded-md overflow-hidden">
-                <img
-                  src={paper.journal.imageUrl}
-                  alt={paper.journal.name || 'Journal cover'}
-                  className="w-full h-full object-cover"
-                  style={{ minHeight: '120px', maxHeight: '200px' }}
+            {/* Authors */}
+            <MetadataSection>
+              <div className="mb-3 flex items-center gap-1.5">
+                <Users className="w-4 h-4 text-gray-500" />
+                <AuthorList
+                  authors={paper.authors.map((author) => ({
+                    name: author.fullName,
+                    verified: author.user?.isVerified,
+                    profileUrl: author.profileUrl,
+                  }))}
+                  size="sm"
+                  className="text-gray-500 font-normal"
+                  delimiter="•"
+                  showAbbreviatedInMobile={true}
                 />
               </div>
+            </MetadataSection>
+
+            {/* Journal Link */}
+            {paper.journal && paper.journal.name && (
+              <MetadataSection>
+                <div className="mb-3 text-sm text-gray-500 flex items-center gap-1.5">
+                  <BookText className="w-4 h-4 text-gray-500" />
+                  <a
+                    href={paper.journal.slug ? `/journal/${paper.journal.slug}` : '#'}
+                    rel="noopener noreferrer"
+                    className="hover:text-blue-600 underline cursor-pointer"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {paper.journal.name}
+                  </a>
+                </div>
+              </MetadataSection>
             )}
-          </div>
-
-          {/* Action Buttons - Full width */}
-          {showActions && (
-            <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between">
-              <div
-                className="w-full"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-              >
-                {/* Standard Feed Item Actions */}
-                <FeedItemActions
-                  metrics={entry.metrics}
-                  feedContentType="PAPER"
-                  votableEntityId={paper.id}
-                  userVote={entry.userVote}
-                  showTooltips={showTooltips}
-                  href={paperPageUrl}
-                  reviews={paper.reviews}
-                  bounties={paper.bounties}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </CardWrapper>
-    </div>
+            {/* Truncated Content */}
+            <ContentSection content={paper.textPreview} maxLength={maxLength} />
+          </>
+        }
+        rightContent={
+          paper.journal?.imageUrl && (
+            <ImageSection
+              imageUrl={paper.journal.imageUrl}
+              alt={paper.journal.name || 'Journal cover'}
+              aspectRatio="4/3"
+            />
+          )
+        }
+      />
+    </BaseFeedItem>
   );
 };
