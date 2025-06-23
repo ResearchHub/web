@@ -80,7 +80,7 @@ export const GrantDocument = ({
 
   return (
     <div>
-      <PageHeader title={work.title} className="text-3xl mt-2" />
+      <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-2" />
       <WorkLineItems work={work} showClaimButton={false} metadata={metadata} />
 
       {/* Top summary as line items */}
