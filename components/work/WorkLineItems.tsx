@@ -147,13 +147,16 @@ export const WorkLineItems = ({
       (contact) => contact.authorProfile?.id === user.authorProfile?.id
     );
 
-  const canEdit =
-    (work.contentType === 'paper' && isModerator) ||
-    (work.contentType === 'funding_request' && (isGrantContact || isAuthor || isModerator)) ||
-    (work.contentType !== 'paper' &&
-      work.contentType !== 'funding_request' &&
-      selectedOrg &&
-      work.note);
+  const canEdit = (() => {
+    switch (work.contentType) {
+      case 'paper':
+        return isModerator;
+      case 'funding_request':
+        return isGrantContact || isAuthor || isModerator;
+      default:
+        return selectedOrg && work.note;
+    }
+  })();
 
   const handleAddVersion = useCallback(() => {
     if (!user) return; // should be authenticated already
