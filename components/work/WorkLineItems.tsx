@@ -2,19 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
-import {
-  ArrowUp,
-  Download,
-  Flag,
-  Edit,
-  Share2,
-  MoreHorizontal,
-  Coins,
-  UserPlus,
-  Bookmark,
-  FileUp,
-  Plus,
-} from 'lucide-react';
+import { ArrowUp, Flag, Edit, MoreHorizontal, FileUp } from 'lucide-react';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
