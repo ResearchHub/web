@@ -1,20 +1,8 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
-import {
-  ArrowUp,
-  Download,
-  Flag,
-  Edit,
-  Share2,
-  MoreHorizontal,
-  Coins,
-  UserPlus,
-  Bookmark,
-  FileUp,
-  Plus,
-} from 'lucide-react';
+import { ArrowUp, Flag, Edit, MoreHorizontal, FileUp } from 'lucide-react';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
@@ -145,10 +133,27 @@ export const WorkLineItems = ({
     }
   }, [work.id, isPublished, router]);
 
-  const isAuthor = useMemo(() => {
-    if (!user) return false;
-    return work.authors?.some((a) => a.authorProfile.id === user!.authorProfile!.id);
-  }, [user, work.authors]);
+  const isAuthor =
+    user?.authorProfile != null &&
+    work.authors?.some((a) => a.authorProfile.id === user.authorProfile?.id);
+
+  const isGrantContact =
+    user?.authorProfile != null &&
+    work.contentType === 'funding_request' &&
+    work.note?.post?.grant?.contacts?.some(
+      (contact) => contact.authorProfile?.id === user.authorProfile?.id
+    );
+
+  const canEdit = (() => {
+    switch (work.contentType) {
+      case 'paper':
+        return isModerator;
+      case 'funding_request':
+        return isGrantContact || isAuthor || isModerator;
+      default:
+        return selectedOrg && work.note;
+    }
+  })();
 
   const handleAddVersion = useCallback(() => {
     if (!user) return; // should be authenticated already
@@ -212,19 +217,14 @@ export const WorkLineItems = ({
             </MenuButton>
 
             <MenuItems className="absolute left-0 mt-2 w-48 origin-top-left bg-white rounded-lg shadow-lg border border-gray-200 py-1 focus:outline-none z-10">
-              <MenuItem>
-                <Button
-                  variant="ghost"
-                  disabled={
-                    work.contentType === 'paper' ? !isModerator : !selectedOrg || !work.note
-                  }
-                  onClick={handleEdit}
-                  className="w-full justify-start"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  <span>Edit</span>
-                </Button>
-              </MenuItem>
+              {canEdit && (
+                <MenuItem>
+                  <Button variant="ghost" onClick={handleEdit} className="w-full justify-start">
+                    <Edit className="h-4 w-4 mr-2" />
+                    <span>Edit</span>
+                  </Button>
+                </MenuItem>
+              )}
               {isAuthor && (
                 <MenuItem>
                   {({ focus }) => (
