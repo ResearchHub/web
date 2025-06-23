@@ -90,10 +90,7 @@ export const WorkLineItems = ({
   }, [work.contentType, work.id, isUpvoted, vote, refreshVotes]);
 
   const handleEdit = useCallback(() => {
-    if (
-      (work.contentType === 'paper' || work.contentType === 'funding_request') &&
-      user?.isModerator
-    ) {
+    if (work.contentType === 'paper' && user?.isModerator) {
       setIsWorkEditModalOpen(true);
     } else if (selectedOrg && work.note) {
       router.push(`/notebook/${work.note.organization.slug}/${work.note.id}`);
