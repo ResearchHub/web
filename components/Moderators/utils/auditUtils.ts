@@ -68,8 +68,13 @@ export const getStructuredAuditContent = (entry: FlaggedContent) => {
         id: item?.id,
         title: item?.title,
         content: item?.renderable_text || item?.text || getFlaggedContentPreview(entry),
+        renderableText:
+          item?.unified_document?.documents?.[0]?.renderable_text ||
+          item?.renderable_text ||
+          getFlaggedContentPreview(entry),
+        documentType: item?.unified_document?.document_type,
         authors: item?.authors || [],
-        topics: item?.topics || [],
+        topics: entry?.hubs || item?.topics || [],
         createdDate: item?.created_date,
         previewImage: item?.preview_image,
         postType: item?.post_type,

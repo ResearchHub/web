@@ -1,7 +1,9 @@
 'use client';
 
-import { FC } from 'react';
-import { ExternalLink, Users, Calendar, Building } from 'lucide-react';
+import { FC, useState } from 'react';
+import { Avatar } from '@/components/ui/Avatar';
+import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { Button } from '@/components/ui/Button';
 import { FlaggedContent } from '@/services/audit.service';
 import {
   getFlaggedContentOffendingUser,
@@ -11,10 +13,8 @@ import {
 import { formatTimestamp } from '@/utils/date';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
-import { AuthorList } from '@/components/ui/AuthorList';
 import { truncateText } from '@/utils/stringUtils';
-import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import Image from 'next/image';
+import { navigateToAuthorProfile } from '@/utils/navigation';
 import { ModerationMetadata } from './ModerationMetadata';
 import { ModerationActions } from './ModerationActions';
 
@@ -25,6 +25,7 @@ interface AuditItemPostProps {
 }
 
 export const AuditItemPost: FC<AuditItemPostProps> = ({ entry, onAction, view = 'pending' }) => {
+  const [showFullContent, setShowFullContent] = useState(false);
   const offendingUser = getFlaggedContentOffendingUser(entry);
   const structuredContent = getStructuredAuditContent(entry);
   const verdict = entry.verdict;
@@ -34,126 +35,127 @@ export const AuditItemPost: FC<AuditItemPostProps> = ({ entry, onAction, view = 
     return null;
   }
 
-  // Convert authors to the format expected by AuthorList
-  const authors = structuredContent.authors.map((author: any) => ({
-    name: author.fullName || `${author.firstName || ''} ${author.lastName || ''}`.trim(),
-    verified: author.user?.isVerified,
-    profileUrl: author.profileUrl,
-  }));
-
-  // Determine content type badge
+  // Determine content type badge based on document type or other indicators
   const getContentTypeBadge = () => {
+    if (structuredContent.documentType) {
+      // Map document types to badge types
+      const typeMap: { [key: string]: string } = {
+        PREREGISTRATION: 'preregistration',
+        PAPER: 'article',
+        RESEARCH: 'article',
+        FUNDING: 'funding',
+      };
+      return typeMap[structuredContent.documentType] || 'post';
+    }
     if (structuredContent.fundraise) {
       return 'funding';
     }
-    // Default to article for posts
-    return 'article';
+    return 'post';
+  };
+
+  // Create unified action text similar to comments
+  const getUnifiedActionText = () => {
+    const documentType = structuredContent.documentType || 'post';
+    const actionVerb =
+      documentType === 'PREREGISTRATION'
+        ? 'Created a preregistration'
+        : documentType === 'PAPER'
+          ? 'Published a paper'
+          : structuredContent.fundraise
+            ? 'Created a funding request'
+            : 'Created a post';
+
+    return (
+      <span>
+        {actionVerb} •{' '}
+        <Tooltip content={new Date(structuredContent.createdDate).toLocaleString()}>
+          <span className="cursor-default">{formatTimestamp(structuredContent.createdDate)}</span>
+        </Tooltip>
+      </span>
+    );
+  };
+
+  // Get content preview from renderable_text
+  const getContentPreview = () => {
+    return structuredContent.renderableText || structuredContent.content || 'No content available';
   };
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
-      {/* Header with content type */}
-      <div className="flex items-center gap-2 mb-3">
+      {/* Content type badge */}
+      <div className="mb-3">
         <ContentTypeBadge type={getContentTypeBadge() as any} />
-        {structuredContent.postType && (
-          <div className="text-sm text-gray-600 font-medium">{structuredContent.postType}</div>
-        )}
       </div>
 
-      {/* Post title */}
+      {/* User and unified action */}
+      <div className="flex items-center space-x-3 mb-3">
+        <Avatar
+          src={offendingUser.avatar}
+          alt={offendingUser.name}
+          size="sm"
+          authorId={offendingUser.authorId}
+        />
+        <div>
+          {offendingUser.authorId ? (
+            <AuthorTooltip authorId={offendingUser.authorId}>
+              <a
+                href="#"
+                className="font-medium text-gray-900 hover:text-blue-600 cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateToAuthorProfile(offendingUser.authorId!);
+                }}
+              >
+                {offendingUser.name}
+              </a>
+            </AuthorTooltip>
+          ) : (
+            <span
+              className={`font-medium ${offendingUser.isRemoved ? 'text-gray-500 italic' : 'text-gray-900'}`}
+            >
+              {offendingUser.name}
+            </span>
+          )}
+          <div className="text-sm text-gray-500">{getUnifiedActionText()}</div>
+        </div>
+      </div>
+
+      {/* Post title with link */}
       <div className="mb-3">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          {structuredContent.title || 'Untitled Post'}
-          {contentUrl && (
+        <h3 className="text-lg font-semibold text-gray-900">
+          {contentUrl ? (
             <a
               href={contentUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-2 text-blue-600 hover:text-blue-800 inline-flex"
+              className="text-gray-900 hover:text-blue-600 underline"
             >
-              <ExternalLink className="w-4 h-4" />
+              {structuredContent.title || 'Untitled Post'}
             </a>
+          ) : (
+            structuredContent.title || 'Untitled Post'
           )}
         </h3>
       </div>
 
-      {/* Authors */}
-      {authors.length > 0 && (
-        <div className="mb-3 flex items-center gap-1.5">
-          <Users className="w-4 h-4 text-gray-500" />
-          <AuthorList
-            authors={authors}
-            size="sm"
-            className="text-gray-600 font-normal"
-            delimiter="•"
-            showAbbreviatedInMobile={true}
-          />
-        </div>
-      )}
+      {/* Moderation metadata */}
+      <ModerationMetadata entry={entry} />
 
-      {/* Institution */}
-      {structuredContent.institution && (
-        <div className="mb-3 flex items-center gap-1.5 text-sm text-gray-500">
-          <Building className="w-4 h-4" />
-          <span>{structuredContent.institution}</span>
-        </div>
-      )}
-
-      {/* Creation date */}
-      {structuredContent.createdDate && (
-        <div className="mb-3 flex items-center gap-1.5 text-sm text-gray-500">
-          <Calendar className="w-4 h-4" />
-          <span>
-            Created:{' '}
-            <Tooltip content={new Date(structuredContent.createdDate).toLocaleString()}>
-              <span className="cursor-default">
-                {formatTimestamp(structuredContent.createdDate)}
-              </span>
-            </Tooltip>
-          </span>
-        </div>
-      )}
-
-      {/* Topics */}
-      {structuredContent.topics && structuredContent.topics.length > 0 && (
-        <div className="mb-3 flex flex-wrap gap-2">
-          {structuredContent.topics.slice(0, 3).map((topic: any, index: number) => (
-            <TopicAndJournalBadge
-              key={index}
-              type="topic"
-              name={topic.name}
-              slug={topic.slug || ''}
-              imageUrl={topic.imageUrl}
-            />
-          ))}
-          {structuredContent.topics.length > 3 && (
-            <span className="text-sm text-gray-500">
-              +{structuredContent.topics.length - 3} more
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Content area with optional preview image */}
-      <div className="mb-3">
-        {structuredContent.previewImage && (
-          <div className="mb-3 rounded-lg overflow-hidden">
-            <Image
-              src={structuredContent.previewImage}
-              alt="Post preview"
-              width={400}
-              height={200}
-              className="w-full h-auto object-cover"
-            />
-          </div>
-        )}
-
-        {/* Post content */}
-        {structuredContent.content && (
-          <div className="p-3 bg-gray-50 rounded border-l-2 border-blue-300">
-            <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
-              {truncateText(structuredContent.content, 400)}
-            </p>
+      {/* Content preview */}
+      <div className="mb-4 p-3 bg-gray-50 rounded border-l-2 border-blue-300">
+        <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+          {showFullContent ? getContentPreview() : truncateText(getContentPreview(), 400)}
+        </p>
+        {getContentPreview().length > 400 && (
+          <div className="mt-3 pt-2 border-t border-gray-200">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowFullContent(!showFullContent)}
+              className="text-blue-600 hover:text-blue-800 p-0 h-auto font-medium"
+            >
+              {showFullContent ? 'Show less' : 'Show all'}
+            </Button>
           </div>
         )}
       </div>
@@ -165,9 +167,6 @@ export const AuditItemPost: FC<AuditItemPostProps> = ({ entry, onAction, view = 
           <div className="text-sm text-green-700">This post is seeking funding for research</div>
         </div>
       )}
-
-      {/* Moderation metadata */}
-      <ModerationMetadata entry={entry} />
 
       {/* Actions */}
       <ModerationActions
