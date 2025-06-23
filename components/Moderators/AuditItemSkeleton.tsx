@@ -10,17 +10,8 @@ export const AuditItemSkeleton: FC<AuditItemSkeletonProps> = ({ view = 'pending'
   return (
     <div className="animate-pulse">
       <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
-        {/* User and unified action */}
-        <div className="flex items-center space-x-3 mb-3">
-          <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-          <div>
-            <div className="h-4 bg-gray-200 rounded w-32 mb-1"></div>
-            <div className="h-3 bg-gray-200 rounded w-48"></div>
-          </div>
-        </div>
-
         {/* Flagged by line */}
-        <div className="mb-2">
+        <div className="mb-3 mt-2">
           <div className="h-3 bg-gray-200 rounded w-64"></div>
         </div>
 
@@ -30,6 +21,14 @@ export const AuditItemSkeleton: FC<AuditItemSkeletonProps> = ({ view = 'pending'
             <div className="h-3 bg-gray-200 rounded w-56"></div>
           </div>
         )}
+
+        {/* User and unified action */}
+        <div className="flex items-center space-x-3 mb-3">
+          <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+          <div>
+            <div className="h-4 bg-gray-200 rounded w-64 mb-1"></div>
+          </div>
+        </div>
 
         {/* Content preview */}
         <div className="mb-4 p-3 bg-gray-50 rounded border-l-2 border-blue-300">
