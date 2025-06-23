@@ -8,7 +8,6 @@ import { toast } from 'react-hot-toast';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
 import { useUserModeration } from '@/hooks/useUserModeration';
-import { useUser } from '@/contexts/UserContext';
 
 export function ModerationSkeleton() {
   return (
@@ -36,15 +35,13 @@ export function ModerationSkeleton() {
 }
 
 type ModerationProps = {
-  userId: string;
-  authorId: number;
-  refetchAuthorInfo: () => Promise<void>;
+  readonly userId: string;
+  readonly authorId: number;
+  readonly refetchAuthorInfo: () => Promise<void>;
 };
 
 export default function Moderation({ userId, authorId, refetchAuthorInfo }: ModerationProps) {
   const [{ userDetails, isLoading }, refetchModerationDetails] = useUserDetailsForModerator(userId);
-  const { user: currentUser } = useUser();
-  const isModerator = !!currentUser?.isModerator;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Add moderation hook
@@ -69,7 +66,9 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
       // Refresh both author info and moderation details to show updated status
       await Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
     } catch (error) {
+      console.error('Failed to suspend user:', error);
       toast.error('Failed to suspend user. Please try again.');
+      // Don't re-throw as we've handled the error with user feedback
     }
   };
 
@@ -82,7 +81,9 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
       // Refresh both author info and moderation details to show updated status
       await Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
     } catch (error) {
+      console.error('Failed to reinstate user:', error);
       toast.error('Failed to reinstate user. Please try again.');
+      // Don't re-throw as we've handled the error with user feedback
     }
   };
 
