@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { AuditStatus } from '@/hooks/useAudit';
 
-interface AuditStatusFilterProps {
+interface AuditTabsProps {
   activeStatus: AuditStatus;
   onStatusChange: (status: AuditStatus) => void;
   statusCounts?: {
@@ -27,11 +27,7 @@ const statusColors: Record<AuditStatus, string> = {
   removed: 'bg-red-100 text-red-800',
 };
 
-export const AuditStatusFilter: FC<AuditStatusFilterProps> = ({
-  activeStatus,
-  onStatusChange,
-  statusCounts,
-}) => {
+export const AuditTabs: FC<AuditTabsProps> = ({ activeStatus, onStatusChange, statusCounts }) => {
   // Temporarily disable 'removed' tab due to backend issues
   const statuses: AuditStatus[] = ['pending', 'dismissed'];
   const disabledStatuses: AuditStatus[] = ['removed'];

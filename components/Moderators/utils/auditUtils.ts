@@ -2,6 +2,111 @@ import { FlaggedContent } from '@/services/audit.service';
 import { extractTextFromTipTap } from '@/components/Comment/lib/commentContentUtils';
 
 /**
+ * Content type mapping for audit purposes
+ */
+export type AuditContentType = 'comment' | 'paper' | 'post' | 'unknown';
+
+/**
+ * Detect the content type from flagged content entry
+ */
+export const detectAuditContentType = (entry: FlaggedContent): AuditContentType => {
+  const contentTypeName = entry.contentType.name.toLowerCase();
+
+  switch (contentTypeName) {
+    case 'rhcommentmodel':
+      return 'comment';
+    case 'paper':
+      return 'paper';
+    case 'researchhubpost':
+      return 'post';
+    default:
+      return 'unknown';
+  }
+};
+
+/**
+ * Get structured content data based on content type
+ */
+export const getStructuredAuditContent = (entry: FlaggedContent) => {
+  const contentType = detectAuditContentType(entry);
+  const item = entry.item;
+
+  switch (contentType) {
+    case 'comment':
+      return {
+        type: 'comment' as const,
+        id: item?.id,
+        content: getFlaggedContentPreview(entry),
+        contentFormat: item?.content_format || 'UNKNOWN',
+        createdDate: item?.created_date,
+        isReview: item?.comment_type === 'REVIEW',
+        reviewScore: item?.review_score || item?.score,
+        thread: item?.thread,
+        parentDocument: getFlaggedContentParentDocument(entry),
+      };
+
+    case 'paper':
+      return {
+        type: 'paper' as const,
+        id: item?.id,
+        title: item?.title,
+        abstract: item?.abstract,
+        doi: item?.doi,
+        authors: item?.authors || [],
+        topics: item?.topics || [],
+        journal: item?.journal,
+        createdDate: item?.created_date,
+        publishedDate: item?.published_date,
+        url: item?.url,
+        pdfUrl: item?.pdf_url,
+        previewImage: item?.preview_image,
+      };
+
+    case 'post':
+      return {
+        type: 'post' as const,
+        id: item?.id,
+        title: item?.title,
+        content: item?.renderable_text || item?.text || getFlaggedContentPreview(entry),
+        authors: item?.authors || [],
+        topics: item?.topics || [],
+        createdDate: item?.created_date,
+        previewImage: item?.preview_image,
+        postType: item?.post_type,
+        fundraise: item?.fundraise,
+        institution: item?.institution,
+      };
+
+    default:
+      return {
+        type: 'unknown' as const,
+        id: item?.id,
+        content: getFlaggedContentPreview(entry),
+        createdDate: item?.created_date,
+        rawData: item,
+      };
+  }
+};
+
+/**
+ * Get parent document information for context
+ */
+export const getFlaggedContentParentDocument = (entry: FlaggedContent) => {
+  const documents = entry.item?.thread?.content_object?.unified_document?.documents;
+  if (documents && documents.length > 0) {
+    const doc = documents[0];
+    return {
+      id: doc.id,
+      title: doc.title || 'Untitled Document',
+      contentType: doc.content_type,
+      slug: doc.slug,
+      url: doc.url,
+    };
+  }
+  return null;
+};
+
+/**
  * Get content preview from flagged content entry
  * Note: Does not censor removed content - shows actual content for moderation purposes
  */
@@ -157,5 +262,34 @@ export const getFlaggedContentDisplayStatus = (verdict?: string): string => {
       return 'Dismissed';
     default:
       return 'Unknown';
+  }
+};
+
+/**
+ * Generate appropriate URL for the flagged content
+ */
+export const generateAuditContentUrl = (entry: FlaggedContent): string | null => {
+  const structuredContent = getStructuredAuditContent(entry);
+
+  switch (structuredContent.type) {
+    case 'comment':
+      if (structuredContent.parentDocument) {
+        const doc = structuredContent.parentDocument;
+        if (doc.contentType === 'paper') {
+          return `/paper/${doc.id}/${doc.slug}/conversation#comment-${structuredContent.id}`;
+        } else {
+          return `/post/${doc.id}/${doc.slug}/conversation#comment-${structuredContent.id}`;
+        }
+      }
+      return null;
+
+    case 'paper':
+      return `/paper/${structuredContent.id}`;
+
+    case 'post':
+      return `/post/${structuredContent.id}`;
+
+    default:
+      return null;
   }
 };

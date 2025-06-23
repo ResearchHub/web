@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useAudit, AuditStatus } from '@/hooks/useAudit';
-import { AuditFeedContent } from '@/components/Moderators/AuditFeedContent';
-import { AuditStatusFilter } from '@/components/Moderators/AuditStatusFilter';
+import { AuditContent } from '@/components/Moderators/AuditContent';
+import { AuditTabs } from '@/components/Moderators/AuditTabs';
 import { Button } from '@/components/ui/Button';
 import { RefreshCw } from 'lucide-react';
 import { ID } from '@/types/root';
@@ -83,14 +83,14 @@ export default function AuditPage() {
 
           {/* Status Filter */}
           <div className="flex items-center justify-between">
-            <AuditStatusFilter activeStatus={activeStatus} onStatusChange={handleStatusChange} />
+            <AuditTabs activeStatus={activeStatus} onStatusChange={handleStatusChange} />
           </div>
         </div>
       </div>
 
       {/* Main content area with audit feed */}
       <div className="flex-1 overflow-auto">
-        <AuditFeedContent
+        <AuditContent
           entries={entries}
           isLoading={isLoading}
           isLoadingMore={isLoadingMore}

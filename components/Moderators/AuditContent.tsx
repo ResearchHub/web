@@ -5,9 +5,10 @@ import { FlaggedContent } from '@/services/audit.service';
 import { Button } from '@/components/ui/Button';
 import { ChevronDown, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
 import { AuditItemCard } from './AuditItemCard';
+import { AuditItemSkeleton } from './AuditItemSkeleton';
 import { ID } from '@/types/root';
 
-interface AuditFeedContentProps {
+interface AuditContentProps {
   entries: FlaggedContent[];
   isLoading: boolean;
   isLoadingMore?: boolean;
@@ -22,7 +23,7 @@ interface AuditFeedContentProps {
   view?: 'pending' | 'dismissed' | 'removed';
 }
 
-export const AuditFeedContent: FC<AuditFeedContentProps> = ({
+export const AuditContent: FC<AuditContentProps> = ({
   entries,
   isLoading,
   isLoadingMore = false,
@@ -112,22 +113,7 @@ export const AuditFeedContent: FC<AuditFeedContentProps> = ({
         {isLoading && entries.length === 0 && (
           <div className="space-y-6">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                      <div className="h-20 bg-gray-200 rounded w-full mt-4"></div>
-                      <div className="flex space-x-2 mt-4">
-                        <div className="h-8 bg-gray-200 rounded w-20"></div>
-                        <div className="h-8 bg-gray-200 rounded w-24"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <AuditItemSkeleton key={i} view={view} />
             ))}
           </div>
         )}
