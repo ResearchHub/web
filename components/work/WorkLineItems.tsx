@@ -153,18 +153,20 @@ export const WorkLineItems = ({
     return work.authors?.some((a) => a.authorProfile.id === user!.authorProfile!.id);
   }, [user, work.authors]);
 
-  const isGrantContact = useMemo(() => {
-    if (!user || work.contentType !== 'funding_request') return false;
-    return work.note?.post?.grant?.contacts?.some(
-      (contact) => contact.authorProfile?.id === user!.authorProfile!.id
+  const isGrantContact =
+    user?.authorProfile != null &&
+    work.contentType === 'funding_request' &&
+    work.note?.post?.grant?.contacts?.some(
+      (contact) => contact.authorProfile?.id === user.authorProfile?.id
     );
-  }, [user, work.contentType, work.note?.post?.grant?.contacts]);
 
-  const canEdit = useMemo(() => {
-    if (work.contentType === 'paper') return isModerator;
-    if (work.contentType === 'funding_request') return isGrantContact || isAuthor || isModerator;
-    return selectedOrg && work.note;
-  }, [work.contentType, isModerator, isGrantContact, isAuthor, selectedOrg, work.note]);
+  const canEdit =
+    (work.contentType === 'paper' && isModerator) ||
+    (work.contentType === 'funding_request' && (isGrantContact || isAuthor || isModerator)) ||
+    (work.contentType !== 'paper' &&
+      work.contentType !== 'funding_request' &&
+      selectedOrg &&
+      work.note);
 
   const handleAddVersion = useCallback(() => {
     if (!user) return; // should be authenticated already
