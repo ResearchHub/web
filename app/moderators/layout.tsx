@@ -113,18 +113,10 @@ export default function ModerationLayout({ children }: ModerationLayoutProps) {
 
           {/* Mobile overlay */}
           {isLeftSidebarOpen && (
-            <div
-              className="fixed inset-0 bg-black/50 z-40"
-              role="button"
-              tabIndex={0}
+            <button
+              className="fixed inset-0 bg-black/50 z-40 border-0 p-0 cursor-default"
               aria-label="Close sidebar"
               onClick={() => setIsLeftSidebarOpen(false)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setIsLeftSidebarOpen(false);
-                }
-              }}
             />
           )}
 
