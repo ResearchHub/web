@@ -37,13 +37,13 @@ export const PostDocument = ({
       case 'paper':
         return (
           <div className="mt-6">
-            {work.previewContent ? (
-              <PostBlockEditor content={work.previewContent} />
-            ) : content ? (
+            {content ? (
               <div
                 className="prose max-w-none bg-white rounded-lg shadow-sm border p-6 mb-6"
                 dangerouslySetInnerHTML={{ __html: content }}
               />
+            ) : work.previewContent ? (
+              <PostBlockEditor content={work.previewContent} />
             ) : (
               <p className="text-gray-500">No content available</p>
             )}
