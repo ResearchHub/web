@@ -8,8 +8,6 @@ import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
 import { OnboardingModal } from '@/components/Onboarding/OnboardingModal';
 import SignupToast from '@/components/ui/SignupToast';
 import { useSession } from 'next-auth/react';
-// Remove FundingToast import
-// import FundingToast from '@/components/ui/FundingToast';
 
 // Dynamically import sidebar components
 const LeftSidebar = dynamic(() => import('./LeftSidebar').then((mod) => mod.LeftSidebar), {

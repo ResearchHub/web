@@ -5,6 +5,7 @@ import Icon from './icons/Icon';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useRouter } from 'next/navigation';
 import ShinyText from './ShinyText/ShinyText';
+import { Button } from './Button';
 
 interface SignupToastProps {
   onClose: () => void;
@@ -40,6 +41,38 @@ export default function SignupToast({ onClose }: SignupToastProps) {
         50% { border-image-source: linear-gradient(270deg, #3B82F6, #FFCC00, #FF4D8D, #6C63FF); }
         75% { border-image-source: linear-gradient(360deg, #FFCC00, #FF4D8D, #6C63FF, #3B82F6); }
         100% { border-image-source: linear-gradient(90deg, #FF4D8D, #6C63FF, #3B82F6, #FFCC00); }
+      }
+      
+      .signup-toast-container {
+        position: relative;
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 
+          0 10px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04),
+          0 0 0 1px rgba(0, 0, 0, 0.05),
+          0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      }
+      
+      .signup-toast-container::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        padding: 3px;
+        border-radius: 6px;
+        background: linear-gradient(90deg, #FF4D8D, #6C63FF, #3B82F6, #FFCC00);
+        -webkit-mask: 
+          linear-gradient(#fff 0 0) content-box, 
+          linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+        animation: borderGlow 8s linear infinite;
+      }
+      
+      /* Add a subtle glow effect to enhance the shadow */
+      .toast-shadow-wrapper {
+        filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.2));
       }
     `;
     document.head.appendChild(style);
@@ -92,86 +125,74 @@ export default function SignupToast({ onClose }: SignupToastProps) {
 
   return (
     <div
-      className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-[9999] max-w-md w-full bg-white shadow-2xl rounded-lg pointer-events-auto flex flex-col overflow-hidden opacity-0"
+      className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-[9999] max-w-md w-full opacity-0 toast-shadow-wrapper"
       style={{
         animation: isClosing
           ? 'slideDown 0.5s ease-in forwards'
           : isVisible
             ? 'slideUp 0.5s ease-out forwards'
             : 'none',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
-        border: '3px solid transparent',
-        borderImageSlice: 1,
-        borderImageWidth: '3px',
-        borderImageSource: 'linear-gradient(90deg, #FF4D8D, #6C63FF, #3B82F6, #FFCC00)',
-        borderImageOutset: 0,
-        animationName: isVisible ? 'slideUp, borderGlow' : isClosing ? 'slideDown' : 'none',
-        animationDuration: '0.5s, 8s',
-        animationTimingFunction: 'ease-out, linear',
-        animationIterationCount: '1, infinite',
-        animationFillMode: 'forwards',
       }}
     >
-      {/* Logo centered at top */}
-      <div className="flex justify-center pt-4">
-        <Icon name="flaskFrame" size={56} color="#3B82F6" />
-      </div>
-
-      {/* Text content */}
-      <div className="px-6 pt-3 pb-4 text-center">
-        {/* Main message using ShinyText */}
-        <div className="text-xl font-medium leading-tight">
-          {isVisible && (
-            <ShinyText
-              text="Fund research proposals or get your research funded."
-              className="inline-block font-medium text-gray-800"
-              onAnimationComplete={handleAnimationComplete}
-              {...animationConfig}
-            />
-          )}
+      <div className="signup-toast-container bg-white">
+        {/* Logo centered at top */}
+        <div className="flex justify-center pt-4">
+          <Icon name="flaskFrame" size={56} color="#3B82F6" />
         </div>
 
-        {/* Button container - always present but with dynamic height/opacity */}
-        <div
-          className="overflow-hidden"
-          style={{
-            animation: showButton ? 'buttonFadeIn 1.0s ease-out forwards' : 'none',
-            opacity: 0,
-            maxHeight: 0,
-            marginTop: 0,
-          }}
-        >
-          <button
-            onClick={handleSignupClick}
-            className="inline-block w-full py-2.5 px-4 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-all duration-500 text-center"
+        {/* Text content */}
+        <div className="px-6 pt-3 pb-4 text-center">
+          {/* Main message using ShinyText */}
+          <div className="text-lg font-medium leading-tight">
+            {isVisible && (
+              <ShinyText
+                text="Fund research proposals or get your research funded."
+                className="inline-block font-medium text-gray-800"
+                onAnimationComplete={handleAnimationComplete}
+                {...animationConfig}
+              />
+            )}
+          </div>
+
+          {/* Button container - always present but with dynamic height/opacity */}
+          <div
+            className="overflow-hidden"
+            style={{
+              animation: showButton ? 'buttonFadeIn 1.0s ease-out forwards' : 'none',
+              opacity: 0,
+              maxHeight: 0,
+              marginTop: 0,
+            }}
           >
-            Sign up now
-          </button>
+            <Button onClick={handleSignupClick} size="lg" className="w-full">
+              Sign up now
+            </Button>
+          </div>
         </div>
-      </div>
 
-      {/* Close button */}
-      <button
-        onClick={() => {
-          setIsClosing(true);
-          setTimeout(onClose, 500);
-        }}
-        className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100 focus:outline-none transition-colors duration-200"
-      >
-        <svg
-          className="h-4 w-4 text-gray-500"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+        {/* Close button */}
+        <button
+          onClick={() => {
+            setIsClosing(true);
+            setTimeout(onClose, 500);
+          }}
+          className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100 focus:outline-none transition-colors duration-200"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
+          <svg
+            className="h-4 w-4 text-gray-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }
