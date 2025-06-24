@@ -51,7 +51,7 @@ export const ModerationMetadata: FC<ModerationMetadataProps> = ({ entry, classNa
       </div>
 
       {/* Show moderator action for removed content */}
-      {verdict && verdict.createdBy && (
+      {verdict?.createdBy && (
         <div className="mb-2 text-sm text-gray-600">
           <span className="text-gray-500">Verdict by:</span>{' '}
           {verdict.createdBy.authorProfile.id ? (
