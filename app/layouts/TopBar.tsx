@@ -391,17 +391,6 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                       </div>
                     </Link>
                   </Tooltip>
-
-                  {/* Moderation icon - only visible to moderators */}
-                  {user?.isModerator && (
-                    <Tooltip content="Moderator Dashboard" position="bottom">
-                      <Link href="/moderators" className="flex items-center">
-                        <div className="flex items-center justify-center p-2.5 hover:bg-gray-100 rounded-md transition-colors">
-                          <Icon name="admin" size={24} color={colors.gray[600]} />
-                        </div>
-                      </Link>
-                    </Tooltip>
-                  )}
                 </>
               )}
 
