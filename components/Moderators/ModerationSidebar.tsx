@@ -42,19 +42,6 @@ export const ModerationSidebar: FC = () => {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="p-6 border-b border-gray-200 bg-white">
-        <div className="flex items-center space-x-3">
-          <div className="flex-shrink-0">
-            <Shield className="h-8 w-8 text-primary-600" />
-          </div>
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900">Moderation</h1>
-            <p className="text-sm text-gray-600">Dashboard</p>
-          </div>
-        </div>
-      </div>
-
       {/* Navigation */}
       <div className="flex-1 p-4">
         <nav className="space-y-2">
