@@ -20,8 +20,9 @@ import { extractTextFromTipTap } from '@/components/Comment/lib/commentContentUt
 export const getAuditUserInfo = (entry: FlaggedContent) => {
   if (entry.item?.created_by) {
     const createdBy = entry.item.created_by;
+    const fullName = `${createdBy.first_name ?? ''} ${createdBy.last_name ?? ''}`.trim();
     return {
-      name: `${createdBy.first_name ?? ''} ${createdBy.last_name ?? ''}`.trim() || 'Unknown User',
+      name: fullName || 'Unknown User', // Keep || here since we want to catch empty strings
       avatar: createdBy.author_profile?.profile_image ?? null,
       authorId: createdBy.author_profile?.id ?? null,
       isRemoved: false,
@@ -70,7 +71,7 @@ export const getAuditContentUrl = (entry: FlaggedContent): string | null => {
         slug: document.slug,
       });
     default:
-      return `/post/${document.id}/${document.slug || ''}`;
+      return `/post/${document.id}/${document.slug ?? ''}`;
   }
 };
 
@@ -222,7 +223,7 @@ const extractTextFromContentJson = (contentJson: any): string => {
         }
         // Handle mentions: {"insert": {"mention": {"id": 123, "name": "User"}}}
         if (op.insert && typeof op.insert === 'object' && op.insert.mention) {
-          return `@${op.insert.mention.name || 'User'}`;
+          return `@${op.insert.mention.name ?? 'User'}`;
         }
         return '';
       })
@@ -259,7 +260,7 @@ const extractTextFromTipTapArray = (content: any[]): string => {
   return content
     .map((node: any) => {
       if (node.type === 'text') {
-        return node.text || '';
+        return node.text ?? '';
       }
       if (node.content && Array.isArray(node.content)) {
         return extractTextFromTipTapArray(node.content);

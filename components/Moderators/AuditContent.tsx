@@ -71,7 +71,7 @@ export const AuditContent: FC<AuditContentProps> = ({
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">Error loading content</h3>
           <p className="text-gray-600 text-center max-w-md">
-            {error.message || 'An error occurred while loading flagged content.'}
+            {error.message ?? 'An error occurred while loading flagged content.'}
           </p>
         </div>
       </div>

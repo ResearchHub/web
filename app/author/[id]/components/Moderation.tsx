@@ -54,7 +54,7 @@ export default function Moderation({ userId }: ModerationProps) {
           </div>
           <div className="flex items-center justify-between">
             <span className="font-medium whitespace-nowrap">User ID:</span>
-            <span>{userDetails.id || 'N/A'}</span>
+            <span>{userDetails.id ?? 'N/A'}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="font-medium whitespace-nowrap">Likely spammer?</span>
@@ -66,7 +66,7 @@ export default function Moderation({ userId }: ModerationProps) {
           </div>
           <div className="flex items-center justify-between">
             <span className="font-medium whitespace-nowrap">Sift risk score:</span>
-            <span>{userDetails.riskScore || 'N/A'}</span>
+            <span>{userDetails.riskScore ?? 'N/A'}</span>
           </div>
         </div>
 

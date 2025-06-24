@@ -28,9 +28,9 @@ export const AuditItemPaper: FC<AuditItemPaperProps> = ({ entry, onAction, view 
   const item = entry.item!;
 
   // Extract paper information
-  const paperTitle = item.title || 'Untitled Paper';
-  const paperAbstract = item.abstract || 'No abstract available';
-  const createdDate = item.created_date || entry.createdDate;
+  const paperTitle = item.title ?? 'Untitled Paper';
+  const paperAbstract = item.abstract ?? 'No abstract available';
+  const createdDate = item.created_date ?? entry.createdDate;
 
   // Map document types to content types
   const getContentType = (docType: string): ContentType => {
@@ -54,11 +54,11 @@ export const AuditItemPaper: FC<AuditItemPaperProps> = ({ entry, onAction, view 
     ? {
         id: relatedDocument.id,
         contentType: documentType ? getContentType(documentType) : 'post',
-        title: relatedDocument.title || 'Untitled',
-        slug: relatedDocument.slug || `item-${relatedDocument.id}`,
-        createdDate: item.created_date || entry.createdDate,
+        title: relatedDocument.title ?? 'Untitled',
+        slug: relatedDocument.slug ?? `item-${relatedDocument.id}`,
+        createdDate: item.created_date ?? entry.createdDate,
         authors: [],
-        abstract: relatedDocument.renderable_text || 'No preview available',
+        abstract: relatedDocument.renderable_text ?? 'No preview available',
         topics: [],
         formats: [],
         figures: [],

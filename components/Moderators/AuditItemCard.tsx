@@ -2,7 +2,6 @@
 
 import { FC } from 'react';
 import { FlaggedContent } from '@/services/audit.service';
-import { getAuditUserInfo } from './utils/auditUtils';
 import { AuditItemComment } from './AuditItemComment';
 import { AuditItemPost } from './AuditItemPost';
 import { AuditItemPaper } from './AuditItemPaper';
@@ -50,7 +49,7 @@ export const AuditItemCard: FC<AuditItemCardProps> = ({ entry, onAction, view })
       return (
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="text-gray-500">
-            Unknown content type: {entry.contentType?.name || 'N/A'}
+            Unknown content type: {entry.contentType?.name ?? 'N/A'}
           </div>
         </div>
       );
