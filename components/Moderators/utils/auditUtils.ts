@@ -52,8 +52,8 @@ export const getAuditContentUrl = (entry: FlaggedContent): string | null => {
   const threadDocument = item?.thread?.content_object?.unified_document?.documents?.[0];
   const threadDocumentType = item?.thread?.content_object?.unified_document?.document_type;
 
-  const document = directDocument || threadDocument;
-  const documentType = directDocumentType || threadDocumentType;
+  const document = directDocument ?? threadDocument;
+  const documentType = directDocumentType ?? threadDocumentType;
 
   if (!document) {
     return null;
@@ -65,22 +65,22 @@ export const getAuditContentUrl = (entry: FlaggedContent): string | null => {
       return buildWorkUrl({
         id: document.id,
         contentType: 'paper',
-        slug: document.slug || item?.slug,
+        slug: document.slug ?? item?.slug,
       });
     case 'DISCUSSION':
       return buildWorkUrl({
         id: document.id,
         contentType: 'post',
-        slug: document.slug || item?.slug,
+        slug: document.slug ?? item?.slug,
       });
     case 'PREREGISTRATION':
       return buildWorkUrl({
         id: document.id,
         contentType: 'preregistration',
-        slug: document.slug || item?.slug,
+        slug: document.slug ?? item?.slug,
       });
     default:
-      return `/post/${document.id}/${document.slug || item?.slug || ''}`;
+      return `/post/${document.id}/${document.slug ?? item?.slug ?? ''}`;
   }
 };
 
