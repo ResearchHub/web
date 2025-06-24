@@ -138,16 +138,6 @@ export const ResearchCoinRightSidebar = () => {
             <br />• 2x: Has open data
             <br />• 3x: Was preregistered
           </CollapsibleItem>
-
-          <CollapsibleItem
-            title="Get upvotes on your content"
-            icon={<Icon name="upvote" size={16} />}
-            isOpen={openSections.includes('upvotes')}
-            onToggle={() => toggleSection('upvotes')}
-          >
-            Researchers earn RSC by receiving upvotes on their contributions to open scientific
-            discourse, incentivizing critical discussions and informal exchanges.
-          </CollapsibleItem>
         </CollapsibleSection>
       </div>
 
