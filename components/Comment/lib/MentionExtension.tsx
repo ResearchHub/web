@@ -40,11 +40,7 @@ const createDebouncedSearch = () => {
         }
 
         try {
-          const suggestions = await SearchService.getSuggestions(query, [
-            'user',
-            'paper',
-            'author',
-          ]);
+          const suggestions = await SearchService.getSuggestions(query, ['user', 'paper']);
           const items = suggestions.map(transformSuggestionToMentionItem);
           resolve(items);
         } catch (error) {
