@@ -8,6 +8,7 @@ import {
   Sparkles,
   ChartNoAxesColumnIncreasing,
   Search as SearchIcon,
+  Shield,
 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { SearchModal } from '@/components/Search/SearchModal';
@@ -134,6 +135,14 @@ const getPageInfo = (pathname: string): PageInfo | null => {
       title: 'Leaderboard',
       subtitle: 'See top contributors in the ResearchHub community',
       icon: <ChartNoAxesColumnIncreasing size={20} color="#404040" strokeWidth={2} />,
+    };
+  }
+
+  if (pathname.startsWith('/moderators')) {
+    return {
+      title: 'Moderation Dashboard',
+      subtitle: 'Review and moderate community content',
+      icon: <Shield size={20} className="text-primary-600" />,
     };
   }
 
