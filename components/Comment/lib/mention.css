@@ -1,8 +1,12 @@
 /* Base mention styles */
 .mention {
-  display: inline-flex !important;
-  align-items: center !important;
-  font-weight: 500 !important;
+  color: #2563eb; /* blue-600 */
+  text-decoration: none;
+  font-weight: normal;
+}
+
+.mention:hover {
+  text-decoration: underline;
 }
 
 /* User and author mention styles */
@@ -22,9 +26,9 @@
 
 /* Paper mention styles */
 .mention.mention-paper {
-  color: rgb(37 99 235) !important;
+  color: #4b5563; /* slate-600 */
   padding: 0 !important;
-  background: none !important;
+  background: #f1f5f9 !important; /* slate-100 */
   border-radius: 0 !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -53,7 +57,7 @@
 .mention.mention-post {
   color: #3182ce !important;
   padding: 0 !important;
-  background: none !important;
+  background: #f1f5f9 !important; /* slate-100 */
   border-radius: 0 !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -66,19 +70,50 @@
 
 /* Tippy mention styles */
 .tippy-box[data-theme~='mention'] {
-  @apply bg-white border border-gray-200 shadow-lg rounded-lg;
-  max-width: 400px !important;
+  background-color: white;
+  border: 1px solid #e2e8f0; /* gray-200 */
+  border-radius: 8px;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  padding: 0;
 }
 
-.tippy-box[data-theme~='mention'] .tippy-content {
-  @apply p-0;
+.tippy-box[data-theme~='mention'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e2e8f0;
+}
+.tippy-box[data-theme~='mention'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: #e2e8f0;
+}
+.tippy-box[data-theme~='mention'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e2e8f0;
+}
+.tippy-box[data-theme~='mention'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e2e8f0;
 }
 
-.tippy-box[data-theme~='mention'] .tippy-arrow {
-  @apply text-white;
+.tippy-box[data-theme~='mention'] > .tippy-content {
+  padding: 0;
 }
 
-.tippy-box[data-theme~='mention'] .tippy-arrow:before {
-  @apply border-gray-200;
-  top: -8px;
+.mention-placeholder {
+  padding: 8px 12px;
+  color: #6b7280; /* gray-500 */
+  font-size: 14px;
+}
+
+.mention-suggestion {
+  background-color: #f1f5f9; /* slate-100 */
+  border-radius: 4px;
+}
+
+.mention-icon {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 4px;
+  position: relative;
+  top: -1px;
 }
