@@ -27,11 +27,11 @@ const transformAuditPostToFeedEntry = (
 
   // Create feed-compatible author profile
   const authorProfile = {
-    id: userInfo.authorId || 0,
+    id: userInfo.authorId ?? 0,
     fullName: userInfo.name,
-    firstName: userInfo.name.split(' ')[0] || '',
-    lastName: userInfo.name.split(' ').slice(1).join(' ') || '',
-    profileImage: userInfo.avatar || '',
+    firstName: userInfo.name.split(' ')[0] ?? '',
+    lastName: userInfo.name.split(' ').slice(1).join(' ') ?? '',
+    profileImage: userInfo.avatar ?? '',
     headline: '',
     profileUrl: userInfo.authorId ? `/author/${userInfo.authorId}` : '',
     isClaimed: !userInfo.isRemoved,
@@ -42,9 +42,9 @@ const transformAuditPostToFeedEntry = (
   const document = item.thread?.content_object?.unified_document?.documents?.[0];
   const documentType = item.thread?.content_object?.unified_document?.document_type;
 
-  const title = document?.title || 'Untitled Post';
-  const textPreview = document?.renderable_text || 'No content available';
-  const slug = document?.slug || '';
+  const title = document?.title ?? 'Untitled Post';
+  const textPreview = document?.renderable_text ?? 'No content available';
+  const slug = document?.slug ?? '';
 
   // Map document types to content types
   const getContentType = (docType: string): ContentType => {
@@ -62,9 +62,9 @@ const transformAuditPostToFeedEntry = (
 
   // Create post content
   const postContent: FeedPostContent = {
-    id: document?.id || item.id,
+    id: document?.id ?? item.id,
     contentType: documentType === 'PREREGISTRATION' ? 'PREREGISTRATION' : 'POST',
-    createdDate: item.created_date || entry.createdDate,
+    createdDate: item.created_date ?? entry.createdDate,
     textPreview: textPreview,
     slug: slug,
     title: title,
@@ -74,7 +74,7 @@ const transformAuditPostToFeedEntry = (
     createdBy: authorProfile,
     bounties: [],
     reviews: [],
-    fundraise: item.fundraise || undefined,
+    fundraise: item.fundraise ?? undefined,
   };
 
   // Check if this post has related work (if it references another document)
@@ -86,11 +86,11 @@ const transformAuditPostToFeedEntry = (
     ? {
         id: parentDocument.id,
         contentType: parentDocumentType ? getContentType(parentDocumentType) : 'post',
-        title: parentDocument.title || 'Untitled',
-        slug: parentDocument.slug || `item-${parentDocument.id}`,
-        createdDate: item.created_date || entry.createdDate,
+        title: parentDocument.title ?? 'Untitled',
+        slug: parentDocument.slug ?? `item-${parentDocument.id}`,
+        createdDate: item.created_date ?? entry.createdDate,
         authors: [],
-        abstract: parentDocument.renderable_text || 'No preview available',
+        abstract: parentDocument.renderable_text ?? 'No preview available',
         topics: [],
         formats: [],
         figures: [],
@@ -99,12 +99,12 @@ const transformAuditPostToFeedEntry = (
 
   const feedEntry: FeedEntry = {
     id: `audit-post-${item.id}`,
-    timestamp: item.created_date || entry.createdDate,
+    timestamp: item.created_date ?? entry.createdDate,
     action: 'contribute',
     content: postContent,
     contentType: postContent.contentType,
     metrics: {
-      votes: item.score || 0,
+      votes: item.score ?? 0,
       comments: 0,
       saves: 0,
       reviewScore: 0,
@@ -132,7 +132,7 @@ export const AuditItemPost: FC<AuditItemPostProps> = ({ entry, onAction, view = 
       <div className="px-4 pb-4">
         <FeedItemPost
           entry={feedEntry}
-          href={contentUrl || undefined}
+          href={contentUrl ?? undefined}
           showActions={false} // We'll use our own moderation actions
           maxLength={400} // Consistent with our previous truncation
         />

@@ -16,6 +16,81 @@ interface AuditItemCommentProps {
 }
 
 /**
+ * Helper function to detect content format based on structure
+ */
+const detectContentFormat = (content: any): 'QUILL_EDITOR' | 'TIPTAP' => {
+  if (content.type === 'doc' && content.content) {
+    return 'TIPTAP';
+  }
+  if (content.ops && Array.isArray(content.ops)) {
+    return 'QUILL_EDITOR';
+  }
+  return 'QUILL_EDITOR';
+};
+
+/**
+ * Helper function to process comment content format
+ */
+const processCommentContent = (commentContentJson: string | object) => {
+  let contentFormat: 'QUILL_EDITOR' | 'TIPTAP' = 'QUILL_EDITOR';
+  let processedContent = commentContentJson;
+
+  if (!commentContentJson) {
+    return { contentFormat, processedContent };
+  }
+
+  if (typeof commentContentJson === 'string') {
+    try {
+      const parsed = JSON.parse(commentContentJson);
+      processedContent = parsed;
+      contentFormat = detectContentFormat(parsed);
+    } catch {
+      // Keep as string if parsing fails
+      processedContent = commentContentJson;
+    }
+  } else if (typeof commentContentJson === 'object') {
+    contentFormat = detectContentFormat(commentContentJson);
+    processedContent = commentContentJson;
+  }
+
+  return { contentFormat, processedContent };
+};
+
+/**
+ * Helper function to create author profile from user info
+ */
+const createAuthorProfile = (userInfo: any) => {
+  const nameParts = userInfo.name.split(' ');
+  return {
+    id: userInfo.authorId ?? 0,
+    fullName: userInfo.name,
+    firstName: nameParts[0] ?? '',
+    lastName: nameParts.slice(1).join(' ') ?? '',
+    profileImage: userInfo.avatar ?? '',
+    headline: '',
+    profileUrl: userInfo.authorId ? `/author/${userInfo.authorId}` : '',
+    isClaimed: !userInfo.isRemoved,
+    isVerified: false,
+  };
+};
+
+/**
+ * Helper function to map document types to content types
+ */
+const mapDocumentTypeToContentType = (docType: string): ContentType => {
+  switch (docType) {
+    case 'PAPER':
+      return 'paper';
+    case 'PREREGISTRATION':
+      return 'preregistration';
+    case 'DISCUSSION':
+    case 'POST':
+    default:
+      return 'post';
+  }
+};
+
+/**
  * Transform audit entry to feed entry format for reuse with FeedItemComment
  */
 const transformAuditCommentToFeedEntry = (entry: FlaggedContent): FeedEntry => {
@@ -23,83 +98,30 @@ const transformAuditCommentToFeedEntry = (entry: FlaggedContent): FeedEntry => {
   const item = entry.item!;
 
   // Create feed-compatible author profile
-  const authorProfile = {
-    id: userInfo.authorId || 0,
-    fullName: userInfo.name,
-    firstName: userInfo.name.split(' ')[0] || '',
-    lastName: userInfo.name.split(' ').slice(1).join(' ') || '',
-    profileImage: userInfo.avatar || '',
-    headline: '',
-    profileUrl: userInfo.authorId ? `/author/${userInfo.authorId}` : '',
-    isClaimed: !userInfo.isRemoved,
-    isVerified: false,
-  };
+  const authorProfile = createAuthorProfile(userInfo);
 
   // Detect content format and prepare content
-  let contentFormat: 'QUILL_EDITOR' | 'TIPTAP' = 'QUILL_EDITOR';
-  let processedContent = item.comment_content_json;
-
-  if (item.comment_content_json) {
-    // Handle string format (JSON string)
-    if (typeof item.comment_content_json === 'string') {
-      try {
-        const parsed = JSON.parse(item.comment_content_json);
-        processedContent = parsed;
-
-        // Detect format based on structure
-        if (parsed.type === 'doc' && parsed.content) {
-          contentFormat = 'TIPTAP';
-        } else if (parsed.ops && Array.isArray(parsed.ops)) {
-          contentFormat = 'QUILL_EDITOR';
-        }
-      } catch {
-        // Keep as string if parsing fails
-        processedContent = item.comment_content_json;
-      }
-    } else if (typeof item.comment_content_json === 'object') {
-      // Handle object format
-      if (item.comment_content_json.type === 'doc' && item.comment_content_json.content) {
-        contentFormat = 'TIPTAP';
-      } else if (item.comment_content_json.ops && Array.isArray(item.comment_content_json.ops)) {
-        contentFormat = 'QUILL_EDITOR';
-      }
-      processedContent = item.comment_content_json;
-    }
-  }
+  const { contentFormat, processedContent } = processCommentContent(item.comment_content_json);
 
   // Extract related document information for better context
   const relatedDocument = item.thread?.content_object?.unified_document?.documents?.[0];
   const documentType = item.thread?.content_object?.unified_document?.document_type;
 
-  // Map document types to content types
-  const getContentType = (docType: string): ContentType => {
-    switch (docType) {
-      case 'PAPER':
-        return 'paper';
-      case 'PREREGISTRATION':
-        return 'preregistration';
-      case 'DISCUSSION':
-      case 'POST':
-      default:
-        return 'post';
-    }
-  };
-
   // Create comment content
   const commentContent: FeedCommentContent = {
     id: item.id,
     contentType: 'COMMENT',
-    createdDate: item.created_date || entry.createdDate,
+    createdDate: item.created_date ?? entry.createdDate,
     updatedDate: item.updated_date,
     createdBy: authorProfile,
     isRemoved: userInfo.isRemoved,
     comment: {
       id: item.id,
-      content: processedContent || 'No content available',
+      content: processedContent ?? 'No content available',
       contentFormat: contentFormat,
-      commentType: item.comment_type || 'GENERIC_COMMENT',
-      score: item.score || 0,
-      reviewScore: item.review_score || item.score || 0,
+      commentType: item.comment_type ?? 'GENERIC_COMMENT',
+      score: item.score ?? 0,
+      reviewScore: item.review_score ?? item.score ?? 0,
       thread: item.thread
         ? {
             id: item.thread.id,
@@ -109,42 +131,45 @@ const transformAuditCommentToFeedEntry = (entry: FlaggedContent): FeedEntry => {
         : undefined,
     },
     relatedDocumentId: relatedDocument?.id,
-    relatedDocumentContentType: documentType ? getContentType(documentType) : 'post',
+    relatedDocumentContentType: documentType ? mapDocumentTypeToContentType(documentType) : 'post',
   };
 
   // Add review data if this is a review
   if (item.comment_type === 'REVIEW') {
     commentContent.review = {
-      score: item.review_score || item.score || 0,
+      score: item.review_score ?? item.score ?? 0,
     };
   }
 
+  // Create related work
+  const relatedWork = relatedDocument
+    ? {
+        id: relatedDocument.id,
+        contentType: documentType ? mapDocumentTypeToContentType(documentType) : 'post',
+        title: relatedDocument.title ?? 'Untitled',
+        slug: relatedDocument.slug ?? `item-${relatedDocument.id}`,
+        createdDate: item.created_date ?? entry.createdDate,
+        authors: [],
+        abstract: relatedDocument.renderable_text ?? 'No preview available',
+        topics: [],
+        formats: [],
+        figures: [],
+      }
+    : undefined;
+
   return {
     id: `audit-comment-${item.id}`,
-    timestamp: item.created_date || entry.createdDate,
+    timestamp: item.created_date ?? entry.createdDate,
     action: 'contribute',
     content: commentContent,
     contentType: 'COMMENT',
     metrics: {
-      votes: item.score || 0,
+      votes: item.score ?? 0,
       comments: 0,
       saves: 0,
-      reviewScore: item.comment_type === 'REVIEW' ? item.review_score || item.score || 0 : 0,
+      reviewScore: item.comment_type === 'REVIEW' ? (item.review_score ?? item.score ?? 0) : 0,
     },
-    relatedWork: relatedDocument
-      ? {
-          id: relatedDocument.id,
-          contentType: documentType ? getContentType(documentType) : 'post',
-          title: relatedDocument.title || 'Untitled',
-          slug: relatedDocument.slug || `item-${relatedDocument.id}`, // Fallback slug if none exists
-          createdDate: item.created_date || entry.createdDate,
-          authors: [], // TODO: Could extract authors from thread data if available
-          abstract: relatedDocument.renderable_text || 'No preview available',
-          topics: [], // TODO: Could extract topics if available
-          formats: [],
-          figures: [],
-        }
-      : undefined,
+    relatedWork,
   };
 };
 

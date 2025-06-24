@@ -84,7 +84,7 @@ export default function UserMenu({
       <Avatar
         src={user.authorProfile?.profileImage}
         className="font-semibold"
-        alt={user.authorProfile?.fullName || user.fullName}
+        alt={user.authorProfile?.fullName ?? user.fullName}
         size={effectiveAvatarSize}
         showProfileCompletion
         profileCompletionPercent={percent}
@@ -100,14 +100,14 @@ export default function UserMenu({
         <div className="flex items-center">
           <Avatar
             src={user.authorProfile?.profileImage}
-            alt={user.authorProfile?.fullName || user.fullName}
+            alt={user.authorProfile?.fullName ?? user.fullName}
             size="md"
             showProfileCompletion
             profileCompletionPercent={percent}
           />
           <div className="ml-3">
             <p className="text-base font-medium text-gray-900 flex items-center gap-1">
-              {user.authorProfile?.fullName || user.fullName}
+              {user.authorProfile?.fullName ?? user.fullName}
               {user.isVerified && <VerifiedBadge size="sm" />}
               <Button
                 onClick={() => {
@@ -246,14 +246,14 @@ export default function UserMenu({
             <div className="flex items-center">
               <Avatar
                 src={user.authorProfile?.profileImage}
-                alt={user.authorProfile?.fullName || user.fullName}
+                alt={user.authorProfile?.fullName ?? user.fullName}
                 size="md"
                 showProfileCompletion
                 profileCompletionPercent={percent}
               />
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
-                  {user.authorProfile?.fullName || user.fullName}
+                  {user.authorProfile?.fullName ?? user.fullName}
                   {user.isVerified && <VerifiedBadge size="sm" />}
                   <Button
                     onClick={() => {

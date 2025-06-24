@@ -4,7 +4,11 @@ import { FeedEntry, transformCommentToFeedItem } from '@/types/feed';
 import { ContentType } from '@/types/work';
 import { Comment } from '@/types/comment';
 import { BaseTransformer } from '@/types/transformer';
-import { extractTextFromTipTap } from '@/components/Comment/lib/commentContentUtils';
+import {
+  handleCommentContentJson,
+  getContentFromThreadDocument,
+  getFallbackContent,
+} from '@/components/Moderators/utils/auditUtils';
 
 /**
  * Audit Types and Transformers
@@ -129,42 +133,42 @@ const transformCommentForAudit = (commentItem: any, flaggedContent: FlaggedConte
   // Create a simplified Comment object from the audit item
   const comment: Partial<Comment> = {
     id: commentItem.id,
-    content: commentItem.content || commentItem.comment_content_json,
-    contentFormat: commentItem.content_format || 'QUILL_EDITOR',
-    commentType: commentItem.comment_type || 'GENERIC_COMMENT',
-    createdDate: commentItem.created_date || flaggedContent.createdDate,
+    content: commentItem.content ?? commentItem.comment_content_json,
+    contentFormat: commentItem.content_format ?? 'QUILL_EDITOR',
+    commentType: commentItem.comment_type ?? 'GENERIC_COMMENT',
+    createdDate: commentItem.created_date ?? flaggedContent.createdDate,
     updatedDate: commentItem.updated_date,
-    score: commentItem.score || 0,
-    reviewScore: commentItem.review_score || 0,
-    isRemoved: commentItem.is_removed || false,
-    childrenCount: commentItem.children_count || 0,
+    score: commentItem.score ?? 0,
+    reviewScore: commentItem.review_score ?? 0,
+    isRemoved: commentItem.is_removed ?? false,
+    childrenCount: commentItem.children_count ?? 0,
     // Simplified user creation for audit context
     createdBy: {
-      id: commentItem.created_by?.author_profile?.id || flaggedContent.flaggedBy.authorProfile.id,
+      id: commentItem.created_by?.author_profile?.id ?? flaggedContent.flaggedBy.authorProfile.id,
       firstName:
-        commentItem.created_by?.first_name || flaggedContent.flaggedBy.authorProfile.firstName,
+        commentItem.created_by?.first_name ?? flaggedContent.flaggedBy.authorProfile.firstName,
       lastName:
-        commentItem.created_by?.last_name || flaggedContent.flaggedBy.authorProfile.lastName,
-      fullName: `${commentItem.created_by?.first_name || flaggedContent.flaggedBy.authorProfile.firstName} ${commentItem.created_by?.last_name || flaggedContent.flaggedBy.authorProfile.lastName}`,
-      email: commentItem.created_by?.email || '',
-      isVerified: commentItem.created_by?.is_verified || false,
+        commentItem.created_by?.last_name ?? flaggedContent.flaggedBy.authorProfile.lastName,
+      fullName: `${commentItem.created_by?.first_name ?? flaggedContent.flaggedBy.authorProfile.firstName} ${commentItem.created_by?.last_name ?? flaggedContent.flaggedBy.authorProfile.lastName}`,
+      email: commentItem.created_by?.email ?? '',
+      isVerified: commentItem.created_by?.is_verified ?? false,
       balance: 0,
       hasCompletedOnboarding: false,
       moderator: false,
       isModerator: false,
       authorProfile: {
-        id: commentItem.created_by?.author_profile?.id || flaggedContent.flaggedBy.authorProfile.id,
+        id: commentItem.created_by?.author_profile?.id ?? flaggedContent.flaggedBy.authorProfile.id,
         firstName:
-          commentItem.created_by?.first_name || flaggedContent.flaggedBy.authorProfile.firstName,
+          commentItem.created_by?.first_name ?? flaggedContent.flaggedBy.authorProfile.firstName,
         lastName:
-          commentItem.created_by?.last_name || flaggedContent.flaggedBy.authorProfile.lastName,
-        fullName: `${commentItem.created_by?.first_name || flaggedContent.flaggedBy.authorProfile.firstName} ${commentItem.created_by?.last_name || flaggedContent.flaggedBy.authorProfile.lastName}`,
+          commentItem.created_by?.last_name ?? flaggedContent.flaggedBy.authorProfile.lastName,
+        fullName: `${commentItem.created_by?.first_name ?? flaggedContent.flaggedBy.authorProfile.firstName} ${commentItem.created_by?.last_name ?? flaggedContent.flaggedBy.authorProfile.lastName}`,
         profileImage:
-          commentItem.created_by?.author_profile?.profile_image ||
-          flaggedContent.flaggedBy.authorProfile.profileImage ||
+          commentItem.created_by?.author_profile?.profile_image ??
+          flaggedContent.flaggedBy.authorProfile.profileImage ??
           '',
         headline: '',
-        profileUrl: `/author/${commentItem.created_by?.author_profile?.id || flaggedContent.flaggedBy.authorProfile.id}`,
+        profileUrl: `/author/${commentItem.created_by?.author_profile?.id ?? flaggedContent.flaggedBy.authorProfile.id}`,
         isClaimed: false,
         isVerified: false,
       },
@@ -172,8 +176,8 @@ const transformCommentForAudit = (commentItem: any, flaggedContent: FlaggedConte
     thread: commentItem.thread_id
       ? {
           id: commentItem.thread_id,
-          threadType: commentItem.document_type || 'PAPER',
-          objectId: commentItem.object_id || commentItem.thread_id,
+          threadType: commentItem.document_type ?? 'PAPER',
+          objectId: commentItem.object_id ?? commentItem.thread_id,
           privacyType: 'PUBLIC',
           raw: commentItem,
         }
@@ -203,39 +207,39 @@ const transformPaperForAudit = (paperItem: any, flaggedContent: FlaggedContent):
   // Create a minimal FeedEntry for paper
   return {
     id: `audit-paper-${paperItem.id}`,
-    timestamp: paperItem.created_date || flaggedContent.createdDate,
+    timestamp: paperItem.created_date ?? flaggedContent.createdDate,
     action: 'publish',
     contentType: 'PAPER',
     content: {
       id: paperItem.id,
       contentType: 'PAPER',
-      createdDate: paperItem.created_date || flaggedContent.createdDate,
-      textPreview: paperItem.abstract || paperItem.title || '',
-      slug: paperItem.slug || `paper-${paperItem.id}`,
-      title: paperItem.title || 'Untitled Paper',
-      authors: paperItem.authors || [],
-      topics: paperItem.hubs || [],
+      createdDate: paperItem.created_date ?? flaggedContent.createdDate,
+      textPreview: paperItem.abstract ?? paperItem.title ?? '',
+      slug: paperItem.slug ?? `paper-${paperItem.id}`,
+      title: paperItem.title ?? 'Untitled Paper',
+      authors: paperItem.authors ?? [],
+      topics: paperItem.hubs ?? [],
       createdBy: {
-        id: paperItem.created_by?.author_profile?.id || flaggedContent.flaggedBy.authorProfile.id,
+        id: paperItem.created_by?.author_profile?.id ?? flaggedContent.flaggedBy.authorProfile.id,
         firstName:
-          paperItem.created_by?.first_name || flaggedContent.flaggedBy.authorProfile.firstName,
+          paperItem.created_by?.first_name ?? flaggedContent.flaggedBy.authorProfile.firstName,
         lastName:
-          paperItem.created_by?.last_name || flaggedContent.flaggedBy.authorProfile.lastName,
-        fullName: `${paperItem.created_by?.first_name || flaggedContent.flaggedBy.authorProfile.firstName} ${paperItem.created_by?.last_name || flaggedContent.flaggedBy.authorProfile.lastName}`,
+          paperItem.created_by?.last_name ?? flaggedContent.flaggedBy.authorProfile.lastName,
+        fullName: `${paperItem.created_by?.first_name ?? flaggedContent.flaggedBy.authorProfile.firstName} ${paperItem.created_by?.last_name ?? flaggedContent.flaggedBy.authorProfile.lastName}`,
         profileImage:
-          paperItem.created_by?.author_profile?.profile_image ||
-          flaggedContent.flaggedBy.authorProfile.profileImage ||
+          paperItem.created_by?.author_profile?.profile_image ??
+          flaggedContent.flaggedBy.authorProfile.profileImage ??
           '',
         headline: '',
-        profileUrl: `/author/${paperItem.created_by?.author_profile?.id || flaggedContent.flaggedBy.authorProfile.id}`,
+        profileUrl: `/author/${paperItem.created_by?.author_profile?.id ?? flaggedContent.flaggedBy.authorProfile.id}`,
         isClaimed: false,
         isVerified: false,
       },
-      journal: paperItem.journal || { id: 0, name: '', slug: '', image: null, description: '' },
+      journal: paperItem.journal ?? { id: 0, name: '', slug: '', image: null, description: '' },
     },
     metrics: {
-      votes: paperItem.score || 0,
-      comments: paperItem.discussion_count || 0,
+      votes: paperItem.score ?? 0,
+      comments: paperItem.discussion_count ?? 0,
       saves: 0,
       reviewScore: 0,
     },
@@ -249,39 +253,39 @@ const transformBountyForAudit = (bountyItem: any, flaggedContent: FlaggedContent
   // Create a minimal FeedEntry for bounty
   return {
     id: `audit-bounty-${bountyItem.id}`,
-    timestamp: bountyItem.created_date || flaggedContent.createdDate,
+    timestamp: bountyItem.created_date ?? flaggedContent.createdDate,
     action: 'open',
     contentType: 'BOUNTY',
     content: {
       id: bountyItem.id,
       contentType: 'BOUNTY',
-      createdDate: bountyItem.created_date || flaggedContent.createdDate,
+      createdDate: bountyItem.created_date ?? flaggedContent.createdDate,
       bounty: bountyItem,
       createdBy: {
-        id: bountyItem.created_by?.author_profile?.id || flaggedContent.flaggedBy.authorProfile.id,
+        id: bountyItem.created_by?.author_profile?.id ?? flaggedContent.flaggedBy.authorProfile.id,
         firstName:
-          bountyItem.created_by?.first_name || flaggedContent.flaggedBy.authorProfile.firstName,
+          bountyItem.created_by?.first_name ?? flaggedContent.flaggedBy.authorProfile.firstName,
         lastName:
-          bountyItem.created_by?.last_name || flaggedContent.flaggedBy.authorProfile.lastName,
-        fullName: `${bountyItem.created_by?.first_name || flaggedContent.flaggedBy.authorProfile.firstName} ${bountyItem.created_by?.last_name || flaggedContent.flaggedBy.authorProfile.lastName}`,
+          bountyItem.created_by?.last_name ?? flaggedContent.flaggedBy.authorProfile.lastName,
+        fullName: `${bountyItem.created_by?.first_name ?? flaggedContent.flaggedBy.authorProfile.firstName} ${bountyItem.created_by?.last_name ?? flaggedContent.flaggedBy.authorProfile.lastName}`,
         profileImage:
-          bountyItem.created_by?.author_profile?.profile_image ||
-          flaggedContent.flaggedBy.authorProfile.profileImage ||
+          bountyItem.created_by?.author_profile?.profile_image ??
+          flaggedContent.flaggedBy.authorProfile.profileImage ??
           '',
         headline: '',
-        profileUrl: `/author/${bountyItem.created_by?.author_profile?.id || flaggedContent.flaggedBy.authorProfile.id}`,
+        profileUrl: `/author/${bountyItem.created_by?.author_profile?.id ?? flaggedContent.flaggedBy.authorProfile.id}`,
         isClaimed: false,
         isVerified: false,
       },
       comment: {
         id: bountyItem.id,
-        content: bountyItem.content || bountyItem.description,
+        content: bountyItem.content ?? bountyItem.description,
         contentFormat: 'QUILL_EDITOR',
         commentType: 'BOUNTY',
       },
     },
     metrics: {
-      votes: bountyItem.score || 0,
+      votes: bountyItem.score ?? 0,
       comments: 0,
       saves: 0,
       reviewScore: 0,
@@ -295,37 +299,37 @@ const transformBountyForAudit = (bountyItem: any, flaggedContent: FlaggedContent
 const transformPostForAudit = (postItem: any, flaggedContent: FlaggedContent): FeedEntry => {
   return {
     id: `audit-post-${postItem.id}`,
-    timestamp: postItem.created_date || flaggedContent.createdDate,
+    timestamp: postItem.created_date ?? flaggedContent.createdDate,
     action: 'post',
     contentType: 'POST',
     content: {
       id: postItem.id,
       contentType: 'POST',
-      createdDate: postItem.created_date || flaggedContent.createdDate,
-      textPreview: postItem.renderable_text || postItem.title || '',
-      slug: postItem.slug || `post-${postItem.id}`,
-      title: postItem.title || 'Untitled Post',
-      authors: postItem.authors || [],
-      topics: postItem.hubs || [],
+      createdDate: postItem.created_date ?? flaggedContent.createdDate,
+      textPreview: postItem.renderable_text ?? postItem.title ?? '',
+      slug: postItem.slug ?? `post-${postItem.id}`,
+      title: postItem.title ?? 'Untitled Post',
+      authors: postItem.authors ?? [],
+      topics: postItem.hubs ?? [],
       createdBy: {
-        id: postItem.created_by?.author_profile?.id || flaggedContent.flaggedBy.authorProfile.id,
+        id: postItem.created_by?.author_profile?.id ?? flaggedContent.flaggedBy.authorProfile.id,
         firstName:
-          postItem.created_by?.first_name || flaggedContent.flaggedBy.authorProfile.firstName,
-        lastName: postItem.created_by?.last_name || flaggedContent.flaggedBy.authorProfile.lastName,
-        fullName: `${postItem.created_by?.first_name || flaggedContent.flaggedBy.authorProfile.firstName} ${postItem.created_by?.last_name || flaggedContent.flaggedBy.authorProfile.lastName}`,
+          postItem.created_by?.first_name ?? flaggedContent.flaggedBy.authorProfile.firstName,
+        lastName: postItem.created_by?.last_name ?? flaggedContent.flaggedBy.authorProfile.lastName,
+        fullName: `${postItem.created_by?.first_name ?? flaggedContent.flaggedBy.authorProfile.firstName} ${postItem.created_by?.last_name ?? flaggedContent.flaggedBy.authorProfile.lastName}`,
         profileImage:
-          postItem.created_by?.author_profile?.profile_image ||
-          flaggedContent.flaggedBy.authorProfile.profileImage ||
+          postItem.created_by?.author_profile?.profile_image ??
+          flaggedContent.flaggedBy.authorProfile.profileImage ??
           '',
         headline: '',
-        profileUrl: `/author/${postItem.created_by?.author_profile?.id || flaggedContent.flaggedBy.authorProfile.id}`,
+        profileUrl: `/author/${postItem.created_by?.author_profile?.id ?? flaggedContent.flaggedBy.authorProfile.id}`,
         isClaimed: false,
         isVerified: false,
       },
     },
     metrics: {
-      votes: postItem.score || 0,
-      comments: postItem.discussion_count || 0,
+      votes: postItem.score ?? 0,
+      comments: postItem.discussion_count ?? 0,
       saves: 0,
       reviewScore: 0,
     },
@@ -337,36 +341,36 @@ const transformPostForAudit = (postItem: any, flaggedContent: FlaggedContent): F
  */
 const transformGenericForAudit = (item: any, flaggedContent: FlaggedContent): FeedEntry => {
   return {
-    id: `audit-generic-${item.id || flaggedContent.id}`,
-    timestamp: item.created_date || flaggedContent.createdDate,
+    id: `audit-generic-${item.id ?? flaggedContent.id}`,
+    timestamp: item.created_date ?? flaggedContent.createdDate,
     action: 'contribute',
     contentType: 'POST', // Default to POST for unknown types
     content: {
-      id: item.id || flaggedContent.id,
+      id: item.id ?? flaggedContent.id,
       contentType: 'POST',
-      createdDate: item.created_date || flaggedContent.createdDate,
-      textPreview: item.content || item.description || item.title || 'Content not available',
-      slug: item.slug || `content-${item.id || flaggedContent.id}`,
-      title: item.title || `${flaggedContent.contentType.name} Content`,
+      createdDate: item.created_date ?? flaggedContent.createdDate,
+      textPreview: item.content ?? item.description ?? item.title ?? 'Content not available',
+      slug: item.slug ?? `content-${item.id ?? flaggedContent.id}`,
+      title: item.title ?? `${flaggedContent.contentType.name} Content`,
       authors: [],
-      topics: flaggedContent.hubs || [],
+      topics: flaggedContent.hubs ?? [],
       createdBy: {
-        id: item.created_by?.author_profile?.id || flaggedContent.flaggedBy.authorProfile.id,
-        firstName: item.created_by?.first_name || flaggedContent.flaggedBy.authorProfile.firstName,
-        lastName: item.created_by?.last_name || flaggedContent.flaggedBy.authorProfile.lastName,
-        fullName: `${item.created_by?.first_name || flaggedContent.flaggedBy.authorProfile.firstName} ${item.created_by?.last_name || flaggedContent.flaggedBy.authorProfile.lastName}`,
+        id: item.created_by?.author_profile?.id ?? flaggedContent.flaggedBy.authorProfile.id,
+        firstName: item.created_by?.first_name ?? flaggedContent.flaggedBy.authorProfile.firstName,
+        lastName: item.created_by?.last_name ?? flaggedContent.flaggedBy.authorProfile.lastName,
+        fullName: `${item.created_by?.first_name ?? flaggedContent.flaggedBy.authorProfile.firstName} ${item.created_by?.last_name ?? flaggedContent.flaggedBy.authorProfile.lastName}`,
         profileImage:
-          item.created_by?.author_profile?.profile_image ||
-          flaggedContent.flaggedBy.authorProfile.profileImage ||
+          item.created_by?.author_profile?.profile_image ??
+          flaggedContent.flaggedBy.authorProfile.profileImage ??
           '',
         headline: '',
-        profileUrl: `/author/${item.created_by?.author_profile?.id || flaggedContent.flaggedBy.authorProfile.id}`,
+        profileUrl: `/author/${item.created_by?.author_profile?.id ?? flaggedContent.flaggedBy.authorProfile.id}`,
         isClaimed: false,
         isVerified: false,
       },
     },
     metrics: {
-      votes: item.score || 0,
+      votes: item.score ?? 0,
       comments: 0,
       saves: 0,
       reviewScore: 0,
@@ -408,68 +412,17 @@ export const getFlaggedContentPreview = (entry: FlaggedContent): string => {
 
   // For comments with TipTap or Quill JSON content
   if (contentItem.comment_content_json) {
-    // Handle special case for removed content
-    if (
-      typeof contentItem.comment_content_json === 'string' &&
-      contentItem.comment_content_json.includes('[Comment removed]')
-    ) {
-      return '[Comment removed]';
-    }
-
-    try {
-      const jsonContent =
-        typeof contentItem.comment_content_json === 'string'
-          ? JSON.parse(contentItem.comment_content_json)
-          : contentItem.comment_content_json;
-
-      // Extract text from Quill format (ops array)
-      if (jsonContent.ops && Array.isArray(jsonContent.ops)) {
-        const extractedText = jsonContent.ops
-          .map((op: any) => op.insert || '')
-          .join('')
-          .trim();
-
-        if (extractedText) {
-          return extractedText;
-        }
-      }
-
-      // Extract text from TipTap format using existing utility
-      if (jsonContent.content || jsonContent.type === 'doc') {
-        const extractedText = extractTextFromTipTap(jsonContent);
-        if (extractedText) {
-          return extractedText.trim();
-        }
-      }
-
-      return 'No readable content found';
-    } catch (e) {
-      console.warn('Failed to parse comment_content_json:', e);
-      return 'Error parsing comment content';
-    }
+    return handleCommentContentJson(contentItem.comment_content_json);
   }
 
   // For posts and papers, get content from thread content object
-  if (contentItem.thread?.content_object?.unified_document?.documents?.[0]) {
-    const document = contentItem.thread.content_object.unified_document.documents[0];
-    return (
-      document.renderable_text ||
-      document.title ||
-      document.abstract ||
-      'No content preview available'
-    );
+  const threadContent = getContentFromThreadDocument(contentItem);
+  if (threadContent) {
+    return threadContent;
   }
 
   // Fallback to other possible content fields
-  return (
-    contentItem.content ||
-    contentItem.text ||
-    contentItem.title ||
-    contentItem.description ||
-    contentItem.renderable_text ||
-    contentItem.abstract ||
-    'No content preview available'
-  );
+  return getFallbackContent(contentItem);
 };
 
 /**
@@ -478,7 +431,7 @@ export const getFlaggedContentPreview = (entry: FlaggedContent): string => {
 export const getFlaggedContentParentDocumentTitle = (entry: FlaggedContent): string => {
   const documents = entry.item?.thread?.content_object?.unified_document?.documents;
   if (documents && documents.length > 0) {
-    return documents[0].title || 'Untitled Document';
+    return documents[0].title ?? 'Untitled Document';
   }
   return 'No parent document';
 };
@@ -490,9 +443,9 @@ export const getFlaggedContentOffendingUser = (entry: FlaggedContent) => {
   if (entry.item?.created_by) {
     const createdBy = entry.item.created_by;
     return {
-      name: `${createdBy.first_name || ''} ${createdBy.last_name || ''}`.trim() || 'Unknown User',
-      avatar: createdBy.author_profile?.profile_image || null,
-      authorId: createdBy.author_profile?.id || null,
+      name: `${createdBy.first_name ?? ''} ${createdBy.last_name ?? ''}`.trim() || 'Unknown User',
+      avatar: createdBy.author_profile?.profile_image ?? null,
+      authorId: createdBy.author_profile?.id ?? null,
       isRemoved: false,
     };
   }

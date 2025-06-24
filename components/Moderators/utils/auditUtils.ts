@@ -1,5 +1,6 @@
 import { FlaggedContent } from '@/services/audit.service';
 import { buildWorkUrl } from '@/utils/url';
+import { extractTextFromTipTap } from '@/components/Comment/lib/commentContentUtils';
 
 /**
  * SIMPLIFIED AUDIT UTILS
@@ -14,18 +15,25 @@ import { buildWorkUrl } from '@/utils/url';
  */
 
 /**
- * Extract user information from flagged content entry
+ * Get user information from flagged content entry
  */
 export const getAuditUserInfo = (entry: FlaggedContent) => {
-  const createdBy = entry.item?.created_by;
+  if (entry.item?.created_by) {
+    const createdBy = entry.item.created_by;
+    return {
+      name: `${createdBy.first_name ?? ''} ${createdBy.last_name ?? ''}`.trim() || 'Unknown User',
+      avatar: createdBy.author_profile?.profile_image ?? null,
+      authorId: createdBy.author_profile?.id ?? null,
+      isRemoved: false,
+    };
+  }
 
+  // If created_by is null, this likely means the content was removed
   return {
-    authorId: createdBy?.author_profile?.id || null,
-    name: createdBy
-      ? `${createdBy.first_name || ''} ${createdBy.last_name || ''}`.trim()
-      : 'Unknown User',
-    avatar: createdBy?.author_profile?.profile_image || null,
-    isRemoved: !createdBy || !createdBy.author_profile?.id,
+    name: 'Removed User',
+    avatar: null,
+    authorId: null,
+    isRemoved: true,
   };
 };
 
@@ -64,6 +72,107 @@ export const getAuditContentUrl = (entry: FlaggedContent): string | null => {
     default:
       return `/post/${document.id}/${document.slug || ''}`;
   }
+};
+
+/**
+ * Extract text from Quill format content
+ */
+const extractTextFromQuillContent = (jsonContent: any): string => {
+  if (jsonContent.ops && Array.isArray(jsonContent.ops)) {
+    const extractedText = jsonContent.ops
+      .map((op: any) => op.insert ?? '')
+      .join('')
+      .trim();
+
+    if (extractedText) {
+      return extractedText;
+    }
+  }
+  return '';
+};
+
+/**
+ * Extract text from TipTap format content
+ */
+const extractTextFromTipTapDocument = (jsonContent: any): string => {
+  if (jsonContent.content || jsonContent.type === 'doc') {
+    const extractedText = extractTextFromTipTap(jsonContent);
+    if (extractedText) {
+      return extractedText.trim();
+    }
+  }
+  return '';
+};
+
+/**
+ * Process JSON comment content and extract text
+ */
+const processJsonCommentContent = (jsonContent: any): string => {
+  // Try extracting from Quill format first
+  const quillText = extractTextFromQuillContent(jsonContent);
+  if (quillText) {
+    return quillText;
+  }
+
+  // Try extracting from TipTap format
+  const tipTapText = extractTextFromTipTapDocument(jsonContent);
+  if (tipTapText) {
+    return tipTapText;
+  }
+
+  return 'No readable content found';
+};
+
+/**
+ * Handle comment content JSON parsing and extraction
+ */
+export const handleCommentContentJson = (commentContentJson: string | object): string => {
+  // Handle special case for removed content
+  if (typeof commentContentJson === 'string' && commentContentJson.includes('[Comment removed]')) {
+    return '[Comment removed]';
+  }
+
+  try {
+    const jsonContent =
+      typeof commentContentJson === 'string' ? JSON.parse(commentContentJson) : commentContentJson;
+
+    return processJsonCommentContent(jsonContent);
+  } catch (e) {
+    console.warn('Failed to parse comment_content_json:', e);
+    return 'Error parsing comment content';
+  }
+};
+
+/**
+ * Get content from thread document
+ */
+export const getContentFromThreadDocument = (contentItem: any): string => {
+  const document = contentItem.thread?.content_object?.unified_document?.documents?.[0];
+  if (!document) {
+    return '';
+  }
+
+  return (
+    document.renderable_text ??
+    document.title ??
+    document.abstract ??
+    'No content preview available'
+  );
+};
+
+/**
+ * Get fallback content from various fields
+ */
+export const getFallbackContent = (contentItem: any): string => {
+  return (
+    contentItem.content ??
+    contentItem.text ??
+    contentItem.title ??
+    contentItem.description ??
+    contentItem.renderable_text ??
+    contentItem.abstract ??
+    'No content preview available'
+  );
 };
 
 /**
@@ -123,12 +232,12 @@ const extractTextFromContentJson = (contentJson: any): string => {
 
   // Handle TipTap format: {"type": "doc", "content": [...]}
   if (contentJson.type === 'doc' && contentJson.content) {
-    return extractTextFromTipTapContent(contentJson.content);
+    return extractTextFromTipTapArray(contentJson.content);
   }
 
   // Handle direct content array (sometimes TipTap comes without wrapper)
   if (Array.isArray(contentJson.content)) {
-    return extractTextFromTipTapContent(contentJson.content);
+    return extractTextFromTipTapArray(contentJson.content);
   }
 
   // Fallback: try to stringify and extract meaningful text
@@ -144,7 +253,7 @@ const extractTextFromContentJson = (contentJson: any): string => {
 /**
  * Extract text from TipTap content array
  */
-const extractTextFromTipTapContent = (content: any[]): string => {
+const extractTextFromTipTapArray = (content: any[]): string => {
   if (!Array.isArray(content)) return '';
 
   return content
@@ -153,7 +262,7 @@ const extractTextFromTipTapContent = (content: any[]): string => {
         return node.text || '';
       }
       if (node.content && Array.isArray(node.content)) {
-        return extractTextFromTipTapContent(node.content);
+        return extractTextFromTipTapArray(node.content);
       }
       if (node.type === 'mention' && node.attrs?.label) {
         return `@${node.attrs.label}`;
