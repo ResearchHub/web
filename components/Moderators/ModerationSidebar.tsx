@@ -4,7 +4,7 @@ import { FC } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
-import { Shield, Flag, BookCheck, UserRoundPen } from 'lucide-react';
+import { Flag, BookCheck, UserRoundPen } from 'lucide-react';
 
 interface NavigationItem {
   name: string;
