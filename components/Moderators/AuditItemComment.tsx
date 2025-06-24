@@ -179,7 +179,6 @@ export const AuditItemComment: FC<AuditItemCommentProps> = ({
   view = 'pending',
 }) => {
   const verdict = entry.verdict;
-  const contentUrl = getAuditContentUrl(entry);
 
   // Transform audit entry to feed entry format
   const feedEntry = useMemo(() => transformAuditCommentToFeedEntry(entry), [entry]);

@@ -137,7 +137,7 @@ export const AuditItemPaper: FC<AuditItemPaperProps> = ({ entry, onAction, view 
 
       {/* Related Work - show if available */}
       {relatedWork && (
-        <div className="mb-4" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-4">
           <RelatedWorkCard size="sm" work={relatedWork} />
         </div>
       )}

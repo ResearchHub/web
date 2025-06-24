@@ -28,14 +28,15 @@ export const useAudit = (options: UseAuditOptions = {}) => {
 
   // Convert user-friendly status to API filter
   const getApiFilter = (status?: AuditStatus): AuditFilters => {
-    const verdict =
-      status === 'pending'
-        ? 'OPEN'
-        : status === 'dismissed'
-          ? 'APPROVED'
-          : status === 'removed'
-            ? 'REMOVED'
-            : 'OPEN';
+    let verdict: 'OPEN' | 'APPROVED' | 'REMOVED' = 'OPEN';
+
+    if (status === 'pending') {
+      verdict = 'OPEN';
+    } else if (status === 'dismissed') {
+      verdict = 'APPROVED';
+    } else if (status === 'removed') {
+      verdict = 'REMOVED';
+    }
 
     return {
       verdict,

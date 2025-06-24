@@ -113,7 +113,7 @@ export const AuditContent: FC<AuditContentProps> = ({
         {isLoading && entries.length === 0 && (
           <div className="space-y-6">
             {Array.from({ length: 3 }).map((_, i) => (
-              <AuditItemSkeleton key={i} view={view} />
+              <AuditItemSkeleton key={`skeleton-${i}`} view={view} />
             ))}
           </div>
         )}

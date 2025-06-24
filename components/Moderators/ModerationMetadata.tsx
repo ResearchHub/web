@@ -42,10 +42,10 @@ export const ModerationMetadata: FC<ModerationMetadataProps> = ({ entry, classNa
             ({formatTimestamp(entry.createdDate)})
           </span>
         </Tooltip>
-        {(entry.reason || entry.reasonChoice) && (
+        {(entry.reason ?? entry.reasonChoice) && (
           <>
             {' - '}
-            <span className="text-gray-700">{entry.reason || entry.reasonChoice}</span>
+            <span className="text-gray-700">{entry.reason ?? entry.reasonChoice}</span>
           </>
         )}
       </div>

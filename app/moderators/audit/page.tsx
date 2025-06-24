@@ -8,6 +8,12 @@ import { Button } from '@/components/ui/Button';
 import { RefreshCw } from 'lucide-react';
 import { ID } from '@/types/root';
 
+const getViewFromStatus = (status: AuditStatus): 'pending' | 'dismissed' | 'removed' => {
+  if (status === 'pending') return 'pending';
+  if (status === 'dismissed') return 'dismissed';
+  return 'removed';
+};
+
 export default function AuditPage() {
   const [activeStatus, setActiveStatus] = useState<AuditStatus>('pending');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -99,13 +105,7 @@ export default function AuditPage() {
           loadMore={loadMore}
           onDismiss={handleDismiss}
           onRemove={handleRemove}
-          view={
-            activeStatus === 'pending'
-              ? 'pending'
-              : activeStatus === 'dismissed'
-                ? 'dismissed'
-                : 'removed'
-          }
+          view={getViewFromStatus(activeStatus)}
         />
       </div>
     </div>
