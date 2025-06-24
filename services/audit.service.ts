@@ -193,7 +193,7 @@ export class AuditService {
       results: apiResponse.results.map(transformFlaggedContent),
       next: apiResponse.next,
       previous: apiResponse.previous,
-      count: apiResponse.count || apiResponse.results.length,
+      count: apiResponse.count ?? apiResponse.results.length,
     };
   }
 

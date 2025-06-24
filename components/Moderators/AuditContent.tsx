@@ -91,7 +91,7 @@ export const AuditContent: FC<AuditContentProps> = ({
         {/* Show empty state if no entries and not loading */}
         {entries.length === 0 && !isLoading && (
           <div className="text-center py-12">
-            {noEntriesElement || (
+            {noEntriesElement ?? (
               <div className="flex flex-col items-center justify-center">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
                   <CheckCircle className="h-8 w-8 text-green-600" />

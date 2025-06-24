@@ -9,7 +9,7 @@ import { useUser } from '@/contexts/UserContext';
 import { LoadingSkeleton } from '../layouts/components/LoadingSkeleton';
 
 interface ModerationLayoutProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
 export default function ModerationLayout({ children }: ModerationLayoutProps) {

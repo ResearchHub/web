@@ -30,7 +30,7 @@ export function ModerationSkeleton() {
 }
 
 type ModerationProps = {
-  userId: string;
+  readonly userId: string;
 };
 
 export default function Moderation({ userId }: ModerationProps) {

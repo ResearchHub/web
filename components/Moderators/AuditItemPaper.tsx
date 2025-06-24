@@ -16,9 +16,9 @@ import { ModerationActions } from './ModerationActions';
 import { truncateText } from '@/utils/stringUtils';
 
 interface AuditItemPaperProps {
-  entry: FlaggedContent;
-  onAction: (action: 'dismiss' | 'remove') => void;
-  view?: 'pending' | 'dismissed' | 'removed';
+  readonly entry: FlaggedContent;
+  readonly onAction: (action: 'dismiss' | 'remove') => void;
+  readonly view?: 'pending' | 'dismissed' | 'removed';
 }
 
 export const AuditItemPaper: FC<AuditItemPaperProps> = ({ entry, onAction, view = 'pending' }) => {
@@ -83,7 +83,7 @@ export const AuditItemPaper: FC<AuditItemPaperProps> = ({ entry, onAction, view 
                 className="font-medium text-gray-900 hover:text-blue-600 cursor-pointer"
                 onClick={(e) => {
                   e.preventDefault();
-                  navigateToAuthorProfile(userInfo.authorId!);
+                  navigateToAuthorProfile(userInfo.authorId);
                 }}
               >
                 {userInfo.name}
