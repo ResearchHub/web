@@ -214,7 +214,13 @@ function AuthorTabs({ authorId }: { authorId: number }) {
 
   return (
     <div className="mt-8">
-      <Tabs tabs={tabs} activeTab={currentTab} onTabChange={handleTabChange} variant="primary" />
+      <Tabs
+        tabs={tabs}
+        activeTab={currentTab}
+        onTabChange={handleTabChange}
+        variant="primary"
+        className="border-b"
+      />
       <div className="mt-6">{renderTabContent()}</div>
     </div>
   );
