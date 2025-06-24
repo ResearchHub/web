@@ -6,6 +6,11 @@ import { OnboardingRedirect } from '@/components/OnboardingRedirect';
 import { usePathname } from 'next/navigation';
 import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
 import { OnboardingModal } from '@/components/Onboarding/OnboardingModal';
+import SignupToast from '@/components/ui/SignupToast';
+import { useSession } from 'next-auth/react';
+// Remove FundingToast import
+// import FundingToast from '@/components/ui/FundingToast';
+
 // Dynamically import sidebar components
 const LeftSidebar = dynamic(() => import('./LeftSidebar').then((mod) => mod.LeftSidebar), {
   ssr: true,
@@ -52,6 +57,7 @@ interface PageLayoutProps {
 
 export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
+  const [showSignupToast, setShowSignupToast] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const rightSidebarRef = useRef<HTMLDivElement>(null);
@@ -59,7 +65,30 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
   const [sidebarTransform, setSidebarTransform] = useState(0);
   const animationFrameId = useRef<number | null>(null);
   const pathname = usePathname();
+  const { status } = useSession();
 
+  // Show toast on page load if user is not authenticated
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      // Show toast after a 2 second delay
+      const timer = setTimeout(() => {
+        setShowSignupToast(true);
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    } else {
+      // If user is authenticated, make sure toast is hidden
+      setShowSignupToast(false);
+    }
+  }, [status]);
+
+  // Handle toast dismissal
+  const handleCloseToast = () => {
+    setShowSignupToast(false);
+    // No longer saving to sessionStorage
+  };
+
+  // Scroll effect for sidebar
   useEffect(() => {
     const handleScroll = () => {
       if (
@@ -132,106 +161,111 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
   }, []); // Removed sidebarTransform from dependencies as it caused potential loops
 
   return (
-    <div className="flex h-screen">
-      {/* <OnboardingRedirect /> */}
-      <OnboardingModal />
+    <>
+      {/* Signup Toast */}
+      {showSignupToast && <SignupToast onClose={handleCloseToast} />}
 
-      {/* Fixed TopBar starting from LeftSidebar edge */}
-      <div
-        className="fixed top-0 right-0 z-50 bg-white
-                      left-0 tablet:!left-72 tablet:sidebar-compact:!left-72 tablet:max-sidebar-compact:!left-[70px]"
-      >
-        <Suspense fallback={<TopBarSkeleton />}>
-          <TopBar onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)} />
-        </Suspense>
-      </div>
+      <div className="flex h-screen">
+        {/* <OnboardingRedirect /> */}
+        <OnboardingModal />
 
-      {/* Mobile overlay */}
-      {isLeftSidebarOpen && (
+        {/* Fixed TopBar starting from LeftSidebar edge */}
         <div
-          className="fixed inset-0 bg-black/50 z-40 tablet:!hidden"
-          onClick={() => setIsLeftSidebarOpen(false)}
-        />
-      )}
-
-      {/* Left Sidebar Container (Sticky) */}
-      <div
-        className={`
-          tablet:!sticky tablet:!top-0 h-screen bg-white border-r border-gray-200
-          z-50 tablet:z-30
-          transition-all duration-200 ease-in-out
-          flex-shrink-0
-
-          tablet:!translate-x-0
-          tablet:sidebar-compact:!w-72
-          tablet:max-sidebar-compact:!w-[70px]
-
-          ${isLeftSidebarOpen ? 'fixed top-[64px] !translate-x-0 w-[280px] block' : 'fixed top-[64px] !-translate-x-full w-[280px] hidden'}
-
-          tablet:!block tablet:w-72
-        `}
-      >
-        <Suspense fallback={<div className="w-full h-screen bg-gray-100 animate-pulse"></div>}>
-          <LeftSidebar />
-        </Suspense>
-      </div>
-
-      {/* Center Content Area (Scrolling) */}
-      <div
-        ref={scrollContainerRef}
-        className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative"
-        style={{ marginTop: '64px' }}
-      >
-        {/* Main Content */}
-        <main
-          ref={mainContentRef}
-          className={`flex-1 px-4 tablet:!px-8 py-4 flex justify-center ${
-            rightSidebar ? 'lg:!pr-80 right-sidebar:!pr-80' : ''
-          }`}
-          style={{ maxWidth: '100vw' }}
+          className={`fixed top-0 right-0 z-50 bg-white
+                      left-0 tablet:!left-72 tablet:sidebar-compact:!left-72 tablet:max-sidebar-compact:!left-[70px]`}
         >
-          <div
-            className="w-full
-              max-w-full
-              tablet:!max-w-2xl
-              content-md:!max-w-2xl
-              content-lg:!max-w-3xl
-              content-xl:!max-w-4xl
-            "
-          >
-            {children}
-          </div>
-        </main>
+          <Suspense fallback={<TopBarSkeleton />}>
+            <TopBar onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)} />
+          </Suspense>
+        </div>
 
-        {/* Right Sidebar (Fixed to viewport edge) */}
-        {rightSidebar && (
-          <aside
-            ref={rightSidebarWrapperRef}
-            className="fixed top-16 right-0 h-[calc(100vh-64px)] overflow-hidden
-                      lg:!block !hidden right-sidebar:!block w-80 bg-white
-                      z-30"
+        {/* Mobile overlay */}
+        {isLeftSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 tablet:!hidden"
+            onClick={() => setIsLeftSidebarOpen(false)}
+          />
+        )}
+
+        {/* Left Sidebar Container (Sticky) */}
+        <div
+          className={`
+            tablet:!sticky tablet:!top-0 h-screen bg-white border-r border-gray-200
+            z-50 tablet:z-30
+            transition-all duration-200 ease-in-out
+            flex-shrink-0
+
+            tablet:!translate-x-0
+            tablet:sidebar-compact:!w-72
+            tablet:max-sidebar-compact:!w-[70px]
+
+            ${isLeftSidebarOpen ? 'fixed top-[64px] !translate-x-0 w-[280px] block' : 'fixed top-[64px] !-translate-x-full w-[280px] hidden'}
+
+            tablet:!block tablet:w-72
+          `}
+        >
+          <Suspense fallback={<div className="w-full h-screen bg-gray-100 animate-pulse"></div>}>
+            <LeftSidebar />
+          </Suspense>
+        </div>
+
+        {/* Center Content Area (Scrolling) */}
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative"
+          style={{ marginTop: '64px' }}
+        >
+          {/* Main Content */}
+          <main
+            ref={mainContentRef}
+            className={`flex-1 px-4 tablet:!px-8 py-4 flex justify-center ${
+              rightSidebar ? 'lg:!pr-80 right-sidebar:!pr-80' : ''
+            }`}
+            style={{ maxWidth: '100vw' }}
           >
             <div
-              ref={rightSidebarRef}
-              style={{ transform: `translateY(${sidebarTransform}px)` }}
-              className="transition-transform duration-150 ease-out h-full"
+              className="w-full
+                max-w-full
+                tablet:!max-w-2xl
+                content-md:!max-w-2xl
+                content-lg:!max-w-3xl
+                content-xl:!max-w-4xl
+              "
             >
-              {/* Sidebar Content */}
-              <div className="px-4 pt-4">
-                <Suspense fallback={<RightSidebarSkeleton />}>
-                  {pathname.startsWith('/paper/create') ? (
-                    <RHJRightSidebar showBanner={false} />
-                  ) : typeof rightSidebar === 'boolean' ? (
-                    <RightSidebar />
-                  ) : (
-                    rightSidebar
-                  )}
-                </Suspense>
-              </div>
+              {children}
             </div>
-          </aside>
-        )}
+          </main>
+
+          {/* Right Sidebar (Fixed to viewport edge) */}
+          {rightSidebar && (
+            <aside
+              ref={rightSidebarWrapperRef}
+              className={`fixed top-16 right-0 h-[calc(100vh-64px)] overflow-hidden
+                        lg:!block !hidden right-sidebar:!block w-80 bg-white
+                        z-30`}
+            >
+              <div
+                ref={rightSidebarRef}
+                style={{ transform: `translateY(${sidebarTransform}px)` }}
+                className="transition-transform duration-150 ease-out h-full"
+              >
+                {/* Sidebar Content */}
+                <div className="px-4 pt-4">
+                  <Suspense fallback={<RightSidebarSkeleton />}>
+                    {pathname.startsWith('/paper/create') ? (
+                      <RHJRightSidebar showBanner={false} />
+                    ) : typeof rightSidebar === 'boolean' ? (
+                      <RightSidebar />
+                    ) : (
+                      rightSidebar
+                    )}
+                  </Suspense>
+                </div>
+              </div>
+            </aside>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
