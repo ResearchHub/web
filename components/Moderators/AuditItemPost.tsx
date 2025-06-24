@@ -48,13 +48,13 @@ const transformAuditPostToFeedEntry = (
   const directDocumentType = item.unified_document?.document_type;
 
   // Use direct structure first (for researchhubpost), fallback to thread structure
-  const document = directDocument || threadDocument;
-  const documentType = directDocumentType || threadDocumentType;
+  const document = directDocument ?? threadDocument;
+  const documentType = directDocumentType ?? threadDocumentType;
 
   // Extract title, text, and slug from various possible locations
-  const title = document?.title || item.title || 'Untitled Post';
-  const textPreview = document?.renderable_text || 'No content available';
-  const slug = document?.slug || item.slug || '';
+  const title = document?.title ?? item.title ?? 'Untitled Post';
+  const textPreview = document?.renderable_text ?? 'No content available';
+  const slug = document?.slug ?? item.slug ?? '';
 
   // Map document types to content types
   const getContentType = (docType: string): ContentType => {
@@ -97,8 +97,8 @@ const transformAuditPostToFeedEntry = (
   const parentDirectDocument = item.parent_unified_document?.documents?.[0];
   const parentDirectDocumentType = item.parent_unified_document?.document_type;
 
-  const parentDocument = parentDirectDocument || parentThreadDocument;
-  const parentDocumentType = parentDirectDocumentType || parentThreadDocumentType;
+  const parentDocument = parentDirectDocument ?? parentThreadDocument;
+  const parentDocumentType = parentDirectDocumentType ?? parentThreadDocumentType;
 
   const relatedWork = parentDocument
     ? {
