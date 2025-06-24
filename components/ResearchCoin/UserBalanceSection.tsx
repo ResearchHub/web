@@ -78,10 +78,10 @@ export function UserBalanceSection({
                           <>
                             <span>≈</span>
                             <ResearchCoinIcon size={16} />
-                            <span>{`${balance?.formatted || '0.00'} RSC`}</span>
+                            <span>{`${balance?.formatted ?? '0.00'} RSC`}</span>
                           </>
                         ) : (
-                          `≈ ${balance?.formattedUsd || '$0.00'}`
+                          `≈ ${balance?.formattedUsd ?? '$0.00'}`
                         )}
                       </div>
                     </>
