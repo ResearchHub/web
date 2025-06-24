@@ -1,9 +1,8 @@
 import { ID } from '@/types/root';
-import { AuthorProfile, transformAuthorProfile } from '@/types/authorProfile';
+import { AuthorProfile } from '@/types/authorProfile';
 import { FeedEntry, transformCommentToFeedItem } from '@/types/feed';
 import { ContentType } from '@/types/work';
 import { Comment } from '@/types/comment';
-import { BaseTransformer } from '@/types/transformer';
 import {
   handleCommentContentJson,
   getContentFromThreadDocument,

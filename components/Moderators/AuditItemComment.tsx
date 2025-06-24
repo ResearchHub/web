@@ -4,8 +4,8 @@ import { FC, useMemo } from 'react';
 import { FlaggedContent } from '@/services/audit.service';
 import { FeedItemComment } from '@/components/Feed/items/FeedItemComment';
 import { FeedEntry, FeedCommentContent } from '@/types/feed';
-import { Work, ContentType } from '@/types/work';
-import { getAuditUserInfo, getAuditContentUrl } from './utils/auditUtils';
+import { ContentType } from '@/types/work';
+import { getAuditUserInfo } from './utils/auditUtils';
 import { ModerationMetadata } from './ModerationMetadata';
 import { ModerationActions } from './ModerationActions';
 

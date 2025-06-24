@@ -4,7 +4,7 @@ import { FC } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { FlaggedContent } from '@/services/audit.service';
-import { Work, ContentType } from '@/types/work';
+import { ContentType } from '@/types/work';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 import { getAuditUserInfo, getAuditContentUrl } from './utils/auditUtils';
 import { formatTimestamp } from '@/utils/date';
