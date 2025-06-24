@@ -38,13 +38,23 @@ const transformAuditPostToFeedEntry = (
     isVerified: false,
   };
 
-  // Extract post information from the thread/document structure
-  const document = item.thread?.content_object?.unified_document?.documents?.[0];
-  const documentType = item.thread?.content_object?.unified_document?.document_type;
+  // Extract post information from either thread structure or direct unified_document structure
+  // For researchhubpost content type, data is at item.unified_document
+  // For other content types, data might be at item.thread?.content_object?.unified_document
+  const threadDocument = item.thread?.content_object?.unified_document?.documents?.[0];
+  const threadDocumentType = item.thread?.content_object?.unified_document?.document_type;
 
-  const title = document?.title ?? 'Untitled Post';
-  const textPreview = document?.renderable_text ?? 'No content available';
-  const slug = document?.slug ?? '';
+  const directDocument = item.unified_document?.documents?.[0];
+  const directDocumentType = item.unified_document?.document_type;
+
+  // Use direct structure first (for researchhubpost), fallback to thread structure
+  const document = directDocument || threadDocument;
+  const documentType = directDocumentType || threadDocumentType;
+
+  // Extract title, text, and slug from various possible locations
+  const title = document?.title || item.title || 'Untitled Post';
+  const textPreview = document?.renderable_text || 'No content available';
+  const slug = document?.slug || item.slug || '';
 
   // Map document types to content types
   const getContentType = (docType: string): ContentType => {
@@ -79,8 +89,16 @@ const transformAuditPostToFeedEntry = (
 
   // Check if this post has related work (if it references another document)
   // This might happen if a post is a response to another post/paper
-  const parentDocument = item.parent_thread?.content_object?.unified_document?.documents?.[0];
-  const parentDocumentType = item.parent_thread?.content_object?.unified_document?.document_type;
+  const parentThreadDocument = item.parent_thread?.content_object?.unified_document?.documents?.[0];
+  const parentThreadDocumentType =
+    item.parent_thread?.content_object?.unified_document?.document_type;
+
+  // Also check for parent_unified_document at the item level
+  const parentDirectDocument = item.parent_unified_document?.documents?.[0];
+  const parentDirectDocumentType = item.parent_unified_document?.document_type;
+
+  const parentDocument = parentDirectDocument || parentThreadDocument;
+  const parentDocumentType = parentDirectDocumentType || parentThreadDocumentType;
 
   const relatedWork = parentDocument
     ? {

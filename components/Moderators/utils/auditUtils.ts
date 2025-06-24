@@ -43,12 +43,21 @@ export const getAuditUserInfo = (entry: FlaggedContent) => {
  */
 export const getAuditContentUrl = (entry: FlaggedContent): string | null => {
   const item = entry.item;
-  if (!item?.thread?.content_object?.unified_document?.documents?.[0]) {
+
+  // For researchhubpost content type, check direct unified_document structure first
+  const directDocument = item?.unified_document?.documents?.[0];
+  const directDocumentType = item?.unified_document?.document_type;
+
+  // For other content types, check thread structure
+  const threadDocument = item?.thread?.content_object?.unified_document?.documents?.[0];
+  const threadDocumentType = item?.thread?.content_object?.unified_document?.document_type;
+
+  const document = directDocument || threadDocument;
+  const documentType = directDocumentType || threadDocumentType;
+
+  if (!document) {
     return null;
   }
-
-  const document = item.thread.content_object.unified_document.documents[0];
-  const documentType = item.thread.content_object.unified_document.document_type;
 
   // Build URL based on document type
   switch (documentType) {
@@ -56,22 +65,22 @@ export const getAuditContentUrl = (entry: FlaggedContent): string | null => {
       return buildWorkUrl({
         id: document.id,
         contentType: 'paper',
-        slug: document.slug,
+        slug: document.slug || item?.slug,
       });
     case 'DISCUSSION':
       return buildWorkUrl({
         id: document.id,
         contentType: 'post',
-        slug: document.slug,
+        slug: document.slug || item?.slug,
       });
     case 'PREREGISTRATION':
       return buildWorkUrl({
         id: document.id,
         contentType: 'preregistration',
-        slug: document.slug,
+        slug: document.slug || item?.slug,
       });
     default:
-      return `/post/${document.id}/${document.slug ?? ''}`;
+      return `/post/${document.id}/${document.slug || item?.slug || ''}`;
   }
 };
 
