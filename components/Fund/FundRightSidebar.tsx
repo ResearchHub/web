@@ -102,7 +102,7 @@ export const FundRightSidebar = () => {
 
         <CollapsibleSection title="How does it work?">
           <CollapsibleItem
-            title="1. Preregister experiment"
+            title="1. Plan your experiment"
             isOpen={openSections.includes('preregister')}
             onToggle={() => toggleSection('preregister')}
           >
