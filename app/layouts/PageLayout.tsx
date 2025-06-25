@@ -52,6 +52,8 @@ interface PageLayoutProps {
 
 export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [overlayVisible, setOverlayVisible] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const rightSidebarRef = useRef<HTMLDivElement>(null);
@@ -131,6 +133,17 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
     }
   }, []); // Removed sidebarTransform from dependencies as it caused potential loops
 
+  useEffect(() => {
+    if (isLeftSidebarOpen) {
+      setShowOverlay(true);
+      setTimeout(() => setOverlayVisible(true), 0);
+    } else {
+      setOverlayVisible(false);
+      const timeout = setTimeout(() => setShowOverlay(false), 300);
+      return () => clearTimeout(timeout);
+    }
+  }, [isLeftSidebarOpen]);
+
   return (
     <div className="flex h-screen">
       {/* <OnboardingRedirect /> */}
@@ -138,7 +151,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
 
       {/* Fixed TopBar starting from LeftSidebar edge */}
       <div
-        className="fixed top-0 right-0 z-50 bg-white
+        className="fixed top-0 right-0 z-[60] bg-white
                       left-0 tablet:!left-72 tablet:sidebar-compact:!left-72 tablet:max-sidebar-compact:!left-[70px]"
       >
         <Suspense fallback={<TopBarSkeleton />}>
@@ -147,9 +160,11 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
       </div>
 
       {/* Mobile overlay */}
-      {isLeftSidebarOpen && (
+      {showOverlay && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 tablet:!hidden"
+          className={`fixed inset-0 bg-black ${
+            overlayVisible ? 'opacity-50' : 'opacity-0'
+          } z-40 tablet:!hidden transition-opacity duration-300 ease-in-out`}
           onClick={() => setIsLeftSidebarOpen(false)}
         />
       )}
@@ -159,16 +174,19 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
         className={`
           tablet:!sticky tablet:!top-0 h-screen bg-white border-r border-gray-200
           z-50 tablet:!z-30
-          transition-all duration-200 ease-in-out
           flex-shrink-0
+
+          transition-all duration-300 ease-in-out
+          tablet:!transition-none
 
           tablet:!translate-x-0
           tablet:sidebar-compact:!w-72
           tablet:max-sidebar-compact:!w-[70px]
 
-          ${isLeftSidebarOpen ? 'fixed top-[64px] !translate-x-0 w-[280px] block' : 'fixed top-[64px] !-translate-x-full w-[280px] hidden'}
+          fixed top-[64px] w-[280px]
+          ${isLeftSidebarOpen ? '!translate-x-0' : '!-translate-x-full'}
 
-          tablet:!block tablet:w-72
+          tablet:!block tablet:!w-72
         `}
       >
         <Suspense fallback={<div className="w-full h-screen bg-gray-100 animate-pulse"></div>}>
