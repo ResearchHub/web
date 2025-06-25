@@ -64,7 +64,7 @@ const transformUserSuggestion = (userSuggestion: UserSuggestion): MentionItem =>
     firstName: nameParts[0],
     lastName: nameParts.slice(1).join(' '),
     label: userSuggestion.displayName,
-    authorProfileId: userSuggestion.id?.toString() || null,
+    authorProfileId: userSuggestion.authorProfile?.id?.toString() || null,
     isVerified: userSuggestion.isVerified || false,
     authorProfile: userSuggestion.authorProfile
       ? {
@@ -130,6 +130,14 @@ export const MentionExtension = Mention.extend({
       },
       id: {
         default: null,
+      },
+      authorProfileId: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.getAttribute('data-author-profile-id'),
+        renderHTML: (attributes: { authorProfileId?: string }) =>
+          attributes.authorProfileId
+            ? { 'data-author-profile-id': attributes.authorProfileId }
+            : {},
       },
       doi: {
         default: null,
@@ -394,6 +402,7 @@ export const MentionExtension = Mention.extend({
         label: item.label,
         entityType: item.entityType,
         displayName: item.displayName || item.label,
+        authorProfileId: item.authorProfileId,
       };
 
       // Add DOI for paper mentions if available
