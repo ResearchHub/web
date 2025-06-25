@@ -172,7 +172,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
       {/* Left Sidebar Container (Sticky) */}
       <div
         className={`
-          tablet:!sticky tablet:!top-0 h-screen bg-white border-r border-gray-200
+          tablet:!sticky tablet:!top-0 tablet:!h-screen bg-white border-r border-gray-200
           z-50 tablet:!z-30
           flex-shrink-0
 
@@ -183,7 +183,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
           tablet:sidebar-compact:!w-72
           tablet:max-sidebar-compact:!w-[70px]
 
-          fixed top-[64px] w-[280px]
+          fixed top-[64px] w-[280px] h-[calc(100vh-64px)]
           ${isLeftSidebarOpen ? '!translate-x-0' : '!-translate-x-full'}
 
           tablet:!block tablet:!w-72
