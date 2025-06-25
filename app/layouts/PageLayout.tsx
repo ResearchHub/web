@@ -6,7 +6,6 @@ import { OnboardingRedirect } from '@/components/OnboardingRedirect';
 import { usePathname } from 'next/navigation';
 import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
 import { OnboardingModal } from '@/components/Onboarding/OnboardingModal';
-import SignupToast from '@/components/ui/SignupToast';
 import { useSession } from 'next-auth/react';
 
 // Dynamically import sidebar components
@@ -55,7 +54,6 @@ interface PageLayoutProps {
 
 export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
-  const [showSignupToast, setShowSignupToast] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const rightSidebarRef = useRef<HTMLDivElement>(null);
@@ -64,27 +62,6 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
   const animationFrameId = useRef<number | null>(null);
   const pathname = usePathname();
   const { status } = useSession();
-
-  // Show toast on page load if user is not authenticated
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      // Show toast after a 2 second delay
-      const timer = setTimeout(() => {
-        setShowSignupToast(true);
-      }, 2000);
-
-      return () => clearTimeout(timer);
-    } else {
-      // If user is authenticated, make sure toast is hidden
-      setShowSignupToast(false);
-    }
-  }, [status]);
-
-  // Handle toast dismissal
-  const handleCloseToast = () => {
-    setShowSignupToast(false);
-    // No longer saving to sessionStorage
-  };
 
   // Scroll effect for sidebar
   useEffect(() => {
@@ -160,9 +137,6 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
 
   return (
     <>
-      {/* Signup Toast */}
-      {showSignupToast && <SignupToast onClose={handleCloseToast} />}
-
       <div className="flex h-screen">
         {/* <OnboardingRedirect /> */}
         <OnboardingModal />

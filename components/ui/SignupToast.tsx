@@ -32,15 +32,13 @@ export default function SignupToast({ onClose }: SignupToastProps) {
       }
       @keyframes buttonFadeIn {
         0% { opacity: 0; transform: translateY(8px); max-height: 0; margin-top: 0; }
-        30% { opacity: 0; max-height: 50px; margin-top: 1rem; }
-        100% { opacity: 1; transform: translateY(0); max-height: 50px; margin-top: 1rem; }
+        30% { opacity: 0; max-height: 50px; margin-top: 0.75rem; }
+        100% { opacity: 1; transform: translateY(0); max-height: 50px; margin-top: 0.75rem; }
       }
       @keyframes borderGlow {
-        0% { border-image-source: linear-gradient(90deg, #FF4D8D, #6C63FF, #3B82F6, #FFCC00); }
-        25% { border-image-source: linear-gradient(180deg, #6C63FF, #3B82F6, #FFCC00, #FF4D8D); }
-        50% { border-image-source: linear-gradient(270deg, #3B82F6, #FFCC00, #FF4D8D, #6C63FF); }
-        75% { border-image-source: linear-gradient(360deg, #FFCC00, #FF4D8D, #6C63FF, #3B82F6); }
-        100% { border-image-source: linear-gradient(90deg, #FF4D8D, #6C63FF, #3B82F6, #FFCC00); }
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
       }
       
       .signup-toast-container {
@@ -60,14 +58,15 @@ export default function SignupToast({ onClose }: SignupToastProps) {
         inset: 0;
         padding: 3px;
         border-radius: 6px;
-        background: linear-gradient(90deg, #FF4D8D, #6C63FF, #3B82F6, #FFCC00);
+        background: linear-gradient(90deg, #FF4D8D, #6C63FF, #3B82F6, #FFCC00, #FF4D8D, #6C63FF, #3B82F6);
+        background-size: 200% auto;
         -webkit-mask: 
           linear-gradient(#fff 0 0) content-box, 
           linear-gradient(#fff 0 0);
         -webkit-mask-composite: xor;
         mask-composite: exclude;
         pointer-events: none;
-        animation: borderGlow 8s linear infinite;
+        animation: borderGlow 4s linear infinite;
       }
       
       /* Add a subtle glow effect to enhance the shadow */
@@ -125,7 +124,7 @@ export default function SignupToast({ onClose }: SignupToastProps) {
 
   return (
     <div
-      className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-[9999] max-w-md w-full opacity-0 toast-shadow-wrapper"
+      className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-[9999] max-w-sm w-full opacity-0 toast-shadow-wrapper"
       style={{
         animation: isClosing
           ? 'slideDown 0.5s ease-in forwards'
@@ -136,17 +135,23 @@ export default function SignupToast({ onClose }: SignupToastProps) {
     >
       <div className="signup-toast-container bg-white">
         {/* Logo centered at top */}
-        <div className="flex justify-center pt-4">
-          <Icon name="flaskFrame" size={56} color="#3B82F6" />
+        <div className="flex justify-center pt-3">
+          <img
+            src="/animated-flask-blue.gif"
+            alt="Animated Flask"
+            width={48}
+            height={48}
+            className="mx-auto"
+          />
         </div>
 
         {/* Text content */}
-        <div className="px-6 pt-3 pb-4 text-center">
+        <div className="px-4 pt-2 pb-3 text-center">
           {/* Main message using ShinyText */}
-          <div className="text-lg font-medium leading-tight">
+          <div className="text-base font-medium leading-tight">
             {isVisible && (
               <ShinyText
-                text="Fund research proposals or get your research funded."
+                text="Fund proposals or get your research funded."
                 className="inline-block font-medium text-gray-800"
                 onAnimationComplete={handleAnimationComplete}
                 {...animationConfig}
@@ -164,7 +169,7 @@ export default function SignupToast({ onClose }: SignupToastProps) {
               marginTop: 0,
             }}
           >
-            <Button onClick={handleSignupClick} size="lg" className="w-full">
+            <Button onClick={handleSignupClick} size="md" className="w-full">
               Sign up now
             </Button>
           </div>
