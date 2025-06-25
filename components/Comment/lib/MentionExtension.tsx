@@ -46,11 +46,7 @@ const createDebouncedSearch = () => {
         }
 
         try {
-          const suggestions = await SearchService.getSuggestions(query, [
-            'user',
-            'paper',
-            'author',
-          ]);
+          const suggestions = await SearchService.getSuggestions(query, ['user', 'paper']);
           const items = suggestions.map(transformSuggestionToMentionItem);
           resolve(items);
         } catch (error) {
@@ -177,6 +173,14 @@ export const MentionExtension = Mention.extend({
         renderHTML: (attributes: { userId?: string }) =>
           attributes.userId ? { 'data-user-id': attributes.userId } : {},
       },
+      authorProfileId: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.getAttribute('data-author-profile-id'),
+        renderHTML: (attributes: { authorProfileId?: string }) =>
+          attributes.authorProfileId
+            ? { 'data-author-profile-id': attributes.authorProfileId }
+            : {},
+      },
       doi: {
         default: null,
         parseHTML: (element: HTMLElement) => element.getAttribute('data-doi'),
@@ -190,11 +194,7 @@ export const MentionExtension = Mention.extend({
     class: 'mention',
   },
   renderText({ node }) {
-    // Only add @ for user and author mentions
-    if (node.attrs.entityType === 'user' || node.attrs.entityType === 'author') {
-      return `@${node.attrs.label}`;
-    }
-    // For papers and posts, just return the label
+    // For all mentions, just return the label
     return node.attrs.displayName || node.attrs.label;
   },
   renderHTML({ node }): DOMOutputSpec {
@@ -205,8 +205,6 @@ export const MentionExtension = Mention.extend({
         contentType: 'paper',
         doi: node.attrs.doi,
       });
-
-      const paperIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mention-icon"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>`;
 
       // If we got a fallback URL, render as a span instead of a link
       if (url === '#') {
@@ -219,7 +217,6 @@ export const MentionExtension = Mention.extend({
             class: 'mention mention-paper',
             contenteditable: 'false',
           },
-          ['span', { class: 'mention-icon', innerHTML: paperIcon }],
           node.attrs.displayName || node.attrs.label,
         ];
       }
@@ -234,7 +231,6 @@ export const MentionExtension = Mention.extend({
           href: url,
           contenteditable: 'false',
         },
-        ['span', { class: 'mention-icon', innerHTML: paperIcon }],
         node.attrs.displayName || node.attrs.label,
       ];
     }
@@ -252,7 +248,7 @@ export const MentionExtension = Mention.extend({
             class: `mention mention-${node.attrs.entityType}`,
             contenteditable: 'false',
           },
-          `@${node.attrs.label}`,
+          node.attrs.label,
         ];
       }
 
@@ -268,7 +264,7 @@ export const MentionExtension = Mention.extend({
           href: url,
           contenteditable: 'false',
         },
-        `@${node.attrs.label}`,
+        node.attrs.label,
       ];
     }
 
@@ -322,6 +318,8 @@ export const MentionExtension = Mention.extend({
   suggestion: {
     char: '@',
     allowSpaces: true,
+    decorationTag: 'span',
+    decorationClass: 'mention-suggestion',
     items: async ({ query }) => {
       const items = await debouncedSearch(query || '');
       return items;
@@ -351,7 +349,7 @@ export const MentionExtension = Mention.extend({
             getReferenceClientRect: props.clientRect as () => DOMRect,
             appendTo: () => document.body,
             content: element,
-            showOnCreate: true,
+            showOnCreate: false,
             interactive: true,
             trigger: 'manual',
             placement: 'right-end',
@@ -384,9 +382,8 @@ export const MentionExtension = Mention.extend({
             popup.setProps({
               content: placeholderDiv,
             });
+            popup.show();
           }
-
-          popup.show();
         },
 
         onUpdate: (props) => {
@@ -400,18 +397,30 @@ export const MentionExtension = Mention.extend({
             getReferenceClientRect: props.clientRect as () => DOMRect,
           });
 
-          // Update tooltip content based on query
-          if (!props.query && popup) {
-            const placeholderDiv = document.createElement('div');
-            placeholderDiv.className = 'mention-placeholder';
-            placeholderDiv.textContent = '[Mention a work or person]';
-            popup.setProps({
-              content: placeholderDiv,
-            });
-          } else if (component) {
-            popup?.setProps({
-              content: component.element,
-            });
+          // Show placeholder if query is empty
+          if (!props.query) {
+            if (popup) {
+              const placeholderDiv = document.createElement('div');
+              placeholderDiv.className = 'mention-placeholder';
+              placeholderDiv.textContent = 'Mention a work or person';
+              popup.setProps({
+                content: placeholderDiv,
+              });
+              popup.show();
+            }
+            return;
+          }
+
+          // with a query, show list if there are items, otherwise hide.
+          if (props.items.length > 0) {
+            if (component) {
+              popup?.setProps({
+                content: component.element,
+              });
+            }
+            popup?.show();
+          } else {
+            popup?.hide();
           }
         },
 
@@ -437,6 +446,7 @@ export const MentionExtension = Mention.extend({
         label: item.label,
         entityType: item.entityType,
         displayName: item.displayName || item.label,
+        authorProfileId: item.authorProfileId,
       };
 
       // Add userId for user/author mentions if available
