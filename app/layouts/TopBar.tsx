@@ -109,7 +109,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/earn')) {
     return {
       title: 'Earn',
-      subtitle: 'Find opportunities to earn ResearchCoin',
+      subtitle: 'Peer Review to earn ResearchCoin',
       icon: <Icon name="earn1" size={20} className="text-primary-600" />,
     };
   }
