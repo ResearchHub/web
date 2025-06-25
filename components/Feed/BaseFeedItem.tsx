@@ -94,7 +94,7 @@ export const BadgeSection: FC<BadgeSectionProps> = ({
       {/* Content type badge would be rendered here */}
       {topics.map((topic) => (
         <div
-          key={topic.slug || topic.name}
+          key={topic.slug ?? topic.name}
           className="px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700"
         >
           {topic.name}

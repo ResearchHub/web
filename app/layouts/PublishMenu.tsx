@@ -124,7 +124,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
     if (item.requiresAuth) {
       executeAuthenticatedAction(() => {
         if (item.action === 'navigate') {
-          router.push(item.path!);
+          router.push(item.path);
         } else if (item.action === 'function') {
           switch (item.handler) {
             case 'handleFundResearch':
@@ -139,10 +139,8 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
           }
         }
       });
-    } else {
-      if (item.action === 'navigate') {
-        router.push(item.path!);
-      }
+    } else if (item.action === 'navigate') {
+      router.push(item.path);
     }
 
     // Close mobile drawer after action
@@ -230,7 +228,16 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
               <div
                 key={item.id}
                 onClick={() => handleMenuItemClick(item)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleMenuItemClick(item);
+                  }
+                }}
                 className="w-full px-3 py-3 hover:bg-gray-50 cursor-pointer rounded-lg"
+                role="button"
+                tabIndex={0}
+                aria-label={`${item.title}: ${item.description}`}
               >
                 <MenuItemContent
                   icon={item.icon}
@@ -250,7 +257,18 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
       {/* Mobile view with SwipeableDrawer */}
       {smAndDown && (
         <>
-          <div onClick={() => setIsMobileDrawerOpen(true)}>
+          <div
+            onClick={() => setIsMobileDrawerOpen(true)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setIsMobileDrawerOpen(true);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Open publish menu"
+          >
             {standardTrigger}
             {compactTrigger}
           </div>

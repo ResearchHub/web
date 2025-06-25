@@ -11,7 +11,6 @@ import toast from 'react-hot-toast';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/Button';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { Icon } from '@/components/ui/icons/Icon';
 import { PaperService } from '@/services/paper.service';
