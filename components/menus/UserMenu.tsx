@@ -1,6 +1,6 @@
 'use client';
 
-import { User as UserIcon, LogOut, BadgeCheck, Bell } from 'lucide-react';
+import { User as UserIcon, LogOut, BadgeCheck, Bell, Shield } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
 import VerificationBanner from '@/components/banners/VerificationBanner';
@@ -84,7 +84,7 @@ export default function UserMenu({
       <Avatar
         src={user.authorProfile?.profileImage}
         className="font-semibold"
-        alt={user.authorProfile?.fullName || user.fullName}
+        alt={user.authorProfile?.fullName ?? user.fullName}
         size={effectiveAvatarSize}
         showProfileCompletion
         profileCompletionPercent={percent}
@@ -100,14 +100,14 @@ export default function UserMenu({
         <div className="flex items-center">
           <Avatar
             src={user.authorProfile?.profileImage}
-            alt={user.authorProfile?.fullName || user.fullName}
+            alt={user.authorProfile?.fullName ?? user.fullName}
             size="md"
             showProfileCompletion
             profileCompletionPercent={percent}
           />
           <div className="ml-3">
             <p className="text-base font-medium text-gray-900 flex items-center gap-1">
-              {user.authorProfile?.fullName || user.fullName}
+              {user.authorProfile?.fullName ?? user.fullName}
               {user.isVerified && <VerifiedBadge size="sm" />}
               <Button
                 onClick={() => {
@@ -167,6 +167,17 @@ export default function UserMenu({
             </div>
           </div>
         </Link>
+
+        {user?.isModerator && (
+          <Link href="/moderators" className="block" onClick={() => setMenuOpenState(false)}>
+            <div className="px-6 py-2 hover:bg-gray-50">
+              <div className="flex items-center">
+                <Shield className="h-5 w-5 mr-3 text-gray-500" />
+                <span className="text-base text-gray-700">Moderator Dashboard</span>
+              </div>
+            </div>
+          </Link>
+        )}
 
         {!user.isVerified && (
           <div
@@ -235,14 +246,14 @@ export default function UserMenu({
             <div className="flex items-center">
               <Avatar
                 src={user.authorProfile?.profileImage}
-                alt={user.authorProfile?.fullName || user.fullName}
+                alt={user.authorProfile?.fullName ?? user.fullName}
                 size="md"
                 showProfileCompletion
                 profileCompletionPercent={percent}
               />
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
-                  {user.authorProfile?.fullName || user.fullName}
+                  {user.authorProfile?.fullName ?? user.fullName}
                   {user.isVerified && <VerifiedBadge size="sm" />}
                   <Button
                     onClick={() => {
@@ -303,6 +314,17 @@ export default function UserMenu({
                 </div>
               </div>
             </Link>
+
+            {user?.isModerator && (
+              <Link href="/moderators" className="block" onClick={() => setMenuOpenState(false)}>
+                <div className="w-full px-4 py-2 hover:bg-gray-50">
+                  <div className="flex items-center">
+                    <Shield className="h-4 w-4 mr-3 text-gray-500" />
+                    <span className="text-sm text-gray-700">Moderator Dashboard</span>
+                  </div>
+                </div>
+              </Link>
+            )}
 
             {!user.isVerified && (
               <BaseMenuItem onClick={openVerificationModal} className="w-full px-4 py-2">

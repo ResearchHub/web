@@ -211,6 +211,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
 
+  // State for dropdown menu
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   // State for Tip Modal
   const [tipModalState, setTipModalState] = useState<{ isOpen: boolean; contentId?: number }>({
     isOpen: false,
@@ -355,6 +358,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       e.stopPropagation();
     }
     executeAuthenticatedAction(() => {
+      // Close the dropdown menu before opening the modal
+      setIsMenuOpen(false);
+
       // Map feedContentType to ContentType
       let contentType: ContentType;
       let commentId: string | undefined;
@@ -446,7 +452,10 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           ? 'Tip USD'
           : 'Tip RSC',
     tooltip: showUSD ? 'Tip USD' : 'Tip RSC',
-    onClick: handleOpenTipModal,
+    onClick: (e?: React.MouseEvent) => {
+      setIsMenuOpen(false); // Close dropdown before opening tip modal
+      handleOpenTipModal(e);
+    },
     className: totalEarnedAmount > 0 ? 'text-green-600' : '',
   };
 
@@ -659,11 +668,16 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 </Button>
               }
               align="end"
+              open={isMenuOpen}
+              onOpenChange={setIsMenuOpen}
             >
               {combinedMenuItems.map((item, index) => (
                 <BaseMenuItem
                   key={`menu-item-${index}`}
-                  onClick={item.onClick}
+                  onClick={(e) => {
+                    setIsMenuOpen(false); // Close dropdown when any menu item is clicked
+                    item.onClick(e);
+                  }}
                   className={cn('flex items-center gap-2', item.className)} // Apply potential class for color
                 >
                   {item.icon && <item.icon className="w-4 h-4" />}
