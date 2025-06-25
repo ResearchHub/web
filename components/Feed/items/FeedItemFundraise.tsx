@@ -160,13 +160,13 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   const router = useRouter();
   const { showUSD } = useCurrencyPreference();
 
-  // Check if this is a preregistration with fundraise data
+  // Check if this is a proposal with fundraise data
   const hasFundraise = post.contentType === 'PREREGISTRATION' && post.fundraise;
 
   // Get the author from the post
   const author = post.createdBy;
 
-  // Extract contributors if this is a preregistration with fundraise data
+  // Extract contributors if this is a proposal with fundraise data
   const contributors = hasFundraise ? extractContributors(post.fundraise) : [];
   const hasContributors = contributors.length > 0;
 
@@ -218,7 +218,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
           />
           {/* Mobile image (shown only on small screens) */}
           <MobileImage />
-          {/* Fundraise Progress (only for preregistrations with fundraise) */}
+          {/* Fundraise Progress (only for proposals with fundraise) */}
           {hasFundraise && post.fundraise && (
             <div className="mt-4" onClick={(e) => e.stopPropagation()}>
               <FundraiseProgress

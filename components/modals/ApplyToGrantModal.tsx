@@ -12,14 +12,14 @@ import {
   Check,
 } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
-import { PostService, PreregistrationForModal } from '@/services/post.service';
+import { PostService, ProposalForModal } from '@/services/post.service';
 import { GrantService } from '@/services/grant.service';
 import { useUser } from '@/contexts/UserContext';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 
-// Loading skeleton component for preregistrations
-const PreregistrationSkeleton = () => (
+// Loading skeleton component for proposals
+const ProposalSkeleton = () => (
   <div className="space-y-3">
     {[1, 2, 3].map((i) => (
       <div key={i} className="p-4 rounded-xl border-2 border-gray-200">
@@ -43,8 +43,8 @@ const PreregistrationSkeleton = () => (
 interface ApplyToGrantModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUseSelected: (prereg: PreregistrationForModal) => void;
-  grantId: string | number;
+  onUseSelected: (proposal: ProposalForModal) => void;
+  grantId: string;
 }
 
 export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
@@ -53,17 +53,17 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   onUseSelected,
   grantId,
 }) => {
-  const [showPreregList, setShowPreregList] = useState(false);
-  const [preregistrations, setPreregistrations] = useState<PreregistrationForModal[]>([]);
-  const [selectedPreregId, setSelectedPreregId] = useState<string | null>(null);
+  const [showProposalList, setShowProposalList] = useState(false);
+  const [proposals, setProposals] = useState<ProposalForModal[]>([]);
+  const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { user } = useUser();
   const router = useRouter();
 
-  const selectedPrereg = preregistrations.find((p) => p.id === selectedPreregId);
+  const selectedProposal = proposals.find((p) => p.id === selectedProposalId);
 
-  // Handle navigation to draft new preregistration
+  // Handle navigation to draft new proposal
   const handleDraftNew = () => {
     onClose(); // Close the modal first
     router.push('/notebook?newFunding=true');
@@ -72,48 +72,47 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   // Reset internal state when modal is opened or closed
   useEffect(() => {
     if (isOpen) {
-      setShowPreregList(false);
-      setSelectedPreregId(null);
-      // Fetch preregistrations when modal opens to avoid latency
+      setShowProposalList(false);
+      setSelectedProposalId(null);
+      // Fetch proposals when modal opens to avoid latency
       if (user?.id) {
-        fetchPreregistrations();
+        fetchProposals();
       }
     }
   }, [isOpen, user?.id]);
 
-  // Fetch preregistrations
-  const fetchPreregistrations = async () => {
+  // Fetch proposals
+  const fetchProposals = async () => {
     if (!user?.id) return;
 
     setLoading(true);
     try {
-      const preregistrations = await PostService.getPreregistrationsByUser(user.id);
-      setPreregistrations(preregistrations);
+      const proposals = await PostService.getProposalsByUser(user.id);
+      setProposals(proposals);
     } catch (error) {
-      console.error('Error fetching preregistrations:', error);
+      console.error('Error fetching proposals:', error);
       // Show error state or fallback
-      setPreregistrations([]);
+      setProposals([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle selecting existing preregistrations
+  // Handle selecting existing proposals
   const handleSelectExisting = () => {
-    setShowPreregList(true);
+    setShowProposalList(true);
   };
 
-  // Handle applying to grant with selected preregistration
+  // Handle applying to grant with selected proposal
   const handleApplyToGrant = async () => {
-    if (!selectedPrereg) return;
+    if (!selectedProposal) return;
 
     setSubmitting(true);
     try {
-      await GrantService.applyToGrant(grantId, selectedPrereg.postId);
+      await GrantService.applyToGrant(grantId, selectedProposal.postId);
       toast.success('Successfully applied to grant!');
       onClose();
-      // Optionally call onUseSelected for any additional logic
-      onUseSelected(selectedPrereg);
+      onUseSelected(selectedProposal);
     } catch (error) {
       console.error('Error applying to grant:', error);
       toast.error('Failed to apply to grant. Please try again.');
@@ -135,9 +134,9 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
         {/* Custom header */}
         <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center">
-            {showPreregList && (
+            {showProposalList && (
               <button
-                onClick={() => setShowPreregList(false)}
+                onClick={() => setShowProposalList(false)}
                 className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-gray-100 h-10 w-10 text-gray-400 hover:text-gray-500 mr-2"
                 aria-label="Back"
               >
@@ -158,7 +157,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
               </button>
             )}
             <h2 className="text-lg font-medium text-gray-900">
-              {showPreregList ? 'Select Preregistration' : 'Apply to Grant'}
+              {showProposalList ? 'Select Proposal' : 'Apply to Grant'}
             </h2>
           </div>
           <button
@@ -175,12 +174,12 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
           <div className="relative">
             <div className="absolute inset-0"></div>
             <div className="relative p-6 space-y-10">
-              {!showPreregList ? (
+              {!showProposalList ? (
                 <>
                   {/* Description */}
                   <div className="space-y-3">
                     <p className="text-base text-gray-700 font-medium leading-relaxed">
-                      Applying to grants on ResearchHub happens via preregistrations.
+                      Applying to grants on ResearchHub happens via proposals.
                     </p>
                   </div>
 
@@ -195,9 +194,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                           <List className="text-blue-600" size={20} />
                         </div>
                         <div className="text-left">
-                          <div className="font-medium text-gray-900">
-                            Select Existing Preregistration
-                          </div>
+                          <div className="font-medium text-gray-900">Select existing proposal</div>
                           <div className="text-xs text-gray-500">
                             Choose from your published work
                           </div>
@@ -214,8 +211,10 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                           <Plus className="text-white" size={20} />
                         </div>
                         <div className="text-left">
-                          <div className="font-medium text-white">Create New Preregistration</div>
-                          <div className="text-xs text-indigo-100">Start from scratch</div>
+                          <div className="font-medium text-white">Create new proposal</div>
+                          <div className="text-xs text-blue-100">
+                            Draft and publish a new proposal
+                          </div>
                         </div>
                       </div>
                     </button>
@@ -231,12 +230,12 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                         </div>
                         <div className="space-y-1.5">
                           <h4 className="text-xs font-semibold text-blue-900">
-                            What is a Preregistration?
+                            What is a Proposal?
                           </h4>
                           <p className="text-xs text-blue-800 leading-relaxed">
                             Documenting and sharing your research plan before conducting research as
-                            well as specifying funding requirements. We believe preregistrations are
-                            the perfect format for grant applications.
+                            well as specifying funding requirements. We believe open access
+                            proposals are the perfect format for grant applications.
                           </p>
                         </div>
                       </div>
@@ -245,7 +244,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                 </>
               ) : (
                 <>
-                  {/* Header section for preregistration list */}
+                  {/* Header section for proposal list */}
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -267,42 +266,45 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                       </div>
                       <div>
                         <h3 className="text-lg font-medium text-gray-900">
-                          Your Published Preregistrations
+                          Your Published Proposals
                         </h3>
                         <p className="text-sm text-gray-500">Select one to apply with</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Preregistration list */}
+                  {/* Proposal list */}
                   <div className="space-y-3">
                     {loading ? (
-                      <PreregistrationSkeleton />
-                    ) : preregistrations.length > 0 ? (
-                      preregistrations.map((prereg) => {
-                        const isSelected = prereg.id === selectedPreregId;
-                        const isDraft = prereg.status === 'draft';
+                      <ProposalSkeleton />
+                    ) : proposals.length > 0 ? (
+                      proposals.map((proposal) => {
+                        const isSelected = proposal.id === selectedProposalId;
+                        const isDraft = proposal.status === 'draft';
                         const isSelectable = !isDraft;
 
                         return (
                           <div
-                            key={prereg.id}
-                            onClick={() => isSelectable && setSelectedPreregId(prereg.id)}
-                            className={`p-4 rounded-xl border-2 transition-all duration-200 
-                              ${
-                                isDraft
-                                  ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
-                                  : `cursor-pointer hover:bg-gray-50 ${isSelected ? 'border-green-500 bg-green-50' : 'border-gray-200'}`
-                              }`}
+                            key={proposal.id}
+                            onClick={() => isSelectable && setSelectedProposalId(proposal.id)}
+                            className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                              isDraft
+                                ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
+                                : isSelected
+                                  ? 'border-blue-300 bg-blue-50 cursor-pointer'
+                                  : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50/50 cursor-pointer'
+                            }`}
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-start gap-3">
                                 <input
                                   type="radio"
-                                  name="preregistration"
-                                  value={prereg.id}
+                                  name="proposal"
+                                  value={proposal.id}
                                   checked={isSelected && !isDraft}
-                                  onChange={() => isSelectable && setSelectedPreregId(prereg.id)}
+                                  onChange={() =>
+                                    isSelectable && setSelectedProposalId(proposal.id)
+                                  }
                                   disabled={isDraft}
                                   className={`w-4 h-4 mt-1 flex-shrink-0 focus:ring-2 
                                     ${
@@ -316,7 +318,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                                     className={`font-medium leading-tight 
                                     ${isDraft ? 'text-gray-500' : 'text-gray-900'}`}
                                   >
-                                    {prereg.title}
+                                    {proposal.title}
                                   </h4>
                                   <div className="flex items-center gap-2 mt-1">
                                     {isDraft ? (
@@ -363,49 +365,46 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                             <polyline points="10,9 9,9 8,9" />
                           </svg>
                         </div>
-                        <p className="text-sm text-gray-500 mb-4">
-                          You have no preregistrations yet.
-                        </p>
+                        <p className="text-sm text-gray-500 mb-4">You have no proposals yet.</p>
                         <button
                           onClick={handleDraftNew}
                           className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
                         >
-                          Create your first preregistration
+                          Create your first proposal
                         </button>
                       </div>
                     )}
                   </div>
 
                   {/* Action buttons for second screen */}
-                  {!loading &&
-                    preregistrations.filter((p) => p.status === 'published').length > 0 && (
-                      <div className="flex flex-col gap-3 pt-4 border-t border-gray-200">
-                        <Button
-                          onClick={handleApplyToGrant}
-                          disabled={!selectedPrereg || submitting}
-                          className="w-full"
-                          size="lg"
-                        >
-                          <Check size={16} className="mr-2" />
-                          {submitting ? 'Applying...' : 'Apply with Selected Preregistration'}
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          onClick={handleDraftNew}
-                          className="w-full"
-                          size="lg"
-                          disabled={submitting}
-                        >
-                          <Plus size={16} className="mr-2" />
-                          Draft New Preregistration Instead
-                        </Button>
-                      </div>
-                    )}
+                  {!loading && proposals.filter((p) => p.status === 'published').length > 0 && (
+                    <div className="flex flex-col gap-3 pt-4 border-t border-gray-200">
+                      <Button
+                        onClick={handleApplyToGrant}
+                        disabled={!selectedProposal || submitting}
+                        className="w-full"
+                        size="lg"
+                      >
+                        <Check size={16} className="mr-2" />
+                        {submitting ? 'Applying...' : 'Apply with selected proposal'}
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        onClick={handleDraftNew}
+                        className="w-full"
+                        size="lg"
+                        disabled={submitting}
+                      >
+                        <Plus size={16} className="mr-2" />
+                        Draft new proposal instead
+                      </Button>
+                    </div>
+                  )}
 
                   {/* Show only "Draft New" button when there are only drafts */}
                   {!loading &&
-                    preregistrations.length > 0 &&
-                    preregistrations.filter((p) => p.status === 'published').length === 0 && (
+                    proposals.length > 0 &&
+                    proposals.filter((p) => p.status === 'published').length === 0 && (
                       <div className="flex justify-center pt-4 border-t border-gray-200">
                         <Button
                           onClick={handleDraftNew}
@@ -414,7 +413,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                           disabled={submitting}
                         >
                           <Plus size={16} className="mr-2" />
-                          Publish a Preregistration to Apply
+                          Publish a proposal to apply
                         </Button>
                       </div>
                     )}

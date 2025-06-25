@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Button } from '@/components/ui/Button';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
-import { PreregistrationForModal } from '@/services/post.service';
+import { ProposalForModal } from '@/services/post.service';
 import { Work } from '@/types/work';
 import { Plus } from 'lucide-react';
 
@@ -21,13 +21,8 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
     return null;
   }
 
-  const handleUseSelectedPrereg = (prereg: PreregistrationForModal) => {
-    console.log(
-      'Apply using selected preregistration from GrantAmountSection:',
-      prereg,
-      'for workId:',
-      work.id
-    );
+  const handleUseSelectedProposal = (proposal: ProposalForModal) => {
+    console.log('Apply using selected proposal from GrantAmountSection:', proposal);
     setIsApplyModalOpen(false);
   };
 
@@ -64,8 +59,8 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
       <ApplyToGrantModal
         isOpen={isApplyModalOpen}
         onClose={() => setIsApplyModalOpen(false)}
-        onUseSelected={handleUseSelectedPrereg}
-        grantId={work.note?.post?.grant?.id || 0}
+        onUseSelected={handleUseSelectedProposal}
+        grantId={(work.note?.post?.grant?.id || 0).toString()}
       />
     </>
   );

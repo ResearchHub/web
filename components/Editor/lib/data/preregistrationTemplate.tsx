@@ -28,7 +28,7 @@ const preregistrationTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Preregistration Template',
+          text: 'Proposal Template',
         },
       ],
     },
