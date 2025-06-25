@@ -31,6 +31,7 @@ export interface UseCommentEditorProps {
     sectionRatings?: Record<string, number>;
   }) => Promise<boolean | void> | void;
   onUpdate?: (content: CommentContent) => void;
+  onContentChange?: (plainText: string, html: string) => void;
   placeholder?: string;
   initialContent?: CommentContent;
   isReadOnly?: boolean;
@@ -39,11 +40,11 @@ export interface UseCommentEditorProps {
   storageKey?: string;
   debug?: boolean;
   autoFocus?: boolean;
-  onContentChange?: (plainText: string, html: string) => void;
 }
 
 export const useCommentEditor = ({
   onUpdate,
+  onContentChange,
   placeholder = 'Write a comment...',
   initialContent = '',
   isReadOnly = false,
@@ -52,7 +53,6 @@ export const useCommentEditor = ({
   storageKey = 'comment-editor-draft',
   debug = false,
   autoFocus = false,
-  onContentChange,
 }: UseCommentEditorProps) => {
   const [rating, setRating] = useState(initialRating);
   const [sectionRatings, setSectionRatings] = useState<Record<string, number>>({});

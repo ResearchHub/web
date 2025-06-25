@@ -1,3 +1,5 @@
+import { stripHtml } from '@/utils/stringUtils';
+
 export type ID = string | number | null | undefined;
 
 export type Currency = 'RSC' | 'USD';
@@ -57,7 +59,7 @@ export const transformUnifiedDocument = (
     document: {
       id: documentData?.id,
       title: documentData?.title,
-      abstract: documentData?.abstract,
+      abstract: stripHtml(documentData?.abstract || ''),
       slug: documentData?.slug,
       authors: documentData?.authors,
     },

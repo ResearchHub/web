@@ -1,3 +1,4 @@
+import { stripHtml } from '@/utils/stringUtils';
 import { ID } from './root';
 
 export type UnifiedDocument = {
@@ -169,7 +170,7 @@ const parseUnifiedDocument = (raw: any): UnifiedDocument => {
     parsed.document = {
       ...parsed.document,
       paperTitle: unparsedInnerDoc.paper_title,
-      abstract: unparsedInnerDoc.abstract,
+      abstract: stripHtml(unparsedInnerDoc.abstract || ''),
     };
   }
 
@@ -273,7 +274,7 @@ const parsePaperContributionItem = (raw: any): PaperContributionItem => {
     createdBy: raw.created_by || raw.uploaded_by || raw.item.created_by || raw.item.uploaded_by,
     unifiedDocument: parseUnifiedDocument(raw.item.unified_document),
     createdDate: raw.created_date,
-    abstract: raw.item.abstract,
+    abstract: stripHtml(raw.item.abstract || ''),
   };
 };
 

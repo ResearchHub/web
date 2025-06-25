@@ -23,6 +23,7 @@ export interface CommentEditorProps {
   onCancel?: () => void;
   onReset?: () => void;
   onUpdate?: (content: CommentContent) => void;
+  onContentChange?: (plainText: string, html: string) => void;
   placeholder?: string;
   initialContent?: CommentContent;
   isReadOnly?: boolean;
@@ -37,7 +38,6 @@ export interface CommentEditorProps {
   showHeader?: boolean;
   isBountyReply?: boolean;
   isAuthor?: boolean;
-  onContentChange?: (plainText: string, html: string) => void;
 }
 
 export const CommentEditor = ({
@@ -45,6 +45,7 @@ export const CommentEditor = ({
   onCancel,
   onReset,
   onUpdate,
+  onContentChange,
   placeholder = 'Write a comment...',
   initialContent = '',
   isReadOnly = false,
@@ -59,7 +60,6 @@ export const CommentEditor = ({
   showHeader = true,
   isBountyReply = false,
   isAuthor = false,
-  onContentChange,
 }: CommentEditorProps) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const [isReviewBannerDismissed, setIsReviewBannerDismissed] = useState(false);
@@ -101,6 +101,7 @@ export const CommentEditor = ({
   } = useCommentEditor({
     onSubmit: adaptedOnSubmit,
     onUpdate,
+    onContentChange,
     placeholder,
     initialContent,
     isReadOnly,
@@ -109,7 +110,6 @@ export const CommentEditor = ({
     storageKey,
     debug,
     autoFocus,
-    onContentChange,
   });
 
   // Initialize the editor handlers with our custom hook

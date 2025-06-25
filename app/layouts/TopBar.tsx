@@ -8,6 +8,7 @@ import {
   Sparkles,
   ChartNoAxesColumnIncreasing,
   Search as SearchIcon,
+  Shield,
 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { SearchModal } from '@/components/Search/SearchModal';
@@ -134,6 +135,14 @@ const getPageInfo = (pathname: string): PageInfo | null => {
       title: 'Leaderboard',
       subtitle: 'See top contributors in the ResearchHub community',
       icon: <ChartNoAxesColumnIncreasing size={20} color="#404040" strokeWidth={2} />,
+    };
+  }
+
+  if (pathname.startsWith('/moderators')) {
+    return {
+      title: 'Moderation Dashboard',
+      subtitle: 'Review and moderate community content',
+      icon: <Shield size={20} className="text-primary-600" />,
     };
   }
 
@@ -347,16 +356,22 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
           {/* Right side - User controls */}
           <div className="flex items-center space-x-2">
             {/* Desktop user controls */}
-            <div className="hidden tablet:!flex items-center space-x-1">
-              {/* Search icon */}
-              <Tooltip content={`Search (${shortcutText})`} position="bottom">
+            <div className="hidden tablet:!flex items-center space-x-3">
+              {/* Search bar */}
+              <div className="relative">
                 <button
                   onClick={() => setIsSearchModalOpen(true)}
-                  className="flex items-center justify-center p-2.5 hover:bg-gray-100 rounded-md transition-colors"
+                  className="flex items-center w-80 h-10 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full transition-colors text-left group"
                 >
-                  <SearchIcon className="h-6 w-6 text-gray-500" />
+                  <SearchIcon className="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
+                  <span className="text-gray-500 text-sm flex-1">Search ResearchHub...</span>
+                  <div className="flex items-center space-x-1 ml-2 flex-shrink-0">
+                    <span className="text-xs text-gray-400 bg-gray-200 px-2 py-1 rounded font-medium">
+                      {shortcutText}
+                    </span>
+                  </div>
                 </button>
-              </Tooltip>
+              </div>
 
               {user && (
                 <>

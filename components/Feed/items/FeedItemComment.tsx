@@ -105,13 +105,14 @@ const FeedItemCommentBody: FC<{
   const comment = commentEntry.comment;
   const isReview = comment.commentType === 'REVIEW';
   const reviewScore = comment.reviewScore || commentEntry.review?.score || comment.score || 0;
+  const isRemoved = commentEntry.isRemoved;
 
   // Get related work if available
   const relatedWork = entry.relatedWork;
   return (
     <div className="mb-4">
       {/* Review information for reviews (optional additional display) */}
-      {isReview && reviewScore > 0 && (
+      {isReview && reviewScore > 0 && !isRemoved && (
         <div className="mb-4 text-gray-700 text-sm mt-0.5">
           <span className="font-medium">Review score: </span>
           <span className="text-yellow-500 font-medium">{reviewScore}/5</span>
@@ -184,8 +185,8 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   // Determine the content type for the comment
   const contentType: ContentType = comment.thread?.threadType === 'PAPER' ? 'paper' : 'post';
 
-  // Use provided href or create default comment page URL
-  const commentPageUrl = href || `/comment/${comment.thread?.objectId}/${comment.id}`;
+  // Only use href if explicitly provided
+  const commentPageUrl = href;
 
   // Create menu items for edit and delete actions
   const menuItems = [];
