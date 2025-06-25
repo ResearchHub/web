@@ -106,7 +106,6 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
             userHeadline = String(raw.headline.title);
           }
         }
-        console.log('transformSearchSuggestion-user', raw);
 
         return {
           entityType: 'user',

@@ -39,6 +39,7 @@ export interface UseCommentEditorProps {
   storageKey?: string;
   debug?: boolean;
   autoFocus?: boolean;
+  onContentChange?: (plainText: string, html: string) => void;
 }
 
 export const useCommentEditor = ({
@@ -51,6 +52,7 @@ export const useCommentEditor = ({
   storageKey = 'comment-editor-draft',
   debug = false,
   autoFocus = false,
+  onContentChange,
 }: UseCommentEditorProps) => {
   const [rating, setRating] = useState(initialRating);
   const [sectionRatings, setSectionRatings] = useState<Record<string, number>>({});
@@ -169,6 +171,12 @@ export const useCommentEditor = ({
         if (onUpdate) {
           // Use the JSON directly as CommentContent
           onUpdate(json as CommentContent);
+        }
+
+        if (onContentChange) {
+          const plainText = editor.getText();
+          const html = editor.getHTML();
+          onContentChange(plainText, html);
         }
       }
     },

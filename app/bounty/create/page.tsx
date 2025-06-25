@@ -9,9 +9,7 @@ import { Input } from '@/components/ui/form/Input';
 import { Search } from '@/components/Search/Search';
 import { WorkSuggestion } from '@/types/search';
 import { CommentEditor } from '@/components/Comment/CommentEditor';
-import { extractTextFromTipTap } from '@/components/Comment/lib/commentContentUtils';
-import { StarterKit } from '@tiptap/starter-kit';
-import { generateHTML, JSONContent } from '@tiptap/core';
+import { JSONContent } from '@tiptap/core';
 import { SessionProvider, useSession } from 'next-auth/react';
 import { HubsSelector, Hub } from '@/app/paper/create/components/HubsSelector';
 import { Currency } from '@/types/root';
@@ -43,6 +41,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { Icon } from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { extractUserMentions } from '@/components/Comment/lib/commentUtils';
+import { removeCommentDraftById } from '@/components/Comment/lib/commentDraftStorage';
 
 // Wizard steps.
 // We intentionally separate review-specific and answer-specific steps.
@@ -81,7 +80,8 @@ export default function CreateBountyPage() {
 
   // Answer-to-question specific
   const [questionTitle, setQuestionTitle] = useState('');
-  const [questionContent, setQuestionContent] = useState<any>(null);
+  const [questionPlainText, setQuestionPlainText] = useState<string>('');
+  const [questionHtml, setQuestionHtml] = useState<string>('');
   const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
 
   // Shared – amount / currency
@@ -232,8 +232,8 @@ export default function CreateBountyPage() {
       try {
         // Extract mentions from the review content
         const mentions =
-          questionContent && typeof questionContent === 'object' && 'content' in questionContent
-            ? extractUserMentions(questionContent)
+          reviewContent && typeof reviewContent === 'object' && 'content' in reviewContent
+            ? extractUserMentions(reviewContent as JSONContent)
             : [];
 
         await CommentService.createComment({
@@ -250,6 +250,7 @@ export default function CreateBountyPage() {
           mentions,
         });
         toast.success('Bounty created!', { id: toastId });
+
         router.push(
           buildWorkUrl({
             id: paperId,
@@ -273,38 +274,19 @@ export default function CreateBountyPage() {
       setIsSubmitting(false);
       return;
     }
-    if (
-      !questionContent ||
-      (typeof questionContent === 'string' && questionContent.trim() === '')
-    ) {
+    if (!questionPlainText || questionPlainText.trim() === '') {
       toast.error('Please enter the question details');
       setIsSubmitting(false);
       return;
     }
-    // Convert content to HTML & plain text
-    let html = '';
-    let plain = '';
-    try {
-      if (typeof questionContent === 'string') {
-        html = questionContent;
-        plain = questionContent.replace(/(<([^>]+)>)/gi, '');
-      } else {
-        html = generateHTML(questionContent, [StarterKit]);
-        plain = extractTextFromTipTap(questionContent);
-      }
-    } catch (e) {
-      console.error('Failed to convert content', e);
-      html =
-        typeof questionContent === 'string' ? questionContent : JSON.stringify(questionContent);
-      plain = html.replace(/(<([^>]+)>)/gi, '');
-    }
+
     const toastId = toast.loading('Publishing question...');
     try {
       const post = await PostService.upsert({
         assign_doi: false,
         document_type: 'QUESTION',
-        full_src: html,
-        renderable_text: plain,
+        full_src: questionHtml,
+        renderable_text: questionPlainText,
         hubs: selectedHubs.map((h) => Number(h.id)),
         title: questionTitle,
       });
@@ -330,12 +312,6 @@ export default function CreateBountyPage() {
         ],
       } as any;
 
-      // Extract mentions from the question content
-      const mentions =
-        questionContent && typeof questionContent === 'object' && 'content' in questionContent
-          ? extractUserMentions(questionContent)
-          : [];
-
       await CommentService.createComment({
         workId: post.id.toString(),
         contentType: 'post',
@@ -345,11 +321,13 @@ export default function CreateBountyPage() {
         expirationDate,
         privacyType: 'PUBLIC',
         commentType: 'GENERIC_COMMENT',
-        mentions,
+        mentions: [],
       });
 
       toast.success('Question published & bounty created!', { id: toastId });
       router.push(`/post/${post.id}/${post.slug}`);
+
+      removeCommentDraftById(`question-editor-draft`);
     } catch (err) {
       console.error(err);
       let errorMessage = 'Failed to publish question';
@@ -557,12 +535,15 @@ export default function CreateBountyPage() {
             `}</style>
             <SessionAwareCommentEditor
               onSubmit={async () => {}}
-              onUpdate={(content: CommentContent) => setQuestionContent(content)}
               placeholder="Describe your question..."
               compactToolbar={true}
               storageKey={`question-editor-draft`}
               showHeader={false}
               showFooter={false}
+              onContentChange={(plainText: string, html: string) => {
+                setQuestionPlainText(plainText);
+                setQuestionHtml(html);
+              }}
             />
           </div>
         </div>
@@ -851,10 +832,8 @@ export default function CreateBountyPage() {
                 (step === 'WORK' && (!selectedPaper || !paperId || isFetchingPaper)) ||
                 (step === 'DETAILS' &&
                   (questionTitle.trim().length === 0 ||
-                    !questionContent ||
-                    (typeof questionContent === 'string'
-                      ? questionContent.trim().length === 0
-                      : false) ||
+                    !questionPlainText ||
+                    questionPlainText.trim().length === 0 ||
                     selectedHubs.length === 0)) ||
                 (step === 'DESCRIPTION' && !reviewContent)
               }

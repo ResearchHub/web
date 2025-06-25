@@ -37,6 +37,7 @@ export interface CommentEditorProps {
   showHeader?: boolean;
   isBountyReply?: boolean;
   isAuthor?: boolean;
+  onContentChange?: (plainText: string, html: string) => void;
 }
 
 export const CommentEditor = ({
@@ -58,6 +59,7 @@ export const CommentEditor = ({
   showHeader = true,
   isBountyReply = false,
   isAuthor = false,
+  onContentChange,
 }: CommentEditorProps) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const [isReviewBannerDismissed, setIsReviewBannerDismissed] = useState(false);
@@ -107,6 +109,7 @@ export const CommentEditor = ({
     storageKey,
     debug,
     autoFocus,
+    onContentChange,
   });
 
   // Initialize the editor handlers with our custom hook
