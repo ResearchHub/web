@@ -1,19 +1,7 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
-import {
-  ArrowUp,
-  Download,
-  Flag,
-  Edit,
-  Share2,
-  MoreHorizontal,
-  Coins,
-  UserPlus,
-  Bookmark,
-  FileUp,
-  Plus,
-} from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { ArrowUp, Flag, Edit, MoreHorizontal, FileUp } from 'lucide-react';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';

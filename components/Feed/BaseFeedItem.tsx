@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, ReactNode } from 'react';
-import { FeedEntry } from '@/types/feed';
+import { FeedContentType, FeedEntry } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CardWrapper } from './CardWrapper';
@@ -34,7 +34,6 @@ export interface BadgeSectionProps {
 export interface TitleSectionProps {
   title: string;
   className?: string;
-  href?: string;
 }
 
 // Content component interface
@@ -50,7 +49,6 @@ export interface ImageSectionProps {
   alt?: string;
   className?: string;
   aspectRatio?: '4/3' | '16/9' | '1/1';
-  showOnMobile?: boolean;
 }
 
 // Metadata component interface
@@ -80,10 +78,25 @@ export const BadgeSection: FC<BadgeSectionProps> = ({
   onClick,
 }) => {
   return (
-    <div className={cn('flex flex-wrap gap-2 mb-3', className)} onClick={onClick}>
+    <div
+      className={cn('flex flex-wrap gap-2 mb-3', className)}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick?.(e as any);
+        }
+      }}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      aria-label={onClick ? 'Click to interact with topic' : undefined}
+    >
       {/* Content type badge would be rendered here */}
-      {topics.map((topic, index) => (
-        <div key={index} className="px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">
+      {topics.map((topic) => (
+        <div
+          key={topic.slug || topic.name}
+          className="px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700"
+        >
           {topic.name}
         </div>
       ))}
@@ -168,13 +181,13 @@ export const StatusSection: FC<StatusSectionProps> = ({ status, statusText, clas
     inactive: { color: 'bg-gray-400', textColor: 'text-gray-500', text: 'Inactive' },
   };
 
-  const config = statusConfig[status] || statusConfig.inactive;
+  const config = statusConfig[status] ?? statusConfig.inactive;
 
   return (
     <div className={cn('flex items-center gap-1.5', className)}>
       <span className={cn('h-2 w-2 rounded-full', config.color)} />
       <span className={cn('text-sm font-medium', config.textColor)}>
-        {statusText || config.text}
+        {statusText ?? config.text}
       </span>
     </div>
   );
@@ -192,18 +205,18 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   customActionText,
   children,
 }) => {
-  const content = entry.content as any;
+  const content = entry.content;
   const author = content.createdBy;
   const isClickable = !!href;
 
   return (
     <div className={cn('space-y-3', className)}>
       {/* Header */}
-      {showHeader && (
+      {showHeader && content.createdDate && (
         <FeedItemHeader
           timestamp={content.createdDate}
           author={author}
-          actionText={customActionText || 'created'}
+          actionText={customActionText ?? 'created'}
         />
       )}
 
@@ -220,10 +233,21 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
                   e.preventDefault();
                   e.stopPropagation();
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label="Action buttons container"
               >
                 <FeedItemActions
                   metrics={entry.metrics}
-                  feedContentType={content.contentType}
+                  feedContentType={
+                    content.contentType ? (content.contentType as FeedContentType) : 'COMMENT'
+                  }
                   votableEntityId={content.id}
                   userVote={entry.userVote}
                   showTooltips={showTooltips}

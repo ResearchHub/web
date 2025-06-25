@@ -68,47 +68,44 @@ export interface Review {
   author: AuthorProfile;
 }
 
-// New FeedPostEntry type for RESEARCHHUBPOST content
-export interface FeedPostContent {
+// Create a base interface for all feed content types
+export interface BaseFeedContent {
   id: number;
-  fundraise?: Fundraise; // Only present for PREREGISTRATION content types
-  contentType: 'PREREGISTRATION' | 'POST';
+  contentType: string;
   createdDate: string;
+  createdBy: AuthorProfile;
+  bounties?: Bounty[];
+  reviews?: Review[];
+}
+
+// Update all feed content types to extend the base
+export interface FeedPostContent extends BaseFeedContent {
+  contentType: 'PREREGISTRATION' | 'POST';
+  fundraise?: Fundraise;
   textPreview: string;
   slug: string;
   title: string;
-  previewImage?: string; // URL to preview image if available
+  previewImage?: string;
   authors: AuthorProfile[];
   topics: Topic[];
-  createdBy: AuthorProfile;
-  bounties?: Bounty[]; // Add bounties property
-  reviews?: Review[]; // Also add reviews property for consistency
-  institution?: string; // Added institution field
+  institution?: string;
 }
 
-// Details specific to a grant application
 export interface ApplicationDetails {
   authors: AuthorProfile[];
   institution?: string;
   objectiveAlignment: string; // "Why will your preregistration address funder's objectives?"
 }
 
-// Content type for a grant application feed entry
-export interface FeedApplicationContent {
-  id: number; // Unique ID for the application itself
+export interface FeedApplicationContent extends BaseFeedContent {
   contentType: 'APPLICATION';
-  createdDate: string; // Submission date of the application
-  createdBy: AuthorProfile; // The primary applicant or submitting user
   applicationDetails: ApplicationDetails;
-  preregistration: FeedPostContent; // The linked preregistration
+  preregistration: FeedPostContent;
 }
 
-export interface FeedBountyContent {
-  id: number;
+export interface FeedBountyContent extends BaseFeedContent {
   contentType: 'BOUNTY';
-  createdDate: string;
   bounty: Bounty;
-  createdBy: AuthorProfile;
   relatedDocumentId?: number;
   relatedDocumentContentType?: ContentType;
   comment: {
@@ -119,12 +116,9 @@ export interface FeedBountyContent {
   };
 }
 
-export interface FeedCommentContent {
-  id: number;
+export interface FeedCommentContent extends BaseFeedContent {
   contentType: 'COMMENT';
-  createdDate: string;
   updatedDate?: string;
-  createdBy: AuthorProfile;
   comment: {
     id: number;
     content: any;
@@ -147,37 +141,25 @@ export interface FeedCommentContent {
   parentComment?: ParentCommentPreview;
 }
 
-export interface FeedPaperContent {
-  id: number;
+export interface FeedPaperContent extends BaseFeedContent {
   contentType: 'PAPER';
-  createdDate: string;
   textPreview: string;
   slug: string;
   title: string;
   authors: AuthorProfile[];
   topics: Topic[];
-  createdBy: AuthorProfile;
   journal: Journal;
   workType?: 'paper' | 'preprint' | 'published';
-  bounties?: Bounty[];
-  reviews?: Review[]; // Add reviews property
 }
 
-// Add this new interface after the existing content interfaces
-
-export interface FeedGrantContent {
-  id: number;
+export interface FeedGrantContent extends BaseFeedContent {
   contentType: 'GRANT';
-  createdDate: string;
   textPreview: string;
   slug: string;
   title: string;
   previewImage?: string;
   authors: AuthorProfile[];
   topics: Topic[];
-  createdBy: AuthorProfile;
-  bounties?: Bounty[];
-  reviews?: Review[];
   grant: {
     id: number;
     amount: {
@@ -205,10 +187,11 @@ export interface FeedGrantContent {
   isExpired?: boolean;
 }
 
+// Update the Content union type to include the base interface
 export type Content =
-  | Work
-  | Bounty
-  | Comment
+  | (Work & Partial<BaseFeedContent>)
+  | (Bounty & Partial<BaseFeedContent>)
+  | (Comment & Partial<BaseFeedContent>)
   | FeedPostContent
   | FeedPaperContent
   | FeedBountyContent

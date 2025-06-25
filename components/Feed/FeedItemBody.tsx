@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, useState } from 'react';
-import { Content, FeedEntry } from '@/types/feed';
+import { BaseFeedContent, Content, FeedEntry } from '@/types/feed';
 import { Bounty } from '@/types/bounty';
 import { Work, WorkType } from '@/types/work';
 import { Button } from '@/components/ui/Button';
@@ -15,11 +15,11 @@ import { ExpandableContent } from '@/components/Feed/shared/ExpandableContent';
 import { Post } from '@/types/note';
 
 // Type guards to check content type
-const isBounty = (content: Content): content is Bounty => {
+const isBounty = (content: Content): content is Bounty & Partial<BaseFeedContent> => {
   return 'bountyType' in content;
 };
 
-const isWork = (content: Content): content is Work => {
+const isWork = (content: Content): content is Work & Partial<BaseFeedContent> => {
   return 'contentType' in content;
 };
 

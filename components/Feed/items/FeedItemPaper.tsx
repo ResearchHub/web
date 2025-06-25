@@ -4,7 +4,6 @@ import { FC } from 'react';
 import { FeedPaperContent, FeedEntry } from '@/types/feed';
 import {
   BaseFeedItem,
-  BadgeSection,
   TitleSection,
   ContentSection,
   ImageSection,
@@ -16,7 +15,6 @@ import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { Users, BookText } from 'lucide-react';
-import Link from 'next/link';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
@@ -47,14 +45,8 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
     return 'paper' as const;
   };
 
-  // Get the author from the paper
-  const author = paper.createdBy || paper.authors[0];
-
   // Use provided href or create default paper page URL
   const paperPageUrl = href || `/paper/${paper.id}/${paper.slug}`;
-
-  // Determine if card should have clickable styles
-  const isClickable = !!href;
 
   // Construct the dynamic action text
   const journalName = paper.journal?.name;

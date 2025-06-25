@@ -4,7 +4,6 @@ import { FC } from 'react';
 import { FeedPostContent, FeedEntry } from '@/types/feed';
 import {
   BaseFeedItem,
-  BadgeSection,
   TitleSection,
   ContentSection,
   ImageSection,
@@ -81,7 +80,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   const fundingPageUrl = href || `/fund/${post.id}/${post.slug}`;
 
   // Image URL
-  const imageUrl = post.previewImage || undefined;
+  const imageUrl = post.previewImage ?? undefined;
 
   return (
     <BaseFeedItem
@@ -90,7 +89,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       showActions={showActions}
       showTooltips={showTooltips}
       customActionText={
-        customActionText || (hasFundraise ? `is seeking funding` : 'published a post')
+        customActionText ?? (hasFundraise ? `is seeking funding` : 'published a post')
       }
       maxLength={maxLength}
     >

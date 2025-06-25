@@ -26,8 +26,7 @@ import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
 import { buildWorkUrl } from '@/utils/url';
-import { BaseFeedItem } from '@/components/Feed/BaseFeedItem';
-import { TitleSection } from '@/components/Feed/BaseFeedItem';
+import { BaseFeedItem, TitleSection } from '@/components/Feed/BaseFeedItem';
 
 /**
  * Internal component for rendering bounty details
@@ -310,7 +309,13 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         )}
 
         {showSupportAndCTAButtons && (
-          <div className="mt-4 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="mt-4 flex items-center gap-2"
+            onClick={(e) => e.stopPropagation()}
+            role="presentation"
+            aria-hidden="true"
+            tabIndex={-1}
+          >
             {isOpen && showContributeButton && !isAuthor && (
               <Button variant="contribute" size="sm" onClick={handleOpenContributeModal}>
                 <ResearchCoinIcon size={20} variant="orange" contribute />
@@ -333,7 +338,13 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         )}
 
         {showFooter && !shouldHideActions && (
-          <div className="mt-4 pt-3 border-t border-gray-200" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="mt-4 pt-3 border-t border-gray-200"
+            onClick={(e) => e.stopPropagation()}
+            role="presentation"
+            aria-hidden="true"
+            tabIndex={-1}
+          >
             <FeedItemActions
               metrics={entry.metrics}
               feedContentType="BOUNTY"

@@ -6,7 +6,6 @@ import { FeedEntry, FeedCommentContent, ParentCommentPreview } from '@/types/fee
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
-import { useRouter } from 'next/navigation';
 import { ContentType } from '@/types/work';
 import { Pen, Trash2 } from 'lucide-react';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
@@ -183,7 +182,12 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
 
         {!hideActions && (
           <div className="pt-3 border-t border-gray-200">
-            <div onClick={(e) => e.stopPropagation()}>
+            <div
+              onClick={(e) => e.stopPropagation()}
+              role="presentation"
+              aria-hidden="true"
+              tabIndex={-1}
+            >
               <FeedItemActions
                 metrics={entry.metrics}
                 feedContentType="COMMENT"

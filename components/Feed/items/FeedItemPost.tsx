@@ -4,7 +4,6 @@ import { FC } from 'react';
 import { FeedPostContent, FeedEntry } from '@/types/feed';
 import {
   BaseFeedItem,
-  BadgeSection,
   TitleSection,
   ContentSection,
   ImageSection,

@@ -4,7 +4,6 @@ import { FC } from 'react';
 import { AuthorProfile, FeedEntry } from '@/types/feed';
 import {
   BaseFeedItem,
-  BadgeSection,
   TitleSection,
   ContentSection,
   ImageSection,
@@ -124,7 +123,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
       className={className}
       showActions={showActions}
       showTooltips={showTooltips}
-      customActionText={customActionText || 'opened a grant'}
+      customActionText={customActionText ?? 'opened a grant'}
       maxLength={maxLength}
       showHeader={showHeader}
     >
