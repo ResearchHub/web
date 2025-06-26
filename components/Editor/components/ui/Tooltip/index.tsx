@@ -68,12 +68,14 @@ export const Tooltip = ({
         {...tippyOptions}
         render={renderTooltip}
       >
-        <span>{children}</span>
+        <div>{children}</div>
       </Tippy>
     );
   }
 
   return <>{children}</>;
 };
+
+Tooltip.displayName = 'Tooltip';
 
 export default Tooltip;
