@@ -241,7 +241,7 @@ export function ContributeBountyModal({
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog
         as="div"
-        className="relative z-50"
+        className="relative z-[100]"
         onClose={() => {
           // Reset success flag when modal is closed without contribution
           if (!isSuccess) {
@@ -259,7 +259,7 @@ export function ContributeBountyModal({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
+          <div className="fixed inset-0 bg-black !bg-opacity-25" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">

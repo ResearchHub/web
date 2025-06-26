@@ -145,13 +145,13 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 ref={inputRef}
                 type="text"
                 placeholder="Search papers, topics, authors..."
-                className="h-12 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-24 text-base focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
+                className="h-12 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-8 md:!pr-24 text-base focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onFocus={() => setIsFocused(true)}
               />
               {/* Keyboard shortcut hint */}
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-1 text-xs text-gray-400">
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:!flex items-center space-x-1 text-xs text-gray-400">
                 <kbd className="px-1.5 py-0.5 text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded">
                   {shortcutKey}
                 </kbd>
@@ -162,7 +162,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
               {query && (
                 <button
                   onClick={() => setQuery('')}
-                  className="absolute right-20 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100"
+                  className="absolute right-2 md:!right-20 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100"
                 >
                   <X className="h-4 w-4 text-gray-400" />
                 </button>

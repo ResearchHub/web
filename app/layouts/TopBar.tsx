@@ -5,14 +5,12 @@ import {
   Menu,
   User,
   ArrowLeft,
-  Sparkles,
   ChartNoAxesColumnIncreasing,
   Search as SearchIcon,
   Shield,
 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { SearchModal } from '@/components/Search/SearchModal';
-import { Search } from '@/components/Search/Search';
 import UserMenu from '@/components/menus/UserMenu';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -299,6 +297,25 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
     }
   };
 
+  const renderSearchbarButton = () => {
+    return (
+      <div className="relative">
+        <button
+          onClick={() => setIsSearchModalOpen(true)}
+          className="flex items-center w-full md:!w-80 max-w-md mx-auto h-10 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full transition-colors text-left group"
+        >
+          <SearchIcon className="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
+          <span className="text-gray-500 text-sm flex-1">Search ResearchHub...</span>
+          <div className="hidden md:!flex items-center space-x-1 ml-2 flex-shrink-0">
+            <span className="text-xs text-gray-400 bg-gray-200 px-2 py-1 rounded font-medium">
+              {shortcutText}
+            </span>
+          </div>
+        </button>
+      </div>
+    );
+  };
+
   return (
     <>
       <div className="h-[64px] border-b border-gray-200 bg-white">
@@ -344,13 +361,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
 
           {/* Center - Search input (mobile only) */}
           <div className="flex-1 flex justify-center px-4 tablet:!hidden">
-            <div className="w-full max-w-md">
-              <Search
-                placeholder="Search..."
-                className="[&_input]:rounded-full [&_input]:bg-[#F8F9FC] [&_input]:h-10"
-                displayMode="dropdown"
-              />
-            </div>
+            <div className="w-full">{renderSearchbarButton()}</div>
           </div>
 
           {/* Right side - User controls */}
@@ -358,20 +369,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
             {/* Desktop user controls */}
             <div className="hidden tablet:!flex items-center space-x-3">
               {/* Search bar */}
-              <div className="relative">
-                <button
-                  onClick={() => setIsSearchModalOpen(true)}
-                  className="flex items-center w-80 h-10 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full transition-colors text-left group"
-                >
-                  <SearchIcon className="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
-                  <span className="text-gray-500 text-sm flex-1">Search ResearchHub...</span>
-                  <div className="flex items-center space-x-1 ml-2 flex-shrink-0">
-                    <span className="text-xs text-gray-400 bg-gray-200 px-2 py-1 rounded font-medium">
-                      {shortcutText}
-                    </span>
-                  </div>
-                </button>
-              </div>
+              {renderSearchbarButton()}
 
               {user && (
                 <>

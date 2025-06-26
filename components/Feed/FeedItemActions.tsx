@@ -281,7 +281,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
   const handleVote = (e?: React.MouseEvent) => {
     if (e) {
-      e.preventDefault();
       e.stopPropagation();
     }
     executeAuthenticatedAction(() => {
@@ -293,7 +292,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
   const handleComment = (e?: React.MouseEvent) => {
     if (e) {
-      e.preventDefault();
       e.stopPropagation();
     }
     if (href) {
@@ -305,7 +303,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
   const handleReviewClick = (e?: React.MouseEvent) => {
     if (e) {
-      e.preventDefault();
       e.stopPropagation();
     }
     if (href) {
@@ -315,7 +312,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
   const handleBountyClick = (e?: React.MouseEvent) => {
     if (e) {
-      e.preventDefault();
       e.stopPropagation();
     }
     if (href) {
@@ -326,7 +322,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   // Handle opening the tip modal
   const handleOpenTipModal = (e?: React.MouseEvent) => {
     if (e) {
-      e.preventDefault();
       e.stopPropagation();
     }
     executeAuthenticatedAction(() => {
@@ -360,7 +355,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
   const handleReport = (e?: React.MouseEvent) => {
     if (e) {
-      e.preventDefault();
       e.stopPropagation();
     }
     executeAuthenticatedAction(() => {
