@@ -86,7 +86,7 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
       if (postId) {
         payload.post_id = postId;
       } else if (postParams.articleType === 'PREREGISTRATION') {
-        // Include fundraise fields for creation of preregistrations and grants
+        // Include fundraise fields for creation of proposals and grants
         payload.reward_funders = postParams.rewardFunders;
         payload.nft_supply = postParams.nftSupply;
         payload.fundraise_goal_currency = 'USD';
@@ -118,7 +118,7 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
       };
     } catch (err) {
       const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
-      const errorMsg = data?.msg || 'An error occurred while saving the preregistration post';
+      const errorMsg = data?.msg || 'An error occurred while saving the proposal post';
       setError(errorMsg);
       throw err;
     } finally {

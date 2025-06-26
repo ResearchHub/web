@@ -1,3 +1,5 @@
+'use client';
+
 import React, { ReactNode, useState } from 'react';
 import { SectionHeaderProps } from './renderUtils';
 import hljs from 'highlight.js';
@@ -80,7 +82,7 @@ export const extractPlainText = (node: any): string => {
     const name = node.attrs?.displayName || node.attrs?.label || '';
     // Add '@' prefix for user/author mentions, else just name
     if (entityType === 'user' || entityType === 'author') {
-      return `@${name}`;
+      return name;
     }
     return name;
   }
@@ -524,15 +526,20 @@ const RenderNode: React.FC<RenderNodeProps> = ({
   if (node.type === 'mention') {
     const entityType = node.attrs?.entityType;
     const id = node.attrs?.id;
+    const authorProfileId = node.attrs?.authorProfileId;
     const label = node.attrs?.displayName || node.attrs?.label || '';
 
     // Determine rendering based on entity type
     if (entityType === 'user' || entityType === 'author') {
-      const displayText = `@${label}`;
+      const displayText = label;
+      const profileId = authorProfileId || id;
+      if (!profileId) {
+        return <span className="mention">{displayText}</span>;
+      }
       return (
         <span
           className="mention text-blue-600 hover:underline cursor-pointer"
-          onClick={() => navigateToAuthorProfile(id, true)}
+          onClick={() => navigateToAuthorProfile(profileId, true)}
         >
           {displayText}
         </span>

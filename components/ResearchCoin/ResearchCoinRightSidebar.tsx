@@ -78,8 +78,8 @@ export const ResearchCoinRightSidebar = () => {
             isOpen={openSections.includes('fund-science')}
             onToggle={() => toggleSection('fund-science')}
           >
-            RSC enables the community to fund scientific projects through preregistrations,
-            streamlining the proposal and funding process.
+            RSC enables the community to fund scientific projects through open access proposals,
+            streamlining the funding process.
           </CollapsibleItem>
 
           <CollapsibleItem

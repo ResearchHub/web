@@ -71,7 +71,7 @@ export const publishingFormSchema = z
       }
     }
 
-    // Preregistration-specific validations
+    // Proposal-specific validations
     if (data.articleType === 'preregistration') {
       // Validate budget
       const num = parseFloat(data.budget?.replace(/[^0-9.]/g, '') || '0');
@@ -87,7 +87,7 @@ export const publishingFormSchema = z
       if (!data.coverImage?.file && !data.coverImage?.url) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Cover image is required for preregistration',
+          message: 'Cover image is required for proposal',
           path: ['coverImage'],
         });
       }

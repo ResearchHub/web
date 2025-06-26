@@ -58,7 +58,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
 
-  // Check if this is a preregistration with fundraise data
+  // Check if this is a proposal with fundraise data
   const hasFundraise = post.contentType === 'PREREGISTRATION' && post.fundraise;
 
   // Get topics/tags for display

@@ -301,7 +301,7 @@ export const FundDocument = ({
       <NewFundingModal
         isOpen={isNewFundingModalOpen}
         onClose={handleCloseNewFundingModal}
-        preregistrationUrl={getCleanUrl()}
+        proposalUrl={getCleanUrl()}
       />
     </div>
   );

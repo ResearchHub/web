@@ -31,11 +31,11 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
   const tabs = [
     {
       id: 'grants',
-      label: 'Grants',
+      label: 'Request for proposals',
     },
     {
       id: 'needs-funding',
-      label: 'Needs Funding',
+      label: 'Proposals',
     },
   ];
 

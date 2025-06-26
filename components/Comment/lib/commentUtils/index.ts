@@ -28,3 +28,6 @@ export {
   revertOptimisticUpdate,
   updateCommentWithApiResponse,
 } from '../commentOptimisticUtils';
+
+// Re-export mention utilities
+export { extractUserMentions } from './extractMentions';

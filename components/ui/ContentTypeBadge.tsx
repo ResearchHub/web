@@ -159,7 +159,7 @@ export const ContentTypeBadge = ({
             <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center">
               <Icon name="createBounty" size={24} color="#374151" />
             </div>
-            <div>Preregistrations seeking funding for future research.</div>
+            <div>Proposals seeking funding for future research.</div>
           </div>
         }
         position="top"
@@ -171,7 +171,7 @@ export const ContentTypeBadge = ({
           className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
         >
           <Icon name="createBounty" size={16} color="#374151" />
-          <span>Preregistration</span>
+          <span>Proposal</span>
         </Badge>
       </Tooltip>
     );
