@@ -182,7 +182,6 @@ export const WorkLineItems = ({
     router.push(`/paper/${latestPaperId}/create/version`);
   }, [work.id, work.versions, user, router]);
 
-  // Add the close fundraise hook
   const [{ isLoading: isClosingFundraise }, closeFundraise] = useCloseFundraise();
 
   const handleCloseFundraise = useCallback(() => {
