@@ -14,17 +14,17 @@ export class GrantService {
   }
 
   /**
-   * Applies to a grant with a preregistration
+   * Applies to a grant with a proposal
    * @param grantId The ID of the grant to apply to
-   * @param preregistrationPostId The post ID of the preregistration to use
+   * @param proposalPostId The post ID of the proposal to use
    * @returns The application response
    */
   static async applyToGrant(
     grantId: string | number,
-    preregistrationPostId: string | number
+    proposalPostId: string | number
   ): Promise<any> {
     const response = await ApiClient.post<any>(`${this.BASE_PATH}/${grantId}/application/`, {
-      preregistration_post_id: preregistrationPostId,
+      preregistration_post_id: proposalPostId,
     });
     return response;
   }

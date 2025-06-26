@@ -90,7 +90,7 @@ export interface FeedPostContent {
 export interface ApplicationDetails {
   authors: AuthorProfile[];
   institution?: string;
-  objectiveAlignment: string; // "Why will your preregistration address funder's objectives?"
+  objectiveAlignment: string; // "Why will your proposal address funder's objectives?"
 }
 
 // Content type for a grant application feed entry
@@ -702,7 +702,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
             try {
               postEntry.fundraise = transformFundraise(content_object.fundraise);
             } catch (fundraiseError) {
-              console.error('Error transforming fundraise for preregistration:', fundraiseError);
+              console.error('Error transforming fundraise for proposal:', fundraiseError);
             }
           }
 

@@ -8,7 +8,7 @@ import { CircleCheckBig, Check, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 
 export const GrantRightSidebar = () => {
-  const [openSections, setOpenSections] = useState<string[]>(['why-preregistration']); // Default open section
+  const [openSections, setOpenSections] = useState<string[]>(['why-proposal']); // Default open section
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) =>
@@ -25,7 +25,7 @@ export const GrantRightSidebar = () => {
             Fund Smarter.
           </h3>
           <p className="text-primary-700 mb-3 text-sm">
-            Make every research dollar count with preregistration-based funding.{' '}
+            Make every research dollar count with open access funding.{' '}
           </p>
           <ul className="text-primary-700 mb-4 text-sm space-y-1">
             <li className="flex items-center gap-2">
@@ -46,7 +46,7 @@ export const GrantRightSidebar = () => {
           </Button>
         </div>
 
-        <CollapsibleSection title="Preregistration = better science">
+        <CollapsibleSection title="Open science = better science">
           <CollapsibleItem
             title="Prevents p-hacking"
             icon={<Check className="w-4 h-4" strokeWidth={2.5} />}
@@ -63,7 +63,7 @@ export const GrantRightSidebar = () => {
             isOpen={openSections.includes('forces-publication')}
             onToggle={() => toggleSection('forces-publication')}
           >
-            Public preregistration creates reputation pressure to publish findings—positive or
+            Public proposals create reputation pressure to publish findings—positive or
             negative—preventing selective reporting.
           </CollapsibleItem>
 
@@ -95,8 +95,8 @@ export const GrantRightSidebar = () => {
             isOpen={openSections.includes('faster-decisions')}
             onToggle={() => toggleSection('faster-decisions')}
           >
-            Skip lengthy grant applications. Review clear preregistrations with methodology and
-            budget in one place—fund in days, not months.
+            Skip lengthy grant applications. Review clear proposals with methodology and budget in
+            one place—fund in days, not months.
           </CollapsibleItem>
 
           <CollapsibleItem
@@ -125,8 +125,8 @@ export const GrantRightSidebar = () => {
             isOpen={openSections.includes('accountability')}
             onToggle={() => toggleSection('accountability')}
           >
-            Track your funding from preregistration to publication. All results are incentivized to
-            be sharedpublished openly, giving you visibility into research outcomes.
+            Track your funding from proposal to publication. All results are incentivized to be
+            shared and published openly, giving you visibility into research outcomes.
           </CollapsibleItem>
 
           <CollapsibleItem

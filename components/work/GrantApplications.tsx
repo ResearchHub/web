@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { FeedItemFundraise } from '@/components/Feed/items/FeedItemFundraise';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
-import { PreregistrationForModal } from '@/services/post.service';
+import { ProposalForModal } from '@/services/post.service';
 import { ContentType } from '@/types/work';
 import { useFundingFeed } from '@/hooks/useFundingFeed';
 import { FeedPostContent, FeedContentType } from '@/types/feed';
@@ -27,7 +27,7 @@ const sortOptions: SortOption[] = [
 ];
 
 /**
- * Displays a list of applications (preregistrations) for a grant as a feed.
+ * Displays a list of applications (proposals) for a grant as a feed.
  * Uses the real funding feed data via useFundingFeed hook.
  */
 export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
@@ -36,13 +36,8 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
   // Use the real funding feed hook with sorting
   const { entries, isLoading, error, sortBy, setSortBy } = useFundingFeed(20, grantId);
 
-  const handleUseSelectedPrereg = (prereg: PreregistrationForModal) => {
-    console.log(
-      'Apply using selected preregistration from GrantApplications:',
-      prereg,
-      'for grantId:',
-      grantId
-    );
+  const handleUseSelectedProposal = (proposal: ProposalForModal) => {
+    console.log('Apply using selected proposal from GrantApplications:', proposal);
     setIsApplyModalOpen(false);
   };
 
@@ -104,8 +99,8 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
         <ApplyToGrantModal
           isOpen={isApplyModalOpen}
           onClose={() => setIsApplyModalOpen(false)}
-          onUseSelected={handleUseSelectedPrereg}
-          grantId={grantId}
+          onUseSelected={handleUseSelectedProposal}
+          grantId={grantId.toString()}
         />
       </div>
     );
@@ -166,8 +161,8 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
         <ApplyToGrantModal
           isOpen={isApplyModalOpen}
           onClose={() => setIsApplyModalOpen(false)}
-          onUseSelected={handleUseSelectedPrereg}
-          grantId={grantId}
+          onUseSelected={handleUseSelectedProposal}
+          grantId={grantId.toString()}
         />
       </div>
     );
@@ -221,7 +216,7 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
         </Button>
       </div>
 
-      {/* Render Preregistration Feed Items directly */}
+      {/* Render Proposal Feed Items directly */}
       {entries.length > 0 ? (
         entries.map((entry) => {
           const content = entry.content as FeedPostContent;
@@ -250,8 +245,8 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
       <ApplyToGrantModal
         isOpen={isApplyModalOpen}
         onClose={() => setIsApplyModalOpen(false)}
-        onUseSelected={handleUseSelectedPrereg}
-        grantId={grantId}
+        onUseSelected={handleUseSelectedProposal}
+        grantId={grantId.toString()}
       />
     </div>
   );

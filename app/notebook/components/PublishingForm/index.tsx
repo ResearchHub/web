@@ -326,7 +326,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       // Initialize imageUrl variable
       let imagePath = null;
 
-      // Upload the image for preregistration and grant posts
+      // Upload the image for proposal and grant posts
       if (
         (formData.articleType === 'preregistration' || formData.articleType === 'grant') &&
         formData.coverImage?.file
@@ -388,7 +388,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         formData.workId
       );
 
-      // If a nonprofit is selected, link it to the fundraise (only for preregistration)
+      // If a nonprofit is selected, link it to the fundraise (only for proposal)
       const fundraiseId = response.fundraiseId || existingFundraiseId;
 
       if (formData.selectedNonprofit && fundraiseId && formData.articleType === 'preregistration') {

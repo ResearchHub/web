@@ -14,10 +14,11 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useTransition } from 'react';
 import { useNoteContent, useCreateNote } from '@/hooks/useNote';
 import { getInitialContent } from '@/components/Editor/lib/data/initialContent';
-import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
+
 import toast from 'react-hot-toast';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
+import proposalTemplate from '@/components/Editor/lib/data/proposalTemplate';
 
 /**
  * Left sidebar component for the notebook layout
@@ -72,7 +73,7 @@ export const LeftSidebar = () => {
             contentTemplate = grantTemplate;
             break;
           case 'preregistration':
-            contentTemplate = preregistrationTemplate;
+            contentTemplate = proposalTemplate;
             break;
           case 'empty':
             contentTemplate = { content: [] };
@@ -177,7 +178,7 @@ export const LeftSidebar = () => {
           <Wallet className="h-4 w-4" />
         )}
         <div>
-          <div className="font-medium text-gray-900">Preregistration</div>
+          <div className="font-medium text-gray-900">Proposal</div>
           <div className="text-xs text-gray-500">Get funding for your research</div>
         </div>
       </BaseMenuItem>

@@ -73,7 +73,7 @@ export const RelatedWorkCard = ({
     | 'article'
     | 'preprint'
     | 'published' => {
-    // If it's a fundraise preregistration, show funding badge
+    // If it's a fundraise proposal, show funding badge
     if (work.contentType === 'preregistration') {
       return 'funding';
     }
