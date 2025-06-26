@@ -149,7 +149,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   // Specific funding routes
   if (pathname === '/fund/needs-funding') {
     return {
-      title: 'Fundraises',
+      title: 'Research proposals',
       subtitle: 'Support research projects seeking funding',
       icon: <Icon name="createBounty" size={20} className="text-primary-600" />,
     };
@@ -158,7 +158,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   // Grant routes
   if (pathname.startsWith('/fund/grants')) {
     return {
-      title: 'Grants',
+      title: 'Funding opportunities',
       subtitle: 'Explore available funding opportunities',
       icon: <Icon name="fund" size={20} className="text-primary-600" />,
     };

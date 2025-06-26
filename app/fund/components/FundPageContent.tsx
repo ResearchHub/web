@@ -45,7 +45,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const header = (
     <MainPageHeader
       icon={<Icon name="solidHand" size={26} color="#3971ff" />}
-      title={marketplaceTab === 'needs-funding' ? 'Funding' : 'Grants'}
+      title={marketplaceTab === 'needs-funding' ? 'Proposals' : 'Request for proposals'}
       subtitle={
         marketplaceTab === 'needs-funding'
           ? 'Fund breakthrough research shaping tomorrow'
