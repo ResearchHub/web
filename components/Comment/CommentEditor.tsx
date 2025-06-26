@@ -61,7 +61,6 @@ export const CommentEditor = ({
   isBountyReply = false,
   isAuthor = false,
 }: CommentEditorProps) => {
-  const { data: session, status } = useSession();
   const editorRef = useRef<HTMLDivElement>(null);
   const [isReviewBannerDismissed, setIsReviewBannerDismissed] = useState(false);
   const [isBountyReplyBannerDismissed, setIsBountyReplyBannerDismissed] = useState(false);

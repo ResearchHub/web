@@ -2,7 +2,13 @@ import { ReactRenderer } from '@tiptap/react';
 import { Mention } from '@tiptap/extension-mention';
 import { UserMention } from '@/types/comment';
 import { SearchService } from '@/services/search.service';
-import { SearchSuggestion, UserSuggestion, WorkSuggestion, PostSuggestion } from '@/types/search';
+import {
+  SearchSuggestion,
+  UserSuggestion,
+  WorkSuggestion,
+  PostSuggestion,
+  AuthorSuggestion,
+} from '@/types/search';
 import { MentionList } from './MentionList';
 import tippy, { Instance, Props } from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
@@ -59,7 +65,7 @@ const debouncedSearch = createDebouncedSearch();
 const transformUserSuggestion = (userSuggestion: UserSuggestion): MentionItem => {
   const nameParts = userSuggestion.displayName.split(' ');
   return {
-    id: userSuggestion.id?.toString() || null,
+    id: userSuggestion.authorProfile?.id?.toString() || null,
     entityType: userSuggestion.entityType,
     firstName: nameParts[0],
     lastName: nameParts.slice(1).join(' '),
@@ -68,6 +74,7 @@ const transformUserSuggestion = (userSuggestion: UserSuggestion): MentionItem =>
     isVerified: userSuggestion.isVerified || false,
     authorProfile: userSuggestion.authorProfile
       ? {
+          id: userSuggestion.authorProfile.id?.toString() || null,
           headline:
             typeof userSuggestion.authorProfile.headline === 'string'
               ? userSuggestion.authorProfile.headline
@@ -75,6 +82,33 @@ const transformUserSuggestion = (userSuggestion: UserSuggestion): MentionItem =>
                 ? (userSuggestion.authorProfile.headline as { title: string }).title
                 : '',
           profileImage: userSuggestion.authorProfile.profileImage || null,
+          userId: userSuggestion.authorProfile.userId?.toString() || null,
+        }
+      : undefined,
+  };
+};
+
+const transformAuthorSuggestion = (authorSuggestion: UserSuggestion): MentionItem => {
+  const nameParts = authorSuggestion.displayName.split(' ');
+  return {
+    id: authorSuggestion.id?.toString() || null,
+    entityType: authorSuggestion.entityType,
+    firstName: nameParts[0],
+    lastName: nameParts.slice(1).join(' '),
+    label: authorSuggestion.displayName,
+    authorProfileId: authorSuggestion.id?.toString() || null,
+    isVerified: authorSuggestion.isVerified || false,
+    authorProfile: authorSuggestion.authorProfile
+      ? {
+          id: authorSuggestion.authorProfile.id?.toString() || null,
+          headline:
+            typeof authorSuggestion.authorProfile.headline === 'string'
+              ? authorSuggestion.authorProfile.headline
+              : authorSuggestion.authorProfile.headline
+                ? (authorSuggestion.authorProfile.headline as { title: string }).title
+                : '',
+          profileImage: authorSuggestion.authorProfile.profileImage || null,
+          userId: authorSuggestion.authorProfile.userId?.toString() || null,
         }
       : undefined,
   };
@@ -103,8 +137,10 @@ const transformPostSuggestion = (postSuggestion: PostSuggestion): MentionItem =>
 };
 
 const transformSuggestionToMentionItem = (suggestion: SearchSuggestion): MentionItem => {
-  if (suggestion.entityType === 'user' || suggestion.entityType === 'author') {
+  if (suggestion.entityType === 'user') {
     return transformUserSuggestion(suggestion as UserSuggestion);
+  } else if (suggestion.entityType === 'author') {
+    return transformAuthorSuggestion(suggestion as UserSuggestion);
   } else if (suggestion.entityType === 'paper') {
     return transformPaperSuggestion(suggestion as WorkSuggestion);
   } else if (suggestion.entityType === 'post') {
@@ -130,6 +166,12 @@ export const MentionExtension = Mention.extend({
       },
       id: {
         default: null,
+      },
+      userId: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.getAttribute('data-user-id'),
+        renderHTML: (attributes: { userId?: string }) =>
+          attributes.userId ? { 'data-user-id': attributes.userId } : {},
       },
       authorProfileId: {
         default: null,
@@ -202,6 +244,7 @@ export const MentionExtension = Mention.extend({
           {
             'data-type': 'mention',
             'data-entity-type': node.attrs.entityType,
+            'data-user-id': node.attrs.userId,
             class: `mention mention-${node.attrs.entityType}`,
             contenteditable: 'false',
           },
@@ -216,6 +259,7 @@ export const MentionExtension = Mention.extend({
           'data-type': 'mention',
           'data-id': node.attrs.id,
           'data-entity-type': node.attrs.entityType,
+          'data-user-id': node.attrs.userId,
           class: `mention mention-${node.attrs.entityType}`,
           href: url,
           contenteditable: 'false',
@@ -404,6 +448,14 @@ export const MentionExtension = Mention.extend({
         displayName: item.displayName || item.label,
         authorProfileId: item.authorProfileId,
       };
+
+      // Add userId for user/author mentions if available
+      if (
+        (item.entityType === 'user' || item.entityType === 'author') &&
+        item.authorProfile?.userId
+      ) {
+        attrs.userId = item.authorProfile.userId;
+      }
 
       // Add DOI for paper mentions if available
       if (item.entityType === 'paper' && item.doi) {
