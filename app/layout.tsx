@@ -19,6 +19,7 @@ import { ClickProvider } from '@/contexts/ClickContext';
 import { AuthSharingWrapper } from '@/components/AuthSharingWrapper';
 import { VerificationProvider } from '@/contexts/VerificationContext';
 import SignupModalContainer from '@/components/modals/SignupModalContainer';
+import ShareModalTrigger from '@/components/modals/ShareModalTrigger';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -80,6 +81,7 @@ export default async function RootLayout({
                     </VerificationProvider>
                   </UserProvider>
                   <SignupModalContainer />
+                  <ShareModalTrigger />
                 </AuthModalProvider>
               </AuthSharingWrapper>
             </NextAuthProvider>
