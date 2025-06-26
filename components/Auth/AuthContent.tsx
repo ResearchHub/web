@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SelectProvider from './screens/SelectProvider';
 import Login from './screens/Login';
 import Signup from './screens/Signup';
 import VerifyEmail from './screens/VerifyEmail';
 import { AuthScreen } from './types';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
 interface AuthContentProps {
   onClose?: () => void;
@@ -26,6 +27,14 @@ export default function AuthContent({
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(initialError || null);
+
+  useEffect(() => {
+    if (screen === 'LOGIN') {
+      AnalyticsService.logEvent(LogEvent.LOGIN_VIA_EMAIL_INITIATED);
+    } else if (screen === 'SIGNUP') {
+      AnalyticsService.logEvent(LogEvent.SIGNUP_VIA_EMAIL_INITIATED);
+    }
+  }, [screen]);
 
   const sharedProps = {
     onClose: onClose || (() => {}),
