@@ -17,7 +17,7 @@ interface TabsProps {
   activeTab: string;
   onTabChange: (tabId: string) => void;
   className?: string;
-  variant?: 'underline' | 'pill';
+  variant?: 'primary' | 'pill';
   disabled?: boolean;
 }
 
@@ -26,7 +26,7 @@ export const Tabs: React.FC<TabsProps> = ({
   activeTab,
   onTabChange,
   className,
-  variant = 'underline',
+  variant = 'primary',
   disabled = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -194,7 +194,6 @@ export const Tabs: React.FC<TabsProps> = ({
   const wrapperStyles = cn(
     'flex items-center w-full overflow-hidden flex-nowrap relative',
     variant === 'pill' && 'rounded-lg bg-gray-100 p-1',
-    variant === 'underline' && 'border-b border-gray-200',
     disabled && 'opacity-50',
     className
   );
@@ -223,13 +222,10 @@ export const Tabs: React.FC<TabsProps> = ({
           ref={(el) => {
             tabRefs.current[tab.id] = el;
           }}
-          className={cn(
-            'flex items-center flex-shrink-0',
-            variant === 'underline' ? 'ml-6' : 'ml-1'
-          )}
-          style={{ marginLeft: variant === 'underline' ? '24px' : '4px' }}
+          className={cn('flex items-center flex-shrink-0', variant === 'primary' ? 'ml-6' : 'ml-1')}
+          style={{ marginLeft: variant === 'primary' ? '24px' : '4px' }}
         >
-          <div className={cn(getTabStyles(tab, true), variant === 'underline' ? 'mr-6' : 'mr-1')} />
+          <div className={cn(getTabStyles(tab, true), variant === 'primary' ? 'mr-6' : 'mr-1')} />
           <button {...commonButtonProps}>{buttonContent}</button>
         </div>
       );
@@ -259,7 +255,7 @@ export const Tabs: React.FC<TabsProps> = ({
         className={cn(
           'flex items-center flex-nowrap h-full overflow-hidden', // Added overflow-hidden here
           variant === 'pill' ? 'space-x-1' : '',
-          variant === 'underline' ? 'space-x-6' : ''
+          variant === 'primary' ? 'space-x-6' : ''
         )}
       >
         {visibleTabs.map(renderTabButton)}
@@ -269,12 +265,12 @@ export const Tabs: React.FC<TabsProps> = ({
       <div
         className={cn(
           'absolute right-0 top-0 bottom-0 flex items-center pr-1',
-          variant === 'underline' ? 'bg-white' : 'bg-gray-100',
+          variant === 'primary' ? 'bg-white' : 'bg-gray-100',
           overflowTabs.length === 0 ? 'invisible' : 'visible'
         )}
         style={{
           background:
-            variant === 'underline'
+            variant === 'primary'
               ? 'linear-gradient(to right, transparent, white 20%, white)'
               : 'linear-gradient(to right, transparent, #f3f4f6 20%, #f3f4f6)',
         }} // Fade effect

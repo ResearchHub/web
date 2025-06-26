@@ -294,7 +294,7 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
     >
       <div className="space-y-6 md:!min-w-[500px] md:!max-w-[500px]">
         {/* Tabs */}
-        <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} variant="underline" />
+        <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} variant="primary" />
 
         {/* Tab Content */}
         {activeTab === 'metadata' && (

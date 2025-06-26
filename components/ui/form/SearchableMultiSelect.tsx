@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState, useId, useCallback } from 'react';
+import { Fragment, useEffect, useState, useId, useCallback, useRef } from 'react';
 import {
   Combobox,
   ComboboxButton,
@@ -53,6 +53,8 @@ export function SearchableMultiSelect({
   const [focusedValueIndex, setFocusedValueIndex] = useState<number | null>(null);
   const [options, setOptions] = useState<MultiSelectOption[]>(staticOptions);
   const [isLoading, setIsLoading] = useState(false);
+  const [dropdownWidth, setDropdownWidth] = useState<number>(0);
+  const comboboxRef = useRef<HTMLDivElement>(null);
 
   // Handle static filtering when no async search is provided
   const filterStaticOptions = useCallback(
@@ -118,6 +120,12 @@ export function SearchableMultiSelect({
       debouncedSearch.cancel();
     };
   }, [query, debouncedSearch, onAsyncSearch, filterStaticOptions]);
+
+  useEffect(() => {
+    if (comboboxRef.current) {
+      setDropdownWidth(comboboxRef.current.offsetWidth);
+    }
+  }, []);
 
   const handleChange = (newValue: MultiSelectOption[]) => {
     const uniqueValues = newValue.filter(
@@ -187,7 +195,7 @@ export function SearchableMultiSelect({
                 </button>
               </span>
             ))}
-            <div className="flex-1 flex min-w-[120px] items-center">
+            <div className="flex-1 flex min-w-[120px] items-center" ref={comboboxRef}>
               <ComboboxInput
                 id={id}
                 autoComplete="off"
@@ -206,7 +214,10 @@ export function SearchableMultiSelect({
             )}
           </div>
 
-          <ComboboxOptions className="absolute z-10 mt-1 w-full p-2 overflow-auto rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none max-h-60">
+          <ComboboxOptions
+            className="absolute z-10 mt-1 p-2 overflow-auto rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none max-h-60"
+            style={{ width: `${dropdownWidth}px` }}
+          >
             {(() => {
               if (onAsyncSearch && query.length < minSearchLength && options.length === 0) {
                 return <div className="px-4 py-2 text-sm text-gray-500">Type to search...</div>;
