@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
-import { ArrowUp, Flag, Edit, MoreHorizontal, FileUp, Lock } from 'lucide-react';
+import { ArrowUp, Flag, Edit, MoreHorizontal, FileUp, Octagon } from 'lucide-react';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
@@ -271,7 +271,7 @@ export const WorkLineItems = ({
                   )}
                 </MenuItem>
               )}
-              {!isPublished && isModerator && (
+              {!isPublished && isModerator && work.contentType !== 'preregistration' && (
                 <MenuItem>
                   {({ focus }) => (
                     <Button
@@ -297,8 +297,8 @@ export const WorkLineItems = ({
                         onClick={() => executeAuthenticatedAction(handleCloseFundraise)}
                         className={`${focus ? 'bg-gray-50' : ''} w-full justify-start`}
                       >
-                        <Lock className="h-4 w-4 mr-2" />
-                        <span>Close Fundraise</span>
+                        <Octagon className="h-4 w-4 mr-2" />
+                        <span>Stop Fundraise</span>
                       </Button>
                     )}
                   </MenuItem>
@@ -433,14 +433,14 @@ export const WorkLineItems = ({
         />
       )}
 
-      {/* Close Fundraise Confirmation Modal */}
+      {/* Stop Fundraise Confirmation Modal */}
       <ConfirmModal
         isOpen={showCloseFundraiseConfirm}
         onClose={() => setShowCloseFundraiseConfirm(false)}
         onConfirm={confirmCloseFundraise}
-        title="Close Fundraise"
-        message="Are you sure you want to close this fundraise? This action will prevent further contributions and cannot be undone."
-        confirmText="Close Fundraise"
+        title="Stop Fundraise"
+        message="Are you sure you want to stop this fundraise? This action will prevent further contributions and cannot be undone."
+        confirmText="Stop Fundraise"
         cancelText="Cancel"
         confirmButtonClass="bg-red-600 hover:bg-red-700"
         cancelButtonClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
