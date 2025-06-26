@@ -186,7 +186,7 @@ export function TipContentModal({
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
+      <Dialog as="div" className="relative z-[100]" onClose={onClose}>
         {/* Overlay */}
         <Transition.Child
           as={Fragment}
