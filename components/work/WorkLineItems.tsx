@@ -2,14 +2,16 @@
 
 import { useState, useCallback } from 'react';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
-import { ArrowUp, Flag, Edit, MoreHorizontal, FileUp } from 'lucide-react';
+import { ArrowUp, Flag, Edit, MoreHorizontal, FileUp, Lock } from 'lucide-react';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useVote } from '@/hooks/useVote';
 import { useUserVotes } from '@/hooks/useUserVotes';
+import { useCloseFundraise } from '@/hooks/useFundraise';
 import toast from 'react-hot-toast';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -37,6 +39,7 @@ export const WorkLineItems = ({
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [showCloseFundraiseConfirm, setShowCloseFundraiseConfirm] = useState(false);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { vote, isVoting } = useVote({
     votableEntityId: work.id,
@@ -179,6 +182,36 @@ export const WorkLineItems = ({
     router.push(`/paper/${latestPaperId}/create/version`);
   }, [work.id, work.versions, user, router]);
 
+  // Add the close fundraise hook
+  const [{ isLoading: isClosingFundraise }, closeFundraise] = useCloseFundraise();
+
+  const handleCloseFundraise = useCallback(() => {
+    setShowCloseFundraiseConfirm(true);
+  }, []);
+
+  const confirmCloseFundraise = useCallback(async () => {
+    if (!metadata.fundraising?.id) {
+      toast.error('No fundraise found to close');
+      return;
+    }
+
+    try {
+      await closeFundraise(metadata.fundraising.id);
+      toast.success('Fundraise closed successfully');
+
+      // Refresh the page data to reflect new status
+      if (typeof router.refresh === 'function') {
+        router.refresh();
+      } else if (typeof window !== 'undefined') {
+        window.location.reload();
+      }
+    } catch (error: any) {
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to close fundraise. Please try again.'
+      );
+    }
+  }, [metadata.fundraising?.id, closeFundraise, router]);
+
   return (
     <div>
       {/* Primary Actions */}
@@ -254,6 +287,23 @@ export const WorkLineItems = ({
                   )}
                 </MenuItem>
               )}
+              {isModerator &&
+                work.contentType === 'preregistration' &&
+                metadata.fundraising?.id && (
+                  <MenuItem>
+                    {({ focus }) => (
+                      <Button
+                        variant="ghost"
+                        disabled={isClosingFundraise}
+                        onClick={() => executeAuthenticatedAction(handleCloseFundraise)}
+                        className={`${focus ? 'bg-gray-50' : ''} w-full justify-start`}
+                      >
+                        <Lock className="h-4 w-4 mr-2" />
+                        <span>Close Fundraise</span>
+                      </Button>
+                    )}
+                  </MenuItem>
+                )}
               <MenuItem>
                 {({ focus }) => (
                   <Button
@@ -383,6 +433,19 @@ export const WorkLineItems = ({
           metadata={metadata}
         />
       )}
+
+      {/* Close Fundraise Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showCloseFundraiseConfirm}
+        onClose={() => setShowCloseFundraiseConfirm(false)}
+        onConfirm={confirmCloseFundraise}
+        title="Close Fundraise"
+        message="Are you sure you want to close this fundraise? This action will prevent further contributions and cannot be undone."
+        confirmText="Close Fundraise"
+        cancelText="Cancel"
+        confirmButtonClass="bg-red-600 hover:bg-red-700"
+        cancelButtonClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+      />
     </div>
   );
 };
