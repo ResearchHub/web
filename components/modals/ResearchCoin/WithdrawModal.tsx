@@ -180,6 +180,12 @@ export function WithdrawModal({
                   </button>
                 </div>
 
+                {/* 24-hour withdrawal limit banner */}
+                <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-3 rounded mb-4 text-sm flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-yellow-500" />
+                  You can only withdraw once every 24 hours.
+                </div>
+
                 <div className="space-y-6">
                   {/* Network Info */}
                   <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-md">
