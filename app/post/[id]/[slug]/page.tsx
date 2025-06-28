@@ -72,7 +72,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: post.title,
       description,
       url: `/post/${resolvedParams.id}/${resolvedParams.slug}`,
-      image: ogImage, // Use the dynamic OG image
+      image: ogImage,
       publishedTime: post.createdDate,
       authors: post.authors?.map((author) => author.authorProfile?.fullName) || [],
       tags: post.topics?.map((topic) => topic.name) || [],

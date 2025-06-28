@@ -9,6 +9,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundDocument } from '@/components/work/FundDocument';
 import { FundingRightSidebar } from '@/components/work/FundingRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
+import { getWorkMetadata } from '@/lib/metadata-helpers';
 
 interface Props {
   params: Promise<{
@@ -44,10 +45,11 @@ async function getWorkHTMLContent(work: Work): Promise<string | undefined> {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const project = await getFundingProject(resolvedParams.id);
-  return {
-    title: `${project.title} - Reviews`,
-    description: project.abstract || '',
-  };
+
+  return getWorkMetadata({
+    work: project,
+    url: `/fund/${resolvedParams.id}/${resolvedParams.slug}/reviews`,
+  });
 }
 
 export default async function FundReviewsPage({ params }: Props) {

@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 export const SITE_CONFIG = {
   name: 'ResearchHub',
   description:
-    'ResearchHub is a collaborative community seeking to improve prioritization, collaboration, reproducibility, and funding of scientific research.',
+    'ResearchHub is a collaborative community seeking to improve prioritization, collaboration, reproducibility, and funding of scientific research. Join us to discuss and discover academic research.',
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://researchhub.com',
   ogImage: '/og-card-preview.png',
   twitterHandle: '@researchhub',
