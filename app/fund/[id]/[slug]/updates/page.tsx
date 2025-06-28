@@ -49,6 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return getWorkMetadata({
     work: project,
     url: `/fund/${resolvedParams.id}/${resolvedParams.slug}/updates`,
+    titleSuffix: 'Updates',
   });
 }
 

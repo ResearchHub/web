@@ -35,6 +35,7 @@ import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { faMedal, faRibbon, faStar } from '@fortawesome/pro-solid-svg-icons';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { SITE_CONFIG } from '@/lib/metadata';
 
 // Skeleton for the list items
 const LeaderboardListSkeleton = () => (
