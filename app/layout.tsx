@@ -21,6 +21,7 @@ import { VerificationProvider } from '@/contexts/VerificationContext';
 import SignupModalContainer from '@/components/modals/SignupModalContainer';
 import ShareModalTrigger from '@/components/modals/ShareModalTrigger';
 import { SITE_CONFIG } from '@/lib/metadata';
+import AnalyticsProvider from '@/components/providers/AnalyticsProvider';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -114,25 +115,27 @@ export default async function RootLayout({
         <ClickProvider>
           <OnchainProvider>
             <NextAuthProvider session={session}>
-              <AuthSharingWrapper>
-                <AuthModalProvider>
-                  <UserProvider>
-                    <VerificationProvider>
-                      <ExchangeRateProvider>
-                        <CurrencyPreferenceProvider>
-                          <NotificationProvider>
-                            <OrganizationProvider>
-                              <FollowProvider>{children}</FollowProvider>
-                            </OrganizationProvider>
-                          </NotificationProvider>
-                        </CurrencyPreferenceProvider>
-                      </ExchangeRateProvider>
-                    </VerificationProvider>
-                  </UserProvider>
-                  <SignupModalContainer />
-                  <ShareModalTrigger />
-                </AuthModalProvider>
-              </AuthSharingWrapper>
+              <AnalyticsProvider>
+                <AuthSharingWrapper>
+                  <AuthModalProvider>
+                    <UserProvider>
+                      <VerificationProvider>
+                        <ExchangeRateProvider>
+                          <CurrencyPreferenceProvider>
+                            <NotificationProvider>
+                              <OrganizationProvider>
+                                <FollowProvider>{children}</FollowProvider>
+                              </OrganizationProvider>
+                            </NotificationProvider>
+                          </CurrencyPreferenceProvider>
+                        </ExchangeRateProvider>
+                      </VerificationProvider>
+                    </UserProvider>
+                    <SignupModalContainer />
+                    <ShareModalTrigger />
+                  </AuthModalProvider>
+                </AuthSharingWrapper>
+              </AnalyticsProvider>
             </NextAuthProvider>
             <ToasterProvider />
           </OnchainProvider>

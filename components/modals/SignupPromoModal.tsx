@@ -11,7 +11,7 @@ interface SignupModalProps {
   onClose: () => void;
 }
 
-export default function SignupModal({ onClose }: SignupModalProps) {
+export default function SignupPromoModal({ onClose }: SignupModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [isHeadingAnimationComplete, setIsHeadingAnimationComplete] = useState(false);

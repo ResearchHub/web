@@ -3,6 +3,8 @@ import { AuthService } from '@/services/auth.service';
 import { ApiError } from '@/services/types/api';
 import { isValidEmail } from '@/utils/validation';
 import { useAutoFocus } from '@/hooks/useAutoFocus';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+
 interface SelectProviderProps {
   onContinue: () => void;
   onSignup: () => void;
@@ -57,7 +59,8 @@ export default function SelectProvider({
     }
   };
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
+    await AnalyticsService.logEvent(LogEvent.AUTH_VIA_GOOGLE_INITIATED);
     // Get the current URL's search params to extract callbackUrl
     const searchParams = new URLSearchParams(window.location.search);
     const callbackUrl = searchParams.get('callbackUrl') || '/';

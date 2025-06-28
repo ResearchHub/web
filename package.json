@@ -13,6 +13,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@amplitude/analytics-browser": "^2.17.11",
     "@coinbase/onchainkit": "^0.37.3",
     "@fontsource/inter": "^5.1.0",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import SignupModal from '@/components/modals/SignupModal';
+import SignupPromoModal from '@/components/modals/SignupPromoModal';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
 export default function SignupModalContainer() {
   const [showModal, setShowModal] = useState(false);
@@ -14,6 +15,7 @@ export default function SignupModalContainer() {
     if (status === 'unauthenticated' && !modalDismissed) {
       const timer = setTimeout(() => {
         setShowModal(true);
+        AnalyticsService.logEvent(LogEvent.SIGNUP_PROMO_MODAL_OPENED);
       }, 2000);
       return () => clearTimeout(timer);
     } else {
@@ -24,11 +26,12 @@ export default function SignupModalContainer() {
   const handleCloseModal = () => {
     setShowModal(false);
     sessionStorage.setItem('signupModalDismissed', 'true');
+    AnalyticsService.logEvent(LogEvent.SIGNUP_PROMO_MODAL_CLOSED);
   };
 
   if (!showModal) {
     return null;
   }
 
-  return <SignupModal onClose={handleCloseModal} />;
+  return <SignupPromoModal onClose={handleCloseModal} />;
 }
