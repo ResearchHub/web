@@ -338,19 +338,41 @@ const FilteredCommentFeed = ({
 
       try {
         const CommentService = (await import('@/services/comment.service')).CommentService;
-        const response = await CommentService.fetchComments({
-          documentId,
-          contentType,
-          sort: 'TOP',
-          pageSize: 100,
-        });
+
+        // Fetch both BOUNTY and REVIEW comments to get all eligible candidates, then combine them.
+        // we're using Promise.all to fetch both types parallelly.
+        const [bountyResponse, reviewResponse] = await Promise.all([
+          CommentService.fetchComments({
+            documentId,
+            contentType,
+            sort: 'TOP',
+            pageSize: 100,
+            filter: 'BOUNTY',
+          }),
+          CommentService.fetchComments({
+            documentId,
+            contentType,
+            sort: 'TOP',
+            pageSize: 100,
+            filter: 'REVIEW',
+          }),
+        ]);
 
         if (isMounted) {
-          if (response && response.comments) {
-            setAllComments(response.comments);
-          } else {
-            setAllComments([]);
-          }
+          const bountyComments = bountyResponse?.comments || [];
+          const reviewComments = reviewResponse?.comments || [];
+
+          // Deduplicate comments by ID to avoid duplicate candidates
+          // Added this as a defensive approach,
+          // for instance comments from the bounties tab may reappear on the reviews tab
+          // and vice versa.
+
+          const combinedComments = [...bountyComments, ...reviewComments];
+          const uniqueComments = combinedComments.filter(
+            (comment, index, array) => array.findIndex((c) => c.id === comment.id) === index
+          );
+
+          setAllComments(uniqueComments);
           setError(null);
         }
       } catch (err) {
@@ -374,16 +396,44 @@ const FilteredCommentFeed = ({
     };
   }, [documentId, contentType, stableOnLoadingChange]);
 
-  // Filter out comments that have bounties and flatten the comment tree
-  const commentsWithoutBounties = useMemo(() => {
+  // Filter comments to find eligible candidates for bounty awards
+  // This was previously called commentsWithoutBounties
+  const eligibleComments = useMemo(() => {
     // Helper function to flatten a comment tree
     const flattenComments = (comments: Comment[]): Comment[] => {
       return comments.reduce<Comment[]>((acc, comment) => {
-        // Check if the comment is eligible
-        const isBountyComment = comment.commentType === 'BOUNTY' || hasBounties(comment);
+        // ELIGIBILITY LOGIC: Check if comment is eligible for award
+        // is EligibleForAward was previously isBountyComment, renamed for clarity and consistency of terms used here
+        const isEligibleForAward = (comment: Comment): boolean => {
+          // DECISION NEEDED, REVIEW COMMENT AWARD OPTIONS:
+          // OPTION 1: Allow Double-Award of REVIEW comments even if they already have received past bounties award OR direct tips
+          // if (comment.commentType === 'REVIEW') {
+          //   return true;
+          // }
+
+          // OPTION 2: Exclude REVIEW comments that already have any awards. We ONLY allow REVIEW comments without existing bounties OR tips
+          // if (comment.commentType === 'REVIEW') {
+          //   const hasAwardItems = hasBounties(comment) || (comment?.tips?.length || 0) > 0 || (comment?.awardedBountyAmount || 0) > 0;
+          //   return !hasAwardItems;
+          // }
+
+          // OPTION 3 BEST?: Exclude REVIEW comments that have previous bounty awards (awardedBountyAmount),
+          // but INCLUDE those that only received direct tips from elsewhere
+          // Note: awarded bounties appear as tips in the UI. (see components/Feed/FeedItemActions.tsx)
+          // so direct tips are tips that are not originated from awarded bounties
+          if (comment.commentType === 'REVIEW') {
+            const hasDirectTipsOnly =
+              (comment?.tips?.length || 0) > 0 && !(comment?.awardedBountyAmount || 0);
+            const hasNoPreviousAwards =
+              !hasBounties(comment) && !(comment?.awardedBountyAmount || 0);
+            return hasDirectTipsOnly || hasNoPreviousAwards;
+          }
+
+          return false;
+        };
 
         // Add eligible comments to the result
-        if (!isBountyComment) {
+        if (isEligibleForAward(comment)) {
           acc.push(comment);
         }
 
@@ -403,14 +453,14 @@ const FilteredCommentFeed = ({
   // Notify parent component about eligible comments when they change
   useEffect(() => {
     if (!isLoading) {
-      if (commentsWithoutBounties.length > 0) {
-        const eligibleIds = commentsWithoutBounties.map((comment) => comment.id);
+      if (eligibleComments.length > 0) {
+        const eligibleIds = eligibleComments.map((comment) => comment.id);
         stableOnSetEligibleComments(eligibleIds);
       } else {
         stableOnSetEligibleComments([]);
       }
     }
-  }, [commentsWithoutBounties, isLoading, stableOnSetEligibleComments]);
+  }, [eligibleComments, isLoading, stableOnSetEligibleComments]);
 
   if (isLoading) {
     return <div className="py-4 text-center text-gray-500">Loading comments...</div>;
@@ -420,7 +470,7 @@ const FilteredCommentFeed = ({
     return <div className="py-4 text-center text-red-500">{error}</div>;
   }
 
-  if (commentsWithoutBounties.length === 0) {
+  if (eligibleComments.length === 0) {
     return (
       <div className="py-8 text-center">
         <p className="text-gray-500">
@@ -433,7 +483,7 @@ const FilteredCommentFeed = ({
 
   return (
     <div className="divide-y divide-gray-200">
-      {commentsWithoutBounties.map((comment) => {
+      {eligibleComments.map((comment) => {
         const commentId = comment.id;
         const awardAmount = awardAmounts[commentId] || 0;
         const selectedPercentage = selectedPercentages[commentId] || 0;
@@ -576,6 +626,13 @@ export const AwardBountyModal = ({
           'No valid awards found. Please allocate the bounty to at least one comment.'
         );
       }
+
+      // DEBUG: Log what we're trying to award
+      console.log('Attempting to award bounty:', {
+        bountyId: activeBounty.id,
+        awards,
+        totalAmount: awards.reduce((sum, award) => sum + award.amount, 0),
+      });
 
       await BountyService.awardBounty(activeBounty.id, awards);
       toast.success('Bounty awards submitted successfully');
