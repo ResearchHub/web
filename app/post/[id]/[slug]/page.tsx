@@ -10,6 +10,9 @@ import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { PostDocument } from '@/components/work/PostDocument';
 import { handleFundraiseRedirect } from '@/utils/navigation';
+import { buildArticleMetadata, SITE_CONFIG } from '@/lib/metadata';
+import { truncateText } from '@/utils/stringUtils';
+import { generateDocumentStructuredData } from '@/lib/structured-data';
 
 interface Props {
   params: Promise<{
@@ -44,9 +47,42 @@ async function getPostContent(work: Work): Promise<string | undefined> {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const post = await getPost(resolvedParams.id);
+
+  // Get content for better description
+  const content = await getPostContent(post);
+  const description = content
+    ? truncateText(content.replace(/<[^>]*>/g, ''), 65)
+    : truncateText(post.abstract || post.title, 65);
+
+  // Use custom image if available, otherwise generate dynamic OG image
+  const ogImage =
+    post.image ||
+    `${SITE_CONFIG.url}/api/og?title=${encodeURIComponent(post.title)}&description=${encodeURIComponent(description)}&author=${encodeURIComponent(post.authors?.[0]?.authorProfile?.fullName || '')}`;
+
+  const structuredData = generateDocumentStructuredData({
+    ...post,
+    authors: post.authors?.map((a) => ({
+      name: a.authorProfile?.fullName || '',
+      url: a.authorProfile?.profileUrl,
+    })),
+  });
+
   return {
-    title: post.title,
-    description: post.abstract || '',
+    ...buildArticleMetadata({
+      title: post.title,
+      description,
+      url: `/post/${resolvedParams.id}/${resolvedParams.slug}`,
+      image: ogImage, // Use the dynamic OG image
+      publishedTime: post.createdDate,
+      authors: post.authors?.map((author) => author.authorProfile?.fullName) || [],
+      tags: post.topics?.map((topic) => topic.name) || [],
+    }),
+    // Practice #10: Fallback structured data
+    ...(structuredData && {
+      other: {
+        'application/ld+json': JSON.stringify(structuredData),
+      },
+    }),
   };
 }
 
