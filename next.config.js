@@ -4,7 +4,7 @@ const nextConfig = {
   redirects: async () => [
     {
       source: '/fund',
-      destination: '/fund/needs-funding',
+      destination: '/fund/grants',
       permanent: false,
     },
   ],
