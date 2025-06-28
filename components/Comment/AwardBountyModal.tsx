@@ -627,13 +627,6 @@ export const AwardBountyModal = ({
         );
       }
 
-      // DEBUG: Log what we're trying to award
-      console.log('Attempting to award bounty:', {
-        bountyId: activeBounty.id,
-        awards,
-        totalAmount: awards.reduce((sum, award) => sum + award.amount, 0),
-      });
-
       await BountyService.awardBounty(activeBounty.id, awards);
       toast.success('Bounty awards submitted successfully');
 
