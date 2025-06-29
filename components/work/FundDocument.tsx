@@ -41,7 +41,7 @@ export const FundDocument = ({
   const [showMobileMetrics, setShowMobileMetrics] = useState(false);
   const storageKey = useStorageKey('rh-comments');
   const { user } = useUser();
-
+  const { showShareModal } = useShareModalContext();
   // Check if current user is an author of the work
   const isCurrentUserAuthor = useMemo(() => {
     if (!user?.id) return false;
@@ -150,6 +150,7 @@ export const FundDocument = ({
                 commentType: 'AUTHOR_UPDATE',
                 storageKey: `${storageKey}-update-feed-${work.id}`,
               }}
+              work={work}
             />
           </div>
         );
@@ -169,6 +170,7 @@ export const FundDocument = ({
                 commentType: 'REVIEW',
                 storageKey: `${storageKey}-review-feed-${work.id}`,
               }}
+              work={work}
             />
           </div>
         );
@@ -187,6 +189,7 @@ export const FundDocument = ({
               editorProps={{
                 storageKey: `${storageKey}-bounty-feed-${work.id}`,
               }}
+              work={work}
             />
           </div>
         );
@@ -203,6 +206,7 @@ export const FundDocument = ({
               editorProps={{
                 storageKey: `${storageKey}-comment-feed-${work.id}`,
               }}
+              work={work}
             />
           </div>
         );
@@ -259,6 +263,7 @@ export const FundDocument = ({
               updatedDate: metadata.fundraising.updatedDate || '',
               goalCurrency: metadata.fundraising.goalCurrency || 'RSC',
             }}
+            fundraiseTitle={work.title}
             onContribute={() => {
               // Handle contribute action
             }}
@@ -295,9 +300,7 @@ export const FundDocument = ({
       {/* New Funding Modal */}
       <NewFundingModal
         isOpen={isNewFundingModalOpen}
-        onClose={() => {
-          setIsNewFundingModalOpen(false);
-        }}
+        onClose={() => handleCloseNewFundingModal()}
         preregistrationUrl={getCleanUrl()}
       />
     </div>

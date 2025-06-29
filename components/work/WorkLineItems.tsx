@@ -20,6 +20,7 @@ import { useUser } from '@/contexts/UserContext';
 import { Contact } from '@/types/note';
 import { WorkEditModal } from './WorkEditModal';
 import { WorkMetadata } from '@/services/metadata.service';
+import { useShareModalContext } from '@/contexts/ShareContext';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -48,6 +49,7 @@ export const WorkLineItems = ({
   const { selectedOrg } = useOrganizationContext();
   const { user } = useUser();
   const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
+  const { showShareModal } = useShareModalContext();
 
   const {
     data: userVotes,
@@ -195,6 +197,20 @@ export const WorkLineItems = ({
           >
             <ArrowUp className={`h-4 w-4`} />
             <span>{voteCount}</span>
+          </button>
+
+          <button
+            onClick={() =>
+              showShareModal({
+                url: window.location.href,
+                docTitle: work.title,
+                action: 'USER_SHARED_DOCUMENT',
+                shouldShowConfetti: false,
+              })
+            }
+            className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+          >
+            <Icon name="socialMedia" size={24} />
           </button>
 
           {work.contentType !== 'preregistration' && (

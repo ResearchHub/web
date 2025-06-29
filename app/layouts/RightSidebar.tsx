@@ -229,6 +229,7 @@ const FundingSpotlight = () => {
                 <div onClick={(e) => e.stopPropagation()}>
                   <FundraiseProgress
                     fundraise={content.fundraise}
+                    fundraiseTitle={title}
                     variant="minimal"
                     className="mt-2"
                   />

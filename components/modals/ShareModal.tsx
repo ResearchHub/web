@@ -3,17 +3,15 @@
 import { Fragment, useRef, useEffect, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import Confetti from 'react-confetti';
-import { Button } from '@/components/ui/Button';
 import { PartyPopper, Copy } from 'lucide-react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faXTwitter, faLinkedin, faBluesky } from '@fortawesome/free-brands-svg-icons';
+import SocialShareButtons from '@/components/SocialShareButtons';
 
 export type ShareAction =
-  | 'FUNDER_OPENED_RFP'
   | 'USER_OPENED_PROPOSAL'
   | 'USER_PEER_REVIEWED'
   | 'USER_PEER_REVIEWED_PROPOSAL'
-  | 'USER_FUNDED_PROPOSAL';
+  | 'USER_FUNDED_PROPOSAL'
+  | 'USER_SHARED_DOCUMENT';
 
 interface ShareConfig {
   title: (docTitle: string) => React.ReactNode;
@@ -22,19 +20,6 @@ interface ShareConfig {
 }
 
 export const SHARE_CONFIGS: Record<ShareAction, ShareConfig> = {
-  FUNDER_OPENED_RFP: {
-    title: (docTitle) => <>You opened an RFP!</>,
-    description: (docTitle) => (
-      <>
-        Thank you for opening{' '}
-        <span className="font-semibold text-blue-600" title={docTitle}>
-          {docTitle}
-        </span>
-        !
-      </>
-    ),
-    socialText: (docTitle) => `I just opened an RFP: ${docTitle} on ResearchHub!`,
-  },
   USER_OPENED_PROPOSAL: {
     title: (docTitle) => <>You opened a proposal!</>,
     description: (docTitle) => (
@@ -87,6 +72,19 @@ export const SHARE_CONFIGS: Record<ShareAction, ShareConfig> = {
     ),
     socialText: (docTitle) => `I just funded: ${docTitle} on ResearchHub!`,
   },
+  USER_SHARED_DOCUMENT: {
+    title: (docTitle) => <>Share this document!</>,
+    description: (docTitle: string) => (
+      <>
+        Help others discover{' '}
+        <span className="font-semibold text-primary-600" title={docTitle}>
+          {docTitle}
+        </span>{' '}
+        by sharing it on social media.
+      </>
+    ),
+    socialText: (docTitle: string) => `I'm sharing "${docTitle}" on ResearchHub! Check it out:`,
+  },
 };
 
 interface ShareModalProps {
@@ -95,9 +93,17 @@ interface ShareModalProps {
   docTitle: string;
   url: string;
   action: ShareAction;
+  shouldShowConfetti?: boolean;
 }
 
-export default function ShareModal({ isOpen, onClose, docTitle, url, action }: ShareModalProps) {
+export default function ShareModal({
+  isOpen,
+  onClose,
+  docTitle,
+  url,
+  action,
+  shouldShowConfetti = true,
+}: ShareModalProps) {
   const config = SHARE_CONFIGS[action];
   const [copied, setCopied] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -106,7 +112,7 @@ export default function ShareModal({ isOpen, onClose, docTitle, url, action }: S
 
   useEffect(() => {
     if (isOpen) {
-      setShowConfetti(true);
+      setShowConfetti(shouldShowConfetti);
       const timeout = setTimeout(() => {
         if (modalRef.current) {
           const width = modalRef.current.offsetWidth;
@@ -124,27 +130,6 @@ export default function ShareModal({ isOpen, onClose, docTitle, url, action }: S
     navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const shareOnTwitter = () => {
-    window.open(
-      `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(config.socialText(docTitle))}`,
-      '_blank'
-    );
-  };
-
-  const shareOnLinkedIn = () => {
-    window.open(
-      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
-      '_blank'
-    );
-  };
-
-  const shareOnBluesky = () => {
-    window.open(
-      `https://bsky.app/intent/compose?text=${encodeURIComponent(`Check out this experiment on ResearchHub: ${docTitle} ${url}`)}`,
-      '_blank'
-    );
   };
 
   return (
@@ -241,17 +226,7 @@ export default function ShareModal({ isOpen, onClose, docTitle, url, action }: S
                   <p className="text-sm font-medium text-gray-700 text-center">
                     Or share directly on:
                   </p>
-                  <div className="mt-2 grid grid-cols-3 gap-3">
-                    <Button variant="outlined" className="w-full" onClick={shareOnLinkedIn}>
-                      <FontAwesomeIcon icon={faLinkedin} size="lg" />
-                    </Button>
-                    <Button variant="outlined" className="w-full" onClick={shareOnTwitter}>
-                      <FontAwesomeIcon icon={faXTwitter} size="lg" />
-                    </Button>
-                    <Button variant="outlined" className="w-full" onClick={shareOnBluesky}>
-                      <FontAwesomeIcon icon={faBluesky} size="lg" />
-                    </Button>
-                  </div>
+                  <SocialShareButtons action={action} docTitle={docTitle} url={url} />
                 </div>
               </Dialog.Panel>
             </Transition.Child>

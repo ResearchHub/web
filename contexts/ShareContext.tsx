@@ -4,7 +4,12 @@ import { createContext, useContext, useState, useCallback, ReactNode, useEffect 
 import ShareModal, { ShareAction } from '@/components/modals/ShareModal';
 
 interface ShareModalContextType {
-  showShareModal: (params: { url: string; docTitle: string; action: ShareAction }) => void;
+  showShareModal: (params: {
+    url: string;
+    docTitle: string;
+    action: ShareAction;
+    shouldShowConfetti?: boolean;
+  }) => void;
   hideShareModal: () => void;
 }
 
@@ -23,13 +28,25 @@ export function ShareModalProvider({ children }: { children: ReactNode }) {
   const [shareUrl, setShareUrl] = useState<string>('');
   const [docTitle, setDocTitle] = useState('');
   const [action, setAction] = useState<ShareAction>('USER_FUNDED_PROPOSAL');
+  const [shouldShowConfetti, setShouldShowConfetti] = useState(true);
 
   const showShareModal = useCallback(
-    ({ url, docTitle, action }: { url: string; docTitle: string; action: ShareAction }) => {
+    ({
+      url,
+      docTitle,
+      action,
+      shouldShowConfetti,
+    }: {
+      url: string;
+      docTitle: string;
+      action: ShareAction;
+      shouldShowConfetti?: boolean;
+    }) => {
       setShareUrl(url);
       setDocTitle(docTitle);
       setAction(action);
       setIsOpen(true);
+      setShouldShowConfetti(shouldShowConfetti ?? true);
     },
     []
   );
@@ -48,6 +65,7 @@ export function ShareModalProvider({ children }: { children: ReactNode }) {
         url={shareUrl}
         docTitle={docTitle}
         action={action}
+        shouldShowConfetti={shouldShowConfetti}
       />
     </ShareModalContext.Provider>
   );

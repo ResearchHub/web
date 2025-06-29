@@ -134,7 +134,7 @@ export default async function RootLayout({
                         </VerificationProvider>
                       </UserProvider>
                       <SignupModalContainer />
-                      <ShareModalTrigger />
+                      {/* <ShareModalTrigger /> */}
                     </ShareModalProvider>
                   </AuthModalProvider>
                 </AuthSharingWrapper>
