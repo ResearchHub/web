@@ -20,6 +20,7 @@ import { FundingRightSidebar } from './FundingRightSidebar';
 import { useUser } from '@/contexts/UserContext';
 import { UpdateRateBadge } from '@/components/ui/badges/UpdateRateBadge';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
+import { useShareModalContext } from '@/contexts/ShareContext';
 
 interface FundDocumentProps {
   work: Work;
@@ -40,7 +41,7 @@ export const FundDocument = ({
   const [showMobileMetrics, setShowMobileMetrics] = useState(false);
   const storageKey = useStorageKey('rh-comments');
   const { user } = useUser();
-
+  const { showShareModal } = useShareModalContext();
   // Check if current user is an author of the work
   const isCurrentUserAuthor = useMemo(() => {
     if (!user?.id) return false;
@@ -149,6 +150,7 @@ export const FundDocument = ({
                 commentType: 'AUTHOR_UPDATE',
                 storageKey: `${storageKey}-update-feed-${work.id}`,
               }}
+              work={work}
             />
           </div>
         );
@@ -168,6 +170,7 @@ export const FundDocument = ({
                 commentType: 'REVIEW',
                 storageKey: `${storageKey}-review-feed-${work.id}`,
               }}
+              work={work}
             />
           </div>
         );
@@ -186,6 +189,7 @@ export const FundDocument = ({
               editorProps={{
                 storageKey: `${storageKey}-bounty-feed-${work.id}`,
               }}
+              work={work}
             />
           </div>
         );
@@ -202,6 +206,7 @@ export const FundDocument = ({
               editorProps={{
                 storageKey: `${storageKey}-comment-feed-${work.id}`,
               }}
+              work={work}
             />
           </div>
         );
@@ -220,7 +225,6 @@ export const FundDocument = ({
         </div>
       )}
       <PageHeader title={work.title} className="text-3xl mt-2" />
-
       <WorkLineItems
         work={work}
         metadata={metadata}
@@ -235,7 +239,6 @@ export const FundDocument = ({
           </button>
         }
       />
-
       {/* FundraiseProgress - now placed between line items and tabs */}
       {metadata.fundraising && (
         <div className="my-6">
@@ -260,13 +263,13 @@ export const FundDocument = ({
               updatedDate: metadata.fundraising.updatedDate || '',
               goalCurrency: metadata.fundraising.goalCurrency || 'RSC',
             }}
+            fundraiseTitle={work.title}
             onContribute={() => {
               // Handle contribute action
             }}
           />
         </div>
       )}
-
       {/* Tabs */}
       <WorkTabs
         work={work}
@@ -276,10 +279,8 @@ export const FundDocument = ({
         onTabChange={handleTabChange}
         updatesCount={authorUpdates.length}
       />
-
       {/* Tab Content */}
       {renderTabContent}
-
       {/* Mobile sidebar overlay */}
       <div
         className={`fixed inset-0 bg-black/50 z-30 z-50 lg:hidden ${
@@ -296,11 +297,10 @@ export const FundDocument = ({
           <FundingRightSidebar work={work} metadata={metadata} authorUpdates={authorUpdates} />
         </div>
       </div>
-
       {/* New Funding Modal */}
       <NewFundingModal
         isOpen={isNewFundingModalOpen}
-        onClose={handleCloseNewFundingModal}
+        onClose={() => handleCloseNewFundingModal()}
         preregistrationUrl={getCleanUrl()}
       />
     </div>

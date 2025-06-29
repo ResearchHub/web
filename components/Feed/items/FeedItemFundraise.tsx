@@ -223,6 +223,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             <div className="mt-4" onClick={(e) => e.stopPropagation()}>
               <FundraiseProgress
                 fundraise={post.fundraise}
+                fundraiseTitle={post.title}
                 compact={true}
                 showContribute={true}
                 className="p-0 border-0 bg-transparent"

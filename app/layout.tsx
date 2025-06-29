@@ -22,6 +22,7 @@ import SignupModalContainer from '@/components/modals/SignupModalContainer';
 import ShareModalTrigger from '@/components/modals/ShareModalTrigger';
 import { SITE_CONFIG } from '@/lib/metadata';
 import AnalyticsProvider from '@/components/providers/AnalyticsProvider';
+import { ShareModalProvider } from '@/contexts/ShareContext';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -118,21 +119,23 @@ export default async function RootLayout({
               <AnalyticsProvider>
                 <AuthSharingWrapper>
                   <AuthModalProvider>
-                    <UserProvider>
-                      <VerificationProvider>
-                        <ExchangeRateProvider>
-                          <CurrencyPreferenceProvider>
-                            <NotificationProvider>
-                              <OrganizationProvider>
-                                <FollowProvider>{children}</FollowProvider>
-                              </OrganizationProvider>
-                            </NotificationProvider>
-                          </CurrencyPreferenceProvider>
-                        </ExchangeRateProvider>
-                      </VerificationProvider>
-                    </UserProvider>
-                    <SignupModalContainer />
-                    <ShareModalTrigger />
+                    <ShareModalProvider>
+                      <UserProvider>
+                        <VerificationProvider>
+                          <ExchangeRateProvider>
+                            <CurrencyPreferenceProvider>
+                              <NotificationProvider>
+                                <OrganizationProvider>
+                                  <FollowProvider>{children}</FollowProvider>
+                                </OrganizationProvider>
+                              </NotificationProvider>
+                            </CurrencyPreferenceProvider>
+                          </ExchangeRateProvider>
+                        </VerificationProvider>
+                      </UserProvider>
+                      <SignupModalContainer />
+                      {/* <ShareModalTrigger /> */}
+                    </ShareModalProvider>
                   </AuthModalProvider>
                 </AuthSharingWrapper>
               </AnalyticsProvider>
