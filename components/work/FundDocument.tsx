@@ -20,6 +20,7 @@ import { FundingRightSidebar } from './FundingRightSidebar';
 import { useUser } from '@/contexts/UserContext';
 import { UpdateRateBadge } from '@/components/ui/badges/UpdateRateBadge';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
+import { useShareModalContext } from '@/contexts/ShareContext';
 
 interface FundDocumentProps {
   work: Work;
@@ -220,7 +221,6 @@ export const FundDocument = ({
         </div>
       )}
       <PageHeader title={work.title} className="text-3xl mt-2" />
-
       <WorkLineItems
         work={work}
         metadata={metadata}
@@ -235,7 +235,6 @@ export const FundDocument = ({
           </button>
         }
       />
-
       {/* FundraiseProgress - now placed between line items and tabs */}
       {metadata.fundraising && (
         <div className="my-6">
@@ -266,7 +265,6 @@ export const FundDocument = ({
           />
         </div>
       )}
-
       {/* Tabs */}
       <WorkTabs
         work={work}
@@ -276,10 +274,8 @@ export const FundDocument = ({
         onTabChange={handleTabChange}
         updatesCount={authorUpdates.length}
       />
-
       {/* Tab Content */}
       {renderTabContent}
-
       {/* Mobile sidebar overlay */}
       <div
         className={`fixed inset-0 bg-black/50 z-30 z-50 lg:hidden ${
@@ -296,11 +292,12 @@ export const FundDocument = ({
           <FundingRightSidebar work={work} metadata={metadata} authorUpdates={authorUpdates} />
         </div>
       </div>
-
       {/* New Funding Modal */}
       <NewFundingModal
         isOpen={isNewFundingModalOpen}
-        onClose={handleCloseNewFundingModal}
+        onClose={() => {
+          setIsNewFundingModalOpen(false);
+        }}
         preregistrationUrl={getCleanUrl()}
       />
     </div>

@@ -259,6 +259,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const { unreadCount } = useNotifications();
   const goBack = useSmartBack();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [shortcutText, setShortcutText] = useState('Ctrl+K');
 
   const pageInfo = getPageInfo(pathname);
 
@@ -278,9 +279,10 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   }, []);
 
   // Detect OS for keyboard shortcut display
-  const isMac =
-    typeof window !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-  const shortcutText = isMac ? '⌘K' : 'Ctrl+K';
+  useEffect(() => {
+    const isMac = typeof window !== 'undefined' && /Mac/.test(navigator.platform);
+    setShortcutText(isMac ? '⌘K' : 'Ctrl+K');
+  }, []);
 
   const handleViewProfile = () => {
     if (user?.authorProfile?.profileUrl) {
