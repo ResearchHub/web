@@ -1,4 +1,5 @@
 import * as amplitude from '@amplitude/analytics-browser';
+import { sendGAEvent } from '@next/third-parties/google';
 
 export const LogEvent = {
   SIGNUP_PROMO_MODAL_OPENED: 'signup_promo_modal_opened',
@@ -9,15 +10,22 @@ export const LogEvent = {
   SIGNUP_VIA_EMAIL_INITIATED: 'signup_via_email_initiated',
   LOGIN_VIA_EMAIL_INITIATED: 'login_via_email_initiated',
   ONBOARDING_VIEWED: 'onboarding_viewed',
+  SHARE_MODAL_OPENED: 'share_modal_opened',
+  SHARE_MODAL_CLOSED: 'share_modal_closed',
+  CLICKED_SHARE_VIA_LINKEDIN: 'clicked_share_via_linkedin',
+  CLICKED_SHARE_VIA_X: 'clicked_share_via_x',
+  CLICKED_SHARE_VIA_URL: 'clicked_share_via_url',
+  CLICKED_SHARE_VIA_BLUESKY: 'clicked_share_via_bluesky',
 } as const;
 
 export type LogEventValue = (typeof LogEvent)[keyof typeof LogEvent];
 
-type AnalyticsProvider = 'amplitude';
+type AnalyticsProvider = 'amplitude' | 'google';
 
 class AnalyticsService {
   private static isInitialized: Record<AnalyticsProvider, boolean> = {
     amplitude: false,
+    google: true, // No specific init needed for GA via next/third-parties
   };
 
   static init() {
@@ -38,6 +46,7 @@ class AnalyticsService {
   }
 
   static setUserId(userId: string | null) {
+    this.init();
     if (!this.isInitialized.amplitude) {
       console.error('Amplitude not initialized before setting user ID.');
       return;
@@ -48,8 +57,9 @@ class AnalyticsService {
   static async logEvent(
     eventName: LogEventValue,
     eventProperties?: Record<string, any>,
-    providers: AnalyticsProvider[] = ['amplitude']
+    providers: AnalyticsProvider[] = ['amplitude', 'google']
   ) {
+    this.init();
     const promises = [];
     for (const provider of providers) {
       switch (provider) {
@@ -61,6 +71,11 @@ class AnalyticsService {
           const result = amplitude.logEvent(eventName, eventProperties);
           if (result?.promise) {
             promises.push(result.promise);
+          }
+          break;
+        case 'google':
+          if (process.env.GA_MEASUREMENT_ID) {
+            sendGAEvent({ event: eventName, ...eventProperties });
           }
           break;
         default:

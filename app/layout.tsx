@@ -24,6 +24,7 @@ import { SITE_CONFIG } from '@/lib/metadata';
 import AnalyticsProvider from '@/components/providers/AnalyticsProvider';
 import { ShareModalProvider } from '@/contexts/ShareContext';
 import ApmProvider from '@/components/ApmProvider';
+import { GoogleAnalytics } from '@next/third-parties/google';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -145,6 +146,7 @@ export default async function RootLayout({
             <ToasterProvider />
           </OnchainProvider>
         </ClickProvider>
+        {process.env.GA_MEASUREMENT_ID && <GoogleAnalytics gaId={process.env.GA_MEASUREMENT_ID} />}
       </body>
     </html>
   );

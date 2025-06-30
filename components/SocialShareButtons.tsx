@@ -1,9 +1,10 @@
 import { Button } from '@/components/ui/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter, faLinkedin, faBluesky } from '@fortawesome/free-brands-svg-icons';
-import { ShareAction, SHARE_CONFIGS } from '@/components/modals/ShareModal';
 import { Link, Check } from 'lucide-react';
 import { useState } from 'react';
+import { ShareAction, SHARE_CONFIGS } from '@/components/modals/ShareModal'; // adjust import as needed
+import AnalyticsService, { LogEvent, LogEventValue } from '@/services/analytics.service';
 
 interface SocialShareButtonsProps {
   action: ShareAction;
@@ -22,14 +23,55 @@ export function SocialShareButtons({
   const socialText = config.socialText(docTitle);
   const [copied, setCopied] = useState(false);
 
-  const twitterLink = `https://twitter.com/intent/tweet?text=${encodeURIComponent(socialText)}&url=${encodeURIComponent(url)}`;
-  const linkedInLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
-  const blueSkyLink = `https://bsky.app/intent/compose?text=${encodeURIComponent(`${socialText} ${url}`)}`;
+  const buildUrlWithUtm = (baseUrl: string, source: 'linkedin' | 'x' | 'bluesky') => {
+    try {
+      const urlWithUtm = new URL(baseUrl, window.location.origin);
+      urlWithUtm.searchParams.set('utm_source', source);
+      urlWithUtm.searchParams.set('utm_medium', 'social_share');
+      return urlWithUtm.toString();
+    } catch (error) {
+      console.error('Failed to construct URL with UTM params', error);
+      return baseUrl;
+    }
+  };
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const twitterLink = `https://twitter.com/intent/tweet?text=${encodeURIComponent(socialText)}&url=${encodeURIComponent(buildUrlWithUtm(url, 'x'))}`;
+  const linkedInLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(buildUrlWithUtm(url, 'linkedin'))}`;
+  const blueSkyLink = `https://bsky.app/intent/compose?text=${encodeURIComponent(`${socialText} ${buildUrlWithUtm(url, 'bluesky')}`)}`;
+
+  const handleShare = (platform: 'linkedin' | 'x' | 'bluesky' | 'copy') => {
+    let event: LogEventValue | null = null;
+    let shareUrl: string | null = null;
+
+    switch (platform) {
+      case 'copy':
+        event = LogEvent.CLICKED_SHARE_VIA_URL;
+        break;
+      case 'linkedin':
+        event = LogEvent.CLICKED_SHARE_VIA_LINKEDIN;
+        shareUrl = linkedInLink;
+        break;
+      case 'x':
+        event = LogEvent.CLICKED_SHARE_VIA_X;
+        shareUrl = twitterLink;
+        break;
+      case 'bluesky':
+        event = LogEvent.CLICKED_SHARE_VIA_BLUESKY;
+        shareUrl = blueSkyLink;
+        break;
+    }
+
+    if (event) {
+      AnalyticsService.logEvent(event, { action, docTitle, url });
+    }
+
+    if (shareUrl) {
+      window.open(shareUrl, '_blank');
+    } else if (platform === 'copy') {
+      navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   const buttons = [
@@ -42,7 +84,7 @@ export function SocialShareButtons({
                 key="copy"
                 variant="outlined"
                 className="w-full relative"
-                onClick={handleCopyLink}
+                onClick={() => handleShare('copy')}
               >
                 {copied ? <Check className="h-4 w-4" /> : <Link className="h-4 w-4" />}
                 {copied && (
@@ -62,7 +104,7 @@ export function SocialShareButtons({
           key="linkedin"
           variant="outlined"
           className="w-full"
-          onClick={() => window.open(linkedInLink, '_blank')}
+          onClick={() => handleShare('linkedin')}
         >
           <FontAwesomeIcon icon={faLinkedin} size="lg" />
         </Button>
@@ -75,7 +117,7 @@ export function SocialShareButtons({
           key="twitter"
           variant="outlined"
           className="w-full"
-          onClick={() => window.open(twitterLink, '_blank')}
+          onClick={() => handleShare('x')}
         >
           <FontAwesomeIcon icon={faXTwitter} size="lg" />
         </Button>
@@ -88,7 +130,7 @@ export function SocialShareButtons({
           key="bluesky"
           variant="outlined"
           className="w-full"
-          onClick={() => window.open(blueSkyLink, '_blank')}
+          onClick={() => handleShare('bluesky')}
         >
           <FontAwesomeIcon icon={faBluesky} size="lg" />
         </Button>
