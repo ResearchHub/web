@@ -172,7 +172,7 @@ export default function UserMenu({
           <div className="px-6 py-2 hover:bg-gray-50">
             <div className="flex items-center">
               <UserPlus className="h-5 w-5 mr-3 text-gray-500" />
-              <span className="text-base text-gray-700">Refer Users</span>
+              <span className="text-base text-gray-700">Refer and earn 10%</span>
               <span className="ml-auto text-xs bg-blue-100 text-blue-600 font-semibold px-2 py-0.5 rounded-full">
                 New
               </span>
@@ -331,7 +331,7 @@ export default function UserMenu({
               <div className="w-full px-4 py-2 hover:bg-gray-50">
                 <div className="flex items-center">
                   <UserPlus className="h-4 w-4 mr-3 text-gray-500" />
-                  <span className="text-sm text-gray-700">Refer Users</span>
+                  <span className="text-sm text-gray-700">Refer and earn 10%</span>
                   <span className="ml-auto text-xs bg-blue-100 text-blue-600 font-semibold px-2 py-0.5 rounded-full">
                     New
                   </span>
