@@ -97,7 +97,7 @@ export default function SignupPromoModal({ onClose }: SignupModalProps) {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-40 z-[9999] flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black !bg-opacity-25 z-[9999] flex items-center justify-center p-4"
       style={{
         animation: isClosing
           ? 'modalFadeOut 0.3s ease-out forwards'

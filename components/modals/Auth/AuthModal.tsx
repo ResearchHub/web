@@ -21,7 +21,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, initialError }: 
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      className="fixed inset-0 !bg-black/50 flex items-center justify-center z-[60]"
       onClick={handleBackgroundClick}
     >
       <div className="bg-white rounded-lg w-full max-w-md p-6 relative">
