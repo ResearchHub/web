@@ -5,6 +5,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import Confetti from 'react-confetti';
 import { PartyPopper, Copy } from 'lucide-react';
 import SocialShareButtons from '@/components/SocialShareButtons';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
 export type ShareAction =
   | 'USER_OPENED_PROPOSAL'
@@ -98,6 +99,11 @@ export default function ShareModal({
 
   useEffect(() => {
     if (isOpen) {
+      AnalyticsService.logEvent(LogEvent.SHARE_MODAL_OPENED, {
+        action,
+        docTitle,
+        url,
+      });
       setShowConfetti(shouldShowConfetti);
       const timeout = setTimeout(() => {
         if (modalRef.current) {
@@ -113,14 +119,33 @@ export default function ShareModal({
   }, [isOpen]);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(url);
+    const urlWithUtm = new URL(url, window.location.origin);
+    urlWithUtm.searchParams.set('utm_source', 'copy_url');
+    urlWithUtm.searchParams.set('utm_medium', 'social_share');
+    const finalUrl = urlWithUtm.toString();
+
+    navigator.clipboard.writeText(finalUrl);
     setCopied(true);
+    AnalyticsService.logEvent(LogEvent.CLICKED_SHARE_VIA_URL, {
+      action,
+      docTitle,
+      url: finalUrl,
+    });
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleClose = () => {
+    AnalyticsService.logEvent(LogEvent.SHARE_MODAL_CLOSED, {
+      action,
+      docTitle,
+      url,
+    });
+    onClose();
   };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
+      <Dialog as="div" className="relative z-50" onClose={handleClose}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -159,7 +184,7 @@ export default function ShareModal({
                   />
                 )}
                 <button
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="absolute top-3 right-3 p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none transition-colors duration-200 z-10"
                 >
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

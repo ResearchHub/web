@@ -9,6 +9,12 @@ export const LogEvent = {
   SIGNUP_VIA_EMAIL_INITIATED: 'signup_via_email_initiated',
   LOGIN_VIA_EMAIL_INITIATED: 'login_via_email_initiated',
   ONBOARDING_VIEWED: 'onboarding_viewed',
+  SHARE_MODAL_OPENED: 'share_modal_opened',
+  SHARE_MODAL_CLOSED: 'share_modal_closed',
+  CLICKED_SHARE_VIA_LINKEDIN: 'clicked_share_via_linkedin',
+  CLICKED_SHARE_VIA_X: 'clicked_share_via_x',
+  CLICKED_SHARE_VIA_URL: 'clicked_share_via_url',
+  CLICKED_SHARE_VIA_BLUESKY: 'clicked_share_via_bluesky',
 } as const;
 
 export type LogEventValue = (typeof LogEvent)[keyof typeof LogEvent];
