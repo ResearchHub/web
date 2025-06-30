@@ -163,11 +163,7 @@ function CommentFeedContent({
             showShareModal({
               url: window.location.href,
               docTitle: work?.title || 'the document',
-              action:
-                contentType === 'preregistration'
-                  ? 'USER_PEER_REVIEWED_PROPOSAL'
-                  : 'USER_PEER_REVIEWED',
-              shouldShowConfetti: false,
+              action: 'USER_PEER_REVIEWED',
             });
           } catch (reviewError) {
             console.error('Error creating community review:', reviewError);

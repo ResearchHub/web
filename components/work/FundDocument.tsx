@@ -41,7 +41,6 @@ export const FundDocument = ({
   const [showMobileMetrics, setShowMobileMetrics] = useState(false);
   const storageKey = useStorageKey('rh-comments');
   const { user } = useUser();
-  const { showShareModal } = useShareModalContext();
   // Check if current user is an author of the work
   const isCurrentUserAuthor = useMemo(() => {
     if (!user?.id) return false;

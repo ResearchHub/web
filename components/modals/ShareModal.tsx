@@ -9,7 +9,6 @@ import SocialShareButtons from '@/components/SocialShareButtons';
 export type ShareAction =
   | 'USER_OPENED_PROPOSAL'
   | 'USER_PEER_REVIEWED'
-  | 'USER_PEER_REVIEWED_PROPOSAL'
   | 'USER_FUNDED_PROPOSAL'
   | 'USER_SHARED_DOCUMENT';
 
@@ -45,19 +44,6 @@ export const SHARE_CONFIGS: Record<ShareAction, ShareConfig> = {
       </>
     ),
     socialText: (docTitle) => `I just peer reviewed: ${docTitle} on ResearchHub!`,
-  },
-  USER_PEER_REVIEWED_PROPOSAL: {
-    title: (docTitle) => <>You peer reviewed a proposal!</>,
-    description: (docTitle) => (
-      <>
-        Thank you for reviewing proposal{' '}
-        <span className="font-semibold text-blue-600" title={docTitle}>
-          {docTitle}
-        </span>
-        !
-      </>
-    ),
-    socialText: (docTitle) => `I just peer reviewed a proposal: ${docTitle} on ResearchHub!`,
   },
   USER_FUNDED_PROPOSAL: {
     title: (docTitle) => <>You're a Research Champion!</>,
@@ -169,6 +155,7 @@ export default function ShareModal({
                     gravity={0.2}
                     recycle={false}
                     numberOfPieces={100}
+                    colors={['#f97316', '#3971ff']}
                   />
                 )}
                 <button
