@@ -8,6 +8,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkDocument } from '@/components/work/WorkDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
+import { getWorkMetadata } from '@/lib/metadata-helpers';
 
 interface Props {
   params: Promise<{
@@ -31,10 +32,10 @@ async function getWork(id: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const work = await getWork(resolvedParams.id);
-  return {
-    title: `${work.title} - Bounties`,
-    description: work.abstract,
-  };
+  return getWorkMetadata({
+    work: work,
+    url: `/paper/${resolvedParams.id}/${resolvedParams.slug}/bounties`,
+  });
 }
 
 export default async function WorkBountiesPage({ params }: Props) {
