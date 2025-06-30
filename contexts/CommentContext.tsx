@@ -6,24 +6,14 @@ import { UserVoteType } from '@/types/reaction';
 import { ContentType, Work } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
 import {
+  extractUserMentions,
   findCommentById,
-  updateReplyDeep,
-  revertOptimisticUpdate,
-  updateCommentWithApiResponse,
-  updateCommentVoteInList,
-  addReplyDeep,
   getRealId,
-  traverseCommentTree,
 } from '@/components/Comment/lib/commentUtils/index';
 import { useSession } from 'next-auth/react';
 import { CommentContent } from '@/components/Comment/lib/types';
-import {
-  CommentState,
-  CommentActionType,
-  commentReducer,
-  initialCommentState,
-} from './CommentReducer';
-import { toast } from 'react-hot-toast';
+import { CommentActionType, commentReducer, initialCommentState } from './CommentReducer';
+import { JSONContent } from '@tiptap/core';
 
 export type BountyFilterType = 'ALL' | 'OPEN' | 'CLOSED';
 
@@ -431,12 +421,20 @@ export const CommentProvider = ({
 
       try {
         const apiContent = convertToApiFormat(content);
+
+        // Extract mentions from the question content
+        const mentions =
+          content && typeof content === 'object' && 'content' in content
+            ? extractUserMentions(content as JSONContent)
+            : [];
+
         const newComment = await CommentService.createComment({
           workId: documentId,
           contentType,
           content: apiContent,
           contentFormat: 'TIPTAP',
           commentType: rating !== undefined ? 'REVIEW' : commentType,
+          mentions: mentions || [],
         });
 
         // Only update the UI after successful API response
@@ -478,6 +476,12 @@ export const CommentProvider = ({
       try {
         const apiContent = convertToApiFormat(content);
 
+        // Extract mentions from the question content
+        const mentions =
+          content && typeof content === 'object' && 'content' in content
+            ? extractUserMentions(content as JSONContent)
+            : [];
+
         // Always use GENERIC_COMMENT as the commentType
         const commentType = 'GENERIC_COMMENT';
 
@@ -491,6 +495,7 @@ export const CommentProvider = ({
           bountyType, // Keep the bountyType as provided
           expirationDate,
           privacyType: 'PUBLIC',
+          mentions: mentions || [],
         });
 
         // Only update the UI after successful API response
@@ -537,6 +542,12 @@ export const CommentProvider = ({
 
         const apiContent = convertToApiFormat(content);
 
+        // Extract mentions from the question content
+        const mentions =
+          content && typeof content === 'object' && 'content' in content
+            ? extractUserMentions(content as JSONContent)
+            : [];
+
         // Make the API call first
         console.log(`Making API call to create reply to parent ${realParentId}`);
         const newReply = await CommentService.createComment({
@@ -546,6 +557,7 @@ export const CommentProvider = ({
           contentFormat: 'TIPTAP',
           parentId: realParentId,
           commentType: 'GENERIC_COMMENT',
+          mentions: mentions || [],
         });
         console.log(`API response for reply creation:`, newReply);
 
@@ -601,6 +613,12 @@ export const CommentProvider = ({
 
         const apiContent = convertToApiFormat(content);
 
+        // Extract mentions from the question content
+        const mentions =
+          content && typeof content === 'object' && 'content' in content
+            ? extractUserMentions(content as JSONContent)
+            : [];
+
         // Find the comment to update
         const commentToUpdate = findCommentById(state.comments, realId);
 
@@ -637,6 +655,7 @@ export const CommentProvider = ({
           contentType,
           content: apiContent,
           contentFormat: 'TIPTAP',
+          mentions: mentions || [],
         });
 
         if (response) {

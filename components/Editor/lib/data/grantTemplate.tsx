@@ -18,7 +18,7 @@ interface Template {
   content: DocumentContent[];
 }
 
-const preregistrationTemplate: Template = {
+const grantTemplate: Template = {
   type: 'doc',
   content: [
     {
@@ -298,5 +298,5 @@ const preregistrationTemplate: Template = {
   ],
 };
 
-export type PreregistrationTemplate = typeof preregistrationTemplate;
-export default preregistrationTemplate;
+export type GrantTemplate = typeof grantTemplate;
+export default grantTemplate;

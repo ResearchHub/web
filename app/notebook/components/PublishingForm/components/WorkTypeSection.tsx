@@ -17,7 +17,7 @@ const articleTypes: Record<
     description: 'Publish your original research',
   },
   preregistration: {
-    title: 'Preregistration',
+    title: 'Proposal',
     description: 'Get funding by sharing your research plan',
   },
   grant: {

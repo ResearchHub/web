@@ -31,11 +31,11 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
   const tabs = [
     {
       id: 'grants',
-      label: 'Grants',
+      label: 'Request for proposals',
     },
     {
       id: 'needs-funding',
-      label: 'Needs Funding',
+      label: 'Proposals',
     },
   ];
 
@@ -71,50 +71,49 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
 
   return (
     <div className="bg-white pb-6">
-      <div className="flex items-end justify-between border-b border-gray-200">
+      <div className="full-w border-b border-gray-200">
         {/* Left side - Main tabs */}
-        <div className="flex-1">
+        <div className="flex items-center justify-between">
           <Tabs
             tabs={tabs}
             activeTab={activeTab}
             onTabChange={handleTabChange}
-            variant="underline"
+            variant="primary"
             className="border-b-0"
           />
+          {/* Right side - Status dropdown (only for needs-funding) */}
+          {activeTab === 'needs-funding' && (
+            <div className="flex items-center space-x-2 ml-8">
+              <Dropdown
+                trigger={
+                  <button className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    {activeStatusOption && <activeStatusOption.icon className="w-4 h-4" />}
+                    <span>{activeStatusOption?.label}</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                }
+                align="right"
+              >
+                {statusOptions.map((option) => {
+                  const Icon = option.icon;
+                  return (
+                    <DropdownItem
+                      key={option.id}
+                      onClick={() => onStatusChange(option.id)}
+                      className={cn(
+                        'flex items-center space-x-2',
+                        fundingStatus === option.id && 'bg-primary-50 text-primary-700'
+                      )}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span>{option.label}</span>
+                    </DropdownItem>
+                  );
+                })}
+              </Dropdown>
+            </div>
+          )}
         </div>
-
-        {/* Right side - Status dropdown (only for needs-funding) */}
-        {activeTab === 'needs-funding' && (
-          <div className="flex items-center space-x-2 ml-8 pb-3">
-            <Dropdown
-              trigger={
-                <button className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                  {activeStatusOption && <activeStatusOption.icon className="w-4 h-4" />}
-                  <span>{activeStatusOption?.label}</span>
-                  <ChevronDown className="w-4 h-4" />
-                </button>
-              }
-              align="right"
-            >
-              {statusOptions.map((option) => {
-                const Icon = option.icon;
-                return (
-                  <DropdownItem
-                    key={option.id}
-                    onClick={() => onStatusChange(option.id)}
-                    className={cn(
-                      'flex items-center space-x-2',
-                      fundingStatus === option.id && 'bg-primary-50 text-primary-700'
-                    )}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{option.label}</span>
-                  </DropdownItem>
-                );
-              })}
-            </Dropdown>
-          </div>
-        )}
       </div>
     </div>
   );

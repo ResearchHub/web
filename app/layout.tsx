@@ -21,6 +21,7 @@ import { VerificationProvider } from '@/contexts/VerificationContext';
 import SignupModalContainer from '@/components/modals/SignupModalContainer';
 import ShareModalTrigger from '@/components/modals/ShareModalTrigger';
 import AnalyticsProvider from '@/components/providers/AnalyticsProvider';
+import ApmProvider from '@/components/ApmProvider';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -63,6 +64,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ApmProvider />
         <ClickProvider>
           <OnchainProvider>
             <NextAuthProvider session={session}>

@@ -214,7 +214,13 @@ function AuthorTabs({ authorId }: { authorId: number }) {
 
   return (
     <div className="mt-8">
-      <Tabs tabs={tabs} activeTab={currentTab} onTabChange={handleTabChange} variant="underline" />
+      <Tabs
+        tabs={tabs}
+        activeTab={currentTab}
+        onTabChange={handleTabChange}
+        variant="primary"
+        className="border-b"
+      />
       <div className="mt-6">{renderTabContent()}</div>
     </div>
   );
@@ -266,8 +272,11 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
       </Card>
       {currentUser?.moderator && user.authorProfile?.userId && (
         <Card className="mt-4 bg-gray-50">
-          <h3 className="text-sm font-base uppercase text-gray-500 mb-3">Moderation</h3>
-          <Moderation userId={user.authorProfile?.userId?.toString() || ''} />
+          <Moderation
+            userId={user.authorProfile.userId.toString()}
+            authorId={user.authorProfile.id}
+            refetchAuthorInfo={refetchAuthorInfo}
+          />
         </Card>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

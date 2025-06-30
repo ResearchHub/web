@@ -57,7 +57,11 @@ export function UserBalanceSection({
                   ) : (
                     <>
                       <div className="flex items-center gap-3">
-                        <ResearchCoinIcon size={28} />
+                        {showUSD ? (
+                          <span className="text-3xl font-semibold text-gray-900">$</span>
+                        ) : (
+                          <ResearchCoinIcon size={28} />
+                        )}
                         <div className="flex items-baseline">
                           <span className="text-4xl font-semibold text-gray-900">
                             {showUSD
@@ -69,11 +73,16 @@ export function UserBalanceSection({
                           </span>
                         </div>
                       </div>
-                      <div className="text-sm font-medium text-gray-600">
-                        ≈{' '}
-                        {showUSD
-                          ? `${balance?.formatted || '0.00'} RSC`
-                          : balance?.formattedUsd || '$0.00'}
+                      <div className="flex items-center gap-1 text-sm font-medium text-gray-600">
+                        {showUSD ? (
+                          <>
+                            <span>≈</span>
+                            <ResearchCoinIcon size={16} />
+                            <span>{`${balance?.formatted ?? '0.00'} RSC`}</span>
+                          </>
+                        ) : (
+                          `≈ ${balance?.formattedUsd ?? '$0.00'}`
+                        )}
                       </div>
                     </>
                   )}
@@ -89,9 +98,7 @@ export function UserBalanceSection({
                         className="gap-2 px-3 sm:px-4"
                       >
                         <Plus className="h-5 w-5" />
-                        <span className="hidden sm:inline-block sm:flex-shrink-0">
-                          Buy {showUSD ? 'USD' : 'RSC'}
-                        </span>
+                        <span className="hidden sm:inline-block sm:flex-shrink-0">Buy RSC</span>
                       </Button>
                       <Button
                         onClick={() => setIsSellModalOpen(true)}
@@ -100,9 +107,7 @@ export function UserBalanceSection({
                         className="gap-2 px-3 sm:px-4"
                       >
                         <Minus className="h-5 w-5" />
-                        <span className="hidden sm:inline-block sm:flex-shrink-0">
-                          Sell {showUSD ? 'USD' : 'RSC'}
-                        </span>
+                        <span className="hidden sm:inline-block sm:flex-shrink-0">Sell RSC</span>
                       </Button>
                       <Button
                         onClick={() => setIsDepositModalOpen(true)}
@@ -133,8 +138,7 @@ export function UserBalanceSection({
                   <>
                     <div className="flex gap-4">
                       <p className="text-base text-gray-600">
-                        To buy, sell, deposit or withdraw {showUSD ? 'USD' : 'RSC'}, start by
-                        connecting your wallet.
+                        To buy, sell, deposit or withdraw RSC, start by connecting your wallet.
                       </p>
                     </div>
                     <WalletDefault />

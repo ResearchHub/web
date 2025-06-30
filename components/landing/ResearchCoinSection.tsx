@@ -22,10 +22,10 @@ const whyRSCFeatures: WhyRSCFeature[] = [
     description:
       'We believe the problems in science are downstream of the incentives. We want to reward open science and collaboration.',
     benefits: [
-      'Funding via preregistration',
+      'Open-access proposals',
       'Incentivized progress updates',
       'Peer review compensation',
-      'Rewards for upvotes',
+      'Crowdraised research funding',
     ],
     iconName: 'fund2',
     gradient: 'from-[#3971FF] to-[#4A7FFF]',
@@ -35,7 +35,7 @@ const whyRSCFeatures: WhyRSCFeature[] = [
     title: 'Control',
     subtitle: 'Your platform, your rules',
     description:
-      'ResearchCoin gives researchers direct control over platform governance. You vote on quality standards, reward mechanisms, and feature priorities.',
+      'RSC gives researchers a say in the platform. You vote on standards, reward mechanisms, and reputation metrics.',
     benefits: [
       'Researcher-led governance',
       'User-driven platform rules',

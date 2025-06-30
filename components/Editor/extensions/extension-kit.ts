@@ -112,7 +112,7 @@ export const ExtensionKit = ({
   }),
   Highlight.configure({ multicolor: true }),
   Underline,
-  CharacterCount.configure({ limit: 50000 }),
+  CharacterCount.configure({ limit: 500000 }),
   TableOfContents,
   TableOfContentsNode,
   ImageUpload.configure({

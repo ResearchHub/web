@@ -16,7 +16,7 @@ interface Template {
   content: DocumentContent[];
 }
 
-const preregistrationTemplate: Template = {
+const proposalTemplate: Template = {
   type: 'doc',
   content: [
     {
@@ -28,7 +28,7 @@ const preregistrationTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Preregistration Template',
+          text: 'Proposal Template',
         },
       ],
     },
@@ -282,5 +282,5 @@ const preregistrationTemplate: Template = {
   ],
 };
 
-export type PreregistrationTemplate = typeof preregistrationTemplate;
-export default preregistrationTemplate;
+export type ProposalTemplate = typeof proposalTemplate;
+export default proposalTemplate;
