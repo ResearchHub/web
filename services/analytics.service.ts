@@ -1,4 +1,5 @@
 import * as amplitude from '@amplitude/analytics-browser';
+import { sendGAEvent } from '@next/third-parties/google';
 
 export const LogEvent = {
   SIGNUP_PROMO_MODAL_OPENED: 'signup_promo_modal_opened',
@@ -19,11 +20,12 @@ export const LogEvent = {
 
 export type LogEventValue = (typeof LogEvent)[keyof typeof LogEvent];
 
-type AnalyticsProvider = 'amplitude';
+type AnalyticsProvider = 'amplitude' | 'google';
 
 class AnalyticsService {
   private static isInitialized: Record<AnalyticsProvider, boolean> = {
     amplitude: false,
+    google: true, // No specific init needed for GA via next/third-parties
   };
 
   static init() {
@@ -44,6 +46,7 @@ class AnalyticsService {
   }
 
   static setUserId(userId: string | null) {
+    this.init();
     if (!this.isInitialized.amplitude) {
       console.error('Amplitude not initialized before setting user ID.');
       return;
@@ -54,8 +57,9 @@ class AnalyticsService {
   static async logEvent(
     eventName: LogEventValue,
     eventProperties?: Record<string, any>,
-    providers: AnalyticsProvider[] = ['amplitude']
+    providers: AnalyticsProvider[] = ['amplitude', 'google']
   ) {
+    this.init();
     const promises = [];
     for (const provider of providers) {
       switch (provider) {
@@ -67,6 +71,11 @@ class AnalyticsService {
           const result = amplitude.logEvent(eventName, eventProperties);
           if (result?.promise) {
             promises.push(result.promise);
+          }
+          break;
+        case 'google':
+          if (process.env.GA_MEASUREMENT_ID) {
+            sendGAEvent({ event: eventName, ...eventProperties });
           }
           break;
         default:
