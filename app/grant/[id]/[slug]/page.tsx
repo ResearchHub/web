@@ -9,6 +9,7 @@ import { FundingRightSidebar } from '@/components/work/FundingRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { GrantDocument } from '@/components/work/GrantDocument';
 import { GrantRightSidebar } from '@/components/work/GrantRightSidebar';
+import { getWorkMetadata } from '@/lib/metadata-helpers';
 
 interface Props {
   params: Promise<{
@@ -43,10 +44,10 @@ async function getGrant(id: string): Promise<Work> {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const grant = await getGrant(resolvedParams.id);
-  return {
-    title: grant.title,
-    description: grant.abstract || '',
-  };
+  return getWorkMetadata({
+    work: grant,
+    url: `/grant/${resolvedParams.id}/${resolvedParams.slug}`,
+  });
 }
 
 export default async function GrantPage({ params }: Props) {

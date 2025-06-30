@@ -2,6 +2,7 @@ import { useState, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Bell, Share2, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import SocialShareButtons from '@/components/SocialShareButtons';
 
 interface NewFundingModalProps {
   isOpen: boolean;
@@ -110,7 +111,7 @@ export const NewFundingModal: React.FC<NewFundingModalProps> = ({
                         Share a link to your proposal on social media to increase visibility and
                         attract more funders.
                       </p>
-                      <div className="mt-4">
+                      <div className="mt-4 flex flex-col gap-4">
                         <div className="flex justify-start">
                           <Button
                             onClick={handleCopyLink}
@@ -130,6 +131,17 @@ export const NewFundingModal: React.FC<NewFundingModalProps> = ({
                               </>
                             )}
                           </Button>
+                        </div>
+                        {/* Social share buttons */}
+                        <div className="mt-4">
+                          <p className="text-sm font-medium text-gray-700 text-left">
+                            Or share directly on:
+                          </p>
+                          <SocialShareButtons
+                            action="USER_OPENED_PROPOSAL"
+                            docTitle="Your Fundraise"
+                            url={proposalUrl}
+                          />
                         </div>
                       </div>
                     </div>

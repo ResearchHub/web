@@ -112,6 +112,7 @@ export const FundingCarouselItem: FC<FundingCarouselItemProps> = ({ entry }) => 
       <div className="mt-auto pt-2 flex-shrink-0">
         <FundraiseProgress
           fundraise={fundraise}
+          fundraiseTitle={post.title}
           compact={true} // Use compact mode
           className="p-0 border-0 bg-transparent text-xs" // Minimal styling
           showPercentage={true} // Show percentage instead of amounts

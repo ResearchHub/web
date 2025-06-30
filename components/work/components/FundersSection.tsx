@@ -10,16 +10,20 @@ import { Users } from 'lucide-react';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useRouter } from 'next/navigation';
+import { useShareModalContext } from '@/contexts/ShareContext';
 
 interface FundersSectionProps {
   fundraise: Fundraise;
+  fundraiseTitle: string;
 }
 
-export const FundersSection: FC<FundersSectionProps> = ({ fundraise }) => {
+export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTitle }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
   const { showUSD } = useCurrencyPreference();
-
+  const { showShareModal } = useShareModalContext();
+  const router = useRouter();
   const hasContributors =
     fundraise.contributors &&
     fundraise.contributors.numContributors > 0 &&
@@ -50,6 +54,12 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise }) => {
 
   const handleContributeSuccess = () => {
     setIsContributeModalOpen(false);
+    router.refresh();
+    showShareModal({
+      url: window.location.href,
+      docTitle: fundraiseTitle,
+      action: 'USER_FUNDED_PROPOSAL',
+    });
     // Here you could add logic to refresh the data
   };
 

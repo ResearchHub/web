@@ -4,7 +4,7 @@ const nextConfig = {
   redirects: async () => [
     {
       source: '/fund',
-      destination: '/fund/needs-funding',
+      destination: '/fund/grants',
       permanent: false,
     },
     {
@@ -34,12 +34,16 @@ const nextConfig = {
           key: 'X-Frame-Options',
           value: 'SAMEORIGIN',
         },
+        {
+          key: 'X-Robots-Tag',
+          value: 'index, follow',
+        },
       ],
     },
   ],
   images: {
     unoptimized: false,
-    minimumCacheTTL: 60,
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
     remotePatterns: [
       {
         protocol: 'https',
@@ -74,6 +78,7 @@ const nextConfig = {
         hostname: 'researchhub-dev-storage.s3.amazonaws.com',
       },
     ],
+    formats: ['image/webp', 'image/avif'],
   },
   productionBrowserSourceMaps: process.env.VERCEL_ENV === 'preview',
   modularizeImports: {

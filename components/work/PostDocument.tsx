@@ -63,6 +63,7 @@ export const PostDocument = ({
                 commentType: 'REVIEW',
               }}
               key={`review-feed-${work.id}`}
+              work={work}
             />
           </div>
         );
@@ -77,6 +78,7 @@ export const PostDocument = ({
               renderCommentActions={false}
               hideEditor={true}
               key={`bounty-feed-${work.id}`}
+              work={work}
             />
           </div>
         );
@@ -89,6 +91,7 @@ export const PostDocument = ({
               contentType={work.contentType}
               commentType="GENERIC_COMMENT"
               key={`comment-feed-${work.id}`}
+              work={work}
             />
           </div>
         );

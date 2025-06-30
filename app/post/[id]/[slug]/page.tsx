@@ -10,6 +10,7 @@ import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { PostDocument } from '@/components/work/PostDocument';
 import { handleFundraiseRedirect } from '@/utils/navigation';
+import { getWorkMetadata } from '@/lib/metadata-helpers';
 
 interface Props {
   params: Promise<{
@@ -44,10 +45,11 @@ async function getPostContent(work: Work): Promise<string | undefined> {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const post = await getPost(resolvedParams.id);
-  return {
-    title: post.title,
-    description: post.abstract || '',
-  };
+
+  return getWorkMetadata({
+    work: post,
+    url: `/post/${resolvedParams.id}/${resolvedParams.slug}`,
+  });
 }
 
 export default async function PostPage({ params }: Props) {

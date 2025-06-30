@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { AuthError, AuthService } from '@/services/auth.service';
 import type { User } from '@/types/user';
 import { AuthSharingService } from '@/services/auth-sharing.service';
+import AnalyticsService from '@/services/analytics.service';
 
 interface UserContextType {
   user: User | null;
@@ -55,6 +56,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
     if (status === 'loading') return;
     fetchUserData();
   }, [session?.authToken, status]);
+
+  useEffect(() => {
+    if (user) {
+      const paddedUserId = user.id.toString().padStart(6, '0');
+      AnalyticsService.setUserId(paddedUserId);
+    } else {
+      AnalyticsService.setUserId(null);
+    }
+  }, [user]);
 
   return (
     <UserContext.Provider value={{ user, isLoading, error, refreshUser }}>

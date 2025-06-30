@@ -9,6 +9,7 @@ import { PostDocument } from '@/components/work/PostDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { handleFundraiseRedirect } from '@/utils/navigation';
+import { getWorkMetadata } from '@/lib/metadata-helpers';
 
 interface Props {
   params: Promise<{
@@ -43,10 +44,12 @@ async function getPostContent(work: Work): Promise<string | undefined> {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const post = await getPost(resolvedParams.id);
-  return {
-    title: `${post.title} - Comments`,
-    description: post.abstract || '',
-  };
+
+  return getWorkMetadata({
+    work: post,
+    url: `/post/${resolvedParams.id}/${resolvedParams.slug}/conversation`,
+    titleSuffix: 'Conversation',
+  });
 }
 
 export default async function PostConversationPage({ params }: Props) {

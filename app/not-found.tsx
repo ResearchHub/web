@@ -3,6 +3,23 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { PageLayout } from '@/app/layouts/PageLayout';
+import { SITE_CONFIG } from '@/lib/metadata';
+
+export const generateMetadata = () => ({
+  title: '404 | ResearchHub',
+  description: 'Page not found',
+  openGraph: {
+    title: '404 | ResearchHub',
+    description: 'Page not found',
+    url: `${SITE_CONFIG.url}/404`,
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '404 | ResearchHub',
+    description: 'Page not found',
+  },
+});
 
 const NotFoundPage = () => {
   return (

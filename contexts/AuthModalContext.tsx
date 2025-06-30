@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useCallback } from 'react';
 import AuthModal from '@/components/modals/Auth/AuthModal';
 import { useSession } from 'next-auth/react';
 import { ReactNode } from 'react';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
 interface AuthModalContextType {
   showAuthModal: (onSuccess?: () => void) => void;
@@ -26,12 +27,14 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
 
   const showAuthModal = useCallback((onSuccess?: () => void) => {
     setIsOpen(true);
+    AnalyticsService.logEvent(LogEvent.AUTH_MODAL_OPENED);
     setPendingAction(() => onSuccess);
   }, []);
 
   const hideAuthModal = useCallback(() => {
     setIsOpen(false);
     setPendingAction(undefined);
+    AnalyticsService.logEvent(LogEvent.AUTH_MODAL_CLOSED);
   }, []);
 
   const handleSuccess = useCallback(() => {

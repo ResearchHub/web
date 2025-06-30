@@ -227,8 +227,8 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     note: raw.note ? transformNoteWithContent(raw.note) : undefined,
     previewContent: raw.full_markdown || '',
     contentUrl: raw.post_src,
-    image: raw.image,
     tips: tips,
+    image: raw.image_url,
   };
 });
 
