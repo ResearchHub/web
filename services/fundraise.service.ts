@@ -32,6 +32,16 @@ export class FundraiseService {
   }
 
   /**
+   * Close a fundraise
+   * @param fundraiseId The ID of the fundraise to close
+   * @returns The updated fundraise with CLOSED status
+   */
+  static async closeFundraise(fundraiseId: ID): Promise<Fundraise> {
+    const response = await ApiClient.post<any>(`${this.BASE_PATH}/${fundraiseId}/close/`);
+    return transformFundraise(response);
+  }
+
+  /**
    * Alias for contributeToFundraise to maintain backwards compatibility with existing hooks
    * @param id The ID of the fundraise to contribute to
    * @param payload The payload containing the amount

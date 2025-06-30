@@ -356,7 +356,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog
         as="div"
-        className="relative z-50"
+        className="relative z-[100]"
         onClose={() => {
           onClose();
         }}
@@ -370,7 +370,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
+          <div className="fixed inset-0 bg-black !bg-opacity-25" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">

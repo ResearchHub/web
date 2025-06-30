@@ -7,19 +7,19 @@ import SocialShareButtons from '@/components/SocialShareButtons';
 interface NewFundingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  preregistrationUrl?: string;
+  proposalUrl?: string;
 }
 
 export const NewFundingModal: React.FC<NewFundingModalProps> = ({
   isOpen,
   onClose,
-  preregistrationUrl = window.location.href,
+  proposalUrl = window.location.href,
 }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(preregistrationUrl);
+      await navigator.clipboard.writeText(proposalUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -76,7 +76,7 @@ export const NewFundingModal: React.FC<NewFundingModalProps> = ({
                       </div>
                     </div>
                     <div className="pt-1">
-                      <h4 className="text-lg font-medium text-gray-900">Provide Regular Updates</h4>
+                      <h4 className="text-lg font-medium text-gray-900">Provide regular updates</h4>
                       <p className="mt-2 text-gray-600">
                         Keep your funders engaged by providing regular updates about the status of
                         your research.
@@ -106,12 +106,10 @@ export const NewFundingModal: React.FC<NewFundingModalProps> = ({
                       </div>
                     </div>
                     <div className="pt-1 flex-1">
-                      <h4 className="text-lg font-medium text-gray-900">
-                        Share Your Preregistration
-                      </h4>
+                      <h4 className="text-lg font-medium text-gray-900">Share your proposal</h4>
                       <p className="mt-2 text-gray-600">
-                        Share a link to your preregistration on social media to increase visibility
-                        and attract more funders.
+                        Share a link to your proposal on social media to increase visibility and
+                        attract more funders.
                       </p>
                       <div className="mt-4 flex flex-col gap-4">
                         <div className="flex justify-start">
@@ -142,7 +140,7 @@ export const NewFundingModal: React.FC<NewFundingModalProps> = ({
                           <SocialShareButtons
                             action="USER_OPENED_PROPOSAL"
                             docTitle="Your Fundraise"
-                            url={preregistrationUrl}
+                            url={proposalUrl}
                           />
                         </div>
                       </div>

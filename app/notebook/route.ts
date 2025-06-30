@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/auth.config';
 import { OrganizationService } from '@/services/organization.service';
 import { NoteService } from '@/services/note.service';
-import preregistrationTemplate from '@/components/Editor/lib/data/preregistrationTemplate';
+import proposalTemplate from '@/components/Editor/lib/data/proposalTemplate';
 import { getInitialContent, initialContent } from '@/components/Editor/lib/data/initialContent';
 import { getDocumentTitle } from '@/components/Editor/lib/utils/documentTitle';
 import { selectOrganization } from '@/contexts/utils/organizationSelection';
@@ -20,7 +20,7 @@ async function createNoteWithContent(
     queryParam,
     queryValue,
   }: {
-    template: typeof preregistrationTemplate | typeof initialContent | typeof grantTemplate;
+    template: typeof proposalTemplate | typeof initialContent | typeof grantTemplate;
     queryParam?: string;
     queryValue?: string;
   }
@@ -74,7 +74,7 @@ export async function GET(request: Request) {
 
   if (isNewFunding) {
     return createNoteWithContent(selectedOrg.slug, {
-      template: preregistrationTemplate,
+      template: proposalTemplate,
       queryParam: 'newFunding',
       queryValue: 'true',
     });

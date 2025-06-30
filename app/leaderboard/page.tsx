@@ -457,13 +457,13 @@ function LeaderboardPageContent() {
       />
 
       <div className="max-w-4xl mx-auto">
-        <div className="flex flex-col md:!flex-row md:!items-center md:!justify-between mb-4 gap-4">
+        <div className="flex flex-col md:!flex-row md:!items-center md:!justify-between mb-4 gap-4 md:!border-b border-gray-200">
           <Tabs
             tabs={leaderboardTabs}
             activeTab={activeTab}
             onTabChange={setActiveTab}
             className="flex-grow"
-            variant="underline"
+            variant="primary"
           />
 
           <div className="flex-shrink-0">
@@ -479,7 +479,7 @@ function LeaderboardPageContent() {
             ) : (
               <Dropdown
                 trigger={
-                  <Button variant="outlined" className="w-full sm:w-auto justify-between">
+                  <Button variant="outlined" className="w-full sm:w-auto justify-between h-8">
                     <span>{selectedPresetLabel}</span>
                     <ChevronDownIcon className="ml-2 h-4 w-4 opacity-50" />
                   </Button>
@@ -552,10 +552,24 @@ function LeaderboardPageContent() {
                           </span>
                         )}
                         {reviewer.authorProfile.headline && (
-                          <span className="text-sm text-gray-500 truncate block">
+                          <span className="text-sm text-gray-500 line-clamp-2">
                             {reviewer.authorProfile.headline}
                           </span>
                         )}
+                        <div className="block sm:!hidden">
+                          <CurrencyBadge
+                            amount={reviewer.earnedRsc}
+                            variant="text"
+                            size="md"
+                            label={showUSD ? 'USD Earned' : 'RSC Earned'}
+                            currency={showUSD ? 'USD' : 'RSC'}
+                            textColor="text-gray-700"
+                            currencyLabelColor="text-gray-500"
+                            showIcon={true}
+                            showText={false}
+                            className="px-0"
+                          />
+                        </div>
                       </div>
                     </div>
                     <CurrencyBadge
@@ -568,6 +582,7 @@ function LeaderboardPageContent() {
                       currencyLabelColor="text-gray-500"
                       showIcon={true}
                       showText={false}
+                      className="hidden sm:!block"
                     />
                   </div>
                 );
@@ -620,23 +635,39 @@ function LeaderboardPageContent() {
                         </span>
                       )}
                       {funder.authorProfile.headline && (
-                        <span className="text-sm text-gray-500 truncate block">
+                        <span className="text-sm text-gray-500 line-clamp-2">
                           {funder.authorProfile.headline}
                         </span>
                       )}
+                      <div className="block sm:!hidden">
+                        <CurrencyBadge
+                          amount={funder.totalFunding}
+                          variant="text"
+                          size="md"
+                          label={showUSD ? 'USD Funded' : 'RSC Funded'}
+                          currency={showUSD ? 'USD' : 'RSC'}
+                          textColor="text-gray-700"
+                          currencyLabelColor="text-gray-500"
+                          showIcon={true}
+                          showText={false}
+                          className="px-0"
+                        />
+                      </div>
                     </div>
                   </div>
-                  <CurrencyBadge
-                    amount={funder.totalFunding}
-                    variant="text"
-                    size="md"
-                    label={showUSD ? 'USD Funded' : 'RSC Funded'}
-                    currency={showUSD ? 'USD' : 'RSC'}
-                    textColor="text-gray-700"
-                    currencyLabelColor="text-gray-500"
-                    showIcon={true}
-                    showText={false}
-                  />
+                  <div className="hidden sm:!block">
+                    <CurrencyBadge
+                      amount={funder.totalFunding}
+                      variant="text"
+                      size="md"
+                      label={showUSD ? 'USD Funded' : 'RSC Funded'}
+                      currency={showUSD ? 'USD' : 'RSC'}
+                      textColor="text-gray-700"
+                      currencyLabelColor="text-gray-500"
+                      showIcon={true}
+                      showText={false}
+                    />
+                  </div>
                 </div>
               );
             })}

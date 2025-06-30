@@ -57,7 +57,7 @@ export function ConfirmPublishModal({
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
+      <Dialog as="div" className="relative z-[100]" onClose={onClose}>
         <TransitionChild
           as={Fragment}
           enter="ease-out duration-300"
@@ -67,7 +67,7 @@ export function ConfirmPublishModal({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
+          <div className="fixed inset-0 bg-black !bg-opacity-25" />
         </TransitionChild>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -87,8 +87,7 @@ export function ConfirmPublishModal({
                     {isUpdate ? 'Confirm Re-publication' : 'Confirm Publication'}
                   </DialogTitle>
                   <p className="text-sm text-gray-600 mb-4">
-                    You are about to {isUpdate ? 'republish' : 'publish'} your research
-                    preregistration:
+                    You are about to {isUpdate ? 'republish' : 'publish'} your research proposal:
                   </p>
                   <input
                     type="text"

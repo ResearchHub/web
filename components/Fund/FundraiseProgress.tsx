@@ -167,13 +167,13 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
       <>
         <div className={cn(defaultContainerClasses, className)}>
           {/* Top row: Amount on left, status/time on right - Stack on mobile */}
-          <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between mb-3 mobile:!mb-2 gap-2 mobile:!gap-0">
+          <div className="flex flex-row flex-wrap items-center justify-between gap-x-2 mb-3">
             {showPercentage ? (
-              <div className="font-medium text-gray-700 text-sm mobile:!text-base">
+              <div className="font-medium text-gray-700 text-sm mobile:!text-base min-w-0 truncate">
                 {actualPercentage}% funded
               </div>
             ) : (
-              <div className="flex items-center gap-1 flex-wrap">
+              <div className="flex items-center gap-1 flex-wrap min-w-0 truncate">
                 <CurrencyBadge
                   amount={Math.round(fundraise.amountRaised.rsc)}
                   variant="text"
@@ -181,6 +181,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   showText={false}
                   currency={showUSD ? 'USD' : 'RSC'}
                   shorten
+                  className="pl-0"
                 />
                 <span className="font-medium text-gray-700 mx-0.5 text-sm mobile:!text-base">
                   /
@@ -196,12 +197,12 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
               </div>
             )}
 
-            {/* Status/Time Display - Moved to top right on desktop, below on mobile */}
-            <div className="mobile:!flex-shrink-0">{getStatusDisplay()}</div>
+            {/* Status/Time Display - Will wrap to new line if needed */}
+            <div className="flex-shrink-0 whitespace-nowrap">{getStatusDisplay()}</div>
           </div>
 
           {/* Progress bar - Keep as is but with better mobile spacing */}
-          <div className="mb-3 mobile:!mb-2">
+          <div className="mb-3">
             <Progress value={progressPercentage} variant={getProgressVariant()} size="xs" />
           </div>
 

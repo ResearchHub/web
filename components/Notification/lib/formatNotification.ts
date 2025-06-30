@@ -306,7 +306,7 @@ export function formatNotificationMessage(
       return 'A moderation decision has been made on your reported content';
 
     case 'PREREGISTRATION_UPDATE':
-      return `${userName} updated preregistration "${truncatedTitle}"`;
+      return `${userName} updated proposal "${truncatedTitle}"`;
 
     default:
       console.warn(`Unhandled notification type: ${type}`);

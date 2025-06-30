@@ -186,7 +186,7 @@ export function TipContentModal({
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
+      <Dialog as="div" className="relative z-[100]" onClose={onClose}>
         {/* Overlay */}
         <Transition.Child
           as={Fragment}
@@ -197,7 +197,7 @@ export function TipContentModal({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
+          <div className="fixed inset-0 bg-black !bg-opacity-25" />
         </Transition.Child>
 
         {/* Modal Content */}

@@ -6,16 +6,16 @@ interface GetContentOptions {
   cleanIntroEmptyContent?: boolean;
 }
 
-// Interface for Preregistration list response
-export interface PreregistrationListResponse {
+// Interface for Proposal list response
+export interface ProposalListResponse {
+  results: any[];
   count: number;
   next: string | null;
   previous: string | null;
-  results: any[];
 }
 
-// Interface for transformed preregistration for modal use
-export interface PreregistrationForModal {
+// Interface for transformed proposal for modal use
+export interface ProposalForModal {
   id: string;
   title: string;
   status: 'published' | 'draft';
@@ -24,8 +24,8 @@ export interface PreregistrationForModal {
   postId: number;
 }
 
-// Transform preregistration from API response to modal format
-export const transformPreregistrationForModal = (raw: any): PreregistrationForModal => {
+// Transform proposal from API response to modal format
+export const transformProposalForModal = (raw: any): ProposalForModal => {
   return {
     id: raw.id.toString(),
     title: raw.title || '',
@@ -49,11 +49,11 @@ export class PostService {
     return transformPost(rawResponse);
   }
 
-  static async getPreregistrationsByUser(userId: number): Promise<PreregistrationForModal[]> {
-    const response = await ApiClient.get<PreregistrationListResponse>(
+  static async getProposalsByUser(userId: number): Promise<ProposalForModal[]> {
+    const response = await ApiClient.get<ProposalListResponse>(
       `${this.BASE_PATH}/?created_by=${userId}&document_type=PREREGISTRATION`
     );
-    return response.results.map(transformPreregistrationForModal);
+    return response.results.map(transformProposalForModal);
   }
 
   static async getContent(url: string, options: GetContentOptions = {}): Promise<string> {

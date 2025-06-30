@@ -62,9 +62,7 @@ export const FundingTimelineModal: React.FC<FundingTimelineModalProps> = ({ isOp
                         </div>
                       </div>
                       <div className="pt-1">
-                        <h4 className="text-lg font-medium text-gray-900">
-                          Write Your Preregistration
-                        </h4>
+                        <h4 className="text-lg font-medium text-gray-900">Write Your Proposal</h4>
                         <p className="mt-2 text-gray-600">
                           Describe your research methodology and explain why your study matters.
                         </p>

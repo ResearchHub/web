@@ -23,6 +23,7 @@ import ShareModalTrigger from '@/components/modals/ShareModalTrigger';
 import { SITE_CONFIG } from '@/lib/metadata';
 import AnalyticsProvider from '@/components/providers/AnalyticsProvider';
 import { ShareModalProvider } from '@/contexts/ShareContext';
+import ApmProvider from '@/components/ApmProvider';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -113,6 +114,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ApmProvider />
         <ClickProvider>
           <OnchainProvider>
             <NextAuthProvider session={session}>

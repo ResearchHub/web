@@ -4,7 +4,7 @@ import { FC, useState } from 'react';
 import { FeedEntry, FeedBountyContent } from '@/types/feed';
 import { Topic } from '@/types/topic';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
-import { FeedItemActions, ActionButton } from '@/components/Feed/FeedItemActions';
+import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { BountyMetadataLine } from '@/components/Bounty/BountyMetadataLine';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 import { BountySolutions } from '@/components/Bounty/BountySolutions';
@@ -17,22 +17,17 @@ import { ContentFormat } from '@/types/comment';
 import { ID } from '@/types/root';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { BountyContribution, BountyType } from '@/types/bounty';
-import { formatRSC } from '@/utils/number';
 import { formatCurrency } from '@/utils/currency';
 import { useParams } from 'next/navigation';
-import { cn } from '@/utils/styles';
-import { Trophy, Pen, Plus, Users, ArrowBigUpDash, MessageSquareReply } from 'lucide-react';
+import { Trophy, Pen, Users, MessageSquareReply } from 'lucide-react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
-import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Button } from '@/components/ui/Button';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
-import { Icon } from '@/components/ui/icons/Icon';
 import { buildWorkUrl } from '@/utils/url';
-import Link from 'next/link';
-import { CardWrapper } from './CardWrapper';
+import { BaseFeedItem, TitleSection } from '@/components/Feed/BaseFeedItem';
+
 /**
  * Internal component for rendering bounty details
  */
@@ -47,13 +42,12 @@ const BountyDetails: FC<{
   }
 
   return (
-    <div>
-      <div className="mb-3">
-        <div className="text-md font-semibold text-gray-900">
-          {bountyType === 'REVIEW' ? 'Peer Review Earning Opportunity' : 'Earning Opportunity'}
-        </div>
-      </div>
-      <div className="text-gray-600">
+    <div className="mt-4">
+      <TitleSection
+        title={bountyType === 'REVIEW' ? 'Peer Review Earning Opportunity' : 'Earning Opportunity'}
+        className="text-md"
+      />
+      <div className="text-gray-600 mt-2">
         <CommentReadOnly content={content} contentFormat={contentFormat} maxLength={maxLength} />
       </div>
     </div>
@@ -90,110 +84,6 @@ interface FeedItemBountyProps {
   showDeadline?: boolean; // Show deadline in metadata line
   maxLength?: number;
 }
-
-/**
- * Component for rendering the body content of a bounty feed item
- */
-const FeedItemBountyBody: FC<{
-  entry: FeedEntry;
-  showSolutions?: boolean;
-  showRelatedWork?: boolean;
-  onViewSolution?: (event: {
-    solutionId: number;
-    authorName: string;
-    awardedAmount?: string;
-  }) => void;
-  onTopicClick?: (topic: Topic) => void;
-  showDeadline?: boolean;
-  maxLength?: number;
-}> = ({
-  entry,
-  showSolutions = true,
-  showRelatedWork = true,
-  onViewSolution,
-  onTopicClick,
-  showDeadline = true,
-  maxLength,
-}) => {
-  // Extract the bounty entry from the entry's content
-  const bountyEntry = entry.content as FeedBountyContent;
-  const bounty = bountyEntry.bounty;
-
-  // Determine bounty status
-  const isOpen = bounty.status === 'OPEN';
-  const expiringSoon = isExpiringSoon(bounty.expirationDate);
-
-  // Check if this is a peer review bounty
-  const isPeerReviewBounty = bounty.bountyType === 'REVIEW';
-
-  // Check if there are solutions
-  const hasSolutions = bounty.solutions && bounty.solutions.length > 0;
-  const solutionsCount = bounty.solutions ? bounty.solutions.length : 0;
-
-  // Calculate total awarded amount for solutions
-  const totalAwardedAmount = calculateTotalAwardedAmount(bounty);
-
-  // Get related work if available
-  const relatedWork = entry.relatedWork;
-
-  // Handle solution viewing
-  const handleViewSolution = (solutionId: ID, authorName: string, awardedAmount?: string) => {
-    if (onViewSolution) {
-      onViewSolution({
-        solutionId: typeof solutionId === 'number' ? solutionId : Number(solutionId),
-        authorName,
-        awardedAmount,
-      });
-    } else {
-      console.log('View solution:', solutionId, authorName, awardedAmount);
-    }
-  };
-
-  return (
-    <div className="mb-4">
-      {/* Bounty Metadata Line with badges and status */}
-      <div onClick={(e) => e.stopPropagation()}>
-        <BountyMetadataLine
-          amount={parseFloat(bounty.totalAmount)}
-          expirationDate={bounty.expirationDate}
-          isOpen={isOpen}
-          expiringSoon={expiringSoon}
-          solutionsCount={solutionsCount}
-          showDeadline={showDeadline}
-        />
-      </div>
-
-      {/* Related Work - show if available */}
-      {relatedWork && showRelatedWork && (
-        <div className="mt-4" onClick={(e) => e.stopPropagation()}>
-          <RelatedWorkCard size="sm" work={relatedWork} onTopicClick={onTopicClick} />
-        </div>
-      )}
-
-      {/* Bounty Details */}
-      <div className="mt-4">
-        <BountyDetails
-          content={bountyEntry.comment.content}
-          contentFormat={bountyEntry.comment.contentFormat}
-          bountyType={bounty.bountyType}
-          maxLength={maxLength}
-        />
-      </div>
-
-      {/* Solutions section for closed bounties */}
-      {!isOpen && hasSolutions && showSolutions && (
-        <div className="mt-4" onClick={(e) => e.stopPropagation()}>
-          <BountySolutions
-            solutions={bounty.solutions}
-            isPeerReviewBounty={isPeerReviewBounty}
-            totalAwardedAmount={totalAwardedAmount}
-            onViewSolution={handleViewSolution}
-          />
-        </div>
-      )}
-    </div>
-  );
-};
 
 /**
  * Main component for rendering a bounty feed item
@@ -236,13 +126,11 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   // Get the author from the bounty entry
   const author = bountyEntry.createdBy;
 
-  // Determine bounty status for header display
-  const isActive = bounty.status === 'OPEN';
-  const isExpiring = isActive && isExpiringSoon(bounty.expirationDate);
-  const bountyStatus = isExpiring ? 'expiring' : isActive ? 'open' : 'closed';
-
-  // Check if there are solutions to award
-  const hasSolutions = bounty.solutions && bounty.solutions.length > 0;
+  // Determine bounty status
+  const isOpen = bounty.status === 'OPEN';
+  const expiringSoon = isExpiringSoon(bounty.expirationDate);
+  const solutionsCount = bounty.solutions ? bounty.solutions.length : 0;
+  const hasSolutions = solutionsCount > 0;
 
   // Format the bounty amount for display in the action text
   const formattedBountyAmount = bounty.totalAmount
@@ -256,9 +144,6 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   const bountyActionText = bounty.totalAmount
     ? `created a bounty for ${formattedBountyAmount} ${showUSD ? '' : 'RSC'}`
     : 'created a bounty';
-
-  // Determine if card should have clickable styles
-  const isClickable = !!href;
 
   // Handle opening the contribute modal
   const handleOpenContributeModal = (e: React.MouseEvent | undefined) => {
@@ -291,7 +176,6 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       workContentType = bountyEntry.relatedDocumentContentType;
     }
 
-    // Ensure we have enough information to build the URL
     if (!workId || !workContentType) {
       console.error('FeedItemBounty: Unable to determine destination for CTA', {
         workId,
@@ -302,49 +186,47 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       return;
     }
 
-    // Always redirect to the reviews tab
     const workUrl = buildWorkUrl({
       id: workId.toString(),
       contentType: workContentType as any,
       slug: workSlug,
       tab: 'reviews',
     });
-
-    // Add focus flag to query params so the page can focus the editor
     const urlWithFocus = `${workUrl}?focus=true`;
-
-    // Full page navigation
     window.location.href = urlWithFocus;
   };
 
-  // Handle awarding the bounty
   const handleAwardBounty = (e: React.MouseEvent | undefined) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
-    if (onAward) {
-      onAward();
+    if (onAward) onAward();
+  };
+
+  const handleViewSolution = (solutionId: ID, authorName: string, awardedAmount?: string) => {
+    if (onViewSolution) {
+      onViewSolution({
+        solutionId: typeof solutionId === 'number' ? solutionId : Number(solutionId),
+        authorName,
+        awardedAmount,
+      });
     }
   };
 
   // Create menu items array for FeedItemActions
   const menuItems = [];
-
-  // Add Edit action to menu if applicable
   if (showCreatorActions && isAuthor && onEdit) {
     menuItems.push({
       icon: Pen,
       label: 'Edit',
       onClick: (e?: React.MouseEvent) => {
         e?.stopPropagation();
-        e?.preventDefault();
         onEdit();
       },
     });
   }
 
-  // Create the award button styled like the contribute button
   const awardButton =
     showCreatorActions && isAuthor && isOpenBounty(bounty) && onAward ? (
       <Button
@@ -358,28 +240,22 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       </Button>
     ) : null;
 
-  // Add Contributors action to menu if applicable
   if (bounty.contributions && bounty.contributions.length > 0) {
     menuItems.push({
       icon: Users,
       label: 'View Contributors',
       onClick: (e?: React.MouseEvent) => {
-        e?.preventDefault();
         e?.stopPropagation();
         handleOpenContributeModal(e);
       },
     });
   }
 
-  // Check if actions should be hidden:
-  // 1. Explicitly via hideActions prop, or
-  // 2. If the associated comment has been removed (accessing raw API data)
   const shouldHideActions =
     hideActions || Boolean((entry.raw as any)?.content_object?.comment?.is_removed);
 
   return (
     <div className="space-y-3">
-      {/* Header */}
       <FeedItemHeader
         timestamp={bountyEntry.createdDate}
         author={author}
@@ -396,87 +272,101 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         work={entry.relatedWork}
       />
 
-      <CardWrapper href={href} isClickable={isClickable}>
-        <div className="p-4">
-          {' '}
-          {/* Added padding back */}
-          <FeedItemBountyBody
-            entry={entry}
-            showSolutions={showSolutions}
-            showRelatedWork={showRelatedWork}
-            onViewSolution={onViewSolution}
-            onTopicClick={onTopicClick}
+      <BaseFeedItem entry={entry} href={href} showHeader={false} showActions={false}>
+        <div onClick={(e) => e.stopPropagation()}>
+          <BountyMetadataLine
+            amount={parseFloat(bounty.totalAmount)}
+            expirationDate={bounty.expirationDate}
+            isOpen={isOpen}
+            expiringSoon={expiringSoon}
+            solutionsCount={solutionsCount}
             showDeadline={showDeadline}
-            maxLength={maxLength}
           />
-          {/* Container for Support and CTA buttons */}
-          {showSupportAndCTAButtons && (
-            <div
-              className="mt-4 flex items-center gap-2"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-            >
-              {/* Contribute Button - Conditionally shown */}
-              {isActive && showContributeButton && !isAuthor && (
-                <Button variant="contribute" size="sm" onClick={handleOpenContributeModal}>
-                  <ResearchCoinIcon size={20} variant="orange" contribute />
-                  Support this bounty
-                </Button>
-              )}
-
-              {/* Award Button - shown instead of "Support this bounty" if user is author */}
-              {awardButton}
-
-              {/* Add Solution/Review CTA Button - shown only if bounty is open */}
-              {isActive && (
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="flex-1 md:!flex-none flex items-center gap-1.5"
-                  onClick={handleSolution}
-                >
-                  <MessageSquareReply size={18} /> {/* Added icon */}
-                  {bounty.bountyType === 'REVIEW' ? 'Add your Review' : 'Add Solution'}
-                </Button>
-              )}
-            </div>
-          )}
-          {/* Action Buttons - Full width - Moved inside the padded div */}
-          {showFooter && !shouldHideActions && (
-            <div
-              className="mt-4 pt-3 border-t border-gray-200"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-            >
-              <FeedItemActions
-                metrics={entry.metrics}
-                feedContentType="BOUNTY"
-                votableEntityId={bountyEntry.comment.id}
-                relatedDocumentId={bountyEntry.relatedDocumentId}
-                relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
-                userVote={entry.userVote}
-                tips={entry.tips}
-                showTooltips={showTooltips}
-                actionLabels={actionLabels}
-                menuItems={menuItems}
-                bounties={[bountyEntry.bounty]}
-                onComment={onReply}
-              />
-            </div>
-          )}
         </div>
-      </CardWrapper>
 
-      {/* Contribute Bounty Modal */}
+        {entry.relatedWork && showRelatedWork && (
+          <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+            <RelatedWorkCard size="sm" work={entry.relatedWork} onTopicClick={onTopicClick} />
+          </div>
+        )}
+
+        <BountyDetails
+          content={bountyEntry.comment.content}
+          contentFormat={bountyEntry.comment.contentFormat}
+          bountyType={bounty.bountyType}
+          maxLength={maxLength}
+        />
+
+        {!isOpen && hasSolutions && showSolutions && (
+          <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+            <BountySolutions
+              solutions={bounty.solutions}
+              isPeerReviewBounty={bounty.bountyType === 'REVIEW'}
+              totalAwardedAmount={calculateTotalAwardedAmount(bounty)}
+              onViewSolution={handleViewSolution}
+            />
+          </div>
+        )}
+
+        {showSupportAndCTAButtons && (
+          <div
+            className="mt-4 flex items-center gap-2"
+            onClick={(e) => e.stopPropagation()}
+            role="presentation"
+            aria-hidden="true"
+            tabIndex={-1}
+          >
+            {isOpen && showContributeButton && !isAuthor && (
+              <Button variant="contribute" size="sm" onClick={handleOpenContributeModal}>
+                <ResearchCoinIcon size={20} variant="orange" contribute />
+                Support this bounty
+              </Button>
+            )}
+            {awardButton}
+            {isOpen && (
+              <Button
+                variant="default"
+                size="sm"
+                className="flex-1 md:!flex-none flex items-center gap-1.5"
+                onClick={handleSolution}
+              >
+                <MessageSquareReply size={18} />
+                {bounty.bountyType === 'REVIEW' ? 'Add your Review' : 'Add Solution'}
+              </Button>
+            )}
+          </div>
+        )}
+
+        {showFooter && !shouldHideActions && (
+          <div
+            className="mt-4 pt-3 border-t border-gray-200"
+            onClick={(e) => e.stopPropagation()}
+            role="presentation"
+            aria-hidden="true"
+            tabIndex={-1}
+          >
+            <FeedItemActions
+              metrics={entry.metrics}
+              feedContentType="BOUNTY"
+              votableEntityId={bountyEntry.comment.id}
+              relatedDocumentId={bountyEntry.relatedDocumentId}
+              relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
+              userVote={entry.userVote}
+              tips={entry.tips}
+              showTooltips={showTooltips}
+              actionLabels={actionLabels}
+              menuItems={menuItems}
+              bounties={[bountyEntry.bounty]}
+              onComment={onReply}
+            />
+          </div>
+        )}
+      </BaseFeedItem>
+
       <ContributeBountyModal
         isOpen={isContributeModalOpen}
         onClose={() => setIsContributeModalOpen(false)}
         onContributeSuccess={() => {
-          // Call both callback functions
           if (onContributeSuccess) {
             onContributeSuccess();
           }
