@@ -20,7 +20,9 @@ import { AuthSharingWrapper } from '@/components/AuthSharingWrapper';
 import { VerificationProvider } from '@/contexts/VerificationContext';
 import SignupModalContainer from '@/components/modals/SignupModalContainer';
 import ShareModalTrigger from '@/components/modals/ShareModalTrigger';
+import { SITE_CONFIG } from '@/lib/metadata';
 import AnalyticsProvider from '@/components/providers/AnalyticsProvider';
+import { ShareModalProvider } from '@/contexts/ShareContext';
 import ApmProvider from '@/components/ApmProvider';
 
 const geistSans = localFont({
@@ -35,6 +37,21 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_CONFIG.url),
+  title: {
+    default: SITE_CONFIG.name,
+    template: `%s | ${SITE_CONFIG.name}`,
+  },
+  description: SITE_CONFIG.description,
+  keywords: ['research', 'science', 'academic', 'collaboration', 'open science'],
+  authors: [{ name: SITE_CONFIG.name }],
+  creator: SITE_CONFIG.name,
+  publisher: SITE_CONFIG.name,
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   icons: {
     icon: [
       { url: '/favicons/favicon-16x16.png', sizes: '16x16' },
@@ -49,9 +66,42 @@ export const metadata: Metadata = {
     ],
   },
   manifest: '/favicons/site.webmanifest',
-  title: 'ResearchHub | Open Science Community',
-  description:
-    'ResearchHub is a collaborative community seeking to improve prioritization, collaboration, reproducibility, and funding of scientific research. Join us to discuss and discover academic research.',
+  openGraph: {
+    type: 'website',
+    title: SITE_CONFIG.name,
+    url: SITE_CONFIG.url,
+    images: [
+      {
+        url: `${SITE_CONFIG.url}${SITE_CONFIG.ogImage}`,
+        width: 1200,
+        height: 630,
+        alt: SITE_CONFIG.name,
+        type: 'image/png',
+      },
+    ],
+    description: SITE_CONFIG.description,
+    siteName: SITE_CONFIG.name,
+    locale: SITE_CONFIG.locale,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: SITE_CONFIG.twitterHandle,
+    creator: SITE_CONFIG.twitterHandle,
+    title: SITE_CONFIG.name,
+    description: SITE_CONFIG.description,
+    images: [`${SITE_CONFIG.url}${SITE_CONFIG.ogImage}`],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export default async function RootLayout({
@@ -71,21 +121,23 @@ export default async function RootLayout({
               <AnalyticsProvider>
                 <AuthSharingWrapper>
                   <AuthModalProvider>
-                    <UserProvider>
-                      <VerificationProvider>
-                        <ExchangeRateProvider>
-                          <CurrencyPreferenceProvider>
-                            <NotificationProvider>
-                              <OrganizationProvider>
-                                <FollowProvider>{children}</FollowProvider>
-                              </OrganizationProvider>
-                            </NotificationProvider>
-                          </CurrencyPreferenceProvider>
-                        </ExchangeRateProvider>
-                      </VerificationProvider>
-                    </UserProvider>
-                    <SignupModalContainer />
-                    <ShareModalTrigger />
+                    <ShareModalProvider>
+                      <UserProvider>
+                        <VerificationProvider>
+                          <ExchangeRateProvider>
+                            <CurrencyPreferenceProvider>
+                              <NotificationProvider>
+                                <OrganizationProvider>
+                                  <FollowProvider>{children}</FollowProvider>
+                                </OrganizationProvider>
+                              </NotificationProvider>
+                            </CurrencyPreferenceProvider>
+                          </ExchangeRateProvider>
+                        </VerificationProvider>
+                      </UserProvider>
+                      <SignupModalContainer />
+                      {/* <ShareModalTrigger /> */}
+                    </ShareModalProvider>
                   </AuthModalProvider>
                 </AuthSharingWrapper>
               </AnalyticsProvider>
