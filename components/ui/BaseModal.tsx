@@ -58,7 +58,7 @@ export const BaseModal: FC<BaseModalProps> = ({
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" initialFocus={initialFocus} onClose={onClose}>
+      <Dialog as="div" className="relative z-[9999]" initialFocus={initialFocus} onClose={onClose}>
         {/* Overlay */}
         <Transition.Child
           as={Fragment}
