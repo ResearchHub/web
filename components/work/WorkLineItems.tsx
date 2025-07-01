@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { ArrowUp, Flag, Edit, MoreHorizontal, FileUp, Octagon } from 'lucide-react';
+import { ArrowUp, Flag, Edit, MoreHorizontal, FileUp, Octagon, Share2 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
@@ -241,7 +241,7 @@ export const WorkLineItems = ({
             }
             className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
           >
-            <Icon name="socialMedia" size={24} />
+            <Share2 className="h-6 w-6" />
           </button>
 
           {work.contentType !== 'preregistration' && (
@@ -250,7 +250,7 @@ export const WorkLineItems = ({
               className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
             >
               <Icon name="tipRSC" size={20} />
-              <span className="hidden md:!block">Tip RSC</span>
+              <span className="hidden md:!block">Tip</span>
             </button>
           )}
 

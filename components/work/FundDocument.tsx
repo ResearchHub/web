@@ -14,7 +14,6 @@ import { PostBlockEditor } from './PostBlockEditor';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { ProgressUpdates } from '@/components/ui/ProgressUpdates';
 import { useStorageKey } from '@/utils/storageKeys';
-import { NewFundingModal } from '@/components/modals/NewFundingModal';
 import { calculateUpdateRate } from '@/components/Fund/lib/FundUtils';
 import { FundingRightSidebar } from './FundingRightSidebar';
 import { useUser } from '@/contexts/UserContext';
@@ -41,6 +40,11 @@ export const FundDocument = ({
   const [showMobileMetrics, setShowMobileMetrics] = useState(false);
   const storageKey = useStorageKey('rh-comments');
   const { user } = useUser();
+  const { showShareModal } = useShareModalContext();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
   // Check if current user is an author of the work
   const isCurrentUserAuthor = useMemo(() => {
     if (!user?.id) return false;
@@ -49,42 +53,21 @@ export const FundDocument = ({
     );
   }, [user?.id, work.authors]);
 
-  // New funding modal logic
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
-  const [isNewFundingModalOpen, setIsNewFundingModalOpen] = useState(false);
-
   useEffect(() => {
     const newParam = searchParams.get('new');
-    setIsNewFundingModalOpen(newParam === 'true');
-  }, [searchParams]);
+    if (newParam === 'true') {
+      showShareModal({
+        action: 'USER_OPENED_PROPOSAL',
+        docTitle: work.title,
+        url: `${window.location.origin}${pathname}`,
+        shouldShowConfetti: true,
+      });
 
-  const handleCloseNewFundingModal = () => {
-    setIsNewFundingModalOpen(false);
-
-    // More robust URL parameter removal
-    const url = new URL(window.location.href);
-    url.searchParams.delete('new');
-
-    const newUrl = url.pathname + (url.search || '');
-
-    // Use router.replace for navigation
-    router.replace(newUrl, { scroll: false });
-  };
-
-  // Generate clean URL for sharing (without the new=true parameter)
-  const getCleanUrl = () => {
-    if (typeof window === 'undefined') return '';
-
-    const current = new URLSearchParams(Array.from(searchParams.entries()));
-    current.delete('new');
-
-    const search = current.toString();
-    const query = search ? `?${search}` : '';
-
-    return `${window.location.origin}${pathname}${query}`;
-  };
+      const url = new URL(window.location.href);
+      url.searchParams.delete('new');
+      router.replace(url.pathname + url.search, { scroll: false });
+    }
+  }, [searchParams, router, pathname, work.title, showShareModal]);
 
   // Handle tab change
   const handleTabChange = (tab: TabType) => {
@@ -297,12 +280,6 @@ export const FundDocument = ({
           <FundingRightSidebar work={work} metadata={metadata} authorUpdates={authorUpdates} />
         </div>
       </div>
-      {/* New Funding Modal */}
-      <NewFundingModal
-        isOpen={isNewFundingModalOpen}
-        onClose={handleCloseNewFundingModal}
-        proposalUrl={getCleanUrl()}
-      />
     </div>
   );
 };

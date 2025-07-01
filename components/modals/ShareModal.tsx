@@ -3,7 +3,7 @@
 import { Fragment, useRef, useEffect, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import Confetti from 'react-confetti';
-import { PartyPopper, Copy } from 'lucide-react';
+import { PartyPopper, Copy, Share2 } from 'lucide-react';
 import SocialShareButtons from '@/components/SocialShareButtons';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
@@ -14,53 +14,65 @@ export type ShareAction =
   | 'USER_SHARED_DOCUMENT';
 
 interface ShareConfig {
-  title: (docTitle: string) => React.ReactNode;
+  title: (docTitle: string, url: string) => React.ReactNode;
   description: (docTitle: string) => React.ReactNode;
   socialText: (docTitle: string) => string;
+  IconComponent: React.ElementType;
 }
 
 export const SHARE_CONFIGS: Record<ShareAction, ShareConfig> = {
   USER_OPENED_PROPOSAL: {
-    title: (docTitle) => <>You opened a proposal!</>,
+    IconComponent: PartyPopper,
+    title: (docTitle, url) => <>Congratulations on opening a proposal</>,
     description: (docTitle) => (
       <>
-        Thank you for opening{' '}
-        <span className="font-semibold text-blue-600" title={docTitle}>
-          {docTitle}
-        </span>
-        !
+        Share a link to your proposal on social media to get more eyes on your work, including
+        potential funders.
       </>
     ),
-    socialText: (docTitle) => `I just opened a proposal: ${docTitle} on ResearchHub!`,
+    socialText: (docTitle) => `New experiment proposal: ${docTitle}\n\n`,
   },
   USER_PEER_REVIEWED: {
-    title: (docTitle) => <>You peer reviewed!</>,
+    IconComponent: PartyPopper,
+    title: (docTitle, url) => <>Thank you for your review</>,
     description: (docTitle) => (
       <>
         Thank you for reviewing{' '}
         <span className="font-semibold text-blue-600" title={docTitle}>
           {docTitle}
         </span>
-        !
+        .{` `}Share your review with others.
       </>
     ),
     socialText: (docTitle) => `I just peer reviewed: ${docTitle} on ResearchHub!`,
   },
   USER_FUNDED_PROPOSAL: {
-    title: (docTitle) => <>You're a Research Champion!</>,
+    IconComponent: PartyPopper,
+    title: (docTitle, url) => <>You're a Research Champion!</>,
     description: (docTitle) => (
       <>
         Thank you for funding{' '}
         <span className="font-semibold text-blue-600" title={docTitle}>
           {docTitle}
         </span>
-        ! Your support is vital. Help us spread the word.
+        .{` `}Your support is vital. Help us spread the word.
       </>
     ),
     socialText: (docTitle) => `I just funded: ${docTitle} on ResearchHub!`,
   },
   USER_SHARED_DOCUMENT: {
-    title: (docTitle) => <>Share this document!</>,
+    IconComponent: Share2,
+    title: (docTitle, url) => {
+      const getShareType = (url: string): string => {
+        if (url.includes('/post/')) return 'Preprint';
+        if (url.includes('/paper/')) return 'Paper';
+        if (url.includes('/fund/')) return 'Proposal';
+        if (url.includes('/grant/')) return 'RFP';
+        return '';
+      };
+      const type = getShareType(url);
+      return <>Share {type}</>;
+    },
     description: (docTitle: string) => (
       <>
         Help others discover{' '}
@@ -70,7 +82,7 @@ export const SHARE_CONFIGS: Record<ShareAction, ShareConfig> = {
         by sharing it on social media.
       </>
     ),
-    socialText: (docTitle: string) => `I'm sharing "${docTitle}" on ResearchHub! Check it out:`,
+    socialText: (docTitle: string) => `${docTitle}`,
   },
 };
 
@@ -92,6 +104,11 @@ export default function ShareModal({
   shouldShowConfetti = true,
 }: ShareModalProps) {
   const config = SHARE_CONFIGS[action];
+  const [displayData, setDisplayData] = useState<{
+    title: React.ReactNode;
+    description: React.ReactNode;
+  } | null>(null);
+
   const [copied, setCopied] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [modalDimensions, setModalDimensions] = useState({ width: 0, height: 0 });
@@ -99,6 +116,11 @@ export default function ShareModal({
 
   useEffect(() => {
     if (isOpen) {
+      setDisplayData({
+        title: config.title(docTitle, url),
+        description: config.description(docTitle),
+      });
+
       AnalyticsService.logEvent(LogEvent.SHARE_MODAL_OPENED, {
         action,
         docTitle,
@@ -116,7 +138,7 @@ export default function ShareModal({
     } else {
       setShowConfetti(false);
     }
-  }, [isOpen]);
+  }, [isOpen, action, docTitle, url, shouldShowConfetti, config]);
 
   const handleCopy = () => {
     const urlWithUtm = new URL(url, window.location.origin);
@@ -199,17 +221,18 @@ export default function ShareModal({
 
                 <div className="text-center">
                   <div className="mx-auto mb-4 h-14 w-14 flex items-center justify-center rounded-full bg-blue-100">
-                    <PartyPopper size={36} color="#3B82F6" />
+                    <config.IconComponent size={36} color="#3B82F6" />
                   </div>
 
-                  <h2 className="text-2xl font-bold text-gray-800">{config.title(docTitle)}</h2>
-                  <p className="text-gray-500 mt-2 px-4">{config.description(docTitle)}</p>
+                  {displayData && (
+                    <>
+                      <h2 className="text-2xl font-bold text-gray-800">{displayData.title}</h2>
+                      <p className="text-gray-500 mt-2 px-4">{displayData.description}</p>
+                    </>
+                  )}
                 </div>
 
                 <div className="mt-6">
-                  <label htmlFor="share-url" className="text-sm font-medium text-gray-700">
-                    Share this experiment:
-                  </label>
                   <div className="mt-1 flex rounded-md shadow-sm">
                     <input
                       type="text"
@@ -221,7 +244,7 @@ export default function ShareModal({
                     />
                     <button
                       onClick={handleCopy}
-                      className="relative -ml-px inline-flex items-center space-x-2 px-4 py-2 rounded-r-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      className="relative -ml-px inline-flex items-center space-x-2 px-4 py-2 rounded-r-md border border-gray-300 bg-rhBlue-500 text-white text-sm font-medium hover:bg-rhBlue-600 focus:outline-none focus:ring-1 focus:ring-rhBlue-500 focus:border-rhBlue-500"
                     >
                       <Copy size={16} />
                       <span>Copy</span>
