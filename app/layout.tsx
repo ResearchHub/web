@@ -25,6 +25,7 @@ import AnalyticsProvider from '@/components/providers/AnalyticsProvider';
 import { ShareModalProvider } from '@/contexts/ShareContext';
 import ApmProvider from '@/components/ApmProvider';
 import { GoogleAnalytics } from '@next/third-parties/google';
+import { Analytics } from '@vercel/analytics/react';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -147,6 +148,7 @@ export default async function RootLayout({
           </OnchainProvider>
         </ClickProvider>
         {process.env.GA_MEASUREMENT_ID && <GoogleAnalytics gaId={process.env.GA_MEASUREMENT_ID} />}
+        <Analytics />
       </body>
     </html>
   );
