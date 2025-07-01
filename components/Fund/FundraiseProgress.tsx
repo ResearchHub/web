@@ -2,7 +2,6 @@
 
 import { FC, useState } from 'react';
 import { Progress } from '@/components/ui/Progress';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Clock } from 'lucide-react';
 import { formatDeadline, isDeadlineInFuture } from '@/utils/date';
@@ -11,14 +10,15 @@ import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
-import { formatRSC } from '@/utils/number';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { Icon } from '../ui/icons';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useShareModalContext } from '@/contexts/ShareContext';
+import { useRouter } from 'next/navigation';
 
 interface FundraiseProgressProps {
   fundraise: Fundraise;
+  fundraiseTitle: string;
   compact?: boolean;
   onContribute?: () => void;
   showContribute?: boolean;
@@ -31,6 +31,7 @@ interface FundraiseProgressProps {
 
 export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   fundraise,
+  fundraiseTitle,
   compact = false,
   onContribute,
   showContribute = true,
@@ -40,6 +41,8 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
 }) => {
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
   const { showUSD } = useCurrencyPreference();
+  const { showShareModal } = useShareModalContext();
+  const router = useRouter();
 
   if (!fundraise) return null;
 
@@ -118,6 +121,14 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
     if (onContribute) {
       onContribute();
     }
+
+    showShareModal({
+      url: window.location.href,
+      docTitle: fundraiseTitle,
+      action: 'USER_FUNDED_PROPOSAL',
+    });
+
+    router.refresh();
   };
 
   // Determine the progress bar variant based on fundraise status and funding percentage

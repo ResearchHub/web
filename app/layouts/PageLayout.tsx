@@ -151,7 +151,7 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
 
       {/* Fixed TopBar starting from LeftSidebar edge */}
       <div
-        className="fixed top-0 right-0 z-[60] bg-white
+        className="fixed top-0 right-0 z-[60] tablet:!z-50 bg-white
                       left-0 tablet:!left-72 tablet:sidebar-compact:!left-72 tablet:max-sidebar-compact:!left-[70px]"
       >
         <Suspense fallback={<TopBarSkeleton />}>

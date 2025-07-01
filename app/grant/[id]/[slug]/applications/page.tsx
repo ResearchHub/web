@@ -8,6 +8,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { GrantDocument } from '@/components/work/GrantDocument';
 import { GrantRightSidebar } from '@/components/work/GrantRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
+import { getWorkMetadata } from '@/lib/metadata-helpers';
 
 interface Props {
   params: Promise<{
@@ -43,10 +44,11 @@ async function getWorkHTMLContent(work: Work): Promise<string | undefined> {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const grant = await getGrant(resolvedParams.id);
-  return {
-    title: `${grant.title} - Applications`,
-    description: grant.abstract || '',
-  };
+  return getWorkMetadata({
+    work: grant,
+    url: `/grant/${resolvedParams.id}/${resolvedParams.slug}/applications`,
+    titleSuffix: 'Applications',
+  });
 }
 
 export default async function GrantApplicationsPage({ params }: Props) {

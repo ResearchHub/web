@@ -20,6 +20,7 @@ import { useUser } from '@/contexts/UserContext';
 import { CommentEmptyState } from './CommentEmptyState';
 import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
 import { comment } from 'postcss';
+import { useShareModalContext } from '@/contexts/ShareContext';
 
 interface CommentFeedProps {
   documentId: number;
@@ -128,7 +129,7 @@ function CommentFeedContent({
 
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser();
-
+  const { showShareModal } = useShareModalContext();
   // Check if current user is an author
   const isCurrentUserAuthor = useMemo(() => {
     if (!user?.id || !workAuthors) return false;
@@ -159,6 +160,11 @@ function CommentFeedContent({
 
             result.score = overallRating;
             toast.success('Review submitted successfully!', { id: toastId });
+            showShareModal({
+              url: window.location.href,
+              docTitle: work?.title || 'the document',
+              action: 'USER_PEER_REVIEWED',
+            });
           } catch (reviewError) {
             console.error('Error creating community review:', reviewError);
             toast.success('Comment submitted, but review data could not be saved.', {

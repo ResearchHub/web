@@ -68,6 +68,7 @@ export const GrantDocument = ({
               contentType={work.contentType}
               commentType="GENERIC_COMMENT"
               key={`comment-feed-${work.id}`}
+              work={work}
             />
           </div>
         );

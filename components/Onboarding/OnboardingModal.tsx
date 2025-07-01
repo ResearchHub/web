@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useId } from 'react';
+import { useEffect, useState, useId, useRef } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { UserService } from '@/services/user.service';
 import { BaseModal } from '@/components/ui/BaseModal';
@@ -14,6 +14,7 @@ import { faCheck, faChevronLeft } from '@fortawesome/pro-solid-svg-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { InterestSelector } from '../InterestSelector/InterestSelector';
 import { OnboardingAccordionSkeleton } from './OnboardingAccordionSkeleton';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
 type OnboardingStep = 'PERSONAL_INFORMATION' | 'ADDITIONAL_INFORMATION' | 'TOPICS';
 
@@ -65,6 +66,7 @@ export function OnboardingModal() {
   const searchParams = useSearchParams();
   const [isSaving, setIsSaving] = useState(false);
   const router = useRouter();
+  const onboardingEventFired = useRef(false);
 
   const [
     { isLoading: updateAuthorProfileDataLoading, error: updateAuthorProfileDataError },
@@ -82,8 +84,22 @@ export function OnboardingModal() {
   }, [showModal]);
 
   useEffect(() => {
+    if (isUserLoading) {
+      return;
+    }
+
     const shouldShowOnboarding =
       UserService.shouldRedirectToOnboarding(user) || searchParams.get('onboarding') === 'true';
+
+    if (
+      shouldShowOnboarding &&
+      user &&
+      user.hasCompletedOnboarding === false &&
+      !onboardingEventFired.current
+    ) {
+      AnalyticsService.logEvent(LogEvent.ONBOARDING_VIEWED);
+      onboardingEventFired.current = true;
+    }
 
     setShowModal(shouldShowOnboarding);
   }, [user, isUserLoading, searchParams]);

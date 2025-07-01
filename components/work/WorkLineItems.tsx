@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { ArrowUp, Flag, Edit, MoreHorizontal, FileUp, Octagon } from 'lucide-react';
+import { ArrowUp, Flag, Edit, MoreHorizontal, FileUp, Octagon, Share2 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
@@ -20,6 +20,7 @@ import { useUser } from '@/contexts/UserContext';
 import { Contact } from '@/types/note';
 import { WorkEditModal } from './WorkEditModal';
 import { WorkMetadata } from '@/services/metadata.service';
+import { useShareModalContext } from '@/contexts/ShareContext';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 
 interface WorkLineItemsProps {
@@ -50,6 +51,7 @@ export const WorkLineItems = ({
   const { selectedOrg } = useOrganizationContext();
   const { user } = useUser();
   const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
+  const { showShareModal } = useShareModalContext();
 
   const {
     data: userVotes,
@@ -228,13 +230,27 @@ export const WorkLineItems = ({
             <span>{voteCount}</span>
           </button>
 
+          <button
+            onClick={() =>
+              showShareModal({
+                url: window.location.href,
+                docTitle: work.title,
+                action: 'USER_SHARED_DOCUMENT',
+                shouldShowConfetti: false,
+              })
+            }
+            className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+          >
+            <Share2 className="h-6 w-6" />
+          </button>
+
           {work.contentType !== 'preregistration' && (
             <button
               onClick={() => executeAuthenticatedAction(() => setIsTipModalOpen(true))}
               className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
             >
               <Icon name="tipRSC" size={20} />
-              <span className="hidden md:!block">Tip RSC</span>
+              <span className="hidden md:!block">Tip</span>
             </button>
           )}
 

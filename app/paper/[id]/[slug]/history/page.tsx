@@ -8,6 +8,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkDocument } from '@/components/work/WorkDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
+import { getWorkMetadata } from '@/lib/metadata-helpers';
 
 interface Props {
   params: Promise<{
@@ -37,10 +38,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!workForMeta) {
     return { title: 'History Not Found' };
   }
-  return {
-    title: `${workForMeta.title} - History`,
-    description: `Version history for ${workForMeta.title}`,
-  };
+  return getWorkMetadata({
+    work: workForMeta,
+    url: `/paper/${resolvedParams.id}/${resolvedParams.slug}/history`,
+  });
 }
 
 export default async function WorkHistoryPage({ params }: Props) {

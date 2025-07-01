@@ -1,8 +1,6 @@
 'use client';
 
-import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { AboutValues } from './components/AboutValues';
-import { Icon } from '@/components/ui/icons';
 import { AboutMission } from './components/AboutMission';
 import { AboutContact } from './components/AboutContact';
 import { AboutFAQ } from './components/AboutFAQ';
