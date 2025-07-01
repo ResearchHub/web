@@ -16,7 +16,7 @@ export default function SignupModalContainer() {
       const timer = setTimeout(() => {
         setShowModal(true);
         AnalyticsService.logEvent(LogEvent.SIGNUP_PROMO_MODAL_OPENED);
-      }, 10000);
+      }, 3000);
       return () => clearTimeout(timer);
     } else {
       setShowModal(false);
