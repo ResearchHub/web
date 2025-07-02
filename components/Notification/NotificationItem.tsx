@@ -15,12 +15,14 @@ import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { ChevronRight } from 'lucide-react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { useRouter } from 'next/navigation';
 
 interface NotificationItemProps {
   notification: Notification;
 }
 
 export function NotificationItem({ notification }: NotificationItemProps) {
+  const router = useRouter();
   const notificationInfo = getNotificationInfo(notification);
   const { exchangeRate } = useExchangeRate();
   const message = formatNotificationMessage(notification, exchangeRate);
@@ -124,7 +126,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         )}
         onClick={() => {
           if (hasNavigationUrl && formattedNavigationUrl) {
-            window.open(formattedNavigationUrl, '_blank', 'noopener,noreferrer');
+            router.push(formattedNavigationUrl);
           }
         }}
       >
