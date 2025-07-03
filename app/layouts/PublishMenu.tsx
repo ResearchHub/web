@@ -90,8 +90,8 @@ const MenuItemContent: React.FC<MenuItemContentProps> = ({ icon, title, descript
         </div>
       </div>
       <div className="flex-1">
-        <div className="text-sm font-medium tracking-[0.02em] text-gray-900">{title}</div>
-        <div className="text-xs text-gray-600 mt-0.5">{description}</div>
+        <div className="text-base font-medium tracking-[0.02em] text-gray-900">{title}</div>
+        <div className="text-sm text-gray-600 mt-0.5">{description}</div>
       </div>
     </div>
   );
@@ -219,7 +219,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
       {PUBLISH_MENU_SECTIONS.map((section) => (
         <div key={section.title}>
           <div className="px-3 mb-2">
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+            <h3 className="text-base font-medium text-gray-500 uppercase tracking-wider">
               {section.title}
             </h3>
           </div>
@@ -276,7 +276,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
             isOpen={isMobileDrawerOpen}
             onClose={() => setIsMobileDrawerOpen(false)}
             height="60vh"
-            showCloseButton={true}
+            showCloseButton={false}
           >
             {mobileDrawerContent}
           </SwipeableDrawer>

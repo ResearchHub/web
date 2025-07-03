@@ -7,6 +7,7 @@ import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
 import { ProposalForModal } from '@/services/post.service';
 import { Work } from '@/types/work';
 import { Plus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface GrantAmountSectionProps {
   work: Work;
@@ -14,7 +15,7 @@ interface GrantAmountSectionProps {
 
 export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
   const usdAmount = work.note?.post?.grant?.amount?.usd ?? 0;
-
+  const router = useRouter();
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 
   if (!work.note?.post?.grant?.amount) {
@@ -24,6 +25,7 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
   const handleUseSelectedProposal = (proposal: ProposalForModal) => {
     console.log('Apply using selected proposal from GrantAmountSection:', proposal);
     setIsApplyModalOpen(false);
+    router.refresh();
   };
 
   return (

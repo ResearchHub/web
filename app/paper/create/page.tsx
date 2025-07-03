@@ -10,6 +10,7 @@ import { RadioGroup } from '@headlessui/react';
 import { FileUp, Notebook, Eye, BadgeCheck, BookOpen, Loader2 } from 'lucide-react';
 import type { SearchSuggestion } from '@/types/search';
 import { PaperActionCard } from './PaperActionCard';
+import { Alert } from '@/components/ui/Alert';
 
 type PublishOption = 'notebook' | 'pdf' | null;
 
@@ -76,18 +77,16 @@ export default function WorkCreatePage() {
 
   return (
     <PageLayout>
-      <div className="max-w-4xl mx-auto">
+      <div className="w-full max-w-3xl mx-auto mt-6 px-4">
         {/* Header */}
-        <div className="pb-12">
-          <div className="flex items-center flex-col">
-            <div className="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 ">
-              <FileUp className="h-9 w-9 text-blue-600" />
-            </div>
-            <PageHeader title="Submit your paper" className="mt-1 mb-1" />
-            <p className="text-lg text-gray-600">
-              Share your original work with the ResearchHub community.
-            </p>
+        <div className="flex flex-col items-center gap-3 mt-4 mb-8">
+          <div className="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100">
+            <FileUp className="w-8 h-8 text-blue-600" />
           </div>
+          <h1 className="text-3xl font-bold text-gray-900 text-center">Submit your paper</h1>
+          <p className="text-lg text-gray-600 text-center max-w-xl">
+            Share your original work with the ResearchHub community.
+          </p>
         </div>
 
         {selectedPaper ? (
@@ -177,32 +176,25 @@ export default function WorkCreatePage() {
             */}
 
             <div className="mt-8">
-              <h3 className="text-base font-medium text-gray-700 mb-4">Choose one:</h3>
-              <div className="grid grid-cols-1 gap-4">
+              <h2 className="text-lg font-semibold text-gray-900">Choose one:</h2>
+              <p className="text-gray-500 mb-6">
+                Select how you would like to submit your research to ResearchHub.
+              </p>
+              <div className="space-y-4">
                 {publishOptions.map((option) => {
                   const Icon = option.icon;
                   return (
-                    <div
+                    <Button
                       key={option.id}
+                      variant="outlined"
+                      size="lg"
+                      className="w-full flex items-center gap-2"
                       onClick={() => !isPending && handleOptionClick(option.id as PublishOption)}
-                      className={`relative flex cursor-pointer rounded-lg border-2 p-4 focus:outline-none
-                        border-gray-200 bg-white hover:bg-gray-50 ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      disabled={isPending}
                     >
-                      <div className="flex w-full items-start gap-4">
-                        <div
-                          className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100`}
-                        >
-                          <Icon className={`h-5 w-5 text-gray-600`} />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className={`font-medium text-gray-900`}>{option.title}</span>
-                          <span className={`text-sm text-gray-500`}>{option.description}</span>
-                        </div>
-                        {isPending && option.id === null && (
-                          <Loader2 className="animate-spin ml-auto h-5 w-5 text-gray-600" />
-                        )}
-                      </div>
-                    </div>
+                      <Icon className="h-5 w-5 mr-2" />
+                      {option.title}
+                    </Button>
                   );
                 })}
               </div>

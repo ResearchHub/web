@@ -14,9 +14,6 @@ import { AuthSharingService } from '@/services/auth-sharing.service';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
-import { calculateProfileCompletion } from '@/utils/profileCompletion';
-import { isFeatureEnabled } from '@/utils/featureFlags';
-import { FeatureFlag } from '@/utils/featureFlags';
 import { Button } from '@/components/ui/Button';
 import { useVerification } from '@/contexts/VerificationContext';
 
@@ -27,6 +24,7 @@ interface UserMenuProps {
   onMenuOpenChange?: (isOpen: boolean) => void;
   avatarSize?: number | 'sm' | 'md' | 'xs' | 'xxs';
   showAvatarOnly?: boolean;
+  percent: number;
 }
 
 export default function UserMenu({
@@ -34,6 +32,7 @@ export default function UserMenu({
   onViewProfile,
   isMenuOpen,
   onMenuOpenChange,
+  percent,
   avatarSize = 30,
   showAvatarOnly = false,
 }: UserMenuProps) {
@@ -41,8 +40,6 @@ export default function UserMenu({
   const [internalMenuOpen, setInternalMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { openVerificationModal } = useVerification();
-
-  const { percent } = user ? calculateProfileCompletion(user) : { percent: 0 };
 
   // Use controlled or uncontrolled menu state
   const menuOpenState = isMenuOpen !== undefined ? isMenuOpen : internalMenuOpen;
@@ -224,7 +221,9 @@ export default function UserMenu({
       {isMobile ? (
         <>
           {/* Mobile view with SwipeableDrawer */}
-          <div onClick={() => setMenuOpenState(true)}>{avatarButton}</div>
+          <div className="flex center" onClick={() => setMenuOpenState(true)}>
+            {avatarButton}
+          </div>
           <SwipeableDrawer isOpen={menuOpenState} onClose={handleCloseMenu} showCloseButton={false}>
             {mobileMenuContent}
           </SwipeableDrawer>
