@@ -41,7 +41,7 @@ export default function SignupPromoModal({ onClose }: SignupModalProps) {
         position: relative;
         border-radius: 12px;
         overflow: hidden;
-        padding: 5px;
+        padding: 3px;
         background: linear-gradient(90deg, #FF4D8D, #6C63FF, #3B82F6, #FFCC00, #FF4D8D, #6C63FF, #3B82F6);
         background-size: 200% auto;
         animation: borderGlow 4s linear infinite;
@@ -52,6 +52,17 @@ export default function SignupPromoModal({ onClose }: SignupModalProps) {
         border-radius: 10px;
         overflow: hidden;
         width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+      @media (max-width: 768px) {
+        .signup-modal-border {
+          padding: 2px;
+          margin: 8px;
+        }
+        .signup-modal-content-wrapper {
+          max-height: 85vh;
+        }
       }
     `;
     document.head.appendChild(style);
@@ -97,7 +108,7 @@ export default function SignupPromoModal({ onClose }: SignupModalProps) {
 
   return (
     <div
-      className="fixed inset-0 bg-black !bg-opacity-25 z-[9999] flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black !bg-opacity-25 z-[9999] flex items-center justify-center p-2 sm:!p-4"
       style={{
         animation: isClosing
           ? 'modalFadeOut 0.3s ease-out forwards'
@@ -110,13 +121,13 @@ export default function SignupPromoModal({ onClose }: SignupModalProps) {
     >
       <div className="signup-modal-border w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="signup-modal-content-wrapper">
-          <div className="p-8 md:p-12 relative">
+          <div className="p-4 sm:!p-6 md:!p-8 lg:!p-12 relative">
             <button
               onClick={handleClose}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 focus:outline-none transition-colors duration-200"
+              className="absolute top-2 right-2 sm:top-4 sm:!right-4 p-2 rounded-full hover:bg-gray-100 focus:outline-none transition-colors duration-200 z-10"
             >
               <svg
-                className="h-5 w-5 text-gray-500"
+                className="h-4 w-4 sm:!h-5 sm:!w-5 text-gray-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -131,15 +142,15 @@ export default function SignupPromoModal({ onClose }: SignupModalProps) {
             </button>
 
             <div className="text-center">
-              <Logo className="mx-auto mb-8" />
+              <Logo className="mx-auto mb-4 sm:!mb-8 w-32 sm:!w-40 md:!w-auto" />
               <ShinyText
                 text="Unlock Your Impact on Science"
-                className="text-3xl font-bold text-gray-900 leading-tight"
+                className="text-xl sm:!text-2xl md:!text-3xl font-bold text-gray-900 leading-tight px-2"
                 onAnimationComplete={() => setIsHeadingAnimationComplete(true)}
                 {...shinyTextAnimationConfig}
               />
               <p
-                className="text-gray-600 mt-3 text-lg max-w-md mx-auto"
+                className="text-gray-600 mt-2 sm:!mt-3 text-sm sm:!text-base md:!text-lg max-w-md mx-auto px-2"
                 style={{ ...benefitItemStyle, animationDelay: '0.2s' }}
               >
                 Join thousands of researchers, funders, and citizen scientists collaborating at the
@@ -147,21 +158,26 @@ export default function SignupPromoModal({ onClose }: SignupModalProps) {
               </p>
             </div>
 
-            <div className="my-8" style={{ ...benefitItemStyle, animationDelay: '0.4s' }}>
+            <div
+              className="my-4 sm:!my-6 md:!my-8"
+              style={{ ...benefitItemStyle, animationDelay: '0.4s' }}
+            >
               <hr className="w-1/2 mx-auto" />
             </div>
 
-            <div className="space-y-6 mt-8 text-left">
+            <div className="space-y-4 sm:!space-y-6 mt-6 sm:!mt-8 text-left">
               <div
                 className="flex items-start"
                 style={{ ...benefitItemStyle, animationDelay: '0.6s' }}
               >
-                <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 border border-gray-200">
-                  <Icon name="fund" size={28} color="black" />
+                <div className="w-10 h-10 sm:!w-12 sm:!h-12 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 border border-gray-200">
+                  <Icon name="fund" size={20} className="sm:!w-7 sm:!h-7" color="black" />
                 </div>
-                <div className="ml-4">
-                  <h3 className="font-semibold text-gray-800">Fund & Be Funded</h3>
-                  <p className="text-gray-600 text-sm">
+                <div className="ml-3 sm:!ml-4 flex-1">
+                  <h3 className="font-semibold text-gray-800 text-sm sm:!text-base">
+                    Fund & Be Funded
+                  </h3>
+                  <p className="text-gray-600 text-xs sm:!text-sm mt-1">
                     Support novel ideas or secure funding for your own research projects.
                   </p>
                 </div>
@@ -170,35 +186,46 @@ export default function SignupPromoModal({ onClose }: SignupModalProps) {
                 className="flex items-start"
                 style={{ ...benefitItemStyle, animationDelay: '0.8s' }}
               >
-                <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 border border-gray-200">
-                  <Icon name="earn1" size={28} color="black" />
+                <div className="w-10 h-10 sm:!w-12 sm:!h-12 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 border border-gray-200">
+                  <Icon name="earn1" size={20} className="sm:!w-7 sm:!h-7" color="black" />
                 </div>
-                <div className="ml-4">
-                  <h3 className="font-semibold text-gray-800 text-md">Earn Rewards</h3>
-                  <p className="text-gray-600 text-sm">Earn $150 for every paper you review.</p>
+                <div className="ml-3 sm:!ml-4 flex-1">
+                  <h3 className="font-semibold text-gray-800 text-sm sm:!text-base">
+                    Earn Rewards
+                  </h3>
+                  <p className="text-gray-600 text-xs sm:!text-sm mt-1">
+                    Earn $150 for every paper you review.
+                  </p>
                 </div>
               </div>
               <div
                 className="flex items-start"
                 style={{ ...benefitItemStyle, animationDelay: '1.0s' }}
               >
-                <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 border border-gray-200">
-                  <Icon name="rhJournal2" size={28} color="black" />
+                <div className="w-10 h-10 sm:!w-12 sm:!h-12 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 border border-gray-200">
+                  <Icon name="rhJournal2" size={20} className="sm:!w-7 sm:!h-7" color="black" />
                 </div>
-                <div className="ml-4">
-                  <h3 className="font-semibold text-gray-800 text-md">Publish</h3>
-                  <p className="text-gray-600 text-sm">
+                <div className="ml-3 sm:!ml-4 flex-1">
+                  <h3 className="font-semibold text-gray-800 text-sm sm:!text-base">Publish</h3>
+                  <p className="text-gray-600 text-xs sm:!text-sm mt-1">
                     Publish your work in the RH Journal to reach a global audience.
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-10" style={{ ...benefitItemStyle, animationDelay: '1.2s' }}>
-              <Button onClick={handleSignupClick} size="lg" className="w-full">
+            <div
+              className="mt-6 sm:!mt-8 md:!mt-10"
+              style={{ ...benefitItemStyle, animationDelay: '1.2s' }}
+            >
+              <Button
+                onClick={handleSignupClick}
+                size="lg"
+                className="w-full text-sm sm:!text-base py-3 sm:!py-4"
+              >
                 Create Account
               </Button>
-              <p className="text-center text-sm text-gray-500 mt-4">
+              <p className="text-center text-xs sm:!text-sm text-gray-500 mt-3 sm:!mt-4 px-2">
                 Already have an account?{' '}
                 <a
                   href="#"
