@@ -77,7 +77,16 @@ export default function UserMenu({
 
   // Common avatar button with adjusted sizing for avatar-only mode
   const avatarButton = (
-    <button className="hover:ring-2 hover:ring-gray-200 rounded-full p-1 relative">
+    <button
+      className="hover:ring-2 hover:ring-gray-200 rounded-full p-1 relative"
+      onClick={() => setMenuOpenState(true)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setMenuOpenState(true);
+        }
+      }}
+    >
       <Avatar
         src={user.authorProfile?.profileImage}
         className="font-semibold"
@@ -132,6 +141,16 @@ export default function UserMenu({
             navigateToAuthorProfile(user.authorProfile?.id, false);
             setMenuOpenState(false);
           }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              navigateToAuthorProfile(user.authorProfile?.id, false);
+              setMenuOpenState(false);
+            }
+          }}
+          tabIndex={0}
+          role="button"
+          aria-label="View Profile"
         >
           <div className="flex items-center">
             <UserIcon className="h-5 w-5 mr-3 text-gray-500" />
@@ -183,6 +202,16 @@ export default function UserMenu({
               //TODO call the method from the context
               setMenuOpenState(false);
             }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                //TODO call the method from the context
+                setMenuOpenState(false);
+              }
+            }}
+            tabIndex={0}
+            role="button"
+            aria-label="Verify Account"
           >
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center">
@@ -196,6 +225,15 @@ export default function UserMenu({
         <div
           className="px-6 py-2 hover:bg-gray-50"
           onClick={() => AuthSharingService.signOutFromBothApps()}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              AuthSharingService.signOutFromBothApps();
+            }
+          }}
+          tabIndex={0}
+          role="button"
+          aria-label="Sign Out"
         >
           <div className="flex items-center">
             <LogOut className="h-5 w-5 mr-3 text-gray-500" />

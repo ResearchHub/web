@@ -426,7 +426,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
               ) : (
                 <Button
                   variant="ghost"
-                  className="w-8 h-8 rounded-full bg-gray-200 p-0"
+                  className="w-10 h-10 rounded-full bg-gray-200 p-0"
                   onClick={() => executeAuthenticatedAction(() => router.push('/'))}
                 >
                   <User size={24} />
