@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@amplitude/analytics-browser": "^2.17.11",
+    "@apollo/client": "^3.13.8",
     "@coinbase/onchainkit": "^0.37.3",
     "@elastic/apm-rum": "^5.17.0",
     "@fontsource/inter": "^5.1.0",
@@ -94,6 +95,7 @@
     "critters": "^0.0.23",
     "dayjs": "^1.11.13",
     "ethers": "^6.13.5",
+    "graphql": "^16.11.0",
     "gsap": "^3.13.0",
     "iframe-resizer": "^4.4.5",
     "js-cookie": "^3.0.5",
