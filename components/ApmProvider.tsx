@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { initElasticApm } from '@/lib/apm';
+import { initElasticApm } from '@/services/apm.service';
 
 /**
  * This provider initializes the Elastic APM for performance monitoring.
