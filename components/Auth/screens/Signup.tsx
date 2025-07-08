@@ -8,6 +8,7 @@ import { parseFullName } from '@/utils/nameUtils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft } from '@fortawesome/pro-light-svg-icons';
 import { Button } from '@/components/ui/Button';
+import { useReferral } from '@/contexts/ReferralContext';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
@@ -34,6 +35,7 @@ export default function Signup({
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const fullNameInputRef = useAutoFocus<HTMLInputElement>(true);
+  const { referralCode } = useReferral();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,13 +49,16 @@ export default function Signup({
 
     try {
       const { firstName, lastName } = parseFullName(fullName);
-      await AuthService.register({
+      const registrationData = {
         email,
         password1: password,
         password2: password,
         first_name: firstName,
         last_name: lastName,
-      });
+        ...(referralCode && { referral_code: referralCode }),
+      };
+
+      await AuthService.register(registrationData);
       onVerify();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');

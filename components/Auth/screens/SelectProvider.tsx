@@ -60,12 +60,29 @@ export default function SelectProvider({
   };
 
   const handleGoogleSignIn = async () => {
+    console.log('handleGoogleSignIn');
     await AnalyticsService.logEvent(LogEvent.AUTH_VIA_GOOGLE_INITIATED);
-    // Get the current URL's search params to extract callbackUrl
     const searchParams = new URLSearchParams(window.location.search);
     const callbackUrl = searchParams.get('callbackUrl') || '/';
 
-    signIn('google', { callbackUrl });
+    // Append referral code to callback URL
+    let finalCallbackUrl = callbackUrl;
+    const referralCode = 'NICKDEV-123';
+    if (referralCode) {
+      const separator = callbackUrl.includes('?') ? '&' : '?';
+      finalCallbackUrl += `${separator}refr=${referralCode}`;
+    }
+
+    const state = referralCode ? JSON.stringify({ referralCode }) : undefined;
+
+    console.log('Google SignIn - finalCallbackUrl:', finalCallbackUrl);
+
+    document.cookie = `referralCode=${referralCode}; path=/; max-age=3600`;
+
+    signIn('google', {
+      callbackUrl: finalCallbackUrl,
+      state: state ? JSON.stringify({ referralCode }) : undefined,
+    });
   };
 
   return (

@@ -28,10 +28,10 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { useRouter } from 'next/navigation';
 import { QRCodeCanvas } from 'qrcode.react';
 import { BaseModal } from '@/components/ui/BaseModal';
+import { useUser } from '@/contexts/UserContext';
 
 // Mock data - replace with actual data from your backend
 const referralData = {
-  referralCode: 'YOUR-UNIQUE-CODE',
   referredUsersCount: 10,
   amountFundedByReferred: 21500,
   creditsEarned: 2150,
@@ -117,9 +117,11 @@ export function ReferralDashboard() {
   const router = useRouter();
   const [isCopied, setIsCopied] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
-  const referralLink = `https://researchhub.com/join?refr=${referralData.referralCode}`;
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 5;
+  const { user: currentUser } = useUser();
+  const referralCode = currentUser?.referralCode;
+  const referralLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://researchhub.com'}/join?refr=${referralCode}`;
 
   // Refs for animation targets
   const referredUsersRef = useRef<HTMLParagraphElement>(null);

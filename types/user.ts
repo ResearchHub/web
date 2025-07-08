@@ -18,6 +18,7 @@ export interface User {
   moderator: boolean;
   editorOfHubs?: Hub[];
   isModerator?: boolean;
+  referralCode?: string;
 }
 
 export type TransformedUser = User & BaseTransformed;
@@ -68,6 +69,7 @@ const baseTransformUser = (raw: any): User => {
     moderator: raw.moderator || false,
     editorOfHubs: editorOfHubs,
     isModerator: raw.moderator || false,
+    referralCode: raw.referral_code || undefined,
   };
 };
 
