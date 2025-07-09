@@ -32,44 +32,71 @@ export const Tabs: React.FC<TabsProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Record<string, HTMLElement | null>>({});
   const moreButtonRef = useRef<HTMLButtonElement | null>(null);
+  const tabMeasurements = useRef<
+    Record<string, { width: number; marginLeft: number; marginRight: number }>
+  >({});
 
   const [overflowIds, setOverflowIds] = useState<string[]>([]);
 
   const calculateOverflow = useCallback(() => {
-    if (!containerRef.current) return;
-
-    // Ensure refs are populated for calculation
-    const allRefsReady = tabs.every((tab) => tabRefs.current[tab.id] !== undefined);
-    if (!allRefsReady) {
-      // Optionally, schedule a re-run shortly if refs aren't ready
-      // setTimeout(calculateOverflow, 50);
+    if (!containerRef.current) {
       return;
     }
 
     const containerWidth = containerRef.current.clientWidth;
 
-    let moreBtnWidth = 0;
-    if (moreButtonRef.current && moreButtonRef.current.offsetParent !== null) {
-      // Measure only if the button is actually rendered (not display: none)
-      moreBtnWidth = moreButtonRef.current.getBoundingClientRect().width || 40; // Fallback estimate
+    // Estimate More button width (conservative estimate)
+    const estimatedMoreBtnWidth = 40;
+
+    // First, measure all tabs if we have refs available
+    const availableRefs = tabs.filter((tab) => tabRefs.current[tab.id]);
+
+    if (availableRefs.length > 0) {
+      // Update measurements for available tabs
+      availableRefs.forEach((tab) => {
+        const ref = tabRefs.current[tab.id];
+        if (ref) {
+          const styles = window.getComputedStyle(ref);
+          const width = ref.getBoundingClientRect().width;
+          const marginLeft = parseFloat(styles.marginLeft) || 0;
+          const marginRight = parseFloat(styles.marginRight) || 0;
+
+          tabMeasurements.current[tab.id] = { width, marginLeft, marginRight };
+        }
+      });
     }
 
+    // Use stored measurements for calculation, fallback to refs if available
     let visibleWidth = 0;
     const currentVisibleIds: string[] = [];
     const currentOverflowIds: string[] = [];
 
     for (const tab of tabs) {
-      const ref = tabRefs.current[tab.id];
-      if (!ref) continue; // Skip if ref isn't available (shouldn't happen with check above)
+      let itemWidth = 0;
 
-      const styles = window.getComputedStyle(ref);
-      const marginLeft = parseFloat(styles.marginLeft) || 0;
-      const marginRight = parseFloat(styles.marginRight) || 0;
-      const elementWidth = ref.getBoundingClientRect().width;
-      const itemWidth = elementWidth + marginLeft + marginRight;
+      // Try to get measurement from stored data first
+      if (tabMeasurements.current[tab.id]) {
+        const measurement = tabMeasurements.current[tab.id];
+        itemWidth = measurement.width + measurement.marginLeft + measurement.marginRight;
+      } else {
+        // Fallback to ref measurement if available
+        const ref = tabRefs.current[tab.id];
+        if (ref) {
+          const styles = window.getComputedStyle(ref);
+          const width = ref.getBoundingClientRect().width;
+          const marginLeft = parseFloat(styles.marginLeft) || 0;
+          const marginRight = parseFloat(styles.marginRight) || 0;
+          itemWidth = width + marginLeft + marginRight;
 
-      // Check if ADDING this tab would exceed the available width
-      if (visibleWidth + itemWidth <= containerWidth - moreBtnWidth) {
+          // Store the measurement for future use
+          tabMeasurements.current[tab.id] = { width, marginLeft, marginRight };
+        } else {
+          continue;
+        }
+      }
+
+      // Check if adding this tab would exceed the available width
+      if (visibleWidth + itemWidth <= containerWidth - estimatedMoreBtnWidth) {
         visibleWidth += itemWidth;
         currentVisibleIds.push(tab.id);
       } else {
@@ -78,62 +105,56 @@ export const Tabs: React.FC<TabsProps> = ({
       }
     }
 
-    // If the loop finished and some tabs are in overflow, assign them
+    // If we have overflow tabs, ensure the active tab is visible if possible
     if (currentOverflowIds.length > 0) {
-      // Add remaining tabs (those after the first overflowed one) to overflowIds
+      // Add remaining tabs to overflow
       const firstOverflowIndex = tabs.findIndex((t) => t.id === currentOverflowIds[0]);
       const subsequentIds = tabs.slice(firstOverflowIndex + 1).map((t) => t.id);
-      const finalOverflowIds = [...new Set([...currentOverflowIds, ...subsequentIds])]; // Ensure unique IDs
+      const finalOverflowIds = [...new Set([...currentOverflowIds, ...subsequentIds])];
 
-      // --- Ensure active tab visibility logic (Simplified approach) ---
+      // If active tab is in overflow, try to make it visible
       if (finalOverflowIds.includes(activeTab)) {
-        let potentialVisibleWidth = 0;
-        const visibleTabsTryingToKeepActive: string[] = [];
-        let activeTabWidth = 0;
-        const activeRef = tabRefs.current[activeTab];
-        if (activeRef) {
-          const styles = window.getComputedStyle(activeRef);
-          activeTabWidth =
-            activeRef.getBoundingClientRect().width +
-            (parseFloat(styles.marginLeft) || 0) +
-            (parseFloat(styles.marginRight) || 0);
-        }
+        const activeMeasurement = tabMeasurements.current[activeTab];
+        if (activeMeasurement) {
+          const activeTabWidth =
+            activeMeasurement.width + activeMeasurement.marginLeft + activeMeasurement.marginRight;
 
-        // Recalculate visible width trying to include the active tab
-        for (const tab of tabs) {
-          if (tab.id === activeTab) continue; // Skip active tab for now
-          if (finalOverflowIds.includes(tab.id)) continue; // Skip already overflowed
+          // Try to fit the active tab by removing tabs from the end of visible list
+          let adjustedVisibleIds = [...currentVisibleIds];
+          let adjustedVisibleWidth = visibleWidth;
 
-          const ref = tabRefs.current[tab.id];
-          if (!ref) continue;
-          const styles = window.getComputedStyle(ref);
-          const itemWidth =
-            ref.getBoundingClientRect().width +
-            (parseFloat(styles.marginLeft) || 0) +
-            (parseFloat(styles.marginRight) || 0);
+          // Remove tabs from the end until we can fit the active tab
+          while (adjustedVisibleIds.length > 0) {
+            const lastVisibleTab = adjustedVisibleIds[adjustedVisibleIds.length - 1];
+            const lastTabMeasurement = tabMeasurements.current[lastVisibleTab];
 
-          if (potentialVisibleWidth + itemWidth + activeTabWidth <= containerWidth - moreBtnWidth) {
-            potentialVisibleWidth += itemWidth;
-            visibleTabsTryingToKeepActive.push(tab.id);
-          } else {
-            // Cannot fit this one and the active tab, break early?
-            // Or let the original overflow stand? For simplicity, let original stand for now.
-            // More complex logic could try removing the *last* item from visibleTabsTryingToKeepActive
-            break;
+            if (lastTabMeasurement) {
+              const lastTabWidth =
+                lastTabMeasurement.width +
+                lastTabMeasurement.marginLeft +
+                lastTabMeasurement.marginRight;
+
+              // Check if removing this tab and adding the active tab would fit
+              const newWidth = adjustedVisibleWidth - lastTabWidth + activeTabWidth;
+              if (newWidth <= containerWidth - estimatedMoreBtnWidth) {
+                // Success! Remove the last tab and add the active tab
+                adjustedVisibleIds.pop();
+                adjustedVisibleIds.push(activeTab);
+                const newOverflowIds = tabs
+                  .filter((t) => !adjustedVisibleIds.includes(t.id))
+                  .map((t) => t.id);
+                setOverflowIds(newOverflowIds);
+                return;
+              }
+
+              // Remove this tab and continue
+              adjustedVisibleIds.pop();
+              adjustedVisibleWidth -= lastTabWidth;
+            } else {
+              break;
+            }
           }
         }
-
-        // Check if we successfully made space for the active tab
-        if (potentialVisibleWidth + activeTabWidth <= containerWidth - moreBtnWidth) {
-          // Yes, create new overflow list excluding the active tab and the ones we kept visible
-          const keptVisibleIds = [...visibleTabsTryingToKeepActive, activeTab];
-          const newOverflowIds = tabs
-            .filter((t) => !keptVisibleIds.includes(t.id))
-            .map((t) => t.id);
-          setOverflowIds(newOverflowIds);
-          return; // Exit with the adjusted list
-        }
-        // Else, could not make space, fall through to use finalOverflowIds
       }
 
       setOverflowIds(finalOverflowIds);
@@ -141,16 +162,14 @@ export const Tabs: React.FC<TabsProps> = ({
       // No overflow detected
       setOverflowIds([]);
     }
-  }, [tabs, activeTab]); // Removed refs from dependencies, calculation runs until refs are ready
+  }, [tabs, activeTab]);
 
-  const debouncedCalculateOverflow = useRef(debounce(calculateOverflow, 100)).current; // Slightly shorter debounce
+  const debouncedCalculateOverflow = useRef(debounce(calculateOverflow, 100)).current;
 
   useLayoutEffect(() => {
     // Run calculation immediately on layout effect
     calculateOverflow();
-    // Setup resize listener with debounce
-    // (Handled in useEffect below)
-  }, [tabs, activeTab, calculateOverflow]); // Dependencies
+  }, [tabs, activeTab, calculateOverflow]);
 
   useEffect(() => {
     // Effect for resize handling
@@ -253,7 +272,7 @@ export const Tabs: React.FC<TabsProps> = ({
       {/* Container for visible tabs */}
       <div
         className={cn(
-          'flex items-center flex-nowrap h-full overflow-hidden', // Added overflow-hidden here
+          'flex items-center flex-nowrap h-full overflow-hidden',
           variant === 'pill' ? 'space-x-1' : '',
           variant === 'primary' ? 'space-x-6' : ''
         )}
@@ -273,7 +292,7 @@ export const Tabs: React.FC<TabsProps> = ({
             variant === 'primary'
               ? 'linear-gradient(to right, transparent, white 20%, white)'
               : 'linear-gradient(to right, transparent, #f3f4f6 20%, #f3f4f6)',
-        }} // Fade effect
+        }}
       >
         <BaseMenu
           align="end"
@@ -281,12 +300,12 @@ export const Tabs: React.FC<TabsProps> = ({
             <button
               ref={moreButtonRef}
               className={cn(
-                'p-1.5 flex items-center justify-center rounded-md flex-shrink-0', // Adjusted padding slightly
-                'border border-gray-300', // Added border
-                'hover:bg-gray-50', // Adjusted hover state
+                'p-1.5 flex items-center justify-center rounded-md flex-shrink-0',
+                'border border-gray-300',
+                'hover:bg-gray-50',
                 activeTab &&
                   overflowIds.includes(activeTab) &&
-                  'bg-primary-100 text-primary-600 border-primary-200', // Active state with border
+                  'bg-primary-100 text-primary-600 border-primary-200',
                 overflowTabs.length > 0 ? 'text-gray-700' : 'text-transparent pointer-events-none'
               )}
               aria-label="More tabs"

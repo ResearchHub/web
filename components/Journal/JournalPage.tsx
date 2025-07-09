@@ -3,14 +3,12 @@
 import { FC, useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { JournalFeed } from './JournalFeed';
-import { JournalTabs } from './JournalTabs';
+import { JournalTabs, TabType } from './JournalTabs';
 import { JournalAboutTab } from './JournalAboutTab';
 import Icon from '@/components/ui/icons/Icon';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 
-type JournalTab = 'all' | 'in-review' | 'published' | 'about';
-
-const DEFAULT_TAB: JournalTab = 'all';
+const DEFAULT_TAB: TabType = 'all';
 
 export const JournalPage: FC = () => {
   const router = useRouter();
@@ -19,13 +17,13 @@ export const JournalPage: FC = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const activeTab = useMemo(() => {
-    const tabParam = searchParams.get('tab') as JournalTab | null;
+    const tabParam = searchParams.get('tab') as TabType | null;
     return tabParam && ['all', 'in-review', 'published', 'about'].includes(tabParam)
       ? tabParam
       : DEFAULT_TAB;
   }, [searchParams]);
 
-  const handleTabChange = (tab: JournalTab) => {
+  const handleTabChange = (tab: TabType) => {
     if (tab === activeTab) return; // Skip if tab is already active
     setIsLoading(true);
     const params = new URLSearchParams(searchParams.toString());
@@ -43,7 +41,7 @@ export const JournalPage: FC = () => {
   const tabs = [
     {
       id: 'all',
-      label: 'All Submissions',
+      label: 'All',
     },
     {
       id: 'in-review',
@@ -64,15 +62,6 @@ export const JournalPage: FC = () => {
       icon={<Icon name="rhJournal2" size={26} color="#3971ff" />}
       title="ResearchHub Journal"
       subtitle="Accelerating science through open access publishing and peer review."
-    />
-  );
-
-  const journalTabs = (
-    <JournalTabs
-      activeTab={activeTab}
-      tabs={tabs}
-      onTabChange={handleTabChange}
-      isLoading={isLoading}
     />
   );
 

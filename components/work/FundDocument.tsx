@@ -20,6 +20,9 @@ import { useUser } from '@/contexts/UserContext';
 import { UpdateRateBadge } from '@/components/ui/badges/UpdateRateBadge';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 import { useShareModalContext } from '@/contexts/ShareContext';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faXmark } from '@fortawesome/pro-solid-svg-icons';
+import { Button } from '../ui/Button';
 
 interface FundDocumentProps {
   work: Work;
@@ -38,6 +41,8 @@ export const FundDocument = ({
 }: FundDocumentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
   const [showMobileMetrics, setShowMobileMetrics] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [overlayVisible, setOverlayVisible] = useState(false);
   const storageKey = useStorageKey('rh-comments');
   const { user } = useUser();
   const { showShareModal } = useShareModalContext();
@@ -73,6 +78,17 @@ export const FundDocument = ({
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
   };
+
+  useEffect(() => {
+    if (showMobileMetrics) {
+      setShowOverlay(true);
+      setTimeout(() => setOverlayVisible(true), 0);
+    } else {
+      setOverlayVisible(false);
+      const timeout = setTimeout(() => setShowOverlay(false), 300);
+      return () => clearTimeout(timeout);
+    }
+  }, [showMobileMetrics]);
 
   // Render tab content based on activeTab
   const renderTabContent = useMemo(() => {
@@ -264,19 +280,35 @@ export const FundDocument = ({
       />
       {/* Tab Content */}
       {renderTabContent}
-      {/* Mobile sidebar overlay */}
-      <div
-        className={`fixed inset-0 bg-black/50 z-30 z-50 lg:hidden ${
-          showMobileMetrics ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={() => setShowMobileMetrics(false)}
-      >
+      {/* Mobile overlay */}
+      {showOverlay && (
         <div
-          className={`absolute right-0 top-0 bottom-0 w-80 bg-white shadow-xl transition-transform duration-200 p-4 ${
-            showMobileMetrics ? 'translate-x-0' : 'translate-x-full'
-          }`}
-          onClick={(e) => e.stopPropagation()}
-        >
+          className={`fixed inset-0 bg-black ${
+            overlayVisible ? 'opacity-50' : 'opacity-0'
+          } z-20 lg:!hidden transition-opacity duration-300 ease-in-out`}
+          onClick={() => setShowMobileMetrics(false)}
+        />
+      )}
+      {/* Right Sidebar Container (Sticky) */}
+      <div
+        className={`
+          fixed top-[64px] right-0 w-[280px] sm:!w-80 h-[calc(100vh-64px)] bg-white shadow-xl p-4
+          z-50 lg:hidden
+          transition-transform duration-300 ease-in-out
+          ${showMobileMetrics ? 'translate-x-0' : 'translate-x-full'}
+        `}
+      >
+        <div className="h-full overflow-y-auto relative">
+          {/* Close button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowMobileMetrics(false)}
+            aria-label="Close sidebar"
+            className="absolute -top-2 right-0 z-10"
+          >
+            <FontAwesomeIcon icon={faXmark} className="w-4 h-4 text-gray-600" />
+          </Button>
           <FundingRightSidebar work={work} metadata={metadata} authorUpdates={authorUpdates} />
         </div>
       </div>
