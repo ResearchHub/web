@@ -77,34 +77,10 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       if (account?.type === 'oauth') {
         try {
-          console.log('signIn - full account object:', JSON.stringify(account, null, 2));
-          console.log('signIn - account.callbackUrl:', account.callbackUrl);
-          console.log('signIn - account.state:', account.state);
-
-          // Extract referral code from callback URL
-          const callbackUrl = typeof account.callbackUrl === 'string' ? account.callbackUrl : '';
-          const urlParams = new URLSearchParams(callbackUrl.split('?')[1] || '');
-          const referralCode = urlParams.get('refr');
-
-          const state =
-            account.state && typeof account.state === 'string' ? JSON.parse(account.state) : {};
-          const referralCodeFromState = state?.referralCode || null;
-          console.log('signIn - referralCodeFromState:', referralCodeFromState);
-
-          console.log('signIn - parsed callbackUrl:', callbackUrl);
-          console.log('signIn - urlParams:', urlParams.toString());
-          console.log('signIn - referralCode from URL:', referralCode);
-
           const data = await AuthService.googleLogin({
             access_token: account?.access_token,
             id_token: account?.id_token,
-            referral_code: referralCode || undefined,
           });
-
-          // Clean up cookie after use
-          if (referralCode) {
-            // You'd need to set a response header to clear the cookie
-          }
 
           // Then fetch user data using the AuthService
           const userData = await AuthService.fetchUserData(data.key);

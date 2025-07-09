@@ -71,7 +71,7 @@ export default function SelectProvider({
 
     if (referralCode) {
       // Create referral application URL with referral code and redirect as URL parameters
-      const referralUrl = new URL('/apply-referral-code', window.location.origin);
+      const referralUrl = new URL('/referral/join/apply-referral-code', window.location.origin);
       referralUrl.searchParams.set('ref', referralCode);
       referralUrl.searchParams.set('redirect', originalCallbackUrl);
       finalCallbackUrl = referralUrl.toString();
