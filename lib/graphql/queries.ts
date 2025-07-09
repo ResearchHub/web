@@ -1,5 +1,62 @@
 import { gql } from '@apollo/client';
 
+export const GET_PAPERS = gql`
+  query GetPapers($input: GetPapersInput!) {
+    getPapers(input: $input) {
+      totalCount
+      hasMore
+      papers {
+        id
+        title
+        abstract
+        date
+        source
+        server
+        doi
+        url
+        pdfUrl
+        authors
+        category
+        unifiedCategorySlug
+        unifiedSubcategorySlug
+        enrichments {
+          source
+          citationCount
+          altmetricScore
+          impactScore
+          twitterMentions
+          newsMentions
+          fieldsOfStudy
+          tldr
+          influentialCitationCount
+          journal
+        }
+      }
+    }
+  }
+`;
+
+export const GET_UNIFIED_CATEGORIES = gql`
+  query GetUnifiedCategories {
+    unifiedCategories {
+      id
+      slug
+      name
+      description
+      displayOrder
+      paperCount
+      subcategories {
+        id
+        slug
+        name
+        description
+        displayOrder
+        paperCount
+      }
+    }
+  }
+`;
+
 export const ADVANCED_PAPER_SEARCH = gql`
   query AdvancedPaperSearch($searchInput: AdvancedPaperSearchInput!) {
     advancedPaperSearch(searchInput: $searchInput) {
@@ -22,9 +79,6 @@ export const ADVANCED_PAPER_SEARCH = gql`
           twitterMentions
           newsMentions
         }
-        totalCitations
-        maxImpactScore
-        maxAltmetricScore
       }
       totalCount
       hasMore
@@ -38,7 +92,6 @@ export const GET_CATEGORIES = gql`
       name
       displayName
       paperCount
-      recentPapersCount
       lastUpdated
     }
   }
@@ -75,9 +128,6 @@ export interface PaperSearchResult {
   authors: string;
   abstract: string | null;
   enrichments: PaperEnrichment[] | null;
-  totalCitations: number | null;
-  maxImpactScore: number | null;
-  maxAltmetricScore: number | null;
 }
 
 export interface AdvancedPaperSearchResponse {
@@ -90,10 +140,91 @@ export interface Category {
   name: string;
   displayName: string;
   paperCount: number | null;
-  recentPapersCount: number | null;
   lastUpdated: string | null;
 }
 
 export interface CategoriesResponse {
   categoriesWithCounts: Category[];
+}
+
+export interface GetPapersInput {
+  timePeriod?: string;
+  customStartDate?: string;
+  customEndDate?: string;
+  categories?: string[];
+  subcategories?: string[];
+  humanReadableCategories?: string[];
+  sourceCategories?: string[];
+  keywords?: string[];
+  sources?: string[];
+  hasEnrichment?: boolean;
+  minImpactScore?: number;
+  minCitations?: number;
+  minAltmetricScore?: number;
+  minTwitterMentions?: number;
+  minNewsMentions?: number;
+  sortBy?: string;
+  sortOrder?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface PaperFilterInput {
+  categories?: string[];
+  subcategories?: string[];
+  humanReadableCategories?: string[];
+  keywords?: string[];
+  sources?: string[];
+  servers?: string[];
+  startDate?: string;
+  endDate?: string;
+  hasEnrichment?: boolean;
+  minCitations?: number;
+  limit?: number;
+}
+
+export interface UnifiedCategory {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  displayOrder: number;
+  paperCount: number;
+  subcategories: UnifiedSubcategory[];
+}
+
+export interface UnifiedSubcategory {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  displayOrder: number;
+  paperCount: number;
+}
+
+export interface Paper {
+  id: string;
+  title: string;
+  abstract: string | null;
+  date: string;
+  source: string;
+  server: string;
+  doi: string | null;
+  url: string | null;
+  pdfUrl: string | null;
+  authors: string;
+  category: string;
+  unifiedCategorySlug: string | null;
+  unifiedSubcategorySlug: string | null;
+  enrichments: PaperEnrichment[] | null;
+}
+
+export interface PaperSearchResponse {
+  totalCount: number;
+  hasMore: boolean;
+  papers: Paper[];
+}
+
+export interface UnifiedCategoriesResponse {
+  unifiedCategories: UnifiedCategory[];
 }

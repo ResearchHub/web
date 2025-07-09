@@ -1,17 +1,17 @@
-import { PaperSearchResult } from './queries';
+import { Paper } from './queries';
 import { transformPaper } from '@/types/work';
 
-export const mapGraphQLPaperToWork = (paper: PaperSearchResult) => {
+export const mapGraphQLPaperToWork = (paper: Paper) => {
   // Extract enrichment data by source
-  const semanticScholarEnrichment = paper.enrichments?.find(e => e.source === 'semantic_scholar');
-  const altmetricEnrichment = paper.enrichments?.find(e => e.source === 'altmetric');
-  
+  const semanticScholarEnrichment = paper.enrichments?.find((e) => e.source === 'semantic_scholar');
+  const altmetricEnrichment = paper.enrichments?.find((e) => e.source === 'altmetric');
+
   // For backward compatibility, use first enrichment as fallback
   const enrichment = paper.enrichments?.[0];
-  
+
   // Parse authors string into array (authors is a string in GraphQL)
-  const authorsArray = paper.authors ? paper.authors.split(',').map(a => a.trim()) : [];
-  
+  const authorsArray = paper.authors ? paper.authors.split(',').map((a) => a.trim()) : [];
+
   // Map GraphQL response to format expected by transformPaper
   const rawPaper = {
     id: 0, // Will need to be set if you have IDs
@@ -23,19 +23,28 @@ export const mapGraphQLPaperToWork = (paper: PaperSearchResult) => {
     created_date: paper.date,
     paper_publish_date: paper.date,
     doi: paper.doi,
-    // Map category to hub structure
-    hubs: paper.category ? [{
-      id: 0,
-      name: paper.category,
-      slug: paper.category.toLowerCase().replace(/\s+/g, '-')
-    }] : [],
+    // Map unified category to hub structure
+    hubs: paper.unifiedCategorySlug
+      ? [
+          {
+            id: 0,
+            name: paper.unifiedCategorySlug
+              .replace(/_/g, ' ')
+              .replace(/\b\w/g, (l) => l.toUpperCase()),
+            slug: paper.unifiedCategorySlug,
+          },
+        ]
+      : [],
     // Map journal information from semantic scholar first, then fallback
     external_source: semanticScholarEnrichment?.journal || enrichment?.journal || '',
     external_source_id: 0,
-    external_source_slug: (semanticScholarEnrichment?.journal || enrichment?.journal)?.toLowerCase().replace(/\s+/g, '-') || '',
+    external_source_slug:
+      (semanticScholarEnrichment?.journal || enrichment?.journal)
+        ?.toLowerCase()
+        .replace(/\s+/g, '-') || '',
     external_source_image: '',
     // Map authors from GraphQL
-    raw_authors: authorsArray.map(author => ({
+    raw_authors: authorsArray.map((author) => ({
       first_name: author.split(' ')[0] || '',
       last_name: author.split(' ').slice(1).join(' ') || '',
     })),
@@ -51,7 +60,11 @@ export const mapGraphQLPaperToWork = (paper: PaperSearchResult) => {
     pdf_copyright_allows_display: true,
     first_preview: null,
     version_list: [],
-    score: semanticScholarEnrichment?.impactScore || enrichment?.impactScore || paper.maxImpactScore || 0,
+    score:
+      semanticScholarEnrichment?.impactScore ||
+      altmetricEnrichment?.impactScore ||
+      enrichment?.impactScore ||
+      0,
     discussion_count: 0,
     saves_count: 0,
     views_count: 0,

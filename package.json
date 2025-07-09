@@ -95,6 +95,7 @@
     "critters": "^0.0.23",
     "dayjs": "^1.11.13",
     "ethers": "^6.13.5",
+    "framer-motion": "^12.23.0",
     "graphql": "^16.11.0",
     "gsap": "^3.13.0",
     "iframe-resizer": "^4.4.5",

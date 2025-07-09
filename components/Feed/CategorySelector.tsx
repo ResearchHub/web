@@ -53,7 +53,7 @@ export function CategorySelector({ selectedCategories, onCategoryChange }: Categ
 
   const handleCategoryToggle = (categoryName: string) => {
     if (selectedCategories.includes(categoryName)) {
-      onCategoryChange(selectedCategories.filter(c => c !== categoryName));
+      onCategoryChange(selectedCategories.filter((c) => c !== categoryName));
     } else {
       onCategoryChange([...selectedCategories, categoryName]);
     }
@@ -66,7 +66,7 @@ export function CategorySelector({ selectedCategories, onCategoryChange }: Categ
   if (loading) {
     return (
       <div className="flex items-center gap-2 mb-6 p-3 bg-gray-50 rounded-lg">
-        <Loader size="small" />
+        <Loader size="sm" />
         <span className="text-sm text-gray-600">Loading categories...</span>
       </div>
     );
@@ -74,9 +74,9 @@ export function CategorySelector({ selectedCategories, onCategoryChange }: Categ
 
   if (error) {
     return (
-      <Alert variant="destructive" className="mb-6">
-        <Alert.Title>Error loading categories</Alert.Title>
-        <Alert.Description>{error.message}</Alert.Description>
+      <Alert variant="error" className="mb-6">
+        <span className="font-semibold">Error loading categories</span>
+        <p>{error.message}</p>
       </Alert>
     );
   }
@@ -120,9 +120,10 @@ export function CategorySelector({ selectedCategories, onCategoryChange }: Categ
                 className={`
                   inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium
                   whitespace-nowrap transition-all transform hover:scale-105
-                  ${isSelected 
-                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ${
+                    isSelected
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }
                 `}
               >
@@ -131,12 +132,6 @@ export function CategorySelector({ selectedCategories, onCategoryChange }: Categ
                   <span className={`text-xs ${isSelected ? 'text-blue-100' : 'text-gray-500'}`}>
                     ({category.paperCount})
                   </span>
-                )}
-                {category.recentPapersCount !== null && category.recentPapersCount > 0 && (
-                  <span className={`
-                    inline-flex items-center justify-center w-2 h-2 rounded-full
-                    ${isSelected ? 'bg-white' : 'bg-green-500'}
-                  `} title={`${category.recentPapersCount} new papers this week`} />
                 )}
               </button>
             );
