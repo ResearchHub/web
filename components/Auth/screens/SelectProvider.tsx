@@ -62,7 +62,6 @@ export default function SelectProvider({
   };
 
   const handleGoogleSignIn = async () => {
-    console.log('handleGoogleSignIn');
     await AnalyticsService.logEvent(LogEvent.AUTH_VIA_GOOGLE_INITIATED);
     const searchParams = new URLSearchParams(window.location.search);
     const originalCallbackUrl = searchParams.get('callbackUrl') || '/';
@@ -76,8 +75,6 @@ export default function SelectProvider({
       referralUrl.searchParams.set('redirect', originalCallbackUrl);
       finalCallbackUrl = referralUrl.toString();
     }
-
-    console.log('Google SignIn - finalCallbackUrl:', finalCallbackUrl);
 
     signIn('google', {
       callbackUrl: finalCallbackUrl,

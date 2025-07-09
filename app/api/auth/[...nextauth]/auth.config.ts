@@ -106,7 +106,7 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
 
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, user, account }) {
       if (account && user) {
         return {
           ...token,
@@ -114,6 +114,7 @@ export const authOptions: NextAuthOptions = {
           sub: account.type === 'credentials' ? token.sub : account.userId,
         };
       }
+
       return token;
     },
 
