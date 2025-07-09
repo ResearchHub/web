@@ -4,6 +4,7 @@ import { ApiError } from '@/services/types/api';
 import { isValidEmail } from '@/utils/validation';
 import { useAutoFocus } from '@/hooks/useAutoFocus';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { useReferral } from '@/contexts/ReferralContext';
 
 interface SelectProviderProps {
   onContinue: () => void;
@@ -27,6 +28,7 @@ export default function SelectProvider({
   showHeader = true,
 }: SelectProviderProps) {
   const emailInputRef = useAutoFocus<HTMLInputElement>(true);
+  const { referralCode } = useReferral();
 
   const handleCheckAccount = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -63,25 +65,22 @@ export default function SelectProvider({
     console.log('handleGoogleSignIn');
     await AnalyticsService.logEvent(LogEvent.AUTH_VIA_GOOGLE_INITIATED);
     const searchParams = new URLSearchParams(window.location.search);
-    const callbackUrl = searchParams.get('callbackUrl') || '/';
+    const originalCallbackUrl = searchParams.get('callbackUrl') || '/';
 
-    // Append referral code to callback URL
-    let finalCallbackUrl = callbackUrl;
-    const referralCode = 'NICKDEV-123';
+    let finalCallbackUrl = originalCallbackUrl;
+
     if (referralCode) {
-      const separator = callbackUrl.includes('?') ? '&' : '?';
-      finalCallbackUrl += `${separator}refr=${referralCode}`;
+      // Create referral application URL with referral code and redirect as URL parameters
+      const referralUrl = new URL('/apply-referral-code', window.location.origin);
+      referralUrl.searchParams.set('ref', referralCode);
+      referralUrl.searchParams.set('redirect', originalCallbackUrl);
+      finalCallbackUrl = referralUrl.toString();
     }
-
-    const state = referralCode ? JSON.stringify({ referralCode }) : undefined;
 
     console.log('Google SignIn - finalCallbackUrl:', finalCallbackUrl);
 
-    document.cookie = `referralCode=${referralCode}; path=/; max-age=3600`;
-
     signIn('google', {
       callbackUrl: finalCallbackUrl,
-      state: state ? JSON.stringify({ referralCode }) : undefined,
     });
   };
 

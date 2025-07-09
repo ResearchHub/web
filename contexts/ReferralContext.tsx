@@ -20,27 +20,15 @@ export function ReferralProvider({ children }: { children: ReactNode }) {
     const urlReferralCode = searchParams?.get('refr');
     if (urlReferralCode) {
       setReferralCodeState(urlReferralCode);
-      sessionStorage.setItem('referralCode', urlReferralCode);
-    } else {
-      const storedCode = sessionStorage.getItem('referralCode');
-      if (storedCode) {
-        setReferralCodeState(storedCode);
-      }
     }
   }, [searchParams]);
 
   const setReferralCode = (code: string | null) => {
     setReferralCodeState(code);
-    if (code) {
-      sessionStorage.setItem('referralCode', code);
-    } else {
-      sessionStorage.removeItem('referralCode');
-    }
   };
 
   const clearReferralCode = () => {
     setReferralCodeState(null);
-    sessionStorage.removeItem('referralCode');
   };
 
   return (

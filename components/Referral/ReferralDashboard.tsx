@@ -121,7 +121,7 @@ export function ReferralDashboard() {
   const usersPerPage = 5;
   const { user: currentUser } = useUser();
   const referralCode = currentUser?.referralCode;
-  const referralLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://researchhub.com'}/join?refr=${referralCode}`;
+  const referralLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://researchhub.com'}/referral/join?refr=${referralCode}`;
 
   // Refs for animation targets
   const referredUsersRef = useRef<HTMLParagraphElement>(null);
