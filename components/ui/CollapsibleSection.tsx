@@ -1,28 +1,87 @@
-import { ChevronDown, ChevronRight } from 'lucide-react';
-import { ReactNode } from 'react';
+'use client';
+
+import React from 'react';
+import { ChevronUp, ChevronDown, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface CollapsibleSectionProps {
   title: string;
-  icon?: ReactNode;
-  children: ReactNode;
+  icon: React.ReactNode;
+  isExpanded: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
   className?: string;
+  badge?: number;
+  badgeColor?: 'blue' | 'purple' | 'green' | 'indigo';
+}
+
+export function CollapsibleSection({
+  title,
+  icon,
+  isExpanded,
+  onToggle,
+  children,
+  className = '',
+  badge,
+  badgeColor = 'blue',
+}: CollapsibleSectionProps) {
+  const badgeColors = {
+    blue: 'bg-blue-100 text-blue-700',
+    purple: 'bg-purple-100 text-purple-700',
+    green: 'bg-green-100 text-green-700',
+    indigo: 'bg-indigo-100 text-indigo-700',
+  };
+
+  return (
+    <div className={className}>
+      <button
+        onClick={onToggle}
+        className="flex items-center justify-between w-full mb-3 hover:bg-gray-50 rounded-lg p-2 -m-2 transition-all duration-200"
+      >
+        <div className="flex items-center gap-2">
+          {icon}
+          <h4 className="text-sm font-medium text-gray-900">{title}</h4>
+          {badge !== undefined && badge > 0 && (
+            <span
+              className={`inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full ${badgeColors[badgeColor]}`}
+            >
+              {badge}
+            </span>
+          )}
+        </div>
+        {isExpanded ? (
+          <ChevronUp className="w-4 h-4 text-gray-500" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-gray-500" />
+        )}
+      </button>
+
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 interface CollapsibleItemProps {
   title: string;
-  children: ReactNode;
+  children: React.ReactNode;
   isOpen: boolean;
   onToggle: () => void;
-  icon?: ReactNode;
+  icon?: React.ReactNode;
 }
 
-export const CollapsibleItem = ({
-  title,
-  children,
-  isOpen,
-  onToggle,
-  icon,
-}: CollapsibleItemProps) => {
+export function CollapsibleItem({ title, children, isOpen, onToggle, icon }: CollapsibleItemProps) {
   return (
     <div className="group">
       <button
@@ -46,23 +105,4 @@ export const CollapsibleItem = ({
       )}
     </div>
   );
-};
-
-export const CollapsibleSection = ({
-  title,
-  icon,
-  children,
-  className,
-}: CollapsibleSectionProps) => {
-  return (
-    <div className={`bg-white rounded-xl ${className || ''}`}>
-      <div className="pt-6 pb-4">
-        <h2 className="text-base font-semibold text-gray-900 inline-flex items-center gap-2">
-          {icon}
-          {title}
-        </h2>
-      </div>
-      <div className="space-y-1">{children}</div>
-    </div>
-  );
-};
+}
