@@ -57,6 +57,12 @@ const transactionMappings: TransactionMappingRule[] = [
     icon: 'solidCoin',
   },
   {
+    condition: (tx) => tx.source?.distribution_type === 'REFERRAL_BONUS',
+    label: 'Referral Bonus',
+    icon: 'earn1',
+    variant: 'positive',
+  },
+  {
     condition: (tx) => tx.source?.distribution_type === 'DEPOSIT',
     label: 'Deposit',
     icon: 'wallet1',
@@ -144,6 +150,7 @@ export interface FormattedTransaction extends TransactionAPIRequest {
   formattedUsdValue: string;
   formattedDate: string;
   typeInfo: TransactionTypeInfo;
+  isLocked: boolean;
   isPositive: boolean;
 }
 
@@ -174,6 +181,7 @@ export function formatTransaction(
     formattedUsdValue: secondaryAmount,
     formattedDate: formatTimestamp(tx.created_date),
     typeInfo: getTransactionTypeInfo(tx),
+    isLocked: tx.is_locked,
     isPositive,
   };
 }

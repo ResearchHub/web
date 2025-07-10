@@ -2,6 +2,7 @@ import type { FormattedTransaction } from './lib/types';
 import Icon from '@/components/ui/icons/Icon';
 import { cn } from '@/utils/styles';
 import { colors } from '@/app/styles/colors';
+import { Lock } from 'lucide-react';
 
 interface TransactionFeedItemProps {
   transaction: FormattedTransaction;
@@ -25,6 +26,11 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <p className="font-medium text-gray-900">{transaction.typeInfo.label}</p>
+                {transaction.isLocked && (
+                  <span className="flex items-center gap-1 text-xs text-orange-500 font-semibold ml-2">
+                    <Lock size={14} /> Locked
+                  </span>
+                )}
               </div>
               <div className="text-xs text-gray-600 mt-0.5">{transaction.formattedDate}</div>
             </div>
@@ -33,9 +39,11 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
               <div className="flex items-center justify-end w-full">
                 <div className="flex flex-col items-end">
                   <span
-                    className={`text-base font-medium ${
-                      transaction.isPositive ? 'text-green-600' : 'text-gray-900'
-                    }`}
+                    className={cn(
+                      'text-base font-medium',
+                      transaction.isPositive ? 'text-green-600' : 'text-gray-900',
+                      transaction.isLocked && 'text-gray-500'
+                    )}
                   >
                     {transaction.formattedAmount}
                   </span>

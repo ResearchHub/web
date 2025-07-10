@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowDownToLine, ArrowUpFromLine, Plus, Minus } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, Plus, Minus, InfoIcon } from 'lucide-react';
 import { useState } from 'react';
 import { DepositModal } from '../modals/ResearchCoin/DepositModal';
 import { WithdrawModal } from '../modals/ResearchCoin/WithdrawModal';
@@ -11,9 +11,15 @@ import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { WalletDefault } from '@coinbase/onchainkit/wallet';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useAccount } from 'wagmi';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface UserBalanceSectionProps {
   balance: {
+    formatted: string;
+    formattedUsd: string;
+    raw: number;
+  } | null;
+  lockedBalance: {
     formatted: string;
     formattedUsd: string;
     raw: number;
@@ -24,6 +30,7 @@ interface UserBalanceSectionProps {
 
 export function UserBalanceSection({
   balance,
+  lockedBalance,
   isFetchingExchangeRate,
   onTransactionSuccess,
 }: UserBalanceSectionProps) {
@@ -87,6 +94,58 @@ export function UserBalanceSection({
                     </>
                   )}
                 </div>
+
+                {/* Locked Balance Section - Only show if locked balance > 0 */}
+                {lockedBalance && lockedBalance.raw > 0 && (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+                      {showUSD ? (
+                        <span className="text-lg font-semibold text-gray-600">$</span>
+                      ) : (
+                        <ResearchCoinIcon size={20} />
+                      )}
+                      <div className="flex items-baseline">
+                        <span className="text-xl font-medium text-gray-600">
+                          {showUSD
+                            ? lockedBalance.formattedUsd?.replace(/[^\d.,-]/g, '') || '0.00'
+                            : lockedBalance.formatted || '0.00'}
+                        </span>
+                        <span className="text-sm font-medium text-gray-500 ml-2">
+                          {showUSD ? 'USD' : 'RSC'} Locked
+                        </span>
+                        <Tooltip
+                          content={
+                            <div className="space-y-2">
+                              <div className="font-semibold text-gray-900">Locked Balance</div>
+                              <div className="text-sm text-gray-600">
+                                Locked funds cannot be used for buying/selling, creating bounties,
+                                or tipping, but are available for research funding.
+                              </div>
+                            </div>
+                          }
+                          position="top"
+                          width="w-80"
+                        >
+                          <InfoIcon
+                            size={14}
+                            className="text-gray-400 hover:text-gray-600 cursor-help ml-1"
+                          />
+                        </Tooltip>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs font-medium text-gray-500">
+                      {showUSD ? (
+                        <>
+                          <span>≈</span>
+                          <ResearchCoinIcon size={12} />
+                          <span>{`${lockedBalance.formatted ?? '0.00'} RSC Locked`}</span>
+                        </>
+                      ) : (
+                        `≈ ${lockedBalance.formattedUsd ?? '$0.00'} Locked`
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {isConnected ? (
                   <>

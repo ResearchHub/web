@@ -13,6 +13,7 @@ export interface User {
   isVerified: boolean;
   authorProfile?: AuthorProfile;
   balance: number;
+  lockedBalance: number;
   hasCompletedOnboarding?: boolean;
   createdDate?: string;
   moderator: boolean;
@@ -36,6 +37,7 @@ const baseTransformUser = (raw: any): User => {
       isVerified: false,
       authorProfile: undefined,
       balance: 0,
+      lockedBalance: 0,
       hasCompletedOnboarding: false,
       createdDate: undefined,
       moderator: false,
@@ -64,6 +66,7 @@ const baseTransformUser = (raw: any): User => {
     isVerified: raw.is_verified_v2 || false,
     authorProfile: undefined,
     balance: raw.balance || 0,
+    lockedBalance: raw.locked_balance || 0,
     hasCompletedOnboarding: raw.has_completed_onboarding || false,
     createdDate: raw.created_date || undefined,
     moderator: raw.moderator || false,
@@ -85,8 +88,9 @@ export const transformUser = (raw: any): TransformedUser => {
       fullName: 'Unknown User',
       isVerified: false,
       authorProfile: undefined,
-      hasCompletedOnboarding: false,
       balance: 0,
+      lockedBalance: 0,
+      hasCompletedOnboarding: false,
       moderator: false,
       raw: null,
       isModerator: false,
