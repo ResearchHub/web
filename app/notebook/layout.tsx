@@ -3,6 +3,7 @@
 import { ReactNode, useEffect } from 'react';
 import './globals.css';
 import 'cal-sans';
+import 'katex/dist/katex.min.css';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Dialog, Transition } from '@headlessui/react';

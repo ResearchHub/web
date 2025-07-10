@@ -209,6 +209,10 @@ export const TextMenu = ({ editor }: TextMenuProps) => {
               >
                 <Icon name="AlignJustify" />
               </MemoButton>
+              <Toolbar.Divider />
+              <MemoButton tooltip="Insert inline equation" onClick={commands.onSetInlineMath}>
+                <Icon name="Calculator" />
+              </MemoButton>
             </Toolbar.Wrapper>
           </Popover.Content>
         </Popover.Root>
