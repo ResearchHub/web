@@ -46,18 +46,18 @@ export const TextMenu = ({ editor }: TextMenuProps) => {
             },
             {
               name: 'flip',
-              options: {
-                fallbackPlacements: ['bottom-start', 'top-end', 'bottom-end'],
-              },
+              enabled: false,
             },
           ],
+          strategy: 'fixed',
         },
         maxWidth: 'calc(100vw - 16px)',
+        interactive: true,
       }}
       editor={editor}
       pluginKey="textMenu"
       shouldShow={states.shouldShow}
-      updateDelay={100}
+      updateDelay={200}
     >
       <Toolbar.Wrapper>
         {/* <AIDropdown

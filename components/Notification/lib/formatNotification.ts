@@ -172,6 +172,13 @@ export function getRSCAmountFromNotification(notification: Notification): number
  * - Adds /bounties suffix specifically for BOUNTY_FOR_YOU notifications
  */
 export function formatNavigationUrl(notification: Notification): string | undefined {
+  if (notification.type === 'PREREGISTRATION_UPDATE' && notification.work) {
+    const { id, slug } = notification.work;
+    if (id && slug) {
+      return `/fund/${id}/${slug}/updates`;
+    }
+  }
+
   const url = notification.navigationUrl;
 
   // Handle null/empty URL when we have document data
