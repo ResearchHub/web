@@ -29,6 +29,7 @@ import { useRouter } from 'next/navigation';
 import { QRCodeCanvas } from 'qrcode.react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { useUser } from '@/contexts/UserContext';
+import { useReferralMetrics } from '@/hooks/useReferralMetrics';
 
 // Mock data - replace with actual data from your backend
 const referralData = {
@@ -123,17 +124,41 @@ export function ReferralDashboard() {
   const referralCode = currentUser?.referralCode;
   const referralLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://researchhub.com'}/referral/join?refr=${referralCode}`;
 
+  // Use the referral metrics hook
+  const { metrics, networkDetails, isLoading, error } = useReferralMetrics();
+  console.log({ metrics, networkDetails });
+
   // Refs for animation targets
   const referredUsersRef = useRef<HTMLParagraphElement>(null);
   const amountFundedRef = useRef<HTMLParagraphElement>(null);
   const creditsEarnedRef = useRef<HTMLParagraphElement>(null);
+
+  // Use real data from API or fallback to mock data
+  const displayData = {
+    referredUsersCount: metrics?.referralActivity.fundersInvited || referralData.referredUsersCount,
+    amountFundedByReferred:
+      metrics?.networkFundingPower.breakdown.networkFunding || referralData.amountFundedByReferred,
+    creditsEarned: metrics?.yourFundingCredits.available || referralData.creditsEarned,
+  };
+
+  // Use real network details or fallback to mock data
+  const displayUsers =
+    networkDetails && networkDetails.length > 0
+      ? networkDetails.map((user) => ({
+          name: user.username,
+          avatarUrl: 'https://randomuser.me/api/portraits/men/75.jpg', // Keep mock avatar for now
+          totalFunded: user.totalFunded,
+          creditsEarned: user.referralBonusEarned,
+          dateJoined: new Date(user.signupDate).toLocaleDateString(),
+        }))
+      : referralData.referredUsers;
 
   useEffect(() => {
     const referredUsersEl = referredUsersRef.current;
     const amountFundedEl = amountFundedRef.current;
     const creditsEarnedEl = creditsEarnedRef.current;
 
-    if (!referredUsersEl || !amountFundedEl || !creditsEarnedEl) return;
+    if (!referredUsersEl || !amountFundedEl || !creditsEarnedEl || isLoading) return;
 
     const animateValue = (el: HTMLParagraphElement, endValue: number, isCurrency: boolean) => {
       const proxy = { value: 0 };
@@ -153,16 +178,16 @@ export function ReferralDashboard() {
 
     // Stagger the animations correctly using timeline.call()
     const tl = gsap.timeline();
-    tl.call(() => animateValue(referredUsersEl, referralData.referredUsersCount, false), [], 0.1)
-      .call(() => animateValue(amountFundedEl, referralData.amountFundedByReferred, true), [], 0.3)
-      .call(() => animateValue(creditsEarnedEl, referralData.creditsEarned, true), [], 0.5);
-  }, []);
+    tl.call(() => animateValue(referredUsersEl, displayData.referredUsersCount, false), [], 0.1)
+      .call(() => animateValue(amountFundedEl, displayData.amountFundedByReferred, true), [], 0.3)
+      .call(() => animateValue(creditsEarnedEl, displayData.creditsEarned, true), [], 0.5);
+  }, [isLoading, displayData]);
 
   // Pagination logic
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
-  const currentUsers = referralData.referredUsers.slice(indexOfFirstUser, indexOfLastUser);
-  const totalPages = Math.ceil(referralData.referredUsers.length / usersPerPage);
+  const currentUsers = displayUsers.slice(indexOfFirstUser, indexOfLastUser);
+  const totalPages = Math.ceil(displayUsers.length / usersPerPage);
 
   const handleNextPage = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
@@ -198,31 +223,29 @@ export function ReferralDashboard() {
     const text = `Join me on ResearchHub, a platform for accelerating science. When you join and fund a project, we both get a 10% bonus. Let's make an impact together.`;
     const url = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(
       referralLink
-    )}&title=Join%20me%20on%20ResearchHub&summary=${encodeURIComponent(text)}&source=ResearchHub`;
+    )}&title=${encodeURIComponent('Join ResearchHub')}&summary=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
   };
 
   const shareOnBlueSky = () => {
-    const text = `Join me on ResearchHub and let's accelerate science together! We both get a 10% bonus on funding when you join with my link: ${referralLink}`;
-    navigator.clipboard.writeText(text).then(() => {
-      toast.success('BlueSky post content copied to clipboard!');
-      window.open('https://bsky.app', '_blank');
-    });
+    const text = `Join me on ResearchHub and let's accelerate science together! We both get a 10% bonus on funding. ${referralLink}`;
+    const url = `https://bsky.app/intent/compose?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
-      <header className="text-center mb-12">
-        <div className="flex justify-center items-center mb-4 ">
-          <UserPlus className="h-10 w-10 mr-4" />
-          <h1 className="text-4xl font-bold text-gray-900">Refer a Funder, Accelerate Science</h1>
-        </div>
-        <p className="mt-4 text-lg text-gray-600">
-          Earn credits by inviting funders to ResearchHub.
-        </p>
-      </header>
+    <div className="min-h-screen">
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        <header className="text-center mb-12">
+          <div className="flex justify-center items-center mb-4 ">
+            <UserPlus className="h-10 w-10 mr-4" />
+            <h1 className="text-4xl font-bold text-gray-900">Refer a Funder, Accelerate Science</h1>
+          </div>
+          <p className="mt-4 text-lg text-gray-600">
+            Earn credits by inviting funders to ResearchHub.
+          </p>
+        </header>
 
-      <main>
         <section className="bg-white rounded-lg shadow-md flex items-stretch overflow-hidden mb-12 border-4 border-blue-500">
           <div className="flex-grow p-6 md:p-8">
             <h2 className="text-2xl font-semibold mb-4">Your Referral Link</h2>
@@ -327,7 +350,7 @@ export function ReferralDashboard() {
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Your Referral Impact</h2>
           <div className="bg-green-50 p-6 rounded-xl text-center mb-6">
             <p ref={creditsEarnedRef} className="text-4xl font-bold text-green-600">
-              $0
+              ${displayData.creditsEarned.toLocaleString()}
             </p>
             <p className="text-gray-600 mt-2 text-lg">Referral Credits Earned</p>
             <div className="mt-2">
@@ -375,14 +398,14 @@ export function ReferralDashboard() {
             <div className="bg-blue-50 p-6 rounded-xl text-center">
               <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />
               <p ref={referredUsersRef} className="text-3xl font-bold text-blue-600">
-                0
+                {displayData.referredUsersCount}
               </p>
               <p className="text-gray-600 mt-2">Users Referred</p>
             </div>
             <div className="bg-blue-50 p-6 rounded-xl text-center">
               <FlaskConical className="h-8 w-8 text-blue-600 mx-auto mb-2" />
               <p ref={amountFundedRef} className="text-3xl font-bold text-blue-600">
-                $0
+                ${displayData.amountFundedByReferred.toLocaleString()}
               </p>
               <p className="text-gray-600 mt-2">Funded by Your Referrals</p>
             </div>
@@ -411,24 +434,6 @@ export function ReferralDashboard() {
                     ${user.creditsEarned.toLocaleString()}
                   </p>
                 </div>
-                {user.pendingCredits && user.pendingCredits > 0 && (
-                  <div className="text-right ml-6">
-                    <Tooltip
-                      content="Credits will be given once the proposal is fully funded."
-                      position="top"
-                    >
-                      <div>
-                        <p className="text-sm text-gray-500 flex items-center justify-end">
-                          Pending
-                          <HelpCircle className="h-4 w-4 ml-1 text-gray-400" />
-                        </p>
-                        <p className="font-semibold text-gray-500">
-                          ${user.pendingCredits.toLocaleString()}
-                        </p>
-                      </div>
-                    </Tooltip>
-                  </div>
-                )}
               </div>
             ))}
           </div>

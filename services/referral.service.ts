@@ -1,5 +1,6 @@
 import { ApiClient } from './client';
-import { ApiError } from './types';
+import type { TransformedReferralMetrics, TransformedNetworkDetail } from '@/types/referral';
+import { transformReferralMetrics, transformNetworkDetail } from '@/types/referral';
 
 export class ReferralError extends Error {
   constructor(
@@ -50,6 +51,40 @@ export class ReferralService {
     } catch (error) {
       throw new ReferralError(
         'Failed to apply referral code',
+        error instanceof Error ? error.message : 'UNKNOWN_ERROR'
+      );
+    }
+  }
+
+  /**
+   * Gets comprehensive referral metrics for the authenticated user
+   * @throws {ReferralError} When the request fails
+   */
+  static async getMyMetrics(): Promise<TransformedReferralMetrics> {
+    try {
+      const response = await ApiClient.get<any>(`${this.BASE_PATH}/metrics/my_metrics/`);
+
+      return transformReferralMetrics(response);
+    } catch (error) {
+      throw new ReferralError(
+        'Failed to fetch referral metrics',
+        error instanceof Error ? error.message : 'UNKNOWN_ERROR'
+      );
+    }
+  }
+
+  /**
+   * Gets detailed information about each user in your referral network
+   * @throws {ReferralError} When the request fails
+   */
+  static async getNetworkDetails(): Promise<TransformedNetworkDetail[]> {
+    try {
+      const response = await ApiClient.get<any[]>(`${this.BASE_PATH}/metrics/network_details/`);
+
+      return response.map(transformNetworkDetail);
+    } catch (error) {
+      throw new ReferralError(
+        'Failed to fetch network details',
         error instanceof Error ? error.message : 'UNKNOWN_ERROR'
       );
     }
