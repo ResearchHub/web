@@ -6,6 +6,13 @@ import SignupPromoModal from '@/components/modals/SignupPromoModal';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { usePathname } from 'next/navigation';
 
+const EXCLUDED_PATHS = [
+  '/', // landing page
+  '/referral/join', // referral join page
+  '/referral/join/apply-referral-code', // referral apply referral code page
+  // add any other paths where we don't want the modal to show
+];
+
 export default function SignupModalContainer() {
   const [showModal, setShowModal] = useState(false);
   const { status } = useSession();
@@ -13,8 +20,9 @@ export default function SignupModalContainer() {
 
   useEffect(() => {
     const modalDismissed = sessionStorage.getItem('signupModalDismissed') === 'true';
+    const isExcludedPath = EXCLUDED_PATHS.some((path) => pathname.startsWith(path));
 
-    if (status === 'unauthenticated' && !modalDismissed && pathname !== '/') {
+    if (status === 'unauthenticated' && !modalDismissed && !isExcludedPath) {
       const timer = setTimeout(() => {
         setShowModal(true);
         AnalyticsService.logEvent(LogEvent.SIGNUP_PROMO_MODAL_OPENED);

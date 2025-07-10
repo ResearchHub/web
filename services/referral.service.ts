@@ -35,10 +35,13 @@ export class ReferralService {
     }
 
     try {
-      const response = await ApiClient.post<any>(`${this.BASE_PATH}/add_referral_code/`, {
-        referral_code: params.referral_code,
-        user_id: params.user_id,
-      });
+      const response = await ApiClient.post<any>(
+        `${this.BASE_PATH}/assignment/add_referral_code/`,
+        {
+          referral_code: params.referral_code,
+          user_id: params.user_id,
+        }
+      );
 
       return {
         success: true,

@@ -17,7 +17,6 @@ export interface RegisterApiRequest {
   password2: string;
   first_name: string;
   last_name: string;
-  referral_code?: string;
 }
 
 export interface CheckAccountApiResponse {

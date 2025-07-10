@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft } from '@fortawesome/pro-light-svg-icons';
 import { Button } from '@/components/ui/Button';
 import { useReferral } from '@/contexts/ReferralContext';
+import { ReferralService } from '@/services/referral.service';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
@@ -35,7 +36,7 @@ export default function Signup({
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const fullNameInputRef = useAutoFocus<HTMLInputElement>(true);
-  const { referralCode } = useReferral();
+  const { referralCode, clearReferralCode } = useReferral();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,10 +56,22 @@ export default function Signup({
         password2: password,
         first_name: firstName,
         last_name: lastName,
-        ...(referralCode && { referral_code: referralCode }),
       };
 
-      await AuthService.register(registrationData);
+      const user = await AuthService.register(registrationData);
+
+      if (referralCode) {
+        try {
+          await ReferralService.addReferralCode({
+            referral_code: referralCode,
+            user_id: user.id,
+          });
+          clearReferralCode();
+        } catch (referralError) {
+          console.error('Failed to apply referral code:', referralError);
+          clearReferralCode();
+        }
+      }
       onVerify();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');
