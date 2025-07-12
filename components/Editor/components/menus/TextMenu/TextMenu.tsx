@@ -59,7 +59,7 @@ export const TextMenu = ({ editor }: TextMenuProps) => {
       shouldShow={states.shouldShow}
       updateDelay={200}
     >
-      <Toolbar.Wrapper>
+      <Toolbar.Wrapper className="!bg-white dark:!bg-neutral-900 !border-gray-200 dark:!border-neutral-700">
         {/* <AIDropdown
           onCompleteSentence={commands.onCompleteSentence}
           onEmojify={commands.onEmojify}
@@ -208,6 +208,10 @@ export const TextMenu = ({ editor }: TextMenuProps) => {
                 active={states.isAlignJustify}
               >
                 <Icon name="AlignJustify" />
+              </MemoButton>
+              <Toolbar.Divider />
+              <MemoButton tooltip="Insert inline equation" onClick={commands.onSetInlineMath}>
+                <Icon name="Calculator" />
               </MemoButton>
             </Toolbar.Wrapper>
           </Popover.Content>

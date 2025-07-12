@@ -179,6 +179,22 @@ export const GROUPS: Group[] = [
           editor.chain().focus().insertTableOfContents().run();
         },
       },
+      {
+        name: 'inlineMath',
+        label: 'Inline Equation',
+        iconName: 'Calculator',
+        aliases: ['math', 'equation', 'latex'],
+        description: 'Insert an inline math equation',
+        action: (editor) => {
+          editor
+            .chain()
+            .focus()
+            .insertContent(
+              '$\\text{Total Supply} = \\sum_{i=0}^{32} \\left( 210{,}000 \\times \\frac{50}{2^i} \\right)$'
+            )
+            .run();
+        },
+      },
     ],
   },
 ];
