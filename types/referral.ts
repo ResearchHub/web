@@ -35,10 +35,30 @@ export interface NetworkDetail {
   totalFunded: number;
   referralBonusEarned: number;
   isActiveFunder: boolean;
+  authorId: number;
+  fullName: string;
+  profileImage: string;
+}
+
+// Pagination response interface following the same pattern as FeedApiResponse
+export interface NetworkDetailsApiResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: any[]; // Raw network detail objects
+}
+
+// New interface for transformed network details result with pagination info
+export interface TransformedNetworkDetailsResult {
+  networkDetails: TransformedNetworkDetail[];
+  count: number;
+  pageSize: number;
 }
 
 export type TransformedReferralMetrics = ReferralMetrics & BaseTransformed;
 export type TransformedNetworkDetail = NetworkDetail & BaseTransformed;
+export type TransformedNetworkDetailsResultWithBase = TransformedNetworkDetailsResult &
+  BaseTransformed;
 
 // Transformer for ReferralMetrics
 const baseTransformReferralMetrics = (raw: any): ReferralMetrics => {
@@ -110,6 +130,9 @@ const baseTransformNetworkDetail = (raw: any): NetworkDetail => {
       totalFunded: 0,
       referralBonusEarned: 0,
       isActiveFunder: false,
+      authorId: 0,
+      fullName: '',
+      profileImage: '',
     };
   }
 
@@ -120,6 +143,40 @@ const baseTransformNetworkDetail = (raw: any): NetworkDetail => {
     totalFunded: raw.total_funded || 0,
     referralBonusEarned: raw.referral_bonus_earned || 0,
     isActiveFunder: raw.is_active_funder || false,
+    authorId: raw.author_id || 0,
+    fullName: raw.full_name || raw.username || '',
+    profileImage: raw.profile_image || '',
+  };
+};
+
+// Transformer for NetworkDetailsResult with pagination info
+const baseTransformNetworkDetailsResult = (
+  raw: any,
+  pageSize: number
+): TransformedNetworkDetailsResult => {
+  if (!raw) {
+    return {
+      networkDetails: [],
+      count: 0,
+      pageSize,
+    };
+  }
+
+  const networkDetails = (raw.results || [])
+    .map((detail: any) => {
+      try {
+        return baseTransformNetworkDetail(detail);
+      } catch (error) {
+        console.error('Error transforming network detail:', error, detail);
+        return null;
+      }
+    })
+    .filter((detail: any): detail is NetworkDetail => !!detail);
+
+  return {
+    networkDetails,
+    count: raw.count || 0,
+    pageSize,
   };
 };
 
@@ -130,3 +187,7 @@ export const transformReferralMetrics = createTransformer<any, ReferralMetrics>(
 export const transformNetworkDetail = createTransformer<any, NetworkDetail>(
   baseTransformNetworkDetail
 );
+export const transformNetworkDetailsResult = (pageSize: number) =>
+  createTransformer<any, TransformedNetworkDetailsResult>((raw) =>
+    baseTransformNetworkDetailsResult(raw, pageSize)
+  );

@@ -19,8 +19,7 @@ import Image from 'next/image';
 import { useReferral } from '@/contexts/ReferralContext';
 
 export function JoinPageContent() {
-  const { referralCode, setReferralCode } = useReferral();
-  const searchParams = useSearchParams();
+  const { referralCode } = useReferral();
   const router = useRouter();
   const { user, isLoading } = useUser();
   const { showAuthModal } = useAuthModalContext();

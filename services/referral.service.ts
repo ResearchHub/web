@@ -1,6 +1,11 @@
 import { ApiClient } from './client';
-import type { TransformedReferralMetrics, TransformedNetworkDetail } from '@/types/referral';
-import { transformReferralMetrics, transformNetworkDetail } from '@/types/referral';
+import type {
+  TransformedReferralMetrics,
+  TransformedNetworkDetail,
+  NetworkDetailsApiResponse,
+  TransformedNetworkDetailsResult,
+} from '@/types/referral';
+import { transformReferralMetrics, transformNetworkDetailsResult } from '@/types/referral';
 
 export class ReferralError extends Error {
   constructor(
@@ -74,14 +79,24 @@ export class ReferralService {
   }
 
   /**
-   * Gets detailed information about each user in your referral network
+   * Gets detailed information about each user in your referral network with pagination
+   * @param params - Pagination parameters
    * @throws {ReferralError} When the request fails
    */
-  static async getNetworkDetails(): Promise<TransformedNetworkDetail[]> {
+  static async getNetworkDetails(params: {
+    page: number;
+    pageSize: number;
+  }): Promise<TransformedNetworkDetailsResult> {
     try {
-      const response = await ApiClient.get<any[]>(`${this.BASE_PATH}/metrics/network_details/`);
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', params.page.toString());
+      queryParams.append('page_size', params.pageSize.toString());
 
-      return response.map(transformNetworkDetail);
+      const url = `${this.BASE_PATH}/metrics/network_details/?${queryParams.toString()}`;
+
+      const response = await ApiClient.get<NetworkDetailsApiResponse>(url);
+
+      return transformNetworkDetailsResult(params.pageSize)(response);
     } catch (error) {
       throw new ReferralError(
         'Failed to fetch network details',

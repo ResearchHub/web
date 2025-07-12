@@ -18,7 +18,7 @@ export async function GET(request: Request) {
   // Get URL and search params
   const { searchParams } = new URL(request.url);
   const redirectUrl = searchParams.get('redirect') || '/';
-  const referralCode = searchParams.get('ref');
+  const referralCode = searchParams.get('refr');
 
   if (!referralCode) {
     // No referral code provided, redirect to original destination
@@ -36,6 +36,7 @@ export async function GET(request: Request) {
     return redirect(redirectUrl);
   } catch (error) {
     console.error('Failed to apply referral code:', error);
+    // TODO: Handle error. or at least log it somewhere to monitor it
 
     // Still redirect even if referral fails
     // You could also redirect to an error page if needed

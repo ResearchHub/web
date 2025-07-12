@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCopy, faCheck, faQrcode } from '@fortawesome/pro-solid-svg-icons';
 import { faMicroscope } from '@fortawesome/pro-light-svg-icons';
 import { faXTwitter, faLinkedin, faBluesky } from '@fortawesome/free-brands-svg-icons';
 import { Button } from '@/components/ui/Button';
@@ -10,17 +9,17 @@ import toast from 'react-hot-toast';
 import { ReferralCalculator } from '.';
 import {
   Users,
-  TrendingUp,
   ChevronLeft,
   ChevronRight,
   List,
   Plus,
-  HelpCircle,
   FlaskConical,
-  FileCheck,
-  X,
   Share2,
   UserPlus,
+  Loader2,
+  Copy,
+  Check,
+  QrCode,
 } from 'lucide-react';
 import { gsap } from 'gsap';
 import Image from 'next/image';
@@ -29,104 +28,35 @@ import { useRouter } from 'next/navigation';
 import { QRCodeCanvas } from 'qrcode.react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { useUser } from '@/contexts/UserContext';
-import { useReferralMetrics } from '@/hooks/useReferralMetrics';
+import { useReferralMetrics, useReferralNetworkDetails } from '@/hooks/useReferral';
+import { Avatar } from '@/components/ui/Avatar';
+import { AuthorTooltip } from '../ui/AuthorTooltip';
 
-// Mock data - replace with actual data from your backend
-const referralData = {
-  referredUsersCount: 10,
-  amountFundedByReferred: 21500,
-  creditsEarned: 2150,
-  proposalsFundedCount: 5,
-  referredUsers: [
-    {
-      name: 'John Doe',
-      avatarUrl: 'https://randomuser.me/api/portraits/men/75.jpg',
-      totalFunded: 5000,
-      creditsEarned: 500,
-      dateJoined: 'Oct 26, 2022',
-      pendingCredits: 150,
-    },
-    {
-      name: 'Jane Smith',
-      avatarUrl: 'https://randomuser.me/api/portraits/women/75.jpg',
-      totalFunded: 2500,
-      creditsEarned: 250,
-      dateJoined: 'Nov 14, 2022',
-    },
-    {
-      name: 'Sam Wilson',
-      avatarUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
-      totalFunded: 3000,
-      creditsEarned: 300,
-      dateJoined: 'Dec 1, 2022',
-      pendingCredits: 75,
-    },
-    {
-      name: 'Emily Brown',
-      avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
-      totalFunded: 1500,
-      creditsEarned: 150,
-      dateJoined: 'Jan 5, 2023',
-    },
-    {
-      name: 'Michael Johnson',
-      avatarUrl: 'https://randomuser.me/api/portraits/men/55.jpg',
-      totalFunded: 500,
-      creditsEarned: 50,
-      dateJoined: 'Feb 12, 2023',
-      pendingCredits: 25,
-    },
-    {
-      name: 'Liam Garcia',
-      avatarUrl: 'https://randomuser.me/api/portraits/men/61.jpg',
-      totalFunded: 1000,
-      creditsEarned: 100,
-      dateJoined: 'Mar 3, 2023',
-    },
-    {
-      name: 'Olivia Martinez',
-      avatarUrl: 'https://randomuser.me/api/portraits/women/62.jpg',
-      totalFunded: 2000,
-      creditsEarned: 200,
-      dateJoined: 'Mar 21, 2023',
-    },
-    {
-      name: 'Noah Rodriguez',
-      avatarUrl: 'https://randomuser.me/api/portraits/men/63.jpg',
-      totalFunded: 4000,
-      creditsEarned: 400,
-      dateJoined: 'Apr 15, 2023',
-    },
-    {
-      name: 'Emma Hernandez',
-      avatarUrl: 'https://randomuser.me/api/portraits/women/64.jpg',
-      totalFunded: 800,
-      creditsEarned: 80,
-      dateJoined: 'May 8, 2023',
-    },
-    {
-      name: 'William Lopez',
-      avatarUrl: 'https://randomuser.me/api/portraits/men/65.jpg',
-      totalFunded: 1200,
-      creditsEarned: 120,
-      dateJoined: 'June 1, 2023',
-    },
-  ],
-};
+const USERS_PER_PAGE = 5;
 
 export function ReferralDashboard() {
   const router = useRouter();
   const [isCopied, setIsCopied] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const usersPerPage = 5;
-  const { user: currentUser } = useUser();
+  const { user: currentUser, isLoading: userLoadingUser } = useUser();
   const referralCode = currentUser?.referralCode;
   const referralLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://researchhub.com'}/referral/join?refr=${referralCode}`;
 
-  // Use the referral metrics hook
-  const { metrics, networkDetails, isLoading, error } = useReferralMetrics();
-  console.log({ metrics, networkDetails });
+  // Use the new hooks
+  const { metrics, isLoading: metricsLoading, error: metricsError } = useReferralMetrics();
+  const {
+    networkDetails,
+    isLoading: networkLoading,
+    error: networkError,
+    currentPage,
+    totalPages,
+    hasNextPage,
+    hasPrevPage,
+    goToNextPage,
+    goToPrevPage,
+  } = useReferralNetworkDetails(USERS_PER_PAGE);
+
+  const isLoading = metricsLoading || userLoadingUser;
 
   // Refs for animation targets
   const referredUsersRef = useRef<HTMLParagraphElement>(null);
@@ -135,30 +65,27 @@ export function ReferralDashboard() {
 
   // Use real data from API or fallback to mock data
   const displayData = {
-    referredUsersCount: metrics?.referralActivity.fundersInvited || referralData.referredUsersCount,
-    amountFundedByReferred:
-      metrics?.networkFundingPower.breakdown.networkFunding || referralData.amountFundedByReferred,
-    creditsEarned: metrics?.yourFundingCredits.available || referralData.creditsEarned,
+    referredUsersCount: metrics?.referralActivity.fundersInvited || 0,
+    amountFundedByReferred: metrics?.networkFundingPower.breakdown.networkFunding || 0,
+    creditsEarned: metrics?.yourFundingCredits.available || 0,
   };
 
-  // Use real network details or fallback to mock data
-  const displayUsers =
-    networkDetails && networkDetails.length > 0
-      ? networkDetails.map((user) => ({
-          name: user.username,
-          avatarUrl: 'https://randomuser.me/api/portraits/men/75.jpg', // Keep mock avatar for now
-          totalFunded: user.totalFunded,
-          creditsEarned: user.referralBonusEarned,
-          dateJoined: new Date(user.signupDate).toLocaleDateString(),
-        }))
-      : referralData.referredUsers;
+  const displayUsers = networkDetails.map((user) => ({
+    name: user.fullName,
+    avatarUrl: user.profileImage,
+    totalFunded: user.totalFunded,
+    creditsEarned: user.referralBonusEarned,
+    dateJoined: new Date(user.signupDate).toLocaleDateString(),
+    authorId: user.authorId,
+  }));
 
   useEffect(() => {
     const referredUsersEl = referredUsersRef.current;
     const amountFundedEl = amountFundedRef.current;
     const creditsEarnedEl = creditsEarnedRef.current;
 
-    if (!referredUsersEl || !amountFundedEl || !creditsEarnedEl || isLoading) return;
+    if (!referredUsersEl || !amountFundedEl || !creditsEarnedEl || metricsLoading || networkLoading)
+      return;
 
     const animateValue = (el: HTMLParagraphElement, endValue: number, isCurrency: boolean) => {
       const proxy = { value: 0 };
@@ -181,21 +108,7 @@ export function ReferralDashboard() {
     tl.call(() => animateValue(referredUsersEl, displayData.referredUsersCount, false), [], 0.1)
       .call(() => animateValue(amountFundedEl, displayData.amountFundedByReferred, true), [], 0.3)
       .call(() => animateValue(creditsEarnedEl, displayData.creditsEarned, true), [], 0.5);
-  }, [isLoading, displayData]);
-
-  // Pagination logic
-  const indexOfLastUser = currentPage * usersPerPage;
-  const indexOfFirstUser = indexOfLastUser - usersPerPage;
-  const currentUsers = displayUsers.slice(indexOfFirstUser, indexOfLastUser);
-  const totalPages = Math.ceil(displayUsers.length / usersPerPage);
-
-  const handleNextPage = () => {
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  };
-
-  const handlePrevPage = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
-  };
+  }, [metricsLoading, networkLoading, displayData]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(referralLink).then(
@@ -233,6 +146,21 @@ export function ReferralDashboard() {
     window.open(url, '_blank');
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Don't render anything if user is not authenticated.
+  // This is handled by the middleware.
+  // There is a redirect to the login page.
+  if (!currentUser) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen">
       <main className="max-w-6xl mx-auto px-4 py-8">
@@ -258,7 +186,11 @@ export function ReferralDashboard() {
               />
               <div className="grid grid-cols-2 gap-4">
                 <Button onClick={handleCopy} variant="default" className="w-full">
-                  <FontAwesomeIcon icon={isCopied ? faCheck : faCopy} className="mr-2" />
+                  {isCopied ? (
+                    <Check className="h-4 w-4 mr-2" />
+                  ) : (
+                    <Copy className="h-4 w-4 mr-2" />
+                  )}
                   {isCopied ? 'Copied!' : 'Copy Link'}
                 </Button>
                 <Button
@@ -267,7 +199,7 @@ export function ReferralDashboard() {
                   className="w-full"
                   aria-label="Show QR Code"
                 >
-                  <FontAwesomeIcon icon={faQrcode} className="mr-2" />
+                  <QrCode className="h-4 w-4 mr-2" />
                   <span>QR Code</span>
                 </Button>
               </div>
@@ -414,52 +346,93 @@ export function ReferralDashboard() {
 
         <section className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-semibold mb-4">Your Referred Users</h2>
-          <div className="divide-y divide-gray-100">
-            {currentUsers.map((user, index) => (
-              <div key={index} className="flex items-center py-4">
-                <img src={user.avatarUrl} alt={user.name} className="h-12 w-12 rounded-full mr-4" />
-                <div className="flex-grow">
-                  <p className="font-semibold">{user.name}</p>
-                  <p className="text-xs text-gray-500">Joined: {user.dateJoined}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-600">Total Funded</p>
-                  <p className="font-semibold text-green-600">
-                    ${user.totalFunded.toLocaleString()}
-                  </p>
-                </div>
-                <div className="text-right ml-6">
-                  <p className="text-sm text-gray-600">Credits Earned</p>
-                  <p className="font-semibold text-blue-600">
-                    ${user.creditsEarned.toLocaleString()}
-                  </p>
-                </div>
+
+          {displayUsers.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No referred users yet</h3>
+              <p className="text-gray-500 mb-6 px-4">
+                Share your referral link to start building your network and earning credits.
+              </p>
+              <Button
+                onClick={() => {
+                  document.querySelector('main')?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start',
+                  });
+                }}
+                variant="default"
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                Share Your Link
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="divide-y divide-gray-100">
+                {displayUsers.map((user, index) => (
+                  <div
+                    key={index}
+                    className="flex flex-col sm:flex-row items-start sm:items-center py-4 gap-3"
+                  >
+                    <AuthorTooltip authorId={user.authorId}>
+                      <Avatar
+                        src={user.avatarUrl}
+                        alt={user.name}
+                        size="md"
+                        authorId={user.authorId}
+                        className="mr-0 sm:mr-4"
+                      />
+                    </AuthorTooltip>
+                    <div className="flex-grow min-w-0">
+                      <p className="font-semibold truncate">{user.name}</p>
+                      <p className="text-xs text-gray-500">Joined: {user.dateJoined}</p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 w-full sm:w-auto">
+                      <div className="text-left sm:text-right">
+                        <p className="text-sm text-gray-600">Total Funded</p>
+                        <p className="font-semibold text-green-600">
+                          ${user.totalFunded.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="text-left sm:text-right">
+                        <p className="text-sm text-gray-600">Credits Earned</p>
+                        <p className="font-semibold text-blue-600">
+                          ${user.creditsEarned.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <div className="mt-6 flex justify-between items-center">
-            <Button
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              variant="outlined"
-              size="sm"
-            >
-              <ChevronLeft className="h-4 w-4 mr-2" />
-              Previous
-            </Button>
-            <span className="text-sm text-gray-700">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              variant="outlined"
-              size="sm"
-            >
-              Next
-              <ChevronRight className="h-4 w-4 ml-2" />
-            </Button>
-          </div>
+              <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <Button
+                  onClick={goToPrevPage}
+                  disabled={!hasPrevPage || networkLoading}
+                  variant="outlined"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-2" />
+                  Previous
+                </Button>
+                <span className="text-sm text-gray-700 flex items-center gap-2 order-first sm:order-none">
+                  Page {currentPage} of {totalPages}
+                  {networkLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                </span>
+                <Button
+                  onClick={goToNextPage}
+                  disabled={!hasNextPage || networkLoading}
+                  variant="outlined"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            </>
+          )}
         </section>
 
         <section className="mt-12">

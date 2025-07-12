@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { JoinPageContent } from '@/app/referral/join/JoinPageContent';
+import { JoinPageContent } from '@/components/Referral/JoinPageContent';
 import { PageLayout } from '@/app/layouts/PageLayout';
 
 export const metadata: Metadata = {
