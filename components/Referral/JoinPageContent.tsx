@@ -1,6 +1,6 @@
 'use client';
 
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { useAuthModalContext } from '@/contexts/AuthModalContext';
