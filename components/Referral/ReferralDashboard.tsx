@@ -165,9 +165,11 @@ export function ReferralDashboard() {
     <div className="min-h-screen">
       <main className="max-w-6xl mx-auto px-4 py-8">
         <header className="text-center mb-12">
-          <div className="flex justify-center items-center mb-4 ">
+          <div className="flex justify-center items-start mb-4 ">
             <UserPlus className="h-10 w-10 mr-4" />
-            <h1 className="text-4xl font-bold text-gray-900">Refer a Funder, Accelerate Science</h1>
+            <h1 className="text-3xl sm:!text-4xl font-bold text-gray-900">
+              Refer a Funder, Accelerate Science
+            </h1>
           </div>
           <p className="mt-4 text-lg text-gray-600">
             Earn credits by inviting funders to ResearchHub.
@@ -176,7 +178,7 @@ export function ReferralDashboard() {
 
         <section className="bg-white rounded-lg shadow-md flex items-stretch overflow-hidden mb-12 border-4 border-blue-500">
           <div className="flex-grow p-6 md:p-8">
-            <h2 className="text-2xl font-semibold mb-4">Your Referral Link</h2>
+            <h2 className="text-xl sm:!text-2xl font-semibold mb-4">Your Referral Link</h2>
             <div className="flex flex-col gap-4">
               <input
                 type="text"
@@ -185,7 +187,11 @@ export function ReferralDashboard() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <div className="grid grid-cols-2 gap-4">
-                <Button onClick={handleCopy} variant="default" className="w-full">
+                <Button
+                  onClick={handleCopy}
+                  variant="default"
+                  className="w-full text-xs lg:!text-sm"
+                >
                   {isCopied ? (
                     <Check className="h-4 w-4 mr-2" />
                   ) : (
@@ -196,7 +202,7 @@ export function ReferralDashboard() {
                 <Button
                   onClick={() => setIsQrModalOpen(true)}
                   variant="outlined"
-                  className="w-full"
+                  className="w-full text-xs lg:!text-sm"
                   aria-label="Show QR Code"
                 >
                   <QrCode className="h-4 w-4 mr-2" />
@@ -239,7 +245,9 @@ export function ReferralDashboard() {
         </section>
 
         <section className="bg-white p-8 rounded-lg shadow-md mb-12">
-          <h2 className="text-3xl font-bold text-center mb-10 text-gray-800">How It Works</h2>
+          <h2 className="text-2xl sm:!text-3xl font-bold text-center mb-10 text-gray-800">
+            How It Works
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="flex flex-col items-center">
               <div className="relative bg-blue-100 rounded-full h-24 w-24 flex items-center justify-center mb-4">
@@ -281,7 +289,7 @@ export function ReferralDashboard() {
         <section className="mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Your Referral Impact</h2>
           <div className="bg-green-50 p-6 rounded-xl text-center mb-6">
-            <p ref={creditsEarnedRef} className="text-4xl font-bold text-green-600">
+            <p ref={creditsEarnedRef} className="text-3xl sm:!text-4xl font-bold text-green-600">
               ${displayData.creditsEarned.toLocaleString()}
             </p>
             <p className="text-gray-600 mt-2 text-lg">Referral Credits Earned</p>
