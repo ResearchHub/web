@@ -31,6 +31,13 @@ export function JoinPageContent() {
     }
   }, [user, isLoading, router]);
 
+  // Redirect to referral page if no referral code is provided
+  useEffect(() => {
+    if (!isLoading && !referralCode) {
+      router.replace('/referral');
+    }
+  }, [referralCode, isLoading, router]);
+
   // Show loading while checking authentication
   if (isLoading) {
     return (
@@ -40,68 +47,53 @@ export function JoinPageContent() {
     );
   }
 
-  // Don't render anything if user is authenticated (will redirect)
-  if (user) {
-    return null;
-  }
-
   const handleSignup = () => {
-    // No need to manually set sessionStorage - context handles it
     showAuthModal();
   };
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
       <header className="text-center mb-12">
-        <div className="flex justify-center items-center mb-4">
+        <div className="flex justify-center items-start mb-4">
           <UserPlus className="h-10 w-10 mr-4 text-blue-600" />
-          <h1 className="text-4xl font-bold text-gray-900">Join ResearchHub Referral Program</h1>
+          <h1 className="text-3xl sm:!text-4xl font-bold text-gray-900">Join Referral Program</h1>
         </div>
 
-        {referralCode ? (
-          <div className="mb-6">
-            <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-4">
-              <FontAwesomeIcon icon={faGift} className="h-4 w-4 mr-2" />
-              You've been invited! 🎉
-            </div>
-            <p className="mt-4 text-lg text-gray-600">
-              Someone you know wants you to join ResearchHub's referral program! Earn bonuses when
-              you fund research and refer others to do the same.
-            </p>
+        <div className="mb-6">
+          <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-4">
+            <FontAwesomeIcon icon={faGift} className="h-4 w-4 mr-2" />
+            You've been invited! 🎉
           </div>
-        ) : (
           <p className="mt-4 text-lg text-gray-600">
-            Earn money while accelerating science. Join our referral program and get 10% bonuses on
-            funding when you refer others to fund research projects.
+            Someone you know wants you to join ResearchHub's referral program! Earn bonuses when you
+            fund research and refer others to do the same.
           </p>
-        )}
+        </div>
       </header>
 
       <main>
         {/* CTA Section */}
         <section className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 rounded-lg shadow-md mb-12 text-white">
-          <h2 className="text-3xl font-bold text-center mb-6">
-            {referralCode ? 'Ready to start earning?' : 'Join the referral program'}
+          <h2 className="text-2xl sm:!text-3xl font-bold text-center mb-6">
+            Ready to start earning?
           </h2>
           <div className="text-center">
             <p className="text-blue-100 mb-8 max-w-2xl mx-auto">
-              {referralCode
-                ? 'Create your account and start earning referral bonuses with your invite!'
-                : 'Sign up for free and start building your referral network to earn while accelerating science.'}
+              Create your account and start earning referral bonuses with your invite!
             </p>
             <Button
               size="lg"
               onClick={handleSignup}
               className="px-8 py-4 text-lg bg-white text-blue-600 hover:bg-gray-100"
             >
-              {referralCode ? 'Create Account & Start Earning' : 'Join Referral Program'}
+              Create Account & Start Earning
             </Button>
           </div>
         </section>
 
         {/* How It Works */}
         <section className="bg-white rounded-lg shadow-md p-8 mb-12 border-4 border-blue-500">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">
+          <h2 className="text-2xl sm:!text-3xl font-bold text-center mb-8 text-gray-800">
             How the Referral Program Works
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
@@ -140,7 +132,7 @@ export function JoinPageContent() {
 
         {/* Earnings Calculator */}
         <section className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg shadow-md p-8 mb-12">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">
+          <h2 className="text-2xl sm:!text-3xl font-bold text-center mb-8 text-gray-800">
             Calculate Your Earnings
           </h2>
           <div className="max-w-2xl mx-auto">
@@ -172,7 +164,9 @@ export function JoinPageContent() {
 
         {/* Success Stories */}
         <section className="bg-white rounded-lg shadow-md p-8 mb-12">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">Success Stories</h2>
+          <h2 className="text-2xl sm:!text-3xl font-bold text-center mb-8 text-gray-800">
+            Success Stories
+          </h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center p-6 border border-gray-200 rounded-lg">
               <Image
@@ -223,7 +217,7 @@ export function JoinPageContent() {
 
         {/* Stats */}
         <section className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold mb-6 text-center">
+          <h2 className="text-2xl sm:!text-3xl font-semibold mb-6 text-center">
             Join thousands earning through referrals:
           </h2>
           <div className="grid md:grid-cols-4 gap-6 text-center">
