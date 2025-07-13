@@ -56,21 +56,12 @@ export default function Signup({
         password2: password,
         first_name: firstName,
         last_name: lastName,
+        referral_code: referralCode || undefined,
       };
 
-      const user = await AuthService.register(registrationData);
-
+      await AuthService.register(registrationData);
       if (referralCode) {
-        try {
-          await ReferralService.addReferralCode({
-            referral_code: referralCode,
-            user_id: user.id,
-          });
-          clearReferralCode();
-        } catch (referralError) {
-          console.error('Failed to apply referral code:', referralError);
-          clearReferralCode();
-        }
+        clearReferralCode();
       }
       onVerify();
     } catch (err) {
