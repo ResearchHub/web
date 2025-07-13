@@ -1,11 +1,6 @@
 import { ApiClient } from './client';
-import type {
-  TransformedReferralMetrics,
-  TransformedNetworkDetail,
-  NetworkDetailsApiResponse,
-  TransformedNetworkDetailsResult,
-} from '@/types/referral';
-import { transformReferralMetrics, transformNetworkDetailsResult } from '@/types/referral';
+import type { TransformedReferralMetrics, TransformedNetworkDetailsResult } from '@/types/referral';
+import { transformReferralMetrics, transformNetworkDetailsPaginated } from '@/types/referral';
 
 export class ReferralError extends Error {
   constructor(
@@ -94,9 +89,9 @@ export class ReferralService {
 
       const url = `${this.BASE_PATH}/metrics/network_details/?${queryParams.toString()}`;
 
-      const response = await ApiClient.get<NetworkDetailsApiResponse>(url);
+      const response = await ApiClient.get<any>(url);
 
-      return transformNetworkDetailsResult(params.pageSize)(response);
+      return transformNetworkDetailsPaginated(params.pageSize)(response);
     } catch (error) {
       throw new ReferralError(
         'Failed to fetch network details',

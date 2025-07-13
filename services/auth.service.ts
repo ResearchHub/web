@@ -94,11 +94,7 @@ export class AuthService {
     };
   }
 
-  static async googleLogin(tokens: {
-    access_token?: string;
-    id_token?: string;
-    referral_code?: string;
-  }) {
+  static async googleLogin(tokens: { access_token?: string; id_token?: string }) {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}${this.BASE_PATH}/auth/google/login/`,
       {
@@ -110,7 +106,6 @@ export class AuthService {
         body: JSON.stringify({
           access_token: tokens.access_token,
           id_token: tokens.id_token,
-          ...(tokens.referral_code && { referral_code: tokens.referral_code }),
         }),
       }
     );
