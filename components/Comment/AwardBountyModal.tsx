@@ -405,11 +405,11 @@ const FilteredCommentFeed = ({
         // ELIGIBILITY LOGIC: Check if comment is eligible for award
         // is EligibleForAward was previously isBountyComment, renamed for clarity and consistency of terms used here
         const isEligibleForAward = (comment: Comment): boolean => {
-          // DECISION NEEDED, REVIEW COMMENT AWARD OPTIONS:
+          // AWARD OPTIONS:
           // OPTION 1: Allow Double-Award of REVIEW comments even if they already have received past bounties award OR direct tips
-          // if (comment.commentType === 'REVIEW') {
-          //   return true;
-          // }
+          if (comment.commentType === 'REVIEW') {
+            return true;
+          }
 
           // OPTION 2: Exclude REVIEW comments that already have any awards. We ONLY allow REVIEW comments without existing bounties OR tips
           // if (comment.commentType === 'REVIEW') {
@@ -421,13 +421,13 @@ const FilteredCommentFeed = ({
           // but INCLUDE those that only received direct tips from elsewhere
           // Note: awarded bounties appear as tips in the UI. (see components/Feed/FeedItemActions.tsx)
           // so direct tips are tips that are not originated from awarded bounties
-          if (comment.commentType === 'REVIEW') {
-            const hasDirectTipsOnly =
-              (comment?.tips?.length || 0) > 0 && !(comment?.awardedBountyAmount || 0);
-            const hasNoPreviousAwards =
-              !hasBounties(comment) && !(comment?.awardedBountyAmount || 0);
-            return hasDirectTipsOnly || hasNoPreviousAwards;
-          }
+          // if (comment.commentType === 'REVIEW') {
+          //   const hasDirectTipsOnly =
+          //     (comment?.tips?.length || 0) > 0 && !(comment?.awardedBountyAmount || 0);
+          //   const hasNoPreviousAwards =
+          //     !hasBounties(comment) && !(comment?.awardedBountyAmount || 0);
+          //   return hasDirectTipsOnly || hasNoPreviousAwards;
+          // }
 
           return false;
         };
