@@ -68,7 +68,7 @@ export function ReferralLinkCard() {
   return (
     <>
       <section className="bg-white rounded-lg shadow-md flex items-stretch overflow-hidden mb-12 border-4 border-blue-500">
-        <div className="flex-grow p-6 md:p-8">
+        <div className="flex-grow p-6 md:!p-8">
           <h2 className="text-xl sm:!text-2xl font-semibold mb-4">Your Referral Link</h2>
           <div className="flex flex-col gap-4">
             <input
@@ -117,7 +117,7 @@ export function ReferralLinkCard() {
             </div>
           </div>
         </div>
-        <div className="hidden md:block w-80 relative flex-shrink-0">
+        <div className="hidden md:!block w-80 relative flex-shrink-0">
           <Image
             src="/images/lab.jpg"
             alt="Science lab illustration"

@@ -125,7 +125,7 @@ export function ReferralImpactSection() {
           </Tooltip>
         </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:!grid-cols-2 gap-6">
         <div className="bg-blue-50 p-6 rounded-xl text-center">
           <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />
           <p ref={referredUsersRef} className="text-3xl font-bold text-blue-600">

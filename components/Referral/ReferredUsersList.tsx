@@ -84,7 +84,7 @@ export function ReferredUsersList() {
             {displayUsers.map((user, index) => (
               <div
                 key={index}
-                className="flex flex-col sm:flex-row items-start sm:items-center py-4 gap-3"
+                className="flex flex-col sm:!flex-row items-start sm:!items-center py-4 gap-3"
               >
                 <AuthorTooltip authorId={user.authorId}>
                   <Avatar
@@ -92,21 +92,21 @@ export function ReferredUsersList() {
                     alt={user.name}
                     size="md"
                     authorId={user.authorId}
-                    className="mr-0 sm:mr-4"
+                    className="mr-0 sm:!mr-4"
                   />
                 </AuthorTooltip>
                 <div className="flex-grow min-w-0">
                   <p className="font-semibold truncate">{user.name}</p>
                   <p className="text-xs text-gray-500">Joined: {user.dateJoined}</p>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 w-full sm:w-auto">
-                  <div className="text-left sm:text-right">
+                <div className="flex flex-col sm:!flex-row gap-2 sm:!gap-6 w-full sm:!w-auto">
+                  <div className="text-left sm:!text-right">
                     <p className="text-sm text-gray-600">Total Funded</p>
                     <p className="font-semibold text-green-600">
                       ${user.totalFunded.toLocaleString()}
                     </p>
                   </div>
-                  <div className="text-left sm:text-right">
+                  <div className="text-left sm:!text-right">
                     <p className="text-sm text-gray-600">Credits Earned</p>
                     <p className="font-semibold text-blue-600">
                       ${user.creditsEarned.toLocaleString()}
@@ -116,18 +116,18 @@ export function ReferredUsersList() {
               </div>
             ))}
           </div>
-          <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="mt-6 flex flex-col sm:!flex-row justify-between items-center gap-4">
             <Button
               onClick={goToPrevPage}
               disabled={!hasPrevPage}
               variant="outlined"
               size="sm"
-              className="w-full sm:w-auto"
+              className="w-full sm:!w-auto"
             >
               <ChevronLeft className="h-4 w-4 mr-2" />
               Previous
             </Button>
-            <span className="text-sm text-gray-700 flex items-center gap-2 order-first sm:order-none">
+            <span className="text-sm text-gray-700 flex items-center gap-2 order-first sm:!order-none">
               Page {currentPage} of {totalPages}
             </span>
             <Button
@@ -135,7 +135,7 @@ export function ReferredUsersList() {
               disabled={!hasNextPage}
               variant="outlined"
               size="sm"
-              className="w-full sm:w-auto"
+              className="w-full sm:!w-auto"
             >
               Next
               <ChevronRight className="h-4 w-4 ml-2" />

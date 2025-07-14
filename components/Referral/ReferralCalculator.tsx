@@ -62,7 +62,7 @@ export function ReferralCalculator() {
             className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer mt-6 slider-thumb"
           />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:!grid-cols-2 gap-6">
           <div className="bg-slate-700 p-4 rounded-lg flex items-center gap-4">
             <FontAwesomeIcon icon={faUser} className="h-7 w-7 text-blue-400 flex-shrink-0" />
             <div>

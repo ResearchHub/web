@@ -10,7 +10,7 @@ export function HowItWorksSection() {
       <h2 className="text-2xl sm:!text-3xl font-bold text-center mb-10 text-gray-800">
         How It Works
       </h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+      <div className="grid grid-cols-1 md:!grid-cols-3 gap-8 text-center">
         <div className="flex flex-col items-center">
           <div className="relative bg-blue-100 rounded-full h-24 w-24 flex items-center justify-center mb-4">
             <Share2 className="h-8 w-8 text-blue-600" />

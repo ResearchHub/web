@@ -17,7 +17,7 @@ export function ReferralImpactSkeleton() {
       </div>
 
       {/* Stats grid skeleton */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:!grid-cols-2 gap-6">
         <div className="bg-blue-50 p-6 rounded-xl text-center">
           <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />
           <div className="h-10 w-16 bg-gray-200 rounded animate-pulse mx-auto mb-2"></div>
