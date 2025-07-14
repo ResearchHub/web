@@ -2,7 +2,7 @@
 
 import { FC } from 'react';
 import { cn } from '@/utils/styles';
-
+import { ResearchCoinIcon } from './icons/ResearchCoinIcon';
 import { Badge } from './Badge';
 import { Tooltip } from './Tooltip';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
@@ -153,7 +153,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
       return (
         <div className="p-1">
           <div className="font-semibold text-orange-700 mb-0.5 flex items-center gap-1">
-            <Icon name="gold2" size={14} color={colors.iconColor} />
+            <ResearchCoinIcon size={14} />
             <span>{Math.round(amount).toLocaleString()} RSC</span>
           </div>
           <div className="text-gray-700 text-xs">≈ ${formatNumber(displayValue, shorten)} USD</div>
@@ -165,7 +165,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
       return (
         <div className="p-1">
           <div className="font-semibold text-orange-700 mb-0.5 flex items-center gap-1">
-            <Icon name="gold2" size={14} />
+            <ResearchCoinIcon size={14} />
             <span>{Math.round(amount).toLocaleString()} RSC</span>
           </div>
           <div className="text-gray-700 text-xs">≈ ${formatNumber(usdEquivalent, shorten)} USD</div>
@@ -222,7 +222,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
               $
             </span>
           ) : (
-            <Icon name="gold2" size={effectiveIconSize} className="mr-1" />
+            <ResearchCoinIcon size={effectiveIconSize} className="mr-1" />
           ))}
         {inverted ? (
           <div className="flex items-center">
@@ -310,18 +310,10 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
             $
           </span>
         ) : (
-          <Icon
-            name="gold2"
+          <ResearchCoinIcon
             size={effectiveIconSize}
-            color={
-              variant === 'award'
-                ? colors.awardIconColor
-                : variant === 'received'
-                  ? '#16A34A'
-                  : variant === 'disabled'
-                    ? colors.disabledIconColor
-                    : undefined
-            }
+            variant={variant === 'received' ? 'green' : variant === 'disabled' ? 'solid' : 'orange'}
+            color={variant === 'disabled' ? colors.disabledIconColor : undefined}
           />
         ))}
       {variant === 'award' ? (

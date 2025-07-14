@@ -27,6 +27,7 @@ export { FileHandler } from '@tiptap-pro/extension-file-handler';
 export { Details } from '@tiptap-pro/extension-details';
 export { DetailsContent } from '@tiptap-pro/extension-details-content';
 export { DetailsSummary } from '@tiptap-pro/extension-details-summary';
+export { Mathematics } from '@tiptap-pro/extension-mathematics';
 export { UniqueID } from '@tiptap-pro/extension-unique-id';
 
 export { Selection } from './Selection';
