@@ -60,9 +60,6 @@ export default function Signup({
       };
 
       await AuthService.register(registrationData);
-      if (referralCode) {
-        clearReferralCode();
-      }
       onVerify();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');
