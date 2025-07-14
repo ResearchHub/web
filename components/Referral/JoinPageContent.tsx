@@ -16,10 +16,8 @@ import {
 } from '@fortawesome/pro-light-svg-icons';
 import { UserPlus } from 'lucide-react';
 import Image from 'next/image';
-import { useReferral } from '@/contexts/ReferralContext';
 
 export function JoinPageContent() {
-  const { referralCode } = useReferral();
   const router = useRouter();
   const { user, isLoading } = useUser();
   const { showAuthModal } = useAuthModalContext();
@@ -30,13 +28,6 @@ export function JoinPageContent() {
       router.replace('/trending');
     }
   }, [user, isLoading, router]);
-
-  // Redirect to referral page if no referral code is provided
-  useEffect(() => {
-    if (!isLoading && !referralCode) {
-      router.replace('/referral');
-    }
-  }, [referralCode, isLoading, router]);
 
   // Show loading while checking authentication
   if (isLoading) {
