@@ -45,9 +45,15 @@ export function JoinPageContent() {
   return (
     <div className="max-w-4xl mx-auto p-4 sm:!p-6 lg:!p-8">
       <header className="text-center mb-12">
-        <div className="flex justify-center items-start mb-4">
-          <UserPlus className="h-10 w-10 mr-4 text-blue-600" />
-          <h1 className="text-3xl sm:!text-4xl font-bold text-gray-900">Join Referral Program</h1>
+        <div className="flex flex-col items-center gap-3 mt-4 mb-8">
+          <div className="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100">
+            <UserPlus className="w-8 h-8 text-blue-600" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 text-center">Join Referral Program</h1>
+          <p className="text-lg text-gray-600 text-center max-w-xl">
+            Someone you know wants you to join ResearchHub's referral program! Earn bonuses when you
+            fund research and refer others to do the same.
+          </p>
         </div>
 
         <div className="mb-6">
@@ -55,10 +61,6 @@ export function JoinPageContent() {
             <FontAwesomeIcon icon={faGift} className="h-4 w-4 mr-2" />
             You've been invited! 🎉
           </div>
-          <p className="mt-4 text-lg text-gray-600">
-            Someone you know wants you to join ResearchHub's referral program! Earn bonuses when you
-            fund research and refer others to do the same.
-          </p>
         </div>
       </header>
 

@@ -5,13 +5,17 @@ import { UserPlus } from 'lucide-react';
 export function ReferralHeader() {
   return (
     <header className="text-center mb-12">
-      <div className="flex justify-center items-start mb-4">
-        <UserPlus className="h-10 w-10 mr-4" />
-        <h1 className="text-3xl sm:!text-4xl font-bold text-gray-900">
+      <div className="flex flex-col items-center gap-3 mt-4 mb-8">
+        <div className="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100">
+          <UserPlus className="w-8 h-8 text-blue-600" />
+        </div>
+        <h1 className="text-3xl font-bold text-gray-900 text-center">
           Refer a Funder, Accelerate Science
         </h1>
+        <p className="text-lg text-gray-600 text-center max-w-xl">
+          Earn credits by inviting funders to ResearchHub.
+        </p>
       </div>
-      <p className="mt-4 text-lg text-gray-600">Earn credits by inviting funders to ResearchHub.</p>
     </header>
   );
 }

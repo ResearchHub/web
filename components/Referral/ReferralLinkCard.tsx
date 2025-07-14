@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import { useUser } from '@/contexts/UserContext';
 import { ReferralLinkSkeleton } from './ReferralLinkSkeleton';
 import { QRCodeModal } from './QRCodeModal';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
 export function ReferralLinkCard() {
   const [isCopied, setIsCopied] = useState(false);
@@ -31,9 +32,27 @@ export function ReferralLinkCard() {
         toast.error('Failed to copy referral link.');
       }
     );
+
+    AnalyticsService.logEvent(LogEvent.CLICKED_SHARE_VIA_URL, {
+      action: 'USER_SHARED_REFERRAL',
+      referralCode,
+    });
+  };
+
+  const handleQrCodeClick = () => {
+    AnalyticsService.logEvent(LogEvent.CLICKED_SHARE_VIA_QR_CODE, {
+      action: 'USER_SHARED_REFERRAL',
+      referralCode,
+    });
+    setIsQrModalOpen(true);
   };
 
   const shareOnX = () => {
+    AnalyticsService.logEvent(LogEvent.CLICKED_SHARE_VIA_X, {
+      action: 'USER_SHARED_REFERRAL',
+      referralCode,
+    });
+
     const text = `Join me on ResearchHub and let's accelerate science together! We both get a 10% bonus on funding. #ResearchHub #Science`;
     const url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(
       referralLink
@@ -42,6 +61,11 @@ export function ReferralLinkCard() {
   };
 
   const shareOnLinkedIn = () => {
+    AnalyticsService.logEvent(LogEvent.CLICKED_SHARE_VIA_LINKEDIN, {
+      action: 'USER_SHARED_REFERRAL',
+      referralCode,
+    });
+
     const text = `Join me on ResearchHub, a platform for accelerating science. When you join and fund a project, we both get a 10% bonus. Let's make an impact together.`;
     const url = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(
       referralLink
@@ -50,6 +74,11 @@ export function ReferralLinkCard() {
   };
 
   const shareOnBlueSky = () => {
+    AnalyticsService.logEvent(LogEvent.CLICKED_SHARE_VIA_BLUESKY, {
+      action: 'USER_SHARED_REFERRAL',
+      referralCode,
+    });
+
     const text = `Join me on ResearchHub and let's accelerate science together! We both get a 10% bonus on funding. ${referralLink}`;
     const url = `https://bsky.app/intent/compose?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
@@ -83,7 +112,7 @@ export function ReferralLinkCard() {
                 {isCopied ? 'Copied!' : 'Copy Link'}
               </Button>
               <Button
-                onClick={() => setIsQrModalOpen(true)}
+                onClick={handleQrCodeClick}
                 variant="outlined"
                 className="w-full text-xs lg:!text-sm"
                 aria-label="Show QR Code"
