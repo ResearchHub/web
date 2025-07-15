@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
-import { Users, FlaskConical, List, Plus, AlertCircle } from 'lucide-react';
+import { Users, FlaskConical, List, Plus, AlertCircle, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useRouter } from 'next/navigation';
@@ -14,6 +14,8 @@ export function ReferralImpactSection() {
   const referredUsersRef = useRef<HTMLParagraphElement>(null);
   const amountFundedRef = useRef<HTMLParagraphElement>(null);
   const creditsEarnedRef = useRef<HTMLParagraphElement>(null);
+  const creditsUsedRef = useRef<HTMLParagraphElement>(null);
+  const totalEarnedRef = useRef<HTMLParagraphElement>(null);
 
   // Use the metrics hook
   const { metrics, isLoading, error } = useReferralMetrics();
@@ -23,14 +25,26 @@ export function ReferralImpactSection() {
     referredUsersCount: metrics?.referralActivity.fundersInvited || 0,
     amountFundedByReferred: metrics?.networkFundingPower.breakdown.networkFunding || 0,
     creditsEarned: metrics?.yourFundingCredits.available || 0,
+    creditsUsed: metrics?.yourFundingCredits.used || 0,
+    totalEarned: metrics?.yourFundingCredits.totalEarned || 0,
   };
 
   useEffect(() => {
     const referredUsersEl = referredUsersRef.current;
     const amountFundedEl = amountFundedRef.current;
     const creditsEarnedEl = creditsEarnedRef.current;
+    const creditsUsedEl = creditsUsedRef.current;
+    const totalEarnedEl = totalEarnedRef.current;
 
-    if (!referredUsersEl || !amountFundedEl || !creditsEarnedEl || isLoading) return;
+    if (
+      !referredUsersEl ||
+      !amountFundedEl ||
+      !creditsEarnedEl ||
+      !creditsUsedEl ||
+      !totalEarnedEl ||
+      isLoading
+    )
+      return;
 
     const animateValue = (el: HTMLParagraphElement, endValue: number, isCurrency: boolean) => {
       const proxy = { value: 0 };
@@ -50,8 +64,10 @@ export function ReferralImpactSection() {
 
     const tl = gsap.timeline();
     tl.call(() => animateValue(referredUsersEl, displayData.referredUsersCount, false), [], 0.1)
-      .call(() => animateValue(amountFundedEl, displayData.amountFundedByReferred, true), [], 0.3)
-      .call(() => animateValue(creditsEarnedEl, displayData.creditsEarned, true), [], 0.5);
+      .call(() => animateValue(amountFundedEl, displayData.amountFundedByReferred, true), [], 0.2)
+      .call(() => animateValue(creditsEarnedEl, displayData.creditsEarned, true), [], 0.3)
+      .call(() => animateValue(creditsUsedEl, displayData.creditsUsed, true), [], 0.4)
+      .call(() => animateValue(totalEarnedEl, displayData.totalEarned, true), [], 0.5);
   }, [isLoading, displayData]);
 
   // Show skeleton while loading
@@ -83,7 +99,7 @@ export function ReferralImpactSection() {
         <p ref={creditsEarnedRef} className="text-3xl sm:!text-4xl font-bold text-green-600">
           ${displayData.creditsEarned.toLocaleString()}
         </p>
-        <p className="text-gray-600 mt-2 text-lg">Referral Credits Earned</p>
+        <p className="text-gray-600 mt-2 text-lg">Referral Credits Available</p>
         <div className="mt-2">
           <Tooltip
             content={
@@ -125,6 +141,23 @@ export function ReferralImpactSection() {
           </Tooltip>
         </div>
       </div>
+      <div className="grid grid-cols-1 sm:!grid-cols-2 gap-6 mb-6">
+        <div className="bg-purple-50 p-6 rounded-xl text-center">
+          <CreditCard className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+          <p ref={creditsUsedRef} className="text-3xl font-bold text-purple-600">
+            ${displayData.creditsUsed.toLocaleString()}
+          </p>
+          <p className="text-gray-600 mt-2">Credits Used</p>
+        </div>
+        <div className="bg-orange-50 p-6 rounded-xl text-center">
+          <CreditCard className="h-8 w-8 text-orange-600 mx-auto mb-2" />
+          <p ref={totalEarnedRef} className="text-3xl font-bold text-orange-600">
+            ${displayData.totalEarned.toLocaleString()}
+          </p>
+          <p className="text-gray-600 mt-2">Total Credits Earned</p>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 sm:!grid-cols-2 gap-6">
         <div className="bg-blue-50 p-6 rounded-xl text-center">
           <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />

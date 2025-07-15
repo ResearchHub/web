@@ -11,6 +11,8 @@ export interface ReferralMetrics {
   };
   yourFundingCredits: {
     available: number;
+    used: number;
+    totalEarned: number;
   };
 }
 
@@ -47,6 +49,8 @@ const baseTransformReferralMetrics = (raw: any): ReferralMetrics => {
       },
       yourFundingCredits: {
         available: 0,
+        used: 0,
+        totalEarned: 0,
       },
     };
   }
@@ -62,6 +66,8 @@ const baseTransformReferralMetrics = (raw: any): ReferralMetrics => {
     },
     yourFundingCredits: {
       available: raw.your_funding_credits?.available || 0,
+      used: raw.your_funding_credits?.used || 0,
+      totalEarned: raw.your_funding_credits?.total_earned || 0,
     },
   };
 };
