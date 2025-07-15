@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { ReferralHeader } from './ReferralHeader';
 import { ReferralLinkCard } from './ReferralLinkCard';
 import { HowItWorksSection } from './HowItWorksSection';

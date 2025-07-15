@@ -9,27 +9,11 @@ import { useReferralNetworkDetails } from '@/hooks/useReferral';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 const USERS_PER_PAGE = 5;
-const REFERRAL_EXPIRATION_MONTHS = 6;
-
-// Helper function to calculate expiration date
-const calculateExpirationDate = (signupDate: string): Date => {
-  const signup = new Date(signupDate);
-  const expiration = new Date(signup);
-  expiration.setMonth(expiration.getMonth() + REFERRAL_EXPIRATION_MONTHS);
-  return expiration;
-};
-
-// Helper function to check if user is expired
-const isUserExpired = (signupDate: string): boolean => {
-  const expirationDate = calculateExpirationDate(signupDate);
-  return new Date() > expirationDate;
-};
 
 // Helper function to get days until expiration
-const getDaysUntilExpiration = (signupDate: string): number => {
-  const expirationDate = calculateExpirationDate(signupDate);
+const getDaysUntilExpiration = (expirationDate: string): number => {
   const now = new Date();
-  const diffTime = expirationDate.getTime() - now.getTime();
+  const diffTime = new Date(expirationDate).getTime() - now.getTime();
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
@@ -48,9 +32,7 @@ export function ReferredUsersList() {
 
   // Transform the network details to the format expected by the component
   const displayUsers = networkDetails.map((user) => {
-    const isExpired = isUserExpired(user.signupDate);
-    const daysUntilExpiration = getDaysUntilExpiration(user.signupDate);
-    const expirationDate = calculateExpirationDate(user.signupDate);
+    const daysUntilExpiration = getDaysUntilExpiration(user.referralBonusExpirationDate);
 
     return {
       name: user.fullName,
@@ -59,10 +41,10 @@ export function ReferredUsersList() {
       creditsEarned: user.referralBonusEarned,
       dateJoined: new Date(user.signupDate).toLocaleDateString(),
       authorId: user.authorId,
-      isExpired,
+      isExpired: user.isReferralBonusExpired,
       daysUntilExpiration,
-      expirationDate: expirationDate.toLocaleDateString(),
-      signupDate: user.signupDate, // Keep original for calculations
+      expirationDate: new Date(user.referralBonusExpirationDate).toLocaleDateString(),
+      signupDate: user.signupDate,
     };
   });
 

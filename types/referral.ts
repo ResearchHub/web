@@ -21,6 +21,8 @@ export interface NetworkDetail {
   authorId: number;
   fullName: string;
   profileImage: string;
+  referralBonusExpirationDate: string;
+  isReferralBonusExpired: boolean;
 }
 
 export interface TransformedNetworkDetailsResult {
@@ -73,6 +75,8 @@ const baseTransformNetworkDetail = (raw: any): NetworkDetail => {
       authorId: 0,
       fullName: '',
       profileImage: '',
+      referralBonusExpirationDate: '',
+      isReferralBonusExpired: false,
     };
   }
 
@@ -83,6 +87,8 @@ const baseTransformNetworkDetail = (raw: any): NetworkDetail => {
     authorId: raw.author_id || 0,
     fullName: raw.full_name || raw.username || '',
     profileImage: raw.profile_image || '',
+    referralBonusExpirationDate: raw.referral_bonus_expiration_date || '',
+    isReferralBonusExpired: raw.is_referral_bonus_expired || false,
   };
 };
 
