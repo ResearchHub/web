@@ -84,7 +84,11 @@ export function UserBalanceSection({
                 ) : (
                   <div className="flex flex-col sm:!flex-row flex-wrap gap-4 w-full">
                     {/* Available Balance Card */}
-                    <div className="w-full sm:!w-auto sm:!flex-1 bg-gradient-to-r from-purple-600 to-blue-400 rounded-lg p-4 text-white">
+                    <div
+                      className={`w-full sm:!w-auto ${
+                        !lockedBalance || lockedBalance.raw === 0 ? 'sm:!w-fit' : 'sm:!flex-1'
+                      } bg-gradient-to-r from-purple-600 to-blue-400 rounded-lg p-4 text-white`}
+                    >
                       <div className="flex items-start justify-between">
                         <span className="text-sm font-medium text-white/90">Available Balance</span>
                         <Tooltip
