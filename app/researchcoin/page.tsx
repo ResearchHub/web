@@ -95,7 +95,7 @@ export default function ResearchCoinPage() {
             <div className="flex-1">
               {status === 'authenticated' && (
                 <UserBalanceSection
-                  balance={balance ? formatBalance(balance, exchangeRate) : null}
+                  balance={formatBalance(balance || 0, exchangeRate)}
                   isFetchingExchangeRate={isFetchingExchangeRate}
                   onTransactionSuccess={handleRefresh}
                   lockedBalance={
