@@ -38,7 +38,6 @@ export function UserBalanceSection({
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
   const [isSellModalOpen, setIsSellModalOpen] = useState(false);
-  console.log({ balance, lockedBalance });
 
   // Check if wallet is connected and get currency preference
   const { isConnected } = useAccount();
