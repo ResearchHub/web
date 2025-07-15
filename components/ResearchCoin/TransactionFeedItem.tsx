@@ -48,7 +48,7 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
                   </span>
                   {transaction.isLocked && (
                     <Badge variant="orange" size="sm" className="mt-1 flex items-center gap-1">
-                      <Lock size={14} className="inline" /> Locked
+                      Funding Only
                     </Badge>
                   )}
                 </div>
