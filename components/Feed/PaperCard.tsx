@@ -103,7 +103,7 @@ export function PaperCard({
   const formatCategoryName = (slug: string) => {
     return slug.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
   };
-
+  console.log('test');
   const formatAbstract = (abstract: string) => {
     // Keywords commonly found in research abstracts
     const keywords = [
