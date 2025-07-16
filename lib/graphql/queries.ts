@@ -11,25 +11,28 @@ export const GET_PAPERS = gql`
         abstract
         date
         source
-        server
         doi
         url
         pdfUrl
         authors
-        category
-        unifiedCategorySlug
-        unifiedSubcategorySlug
+        impactScore
+        unifiedCategory {
+          slug
+        }
+        unifiedSubcategory {
+          slug
+        }
         enrichments {
           source
           citationCount
+          influentialCitationCount
           altmetricScore
           impactScore
-          twitterMentions
-          newsMentions
+          journal
           fieldsOfStudy
           tldr
-          influentialCitationCount
-          journal
+          twitterMentions
+          newsMentions
         }
       }
     }
@@ -40,9 +43,9 @@ export const GET_UNIFIED_CATEGORIES = gql`
   query GetUnifiedCategories {
     unifiedCategories {
       id
-      slug
       name
       description
+      slug
       displayOrder
       paperCount
       subcategories {
@@ -148,14 +151,14 @@ export interface CategoriesResponse {
 }
 
 export interface GetPapersInput {
-  timePeriod?: string;
-  customStartDate?: string;
-  customEndDate?: string;
-  categories?: string[];
-  subcategories?: string[];
-  humanReadableCategories?: string[];
-  sourceCategories?: string[];
   keywords?: string[];
+  subcategories?: string[];
+  timePeriod?: string;
+  sortBy?: string;
+  limit?: number;
+  useMlRelevance?: boolean;
+  // Legacy fields that might still be needed
+  categories?: string[];
   sources?: string[];
   hasEnrichment?: boolean;
   minImpactScore?: number;
@@ -163,9 +166,7 @@ export interface GetPapersInput {
   minAltmetricScore?: number;
   minTwitterMentions?: number;
   minNewsMentions?: number;
-  sortBy?: string;
   sortOrder?: string;
-  limit?: number;
   offset?: number;
 }
 
@@ -188,9 +189,9 @@ export interface UnifiedCategory {
   slug: string;
   name: string;
   description: string;
-  displayOrder: number;
-  paperCount: number;
-  subcategories: UnifiedSubcategory[];
+  displayOrder?: number;
+  paperCount?: number;
+  subcategories?: UnifiedSubcategory[];
 }
 
 export interface UnifiedSubcategory {
@@ -198,8 +199,8 @@ export interface UnifiedSubcategory {
   slug: string;
   name: string;
   description: string;
-  displayOrder: number;
-  paperCount: number;
+  displayOrder?: number;
+  paperCount?: number;
 }
 
 export interface Paper {
@@ -208,14 +209,19 @@ export interface Paper {
   abstract: string | null;
   date: string;
   source: string;
-  server: string;
+  server?: string;
   doi: string | null;
   url: string | null;
   pdfUrl: string | null;
   authors: string;
-  category: string;
-  unifiedCategorySlug: string | null;
-  unifiedSubcategorySlug: string | null;
+  category?: string;
+  impactScore?: number | null;
+  unifiedCategory?: {
+    slug: string;
+  } | null;
+  unifiedSubcategory?: {
+    slug: string;
+  } | null;
   enrichments: PaperEnrichment[] | null;
 }
 

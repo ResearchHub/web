@@ -174,22 +174,22 @@ export function PaperCard({
     <Card className="p-5 hover:shadow-md transition-shadow">
       {/* Category and Source Badges */}
       <div className="mb-2 flex flex-wrap gap-1.5">
-        {graphqlData.unifiedCategorySlug && (
+        {graphqlData.unifiedCategory?.slug && (
           <Badge
             variant="default"
             className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 cursor-pointer"
-            onClick={() => onCategoryClick?.(graphqlData.unifiedCategorySlug!)}
+            onClick={() => onCategoryClick?.(graphqlData.unifiedCategory?.slug || '')}
           >
-            {formatCategoryName(graphqlData.unifiedCategorySlug)}
+            {formatCategoryName(graphqlData.unifiedCategory.slug)}
           </Badge>
         )}
-        {graphqlData.unifiedSubcategorySlug && (
+        {graphqlData.unifiedSubcategory?.slug && (
           <Badge
             variant="default"
             className="text-xs bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer"
-            onClick={() => onSubcategoryClick?.(graphqlData.unifiedSubcategorySlug!)}
+            onClick={() => onSubcategoryClick?.(graphqlData.unifiedSubcategory?.slug || '')}
           >
-            {formatCategoryName(graphqlData.unifiedSubcategorySlug)}
+            {formatCategoryName(graphqlData.unifiedSubcategory.slug)}
           </Badge>
         )}
         {graphqlData.source && (

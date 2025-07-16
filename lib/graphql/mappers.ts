@@ -1,70 +1,53 @@
+import { TransformedWork, Enrichment, transformWork } from '@/types/work';
+import { Paper as TransformedPaper, transformPaper } from '@/types/paper';
 import { Paper } from './queries';
-import { transformPaper } from '@/types/work';
 
-export const mapGraphQLPaperToWork = (paper: Paper) => {
-  // Extract enrichment data by source
-  const semanticScholarEnrichment = paper.enrichments?.find((e) => e.source === 'semantic_scholar');
-  const altmetricEnrichment = paper.enrichments?.find((e) => e.source === 'altmetric');
+// Map GraphQL Paper to TransformedWork for backward compatibility
+export function mapGraphQLPaperToWork(paper: Paper): TransformedWork {
+  const transformedPaper = transformPaper(paper);
 
-  // For backward compatibility, use first enrichment as fallback
-  const enrichment = paper.enrichments?.[0];
+  // Map enrichments to Work enrichments format
+  const enrichments: Enrichment[] = transformedPaper.enrichments.map((e) => ({
+    source: e.source,
+    citationCount: e.citationCount || null,
+    influentialCitationCount: e.influentialCitationCount || null,
+    altmetricScore: e.altmetricScore || null,
+    impactScore: e.impactScore || null,
+    journal: e.journal || null,
+    tldr: e.tldr || null,
+    twitterMentions: e.twitterMentions || null,
+    newsMentions: e.newsMentions || null,
+  }));
 
-  // Parse authors string into array (authors is a string in GraphQL)
-  const authorsArray = paper.authors ? paper.authors.split(',').map((a) => a.trim()) : [];
-
-  // Map GraphQL response to format expected by transformPaper
-  const rawPaper = {
-    id: 0, // Will need to be set if you have IDs
+  // Create a raw work object that matches the expected format
+  const rawWork = {
+    id: parseInt(transformedPaper.id) || 0,
     work_type: 'article',
     content_type: 'paper',
-    title: paper.title,
-    paper_title: paper.title,
-    slug: '', // Generate from title if needed
-    created_date: paper.date,
-    paper_publish_date: paper.date,
-    doi: paper.doi,
-    // Map unified category to hub structure
-    hubs: paper.unifiedCategorySlug
-      ? [
-          {
-            id: 0,
-            name: paper.unifiedCategorySlug
-              .replace(/_/g, ' ')
-              .replace(/\b\w/g, (l) => l.toUpperCase()),
-            slug: paper.unifiedCategorySlug,
-          },
-        ]
-      : [],
-    // Map journal information from semantic scholar first, then fallback
-    external_source: semanticScholarEnrichment?.journal || enrichment?.journal || '',
-    external_source_id: 0,
-    external_source_slug:
-      (semanticScholarEnrichment?.journal || enrichment?.journal)
-        ?.toLowerCase()
-        .replace(/\s+/g, '-') || '',
-    external_source_image: '',
-    // Map authors from GraphQL
-    raw_authors: authorsArray.map((author) => ({
-      first_name: author.split(' ')[0] || '',
-      last_name: author.split(' ').slice(1).join(' ') || '',
-    })),
+    title: transformedPaper.title,
+    paper_title: transformedPaper.title,
+    slug: transformedPaper.doi || transformedPaper.id,
+    created_date: transformedPaper.date,
+    paper_publish_date: transformedPaper.date,
+    doi: transformedPaper.doi,
+    abstract: transformedPaper.abstract,
+    renderable_text: transformedPaper.abstract,
     authors: [],
-    // Use abstract or TLDR from semantic scholar for content
-    abstract: paper.abstract || semanticScholarEnrichment?.tldr || '',
-    renderable_text: paper.abstract || semanticScholarEnrichment?.tldr || '',
-    // Default empty values for required fields
-    pdf_url: '',
-    file: '',
+    raw_authors: transformedPaper.authors
+      ? transformedPaper.authors.split(',').map((author: string) => ({
+          first_name: author.trim().split(' ')[0] || '',
+          last_name: author.trim().split(' ').slice(1).join(' ') || '',
+        }))
+      : [],
+    hubs: [],
+    pdf_url: transformedPaper.pdfUrl,
+    file: transformedPaper.pdfUrl,
     formats: [],
     pdf_license: '',
     pdf_copyright_allows_display: true,
     first_preview: null,
     version_list: [],
-    score:
-      semanticScholarEnrichment?.impactScore ||
-      altmetricEnrichment?.impactScore ||
-      enrichment?.impactScore ||
-      0,
+    score: transformedPaper.impactScore || 0,
     discussion_count: 0,
     saves_count: 0,
     views_count: 0,
@@ -73,13 +56,16 @@ export const mapGraphQLPaperToWork = (paper: Paper) => {
     type: 'paper',
     fundraise: null,
     note: null,
-    full_markdown: semanticScholarEnrichment?.tldr || '',
+    full_markdown: '',
     post_src: '',
     purchases: [],
     image_url: '',
-    // Pass enrichments array directly from GraphQL
-    enrichments: paper.enrichments || [],
+    enrichments: enrichments,
+    // Add category information for backward compatibility
+    unifiedCategorySlug: transformedPaper.unifiedCategorySlug,
+    unifiedSubcategorySlug: transformedPaper.unifiedSubcategorySlug,
   };
 
-  return transformPaper(rawPaper);
-};
+  // Use the transformWork function to get proper TransformedWork with raw property
+  return transformWork(rawWork);
+}
