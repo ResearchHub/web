@@ -8,6 +8,7 @@ export function initElasticApm() {
   }
 
   const environment = process.env.NEXT_PUBLIC_ENV || 'development';
+
   const serviceName =
     process.env.NEXT_PUBLIC_ELASTIC_APM_SERVICE_NAME || 'researchhub-development-web';
 
