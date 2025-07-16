@@ -24,6 +24,7 @@ import { SITE_CONFIG } from '@/lib/metadata';
 import AnalyticsProvider from '@/components/providers/AnalyticsProvider';
 import { ShareModalProvider } from '@/contexts/ShareContext';
 import ApmProvider from '@/components/ApmProvider';
+import { ApmDiagnostics } from '@/components/ApmDiagnostics';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { Analytics } from '@vercel/analytics/react';
 
@@ -117,6 +118,8 @@ export default async function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ApmProvider />
+        {/* APM Diagnostics - Shows in non-production or with ?apm-debug=true */}
+        <ApmDiagnostics />
         <ClickProvider>
           <OnchainProvider>
             <NextAuthProvider session={session}>
