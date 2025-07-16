@@ -49,7 +49,7 @@ export function ReferralImpactSection() {
         },
       });
     };
-    console.log('test');
+
     const tl = gsap.timeline();
     tl.call(() => animateValue(referredUsersEl, displayData.referredUsersCount, false), [], 0.1)
       .call(() => animateValue(amountFundedEl, displayData.amountFundedByReferred, true), [], 0.2)
