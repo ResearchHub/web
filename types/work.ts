@@ -53,6 +53,18 @@ export interface FormatType {
   url: string;
 }
 
+export interface Enrichment {
+  source: string;
+  citationCount?: number | null;
+  influentialCitationCount?: number | null;
+  altmetricScore?: number | null;
+  impactScore?: number | null;
+  journal?: string | null;
+  tldr?: string | null;
+  twitterMentions?: number | null;
+  newsMentions?: number | null;
+}
+
 export interface Work {
   id: number;
   type?: WorkType;
@@ -82,6 +94,7 @@ export interface Work {
   postType?: string;
   fundraise?: any;
   tips?: Tip[];
+  enrichments?: Enrichment[];
 }
 
 export interface FundingRequest extends Work {
@@ -229,6 +242,7 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     contentUrl: raw.post_src,
     tips: tips,
     image: raw.image_url,
+    enrichments: raw.enrichments || [],
   };
 });
 

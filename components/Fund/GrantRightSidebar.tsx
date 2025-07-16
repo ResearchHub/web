@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { CollapsibleSection, CollapsibleItem } from '@/components/ui/CollapsibleSection';
+import { CollapsibleItem, SimpleCollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { Icon } from '@/components/ui/icons/Icon';
 import { CircleCheckBig, Check, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
@@ -46,7 +46,8 @@ export const GrantRightSidebar = () => {
           </Button>
         </div>
 
-        <CollapsibleSection title="Open science = better science">
+        {/* Informational Sections */}
+        <SimpleCollapsibleSection title="Open science = better science">
           <CollapsibleItem
             title="Prevents p-hacking"
             icon={<Check className="w-4 h-4" strokeWidth={2.5} />}
@@ -86,9 +87,9 @@ export const GrantRightSidebar = () => {
             Expert reviewers on ResearchHub evaluate methodology quality before you invest, reducing
             funding risk.
           </CollapsibleItem>
-        </CollapsibleSection>
+        </SimpleCollapsibleSection>
 
-        <CollapsibleSection title="But wait there's more...">
+        <SimpleCollapsibleSection title="But wait there's more...">
           <CollapsibleItem
             title="Faster decisions"
             icon={<CircleCheckBig className="w-4 h-4" strokeWidth={2.5} />}
@@ -138,7 +139,7 @@ export const GrantRightSidebar = () => {
             Donations to 501(c)(3)-affiliated researchers are tax-deductible through our partner
             Endaoment, maximizing your philanthropic impact.
           </CollapsibleItem>
-        </CollapsibleSection>
+        </SimpleCollapsibleSection>
       </div>
       <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none" />
     </div>
