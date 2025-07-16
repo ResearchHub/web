@@ -13,7 +13,7 @@ export function ReferralHeader() {
           Refer a Funder, Accelerate Science
         </h1>
         <p className="text-lg text-gray-600 text-center max-w-xl">
-          Earn credits by inviting funders to ResearchHub.
+          Earn funding credits by inviting funders to ResearchHub.
         </p>
       </div>
     </header>
