@@ -68,7 +68,6 @@ export function UserBalanceSection({
                         <div className="h-4 w-20 bg-white/20 animate-pulse rounded mt-1" />
                       </div>
                     </div>
-
                     {/* Funding Only Card Skeleton */}
                     <div className="w-full sm:!w-auto sm:!flex-1 bg-gray-50 border border-gray-200 rounded-lg p-4">
                       <div className="flex items-start justify-between">
