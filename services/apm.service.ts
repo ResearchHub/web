@@ -15,5 +15,6 @@ export function initElasticApm() {
     environment: environment,
     serviceName: serviceName,
     serverUrl: serverUrl,
+    transactionSampleRate: environment === 'production' ? 0.1 : 1.0,
   });
 }
