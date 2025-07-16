@@ -342,7 +342,7 @@ export function OnboardingWizard() {
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                      {category.subcategories.map((subcategory, index) => {
+                      {(category.subcategories || []).map((subcategory, index) => {
                         const isSelected = selectedSubcategories.includes(subcategory.slug);
 
                         return (

@@ -478,7 +478,7 @@ export function OnboardingModal() {
                       <h3 className="font-semibold text-gray-900">{category.name}</h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {category.subcategories.map((subcategory) => {
+                      {(category.subcategories || []).map((subcategory) => {
                         const isSelected = selectedSubcategories.includes(subcategory.slug);
 
                         return (

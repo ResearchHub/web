@@ -1,10 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { CollapsibleItem, SimpleCollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { Button } from '@/components/ui/Button';
-import { CollapsibleSection, CollapsibleItem } from '@/components/ui/CollapsibleSection';
-import { Icon } from '@/components/ui/icons/Icon';
-import { BookCheck, TicketCheck, TextSelect, Dna, Check } from 'lucide-react';
+import { BookCheck, Lightbulb, Zap, Banknote, Target, Share2 } from 'lucide-react';
 import Link from 'next/link';
 
 export const FundRightSidebar = () => {
@@ -21,7 +20,7 @@ export const FundRightSidebar = () => {
       <div className="h-full overflow-y-auto pb-16 px-6 pt-6 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
         <div className="bg-primary-50 rounded-lg shadow-sm border border-primary-100 p-5 mb-6">
           <h3 className="text-lg font-semibold mb-1 text-primary-800 flex items-center gap-2">
-            <Icon name="fundYourRsc2" size={20} color="currentColor" />
+            {/* Icon name="fundYourRsc2" size={20} color="currentColor" /> */}
             Get Funded.
           </h3>
           <p className="text-primary-700 mb-3 text-sm">
@@ -29,15 +28,15 @@ export const FundRightSidebar = () => {
           </p>
           <ul className="text-primary-700 mb-4 text-sm space-y-1">
             <li className="flex items-center gap-2">
-              <Check className="w-4 h-4 flex-shrink-0 text-primary-500" strokeWidth={3} />
+              {/* <Check className="w-4 h-4 flex-shrink-0 text-primary-500" strokeWidth={3} /> */}
               Early expert feedback
             </li>
             <li className="flex items-center gap-2">
-              <Check className="w-4 h-4 flex-shrink-0 text-primary-500" strokeWidth={3} />
+              {/* <Check className="w-4 h-4 flex-shrink-0 text-primary-500" strokeWidth={3} /> */}
               Donors get tax deductions
             </li>
             <li className="flex items-center gap-2">
-              <Check className="w-4 h-4 flex-shrink-0 text-primary-500" strokeWidth={3} />
+              {/* <Check className="w-4 h-4 flex-shrink-0 text-primary-500" strokeWidth={3} /> */}
               <strong>Fully discretionary funds</strong>
             </li>
           </ul>
@@ -48,7 +47,7 @@ export const FundRightSidebar = () => {
         </div>
 
         {/* Informational Sections */}
-        <CollapsibleSection title="Crowdfunding for science?">
+        <SimpleCollapsibleSection title="Crowdfunding for science?">
           <CollapsibleItem
             title="Open access by default"
             icon={<BookCheck className="w-4 h-4" strokeWidth={2.5} />}
@@ -61,7 +60,7 @@ export const FundRightSidebar = () => {
 
           <CollapsibleItem
             title="Tax-deductible donations"
-            icon={<TicketCheck className="w-4 h-4" strokeWidth={2.5} />}
+            icon={<Banknote className="w-4 h-4" strokeWidth={2.5} />}
             isOpen={openSections.includes('tax-benefits')}
             onToggle={() => toggleSection('tax-benefits')}
           >
@@ -80,7 +79,7 @@ export const FundRightSidebar = () => {
 
           <CollapsibleItem
             title="Incentivized transparency"
-            icon={<TextSelect className="w-4 h-4" strokeWidth={2.5} />}
+            icon={<Zap className="w-4 h-4" strokeWidth={2.5} />}
             isOpen={openSections.includes('transparent')}
             onToggle={() => toggleSection('transparent')}
           >
@@ -90,7 +89,7 @@ export const FundRightSidebar = () => {
 
           <CollapsibleItem
             title="Direct & flexible funding"
-            icon={<Dna className="w-4 h-4" strokeWidth={2.5} />}
+            icon={<Target className="w-4 h-4" strokeWidth={2.5} />}
             isOpen={openSections.includes('low-overhead')}
             onToggle={() => toggleSection('low-overhead')}
           >
@@ -98,9 +97,9 @@ export const FundRightSidebar = () => {
             limitations. ResearchHub often enables 0% indirect university costs by replacing
             traditional reporting with modular incentives.
           </CollapsibleItem>
-        </CollapsibleSection>
+        </SimpleCollapsibleSection>
 
-        <CollapsibleSection title="How does it work?">
+        <SimpleCollapsibleSection title="How does it work?">
           <CollapsibleItem
             title="1. Plan your experiment"
             isOpen={openSections.includes('preregister')}
@@ -158,7 +157,7 @@ export const FundRightSidebar = () => {
             Funds arrive in the researcher's discretionary spending account at their institution,
             free from traditional grant restrictions on usage.
           </CollapsibleItem>
-        </CollapsibleSection>
+        </SimpleCollapsibleSection>
       </div>
       <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none" />
     </div>

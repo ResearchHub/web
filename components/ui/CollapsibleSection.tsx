@@ -90,28 +90,55 @@ interface CollapsibleItemProps {
   icon?: React.ReactNode;
 }
 
-export function CollapsibleItem({ title, children, isOpen, onToggle, icon }: CollapsibleItemProps) {
+export function CollapsibleItem({
+  title,
+  icon = <ChevronRight className="w-4 h-4" />,
+  isOpen = false,
+  children,
+}: CollapsibleItemProps) {
   return (
-    <div className="group">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between py-2 text-left group cursor-pointer"
+    <div>
+      <div
+        className={`
+          flex items-start gap-2.5 py-2.5 rounded-lg transition-all
+          ${isOpen ? 'text-gray-900' : 'text-gray-600'}
+        `}
       >
-        <div className="flex items-center gap-2.5">
-          {icon && (
-            <div className="text-gray-600 group-hover:text-gray-900 transition-colors">{icon}</div>
-          )}
-          <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
-            {title}
-          </span>
+        <div className="text-primary-600 mt-0.5 flex-shrink-0">{icon}</div>
+        <div className="flex-1">
+          <div className="text-sm font-medium mb-1">{title}</div>
+          {isOpen && <div className="text-xs text-gray-600 leading-relaxed">{children}</div>}
         </div>
-        <div className="text-gray-600 group-hover:text-gray-600 transition-colors">
-          {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-        </div>
-      </button>
-      {isOpen && (
-        <div className="pl-6 py-3 text-sm text-gray-600 border-l border-gray-100">{children}</div>
-      )}
+      </div>
     </div>
+  );
+}
+
+// Simple wrapper that manages its own state
+interface SimpleCollapsibleSectionProps {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+  defaultExpanded?: boolean;
+}
+
+export function SimpleCollapsibleSection({
+  title,
+  children,
+  className = '',
+  defaultExpanded = true,
+}: SimpleCollapsibleSectionProps) {
+  const [isExpanded, setIsExpanded] = React.useState(defaultExpanded);
+
+  return (
+    <CollapsibleSection
+      title={title}
+      icon={<ChevronDown className="w-5 h-5" />}
+      isExpanded={isExpanded}
+      onToggle={() => setIsExpanded(!isExpanded)}
+      className={className}
+    >
+      {children}
+    </CollapsibleSection>
   );
 }
