@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
-import { Users, FlaskConical, List, Plus, AlertCircle, CreditCard } from 'lucide-react';
+import { Users, FlaskConical, List, Plus, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useRouter } from 'next/navigation';
@@ -14,8 +14,6 @@ export function ReferralImpactSection() {
   const referredUsersRef = useRef<HTMLParagraphElement>(null);
   const amountFundedRef = useRef<HTMLParagraphElement>(null);
   const creditsEarnedRef = useRef<HTMLParagraphElement>(null);
-  const creditsUsedRef = useRef<HTMLParagraphElement>(null);
-  const totalEarnedRef = useRef<HTMLParagraphElement>(null);
 
   // Use the metrics hook
   const { metrics, isLoading, error } = useReferralMetrics();
@@ -33,18 +31,8 @@ export function ReferralImpactSection() {
     const referredUsersEl = referredUsersRef.current;
     const amountFundedEl = amountFundedRef.current;
     const creditsEarnedEl = creditsEarnedRef.current;
-    const creditsUsedEl = creditsUsedRef.current;
-    const totalEarnedEl = totalEarnedRef.current;
 
-    if (
-      !referredUsersEl ||
-      !amountFundedEl ||
-      !creditsEarnedEl ||
-      !creditsUsedEl ||
-      !totalEarnedEl ||
-      isLoading
-    )
-      return;
+    if (!referredUsersEl || !amountFundedEl || !creditsEarnedEl || isLoading) return;
 
     const animateValue = (el: HTMLParagraphElement, endValue: number, isCurrency: boolean) => {
       const proxy = { value: 0 };
@@ -65,9 +53,7 @@ export function ReferralImpactSection() {
     const tl = gsap.timeline();
     tl.call(() => animateValue(referredUsersEl, displayData.referredUsersCount, false), [], 0.1)
       .call(() => animateValue(amountFundedEl, displayData.amountFundedByReferred, true), [], 0.2)
-      .call(() => animateValue(creditsEarnedEl, displayData.creditsEarned, true), [], 0.3)
-      .call(() => animateValue(creditsUsedEl, displayData.creditsUsed, true), [], 0.4)
-      .call(() => animateValue(totalEarnedEl, displayData.totalEarned, true), [], 0.5);
+      .call(() => animateValue(creditsEarnedEl, displayData.creditsEarned, true), [], 0.3);
   }, [isLoading, displayData]);
 
   // Show skeleton while loading
@@ -139,22 +125,6 @@ export function ReferralImpactSection() {
               How can I use this?
             </a>
           </Tooltip>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 sm:!grid-cols-2 gap-6 mb-6">
-        <div className="bg-purple-50 p-6 rounded-xl text-center">
-          <CreditCard className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-          <p ref={creditsUsedRef} className="text-3xl font-bold text-purple-600">
-            ${displayData.creditsUsed.toLocaleString()}
-          </p>
-          <p className="text-gray-600 mt-2">Credits Used</p>
-        </div>
-        <div className="bg-orange-50 p-6 rounded-xl text-center">
-          <CreditCard className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-          <p ref={totalEarnedRef} className="text-3xl font-bold text-orange-600">
-            ${displayData.totalEarned.toLocaleString()}
-          </p>
-          <p className="text-gray-600 mt-2">Total Credits Earned</p>
         </div>
       </div>
 
