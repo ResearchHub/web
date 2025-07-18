@@ -436,7 +436,7 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
   const platformFee = Math.floor(rscAmount * 0.09);
   const daoFee = Math.floor(rscAmount * 0.02);
   const incFee = Math.floor(rscAmount * 0.07);
-  const baseAmount = rscAmount - platformFee;
+  const baseAmount = rscAmount + platformFee;
   const insufficientBalance = userBalance < rscAmount;
   const hasAdditionalInfo = !!(
     editorContent &&
