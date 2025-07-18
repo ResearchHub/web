@@ -305,7 +305,7 @@ export default function CreateBountyPage() {
             content: [
               {
                 type: 'text',
-                text: `Offering a bounty of ${netBountyAmount} RSC to the best answer to this question.`,
+                text: `Offering a bounty of ${rscAmount} RSC to the best answer to this question.`,
               },
             ],
           },
