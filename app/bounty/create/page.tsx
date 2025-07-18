@@ -243,7 +243,7 @@ export default function CreateBountyPage() {
             typeof reviewContent === 'string' ? reviewContent : JSON.stringify(reviewContent),
           contentFormat: 'TIPTAP',
           commentType: 'GENERIC_COMMENT',
-          bountyAmount: totalAmount,
+          bountyAmount: rscAmount,
           bountyType: 'REVIEW',
           expirationDate,
           privacyType: 'PUBLIC',
@@ -305,7 +305,7 @@ export default function CreateBountyPage() {
             content: [
               {
                 type: 'text',
-                text: `Offering a bounty of ${netBountyAmount} RSC to the best answer to this question.`,
+                text: `Offering a bounty of ${rscAmount} RSC to the best answer to this question.`,
               },
             ],
           },
@@ -316,7 +316,7 @@ export default function CreateBountyPage() {
         workId: post.id.toString(),
         contentType: 'post',
         content: bountyCommentContent,
-        bountyAmount: totalAmount,
+        bountyAmount: rscAmount,
         bountyType: 'ANSWER',
         expirationDate,
         privacyType: 'PUBLIC',
