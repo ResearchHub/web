@@ -100,7 +100,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/bounties')) {
     return {
       title: 'Bounties',
-      subtitle: 'Find opportunities to earn ResearchCoin',
+      subtitle: 'Earn RSC for completing peer reviews',
       icon: <Icon name="earn1" size={20} className="text-primary-600" />,
     };
   }
@@ -108,7 +108,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/earn')) {
     return {
       title: 'Earn',
-      subtitle: 'Find opportunities to earn ResearchCoin',
+      subtitle: 'Earn RSC for completing peer reviews',
       icon: <Icon name="earn1" size={20} className="text-primary-600" />,
     };
   }
