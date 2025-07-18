@@ -90,7 +90,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       label: 'Earn',
       href: '/earn',
       iconKey: 'earn',
-      description: 'Find opportunities to earn RSC',
+      description: 'Earn RSC for completing peer reviews',
     },
     {
       label: 'Fund',
