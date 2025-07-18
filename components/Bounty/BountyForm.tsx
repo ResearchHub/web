@@ -436,7 +436,8 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
   const platformFee = Math.floor(rscAmount * 0.09);
   const daoFee = Math.floor(rscAmount * 0.02);
   const incFee = Math.floor(rscAmount * 0.07);
-  const baseAmount = rscAmount + platformFee;
+  const baseAmount = rscAmount - platformFee;
+  const totalCost = rscAmount + platformFee;
   const insufficientBalance = userBalance < rscAmount;
   const hasAdditionalInfo = !!(
     editorContent &&
@@ -903,7 +904,7 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
                 <div className="flex justify-between items-center">
                   <span className="font-semibold text-gray-900">Net bounty amount:</span>
                   <span className="font-semibold text-gray-900">
-                    {baseAmount.toLocaleString()} RSC
+                    {totalCost.toLocaleString()} RSC
                   </span>
                 </div>
               </div>
