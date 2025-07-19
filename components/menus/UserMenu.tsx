@@ -1,6 +1,6 @@
 'use client';
 
-import { User as UserIcon, LogOut, BadgeCheck, Bell, Shield } from 'lucide-react';
+import { User as UserIcon, LogOut, BadgeCheck, Bell, Shield, UserPlus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
 import VerificationBanner from '@/components/banners/VerificationBanner';
@@ -184,6 +184,18 @@ export default function UserMenu({
           </div>
         </Link>
 
+        <Link href="/referral" className="block" onClick={() => setMenuOpenState(false)}>
+          <div className="px-6 py-2 hover:bg-gray-50">
+            <div className="flex items-center">
+              <UserPlus className="h-5 w-5 mr-3 text-gray-500" />
+              <span className="text-base text-gray-700">Refer and earn 10%</span>
+              <span className="ml-auto text-xs bg-blue-100 text-blue-600 font-semibold px-2 py-0.5 rounded-full">
+                New
+              </span>
+            </div>
+          </div>
+        </Link>
+
         {user?.isModerator && (
           <Link href="/moderators" className="block" onClick={() => setMenuOpenState(false)}>
             <div className="px-6 py-2 hover:bg-gray-50">
@@ -348,6 +360,18 @@ export default function UserMenu({
                     color="#676767"
                   />
                   <span className="text-sm text-gray-700">My ResearchCoin</span>
+                </div>
+              </div>
+            </Link>
+
+            <Link href="/referral" className="block" onClick={() => setMenuOpenState(false)}>
+              <div className="w-full px-4 py-2 hover:bg-gray-50">
+                <div className="flex items-center">
+                  <UserPlus className="h-4 w-4 mr-3 text-gray-500" />
+                  <span className="text-sm text-gray-700">Refer and earn 10%</span>
+                  <span className="ml-auto text-xs bg-blue-100 text-blue-600 font-semibold px-2 py-0.5 rounded-full">
+                    New
+                  </span>
                 </div>
               </div>
             </Link>

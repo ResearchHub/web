@@ -4,6 +4,7 @@ import { ApiError } from '@/services/types/api';
 import { isValidEmail } from '@/utils/validation';
 import { useAutoFocus } from '@/hooks/useAutoFocus';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { useReferral } from '@/contexts/ReferralContext';
 
 interface SelectProviderProps {
   onContinue: () => void;
@@ -27,6 +28,7 @@ export default function SelectProvider({
   showHeader = true,
 }: SelectProviderProps) {
   const emailInputRef = useAutoFocus<HTMLInputElement>(true);
+  const { referralCode } = useReferral();
 
   const handleCheckAccount = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -61,11 +63,22 @@ export default function SelectProvider({
 
   const handleGoogleSignIn = async () => {
     await AnalyticsService.logEvent(LogEvent.AUTH_VIA_GOOGLE_INITIATED);
-    // Get the current URL's search params to extract callbackUrl
     const searchParams = new URLSearchParams(window.location.search);
-    const callbackUrl = searchParams.get('callbackUrl') || '/';
+    const originalCallbackUrl = searchParams.get('callbackUrl') || '/';
 
-    signIn('google', { callbackUrl });
+    let finalCallbackUrl = originalCallbackUrl;
+
+    if (referralCode) {
+      // Create referral application URL with referral code and redirect as URL parameters
+      const referralUrl = new URL('/referral/join/apply-referral-code', window.location.origin);
+      referralUrl.searchParams.set('refr', referralCode);
+      referralUrl.searchParams.set('redirect', originalCallbackUrl);
+      finalCallbackUrl = referralUrl.toString();
+    }
+
+    signIn('google', {
+      callbackUrl: finalCallbackUrl,
+    });
   };
 
   return (

@@ -14,8 +14,8 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { formatBalance } from '@/components/ResearchCoin/lib/types';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { usePendingDeposits } from '@/hooks/usePendingDeposits';
-import { RefreshCw } from 'lucide-react';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { useUser } from '@/contexts/UserContext';
 
 export default function ResearchCoinPage() {
   const { data: session, status } = useSession();
@@ -25,6 +25,7 @@ export default function ResearchCoinPage() {
   const [balance, setBalance] = useState<number | null>(null);
   const { exchangeRate, isLoading: isFetchingExchangeRate } = useExchangeRate();
   const { showUSD } = useCurrencyPreference();
+  const { user } = useUser();
   const {
     hasPendingDepositFeed,
     isLoading: isLoadingPendingDeposits,
@@ -94,9 +95,12 @@ export default function ResearchCoinPage() {
             <div className="flex-1">
               {status === 'authenticated' && (
                 <UserBalanceSection
-                  balance={balance ? formatBalance(balance, exchangeRate) : null}
+                  balance={formatBalance(balance || 0, exchangeRate)}
                   isFetchingExchangeRate={isFetchingExchangeRate}
                   onTransactionSuccess={handleRefresh}
+                  lockedBalance={
+                    user?.lockedBalance ? formatBalance(user.lockedBalance, exchangeRate) : null
+                  }
                 />
               )}
 
