@@ -96,7 +96,7 @@ export function ReferralLinkCard() {
 
   return (
     <>
-      <section className="bg-white rounded-lg shadow-md flex items-stretch overflow-hidden mb-12 border-4 border-blue-500">
+      <section className="bg-white rounded-lg shadow-md flex items-stretch overflow-hidden mb-16 border-4 border-blue-500">
         <div className="flex-grow p-6 md:!p-8">
           <h2 className="text-xl sm:!text-2xl font-semibold mb-4">Your Referral Link</h2>
           <div className="flex flex-col gap-4">
