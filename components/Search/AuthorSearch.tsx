@@ -6,6 +6,8 @@ import { SearchService } from '@/services/search.service';
 import { AuthorSuggestion } from '@/types/search';
 import { Users, Check, Calendar, GraduationCap, Award } from 'lucide-react';
 import { cn } from '@/utils/styles';
+import { Avatar } from '../ui/Avatar';
+import { formatTimestamp } from '@/utils/date';
 
 // Local Author type
 export interface Author {
@@ -107,6 +109,18 @@ export function AuthorSearch({
     const authorData = option.data;
     if (!authorData) return <></>;
 
+    // Format the created date in a user-friendly way
+    const formatMemberSince = (dateString: string) => {
+      try {
+        // If it's a recent date (within 24 hours), show relative time
+        // Otherwise show a formatted date
+        return formatTimestamp(dateString);
+      } catch (error) {
+        // Fallback to original format if parsing fails
+        return dateString;
+      }
+    };
+
     return (
       <li
         className={cn(
@@ -117,19 +131,11 @@ export function AuthorSearch({
         <div className="flex items-start gap-3">
           {/* Author Avatar */}
           <div className="flex-shrink-0">
-            {authorData.profileImage ? (
-              <div className="h-12 w-12 rounded-full overflow-hidden">
-                <img
-                  src={authorData.profileImage}
-                  alt={authorData.fullName || ''}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            ) : (
-              <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
-                <Users className="h-6 w-6 text-gray-500" />
-              </div>
-            )}
+            <Avatar
+              src={authorData.profileImage}
+              alt={authorData.fullName || 'Unknown Author'}
+              size={48}
+            />
           </div>
 
           {/* Author Info */}
@@ -146,7 +152,7 @@ export function AuthorSearch({
             {authorData.createdDate && (
               <div className="flex items-center text-xs text-gray-500 mb-1">
                 <Calendar className="h-3 w-3 mr-1 flex-shrink-0" />
-                <span>Member since {authorData.createdDate}</span>
+                <span>Member since {formatMemberSince(authorData.createdDate)}</span>
               </div>
             )}
 
@@ -184,19 +190,11 @@ export function AuthorSearch({
       <div className="flex items-center gap-2">
         {/* Author Avatar */}
         <div className="flex-shrink-0">
-          {authorData.profileImage ? (
-            <div className="h-8 w-8 rounded-full overflow-hidden">
-              <img
-                src={authorData.profileImage}
-                alt={authorData.fullName || ''}
-                className="h-full w-full object-cover"
-              />
-            </div>
-          ) : (
-            <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-              <Users className="h-4 w-4 text-gray-500" />
-            </div>
-          )}
+          <Avatar
+            src={authorData.profileImage}
+            alt={authorData.fullName || 'Unknown Author'}
+            size={32}
+          />
         </div>
 
         {/* Author Info */}
