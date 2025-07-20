@@ -4,7 +4,7 @@ import { FC } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
-import { Flag, BookCheck, UserRoundPen } from 'lucide-react';
+import { Flag, BookCheck, UserRoundPen, Users } from 'lucide-react';
 
 interface NavigationItem {
   name: string;
@@ -20,6 +20,12 @@ const navigationItems: NavigationItem[] = [
     href: '/moderators/audit',
     icon: Flag,
     description: 'Review flagged content',
+  },
+  {
+    name: 'Referral',
+    href: '/moderators/referral',
+    icon: Users,
+    description: 'Manage referral program',
   },
   {
     name: 'Author claims',

@@ -79,30 +79,25 @@ export default function ModerationLayout({ children }: ModerationLayoutProps) {
   return (
     <div className="min-h-screen bg-white">
       {isDesktop ? (
-        // Desktop layout - sidebars + TopBar positioned correctly
-        <div className="flex min-h-screen">
+        // Desktop layout - using CSS Grid for precise width control
+        <div className="grid grid-cols-[70px_280px_1fr] min-h-screen">
           {/* Main Left Sidebar - 70px fixed width (minimized) */}
-          <div className="w-[70px] border-r border-gray-200 h-screen sticky top-0 overflow-y-auto">
+          <div className="border-r border-gray-200 h-screen sticky top-0 overflow-y-auto">
             <MainLeftSidebar forceMinimize={true} />
           </div>
 
-          {/* Right content area - TopBar + Moderation sidebar + Main content */}
-          <div className="flex flex-col flex-1">
-            {/* TopBar - spans from main sidebar edge to right edge */}
+          {/* Moderation Left Sidebar - 280px fixed width */}
+          <div className="border-r border-gray-200 h-screen sticky top-0 overflow-y-auto bg-gray-50">
+            <ModerationSidebar />
+          </div>
+
+          {/* Main content area - takes remaining space */}
+          <div className="flex flex-col min-w-0">
+            {/* TopBar - spans the full width of the main content area */}
             <TopBar onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)} />
 
             {/* Content area below TopBar */}
-            <div className="flex flex-1">
-              {/* Moderation Left Sidebar - 280px fixed width */}
-              <div className="w-[280px] border-r border-gray-200 h-full sticky top-[64px] overflow-y-auto bg-gray-50">
-                <ModerationSidebar />
-              </div>
-
-              {/* Main content area - flexible width */}
-              <div className="flex-1 min-w-0">
-                <div className="h-full overflow-auto">{children}</div>
-              </div>
-            </div>
+            <div className="flex-1 overflow-auto">{children}</div>
           </div>
         </div>
       ) : (
