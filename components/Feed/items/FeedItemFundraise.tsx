@@ -73,7 +73,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
     post.authors?.map((author) => ({
       name: author.fullName,
       verified: author.user?.isVerified,
-      profileUrl: author.profileUrl,
+      authorUrl: author.profileUrl,
     })) || [];
 
   // Use provided href or create default funding page URL

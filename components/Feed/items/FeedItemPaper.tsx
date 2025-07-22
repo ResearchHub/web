@@ -102,8 +102,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                   authors={paper.authors.map((author) => ({
                     name: author.fullName,
                     verified: author.user?.isVerified,
-                    profileUrl: author.profileUrl,
-                    authorUrl: `/author/${author.id}`,
+                    authorUrl: author.profileUrl,
                   }))}
                   size="sm"
                   className="text-gray-500 font-normal"
