@@ -194,7 +194,7 @@ const FundingSpotlight = () => {
         authors.push({
           name: author.fullName || `${author.firstName || ''} ${author.lastName || ''}`.trim(),
           verified: author.user?.isVerified,
-          profileUrl: author.profileUrl,
+          authorUrl: author.profileUrl,
         });
       }
     });
