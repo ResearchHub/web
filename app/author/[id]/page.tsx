@@ -17,6 +17,7 @@ import Moderation from './components/Moderation';
 import AuthorProfile from './components/AuthorProfile';
 import { useAuthorPublications } from '@/hooks/usePublications';
 import { transformPublicationToFeedEntry } from '@/types/publication';
+import ActiveFundraise from './components/ActiveFundraise';
 
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
@@ -192,6 +193,12 @@ function AuthorTabs({ authorId }: { authorId: number }) {
 
     return (
       <div>
+        {/* Add ActiveFundraise as the first item in Overview tab */}
+        {currentTab === 'contributions' && (
+          <div className="mb-6">
+            <ActiveFundraise authorId={authorId} compact={true} />
+          </div>
+        )}
         <FeedContent
           entries={isPending ? [] : formattedContributions}
           isLoading={isPending || isContributionsLoading}
