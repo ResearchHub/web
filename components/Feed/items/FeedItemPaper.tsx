@@ -103,6 +103,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                     name: author.fullName,
                     verified: author.user?.isVerified,
                     profileUrl: author.profileUrl,
+                    authorUrl: `/author/${author.id}`,
                   }))}
                   size="sm"
                   className="text-gray-500 font-normal"
