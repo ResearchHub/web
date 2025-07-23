@@ -54,18 +54,16 @@ export const calculateUpdateRate = (updates: Update[], startDate?: string): numb
 
   if (startDate) {
     start = new Date(startDate);
-  } else {
+  } else if (updates.length > 0) {
     // Fallback - should rarely be used since components should provide startDate
     // Use earliest update date or recent date as last resort
-    if (updates.length > 0) {
-      const earliestUpdate = updates.reduce((earliest, update) => {
-        const updateDate = new Date(update.createdDate);
-        return updateDate < earliest ? updateDate : earliest;
-      }, new Date(updates[0].createdDate));
-      start = new Date(earliestUpdate.getFullYear(), earliestUpdate.getMonth(), 1);
-    } else {
-      start = new Date(now.getFullYear(), now.getMonth() - 2, 1);
-    }
+    const earliestUpdate = updates.reduce((earliest, update) => {
+      const updateDate = new Date(update.createdDate);
+      return updateDate < earliest ? updateDate : earliest;
+    }, new Date(updates[0].createdDate));
+    start = new Date(earliestUpdate.getFullYear(), earliestUpdate.getMonth(), 1);
+  } else {
+    start = new Date(now.getFullYear(), now.getMonth() - 2, 1);
   }
 
   // Filter updates that are after the start date
