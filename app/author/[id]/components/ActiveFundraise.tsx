@@ -23,7 +23,7 @@ export function ActiveFundraiseSkeleton({ className }: { className?: string }) {
 }
 
 interface ActiveFundraiseProps {
-  authorId: ID;
+  userId: ID;
   className?: string;
   showTitle?: boolean;
   showActions?: boolean;
@@ -46,7 +46,7 @@ const getActiveFundraises = (entries: any[]) => {
 };
 
 const ActiveFundraise: FC<ActiveFundraiseProps> = ({
-  authorId,
+  userId,
   className,
   showTitle = true,
   showActions = true,
@@ -56,7 +56,7 @@ const ActiveFundraise: FC<ActiveFundraiseProps> = ({
     endpoint: 'funding_feed',
     contentType: 'PREREGISTRATION',
     fundraiseStatus: 'OPEN',
-    createdBy: Number(authorId),
+    createdBy: Number(userId),
   });
   const [currentIndex, setCurrentIndex] = useState(0);
 

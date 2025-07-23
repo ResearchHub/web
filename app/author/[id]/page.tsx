@@ -90,7 +90,7 @@ const TAB_TO_CONTRIBUTION_TYPE: Record<string, ContributionType> = {
   bounties: 'BOUNTY',
 };
 
-function AuthorTabs({ authorId }: { authorId: number }) {
+function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number }) {
   const [isPending, startTransition] = useTransition();
   const tabs = [
     { id: 'contributions', label: 'Overview' },
@@ -194,9 +194,9 @@ function AuthorTabs({ authorId }: { authorId: number }) {
     return (
       <div>
         {/* Add ActiveFundraise as the first item in Overview tab */}
-        {currentTab === 'contributions' && (
+        {currentTab === 'contributions' && userId && (
           <div className="mb-6">
-            <ActiveFundraise authorId={authorId} compact={true} />
+            <ActiveFundraise userId={userId} compact={true} />
           </div>
         )}
         <FeedContent
@@ -302,7 +302,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
           </Card>
         )}
       </div>
-      <AuthorTabs authorId={user.authorProfile.id} />
+      <AuthorTabs authorId={user.authorProfile.id} userId={user.authorProfile.userId} />
     </>
   );
 }
