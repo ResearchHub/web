@@ -15,6 +15,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { InterestSelector } from '../InterestSelector/InterestSelector';
 import { OnboardingAccordionSkeleton } from './OnboardingAccordionSkeleton';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { useSession } from 'next-auth/react';
+import { Experiment, ExperimentVariant, isExperimentEnabled } from '@/utils/experiment';
 
 type OnboardingStep = 'PERSONAL_INFORMATION' | 'ADDITIONAL_INFORMATION' | 'TOPICS';
 
@@ -97,7 +99,12 @@ export function OnboardingModal() {
       user.hasCompletedOnboarding === false &&
       !onboardingEventFired.current
     ) {
-      AnalyticsService.logEvent(LogEvent.ONBOARDING_VIEWED);
+      AnalyticsService.logEvent(LogEvent.ONBOARDING_VIEWED, {
+        homepageExperiment: isExperimentEnabled(Experiment.HomepageExperiment)
+          ? ExperimentVariant.B
+          : ExperimentVariant.A,
+        authProvider: user.authProvider,
+      });
       onboardingEventFired.current = true;
     }
 

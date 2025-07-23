@@ -18,6 +18,7 @@ export interface User {
   moderator: boolean;
   editorOfHubs?: Hub[];
   isModerator?: boolean;
+  authProvider?: 'google' | 'credentials';
 }
 
 export type TransformedUser = User & BaseTransformed;
@@ -39,6 +40,7 @@ const baseTransformUser = (raw: any): User => {
       createdDate: undefined,
       moderator: false,
       isModerator: false,
+      authProvider: undefined,
     };
   }
 
@@ -68,6 +70,11 @@ const baseTransformUser = (raw: any): User => {
     moderator: raw.moderator || false,
     editorOfHubs: editorOfHubs,
     isModerator: raw.moderator || false,
+    authProvider: raw.auth_provider
+      ? raw.auth_provider === 'google'
+        ? 'google'
+        : 'credentials'
+      : undefined,
   };
 };
 
@@ -88,6 +95,7 @@ export const transformUser = (raw: any): TransformedUser => {
       moderator: false,
       raw: null,
       isModerator: false,
+      authProvider: undefined,
     };
   }
 

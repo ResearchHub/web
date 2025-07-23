@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { Work } from '@/types/work';
+import { ExperimentVariant, isExperimentEnabledServer } from '@/utils/experiment';
 
 /**
  * Opens an author profile using the appropriate routing mechanism
@@ -34,11 +35,18 @@ export function handleFundraiseRedirect(work: Work, id: string, slug: string) {
 }
 
 /**
- * Handles redirection to trending page if user is authorized
- * @param isAuthorized Whether the user is authorized
+ * Handles redirection to trending page if user is authorized OR experiment is enabled
+ * @param isUserLoggedIn Whether the user is logged in
+ * @param experimentVariant The experiment variant from the request (optional, for server-side)
  */
-export function handleTrendingRedirect(isAuthorized: boolean) {
-  if (isAuthorized) {
+export function handleTrendingRedirect(
+  isUserLoggedIn: boolean,
+  experimentVariant?: ExperimentVariant | null
+) {
+  // Redirect if user is logged in OR if experiment variant B is enabled
+  const isExperimentEnabled = isExperimentEnabledServer(experimentVariant);
+
+  if (isUserLoggedIn || isExperimentEnabled) {
     redirect(`/trending`);
   }
 }
