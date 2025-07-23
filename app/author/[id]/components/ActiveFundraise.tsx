@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState, useEffect } from 'react';
+import { FC, useState } from 'react';
 import { useFundingFeed } from '@/hooks/useFundingFeed';
 import { ID } from '@/types/root';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -57,13 +57,8 @@ const ActiveFundraise: FC<ActiveFundraiseProps> = ({
   showActions = true,
   compact = false,
 }) => {
-  const { entries, isLoading, error, setSortBy } = useFundingFeed(100, undefined, Number(authorId));
+  const { entries, isLoading, error } = useFundingFeed(100, undefined, Number(authorId));
   const [currentIndex, setCurrentIndex] = useState(0);
-
-  // Set to 'open' view to match needs-funding page behavior
-  useEffect(() => {
-    setSortBy('open');
-  }, [setSortBy]);
 
   if (isLoading) {
     return <ActiveFundraiseSkeleton className={className} />;
