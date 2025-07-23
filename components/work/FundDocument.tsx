@@ -15,6 +15,7 @@ import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { ProgressUpdates } from '@/components/ui/ProgressUpdates';
 import { useStorageKey } from '@/utils/storageKeys';
 import { calculateUpdateRate } from '@/components/Fund/lib/FundUtils';
+import { getUpdatesStartDate } from '@/components/Fund/lib/FundUtils';
 import { FundingRightSidebar } from './FundingRightSidebar';
 import { useUser } from '@/contexts/UserContext';
 import { UpdateRateBadge } from '@/components/ui/badges/UpdateRateBadge';
@@ -122,7 +123,12 @@ export const FundDocument = ({
                   </p>
                 </div>
                 <div className="flex items-center gap-2 ml-4">
-                  <UpdateRateBadge updateRate={calculateUpdateRate(authorUpdates)} />
+                  <UpdateRateBadge
+                    updateRate={calculateUpdateRate(
+                      authorUpdates,
+                      getUpdatesStartDate(metadata.fundraising, work)
+                    )}
+                  />
                 </div>
               </div>
               <ProgressUpdates
@@ -131,6 +137,7 @@ export const FundDocument = ({
                   createdDate: update.createdDate,
                   content: update.content,
                 }))}
+                startDate={getUpdatesStartDate(metadata.fundraising, work)}
               />
             </div>
 
