@@ -8,6 +8,8 @@ import { parseFullName } from '@/utils/nameUtils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft } from '@fortawesome/pro-light-svg-icons';
 import { Button } from '@/components/ui/Button';
+import AnalyticsService from '@/services/analytics.service';
+import { Experiment, ExperimentVariant, isExperimentEnabled } from '@/utils/experiment';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
@@ -54,6 +56,13 @@ export default function Signup({
         first_name: firstName,
         last_name: lastName,
       });
+
+      AnalyticsService.logSignedUp('credentials', {
+        homepageExperiment: isExperimentEnabled(Experiment.HomepageExperiment)
+          ? ExperimentVariant.B
+          : ExperimentVariant.A,
+      });
+
       onVerify();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');

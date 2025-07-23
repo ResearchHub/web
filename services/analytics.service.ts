@@ -16,6 +16,7 @@ export const LogEvent = {
   CLICKED_SHARE_VIA_X: 'clicked_share_via_x',
   CLICKED_SHARE_VIA_URL: 'clicked_share_via_url',
   CLICKED_SHARE_VIA_BLUESKY: 'clicked_share_via_bluesky',
+  SIGNED_UP: 'signed_up',
 } as const;
 
 export type LogEventValue = (typeof LogEvent)[keyof typeof LogEvent];
@@ -85,6 +86,16 @@ class AnalyticsService {
       }
     }
     await Promise.all(promises);
+  }
+
+  static async logSignedUp(
+    provider: 'google' | 'credentials',
+    additionalProperties?: Record<string, any>
+  ) {
+    await this.logEvent(LogEvent.SIGNED_UP, {
+      ...additionalProperties,
+      provider: provider,
+    });
   }
 }
 

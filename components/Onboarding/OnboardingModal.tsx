@@ -99,12 +99,16 @@ export function OnboardingModal() {
       user.hasCompletedOnboarding === false &&
       !onboardingEventFired.current
     ) {
-      AnalyticsService.logEvent(LogEvent.ONBOARDING_VIEWED, {
-        homepageExperiment: isExperimentEnabled(Experiment.HomepageExperiment)
-          ? ExperimentVariant.B
-          : ExperimentVariant.A,
-        authProvider: user.authProvider,
-      });
+      const authProvider = user.authProvider;
+      if (authProvider === 'google') {
+        AnalyticsService.logSignedUp('google', {
+          homepageExperiment: isExperimentEnabled(Experiment.HomepageExperiment)
+            ? ExperimentVariant.B
+            : ExperimentVariant.A,
+        });
+      }
+
+      AnalyticsService.logEvent(LogEvent.ONBOARDING_VIEWED);
       onboardingEventFired.current = true;
     }
 
