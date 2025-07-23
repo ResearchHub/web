@@ -10,14 +10,12 @@ interface ProgressUpdatesProps {
   updates: Update[];
   startDate?: string; // When updates can start being posted (e.g., fundraise start date)
   className?: string;
-  onMonthClick?: () => void; // Optional callback for when a month with updates is clicked
 }
 
 export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
   updates = [],
   startDate,
   className = '',
-  onMonthClick,
 }) => {
   // Generate timeline from startDate to current date
   const generateTimeline = () => {
@@ -94,16 +92,15 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
                 relative px-2 py-1.5 rounded-md border text-center transition-all flex-shrink-0 w-16
                 ${
                   month.hasUpdate
-                    ? `bg-green-50 border-green-200 text-green-700 hover:bg-green-100 ${onMonthClick ? 'cursor-pointer' : ''}`
+                    ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
                     : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
                 }
               `}
               title={
                 month.hasUpdate
-                  ? `${month.monthName} ${month.year} - ${month.updateCount} update${month.updateCount > 1 ? 's' : ''}${onMonthClick ? ' (Click to view)' : ''}`
+                  ? `${month.monthName} ${month.year} - ${month.updateCount} update${month.updateCount > 1 ? 's' : ''}`
                   : `${month.monthName} ${month.year} - No updates`
               }
-              onClick={month.hasUpdate && onMonthClick ? onMonthClick : undefined}
             >
               <div className="text-xs font-medium whitespace-nowrap">{displayText}</div>
 

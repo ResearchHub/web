@@ -138,7 +138,6 @@ export const FundDocument = ({
                   content: update.content,
                 }))}
                 startDate={getUpdatesStartDate(metadata.fundraising, work)}
-                onMonthClick={() => handleTabChange('updates')}
               />
             </div>
 
