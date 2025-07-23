@@ -25,7 +25,9 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
     // If no startDate provided, use the earliest update date or current date minus 3 months
     let start: Date;
     if (startDate) {
-      start = new Date(startDate);
+      const startDateObj = new Date(startDate);
+      // Normalize to the beginning of the start month to ensure we include the full month
+      start = new Date(startDateObj.getFullYear(), startDateObj.getMonth(), 1);
     } else if (updates.length > 0) {
       // Find the earliest update
       const earliestUpdate = updates.reduce((earliest, update) => {
@@ -41,7 +43,7 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
     const current = new Date(start);
     const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Generate months from start to current month
+    // Generate months from start to current month (inclusive)
     while (current <= currentMonthStart) {
       const monthYear = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
       const monthName = current.toLocaleDateString('en-US', { month: 'short' });
