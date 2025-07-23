@@ -89,7 +89,7 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
             <div
               key={month.monthYear}
               className={`
-                relative px-2 py-1.5 rounded-md border text-center transition-all flex-shrink-0
+                relative px-2 py-1.5 rounded-md border text-center transition-all flex-shrink-0 w-16
                 ${
                   month.hasUpdate
                     ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
@@ -106,7 +106,7 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
 
               {/* Notification Badge for multiple updates */}
               {month.updateCount > 1 && (
-                <div className="absolute -top-1 -right-1 bg-green-600 text-white text-xs rounded-full min-w-[16px] h-4 flex items-center justify-center leading-none px-1 z-10">
+                <div className="absolute -top-1 -right-1 bg-gray-600 text-white text-xs rounded-full min-w-[16px] h-4 flex items-center justify-center leading-none px-1 z-10">
                   {month.updateCount}
                 </div>
               )}
