@@ -17,6 +17,7 @@ import Moderation from './components/Moderation';
 import AuthorProfile from './components/AuthorProfile';
 import { useAuthorPublications } from '@/hooks/usePublications';
 import { transformPublicationToFeedEntry } from '@/types/publication';
+import PinnedFundraise from './components/PinnedFundraise';
 
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
@@ -89,7 +90,7 @@ const TAB_TO_CONTRIBUTION_TYPE: Record<string, ContributionType> = {
   bounties: 'BOUNTY',
 };
 
-function AuthorTabs({ authorId }: { authorId: number }) {
+function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number }) {
   const [isPending, startTransition] = useTransition();
   const tabs = [
     { id: 'contributions', label: 'Overview' },
@@ -192,6 +193,12 @@ function AuthorTabs({ authorId }: { authorId: number }) {
 
     return (
       <div>
+        {/* Add PinnedFundraise as the first item in Overview tab */}
+        {currentTab === 'contributions' && userId && (
+          <div className="mb-6">
+            <PinnedFundraise userId={userId} compact={true} />
+          </div>
+        )}
         <FeedContent
           entries={isPending ? [] : formattedContributions}
           isLoading={isPending || isContributionsLoading}
@@ -295,7 +302,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
           </Card>
         )}
       </div>
-      <AuthorTabs authorId={user.authorProfile.id} />
+      <AuthorTabs authorId={user.authorProfile.id} userId={user.authorProfile.userId} />
     </>
   );
 }

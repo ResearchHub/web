@@ -16,7 +16,7 @@ import { AuthorList } from '@/components/ui/AuthorList';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
-import { Users, Building } from 'lucide-react';
+import { Users, Building, Pin } from 'lucide-react';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
@@ -26,6 +26,7 @@ interface FeedItemFundraiseProps {
   showActions?: boolean;
   maxLength?: number;
   customActionText?: string;
+  isPinnedFundraise?: boolean;
 }
 
 /**
@@ -54,6 +55,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   showActions = true,
   maxLength,
   customActionText,
+  isPinnedFundraise = false,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
@@ -73,7 +75,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
     post.authors?.map((author) => ({
       name: author.fullName,
       verified: author.user?.isVerified,
-      profileUrl: author.profileUrl,
+      authorUrl: author.profileUrl,
     })) || [];
 
   // Use provided href or create default funding page URL
@@ -93,6 +95,13 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       }
       maxLength={maxLength}
     >
+      {/* Pin icon in top right corner for pinned fundraises */}
+      {isPinnedFundraise && (
+        <div className="absolute top-3 right-3 z-10 pointer-events-none">
+          <Pin className="w-4 h-4 text-blue-600" />
+        </div>
+      )}
+
       {/* Top section with badges and mobile image */}
       <FeedItemTopSection
         imageSection={

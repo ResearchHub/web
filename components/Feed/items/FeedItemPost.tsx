@@ -44,7 +44,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
     post.authors?.map((author) => ({
       name: author.fullName,
       verified: author.user?.isVerified,
-      profileUrl: author.profileUrl,
+      authorUrl: author.profileUrl,
     })) || [];
 
   // Use provided href or create default post page URL
