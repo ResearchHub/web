@@ -1,65 +1,54 @@
-import { createTransformer, BaseTransformed } from './transformer';
+import { createTransformer } from './transformer';
 import {
-  UnifiedCategory as GraphQLUnifiedCategory,
-  UnifiedSubcategory as GraphQLUnifiedSubcategory,
+  Category as GraphQLCategory,
+  Subcategory as GraphQLSubcategory,
 } from '@/lib/graphql/queries';
 
-export interface UnifiedSubcategory {
-  id: string;
+export interface Subcategory {
   slug: string;
   name: string;
-  description: string;
-  displayOrder: number;
   paperCount: number;
 }
 
-export interface UnifiedCategory {
-  id: string;
+export interface Category {
   slug: string;
   name: string;
-  description: string;
-  displayOrder: number;
+  icon: string;
   paperCount: number;
-  subcategories: UnifiedSubcategory[];
+  subcategories: Subcategory[];
 }
 
-export interface UnifiedCategoriesResponse {
-  unifiedCategories: UnifiedCategory[];
+export interface CategoriesResponse {
+  categories: Category[];
 }
 
 // Transformer for subcategories
-export const transformUnifiedSubcategory = createTransformer<
-  GraphQLUnifiedSubcategory,
-  UnifiedSubcategory
->((raw) => ({
-  id: raw.id || '',
+export const transformSubcategory = createTransformer<GraphQLSubcategory, Subcategory>((raw) => ({
   slug: raw.slug || '',
   name: raw.name || '',
-  description: raw.description || '',
-  displayOrder: raw.displayOrder || 0,
   paperCount: raw.paperCount || 0,
 }));
 
 // Transformer for categories
-export const transformUnifiedCategory = createTransformer<GraphQLUnifiedCategory, UnifiedCategory>(
-  (raw) => ({
-    id: raw.id || '',
-    slug: raw.slug || '',
-    name: raw.name || '',
-    description: raw.description || '',
-    displayOrder: raw.displayOrder || 0,
-    paperCount: raw.paperCount || 0,
-    subcategories: Array.isArray(raw.subcategories)
-      ? raw.subcategories.map(transformUnifiedSubcategory)
-      : [],
-  })
-);
+export const transformCategory = createTransformer<GraphQLCategory, Category>((raw) => ({
+  slug: raw.slug || '',
+  name: raw.name || '',
+  icon: raw.icon || '',
+  paperCount: raw.paperCount || 0,
+  subcategories: Array.isArray(raw.subcategories)
+    ? raw.subcategories.map(transformSubcategory)
+    : [],
+}));
 
 // Transformer for categories response
-export const transformUnifiedCategoriesResponse = createTransformer<any, UnifiedCategoriesResponse>(
-  (raw) => ({
-    unifiedCategories: Array.isArray(raw.unifiedCategories)
-      ? raw.unifiedCategories.map(transformUnifiedCategory)
-      : [],
-  })
-);
+export const transformCategoriesResponse = createTransformer<any, CategoriesResponse>((raw) => ({
+  categories: Array.isArray(raw.categories) ? raw.categories.map(transformCategory) : [],
+}));
+
+// For backward compatibility, export the old names as aliases
+export type UnifiedCategory = Category;
+export type UnifiedSubcategory = Subcategory;
+export type UnifiedCategoriesResponse = CategoriesResponse;
+export const transformUnifiedCategory = transformCategory;
+export const transformUnifiedSubcategory = transformSubcategory;
+export const transformUnifiedCategoriesResponse = transformCategoriesResponse;

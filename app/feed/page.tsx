@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useQuery } from '@apollo/client';
+import React, { useState, useEffect } from 'react';
+import { useQuery, NetworkStatus } from '@apollo/client';
 import { GET_PAPERS, PaperSearchResponse } from '@/lib/graphql/queries';
 import { mapGraphQLPaperToWork } from '@/lib/graphql/mappers';
 import { TransformedWork } from '@/types/work';
@@ -14,11 +14,19 @@ import { PaperCard } from '@/components/Feed/PaperCard';
 import { FeedControls } from '@/components/Feed/FeedControls';
 import { Button } from '@/components/ui/Button';
 import { ChevronDown, Search } from 'lucide-react';
+import { useInView } from 'react-intersection-observer';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { ApolloProvider } from '@/components/providers/ApolloProvider';
 import { usePreferences } from '@/contexts/PreferencesContext';
+import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 
 function FeedContent() {
+  // Set up intersection observer for infinite scrolling early to follow Rules of Hooks
+  const { ref: loadMoreRef, inView } = useInView({
+    threshold: 0,
+    rootMargin: '100px',
+  });
+
   const { preferences } = usePreferences();
   const {
     filters,
@@ -32,6 +40,7 @@ function FeedContent() {
 
   const [showCustomize, setShowCustomize] = useState(false);
   const [offset, setOffset] = useState<number>(0);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const limit = 20;
 
   const mapSortToGraphQL = (sort: string): { sortBy: string; sortOrder: string } => {
@@ -49,10 +58,12 @@ function FeedContent() {
 
   const { sortBy: graphqlSortBy, sortOrder } = mapSortToGraphQL(debouncedFilters.sortBy);
 
-  const { loading, error, data, fetchMore } = useQuery<{
+  const { loading, error, data, fetchMore, networkStatus } = useQuery<{
     getPapers: PaperSearchResponse;
   }>(GET_PAPERS, {
     skip: !filtersInitialized,
+    fetchPolicy: 'cache-and-network',
+    notifyOnNetworkStatusChange: true,
     variables: {
       input: {
         ...(debouncedFilters.keywords.length > 0 && { keywords: debouncedFilters.keywords }),
@@ -72,7 +83,7 @@ function FeedContent() {
         }),
         sortOrder,
         hasEnrichment: true,
-        offset,
+        offset: 0, // Always start at 0 for the initial query
       },
     },
   });
@@ -98,52 +109,96 @@ function FeedContent() {
     }
   };
 
-  const loadMore = () => {
+  const loadMore = async () => {
+    if (isLoadingMore) return; // Prevent duplicate calls
+
+    console.log('Loading more papers, current offset:', offset, 'new offset:', offset + limit);
+    setIsLoadingMore(true);
     const newOffset = offset + limit;
     const { sortBy: newSortBy, sortOrder: newSortOrder } = mapSortToGraphQL(
       debouncedFilters.sortBy
     );
 
-    fetchMore({
-      variables: {
-        input: {
-          ...(debouncedFilters.keywords.length > 0 && { keywords: debouncedFilters.keywords }),
-          ...(debouncedFilters.selectedSubcategories.length > 0 && {
-            subcategories: debouncedFilters.selectedSubcategories,
-          }),
-          timePeriod: debouncedFilters.timePeriod,
-          sortBy: newSortBy,
-          limit,
-          useMlRelevance: debouncedFilters.useMlScoring,
-          // Legacy fields that might still be needed
-          ...(debouncedFilters.selectedCategories.length > 0 && {
-            categories: debouncedFilters.selectedCategories,
-          }),
-          ...(debouncedFilters.selectedSources.length > 0 && {
-            sources: debouncedFilters.selectedSources,
-          }),
-          sortOrder: newSortOrder,
-          hasEnrichment: true,
-          offset: newOffset,
-        },
-      },
-      updateQuery: (prev, { fetchMoreResult }) => {
-        if (!fetchMoreResult) return prev;
-        return {
-          getPapers: {
-            ...fetchMoreResult.getPapers,
-            papers: [...prev.getPapers.papers, ...fetchMoreResult.getPapers.papers],
+    try {
+      await fetchMore({
+        variables: {
+          input: {
+            ...(debouncedFilters.keywords.length > 0 && { keywords: debouncedFilters.keywords }),
+            ...(debouncedFilters.selectedSubcategories.length > 0 && {
+              subcategories: debouncedFilters.selectedSubcategories,
+            }),
+            timePeriod: debouncedFilters.timePeriod,
+            sortBy: newSortBy,
+            limit,
+            useMlRelevance: debouncedFilters.useMlScoring,
+            // Legacy fields that might still be needed
+            ...(debouncedFilters.selectedCategories.length > 0 && {
+              categories: debouncedFilters.selectedCategories,
+            }),
+            ...(debouncedFilters.selectedSources.length > 0 && {
+              sources: debouncedFilters.selectedSources,
+            }),
+            sortOrder: newSortOrder,
+            hasEnrichment: true,
+            offset: newOffset,
           },
-        };
-      },
-    });
-    setOffset(newOffset);
+        },
+        updateQuery: (prev, { fetchMoreResult }) => {
+          if (!fetchMoreResult) return prev;
+
+          console.log('UpdateQuery - Previous papers:', prev.getPapers.papers.length);
+          console.log('UpdateQuery - New papers:', fetchMoreResult.getPapers.papers.length);
+
+          const result = {
+            getPapers: {
+              ...fetchMoreResult.getPapers,
+              papers: [...prev.getPapers.papers, ...fetchMoreResult.getPapers.papers],
+            },
+          };
+
+          console.log('UpdateQuery - Total papers after merge:', result.getPapers.papers.length);
+          return result;
+        },
+      });
+
+      setOffset(newOffset);
+    } catch (error) {
+      console.error('Error loading more papers:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
   };
 
-  if (!filtersInitialized || (loading && offset === 0)) {
+  // Transform the response data (do this before conditional returns to use in useEffect)
+  const transformedResponse = data?.getPapers ? transformPaperSearchResponse(data.getPapers) : null;
+  const hasMore = transformedResponse?.hasMore || false;
+
+  // Trigger load more when the sentinel element is in view (must be before conditional returns)
+  useEffect(() => {
+    if (inView && hasMore && !loading && !isLoadingMore) {
+      loadMore();
+    }
+  }, [inView, hasMore, loading, isLoadingMore]);
+
+  // Only show initial loading state when it's the first load (no data yet)
+  const isInitialLoading = loading && !data?.getPapers;
+
+  if (!filtersInitialized || isInitialLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Loader size="md" />
+      <div className="container mx-auto p-4 max-w-6xl">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold mb-2">Research Feed</h1>
+          <p className="text-gray-600">
+            Discover the latest research papers from leading preprint servers
+          </p>
+        </div>
+
+        {/* Show skeletons while initially loading */}
+        <div className="space-y-4">
+          {[...Array(8)].map((_, i) => (
+            <FeedItemSkeleton key={`initial-skeleton-${i}`} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -159,12 +214,10 @@ function FeedContent() {
     );
   }
 
-  // Transform the response data
-  const transformedResponse = data?.getPapers ? transformPaperSearchResponse(data.getPapers) : null;
+  // Get the rest of the transformed data
   const rawPapers = data?.getPapers.papers || [];
   const papers: TransformedWork[] = rawPapers.map(mapGraphQLPaperToWork);
   const totalCount = transformedResponse?.totalCount || 0;
-  const hasMore = transformedResponse?.hasMore || false;
 
   return (
     <div className="container mx-auto p-4 max-w-6xl">
@@ -243,9 +296,18 @@ function FeedContent() {
             onSourceClick={handleSourceClick}
           />
         ))}
+
+        {/* Show skeletons when loading more */}
+        {isLoadingMore && papers.length > 0 && (
+          <>
+            {[...Array(5)].map((_, i) => (
+              <FeedItemSkeleton key={`skeleton-${i}`} />
+            ))}
+          </>
+        )}
       </div>
 
-      {papers.length === 0 && !loading && (
+      {papers.length === 0 && !loading && !isLoadingMore && (
         <div className="text-center py-12">
           <div className="max-w-md mx-auto">
             <div className="mb-4">
@@ -273,23 +335,8 @@ function FeedContent() {
         </div>
       )}
 
-      {hasMore && (
-        <div className="mt-8 text-center">
-          <Button onClick={loadMore} disabled={loading} className="group">
-            {loading ? (
-              <>
-                <Loader size="sm" className="mr-2" />
-                Loading...
-              </>
-            ) : (
-              <>
-                Load More Papers
-                <ChevronDown className="ml-2 w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
-              </>
-            )}
-          </Button>
-        </div>
-      )}
+      {/* Infinite scroll sentinel */}
+      {hasMore && !isLoadingMore && <div ref={loadMoreRef} className="h-10" />}
     </div>
   );
 }

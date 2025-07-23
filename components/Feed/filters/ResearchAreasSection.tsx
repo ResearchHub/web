@@ -5,29 +5,29 @@ import { CategoryItem } from './CategoryItem';
 import { UnifiedCategory } from '@/types/category';
 import {
   Microscope,
-  Cog,
+  Wrench,
   Users,
   Globe,
   DollarSign,
   BarChart3,
   Calculator,
-  Cpu,
+  Monitor,
   FlaskConical,
   Atom,
 } from 'lucide-react';
 
 // Category icons mapping
 const CATEGORY_ICONS: { [key: string]: React.ElementType } = {
-  life_sciences: Microscope,
-  engineering: Cog,
-  social_sciences: Users,
+  life_health_sciences: Microscope,
+  engineering_technology: Wrench,
+  social_behavioral_sciences: Users,
   earth_environmental_sciences: Globe,
   economics_finance: DollarSign,
   statistics_data_science: BarChart3,
   mathematics: Calculator,
-  computer_science: Cpu,
+  computer_data_sciences: Monitor,
   chemistry: FlaskConical,
-  physics: Atom,
+  physical_sciences: Atom,
 };
 
 interface ResearchAreasSectionProps {

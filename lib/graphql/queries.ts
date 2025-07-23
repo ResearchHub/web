@@ -39,21 +39,19 @@ export const GET_PAPERS = gql`
   }
 `;
 
-export const GET_UNIFIED_CATEGORIES = gql`
-  query GetUnifiedCategories {
-    unifiedCategories {
-      id
-      name
-      description
+export const GET_CATEGORIES = gql`
+  query GetCategories($minPaperCount: Int, $includeEmptySubcategories: Boolean) {
+    categories(
+      minPaperCount: $minPaperCount
+      includeEmptySubcategories: $includeEmptySubcategories
+    ) {
       slug
-      displayOrder
+      name
+      icon
       paperCount
       subcategories {
-        id
         slug
         name
-        description
-        displayOrder
         paperCount
       }
     }
@@ -85,17 +83,6 @@ export const ADVANCED_PAPER_SEARCH = gql`
       }
       totalCount
       hasMore
-    }
-  }
-`;
-
-export const GET_CATEGORIES = gql`
-  query GetCategories {
-    categoriesWithCounts {
-      name
-      displayName
-      paperCount
-      lastUpdated
     }
   }
 `;
@@ -139,15 +126,22 @@ export interface AdvancedPaperSearchResponse {
   hasMore: boolean;
 }
 
-export interface Category {
+export interface Subcategory {
+  slug: string;
   name: string;
-  displayName: string;
-  paperCount: number | null;
-  lastUpdated: string | null;
+  paperCount: number;
+}
+
+export interface Category {
+  slug: string;
+  name: string;
+  icon: string;
+  paperCount: number;
+  subcategories: Subcategory[];
 }
 
 export interface CategoriesResponse {
-  categoriesWithCounts: Category[];
+  categories: Category[];
 }
 
 export interface GetPapersInput {
@@ -184,25 +178,6 @@ export interface PaperFilterInput {
   limit?: number;
 }
 
-export interface UnifiedCategory {
-  id: string;
-  slug: string;
-  name: string;
-  description: string;
-  displayOrder?: number;
-  paperCount?: number;
-  subcategories?: UnifiedSubcategory[];
-}
-
-export interface UnifiedSubcategory {
-  id: string;
-  slug: string;
-  name: string;
-  description: string;
-  displayOrder?: number;
-  paperCount?: number;
-}
-
 export interface Paper {
   id: string;
   title: string;
@@ -229,8 +204,4 @@ export interface PaperSearchResponse {
   totalCount: number;
   hasMore: boolean;
   papers: Paper[];
-}
-
-export interface UnifiedCategoriesResponse {
-  unifiedCategories: UnifiedCategory[];
 }

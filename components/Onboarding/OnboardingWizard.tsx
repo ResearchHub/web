@@ -10,14 +10,14 @@ import { useRouter } from 'next/navigation';
 import { UserService } from '@/services/user.service';
 import { useUpdateAuthorProfileData } from '@/hooks/useAuthor';
 import { useQuery } from '@apollo/client';
-import { GET_UNIFIED_CATEGORIES, UnifiedCategoriesResponse } from '@/lib/graphql/queries';
+import { GET_CATEGORIES, CategoriesResponse, Category } from '@/lib/graphql/queries';
 import { Loader } from '@/components/ui/Loader';
 import { Alert } from '@/components/ui/Alert';
 import { Logo } from '@/components/ui/Logo';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Brain,
-  Cpu,
+  Monitor,
   Globe,
   DollarSign,
   BarChart3,
@@ -25,7 +25,7 @@ import {
   Atom,
   FlaskConical,
   Microscope,
-  Cog,
+  Wrench,
   Users,
   Check,
 } from 'lucide-react';
@@ -47,16 +47,16 @@ export interface EducationEntry {
 
 // Category icons mapping
 const CATEGORY_ICONS: { [key: string]: React.ElementType } = {
-  life_sciences: Microscope,
-  engineering: Cog,
-  social_sciences: Users,
+  life_health_sciences: Microscope,
+  engineering_technology: Wrench,
+  social_behavioral_sciences: Users,
   earth_environmental_sciences: Globe,
   economics_finance: DollarSign,
   statistics_data_science: BarChart3,
   mathematics: Calculator,
-  computer_science: Cpu,
+  computer_data_sciences: Monitor,
   chemistry: FlaskConical,
-  physics: Atom,
+  physical_sciences: Atom,
 };
 
 export function OnboardingWizard() {
@@ -77,7 +77,12 @@ export function OnboardingWizard() {
     loading: categoriesLoading,
     error: categoriesError,
     data: categoriesData,
-  } = useQuery<UnifiedCategoriesResponse>(GET_UNIFIED_CATEGORIES);
+  } = useQuery<CategoriesResponse>(GET_CATEGORIES, {
+    variables: {
+      minPaperCount: 1,
+      includeEmptySubcategories: false,
+    },
+  });
 
   const [{ isLoading: updateAuthorProfileDataLoading }, updateAuthorProfileData] =
     useUpdateAuthorProfileData();
@@ -227,19 +232,18 @@ export function OnboardingWizard() {
           );
         }
 
-        const categories = categoriesData?.unifiedCategories || [];
+        const categories = categoriesData?.categories || [];
+        // Sort categories by paper count in descending order
+        const sortedCategories = [...categories].sort((a, b) => b.paperCount - a.paperCount);
 
         return (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">
-                Hi {firstName}, let's personalize your experience
-              </h2>
-              <p className="text-lg text-gray-600">What research areas interest you most?</p>
-            </div>
+            <p className="text-lg text-gray-600 text-center mb-8">
+              What research areas interest you most?
+            </p>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
-              {categories.map((category, index) => {
+              {sortedCategories.map((category, index) => {
                 const isSelected = selectedCategories.includes(category.slug);
                 const CategoryIcon = CATEGORY_ICONS[category.slug] || Brain;
 
@@ -312,21 +316,23 @@ export function OnboardingWizard() {
         }
 
         const selectedCategoryData =
-          categoriesData?.unifiedCategories.filter((cat) =>
+          categoriesData?.categories.filter((cat: Category) =>
             selectedCategories.includes(cat.slug)
           ) || [];
 
+        // Sort selected categories by paper count for better UX
+        const sortedSelectedCategories = [...selectedCategoryData].sort(
+          (a, b) => b.paperCount - a.paperCount
+        );
+
         return (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">Let's get specific</h2>
-              <p className="text-lg text-gray-600">
-                Choose topics within your selected research areas
-              </p>
-            </div>
+            <p className="text-lg text-gray-600 text-center mb-8">
+              Choose topics within your selected research areas
+            </p>
 
             <div className="space-y-6 mb-8 max-h-[400px] overflow-y-auto pr-2">
-              {selectedCategoryData.map((category, categoryIndex) => {
+              {sortedSelectedCategories.map((category, categoryIndex) => {
                 const CategoryIcon = CATEGORY_ICONS[category.slug] || Brain;
 
                 return (
@@ -341,7 +347,7 @@ export function OnboardingWizard() {
                       <h3 className="font-semibold text-lg text-gray-900">{category.name}</h3>
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                       {(category.subcategories || []).map((subcategory, index) => {
                         const isSelected = selectedSubcategories.includes(subcategory.slug);
 
@@ -364,7 +370,7 @@ export function OnboardingWizard() {
                               }
                             }}
                             className={`
-                              px-4 py-2 rounded-full text-sm font-medium transition-all border
+                              px-2.5 py-1.5 rounded-full text-sm font-medium transition-all border
                               ${
                                 isSelected
                                   ? 'bg-blue-600 text-white border-blue-600'
@@ -403,14 +409,14 @@ export function OnboardingWizard() {
               </div>
             </motion.div>
 
-            <motion.h1
+            <motion.h2
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-3xl font-bold text-gray-900 text-center mb-4"
+              className="text-2xl font-bold text-gray-900 text-center mb-4"
             >
               All set, {firstName}!
-            </motion.h1>
+            </motion.h2>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -447,9 +453,9 @@ export function OnboardingWizard() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       {/* Main container with border */}
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-        {/* Header with back button */}
+        {/* Header with back button and title on same line */}
         {currentStep !== 'NAME' && (
-          <div className="px-8 pt-6 pb-2">
+          <div className="px-8 pt-6 pb-2 flex items-center">
             <Button
               variant="ghost"
               onClick={prevStep}
@@ -459,10 +465,27 @@ export function OnboardingWizard() {
             >
               <FontAwesomeIcon icon={faArrowLeft} className="h-4 w-4" />
             </Button>
+
+            <div className="flex-1 text-center">
+              {currentStep === 'CATEGORIES' && (
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Hi {firstName}, let's personalize your experience
+                </h2>
+              )}
+              {currentStep === 'SUBCATEGORIES' && (
+                <h2 className="text-2xl font-bold text-gray-900">Let's get specific</h2>
+              )}
+              {currentStep === 'COMPLETE' && (
+                <h2 className="text-2xl font-bold text-gray-900">Welcome to ResearchHub</h2>
+              )}
+            </div>
+
+            {/* Invisible spacer to balance the back button */}
+            <div className="w-9" />
           </div>
         )}
 
-        <div className={`px-8 md:px-12 ${currentStep === 'NAME' ? 'pt-12' : 'pt-4'} pb-8`}>
+        <div className={`px-8 md:px-12 ${currentStep === 'NAME' ? 'pt-12' : 'pt-0'} pb-8`}>
           {/* Main content area */}
           <AnimatePresence mode="wait">{renderStepContent()}</AnimatePresence>
         </div>

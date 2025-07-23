@@ -6,7 +6,34 @@ import { Badge } from '@/components/ui/Badge';
 import { Loader } from '@/components/ui/Loader';
 import { Alert } from '@/components/ui/Alert';
 import { useRef, useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Microscope,
+  Monitor,
+  Users,
+  Globe,
+  DollarSign,
+  BarChart3,
+  Calculator,
+  FlaskConical,
+  Atom,
+  Wrench,
+} from 'lucide-react';
+
+// Category icons mapping
+const CATEGORY_ICONS: { [key: string]: React.ElementType } = {
+  life_health_sciences: Microscope,
+  engineering_technology: Wrench,
+  social_behavioral_sciences: Users,
+  earth_environmental_sciences: Globe,
+  economics_finance: DollarSign,
+  statistics_data_science: BarChart3,
+  mathematics: Calculator,
+  computer_data_sciences: Monitor,
+  chemistry: FlaskConical,
+  physical_sciences: Atom,
+};
 
 interface CategorySelectorProps {
   selectedCategories: string[];
@@ -14,12 +41,17 @@ interface CategorySelectorProps {
 }
 
 export function CategorySelector({ selectedCategories, onCategoryChange }: CategorySelectorProps) {
-  const { loading, error, data } = useQuery<CategoriesResponse>(GET_CATEGORIES);
+  const { loading, error, data } = useQuery<CategoriesResponse>(GET_CATEGORIES, {
+    variables: {
+      minPaperCount: 1,
+      includeEmptySubcategories: false,
+    },
+  });
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
 
-  const categories = data?.categoriesWithCounts || [];
+  const categories = data?.categories || [];
 
   useEffect(() => {
     const checkScroll = () => {
@@ -112,13 +144,14 @@ export function CategorySelector({ selectedCategories, onCategoryChange }: Categ
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {categories.map((category) => {
-            const isSelected = selectedCategories.includes(category.name);
+            const isSelected = selectedCategories.includes(category.slug);
+            const CategoryIcon = CATEGORY_ICONS[category.slug] || Globe;
             return (
               <button
-                key={category.name}
-                onClick={() => handleCategoryToggle(category.name)}
+                key={category.slug}
+                onClick={() => handleCategoryToggle(category.slug)}
                 className={`
-                  inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium
+                  inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium
                   whitespace-nowrap transition-all transform hover:scale-105
                   ${
                     isSelected
@@ -127,12 +160,11 @@ export function CategorySelector({ selectedCategories, onCategoryChange }: Categ
                   }
                 `}
               >
-                <span>{category.displayName}</span>
-                {category.paperCount !== null && (
-                  <span className={`text-xs ${isSelected ? 'text-blue-100' : 'text-gray-500'}`}>
-                    ({category.paperCount})
-                  </span>
-                )}
+                <CategoryIcon className="w-3.5 h-3.5" />
+                <span>{category.name}</span>
+                <span className={`text-xs ${isSelected ? 'text-blue-100' : 'text-gray-500'}`}>
+                  ({category.paperCount})
+                </span>
               </button>
             );
           })}

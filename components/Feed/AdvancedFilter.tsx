@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery } from '@apollo/client';
-import { GET_UNIFIED_CATEGORIES, UnifiedCategoriesResponse } from '@/lib/graphql/queries';
-import { transformUnifiedCategoriesResponse } from '@/types/category';
+import { GET_CATEGORIES, CategoriesResponse } from '@/lib/graphql/queries';
 import { Loader } from '@/components/ui/Loader';
 import { Alert } from '@/components/ui/Alert';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -45,7 +44,12 @@ export function AdvancedFilter({
   isUpdating = false,
   onFilterChange,
 }: AdvancedFilterProps) {
-  const { loading, error, data } = useQuery<UnifiedCategoriesResponse>(GET_UNIFIED_CATEGORIES);
+  const { loading, error, data } = useQuery<CategoriesResponse>(GET_CATEGORIES, {
+    variables: {
+      minPaperCount: 1,
+      includeEmptySubcategories: false,
+    },
+  });
 
   // State for collapsible sections
   const [expandedSections, setExpandedSections] = useState({
@@ -55,9 +59,8 @@ export function AdvancedFilter({
     mlScoring: false,
   });
 
-  // Transform the categories data
-  const transformedData = data ? transformUnifiedCategoriesResponse(data) : null;
-  const categories = transformedData?.unifiedCategories || [];
+  // Get categories directly from the response
+  const categories = data?.categories || [];
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections((prev) => ({

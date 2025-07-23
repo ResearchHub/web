@@ -16,11 +16,7 @@ import { InterestSelector } from '../InterestSelector/InterestSelector';
 import { OnboardingAccordionSkeleton } from './OnboardingAccordionSkeleton';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { useQuery } from '@apollo/client';
-import {
-  GET_UNIFIED_CATEGORIES,
-  UnifiedCategoriesResponse,
-  UnifiedCategory,
-} from '@/lib/graphql/queries';
+import { GET_CATEGORIES, CategoriesResponse, Category } from '@/lib/graphql/queries';
 import { Loader } from '@/components/ui/Loader';
 import { Alert } from '@/components/ui/Alert';
 import {
@@ -33,7 +29,7 @@ import {
   Atom,
   FlaskConical,
   Microscope,
-  Cog,
+  Wrench,
   Users,
 } from 'lucide-react';
 
@@ -55,16 +51,16 @@ const STEP_FIELDS: Record<OnboardingStep, FormField[]> = {
 
 // Category icons mapping
 const CATEGORY_ICONS: { [key: string]: React.ElementType } = {
-  life_sciences: Microscope,
-  engineering: Cog,
-  social_sciences: Users,
+  life_health_sciences: Microscope,
+  engineering_technology: Wrench,
+  social_behavioral_sciences: Users,
   earth_environmental_sciences: Globe,
   economics_finance: DollarSign,
   statistics_data_science: BarChart3,
   mathematics: Calculator,
-  computer_science: Cpu,
+  computer_data_sciences: Cpu,
   chemistry: FlaskConical,
-  physics: Atom,
+  physical_sciences: Atom,
 };
 
 // Add this helper function at the top of the file, after the imports
@@ -119,7 +115,12 @@ export function OnboardingModal() {
     loading: categoriesLoading,
     error: categoriesError,
     data: categoriesData,
-  } = useQuery<UnifiedCategoriesResponse>(GET_UNIFIED_CATEGORIES);
+  } = useQuery<CategoriesResponse>(GET_CATEGORIES, {
+    variables: {
+      minPaperCount: 1,
+      includeEmptySubcategories: false,
+    },
+  });
 
   const [
     { isLoading: updateAuthorProfileDataLoading, error: updateAuthorProfileDataError },
@@ -384,7 +385,9 @@ export function OnboardingModal() {
           );
         }
 
-        const categories = categoriesData?.unifiedCategories || [];
+        const categories = categoriesData?.categories || [];
+        // Sort categories by paper count in descending order
+        const sortedCategories = [...categories].sort((a, b) => b.paperCount - a.paperCount);
 
         return (
           <>
@@ -393,7 +396,7 @@ export function OnboardingModal() {
               Choose the areas that match your research interests
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {categories.map((category) => {
+              {sortedCategories.map((category) => {
                 const isSelected = selectedCategories.includes(category.slug);
                 const CategoryIcon = CATEGORY_ICONS[category.slug] || Brain;
 
@@ -457,9 +460,14 @@ export function OnboardingModal() {
         }
 
         const selectedCategoryData =
-          categoriesData?.unifiedCategories.filter((cat) =>
+          categoriesData?.categories.filter((cat: Category) =>
             selectedCategories.includes(cat.slug)
           ) || [];
+
+        // Sort selected categories by paper count
+        const sortedSelectedCategories = [...selectedCategoryData].sort(
+          (a, b) => b.paperCount - a.paperCount
+        );
 
         return (
           <>
@@ -468,7 +476,7 @@ export function OnboardingModal() {
               Select the topics within your chosen research areas
             </p>
             <div className="space-y-6">
-              {selectedCategoryData.map((category) => {
+              {sortedSelectedCategories.map((category) => {
                 const CategoryIcon = CATEGORY_ICONS[category.slug] || Brain;
 
                 return (
@@ -477,7 +485,7 @@ export function OnboardingModal() {
                       <CategoryIcon className="w-5 h-5 text-gray-600" />
                       <h3 className="font-semibold text-gray-900">{category.name}</h3>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                       {(category.subcategories || []).map((subcategory) => {
                         const isSelected = selectedSubcategories.includes(subcategory.slug);
 
@@ -497,7 +505,7 @@ export function OnboardingModal() {
                               }
                             }}
                             className={`
-                              px-4 py-2 rounded-full text-sm transition-all
+                              px-2.5 py-1.5 rounded-full text-xs transition-all
                               ${
                                 isSelected
                                   ? 'bg-blue-600 text-white'
