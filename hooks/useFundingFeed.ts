@@ -11,11 +11,7 @@ interface UseFundingFeedResult {
   sortBy: string;
 }
 
-export const useFundingFeed = (
-  limit: number = 10,
-  grantId?: number,
-  createdBy?: number
-): UseFundingFeedResult => {
+export const useFundingFeed = (limit: number = 10, grantId?: number): UseFundingFeedResult => {
   const [entries, setEntries] = useState<FeedEntry[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
@@ -31,7 +27,6 @@ export const useFundingFeed = (
         pageSize: limit,
         page: 1, // Fetch only the first page
         grantId, // Pass the grantId to filter results
-        createdBy, // Pass the createdBy to filter results
         feedView: sortBy === 'personalized' ? 'personalized' : sortBy, // Map sort to feedView
       });
       setEntries(result.entries);
@@ -42,7 +37,7 @@ export const useFundingFeed = (
     } finally {
       setIsLoading(false);
     }
-  }, [limit, grantId, createdBy, sortBy]); // Add createdBy to dependencies
+  }, [limit, grantId, sortBy]); // Add sortBy to dependencies
 
   useEffect(() => {
     fetchFundingFeed();

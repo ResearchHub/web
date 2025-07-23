@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, useState } from 'react';
-import { useFundingFeed } from '@/hooks/useFundingFeed';
+import { useFeed } from '@/hooks/useFeed';
 import { ID } from '@/types/root';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { FeedItemFundraise } from '@/components/Feed/items/FeedItemFundraise';
@@ -31,19 +31,14 @@ interface ActiveFundraiseProps {
 }
 
 /**
- * Helper function to filter and sort active fundraises
- * Filters by status "OPEN" and sorts by amount raised
+ * Helper function to sort active fundraises by amount raised
+ * Filtering by OPEN status is handled server-side via useFeed
  */
 const getActiveFundraises = (entries: any[]) => {
   if (!entries || entries.length === 0) return [];
 
-  // Filter for OPEN status fundraises
-  const openFundraises = entries.filter(
-    (entry) => entry.raw?.content_object?.fundraise?.status === 'OPEN'
-  );
-
   // Sort by amount raised (highest first)
-  return openFundraises.sort((a, b) => {
+  return entries.sort((a, b) => {
     const aRaised = a.raw?.content_object?.fundraise?.amount_raised?.rsc || 0;
     const bRaised = b.raw?.content_object?.fundraise?.amount_raised?.rsc || 0;
     return bRaised - aRaised;
@@ -57,14 +52,19 @@ const ActiveFundraise: FC<ActiveFundraiseProps> = ({
   showActions = true,
   compact = false,
 }) => {
-  const { entries, isLoading, error } = useFundingFeed(100, undefined, Number(authorId));
+  const { entries, isLoading } = useFeed('open', {
+    endpoint: 'funding_feed',
+    contentType: 'PREREGISTRATION',
+    fundraiseStatus: 'OPEN',
+    createdBy: Number(authorId),
+  });
   const [currentIndex, setCurrentIndex] = useState(0);
 
   if (isLoading) {
     return <ActiveFundraiseSkeleton className={className} />;
   }
 
-  if (error || !entries || entries.length === 0) {
+  if (!entries || entries.length === 0) {
     return null;
   }
 
