@@ -26,6 +26,7 @@ import { ShareModalProvider } from '@/contexts/ShareContext';
 import ApmProvider from '@/components/ApmProvider';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { Analytics } from '@vercel/analytics/react';
+import { PageTracker } from '@/components/PageTracker';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -130,7 +131,10 @@ export default async function RootLayout({
                             <CurrencyPreferenceProvider>
                               <NotificationProvider>
                                 <OrganizationProvider>
-                                  <FollowProvider>{children}</FollowProvider>
+                                  <FollowProvider>
+                                    <PageTracker />
+                                    {children}
+                                  </FollowProvider>
                                 </OrganizationProvider>
                               </NotificationProvider>
                             </CurrencyPreferenceProvider>

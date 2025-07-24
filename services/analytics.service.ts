@@ -40,8 +40,9 @@ class AnalyticsService {
       return;
     }
 
+    // Disable autocapture to prevent anonymous page views
     amplitude.init(apiKey, {
-      defaultTracking: true,
+      autocapture: false, // Disable automatic page tracking
     });
     this.isInitialized.amplitude = true;
   }
@@ -52,7 +53,23 @@ class AnalyticsService {
       console.error('Amplitude not initialized before setting user ID.');
       return;
     }
-    amplitude.setUserId(userId ?? undefined);
+
+    const paddedUserId = userId ? userId.toString().padStart(6, '0') : null;
+
+    amplitude.setUserId(paddedUserId ?? undefined);
+  }
+
+  static setUserProperties(userProperties: Record<string, any>) {
+    this.init();
+    if (!this.isInitialized.amplitude) {
+      console.error('Amplitude not initialized before setting user properties.');
+      return;
+    }
+    const identify = new amplitude.Identify();
+    Object.entries(userProperties).forEach(([key, value]) => {
+      identify.set(key, value);
+    });
+    amplitude.identify(identify);
   }
 
   static async logEvent(
@@ -96,6 +113,33 @@ class AnalyticsService {
       ...additionalProperties,
       provider: provider,
     });
+  }
+
+  static page(pageName?: string, pageProperties?: Record<string, any>) {
+    this.init();
+    if (!this.isInitialized.amplitude) {
+      console.error('Amplitude not initialized before tracking page.');
+      return;
+    }
+
+    const eventProperties = {
+      page_title: document.title,
+      page_url: window.location.href,
+      page_path: window.location.pathname,
+      ...pageProperties,
+    };
+
+    amplitude.track('Page View', eventProperties);
+  }
+
+  static clearUserSession() {
+    this.init();
+    if (!this.isInitialized.amplitude) {
+      console.error('Amplitude not initialized before clearing user session.');
+      return;
+    }
+
+    amplitude.reset();
   }
 }
 

@@ -60,11 +60,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (user) {
       const paddedUserId = user.id.toString().padStart(6, '0');
-      AnalyticsService.setUserId(paddedUserId);
-    } else {
+
+      AnalyticsService.setUserProperties({
+        user_id: paddedUserId,
+        full_name: user.fullName,
+        email: user.email,
+        auth_provider: user.authProvider,
+      });
+    } else if (!isLoading) {
       AnalyticsService.setUserId(null);
     }
-  }, [user]);
+  }, [user, isLoading]);
 
   return (
     <UserContext.Provider value={{ user, isLoading, error, refreshUser }}>
