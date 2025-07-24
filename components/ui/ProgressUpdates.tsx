@@ -105,7 +105,7 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
               <div className="whitespace-nowrap">
                 <span className="text-sm font-medium">{monthText}</span>
                 {month.updateCount > 1 && (
-                  <span className="text-xs ml-1">x{month.updateCount}</span>
+                  <span className="text-xs ml-1 text-green-500">x{month.updateCount}</span>
                 )}
               </div>
             </div>
