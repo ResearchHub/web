@@ -83,13 +83,16 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
       {/* Monthly Timeline */}
       <div className="flex flex-wrap gap-1 mb-3">
         {timeline.map((month) => {
-          const displayText = `${month.monthName} ${String(month.year).slice(-2)}`;
+          const displayText =
+            month.updateCount > 1
+              ? `${month.monthName} ${String(month.year).slice(-2)} (${month.updateCount})`
+              : `${month.monthName} ${String(month.year).slice(-2)}`;
 
           return (
             <div
               key={month.monthYear}
               className={`
-                relative px-2 py-1.5 rounded-md border text-center transition-all flex-shrink-0 w-16
+                relative px-2 py-1.5 rounded-md border text-center transition-all flex-shrink-0
                 ${
                   month.hasUpdate
                     ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
@@ -103,13 +106,6 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
               }
             >
               <div className="text-xs font-medium whitespace-nowrap">{displayText}</div>
-
-              {/* Notification Badge for multiple updates */}
-              {month.updateCount > 1 && (
-                <div className="absolute -top-1 -right-1 bg-white border border-green-200 text-green-700 text-xs rounded-full min-w-[16px] h-4 flex items-center justify-center leading-none px-1 z-10 shadow-md">
-                  {month.updateCount}
-                </div>
-              )}
             </div>
           );
         })}
