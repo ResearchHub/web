@@ -83,10 +83,7 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
       {/* Monthly Timeline */}
       <div className="flex flex-wrap gap-1 mb-3">
         {timeline.map((month) => {
-          const displayText =
-            month.updateCount > 1
-              ? `${month.monthName} ${String(month.year).slice(-2)} (${month.updateCount})`
-              : `${month.monthName} ${String(month.year).slice(-2)}`;
+          const monthText = `${month.monthName} ${String(month.year).slice(-2)}`;
 
           return (
             <div
@@ -105,7 +102,12 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
                   : `${month.monthName} ${month.year} - No updates`
               }
             >
-              <div className="text-xs font-medium whitespace-nowrap">{displayText}</div>
+              <div className="whitespace-nowrap">
+                <span className="text-sm font-medium">{monthText}</span>
+                {month.updateCount > 1 && (
+                  <span className="text-xs ml-1">x{month.updateCount}</span>
+                )}
+              </div>
             </div>
           );
         })}
