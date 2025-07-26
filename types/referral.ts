@@ -135,19 +135,20 @@ const baseTransformModNetworkDetail = (raw: any): ModNetworkDetail => {
     };
   }
 
+  // Transform from the new API structure
   return {
-    signupDate: raw.signup_date || '',
-    totalFunded: raw.total_funded || 0,
-    referralBonusEarned: raw.referral_bonus_earned || 0,
-    authorId: raw.author_id || 0,
-    fullName: raw.full_name || raw.username || '',
-    profileImage: raw.profile_image || '',
-    referralBonusExpirationDate: raw.referral_bonus_expiration_date || '',
-    isReferralBonusExpired: raw.is_referral_bonus_expired || false,
+    signupDate: raw.referred_user?.signup_date || '',
+    totalFunded: raw.referred_user?.total_funded || 0,
+    referralBonusEarned: raw.referred_user?.referral_bonus_earned || 0,
+    authorId: raw.referred_user?.author_id || 0,
+    fullName: raw.referred_user?.full_name || raw.referred_user?.username || '',
+    profileImage: raw.referred_user?.profile_image || '',
+    referralBonusExpirationDate: raw.referred_user?.referral_bonus_expiration_date || '',
+    isReferralBonusExpired: raw.referred_user?.is_referral_bonus_expired || false,
     referrerUser: {
-      userId: raw.referrer_user?.user_id || 0,
-      fullName: raw.referrer_user?.full_name || '',
-      profileImage: raw.referrer_user?.profile_image || '',
+      userId: raw.referrer?.id || 0,
+      fullName: raw.referrer?.full_name || '',
+      profileImage: raw.referrer?.profile_image || '',
     },
   };
 };

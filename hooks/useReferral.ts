@@ -151,21 +151,16 @@ interface UseModReferralNetworkDetailsReturn {
   totalPages: number;
   hasNextPage: boolean;
   hasPrevPage: boolean;
-  // Sorting state
-  sortField: string | null;
-  sortDirection: 'asc' | 'desc' | null;
   // Navigation functions
   goToPage: (page: number) => Promise<void>;
   goToNextPage: () => Promise<void>;
   goToPrevPage: () => Promise<void>;
-  // Sorting functions
-  setSort: (field: string, direction: 'asc' | 'desc' | null) => Promise<void>;
   refetch: () => Promise<void>;
 }
 
 /**
- * Hook to fetch and manage moderator referral network details data with pagination and sorting
- * @returns Object containing moderator network details data, loading state, error state, pagination info, sorting state, and navigation/sorting functions
+ * Hook to fetch and manage moderator referral network details data with pagination
+ * @returns Object containing moderator network details data, loading state, error state, pagination info, and navigation functions
  */
 export function useModReferralNetworkDetails(
   pageSize: number = 5
@@ -175,18 +170,12 @@ export function useModReferralNetworkDetails(
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [sortField, setSortField] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
 
   const totalPages = Math.ceil(totalCount / pageSize);
   const hasNextPage = currentPage < totalPages;
   const hasPrevPage = currentPage > 1;
 
-  const fetchData = async (
-    page: number,
-    sortFieldParam?: string | null,
-    sortDirectionParam?: 'asc' | 'desc' | null
-  ) => {
+  const fetchData = async (page: number) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -195,8 +184,6 @@ export function useModReferralNetworkDetails(
         await ReferralService.getModNetworkDetails({
           page,
           pageSize,
-          sortField: sortFieldParam || sortField,
-          sortDirection: sortDirectionParam || sortDirection,
         });
 
       setNetworkDetails(response.networkDetails);
@@ -229,13 +216,6 @@ export function useModReferralNetworkDetails(
     }
   };
 
-  const setSort = async (field: string, direction: 'asc' | 'desc' | null) => {
-    setSortField(direction ? field : null);
-    setSortDirection(direction);
-    // Reset to first page when sorting changes
-    await fetchData(1, field, direction);
-  };
-
   const refetch = async () => {
     await fetchData(1);
   };
@@ -252,12 +232,9 @@ export function useModReferralNetworkDetails(
     totalPages,
     hasNextPage,
     hasPrevPage,
-    sortField,
-    sortDirection,
     goToPage,
     goToNextPage,
     goToPrevPage,
-    setSort,
     refetch,
   };
 }

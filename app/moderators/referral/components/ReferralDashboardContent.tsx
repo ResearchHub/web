@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import { TableContainer, SortableColumn, MobileTableCard } from '@/components/ui/Table';
 import { Avatar } from '@/components/ui/Avatar';
 import { ModNetworkDetail } from '@/types/referral';
 import { formatTimestamp } from '@/utils/date';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useModReferralNetworkDetails } from '@/hooks/useReferral';
+import { ReferralTableSkeleton } from '@/components/skeletons/ReferralTableSkeleton';
 
 export default function ReferralDashboardContent() {
   const { mdAndUp } = useScreenSize();
@@ -18,28 +18,22 @@ export default function ReferralDashboardContent() {
     totalPages,
     hasNextPage,
     hasPrevPage,
-    sortField,
-    sortDirection,
     goToPage,
     goToNextPage,
     goToPrevPage,
-    setSort,
     refetch,
-  } = useModReferralNetworkDetails(5);
+  } = useModReferralNetworkDetails(10);
 
   const columns: SortableColumn[] = [
     { key: 'referrerUser', label: 'Referrer', sortable: false },
-    { key: 'fullName', label: 'Referred User', sortable: true },
-    { key: 'signupDate', label: 'Signup Date', sortable: true },
-    { key: 'totalFunded', label: 'Total Funded', sortable: true },
-    { key: 'referralBonusEarned', label: 'Bonus Earned', sortable: true },
-    { key: 'isReferralBonusExpired', label: 'Status', sortable: true },
+    { key: 'fullName', label: 'Referred User', sortable: false },
+    { key: 'signupDate', label: 'Signup Date', sortable: false },
+    { key: 'totalFunded', label: 'Total Funded', sortable: false },
+    { key: 'referralBonusEarned', label: 'Credits Earned', sortable: false },
+    { key: 'isReferralBonusExpired', label: 'Status', sortable: false },
   ];
 
-  const handleSort = async (field: string, direction: 'asc' | 'desc' | null) => {
-    console.log(`Sorting by ${field} in ${direction} direction`);
-    await setSort(field, direction);
-  };
+  // Remove the handleSort function since sorting is not available
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -117,7 +111,7 @@ export default function ReferralDashboardContent() {
     { key: 'fullName', label: 'Referred User' },
     { key: 'signupDate', label: 'Signup Date' },
     { key: 'totalFunded', label: 'Total Funded' },
-    { key: 'referralBonusEarned', label: 'Bonus Earned' },
+    { key: 'referralBonusEarned', label: 'Credits Earned' },
     { key: 'isReferralBonusExpired', label: 'Status' },
   ];
 
@@ -154,33 +148,6 @@ export default function ReferralDashboardContent() {
     ),
   }));
 
-  if (isLoading) {
-    return (
-      <div className="h-full flex flex-col">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h1 className="text-2xl font-semibold text-gray-900">Referral Dashboard</h1>
-                <p className="text-sm text-gray-600 mt-1">
-                  Manage the referral program and track user referrals.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main content area */}
-        <div className="flex-1 overflow-auto">
-          <div className="p-6 text-center">
-            <div className="text-gray-500 text-lg">Loading referral data...</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="h-full flex flex-col">
@@ -189,9 +156,9 @@ export default function ReferralDashboardContent() {
           <div className="px-6 py-4">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h1 className="text-2xl font-semibold text-gray-900">Referral Dashboard</h1>
+                <h1 className="text-2xl font-semibold text-gray-900">Referral Network</h1>
                 <p className="text-sm text-gray-600 mt-1">
-                  Manage the referral program and track user referrals.
+                  Track users who have been referred and their funding activity
                 </p>
               </div>
             </div>
@@ -226,17 +193,7 @@ export default function ReferralDashboardContent() {
                 Track users who have been referred and their funding activity
               </p>
             </div>
-
-            {/* Action Buttons */}
-            {/* <div className="flex items-center space-x-3">
-              <span className="flex items-center space-x-2">
-                <span>Refresh</span>
-              </span>
-            </div> */}
           </div>
-
-          {/* Status Filter */}
-          {/* <div className="flex items-center justify-between">filters</div> */}
         </div>
       </div>
 
@@ -245,44 +202,68 @@ export default function ReferralDashboardContent() {
         {/* Desktop Table View */}
         {mdAndUp && (
           <div className="w-full overflow-x-auto max-w-full mx-auto p-6">
-            <TableContainer
-              columns={columns}
-              data={data.map((row) => ({
-                ...row,
-                referrerUser: renderCellContent(row, { key: 'referrerUser', label: 'Referrer' }),
-                fullName: renderCellContent(row, { key: 'fullName', label: 'Referred User' }),
-                signupDate: renderCellContent(row, { key: 'signupDate', label: 'Signup Date' }),
-                totalFunded: renderCellContent(row, {
-                  key: 'totalFunded',
-                  label: 'Total Funded',
-                }),
-                referralBonusEarned: renderCellContent(row, {
-                  key: 'referralBonusEarned',
-                  label: 'Bonus Earned',
-                }),
-                isReferralBonusExpired: renderCellContent(row, {
-                  key: 'isReferralBonusExpired',
-                  label: 'Status',
-                }),
-              }))}
-              onSort={handleSort}
-              className="w-full"
-            />
+            {isLoading ? (
+              <ReferralTableSkeleton columns={columns} rowCount={10} />
+            ) : (
+              <TableContainer
+                columns={columns}
+                data={data.map((row) => ({
+                  ...row,
+                  referrerUser: renderCellContent(row, { key: 'referrerUser', label: 'Referrer' }),
+                  fullName: renderCellContent(row, { key: 'fullName', label: 'Referred User' }),
+                  signupDate: renderCellContent(row, { key: 'signupDate', label: 'Signup Date' }),
+                  totalFunded: renderCellContent(row, {
+                    key: 'totalFunded',
+                    label: 'Total Funded',
+                  }),
+                  referralBonusEarned: renderCellContent(row, {
+                    key: 'referralBonusEarned',
+                    label: 'Credits Earned',
+                  }),
+                  isReferralBonusExpired: renderCellContent(row, {
+                    key: 'isReferralBonusExpired',
+                    label: 'Status',
+                  }),
+                }))}
+                className="w-full"
+              />
+            )}
           </div>
         )}
 
         {/* Mobile Card View */}
         {!mdAndUp && (
           <div className="p-4 space-y-4">
-            {mobileData.map((row, index) => (
-              <MobileTableCard
-                key={data[index]?.authorId || index}
-                data={row}
-                columns={mobileColumns}
-                onClick={() => console.log('Card clicked:', data[index])}
-                className="shadow-sm"
-              />
-            ))}
+            {isLoading
+              ? // Mobile skeleton
+                Array.from({ length: 10 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 animate-pulse"
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full" />
+                      <div className="flex-1">
+                        <div className="h-4 bg-gray-200 rounded w-32 mb-1" />
+                        <div className="h-3 bg-gray-200 rounded w-24" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-gray-200 rounded w-20" />
+                      <div className="h-3 bg-gray-200 rounded w-16" />
+                      <div className="h-3 bg-gray-200 rounded w-24" />
+                    </div>
+                  </div>
+                ))
+              : mobileData.map((row, index) => (
+                  <MobileTableCard
+                    key={data[index]?.authorId || index}
+                    data={row}
+                    columns={mobileColumns}
+                    onClick={() => console.log('Card clicked:', data[index])}
+                    className="shadow-sm"
+                  />
+                ))}
           </div>
         )}
 
@@ -295,14 +276,14 @@ export default function ReferralDashboardContent() {
             <div className="flex items-center gap-2">
               <button
                 onClick={goToPrevPage}
-                disabled={!hasPrevPage}
+                disabled={!hasPrevPage || isLoading}
                 className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
               >
                 Previous
               </button>
               <button
                 onClick={goToNextPage}
-                disabled={!hasNextPage}
+                disabled={!hasNextPage || isLoading}
                 className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
               >
                 Next
