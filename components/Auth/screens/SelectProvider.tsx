@@ -4,6 +4,7 @@ import { ApiError } from '@/services/types/api';
 import { isValidEmail } from '@/utils/validation';
 import { useAutoFocus } from '@/hooks/useAutoFocus';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { Experiment, getHomepageExperimentVariant } from '@/utils/experiment';
 
 interface SelectProviderProps {
   onContinue: () => void;
@@ -43,7 +44,18 @@ export default function SelectProvider({
       if (response.exists) {
         if (response.auth === 'google') {
           // Prompt user to use Google sign-in
-          signIn('google');
+          const originalCallbackUrl = '/';
+          let finalCallbackUrl = originalCallbackUrl;
+
+          const experimentVariant = getHomepageExperimentVariant();
+          if (experimentVariant) {
+            // Create URL with experiment parameter
+            const experimentUrl = new URL(originalCallbackUrl, window.location.origin);
+            experimentUrl.searchParams.set(Experiment.HomepageExperiment, experimentVariant);
+            finalCallbackUrl = experimentUrl.toString();
+          }
+
+          signIn('google', { callbackUrl: finalCallbackUrl });
         } else if (response.is_verified) {
           onContinue();
         } else {
@@ -63,9 +75,19 @@ export default function SelectProvider({
     await AnalyticsService.logEvent(LogEvent.AUTH_VIA_GOOGLE_INITIATED);
     // Get the current URL's search params to extract callbackUrl
     const searchParams = new URLSearchParams(window.location.search);
-    const callbackUrl = searchParams.get('callbackUrl') || '/';
+    const originalCallbackUrl = searchParams.get('callbackUrl') || '/';
 
-    signIn('google', { callbackUrl });
+    let finalCallbackUrl = originalCallbackUrl;
+
+    const homepageExperimentVariant = getHomepageExperimentVariant();
+    if (homepageExperimentVariant) {
+      // Create URL with experiment parameter
+      const experimentUrl = new URL(originalCallbackUrl, window.location.origin);
+      experimentUrl.searchParams.set(Experiment.HomepageExperiment, homepageExperimentVariant);
+      finalCallbackUrl = experimentUrl.toString();
+    }
+
+    signIn('google', { callbackUrl: finalCallbackUrl });
   };
 
   return (

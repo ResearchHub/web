@@ -1,6 +1,7 @@
 import Cookies from 'js-cookie';
 import { AUTH_TOKEN } from '@/config/constants';
 import { signOut } from 'next-auth/react';
+import AnalyticsService from './analytics.service';
 
 /**
  * Service to handle authentication sharing between the old and new ResearchHub applications
@@ -87,6 +88,8 @@ export class AuthSharingService {
   static async signOutFromBothApps(): Promise<void> {
     // First remove the shared cookie
     this.removeSharedAuthToken();
+    // Reset analytics session
+    AnalyticsService.clearUserSession();
 
     // Finally, sign out from NextAuth
     await signOut({ callbackUrl: '/' });
