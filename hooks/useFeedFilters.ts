@@ -20,7 +20,7 @@ const DEFAULT_FILTERS: FeedFilters = {
   keywords: [],
   timePeriod: 'LAST_WEEK',
   sortBy: 'best',
-  useMlScoring: false,
+  useMlScoring: true, // Changed from false to true - ML scoring on by default
 };
 
 export function useFeedFilters() {
@@ -44,10 +44,14 @@ export function useFeedFilters() {
           ...DEFAULT_FILTERS,
           selectedCategories: preferences.selectedCategories || [],
           selectedSubcategories: preferences.selectedSubcategories || [],
-          useMlScoring: preferences.useMlScoring || false,
+          useMlScoring: preferences.useMlScoring ?? true, // Use true as default if undefined
         };
         setFilters(initialFilters);
         setDebouncedFilters(initialFilters);
+      } else {
+        // No saved filters and no preferences - use defaults
+        setFilters(DEFAULT_FILTERS);
+        setDebouncedFilters(DEFAULT_FILTERS);
       }
       setFiltersInitialized(true);
     } catch (error) {

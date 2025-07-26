@@ -183,7 +183,7 @@ function FeedContent() {
   // Only show initial loading state when it's the first load (no data yet)
   const isInitialLoading = loading && !data?.getPapers;
 
-  if (!filtersInitialized || isInitialLoading) {
+  if (!filtersInitialized) {
     return (
       <div className="container mx-auto p-4 max-w-6xl">
         <div className="mb-6">
@@ -199,17 +199,6 @@ function FeedContent() {
             <FeedItemSkeleton key={`initial-skeleton-${i}`} />
           ))}
         </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto p-4">
-        <Alert variant="error">
-          <span className="font-semibold">Error loading feed</span>
-          <p>{error.message}</p>
-        </Alert>
       </div>
     );
   }
@@ -279,64 +268,80 @@ function FeedContent() {
         />
       )}
 
-      <div className="mb-4 text-sm text-gray-600">
-        <p>
-          Showing {papers.length} of {totalCount.toLocaleString()} papers
-        </p>
-      </div>
+      {/* Results Section with Loading States */}
+      {error ? (
+        <Alert variant="error" className="mt-4">
+          <span className="font-semibold">Error loading papers</span>
+          <p>{error.message}</p>
+        </Alert>
+      ) : isInitialLoading ? (
+        <div className="space-y-4 mt-4">
+          {[...Array(8)].map((_, i) => (
+            <FeedItemSkeleton key={`initial-skeleton-${i}`} />
+          ))}
+        </div>
+      ) : (
+        <>
+          <div className="mb-4 text-sm text-gray-600">
+            <p>
+              Showing {papers.length} of {totalCount.toLocaleString()} papers
+            </p>
+          </div>
 
-      <div className="space-y-4">
-        {papers.map((paper, index) => (
-          <PaperCard
-            key={`${paper.doi || paper.id}-${index}`}
-            paper={paper}
-            graphqlData={rawPapers[index]}
-            onCategoryClick={handleCategoryClick}
-            onSubcategoryClick={handleSubcategoryClick}
-            onSourceClick={handleSourceClick}
-          />
-        ))}
-
-        {/* Show skeletons when loading more */}
-        {isLoadingMore && papers.length > 0 && (
-          <>
-            {[...Array(5)].map((_, i) => (
-              <FeedItemSkeleton key={`skeleton-${i}`} />
+          <div className="space-y-4">
+            {papers.map((paper, index) => (
+              <PaperCard
+                key={`${paper.doi || paper.id}-${index}`}
+                paper={paper}
+                graphqlData={rawPapers[index]}
+                onCategoryClick={handleCategoryClick}
+                onSubcategoryClick={handleSubcategoryClick}
+                onSourceClick={handleSourceClick}
+              />
             ))}
-          </>
-        )}
-      </div>
 
-      {papers.length === 0 && !loading && !isLoadingMore && (
-        <div className="text-center py-12">
-          <div className="max-w-md mx-auto">
-            <div className="mb-4">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="w-8 h-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No papers found</h3>
-              <p className="text-gray-600 mb-4">
-                {activeFilterCount > 0
-                  ? 'No papers match your current filters. Try adjusting your search criteria.'
-                  : 'No papers are available at this time. Please check back later.'}
-              </p>
-            </div>
-            {activeFilterCount > 0 && (
-              <Button
-                onClick={() => {
-                  clearFilters();
-                  setOffset(0);
-                }}
-              >
-                Clear All Filters
-              </Button>
+            {/* Show skeletons when loading more */}
+            {isLoadingMore && papers.length > 0 && (
+              <>
+                {[...Array(5)].map((_, i) => (
+                  <FeedItemSkeleton key={`skeleton-${i}`} />
+                ))}
+              </>
             )}
           </div>
-        </div>
-      )}
 
-      {/* Infinite scroll sentinel */}
-      {hasMore && !isLoadingMore && <div ref={loadMoreRef} className="h-10" />}
+          {papers.length === 0 && !loading && !isLoadingMore && (
+            <div className="text-center py-12">
+              <div className="max-w-md mx-auto">
+                <div className="mb-4">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Search className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No papers found</h3>
+                  <p className="text-gray-600 mb-4">
+                    {activeFilterCount > 0
+                      ? 'No papers match your current filters. Try adjusting your search criteria.'
+                      : 'No papers are available at this time. Please check back later.'}
+                  </p>
+                </div>
+                {activeFilterCount > 0 && (
+                  <Button
+                    onClick={() => {
+                      clearFilters();
+                      setOffset(0);
+                    }}
+                  >
+                    Clear All Filters
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Infinite scroll sentinel */}
+          {hasMore && !isLoadingMore && <div ref={loadMoreRef} className="h-10" />}
+        </>
+      )}
     </div>
   );
 }

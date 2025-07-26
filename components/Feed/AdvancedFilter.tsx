@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_CATEGORIES, CategoriesResponse } from '@/lib/graphql/queries';
 import { Loader } from '@/components/ui/Loader';
@@ -8,7 +8,10 @@ import { Alert } from '@/components/ui/Alert';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FilterSummaryBar } from './filters/FilterSummaryBar';
 import { KeywordsSection } from './filters/KeywordsSection';
-import { ResearchAreasSection } from './filters/ResearchAreasSection';
+import {
+  ResearchAreasSection,
+  SelfContainedResearchAreasSection,
+} from './filters/ResearchAreasSection';
 import { MLScoringSection } from './filters/MLScoringSection';
 import { SourcesSection } from './filters/SourcesSection';
 import { SOURCES } from './filters/constants';
@@ -33,7 +36,7 @@ interface AdvancedFilterProps {
   }) => void;
 }
 
-export function AdvancedFilter({
+function AdvancedFilterComponent({
   selectedCategories,
   selectedSubcategories,
   selectedSources,
@@ -55,8 +58,8 @@ export function AdvancedFilter({
   const [expandedSections, setExpandedSections] = useState({
     keywords: false,
     sources: false,
-    researchAreas: true, // Changed from false to true
-    mlScoring: false,
+    researchAreas: false, // Closed by default
+    mlScoring: false, // Changed to false - closed by default even when ML is on
   });
 
   // Get categories directly from the response
@@ -81,29 +84,51 @@ export function AdvancedFilter({
     });
   };
 
-  const handleCategoriesChange = (newCategories: string[]) => {
-    onFilterChange({
-      categories: newCategories,
-      subcategories: selectedSubcategories,
-      sources: selectedSources,
+  const handleCategoriesChange = useCallback(
+    (newCategories: string[]) => {
+      onFilterChange({
+        categories: newCategories,
+        subcategories: selectedSubcategories,
+        sources: selectedSources,
+        keywords,
+        timePeriod,
+        sortBy,
+        useMlScoring,
+      });
+    },
+    [
+      selectedSubcategories,
+      selectedSources,
       keywords,
       timePeriod,
       sortBy,
       useMlScoring,
-    });
-  };
+      onFilterChange,
+    ]
+  );
 
-  const handleSubcategoriesChange = (newSubcategories: string[]) => {
-    onFilterChange({
-      categories: selectedCategories,
-      subcategories: newSubcategories,
-      sources: selectedSources,
+  const handleSubcategoriesChange = useCallback(
+    (newSubcategories: string[]) => {
+      onFilterChange({
+        categories: selectedCategories,
+        subcategories: newSubcategories,
+        sources: selectedSources,
+        keywords,
+        timePeriod,
+        sortBy,
+        useMlScoring,
+      });
+    },
+    [
+      selectedCategories,
+      selectedSources,
       keywords,
       timePeriod,
       sortBy,
       useMlScoring,
-    });
-  };
+      onFilterChange,
+    ]
+  );
 
   const handleSourcesChange = (newSources: string[]) => {
     onFilterChange({
@@ -137,7 +162,7 @@ export function AdvancedFilter({
       keywords: [],
       timePeriod: 'LAST_WEEK',
       sortBy: 'best',
-      useMlScoring: false,
+      useMlScoring: true, // Changed from false to true - ML scoring stays on when clearing
     });
   };
 
@@ -209,12 +234,11 @@ export function AdvancedFilter({
             />
 
             {/* Research Areas Section */}
-            <ResearchAreasSection
-              categories={categories}
+            <SelfContainedResearchAreasSection
+              key="research-areas-section"
+              categories={categories || []}
               selectedCategories={selectedCategories}
               selectedSubcategories={selectedSubcategories}
-              isExpanded={expandedSections.researchAreas}
-              onToggle={() => toggleSection('researchAreas')}
               onCategoryChange={handleCategoriesChange}
               onSubcategoryChange={handleSubcategoriesChange}
             />
@@ -241,3 +265,6 @@ export function AdvancedFilter({
     </div>
   );
 }
+
+// Export memoized version of AdvancedFilter
+export const AdvancedFilter = memo(AdvancedFilterComponent);
