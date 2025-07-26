@@ -58,7 +58,7 @@ export default function Signup({
       });
 
       AnalyticsService.logSignedUp('credentials', {
-        homepageExperiment: isExperimentEnabled(Experiment.HomepageExperiment)
+        homepage_experiment: isExperimentEnabled(Experiment.HomepageExperiment)
           ? ExperimentVariant.B
           : ExperimentVariant.A,
       });

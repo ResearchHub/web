@@ -11,11 +11,11 @@ export enum ExperimentVariant {
 }
 
 /**
- * Get the experiment variant from the cookie.
+ * Get the homepage experiment from the cookie.
  *
  * @returns The experiment variant or null if not set.
  */
-export function getExperimentVariant(): string | null {
+export function getHomepageExperimentVariant(): string | null {
   if (typeof document === 'undefined') return null;
 
   return Cookies.get(Experiment.HomepageExperiment) || null;

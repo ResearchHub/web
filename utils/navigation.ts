@@ -35,20 +35,20 @@ export function handleFundraiseRedirect(work: Work, id: string, slug: string) {
 }
 
 /**
- * Handles redirection to trending page if user is authorized OR experiment is enabled
+ * Handles redirection to trending page if user is authorized OR homepage experiment is enabled
  * @param isUserLoggedIn Whether the user is logged in
- * @param experimentVariant The experiment variant from the request (optional, for server-side)
+ * @param homepageExperimentVariant The experiment variant from the request (optional, for server-side)
  * @param searchParams Optional search parameters to preserve in the redirect
  */
 export function handleTrendingRedirect(
   isUserLoggedIn: boolean,
-  experimentVariant?: ExperimentVariant | null,
+  homepageExperimentVariant?: ExperimentVariant | null,
   searchParams?: URLSearchParams
 ) {
-  // Redirect if user is logged in OR if experiment variant B is enabled
-  const isExperimentEnabled = isExperimentEnabledServer(experimentVariant);
+  // Redirect if user is logged in OR if homepage experiment is enabled
+  const isHPExperimentEnabled = isExperimentEnabledServer(homepageExperimentVariant);
 
-  if (isUserLoggedIn || isExperimentEnabled) {
+  if (isUserLoggedIn || isHPExperimentEnabled) {
     let redirectUrl = '/trending';
 
     // Preserve search parameters if provided

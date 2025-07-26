@@ -19,14 +19,11 @@ import { ClickProvider } from '@/contexts/ClickContext';
 import { AuthSharingWrapper } from '@/components/AuthSharingWrapper';
 import { VerificationProvider } from '@/contexts/VerificationContext';
 import SignupModalContainer from '@/components/modals/SignupModalContainer';
-import ShareModalTrigger from '@/components/modals/ShareModalTrigger';
 import { SITE_CONFIG } from '@/lib/metadata';
-import AnalyticsProvider from '@/components/providers/AnalyticsProvider';
 import { ShareModalProvider } from '@/contexts/ShareContext';
 import ApmProvider from '@/components/ApmProvider';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { Analytics } from '@vercel/analytics/react';
-import { PageTracker } from '@/components/PageTracker';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -121,7 +118,6 @@ export default async function RootLayout({
         <ClickProvider>
           <OnchainProvider>
             <NextAuthProvider session={session}>
-              {/* <AnalyticsProvider> */}
               <AuthSharingWrapper>
                 <AuthModalProvider>
                   <ShareModalProvider>
@@ -131,10 +127,7 @@ export default async function RootLayout({
                           <CurrencyPreferenceProvider>
                             <NotificationProvider>
                               <OrganizationProvider>
-                                <FollowProvider>
-                                  {/* <PageTracker /> */}
-                                  {children}
-                                </FollowProvider>
+                                <FollowProvider>{children}</FollowProvider>
                               </OrganizationProvider>
                             </NotificationProvider>
                           </CurrencyPreferenceProvider>
@@ -142,11 +135,9 @@ export default async function RootLayout({
                       </VerificationProvider>
                     </UserProvider>
                     <SignupModalContainer />
-                    {/* <ShareModalTrigger /> */}
                   </ShareModalProvider>
                 </AuthModalProvider>
               </AuthSharingWrapper>
-              {/* </AnalyticsProvider> */}
             </NextAuthProvider>
             <ToasterProvider />
           </OnchainProvider>

@@ -4,7 +4,7 @@ import { ApiError } from '@/services/types/api';
 import { isValidEmail } from '@/utils/validation';
 import { useAutoFocus } from '@/hooks/useAutoFocus';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
-import { getExperimentVariant, Experiment } from '@/utils/experiment';
+import { Experiment, getHomepageExperimentVariant } from '@/utils/experiment';
 
 interface SelectProviderProps {
   onContinue: () => void;
@@ -47,7 +47,7 @@ export default function SelectProvider({
           const originalCallbackUrl = '/';
           let finalCallbackUrl = originalCallbackUrl;
 
-          const experimentVariant = getExperimentVariant();
+          const experimentVariant = getHomepageExperimentVariant();
           if (experimentVariant) {
             // Create URL with experiment parameter
             const experimentUrl = new URL(originalCallbackUrl, window.location.origin);
@@ -79,11 +79,11 @@ export default function SelectProvider({
 
     let finalCallbackUrl = originalCallbackUrl;
 
-    const experimentVariant = getExperimentVariant();
-    if (experimentVariant) {
+    const homepageExperimentVariant = getHomepageExperimentVariant();
+    if (homepageExperimentVariant) {
       // Create URL with experiment parameter
       const experimentUrl = new URL(originalCallbackUrl, window.location.origin);
-      experimentUrl.searchParams.set(Experiment.HomepageExperiment, experimentVariant);
+      experimentUrl.searchParams.set(Experiment.HomepageExperiment, homepageExperimentVariant);
       finalCallbackUrl = experimentUrl.toString();
     }
 
