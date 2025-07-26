@@ -122,7 +122,11 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
           isVerified: raw.is_verified || false,
           url: raw.author_profile ? buildAuthorUrl(raw.author_profile.id) : undefined,
           authorProfile: raw.author_profile
-            ? { ...raw.author_profile, userId: raw.id }
+            ? {
+                ...raw.author_profile,
+                userId: raw.id,
+                profileImage: raw.author_profile.profile_image || '',
+              }
             : {
                 id: raw.id,
                 headline: userHeadline,
