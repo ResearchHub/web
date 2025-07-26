@@ -6,6 +6,7 @@ import { AuthError, AuthService } from '@/services/auth.service';
 import type { User } from '@/types/user';
 import { AuthSharingService } from '@/services/auth-sharing.service';
 import AnalyticsService from '@/services/analytics.service';
+import { Experiment } from '@/utils/experiment';
 
 interface UserContextType {
   user: User | null;
@@ -21,6 +22,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [isAnalyticsInitialized, setIsAnalyticsInitialized] = useState(false);
 
   const fetchUserData = async () => {
     if (!session?.authToken) {
@@ -58,19 +60,43 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, [session?.authToken, status]);
 
   useEffect(() => {
-    if (user) {
-      const paddedUserId = user.id.toString().padStart(6, '0');
+    if (!isLoading) {
+      if (user && !isAnalyticsInitialized) {
+        // Set user properties
+        AnalyticsService.setUserProperties({
+          user_id: user.id.toString(),
+          full_name: user.fullName,
+          email: user.email,
+          auth_provider: user.authProvider,
+        });
 
-      AnalyticsService.setUserProperties({
-        user_id: paddedUserId,
-        full_name: user.fullName,
-        email: user.email,
-        auth_provider: user.authProvider,
-      });
-    } else if (!isLoading) {
-      AnalyticsService.setUserId(null);
+        // Track Google OAuth sign-up if applicable
+        if (user.authProvider === 'google' && user.hasCompletedOnboarding === false) {
+          const urlParams = new URLSearchParams(window.location.search);
+          const hpExperimentVariant = urlParams.get(Experiment.HomepageExperiment);
+          const experimentVariant = hpExperimentVariant || null;
+
+          if (experimentVariant) {
+            AnalyticsService.logSignedUp('google', {
+              homepage_experiment: experimentVariant,
+            });
+
+            // Clean up URL parameter after tracking
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.delete(Experiment.HomepageExperiment);
+            window.history.replaceState({}, '', newUrl.toString());
+          }
+        }
+
+        // Mark analytics as initialized for this user
+        setIsAnalyticsInitialized(true);
+      } else if (!user) {
+        // Reset analytics state when user is null
+        setIsAnalyticsInitialized(false);
+        AnalyticsService.setUserId(null);
+      }
     }
-  }, [user, isLoading]);
+  }, [user, isLoading, isAnalyticsInitialized]);
 
   return (
     <UserContext.Provider value={{ user, isLoading, error, refreshUser }}>

@@ -1,7 +1,7 @@
 import Cookies from 'js-cookie';
 
 export enum Experiment {
-  HomepageExperiment = 'homepageExperiment',
+  HomepageExperiment = 'homepage_experiment',
 }
 
 // Experiment variants

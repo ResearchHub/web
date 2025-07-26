@@ -121,32 +121,32 @@ export default async function RootLayout({
         <ClickProvider>
           <OnchainProvider>
             <NextAuthProvider session={session}>
-              <AnalyticsProvider>
-                <AuthSharingWrapper>
-                  <AuthModalProvider>
-                    <ShareModalProvider>
-                      <UserProvider>
-                        <VerificationProvider>
-                          <ExchangeRateProvider>
-                            <CurrencyPreferenceProvider>
-                              <NotificationProvider>
-                                <OrganizationProvider>
-                                  <FollowProvider>
-                                    <PageTracker />
-                                    {children}
-                                  </FollowProvider>
-                                </OrganizationProvider>
-                              </NotificationProvider>
-                            </CurrencyPreferenceProvider>
-                          </ExchangeRateProvider>
-                        </VerificationProvider>
-                      </UserProvider>
-                      <SignupModalContainer />
-                      {/* <ShareModalTrigger /> */}
-                    </ShareModalProvider>
-                  </AuthModalProvider>
-                </AuthSharingWrapper>
-              </AnalyticsProvider>
+              {/* <AnalyticsProvider> */}
+              <AuthSharingWrapper>
+                <AuthModalProvider>
+                  <ShareModalProvider>
+                    <UserProvider>
+                      <VerificationProvider>
+                        <ExchangeRateProvider>
+                          <CurrencyPreferenceProvider>
+                            <NotificationProvider>
+                              <OrganizationProvider>
+                                <FollowProvider>
+                                  {/* <PageTracker /> */}
+                                  {children}
+                                </FollowProvider>
+                              </OrganizationProvider>
+                            </NotificationProvider>
+                          </CurrencyPreferenceProvider>
+                        </ExchangeRateProvider>
+                      </VerificationProvider>
+                    </UserProvider>
+                    <SignupModalContainer />
+                    {/* <ShareModalTrigger /> */}
+                  </ShareModalProvider>
+                </AuthModalProvider>
+              </AuthSharingWrapper>
+              {/* </AnalyticsProvider> */}
             </NextAuthProvider>
             <ToasterProvider />
           </OnchainProvider>

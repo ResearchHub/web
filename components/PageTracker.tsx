@@ -16,11 +16,12 @@ export function PageTracker() {
     // Only track page view if pathname has actually changed
     if (previousPathname.current !== pathname && status !== 'loading' && !isLoading) {
       const pageName = document.title;
-      AnalyticsService.page(pageName, {
-        page_path: pathname,
-        user_status: status,
-        user_id: user?.id,
-      });
+      //TODO comment out for now
+      // AnalyticsService.page(pageName, {
+      //   page_path: pathname,
+      //   user_status: status,
+      //   user_id: user?.id,
+      // });
       previousPathname.current = pathname;
     }
   }, [pathname, status, isLoading]);
