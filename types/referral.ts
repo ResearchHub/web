@@ -25,6 +25,7 @@ export interface NetworkDetail {
   profileImage: string;
   referralBonusExpirationDate: string;
   isReferralBonusExpired: boolean;
+  username?: string;
 }
 
 export interface TransformedNetworkDetailsResult {
@@ -49,6 +50,7 @@ export interface ModNetworkDetail extends NetworkDetail {
     userId: number;
     fullName: string;
     profileImage: string;
+    username: string;
   };
 }
 
@@ -127,10 +129,12 @@ const baseTransformModNetworkDetail = (raw: any): ModNetworkDetail => {
       profileImage: '',
       referralBonusExpirationDate: '',
       isReferralBonusExpired: false,
+      username: '',
       referrerUser: {
         userId: 0,
         fullName: '',
         profileImage: '',
+        username: '',
       },
     };
   }
@@ -145,10 +149,12 @@ const baseTransformModNetworkDetail = (raw: any): ModNetworkDetail => {
     profileImage: raw.referred_user?.profile_image || '',
     referralBonusExpirationDate: raw.referred_user?.referral_bonus_expiration_date || '',
     isReferralBonusExpired: raw.referred_user?.is_referral_bonus_expired || false,
+    username: raw.referred_user?.username || '',
     referrerUser: {
       userId: raw.referrer?.id || 0,
       fullName: raw.referrer?.full_name || '',
       profileImage: raw.referrer?.profile_image || '',
+      username: raw.referrer?.username || '',
     },
   };
 };

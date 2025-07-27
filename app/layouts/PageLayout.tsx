@@ -6,6 +6,7 @@ import { OnboardingRedirect } from '@/components/OnboardingRedirect';
 import { usePathname } from 'next/navigation';
 import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
 import { OnboardingModal } from '@/components/Onboarding/OnboardingModal';
+import { cn } from '@/lib/utils';
 // Dynamically import sidebar components
 const LeftSidebar = dynamic(() => import('./LeftSidebar').then((mod) => mod.LeftSidebar), {
   ssr: true,
@@ -48,9 +49,10 @@ const RightSidebarSkeleton = () => (
 interface PageLayoutProps {
   children: ReactNode;
   rightSidebar?: boolean | ReactNode;
+  className?: string;
 }
 
-export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
+export function PageLayout({ children, rightSidebar = true, className }: PageLayoutProps) {
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [overlayVisible, setOverlayVisible] = useState(false);
@@ -209,13 +211,11 @@ export function PageLayout({ children, rightSidebar = true }: PageLayoutProps) {
           style={{ maxWidth: '100vw' }}
         >
           <div
-            className="w-full
-              max-w-full
-              tablet:!max-w-2xl
-              content-md:!max-w-2xl
-              content-lg:!max-w-3xl
-              content-xl:!max-w-4xl
-            "
+            className={cn(
+              'w-full',
+              'max-w-full tablet:!max-w-2xl content-md:!max-w-2xl content-lg:!max-w-3xl content-xl:!max-w-4xl',
+              className
+            )}
           >
             {children}
           </div>

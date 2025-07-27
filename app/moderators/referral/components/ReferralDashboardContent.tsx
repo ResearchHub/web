@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { TableContainer, SortableColumn, MobileTableCard } from '@/components/ui/Table';
 import { Avatar } from '@/components/ui/Avatar';
 import { ModNetworkDetail } from '@/types/referral';
@@ -7,9 +8,15 @@ import { formatTimestamp } from '@/utils/date';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useModReferralNetworkDetails } from '@/hooks/useReferral';
 import { ReferralTableSkeleton } from '@/components/skeletons/ReferralTableSkeleton';
+import { ReferralMobileSkeleton } from '@/components/skeletons/ReferralMobileSkeleton';
+import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
+import { ChevronDown } from 'lucide-react';
+import { ModerationSidebar } from '@/components/Moderators/ModerationSidebar';
 
 export default function ReferralDashboardContent() {
   const { mdAndUp } = useScreenSize();
+  const [pageSize, setPageSize] = useState(10);
+
   const {
     networkDetails: data,
     isLoading,
@@ -22,7 +29,13 @@ export default function ReferralDashboardContent() {
     goToNextPage,
     goToPrevPage,
     refetch,
-  } = useModReferralNetworkDetails(10);
+  } = useModReferralNetworkDetails(pageSize);
+
+  const pageSizeOptions = [5, 10, 20, 50];
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+  };
 
   const columns: SortableColumn[] = [
     { key: 'referrerUser', label: 'Referrer', sortable: false },
@@ -55,9 +68,14 @@ export default function ReferralDashboardContent() {
               size="sm"
               className="flex-shrink-0"
             />
-            <span className="font-medium text-gray-900 truncate">
-              {row.referrerUser?.fullName || 'Unknown User'}
-            </span>
+            <div className="flex flex-col min-w-0">
+              <span className="font-medium text-gray-900 truncate">
+                {row.referrerUser?.fullName || 'Unknown User'}
+              </span>
+              {row.referrerUser?.username && (
+                <span className="text-gray-500 truncate text-xs">{row.referrerUser.username}</span>
+              )}
+            </div>
           </div>
         );
 
@@ -70,9 +88,16 @@ export default function ReferralDashboardContent() {
               size="sm"
               className="flex-shrink-0"
             />
-            <span className="font-medium text-gray-900 truncate">
-              {row.fullName || 'Unknown User'}
-            </span>
+            <div className="flex flex-col min-w-0">
+              <span className="font-medium text-gray-900 truncate">
+                {row.fullName || 'Unknown User'}
+              </span>
+              {row.username && (
+                <span className="text-gray-500 truncate text-xs" aria-label={row.username}>
+                  {row.username}
+                </span>
+              )}
+            </div>
           </div>
         );
 
@@ -117,21 +142,31 @@ export default function ReferralDashboardContent() {
 
   const mobileData = data.map((row) => ({
     referrerUser: (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-start flex-row-reverse gap-2">
         <Avatar
           src={row.referrerUser?.profileImage || ''}
           alt={row.referrerUser?.fullName || 'Unknown User'}
           size="xs"
         />
-        <span className="font-medium text-gray-900 truncate">
-          {row.referrerUser?.fullName || 'Unknown User'}
-        </span>
+        <div className="flex flex-col min-w-0">
+          <span className="font-medium text-gray-900 truncate">
+            {row.referrerUser?.fullName || 'Unknown User'}
+          </span>
+          {row.referrerUser?.username && (
+            <span className="text-gray-500 truncate text-xs">{row.referrerUser.username}</span>
+          )}
+        </div>
       </div>
     ),
     fullName: (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-start flex-row-reverse gap-2">
         <Avatar src={row.profileImage || ''} alt={row.fullName || 'Unknown User'} size="xs" />
-        <span className="font-medium text-gray-900 truncate">{row.fullName || 'Unknown User'}</span>
+        <div className="flex flex-col min-w-0">
+          <span className="font-medium text-gray-900 truncate">
+            {row.fullName || 'Unknown User'}
+          </span>
+          {row.username && <span className="text-gray-500 truncate text-xs">{row.username}</span>}
+        </div>
       </div>
     ),
     signupDate: formatTimestamp(row.signupDate),
@@ -150,7 +185,7 @@ export default function ReferralDashboardContent() {
 
   if (error) {
     return (
-      <div className="h-full flex flex-col">
+      <div className="h-full flex flex-col p-4">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
           <div className="px-6 py-4">
@@ -182,28 +217,53 @@ export default function ReferralDashboardContent() {
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col p-4">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Referral Network</h1>
-              <p className="text-sm text-gray-600 mt-1">
-                Track users who have been referred and their funding activity
-              </p>
-            </div>
+      <div className={`bg-white border-b border-gray-200 z-10`}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">Referral Network</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Track users who have been referred and their funding activity
+            </p>
           </div>
         </div>
       </div>
 
       {/* Main content area with table */}
-      <div className="flex-1 overflow-auto">
+      <div className={`flex-1 overflow-auto ${mdAndUp ? 'py-4' : 'py-6'}`}>
+        {/* Page Size Selector */}
+        <div className="pb-4">
+          <div className="flex items-center justify-end">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-700">Show</span>
+              <Dropdown
+                trigger={
+                  <button className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <span>{pageSize}</span>
+                    <ChevronDown className="w-4 h-4 text-gray-500" />
+                  </button>
+                }
+                className="w-20"
+              >
+                {pageSizeOptions.map((size) => (
+                  <DropdownItem
+                    key={size}
+                    onClick={() => handlePageSizeChange(size)}
+                    className={pageSize === size ? 'bg-blue-50 text-blue-700' : ''}
+                  >
+                    {size}
+                  </DropdownItem>
+                ))}
+              </Dropdown>
+            </div>
+          </div>
+        </div>
         {/* Desktop Table View */}
         {mdAndUp && (
-          <div className="w-full overflow-x-auto max-w-full mx-auto p-6">
+          <div className="w-full overflow-x-auto max-w-full mx-auto">
             {isLoading ? (
-              <ReferralTableSkeleton columns={columns} rowCount={10} />
+              <ReferralTableSkeleton columns={columns} rowCount={pageSize} />
             ) : (
               <TableContainer
                 columns={columns}
@@ -233,29 +293,12 @@ export default function ReferralDashboardContent() {
 
         {/* Mobile Card View */}
         {!mdAndUp && (
-          <div className="p-4 space-y-4">
-            {isLoading
-              ? // Mobile skeleton
-                Array.from({ length: 10 }).map((_, index) => (
-                  <div
-                    key={index}
-                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 animate-pulse"
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full" />
-                      <div className="flex-1">
-                        <div className="h-4 bg-gray-200 rounded w-32 mb-1" />
-                        <div className="h-3 bg-gray-200 rounded w-24" />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="h-3 bg-gray-200 rounded w-20" />
-                      <div className="h-3 bg-gray-200 rounded w-16" />
-                      <div className="h-3 bg-gray-200 rounded w-24" />
-                    </div>
-                  </div>
-                ))
-              : mobileData.map((row, index) => (
+          <div>
+            {isLoading ? (
+              <ReferralMobileSkeleton rowCount={pageSize} />
+            ) : (
+              <div className="space-y-4">
+                {mobileData.map((row, index) => (
                   <MobileTableCard
                     key={data[index]?.authorId || index}
                     data={row}
@@ -264,6 +307,8 @@ export default function ReferralDashboardContent() {
                     className="shadow-sm"
                   />
                 ))}
+              </div>
+            )}
           </div>
         )}
 
