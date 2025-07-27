@@ -34,10 +34,15 @@ export function mapGraphQLPaperToWork(paper: Paper): TransformedWork {
     renderable_text: transformedPaper.abstract,
     authors: [],
     raw_authors: transformedPaper.authors
-      ? transformedPaper.authors.split(',').map((author: string) => ({
-          first_name: author.trim().split(' ')[0] || '',
-          last_name: author.trim().split(' ').slice(1).join(' ') || '',
-        }))
+      ? Array.isArray(transformedPaper.authors)
+        ? transformedPaper.authors.map((author: string) => ({
+            first_name: author.trim().split(' ')[0] || '',
+            last_name: author.trim().split(' ').slice(1).join(' ') || '',
+          }))
+        : transformedPaper.authors.split(',').map((author: string) => ({
+            first_name: author.trim().split(' ')[0] || '',
+            last_name: author.trim().split(' ').slice(1).join(' ') || '',
+          }))
       : [],
     hubs: [],
     pdf_url: transformedPaper.pdfUrl,

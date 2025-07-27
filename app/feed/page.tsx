@@ -10,7 +10,7 @@ import { useFeedFilters } from '@/hooks/useFeedFilters';
 import { Loader } from '@/components/ui/Loader';
 import { Alert } from '@/components/ui/Alert';
 import { AdvancedFilter } from '@/components/Feed/AdvancedFilter';
-import { PaperCard } from '@/components/Feed/PaperCard';
+import { FeedItemPaperV2 } from '@/components/Feed/items/FeedItemPaperV2';
 import { FeedControls } from '@/components/Feed/FeedControls';
 import { Button } from '@/components/ui/Button';
 import { ChevronDown, Search } from 'lucide-react';
@@ -48,7 +48,7 @@ function FeedContent() {
       case 'best':
         return { sortBy: 'RELEVANCE', sortOrder: 'DESC' };
       case 'trending':
-        return { sortBy: 'IMPACT_SCORE', sortOrder: 'DESC' };
+        return { sortBy: 'TRENDING', sortOrder: 'DESC' };
       case 'newest':
         return { sortBy: 'DATE', sortOrder: 'DESC' };
       default:
@@ -194,7 +194,7 @@ function FeedContent() {
         </div>
 
         {/* Show skeletons while initially loading */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           {[...Array(8)].map((_, i) => (
             <FeedItemSkeleton key={`initial-skeleton-${i}`} />
           ))}
@@ -275,7 +275,7 @@ function FeedContent() {
           <p>{error.message}</p>
         </Alert>
       ) : isInitialLoading ? (
-        <div className="space-y-4 mt-4">
+        <div className="space-y-12 mt-4">
           {[...Array(8)].map((_, i) => (
             <FeedItemSkeleton key={`initial-skeleton-${i}`} />
           ))}
@@ -288,9 +288,9 @@ function FeedContent() {
             </p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-12">
             {papers.map((paper, index) => (
-              <PaperCard
+              <FeedItemPaperV2
                 key={`${paper.doi || paper.id}-${index}`}
                 paper={paper}
                 graphqlData={rawPapers[index]}
