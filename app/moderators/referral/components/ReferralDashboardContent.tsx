@@ -11,7 +11,6 @@ import { ReferralTableSkeleton } from '@/components/skeletons/ReferralTableSkele
 import { ReferralMobileSkeleton } from '@/components/skeletons/ReferralMobileSkeleton';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
 import { ChevronDown } from 'lucide-react';
-import { ModerationSidebar } from '@/components/Moderators/ModerationSidebar';
 
 export default function ReferralDashboardContent() {
   const { mdAndUp } = useScreenSize();
@@ -25,7 +24,6 @@ export default function ReferralDashboardContent() {
     totalPages,
     hasNextPage,
     hasPrevPage,
-    goToPage,
     goToNextPage,
     goToPrevPage,
     refetch,
@@ -45,8 +43,6 @@ export default function ReferralDashboardContent() {
     { key: 'referralBonusEarned', label: 'Credits Earned', sortable: false },
     { key: 'isReferralBonusExpired', label: 'Status', sortable: false },
   ];
-
-  // Remove the handleSort function since sorting is not available
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
