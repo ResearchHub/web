@@ -53,7 +53,11 @@ export function ReferralLinkCard() {
       referralCode,
     });
 
-    const text = `Join me on ResearchHub and let's accelerate science together! We both get a 10% bonus on funding. #ResearchHub #Science`;
+    const text = `Fund breakthrough science with me on @ResearchHub!
+
+Join with my link and we'll both receive a 10% bonus on every $RSC you donate over the next 6 months 💰🧪
+
+`;
     const url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(
       referralLink
     )}&text=${encodeURIComponent(text)}`;
@@ -66,7 +70,9 @@ export function ReferralLinkCard() {
       referralCode,
     });
 
-    const text = `Join me on ResearchHub, a platform for accelerating science. When you join and fund a project, we both get a 10% bonus. Let's make an impact together.`;
+    const text = `Fund breakthrough science with me on ResearchHub! 
+
+Join with my link and we'll both receive a 10% bonus on every $RSC you donate over the next 6 months. Let's accelerate science together! 💰🧪`;
     const url = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(
       referralLink
     )}&title=${encodeURIComponent('Join ResearchHub')}&summary=${encodeURIComponent(text)}`;
@@ -79,7 +85,11 @@ export function ReferralLinkCard() {
       referralCode,
     });
 
-    const text = `Join me on ResearchHub and let's accelerate science together! We both get a 10% bonus on funding. ${referralLink}`;
+    const text = `Fund breakthrough science with me on ResearchHub! 
+
+Join with my link and we'll both receive a 10% bonus on every $RSC you donate over the next 6 months 💰🧪
+
+${referralLink}`;
     const url = `https://bsky.app/intent/compose?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
   };

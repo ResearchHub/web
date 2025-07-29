@@ -12,7 +12,7 @@ export const featureNotificationsConfig: FeatureNotificationConfig = {
       description: 'Invite friends to ResearchHub and earn funding credits when they contribute!',
       icon: <UserPlus className="w-6 h-6 text-gray-500" />,
       cookieName: 'feature_notification_referral_program',
-      showForAllUsers: false, // only for logged in users
+      showForAllUsers: true, // show for all users
       priority: 'high',
       ctaText: 'Refer and earn 10%',
       ctaUrl: '/referral',
