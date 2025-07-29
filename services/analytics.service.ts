@@ -17,6 +17,7 @@ export const LogEvent = {
   CLICKED_SHARE_VIA_URL: 'clicked_share_via_url',
   CLICKED_SHARE_VIA_BLUESKY: 'clicked_share_via_bluesky',
   CLICKED_SHARE_VIA_QR_CODE: 'clicked_share_via_qr_code',
+  SIGNED_UP: 'signed_up',
 } as const;
 
 export type LogEventValue = (typeof LogEvent)[keyof typeof LogEvent];
@@ -29,30 +30,54 @@ class AnalyticsService {
     google: true, // No specific init needed for GA via next/third-parties
   };
 
-  static init() {
-    if (this.isInitialized.amplitude) {
-      return;
-    }
+  private static userId: string | null = null;
 
+  static init(userId: string | null) {
     const apiKey = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY;
     if (!apiKey) {
       console.error('Amplitude API key not found.');
       return;
     }
 
-    amplitude.init(apiKey, {
-      defaultTracking: true,
-    });
-    this.isInitialized.amplitude = true;
+    const paddedUserId = userId ? userId.toString().padStart(6, '0') : null;
+
+    if (!this.isInitialized.amplitude) {
+      // First time initialization
+      amplitude.init(apiKey, paddedUserId || undefined, {
+        autocapture: true,
+      });
+      this.isInitialized.amplitude = true;
+    } else if (userId && this.userId !== userId) {
+      // Already initialized but user ID changed - update the user ID
+      amplitude.setUserId(paddedUserId ?? undefined);
+    }
+
+    this.userId = paddedUserId;
   }
 
   static setUserId(userId: string | null) {
-    this.init();
+    this.init(userId || this.userId);
     if (!this.isInitialized.amplitude) {
       console.error('Amplitude not initialized before setting user ID.');
       return;
     }
-    amplitude.setUserId(userId ?? undefined);
+
+    const paddedUserId = userId ? userId.toString().padStart(6, '0') : null;
+
+    amplitude.setUserId(paddedUserId ?? undefined);
+  }
+
+  static setUserProperties(userProperties: { user_id: string | null } & Record<string, any>) {
+    this.init(userProperties.user_id || this.userId);
+    if (!this.isInitialized.amplitude) {
+      console.error('Amplitude not initialized before setting user properties.');
+      return;
+    }
+    const identify = new amplitude.Identify();
+    Object.entries(userProperties).forEach(([key, value]) => {
+      identify.set(key, value);
+    });
+    amplitude.identify(identify);
   }
 
   static async logEvent(
@@ -60,7 +85,7 @@ class AnalyticsService {
     eventProperties?: Record<string, any>,
     providers: AnalyticsProvider[] = ['amplitude', 'google']
   ) {
-    this.init();
+    this.init(this.userId);
     const promises = [];
     for (const provider of providers) {
       switch (provider) {
@@ -86,6 +111,27 @@ class AnalyticsService {
       }
     }
     await Promise.all(promises);
+  }
+
+  static async logSignedUp(
+    provider: 'google' | 'credentials',
+    additionalProperties?: Record<string, any>
+  ) {
+    await this.logEvent(LogEvent.SIGNED_UP, {
+      ...additionalProperties,
+      provider: provider,
+    });
+  }
+
+  static clearUserSession() {
+    this.init(this.userId);
+    if (!this.isInitialized.amplitude) {
+      console.error('Amplitude not initialized before clearing user session.');
+      return;
+    }
+
+    this.userId = null;
+    amplitude.reset();
   }
 }
 

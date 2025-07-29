@@ -5,6 +5,7 @@ import { isValidEmail } from '@/utils/validation';
 import { useAutoFocus } from '@/hooks/useAutoFocus';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { useReferral } from '@/contexts/ReferralContext';
+import { Experiment, getHomepageExperimentVariant } from '@/utils/experiment';
 
 interface SelectProviderProps {
   onContinue: () => void;
@@ -45,7 +46,18 @@ export default function SelectProvider({
       if (response.exists) {
         if (response.auth === 'google') {
           // Prompt user to use Google sign-in
-          signIn('google');
+          const originalCallbackUrl = '/';
+          let finalCallbackUrl = originalCallbackUrl;
+
+          const experimentVariant = getHomepageExperimentVariant();
+          if (experimentVariant) {
+            // Create URL with experiment parameter
+            const experimentUrl = new URL(originalCallbackUrl, window.location.origin);
+            experimentUrl.searchParams.set(Experiment.HomepageExperiment, experimentVariant);
+            finalCallbackUrl = experimentUrl.toString();
+          }
+
+          signIn('google', { callbackUrl: finalCallbackUrl });
         } else if (response.is_verified) {
           onContinue();
         } else {
@@ -76,9 +88,15 @@ export default function SelectProvider({
       finalCallbackUrl = referralUrl.toString();
     }
 
-    signIn('google', {
-      callbackUrl: finalCallbackUrl,
-    });
+    const homepageExperimentVariant = getHomepageExperimentVariant();
+    if (homepageExperimentVariant) {
+      // Create URL with experiment parameter
+      const experimentUrl = new URL(finalCallbackUrl, window.location.origin);
+      experimentUrl.searchParams.set(Experiment.HomepageExperiment, homepageExperimentVariant);
+      finalCallbackUrl = experimentUrl.toString();
+    }
+
+    signIn('google', { callbackUrl: finalCallbackUrl });
   };
 
   return (

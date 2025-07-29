@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { AuthService } from '@/services/auth.service';
-import { ApiError } from '@/services/types/api';
 import { BaseScreenProps } from '../types';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAutoFocus } from '@/hooks/useAutoFocus';
@@ -9,7 +8,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft } from '@fortawesome/pro-light-svg-icons';
 import { Button } from '@/components/ui/Button';
 import { useReferral } from '@/contexts/ReferralContext';
-import { ReferralService } from '@/services/referral.service';
+import AnalyticsService from '@/services/analytics.service';
+import { Experiment, ExperimentVariant, isExperimentEnabled } from '@/utils/experiment';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
@@ -60,6 +60,13 @@ export default function Signup({
       };
 
       await AuthService.register(registrationData);
+
+      AnalyticsService.logSignedUp('credentials', {
+        homepage_experiment: isExperimentEnabled(Experiment.HomepageExperiment)
+          ? ExperimentVariant.B
+          : ExperimentVariant.A,
+      });
+
       onVerify();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');

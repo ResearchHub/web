@@ -161,7 +161,7 @@ export function AuthorsAndAffiliations({ authors, onChange }: AuthorsAndAffiliat
                   {/* Individual Author Position Badge */}
                   <Badge
                     variant="default"
-                    className="absolute top-0 left-0 -translate-y-1/2 translate-x-2 z-10 px-1.5 py-0.5 text-[10px] font-medium"
+                    className="absolute top-0 left-0 -translate-y-1/2 translate-x-2 z-1 px-1.5 py-0.5 text-[10px] font-medium"
                   >
                     {badgeText}
                   </Badge>

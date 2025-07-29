@@ -150,7 +150,7 @@ export function AutocompleteSelect<T = any>({
         </label>
       )}
       <Combobox value={value} onChange={handleChange} disabled={disabled} by="value">
-        <label htmlFor={id} className="relative">
+        <label htmlFor={id} className="block relative">
           <div
             className={cn(
               'relative w-full border border-gray-200 rounded-lg bg-white text-left transition-colors',

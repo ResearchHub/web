@@ -84,7 +84,7 @@ export const FundingCarousel: FC<FundingCarouselProps> = () => {
   return (
     <div className="border-primary-100 my-12 relative">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-4 mb-4">
+      <div className="flex flex-col sm:!flex-row sm:!justify-between sm:!items-center gap-2 sm:!gap-4 mb-4">
         <div className="flex-1 min-w-0">
           <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
             <span>
