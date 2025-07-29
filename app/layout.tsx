@@ -25,6 +25,7 @@ import ApmProvider from '@/components/ApmProvider';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { Analytics } from '@vercel/analytics/react';
 import { ReferralProvider } from '@/contexts/ReferralContext';
+import { FeatureNotifications } from '@/components/FeatureNotifications';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -130,6 +131,7 @@ export default async function RootLayout({
                               <NotificationProvider>
                                 <OrganizationProvider>
                                   <FollowProvider>{children}</FollowProvider>
+                                  <FeatureNotifications />
                                 </OrganizationProvider>
                               </NotificationProvider>
                             </CurrencyPreferenceProvider>
