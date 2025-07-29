@@ -1,6 +1,14 @@
 import { ApiClient } from './client';
-import type { TransformedReferralMetrics, TransformedNetworkDetailsResult } from '@/types/referral';
-import { transformReferralMetrics, transformNetworkDetailsPaginated } from '@/types/referral';
+import type {
+  TransformedReferralMetrics,
+  TransformedNetworkDetailsResult,
+  TransformedModNetworkDetailsResult,
+} from '@/types/referral';
+import {
+  transformReferralMetrics,
+  transformNetworkDetailsPaginated,
+  transformModNetworkDetailsPaginated,
+} from '@/types/referral';
 
 export class ReferralError extends Error {
   constructor(
@@ -95,6 +103,33 @@ export class ReferralService {
     } catch (error) {
       throw new ReferralError(
         'Failed to fetch network details',
+        error instanceof Error ? error.message : 'UNKNOWN_ERROR'
+      );
+    }
+  }
+
+  /**
+   * Gets moderator network details from the real API endpoint
+   * @param params - Pagination parameters
+   * @throws {ReferralError} When the request fails
+   */
+  static async getModNetworkDetails(params: {
+    page: number;
+    pageSize: number;
+  }): Promise<TransformedModNetworkDetailsResult> {
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', params.page.toString());
+      queryParams.append('page_size', params.pageSize.toString());
+
+      const url = `${this.BASE_PATH}/monitoring/monitor/?${queryParams.toString()}`;
+
+      const response = await ApiClient.get<any>(url);
+
+      return transformModNetworkDetailsPaginated(params.pageSize)(response);
+    } catch (error) {
+      throw new ReferralError(
+        'Failed to fetch moderator network details',
         error instanceof Error ? error.message : 'UNKNOWN_ERROR'
       );
     }

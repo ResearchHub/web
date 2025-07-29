@@ -1,13 +1,14 @@
 'use client';
 
 import { FC } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Tabs } from '@/components/ui/Tabs';
 import { Badge } from '@/components/ui/Badge';
 import { AuditStatus } from '@/hooks/useAudit';
 
 interface AuditTabsProps {
   activeStatus: AuditStatus;
   onStatusChange: (status: AuditStatus) => void;
+  loading?: boolean;
   statusCounts?: {
     pending: number;
     dismissed: number;
@@ -27,62 +28,64 @@ const statusColors: Record<AuditStatus, string> = {
   removed: 'bg-red-100 text-red-800',
 };
 
-export const AuditTabs: FC<AuditTabsProps> = ({ activeStatus, onStatusChange, statusCounts }) => {
+export const AuditTabs: FC<AuditTabsProps> = ({
+  activeStatus,
+  onStatusChange,
+  statusCounts,
+  loading,
+}) => {
   // Temporarily disable 'removed' tab due to backend issues
   const statuses: AuditStatus[] = ['pending', 'dismissed'];
   const disabledStatuses: AuditStatus[] = ['removed'];
 
+  const tabs = [
+    // Active tabs
+    ...statuses.map((status) => ({
+      id: status,
+      label: (
+        <div className="flex items-center space-x-2">
+          <span>{statusLabels[status]}</span>
+          {statusCounts?.[status] !== undefined && (
+            <Badge
+              className={`text-xs ${
+                activeStatus === status ? statusColors[status] : 'bg-gray-200 text-gray-600'
+              }`}
+            >
+              {statusCounts[status]}
+            </Badge>
+          )}
+        </div>
+      ),
+    })),
+    // Disabled tabs
+    ...disabledStatuses.map((status) => ({
+      id: status,
+      label: (
+        <div className="flex items-center space-x-2 opacity-50">
+          <span>{statusLabels[status]}</span>
+          {statusCounts?.[status] !== undefined && (
+            <Badge className="text-xs bg-gray-200 text-gray-400">{statusCounts[status]}</Badge>
+          )}
+        </div>
+      ),
+      disabled: true,
+    })),
+  ];
+
+  const handleTabChange = (tabId: string) => {
+    // Only allow changes to active tabs
+    if (statuses.includes(tabId as AuditStatus)) {
+      onStatusChange(tabId as AuditStatus);
+    }
+  };
+
   return (
-    <div className="flex items-center space-x-1 p-1 bg-gray-100 rounded-lg">
-      {/* Active tabs */}
-      {statuses.map((status) => {
-        const isActive = activeStatus === status;
-        const count = statusCounts?.[status];
-
-        return (
-          <Button
-            key={status}
-            variant={isActive ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => onStatusChange(status)}
-            className={`flex items-center space-x-2 ${
-              isActive ? 'bg-primary-500 shadow-sm' : 'hover:bg-primary-100/50'
-            }`}
-          >
-            <span>{statusLabels[status]}</span>
-            {count !== undefined && (
-              <Badge
-                className={`text-xs ${
-                  isActive ? statusColors[status] : 'bg-gray-200 text-gray-600'
-                }`}
-              >
-                {count}
-              </Badge>
-            )}
-          </Button>
-        );
-      })}
-
-      {/* Disabled tabs */}
-      {disabledStatuses.map((status) => {
-        const count = statusCounts?.[status];
-
-        return (
-          <Button
-            key={status}
-            variant="ghost"
-            size="sm"
-            disabled
-            className="flex items-center space-x-2 opacity-50 cursor-not-allowed"
-            title="Temporarily disabled due to server issues"
-          >
-            <span>{statusLabels[status]}</span>
-            {count !== undefined && (
-              <Badge className="text-xs bg-gray-200 text-gray-400">{count}</Badge>
-            )}
-          </Button>
-        );
-      })}
-    </div>
+    <Tabs
+      tabs={tabs}
+      activeTab={activeStatus}
+      onTabChange={handleTabChange}
+      variant="primary"
+      disabled={loading}
+    />
   );
 };

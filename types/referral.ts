@@ -25,6 +25,7 @@ export interface NetworkDetail {
   profileImage: string;
   referralBonusExpirationDate: string;
   isReferralBonusExpired: boolean;
+  username?: string;
 }
 
 export interface TransformedNetworkDetailsResult {
@@ -33,8 +34,27 @@ export interface TransformedNetworkDetailsResult {
   pageSize: number;
 }
 
+// New interface for moderator network details result
+export interface TransformedModNetworkDetailsResult {
+  networkDetails: TransformedModNetworkDetail[];
+  count: number;
+  pageSize: number;
+}
+
 export type TransformedReferralMetrics = ReferralMetrics & BaseTransformed;
 export type TransformedNetworkDetail = NetworkDetail & BaseTransformed;
+
+// Extended type for moderator view with referrer information
+export interface ModNetworkDetail extends NetworkDetail {
+  referrerUser: {
+    userId: number;
+    fullName: string;
+    profileImage: string;
+    username: string;
+  };
+}
+
+export type TransformedModNetworkDetail = ModNetworkDetail & BaseTransformed;
 
 const baseTransformReferralMetrics = (raw: any): ReferralMetrics => {
   if (!raw) {
@@ -98,6 +118,47 @@ const baseTransformNetworkDetail = (raw: any): NetworkDetail => {
   };
 };
 
+const baseTransformModNetworkDetail = (raw: any): ModNetworkDetail => {
+  if (!raw) {
+    return {
+      signupDate: '',
+      totalFunded: 0,
+      referralBonusEarned: 0,
+      authorId: 0,
+      fullName: '',
+      profileImage: '',
+      referralBonusExpirationDate: '',
+      isReferralBonusExpired: false,
+      username: '',
+      referrerUser: {
+        userId: 0,
+        fullName: '',
+        profileImage: '',
+        username: '',
+      },
+    };
+  }
+
+  // Transform from the new API structure
+  return {
+    signupDate: raw.referred_user?.signup_date || '',
+    totalFunded: raw.referred_user?.total_funded || 0,
+    referralBonusEarned: raw.referred_user?.referral_bonus_earned || 0,
+    authorId: raw.referred_user?.author_id || 0,
+    fullName: raw.referred_user?.full_name || raw.referred_user?.username || '',
+    profileImage: raw.referred_user?.profile_image || '',
+    referralBonusExpirationDate: raw.referred_user?.referral_bonus_expiration_date || '',
+    isReferralBonusExpired: raw.referred_user?.is_referral_bonus_expired || false,
+    username: raw.referred_user?.username || '',
+    referrerUser: {
+      userId: raw.referrer?.id || 0,
+      fullName: raw.referrer?.full_name || '',
+      profileImage: raw.referrer?.profile_image || '',
+      username: raw.referrer?.username || '',
+    },
+  };
+};
+
 const baseTransformNetworkDetailsResult = (
   raw: any,
   pageSize: number
@@ -128,6 +189,36 @@ const baseTransformNetworkDetailsResult = (
   };
 };
 
+const baseTransformModNetworkDetailsResult = (
+  raw: any,
+  pageSize: number
+): TransformedModNetworkDetailsResult => {
+  if (!raw) {
+    return {
+      networkDetails: [],
+      count: 0,
+      pageSize,
+    };
+  }
+
+  const networkDetails = (raw.results || [])
+    .map((detail: any) => {
+      try {
+        return baseTransformModNetworkDetail(detail);
+      } catch (error) {
+        console.error('Error transforming mod network detail:', error, detail);
+        return null;
+      }
+    })
+    .filter((detail: any): detail is ModNetworkDetail => !!detail);
+
+  return {
+    networkDetails,
+    count: raw.count || 0,
+    pageSize,
+  };
+};
+
 export const transformReferralMetrics = createTransformer<any, ReferralMetrics>(
   baseTransformReferralMetrics
 );
@@ -135,4 +226,9 @@ export const transformReferralMetrics = createTransformer<any, ReferralMetrics>(
 export const transformNetworkDetailsPaginated = (pageSize: number) =>
   createTransformer<any, TransformedNetworkDetailsResult>((raw) =>
     baseTransformNetworkDetailsResult(raw, pageSize)
+  );
+
+export const transformModNetworkDetailsPaginated = (pageSize: number) =>
+  createTransformer<any, TransformedModNetworkDetailsResult>((raw) =>
+    baseTransformModNetworkDetailsResult(raw, pageSize)
   );
