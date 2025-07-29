@@ -61,7 +61,7 @@ export function ResearchAreasSection({
   }, [onToggle]);
 
   const handleSubcategoryToggle = useCallback(
-    (subcategorySlug: string) => {
+    (subcategorySlug: string, categorySlug?: string) => {
       // Mark that we're selecting to prevent animation interruptions
       isSelectingRef.current = true;
 
@@ -75,6 +75,31 @@ export function ResearchAreasSection({
         isSelectingRef.current = false;
       }, 300);
 
+      // Find which category this subcategory belongs to
+      const category = categorySlug
+        ? categories.find((cat) => cat.slug === categorySlug)
+        : categories.find((cat) => cat.subcategories?.some((sub) => sub.slug === subcategorySlug));
+
+      if (category) {
+        const categorySubcategories = category.subcategories || [];
+        const categorySubcategorySlugs = categorySubcategories.map((sub) => sub.slug);
+        const allCategorySubsSelected = categorySubcategorySlugs.every((slug) =>
+          selectedSubcategories.includes(slug)
+        );
+
+        // If all subcategories in this category are selected and user clicks one,
+        // only keep that one selected from this category
+        if (allCategorySubsSelected && categorySubcategories.length > 1) {
+          // Remove all subcategories from this category, then add only the clicked one
+          const otherCategories = selectedSubcategories.filter(
+            (slug) => !categorySubcategorySlugs.includes(slug)
+          );
+          onSubcategoryChange([...otherCategories, subcategorySlug]);
+          return;
+        }
+      }
+
+      // Normal toggle behavior
       const isSelected = selectedSubcategories.includes(subcategorySlug);
 
       if (isSelected) {
@@ -84,6 +109,24 @@ export function ResearchAreasSection({
         const newSelection = [...selectedSubcategories, subcategorySlug];
         onSubcategoryChange(newSelection);
       }
+    },
+    [selectedSubcategories, onSubcategoryChange, categories]
+  );
+
+  const handleSelectAll = useCallback(
+    (categorySlug: string, subcategorySlugs: string[]) => {
+      // Add all subcategories from this category
+      const newSelection = [...new Set([...selectedSubcategories, ...subcategorySlugs])];
+      onSubcategoryChange(newSelection);
+    },
+    [selectedSubcategories, onSubcategoryChange]
+  );
+
+  const handleDeselectAll = useCallback(
+    (categorySlug: string, subcategorySlugs: string[]) => {
+      // Remove all subcategories from this category
+      const newSelection = selectedSubcategories.filter((slug) => !subcategorySlugs.includes(slug));
+      onSubcategoryChange(newSelection);
     },
     [selectedSubcategories, onSubcategoryChange]
   );
@@ -229,6 +272,8 @@ export function ResearchAreasSection({
                     selectedSubcategories={selectedSubcategories}
                     categoryIcon={CATEGORY_ICONS[category.slug]}
                     onSubcategoryToggle={handleSubcategoryToggle}
+                    onSelectAll={handleSelectAll}
+                    onDeselectAll={handleDeselectAll}
                   />
                 ))}
               </div>
@@ -243,14 +288,8 @@ export function ResearchAreasSection({
 // Export a fully self-contained version
 export const SelfContainedResearchAreasSection = memo(
   function SelfContainedResearchAreasSection(props: ResearchAreasSectionProps) {
-    // Use localStorage to persist state across re-renders
-    const [internalIsOpen, setInternalIsOpen] = React.useState(() => {
-      if (typeof window !== 'undefined') {
-        const saved = localStorage.getItem('researchAreasExpanded');
-        return saved === 'true';
-      }
-      return false;
-    });
+    // Always start collapsed, no localStorage persistence
+    const [internalIsOpen, setInternalIsOpen] = React.useState(false);
 
     // Track if we're currently animating to prevent interruptions
     const isAnimatingRef = React.useRef(false);
@@ -262,9 +301,6 @@ export const SelfContainedResearchAreasSection = memo(
       isAnimatingRef.current = true;
       setInternalIsOpen((prev) => {
         const newValue = !prev;
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('researchAreasExpanded', String(newValue));
-        }
         // Reset animation flag after animation completes
         setTimeout(() => {
           isAnimatingRef.current = false;

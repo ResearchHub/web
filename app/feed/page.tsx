@@ -11,7 +11,7 @@ import { Loader } from '@/components/ui/Loader';
 import { Alert } from '@/components/ui/Alert';
 import { AdvancedFilter } from '@/components/Feed/AdvancedFilter';
 import { FeedItemPaperV2 } from '@/components/Feed/items/FeedItemPaperV2';
-import { FeedControls } from '@/components/Feed/FeedControls';
+import { FeedControlsV2 } from '@/components/Feed/FeedControlsV2';
 import { Button } from '@/components/ui/Button';
 import { ChevronDown, Search } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
@@ -225,16 +225,16 @@ function FeedContent() {
       </div>
 
       {/* Filter Controls */}
-      <FeedControls
+      <FeedControlsV2
         sortBy={filters.sortBy}
         timePeriod={filters.timePeriod}
         showCustomize={showCustomize}
         activeFilterCount={activeFilterCount}
-        onSortChange={(sort) => {
+        onSortChange={(sort: string) => {
           updateFilters({ sortBy: sort });
           setOffset(0);
         }}
-        onTimePeriodChange={(period) => {
+        onTimePeriodChange={(period: string) => {
           updateFilters({ timePeriod: period });
           setOffset(0);
         }}

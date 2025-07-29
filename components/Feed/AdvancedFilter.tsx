@@ -12,8 +12,7 @@ import {
   ResearchAreasSection,
   SelfContainedResearchAreasSection,
 } from './filters/ResearchAreasSection';
-import { MLScoringSection } from './filters/MLScoringSection';
-import { SourcesSection } from './filters/SourcesSection';
+import { AdminSection } from './filters/AdminSection';
 import { SOURCES } from './filters/constants';
 
 interface AdvancedFilterProps {
@@ -24,6 +23,7 @@ interface AdvancedFilterProps {
   timePeriod: string;
   sortBy: string;
   useMlScoring: boolean;
+  hasEnrichment?: boolean;
   isUpdating?: boolean;
   onFilterChange: (filters: {
     categories: string[];
@@ -33,6 +33,7 @@ interface AdvancedFilterProps {
     timePeriod: string;
     sortBy: string;
     useMlScoring: boolean;
+    hasEnrichment: boolean;
   }) => void;
 }
 
@@ -44,6 +45,7 @@ function AdvancedFilterComponent({
   timePeriod,
   sortBy,
   useMlScoring,
+  hasEnrichment = true, // Default to true
   isUpdating = false,
   onFilterChange,
 }: AdvancedFilterProps) {
@@ -57,9 +59,8 @@ function AdvancedFilterComponent({
   // State for collapsible sections
   const [expandedSections, setExpandedSections] = useState({
     keywords: false,
-    sources: false,
+    admin: false,
     researchAreas: false, // Closed by default
-    mlScoring: false, // Changed to false - closed by default even when ML is on
   });
 
   // Get categories directly from the response
@@ -81,6 +82,7 @@ function AdvancedFilterComponent({
       timePeriod,
       sortBy,
       useMlScoring,
+      hasEnrichment,
     });
   };
 
@@ -94,6 +96,7 @@ function AdvancedFilterComponent({
         timePeriod,
         sortBy,
         useMlScoring,
+        hasEnrichment,
       });
     },
     [
@@ -103,6 +106,7 @@ function AdvancedFilterComponent({
       timePeriod,
       sortBy,
       useMlScoring,
+      hasEnrichment,
       onFilterChange,
     ]
   );
@@ -117,6 +121,7 @@ function AdvancedFilterComponent({
         timePeriod,
         sortBy,
         useMlScoring,
+        hasEnrichment,
       });
     },
     [
@@ -126,6 +131,7 @@ function AdvancedFilterComponent({
       timePeriod,
       sortBy,
       useMlScoring,
+      hasEnrichment,
       onFilterChange,
     ]
   );
@@ -139,6 +145,7 @@ function AdvancedFilterComponent({
       timePeriod,
       sortBy,
       useMlScoring,
+      hasEnrichment,
     });
   };
 
@@ -151,6 +158,20 @@ function AdvancedFilterComponent({
       timePeriod,
       sortBy,
       useMlScoring: enabled,
+      hasEnrichment,
+    });
+  };
+
+  const handleEnrichmentChange = (enabled: boolean) => {
+    onFilterChange({
+      categories: selectedCategories,
+      subcategories: selectedSubcategories,
+      sources: selectedSources,
+      keywords,
+      timePeriod,
+      sortBy,
+      useMlScoring,
+      hasEnrichment: enabled,
     });
   };
 
@@ -158,11 +179,12 @@ function AdvancedFilterComponent({
     onFilterChange({
       categories: [],
       subcategories: [],
-      sources: [],
+      sources: [], // Empty array means "All sources"
       keywords: [],
       timePeriod: 'LAST_WEEK',
       sortBy: 'best',
       useMlScoring: true, // Changed from false to true - ML scoring stays on when clearing
+      hasEnrichment: true, // Default to true
     });
   };
 
@@ -243,20 +265,16 @@ function AdvancedFilterComponent({
               onSubcategoryChange={handleSubcategoriesChange}
             />
 
-            {/* Advanced Options Section */}
-            <MLScoringSection
+            {/* Admin Section - ML Scoring and Sources */}
+            <AdminSection
               useMlScoring={useMlScoring}
-              isExpanded={expandedSections.mlScoring}
-              onToggle={() => toggleSection('mlScoring')}
-              onMlScoringChange={handleMlScoringChange}
-            />
-
-            {/* Sources Section */}
-            <SourcesSection
+              hasEnrichment={hasEnrichment}
               sources={SOURCES}
               selectedSources={selectedSources}
-              isExpanded={expandedSections.sources}
-              onToggle={() => toggleSection('sources')}
+              isExpanded={expandedSections.admin}
+              onToggle={() => toggleSection('admin')}
+              onMlScoringChange={handleMlScoringChange}
+              onEnrichmentChange={handleEnrichmentChange}
               onSourcesChange={handleSourcesChange}
             />
           </div>

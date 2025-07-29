@@ -1,4 +1,10 @@
-export const SOURCES = [
+export interface Source {
+  value: string;
+  label: string;
+  logo: string;
+}
+
+export const SOURCES: Source[] = [
   { value: 'biorxiv', label: 'bioRxiv', logo: '/logos/biorxiv.jpg' },
   { value: 'arxiv', label: 'arXiv', logo: '/logos/arxiv.png' },
   { value: 'medrxiv', label: 'medRxiv', logo: '/logos/medrxiv.jpg' },
