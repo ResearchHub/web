@@ -68,7 +68,7 @@ export function getReferralMetadata({
     title,
     description,
     url,
-    image: '/images/lab.jpg',
+    image: '/referral/lab.webp',
     type: 'website',
     tags: [
       'ResearchHub',

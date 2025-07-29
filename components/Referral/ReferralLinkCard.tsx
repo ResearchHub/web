@@ -148,7 +148,7 @@ export function ReferralLinkCard() {
         </div>
         <div className="hidden md:!block w-80 relative flex-shrink-0">
           <Image
-            src="/images/lab.jpg"
+            src="/referral/lab.webp"
             alt="Science lab illustration"
             fill
             className="object-cover"
