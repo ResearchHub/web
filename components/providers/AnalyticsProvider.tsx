@@ -5,7 +5,7 @@ import AnalyticsService from '@/services/analytics.service';
 
 const AnalyticsProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
-    AnalyticsService.init();
+    AnalyticsService.init(null);
   }, []);
 
   return <>{children}</>;

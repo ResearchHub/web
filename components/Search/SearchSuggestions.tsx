@@ -5,6 +5,7 @@ import { cn } from '@/utils/styles';
 import { SearchSuggestion } from '@/types/search';
 import type { EntityType } from '@/types/search';
 import { FollowTopicButton } from '@/components/ui/FollowTopicButton';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface SearchSuggestionsProps {
   query: string;
@@ -129,14 +130,26 @@ export function SearchSuggestions({
       // Get the smaller icon variant for dropdown mode
       const getSmallIcon = () => {
         if (suggestion.isRecent)
-          return <History className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />;
+          return <History className="h-5 w-8 text-gray-400 mt-0.5 flex-shrink-0" />;
         if (isPaperSuggestion)
-          return <FileText className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />;
-        if (isUserSuggestion)
-          return <User className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />;
+          return <FileText className="h-5 w-8 text-gray-500 mt-0.5 flex-shrink-0" />;
+        if (isUserSuggestion) {
+          const authorProfile = suggestion.authorProfile;
+          return authorProfile?.profileImage ? (
+            <Avatar
+              src={authorProfile.profileImage}
+              alt={suggestion.displayName}
+              size="sm"
+              className="mt-0.5 flex-shrink-0"
+              authorId={authorProfile.id}
+            />
+          ) : (
+            <User className="h-5 w-8 text-gray-500 mt-0.5 flex-shrink-0" />
+          );
+        }
         if (isTopicSuggestion)
-          return <Hash className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />;
-        return <HelpCircle className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />; // Default
+          return <Hash className="h-5 w-8 text-gray-500 mt-0.5 flex-shrink-0" />;
+        return <HelpCircle className="h-5 w-8 text-gray-500 mt-0.5 flex-shrink-0" />; // Default
       };
 
       if (displayMode === 'inline') {
