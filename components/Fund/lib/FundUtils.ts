@@ -38,6 +38,34 @@ export const getUpdatesStartDate = (
 };
 
 /**
+ * Determines the normalized start date for a timeline.
+ * @param startDate - Optional preferred start date string.
+ * @param updates - Array of updates, used as a fallback.
+ * @returns A normalized Date object for the start of the timeline.
+ */
+export const getTimelineStartDate = (startDate?: string, updates: Update[] = []): Date => {
+  const now = new Date();
+
+  if (startDate) {
+    const startDateObj = new Date(startDate);
+    // Normalize to the beginning of the start month to ensure we include the full month
+    return new Date(startDateObj.getFullYear(), startDateObj.getMonth(), 1);
+  }
+
+  if (updates.length > 0) {
+    // Find the earliest update
+    const earliestUpdate = updates.reduce((earliest, update) => {
+      const updateDate = new Date(update.createdDate);
+      return updateDate < earliest ? updateDate : earliest;
+    }, new Date(updates[0].createdDate));
+    return new Date(earliestUpdate.getFullYear(), earliestUpdate.getMonth(), 1);
+  }
+
+  // Default to 3 months ago
+  return new Date(now.getFullYear(), now.getMonth() - 2, 1);
+};
+
+/**
  * Calculate the update rate as a percentage of months with updates since a start date
  * Only the first update in each month counts towards the rate
  * @param updates - Array of updates with createdDate
@@ -50,21 +78,7 @@ export const calculateUpdateRate = (updates: Update[], startDate?: string): numb
   }
 
   const now = new Date();
-  let start: Date;
-
-  if (startDate) {
-    start = new Date(startDate);
-  } else if (updates.length > 0) {
-    // Fallback - should rarely be used since components should provide startDate
-    // Use earliest update date or recent date as last resort
-    const earliestUpdate = updates.reduce((earliest, update) => {
-      const updateDate = new Date(update.createdDate);
-      return updateDate < earliest ? updateDate : earliest;
-    }, new Date(updates[0].createdDate));
-    start = new Date(earliestUpdate.getFullYear(), earliestUpdate.getMonth(), 1);
-  } else {
-    start = new Date(now.getFullYear(), now.getMonth() - 2, 1);
-  }
+  const start = getTimelineStartDate(startDate, updates);
 
   // Filter updates that are after the start date
   const relevantUpdates = updates.filter((update) => {

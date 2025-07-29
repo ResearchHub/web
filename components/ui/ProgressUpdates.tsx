@@ -1,4 +1,5 @@
 import React from 'react';
+import { getTimelineStartDate } from '@/components/Fund/lib/FundUtils';
 
 interface Update {
   id: number;
@@ -22,24 +23,7 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
     const timeline = [];
     const now = new Date();
 
-    // If no startDate provided, use the earliest update date or current date minus 3 months
-    let start: Date;
-    if (startDate) {
-      const startDateObj = new Date(startDate);
-      // Normalize to the beginning of the start month to ensure we include the full month
-      start = new Date(startDateObj.getFullYear(), startDateObj.getMonth(), 1);
-    } else if (updates.length > 0) {
-      // Find the earliest update
-      const earliestUpdate = updates.reduce((earliest, update) => {
-        const updateDate = new Date(update.createdDate);
-        return updateDate < earliest ? updateDate : earliest;
-      }, new Date(updates[0].createdDate));
-      start = new Date(earliestUpdate.getFullYear(), earliestUpdate.getMonth(), 1);
-    } else {
-      // Default to 3 months ago
-      start = new Date(now.getFullYear(), now.getMonth() - 2, 1);
-    }
-
+    const start = getTimelineStartDate(startDate, updates);
     const current = new Date(start);
     const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
