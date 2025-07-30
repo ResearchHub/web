@@ -8,9 +8,11 @@ export const JournalEditorialBoard = () => {
       <div className="max-w-4xl mx-auto">
         <div className="mb-12 max-w-3xl">
           <h2 className="text-3xl font-medium text-gray-900 mb-4 text-left">Editorial Board</h2>
-          <p className="text-lg text-gray-600 text-left">
-            Our goal at ResearchHub is to drive scientific progress by introducing innovative reward
-            systems that compensate peer reviewers for their contributions.
+          <p className="text-base text-gray-600 text-left">
+            The following people constitute the Editorial Board of Academic Editors for the
+            ResearchHub Journal. These active academics are the Editors who seek peer reviewers,
+            evaluate their responses, and make editorial decisions on each submission to the
+            journal.
           </p>
         </div>
         <div className="grid grid-cols-1 gap-6">

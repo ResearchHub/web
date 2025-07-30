@@ -9,8 +9,8 @@ const howItWorksItems = [
     content: (
       <>
         <p>
-          ResearchHub Journal welcomes submissions across all scientific disciplines, with a
-          particular focus on:
+          ResearchHub Journal welcomes submissions across all Biological and Biomedical Sciences
+          with a particular focus on:
         </p>
         <ul className="list-disc pl-6 my-2 space-y-1">
           <li>Biological and Biomedical Sciences</li>
@@ -35,9 +35,18 @@ const howItWorksItems = [
         <p>We accept the following types of submissions:</p>
         <p className="font-medium mt-3 mb-1">Original Research Articles</p>
         <ul className="list-disc pl-6 space-y-1">
-          <li>Full research papers presenting novel findings</li>
+          <li>
+            Full research papers presenting novel findings, confirmatory findings, contradictory
+            findings, negative and null results, replication and reanalysis studies
+          </li>
           <li>Complete methodology and results required</li>
           <li>No length restrictions, but clarity and conciseness valued</li>
+        </ul>
+        <p className="font-medium mt-3 mb-1">Pre-Registrations</p>
+        <ul className="list-disc pl-6 space-y-1">
+          <li>Publicly document study design before data collection or analysis</li>
+          <li>Detailed Methodology and Analysis Plan required</li>
+          <li>Option to publish and link subsequent data and results</li>
         </ul>
         <p className="font-medium mt-3 mb-1">Short Communications</p>
         <ul className="list-disc pl-6 space-y-1">
@@ -57,6 +66,13 @@ const howItWorksItems = [
           <li>Must provide novel synthesis or perspective</li>
           <li>By invitation only - contact Editorial Board if interested</li>
           <li>Systematic reviews particularly welcomed</li>
+        </ul>
+        <p className="font-medium mt-3 mb-1">Commentaries (Invitation Only)</p>
+        <ul className="list-disc pl-6 space-y-1">
+          <li>Must include expert interpretation and perspective</li>
+          <li>Highlights implications and stimulates debate</li>
+          <li>Maximum 3,000 words</li>
+          <li>Support concise and timely contribution</li>
         </ul>
       </>
     ),
@@ -98,7 +114,7 @@ const howItWorksItems = [
         </p>
         <div className="mt-4">
           <a
-            href="https://docs.google.com/document/d/1a3WrTSDOCvWXxWetbPn-TDav56Y7EFwpyzK5B8Ll3Io/edit?tab=t.0"
+            href="https://drive.google.com/file/d/1qKlGnNSA-98kg-RhmTFKYVB85X0PJWYr/view?usp=sharing"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700 transition-colors"
@@ -216,6 +232,78 @@ const howItWorksItems = [
     ),
   },
   {
+    id: 'editorial-processes',
+    title: 'Editorial and Peer Review Processes',
+    content: (
+      <>
+        <p>
+          ResearchHub journal has clear and rigorous editorial and processes from initial submission
+          to final publication. To find out more, please consult our editorial and peer review
+          processes. Contact the editorial team if you have any questions.
+        </p>
+        <div className="mt-4">
+          <a
+            href="https://drive.google.com/file/d/1imBbn1pOCM7OYZEJ054Cgm9cxVrQMlIM/view?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700 transition-colors"
+          >
+            View Editorial and Peer Review Process
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M7 17l9.2-9.2M17 17V7H7" />
+            </svg>
+          </a>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: 'editorial-policies',
+    title: 'Editorial Policies',
+    content: (
+      <>
+        <p>
+          ResearchHub journal fully adheres to industry standards for its editorial policies,
+          ensuring only rigorous and trustworthy content is published. To find out more, please
+          consult our editorial policies. Contact the editorial team if you have any questions.
+        </p>
+        <div className="mt-4">
+          <a
+            href="https://drive.google.com/file/d/1jLeo73A_tY8MvQ6noevH7CYE2_3mho9X/view?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700 transition-colors"
+          >
+            View Editorial Policies
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M7 17l9.2-9.2M17 17V7H7" />
+            </svg>
+          </a>
+        </div>
+      </>
+    ),
+  },
+  {
     id: 'apc',
     title: 'Article processing charge',
     content: (
@@ -284,7 +372,7 @@ const howItWorksItems = [
     title: 'Open access policies',
     content: (
       <>
-        <p>All content is published under open licenses:</p>
+        <p>Since we started publishing in 2024, all content is published under open licenses:</p>
         <ul className="list-disc pl-6 my-2 space-y-1">
           <li>Manuscripts: CC-BY 4.0</li>
         </ul>
@@ -323,7 +411,7 @@ export const JournalHowItWorks: FC<JournalHowItWorksProps> = ({ openItemId, onTo
       <div className="max-w-4xl mx-auto">
         <div className="mb-12 max-w-3xl">
           <h2 className="text-3xl font-medium text-gray-900 mb-4 text-left">How it Works</h2>
-          <p className="text-lg text-gray-600 text-left">
+          <p className="text-base text-gray-600 text-left">
             Learn about our publication process, peer review system, and how we accelerate
             scientific discovery through open access and fair compensation.
           </p>

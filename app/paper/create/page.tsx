@@ -85,7 +85,8 @@ export default function WorkCreatePage() {
           </div>
           <h1 className="text-3xl font-bold text-gray-900 text-center">Submit your paper</h1>
           <p className="text-lg text-gray-600 text-center max-w-xl">
-            Share your original work with the ResearchHub community.
+            Publish your original work as a preprint natively on ResearchHub or as a publication in
+            the ResearchHub Journal.
           </p>
         </div>
 
@@ -180,21 +181,34 @@ export default function WorkCreatePage() {
               <p className="text-gray-500 mb-6">
                 Select how you would like to submit your research to ResearchHub.
               </p>
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {publishOptions.map((option) => {
                   const Icon = option.icon;
                   return (
-                    <Button
-                      key={option.id}
-                      variant="outlined"
-                      size="lg"
-                      className="w-full flex items-center gap-2"
-                      onClick={() => !isPending && handleOptionClick(option.id as PublishOption)}
-                      disabled={isPending}
-                    >
-                      <Icon className="h-5 w-5 mr-2" />
-                      {option.title}
-                    </Button>
+                    <div key={option.id}>
+                      <Button
+                        variant="outlined"
+                        size="lg"
+                        className="w-full flex items-center gap-2"
+                        onClick={() => !isPending && handleOptionClick(option.id as PublishOption)}
+                        disabled={isPending}
+                      >
+                        <Icon className="h-5 w-5 mr-2" />
+                        {option.title}
+                      </Button>
+                      {option.id === 'pdf' && (
+                        <div className="mt-6 ml-1 p-3 bg-gray-50 border-l-4 border-gray-300 rounded-r-md flex items-center gap-3">
+                          <div className="flex-shrink-0 w-5 h-5 rounded-full border border-gray-400 flex items-center justify-center">
+                            <span className="text-gray-500 text-xs font-bold">!</span>
+                          </div>
+                          <p className="text-sm text-gray-700">
+                            In the final step of the submission process, you will have the option to
+                            either preprint your manuscript (free) or submit it for peer-reviewed
+                            publication in the ResearchHub Journal (publication fees apply).
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
               </div>

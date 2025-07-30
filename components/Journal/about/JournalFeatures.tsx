@@ -6,12 +6,18 @@ export const JournalFeatures: FC = () => {
   return (
     <div className="bg-gray-50 py-16 px-4">
       <div className="max-w-5xl mx-auto text-center">
-        <h2 className="text-3xl font-medium text-gray-900 mb-4 text-left">About this journal</h2>
-        <p className="text-lg text-gray-600 mb-12 max-w-3xl text-left">
+        <h2 className="text-3xl font-medium text-gray-900 mb-4 text-left -mt-8">
+          About this journal
+        </h2>
+        <p className="text-base text-gray-600 mb-12 max-w-3xl text-left">
           The ResearchHub Journal aims to accelerate the pace of science through novel incentive
           structures that reward authors for reproducible research and compensate peer reviewers for
-          their expertise. Authors receive rapid, constructive feedback through 2+ expert open peer
-          reviews.
+          their expertise. Through an open and transparent peer review process, submitted preprints
+          are assigned to an academic editor to oversee a rigorous, open peer review process.
+          Authors receive rapid, constructive feedback through 2+ expert open peer reviews and are
+          asked to revise their preprint based on these reviews. Once completed, the handling editor
+          accepts the peer-reviewed preprint for final publication, which is then published as a
+          completed, version of record article.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 text-left">
           <FeatureCard icon={BookPlus} title="Preprint Publication">

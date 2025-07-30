@@ -415,6 +415,24 @@ export default function UploadPDFPage() {
                 />
               </div>
             </div>
+
+            <div className="ml-1 p-3 bg-red-50 border-l-4 border-red-300 rounded-r-md flex items-center gap-3">
+              <div className="flex-shrink-0 w-5 h-5 rounded-full border border-red-400 flex items-center justify-center">
+                <span className="text-red-500 text-xs font-bold">!</span>
+              </div>
+              <p className="text-sm text-red-700">
+                If submitting to the <em>ResearchHub Journal</em>, please ensure your manuscript
+                fits within the{' '}
+                <a
+                  href="https://www.researchhub.com/journal?tab=about"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-red-600 hover:text-red-800 underline"
+                >
+                  Aims and Scope
+                </a>
+              </p>
+            </div>
           </div>
         );
 
@@ -434,7 +452,21 @@ export default function UploadPDFPage() {
                 checked={acceptedTerms}
                 onChange={handleTermsChange}
                 label="I accept the terms and conditions"
-                description="By checking this box, you confirm that you have read and agree to the ResearchHub terms of service."
+                description={
+                  <>
+                    By checking this box, you confirm that you have read and agree to the
+                    ResearchHub{' '}
+                    <a
+                      href="https://www.researchhub.com/about/tos"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary-600 hover:text-primary-700 hover:underline"
+                    >
+                      terms of service
+                    </a>
+                    .
+                  </>
+                }
                 error={errors.terms || null}
               />
 
@@ -443,7 +475,20 @@ export default function UploadPDFPage() {
                 checked={acceptedLicense}
                 onChange={handleLicenseChange}
                 label="I agree to publish under the CC BY 4.0 License"
-                description="By checking this box, you license your work under the Creative Commons Attribution 4.0 International License."
+                description={
+                  <>
+                    By checking this box, you license your work under the{' '}
+                    <a
+                      href="https://creativecommons.org/licenses/by/4.0/deed.en"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary-600 hover:text-primary-700 hover:underline"
+                    >
+                      Creative Commons Attribution 4.0 International License
+                    </a>
+                    .
+                  </>
+                }
                 error={errors.license || null}
               />
 

@@ -25,7 +25,7 @@ const keyFeatures = [
 
 const quickLinks = [
   {
-    href: 'https://docs.google.com/document/d/1a3WrTSDOCvWXxWetbPn-TDav56Y7EFwpyzK5B8Ll3Io/edit?tab=t.0',
+    href: 'https://drive.google.com/file/d/1qKlGnNSA-98kg-RhmTFKYVB85X0PJWYr/view?usp=sharing',
     text: 'Author Guidelines',
     icon: Feather,
   },
