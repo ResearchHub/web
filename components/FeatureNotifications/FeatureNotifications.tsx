@@ -1,30 +1,51 @@
 'use client';
 
-import React, { useEffect, useCallback } from 'react';
-import Cookies from 'js-cookie';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { FeatureNotification as FeatureNotificationType } from './types';
 import { FeatureNotification as FeatureNotificationComponent } from './FeatureNotification';
 import { featureNotificationsConfig } from './config';
 import { useUser } from '@/contexts/UserContext';
+import { useDismissableFeatures } from '@/hooks/useDismissableFeature';
 
 export function FeatureNotifications() {
   const { user } = useUser();
   const config = featureNotificationsConfig;
 
-  const isNotificationShown = useCallback((cookieName: string): boolean => {
-    return Cookies.get(cookieName) === 'shown';
-  }, []);
+  // Memoize feature names to prevent infinite re-renders
+  const featureNames = useMemo(
+    () => config.notifications.map((notification) => notification.id),
+    [config.notifications]
+  );
 
-  const markNotificationAsShown = useCallback((cookieName: string) => {
-    // Set cookie without expiration (permanent)
-    Cookies.set(cookieName, 'shown', { expires: 365 * 24 * 60 * 60 * 1000 }); // 1 year
-  }, []);
+  const { features, isLoading } = useDismissableFeatures(featureNames);
+
+  const isNotificationShown = useCallback(
+    (notification: FeatureNotificationType): boolean => {
+      const feature = features[notification.id];
+
+      // Check if the hook has finished loading and the feature is dismissed
+      if (feature?.dismissStatus === 'checked') {
+        return feature.isDismissed;
+      }
+
+      return false;
+    },
+    [features]
+  );
+
+  const markNotificationAsShown = useCallback(
+    (notification: FeatureNotificationType) => {
+      const feature = features[notification.id];
+      feature?.dismissFeature();
+    },
+    [features]
+  );
 
   const showNotification = useCallback(
     (notification: FeatureNotificationType) => {
       // Check if this notification has already been shown
-      if (isNotificationShown(notification.cookieName)) {
+      if (isNotificationShown(notification)) {
         return;
       }
 
@@ -41,7 +62,7 @@ export function FeatureNotifications() {
           <FeatureNotificationComponent
             notification={notification}
             onDismiss={(id) => {
-              markNotificationAsShown(notification.cookieName);
+              markNotificationAsShown(notification);
               toast.dismiss(t.id);
             }}
           />
@@ -82,13 +103,18 @@ export function FeatureNotifications() {
   }, [config, showNotification]);
 
   useEffect(() => {
+    // Wait for all features to load before showing notifications
+    if (isLoading) {
+      return;
+    }
+
     // Show notifications after page load
     const timer = setTimeout(() => {
       showNotifications();
     }, 500); // 0.5 second delay after page load
 
     return () => clearTimeout(timer);
-  }, [showNotifications]);
+  }, [showNotifications, isLoading]);
 
   // This component doesn't render anything visible
   return null;
