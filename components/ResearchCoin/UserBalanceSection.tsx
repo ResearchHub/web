@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowDownToLine, ArrowUpFromLine, Plus, Minus, InfoIcon } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, Plus, Minus, HelpCircle } from 'lucide-react';
 import { useState } from 'react';
 import { DepositModal } from '../modals/ResearchCoin/DepositModal';
 import { WithdrawModal } from '../modals/ResearchCoin/WithdrawModal';
@@ -8,10 +8,17 @@ import { BuyModal } from '@/components/modals/ResearchCoin/BuyModal';
 import { SellModal } from '@/components/modals/ResearchCoin/SellModal';
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { WalletDefault } from '@coinbase/onchainkit/wallet';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useAccount } from 'wagmi';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { FundingCreditsTooltip } from '@/components/ui/FundingCreditsTooltip';
+import {
+  formatRSC,
+  formatUsdValue,
+  formatCombinedBalance,
+  formatCombinedBalanceSecondary,
+  extractExchangeRate,
+} from '@/utils/number';
 
 interface UserBalanceSectionProps {
   balance: {
@@ -50,219 +57,167 @@ export function UserBalanceSection({
   return (
     <>
       <div className="mb-6 mx-auto w-full">
-        <div className="px-0 pb-8">
-          <div className="flex flex-col space-y-8">
-            <div className="flex justify-between items-start">
-              {/* Balance Section */}
-              <div className="space-y-6 w-full">
-                {!isBalanceReady ? (
-                  <div className="flex flex-col sm:!flex-row flex-wrap gap-4 w-full">
-                    {/* Available Balance Card Skeleton */}
-                    <div className="w-full sm:!w-auto sm:!flex-1 bg-gradient-to-r from-purple-600 to-blue-400 rounded-lg p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="h-4 w-32 bg-white/20 animate-pulse rounded" />
-                        <div className="h-4 w-4 bg-white/20 animate-pulse rounded-full" />
-                      </div>
-                      <div className="mt-2">
-                        <div className="h-8 w-24 bg-white/20 animate-pulse rounded" />
-                        <div className="h-4 w-20 bg-white/20 animate-pulse rounded mt-1" />
-                      </div>
-                    </div>
-                    {/* Funding Only Card Skeleton */}
-                    <div className="w-full sm:!w-auto sm:!flex-1 bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="h-4 w-24 bg-gray-200 animate-pulse rounded" />
-                        <div className="h-4 w-4 bg-gray-200 animate-pulse rounded-full" />
-                      </div>
-                      <div className="mt-2">
-                        <div className="h-8 w-20 bg-gray-200 animate-pulse rounded" />
-                        <div className="h-4 w-16 bg-gray-200 animate-pulse rounded mt-1" />
-                      </div>
-                    </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="space-y-6">
+            {/* Balance Overview Section */}
+            <div>
+              <h2 className="text-gray-500 text-sm font-medium mb-3">Balance Overview</h2>
+
+              {!isBalanceReady ? (
+                // Loading state
+                <div>
+                  <div className="h-10 w-48 bg-gray-100 animate-pulse rounded mb-2" />
+                  <div className="flex items-center gap-2">
+                    <div className="h-5 w-5 bg-gray-100 animate-pulse rounded-full" />
+                    <div className="h-5 w-24 bg-gray-100 animate-pulse rounded" />
                   </div>
-                ) : (
-                  <div className="flex flex-col sm:!flex-row flex-wrap gap-4 w-full">
-                    {/* Available Balance Card */}
-                    <div
-                      className={`w-full sm:!w-auto ${
-                        !lockedBalance || lockedBalance.raw === 0 ? 'sm:!w-fit' : 'sm:!flex-1'
-                      } bg-gradient-to-r from-purple-600 to-blue-400 rounded-lg p-4 text-white`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <span className="text-sm font-medium text-white/90">Available Balance</span>
-                        <Tooltip
-                          content={
-                            <div className="space-y-2">
-                              <div className="font-semibold text-gray-900">Available Balance</div>
-                              <div className="text-sm text-gray-600">
-                                Funds available for all transactions including buying, selling,
-                                creating bounties, and tipping.
-                              </div>
-                            </div>
-                          }
-                          position="top"
-                          width="w-80"
-                        >
-                          <InfoIcon
-                            size={14}
-                            className="text-white/70 hover:text-white cursor-help"
-                          />
-                        </Tooltip>
-                      </div>
-                      <div className="mt-2">
-                        <div
-                          className="text-2xl sm:!text-3xl font-semibold truncate"
-                          title={showUSD ? balance?.formattedUsd : balance?.formatted}
-                        >
-                          {showUSD ? (
-                            `${balance?.formattedUsd || '$0.00 USD'}`
-                          ) : (
-                            <span className="flex items-center gap-2">
-                              <ResearchCoinIcon size={24} />
-                              {`${balance?.formatted || '0.00'} RSC`}
-                            </span>
-                          )}
-                        </div>
-                        <div
-                          className="text-sm sm:!text-lg text-white/80 mt-1 truncate"
-                          title={
-                            showUSD ? `${balance?.formatted ?? '0.00'} RSC` : balance?.formattedUsd
-                          }
-                        >
-                          {showUSD ? (
-                            <span className="flex items-center gap-1">
-                              ≈ <ResearchCoinIcon size={12} className="inline" />
-                              {`${balance?.formatted ?? '0.00'} RSC`}
-                            </span>
-                          ) : (
-                            `≈ ${balance?.formattedUsd ?? '0.00'} USD`
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Funding Only Card - Only show if locked balance > 0 */}
-                    {lockedBalance && lockedBalance.raw > 0 && (
-                      <div className="w-full sm:!w-auto sm:!flex-1 bg-gray-50 border border-gray-200 rounded-lg p-4">
-                        <div className="flex items-start justify-between">
-                          <span className="text-sm font-medium text-gray-700">Funding Only</span>
-                          <Tooltip
-                            content={
-                              <div className="space-y-2">
-                                <div className="font-semibold text-gray-900">Funding Only</div>
-                                <div className="text-sm text-gray-600">
-                                  Locked funds cannot be used for buying/selling, creating bounties,
-                                  or tipping, but are available for research funding.
-                                </div>
-                              </div>
-                            }
-                            position="top"
-                            width="w-80"
-                          >
-                            <InfoIcon
-                              size={14}
-                              className="text-gray-400 hover:text-gray-600 cursor-help"
-                            />
-                          </Tooltip>
-                        </div>
-                        <div className="mt-2">
-                          <div
-                            className="text-2xl sm:!text-3xl font-semibold text-gray-900 truncate"
-                            title={showUSD ? lockedBalance.formattedUsd : lockedBalance.formatted}
-                          >
-                            {showUSD ? (
-                              `${lockedBalance.formattedUsd || '$0.00 USD'}`
-                            ) : (
-                              <span className="flex items-center gap-2">
-                                <ResearchCoinIcon size={24} />
-                                {`${lockedBalance.formatted || '0.00'} RSC`}
-                              </span>
-                            )}
-                          </div>
-                          <div
-                            className="text-sm sm:!text-lg text-gray-600 mt-1 truncate"
-                            title={
-                              showUSD
-                                ? `${lockedBalance.formatted ?? '0.00'} RSC`
-                                : lockedBalance.formattedUsd
-                            }
-                          >
-                            {showUSD ? (
-                              <span className="flex items-center gap-1">
-                                ≈ <ResearchCoinIcon size={12} className="inline" />
-                                {`${lockedBalance.formatted ?? '0.00'} RSC`}
-                              </span>
-                            ) : (
-                              `≈ ${lockedBalance.formattedUsd ?? '$0.00 USD'}`
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                </div>
+              ) : (
+                // Total balance display (available + funding credits)
+                <div>
+                  <div className="text-4xl font-bold text-gray-900">
+                    {formatCombinedBalance({ balance, lockedBalance, showUSD })}
                   </div>
-                )}
-
-                {isConnected ? (
-                  <>
-                    <div className="flex items-center gap-4">
-                      <Button
-                        onClick={() => setIsBuyModalOpen(true)}
-                        variant="default"
-                        size="lg"
-                        className="gap-2 px-3 sm:!px-4"
-                      >
-                        <Plus className="h-5 w-5" />
-                        <span className="hidden sm:!inline-block sm:!flex-shrink-0">Buy RSC</span>
-                      </Button>
-                      <Button
-                        onClick={() => setIsSellModalOpen(true)}
-                        variant="default"
-                        size="lg"
-                        className="gap-2 px-3 sm:!px-4"
-                      >
-                        <Minus className="h-5 w-5" />
-                        <span className="hidden sm:!inline-block sm:!flex-shrink-0">Sell RSC</span>
-                      </Button>
-                      <Button
-                        onClick={() => setIsDepositModalOpen(true)}
-                        variant="outlined"
-                        size="lg"
-                        className="gap-2 px-3 sm:!px-4"
-                        disabled={!isBalanceReady}
-                        data-action="deposit"
-                      >
-                        <ArrowDownToLine className="h-5 w-5" />
-                        <span className="hidden sm:!inline-block sm:!flex-shrink-0">Deposit</span>
-                      </Button>
-                      <Button
-                        onClick={() => setIsWithdrawModalOpen(true)}
-                        variant="outlined"
-                        size="lg"
-                        className="gap-2 px-3 sm:!px-4"
-                        disabled={!isBalanceReady}
-                      >
-                        <ArrowUpFromLine className="h-5 w-5" />
-                        <span className="hidden sm:!inline-block sm:!flex-shrink-0">Withdraw</span>
-                      </Button>
-
-                      <WalletDefault />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex gap-4">
-                      <p className="text-base text-gray-600">
-                        To buy, sell, deposit or withdraw RSC, start by connecting your wallet.
-                      </p>
-                    </div>
-                    <WalletDefault />
-                  </>
-                )}
-              </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-gray-600 text-sm">
+                      {formatCombinedBalanceSecondary({ balance, lockedBalance, showUSD })}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
+
+            {/* Balance breakdown section with vertical divider */}
+            {!isBalanceReady ? (
+              <div className="bg-gray-50 rounded-lg p-4 flex">
+                {/* Loading skeleton */}
+                <div className="flex-1">
+                  <div className="h-4 w-28 bg-gray-200 animate-pulse rounded mb-3" />
+                  <div className="h-7 w-32 bg-gray-200 animate-pulse rounded mb-1" />
+                  <div className="h-4 w-20 bg-gray-200 animate-pulse rounded" />
+                </div>
+                <div className="w-px bg-gray-200 mx-6" />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="h-4 w-24 bg-gray-200 animate-pulse rounded" />
+                    <div className="h-5 w-20 bg-gray-200 animate-pulse rounded-full" />
+                  </div>
+                  <div className="h-7 w-32 bg-gray-200 animate-pulse rounded mb-1" />
+                  <div className="h-4 w-20 bg-gray-200 animate-pulse rounded" />
+                </div>
+              </div>
+            ) : (
+              <div className="bg-gray-50 rounded-lg p-4 flex">
+                {/* Available Balance */}
+                <div className="flex-1">
+                  <div className="text-gray-600 text-sm font-medium mb-2">Available Balance</div>
+                  <div className="text-2xl font-semibold text-gray-900">
+                    {showUSD ? balance?.formattedUsd || '$0.00' : balance?.formatted || '0.00 RSC'}
+                  </div>
+                  <div className="text-gray-500 text-sm">
+                    {showUSD
+                      ? balance?.formatted || '0.00 RSC'
+                      : balance?.formattedUsd || '$0.00 USD'}
+                  </div>
+                </div>
+
+                {/* Vertical divider */}
+                <div className="w-px bg-gray-200 mx-6" />
+
+                {/* Funding Credits */}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-gray-600 text-sm font-medium">Funding Credits</span>
+                    <Tooltip content={<FundingCreditsTooltip />} position="top" width="w-fit">
+                      <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help transition-colors" />
+                    </Tooltip>
+                  </div>
+                  <div className="text-2xl font-semibold text-gray-900">
+                    {showUSD
+                      ? lockedBalance?.formattedUsd || '$0.00'
+                      : lockedBalance?.formatted || '0.00 RSC'}
+                  </div>
+                  <div className="text-gray-500 text-sm">
+                    {showUSD
+                      ? lockedBalance?.formatted || '0.00 RSC'
+                      : lockedBalance?.formattedUsd || '$0.00 USD'}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Wallet connection section for non-connected users */}
+            {!isConnected && (
+              <>
+                <div className="pt-2">
+                  <p className="text-gray-600 text-base mb-4">
+                    To buy, sell, deposit or withdraw RSC, start by connecting your wallet.
+                  </p>
+                  <Button
+                    onClick={() => {
+                      const walletButton = document.querySelector(
+                        '[data-testid="ockConnectWallet_Container"]'
+                      );
+                      if (walletButton instanceof HTMLElement) {
+                        walletButton.click();
+                      }
+                    }}
+                    variant="default"
+                    size="lg"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 text-base font-medium"
+                  >
+                    Connect Wallet
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </div>
-        <div className="h-px bg-gray-200" />
+
+        {/* Action buttons for connected users - moved outside the white box */}
+        {isConnected && (
+          <div className="mt-6 grid grid-cols-4 gap-3">
+            <button
+              onClick={() => setIsBuyModalOpen(true)}
+              className="flex flex-col items-center gap-2 px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 active:scale-[0.98] transition-all duration-200 group"
+            >
+              <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center transition-colors">
+                <Plus className="h-5 w-5 text-gray-700" strokeWidth={2} />
+              </div>
+              <span className="text-sm font-medium text-gray-900">Buy RSC</span>
+            </button>
+            <button
+              onClick={() => setIsSellModalOpen(true)}
+              className="flex flex-col items-center gap-2 px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 active:scale-[0.98] transition-all duration-200 group"
+            >
+              <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center transition-colors">
+                <Minus className="h-5 w-5 text-gray-700" strokeWidth={2} />
+              </div>
+              <span className="text-sm font-medium text-gray-900">Sell RSC</span>
+            </button>
+            <button
+              onClick={() => setIsDepositModalOpen(true)}
+              className="flex flex-col items-center gap-2 px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 active:scale-[0.98] transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-sm"
+              disabled={!isBalanceReady}
+              data-action="deposit"
+            >
+              <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center transition-colors">
+                <ArrowDownToLine className="h-5 w-5 text-gray-700" strokeWidth={2} />
+              </div>
+              <span className="text-sm font-medium text-gray-900">Deposit</span>
+            </button>
+            <button
+              onClick={() => setIsWithdrawModalOpen(true)}
+              className="flex flex-col items-center gap-2 px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 active:scale-[0.98] transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-sm"
+              disabled={!isBalanceReady}
+            >
+              <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center transition-colors">
+                <ArrowUpFromLine className="h-5 w-5 text-gray-700" strokeWidth={2} />
+              </div>
+              <span className="text-sm font-medium text-gray-900">Withdraw</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Modals */}

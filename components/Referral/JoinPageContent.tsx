@@ -50,8 +50,8 @@ export function JoinPageContent() {
             <Image
               src="/referral/admit_one2.png"
               alt="Admission ticket"
-              width={200}
-              height={200}
+              width={250}
+              height={250}
               className="object-contain"
             />
           </div>

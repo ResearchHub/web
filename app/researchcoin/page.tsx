@@ -16,6 +16,9 @@ import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { usePendingDeposits } from '@/hooks/usePendingDeposits';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useUser } from '@/contexts/UserContext';
+import { useVerification } from '@/contexts/VerificationContext';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
+import { Button } from '@/components/ui/Button';
 
 export default function ResearchCoinPage() {
   const { data: session, status } = useSession();
@@ -32,6 +35,7 @@ export default function ResearchCoinPage() {
     refreshDeposits,
   } = usePendingDeposits();
   const transactionFeedRef = useRef<{ refresh: () => Promise<void> }>(null);
+  const { openVerificationModal } = useVerification();
 
   // Fetch initial data
   useEffect(() => {
@@ -93,6 +97,33 @@ export default function ResearchCoinPage() {
         <div className="py-6">
           <div className="flex">
             <div className="flex-1">
+              {/* Verification Banner */}
+              {status === 'authenticated' && user && !user.isVerified && (
+                <div className="mb-6 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl px-6 py-5 flex items-center justify-between shadow-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-full p-2.5 flex items-center justify-center">
+                      <VerifiedBadge size="lg" className="brightness-0 invert" />
+                    </div>
+                    <div>
+                      <h3 className="text-white font-semibold text-base">
+                        Verify your profile for enhanced benefits
+                      </h3>
+                      <p className="text-white/90 text-sm mt-0.5">
+                        Unlock faster withdrawals, exclusive features, and peer review opportunities
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={openVerificationModal}
+                    variant="secondary"
+                    size="default"
+                    className="bg-white text-blue-600 hover:bg-gray-50 font-medium px-5"
+                  >
+                    Verify Now
+                  </Button>
+                </div>
+              )}
+
               {status === 'authenticated' && (
                 <UserBalanceSection
                   balance={formatBalance(balance || 0, exchangeRate)}

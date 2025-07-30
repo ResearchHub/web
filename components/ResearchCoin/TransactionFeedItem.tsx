@@ -2,8 +2,9 @@ import type { FormattedTransaction } from './lib/types';
 import Icon from '@/components/ui/icons/Icon';
 import { cn } from '@/utils/styles';
 import { colors } from '@/app/styles/colors';
-import { Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { FundingCreditsTooltip } from '@/components/ui/FundingCreditsTooltip';
 
 interface TransactionFeedItemProps {
   transaction: FormattedTransaction;
@@ -26,7 +27,20 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
 
             <div className="flex-1">
               <div className="flex flex-col sm:!flex-row items-start sm:!items-center gap-2">
-                <p className="font-medium text-gray-900">{transaction.typeInfo.label}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-gray-900">{transaction.typeInfo.label}</p>
+                  {transaction.isLocked && (
+                    <Tooltip content={<FundingCreditsTooltip />} position="top" width="w-fit">
+                      <Badge
+                        variant="primary"
+                        size="default"
+                        className="bg-blue-100 text-blue-700 border-0 font-normal px-2.5 py-0.5 cursor-help"
+                      >
+                        Funding only
+                      </Badge>
+                    </Tooltip>
+                  )}
+                </div>
               </div>
               <div className="text-xs text-gray-600 mt-0.5">{transaction.formattedDate}</div>
             </div>
@@ -46,11 +60,6 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
                   <span className="text-xs text-gray-500 truncate">
                     {transaction.formattedUsdValue}
                   </span>
-                  {transaction.isLocked && (
-                    <Badge variant="orange" size="sm" className="mt-1 flex items-center gap-1">
-                      Funding Only
-                    </Badge>
-                  )}
                 </div>
               </div>
             </div>
