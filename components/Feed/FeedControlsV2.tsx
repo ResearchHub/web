@@ -21,8 +21,9 @@ interface TimePeriodOption {
 }
 
 const SORT_OPTIONS = [
-  { value: 'best', label: 'Best', icon: Sparkles },
+  { value: 'best', label: 'For you', icon: Sparkles },
   { value: 'trending', label: 'Trending', icon: TrendingUp },
+  { value: 'trending-v2', label: 'Trending V2', icon: TrendingUp },
   { value: 'newest', label: 'Newest', icon: Clock },
 ];
 
@@ -47,7 +48,7 @@ export function FeedControlsV2({
 }: FeedControlsV2Props) {
   const currentSortOption = SORT_OPTIONS.find((opt) => opt.value === sortBy);
   const currentTimePeriod = TIME_PERIOD_OPTIONS.find((opt) => opt.value === timePeriod);
-  const showTimePeriod = sortBy === 'trending' || sortBy === 'newest';
+  const showTimePeriod = sortBy === 'trending' || sortBy === 'trending-v2' || sortBy === 'newest';
 
   return (
     <div className="flex justify-between items-center mb-6 border-b border-gray-200 relative">

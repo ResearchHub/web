@@ -196,7 +196,7 @@ export function OnboardingWizard() {
               transition={{ delay: 0.1 }}
               className="mb-8"
             >
-              <Logo noText size={160} className="mx-auto" />
+              <Logo size={40} className="mx-auto" />
             </motion.div>
 
             <h1 className="text-4xl font-bold text-gray-900 mb-3">Welcome to ResearchHub</h1>

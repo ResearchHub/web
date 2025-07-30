@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { CardWrapper } from '@/components/Feed/CardWrapper';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -140,12 +141,52 @@ export function FeedItemPaperV2({
   // Construct DOI URL if available
   const doiUrl = paper.doi ? `https://doi.org/${paper.doi}` : undefined;
 
+  // Get source logo
+  const getSourceLogo = (source: string) => {
+    const sourceLower = source.toLowerCase();
+    switch (sourceLower) {
+      case 'arxiv':
+        return '/logos/arxiv.png';
+      case 'biorxiv':
+        return '/logos/biorxiv.png';
+      case 'chemrxiv':
+        return '/logos/chemrxiv.png';
+      case 'medrxiv':
+        return '/logos/medrxiv.jpg';
+      default:
+        return null;
+    }
+  };
+
+  const sourceLogo = graphqlData.source ? getSourceLogo(graphqlData.source) : null;
+
   return (
     <CardWrapper>
       <div className="p-4">
         {/* Top Row - Badges and Impact Score */}
         <div className="mb-4 flex items-start justify-between">
           <div className="flex flex-wrap gap-2">
+            {/* Source Badge with Logo */}
+            {graphqlData.source && (
+              <Badge
+                variant="default"
+                className="text-sm bg-white border border-gray-200 hover:bg-gray-50 cursor-pointer px-2 py-1"
+                onClick={() => onSourceClick?.(graphqlData.source || '')}
+              >
+                {sourceLogo ? (
+                  <Image
+                    src={sourceLogo}
+                    alt={graphqlData.source}
+                    width={50}
+                    height={16}
+                    className="object-contain"
+                    style={{ maxHeight: '16px' }}
+                  />
+                ) : (
+                  <span className="text-gray-700">{graphqlData.source}</span>
+                )}
+              </Badge>
+            )}
             {graphqlData.unifiedCategory?.slug && (
               <Badge
                 variant="default"
@@ -190,7 +231,7 @@ export function FeedItemPaperV2({
         </div>
 
         {/* Title - clickable if DOI exists */}
-        <h2 className="text-xl font-bold text-gray-900 mb-2 leading-tight">
+        <h2 className="text-xl font-bold text-gray-900 mb-3 leading-tight">
           {doiUrl ? (
             <a
               href={doiUrl}
@@ -205,54 +246,37 @@ export function FeedItemPaperV2({
           )}
         </h2>
 
-        {/* Publication date and source */}
-        {paper.publishedDate && (
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-            <span>Published</span>
-            {graphqlData.source && onSourceClick ? (
-              <>
-                <span>in</span>
-                <button
-                  onClick={() => onSourceClick(graphqlData.source!)}
-                  className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
-                >
-                  {graphqlData.source}
-                </button>
-              </>
-            ) : graphqlData.source ? (
-              <>
-                <span>in</span>
-                <span className="font-medium">{graphqlData.source}</span>
-              </>
-            ) : null}
-            <span>•</span>
-            <span>{formatTimeAgo(new Date(paper.publishedDate).toISOString())}</span>
-          </div>
-        )}
-
-        {/* Metadata */}
-        <div className="space-y-2 mb-6 text-gray-600">
+        {/* Publication info and Authors - Two lines directly under title */}
+        <div className="space-y-2 mb-6">
+          {/* Authors Line */}
           {authors.length > 0 && (
-            <div className="flex items-start gap-2">
-              <Users className="w-5 h-5 mt-0.5 flex-shrink-0 text-gray-400" />
-              <div className="flex-1">
+            <div className="flex items-center gap-2 text-sm text-gray-600 overflow-hidden">
+              <Users className="w-4 h-4 flex-shrink-0 text-gray-400" />
+              <div className="overflow-hidden">
                 <AuthorList
                   authors={authors}
-                  size="base"
+                  size="sm"
                   delimiter={', '}
-                  className="text-gray-600 font-normal"
+                  className="text-gray-600 font-normal whitespace-nowrap"
                   delimiterClassName="text-gray-400"
-                  showAbbreviatedInMobile={true}
+                  showAbbreviatedInMobile={false}
                   maxLength={3}
                 />
               </div>
             </div>
           )}
 
-          {graphqlData.source && (
-            <div className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-gray-400" />
-              <span className="text-base text-gray-600">{graphqlData.source}</span>
+          {/* Publication Date Line */}
+          {paper.publishedDate && (
+            <div className="flex items-center gap-2 text-sm text-gray-600 overflow-hidden">
+              <BookOpen className="w-4 h-4 flex-shrink-0 text-gray-400" />
+              <span className="whitespace-nowrap">
+                {new Date(paper.publishedDate).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </span>
             </div>
           )}
         </div>

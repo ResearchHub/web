@@ -48,6 +48,8 @@ function FeedContent() {
       case 'best':
         return { sortBy: 'RELEVANCE', sortOrder: 'DESC' };
       case 'trending':
+        return { sortBy: 'IMPACT_SCORE', sortOrder: 'DESC' };
+      case 'trending-v2':
         return { sortBy: 'TRENDING', sortOrder: 'DESC' };
       case 'newest':
         return { sortBy: 'DATE', sortOrder: 'DESC' };
