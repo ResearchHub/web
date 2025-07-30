@@ -3,7 +3,7 @@
 import { X, ExternalLink } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { FeatureNotification as FeatureNotificationType } from '@/types/featureNotification';
+import { FeatureNotification as FeatureNotificationType } from './types';
 
 interface FeatureNotificationProps {
   notification: FeatureNotificationType;

@@ -3,9 +3,9 @@
 import React, { useEffect, useCallback } from 'react';
 import Cookies from 'js-cookie';
 import { toast } from 'react-hot-toast';
-import { FeatureNotification } from '@/types/featureNotification';
-import { FeatureNotification as FeatureNotificationComponent } from '@/components/ui/FeatureNotification';
-import { featureNotificationsConfig } from '@/config/featureNotifications';
+import { FeatureNotification as FeatureNotificationType } from './types';
+import { FeatureNotification as FeatureNotificationComponent } from './FeatureNotification';
+import { featureNotificationsConfig } from './config';
 import { useUser } from '@/contexts/UserContext';
 
 export function FeatureNotifications() {
@@ -22,7 +22,7 @@ export function FeatureNotifications() {
   }, []);
 
   const showNotification = useCallback(
-    (notification: FeatureNotification) => {
+    (notification: FeatureNotificationType) => {
       // Check if this notification has already been shown
       if (isNotificationShown(notification.cookieName)) {
         return;

@@ -1,4 +1,4 @@
-import { FeatureNotificationConfig } from '@/types/featureNotification';
+import { FeatureNotificationConfig } from './types';
 import { UserPlus } from 'lucide-react';
 
 export const featureNotificationsConfig: FeatureNotificationConfig = {
