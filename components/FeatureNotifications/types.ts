@@ -1,9 +1,8 @@
 export interface FeatureNotification {
   id: string;
-  title: string;
+  title: string | React.ReactElement;
   description: string;
   icon: React.ReactElement;
-  cookieName: string;
   showForAllUsers: boolean; // true = for all users, false = only for logged in users
   position?:
     | 'top-right'

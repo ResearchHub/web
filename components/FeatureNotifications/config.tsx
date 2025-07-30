@@ -1,5 +1,6 @@
 import { FeatureNotificationConfig } from './types';
 import { UserPlus } from 'lucide-react';
+import { Badge } from '@/components/ui/Badge';
 
 export const featureNotificationsConfig: FeatureNotificationConfig = {
   enabled: true,
@@ -8,13 +9,19 @@ export const featureNotificationsConfig: FeatureNotificationConfig = {
   notifications: [
     {
       id: 'referral-program',
-      title: 'Earn Credits with Referrals',
-      description: 'Invite friends to ResearchHub and earn funding credits when they contribute!',
+      title: (
+        <div className="flex items-center gap-2">
+          <span className="text-base font-semibold">Refer users and earn 10%</span>
+          <Badge variant="primary" size="xs" className="text-xs">
+            New
+          </Badge>
+        </div>
+      ),
+      description: 'Refer people to ResearchHub and earn credits when they fund proposals',
       icon: <UserPlus className="w-6 h-6 text-gray-500" />,
-      cookieName: 'feature_notification_referral_program',
-      showForAllUsers: true, // show for all users
+      showForAllUsers: false, // show for logged in users only
       priority: 'high',
-      ctaText: 'Refer and earn 10%',
+      ctaText: 'Learn more',
       ctaUrl: '/referral',
       duration: 3600000, // 1 hour
       position: 'bottom-right',

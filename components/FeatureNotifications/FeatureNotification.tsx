@@ -45,7 +45,7 @@ export function FeatureNotification({ notification, onDismiss }: FeatureNotifica
         onClick={() => onDismiss(notification.id)}
         variant="ghost"
         size="icon"
-        className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600"
+        className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 relative -top-2 -right-2"
         aria-label="Close notification"
       >
         <X className="w-4 h-4" />
