@@ -420,14 +420,14 @@ export default function UploadPDFPage() {
               <div className="flex-shrink-0 w-5 h-5 rounded-full border border-red-400 flex items-center justify-center">
                 <span className="text-red-500 text-xs font-bold">!</span>
               </div>
-              <p className="text-sm text-red-700">
+              <p className="text-sm text-gray-900">
                 If submitting to the <em>ResearchHub Journal</em>, please ensure your manuscript
                 fits within the{' '}
                 <a
                   href="https://www.researchhub.com/journal?tab=about"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-red-600 hover:text-red-800 underline"
+                  className="text-blue-600 hover:text-blue-800 underline"
                 >
                   Aims and Scope
                 </a>
