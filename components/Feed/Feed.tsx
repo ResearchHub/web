@@ -98,29 +98,27 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     <div className="space-y-4">
       {/* New Feed Banner - Only visible to moderators */}
       {isModerator && (
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg p-3 sm:p-4 text-white">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-start sm:items-center gap-2 sm:gap-3">
-              <div className="flex-shrink-0 bg-blue-500 rounded-md p-2 sm:p-3">
-                <FlaskConical className="w-4 h-4 sm:w-5 sm:h-5" />
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg p-4 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-blue-500 rounded-md p-3">
+                <FlaskConical className="w-5 h-5" />
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="font-semibold text-sm sm:text-base">
-                    Try our new personalized feed!
-                  </h3>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-base">Try our new personalized feed!</h3>
                   <span className="px-2 py-0.5 text-xs font-bold bg-blue-500 text-white rounded-full uppercase">
                     Beta
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-blue-100 mt-0.5">
+                <p className="text-sm text-blue-100">
                   Get cutting-edge research recommendations tailored to your interests
                 </p>
               </div>
             </div>
             <button
               onClick={() => router.push('/feed')}
-              className="self-start sm:self-auto px-3 py-1.5 sm:px-4 sm:py-2 bg-white text-blue-600 font-medium text-xs sm:text-sm rounded-lg hover:bg-blue-50 transition-colors shadow-sm whitespace-nowrap"
+              className="px-4 py-2 bg-white text-blue-600 font-medium text-sm rounded-lg hover:bg-blue-50 transition-colors shadow-sm"
             >
               Switch to New Feed
             </button>
