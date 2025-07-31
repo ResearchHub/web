@@ -92,8 +92,8 @@ export function OnboardingWizard() {
     data: categoriesData,
   } = useQuery<CategoriesResponse>(GET_CATEGORIES, {
     variables: {
-      minPaperCount: 1,
-      includeEmptySubcategories: false,
+      minPaperCount: 0,
+      includeEmptySubcategories: true,
     },
   });
 

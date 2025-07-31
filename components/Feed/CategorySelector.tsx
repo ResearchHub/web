@@ -43,8 +43,8 @@ interface CategorySelectorProps {
 export function CategorySelector({ selectedCategories, onCategoryChange }: CategorySelectorProps) {
   const { loading, error, data } = useQuery<CategoriesResponse>(GET_CATEGORIES, {
     variables: {
-      minPaperCount: 1,
-      includeEmptySubcategories: false,
+      minPaperCount: 0,
+      includeEmptySubcategories: true,
     },
   });
   const scrollContainerRef = useRef<HTMLDivElement>(null);
