@@ -5,6 +5,7 @@ import { FundraiseService } from '@/services/fundraise.service';
 import { Fundraise } from '@/types/funding';
 import { ApiError } from '@/services/types';
 import { ID } from '@/types/root';
+import AnalyticsService from '@/services/analytics.service';
 
 interface UseFundraiseState {
   data: Fundraise | null;
@@ -30,6 +31,22 @@ export const useCreateContribution = (): UseCreateContributionReturn => {
     try {
       const response = await FundraiseService.createContribution(id, payload);
       setData(response);
+
+      // Track funding analytics
+      try {
+        const amount =
+          payload.amount || payload.amount_currency === 'USD' ? payload.amount : payload.amount;
+        const currency = payload.amount_currency || 'RSC';
+
+        await AnalyticsService.logUserFunded('fundraise', id?.toString() || '', amount, currency, {
+          fundraise_id: id,
+          currency: currency,
+          amount_currency: payload.amount_currency,
+        });
+      } catch (analyticsError) {
+        // Don't fail the contribution if analytics fails
+        console.error('Analytics error:', analyticsError);
+      }
     } catch (err) {
       const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
       const errorMsg = data?.message || 'Failed to create contribution';

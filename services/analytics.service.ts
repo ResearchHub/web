@@ -18,6 +18,13 @@ export const LogEvent = {
   CLICKED_SHARE_VIA_BLUESKY: 'clicked_share_via_bluesky',
   CLICKED_SHARE_VIA_QR_CODE: 'clicked_share_via_qr_code',
   SIGNED_UP: 'signed_up',
+
+  USER_UPVOTED: 'user_upvoted',
+  USER_COMMENTED: 'user_commented',
+  USER_PEER_REVIEWED: 'user_peer_reviewed',
+  USER_FUNDED: 'user_funded',
+  USER_TIPPED: 'user_tipped',
+  USER_SUBMITTED_TO_JOURNAL: 'user_submitted_to_journal',
 } as const;
 
 export type LogEventValue = (typeof LogEvent)[keyof typeof LogEvent];
@@ -120,6 +127,93 @@ class AnalyticsService {
     await this.logEvent(LogEvent.SIGNED_UP, {
       ...additionalProperties,
       provider: provider,
+    });
+  }
+
+  // New helper methods for user engagement funnel
+  static async logUserUpvoted(
+    contentType: string,
+    documentId: string,
+    additionalProperties?: Record<string, any>
+  ) {
+    await this.logEvent(LogEvent.USER_UPVOTED, {
+      content_type: contentType,
+      document_id: documentId,
+      ...additionalProperties,
+    });
+  }
+
+  static async logUserCommented(
+    contentType: string,
+    documentId: string,
+    commentId: string,
+    additionalProperties?: Record<string, any>
+  ) {
+    await this.logEvent(LogEvent.USER_COMMENTED, {
+      content_type: contentType,
+      document_id: documentId,
+      comment_id: commentId,
+      ...additionalProperties,
+    });
+  }
+
+  static async logUserPeerReviewed(
+    contentType: string,
+    documentId: string,
+    reviewId: string,
+    additionalProperties?: Record<string, any>
+  ) {
+    await this.logEvent(LogEvent.USER_PEER_REVIEWED, {
+      content_type: contentType,
+      document_id: documentId,
+      review_id: reviewId,
+      ...additionalProperties,
+    });
+  }
+
+  static async logUserFunded(
+    contentType: string,
+    documentId: string,
+    amount: number,
+    currency: string = 'USD',
+    additionalProperties?: Record<string, any>
+  ) {
+    await this.logEvent(LogEvent.USER_FUNDED, {
+      content_type: contentType,
+      document_id: documentId,
+      amount: amount,
+      currency: currency,
+      ...additionalProperties,
+    });
+  }
+
+  static async logUserTipped(
+    contentType: string,
+    documentId: string,
+    amount: number,
+    currency: string = 'USD',
+    additionalProperties?: Record<string, any>
+  ) {
+    await this.logEvent(LogEvent.USER_TIPPED, {
+      content_type: contentType,
+      document_id: documentId,
+      amount: amount,
+      currency: currency,
+      ...additionalProperties,
+    });
+  }
+
+  static async logUserSubmittedToJournal(
+    journalId: string,
+    journalName: string,
+    documentId: string,
+    additionalProperties?: Record<string, any>
+  ) {
+    await this.logEvent(LogEvent.USER_SUBMITTED_TO_JOURNAL, {
+      journal_id: journalId,
+      journal_name: journalName,
+      document_id: documentId,
+      ...additionalProperties,
     });
   }
 
