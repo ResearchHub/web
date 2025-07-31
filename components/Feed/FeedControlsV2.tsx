@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
 import { ChevronDown, TrendingUp, Clock, Calendar, Settings, Sparkles } from 'lucide-react';
@@ -46,94 +46,106 @@ export function FeedControlsV2({
   onTimePeriodChange,
   onToggleCustomize,
 }: FeedControlsV2Props) {
-  const currentSortOption = SORT_OPTIONS.find((opt) => opt.value === sortBy);
   const currentTimePeriod = TIME_PERIOD_OPTIONS.find((opt) => opt.value === timePeriod);
-  const showTimePeriod = sortBy === 'trending' || sortBy === 'trending-v2' || sortBy === 'newest';
+  const currentSortOption = SORT_OPTIONS.find((opt) => opt.value === sortBy);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   return (
-    <div className="flex justify-between items-center mb-6 border-b border-gray-200 relative">
-      <div className="flex items-center">
-        {/* Sort Tab-like Dropdown */}
-        <Dropdown
-          trigger={
-            <div
-              className={cn(
-                'flex items-center gap-2 px-4 pb-3 pt-3 text-sm font-medium border-b-2 transition-colors duration-200 cursor-pointer whitespace-nowrap',
-                'text-rhBlue-500 border-rhBlue-500 hover:bg-gray-50',
-                '-mb-[1px]' // This ensures the border sits directly on the dividing line
-              )}
-            >
-              {currentSortOption?.icon && (
-                <currentSortOption.icon className="w-4 h-4 flex-shrink-0" />
-              )}
-              {currentSortOption?.label}
-              <ChevronDown className="w-4 h-4 ml-1" />
-            </div>
-          }
-          anchor="bottom start"
-        >
-          {SORT_OPTIONS.map((option) => (
-            <DropdownItem
-              key={option.value}
-              onClick={() => onSortChange(option.value)}
-              className={sortBy === option.value ? 'bg-rhBlue-50 text-rhBlue-600' : ''}
-            >
-              <option.icon
-                className={cn('w-4 h-4 mr-2', sortBy === option.value && 'text-rhBlue-500')}
-              />
-              {option.label}
-            </DropdownItem>
-          ))}
-        </Dropdown>
-
-        {/* Time Period Tab-like Dropdown - only shown for trending/newest */}
-        {showTimePeriod && (
-          <Dropdown
-            trigger={
-              <div
+    <div className="flex justify-between items-center mb-6">
+      <div className="flex items-center gap-4">
+        {/* Sort Pills - Desktop */}
+        {!isMobile && (
+          <div className="inline-flex items-center gap-2">
+            {SORT_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => onSortChange(option.value)}
                 className={cn(
-                  'flex items-center gap-2 px-4 pb-3 pt-3 text-sm font-medium border-b-2 transition-colors duration-200 cursor-pointer whitespace-nowrap',
-                  'text-gray-700 border-transparent hover:text-gray-900 hover:border-gray-200',
-                  '-mb-[1px]' // This ensures the border sits directly on the dividing line
+                  'px-5 py-2.5 text-sm font-medium rounded-full transition-all duration-200 whitespace-nowrap',
+                  sortBy === option.value
+                    ? 'bg-rhBlue-600 text-white'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 )}
               >
-                <Calendar className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">{currentTimePeriod?.label}</span>
-                <span className="sm:hidden">
-                  {currentTimePeriod?.shortLabel || currentTimePeriod?.label}
-                </span>
+                {option.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Sort Dropdown - Mobile */}
+        {isMobile && (
+          <Dropdown
+            trigger={
+              <button className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-rhBlue-600 rounded-full hover:bg-rhBlue-700 transition-colors">
+                {currentSortOption?.icon && <currentSortOption.icon className="w-4 h-4" />}
+                <span>{currentSortOption?.label}</span>
                 <ChevronDown className="w-4 h-4 ml-1" />
-              </div>
+              </button>
             }
             anchor="bottom start"
           >
-            {TIME_PERIOD_OPTIONS.map((option) => (
+            {SORT_OPTIONS.map((option) => (
               <DropdownItem
                 key={option.value}
-                onClick={() => onTimePeriodChange(option.value)}
-                className={timePeriod === option.value ? 'bg-rhBlue-50 text-rhBlue-600' : ''}
+                onClick={() => onSortChange(option.value)}
+                className={sortBy === option.value ? 'bg-rhBlue-50 text-rhBlue-600' : ''}
               >
+                <option.icon className="w-4 h-4 mr-2" />
                 {option.label}
               </DropdownItem>
             ))}
           </Dropdown>
         )}
+
+        {/* Time Period Dropdown - always visible */}
+        <Dropdown
+          trigger={
+            <button className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
+              <span className="hidden sm:inline">{currentTimePeriod?.label}</span>
+              <span className="sm:hidden">
+                {currentTimePeriod?.shortLabel || currentTimePeriod?.label}
+              </span>
+              <ChevronDown className="w-4 h-4 ml-1" />
+            </button>
+          }
+          anchor="bottom start"
+        >
+          {TIME_PERIOD_OPTIONS.map((option) => (
+            <DropdownItem
+              key={option.value}
+              onClick={() => onTimePeriodChange(option.value)}
+              className={timePeriod === option.value ? 'bg-rhBlue-50 text-rhBlue-600' : ''}
+            >
+              {option.label}
+            </DropdownItem>
+          ))}
+        </Dropdown>
       </div>
 
       {/* Customize Results Button */}
-      <Button
-        variant="outlined"
+      <button
         onClick={onToggleCustomize}
-        className="flex items-center gap-2 -mt-[6px]"
+        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all duration-200"
       >
-        <Settings className={cn('w-4 h-4', showCustomize && 'animate-spin-slow')} />
-        <span>Filters</span>
+        <Settings className={cn('w-5 h-5', showCustomize && 'animate-spin-slow')} />
+        <span>Customize</span>
         {activeFilterCount > 0 && (
           <span className="ml-1 bg-rhBlue-500 text-white text-xs rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center">
             {activeFilterCount}
           </span>
         )}
-      </Button>
+      </button>
     </div>
   );
 }

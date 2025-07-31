@@ -2,7 +2,7 @@
 
 import { FC, useRef, useState, useEffect, Suspense } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { Sparkles, Globe } from 'lucide-react';
+import { Sparkles, Globe, FlaskConical, Microscope } from 'lucide-react';
 import { useFeed, FeedTab, FeedSource } from '@/hooks/useFeed';
 import { FeedContent } from './FeedContent';
 import { InterestSelector } from '@/components/InterestSelector/InterestSelector';
@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import { FeedEntry } from '@/types/feed';
 import Icon from '@/components/ui/icons/Icon';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
+import { useUser } from '@/contexts/UserContext';
 
 interface FeedProps {
   defaultTab: FeedTab;
@@ -25,7 +26,9 @@ interface FeedProps {
 export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFilter = true }) => {
   const { status } = useSession();
   const router = useRouter();
+  const { user } = useUser();
   const isAuthenticated = status === 'authenticated';
+  const isModerator = user?.isModerator || false;
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [activeTab, setActiveTab] = useState<FeedTab>(defaultTab);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -50,9 +53,9 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     refresh();
   };
 
-  const handleTabChange = (tab: FeedTab) => {
+  const handleTabChange = (tab: string) => {
     // Immediately update the active tab for visual feedback
-    setActiveTab(tab);
+    setActiveTab(tab as FeedTab);
     // Set navigating state to true to show loading state
     setIsNavigating(true);
 
@@ -92,11 +95,43 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   ];
 
   const header = (
-    <MainPageHeader
-      icon={<Sparkles className="w-6 h-6 text-primary-500" />}
-      title="Explore"
-      subtitle="Discover trending research, earning, and funding opportunities"
-    />
+    <div className="space-y-4">
+      {/* New Feed Banner - Only visible to moderators */}
+      {isModerator && (
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg p-4 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-blue-500 rounded-md p-3">
+                <FlaskConical className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-base">Try our new personalized feed!</h3>
+                  <span className="px-2 py-0.5 text-xs font-bold bg-blue-500 text-white rounded-full uppercase">
+                    Beta
+                  </span>
+                </div>
+                <p className="text-sm text-blue-100">
+                  Get cutting-edge research recommendations tailored to your interests
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => router.push('/feed')}
+              className="px-4 py-2 bg-white text-blue-600 font-medium text-sm rounded-lg hover:bg-blue-50 transition-colors shadow-sm"
+            >
+              Switch to New Feed
+            </button>
+          </div>
+        </div>
+      )}
+
+      <MainPageHeader
+        icon={<Sparkles className="w-6 h-6 text-primary-500" />}
+        title="Explore"
+        subtitle="Discover trending research, earning, and funding opportunities"
+      />
+    </div>
   );
 
   const feedTabs = (

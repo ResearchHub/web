@@ -325,8 +325,8 @@ export const SelfContainedResearchAreasSection = memo(
     const arraysEqual = (a: string[], b: string[]) => {
       if (a.length !== b.length) return false;
       // Sort arrays to ensure order doesn't matter
-      const sortedA = [...a].sort();
-      const sortedB = [...b].sort();
+      const sortedA = [...a].sort((x, y) => x.localeCompare(y));
+      const sortedB = [...b].sort((x, y) => x.localeCompare(y));
       return sortedA.every((val, idx) => val === sortedB[idx]);
     };
 
@@ -334,10 +334,7 @@ export const SelfContainedResearchAreasSection = memo(
     return (
       arraysEqual(prevProps.selectedSubcategories, nextProps.selectedSubcategories) &&
       prevProps.categories === nextProps.categories &&
-      arraysEqual(prevProps.selectedCategories, nextProps.selectedCategories) &&
-      // Ignore function props in comparison
-      prevProps.onCategoryChange === prevProps.onCategoryChange &&
-      prevProps.onSubcategoryChange === prevProps.onSubcategoryChange
+      arraysEqual(prevProps.selectedCategories, nextProps.selectedCategories)
     );
   }
 );

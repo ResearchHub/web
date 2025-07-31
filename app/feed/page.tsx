@@ -19,15 +19,48 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { ApolloProvider } from '@/components/providers/ApolloProvider';
 import { usePreferences } from '@/contexts/PreferencesContext';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
+import { useUser } from '@/contexts/UserContext';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 function FeedContent() {
+  const { user, isLoading: isUserLoading } = useUser();
+  const router = useRouter();
+  const { preferences, clearPreferences } = usePreferences();
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
+  const searchParams = useSearchParams();
+
+  // Check if we should reset onboarding (for testing)
+  useEffect(() => {
+    if (searchParams.get('reset-onboarding') === 'true') {
+      clearPreferences();
+      // Also clear the feed filters to start fresh
+      localStorage.removeItem('researchhub_feed_filters');
+      // Remove the query parameter and reload
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('reset-onboarding');
+      window.location.href = newUrl.toString();
+    }
+  }, [searchParams, clearPreferences]);
+
+  // Check if user needs to see the new onboarding
+  useEffect(() => {
+    if (isUserLoading) return;
+
+    // If user is logged in and hasn't completed the new onboarding
+    if (user && !preferences?.completedAt) {
+      router.replace('/onboarding');
+    } else {
+      // Only show the feed content if they don't need onboarding
+      setCheckingOnboarding(false);
+    }
+  }, [user, isUserLoading, preferences, router]);
+
   // Set up intersection observer for infinite scrolling early to follow Rules of Hooks
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
     rootMargin: '100px',
   });
 
-  const { preferences } = usePreferences();
   const {
     filters,
     debouncedFilters,
@@ -187,11 +220,27 @@ function FeedContent() {
   // Only show initial loading state when it's the first load (no data yet)
   const isInitialLoading = loading && !data?.getPapers;
 
+  // Show loading state while checking onboarding status
+  if (checkingOnboarding || isUserLoading) {
+    return (
+      <div className="container mx-auto p-4 max-w-6xl">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader size="lg" />
+        </div>
+      </div>
+    );
+  }
+
   if (!filtersInitialized) {
     return (
       <div className="container mx-auto p-4 max-w-6xl">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Research Feed</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold">Research Feed</h1>
+            <span className="px-3 py-1 text-xs font-bold bg-blue-100 text-blue-700 rounded-full uppercase">
+              Beta
+            </span>
+          </div>
           <p className="text-gray-600">
             Discover the latest research papers from leading preprint servers
           </p>
@@ -215,11 +264,16 @@ function FeedContent() {
   return (
     <div className="container mx-auto p-4 max-w-6xl">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">
-          {preferences?.firstName
-            ? `Welcome to your feed, ${preferences.firstName}!`
-            : 'Research Feed'}
-        </h1>
+        <div className="flex items-center gap-3 mb-2">
+          <h1 className="text-3xl font-bold">
+            {preferences?.firstName
+              ? `Welcome to your feed, ${preferences.firstName}!`
+              : 'Research Feed'}
+          </h1>
+          <span className="px-3 py-1 text-xs font-bold bg-blue-100 text-blue-700 rounded-full uppercase">
+            Beta
+          </span>
+        </div>
         <p className="text-gray-600">
           {preferences?.completedAt &&
           new Date(preferences.completedAt).getTime() > Date.now() - 60000

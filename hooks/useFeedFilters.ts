@@ -36,17 +36,36 @@ export function useFeedFilters() {
   useEffect(() => {
     try {
       const savedFilters = localStorage.getItem(FEED_FILTERS_STORAGE_KEY);
-      if (savedFilters) {
-        const parsed: FeedFilters = JSON.parse(savedFilters);
-        setFilters(parsed);
-        setDebouncedFilters(parsed);
-      } else if (preferences) {
-        // First time visiting feed after onboarding
+
+      // Check if user just completed onboarding (within the last minute)
+      const justCompletedOnboarding =
+        preferences?.completedAt &&
+        new Date(preferences.completedAt).getTime() > Date.now() - 60000;
+
+      if (justCompletedOnboarding && preferences) {
+        // User just completed onboarding - use their selections
         const initialFilters = {
           ...DEFAULT_FILTERS,
           selectedCategories: preferences.selectedCategories || [],
           selectedSubcategories: preferences.selectedSubcategories || [],
-          useMlScoring: preferences.useMlScoring ?? true, // Use true as default if undefined
+          useMlScoring: preferences.useMlScoring ?? true,
+        };
+        setFilters(initialFilters);
+        setDebouncedFilters(initialFilters);
+        // Save these as the new filters
+        localStorage.setItem(FEED_FILTERS_STORAGE_KEY, JSON.stringify(initialFilters));
+      } else if (savedFilters) {
+        // Use saved filters from previous sessions
+        const parsed: FeedFilters = JSON.parse(savedFilters);
+        setFilters(parsed);
+        setDebouncedFilters(parsed);
+      } else if (preferences) {
+        // First time visiting feed (no saved filters, but has preferences)
+        const initialFilters = {
+          ...DEFAULT_FILTERS,
+          selectedCategories: preferences.selectedCategories || [],
+          selectedSubcategories: preferences.selectedSubcategories || [],
+          useMlScoring: preferences.useMlScoring ?? true,
         };
         setFilters(initialFilters);
         setDebouncedFilters(initialFilters);

@@ -15,6 +15,7 @@ interface UserPreferences {
   selectedSubcategories: string[];
   completedAt?: string;
   useMlScoring?: boolean;
+  currentOnboardingStep?: string;
 }
 
 interface PreferencesContextType {

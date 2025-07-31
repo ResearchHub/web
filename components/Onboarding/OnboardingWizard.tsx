@@ -62,8 +62,10 @@ const CATEGORY_ICONS: { [key: string]: React.ElementType } = {
 export function OnboardingWizard() {
   const { user, isLoading: isUserLoading, refreshUser } = useUser();
   const router = useRouter();
-  const { preferences, updatePreferences } = usePreferences();
-  const [currentStep, setCurrentStep] = useState<OnboardingStep>('NAME');
+  const { preferences, updatePreferences, clearPreferences } = usePreferences();
+  const [currentStep, setCurrentStep] = useState<OnboardingStep>(
+    (preferences?.currentOnboardingStep as OnboardingStep) || 'NAME'
+  );
   const [firstName, setFirstName] = useState(preferences?.firstName || '');
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     preferences?.selectedCategories || []
@@ -72,6 +74,17 @@ export function OnboardingWizard() {
     preferences?.selectedSubcategories || []
   );
   const [isSaving, setIsSaving] = useState(false);
+
+  // DEV: Add this to window for easy testing
+  useEffect(() => {
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      (window as any).resetOnboarding = () => {
+        clearPreferences();
+        localStorage.removeItem('researchhub_feed_filters');
+        window.location.href = '/feed';
+      };
+    }
+  }, [clearPreferences]);
 
   const {
     loading: categoriesLoading,
@@ -87,17 +100,8 @@ export function OnboardingWizard() {
   const [{ isLoading: updateAuthorProfileDataLoading }, updateAuthorProfileData] =
     useUpdateAuthorProfileData();
 
-  // Mark onboarding as completed on mount
-  useEffect(() => {
-    const markOnboardingCompleted = async () => {
-      try {
-        await UserService.setCompletedOnboarding();
-      } catch (error) {
-        console.error('Error marking onboarding as completed:', error);
-      }
-    };
-    markOnboardingCompleted();
-  }, []);
+  // Note: We're NOT marking onboarding as completed in the backend
+  // This keeps the old onboarding flow intact for other pages
 
   // Update preferences when selections actually change
   useEffect(() => {
@@ -105,15 +109,25 @@ export function OnboardingWizard() {
     if (
       firstName !== preferences?.firstName ||
       JSON.stringify(selectedCategories) !== JSON.stringify(preferences?.selectedCategories) ||
-      JSON.stringify(selectedSubcategories) !== JSON.stringify(preferences?.selectedSubcategories)
+      JSON.stringify(selectedSubcategories) !==
+        JSON.stringify(preferences?.selectedSubcategories) ||
+      currentStep !== preferences?.currentOnboardingStep
     ) {
       updatePreferences({
         firstName,
         selectedCategories,
         selectedSubcategories,
+        currentOnboardingStep: currentStep,
       });
     }
-  }, [firstName, selectedCategories, selectedSubcategories, preferences, updatePreferences]);
+  }, [
+    firstName,
+    selectedCategories,
+    selectedSubcategories,
+    currentStep,
+    preferences,
+    updatePreferences,
+  ]);
 
   const handleNameSubmit = async () => {
     if (!firstName.trim()) {
@@ -121,18 +135,17 @@ export function OnboardingWizard() {
       return;
     }
 
-    if (user?.authorProfile?.id) {
-      try {
-        await updateAuthorProfileData(user.authorProfile.id, {
-          first_name: firstName.trim(),
-        });
-        await refreshUser();
-      } catch (error) {
-        console.error('Error updating name:', error);
-      }
-    }
-
+    // Move to next step immediately
     setCurrentStep('CATEGORIES');
+
+    // Update the backend asynchronously without waiting
+    if (user?.authorProfile?.id) {
+      updateAuthorProfileData(user.authorProfile.id, {
+        first_name: firstName.trim(),
+      }).catch((error) => {
+        console.error('Error updating name:', error);
+      });
+    }
   };
 
   const handleCategorySelection = () => {
@@ -150,13 +163,16 @@ export function OnboardingWizard() {
   const handleFinishOnboarding = async () => {
     setIsSaving(true);
     try {
-      // Save completion timestamp
+      // Save completion timestamp and clear the current step
       updatePreferences({
         completedAt: new Date().toISOString(),
+        currentOnboardingStep: undefined,
       });
 
-      await refreshUser();
-      router.replace('/feed');
+      // Small delay to ensure preferences are saved
+      setTimeout(() => {
+        router.replace('/feed');
+      }, 100);
     } catch (error) {
       console.error('Error finishing onboarding:', error);
       toast.error('An error occurred. Please try again.');
