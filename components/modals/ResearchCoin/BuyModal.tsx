@@ -119,14 +119,7 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
 
                 <div className="py-4">
                   {activeTab === 'fund' ? (
-                    <FundCard
-                      assetSymbol="RSC"
-                      country="US"
-                      currency="USD"
-                      headerText="Purchase RSC"
-                      buttonText="Continue"
-                      presetAmountInputs={['50', '100', '250']}
-                    />
+                    <FundCard assetSymbol="RSC" country="US" currency="USD" />
                   ) : (
                     /* Unidirectional Swap Implementation */
                     <Swap isSponsored={true} title="">
