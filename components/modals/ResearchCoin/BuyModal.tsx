@@ -95,10 +95,8 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
                     }`}
                   >
                     <div className="flex items-center justify-center gap-2">
-                      <CreditCard className="h-4 w-4" />
-                      <span className="font-medium">Buy with Card</span>
+                      <span className="font-medium">USD -{'>'} RSC</span>
                     </div>
-                    <p className="text-xs mt-1 opacity-70">Purchase crypto first</p>
                   </button>
 
                   <button
@@ -110,16 +108,14 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
                     }`}
                   >
                     <div className="flex items-center justify-center gap-2">
-                      <ArrowRight className="h-4 w-4" />
-                      <span className="font-medium">Swap Crypto</span>
+                      <span className="font-medium">ETH -{'>'} RSC</span>
                     </div>
-                    <p className="text-xs mt-1 opacity-70">Use existing crypto</p>
                   </button>
                 </div>
 
                 <div className="py-4">
                   {activeTab === 'fund' ? (
-                    <FundCard assetSymbol="RSC" country="US" currency="USD" />
+                    <FundCard assetSymbol="RSC" country="US" currency="USD" headerText="" />
                   ) : (
                     /* Unidirectional Swap Implementation */
                     <Swap isSponsored={true} title="">
