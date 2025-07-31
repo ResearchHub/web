@@ -1,7 +1,8 @@
 import React from 'react';
-import { Shield, Sparkles, Database } from 'lucide-react';
+import { Settings2, Sparkles, Database } from 'lucide-react';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { Switch } from '@/components/ui/Switch';
+import Image from 'next/image';
 import { Source } from './constants';
 
 interface AdminSectionProps {
@@ -27,73 +28,54 @@ export function AdminSection({
   onEnrichmentChange,
   onSourcesChange,
 }: AdminSectionProps) {
-  // Check if all sources are selected (or no sources selected means "All")
+  // Check if all sources are selected
   const allSourceValues = sources.map((s) => s.value);
   const isAllSelected =
-    selectedSources.length === 0 ||
-    (selectedSources.length === sources.length &&
-      allSourceValues.every((value) => selectedSources.includes(value)));
+    selectedSources.length === sources.length &&
+    allSourceValues.every((value) => selectedSources.includes(value));
 
   const handleAllToggle = () => {
     if (isAllSelected) {
-      // If "All" is currently selected, deselect all (which will revert to "All" behavior)
-      // This creates a toggle effect
+      // If all are selected, deselect all
       onSourcesChange([]);
     } else {
-      // Select all sources explicitly
-      onSourcesChange([]);
+      // Select all sources
+      onSourcesChange(allSourceValues);
     }
   };
 
   const handleSourceToggle = (sourceValue: string) => {
-    if (isAllSelected) {
-      // If "All" is selected and user clicks a specific source,
-      // select all sources except the clicked one
-      const newSelection = allSourceValues.filter((v) => v !== sourceValue);
+    const isSelected = selectedSources.includes(sourceValue);
+
+    if (isSelected) {
+      // Remove the source from selection
+      const newSelection = selectedSources.filter((s) => s !== sourceValue);
       onSourcesChange(newSelection);
     } else {
-      const isSelected = selectedSources.includes(sourceValue);
-
-      if (isSelected) {
-        const newSelection = selectedSources.filter((s) => s !== sourceValue);
-        // If deselecting would result in empty array, it means "All"
-        onSourcesChange(newSelection);
-      } else {
-        const newSelection = [...selectedSources, sourceValue];
-        // If selecting all sources, clear the array to represent "All"
-        if (newSelection.length === sources.length) {
-          onSourcesChange([]);
-        } else {
-          onSourcesChange(newSelection);
-        }
-      }
+      // Add the source to selection
+      const newSelection = [...selectedSources, sourceValue];
+      onSourcesChange(newSelection);
     }
   };
 
   // Calculate active settings count
-  // Don't count sources if "All" is selected (default state)
   // Don't count hasEnrichment if it's true (default state)
-  const activeCount =
-    (useMlScoring ? 1 : 0) +
-    (!hasEnrichment ? 1 : 0) +
-    (isAllSelected ? 0 : selectedSources.length);
+  const activeCount = (useMlScoring ? 1 : 0) + (!hasEnrichment ? 1 : 0) + selectedSources.length;
 
   // Generate description
   const descriptions = [];
   if (useMlScoring) descriptions.push('ML scoring');
   if (!hasEnrichment) descriptions.push('No enrichment');
-  if (!isAllSelected && selectedSources.length > 0) {
+  if (selectedSources.length > 0) {
     descriptions.push(`${selectedSources.length} source${selectedSources.length > 1 ? 's' : ''}`);
-  } else if (isAllSelected) {
-    descriptions.push('All sources');
   }
   const description =
     descriptions.length > 0 ? descriptions.join(', ') : 'Configure advanced settings';
 
   return (
     <CollapsibleSection
-      title="Admin"
-      icon={<Shield className="w-5 h-5 text-gray-600" />}
+      title="Advanced"
+      icon={<Settings2 className="w-5 h-5 text-gray-600" />}
       isExpanded={isExpanded}
       onToggle={onToggle}
       className="mb-4 border-b border-gray-200 pb-4"
@@ -136,61 +118,57 @@ export function AdminSection({
 
         {/* Sources Section */}
         <div>
-          <h5 className="text-sm font-medium text-gray-700 mb-3">Paper Sources</h5>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-            {/* All Sources Button */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-baseline gap-2">
+              <h5 className="text-sm font-medium text-gray-700">Paper Sources</h5>
+              {selectedSources.length > 0 && (
+                <span className="text-xs text-gray-500">
+                  <span className="text-blue-600 font-medium">
+                    {selectedSources.length} selected
+                  </span>
+                </span>
+              )}
+            </div>
             <button
               onClick={handleAllToggle}
-              className={`
-                flex flex-col items-center p-3 rounded-lg border-2 transition-all
-                ${
-                  isAllSelected
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
-                }
-              `}
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
             >
-              <div className="h-8 w-8 mb-2 flex items-center justify-center">
-                <span
-                  className={`text-lg font-bold ${isAllSelected ? 'text-blue-600' : 'text-gray-600'}`}
-                >
-                  All
-                </span>
-              </div>
-              <span
-                className={`text-xs font-medium ${isAllSelected ? 'text-blue-700' : 'text-gray-700'}`}
-              >
-                All Sources
-              </span>
+              <input
+                type="checkbox"
+                checked={isAllSelected}
+                onChange={() => {}}
+                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span>Select all</span>
             </button>
-
-            {/* Individual Source Buttons */}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {/* Individual Source Badges */}
             {sources.map((source) => {
-              const isSelected = isAllSelected || selectedSources.includes(source.value);
+              const isSelected = selectedSources.includes(source.value);
 
               return (
                 <button
                   key={source.value}
                   onClick={() => handleSourceToggle(source.value)}
                   className={`
-                    flex flex-col items-center p-3 rounded-lg border-2 transition-all
+                    inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium
+                    border transition-all duration-200
                     ${
                       isSelected
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
+                        ? 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200'
+                        : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
                     }
                   `}
                 >
-                  <img
+                  <Image
                     src={source.logo}
                     alt={source.label}
-                    className="h-8 w-8 mb-2 object-contain"
+                    width={40}
+                    height={14}
+                    className="object-contain"
+                    style={{ maxHeight: '14px' }}
                   />
-                  <span
-                    className={`text-xs font-medium ${isSelected ? 'text-blue-700' : 'text-gray-700'}`}
-                  >
-                    {source.label}
-                  </span>
                 </button>
               );
             })}

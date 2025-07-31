@@ -5,7 +5,7 @@ export interface Source {
 }
 
 export const SOURCES: Source[] = [
-  { value: 'biorxiv', label: 'bioRxiv', logo: '/logos/biorxiv.jpg' },
+  { value: 'biorxiv', label: 'bioRxiv', logo: '/logos/biorxiv.png' },
   { value: 'arxiv', label: 'arXiv', logo: '/logos/arxiv.png' },
   { value: 'medrxiv', label: 'medRxiv', logo: '/logos/medrxiv.jpg' },
   { value: 'chemrxiv', label: 'chemRxiv', logo: '/logos/chemrxiv.png' },

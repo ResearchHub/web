@@ -11,6 +11,7 @@ export interface FeedFilters {
   timePeriod: string;
   sortBy: string;
   useMlScoring: boolean;
+  hasEnrichment: boolean;
 }
 
 const DEFAULT_FILTERS: FeedFilters = {
@@ -21,6 +22,7 @@ const DEFAULT_FILTERS: FeedFilters = {
   timePeriod: 'LAST_WEEK',
   sortBy: 'best',
   useMlScoring: true, // Changed from false to true - ML scoring on by default
+  hasEnrichment: true, // Default to true - enriched data on by default
 };
 
 export function useFeedFilters() {

@@ -179,11 +179,11 @@ function AdvancedFilterComponent({
     onFilterChange({
       categories: [],
       subcategories: [],
-      sources: [], // Empty array means "All sources"
+      sources: [], // Empty array means no sources selected
       keywords: [],
       timePeriod: 'LAST_WEEK',
       sortBy: 'best',
-      useMlScoring: true, // Changed from false to true - ML scoring stays on when clearing
+      useMlScoring: true, // ML scoring stays on when clearing
       hasEnrichment: true, // Default to true
     });
   };
@@ -265,7 +265,7 @@ function AdvancedFilterComponent({
               onSubcategoryChange={handleSubcategoriesChange}
             />
 
-            {/* Admin Section - ML Scoring and Sources */}
+            {/* Advanced Section - ML Scoring and Sources */}
             <AdminSection
               useMlScoring={useMlScoring}
               hasEnrichment={hasEnrichment}

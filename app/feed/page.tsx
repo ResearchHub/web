@@ -80,11 +80,12 @@ function FeedContent() {
         ...(debouncedFilters.selectedCategories.length > 0 && {
           categories: debouncedFilters.selectedCategories,
         }),
-        ...(debouncedFilters.selectedSources.length > 0 && {
-          sources: debouncedFilters.selectedSources,
-        }),
+        ...(debouncedFilters.selectedSources.length > 0 &&
+          debouncedFilters.selectedSources.length < 4 && {
+            sources: debouncedFilters.selectedSources,
+          }),
         sortOrder,
-        hasEnrichment: true,
+        hasEnrichment: debouncedFilters.hasEnrichment,
         offset: 0, // Always start at 0 for the initial query
       },
     },
@@ -137,11 +138,12 @@ function FeedContent() {
             ...(debouncedFilters.selectedCategories.length > 0 && {
               categories: debouncedFilters.selectedCategories,
             }),
-            ...(debouncedFilters.selectedSources.length > 0 && {
-              sources: debouncedFilters.selectedSources,
-            }),
+            ...(debouncedFilters.selectedSources.length > 0 &&
+              debouncedFilters.selectedSources.length < 4 && {
+                sources: debouncedFilters.selectedSources,
+              }),
             sortOrder: newSortOrder,
-            hasEnrichment: true,
+            hasEnrichment: debouncedFilters.hasEnrichment,
             offset: newOffset,
           },
         },
@@ -253,6 +255,7 @@ function FeedContent() {
           timePeriod={filters.timePeriod}
           sortBy={filters.sortBy}
           useMlScoring={filters.useMlScoring}
+          hasEnrichment={filters.hasEnrichment}
           onFilterChange={(newFilters) => {
             // Map the property names from AdvancedFilter to match the filter state
             updateFilters({
@@ -263,6 +266,7 @@ function FeedContent() {
               timePeriod: newFilters.timePeriod,
               sortBy: newFilters.sortBy,
               useMlScoring: newFilters.useMlScoring,
+              hasEnrichment: newFilters.hasEnrichment,
             });
             setOffset(0);
           }}
