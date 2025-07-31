@@ -52,5 +52,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/notebook/:path*', '/notebook/api/:path*'],
+  matcher: ['/', '/notebook/:path*', '/notebook/api/:path*', '/referral'],
 };

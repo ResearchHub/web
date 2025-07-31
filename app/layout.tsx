@@ -24,6 +24,8 @@ import { ShareModalProvider } from '@/contexts/ShareContext';
 import ApmProvider from '@/components/ApmProvider';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { Analytics } from '@vercel/analytics/react';
+import { ReferralProvider } from '@/contexts/ReferralContext';
+import { FeatureNotifications } from '@/components/FeatureNotifications';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -118,26 +120,29 @@ export default async function RootLayout({
         <ClickProvider>
           <OnchainProvider>
             <NextAuthProvider session={session}>
-              <AuthSharingWrapper>
-                <AuthModalProvider>
-                  <ShareModalProvider>
-                    <UserProvider>
-                      <VerificationProvider>
-                        <ExchangeRateProvider>
-                          <CurrencyPreferenceProvider>
-                            <NotificationProvider>
-                              <OrganizationProvider>
-                                <FollowProvider>{children}</FollowProvider>
-                              </OrganizationProvider>
-                            </NotificationProvider>
-                          </CurrencyPreferenceProvider>
-                        </ExchangeRateProvider>
-                      </VerificationProvider>
-                    </UserProvider>
-                    <SignupModalContainer />
-                  </ShareModalProvider>
-                </AuthModalProvider>
-              </AuthSharingWrapper>
+              <ReferralProvider>
+                <AuthSharingWrapper>
+                  <AuthModalProvider>
+                    <ShareModalProvider>
+                      <UserProvider>
+                        <VerificationProvider>
+                          <ExchangeRateProvider>
+                            <CurrencyPreferenceProvider>
+                              <NotificationProvider>
+                                <OrganizationProvider>
+                                  <FollowProvider>{children}</FollowProvider>
+                                  <FeatureNotifications />
+                                </OrganizationProvider>
+                              </NotificationProvider>
+                            </CurrencyPreferenceProvider>
+                          </ExchangeRateProvider>
+                        </VerificationProvider>
+                      </UserProvider>
+                      <SignupModalContainer />
+                    </ShareModalProvider>
+                  </AuthModalProvider>
+                </AuthSharingWrapper>
+              </ReferralProvider>
             </NextAuthProvider>
             <ToasterProvider />
           </OnchainProvider>

@@ -136,6 +136,7 @@ export class FeedService {
           `${safeAuthor.first_name || ''} ${safeAuthor.last_name || ''}`.trim() || 'Unknown User',
         isVerified: safeAuthor.user?.is_verified || false,
         balance: 0,
+        lockedBalance: 0,
         moderator: false,
         authorProfile: {
           id: safeAuthor.id || 0,
@@ -156,6 +157,7 @@ export class FeedService {
               'Unknown User',
             isVerified: safeAuthor.user?.is_verified || false,
             balance: 0,
+            lockedBalance: 0,
             moderator: false,
           },
           isClaimed: !!safeAuthor.user,
