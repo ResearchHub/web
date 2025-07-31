@@ -1,6 +1,7 @@
 'use client';
 
-import { FC, useState } from 'react';
+import React, { useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import {
   Award,
@@ -11,12 +12,12 @@ import {
   HelpCircle,
   Route,
 } from 'lucide-react';
-import { CollapsibleSection, CollapsibleItem } from '@/components/ui/CollapsibleSection';
+import { CollapsibleItem, SimpleCollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { useRouter } from 'next/navigation';
 
-export const EarnRightSidebar: FC = () => {
-  const [openSections, setOpenSections] = useState<string[]>([]);
+export const EarnRightSidebar = () => {
   const router = useRouter();
+  const [openSections, setOpenSections] = useState<string[]>([]);
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) =>
@@ -63,45 +64,47 @@ export const EarnRightSidebar: FC = () => {
         </ol>
       </div>
 
-      <CollapsibleSection title="About ResearchCoin">
-        <CollapsibleItem
-          title="What is ResearchCoin (RSC)?"
-          icon={<Coins className="w-4 h-4" strokeWidth={2} />}
-          isOpen={openSections.includes('what-is-rsc')}
-          onToggle={() => toggleSection('what-is-rsc')}
-        >
-          ResearchCoin (RSC) is a digital currency that incentivizes good science by allowing users
-          to create grants, reward quality contributions, and fund open science initiatives on
-          ResearchHub.
-        </CollapsibleItem>
+      <SimpleCollapsibleSection title="About ResearchCoin">
+        <div className="text-gray-600 text-sm space-y-2">
+          <CollapsibleItem
+            title="What is ResearchCoin (RSC)?"
+            icon={<Coins className="w-4 h-4" strokeWidth={2} />}
+            isOpen={openSections.includes('what-is-rsc')}
+            onToggle={() => toggleSection('what-is-rsc')}
+          >
+            ResearchCoin (RSC) is a digital currency that incentivizes good science by allowing
+            users to create grants, reward quality contributions, and fund open science initiatives
+            on ResearchHub.
+          </CollapsibleItem>
 
-        <CollapsibleItem
-          title="Why RSC?"
-          icon={<HelpCircle className="w-4 h-4" strokeWidth={2} />}
-          isOpen={openSections.includes('why-rsc')}
-          onToggle={() => toggleSection('why-rsc')}
-        >
-          RSC creates a transparent, merit-based ecosystem where researchers can be directly
-          rewarded for their contributions to science. It helps bridge the gap between valuable
-          research work and financial recognition.
-        </CollapsibleItem>
+          <CollapsibleItem
+            title="Why RSC?"
+            icon={<HelpCircle className="w-4 h-4" strokeWidth={2} />}
+            isOpen={openSections.includes('why-rsc')}
+            onToggle={() => toggleSection('why-rsc')}
+          >
+            RSC creates a transparent, merit-based ecosystem where researchers can be directly
+            rewarded for their contributions to science. It helps bridge the gap between valuable
+            research work and financial recognition.
+          </CollapsibleItem>
 
-        <CollapsibleItem
-          title="Getting Started with RSC"
-          icon={<Route className="w-4 h-4" strokeWidth={2} />}
-          isOpen={openSections.includes('getting-started')}
-          onToggle={() => toggleSection('getting-started')}
-        >
-          To begin with ResearchCoin:
-          <ul className="mt-2 space-y-1.5">
-            <li>1. Create a ResearchHub account</li>
-            <li>2. Verify your academic credentials</li>
-            <li>3. Start engaging with content through reviews and discussions</li>
-            <li>4. Earn your first RSC through participation</li>
-            <li>5. Explore rewards and funding opportunities</li>
-          </ul>
-        </CollapsibleItem>
-      </CollapsibleSection>
+          <CollapsibleItem
+            title="Getting Started with RSC"
+            icon={<Route className="w-4 h-4" strokeWidth={2} />}
+            isOpen={openSections.includes('getting-started')}
+            onToggle={() => toggleSection('getting-started')}
+          >
+            To begin with ResearchCoin:
+            <ul className="mt-2 space-y-1.5">
+              <li>1. Create a ResearchHub account</li>
+              <li>2. Verify your academic credentials</li>
+              <li>3. Start engaging with content through reviews and discussions</li>
+              <li>4. Earn your first RSC through participation</li>
+              <li>5. Explore rewards and funding opportunities</li>
+            </ul>
+          </CollapsibleItem>
+        </div>
+      </SimpleCollapsibleSection>
     </div>
   );
 };

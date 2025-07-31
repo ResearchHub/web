@@ -69,7 +69,7 @@ export default function TopicFeedPage() {
     <FeedTabs
       activeTab={activeTab}
       tabs={topicTabs}
-      onTabChange={setActiveTab}
+      onTabChange={(tab: string) => setActiveTab(tab as FeedTab)}
       isLoading={isFeedLoading}
     />
   );

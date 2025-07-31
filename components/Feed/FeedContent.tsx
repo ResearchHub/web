@@ -1,8 +1,9 @@
 'use client';
 
-import { FC, ReactNode } from 'react';
+import { FC, ReactNode, useEffect } from 'react';
 import React from 'react';
 import { FeedItemSkeleton } from './FeedItemSkeleton';
+import { useInView } from 'react-intersection-observer';
 import {
   FeedEntry,
   FeedPostContent,
@@ -63,6 +64,19 @@ export const FeedContent: FC<FeedContentProps> = ({
   showGrantHeaders = true, // Default to true
   showReadMoreCTA = false,
 }) => {
+  // Set up intersection observer for infinite scrolling (must be called before any conditional returns)
+  const { ref: loadMoreRef, inView } = useInView({
+    threshold: 0,
+    rootMargin: '100px',
+  });
+
+  // Trigger load more when the sentinel element is in view
+  useEffect(() => {
+    if (inView && hasMore && !isLoading && !isLoadingMore) {
+      loadMore();
+    }
+  }, [inView, hasMore, isLoading, isLoadingMore, loadMore]);
+
   // Generate appropriate href for each feed item type
   const generateHref = (entry: FeedEntry): string | undefined => {
     // If links are disabled globally, return undefined
@@ -270,17 +284,10 @@ export const FeedContent: FC<FeedContentProps> = ({
             ))}
         </div>
 
-        {/* Load More button */}
+        {/* Infinite scroll sentinel */}
         {!isLoading && hasMore && (
-          <div className="mt-8 text-center">
-            <Button
-              onClick={loadMore}
-              disabled={isLoadingMore}
-              variant="link"
-              className="text-primary-600 hover:text-primary-500"
-            >
-              {isLoadingMore ? 'Loading...' : 'Load more'}
-            </Button>
+          <div ref={loadMoreRef} className="h-10 flex items-center justify-center">
+            {isLoadingMore && <span className="text-sm text-gray-500">Loading more...</span>}
           </div>
         )}
       </div>

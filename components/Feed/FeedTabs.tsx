@@ -11,14 +11,15 @@ import { cn } from '@/utils/styles';
 
 interface TabItem {
   id: string;
-  label: string;
+  label: string | React.ReactNode;
+  customAction?: () => void;
 }
 
 interface FeedTabsProps {
   activeTab: FeedTab;
   tabs: TabItem[];
   isCustomizing?: boolean;
-  onTabChange: (tab: FeedTab) => void;
+  onTabChange: (tab: string) => void;
   onCustomizeChange?: () => void;
   isLoading?: boolean;
 }
@@ -35,7 +36,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
 
   const handleTabChange = (tabId: string) => {
     if (isCustomizing) return;
-    onTabChange(tabId as FeedTab);
+    onTabChange(tabId);
   };
 
   const tooltipContent = (

@@ -2,7 +2,6 @@
 
 import { ReactNode, useState, Suspense, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { OnboardingRedirect } from '@/components/OnboardingRedirect';
 import { usePathname } from 'next/navigation';
 import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
 import { OnboardingModal } from '@/components/Onboarding/OnboardingModal';
@@ -148,7 +147,6 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
 
   return (
     <div className="flex h-screen">
-      {/* <OnboardingRedirect /> */}
       <OnboardingModal />
 
       {/* Fixed TopBar starting from LeftSidebar edge */}

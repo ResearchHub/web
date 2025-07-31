@@ -69,7 +69,7 @@ export default function JournalFeedPage() {
     <FeedTabs
       activeTab={activeTab}
       tabs={journalTabs}
-      onTabChange={setActiveTab}
+      onTabChange={(tab: string) => setActiveTab(tab as FeedTab)}
       isLoading={isFeedLoading}
     />
   );
