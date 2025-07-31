@@ -120,10 +120,10 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
                 <div className="py-4">
                   {showFundCard ? (
                     <FundCard
-                      assetSymbol="ETH"
+                      assetSymbol="RSC"
                       country="US"
                       currency="USD"
-                      headerText="Purchase ETH to buy RSC"
+                      headerText="Purchase RSC"
                       buttonText="Continue"
                       presetAmountInputs={['50', '100', '250']}
                     />
