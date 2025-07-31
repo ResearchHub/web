@@ -3,7 +3,7 @@
 
 import { FC } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
-import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
+import { SimpleCollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { Zap, CheckCircle, Mail, Linkedin } from 'lucide-react';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 
@@ -192,13 +192,13 @@ export const JournalRightSidebar: FC = () => {
         <h3 className="font-semibold text-gray-800 mb-4">Frequently Asked Questions</h3>
         <div className="space-y-2">
           {faqItems.map((item, index) => (
-            <CollapsibleSection
+            <SimpleCollapsibleSection
               key={index}
               title={item.question}
               className="text-sm font-medium text-gray-700"
             >
               <div className="text-sm text-gray-600 pt-2">{item.answer}</div>
-            </CollapsibleSection>
+            </SimpleCollapsibleSection>
           ))}
         </div>
       </div>

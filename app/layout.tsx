@@ -24,6 +24,7 @@ import { ShareModalProvider } from '@/contexts/ShareContext';
 import ApmProvider from '@/components/ApmProvider';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { Analytics } from '@vercel/analytics/react';
+import { PreferencesProvider } from '@/contexts/PreferencesContext';
 import { ReferralProvider } from '@/contexts/ReferralContext';
 import { FeatureNotifications } from '@/components/FeatureNotifications';
 
@@ -130,7 +131,9 @@ export default async function RootLayout({
                             <CurrencyPreferenceProvider>
                               <NotificationProvider>
                                 <OrganizationProvider>
-                                  <FollowProvider>{children}</FollowProvider>
+                                  <PreferencesProvider>
+                                    <FollowProvider>{children}</FollowProvider>
+                                  </PreferencesProvider>
                                   <FeatureNotifications />
                                 </OrganizationProvider>
                               </NotificationProvider>

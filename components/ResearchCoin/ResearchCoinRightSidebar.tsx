@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
-import { CollapsibleSection, CollapsibleItem } from '@/components/ui/CollapsibleSection';
+import React from 'react';
+import { CollapsibleItem, SimpleCollapsibleSection } from '@/components/ui/CollapsibleSection';
+import { Card } from '@/components/ui/Card';
 
 import Icon from '@/components/ui/icons/Icon';
 
 export const ResearchCoinRightSidebar = () => {
-  const [openSections, setOpenSections] = useState<string[]>([]);
+  const [openSections, setOpenSections] = React.useState<string[]>([]);
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) =>
@@ -19,48 +19,50 @@ export const ResearchCoinRightSidebar = () => {
     <div className="w-80 sticky top-[64px] h-[calc(100vh-64px)] bg-white/95 backdrop-blur-md border-gray-100 overscroll-contain">
       <div className="h-full overflow-y-auto pb-16 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
         {/* About Section */}
-        <CollapsibleSection title="About ResearchCoin" className="px-6">
-          <CollapsibleItem
-            title="What is ResearchCoin (RSC)?"
-            icon={<Icon name="earn2" size={16} />}
-            isOpen={openSections.includes('what-is-rsc')}
-            onToggle={() => toggleSection('what-is-rsc')}
-          >
-            ResearchCoin (RSC) is a digital currency that incentivizes good science by allowing
-            users to create bounties, reward quality contributions, and fund open science
-            initiatives on ResearchHub.
-          </CollapsibleItem>
+        <SimpleCollapsibleSection title="About ResearchCoin" className="px-6">
+          <div className="text-gray-600 text-sm space-y-2">
+            <CollapsibleItem
+              title="What is ResearchCoin (RSC)?"
+              icon={<Icon name="earn2" size={16} />}
+              isOpen={openSections.includes('what-is-rsc')}
+              onToggle={() => toggleSection('what-is-rsc')}
+            >
+              ResearchCoin (RSC) is a digital currency that incentivizes good science by allowing
+              users to create bounties, reward quality contributions, and fund open science
+              initiatives on ResearchHub.
+            </CollapsibleItem>
 
-          <CollapsibleItem
-            title="Why RSC?"
-            icon={<Icon name="fund2" size={16} />}
-            isOpen={openSections.includes('why-rsc')}
-            onToggle={() => toggleSection('why-rsc')}
-          >
-            RSC creates a transparent, merit-based ecosystem where researchers can be directly
-            rewarded for their contributions to science. It helps bridge the gap between valuable
-            research work and financial recognition.
-          </CollapsibleItem>
+            <CollapsibleItem
+              title="Why RSC?"
+              icon={<Icon name="fund2" size={16} />}
+              isOpen={openSections.includes('why-rsc')}
+              onToggle={() => toggleSection('why-rsc')}
+            >
+              RSC creates a transparent, merit-based ecosystem where researchers can be directly
+              rewarded for their contributions to science. It helps bridge the gap between valuable
+              research work and financial recognition.
+            </CollapsibleItem>
 
-          <CollapsibleItem
-            title="Getting started with RSC"
-            icon={<Icon name="wallet3" size={16} />}
-            isOpen={openSections.includes('getting-started')}
-            onToggle={() => toggleSection('getting-started')}
-          >
-            To begin with ResearchCoin:
-            <ul className="mt-2 space-y-1.5">
-              <li>1. Create a ResearchHub account</li>
-              <li>2. Verify your academic credentials</li>
-              <li>3. Start engaging with content through reviews and discussions</li>
-              <li>4. Earn your first RSC through participation</li>
-              <li>5. Explore bounties and funding opportunities</li>
-            </ul>
-          </CollapsibleItem>
-        </CollapsibleSection>
+            <CollapsibleItem
+              title="Getting started with RSC"
+              icon={<Icon name="wallet3" size={16} />}
+              isOpen={openSections.includes('getting-started')}
+              onToggle={() => toggleSection('getting-started')}
+            >
+              To begin with ResearchCoin:
+              <ul className="mt-2 space-y-1.5">
+                <li>1. Create a ResearchHub account</li>
+                <li>2. Verify your academic credentials</li>
+                <li>3. Start engaging with content through reviews and discussions</li>
+                <li>4. Earn your first RSC through participation</li>
+                <li>5. Explore bounties and funding opportunities</li>
+              </ul>
+            </CollapsibleItem>
+          </div>
+        </SimpleCollapsibleSection>
 
         {/* RSC Utility Section */}
-        <CollapsibleSection title="Use ResearchCoin" className="px-6">
+        <SimpleCollapsibleSection title="Use ResearchCoin" className="px-6">
           <CollapsibleItem
             title="Create bounties"
             icon={<Icon name="createBounty" size={16} />}
@@ -102,10 +104,10 @@ export const ResearchCoinRightSidebar = () => {
             incentive structures in their fields. Through voting and proposal mechanisms, the
             research community can determine how to best reward different types of contributions.
           </CollapsibleItem>
-        </CollapsibleSection>
+        </SimpleCollapsibleSection>
 
         {/* Earning Section */}
-        <CollapsibleSection title="Earn ResearchCoin" className="px-6">
+        <SimpleCollapsibleSection title="Earn ResearchCoin" className="px-6">
           <CollapsibleItem
             title="Share a peer review"
             icon={<Icon name="peerReview1" size={16} />}
@@ -138,7 +140,7 @@ export const ResearchCoinRightSidebar = () => {
             <br />• 2x: Has open data
             <br />• 3x: Was preregistered
           </CollapsibleItem>
-        </CollapsibleSection>
+        </SimpleCollapsibleSection>
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none" />
