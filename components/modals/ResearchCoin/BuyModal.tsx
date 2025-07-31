@@ -59,7 +59,7 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 shadow-xl transition-all">
+              <DialogPanel className="w-full max-w-md transform overflow-visible rounded-2xl bg-white p-8 shadow-xl transition-all">
                 <div className="flex items-center justify-between mb-8">
                   <DialogTitle className="text-2xl font-semibold text-gray-900">
                     Buy RSC
