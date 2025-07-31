@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { AuthService } from '@/services/auth.service';
-import { ApiError } from '@/services/types/api';
 import { BaseScreenProps } from '../types';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAutoFocus } from '@/hooks/useAutoFocus';
@@ -8,6 +7,7 @@ import { parseFullName } from '@/utils/nameUtils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft } from '@fortawesome/pro-light-svg-icons';
 import { Button } from '@/components/ui/Button';
+import { useReferral } from '@/contexts/ReferralContext';
 import AnalyticsService from '@/services/analytics.service';
 import { Experiment, ExperimentVariant, isExperimentEnabled } from '@/utils/experiment';
 
@@ -36,6 +36,7 @@ export default function Signup({
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const fullNameInputRef = useAutoFocus<HTMLInputElement>(true);
+  const { referralCode, clearReferralCode } = useReferral();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,13 +50,16 @@ export default function Signup({
 
     try {
       const { firstName, lastName } = parseFullName(fullName);
-      await AuthService.register({
+      const registrationData = {
         email,
         password1: password,
         password2: password,
         first_name: firstName,
         last_name: lastName,
-      });
+        referral_code: referralCode || undefined,
+      };
+
+      await AuthService.register(registrationData);
 
       AnalyticsService.logSignedUp('credentials', {
         homepage_experiment: isExperimentEnabled(Experiment.HomepageExperiment)

@@ -64,7 +64,7 @@ export const AuditContent: FC<AuditContentProps> = ({
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-4xl mx-auto">
         <div className="flex flex-col items-center justify-center py-12">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
             <XCircle className="h-8 w-8 text-red-600" />
@@ -79,7 +79,7 @@ export const AuditContent: FC<AuditContentProps> = ({
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto">
       {/* Header */}
       {header && <div className="mb-6">{header}</div>}
 

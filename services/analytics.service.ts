@@ -16,6 +16,7 @@ export const LogEvent = {
   CLICKED_SHARE_VIA_X: 'clicked_share_via_x',
   CLICKED_SHARE_VIA_URL: 'clicked_share_via_url',
   CLICKED_SHARE_VIA_BLUESKY: 'clicked_share_via_bluesky',
+  CLICKED_SHARE_VIA_QR_CODE: 'clicked_share_via_qr_code',
   SIGNED_UP: 'signed_up',
 } as const;
 

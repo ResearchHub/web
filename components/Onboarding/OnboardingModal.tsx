@@ -11,7 +11,7 @@ import { FormField, ProfileInformationFormValues } from './ProfileInformationFor
 import { Button } from '@/components/ui/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faChevronLeft } from '@fortawesome/pro-solid-svg-icons';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { InterestSelector } from '../InterestSelector/InterestSelector';
 import { OnboardingAccordionSkeleton } from './OnboardingAccordionSkeleton';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
@@ -67,6 +67,7 @@ export function OnboardingModal() {
   const [isSaving, setIsSaving] = useState(false);
   const router = useRouter();
   const onboardingEventFired = useRef(false);
+  const pathname = usePathname();
 
   const [
     { isLoading: updateAuthorProfileDataLoading, error: updateAuthorProfileDataError },
@@ -88,6 +89,11 @@ export function OnboardingModal() {
       return;
     }
 
+    // Skip old onboarding for /feed page - they'll use the new onboarding
+    if (pathname === '/feed') {
+      return;
+    }
+
     const shouldShowOnboarding =
       UserService.shouldRedirectToOnboarding(user) || searchParams.get('onboarding') === 'true';
 
@@ -102,7 +108,7 @@ export function OnboardingModal() {
     }
 
     setShowModal(shouldShowOnboarding);
-  }, [user, isUserLoading, searchParams]);
+  }, [user, isUserLoading, searchParams, pathname]);
 
   useEffect(() => {
     const markOnboardingCompleted = async () => {
