@@ -36,7 +36,7 @@ export function SocialShareButtons({
   };
 
   const twitterLink = `https://twitter.com/intent/tweet?text=${encodeURIComponent(socialText)}&url=${encodeURIComponent(buildUrlWithUtm(url, 'x'))}`;
-  const linkedInLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(buildUrlWithUtm(url, 'linkedin'))}`;
+  const linkedInLink = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(`${socialText} \n${buildUrlWithUtm(url, 'linkedin')}`)}`;
   const blueSkyLink = `https://bsky.app/intent/compose?text=${encodeURIComponent(`${socialText} ${buildUrlWithUtm(url, 'bluesky')}`)}`;
 
   const handleShare = (platform: 'linkedin' | 'x' | 'bluesky' | 'copy') => {

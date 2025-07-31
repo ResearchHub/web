@@ -14,6 +14,7 @@ import { useSession } from 'next-auth/react';
 import { CommentContent } from '@/components/Comment/lib/types';
 import { CommentActionType, commentReducer, initialCommentState } from './CommentReducer';
 import { JSONContent } from '@tiptap/core';
+import AnalyticsService from '@/services/analytics.service';
 
 export type BountyFilterType = 'ALL' | 'OPEN' | 'CLOSED';
 
@@ -449,6 +450,22 @@ export const CommentProvider = ({
 
           // Update the count
           dispatch({ type: CommentActionType.SET_COUNT, payload: state.count + 1 });
+
+          try {
+            await AnalyticsService.logUserCommented(
+              contentType,
+              documentId.toString(),
+              newComment.id.toString(),
+              {
+                comment_type: commentType,
+                rating: rating,
+                mention_count: mentions.length,
+              }
+            );
+          } catch (analyticsError) {
+            // Don't fail the comment creation if analytics fails
+            console.error('Analytics error:', analyticsError);
+          }
         }
 
         return newComment;

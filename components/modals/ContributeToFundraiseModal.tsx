@@ -13,6 +13,8 @@ import { FundraiseService } from '@/services/fundraise.service';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { Fundraise } from '@/types/funding';
+import { useCreateContribution } from '@/hooks/useFundraise';
+import { useSession } from 'next-auth/react';
 
 interface ContributeToFundraiseModalProps {
   isOpen: boolean;
@@ -141,10 +143,12 @@ export function ContributeToFundraiseModal({
 }: ContributeToFundraiseModalProps) {
   const { user } = useUser();
   const [inputAmount, setInputAmount] = useState(100);
-  const [isContributing, setIsContributing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
+
+  const [{ isLoading: isContributing, error: contributionError }, createContribution] =
+    useCreateContribution();
 
   // Calculate total available balance including locked balance for fundraise contributions
   const userBalance = user?.balance || 0;
@@ -184,12 +188,13 @@ export function ContributeToFundraiseModal({
         return;
       }
 
-      setIsContributing(true);
       setError(null);
 
-      // Pass the contribution amount without the platform fee
-      // The API expects the net contribution amount
-      await FundraiseService.contributeToFundraise(fundraise.id, inputAmount);
+      // Use the hook instead of direct service call
+      await createContribution(fundraise.id, {
+        amount: inputAmount,
+        amount_currency: 'RSC',
+      });
 
       toast.success('Your contribution has been successfully added to the fundraise.');
 
@@ -206,8 +211,6 @@ export function ContributeToFundraiseModal({
     } catch (error) {
       console.error('Failed to contribute to fundraise:', error);
       setError(error instanceof Error ? error.message : 'Failed to contribute to fundraise');
-    } finally {
-      setIsContributing(false);
     }
   };
 

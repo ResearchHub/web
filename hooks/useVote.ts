@@ -6,6 +6,7 @@ import { ApiError } from '@/services/types';
 import { ReactionService, DocumentType } from '@/services/reaction.service';
 import { UserVoteType, VotableContentType } from '@/types/reaction';
 import { FeedContentType } from '@/types/feed';
+import AnalyticsService from '@/services/analytics.service';
 
 interface UseVoteOptions {
   votableEntityId: number;
@@ -108,6 +109,20 @@ export function useVote({
         // Call success callback with the server response
         if (onVoteSuccess) {
           onVoteSuccess(response, voteType);
+        }
+
+        // Track analytics for upvotes only
+        if (voteType === 'UPVOTE') {
+          const contentType =
+            relatedDocumentContentType ||
+            (feedContentType === 'PAPER' ? 'paper' : 'researchhubpost');
+
+          const documentId = relatedDocumentId || votableEntityId;
+
+          await AnalyticsService.logUserUpvoted(contentType, documentId.toString(), {
+            feed_content_type: feedContentType,
+            votable_entity_id: votableEntityId,
+          });
         }
       } catch (error: any) {
         console.error('Vote error:', error);

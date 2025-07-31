@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { CheckCircle, Eye, Share2, MessageCircle, Award, Link, Clock } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import AnalyticsService from '@/services/analytics.service';
 
 export default function SubmissionSuccessPage() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function SubmissionSuccessPage() {
   const [paperTitle, setPaperTitle] = useState<string>('');
   const [paperId, setPaperId] = useState<string | null>(null);
   const [isJournal, setIsJournal] = useState<boolean>(false);
+  const [hasTrackedAnalytics, setHasTrackedAnalytics] = useState<boolean>(false);
 
   useEffect(() => {
     const title = searchParams.get('paperTitle');
@@ -39,6 +41,49 @@ export default function SubmissionSuccessPage() {
       setIsJournal(journalSubmission);
     }
   }, [searchParams]);
+
+  // Track analytics when the page loads and we have the necessary data
+  useEffect(() => {
+    if (paperId && paperTitle && !hasTrackedAnalytics) {
+      const trackSubmission = async () => {
+        try {
+          if (isJournal) {
+            // Track journal submission
+            await AnalyticsService.logUserSubmittedToJournal(
+              'researchhub-journal',
+              'ResearchHub Journal',
+              paperId,
+              {
+                submission_method: 'pdf_upload',
+                paper_title: paperTitle,
+                success_page: true,
+                payment_status: 'pending', // Payment happens after this page
+              }
+            );
+          } else {
+            // Track regular preprint submission
+            await AnalyticsService.logUserSubmittedToJournal(
+              'researchhub-preprint',
+              'ResearchHub Preprint',
+              paperId,
+              {
+                submission_method: 'pdf_upload',
+                paper_title: paperTitle,
+                success_page: true,
+                submission_type: 'preprint',
+              }
+            );
+          }
+          setHasTrackedAnalytics(true);
+        } catch (analyticsError) {
+          // Don't fail the page if analytics fails
+          console.error('Analytics error:', analyticsError);
+        }
+      };
+
+      trackSubmission();
+    }
+  }, [paperId, paperTitle, isJournal, hasTrackedAnalytics]);
 
   const handleCopyLink = () => {
     if (paperId) {
