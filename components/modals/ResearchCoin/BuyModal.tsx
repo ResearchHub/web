@@ -26,10 +26,10 @@ interface BuyModalProps {
 }
 
 export function BuyModal({ isOpen, onClose }: BuyModalProps) {
-  const [showFundCard, setShowFundCard] = useState(true);
+  const [activeTab, setActiveTab] = useState<'fund' | 'swap'>('fund');
 
   const handleClose = useCallback(() => {
-    setShowFundCard(true);
+    setActiveTab('fund');
     onClose();
   }, [onClose]);
 
@@ -87,9 +87,9 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
                 {/* Payment Method Toggle */}
                 <div className="flex gap-2 mb-6">
                   <button
-                    onClick={() => setShowFundCard(true)}
+                    onClick={() => setActiveTab('fund')}
                     className={`flex-1 py-3 px-4 rounded-lg border transition-all ${
-                      showFundCard
+                      activeTab === 'fund'
                         ? 'bg-blue-50 border-blue-300 text-blue-700'
                         : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
                     }`}
@@ -102,9 +102,9 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
                   </button>
 
                   <button
-                    onClick={() => setShowFundCard(false)}
+                    onClick={() => setActiveTab('swap')}
                     className={`flex-1 py-3 px-4 rounded-lg border transition-all ${
-                      !showFundCard
+                      activeTab === 'swap'
                         ? 'bg-blue-50 border-blue-300 text-blue-700'
                         : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
                     }`}
@@ -118,7 +118,7 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
                 </div>
 
                 <div className="py-4">
-                  {showFundCard ? (
+                  {activeTab === 'fund' ? (
                     <FundCard
                       assetSymbol="RSC"
                       country="US"
