@@ -42,7 +42,7 @@ export function ReferralImpactSection() {
         ease: 'power2.out',
         onUpdate: () => {
           if (isCurrency) {
-            el.textContent = `$${Math.round(proxy.value).toLocaleString()}`;
+            el.textContent = `${Math.round(proxy.value).toLocaleString()} RSC`;
           } else {
             el.textContent = Math.round(proxy.value).toString();
           }
@@ -83,7 +83,7 @@ export function ReferralImpactSection() {
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Your Referral Impact</h2>
       <div className="bg-green-50 p-6 rounded-xl text-center mb-6">
         <p ref={creditsEarnedRef} className="text-3xl sm:!text-4xl font-bold text-green-600">
-          ${displayData.creditsEarned.toLocaleString()}
+          {displayData.creditsEarned.toLocaleString()} RSC
         </p>
         <p className="text-gray-600 mt-2 text-lg">Referral Credits Available</p>
         <div className="mt-2">
@@ -139,7 +139,7 @@ export function ReferralImpactSection() {
         <div className="bg-blue-50 p-6 rounded-xl text-center">
           <FlaskConical className="h-8 w-8 text-blue-600 mx-auto mb-2" />
           <p ref={amountFundedRef} className="text-3xl font-bold text-blue-600">
-            ${displayData.amountFundedByReferred.toLocaleString()}
+            {displayData.amountFundedByReferred.toLocaleString()} RSC
           </p>
           <p className="text-gray-600 mt-2">Funded by Your Referrals</p>
         </div>

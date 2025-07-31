@@ -166,7 +166,7 @@ export function ReferredUsersList() {
                     <p
                       className={`font-semibold ${user.isExpired ? 'text-gray-400' : 'text-green-600'}`}
                     >
-                      ${user.totalFunded.toLocaleString()}
+                      {user.totalFunded.toLocaleString()} RSC
                     </p>
                   </div>
                   <div className="text-left sm:!text-right">
@@ -174,7 +174,7 @@ export function ReferredUsersList() {
                     <p
                       className={`font-semibold ${user.isExpired ? 'text-gray-400' : 'text-blue-600'}`}
                     >
-                      ${user.creditsEarned.toLocaleString()}
+                      {user.creditsEarned.toLocaleString()} RSC
                     </p>
                     {user.isExpired && <p className="text-xs text-gray-500 mt-1">(Final amount)</p>}
                   </div>
