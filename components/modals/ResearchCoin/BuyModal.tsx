@@ -26,10 +26,10 @@ interface BuyModalProps {
 }
 
 export function BuyModal({ isOpen, onClose }: BuyModalProps) {
-  const [showFundCard, setShowFundCard] = useState(false);
+  const [showFundCard, setShowFundCard] = useState(true);
 
   const handleClose = useCallback(() => {
-    setShowFundCard(false);
+    setShowFundCard(true);
     onClose();
   }, [onClose]);
 
@@ -87,21 +87,6 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
                 {/* Payment Method Toggle */}
                 <div className="flex gap-2 mb-6">
                   <button
-                    onClick={() => setShowFundCard(false)}
-                    className={`flex-1 py-3 px-4 rounded-lg border transition-all ${
-                      !showFundCard
-                        ? 'bg-blue-50 border-blue-300 text-blue-700'
-                        : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center justify-center gap-2">
-                      <ArrowRight className="h-4 w-4" />
-                      <span className="font-medium">Swap Crypto</span>
-                    </div>
-                    <p className="text-xs mt-1 opacity-70">Use existing crypto</p>
-                  </button>
-
-                  <button
                     onClick={() => setShowFundCard(true)}
                     className={`flex-1 py-3 px-4 rounded-lg border transition-all ${
                       showFundCard
@@ -114,6 +99,21 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
                       <span className="font-medium">Buy with Card</span>
                     </div>
                     <p className="text-xs mt-1 opacity-70">Purchase crypto first</p>
+                  </button>
+
+                  <button
+                    onClick={() => setShowFundCard(false)}
+                    className={`flex-1 py-3 px-4 rounded-lg border transition-all ${
+                      !showFundCard
+                        ? 'bg-blue-50 border-blue-300 text-blue-700'
+                        : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <ArrowRight className="h-4 w-4" />
+                      <span className="font-medium">Swap Crypto</span>
+                    </div>
+                    <p className="text-xs mt-1 opacity-70">Use existing crypto</p>
                   </button>
                 </div>
 
