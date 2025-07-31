@@ -6,19 +6,13 @@ import { DepositModal } from '../modals/ResearchCoin/DepositModal';
 import { WithdrawModal } from '../modals/ResearchCoin/WithdrawModal';
 import { BuyModal } from '@/components/modals/ResearchCoin/BuyModal';
 import { SellModal } from '@/components/modals/ResearchCoin/SellModal';
-import { Button } from '@/components/ui/Button';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useAccount } from 'wagmi';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { FundingCreditsTooltip } from '@/components/ui/FundingCreditsTooltip';
-import {
-  formatRSC,
-  formatUsdValue,
-  formatCombinedBalance,
-  formatCombinedBalanceSecondary,
-  extractExchangeRate,
-} from '@/utils/number';
+import { formatCombinedBalance, formatCombinedBalanceSecondary } from '@/utils/number';
+import { WalletDefault } from '@coinbase/onchainkit/wallet';
+import { Button } from '@/components/ui/Button';
 
 interface UserBalanceSectionProps {
   balance: {
@@ -153,21 +147,7 @@ export function UserBalanceSection({
                   <p className="text-gray-600 text-base mb-4">
                     To buy, sell, deposit or withdraw RSC, start by connecting your wallet.
                   </p>
-                  <Button
-                    onClick={() => {
-                      const walletButton = document.querySelector(
-                        '[data-testid="ockConnectWallet_Container"]'
-                      );
-                      if (walletButton instanceof HTMLElement) {
-                        walletButton.click();
-                      }
-                    }}
-                    variant="default"
-                    size="lg"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 text-base font-medium"
-                  >
-                    Connect Wallet
-                  </Button>
+                  <WalletDefault />
                 </div>
               </>
             )}
@@ -177,45 +157,50 @@ export function UserBalanceSection({
         {/* Action buttons for connected users - moved outside the white box */}
         {isConnected && (
           <div className="mt-6 grid grid-cols-4 gap-3">
-            <button
+            <Button
               onClick={() => setIsBuyModalOpen(true)}
-              className="flex flex-col items-center gap-2 px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 active:scale-[0.98] transition-all duration-200 group"
+              variant="outlined"
+              className="flex flex-col items-center gap-2 h-auto py-3 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 group"
             >
               <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center transition-colors">
                 <Plus className="h-5 w-5 text-gray-700" strokeWidth={2} />
               </div>
               <span className="text-sm font-medium text-gray-900">Buy RSC</span>
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setIsSellModalOpen(true)}
-              className="flex flex-col items-center gap-2 px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 active:scale-[0.98] transition-all duration-200 group"
+              variant="outlined"
+              className="flex flex-col items-center gap-2 h-auto py-3 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 group"
             >
               <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center transition-colors">
                 <Minus className="h-5 w-5 text-gray-700" strokeWidth={2} />
               </div>
               <span className="text-sm font-medium text-gray-900">Sell RSC</span>
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setIsDepositModalOpen(true)}
-              className="flex flex-col items-center gap-2 px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 active:scale-[0.98] transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-sm"
+              variant="outlined"
               disabled={!isBalanceReady}
               data-action="deposit"
+              className="flex flex-col items-center gap-2 h-auto py-3 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 group"
             >
               <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center transition-colors">
                 <ArrowDownToLine className="h-5 w-5 text-gray-700" strokeWidth={2} />
               </div>
               <span className="text-sm font-medium text-gray-900">Deposit</span>
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setIsWithdrawModalOpen(true)}
-              className="flex flex-col items-center gap-2 px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 active:scale-[0.98] transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-sm"
+              variant="outlined"
               disabled={!isBalanceReady}
+              className="flex flex-col items-center gap-2 h-auto py-3 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 group"
             >
               <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center transition-colors">
                 <ArrowUpFromLine className="h-5 w-5 text-gray-700" strokeWidth={2} />
               </div>
               <span className="text-sm font-medium text-gray-900">Withdraw</span>
-            </button>
+            </Button>
+            <WalletDefault />
           </div>
         )}
       </div>

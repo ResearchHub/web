@@ -94,13 +94,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
             AnalyticsService.logSignedUp('google', {
               homepage_experiment: urlHPExperimentVariant,
             });
-
-            // Clean up URL parameter after tracking
-            const newUrl = new URL(window.location.href);
-            newUrl.searchParams.delete(Experiment.HomepageExperiment);
-            window.history.replaceState({}, '', newUrl.toString());
           }
         }
+
+        // Clean up URL parameter
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete(Experiment.HomepageExperiment);
+        window.history.replaceState({}, '', newUrl.toString());
 
         // Mark analytics as initialized for this user
         setIsAnalyticsInitialized(true);
