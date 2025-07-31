@@ -70,7 +70,7 @@ Join with my link and we'll both receive a 10% bonus on every $RSC you donate ov
       referralCode,
     });
 
-    const text = `Fund breakthrough science with me on ResearchHub! Join with my link and we'll both receive a 10% bonus on every $RSC you donate over the next 6 months. Let's accelerate science together! 💰🧪\n\n${referralLink}`;
+    const text = `Fund breakthrough science with me on ResearchHub!\n\nJoin with my link and we'll both receive a 10% bonus on every $RSC you donate over the next 6 months. Let's accelerate science together! 💰🧪\n\n${referralLink}`;
     const url = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
   };
