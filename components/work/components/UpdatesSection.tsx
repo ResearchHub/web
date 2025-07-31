@@ -18,11 +18,7 @@ interface UpdatesSectionProps {
 }
 
 export const UpdatesSection = ({ updates = [], startDate, className }: UpdatesSectionProps) => {
-  if (updates.length === 0 && !startDate) {
-    return null;
-  }
-
-  const updateRate = calculateUpdateRate(updates);
+  const updateRate = calculateUpdateRate(updates, startDate);
 
   return (
     <section className={className}>
@@ -36,7 +32,7 @@ export const UpdatesSection = ({ updates = [], startDate, className }: UpdatesSe
         </div>
       </div>
 
-      <ProgressUpdates updates={updates} />
+      <ProgressUpdates updates={updates} startDate={startDate} />
     </section>
   );
 };
