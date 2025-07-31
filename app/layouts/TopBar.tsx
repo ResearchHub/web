@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Menu,
   User,
@@ -23,6 +23,7 @@ import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
+import { calculateProfileCompletion } from '@/utils/profileCompletion';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -99,7 +100,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/bounties')) {
     return {
       title: 'Bounties',
-      subtitle: 'Find opportunities to earn ResearchCoin',
+      subtitle: 'Earn RSC for completing peer reviews',
       icon: <Icon name="earn1" size={20} className="text-primary-600" />,
     };
   }
@@ -107,7 +108,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/earn')) {
     return {
       title: 'Earn',
-      subtitle: 'Find opportunities to earn ResearchCoin',
+      subtitle: 'Earn RSC for completing peer reviews',
       icon: <Icon name="earn1" size={20} className="text-primary-600" />,
     };
   }
@@ -270,6 +271,15 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
 
   const pageInfo = getPageInfo(pathname);
 
+  const calculatePercent = useCallback(() => {
+    if (user) {
+      const { percent } = calculateProfileCompletion(user);
+
+      return percent;
+    }
+    return 100;
+  }, [user]);
+
   // Global keyboard shortcut for search (Cmd/Ctrl + K)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -307,7 +317,10 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
           className="flex items-center w-full md:!w-80 max-w-md mx-auto h-10 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full transition-colors text-left group"
         >
           <SearchIcon className="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
-          <span className="text-gray-500 text-sm flex-1">Search ResearchHub...</span>
+          <span className="text-gray-500 text-sm flex-1">
+            <span className="tablet:!hidden">Search...</span>
+            <span className="hidden tablet:!inline">Search ResearchHub...</span>
+          </span>
           <div className="hidden md:!flex items-center space-x-1 ml-2 flex-shrink-0">
             <span className="text-xs text-gray-400 bg-gray-200 px-2 py-1 rounded font-medium">
               {shortcutText}
@@ -404,11 +417,16 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
 
               {/* Avatar/Login */}
               {user && !isLoading ? (
-                <UserMenu user={user} onViewProfile={handleViewProfile} avatarSize={32} />
+                <UserMenu
+                  user={user}
+                  onViewProfile={handleViewProfile}
+                  avatarSize={32}
+                  percent={calculatePercent()}
+                />
               ) : (
                 <Button
                   variant="ghost"
-                  className="w-8 h-8 rounded-full bg-gray-200 p-0"
+                  className="w-10 h-10 rounded-full bg-gray-200 p-0"
                   onClick={() => executeAuthenticatedAction(() => router.push('/'))}
                 >
                   <User size={24} />
@@ -417,13 +435,18 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
             </div>
 
             {/* Mobile user controls (original) */}
-            <div className="tablet:!hidden">
+            <div className="flex tablet:!hidden">
               {user && !isLoading ? (
-                <UserMenu user={user} onViewProfile={handleViewProfile} avatarSize={40} />
+                <UserMenu
+                  user={user}
+                  onViewProfile={handleViewProfile}
+                  avatarSize={calculatePercent() === 100 ? 40 : 30}
+                  percent={calculatePercent()}
+                />
               ) : (
                 <Button
                   variant="ghost"
-                  className="w-8 h-8 rounded-full bg-gray-200 p-0"
+                  className="w-10 h-10 rounded-full bg-gray-200 p-0"
                   onClick={() => executeAuthenticatedAction(() => router.push('/'))}
                 >
                   <User size={24} />

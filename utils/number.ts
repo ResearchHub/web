@@ -112,3 +112,84 @@ export function formatUsdValue(amount: string, exchangeRate: number): string {
   });
   return `${usdValue < 0 ? '-$' : '$'}${absValue} USD`;
 }
+
+interface BalanceData {
+  formatted: string;
+  formattedUsd: string;
+  raw: number;
+}
+
+/**
+ * Extracts the exchange rate from balance data
+ * @param balance Optional balance data
+ * @param lockedBalance Optional locked balance data
+ * @returns The calculated exchange rate or 0 if cannot be determined
+ */
+export function extractExchangeRate(
+  balance: BalanceData | null,
+  lockedBalance: BalanceData | null
+): number {
+  if (balance?.raw && balance.raw > 0) {
+    const balanceUsd = parseFloat(
+      balance.formattedUsd?.replace('$', '').replace(' USD', '').replace(/,/g, '') || '0'
+    );
+    return balanceUsd / balance.raw;
+  } else if (lockedBalance?.raw && lockedBalance.raw > 0) {
+    const lockedUsd = parseFloat(
+      lockedBalance.formattedUsd?.replace('$', '').replace(' USD', '').replace(/,/g, '') || '0'
+    );
+    return lockedUsd / lockedBalance.raw;
+  }
+  return 0;
+}
+
+interface FormatCombinedBalanceOptions {
+  balance: BalanceData | null;
+  lockedBalance: BalanceData | null;
+  showUSD: boolean;
+  includeRSCSuffix?: boolean;
+}
+
+/**
+ * Formats the combined balance (available + locked) in the preferred currency
+ * @param options Formatting options
+ * @returns Formatted string in the preferred currency
+ */
+export function formatCombinedBalance({
+  balance,
+  lockedBalance,
+  showUSD,
+  includeRSCSuffix = true,
+}: FormatCombinedBalanceOptions): string {
+  const totalRaw = (balance?.raw || 0) + (lockedBalance?.raw || 0);
+
+  if (showUSD) {
+    const exchangeRate = extractExchangeRate(balance, lockedBalance);
+    return exchangeRate > 0 ? formatUsdValue(totalRaw.toString(), exchangeRate) : '$0.00';
+  } else {
+    const formatted = formatRSC({ amount: totalRaw });
+    return includeRSCSuffix ? `${formatted} RSC` : formatted;
+  }
+}
+
+/**
+ * Gets the secondary currency display for combined balance
+ * @param options Formatting options
+ * @returns Formatted string in the secondary currency
+ */
+export function formatCombinedBalanceSecondary({
+  balance,
+  lockedBalance,
+  showUSD,
+}: FormatCombinedBalanceOptions): string {
+  const totalRaw = (balance?.raw || 0) + (lockedBalance?.raw || 0);
+
+  if (showUSD) {
+    // Secondary is RSC when primary is USD
+    return `${formatRSC({ amount: totalRaw })} RSC`;
+  } else {
+    // Secondary is USD when primary is RSC
+    const exchangeRate = extractExchangeRate(balance, lockedBalance);
+    return exchangeRate > 0 ? formatUsdValue(totalRaw.toString(), exchangeRate) : '$0.00 USD';
+  }
+}

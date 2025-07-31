@@ -1,6 +1,6 @@
 'use client';
 
-import { User as UserIcon, LogOut, BadgeCheck, Bell, Shield } from 'lucide-react';
+import { User as UserIcon, LogOut, BadgeCheck, Bell, Shield, UserPlus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
 import VerificationBanner from '@/components/banners/VerificationBanner';
@@ -14,9 +14,6 @@ import { AuthSharingService } from '@/services/auth-sharing.service';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
-import { calculateProfileCompletion } from '@/utils/profileCompletion';
-import { isFeatureEnabled } from '@/utils/featureFlags';
-import { FeatureFlag } from '@/utils/featureFlags';
 import { Button } from '@/components/ui/Button';
 import { useVerification } from '@/contexts/VerificationContext';
 
@@ -27,6 +24,7 @@ interface UserMenuProps {
   onMenuOpenChange?: (isOpen: boolean) => void;
   avatarSize?: number | 'sm' | 'md' | 'xs' | 'xxs';
   showAvatarOnly?: boolean;
+  percent: number;
 }
 
 export default function UserMenu({
@@ -34,6 +32,7 @@ export default function UserMenu({
   onViewProfile,
   isMenuOpen,
   onMenuOpenChange,
+  percent,
   avatarSize = 30,
   showAvatarOnly = false,
 }: UserMenuProps) {
@@ -41,8 +40,6 @@ export default function UserMenu({
   const [internalMenuOpen, setInternalMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { openVerificationModal } = useVerification();
-
-  const { percent } = user ? calculateProfileCompletion(user) : { percent: 0 };
 
   // Use controlled or uncontrolled menu state
   const menuOpenState = isMenuOpen !== undefined ? isMenuOpen : internalMenuOpen;
@@ -80,7 +77,16 @@ export default function UserMenu({
 
   // Common avatar button with adjusted sizing for avatar-only mode
   const avatarButton = (
-    <button className="hover:ring-2 hover:ring-gray-200 rounded-full p-1 relative">
+    <button
+      className="hover:ring-2 hover:ring-gray-200 rounded-full p-1 relative"
+      onClick={() => setMenuOpenState(true)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setMenuOpenState(true);
+        }
+      }}
+    >
       <Avatar
         src={user.authorProfile?.profileImage}
         className="font-semibold"
@@ -135,6 +141,16 @@ export default function UserMenu({
             navigateToAuthorProfile(user.authorProfile?.id, false);
             setMenuOpenState(false);
           }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              navigateToAuthorProfile(user.authorProfile?.id, false);
+              setMenuOpenState(false);
+            }
+          }}
+          tabIndex={0}
+          role="button"
+          aria-label="View Profile"
         >
           <div className="flex items-center">
             <UserIcon className="h-5 w-5 mr-3 text-gray-500" />
@@ -168,6 +184,18 @@ export default function UserMenu({
           </div>
         </Link>
 
+        <Link href="/referral" className="block" onClick={() => setMenuOpenState(false)}>
+          <div className="px-6 py-2 hover:bg-gray-50">
+            <div className="flex items-center">
+              <UserPlus className="h-5 w-5 mr-3 text-gray-500" />
+              <span className="text-base text-gray-700">Refer and earn 10%</span>
+              <span className="ml-auto text-xs bg-blue-100 text-blue-600 font-semibold px-2 py-0.5 rounded-full">
+                New
+              </span>
+            </div>
+          </div>
+        </Link>
+
         {user?.isModerator && (
           <Link href="/moderators" className="block" onClick={() => setMenuOpenState(false)}>
             <div className="px-6 py-2 hover:bg-gray-50">
@@ -186,6 +214,16 @@ export default function UserMenu({
               //TODO call the method from the context
               setMenuOpenState(false);
             }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                //TODO call the method from the context
+                setMenuOpenState(false);
+              }
+            }}
+            tabIndex={0}
+            role="button"
+            aria-label="Verify Account"
           >
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center">
@@ -199,6 +237,15 @@ export default function UserMenu({
         <div
           className="px-6 py-2 hover:bg-gray-50"
           onClick={() => AuthSharingService.signOutFromBothApps()}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              AuthSharingService.signOutFromBothApps();
+            }
+          }}
+          tabIndex={0}
+          role="button"
+          aria-label="Sign Out"
         >
           <div className="flex items-center">
             <LogOut className="h-5 w-5 mr-3 text-gray-500" />
@@ -224,7 +271,9 @@ export default function UserMenu({
       {isMobile ? (
         <>
           {/* Mobile view with SwipeableDrawer */}
-          <div onClick={() => setMenuOpenState(true)}>{avatarButton}</div>
+          <div className="flex center" onClick={() => setMenuOpenState(true)}>
+            {avatarButton}
+          </div>
           <SwipeableDrawer isOpen={menuOpenState} onClose={handleCloseMenu} showCloseButton={false}>
             {mobileMenuContent}
           </SwipeableDrawer>
@@ -311,6 +360,18 @@ export default function UserMenu({
                     color="#676767"
                   />
                   <span className="text-sm text-gray-700">My ResearchCoin</span>
+                </div>
+              </div>
+            </Link>
+
+            <Link href="/referral" className="block" onClick={() => setMenuOpenState(false)}>
+              <div className="w-full px-4 py-2 hover:bg-gray-50">
+                <div className="flex items-center">
+                  <UserPlus className="h-4 w-4 mr-3 text-gray-500" />
+                  <span className="text-sm text-gray-700">Refer and earn 10%</span>
+                  <span className="ml-auto text-xs bg-blue-100 text-blue-600 font-semibold px-2 py-0.5 rounded-full">
+                    New
+                  </span>
                 </div>
               </div>
             </Link>

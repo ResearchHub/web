@@ -28,6 +28,7 @@ import { PaperService, CreatePaperPayload } from '@/services/paper.service';
 import toast from 'react-hot-toast';
 import { Switch } from '@/components/ui/Switch';
 import { AvatarStack } from '@/components/ui/AvatarStack';
+import { useScreenSize } from '@/hooks/useScreenSize';
 
 // Define the steps of our flow
 const steps: SimpleStep[] = [
@@ -43,6 +44,7 @@ const steps: SimpleStep[] = [
 export default function UploadPDFPage() {
   const router = useRouter();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const { smAndDown } = useScreenSize();
 
   // Form state
   const [title, setTitle] = useState('');
@@ -601,7 +603,7 @@ export default function UploadPDFPage() {
     <PageLayout>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="mb-6 sm:mb-8">
-          <PageHeader title="Publish your research" className="mb-2" />
+          <PageHeader title="Publish your research" className="mb-2 text-3xl md:!text-4xl" />
           <p className="text-gray-600">Upload your research paper as a PDF</p>
         </div>
 
@@ -610,7 +612,7 @@ export default function UploadPDFPage() {
             steps={steps}
             currentStepIndex={currentStepIndex}
             progressSize="sm"
-            showNextStep={true}
+            showNextStep={!smAndDown}
             className="w-full"
           />
         </div>

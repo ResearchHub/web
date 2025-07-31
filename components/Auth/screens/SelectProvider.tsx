@@ -4,6 +4,8 @@ import { ApiError } from '@/services/types/api';
 import { isValidEmail } from '@/utils/validation';
 import { useAutoFocus } from '@/hooks/useAutoFocus';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { useReferral } from '@/contexts/ReferralContext';
+import { Experiment, getHomepageExperimentVariant } from '@/utils/experiment';
 
 interface SelectProviderProps {
   onContinue: () => void;
@@ -27,6 +29,7 @@ export default function SelectProvider({
   showHeader = true,
 }: SelectProviderProps) {
   const emailInputRef = useAutoFocus<HTMLInputElement>(true);
+  const { referralCode } = useReferral();
 
   const handleCheckAccount = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -43,7 +46,18 @@ export default function SelectProvider({
       if (response.exists) {
         if (response.auth === 'google') {
           // Prompt user to use Google sign-in
-          signIn('google');
+          const originalCallbackUrl = '/';
+          let finalCallbackUrl = originalCallbackUrl;
+
+          const experimentVariant = getHomepageExperimentVariant();
+          if (experimentVariant) {
+            // Create URL with experiment parameter
+            const experimentUrl = new URL(originalCallbackUrl, window.location.origin);
+            experimentUrl.searchParams.set(Experiment.HomepageExperiment, experimentVariant);
+            finalCallbackUrl = experimentUrl.toString();
+          }
+
+          signIn('google', { callbackUrl: finalCallbackUrl });
         } else if (response.is_verified) {
           onContinue();
         } else {
@@ -61,11 +75,28 @@ export default function SelectProvider({
 
   const handleGoogleSignIn = async () => {
     await AnalyticsService.logEvent(LogEvent.AUTH_VIA_GOOGLE_INITIATED);
-    // Get the current URL's search params to extract callbackUrl
     const searchParams = new URLSearchParams(window.location.search);
-    const callbackUrl = searchParams.get('callbackUrl') || '/';
+    const originalCallbackUrl = searchParams.get('callbackUrl') || '/';
 
-    signIn('google', { callbackUrl });
+    let finalCallbackUrl = originalCallbackUrl;
+
+    if (referralCode) {
+      // Create referral application URL with referral code and redirect as URL parameters
+      const referralUrl = new URL('/referral/join/apply-referral-code', window.location.origin);
+      referralUrl.searchParams.set('refr', referralCode);
+      referralUrl.searchParams.set('redirect', originalCallbackUrl);
+      finalCallbackUrl = referralUrl.toString();
+    }
+
+    const homepageExperimentVariant = getHomepageExperimentVariant();
+    if (homepageExperimentVariant) {
+      // Create URL with experiment parameter
+      const experimentUrl = new URL(finalCallbackUrl, window.location.origin);
+      experimentUrl.searchParams.set(Experiment.HomepageExperiment, homepageExperimentVariant);
+      finalCallbackUrl = experimentUrl.toString();
+    }
+
+    signIn('google', { callbackUrl: finalCallbackUrl });
   };
 
   return (

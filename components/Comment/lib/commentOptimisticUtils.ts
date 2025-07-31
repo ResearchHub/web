@@ -42,6 +42,7 @@ export const createOptimisticComment = (
       email: '',
       isVerified: false,
       balance: 0,
+      lockedBalance: 0,
       moderator: false,
       authorProfile: {
         id: authorId,

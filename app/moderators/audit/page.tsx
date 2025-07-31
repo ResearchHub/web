@@ -61,36 +61,38 @@ export default function AuditPage() {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col  p-4">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Content Audit</h1>
-              <p className="text-sm text-gray-600 mt-1">
-                Review and moderate flagged content from the community
-              </p>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="outlined"
-                size="sm"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="flex items-center space-x-2"
-              >
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                <span>Refresh</span>
-              </Button>
-            </div>
+      <div className="bg-white">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">Content Audit</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Review and moderate flagged content from the community
+            </p>
           </div>
 
-          {/* Status Filter */}
-          <div className="flex items-center justify-between">
-            <AuditTabs activeStatus={activeStatus} onStatusChange={handleStatusChange} />
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="outlined"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="flex items-center space-x-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden tablet:!block">Refresh</span>
+            </Button>
           </div>
+        </div>
+
+        {/* Status Filter */}
+        <div className="flex items-center justify-between border-b border-gray-200 mb-6">
+          <AuditTabs
+            activeStatus={activeStatus}
+            onStatusChange={handleStatusChange}
+            loading={isLoading || isRefreshing || isLoadingMore}
+          />
         </div>
       </div>
 

@@ -20,6 +20,7 @@ export class FeedService {
     endpoint?: 'feed' | 'funding_feed' | 'grant_feed';
     fundraiseStatus?: 'OPEN' | 'CLOSED';
     grantId?: number;
+    createdBy?: number;
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
@@ -30,6 +31,7 @@ export class FeedService {
     if (params?.source) queryParams.append('source', params.source);
     if (params?.fundraiseStatus) queryParams.append('fundraise_status', params.fundraiseStatus);
     if (params?.grantId) queryParams.append('grant_id', params.grantId.toString());
+    if (params?.createdBy) queryParams.append('created_by', params.createdBy.toString());
 
     // Determine which endpoint to use
     const basePath =
@@ -134,6 +136,7 @@ export class FeedService {
           `${safeAuthor.first_name || ''} ${safeAuthor.last_name || ''}`.trim() || 'Unknown User',
         isVerified: safeAuthor.user?.is_verified || false,
         balance: 0,
+        lockedBalance: 0,
         moderator: false,
         authorProfile: {
           id: safeAuthor.id || 0,
@@ -154,6 +157,7 @@ export class FeedService {
               'Unknown User',
             isVerified: safeAuthor.user?.is_verified || false,
             balance: 0,
+            lockedBalance: 0,
             moderator: false,
           },
           isClaimed: !!safeAuthor.user,

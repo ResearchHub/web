@@ -296,7 +296,7 @@ export const WorkLineItems = ({
                 onSelect={() => executeAuthenticatedAction(handleCloseFundraise)}
               >
                 <Octagon className="h-4 w-4 mr-2" />
-                <span>Stop Fundraise</span>
+                <span>Close fundraise & refund contributors</span>
               </BaseMenuItem>
             )}
             <BaseMenuItem
@@ -427,9 +427,9 @@ export const WorkLineItems = ({
         isOpen={showCloseFundraiseConfirm}
         onClose={() => setShowCloseFundraiseConfirm(false)}
         onConfirm={confirmCloseFundraise}
-        title="Stop Fundraise"
-        message="Are you sure you want to stop this fundraise? This action will prevent further contributions and cannot be undone."
-        confirmText="Stop Fundraise"
+        title="Close fundraise & refund contributors"
+        message="Are you sure you want to close this fundraise? This will immediately refund all contributions to contributors and close the fundraise permanently. No funds will be distributed to Endaoment or the researcher. This action cannot be undone."
+        confirmText="Close fundraise & refund contributors"
         cancelText="Cancel"
         confirmButtonClass="bg-red-600 hover:bg-red-700"
         cancelButtonClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"

@@ -102,7 +102,7 @@ const JournalSpotlight = () => {
     { name: 'Seong Won Nho' },
     { name: 'Hossam Abdelhamed' },
     { name: 'Mark Lawrence' },
-    { name: 'Attila Karsi' },
+    { name: 'Attila Karsi', authorUrl: '/author/984218' },
   ];
 
   // The specific paper URL from the request
@@ -194,7 +194,7 @@ const FundingSpotlight = () => {
         authors.push({
           name: author.fullName || `${author.firstName || ''} ${author.lastName || ''}`.trim(),
           verified: author.user?.isVerified,
-          profileUrl: author.profileUrl,
+          authorUrl: author.profileUrl,
         });
       }
     });

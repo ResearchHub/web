@@ -128,10 +128,9 @@ export function ResearchCoinIcon({
     );
   }
 
-  // Define gradient IDs based on variant
-  const gradientId = variant === 'green' ? 'greenCoinGradient' : 'coinGradient';
-  // Determine fill based on variant
-  const coinFill = variant === 'solid' ? color : `url(#${gradientId})`;
+  // Simple approach: just use solid green for green variant, keep everything else the same
+  const coinFill =
+    variant === 'solid' ? color : variant === 'green' ? '#22C55E' : 'url(#coinGradient)';
 
   return (
     <svg width={size} height={size} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14">
@@ -139,10 +138,6 @@ export function ResearchCoinIcon({
         <linearGradient id="coinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#F97316" />
           <stop offset="100%" stopColor="#EA580C" />
-        </linearGradient>
-        <linearGradient id="greenCoinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#16A34A" />
-          <stop offset="100%" stopColor="#15803D" />
         </linearGradient>
         <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
           <feGaussianBlur stdDeviation="0.3" />
