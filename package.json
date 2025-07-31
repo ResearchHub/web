@@ -144,7 +144,6 @@
     "@types/react": "^18",
     "@types/react-avatar-editor": "^13.0.4",
     "@types/react-dom": "^18",
-    "@types/styled-components": "^5.1.34",
     "@types/uuid": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "^8.20.0",
     "@typescript-eslint/parser": "^8.20.0",
