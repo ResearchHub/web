@@ -112,8 +112,8 @@ export function FeedControlsV2({
         <Dropdown
           trigger={
             <button className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
-              <span className="hidden sm:inline">{currentTimePeriod?.label}</span>
-              <span className="sm:hidden">
+              <span className="hidden sm:!inline">{currentTimePeriod?.label}</span>
+              <span className="sm:!hidden">
                 {currentTimePeriod?.shortLabel || currentTimePeriod?.label}
               </span>
               <ChevronDown className="w-4 h-4 ml-1" />
