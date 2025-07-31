@@ -51,8 +51,8 @@ function AdvancedFilterComponent({
 }: AdvancedFilterProps) {
   const { loading, error, data } = useQuery<CategoriesResponse>(GET_CATEGORIES, {
     variables: {
-      minPaperCount: 1,
-      includeEmptySubcategories: false,
+      minPaperCount: 0,
+      includeEmptySubcategories: true,
     },
   });
 

@@ -57,7 +57,7 @@ export function ImpactScoreTooltip({
           </div>
         </div>
         <div>
-          <h4 className="font-semibold text-gray-900">Impact Score</h4>
+          <h4 className="font-semibold text-gray-900">Trending Score</h4>
           <p className="text-sm text-gray-600">Top {100 - Math.round(impactScore)}% of papers</p>
         </div>
       </div>
