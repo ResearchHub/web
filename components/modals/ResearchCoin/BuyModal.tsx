@@ -2,7 +2,7 @@
 
 import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react';
 import { Fragment, useCallback, useState } from 'react';
-import { X as XIcon, ArrowRight, CreditCard } from 'lucide-react';
+import { X as XIcon } from 'lucide-react';
 import {
   Swap,
   SwapAmountInput,
