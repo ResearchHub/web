@@ -1,13 +1,14 @@
 'use client';
 
 import { Checkbox } from '@/components/ui/form/Checkbox';
+import { ReactNode } from 'react';
 
 interface DeclarationCheckboxProps {
   id: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
   label: string;
-  description?: string;
+  description?: ReactNode;
   error?: string | null;
 }
 
