@@ -9,7 +9,7 @@ export const JournalEditorialBoard = () => {
         <div className="mb-12 max-w-3xl">
           <h2 className="text-3xl font-medium text-gray-900 mb-4 text-left">Editorial Board</h2>
           <p className="text-base text-gray-600 text-left">
-            The following people constitute the Editorial Board of Academic Editors for the
+            The following people constitute the editorial board of academic editors for the
             ResearchHub Journal. These active academics are the Editors who seek peer reviewers,
             evaluate their responses, and make editorial decisions on each submission to the
             journal.

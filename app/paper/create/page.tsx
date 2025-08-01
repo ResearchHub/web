@@ -202,9 +202,9 @@ export default function WorkCreatePage() {
                             <span className="text-gray-500 text-xs font-bold">!</span>
                           </div>
                           <p className="text-sm text-gray-700">
-                            In the final step of the submission process, you will have the option to
-                            either preprint your manuscript (free) or submit it for peer-reviewed
-                            publication in the ResearchHub Journal (publication fees apply).
+                            You will be able to submit as preprint only (free) or peer-reviewed
+                            publication in the ResearchHub Journal ($300 APC) at the end of the
+                            submission process.
                           </p>
                         </div>
                       )}

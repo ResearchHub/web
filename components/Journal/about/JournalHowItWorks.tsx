@@ -45,7 +45,7 @@ const howItWorksItems = [
         <p className="font-medium mt-3 mb-1">Pre-Registrations</p>
         <ul className="list-disc pl-6 space-y-1">
           <li>Publicly document study design before data collection or analysis</li>
-          <li>Detailed Methodology and Analysis Plan required</li>
+          <li>Detailed methodology and analysis plan required</li>
           <li>Option to publish and link subsequent data and results</li>
         </ul>
         <p className="font-medium mt-3 mb-1">Short Communications</p>
@@ -239,7 +239,7 @@ const howItWorksItems = [
         <p>
           ResearchHub journal has clear and rigorous editorial and processes from initial submission
           to final publication. To find out more, please consult our editorial and peer review
-          processes. Contact the editorial team if you have any questions.
+          processes linked below. Contact the editorial team if you have any questions.
         </p>
         <div className="mt-4">
           <a

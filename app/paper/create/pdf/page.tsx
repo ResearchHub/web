@@ -416,9 +416,9 @@ export default function UploadPDFPage() {
               </div>
             </div>
 
-            <div className="ml-1 p-3 bg-red-50 border-l-4 border-red-300 rounded-r-md flex items-center gap-3">
-              <div className="flex-shrink-0 w-5 h-5 rounded-full border border-red-400 flex items-center justify-center">
-                <span className="text-red-500 text-xs font-bold">!</span>
+            <div className="ml-1 p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded-r-md flex items-center gap-3">
+              <div className="flex-shrink-0 w-5 h-5 rounded-full border border-yellow-600 flex items-center justify-center">
+                <span className="text-yellow-700 text-xs font-bold">!</span>
               </div>
               <p className="text-sm text-gray-900">
                 If submitting to the <em>ResearchHub Journal</em>, please ensure your manuscript
