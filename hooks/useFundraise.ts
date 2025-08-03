@@ -34,8 +34,7 @@ export const useCreateContribution = (): UseCreateContributionReturn => {
 
       // Track funding analytics
       try {
-        const amount =
-          payload.amount || payload.amount_currency === 'USD' ? payload.amount : payload.amount;
+        const amount = payload.amount;
         const currency = payload.amount_currency || 'RSC';
 
         await AnalyticsService.logUserFunded('fundraise', id?.toString() || '', amount, currency, {
