@@ -56,8 +56,7 @@ export default function SubmissionSuccessPage() {
               {
                 submission_method: 'pdf_upload',
                 paper_title: paperTitle,
-                success_page: true,
-                payment_status: 'pending', // Payment happens after this page
+                submission_type: 'journal',
               }
             );
           } else {
@@ -69,7 +68,6 @@ export default function SubmissionSuccessPage() {
               {
                 submission_method: 'pdf_upload',
                 paper_title: paperTitle,
-                success_page: true,
                 submission_type: 'preprint',
               }
             );
