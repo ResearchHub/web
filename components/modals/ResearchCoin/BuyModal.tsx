@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react';
-import { Fragment, useCallback } from 'react';
+import { Fragment, useCallback, useState } from 'react';
 import { X as XIcon } from 'lucide-react';
 import {
   Swap,
@@ -10,6 +10,7 @@ import {
   SwapButton,
   SwapToast,
 } from '@coinbase/onchainkit/swap';
+import { FundCard } from '@coinbase/onchainkit/fund';
 import { ETH, RSC, USDC } from '@/constants/tokens';
 
 // Network configuration based on environment
@@ -25,7 +26,10 @@ interface BuyModalProps {
 }
 
 export function BuyModal({ isOpen, onClose }: BuyModalProps) {
+  const [activeTab, setActiveTab] = useState<'fund' | 'swap'>('fund');
+
   const handleClose = useCallback(() => {
+    setActiveTab('fund');
     onClose();
   }, [onClose]);
 
@@ -55,7 +59,7 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 shadow-xl transition-all">
+              <DialogPanel className="w-full max-w-md transform overflow-visible rounded-2xl bg-white p-8 shadow-xl transition-all">
                 <div className="flex items-center justify-between mb-8">
                   <DialogTitle className="text-2xl font-semibold text-gray-900">
                     Buy RSC
@@ -80,25 +84,58 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
                   </div>
                 </div>
 
+                {/* Payment Method Toggle */}
+                <div className="flex gap-2 mb-6">
+                  <button
+                    onClick={() => setActiveTab('fund')}
+                    className={`flex-1 py-3 px-4 rounded-lg border transition-all ${
+                      activeTab === 'fund'
+                        ? 'bg-blue-50 border-blue-300 text-blue-700'
+                        : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="font-medium">USD -{'>'} RSC</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('swap')}
+                    className={`flex-1 py-3 px-4 rounded-lg border transition-all ${
+                      activeTab === 'swap'
+                        ? 'bg-blue-50 border-blue-300 text-blue-700'
+                        : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="font-medium">ETH -{'>'} RSC</span>
+                    </div>
+                  </button>
+                </div>
+
                 <div className="py-4">
-                  {/* Unidirectional Swap Implementation */}
-                  <Swap isSponsored={true} title="">
-                    <SwapAmountInput
-                      label="Pay with"
-                      swappableTokens={[ETH, USDC]}
-                      token={ETH}
-                      type="from"
-                    />
-                    <SwapAmountInput
-                      label="Receive"
-                      swappableTokens={[RSC]}
-                      token={RSC}
-                      type="to"
-                    />
-                    <SwapButton />
-                    <SwapMessage />
-                    <SwapToast />
-                  </Swap>
+                  {activeTab === 'fund' ? (
+                    <FundCard assetSymbol="RSC" country="US" currency="USD" headerText="" />
+                  ) : (
+                    /* Unidirectional Swap Implementation */
+                    <Swap isSponsored={true} title="">
+                      <SwapAmountInput
+                        label="Pay with"
+                        swappableTokens={[ETH, USDC]}
+                        token={ETH}
+                        type="from"
+                      />
+                      <SwapAmountInput
+                        label="Receive"
+                        swappableTokens={[RSC]}
+                        token={RSC}
+                        type="to"
+                      />
+                      <SwapButton />
+                      <SwapMessage />
+                      <SwapToast />
+                    </Swap>
+                  )}
                 </div>
               </DialogPanel>
             </Transition.Child>

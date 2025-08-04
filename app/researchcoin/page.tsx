@@ -19,6 +19,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useVerification } from '@/contexts/VerificationContext';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { Button } from '@/components/ui/Button';
+import './researchcoin-wallet.css';
 
 export default function ResearchCoinPage() {
   const { data: session, status } = useSession();
