@@ -25,3 +25,10 @@ export interface CheckAccountApiResponse {
   auth?: 'google' | 'email';
   is_verified?: boolean;
 }
+
+export interface PasswordResetConfirmRequest {
+  uid: string;
+  token: string;
+  new_password1: string;
+  new_password2: string;
+}

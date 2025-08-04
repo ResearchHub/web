@@ -3,6 +3,7 @@ import SelectProvider from './screens/SelectProvider';
 import Login from './screens/Login';
 import Signup from './screens/Signup';
 import VerifyEmail from './screens/VerifyEmail';
+import ForgotPassword from './screens/ForgotPassword';
 import { AuthScreen } from './types';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
@@ -58,7 +59,13 @@ export default function AuthContent({
           onSignup={() => setScreen('SIGNUP')}
         />
       )}
-      {screen === 'LOGIN' && <Login {...sharedProps} onBack={() => setScreen('SELECT_PROVIDER')} />}
+      {screen === 'LOGIN' && (
+        <Login
+          {...sharedProps}
+          onBack={() => setScreen('SELECT_PROVIDER')}
+          onForgotPassword={() => setScreen('FORGOT_PASSWORD')}
+        />
+      )}
       {screen === 'SIGNUP' && (
         <Signup
           {...sharedProps}
@@ -67,6 +74,9 @@ export default function AuthContent({
         />
       )}
       {screen === 'VERIFY_EMAIL' && <VerifyEmail {...sharedProps} />}
+      {screen === 'FORGOT_PASSWORD' && (
+        <ForgotPassword {...sharedProps} onBack={() => setScreen('LOGIN')} />
+      )}
     </div>
   );
 }
