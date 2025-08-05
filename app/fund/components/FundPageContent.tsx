@@ -1,13 +1,12 @@
 'use client';
 
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { useFeed, FundingTab } from '@/hooks/useFeed';
+import { useFeed } from '@/hooks/useFeed';
 import { FeedContent } from '@/components/Feed/FeedContent';
-import { useState } from 'react';
 import { FundRightSidebar } from '@/components/Fund/FundRightSidebar';
 import { GrantRightSidebar } from '@/components/Fund/GrantRightSidebar';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
-import { MarketplaceTabs, MarketplaceTab, FundingStatus } from '@/components/Fund/MarketplaceTabs';
+import { MarketplaceTabs, MarketplaceTab } from '@/components/Fund/MarketplaceTabs';
 import Icon from '@/components/ui/icons/Icon';
 
 interface FundPageContentProps {
@@ -15,67 +14,63 @@ interface FundPageContentProps {
 }
 
 export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
-  const [activeFundingTab, setActiveFundingTab] = useState<FundingTab>('open');
-  const [fundingStatus, setFundingStatus] = useState<FundingStatus>('open');
-
-  // Determine the fundraiseStatus based on the active tab
-  const getFundraiseStatus = (tab: FundingTab): 'OPEN' | 'CLOSED' | undefined => {
-    if (tab === 'open') return 'OPEN';
-    if (tab === 'closed') return 'CLOSED';
-    return undefined; // No status filter for the 'all' tab
+  const getFundraiseStatus = (tab: MarketplaceTab): 'OPEN' | 'CLOSED' | undefined => {
+    if (tab === 'needs-funding') return 'OPEN';
+    if (tab === 'previously-funded') return 'CLOSED';
+    return undefined;
   };
 
-  const { entries, isLoading, hasMore, loadMore } = useFeed(activeFundingTab, {
-    contentType: marketplaceTab === 'needs-funding' ? 'PREREGISTRATION' : 'GRANT',
-    endpoint: marketplaceTab === 'needs-funding' ? 'funding_feed' : 'grant_feed',
-    fundraiseStatus:
-      marketplaceTab === 'needs-funding' ? getFundraiseStatus(activeFundingTab) : undefined,
+  const { entries, isLoading, hasMore, loadMore } = useFeed('all', {
+    contentType: marketplaceTab === 'grants' ? 'GRANT' : 'PREREGISTRATION',
+    endpoint: marketplaceTab === 'grants' ? 'grant_feed' : 'funding_feed',
+    fundraiseStatus: getFundraiseStatus(marketplaceTab),
   });
 
-  const handleStatusChange = (status: FundingStatus) => {
-    setFundingStatus(status);
-    // Convert status to funding tab for consistency
-    if (status === 'completed') {
-      setActiveFundingTab('closed' as FundingTab);
-    } else {
-      setActiveFundingTab('open' as FundingTab);
+  const getTitle = (tab: MarketplaceTab): string => {
+    switch (tab) {
+      case 'grants':
+        return 'Request for proposals';
+      case 'needs-funding':
+        return 'Proposals (Open)';
+      case 'previously-funded':
+        return 'Proposals (Completed)';
+      default:
+        return '';
+    }
+  };
+
+  const getSubtitle = (tab: MarketplaceTab): string => {
+    switch (tab) {
+      case 'grants':
+        return 'Explore available funding opportunities';
+      case 'needs-funding':
+        return 'Fund breakthrough research shaping tomorrow';
+      case 'previously-funded':
+        return 'Browse research that has been successfully funded';
+      default:
+        return '';
     }
   };
 
   const header = (
     <MainPageHeader
       icon={<Icon name="solidHand" size={26} color="#3971ff" />}
-      title={marketplaceTab === 'needs-funding' ? 'Proposals' : 'Request for proposals'}
-      subtitle={
-        marketplaceTab === 'needs-funding'
-          ? 'Fund breakthrough research shaping tomorrow'
-          : 'Explore available funding opportunities'
-      }
+      title={getTitle(marketplaceTab)}
+      subtitle={getSubtitle(marketplaceTab)}
     />
   );
 
-  // Conditionally render sidebar based on active tab
-  const rightSidebar =
-    marketplaceTab === 'needs-funding' ? <FundRightSidebar /> : <GrantRightSidebar />;
+  const rightSidebar = marketplaceTab === 'grants' ? <GrantRightSidebar /> : <FundRightSidebar />;
 
   return (
     <PageLayout rightSidebar={rightSidebar}>
       {header}
-
-      {/* Primary Marketplace Tabs */}
-      <MarketplaceTabs
-        activeTab={marketplaceTab}
-        onTabChange={() => {}} // Will be handled by routing
-        fundingStatus={fundingStatus}
-        onStatusChange={handleStatusChange}
-      />
-
+      <MarketplaceTabs activeTab={marketplaceTab} onTabChange={() => {}} />
       <FeedContent
         entries={entries}
         isLoading={isLoading}
         hasMore={hasMore}
         loadMore={loadMore}
-        activeTab={activeFundingTab as any}
         showGrantHeaders={false}
       />
     </PageLayout>
