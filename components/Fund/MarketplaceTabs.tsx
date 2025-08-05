@@ -26,11 +26,11 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
     },
     {
       id: 'needs-funding',
-      label: 'Proposals (Open)',
+      label: 'Proposals',
     },
     {
       id: 'previously-funded',
-      label: 'Proposals (Completed)',
+      label: 'Previously Funded',
     },
   ];
 

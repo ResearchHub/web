@@ -31,9 +31,9 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
       case 'grants':
         return 'Request for proposals';
       case 'needs-funding':
-        return 'Proposals (Open)';
+        return 'Proposals';
       case 'previously-funded':
-        return 'Proposals (Completed)';
+        return 'Previously Funded';
       default:
         return '';
     }
