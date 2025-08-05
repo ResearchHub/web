@@ -29,6 +29,7 @@ import toast from 'react-hot-toast';
 import { Switch } from '@/components/ui/Switch';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { useScreenSize } from '@/hooks/useScreenSize';
+import { Callout } from '@/components/ui/Callout';
 
 // Define the steps of our flow
 const steps: SimpleStep[] = [
@@ -416,22 +417,25 @@ export default function UploadPDFPage() {
               </div>
             </div>
 
-            <div className="ml-1 p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded-r-md flex items-center gap-3">
-              <div className="flex-shrink-0 w-5 h-5 rounded-full border border-yellow-600 flex items-center justify-center">
-                <span className="text-yellow-700 text-xs font-bold">!</span>
-              </div>
-              <p className="text-sm text-gray-900">
-                If submitting to the <em>ResearchHub Journal</em>, please ensure your manuscript
-                fits within the{' '}
-                <a
-                  href="https://www.researchhub.com/journal?tab=about"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 underline"
-                >
-                  Aims and Scope
-                </a>
-              </p>
+            <div className="ml-1">
+              <Callout
+                variant="warning"
+                showBorder={true}
+                message={
+                  <>
+                    If submitting to the <em>ResearchHub Journal</em>, please ensure your manuscript
+                    fits the{' '}
+                    <a
+                      href="https://www.researchhub.com/journal?tab=about"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Aims and Scope
+                    </a>
+                  </>
+                }
+              />
             </div>
           </div>
         );

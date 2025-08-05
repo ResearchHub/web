@@ -11,6 +11,7 @@ import { FileUp, Notebook, Eye, BadgeCheck, BookOpen, Loader2 } from 'lucide-rea
 import type { SearchSuggestion } from '@/types/search';
 import { PaperActionCard } from './PaperActionCard';
 import { Alert } from '@/components/ui/Alert';
+import { Callout } from '@/components/ui/Callout';
 
 type PublishOption = 'notebook' | 'pdf' | null;
 
@@ -197,15 +198,12 @@ export default function WorkCreatePage() {
                         {option.title}
                       </Button>
                       {option.id === 'pdf' && (
-                        <div className="mt-6 ml-1 p-3 bg-gray-50 border-l-4 border-gray-300 rounded-r-md flex items-center gap-3">
-                          <div className="flex-shrink-0 w-5 h-5 rounded-full border border-gray-400 flex items-center justify-center">
-                            <span className="text-gray-500 text-xs font-bold">!</span>
-                          </div>
-                          <p className="text-sm text-gray-700">
-                            You will be able to submit as preprint only (free) or peer-reviewed
-                            publication in the ResearchHub Journal ($300 APC) at the end of the
-                            submission process.
-                          </p>
+                        <div className="mt-6 ml-1">
+                          <Callout
+                            variant="gray"
+                            showBorder={true}
+                            message="You will be able to submit as preprint only (free) or peer-reviewed publication in the ResearchHub Journal ($300 APC) at the end of the submission process."
+                          />
                         </div>
                       )}
                     </div>
