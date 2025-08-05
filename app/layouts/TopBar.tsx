@@ -84,7 +84,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/paper/create')) {
     return {
       title: 'Submit your paper',
-      subtitle: 'Share your research with the community',
+      subtitle: 'Submit your original work as a preprint or publication',
       icon: <Icon name="submit2" size={20} className="text-primary-600" />,
     };
   }

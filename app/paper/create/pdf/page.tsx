@@ -29,6 +29,7 @@ import toast from 'react-hot-toast';
 import { Switch } from '@/components/ui/Switch';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { useScreenSize } from '@/hooks/useScreenSize';
+import { Callout } from '@/components/ui/Callout';
 
 // Define the steps of our flow
 const steps: SimpleStep[] = [
@@ -415,6 +416,27 @@ export default function UploadPDFPage() {
                 />
               </div>
             </div>
+
+            <div className="ml-1">
+              <Callout
+                variant="warning"
+                showBorder={true}
+                message={
+                  <>
+                    If submitting to the <em>ResearchHub Journal</em>, please ensure your manuscript
+                    fits the{' '}
+                    <a
+                      href="https://www.researchhub.com/journal?tab=about"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Aims and Scope
+                    </a>
+                  </>
+                }
+              />
+            </div>
           </div>
         );
 
@@ -434,7 +456,21 @@ export default function UploadPDFPage() {
                 checked={acceptedTerms}
                 onChange={handleTermsChange}
                 label="I accept the terms and conditions"
-                description="By checking this box, you confirm that you have read and agree to the ResearchHub terms of service."
+                description={
+                  <>
+                    By checking this box, you confirm that you have read and agree to the
+                    ResearchHub{' '}
+                    <a
+                      href="https://www.researchhub.com/about/tos"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary-600 hover:text-primary-700 hover:underline"
+                    >
+                      terms of service
+                    </a>
+                    .
+                  </>
+                }
                 error={errors.terms || null}
               />
 
@@ -443,7 +479,20 @@ export default function UploadPDFPage() {
                 checked={acceptedLicense}
                 onChange={handleLicenseChange}
                 label="I agree to publish under the CC BY 4.0 License"
-                description="By checking this box, you license your work under the Creative Commons Attribution 4.0 International License."
+                description={
+                  <>
+                    By checking this box, you license your work under the{' '}
+                    <a
+                      href="https://creativecommons.org/licenses/by/4.0/deed.en"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary-600 hover:text-primary-700 hover:underline"
+                    >
+                      Creative Commons Attribution 4.0 International License
+                    </a>
+                    .
+                  </>
+                }
                 error={errors.license || null}
               />
 

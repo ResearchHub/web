@@ -11,6 +11,7 @@ import { FileUp, Notebook, Eye, BadgeCheck, BookOpen, Loader2 } from 'lucide-rea
 import type { SearchSuggestion } from '@/types/search';
 import { PaperActionCard } from './PaperActionCard';
 import { Alert } from '@/components/ui/Alert';
+import { Callout } from '@/components/ui/Callout';
 
 type PublishOption = 'notebook' | 'pdf' | null;
 
@@ -85,7 +86,8 @@ export default function WorkCreatePage() {
           </div>
           <h1 className="text-3xl font-bold text-gray-900 text-center">Submit your paper</h1>
           <p className="text-lg text-gray-600 text-center max-w-xl">
-            Share your original work with the ResearchHub community.
+            Publish your original work as a preprint natively on ResearchHub or as a publication in
+            the ResearchHub Journal.
           </p>
         </div>
 
@@ -180,21 +182,31 @@ export default function WorkCreatePage() {
               <p className="text-gray-500 mb-6">
                 Select how you would like to submit your research to ResearchHub.
               </p>
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {publishOptions.map((option) => {
                   const Icon = option.icon;
                   return (
-                    <Button
-                      key={option.id}
-                      variant="outlined"
-                      size="lg"
-                      className="w-full flex items-center gap-2"
-                      onClick={() => !isPending && handleOptionClick(option.id as PublishOption)}
-                      disabled={isPending}
-                    >
-                      <Icon className="h-5 w-5 mr-2" />
-                      {option.title}
-                    </Button>
+                    <div key={option.id}>
+                      <Button
+                        variant="outlined"
+                        size="lg"
+                        className="w-full flex items-center gap-2"
+                        onClick={() => !isPending && handleOptionClick(option.id as PublishOption)}
+                        disabled={isPending}
+                      >
+                        <Icon className="h-5 w-5 mr-2" />
+                        {option.title}
+                      </Button>
+                      {option.id === 'pdf' && (
+                        <div className="mt-6 ml-1">
+                          <Callout
+                            variant="gray"
+                            showBorder={true}
+                            message="You will be able to submit as preprint only (free) or peer-reviewed publication in the ResearchHub Journal ($300 APC) at the end of the submission process."
+                          />
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
               </div>
