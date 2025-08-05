@@ -57,6 +57,7 @@ export default function AuthContent({
           {...sharedProps}
           onContinue={() => setScreen('LOGIN')}
           onSignup={() => setScreen('SIGNUP')}
+          isLoading={isLoading}
         />
       )}
       {screen === 'LOGIN' && (
