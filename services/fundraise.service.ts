@@ -42,6 +42,16 @@ export class FundraiseService {
   }
 
   /**
+   * Complete a fundraise
+   * @param fundraiseId The ID of the fundraise to complete
+   * @returns The updated fundraise with COMPLETED status
+   */
+  static async completeFundraise(fundraiseId: ID): Promise<Fundraise> {
+    const response = await ApiClient.post<any>(`${this.BASE_PATH}/${fundraiseId}/complete/`);
+    return transformFundraise(response);
+  }
+
+  /**
    * Alias for contributeToFundraise to maintain backwards compatibility with existing hooks
    * @param id The ID of the fundraise to contribute to
    * @param payload The payload containing the amount

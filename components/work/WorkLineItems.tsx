@@ -1,7 +1,16 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { ArrowUp, Flag, Edit, MoreHorizontal, FileUp, Octagon, Share2 } from 'lucide-react';
+import {
+  ArrowUp,
+  Flag,
+  Edit,
+  MoreHorizontal,
+  FileUp,
+  Octagon,
+  Share2,
+  CheckCircle,
+} from 'lucide-react';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
@@ -22,6 +31,7 @@ import { WorkEditModal } from './WorkEditModal';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import { useCompleteFundraise } from '@/hooks/useFundraise';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -39,7 +49,8 @@ export const WorkLineItems = ({
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
-  const [showCloseFundraiseConfirm, setShowCloseFundraiseConfirm] = useState(false);
+  const [showFundraiseActionModal, setShowFundraiseActionModal] = useState(false);
+  const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | null>(null);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { vote, isVoting } = useVote({
     votableEntityId: work.id,
@@ -184,20 +195,32 @@ export const WorkLineItems = ({
   }, [work.id, work.versions, user, router]);
 
   const [{ isLoading: isClosingFundraise }, closeFundraise] = useCloseFundraise();
+  const [{ isLoading: isCompletingFundraise }, completeFundraise] = useCompleteFundraise();
 
   const handleCloseFundraise = useCallback(() => {
-    setShowCloseFundraiseConfirm(true);
+    setFundraiseAction('close');
+    setShowFundraiseActionModal(true);
   }, []);
 
-  const confirmCloseFundraise = useCallback(async () => {
+  const handleCompleteFundraise = useCallback(() => {
+    setFundraiseAction('complete');
+    setShowFundraiseActionModal(true);
+  }, []);
+
+  const confirmFundraiseAction = useCallback(async () => {
     if (!metadata.fundraising?.id) {
-      toast.error('No fundraise found to close');
+      toast.error('No fundraise found');
       return;
     }
 
     try {
-      await closeFundraise(metadata.fundraising.id);
-      toast.success('Fundraise closed successfully');
+      if (fundraiseAction === 'close') {
+        await closeFundraise(metadata.fundraising.id);
+        toast.success('Fundraise closed successfully');
+      } else if (fundraiseAction === 'complete') {
+        await completeFundraise(metadata.fundraising.id);
+        toast.success('Fundraise completed successfully');
+      }
 
       // Refresh the page data to reflect new status
       if (typeof router.refresh === 'function') {
@@ -206,11 +229,45 @@ export const WorkLineItems = ({
         window.location.reload();
       }
     } catch (error: any) {
+      const action = fundraiseAction === 'close' ? 'close' : 'complete';
       toast.error(
-        error instanceof Error ? error.message : 'Failed to close fundraise. Please try again.'
+        error instanceof Error ? error.message : `Failed to ${action} fundraise. Please try again.`
       );
     }
-  }, [metadata.fundraising?.id, closeFundraise, router]);
+  }, [metadata.fundraising?.id, fundraiseAction, closeFundraise, completeFundraise, router]);
+
+  const getModalConfig = () => {
+    switch (fundraiseAction) {
+      case 'close':
+        return {
+          title: 'Close fundraise & refund contributors',
+          message:
+            'Are you sure you want to close this fundraise? This will immediately refund all contributions to contributors and close the fundraise permanently. No funds will be distributed to Endaoment or the researcher. This action cannot be undone.',
+          confirmText: 'Close fundraise & refund contributors',
+          confirmButtonClass: 'bg-red-600 hover:bg-red-700',
+          isLoading: isClosingFundraise,
+        };
+      case 'complete':
+        return {
+          title: 'Complete fundraise',
+          message:
+            'Are you sure you want to complete this fundraise? This will mark the fundraise as completed and distribute the funds to the researcher. This action cannot be undone.',
+          confirmText: 'Complete fundraise',
+          confirmButtonClass: 'bg-green-600 hover:bg-green-700',
+          isLoading: isCompletingFundraise,
+        };
+      default:
+        return {
+          title: '',
+          message: '',
+          confirmText: '',
+          confirmButtonClass: '',
+          isLoading: false,
+        };
+    }
+  };
+
+  const modalConfig = getModalConfig();
 
   return (
     <div>
@@ -291,13 +348,22 @@ export const WorkLineItems = ({
               </BaseMenuItem>
             )}
             {isModerator && work.contentType === 'preregistration' && metadata.fundraising?.id && (
-              <BaseMenuItem
-                disabled={isClosingFundraise}
-                onSelect={() => executeAuthenticatedAction(handleCloseFundraise)}
-              >
-                <Octagon className="h-4 w-4 mr-2" />
-                <span>Close fundraise & refund contributors</span>
-              </BaseMenuItem>
+              <>
+                <BaseMenuItem
+                  disabled={isClosingFundraise}
+                  onSelect={() => executeAuthenticatedAction(handleCloseFundraise)}
+                >
+                  <Octagon className="h-4 w-4 mr-2" />
+                  <span>Close fundraise & refund contributors</span>
+                </BaseMenuItem>
+                <BaseMenuItem
+                  disabled={isCompletingFundraise}
+                  onSelect={() => executeAuthenticatedAction(handleCompleteFundraise)}
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  <span>Complete fundraise</span>
+                </BaseMenuItem>
+              </>
             )}
             <BaseMenuItem
               onSelect={() => executeAuthenticatedAction(() => setIsFlagModalOpen(true))}
@@ -422,16 +488,18 @@ export const WorkLineItems = ({
         />
       )}
 
-      {/* Stop Fundraise Confirmation Modal */}
       <ConfirmModal
-        isOpen={showCloseFundraiseConfirm}
-        onClose={() => setShowCloseFundraiseConfirm(false)}
-        onConfirm={confirmCloseFundraise}
-        title="Close fundraise & refund contributors"
-        message="Are you sure you want to close this fundraise? This will immediately refund all contributions to contributors and close the fundraise permanently. No funds will be distributed to Endaoment or the researcher. This action cannot be undone."
-        confirmText="Close fundraise & refund contributors"
+        isOpen={showFundraiseActionModal}
+        onClose={() => {
+          setShowFundraiseActionModal(false);
+          setFundraiseAction(null);
+        }}
+        onConfirm={confirmFundraiseAction}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        confirmText={modalConfig.confirmText}
         cancelText="Cancel"
-        confirmButtonClass="bg-red-600 hover:bg-red-700"
+        confirmButtonClass={modalConfig.confirmButtonClass}
         cancelButtonClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
       />
     </div>
