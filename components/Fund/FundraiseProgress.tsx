@@ -4,7 +4,7 @@ import { FC, useState } from 'react';
 import { Progress } from '@/components/ui/Progress';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Clock } from 'lucide-react';
-import { formatDeadline, isDeadlineInFuture } from '@/utils/date';
+import { formatDeadline, formatExactTime, isDeadlineInFuture } from '@/utils/date';
 import type { Fundraise } from '@/types/funding';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
@@ -15,6 +15,7 @@ import { AvatarStack } from '@/components/ui/AvatarStack';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useRouter } from 'next/navigation';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface FundraiseProgressProps {
   fundraise: Fundraise;
@@ -91,14 +92,18 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
           </span>
         );
       case 'OPEN':
-        return deadlineText === 'Ended' ? (
+        return deadlineText?.includes('Ended') ? (
           <span className={`${compact ? 'text-xs' : 'text-sm'} text-gray-500 font-medium`}>
             Ended
           </span>
         ) : deadlineText ? (
           <div className="flex items-center gap-1.5 text-gray-800">
             <Clock className={compact ? 'h-3 w-3' : 'h-4 w-4'} />
-            <span className={compact ? 'text-xs' : 'text-sm'}>{deadlineText}</span>
+            <Tooltip content={formatExactTime(fundraise.endDate!)} position="top" width="w-48">
+              <span className={`${compact ? 'text-xs' : 'text-sm'} cursor-help`}>
+                {deadlineText}
+              </span>
+            </Tooltip>
           </div>
         ) : null;
       default:

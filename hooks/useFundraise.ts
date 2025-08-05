@@ -18,6 +18,9 @@ type UseCreateContributionReturn = [UseFundraiseState, CreateContributionFn];
 type CloseFundraiseFn = (id: ID) => Promise<void>;
 type UseCloseFundraiseReturn = [UseFundraiseState, CloseFundraiseFn];
 
+type CompleteFundraiseFn = (id: ID) => Promise<void>;
+type UseCompleteFundraiseReturn = [UseFundraiseState, CompleteFundraiseFn];
+
 export const useCreateContribution = (): UseCreateContributionReturn => {
   const [data, setData] = useState<Fundraise | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -65,4 +68,28 @@ export const useCloseFundraise = (): UseCloseFundraiseReturn => {
   };
 
   return [{ data, isLoading, error }, closeFundraise];
+};
+
+export const useCompleteFundraise = (): UseCompleteFundraiseReturn => {
+  const [data, setData] = useState<Fundraise | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const completeFundraise = async (id: ID) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await FundraiseService.completeFundraise(id);
+      setData(response);
+    } catch (err) {
+      const errorMsg = err instanceof ApiError ? err.message : 'Failed to complete fundraise';
+      setError(errorMsg);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return [{ data, isLoading, error }, completeFundraise];
 };
