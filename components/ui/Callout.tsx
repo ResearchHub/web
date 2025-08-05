@@ -29,26 +29,31 @@ const variantStyles = {
     container: 'bg-blue-50 text-blue-800',
     border: 'border-blue-300',
     icon: 'text-blue-600',
+    iconBorder: 'border-blue-600',
   },
   warning: {
     container: 'bg-yellow-50 text-gray-900',
     border: 'border-yellow-500',
     icon: 'text-yellow-600',
+    iconBorder: 'border-yellow-600',
   },
   error: {
     container: 'bg-red-50 text-red-800',
     border: 'border-red-300',
     icon: 'text-red-600',
+    iconBorder: 'border-red-600',
   },
   success: {
     container: 'bg-green-50 text-green-800',
     border: 'border-green-300',
     icon: 'text-green-600',
+    iconBorder: 'border-green-600',
   },
   gray: {
     container: 'bg-gray-50 text-gray-700',
     border: 'border-gray-300',
     icon: 'text-gray-500',
+    iconBorder: 'border-gray-500',
   },
 };
 
@@ -81,7 +86,7 @@ export function Callout({
       )}
     >
       <div
-        className={`flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center ${styles.icon.replace('text-', 'border-')}`}
+        className={`flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center ${styles.iconBorder}`}
       >
         <span className={`text-xs font-bold leading-none ${styles.icon}`}>!</span>
       </div>
