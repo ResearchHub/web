@@ -1,5 +1,3 @@
-'use client';
-
 import { FundPageContent } from '../components/FundPageContent';
 
 export default function PreviouslyFundedPage() {
