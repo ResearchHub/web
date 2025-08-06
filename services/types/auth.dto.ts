@@ -17,10 +17,18 @@ export interface RegisterApiRequest {
   password2: string;
   first_name: string;
   last_name: string;
+  referral_code?: string;
 }
 
 export interface CheckAccountApiResponse {
   exists: boolean;
   auth?: 'google' | 'email';
   is_verified?: boolean;
+}
+
+export interface PasswordResetConfirmRequest {
+  uid: string;
+  token: string;
+  new_password1: string;
+  new_password2: string;
 }

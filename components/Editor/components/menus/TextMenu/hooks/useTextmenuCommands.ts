@@ -47,6 +47,16 @@ export const useTextmenuCommands = (editor: Editor) => {
     [editor]
   );
 
+  const onSetInlineMath = useCallback(() => {
+    editor
+      .chain()
+      .focus()
+      .insertContent(
+        '$\\text{Total Supply} = \\sum_{i=0}^{32} \\left( 210{,}000 \\times \\frac{50}{2^i} \\right)$'
+      )
+      .run();
+  }, [editor]);
+
   const onSimplify = useCallback(
     () => editor.chain().focus().aiSimplify({ stream: true, format: 'rich-text' }).run(),
     [editor]
@@ -133,6 +143,7 @@ export const useTextmenuCommands = (editor: Editor) => {
     onClearColor,
     onChangeHighlight,
     onClearHighlight,
+    onSetInlineMath,
     onSetFont,
     onSetFontSize,
     onSimplify,

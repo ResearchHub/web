@@ -146,7 +146,10 @@ export function ContributeToFundraiseModal({
   const [isSuccess, setIsSuccess] = useState(false);
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
 
+  // Calculate total available balance including locked balance for fundraise contributions
   const userBalance = user?.balance || 0;
+  const lockedBalance = user?.lockedBalance || 0;
+  const totalAvailableBalance = userBalance + lockedBalance;
 
   // Utility functions
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -210,7 +213,7 @@ export function ContributeToFundraiseModal({
 
   const platformFee = Math.round(inputAmount * 0.09 * 100) / 100;
   const totalAmount = inputAmount + platformFee;
-  const insufficientBalance = userBalance < totalAmount;
+  const insufficientBalance = totalAvailableBalance < totalAmount;
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -280,7 +283,11 @@ export function ContributeToFundraiseModal({
 
                     {/* Balance Info */}
                     <div>
-                      <BalanceInfo amount={totalAmount} showWarning={insufficientBalance} />
+                      <BalanceInfo
+                        amount={totalAmount}
+                        showWarning={insufficientBalance}
+                        includeLockedBalance={true}
+                      />
                     </div>
 
                     {/* Error Alert */}

@@ -173,6 +173,7 @@ export class PaperService {
       success_url: successUrl,
       failure_url: failureUrl,
       paper: paperId,
+      purpose: 'APC',
     });
   }
 

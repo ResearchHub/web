@@ -56,7 +56,7 @@ export const BountyCarouselItem: FC<BountyCarouselItemProps> = ({ entry }) => {
 
   return (
     <div
-      className="bg-white rounded-lg border border-gray-200 overflow-hidden w-[250px] cursor-pointer hover:shadow-md transition-shadow duration-200 flex flex-col"
+      className="bg-white rounded-lg border border-gray-200 overflow-hidden w-[250px] cursor-pointer hover:shadow-md transition-shadow duration-200 flex flex-col h-full"
       onClick={handleCardClick}
     >
       {/* Paper info section */}

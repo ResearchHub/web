@@ -1,15 +1,37 @@
 import { getServerSession } from 'next-auth/next';
 import { handleTrendingRedirect } from '@/utils/navigation';
 import { LandingPage } from '@/components/landing/LandingPage';
+import { headers } from 'next/headers';
+import { ExperimentVariant } from '@/utils/experiment';
 
-// This can be a server component
-export default async function Home() {
-  // Get session on the server
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const session = await getServerSession();
 
-  // If user is logged in, redirect to trending page
-  handleTrendingRedirect(!!session?.user);
+  const headersList = await headers();
+  const homepageExperimentVariant = headersList.get('x-homepage-experiment');
 
-  // If no user is logged in, show the landing page
+  const resolvedSearchParams = await searchParams;
+
+  const urlSearchParams = new URLSearchParams();
+  Object.entries(resolvedSearchParams).forEach(([key, value]) => {
+    if (typeof value === 'string') {
+      urlSearchParams.set(key, value);
+    } else if (Array.isArray(value)) {
+      if (value.length > 0) {
+        urlSearchParams.set(key, value[0]);
+      }
+    }
+  });
+
+  handleTrendingRedirect(
+    !!session?.user,
+    homepageExperimentVariant as ExperimentVariant | null,
+    urlSearchParams
+  );
+
   return <LandingPage />;
 }

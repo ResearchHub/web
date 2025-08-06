@@ -23,8 +23,8 @@ const PUBLISH_MENU_SECTIONS = [
     items: [
       {
         id: 'submit-paper',
-        title: 'Submit your paper',
-        description: 'Preprint or peer reviewed publication',
+        title: 'Get published',
+        description: 'Submit a manuscript as a preprint or publication',
         icon: <Icon name="submit1" size={24} color="#2563eb" />,
         action: 'navigate',
         path: '/paper/create',

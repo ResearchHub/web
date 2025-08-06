@@ -134,6 +134,7 @@ const transformCommentForAudit = (commentItem: any, flaggedContent: FlaggedConte
       email: commentItem.createdBy?.email ?? '',
       isVerified: commentItem.createdBy?.isVerified ?? false,
       balance: 0,
+      lockedBalance: 0,
       hasCompletedOnboarding: false,
       moderator: false,
       isModerator: false,

@@ -4,6 +4,7 @@ import {
   type LoginApiResponse,
   type RegisterApiRequest,
   type CheckAccountApiResponse,
+  type PasswordResetConfirmRequest,
   ApiError,
 } from './types';
 import type { User } from '@/types/user';
@@ -65,7 +66,25 @@ export class AuthService {
   }
 
   static async resetPassword(email: string) {
-    return ApiClient.post(`${this.BASE_PATH}/reset-password/`, { email });
+    return ApiClient.post(`${this.BASE_PATH}/auth/password-reset/`, { email });
+  }
+
+  static async confirmPasswordReset(data: PasswordResetConfirmRequest) {
+    try {
+      return await ApiClient.post<{ key: string }>(`${this.BASE_PATH}/auth/confirm/`, data);
+    } catch (error: any) {
+      if (error instanceof ApiError) {
+        const errorValues = Object.values(error.errors as Record<string, string[]>)?.[0];
+        const errorMessage = Array.isArray(errorValues)
+          ? errorValues[0]
+          : typeof errorValues === 'string'
+            ? errorValues
+            : 'Password reset confirmation failed';
+        throw new ApiError(errorMessage, error.status, error.errors);
+      }
+
+      throw new ApiError('Password reset confirmation failed', 500);
+    }
   }
 
   static async getUser() {

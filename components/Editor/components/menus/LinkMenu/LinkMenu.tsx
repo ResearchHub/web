@@ -46,7 +46,7 @@ export const LinkMenu = ({ editor, appendTo }: MenuProps): JSX.Element => {
   return (
     <BaseBubbleMenu
       editor={editor}
-      pluginKey="textMenu"
+      pluginKey="linkMenu"
       shouldShow={shouldShow}
       updateDelay={0}
       tippyOptions={{

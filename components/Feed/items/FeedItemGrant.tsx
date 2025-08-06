@@ -190,7 +190,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             {/* Organization */}
             {(grant.organization || grant.grant?.organization) && (
               <MetadataSection>
-                <div className="mb-3 flex items-center gap-1.5 text-sm text-gray-500">
+                <div className="flex items-center gap-1.5 text-sm mb-3 text-gray-500">
                   <Building className="w-4 h-4" />
                   <span>{grant.organization || grant.grant?.organization}</span>
                 </div>
@@ -200,7 +200,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             {/* Deadline */}
             {deadline && isOpen && (
               <MetadataSection>
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-1.5 text-sm mb-3">
                   <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
                   <span className={isExpiringSoon ? 'text-amber-600' : 'text-gray-500'}>
                     Apply by: {format(new Date(deadline), 'MMM d, yyyy')}
@@ -212,7 +212,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             {/* Applicants */}
             {applicants.length > 0 && (
               <MetadataSection>
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-1.5 text-sm mb-3">
                   <Icon name="createBounty" size={16} color="#6b7280" className="flex-shrink-0" />
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-500 font-normal">

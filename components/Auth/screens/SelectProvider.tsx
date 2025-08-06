@@ -4,6 +4,9 @@ import { ApiError } from '@/services/types/api';
 import { isValidEmail } from '@/utils/validation';
 import { useAutoFocus } from '@/hooks/useAutoFocus';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { useReferral } from '@/contexts/ReferralContext';
+import { Experiment, getHomepageExperimentVariant } from '@/utils/experiment';
+import { Button } from '@/components/ui/Button';
 
 interface SelectProviderProps {
   onContinue: () => void;
@@ -14,6 +17,7 @@ interface SelectProviderProps {
   error: string | null;
   setError: (error: string | null) => void;
   showHeader?: boolean;
+  setIsLoading?: (isLoading: boolean) => void;
 }
 
 export default function SelectProvider({
@@ -25,8 +29,10 @@ export default function SelectProvider({
   error,
   setError,
   showHeader = true,
+  setIsLoading,
 }: SelectProviderProps) {
   const emailInputRef = useAutoFocus<HTMLInputElement>(true);
+  const { referralCode } = useReferral();
 
   const handleCheckAccount = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -36,6 +42,7 @@ export default function SelectProvider({
     }
 
     setError(null);
+    setIsLoading?.(true);
 
     try {
       const response = await AuthService.checkAccount(email);
@@ -43,7 +50,18 @@ export default function SelectProvider({
       if (response.exists) {
         if (response.auth === 'google') {
           // Prompt user to use Google sign-in
-          signIn('google');
+          const originalCallbackUrl = '/';
+          let finalCallbackUrl = originalCallbackUrl;
+
+          const experimentVariant = getHomepageExperimentVariant();
+          if (experimentVariant) {
+            // Create URL with experiment parameter
+            const experimentUrl = new URL(originalCallbackUrl, window.location.origin);
+            experimentUrl.searchParams.set(Experiment.HomepageExperiment, experimentVariant);
+            finalCallbackUrl = experimentUrl.toString();
+          }
+
+          signIn('google', { callbackUrl: finalCallbackUrl });
         } else if (response.is_verified) {
           onContinue();
         } else {
@@ -55,17 +73,34 @@ export default function SelectProvider({
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'An error occurred');
     } finally {
-      // setIsLoading is not defined in props, need to remove it
+      setIsLoading?.(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
     await AnalyticsService.logEvent(LogEvent.AUTH_VIA_GOOGLE_INITIATED);
-    // Get the current URL's search params to extract callbackUrl
     const searchParams = new URLSearchParams(window.location.search);
-    const callbackUrl = searchParams.get('callbackUrl') || '/';
+    const originalCallbackUrl = searchParams.get('callbackUrl') || '/';
 
-    signIn('google', { callbackUrl });
+    let finalCallbackUrl = originalCallbackUrl;
+
+    if (referralCode) {
+      // Create referral application URL with referral code and redirect as URL parameters
+      const referralUrl = new URL('/referral/join/apply-referral-code', window.location.origin);
+      referralUrl.searchParams.set('refr', referralCode);
+      referralUrl.searchParams.set('redirect', originalCallbackUrl);
+      finalCallbackUrl = referralUrl.toString();
+    }
+
+    const homepageExperimentVariant = getHomepageExperimentVariant();
+    if (homepageExperimentVariant) {
+      // Create URL with experiment parameter
+      const experimentUrl = new URL(finalCallbackUrl, window.location.origin);
+      experimentUrl.searchParams.set(Experiment.HomepageExperiment, homepageExperimentVariant);
+      finalCallbackUrl = experimentUrl.toString();
+    }
+
+    signIn('google', { callbackUrl: finalCallbackUrl });
   };
 
   return (
@@ -99,13 +134,9 @@ export default function SelectProvider({
           ref={emailInputRef}
         />
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full bg-indigo-600 text-white p-3 rounded hover:bg-indigo-700 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isLoading} className="w-full" size="lg">
           {isLoading ? 'Loading...' : 'Continue'}
-        </button>
+        </Button>
 
         <div className="relative my-8">
           <div className="absolute top-[2px] inset-x-0 bottom-0 flex items-center">

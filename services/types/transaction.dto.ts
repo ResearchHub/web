@@ -2,6 +2,7 @@ import { ID } from '@/types/root';
 
 export interface TransactionAPIRequest {
   id: number;
+  is_locked: boolean;
   source?: TransactionSource;
   readable_content_type: string;
   content_title: string | null;
