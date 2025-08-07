@@ -14,6 +14,7 @@ interface UseFeedOptions {
   endpoint?: 'feed' | 'funding_feed' | 'grant_feed';
   fundraiseStatus?: 'OPEN' | 'CLOSED';
   createdBy?: number;
+  ordering?: string;
   initialData?: {
     entries: FeedEntry[];
     hasMore: boolean;
@@ -64,7 +65,8 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       options.source !== currentOptions.source ||
       options.endpoint !== currentOptions.endpoint ||
       options.fundraiseStatus !== currentOptions.fundraiseStatus ||
-      options.createdBy !== currentOptions.createdBy;
+      options.createdBy !== currentOptions.createdBy ||
+      options.ordering !== currentOptions.ordering;
 
     if (relevantOptionsChanged) {
       setCurrentOptions(options);
@@ -85,6 +87,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         endpoint: options.endpoint,
         fundraiseStatus: options.fundraiseStatus,
         createdBy: options.createdBy,
+        ordering: options.ordering,
       });
       setEntries(result.entries);
       setHasMore(result.hasMore);
@@ -112,6 +115,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         endpoint: options.endpoint,
         fundraiseStatus: options.fundraiseStatus,
         createdBy: options.createdBy,
+        ordering: options.ordering,
       });
       setEntries((prev) => [...prev, ...result.entries]);
       setHasMore(result.hasMore);
