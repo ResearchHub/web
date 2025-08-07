@@ -52,13 +52,11 @@ export function ImageUploadModal({
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} title={title} maxWidth="max-w-md" padding="p-4">
       <AvatarUpload
-        isOpen={true}
         onClose={onClose}
         onSave={saveCoverImage}
         initialImage={null}
         isLoading={isLoading}
       />
-
       {error && <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">{error}</div>}
     </BaseModal>
   );
