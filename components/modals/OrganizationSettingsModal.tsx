@@ -202,7 +202,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
   const isCurrentUserAdmin = (() => {
     if (!session?.userId || !orgUsers?.users) return false;
 
-    const currentUser = orgUsers.users.find((user) => user.id.toString() === session.userId);
+    const currentUser = orgUsers.users.find((user) => user.id === session.userId.toString());
 
     return currentUser?.role === 'ADMIN';
   })();

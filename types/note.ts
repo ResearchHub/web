@@ -13,6 +13,7 @@ export type Author = {
   authorId: number;
   userId: number;
   name: string;
+  profileImage?: string;
 };
 
 export type Contact = {
@@ -73,6 +74,7 @@ export const transformAuthor = createTransformer<any, Author>((raw: any) => ({
   authorId: raw.id,
   userId: raw.user,
   name: `${raw.first_name || ''} ${raw.last_name || ''}`.trim() || 'Unknown',
+  profileImage: raw.profile_image,
 }));
 
 export const transformContact = createTransformer<any, Contact>((raw) => ({

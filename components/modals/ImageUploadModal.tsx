@@ -1,9 +1,8 @@
 'use client';
 
-import { Dialog } from '@headlessui/react';
-import { X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { AvatarUpload } from '@/components/AvatarUpload';
+import { BaseModal } from '@/components/ui/BaseModal';
 
 interface ImageUploadModalProps {
   isOpen: boolean;
@@ -51,37 +50,16 @@ export function ImageUploadModal({
   };
 
   return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+    <BaseModal isOpen={isOpen} onClose={onClose} title={title} maxWidth="max-w-md" padding="p-4">
+      <AvatarUpload
+        isOpen={true}
+        onClose={onClose}
+        onSave={saveCoverImage}
+        initialImage={null}
+        isLoading={isLoading}
+      />
 
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="mx-auto max-w-md w-full rounded-lg bg-white shadow-lg">
-          <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-            <Dialog.Title className="text-lg font-semibold text-gray-900">{title}</Dialog.Title>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
-              aria-label="Close"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
-          <div className="p-4">
-            <AvatarUpload
-              isOpen={true}
-              onClose={onClose}
-              onSave={saveCoverImage}
-              initialImage={null}
-              isLoading={isLoading}
-            />
-
-            {error && (
-              <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">{error}</div>
-            )}
-          </div>
-        </Dialog.Panel>
-      </div>
-    </Dialog>
+      {error && <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">{error}</div>}
+    </BaseModal>
   );
 }

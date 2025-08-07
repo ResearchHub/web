@@ -195,10 +195,16 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       }
 
       if (note.post.authors && note.post.authors.length > 0) {
-        const authorOptions = note.post.authors.map((author) => ({
-          value: author.authorId.toString(),
-          label: author.name,
-        }));
+        const authorOptions = note.post.authors.map((author) => {
+          const orgUser = users?.users.find((user) => user.authorId === author.authorId);
+          console.log('orgUser', orgUser);
+
+          return {
+            value: author.authorId.toString(),
+            label: author.name,
+            image: orgUser?.avatarUrl,
+          };
+        });
         methods.setValue('authors', authorOptions);
       }
 
@@ -277,7 +283,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         }
       }
     }
-  }, [note, methods, searchParams]);
+  }, [note, methods, searchParams, users]);
 
   // Add effect to save form data when it changes
   useEffect(() => {
