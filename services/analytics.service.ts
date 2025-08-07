@@ -19,15 +19,21 @@ export const LogEvent = {
   CLICKED_SHARE_VIA_QR_CODE: 'clicked_share_via_qr_code',
   SIGNED_UP: 'signed_up',
 
-  USER_UPVOTED: 'user_upvoted',
-  USER_COMMENTED: 'user_commented',
-  USER_PEER_REVIEWED: 'user_peer_reviewed',
-  USER_FUNDED: 'user_funded',
-  USER_TIPPED: 'user_tipped',
-  USER_SUBMITTED_TO_JOURNAL: 'user_submitted_to_journal',
+  USER_ACTIVITY: 'user_activity',
 } as const;
 
 export type LogEventValue = (typeof LogEvent)[keyof typeof LogEvent];
+
+export const ActivityType = {
+  UPVOTE: 'upvote',
+  COMMENT: 'comment',
+  PEER_REVIEW: 'peer_review',
+  FUND: 'fund',
+  TIP: 'tip',
+  JOURNAL_SUBMISSION: 'journal_submission',
+} as const;
+
+export type ActivityTypeValue = (typeof ActivityType)[keyof typeof ActivityType];
 
 type AnalyticsProvider = 'amplitude' | 'google';
 
@@ -130,17 +136,27 @@ class AnalyticsService {
     });
   }
 
-  // New helper methods for user engagement funnel
+  // Unified user activity method
+  static async logUserActivity(
+    type: ActivityTypeValue,
+    contentType: string,
+    documentId: string,
+    additionalProperties?: Record<string, any>
+  ) {
+    await this.logEvent(LogEvent.USER_ACTIVITY, {
+      activity_type: type,
+      content_type: contentType,
+      document_id: documentId,
+      ...additionalProperties,
+    });
+  }
+
   static async logUserUpvoted(
     contentType: string,
     documentId: string,
     additionalProperties?: Record<string, any>
   ) {
-    await this.logEvent(LogEvent.USER_UPVOTED, {
-      content_type: contentType,
-      document_id: documentId,
-      ...additionalProperties,
-    });
+    await this.logUserActivity(ActivityType.UPVOTE, contentType, documentId, additionalProperties);
   }
 
   static async logUserCommented(
@@ -149,9 +165,7 @@ class AnalyticsService {
     commentId: string,
     additionalProperties?: Record<string, any>
   ) {
-    await this.logEvent(LogEvent.USER_COMMENTED, {
-      content_type: contentType,
-      document_id: documentId,
+    await this.logUserActivity(ActivityType.COMMENT, contentType, documentId, {
       comment_id: commentId,
       ...additionalProperties,
     });
@@ -163,9 +177,7 @@ class AnalyticsService {
     reviewId: string,
     additionalProperties?: Record<string, any>
   ) {
-    await this.logEvent(LogEvent.USER_PEER_REVIEWED, {
-      content_type: contentType,
-      document_id: documentId,
+    await this.logUserActivity(ActivityType.PEER_REVIEW, contentType, documentId, {
       review_id: reviewId,
       ...additionalProperties,
     });
@@ -178,9 +190,7 @@ class AnalyticsService {
     currency: string = 'USD',
     additionalProperties?: Record<string, any>
   ) {
-    await this.logEvent(LogEvent.USER_FUNDED, {
-      content_type: contentType,
-      document_id: documentId,
+    await this.logUserActivity(ActivityType.FUND, contentType, documentId, {
       amount: amount,
       currency: currency,
       ...additionalProperties,
@@ -194,9 +204,7 @@ class AnalyticsService {
     currency: string = 'USD',
     additionalProperties?: Record<string, any>
   ) {
-    await this.logEvent(LogEvent.USER_TIPPED, {
-      content_type: contentType,
-      document_id: documentId,
+    await this.logUserActivity(ActivityType.TIP, contentType, documentId, {
       amount: amount,
       currency: currency,
       ...additionalProperties,
@@ -209,10 +217,9 @@ class AnalyticsService {
     documentId: string,
     additionalProperties?: Record<string, any>
   ) {
-    await this.logEvent(LogEvent.USER_SUBMITTED_TO_JOURNAL, {
+    await this.logUserActivity(ActivityType.JOURNAL_SUBMISSION, 'journal', documentId, {
       journal_id: journalId,
       journal_name: journalName,
-      document_id: documentId,
       ...additionalProperties,
     });
   }
