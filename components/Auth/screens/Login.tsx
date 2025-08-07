@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
+  onForgotPassword: () => void;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
   onSuccess?: () => void;
@@ -24,6 +25,7 @@ export default function Login({
   error,
   setError,
   onBack,
+  onForgotPassword,
   modalView = false,
 }: Props) {
   const [password, setPassword] = useState('');
@@ -31,6 +33,7 @@ export default function Login({
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const passwordInputRef = useAutoFocus<HTMLInputElement>(true);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!password) {
@@ -117,6 +120,18 @@ export default function Login({
           {isLoading ? 'Logging in...' : 'Log in'}
         </Button>
       </form>
+
+      <div className="text-left mb-4">
+        <Button
+          type="button"
+          variant="link"
+          onClick={onForgotPassword}
+          disabled={isLoading || isRedirecting}
+          className="text-rhBlue-500 hover:text-rhBlue-600 text-sm"
+        >
+          Forgot your password?
+        </Button>
+      </div>
 
       {!modalView && (
         <Button

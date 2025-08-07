@@ -54,7 +54,17 @@ export function formatDeadline(deadline: string): string {
   if (diffDays < 0) {
     return 'Ended';
   } else if (diffDays === 0) {
-    return 'Ends today';
+    const diffMs = deadlineDate.diff(now);
+    const diffHours = deadlineDate.diff(now, 'hour');
+    if (diffMs < 0) {
+      return 'Ended today';
+    } else if (diffHours === 0) {
+      return 'Ends in less than an hour';
+    } else if (diffHours > 0 && diffHours < 24) {
+      return `Ends in ${diffHours} hours`;
+    } else {
+      return 'Ends today';
+    }
   } else if (diffDays === 1) {
     return 'Ends tomorrow';
   } else if (diffDays < 30) {
@@ -106,3 +116,12 @@ export function specificTimeSince(dateInput: string | Date): string {
     return `${result[0]}, ${result[1]} and ${result[2]}`;
   }
 }
+
+/**
+ * Formats a deadline timestamp into a human-readable string with exact time
+ * @param deadline ISO timestamp string
+ * @returns Formatted deadline string (e.g. "Dec 15, 2024 at 12:00 PM")
+ */
+export const formatExactTime = (deadline: string): string => {
+  return dayjs(deadline).format('MMM D, YYYY [at] h:mm A');
+};
