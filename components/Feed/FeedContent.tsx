@@ -90,6 +90,16 @@ export const FeedContent: FC<FeedContentProps> = ({
           return `/post/${postContent.id}/${postContent.slug}`;
         case 'PREREGISTRATION':
           const fundContent = entry.content as FeedPostContent;
+          // Use intercepting route in fund pages to open peek; otherwise normal route
+          if (typeof window !== 'undefined') {
+            const path = window.location.pathname;
+            if (path.startsWith('/fund/needs-funding')) {
+              return `/fund/needs-funding/fund/${fundContent.id}/${fundContent.slug}`;
+            }
+            if (path.startsWith('/fund/previously-funded')) {
+              return `/fund/previously-funded/fund/${fundContent.id}/${fundContent.slug}`;
+            }
+          }
           return `/fund/${fundContent.id}/${fundContent.slug}`;
         case 'PAPER':
           const paperContent = entry.content as FeedPaperContent;
@@ -112,6 +122,12 @@ export const FeedContent: FC<FeedContentProps> = ({
 
         case 'GRANT':
           const grantContent = entry.content as FeedGrantContent;
+          if (typeof window !== 'undefined') {
+            const path = window.location.pathname;
+            if (path.startsWith('/fund/grants')) {
+              return `/fund/grants/grant/${grantContent.id}/${grantContent.slug}`;
+            }
+          }
           return `/grant/${grantContent.id}/${grantContent.slug}`;
 
         default:
