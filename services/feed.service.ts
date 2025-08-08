@@ -21,6 +21,7 @@ export class FeedService {
     fundraiseStatus?: 'OPEN' | 'CLOSED';
     grantId?: number;
     createdBy?: number;
+    ordering?: string;
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
@@ -32,6 +33,7 @@ export class FeedService {
     if (params?.fundraiseStatus) queryParams.append('fundraise_status', params.fundraiseStatus);
     if (params?.grantId) queryParams.append('grant_id', params.grantId.toString());
     if (params?.createdBy) queryParams.append('created_by', params.createdBy.toString());
+    if (params?.ordering) queryParams.append('ordering', params.ordering);
 
     // Determine which endpoint to use
     const basePath =
