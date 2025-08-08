@@ -104,8 +104,13 @@ export const WorkLineItems = ({
     }
   }, [work.contentType, work.id, isUpvoted, vote, refreshVotes]);
 
+  // Determine if current user is a moderator
+  const isModerator = !!user?.isModerator;
+  // Determine if current user is a hub editor
+  const isHubEditor = !!user?.authorProfile?.isHubEditor;
+
   const handleEdit = useCallback(() => {
-    if (work.contentType === 'paper' && user?.isModerator) {
+    if (work.contentType === 'paper' && (isModerator || isHubEditor)) {
       setIsWorkEditModalOpen(true);
     } else if (selectedOrg && work.note) {
       router.push(`/notebook/${work.note.organization.slug}/${work.note.id}`);
@@ -122,10 +127,6 @@ export const WorkLineItems = ({
   // Determine if the latest version has already been published
   const latestVersion = work.versions?.find((v) => v.isLatest);
   const isPublished = latestVersion?.publicationStatus === 'PUBLISHED';
-  // Determine if current user is a moderator
-  const isModerator = !!user?.isModerator;
-  // Determine if current user is a hub editor
-  const isHubEditor = !!user?.authorProfile?.isHubEditor;
 
   const handlePublish = useCallback(async () => {
     if (isPublished) return;
