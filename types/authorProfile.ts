@@ -46,6 +46,7 @@ export interface AuthorProfile {
   i10Index?: number;
   userId?: number;
   editorOfHubs?: Hub[];
+  isHubEditor?: boolean;
 }
 
 export type TransformedAuthorProfile = AuthorProfile & BaseTransformed;
@@ -103,6 +104,7 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
     userId: raw.user_id || undefined,
     editorOfHubs: editorOfHubs,
     isVerified: raw.is_verified_v2 || false,
+    isHubEditor: raw.is_hub_editor || false,
   };
 });
 

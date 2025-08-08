@@ -124,6 +124,8 @@ export const WorkLineItems = ({
   const isPublished = latestVersion?.publicationStatus === 'PUBLISHED';
   // Determine if current user is a moderator
   const isModerator = !!user?.isModerator;
+  // Determine if current user is a hub editor
+  const isHubEditor = !!user?.authorProfile?.isHubEditor;
 
   const handlePublish = useCallback(async () => {
     if (isPublished) return;
@@ -162,7 +164,7 @@ export const WorkLineItems = ({
   const canEdit = (() => {
     switch (work.contentType) {
       case 'paper':
-        return isModerator;
+        return isModerator || isHubEditor;
       case 'funding_request':
         return isGrantContact || isAuthor || isModerator;
       default:
@@ -325,7 +327,11 @@ export const WorkLineItems = ({
           >
             {canEdit && (
               <BaseMenuItem
-                disabled={work.contentType === 'paper' ? !isModerator : !selectedOrg || !work.note}
+                disabled={
+                  work.contentType === 'paper'
+                    ? !isModerator && !isHubEditor
+                    : !selectedOrg || !work.note
+                }
                 onSelect={handleEdit}
               >
                 <Edit className="h-4 w-4 mr-2" />
