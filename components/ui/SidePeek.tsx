@@ -59,8 +59,8 @@ export const SidePeek: React.FC<SidePeekProps> = ({
       <dialog
         open
         className={cn(
-          'absolute right-0 top-0 h-full bg-white shadow-2xl border-l border-gray-200 flex flex-col',
-          'transition-transform duration-300 ease-out translate-x-0',
+          'fixed top-0 right-0 left-auto inset-y-0 h-full m-0 bg-white shadow-2xl border-l border-gray-200 flex flex-col',
+          'transition-none transform-none',
           widthClassName,
           className
         )}

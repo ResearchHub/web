@@ -1,4 +1,6 @@
+import { Suspense } from 'react';
 import { FundPeek } from '@/components/peek/FundPeek';
+import SidePeekSkeleton from '@/components/skeletons/SidePeekSkeleton';
 
 interface Props {
   params: Promise<{
@@ -9,5 +11,9 @@ interface Props {
 
 export default async function PeekPreviouslyFundedProjectPage({ params }: Readonly<Props>) {
   const { id } = await params;
-  return <FundPeek id={id} />;
+  return (
+    <Suspense fallback={<SidePeekSkeleton title="Loading project" />}>
+      <FundPeek id={id} />
+    </Suspense>
+  );
 }
