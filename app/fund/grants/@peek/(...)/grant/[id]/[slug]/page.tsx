@@ -13,18 +13,20 @@ interface Props {
 }
 
 async function getGrant(id: string) {
-  if (!id.match(/^\d+$/)) {
+  const idPattern = /^\d+$/;
+  if (idPattern.exec(id) === null) {
     notFound();
   }
   try {
     const work = await PostService.get(id);
     return work;
   } catch (e) {
+    // Allow Next to handle 404 routing consistently
     notFound();
   }
 }
 
-export default async function PeekGrantPage({ params }: Props) {
+export default async function PeekGrantPage({ params }: Readonly<Props>) {
   const { id } = await params;
   const work = await getGrant(id);
 

@@ -7,18 +7,20 @@ import { FundDocument } from '@/components/work/FundDocument';
 import { SidePeek } from '@/components/ui/SidePeek';
 
 async function getFundingProject(id: string) {
-  if (!id.match(/^\d+$/)) {
+  const idPattern = /^\d+$/;
+  if (idPattern.exec(id) === null) {
     notFound();
   }
   try {
     const work = await PostService.get(id);
     return work;
   } catch (e) {
+    // Allow Next to manage 404s uniformly
     notFound();
   }
 }
 
-export async function FundPeek({ id }: { id: string }) {
+export async function FundPeek({ id }: Readonly<{ id: string }>) {
   const work = await getFundingProject(id);
 
   const [metadata, content, authorUpdates] = await Promise.all([

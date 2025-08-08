@@ -4,8 +4,8 @@ export default function NeedsFundingLayout({
   children,
   peek,
 }: {
-  children: React.ReactNode;
-  peek: React.ReactNode;
+  readonly children: React.ReactNode;
+  readonly peek: React.ReactNode;
 }) {
   return (
     <>

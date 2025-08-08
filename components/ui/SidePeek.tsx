@@ -7,11 +7,11 @@ import { faXmark } from '@fortawesome/pro-solid-svg-icons';
 import { cn } from '@/utils/styles';
 
 interface SidePeekProps {
-  children: React.ReactNode;
-  title?: string;
-  closeHref?: string;
-  className?: string;
-  widthClassName?: string;
+  readonly children: React.ReactNode;
+  readonly title?: string;
+  readonly closeHref?: string;
+  readonly className?: string;
+  readonly widthClassName?: string;
 }
 
 export const SidePeek: React.FC<SidePeekProps> = ({
@@ -42,7 +42,8 @@ export const SidePeek: React.FC<SidePeekProps> = ({
   return (
     <div className="fixed inset-0 z-[60]">
       {/* Backdrop */}
-      <div
+      <button
+        type="button"
         className="absolute inset-0 bg-black/30 backdrop-blur-[1px]"
         onClick={handleBackdropClick}
         onKeyDown={(e) => {
@@ -51,21 +52,18 @@ export const SidePeek: React.FC<SidePeekProps> = ({
             handleBackdropClick();
           }
         }}
-        role="button"
-        tabIndex={0}
         aria-label="Close side peek"
-        aria-pressed="false"
       />
 
       {/* Panel */}
-      <div
+      <dialog
+        open
         className={cn(
           'absolute right-0 top-0 h-full bg-white shadow-2xl border-l border-gray-200 flex flex-col',
           'transition-transform duration-300 ease-out translate-x-0',
           widthClassName,
           className
         )}
-        role="dialog"
         aria-modal="true"
       >
         <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 border-b bg-white">
@@ -82,7 +80,7 @@ export const SidePeek: React.FC<SidePeekProps> = ({
           </button>
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-4">{children}</div>
-      </div>
+      </dialog>
     </div>
   );
 };

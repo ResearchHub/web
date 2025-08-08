@@ -4,8 +4,8 @@ export default function PreviouslyFundedLayout({
   children,
   peek,
 }: {
-  children: React.ReactNode;
-  peek: React.ReactNode;
+  readonly children: React.ReactNode;
+  readonly peek: React.ReactNode;
 }) {
   return (
     <>

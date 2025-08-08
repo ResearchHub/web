@@ -7,7 +7,7 @@ interface Props {
   }>;
 }
 
-export default async function PeekFundingProjectPage({ params }: Props) {
+export default async function PeekFundingProjectPage({ params }: Readonly<Props>) {
   const { id } = await params;
   return <FundPeek id={id} />;
 }
