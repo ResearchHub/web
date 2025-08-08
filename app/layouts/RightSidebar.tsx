@@ -257,12 +257,6 @@ const FundingSpotlight = () => {
 // Main RightSidebar Component - memoized to prevent re-renders when parent components change
 const SidebarComponent = () => (
   <div className="space-y-4 overflow-hidden">
-    {/* Journal Spotlight Section */}
-    <JournalSpotlight />
-
-    {/* Funding Spotlight Section */}
-    <FundingSpotlight />
-
     {/* Dynamic Leaderboard Section */}
     <LeaderboardOverview />
 

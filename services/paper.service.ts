@@ -85,7 +85,7 @@ export class PaperService {
     } else {
       response = await ApiClient.get(`${this.BASE_PATH}/${identifier}/`);
     }
-    console.log('response', response);
+
     return transformPaper(response);
   }
 
