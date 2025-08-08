@@ -64,16 +64,6 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
     return searchParams?.get('focus') === 'true';
   }, [searchParams]);
 
-  // Only log metadata once to reduce console noise
-  useEffect(() => {
-    console.log('metadata', metadata);
-  }, [metadata]);
-
-  // Add debugging for component rendering
-  useEffect(() => {
-    console.log(`WorkDocument RENDERED - activeTab: ${activeTab}`);
-  });
-
   // Update active tab if defaultTab prop changes
   useEffect(() => {
     setActiveTab(defaultTab);
@@ -115,7 +105,6 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
 
   // Render tab content based on activeTab - memoized to prevent unnecessary re-renders
   const renderTabContent = useMemo(() => {
-    console.log(`Rendering tab: ${activeTab}`); // Debugging
     switch (activeTab) {
       case 'paper':
         return (
