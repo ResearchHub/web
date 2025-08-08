@@ -78,6 +78,13 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
         hasMore={hasMore}
         loadMore={loadMore}
         showGrantHeaders={false}
+        peekBase={
+          marketplaceTab === 'grants'
+            ? '/fund/grants'
+            : marketplaceTab === 'needs-funding'
+              ? '/fund/needs-funding'
+              : '/fund/previously-funded'
+        }
       />
     </PageLayout>
   );

@@ -20,7 +20,7 @@ async function getFundingProject(id: string) {
   }
 }
 
-export async function FundPeek({ id }: Readonly<{ id: string }>) {
+export async function FundPeek({ id, closeHref }: Readonly<{ id: string; closeHref?: string }>) {
   const work = await getFundingProject(id);
 
   const [metadata, content, authorUpdates] = await Promise.all([
@@ -30,7 +30,7 @@ export async function FundPeek({ id }: Readonly<{ id: string }>) {
   ]);
 
   return (
-    <SidePeek title={work.title}>
+    <SidePeek title={work.title} fullHref={`/fund/${work.id}/${work.slug}`} closeHref={closeHref}>
       <Suspense>
         <FundDocument
           work={work}

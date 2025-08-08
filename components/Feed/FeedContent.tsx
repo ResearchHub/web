@@ -42,6 +42,7 @@ interface FeedContentProps {
   maxLength?: number;
   showGrantHeaders?: boolean; // Prop to control grant header visibility
   showReadMoreCTA?: boolean; // Prop to control read more CTA visibility
+  peekBase?: string; // When provided, generate intercepting hrefs relative to this base
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -63,6 +64,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   maxLength,
   showGrantHeaders = true, // Default to true
   showReadMoreCTA = false,
+  peekBase,
 }) => {
   // Set up intersection observer for infinite scrolling (must be called before any conditional returns)
   const { ref: loadMoreRef, inView } = useInView({
@@ -90,15 +92,8 @@ export const FeedContent: FC<FeedContentProps> = ({
           return `/post/${postContent.id}/${postContent.slug}`;
         case 'PREREGISTRATION':
           const fundContent = entry.content as FeedPostContent;
-          // Use intercepting route in fund pages to open peek; otherwise normal route
-          if (typeof window !== 'undefined') {
-            const path = window.location.pathname;
-            if (path.startsWith('/fund/needs-funding')) {
-              return `/fund/needs-funding/fund/${fundContent.id}/${fundContent.slug}`;
-            }
-            if (path.startsWith('/fund/previously-funded')) {
-              return `/fund/previously-funded/fund/${fundContent.id}/${fundContent.slug}`;
-            }
+          if (peekBase) {
+            return `${peekBase}/fund/${fundContent.id}/${fundContent.slug}`;
           }
           return `/fund/${fundContent.id}/${fundContent.slug}`;
         case 'PAPER':
@@ -122,11 +117,8 @@ export const FeedContent: FC<FeedContentProps> = ({
 
         case 'GRANT':
           const grantContent = entry.content as FeedGrantContent;
-          if (typeof window !== 'undefined') {
-            const path = window.location.pathname;
-            if (path.startsWith('/fund/grants')) {
-              return `/fund/grants/grant/${grantContent.id}/${grantContent.slug}`;
-            }
+          if (peekBase) {
+            return `${peekBase}/grant/${grantContent.id}/${grantContent.slug}`;
           }
           return `/grant/${grantContent.id}/${grantContent.slug}`;
 

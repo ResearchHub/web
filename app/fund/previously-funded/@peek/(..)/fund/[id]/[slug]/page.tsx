@@ -13,7 +13,7 @@ export default async function PeekPreviouslyFundedProjectPage({ params }: Readon
   const { id } = await params;
   return (
     <Suspense fallback={<SidePeekSkeleton title="Loading project" />}>
-      <FundPeek id={id} />
+      <FundPeek id={id} closeHref="/fund/previously-funded" />
     </Suspense>
   );
 }
