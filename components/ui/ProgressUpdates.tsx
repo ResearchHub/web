@@ -1,4 +1,5 @@
 import React from 'react';
+import { getTimelineStartDate } from '@/components/Fund/lib/FundUtils';
 
 interface Update {
   id: number;
@@ -8,22 +9,26 @@ interface Update {
 
 interface ProgressUpdatesProps {
   updates: Update[];
+  startDate?: string; // When updates can start being posted (e.g., fundraise start date)
   className?: string;
 }
 
 export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
   updates = [],
+  startDate,
   className = '',
 }) => {
-  // Generate exactly 12 months starting from current date
+  // Generate timeline from startDate to current date
   const generateTimeline = () => {
     const timeline = [];
     const now = new Date();
-    const startDate = new Date(now.getFullYear(), now.getMonth(), 1); // Start from current month
-    const current = new Date(startDate);
-    let monthCount = 0;
 
-    while (monthCount < 12) {
+    const start = getTimelineStartDate(startDate, updates);
+    const current = new Date(start);
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // Generate months from start to current month (inclusive)
+    while (current <= currentMonthStart) {
       const monthYear = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
       const monthName = current.toLocaleDateString('en-US', { month: 'short' });
       const year = current.getFullYear();
@@ -45,7 +50,6 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
       });
 
       current.setMonth(current.getMonth() + 1);
-      monthCount++;
     }
 
     return timeline;
@@ -53,26 +57,27 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
 
   const timeline = generateTimeline();
 
+  // Don't render if timeline is empty
+  if (timeline.length === 0) {
+    return null;
+  }
+
   return (
     <div className={className}>
       {/* Monthly Timeline */}
       <div className="flex flex-wrap gap-1 mb-3">
         {timeline.map((month) => {
-          const now = new Date();
-          const monthDate = new Date(month.year, new Date(`${month.monthName} 1, 2000`).getMonth());
-          const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-          const isInPast = monthDate < currentMonthStart;
-          const isPastWithoutUpdates = isInPast && !month.hasUpdate;
+          const monthText = `${month.monthName} ${String(month.year).slice(-2)}`;
 
           return (
             <div
               key={month.monthYear}
               className={`
-                relative p-1.5 rounded-md border text-center transition-all flex-shrink-0 w-11
+                relative px-2 py-1.5 rounded-md border text-center transition-all flex-shrink-0
                 ${
                   month.hasUpdate
                     ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
-                    : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                    : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
                 }
               `}
               title={
@@ -81,35 +86,12 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
                   : `${month.monthName} ${month.year} - No updates`
               }
             >
-              {/* Diagonal lines for past months without updates */}
-              {isPastWithoutUpdates && (
-                <div
-                  className="absolute inset-0 pointer-events-none opacity-30"
-                  style={{
-                    backgroundImage: `repeating-linear-gradient(
-                      -45deg,
-                      transparent 0px,
-                      transparent 3px,
-                      #d1d5db 3px,
-                      #d1d5db 6px,
-                      transparent 6px,
-                      transparent 9px
-                    )`,
-                  }}
-                />
-              )}
-
-              <div className="text-xs font-medium">{month.monthName}</div>
-              <div className="text-xs text-gray-500 leading-none">
-                {month.year.toString().slice(-2)}
+              <div className="whitespace-nowrap">
+                <span className="text-sm font-medium">{monthText}</span>
+                {month.updateCount > 1 && (
+                  <span className="text-xs ml-1 text-green-600">x{month.updateCount}</span>
+                )}
               </div>
-
-              {/* Update Count Badge - Top Right Corner */}
-              {month.hasUpdate && (
-                <div className="absolute -top-1 -right-1 bg-green-600 text-white text-xs rounded-full min-w-[14px] h-3.5 flex items-center justify-center leading-none px-1 z-10">
-                  {month.updateCount}
-                </div>
-              )}
             </div>
           );
         })}
@@ -122,22 +104,7 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
           <span>Has updates</span>
         </div>
         <div className="flex items-center gap-1">
-          <div
-            className="relative w-3 h-3 bg-white border border-gray-200 rounded"
-            style={{
-              backgroundImage: `repeating-linear-gradient(
-                -45deg,
-                transparent 0px,
-                transparent 3px,
-                #d1d5db 3px,
-                #d1d5db 6px,
-                transparent 6px,
-                transparent 9px
-              )`,
-              backgroundBlendMode: 'multiply',
-              opacity: 0.6,
-            }}
-          ></div>
+          <div className="w-3 h-3 bg-white border border-gray-200 rounded"></div>
           <span>No updates</span>
         </div>
       </div>
