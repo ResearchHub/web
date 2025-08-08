@@ -45,7 +45,16 @@ export const SidePeek: React.FC<SidePeekProps> = ({
       <div
         className="absolute inset-0 bg-black/30 backdrop-blur-[1px]"
         onClick={handleBackdropClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleBackdropClick();
+          }
+        }}
+        role="button"
+        tabIndex={0}
         aria-label="Close side peek"
+        aria-pressed="false"
       />
 
       {/* Panel */}
