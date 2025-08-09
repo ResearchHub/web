@@ -133,7 +133,7 @@ export const authOptions: NextAuthOptions = {
           ...session,
           authToken: token.authToken,
           isLoggedIn: true,
-          userId: token.sub,
+          userId: token.sub?.toString(),
         };
       } catch (error) {
         console.error('Session callback failed:', error);
