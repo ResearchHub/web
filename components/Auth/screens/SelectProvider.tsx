@@ -78,7 +78,10 @@ export default function SelectProvider({
   };
 
   const handleGoogleSignIn = async () => {
-    await AnalyticsService.logEvent(LogEvent.AUTH_VIA_GOOGLE_INITIATED);
+    AnalyticsService.logEvent(LogEvent.AUTH_VIA_GOOGLE_INITIATED).catch((error) => {
+      console.error('Analytics failed:', error);
+    });
+
     const searchParams = new URLSearchParams(window.location.search);
     const originalCallbackUrl = searchParams.get('callbackUrl') || '/';
 
