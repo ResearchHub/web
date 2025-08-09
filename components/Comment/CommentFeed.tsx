@@ -21,6 +21,7 @@ import { CommentEmptyState } from './CommentEmptyState';
 import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
 import { comment } from 'postcss';
 import { useShareModalContext } from '@/contexts/ShareContext';
+import AnalyticsService from '@/services/analytics.service';
 
 interface CommentFeedProps {
   documentId: number;
@@ -143,7 +144,7 @@ function CommentFeedContent({
       const toastId = toast.loading('Submitting comment...');
 
       try {
-        const result = await createComment(content, overallRating);
+        const result = await createComment(content, overallRating, true);
 
         if (!result) {
           toast.error('Failed to submit comment. Please try again.', { id: toastId });
@@ -160,6 +161,23 @@ function CommentFeedContent({
 
             result.score = overallRating;
             toast.success('Review submitted successfully!', { id: toastId });
+
+            // Track peer review analytics
+            try {
+              await AnalyticsService.logUserPeerReviewed(
+                contentType,
+                unifiedDocumentId?.toString() || '',
+                result.id.toString(),
+                {
+                  unified_document_id: unifiedDocumentId,
+                  review_score: overallRating,
+                }
+              );
+            } catch (analyticsError) {
+              // Don't fail the review submission if analytics fails
+              console.error('Analytics error:', analyticsError);
+            }
+
             showShareModal({
               url: window.location.href,
               docTitle: work?.title || 'the document',

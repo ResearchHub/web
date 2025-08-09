@@ -14,6 +14,7 @@ import { useSession } from 'next-auth/react';
 import { CommentContent } from '@/components/Comment/lib/types';
 import { CommentActionType, commentReducer, initialCommentState } from './CommentReducer';
 import { JSONContent } from '@tiptap/core';
+import AnalyticsService from '@/services/analytics.service';
 
 export type BountyFilterType = 'ALL' | 'OPEN' | 'CLOSED';
 
@@ -40,7 +41,11 @@ interface CommentContextType {
   refresh: () => Promise<void>;
   loadMore: () => Promise<void>;
   loadMoreReplies: (commentId: number) => Promise<void>;
-  createComment: (content: CommentContent, rating?: number) => Promise<Comment | null>;
+  createComment: (
+    content: CommentContent,
+    rating?: number,
+    skipAnalytics?: boolean
+  ) => Promise<Comment | null>;
   createBounty: (
     content: CommentContent,
     bountyAmount: number,
@@ -415,7 +420,11 @@ export const CommentProvider = ({
 
   // Create a new comment
   const createComment = useCallback(
-    async (content: CommentContent, rating?: number): Promise<Comment | null> => {
+    async (
+      content: CommentContent,
+      rating?: number,
+      skipAnalytics?: boolean
+    ): Promise<Comment | null> => {
       dispatch({ type: CommentActionType.CREATE_COMMENT_START });
       dispatch({ type: CommentActionType.SET_ERROR, payload: null });
 
@@ -449,6 +458,24 @@ export const CommentProvider = ({
 
           // Update the count
           dispatch({ type: CommentActionType.SET_COUNT, payload: state.count + 1 });
+
+          try {
+            if (!skipAnalytics) {
+              await AnalyticsService.logUserCommented(
+                contentType,
+                documentId.toString(),
+                newComment.id.toString(),
+                {
+                  comment_type: commentType,
+                  rating: rating,
+                  mention_count: mentions.length,
+                }
+              );
+            }
+          } catch (analyticsError) {
+            // Don't fail the comment creation if analytics fails
+            console.error('Analytics error:', analyticsError);
+          }
         }
 
         return newComment;

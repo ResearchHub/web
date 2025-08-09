@@ -9,6 +9,7 @@ import { toast } from 'react-hot-toast';
 import { ApiError } from '@/services/types';
 import { TransactionService } from '@/services/transaction.service';
 import { FeedContentType } from '@/types/feed';
+import AnalyticsService from '@/services/analytics.service';
 
 // Define the type for content type mapping result
 type TipContentType = 'researchhubpost' | 'paper' | 'rhcommentmodel';
@@ -73,6 +74,17 @@ export function useTip({ contentId, feedContentType, onTipSuccess, onTipError }:
           amount,
           // clientId is now generated in the service
         });
+
+        // Track tipping analytics
+        try {
+          await AnalyticsService.logUserTipped(contentType, contentId.toString(), amount, 'RSC', {
+            feed_content_type: feedContentType,
+            tip_content_type: contentType,
+          });
+        } catch (analyticsError) {
+          // Don't fail the tip if analytics fails
+          console.error('Analytics error:', analyticsError);
+        }
 
         toast.success(`Successfully tipped ${amount} RSC!`);
 
