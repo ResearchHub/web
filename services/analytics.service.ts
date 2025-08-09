@@ -42,14 +42,22 @@ class AnalyticsService {
     const paddedUserId = userId ? userId.toString().padStart(6, '0') : null;
 
     if (!this.isInitialized.amplitude) {
-      // First time initialization
-      amplitude.init(apiKey, paddedUserId || undefined, {
-        autocapture: true,
-      });
-      this.isInitialized.amplitude = true;
+      try {
+        // First time initialization
+        amplitude.init(apiKey, paddedUserId || undefined, {
+          autocapture: true,
+        });
+        this.isInitialized.amplitude = true;
+      } catch (error) {
+        console.error('Failed to initialize Amplitude:', error);
+      }
     } else if (userId && this.userId !== userId) {
-      // Already initialized but user ID changed - update the user ID
-      amplitude.setUserId(paddedUserId ?? undefined);
+      try {
+        // Already initialized but user ID changed - update the user ID
+        amplitude.setUserId(paddedUserId ?? undefined);
+      } catch (error) {
+        console.error('Failed to set Amplitude user ID:', error);
+      }
     }
 
     this.userId = paddedUserId;
