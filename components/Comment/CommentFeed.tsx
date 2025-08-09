@@ -144,7 +144,7 @@ function CommentFeedContent({
       const toastId = toast.loading('Submitting comment...');
 
       try {
-        const result = await createComment(content, overallRating);
+        const result = await createComment(content, overallRating, true);
 
         if (!result) {
           toast.error('Failed to submit comment. Please try again.', { id: toastId });
