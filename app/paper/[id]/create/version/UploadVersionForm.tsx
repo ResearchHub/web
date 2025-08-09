@@ -32,7 +32,6 @@ export default function UploadVersionForm({
   metadata,
 }: UploadVersionFormProps) {
   const router = useRouter();
-  console.log('previousPaperId', previousPaperId);
   // Form state with initial values from the existing paper
   const [title, setTitle] = useState(initialPaper.title || '');
   const [abstract, setAbstract] = useState(initialPaper.abstract || '');
