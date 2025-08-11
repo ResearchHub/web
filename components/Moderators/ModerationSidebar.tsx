@@ -34,7 +34,7 @@ const navigationItems: NavigationItem[] = [
     name: 'Editors',
     href: '/moderators/editors',
     icon: UserRoundPen,
-    description: 'Manage editors',
+    description: 'Review editors activity',
   },
 ];
 
