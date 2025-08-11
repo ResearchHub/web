@@ -80,60 +80,36 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
   return (
     <div className={className}>
       {/* Monthly Timeline */}
-      <div className="flex flex-wrap gap-1 mb-3">
+      <div className="flex flex-col gap-1 mb-3">
         {timeline.map((month) => {
           const monthText = `${month.monthName} ${String(month.year).slice(-2)}`;
 
           return (
-            <button
-              key={month.monthYear}
-              type="button"
-              onClick={month.hasUpdate ? navigateToUpdatesTab : undefined}
-              disabled={!month.hasUpdate}
-              className={`
-                relative px-2 py-1.5 rounded-md border text-center transition-all flex-shrink-0
-                ${
-                  month.hasUpdate
-                    ? 'bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200 cursor-pointer'
-                    : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50 cursor-default'
-                }
-              `}
-              title={
-                month.hasUpdate
-                  ? `${month.monthName} ${month.year} - ${month.updateCount} update${
-                      month.updateCount > 1 ? 's' : ''
-                    }`
-                  : `${month.monthName} ${month.year} - No updates`
-              }
-              aria-label={
-                month.hasUpdate
-                  ? `View updates for ${month.monthName} ${month.year}`
-                  : `${month.monthName} ${month.year} - No updates`
-              }
-            >
-              <div className="whitespace-nowrap">
-                <span className={`text-sm font-medium ${month.hasUpdate ? 'underline' : ''}`}>
+            <div key={month.monthYear} className="whitespace-nowrap">
+              {month.hasUpdate ? (
+                <button
+                  type="button"
+                  onClick={navigateToUpdatesTab}
+                  className="text-sm font-medium underline text-gray-700 hover:text-gray-900"
+                  aria-label={`View updates for ${month.monthName} ${month.year}`}
+                  title={`${month.monthName} ${month.year} - ${month.updateCount} update${month.updateCount > 1 ? 's' : ''}`}
+                >
+                  {monthText}
+                </button>
+              ) : (
+                <span
+                  className="text-sm font-medium text-gray-500"
+                  title={`${month.monthName} ${month.year} - No updates`}
+                >
                   {monthText}
                 </span>
-                {month.updateCount > 1 && (
-                  <span className="text-xs ml-1 text-gray-500">x{month.updateCount}</span>
-                )}
-              </div>
-            </button>
+              )}
+              {month.updateCount > 1 && (
+                <span className="text-xs ml-2 text-gray-500">x {month.updateCount}</span>
+              )}
+            </div>
           );
         })}
-      </div>
-
-      {/* Compact Legend */}
-      <div className="flex items-center gap-4 text-xs text-gray-600">
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-gray-100 border border-gray-300 rounded"></div>
-          <span>Has updates</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-white border border-gray-200 rounded"></div>
-          <span>No updates</span>
-        </div>
       </div>
     </div>
   );
