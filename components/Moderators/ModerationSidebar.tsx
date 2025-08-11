@@ -31,18 +31,10 @@ const navigationItems: NavigationItem[] = [
     description: 'Manage referral program',
   },
   {
-    name: 'Author claims',
-    href: '#',
-    icon: BookCheck,
-    description: 'Coming soon',
-    disabled: true,
-  },
-  {
     name: 'Editors',
-    href: '#',
+    href: '/moderators/editors',
     icon: UserRoundPen,
-    description: 'Coming soon',
-    disabled: true,
+    description: 'Manage editors',
   },
 ];
 
