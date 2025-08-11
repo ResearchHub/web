@@ -9,6 +9,7 @@ import { NonprofitSection } from './components/NonprofitSection';
 import { FundersSection } from './components/FundersSection';
 import { ApplicantsSection } from './components/ApplicantsSection';
 import { UpdatesSection } from './components/UpdatesSection';
+import { getUpdatesStartDate } from '@/components/Fund/lib/FundUtils';
 
 interface FundingRightSidebarProps {
   work: Work;
@@ -37,7 +38,7 @@ export const FundingRightSidebar = ({
           createdDate: comment.createdDate,
           content: comment.content,
         }))}
-        startDate={work.createdDate}
+        startDate={getUpdatesStartDate(metadata.fundraising, work)}
         className="p-0"
       />
       {/* Applicants for the grant */}

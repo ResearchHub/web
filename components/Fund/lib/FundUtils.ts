@@ -4,35 +4,63 @@ interface Update {
   content?: any;
 }
 
+interface FundraisingMetadata {
+  startDate?: string;
+  endDate?: string;
+}
+
+interface WorkData {
+  createdDate: string;
+}
+
 /**
- * Calculate the update rate as a percentage of months with updates in the last 12 months
- * Only the first update in each month counts towards the rate
- * @param updates - Array of updates with createdDate
- * @returns Percentage (0-100) representing how many months had updates
+ * Determine the start date for when updates can begin posting
+ * @param fundraising - Fundraising metadata object
+ * @param work - Work object with creation date
+ * @returns ISO date string for when updates can start
  */
-export const calculateUpdateRate = (updates: Update[]): number => {
-  if (updates.length === 0) {
-    return 0;
+export const getUpdatesStartDate = (
+  fundraising?: FundraisingMetadata | null,
+  work?: WorkData
+): string => {
+  // Always use fundraise start date if available
+  if (fundraising?.startDate) {
+    return fundraising.startDate;
+  }
+  // Fallback to endDate minus 1 month if we have endDate
+  if (fundraising?.endDate) {
+    const endDate = new Date(fundraising.endDate);
+    endDate.setMonth(endDate.getMonth() - 1);
+    return endDate.toISOString();
+  }
+  // Final fallback to work creation date
+  return work?.createdDate || new Date().toISOString();
+};
+
+/**
+ * Determines the normalized start date for a timeline.
+ * @param startDate - Optional preferred start date string.
+ * @param updates - Array of updates, used as a fallback.
+ * @returns A normalized Date object for the start of the timeline.
+ */
+export const getTimelineStartDate = (startDate?: string, updates: Update[] = []): Date => {
+  const now = new Date();
+
+  if (startDate) {
+    const startDateObj = new Date(startDate);
+    // Normalize to the beginning of the start month to ensure we include the full month
+    return new Date(startDateObj.getFullYear(), startDateObj.getMonth(), 1);
   }
 
-  const now = new Date();
-  const updatesInLast12Months = updates.filter((update) => {
-    const updateDate = new Date(update.createdDate);
-    const monthsDiff =
-      (now.getFullYear() - updateDate.getFullYear()) * 12 +
-      (now.getMonth() - updateDate.getMonth());
-    return monthsDiff <= 12;
-  });
+  if (updates.length > 0) {
+    // Find the earliest update
+    const earliestUpdate = updates.reduce((earliest, update) => {
+      const updateDate = new Date(update.createdDate);
+      return updateDate < earliest ? updateDate : earliest;
+    }, new Date(updates[0].createdDate));
+    return new Date(earliestUpdate.getFullYear(), earliestUpdate.getMonth(), 1);
+  }
 
-  // Group updates by month-year and only count unique months
-  const uniqueMonths = new Set<string>();
-
-  updatesInLast12Months.forEach((update) => {
-    const updateDate = new Date(update.createdDate);
-    const monthYear = `${updateDate.getFullYear()}-${updateDate.getMonth()}`;
-    uniqueMonths.add(monthYear);
-  });
-
-  // Calculate percentage based on unique months with updates out of 12 months
-  return Math.round((uniqueMonths.size / 12) * 100);
+  // Default to 3 months ago
+  return new Date(now.getFullYear(), now.getMonth() - 2, 1);
 };
