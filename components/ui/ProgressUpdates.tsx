@@ -76,20 +76,28 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
                 relative px-2 py-1.5 rounded-md border text-center transition-all flex-shrink-0
                 ${
                   month.hasUpdate
-                    ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
+                    ? 'bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200'
                     : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
                 }
               `}
               title={
                 month.hasUpdate
-                  ? `${month.monthName} ${month.year} - ${month.updateCount} update${month.updateCount > 1 ? 's' : ''}`
+                  ? `${month.monthName} ${month.year} - ${month.updateCount} update${
+                      month.updateCount > 1 ? 's' : ''
+                    }`
                   : `${month.monthName} ${month.year} - No updates`
               }
             >
               <div className="whitespace-nowrap">
-                <span className="text-sm font-medium">{monthText}</span>
+                <span className={`text-sm font-medium ${month.hasUpdate ? 'underline' : ''}`}>
+                  {monthText}
+                </span>
                 {month.updateCount > 1 && (
-                  <span className="text-xs ml-1 text-green-600">x{month.updateCount}</span>
+                  <span
+                    className={`text-xs ml-1 text-gray-500 ${month.hasUpdate ? 'underline' : ''}`}
+                  >
+                    x{month.updateCount}
+                  </span>
                 )}
               </div>
             </div>
@@ -100,7 +108,7 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
       {/* Compact Legend */}
       <div className="flex items-center gap-4 text-xs text-gray-600">
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-green-50 border border-green-200 rounded"></div>
+          <div className="w-3 h-3 bg-gray-100 border border-gray-300 rounded"></div>
           <span>Has updates</span>
         </div>
         <div className="flex items-center gap-1">

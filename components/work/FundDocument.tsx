@@ -14,10 +14,9 @@ import { PostBlockEditor } from './PostBlockEditor';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { ProgressUpdates } from '@/components/ui/ProgressUpdates';
 import { useStorageKey } from '@/utils/storageKeys';
-import { calculateUpdateRate, getUpdatesStartDate } from '@/components/Fund/lib/FundUtils';
+import { getUpdatesStartDate } from '@/components/Fund/lib/FundUtils';
 import { FundingRightSidebar } from './FundingRightSidebar';
 import { useUser } from '@/contexts/UserContext';
-import { UpdateRateBadge } from '@/components/ui/badges/UpdateRateBadge';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -120,14 +119,6 @@ export const FundDocument = ({
                   <p className="mt-1 text-sm text-gray-700">
                     Track updates made by authors about their research progress.
                   </p>
-                </div>
-                <div className="flex items-center gap-2 ml-4">
-                  <UpdateRateBadge
-                    updateRate={calculateUpdateRate(
-                      authorUpdates,
-                      getUpdatesStartDate(metadata.fundraising, work)
-                    )}
-                  />
                 </div>
               </div>
               <ProgressUpdates
