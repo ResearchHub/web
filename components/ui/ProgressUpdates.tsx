@@ -85,14 +85,17 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
           const monthText = `${month.monthName} ${String(month.year).slice(-2)}`;
 
           return (
-            <div
+            <button
               key={month.monthYear}
+              type="button"
+              onClick={month.hasUpdate ? navigateToUpdatesTab : undefined}
+              disabled={!month.hasUpdate}
               className={`
                 relative px-2 py-1.5 rounded-md border text-center transition-all flex-shrink-0
                 ${
                   month.hasUpdate
-                    ? 'bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200'
-                    : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                    ? 'bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200 cursor-pointer'
+                    : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50 cursor-default'
                 }
               `}
               title={
@@ -102,25 +105,21 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
                     }`
                   : `${month.monthName} ${month.year} - No updates`
               }
+              aria-label={
+                month.hasUpdate
+                  ? `View updates for ${month.monthName} ${month.year}`
+                  : `${month.monthName} ${month.year} - No updates`
+              }
             >
               <div className="whitespace-nowrap">
-                {month.hasUpdate ? (
-                  <button
-                    type="button"
-                    onClick={navigateToUpdatesTab}
-                    className="text-sm font-medium underline cursor-pointer"
-                    aria-label={`View updates for ${month.monthName} ${month.year}`}
-                  >
-                    {monthText}
-                  </button>
-                ) : (
-                  <span className="text-sm font-medium">{monthText}</span>
-                )}
+                <span className={`text-sm font-medium ${month.hasUpdate ? 'underline' : ''}`}>
+                  {monthText}
+                </span>
                 {month.updateCount > 1 && (
                   <span className="text-xs ml-1 text-gray-500">x{month.updateCount}</span>
                 )}
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
