@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { getTimelineStartDate } from '@/components/Fund/lib/FundUtils';
 
 interface Update {
@@ -18,6 +21,18 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
   startDate,
   className = '',
 }) => {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const navigateToUpdatesTab = () => {
+    if (!pathname) return;
+    const basePath = pathname.replace(
+      /\/(updates|conversation|applications|reviews|bounties|history)$/i,
+      ''
+    );
+    const target = `${basePath}/updates`;
+    router.push(target);
+  };
   // Generate timeline from startDate to current date
   const generateTimeline = () => {
     const timeline = [];
@@ -89,15 +104,20 @@ export const ProgressUpdates: React.FC<ProgressUpdatesProps> = ({
               }
             >
               <div className="whitespace-nowrap">
-                <span className={`text-sm font-medium ${month.hasUpdate ? 'underline' : ''}`}>
-                  {monthText}
-                </span>
-                {month.updateCount > 1 && (
-                  <span
-                    className={`text-xs ml-1 text-gray-500 ${month.hasUpdate ? 'underline' : ''}`}
+                {month.hasUpdate ? (
+                  <button
+                    type="button"
+                    onClick={navigateToUpdatesTab}
+                    className="text-sm font-medium underline cursor-pointer"
+                    aria-label={`View updates for ${month.monthName} ${month.year}`}
                   >
-                    x{month.updateCount}
-                  </span>
+                    {monthText}
+                  </button>
+                ) : (
+                  <span className="text-sm font-medium">{monthText}</span>
+                )}
+                {month.updateCount > 1 && (
+                  <span className="text-xs ml-1 text-gray-500">x{month.updateCount}</span>
                 )}
               </div>
             </div>
