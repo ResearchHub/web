@@ -103,7 +103,7 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
     i10Index: raw.i10_index || undefined,
     userId: raw.user_id || undefined,
     editorOfHubs: editorOfHubs,
-    isVerified: raw.is_verified_v2 || false,
+    isVerified: raw.is_verified || false,
     isHubEditor: raw.is_hub_editor || false,
   };
 });
