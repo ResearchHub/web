@@ -52,7 +52,7 @@ export default function UploadPDFPage() {
   const [abstract, setAbstract] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [authors, setAuthors] = useState<SelectedAuthor[]>([]);
-  const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
+  const [selectedHubs, setSelectedHubs] = useState<Hub[]>([{ id: 13, name: 'CS' }]);
   const [changeDescription, setChangeDescription] = useState('Initial submission');
   const [fileUploadResult, setFileUploadResult] = useState<UploadFileResult | null>(null);
 
