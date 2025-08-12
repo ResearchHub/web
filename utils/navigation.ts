@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
 import { Work } from '@/types/work';
-// import { ExperimentVariant, isExperimentEnabledServer } from '@/utils/experiment'; // Removed - experiment killed
 
 /**
  * Opens an author profile using the appropriate routing mechanism
@@ -37,15 +36,9 @@ export function handleFundraiseRedirect(work: Work, id: string, slug: string) {
 /**
  * Handles redirection to trending page if user is authorized
  * @param isUserLoggedIn Whether the user is logged in
- * @param homepageExperimentVariant @deprecated No longer used - experiment killed
  * @param searchParams Optional search parameters to preserve in the redirect
  */
-export function handleTrendingRedirect(
-  isUserLoggedIn: boolean,
-  homepageExperimentVariant?: any, // @deprecated - kept for backward compatibility
-  searchParams?: URLSearchParams
-) {
-  // Redirect if user is logged in (experiment logic removed)
+export function handleTrendingRedirect(isUserLoggedIn: boolean, searchParams?: URLSearchParams) {
   if (isUserLoggedIn) {
     let redirectUrl = '/trending';
 

@@ -5,7 +5,6 @@ import { useSession } from 'next-auth/react';
 import SignupPromoModal from '@/components/modals/SignupPromoModal';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { usePathname } from 'next/navigation';
-// import { isExperimentEnabled, Experiment } from '@/utils/experiment'; // Removed - experiment killed
 
 const EXCLUDED_PATHS = [
   '/', // landing page
@@ -23,20 +22,7 @@ export default function SignupModalContainer() {
     const modalDismissed = sessionStorage.getItem('signupModalDismissed') === 'true';
     const isExcludedPath = EXCLUDED_PATHS.some((path) => pathname.startsWith(path));
 
-    // const isHomepageExperimentEnabled = isExperimentEnabled(Experiment.HomepageExperiment); // Removed - experiment killed
-
-    // Define pages that should be excluded when homepage experiment is enabled
-    const feedPages = ['/trending', '/latest', '/following'];
-    // const shouldExcludeFeedPages = isHomepageExperimentEnabled && feedPages.includes(pathname); // Removed - experiment killed
-    const shouldExcludeFeedPages = false; // Experiment killed - always false
-
-    if (
-      status === 'unauthenticated' &&
-      !modalDismissed &&
-      pathname !== '/' &&
-      !shouldExcludeFeedPages &&
-      !isExcludedPath
-    ) {
+    if (status === 'unauthenticated' && !modalDismissed && pathname !== '/' && !isExcludedPath) {
       const timer = setTimeout(() => {
         setShowModal(true);
         AnalyticsService.logEvent(LogEvent.SIGNUP_PROMO_MODAL_OPENED);

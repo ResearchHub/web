@@ -22,7 +22,7 @@ export default async function Home({
     }
   });
 
-  handleTrendingRedirect(!!session?.user, undefined, urlSearchParams);
+  handleTrendingRedirect(!!session?.user, urlSearchParams);
 
   return <LandingPage />;
 }

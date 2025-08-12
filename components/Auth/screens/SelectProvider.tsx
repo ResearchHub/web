@@ -48,19 +48,7 @@ export default function SelectProvider({
 
       if (response.exists) {
         if (response.auth === 'google') {
-          // Prompt user to use Google sign-in
-          const originalCallbackUrl = '/';
-          let finalCallbackUrl = originalCallbackUrl;
-
-          // const experimentVariant = getHomepageExperimentVariant(); // Removed - experiment killed
-          // if (experimentVariant) { // Removed - experiment killed
-          //   // Create URL with experiment parameter
-          //   const experimentUrl = new URL(originalCallbackUrl, window.location.origin);
-          //   experimentUrl.searchParams.set(Experiment.HomepageExperiment, experimentVariant);
-          //   finalCallbackUrl = experimentUrl.toString();
-          // }
-
-          signIn('google', { callbackUrl: finalCallbackUrl });
+          signIn('google', { callbackUrl: '/' });
         } else if (response.is_verified) {
           onContinue();
         } else {
