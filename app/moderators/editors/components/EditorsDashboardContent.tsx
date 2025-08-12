@@ -85,6 +85,9 @@ export default function EditorsDashboardContent() {
     } else if (percentDiff < 0) {
       icon = <TrendingDown className="h-3 w-3" />;
       colorClass = 'text-red-600';
+    } else if (percentDiff === 0) {
+      icon = <Minus className="h-3 w-3" />;
+      colorClass = 'text-gray-500';
     }
 
     return (
@@ -121,6 +124,28 @@ export default function EditorsDashboardContent() {
                 <span className="text-gray-500 truncate text-xs">
                   added {formatDate(row.editorAddedDate)}
                 </span>
+              )}
+              {/* Hub Tags */}
+              {row.authorProfile.editorOfHubs && row.authorProfile.editorOfHubs.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {row.authorProfile.editorOfHubs.map((hub, hubIndex) => (
+                    <span
+                      key={`${hub.id}-${hubIndex}`}
+                      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                    >
+                      {hub.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {/* Active Hub Contributors */}
+              {row.activeHubContributorCount !== null && (
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs text-gray-600">
+                    active hub contributors: {row.activeHubContributorCount}
+                  </span>
+                  {renderContributorChange(row)}
+                </div>
               )}
             </div>
           </div>
@@ -174,6 +199,28 @@ export default function EditorsDashboardContent() {
             <span className="text-gray-500 truncate text-xs">
               added {formatDate(row.editorAddedDate)}
             </span>
+          )}
+          {/* Hub Tags for Mobile */}
+          {row.authorProfile.editorOfHubs && row.authorProfile.editorOfHubs.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {row.authorProfile.editorOfHubs.map((hub, hubIndex) => (
+                <span
+                  key={`${hub.id}-${hubIndex}`}
+                  className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                >
+                  {hub.name}
+                </span>
+              ))}
+            </div>
+          )}
+          {/* Active Hub Contributors for Mobile */}
+          {row.activeHubContributorCount !== null && (
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs text-gray-600">
+                active hub contributors: {row.activeHubContributorCount}
+              </span>
+              {renderContributorChange(row)}
+            </div>
           )}
         </div>
       </div>

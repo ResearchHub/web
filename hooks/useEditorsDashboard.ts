@@ -11,7 +11,6 @@ export interface EditorsDashboardState {
   totalPages: number;
   hasNextPage: boolean;
   hasPrevPage: boolean;
-  activeContributors: ActiveContributorsData | null;
 }
 
 export type UseEditorsDashboardReturn = [
@@ -33,7 +32,6 @@ export function useEditorsDashboard(
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [activeContributors, setActiveContributors] = useState<ActiveContributorsData | null>(null);
 
   const totalPages = Math.ceil(totalCount / pageSize);
   const hasNextPage = currentPage < totalPages;
@@ -55,7 +53,14 @@ export function useEditorsDashboard(
         if (response.editors.length > 0) {
           const userIds = response.editors.map((editor) => editor.id).join(',');
           const contributors = await EditorService.fetchActiveContributors(filters, userIds);
-          setActiveContributors(contributors);
+          setEditors((prevEditors) =>
+            prevEditors.map((editor) => ({
+              ...editor,
+              activeHubContributorCount: contributors.current_active_contributors[editor.id],
+              previousActiveHubContributorCount:
+                contributors.previous_active_contributors[editor.id],
+            }))
+          );
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch editors';
@@ -109,7 +114,6 @@ export function useEditorsDashboard(
     totalPages,
     hasNextPage,
     hasPrevPage,
-    activeContributors,
   };
 
   return [
