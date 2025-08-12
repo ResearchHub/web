@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
 import { useUserModeration } from '@/hooks/useUserModeration';
+import { useUser } from '@/contexts/UserContext';
 
 export function ModerationSkeleton() {
   return (
@@ -45,7 +46,9 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Add moderation hook
-  const [moderationState, { suspendUser, reinstateUser }] = useUserModeration();
+  const [moderationState, { suspendUser, reinstateUser, markProbableSpammer }] =
+    useUserModeration();
+  const { user } = useUser();
 
   // Handler functions for moderation menu items
   const handleSIFTProfile = () => {
@@ -84,6 +87,20 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
       console.error('Failed to reinstate user:', error);
       toast.error('Failed to reinstate user. Please try again.');
       // Don't re-throw as we've handled the error with user feedback
+    }
+  };
+
+  const handleFlagUser = async () => {
+    setIsMenuOpen(false);
+
+    try {
+      await markProbableSpammer(authorId.toString());
+      toast.success('User flagged as probable spammer');
+      // Refresh both author info and moderation details to show updated status
+      await Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
+    } catch (error) {
+      console.error('Failed to flag user:', error);
+      toast.error('Failed to flag user. Please try again.');
     }
   };
 
@@ -148,6 +165,19 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
           <BaseMenuItem onClick={handleSIFTProfile} className="flex items-center gap-2">
             <span>SIFT profile</span>
           </BaseMenuItem>
+          {user?.isModerator && !userDetails.isProbableSpammer && (
+            <BaseMenuItem
+              onClick={handleFlagUser}
+              className="flex items-center gap-2"
+              disabled={moderationState.isLoading}
+            >
+              <span>
+                {moderationState.isLoading && moderationState.lastAction === 'flag'
+                  ? 'Flagging...'
+                  : 'Flag user'}
+              </span>
+            </BaseMenuItem>
+          )}
           <BaseMenuItem
             onClick={handleBanUser}
             className="flex items-center gap-2"
