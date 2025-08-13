@@ -44,7 +44,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(({ customClass, ...res
     <div
       ref={ref}
       {...rest}
-      className={`absolute rounded-xl border-2 border-white bg-black overflow-hidden text-white shadow-2xl cursor-pointer transition-all duration-300 hover:shadow-3xl flex flex-col ${
+      className={`absolute rounded-xl border-2 border-white bg-black overflow-hidden text-white shadow-2xl cursor-default transition-all duration-300 hover:shadow-3xl flex flex-col ${
         isVisible ? 'opacity-100' : 'opacity-0'
       } ${customClass ?? ''} ${rest.className ?? ''}`.trim()}
       style={{
