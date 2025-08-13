@@ -1,8 +1,6 @@
 import { getServerSession } from 'next-auth/next';
 import { handleTrendingRedirect } from '@/utils/navigation';
 import { LandingPage } from '@/components/landing/LandingPage';
-import { headers } from 'next/headers';
-import { ExperimentVariant } from '@/utils/experiment';
 
 export default async function Home({
   searchParams,
@@ -10,9 +8,6 @@ export default async function Home({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const session = await getServerSession();
-
-  const headersList = await headers();
-  const homepageExperimentVariant = headersList.get('x-homepage-experiment');
 
   const resolvedSearchParams = await searchParams;
 
@@ -27,11 +22,7 @@ export default async function Home({
     }
   });
 
-  handleTrendingRedirect(
-    !!session?.user,
-    homepageExperimentVariant as ExperimentVariant | null,
-    urlSearchParams
-  );
+  handleTrendingRedirect(!!session?.user, urlSearchParams);
 
   return <LandingPage />;
 }
