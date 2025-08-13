@@ -31,16 +31,16 @@ const whyRSCFeatures: WhyRSCFeature[] = [
     gradient: 'from-[#3971FF] to-[#4A7FFF]',
   },
   {
-    id: 'control',
-    title: 'Control',
-    subtitle: 'Your platform, your rules',
+    id: 'transparency',
+    title: 'Transparency',
+    subtitle: 'Clear rules and visible economics',
     description:
-      'RSC gives researchers a say in the platform. You vote on standards, reward mechanisms, and reputation metrics.',
+      'RSC powers transparent incentives and reporting. Review rewards, funding disbursements, and author responses are visible to participants.',
     benefits: [
-      'Researcher-led governance',
-      'User-driven platform rules',
-      'Voting rights with RSC',
-      'Decentralized control',
+      'Traceable funding',
+      'Visible reviewer rewards',
+      'Open access (CC0)',
+      'Community accountability',
     ],
     iconName: 'upChart1',
     gradient: 'from-[#3971FF] to-[#4A7FFF]',
@@ -52,7 +52,7 @@ const whyRSCFeatures: WhyRSCFeature[] = [
     description:
       'Spend RSC on bounties for expert help, affordable publishing, research funding, and premium tools that supercharge your work.',
     benefits: [
-      'Expert consultation bounties',
+      'Expert researchers available',
       'Affordable paper publishing',
       'Project funding access',
       'Advanced research tools',
