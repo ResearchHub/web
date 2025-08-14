@@ -121,7 +121,7 @@ export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
       {showBanner && (
         <CTACard
           title="Publish Faster."
-          description=""
+          description="Where fast publishing meets open science."
           bulletPoints={['14 days to peer review', 'Immediate preprints', 'Open access by default']}
           buttonText="Submit Your Manuscript"
           buttonLink="/paper/create"

@@ -36,7 +36,7 @@ export const EarnRightSidebar = () => {
   return (
     <div className="space-y-6">
       <CTACard
-        title="Create a Bounty"
+        title="Create a Bounty."
         description="Incentivize experts to help with your research needs."
         bulletPoints={['Peer reviews', 'Statistical analysis', 'Methods checks']}
         buttonText="Create Bounty"
