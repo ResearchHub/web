@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/Button';
 import { CollapsibleItem, SimpleCollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { Icon } from '@/components/ui/icons/Icon';
-import { CircleCheckBig, Check, ShieldAlert, ExternalLink } from 'lucide-react';
-import Link from 'next/link';
+import { CTACard } from '@/components/ui/CTACard';
+import { Check, ExternalLink } from 'lucide-react';
 
 export const GrantRightSidebar = () => {
   const [openSections, setOpenSections] = useState<string[]>(['why-proposal']); // Default open section
@@ -18,32 +17,17 @@ export const GrantRightSidebar = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-blue-50 rounded-lg shadow-sm border border-blue-100 p-6">
-        <h3 className="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
-          <Icon name="fund2" size={20} color="#2563eb" />
-          Fund Smarter.
-        </h3>
-        <p className="text-gray-900 mb-3 text-sm">
-          Make every research dollar count with open access funding.{' '}
-        </p>
-        <ul className="text-gray-900 mb-4 text-sm space-y-1">
-          <li className="flex items-center gap-2">
-            <Check className="w-4 h-4 flex-shrink-0 text-blue-500" strokeWidth={2.5} />
-            Preregistered research
-          </li>
-          <li className="flex items-center gap-2">
-            <Check className="w-4 h-4 flex-shrink-0 text-blue-500" strokeWidth={2.5} />
-            Open peer review
-          </li>
-          <li className="flex items-center gap-2">
-            <Check className="w-4 h-4 flex-shrink-0 text-blue-500" strokeWidth={2.5} />
-            Regular progress updates
-          </li>
-        </ul>
-        <Button asChild className="w-full">
-          <Link href="/notebook?newGrant=true">Open an RFP</Link>
-        </Button>
-      </div>
+      <CTACard
+        title="Fund Smarter."
+        description="Make every research dollar count with open access funding."
+        bulletPoints={['Preregistered research', 'Open peer review', 'Regular progress updates']}
+        buttonText="Open an RFP"
+        buttonLink="/notebook?newGrant=true"
+        iconName="fund2"
+        iconColor="#2563eb"
+        iconSize={20}
+        variant="blue"
+      />
 
       {/* Resources Section */}
       <div className="mb-6">
@@ -64,7 +48,7 @@ export const GrantRightSidebar = () => {
             </div>
           </a>
           <a
-            href="https://cal.com/arshiamalek/researchhub-funding"
+            href="https://calendar.app.google/riCwbFUFaWavXfAn6"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-between text-sm text-primary-600 hover:text-primary-700 transition-colors"

@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { CollapsibleItem, SimpleCollapsibleSection } from '@/components/ui/CollapsibleSection';
-import { Button } from '@/components/ui/Button';
 import {
   BookCheck,
   Lightbulb,
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Icon } from '@/components/ui/icons/Icon';
 import Link from 'next/link';
+import { CTACard } from '@/components/ui/CTACard';
 
 export const FundRightSidebar = () => {
   const [openSections, setOpenSections] = useState<string[]>(['why-fund']); // Default open section
@@ -29,32 +29,21 @@ export const FundRightSidebar = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-blue-50 rounded-lg shadow-sm border border-blue-100 p-6">
-        <h3 className="text-lg font-semibold mb-4 text-black flex items-center gap-2">
-          <Icon name="fundYourRsc2" size={20} color="#2563eb" />
-          Get Funded.
-        </h3>
-        <p className="text-black mb-3 text-sm">
-          Share a research proposal and get crowdfunded by the community.
-        </p>
-        <ul className="text-black mb-4 text-sm space-y-1">
-          <li className="flex items-center gap-2">
-            <Check className="w-4 h-4 flex-shrink-0 text-blue-500" strokeWidth={2.5} />
-            Early expert feedback
-          </li>
-          <li className="flex items-center gap-2">
-            <Check className="w-4 h-4 flex-shrink-0 text-blue-500" strokeWidth={2.5} />
-            Donors get tax deductions
-          </li>
-          <li className="flex items-center gap-2">
-            <Check className="w-4 h-4 flex-shrink-0 text-blue-500" strokeWidth={2.5} />
-            Fully discretionary funds
-          </li>
-        </ul>
-        <Button asChild className="w-full">
-          <Link href="/notebook?newFunding=true">Request funding</Link>
-        </Button>
-      </div>
+      <CTACard
+        title="Get Funded."
+        description="Share a research proposal and get crowdfunded by the community."
+        bulletPoints={[
+          'Early expert feedback',
+          'Donors get tax deductions',
+          'Fully discretionary funds',
+        ]}
+        buttonText="Request funding"
+        buttonLink="/notebook?newFunding=true"
+        iconName="fundYourRsc2"
+        iconColor="#2563eb"
+        iconSize={20}
+        variant="blue"
+      />
 
       {/* Resources */}
       <div className="mb-6">

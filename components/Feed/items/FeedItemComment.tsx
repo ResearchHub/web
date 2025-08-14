@@ -111,7 +111,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
     entry.tips &&
     entry.tips.some((tip) => {
       const tipUserId = tip.user?.id;
-      const expectedUserId = 379; // ResearchHub Foundation user ID
+      const expectedUserId = 39602; // ResearchHub Foundation user ID
       return tipUserId === expectedUserId;
     });
 

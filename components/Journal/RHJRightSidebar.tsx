@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TopicAndJournalBadge } from '../ui/TopicAndJournalBadge';
 import { Button } from '../ui/Button';
-import { Check } from 'lucide-react';
 import { Feather, Users, ArrowUpRightSquare, Clock, FileText, Unlock } from 'lucide-react';
 import { editors, HUBS } from './lib/journalConstants';
 import { getHubSlug } from './lib/hubUtils';
@@ -12,6 +11,7 @@ import { EditorCard } from './about/EditorCard';
 import { CollapsibleItem } from '@/components/ui/CollapsibleSection';
 import { Icon } from '../ui/icons/Icon';
 import { RHJBanner } from './RHJBanner';
+import { CTACard } from '@/components/ui/CTACard';
 
 interface RHJRightSidebarProps {
   showBanner?: boolean;
@@ -119,29 +119,17 @@ export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
     <div className="space-y-6">
       {/* Submit Button and Key Features Banner */}
       {showBanner && (
-        <div className="bg-blue-50 rounded-lg shadow-sm border border-blue-100 p-6">
-          <h3 className="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
-            <Icon name="rhJournal2" size={20} color="#2563eb" />
-            Publish Faster.
-          </h3>
-          <ul className="text-gray-900 mb-4 text-sm space-y-2">
-            <li className="flex items-center gap-2">
-              <Clock className="w-4 h-4 flex-shrink-0 text-blue-500" />
-              14 days to peer review
-            </li>
-            <li className="flex items-center gap-2">
-              <FileText className="w-4 h-4 flex-shrink-0 text-blue-500" />
-              Immediate preprints
-            </li>
-            <li className="flex items-center gap-2">
-              <Unlock className="w-4 h-4 flex-shrink-0 text-blue-500" />
-              Open access by default
-            </li>
-          </ul>
-          <Button className="w-full" onClick={() => router.push('/paper/create')}>
-            Submit Your Manuscript
-          </Button>
-        </div>
+        <CTACard
+          title="Publish Faster."
+          description=""
+          bulletPoints={['14 days to peer review', 'Immediate preprints', 'Open access by default']}
+          buttonText="Submit Your Manuscript"
+          buttonLink="/paper/create"
+          iconName="rhJournal2"
+          iconColor="#2563eb"
+          iconSize={20}
+          variant="blue"
+        />
       )}
 
       {/* --- Editorial Board Section --- */}
