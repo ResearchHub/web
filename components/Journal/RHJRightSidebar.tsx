@@ -116,15 +116,32 @@ export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
   };
 
   return (
-    <aside className="w-full max-w-xs space-y-6 p-4">
+    <div className="space-y-6">
       {/* Submit Button and Key Features Banner */}
       {showBanner && (
-        <RHJBanner
-          features={keyFeatures}
-          variant="default"
-          title="Publish Faster."
-          buttonText="Submit Your Manuscript"
-        />
+        <div className="bg-blue-50 rounded-lg shadow-sm border border-blue-100 p-6">
+          <h3 className="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
+            <Icon name="rhJournal2" size={20} color="#2563eb" />
+            Publish Faster.
+          </h3>
+          <ul className="text-gray-900 mb-4 text-sm space-y-2">
+            <li className="flex items-center gap-2">
+              <Clock className="w-4 h-4 flex-shrink-0 text-blue-500" />
+              14 days to peer review
+            </li>
+            <li className="flex items-center gap-2">
+              <FileText className="w-4 h-4 flex-shrink-0 text-blue-500" />
+              Immediate preprints
+            </li>
+            <li className="flex items-center gap-2">
+              <Unlock className="w-4 h-4 flex-shrink-0 text-blue-500" />
+              Open access by default
+            </li>
+          </ul>
+          <Button className="w-full" onClick={() => router.push('/paper/create')}>
+            Submit Your Manuscript
+          </Button>
+        </div>
       )}
 
       {/* --- Editorial Board Section --- */}
@@ -163,28 +180,31 @@ export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
         )}
       </div>
 
-      {/* Quick Links */}
+      {/* Resources */}
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-gray-800">Quick Links</h3>
-        <ul className="space-y-2">
+        <h3 className="text-lg font-semibold text-gray-800">Resources</h3>
+        <div className="space-y-3">
           {quickLinks.map((link, index) => {
             const IconComponent = link.icon;
             return (
-              <li key={index}>
-                <a
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 text-sm text-blue-600 hover:underline"
-                >
-                  <IconComponent className="w-4 h-4" />
+              <a
+                key={index}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between text-sm text-primary-600 hover:text-primary-700 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <IconComponent size={16} className="text-primary-600" />
                   <span>{link.text}</span>
-                  <ArrowUpRightSquare className="w-3 h-3 text-gray-400 ml-1" />
-                </a>
-              </li>
+                </div>
+                <div className="ml-4">
+                  <ArrowUpRightSquare size={14} className="text-gray-400" />
+                </div>
+              </a>
             );
           })}
-        </ul>
+        </div>
       </div>
 
       {/* FAQ Section */}
@@ -203,6 +223,6 @@ export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
           ))}
         </div>
       </div>
-    </aside>
+    </div>
   );
 }

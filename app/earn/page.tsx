@@ -118,7 +118,7 @@ export default function EarnPage() {
   }, [event]);
 
   const renderFilters = () => (
-    <div className="mt-4 space-y-3">
+    <div className="mt-5 space-y-3">
       {/* Top filter bar */}
       <div className="flex items-center gap-0 sm:gap-2 flex-wrap justify-between">
         <div className="w-1/2 sm:!w-[220px] flex-1 sm:!flex-none pr-1 sm:!pr-0">

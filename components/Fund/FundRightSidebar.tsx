@@ -3,7 +3,19 @@
 import React, { useState } from 'react';
 import { CollapsibleItem, SimpleCollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { Button } from '@/components/ui/Button';
-import { BookCheck, Lightbulb, Zap, Banknote, Target, Share2 } from 'lucide-react';
+import {
+  BookCheck,
+  Lightbulb,
+  Zap,
+  Banknote,
+  Target,
+  Share2,
+  Feather,
+  ArrowUpRightSquare,
+  Check,
+  ExternalLink,
+} from 'lucide-react';
+import { Icon } from '@/components/ui/icons/Icon';
 import Link from 'next/link';
 
 export const FundRightSidebar = () => {
@@ -16,90 +28,57 @@ export const FundRightSidebar = () => {
   };
 
   return (
-    <div className="space-y-6 sticky top-[64px] h-[calc(100vh-64px)] w-80 bg-white/95 backdrop-blur-md border-gray-100 overscroll-contain">
-      <div className="h-full overflow-y-auto pb-16 px-6 pt-6 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-        <div className="bg-primary-50 rounded-lg shadow-sm border border-primary-100 p-5 mb-6">
-          <h3 className="text-lg font-semibold mb-1 text-primary-800 flex items-center gap-2">
-            {/* Icon name="fundYourRsc2" size={20} color="currentColor" /> */}
-            Get Funded.
-          </h3>
-          <p className="text-primary-700 mb-3 text-sm">
-            Share a research proposal and get crowdfunded by the community.
-          </p>
-          <ul className="text-primary-700 mb-4 text-sm space-y-1">
-            <li className="flex items-center gap-2">
-              {/* <Check className="w-4 h-4 flex-shrink-0 text-primary-500" strokeWidth={3} /> */}
-              Early expert feedback
-            </li>
-            <li className="flex items-center gap-2">
-              {/* <Check className="w-4 h-4 flex-shrink-0 text-primary-500" strokeWidth={3} /> */}
-              Donors get tax deductions
-            </li>
-            <li className="flex items-center gap-2">
-              {/* <Check className="w-4 h-4 flex-shrink-0 text-primary-500" strokeWidth={3} /> */}
-              <strong>Fully discretionary funds</strong>
-            </li>
-          </ul>
-          {/* Button to write a proposal */}
-          <Button asChild className="w-full bg-primary-600 hover:bg-primary-700">
-            <Link href="/notebook?newFunding=true">Request funding</Link>
-          </Button>
+    <div className="space-y-6">
+      <div className="bg-blue-50 rounded-lg shadow-sm border border-blue-100 p-6">
+        <h3 className="text-lg font-semibold mb-4 text-black flex items-center gap-2">
+          <Icon name="fundYourRsc2" size={20} color="#2563eb" />
+          Get Funded.
+        </h3>
+        <p className="text-black mb-3 text-sm">
+          Share a research proposal and get crowdfunded by the community.
+        </p>
+        <ul className="text-black mb-4 text-sm space-y-1">
+          <li className="flex items-center gap-2">
+            <Check className="w-4 h-4 flex-shrink-0 text-blue-500" strokeWidth={2.5} />
+            Early expert feedback
+          </li>
+          <li className="flex items-center gap-2">
+            <Check className="w-4 h-4 flex-shrink-0 text-blue-500" strokeWidth={2.5} />
+            Donors get tax deductions
+          </li>
+          <li className="flex items-center gap-2">
+            <Check className="w-4 h-4 flex-shrink-0 text-blue-500" strokeWidth={2.5} />
+            Fully discretionary funds
+          </li>
+        </ul>
+        <Button asChild className="w-full">
+          <Link href="/notebook?newFunding=true">Request funding</Link>
+        </Button>
+      </div>
+
+      {/* Resources */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-3 text-gray-900">Resources</h3>
+        <div className="space-y-3">
+          <a
+            href="https://blog.researchhub.foundation/funding-for-researchers/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between text-sm text-primary-600 hover:text-primary-700 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Feather size={16} className="text-primary-600" />
+              <span>Applying for funding guidelines</span>
+            </div>
+            <div className="ml-4">
+              <ExternalLink size={14} className="text-gray-400" />
+            </div>
+          </a>
         </div>
+      </div>
 
-        {/* Informational Sections */}
-        <SimpleCollapsibleSection title="Crowdfunding for science?">
-          <CollapsibleItem
-            title="Open access by default"
-            icon={<BookCheck className="w-4 h-4" strokeWidth={2.5} />}
-            isOpen={openSections.includes('reproducibility')}
-            onToggle={() => toggleSection('reproducibility')}
-          >
-            Funds are raised for open access proposals, which pre-define methods and analysis plans,
-            proven to increase the reproducibility of downstream research.
-          </CollapsibleItem>
-
-          <CollapsibleItem
-            title="Tax-deductible donations"
-            icon={<Banknote className="w-4 h-4" strokeWidth={2.5} />}
-            isOpen={openSections.includes('tax-benefits')}
-            onToggle={() => toggleSection('tax-benefits')}
-          >
-            For donations of $500+ to projects at qualifying nonprofits, you'll receive a
-            tax-deductible receipt for your RSC contribution from our partner{' '}
-            <Link
-              href="https://endaoment.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary-600 hover:underline"
-            >
-              Endaoment
-            </Link>
-            , a 501(c)(3) organization.
-          </CollapsibleItem>
-
-          <CollapsibleItem
-            title="Incentivized transparency"
-            icon={<Zap className="w-4 h-4" strokeWidth={2.5} />}
-            isOpen={openSections.includes('transparent')}
-            onToggle={() => toggleSection('transparent')}
-          >
-            Researchers are tipped extra discretionary funds to optionally update their work as
-            updates and progress are made.
-          </CollapsibleItem>
-
-          <CollapsibleItem
-            title="Direct & flexible funding"
-            icon={<Target className="w-4 h-4" strokeWidth={2.5} />}
-            isOpen={openSections.includes('low-overhead')}
-            onToggle={() => toggleSection('low-overhead')}
-          >
-            Funds reach university accounts as fully discretionary – free from restrictive grant
-            limitations. ResearchHub often enables 0% indirect university costs by replacing
-            traditional reporting with modular incentives.
-          </CollapsibleItem>
-        </SimpleCollapsibleSection>
-
-        <SimpleCollapsibleSection title="How does it work?">
+      <SimpleCollapsibleSection title="How does it work?">
+        <div className="pl-6">
           <CollapsibleItem
             title="1. Plan your experiment"
             isOpen={openSections.includes('preregister')}
@@ -109,15 +88,7 @@ export const FundRightSidebar = () => {
             details and planned analyses openly before receiving funding.
           </CollapsibleItem>
           <CollapsibleItem
-            title="2. Expert peer review"
-            isOpen={openSections.includes('peer-review')}
-            onToggle={() => toggleSection('peer-review')}
-          >
-            Experts and the community review the proposal, providing feedback to improve rigor and
-            reproducibility, offering insight into the work.
-          </CollapsibleItem>
-          <CollapsibleItem
-            title="3. Link a nonprofit (Recommended)"
+            title="2. Link a nonprofit (Recommended)"
             isOpen={openSections.includes('tax-deduct')}
             onToggle={() => toggleSection('tax-deduct')}
           >
@@ -125,7 +96,15 @@ export const FundRightSidebar = () => {
             tax deductions for donors and improved processing of funds.
           </CollapsibleItem>
           <CollapsibleItem
-            title="4. Contribute funds"
+            title="3. Receive expert review"
+            isOpen={openSections.includes('peer-review')}
+            onToggle={() => toggleSection('peer-review')}
+          >
+            Experts and the community review the proposal, providing feedback to improve rigor and
+            reproducibility, offering insight into the work.
+          </CollapsibleItem>
+          <CollapsibleItem
+            title="4. Receive crowdfunding"
             isOpen={openSections.includes('pledge')}
             onToggle={() => toggleSection('pledge')}
           >
@@ -133,7 +112,7 @@ export const FundRightSidebar = () => {
             to the projects they support via RSC or USD.
           </CollapsibleItem>
           <CollapsibleItem
-            title="5. Fund are disbursed"
+            title="5. Funds are disbursed"
             isOpen={openSections.includes('disburse')}
             onToggle={() => toggleSection('disburse')}
           >
@@ -157,9 +136,8 @@ export const FundRightSidebar = () => {
             Funds arrive in the researcher's discretionary spending account at their institution,
             free from traditional grant restrictions on usage.
           </CollapsibleItem>
-        </SimpleCollapsibleSection>
-      </div>
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none" />
+        </div>
+      </SimpleCollapsibleSection>
     </div>
   );
 };

@@ -66,7 +66,7 @@ export const JournalPage: FC = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-1">
       {header}
 
       <JournalTabs

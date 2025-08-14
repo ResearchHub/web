@@ -7,7 +7,7 @@ import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { ContentType } from '@/types/work';
-import { Pen, Trash2 } from 'lucide-react';
+import { Pen, Trash2, CheckCircle } from 'lucide-react';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 import { Avatar } from '@/components/ui/Avatar';
@@ -104,6 +104,35 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   const relatedWork = entry.relatedWork;
   const commentPageUrl = href;
 
+  // Check if this is a peer review that has received tips from the ResearchHub Foundation
+  const hasFoundationTips =
+    isReview &&
+    entry.tips &&
+    entry.tips.some((tip) => {
+      const tipEmail = tip.user?.email?.trim().toLowerCase();
+      const expectedEmail = 'main@researchhub.foundation'.trim().toLowerCase();
+      const isFoundationTip = tipEmail === expectedEmail;
+
+      // Alternative check: look for foundation-related identifiers in the user data
+      const isFoundationUser =
+        tip.user?.fullName?.toLowerCase().includes('researchhub foundation') ||
+        tip.user?.firstName?.toLowerCase().includes('researchhub') ||
+        tip.user?.lastName?.toLowerCase().includes('foundation');
+
+      return isFoundationTip || isFoundationUser;
+    });
+
+  // Debug logging
+  if (isReview) {
+    console.log('Peer review debug:', {
+      isReview,
+      hasTips: entry.tips && entry.tips.length > 0,
+      tipsCount: entry.tips?.length || 0,
+      tipEmails: entry.tips?.map((tip) => tip.user?.email) || [],
+      hasFoundationTips,
+    });
+  }
+
   const menuItems = [];
   if (showCreatorActions) {
     if (onEdit) {
@@ -150,6 +179,12 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
         {isReview && (
           <div className="flex justify-between items-center mb-3">
             <ContentTypeBadge type="review" />
+            {hasFoundationTips && (
+              <div className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium gap-1.5 py-1 bg-green-50 text-green-700 border border-green-600">
+                <CheckCircle className="text-green-600" size={16} />
+                <span>Awarded</span>
+              </div>
+            )}
           </div>
         )}
 
