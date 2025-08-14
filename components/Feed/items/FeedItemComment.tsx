@@ -109,9 +109,9 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
     isReview &&
     entry.tips &&
     entry.tips.some((tip) => {
-      const tipEmail = tip.user?.email?.trim().toLowerCase();
-      const expectedEmail = 'main+1@researchhub.foundation'.trim().toLowerCase();
-      return tipEmail === expectedEmail;
+      const tipUserId = tip.user?.id;
+      const expectedUserId = 39602; // ResearchHub Foundation user ID
+      return tipUserId === expectedUserId;
     });
 
   // Debug logging
