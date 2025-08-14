@@ -110,16 +110,8 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
     entry.tips &&
     entry.tips.some((tip) => {
       const tipEmail = tip.user?.email?.trim().toLowerCase();
-      const expectedEmail = 'main@researchhub.foundation'.trim().toLowerCase();
-      const isFoundationTip = tipEmail === expectedEmail;
-
-      // Alternative check: look for foundation-related identifiers in the user data
-      const isFoundationUser =
-        tip.user?.fullName?.toLowerCase().includes('researchhub foundation') ||
-        tip.user?.firstName?.toLowerCase().includes('researchhub') ||
-        tip.user?.lastName?.toLowerCase().includes('foundation');
-
-      return isFoundationTip || isFoundationUser;
+      const expectedEmail = 'main+1@researchhub.foundation'.trim().toLowerCase();
+      return tipEmail === expectedEmail;
     });
 
   // Debug logging
