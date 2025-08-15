@@ -100,7 +100,7 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
     hIndex: raw.h_index || undefined,
     i10Index: raw.i10_index || undefined,
     userId: raw.user_id || undefined,
-    isVerified: raw.is_verified_v2 || false,
+    isVerified: raw.is_verified || false,
     isHubEditor: raw.is_hub_editor || false,
     editorOfHubs: (raw.is_hub_editor_of || []).map((topic: any) => transformTopic(topic)),
   };

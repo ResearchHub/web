@@ -14,6 +14,7 @@ import { ChevronDown, RefreshCw } from 'lucide-react';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 
 export default function EditorsDashboardContent() {
   const { mdAndUp } = useScreenSize();
@@ -129,12 +130,9 @@ export default function EditorsDashboardContent() {
               {row.authorProfile.editorOfHubs && row.authorProfile.editorOfHubs.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-1">
                   {row.authorProfile.editorOfHubs.map((hub, hubIndex) => (
-                    <span
-                      key={`${hub.id}-${hubIndex}`}
-                      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                    >
+                    <Badge key={`${hub.id}-${hubIndex}`} variant="primary">
                       {hub.name}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
               )}
@@ -204,12 +202,9 @@ export default function EditorsDashboardContent() {
           {row.authorProfile.editorOfHubs && row.authorProfile.editorOfHubs.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1">
               {row.authorProfile.editorOfHubs.map((hub, hubIndex) => (
-                <span
-                  key={`${hub.id}-${hubIndex}`}
-                  className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                >
+                <Badge key={`${hub.id}-${hubIndex}`} variant="primary">
                   {hub.name}
-                </span>
+                </Badge>
               ))}
             </div>
           )}

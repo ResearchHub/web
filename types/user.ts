@@ -65,7 +65,7 @@ const baseTransformUser = (raw: any): User => {
     firstName: raw.first_name || '',
     lastName: raw.last_name || '',
     fullName: (raw.first_name || '') + (raw.last_name ? ' ' + raw.last_name : '') || 'Unknown User',
-    isVerified: raw.is_verified_v2 || false,
+    isVerified: raw.is_verified || false,
     authorProfile: undefined,
     balance: raw.balance || 0,
     lockedBalance: raw.locked_balance || 0,

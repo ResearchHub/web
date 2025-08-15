@@ -1,8 +1,7 @@
 import Cookies from 'js-cookie';
 
-export enum Experiment {
-  HomepageExperiment = 'homepage_experiment',
-}
+export enum Experiment {}
+// HomepageExperiment = 'homepage_experiment', // Experiment killed. Leaving for further reference usage.
 
 // Experiment variants
 export enum ExperimentVariant {
@@ -14,12 +13,13 @@ export enum ExperimentVariant {
  * Get the homepage experiment from the cookie.
  *
  * @returns The experiment variant or null if not set.
+ * @deprecated Experiment has been killed
  */
-export function getHomepageExperimentVariant(): string | null {
-  if (typeof document === 'undefined') return null;
+// export function getHomepageExperimentVariant(): string | null {
+//   if (typeof document === 'undefined') return null;
 
-  return Cookies.get(Experiment.HomepageExperiment) || null;
-}
+//   return Cookies.get(Experiment.HomepageExperiment) || null;
+// }
 
 /**
  * Experiments for the application.
@@ -28,8 +28,8 @@ export function getHomepageExperimentVariant(): string | null {
  * Centralize all experiment logic here.
  */
 export const Experiments: Record<Experiment, () => boolean> = {
-  [Experiment.HomepageExperiment]: () =>
-    Cookies.get(Experiment.HomepageExperiment) === ExperimentVariant.B,
+  // [Experiment.HomepageExperiment]: () =>
+  //   Cookies.get(Experiment.HomepageExperiment) === ExperimentVariant.B,
 };
 
 /**

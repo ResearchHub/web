@@ -14,7 +14,7 @@ import { SearchModal } from '@/components/Search/SearchModal';
 import UserMenu from '@/components/menus/UserMenu';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { useAuthenticatedAction, useAuthModalContext } from '@/contexts/AuthModalContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Icon } from '@/components/ui/icons';
@@ -24,6 +24,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
+import { colors } from '@/app/styles/colors';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -259,7 +260,7 @@ const useSmartBack = () => {
   return goBack;
 };
 
-export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
+export function TopBar({ onMenuClick }: TopBarProps) {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
@@ -268,6 +269,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const goBack = useSmartBack();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [shortcutText, setShortcutText] = useState('Ctrl+K');
+  const { showAuthModal } = useAuthModalContext();
 
   const pageInfo = getPageInfo(pathname);
 
@@ -307,6 +309,14 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
     } else {
       console.warn('No author profile URL found for user:', user);
     }
+  };
+
+  const handleLogin = () => {
+    showAuthModal();
+  };
+
+  const handleSignUp = () => {
+    showAuthModal();
   };
 
   const renderSearchbarButton = () => {
@@ -415,7 +425,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                 </>
               )}
 
-              {/* Avatar/Login */}
+              {/* Avatar/Login buttons */}
               {user && !isLoading ? (
                 <UserMenu
                   user={user}
@@ -424,17 +434,28 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                   percent={calculatePercent()}
                 />
               ) : (
-                <Button
-                  variant="ghost"
-                  className="w-10 h-10 rounded-full bg-gray-200 p-0"
-                  onClick={() => executeAuthenticatedAction(() => router.push('/'))}
-                >
-                  <User size={24} />
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="md"
+                    onClick={handleLogin}
+                    className="text-gray-700 hover:text-gray-900 whitespace-nowrap"
+                  >
+                    Log in
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="md"
+                    onClick={handleSignUp}
+                    className="bg-rhBlue-500 hover:bg-rhBlue-600 text-white whitespace-nowrap"
+                  >
+                    Sign up
+                  </Button>
+                </div>
               )}
             </div>
 
-            {/* Mobile user controls (original) */}
+            {/* Mobile user controls */}
             <div className="flex tablet:!hidden">
               {user && !isLoading ? (
                 <UserMenu
@@ -445,11 +466,12 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                 />
               ) : (
                 <Button
-                  variant="ghost"
-                  className="w-10 h-10 rounded-full bg-gray-200 p-0"
-                  onClick={() => executeAuthenticatedAction(() => router.push('/'))}
+                  variant="default"
+                  size="md"
+                  onClick={handleSignUp}
+                  className="bg-rhBlue-500 hover:bg-rhBlue-600 text-white whitespace-nowrap"
                 >
-                  <User size={24} />
+                  Sign up
                 </Button>
               )}
             </div>
@@ -461,4 +483,4 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
       <SearchModal isOpen={isSearchModalOpen} onClose={() => setIsSearchModalOpen(false)} />
     </>
   );
-};
+}

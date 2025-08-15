@@ -128,7 +128,7 @@ const parseAuthorProfile = (raw: any): any => {
     firstName: raw.first_name,
     lastName: raw.last_name,
     url,
-    isVerified: raw.is_verified_v2,
+    isVerified: raw.is_verified,
   };
 
   return parsed;
