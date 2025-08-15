@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { EditorService } from '@/services/editor.service';
-import type { EditorFilters, TransformedEditorData, ActiveContributorsData } from '@/types/editor';
+import type {
+  EditorFilters,
+  TransformedEditorData,
+  ActiveContributorsData,
+  EditorType,
+} from '@/types/editor';
 
 // Hook state types
 export interface EditorsDashboardState {
@@ -20,6 +25,12 @@ export type UseEditorsDashboardReturn = [
     goToNextPage: () => Promise<void>;
     goToPrevPage: () => Promise<void>;
     refetch: (filters: EditorFilters) => Promise<void>;
+    createEditor: (params: {
+      editorEmail: string;
+      editorType: EditorType;
+      selectedHubId: number;
+    }) => Promise<void>;
+    deleteEditor: (params: { editorEmail: string; selectedHubId: number }) => Promise<void>;
   },
 ];
 
@@ -101,6 +112,40 @@ export function useEditorsDashboard(
     [fetchEditors]
   );
 
+  const createEditor = useCallback(
+    async (params: { editorEmail: string; editorType: EditorType; selectedHubId: number }) => {
+      try {
+        setError(null);
+        await EditorService.createEditor(params);
+        // Refetch the current page to show the new editor
+        await fetchEditors(currentPage);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to create editor';
+        setError(errorMessage);
+        console.error('Error creating editor:', err);
+        throw err; // Re-throw to allow component to handle
+      }
+    },
+    [fetchEditors, currentPage]
+  );
+
+  const deleteEditor = useCallback(
+    async (params: { editorEmail: string; selectedHubId: number }) => {
+      try {
+        setError(null);
+        await EditorService.deleteEditor(params);
+        // Refetch the current page to reflect the deletion
+        await fetchEditors(currentPage);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to delete editor';
+        setError(errorMessage);
+        console.error('Error deleting editor:', err);
+        throw err; // Re-throw to allow component to handle
+      }
+    },
+    [fetchEditors, currentPage]
+  );
+
   // Initial load
   useEffect(() => {
     fetchEditors(1);
@@ -123,6 +168,8 @@ export function useEditorsDashboard(
       goToNextPage,
       goToPrevPage,
       refetch,
+      createEditor,
+      deleteEditor,
     },
   ];
 }

@@ -2,6 +2,14 @@ import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { Hub } from './hub';
 import { createTransformer } from './transformer';
 
+export type EditorType = 'ASSISTANT_EDITOR' | 'ASSOCIATE_EDITOR' | 'SENIOR_EDITOR';
+
+export const EDITOR_TYPES = {
+  ASSISTANT_EDITOR: 'ASSISTANT_EDITOR' as const,
+  ASSOCIATE_EDITOR: 'ASSOCIATE_EDITOR' as const,
+  SENIOR_EDITOR: 'SENIOR_EDITOR' as const,
+} as const;
+
 // Editor Dashboard Types
 export interface EditorFilters {
   selectedHub: Hub | null;

@@ -26,6 +26,8 @@ interface DropdownProps {
   anchor?: AnchorProps;
   label?: string;
   required?: boolean;
+  error?: string;
+  helperText?: string;
 }
 
 export const Dropdown: FC<DropdownProps> = ({
@@ -38,6 +40,8 @@ export const Dropdown: FC<DropdownProps> = ({
   anchor = 'bottom start',
   label,
   required = false,
+  error,
+  helperText,
 }) => {
   const handleOpenChange = (open: boolean) => {
     onOpenChange?.(open);
@@ -46,7 +50,7 @@ export const Dropdown: FC<DropdownProps> = ({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-1">
           {label} {required && <span className="text-gray-700">*</span>}
         </label>
       )}
@@ -57,7 +61,15 @@ export const Dropdown: FC<DropdownProps> = ({
           return (
             <>
               <MenuButton as="div" disabled={disabled} className="w-full">
-                {trigger}
+                <div
+                  className={cn(
+                    'transition-all',
+                    error &&
+                      'border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20'
+                  )}
+                >
+                  {trigger}
+                </div>
               </MenuButton>
 
               <Transition
@@ -85,6 +97,8 @@ export const Dropdown: FC<DropdownProps> = ({
           );
         }}
       </Menu>
+      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      {helperText && <p className="mt-1 text-xs text-gray-500">{helperText}</p>}
     </div>
   );
 };

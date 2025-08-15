@@ -10,15 +10,17 @@ import { useEditorsDashboard } from '@/hooks/useEditorsDashboard';
 import { EditorTableSkeleton } from '@/components/skeletons/EditorTableSkeleton';
 import { EditorMobileSkeleton } from '@/components/skeletons/EditorMobileSkeleton';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
-import { ChevronDown, RefreshCw } from 'lucide-react';
+import { ChevronDown, Edit } from 'lucide-react';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { UpdateEditorModal } from './UpdateEditorModal';
 
 export default function EditorsDashboardContent() {
   const { mdAndUp } = useScreenSize();
   const [pageSize, setPageSize] = useState(10);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
   // Memoize filters to prevent unnecessary re-renders
   const defaultFilters = useMemo(
@@ -33,15 +35,21 @@ export default function EditorsDashboardContent() {
     []
   );
 
-  const [state, { goToPage, goToNextPage, goToPrevPage, refetch }] = useEditorsDashboard(
-    defaultFilters,
-    pageSize
-  );
+  const [state, { goToPage, goToNextPage, goToPrevPage, refetch, createEditor, deleteEditor }] =
+    useEditorsDashboard(defaultFilters, pageSize);
 
   const pageSizeOptions = [5, 10, 20];
 
   const handlePageSizeChange = (newPageSize: number) => {
     setPageSize(newPageSize);
+  };
+
+  const handleOpenUpdateModal = () => {
+    setIsUpdateModalOpen(true);
+  };
+
+  const handleCloseUpdateModal = () => {
+    setIsUpdateModalOpen(false);
   };
 
   const columns: SortableColumn[] = [
@@ -261,136 +269,149 @@ export default function EditorsDashboardContent() {
   }
 
   return (
-    <div className="h-full flex flex-col p-4">
-      {/* Header */}
-      <div className={`bg-white border-b border-gray-200 z-10`}>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Editors</h1>
-            <p className="text-sm text-gray-600 mt-1">
-              Track editors and their contribution activity.
-            </p>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Button
-              variant="outlined"
-              size="sm"
-              onClick={() => refetch(defaultFilters)}
-              disabled={state.isLoading}
-              className="flex items-center space-x-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${state.isLoading ? 'animate-spin' : ''}`} />
-              <span className="hidden tablet:!block">Refresh</span>
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main content area with table */}
-      <div className={`flex-1 overflow-auto ${mdAndUp ? 'py-4' : 'py-6'}`}>
-        {/* Page Size Selector */}
-        <div className="pb-4">
-          <div className="flex items-center justify-end">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-700">Show</span>
-              <Dropdown
-                trigger={
-                  <button className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <span>{pageSize}</span>
-                    <ChevronDown className="w-4 h-4 text-gray-500" />
-                  </button>
-                }
-                className="w-20"
+    <>
+      <div className="h-full flex flex-col p-4">
+        {/* Header */}
+        <div className={`bg-white border-b border-gray-200 z-10`}>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900">Editors</h1>
+              <p className="text-sm text-gray-600 mt-1">
+                Track editors and their contribution activity.
+              </p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Button
+                variant="outlined"
+                size="sm"
+                onClick={handleOpenUpdateModal}
+                disabled={state.isLoading}
+                className="flex items-center space-x-2"
               >
-                {pageSizeOptions.map((size) => (
-                  <DropdownItem
-                    key={size}
-                    onClick={() => handlePageSizeChange(size)}
-                    className={pageSize === size ? 'bg-blue-50 text-blue-700' : ''}
-                  >
-                    {size}
-                  </DropdownItem>
-                ))}
-              </Dropdown>
+                <Edit className="h-4 w-4" />
+                <span className="hidden tablet:!block">Update</span>
+              </Button>
             </div>
           </div>
         </div>
 
-        {/* Desktop Table View */}
-        {mdAndUp && (
-          <div className="w-full max-w-full mx-auto">
-            {state.isLoading ? (
-              <EditorTableSkeleton columns={columns} rowCount={pageSize} />
-            ) : (
-              <TableContainer
-                columns={columns}
-                data={state.editors.map((row) => ({
-                  ...row,
-                  user: renderCellContent(row, { key: 'user', label: 'User' }),
-                  lastSubmission: renderCellContent(row, {
-                    key: 'lastSubmission',
-                    label: 'Last Submission',
-                  }),
-                  lastComment: renderCellContent(row, {
-                    key: 'lastComment',
-                    label: 'Last Comment',
-                  }),
-                  submissions: renderCellContent(row, { key: 'submissions', label: 'Submissions' }),
-                  supports: renderCellContent(row, { key: 'supports', label: 'Supports' }),
-                  comments: renderCellContent(row, { key: 'comments', label: 'Comments' }),
-                }))}
-                className="w-full"
-              />
-            )}
-          </div>
-        )}
-
-        {/* Mobile Card View */}
-        {!mdAndUp && (
-          <div>
-            {state.isLoading ? (
-              <EditorMobileSkeleton rowCount={pageSize} />
-            ) : (
-              <div className="space-y-4">
-                {mobileData.map((row, index) => (
-                  <MobileTableCard
-                    key={state.editors[index]?.id || index}
-                    data={row}
-                    columns={mobileColumns}
-                    onClick={() => console.log('Card clicked:', state.editors[index])}
-                    className="shadow-sm"
-                  />
-                ))}
+        {/* Main content area with table */}
+        <div className={`flex-1 overflow-auto ${mdAndUp ? 'py-4' : 'py-6'}`}>
+          {/* Page Size Selector */}
+          <div className="pb-4">
+            <div className="flex items-center justify-end">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-700">Show</span>
+                <Dropdown
+                  trigger={
+                    <button className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                      <span>{pageSize}</span>
+                      <ChevronDown className="w-4 h-4 text-gray-500" />
+                    </button>
+                  }
+                  className="w-20"
+                >
+                  {pageSizeOptions.map((size) => (
+                    <DropdownItem
+                      key={size}
+                      onClick={() => handlePageSizeChange(size)}
+                      className={pageSize === size ? 'bg-blue-50 text-blue-700' : ''}
+                    >
+                      {size}
+                    </DropdownItem>
+                  ))}
+                </Dropdown>
               </div>
-            )}
+            </div>
           </div>
-        )}
 
-        {/* Pagination */}
-        {state.totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-            <div className="text-sm text-gray-700">
-              Page {state.currentPage} of {state.totalPages}
+          {/* Desktop Table View */}
+          {mdAndUp && (
+            <div className="w-full max-w-full mx-auto">
+              {state.isLoading ? (
+                <EditorTableSkeleton columns={columns} rowCount={pageSize} />
+              ) : (
+                <TableContainer
+                  columns={columns}
+                  data={state.editors.map((row) => ({
+                    ...row,
+                    user: renderCellContent(row, { key: 'user', label: 'User' }),
+                    lastSubmission: renderCellContent(row, {
+                      key: 'lastSubmission',
+                      label: 'Last Submission',
+                    }),
+                    lastComment: renderCellContent(row, {
+                      key: 'lastComment',
+                      label: 'Last Comment',
+                    }),
+                    submissions: renderCellContent(row, {
+                      key: 'submissions',
+                      label: 'Submissions',
+                    }),
+                    supports: renderCellContent(row, { key: 'supports', label: 'Supports' }),
+                    comments: renderCellContent(row, { key: 'comments', label: 'Comments' }),
+                  }))}
+                  className="w-full"
+                />
+              )}
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={goToPrevPage}
-                disabled={!state.hasPrevPage || state.isLoading}
-                className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-              >
-                Previous
-              </button>
-              <button
-                onClick={goToNextPage}
-                disabled={!state.hasNextPage || state.isLoading}
-                className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-              >
-                Next
-              </button>
+          )}
+
+          {/* Mobile Card View */}
+          {!mdAndUp && (
+            <div>
+              {state.isLoading ? (
+                <EditorMobileSkeleton rowCount={pageSize} />
+              ) : (
+                <div className="space-y-4">
+                  {mobileData.map((row, index) => (
+                    <MobileTableCard
+                      key={state.editors[index]?.id || index}
+                      data={row}
+                      columns={mobileColumns}
+                      onClick={() => console.log('Card clicked:', state.editors[index])}
+                      className="shadow-sm"
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Pagination */}
+          {state.totalPages > 1 && (
+            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+              <div className="text-sm text-gray-700">
+                Page {state.currentPage} of {state.totalPages}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={goToPrevPage}
+                  disabled={!state.hasPrevPage || state.isLoading}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={goToNextPage}
+                  disabled={!state.hasNextPage || state.isLoading}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* Update Editor Modal */}
+      <UpdateEditorModal
+        isOpen={isUpdateModalOpen}
+        onClose={handleCloseUpdateModal}
+        createEditor={createEditor}
+        deleteEditor={deleteEditor}
+      />
+    </>
   );
 }

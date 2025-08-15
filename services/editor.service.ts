@@ -3,6 +3,7 @@ import type {
   EditorFilters,
   ActiveContributorsData,
   TransformedEditorsResult,
+  EditorType,
 } from '@/types/editor';
 import { transformEditorsPaginated } from '@/types/editor';
 import { Hub } from '@/types/hub';
@@ -135,6 +136,62 @@ export class EditorService {
     } catch (error) {
       console.error('Error fetching hub suggestions:', error);
       throw new EditorServiceError('Failed to fetch hub suggestions. Please try again.', error);
+    }
+  }
+
+  /**
+   * Creates a new editor for a hub
+   * @param params - Parameters for creating an editor
+   * @returns Promise with the created editor data
+   * @throws {EditorServiceError} When creation fails
+   * @example
+   * const editor = await EditorService.createEditor({
+   *   editorEmail: 'editor@example.com',
+   *   editorType: EDITOR_TYPES.ASSISTANT_EDITOR,
+   *   selectedHubId: 123
+   * });
+   */
+  static async createEditor(params: {
+    editorEmail: string;
+    editorType: EditorType;
+    selectedHubId: number;
+  }): Promise<any> {
+    try {
+      const response = await ApiClient.post<any>(`${this.HUB_PATH}/create_new_editor/`, {
+        editor_email: params.editorEmail,
+        editor_type: params.editorType,
+        selected_hub_id: params.selectedHubId,
+      });
+
+      return response;
+    } catch (error) {
+      console.error('Error creating editor:', error);
+      throw new EditorServiceError('Failed to create editor. Please try again.', error);
+    }
+  }
+
+  /**
+   * Deletes an editor from a hub
+   * @param params - Parameters for deleting an editor
+   * @returns Promise with the deletion result
+   * @throws {EditorServiceError} When deletion fails
+   * @example
+   * await EditorService.deleteEditor({
+   *   editorEmail: 'editor@example.com',
+   *   selectedHubId: 123
+   * });
+   */
+  static async deleteEditor(params: { editorEmail: string; selectedHubId: number }): Promise<any> {
+    try {
+      const response = await ApiClient.post<any>(`${this.HUB_PATH}/delete_editor/`, {
+        editor_email: params.editorEmail,
+        selected_hub_id: params.selectedHubId,
+      });
+
+      return response;
+    } catch (error) {
+      console.error('Error deleting editor:', error);
+      throw new EditorServiceError('Failed to delete editor. Please try again.', error);
     }
   }
 }
