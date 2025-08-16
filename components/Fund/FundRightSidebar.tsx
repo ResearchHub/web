@@ -71,7 +71,7 @@ export const FundRightSidebar = () => {
           >
             <div className="flex items-center gap-2">
               <Feather size={16} className="text-primary-600" />
-              <span>Peer Review Guidelines (funding)</span>
+              <span>Peer Review Guidelines (Funding)</span>
             </div>
             <div className="ml-4">
               <ExternalLink size={14} className="text-gray-400" />
