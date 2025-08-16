@@ -248,7 +248,7 @@ export const FeedContent: FC<FeedContentProps> = ({
 
         {filters && <div className="py-3">{filters}</div>}
 
-        <div className="mt-8">
+        <div className="mt-4">
           {/* Render existing entries */}
           {entries.length > 0 &&
             entries.map((entry, index) => (

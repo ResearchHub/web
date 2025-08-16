@@ -35,7 +35,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const getTitle = (tab: MarketplaceTab): string => {
     switch (tab) {
       case 'grants':
-        return 'Request for proposals';
+        return 'Request for Proposals';
       case 'needs-funding':
         return 'Proposals';
       case 'previously-funded':

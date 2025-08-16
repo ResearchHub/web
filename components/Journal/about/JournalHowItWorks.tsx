@@ -42,11 +42,20 @@ const howItWorksItems = [
           <li>Complete methodology and results required</li>
           <li>No length restrictions, but clarity and conciseness valued</li>
         </ul>
-        <p className="font-medium mt-3 mb-1">Pre-Registrations</p>
+        <p className="font-medium mt-3 mb-1">Registered Reports</p>
         <ul className="list-disc pl-6 space-y-1">
-          <li>Publicly document study design before data collection or analysis</li>
-          <li>Detailed methodology and analysis plan required</li>
-          <li>Option to publish and link subsequent data and results</li>
+          <li>
+            A publication format that emphasizes rigorous study design independent of the novelty of
+            results
+          </li>
+          <li>
+            Stage 1 report: Study protocols detailing methodology and design <em>before</em> data
+            collection
+          </li>
+          <li>
+            Stage 2 report: Completed results and interpretations published{' '}
+            <em>regardless outcome</em>
+          </li>
         </ul>
         <p className="font-medium mt-3 mb-1">Short Communications</p>
         <ul className="list-disc pl-6 space-y-1">
@@ -321,7 +330,7 @@ const howItWorksItems = [
           <li>ResearchCoin rewards eligibility</li>
         </ul>
 
-        <p className="font-medium mt-3 mb-1">Peer-Reviewed Publication - $1,000</p>
+        <p className="font-medium mt-3 mb-1">Peer-Reviewed Publication - $300</p>
         <ul className="list-disc pl-6 space-y-1">
           <li>All preprint benefits included</li>
           <li>2+ expert open peer reviews within 14 days</li>
