@@ -17,7 +17,7 @@ import {
 import { CollapsibleItem, SimpleCollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { useRouter } from 'next/navigation';
 import { Icon } from '@/components/ui/icons/Icon';
-import { CTACard } from '@/components/ui/CTACard';
+import { RightSidebarBanner } from '@/components/ui/RightSidebarBanner';
 
 export const EarnRightSidebar = () => {
   const router = useRouter();
@@ -35,7 +35,7 @@ export const EarnRightSidebar = () => {
 
   return (
     <div className="space-y-6">
-      <CTACard
+      <RightSidebarBanner
         title="Create a Bounty."
         description="Incentivize experts to help with your research needs."
         bulletPoints={['Peer reviews', 'Statistical analysis', 'Methods checks']}

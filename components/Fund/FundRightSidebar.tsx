@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { Icon } from '@/components/ui/icons/Icon';
 import Link from 'next/link';
-import { CTACard } from '@/components/ui/CTACard';
+import { RightSidebarBanner } from '@/components/ui/RightSidebarBanner';
 
 export const FundRightSidebar = () => {
   const [openSections, setOpenSections] = useState<string[]>(['why-fund']); // Default open section
@@ -29,7 +29,7 @@ export const FundRightSidebar = () => {
 
   return (
     <div className="space-y-6">
-      <CTACard
+      <RightSidebarBanner
         title="Get Funded."
         description="Share a research proposal and get crowdfunded by the community."
         bulletPoints={[
@@ -56,8 +56,22 @@ export const FundRightSidebar = () => {
             className="flex items-center justify-between text-sm text-primary-600 hover:text-primary-700 transition-colors"
           >
             <div className="flex items-center gap-2">
+              <BookCheck size={16} className="text-primary-600" />
+              <span>How to Apply for Funding</span>
+            </div>
+            <div className="ml-4">
+              <ExternalLink size={14} className="text-gray-400" />
+            </div>
+          </a>
+          <a
+            href="https://drive.google.com/file/d/1wQVjVfy4x6VadIExEysx4VyLJN9dkD53/view"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between text-sm text-primary-600 hover:text-primary-700 transition-colors"
+          >
+            <div className="flex items-center gap-2">
               <Feather size={16} className="text-primary-600" />
-              <span>Applying for funding guidelines</span>
+              <span>Peer Review Guidelines (funding)</span>
             </div>
             <div className="ml-4">
               <ExternalLink size={14} className="text-gray-400" />

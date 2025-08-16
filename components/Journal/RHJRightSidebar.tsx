@@ -11,7 +11,7 @@ import { EditorCard } from './about/EditorCard';
 import { CollapsibleItem } from '@/components/ui/CollapsibleSection';
 import { Icon } from '../ui/icons/Icon';
 import { RHJBanner } from './RHJBanner';
-import { CTACard } from '@/components/ui/CTACard';
+import { RightSidebarBanner } from '@/components/ui/RightSidebarBanner';
 
 interface RHJRightSidebarProps {
   showBanner?: boolean;
@@ -119,7 +119,7 @@ export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
     <div className="space-y-6">
       {/* Submit Button and Key Features Banner */}
       {showBanner && (
-        <CTACard
+        <RightSidebarBanner
           title="Publish Faster."
           description="Where fast publishing meets open science."
           bulletPoints={['14 days to peer review', 'Immediate preprints', 'Open access by default']}

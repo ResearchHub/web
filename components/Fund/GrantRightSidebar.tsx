@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { CollapsibleItem, SimpleCollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { Icon } from '@/components/ui/icons/Icon';
-import { CTACard } from '@/components/ui/CTACard';
+import { RightSidebarBanner } from '@/components/ui/RightSidebarBanner';
 import { Check, ExternalLink } from 'lucide-react';
 
 export const GrantRightSidebar = () => {
@@ -17,7 +17,7 @@ export const GrantRightSidebar = () => {
 
   return (
     <div className="space-y-6">
-      <CTACard
+      <RightSidebarBanner
         title="Fund Smarter."
         description="Make every research dollar count with open access funding."
         bulletPoints={['Preregistered research', 'Open peer review', 'Regular progress updates']}
