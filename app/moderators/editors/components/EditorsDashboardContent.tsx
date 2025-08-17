@@ -21,7 +21,11 @@ import { DeleteEditorModal } from './DeleteEditorModal';
 import { toast } from 'react-hot-toast';
 import { EditorMobileCard } from './EditorMobileCard';
 
-export default function EditorsDashboardContent() {
+interface EditorsDashboardContentProps {
+  hasWriteAccess: boolean;
+}
+
+export default function EditorsDashboardContent({ hasWriteAccess }: EditorsDashboardContentProps) {
   const { mdAndUp } = useScreenSize();
   const [pageSize, setPageSize] = useState(20);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -206,9 +210,13 @@ export default function EditorsDashboardContent() {
           <div className="flex items-center justify-center">
             <Button
               variant="outlined"
+              disabled={!hasWriteAccess}
               size="sm"
               onClick={(e) => {
-                e.stopPropagation(); // Prevent row click
+                if (!hasWriteAccess) {
+                  return;
+                }
+                e.stopPropagation();
                 handleDeleteClick(row);
               }}
               className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors"
@@ -269,18 +277,20 @@ export default function EditorsDashboardContent() {
                 Track editors and their contribution activity.
               </p>
             </div>
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="outlined"
-                size="sm"
-                onClick={handleOpenUpdateModal}
-                disabled={state.isLoading}
-                className="flex items-center space-x-2"
-              >
-                <Plus className="h-4 w-4" />
-                <span className="hidden tablet:!block">New Editor</span>
-              </Button>
-            </div>
+            {hasWriteAccess && (
+              <div className="flex items-center space-x-3">
+                <Button
+                  variant="outlined"
+                  size="sm"
+                  onClick={handleOpenUpdateModal}
+                  disabled={state.isLoading}
+                  className="flex items-center space-x-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden tablet:!block">New Editor</span>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -366,6 +376,7 @@ export default function EditorsDashboardContent() {
                       editor={editor}
                       onEdit={() => handleRowClick(editor)}
                       onDelete={() => handleDeleteClick(editor)}
+                      hasWriteAccess={hasWriteAccess}
                       className="shadow-sm hover:shadow-md transition-shadow"
                     />
                   ))}
@@ -402,21 +413,25 @@ export default function EditorsDashboardContent() {
       </div>
 
       {/* Update Editor Modal */}
-      <UpdateEditorModal
-        isOpen={isUpdateModalOpen}
-        onClose={handleCloseUpdateModal}
-        selectedEditor={selectedEditor}
-        createEditor={createEditor}
-        deleteEditor={deleteEditor}
-      />
+      {hasWriteAccess && (
+        <UpdateEditorModal
+          isOpen={isUpdateModalOpen}
+          onClose={handleCloseUpdateModal}
+          selectedEditor={selectedEditor}
+          createEditor={createEditor}
+          deleteEditor={deleteEditor}
+        />
+      )}
 
       {/* Delete Editor Modal */}
-      <DeleteEditorModal
-        isOpen={deleteModalOpen}
-        onClose={handleCloseDeleteModal}
-        editor={editorToDelete}
-        onConfirm={deleteEditor}
-      />
+      {hasWriteAccess && (
+        <DeleteEditorModal
+          isOpen={deleteModalOpen}
+          onClose={handleCloseDeleteModal}
+          editor={editorToDelete}
+          onConfirm={deleteEditor}
+        />
+      )}
     </>
   );
 }

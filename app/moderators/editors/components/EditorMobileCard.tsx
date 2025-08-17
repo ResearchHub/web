@@ -7,12 +7,19 @@ import { Avatar } from '@/components/ui/Avatar';
 
 export interface EditorMobileCardProps {
   editor: TransformedEditorData;
-  onEdit?: () => void;
-  onDelete?: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  hasWriteAccess: boolean;
   className?: string;
 }
 
-export function EditorMobileCard({ editor, onEdit, onDelete, className }: EditorMobileCardProps) {
+export function EditorMobileCard({
+  editor,
+  onEdit,
+  onDelete,
+  hasWriteAccess,
+  className,
+}: EditorMobileCardProps) {
   const formatDate = (date?: Date) => {
     if (!date) return 'never';
     return formatDistanceToNow(date, { addSuffix: true });
@@ -46,36 +53,38 @@ export function EditorMobileCard({ editor, onEdit, onDelete, className }: Editor
         </div>
 
         {/* Actions Dropdown */}
-        <div className="flex-shrink-0">
-          <Dropdown
-            anchor="bottom end"
-            trigger={
-              <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors">
-                <MoreVertical className="h-4 w-4" />
-              </button>
-            }
-            className="w-40"
-          >
-            {onEdit && (
-              <DropdownItem
-                onClick={onEdit}
-                className="flex items-center gap-2 text-gray-700 hover:text-blue-600"
-              >
-                <Edit className="h-4 w-4" />
-                Edit Editor
-              </DropdownItem>
-            )}
-            {onDelete && (
-              <DropdownItem
-                onClick={onDelete}
-                className="flex items-center gap-2 text-gray-700 hover:text-red-600"
-              >
-                <Trash2 className="h-4 w-4" />
-                Remove Editor
-              </DropdownItem>
-            )}
-          </Dropdown>
-        </div>
+        {hasWriteAccess && (
+          <div className="flex-shrink-0">
+            <Dropdown
+              anchor="bottom end"
+              trigger={
+                <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors">
+                  <MoreVertical className="h-4 w-4" />
+                </button>
+              }
+              className="w-40"
+            >
+              {onEdit && (
+                <DropdownItem
+                  onClick={onEdit}
+                  className="flex items-center gap-2 text-gray-700 hover:text-blue-600"
+                >
+                  <Edit className="h-4 w-4" />
+                  Edit Editor
+                </DropdownItem>
+              )}
+              {onDelete && (
+                <DropdownItem
+                  onClick={onDelete}
+                  className="flex items-center gap-2 text-gray-700 hover:text-red-600"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Remove Editor
+                </DropdownItem>
+              )}
+            </Dropdown>
+          </div>
+        )}
       </div>
 
       {/* Hub Tags */}
