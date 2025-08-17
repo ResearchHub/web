@@ -240,7 +240,13 @@ export function EditorForm({
           error={errors.editorType}
         >
           {editorTypeOptions.map((option) => (
-            <DropdownItem key={option.value} onClick={() => handleEditorTypeChange(option)}>
+            <DropdownItem
+              key={option.value}
+              onClick={() => handleEditorTypeChange(option)}
+              className={
+                formData.editorType?.value === option.value ? 'bg-slate-50 font-semibold' : ''
+              }
+            >
               {option.label}
             </DropdownItem>
           ))}
