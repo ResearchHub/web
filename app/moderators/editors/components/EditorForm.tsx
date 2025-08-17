@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
@@ -8,25 +8,32 @@ import {
   SearchableMultiSelect,
   MultiSelectOption,
 } from '@/components/ui/form/SearchableMultiSelect';
-import { EDITOR_TYPES, EditorType } from '@/types/editor';
+import { EDITOR_TYPES, EditorType, TransformedEditorData } from '@/types/editor';
 import { HubService } from '@/services/hub.service';
 import { z } from 'zod';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/utils/styles';
 
-interface CreateEditorFormProps {
+interface EditorFormProps {
   onSubmit: (params: {
     editorEmail: string;
     editorType: EditorType;
-    selectedHubId: number;
+    selectedHubIds: number[];
   }) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
+  selectedEditor?: TransformedEditorData;
+  onUpdate?: (params: {
+    editorEmail: string;
+    hubsToAdd: number[];
+    hubsToRemove: number[];
+    editorType: EditorType;
+  }) => Promise<void>;
 }
 
-interface CreateEditorFormData {
+interface EditorFormData {
   email: string;
-  topic: MultiSelectOption | null;
+  topics: MultiSelectOption[];
   editorType: SelectOption | null;
 }
 
@@ -38,33 +45,40 @@ interface SelectOption {
 // Zod schema for validation
 const createEditorSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
-  topic: z
-    .object({
-      value: z.string(),
-      label: z.string(),
-    })
-    .nullable()
-    .refine((val) => val !== null, {
-      message: 'Topic is required',
-    }),
+  topics: z
+    .array(
+      z.object({
+        value: z.string(),
+        label: z.string(),
+      })
+    )
+    .min(1, 'Please select at least one topic'),
   editorType: z
     .object({
       value: z.string(),
       label: z.string(),
     })
-    .nullable()
-    .refine((val) => val !== null, {
-      message: 'Editor type is required',
+    .refine((val) => val && Object.values(EDITOR_TYPES).includes(val.value as EditorType), {
+      message: 'Please select an editor type',
     }),
 });
 
-export function CreateEditorForm({ onSubmit, onCancel, isLoading = false }: CreateEditorFormProps) {
-  const [formData, setFormData] = useState<CreateEditorFormData>({
+export function EditorForm({
+  onSubmit,
+  onCancel,
+  isLoading = false,
+  selectedEditor,
+  onUpdate,
+}: EditorFormProps) {
+  console.log('selectedEditor', selectedEditor);
+  const isUpdateMode = selectedEditor !== undefined;
+  const [formData, setFormData] = useState<EditorFormData>({
     email: '',
-    topic: null,
+    topics: [],
     editorType: null,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [originalTopics, setOriginalTopics] = useState<MultiSelectOption[]>([]);
 
   const validateForm = () => {
     try {
@@ -92,20 +106,48 @@ export function CreateEditorForm({ onSubmit, onCancel, isLoading = false }: Crea
     }
 
     try {
-      await onSubmit({
-        editorEmail: formData.email.trim(),
-        editorType: formData.editorType!.value as EditorType,
-        selectedHubId: parseInt(formData.topic!.value),
-      });
+      const validatedData = createEditorSchema.parse(formData);
 
-      // Success - toast will be shown by the parent component
+      if (isUpdateMode && onUpdate) {
+        // Update mode: calculate changes and call onUpdate
+        const currentHubIds = new Set(formData.topics.map((topic) => parseInt(topic.value)));
+        const originalHubIds = new Set(originalTopics.map((topic) => parseInt(topic.value)));
+
+        const hubsToAdd = Array.from(currentHubIds).filter((id) => !originalHubIds.has(id));
+        const hubsToRemove = Array.from(originalHubIds).filter((id) => !currentHubIds.has(id));
+
+        await onUpdate({
+          editorEmail: validatedData.email,
+          hubsToAdd,
+          hubsToRemove,
+          editorType: validatedData.editorType.value as EditorType,
+        });
+      } else {
+        // Create mode: call original onSubmit
+        const selectedHubIds = validatedData.topics.map((topic) => parseInt(topic.value));
+
+        await onSubmit({
+          editorEmail: validatedData.email,
+          editorType: validatedData.editorType.value as EditorType,
+          selectedHubIds,
+        });
+      }
+
+      // Reset form on success
+      setFormData({
+        email: '',
+        topics: [],
+        editorType: null,
+      });
+      setErrors({});
+      setOriginalTopics([]);
     } catch (error) {
       // Error - toast will be shown by the parent component
       // Don't close modal on error
     }
   };
 
-  const handleInputChange = (field: keyof Pick<CreateEditorFormData, 'email'>, value: string) => {
+  const handleInputChange = (field: keyof Pick<EditorFormData, 'email'>, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
@@ -121,13 +163,11 @@ export function CreateEditorForm({ onSubmit, onCancel, isLoading = false }: Crea
     }
   };
 
-  const handleTopicChange = (options: MultiSelectOption[]) => {
-    // For single selection, take the latest selected topic
-    const selectedTopic = options.length > 0 ? options[options.length - 1] : null;
-    setFormData((prev) => ({ ...prev, topic: selectedTopic }));
+  const handleTopicsChange = (options: MultiSelectOption[]) => {
+    setFormData((prev) => ({ ...prev, topics: options }));
     // Clear error when user selects an option
-    if (errors.topic) {
-      setErrors((prev) => ({ ...prev, topic: '' }));
+    if (errors.topics) {
+      setErrors((prev) => ({ ...prev, topics: '' }));
     }
   };
 
@@ -139,7 +179,7 @@ export function CreateEditorForm({ onSubmit, onCancel, isLoading = false }: Crea
         label: topic.name,
       }));
     } catch (error) {
-      console.error('Error fetching topic suggestions:', error);
+      console.error('Error searching topics:', error);
       return [];
     }
   }, []);
@@ -149,6 +189,37 @@ export function CreateEditorForm({ onSubmit, onCancel, isLoading = false }: Crea
     { value: EDITOR_TYPES.ASSOCIATE_EDITOR, label: 'Associate Editor' },
     { value: EDITOR_TYPES.SENIOR_EDITOR, label: 'Senior Editor' },
   ];
+
+  useEffect(() => {
+    if (selectedEditor) {
+      const editorTopics =
+        selectedEditor.authorProfile.editorOfHubs?.map((hub) => ({
+          value: hub.id.toString(),
+          label: hub.name,
+        })) || [];
+
+      setFormData({
+        editorType:
+          editorTypeOptions.find((option) => option.value === selectedEditor.editorType) || null,
+        email: selectedEditor.authorProfile.user?.email || '',
+        topics: editorTopics,
+      });
+
+      setOriginalTopics(editorTopics);
+    }
+  }, [selectedEditor]);
+
+  const hasChanges = () => {
+    if (!isUpdateMode || !selectedEditor) return false;
+
+    const currentHubIds = new Set(formData.topics.map((topic) => parseInt(topic.value)));
+    const originalHubIds = new Set(originalTopics.map((topic) => parseInt(topic.value)));
+
+    const hasAdditions = Array.from(currentHubIds).some((id) => !originalHubIds.has(id));
+    const hasRemovals = Array.from(originalHubIds).some((id) => !currentHubIds.has(id));
+
+    return hasAdditions || hasRemovals;
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -166,10 +237,8 @@ export function CreateEditorForm({ onSubmit, onCancel, isLoading = false }: Crea
                   'border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20'
               )}
             >
-              <span className={formData.editorType ? 'text-gray-900' : 'text-gray-500'}>
-                {formData.editorType ? formData.editorType.label : 'Select editor type'}
-              </span>
-              <ChevronDown className="h-4 w-4 text-gray-400" />
+              {formData.editorType?.label || 'Select editor type'}
+              <ChevronDown className="h-4 w-4" />
             </Button>
           }
           label="Editor Type"
@@ -186,14 +255,14 @@ export function CreateEditorForm({ onSubmit, onCancel, isLoading = false }: Crea
 
       <div>
         <SearchableMultiSelect
-          value={formData.topic ? [formData.topic] : []}
-          onChange={handleTopicChange}
+          value={formData.topics}
+          onChange={handleTopicsChange}
           onAsyncSearch={handleTopicSearch}
           label="Topic"
           required
           placeholder="Search topics..."
           debounceMs={500}
-          error={errors.topic}
+          error={errors.topics}
         />
       </div>
 
@@ -208,6 +277,11 @@ export function CreateEditorForm({ onSubmit, onCancel, isLoading = false }: Crea
           placeholder="editor@example.com"
           error={errors.email}
           disabled={isLoading}
+          helperText={
+            isUpdateMode
+              ? 'The email address is required to identify and update the editor.'
+              : undefined
+          }
         />
       </div>
 
@@ -215,8 +289,8 @@ export function CreateEditorForm({ onSubmit, onCancel, isLoading = false }: Crea
         <Button type="button" variant="outlined" onClick={onCancel} disabled={isLoading}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isLoading}>
-          Create Editor
+        <Button type="submit" disabled={isLoading || (isUpdateMode && !hasChanges())}>
+          {isUpdateMode ? 'Update Editor' : 'Create Editor'}
         </Button>
       </div>
     </form>

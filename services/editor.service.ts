@@ -121,58 +121,85 @@ export class EditorService {
   }
 
   /**
-   * Creates a new editor for a hub
-   * @param params - Parameters for creating an editor
-   * @returns Promise with the created editor data
+   * Creates multiple editors for multiple hubs
+   * @param params - Parameters for creating editors
+   * @returns Promise with the results of all operations
    * @throws {EditorServiceError} When creation fails
    * @example
-   * const editor = await EditorService.createEditor({
+   * const results = await EditorService.createEditor({
    *   editorEmail: 'editor@example.com',
    *   editorType: EDITOR_TYPES.ASSISTANT_EDITOR,
-   *   selectedHubId: 123
+   *   selectedHubIds: [123]
    * });
    */
   static async createEditor(params: {
     editorEmail: string;
     editorType: EditorType;
-    selectedHubId: number;
-  }): Promise<any> {
-    try {
-      const response = await ApiClient.post<any>(`${this.HUB_PATH}/create_new_editor/`, {
-        editor_email: params.editorEmail,
-        editor_type: params.editorType,
-        selected_hub_id: params.selectedHubId,
-      });
+    selectedHubIds: number[];
+  }): Promise<{ success: boolean; hubId: number; error?: string }[]> {
+    const { editorEmail, editorType, selectedHubIds } = params;
 
-      return response;
-    } catch (error) {
-      console.error('Error creating editor:', error);
-      throw new EditorServiceError('Failed to create editor. Please try again.', error);
-    }
+    // Create all requests in parallel
+    const requests = selectedHubIds.map(async (hubId) => {
+      try {
+        await ApiClient.post<any>(`${this.HUB_PATH}/create_new_editor/`, {
+          editor_email: editorEmail,
+          editor_type: editorType,
+          selected_hub_id: hubId,
+        });
+
+        return { success: true, hubId };
+      } catch (error) {
+        return {
+          success: false,
+          hubId,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        };
+      }
+    });
+
+    // Wait for all requests to complete
+    const results = await Promise.all(requests);
+    return results;
   }
 
   /**
-   * Deletes an editor from a hub
-   * @param params - Parameters for deleting an editor
-   * @returns Promise with the deletion result
+   * Deletes an editor from multiple hubs
+   * @param params - Parameters for deleting an editor from multiple hubs
+   * @returns Promise with the results of all operations
    * @throws {EditorServiceError} When deletion fails
    * @example
-   * await EditorService.deleteEditor({
+   * const results = await EditorService.deleteEditorBatch({
    *   editorEmail: 'editor@example.com',
-   *   selectedHubId: 123
+   *   selectedHubIds: [123, 456]
    * });
    */
-  static async deleteEditor(params: { editorEmail: string; selectedHubId: number }): Promise<any> {
-    try {
-      const response = await ApiClient.post<any>(`${this.HUB_PATH}/delete_editor/`, {
-        editor_email: params.editorEmail,
-        selected_hub_id: params.selectedHubId,
-      });
+  static async deleteEditor(params: {
+    editorEmail: string;
+    selectedHubIds: number[];
+  }): Promise<{ success: boolean; hubId: number; error?: string }[]> {
+    const { editorEmail, selectedHubIds } = params;
 
-      return response;
-    } catch (error) {
-      console.error('Error deleting editor:', error);
-      throw new EditorServiceError('Failed to delete editor. Please try again.', error);
-    }
+    // Create all delete requests in parallel
+    const requests = selectedHubIds.map(async (hubId) => {
+      try {
+        await ApiClient.post<any>(`${this.HUB_PATH}/delete_editor/`, {
+          editor_email: editorEmail,
+          selected_hub_id: hubId,
+        });
+
+        return { success: true, hubId };
+      } catch (error) {
+        return {
+          success: false,
+          hubId,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        };
+      }
+    });
+
+    // Wait for all requests to complete
+    const results = await Promise.all(requests);
+    return results;
   }
 }

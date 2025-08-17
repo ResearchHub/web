@@ -42,6 +42,7 @@ export interface TransformedEditorData {
   editorAddedDate?: Date;
   activeHubContributorCount?: number;
   previousActiveHubContributorCount?: number;
+  editorType: EditorType;
 }
 
 // Pagination result structure (matching referral pattern)
@@ -62,9 +63,16 @@ export const transformEditorData = createTransformer<any, TransformedEditorData>
   latestSubmissionDate: raw.latest_submission_date
     ? new Date(raw.latest_submission_date)
     : undefined,
-  editorAddedDate: raw.author_profile.added_as_editor_date
+  editorAddedDate: raw.author_profile?.added_as_editor_date
     ? new Date(raw.author_profile.added_as_editor_date)
     : undefined,
+  // Note: Currently, an author can theoretically be assigned multiple roles across different hubs.
+  // Our logic gets the first permissionGroup and uses it as the main editor type.
+  // This ensures consistency when adding the editor to new hubs.
+  // Default to ASSISTANT_EDITOR if no permissionGroup is found.
+  editorType:
+    raw.author_profile?.is_hub_editor_of?.[0]?.editor_permission_groups?.[0]?.access_type ||
+    'ASSISTANT_EDITOR',
 }));
 
 // Base transformer for pagination result

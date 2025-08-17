@@ -28,9 +28,9 @@ export type UseEditorsDashboardReturn = [
     createEditor: (params: {
       editorEmail: string;
       editorType: EditorType;
-      selectedHubId: number;
+      selectedHubIds: number[];
     }) => Promise<void>;
-    deleteEditor: (params: { editorEmail: string; selectedHubId: number }) => Promise<void>;
+    deleteEditor: (params: { editorEmail: string; selectedHubIds: number[] }) => Promise<void>;
   },
 ];
 
@@ -113,15 +113,25 @@ export function useEditorsDashboard(
   );
 
   const createEditor = useCallback(
-    async (params: { editorEmail: string; editorType: EditorType; selectedHubId: number }) => {
+    async (params: { editorEmail: string; editorType: EditorType; selectedHubIds: number[] }) => {
       try {
-        setError(null);
-        await EditorService.createEditor(params);
-        // Refetch the current page to show the new editor
+        // Batch editor creation
+        const results = await EditorService.createEditor(params);
+
+        // Check if any requests failed
+        const failures = results.filter((result) => !result.success);
+
+        if (failures.length > 0) {
+          // If some failed, show error for failed ones
+          const errorMessages = failures.map(
+            (f) => `Failed to create editor for topic ID ${f.hubId}: ${f.error}`
+          );
+          throw new Error(errorMessages.join('; '));
+        }
+
+        // Refetch the current page to show the new editor(s)
         await fetchEditors(currentPage);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to create editor';
-        setError(errorMessage);
         console.error('Error creating editor:', err);
         throw err; // Re-throw to allow component to handle
       }
@@ -130,17 +140,27 @@ export function useEditorsDashboard(
   );
 
   const deleteEditor = useCallback(
-    async (params: { editorEmail: string; selectedHubId: number }) => {
+    async (params: { editorEmail: string; selectedHubIds: number[] }) => {
       try {
-        setError(null);
-        await EditorService.deleteEditor(params);
+        // Batch editor deletion
+        const results = await EditorService.deleteEditor(params);
+
+        // Check if any requests failed
+        const failures = results.filter((result) => !result.success);
+
+        if (failures.length > 0) {
+          // If some failed, show error for failed ones
+          const errorMessages = failures.map(
+            (f) => `Failed to delete editor from topic ID ${f.hubId}: ${f.error}`
+          );
+          throw new Error(errorMessages.join('; '));
+        }
+
         // Refetch the current page to reflect the deletion
         await fetchEditors(currentPage);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to delete editor';
-        setError(errorMessage);
         console.error('Error deleting editor:', err);
-        throw err; // Re-throw to allow component to handle
+        throw err;
       }
     },
     [fetchEditors, currentPage]

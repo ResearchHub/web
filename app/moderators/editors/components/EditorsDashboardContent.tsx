@@ -10,17 +10,26 @@ import { useEditorsDashboard } from '@/hooks/useEditorsDashboard';
 import { EditorTableSkeleton } from '@/components/skeletons/EditorTableSkeleton';
 import { EditorMobileSkeleton } from '@/components/skeletons/EditorMobileSkeleton';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
-import { ChevronDown, Edit } from 'lucide-react';
+import { ChevronDown, Plus, Trash2 } from 'lucide-react';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { UpdateEditorModal } from './UpdateEditorModal';
+import Link from 'next/link';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
+import { toast } from 'react-hot-toast';
+import { EditorMobileCard } from './EditorMobileCard';
 
 export default function EditorsDashboardContent() {
   const { mdAndUp } = useScreenSize();
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(20);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [selectedEditor, setSelectedEditor] = useState<TransformedEditorData | undefined>(
+    undefined
+  );
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [editorToDelete, setEditorToDelete] = useState<TransformedEditorData | null>(null);
 
   // Memoize filters to prevent unnecessary re-renders
   const defaultFilters = useMemo(
@@ -48,8 +57,50 @@ export default function EditorsDashboardContent() {
     setIsUpdateModalOpen(true);
   };
 
+  const handleRowClick = (editor: TransformedEditorData) => {
+    setSelectedEditor(editor);
+    setIsUpdateModalOpen(true);
+  };
+
   const handleCloseUpdateModal = () => {
     setIsUpdateModalOpen(false);
+    setSelectedEditor(undefined);
+  };
+
+  const handleDeleteClick = (editor: TransformedEditorData) => {
+    setEditorToDelete(editor);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!editorToDelete) return;
+
+    try {
+      // Get all hub IDs from the editor
+      const hubIds = editorToDelete.authorProfile.editorOfHubs?.map((hub) => hub.id) || [];
+
+      if (hubIds.length === 0) {
+        toast.error('No hubs found for this editor');
+        return;
+      }
+
+      await deleteEditor({
+        editorEmail: editorToDelete.authorProfile.user?.email || '',
+        selectedHubIds: hubIds,
+      });
+
+      toast.success('Editor deleted successfully!');
+      setDeleteModalOpen(false);
+      setEditorToDelete(null);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete editor';
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteModalOpen(false);
+    setEditorToDelete(null);
   };
 
   const columns: SortableColumn[] = [
@@ -59,6 +110,7 @@ export default function EditorsDashboardContent() {
     { key: 'submissions', label: 'Submissions', sortable: false },
     { key: 'tips', label: 'Tips', sortable: false },
     { key: 'comments', label: 'Comments', sortable: false },
+    { key: 'actions', label: 'Actions', sortable: false },
   ];
 
   const calculatePercentDiff = (current: number, previous: number): number => {
@@ -121,14 +173,17 @@ export default function EditorsDashboardContent() {
               src={row.authorProfile.profileImage || ''}
               alt={`${row.authorProfile.firstName} ${row.authorProfile.lastName}`}
               size="sm"
-              authorId={row.id}
+              authorId={row.authorProfile.id}
               disableTooltip={true}
               className="flex-shrink-0"
             />
             <div className="flex flex-col min-w-0">
-              <span className="font-medium text-gray-900 truncate">
+              <Link
+                href={`/author/${row.authorProfile.id}`}
+                className="font-medium text-gray-900 truncate hover:text-blue-600 transition-colors"
+              >
                 {`${row.authorProfile.firstName} ${row.authorProfile.lastName}`}
-              </span>
+              </Link>
               {row.editorAddedDate && (
                 <span className="text-gray-500 truncate text-xs">
                   added {formatDate(row.editorAddedDate)}
@@ -172,68 +227,28 @@ export default function EditorsDashboardContent() {
       case 'comments':
         return <span className="font-medium text-gray-900">{row.commentCount}</span>;
 
+      case 'actions':
+        return (
+          <div className="flex items-center justify-center">
+            <Button
+              variant="outlined"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent row click
+                handleDeleteClick(row);
+              }}
+              className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors"
+              title="Delete editor"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        );
+
       default:
         return row[column.key as keyof TransformedEditorData];
     }
   };
-
-  // Prepare data for mobile cards
-  const mobileColumns = [
-    { key: 'user', label: 'User' },
-    { key: 'lastSubmission', label: 'Last Submission' },
-    { key: 'lastComment', label: 'Last Comment' },
-    { key: 'submissions', label: 'Submissions' },
-    { key: 'tips', label: 'Tips' },
-    { key: 'comments', label: 'Comments' },
-  ];
-
-  const mobileData = state.editors.map((row) => ({
-    user: (
-      <div className="flex items-center justify-start flex-row-reverse gap-2">
-        <Avatar
-          src={row.authorProfile.profileImage || ''}
-          alt={`${row.authorProfile.firstName} ${row.authorProfile.lastName}`}
-          size="xs"
-          authorId={row.id}
-          disableTooltip={true}
-        />
-        <div className="flex flex-col min-w-0">
-          <span className="font-medium text-gray-900 truncate">
-            {`${row.authorProfile.firstName} ${row.authorProfile.lastName}`}
-          </span>
-          {row.editorAddedDate && (
-            <span className="text-gray-500 truncate text-xs">
-              added {formatDate(row.editorAddedDate)}
-            </span>
-          )}
-          {/* Hub Tags for Mobile */}
-          {row.authorProfile.editorOfHubs && row.authorProfile.editorOfHubs.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-1">
-              {row.authorProfile.editorOfHubs.map((hub, hubIndex) => (
-                <Badge key={`${hub.id}-${hubIndex}`} variant="primary">
-                  {hub.name}
-                </Badge>
-              ))}
-            </div>
-          )}
-          {/* Active Hub Contributors for Mobile */}
-          {row.activeHubContributorCount !== null && (
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs text-gray-600">
-                active hub contributors: {row.activeHubContributorCount}
-              </span>
-              {renderContributorChange(row)}
-            </div>
-          )}
-        </div>
-      </div>
-    ),
-    lastSubmission: formatDate(row.latestSubmissionDate),
-    lastComment: formatDate(row.latestCommentDate),
-    submissions: row.submissionCount,
-    tips: row.supportCount,
-    comments: row.commentCount,
-  }));
 
   if (state.error) {
     return (
@@ -288,8 +303,8 @@ export default function EditorsDashboardContent() {
                 disabled={state.isLoading}
                 className="flex items-center space-x-2"
               >
-                <Edit className="h-4 w-4" />
-                <span className="hidden tablet:!block">Update</span>
+                <Plus className="h-4 w-4" />
+                <span className="hidden tablet:!block">New Editor</span>
               </Button>
             </div>
           </div>
@@ -350,8 +365,15 @@ export default function EditorsDashboardContent() {
                     }),
                     tips: renderCellContent(row, { key: 'tips', label: 'Tips' }),
                     comments: renderCellContent(row, { key: 'comments', label: 'Comments' }),
+                    actions: renderCellContent(row, { key: 'actions', label: 'Actions' }),
                   }))}
-                  className="w-full"
+                  className="w-full cursor-pointer hover:bg-gray-50"
+                  onRowClick={(row) => {
+                    const editor = state.editors.find((editor) => editor.id === row.id);
+                    if (editor) {
+                      handleRowClick(editor);
+                    }
+                  }}
                 />
               )}
             </div>
@@ -364,13 +386,13 @@ export default function EditorsDashboardContent() {
                 <EditorMobileSkeleton rowCount={pageSize} />
               ) : (
                 <div className="space-y-4">
-                  {mobileData.map((row, index) => (
-                    <MobileTableCard
-                      key={state.editors[index]?.id || index}
-                      data={row}
-                      columns={mobileColumns}
-                      onClick={() => console.log('Card clicked:', state.editors[index])}
-                      className="shadow-sm"
+                  {state.editors.map((editor, index) => (
+                    <EditorMobileCard
+                      key={editor.id || index}
+                      editor={editor}
+                      onEdit={() => handleRowClick(editor)}
+                      onDelete={() => handleDeleteClick(editor)}
+                      className="shadow-sm hover:shadow-md transition-shadow"
                     />
                   ))}
                 </div>
@@ -409,8 +431,22 @@ export default function EditorsDashboardContent() {
       <UpdateEditorModal
         isOpen={isUpdateModalOpen}
         onClose={handleCloseUpdateModal}
+        selectedEditor={selectedEditor}
         createEditor={createEditor}
         deleteEditor={deleteEditor}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Editor"
+        message={`Are you sure you want to delete ${editorToDelete?.authorProfile.firstName} ${editorToDelete?.authorProfile.lastName} as an editor from all their assigned hubs? This action cannot be undone.`}
+        confirmText="Delete Editor"
+        cancelText="Cancel"
+        confirmButtonClass="bg-red-600 hover:bg-red-700"
+        cancelButtonClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
       />
     </>
   );
