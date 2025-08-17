@@ -16,7 +16,8 @@ export default function ModerationLayout({ children }: ModerationLayoutProps) {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
-  const isReferralPage = pathname === '/moderators/referral';
+  const isFUllWidthTablePage =
+    pathname === '/moderators/referral' || pathname === '/moderators/editors';
 
   // Check if user is a moderator
   const isModerator = !!user?.isModerator;
@@ -46,7 +47,7 @@ export default function ModerationLayout({ children }: ModerationLayoutProps) {
     <PageLayout
       rightSidebar={<ModerationSidebar />}
       className={
-        isReferralPage
+        isFUllWidthTablePage
           ? 'tablet:!max-w-full content-md:!max-w-full content-lg:!max-w-full content-xl:!max-w-full'
           : undefined
       }
