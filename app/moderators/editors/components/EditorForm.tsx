@@ -70,7 +70,6 @@ export function EditorForm({
   selectedEditor,
   onUpdate,
 }: EditorFormProps) {
-  console.log('selectedEditor', selectedEditor);
   const isUpdateMode = selectedEditor !== undefined;
   const [formData, setFormData] = useState<EditorFormData>({
     email: '',

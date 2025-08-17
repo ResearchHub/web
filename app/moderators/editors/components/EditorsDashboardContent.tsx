@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { UpdateEditorModal } from './UpdateEditorModal';
 import Link from 'next/link';
-import { ConfirmModal } from '@/components/modals/ConfirmModal';
+import { DeleteEditorModal } from './DeleteEditorModal';
 import { toast } from 'react-hot-toast';
 import { EditorMobileCard } from './EditorMobileCard';
 
@@ -67,40 +67,14 @@ export default function EditorsDashboardContent() {
     setSelectedEditor(undefined);
   };
 
+  const handleCloseDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setEditorToDelete(null);
+  };
+
   const handleDeleteClick = (editor: TransformedEditorData) => {
     setEditorToDelete(editor);
     setDeleteModalOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!editorToDelete) return;
-
-    try {
-      // Get all hub IDs from the editor
-      const hubIds = editorToDelete.authorProfile.editorOfHubs?.map((hub) => hub.id) || [];
-
-      if (hubIds.length === 0) {
-        toast.error('No hubs found for this editor');
-        return;
-      }
-
-      await deleteEditor({
-        editorEmail: editorToDelete.authorProfile.user?.email || '',
-        selectedHubIds: hubIds,
-      });
-
-      toast.success('Editor deleted successfully!');
-      setDeleteModalOpen(false);
-      setEditorToDelete(null);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to delete editor';
-      toast.error(errorMessage);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setDeleteModalOpen(false);
-    setEditorToDelete(null);
   };
 
   const columns: SortableColumn[] = [
@@ -436,17 +410,12 @@ export default function EditorsDashboardContent() {
         deleteEditor={deleteEditor}
       />
 
-      {/* Delete Confirmation Modal */}
-      <ConfirmModal
+      {/* Delete Editor Modal */}
+      <DeleteEditorModal
         isOpen={deleteModalOpen}
-        onClose={handleCancelDelete}
-        onConfirm={handleConfirmDelete}
-        title="Delete Editor"
-        message={`Are you sure you want to delete ${editorToDelete?.authorProfile.firstName} ${editorToDelete?.authorProfile.lastName} as an editor from all their assigned hubs? This action cannot be undone.`}
-        confirmText="Delete Editor"
-        cancelText="Cancel"
-        confirmButtonClass="bg-red-600 hover:bg-red-700"
-        cancelButtonClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+        onClose={handleCloseDeleteModal}
+        editor={editorToDelete}
+        onConfirm={deleteEditor}
       />
     </>
   );

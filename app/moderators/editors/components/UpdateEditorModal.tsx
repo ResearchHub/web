@@ -117,6 +117,8 @@ export function UpdateEditorModal({
     onClose();
   };
 
+  if (!isOpen) return null;
+
   return (
     <BaseModal
       isOpen={isOpen}
