@@ -108,7 +108,6 @@ export function EditorForm({
       const validatedData = createEditorSchema.parse(formData);
 
       if (isUpdateMode && onUpdate) {
-        // Update mode: calculate changes and call onUpdate
         const currentHubIds = new Set(formData.topics.map((topic) => parseInt(topic.value)));
         const originalHubIds = new Set(originalTopics.map((topic) => parseInt(topic.value)));
 
@@ -122,7 +121,6 @@ export function EditorForm({
           editorType: validatedData.editorType.value as EditorType,
         });
       } else {
-        // Create mode: call original onSubmit
         const selectedHubIds = validatedData.topics.map((topic) => parseInt(topic.value));
 
         await onSubmit({
@@ -148,7 +146,6 @@ export function EditorForm({
 
   const handleInputChange = (field: keyof Pick<EditorFormData, 'email'>, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: '' }));
     }
@@ -156,7 +153,6 @@ export function EditorForm({
 
   const handleEditorTypeChange = (option: SelectOption) => {
     setFormData((prev) => ({ ...prev, editorType: option }));
-    // Clear error when user selects an option
     if (errors.editorType) {
       setErrors((prev) => ({ ...prev, editorType: '' }));
     }
@@ -164,7 +160,6 @@ export function EditorForm({
 
   const handleTopicsChange = (options: MultiSelectOption[]) => {
     setFormData((prev) => ({ ...prev, topics: options }));
-    // Clear error when user selects an option
     if (errors.topics) {
       setErrors((prev) => ({ ...prev, topics: '' }));
     }

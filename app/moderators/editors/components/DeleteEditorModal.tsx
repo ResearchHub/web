@@ -22,7 +22,7 @@ export function DeleteEditorModal({ isOpen, onClose, editor, onConfirm }: Delete
 
   const handleEmailChange = (value: string) => {
     setEmail(value);
-    setError(''); // Clear error when user types
+    setError('');
   };
 
   const handleConfirm = async () => {
