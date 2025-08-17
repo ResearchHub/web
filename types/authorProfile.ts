@@ -68,14 +68,6 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
   // If a 'user' property exists and is not null
   const isClaimed = !!raw.user && raw.user !== null;
 
-  const editorOfHubs = raw.editor_of?.map((group: any) => {
-    return {
-      id: group?.source?.id,
-      name: group?.source?.name,
-      slug: group?.source?.slug,
-    };
-  });
-
   return {
     id: raw.id || 0,
     fullName:
