@@ -12,12 +12,12 @@ export const EDITOR_TYPES = {
 
 // Editor Dashboard Types
 export interface EditorFilters {
-  selectedHub: Hub | null;
-  timeframe: {
+  selectedHub?: Hub;
+  timeframe?: {
     startDate: Date;
     endDate: Date;
   };
-  orderBy: OrderByOption;
+  orderBy?: OrderByOption;
 }
 
 export interface OrderByOption {

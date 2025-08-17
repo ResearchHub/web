@@ -25,9 +25,9 @@ export default function EditorsDashboardContent() {
   // Memoize filters to prevent unnecessary re-renders
   const defaultFilters = useMemo(
     () => ({
-      selectedHub: null,
+      selectedHub: undefined,
       timeframe: {
-        startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+        startDate: new Date(Date.now() - 1000 * 24 * 60 * 60 * 1000), // 1000 days ago
         endDate: new Date(),
       },
       orderBy: { value: 'desc' as const, label: 'Descending' },
@@ -38,7 +38,7 @@ export default function EditorsDashboardContent() {
   const [state, { goToPage, goToNextPage, goToPrevPage, refetch, createEditor, deleteEditor }] =
     useEditorsDashboard(defaultFilters, pageSize);
 
-  const pageSizeOptions = [5, 10, 20];
+  const pageSizeOptions = [10, 20];
 
   const handlePageSizeChange = (newPageSize: number) => {
     setPageSize(newPageSize);
@@ -57,7 +57,7 @@ export default function EditorsDashboardContent() {
     { key: 'lastSubmission', label: 'Last Submission', sortable: false },
     { key: 'lastComment', label: 'Last Comment', sortable: false },
     { key: 'submissions', label: 'Submissions', sortable: false },
-    { key: 'supports', label: 'Supports', sortable: false },
+    { key: 'tips', label: 'Tips', sortable: false },
     { key: 'comments', label: 'Comments', sortable: false },
   ];
 
@@ -166,7 +166,7 @@ export default function EditorsDashboardContent() {
       case 'submissions':
         return <span className="font-medium text-gray-900">{row.submissionCount}</span>;
 
-      case 'supports':
+      case 'tips':
         return <span className="font-medium text-gray-900">{row.supportCount}</span>;
 
       case 'comments':
@@ -183,7 +183,7 @@ export default function EditorsDashboardContent() {
     { key: 'lastSubmission', label: 'Last Submission' },
     { key: 'lastComment', label: 'Last Comment' },
     { key: 'submissions', label: 'Submissions' },
-    { key: 'supports', label: 'Supports' },
+    { key: 'tips', label: 'Tips' },
     { key: 'comments', label: 'Comments' },
   ];
 
@@ -231,7 +231,7 @@ export default function EditorsDashboardContent() {
     lastSubmission: formatDate(row.latestSubmissionDate),
     lastComment: formatDate(row.latestCommentDate),
     submissions: row.submissionCount,
-    supports: row.supportCount,
+    tips: row.supportCount,
     comments: row.commentCount,
   }));
 
@@ -348,7 +348,7 @@ export default function EditorsDashboardContent() {
                       key: 'submissions',
                       label: 'Submissions',
                     }),
-                    supports: renderCellContent(row, { key: 'supports', label: 'Supports' }),
+                    tips: renderCellContent(row, { key: 'tips', label: 'Tips' }),
                     comments: renderCellContent(row, { key: 'comments', label: 'Comments' }),
                   }))}
                   className="w-full"

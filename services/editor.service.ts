@@ -43,17 +43,19 @@ export class EditorService {
       const queryParams = new URLSearchParams();
       queryParams.append('page', params.page.toString());
       queryParams.append('page_size', params.pageSize.toString());
-      queryParams.append('order_by', filters.orderBy.value);
+      if (filters.orderBy) {
+        queryParams.append('order_by', filters.orderBy.value);
+      }
 
       if (filters.selectedHub) {
         queryParams.append('hub_id', filters.selectedHub.id.toString());
       }
 
-      if (filters.timeframe.startDate) {
+      if (filters.timeframe?.startDate) {
         queryParams.append('startDate', filters.timeframe.startDate.toISOString());
       }
 
-      if (filters.timeframe.endDate) {
+      if (filters.timeframe?.endDate) {
         queryParams.append('endDate', filters.timeframe.endDate.toISOString());
       }
 
@@ -84,10 +86,10 @@ export class EditorService {
     try {
       const params = new URLSearchParams({
         userIds,
-        ...(filters.timeframe.startDate && {
+        ...(filters.timeframe?.startDate && {
           startDate: filters.timeframe.startDate.toISOString(),
         }),
-        ...(filters.timeframe.endDate && { endDate: filters.timeframe.endDate.toISOString() }),
+        ...(filters.timeframe?.endDate && { endDate: filters.timeframe.endDate.toISOString() }),
       });
 
       const response = await ApiClient.get<any>(
@@ -115,27 +117,6 @@ export class EditorService {
     } catch (error) {
       console.error('Error fetching hubs:', error);
       throw new EditorServiceError('Failed to fetch hubs. Please try again.', error);
-    }
-  }
-
-  /**
-   * Fetches hub suggestions for search/autocomplete
-   * @param query - Search query for hub names
-   * @returns Promise with matching hubs
-   * @throws {EditorServiceError} When fetch fails
-   * @example
-   * const suggestions = await EditorService.fetchHubSuggestions('biology');
-   */
-  static async fetchHubSuggestions(query: string): Promise<Hub[]> {
-    try {
-      const params = new URLSearchParams({ search: query });
-      const response = await ApiClient.get<{ results: Hub[] }>(
-        `${this.HUB_PATH}/?${params.toString()}`
-      );
-      return response.results;
-    } catch (error) {
-      console.error('Error fetching hub suggestions:', error);
-      throw new EditorServiceError('Failed to fetch hub suggestions. Please try again.', error);
     }
   }
 
