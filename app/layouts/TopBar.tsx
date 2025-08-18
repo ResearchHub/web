@@ -16,7 +16,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { useAuthenticatedAction, useAuthModalContext } from '@/contexts/AuthModalContext';
 import { useNotifications } from '@/contexts/NotificationContext';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Icon } from '@/components/ui/icons';
 import { Tooltip } from '@/components/ui/Tooltip';
 import Link from 'next/link';
@@ -61,7 +60,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Explore',
       subtitle: 'Discover trending research, earning, and funding opportunities',
-      icon: <FontAwesomeIcon icon={faHouseLight} fontSize={20} color="#000" />,
+      icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,
     };
   }
 
@@ -70,7 +69,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Notifications',
       subtitle: 'Stay updated with your latest activity',
-      icon: <Icon name="notification" size={20} className="text-primary-600" />,
+      icon: <Icon name="notification" size={24} className="text-primary-600" />,
     };
   }
 
@@ -78,7 +77,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'My ResearchCoin',
       subtitle: 'Manage your RSC wallet and transactions',
-      icon: <ResearchCoinIcon outlined size={24} color="#000" />,
+      icon: <Icon name="rscThin" size={28} />,
     };
   }
 
@@ -86,7 +85,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Submit your paper',
       subtitle: 'Submit your original work as a preprint or publication',
-      icon: <Icon name="submit2" size={20} className="text-primary-600" />,
+      icon: <Icon name="submit2" size={24} className="text-primary-600" />,
     };
   }
 
@@ -94,7 +93,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Create Bounty',
       subtitle: 'Incentivize the research economy',
-      icon: <Icon name="earn1" size={20} className="text-primary-600" />,
+      icon: <Icon name="earn1" size={24} className="text-primary-600" />,
     };
   }
 
@@ -102,7 +101,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Bounties',
       subtitle: 'Earn RSC for completing peer reviews',
-      icon: <Icon name="earn1" size={20} className="text-primary-600" />,
+      icon: <Icon name="earn1" size={24} className="text-primary-600" />,
     };
   }
 
@@ -110,7 +109,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Earn',
       subtitle: 'Earn RSC for completing peer reviews',
-      icon: <Icon name="earn1" size={20} className="text-primary-600" />,
+      icon: <Icon name="earn1" size={24} className="text-primary-600" />,
     };
   }
 
@@ -118,7 +117,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Funding',
       subtitle: 'Browse funding opportunities and grants',
-      icon: <Icon name="fund" size={20} className="text-primary-600" />,
+      icon: <Icon name="fund" size={24} className="text-primary-600" />,
     };
   }
 
@@ -126,7 +125,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'RH Journal',
       subtitle: 'Read and publish peer-reviewed research',
-      icon: <Icon name="rhJournal2" size={20} className="text-primary-600" />,
+      icon: <Icon name="rhJournal2" size={24} className="text-primary-600" />,
     };
   }
 
@@ -134,7 +133,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Leaderboard',
       subtitle: 'See top contributors in the ResearchHub community',
-      icon: <ChartNoAxesColumnIncreasing size={20} color="#404040" strokeWidth={2} />,
+      icon: <ChartNoAxesColumnIncreasing size={24} color="#404040" strokeWidth={2} />,
     };
   }
 
@@ -142,7 +141,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Moderation Dashboard',
       subtitle: 'Review and moderate community content',
-      icon: <Shield size={20} className="text-primary-600" />,
+      icon: <Shield size={24} className="text-primary-600" />,
     };
   }
 
@@ -151,7 +150,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Research proposals',
       subtitle: 'Support research projects seeking funding',
-      icon: <Icon name="createBounty" size={20} className="text-primary-600" />,
+      icon: <Icon name="createBounty" size={24} className="text-primary-600" />,
     };
   }
 
@@ -160,7 +159,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Funding opportunities',
       subtitle: 'Explore available funding opportunities',
-      icon: <Icon name="fund" size={20} className="text-primary-600" />,
+      icon: <Icon name="fund" size={24} className="text-primary-600" />,
     };
   }
 
@@ -168,7 +167,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Funding',
       subtitle: 'Fund breakthrough research shaping tomorrow',
-      icon: <Icon name="fund" size={20} className="text-primary-600" />,
+      icon: <Icon name="fund" size={24} className="text-primary-600" />,
     };
   }
 
@@ -176,7 +175,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/grant')) {
     return {
       title: 'Grant',
-      icon: <Icon name="fund" size={20} className="text-primary-600" />,
+      icon: <Icon name="fund" size={24} className="text-primary-600" />,
     };
   }
 
@@ -184,21 +183,21 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/paper/')) {
     return {
       title: 'Paper',
-      icon: <Icon name="workType" size={16} className="text-primary-600" />,
+      icon: <Icon name="workType" size={20} className="text-primary-600" />,
     };
   }
 
   if (pathname.startsWith('/post/')) {
     return {
       title: 'Paper',
-      icon: <Icon name="workType" size={16} className="text-primary-600" />,
+      icon: <Icon name="workType" size={20} className="text-primary-600" />,
     };
   }
 
   if (pathname.startsWith('/author/')) {
     return {
       title: 'Profile',
-      icon: <Icon name="profile" size={20} className="text-primary-600" />,
+      icon: <Icon name="profile" size={24} className="text-primary-600" />,
     };
   }
 
@@ -368,18 +367,20 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
             {/* Page title - only on desktop */}
             {pageInfo && (
-              <div className="hidden tablet:!block">
-                <div className="flex items-center">
-                  {pageInfo.icon && <div className="mr-3">{pageInfo.icon}</div>}
+              <div className="hidden tablet:!flex items-center">
+                {pageInfo.icon && <div className="mr-4">{pageInfo.icon}</div>}
+                <div>
                   {pageInfo.title && (
-                    <h1 className="text-lg font-semibold text-gray-900 leading-tight">
+                    <h1 className="text-xl font-bold text-gray-900 leading-tight">
                       {pageInfo.title}
                     </h1>
                   )}
+                  {pageInfo.subtitle && (
+                    <p className="hidden wide:!block text-sm text-gray-700 leading-tight mt-0.5">
+                      {pageInfo.subtitle}
+                    </p>
+                  )}
                 </div>
-                {pageInfo.subtitle && (
-                  <p className="text-sm text-gray-600 leading-tight mt-1">{pageInfo.subtitle}</p>
-                )}
               </div>
             )}
           </div>
@@ -392,36 +393,30 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           {/* Right side - User controls */}
           <div className="flex items-center space-x-2">
             {/* Desktop user controls */}
-            <div className="hidden tablet:!flex items-center space-x-3">
+            <div className="hidden tablet:!flex items-center space-x-2">
               {/* Search bar */}
               {renderSearchbarButton()}
 
               {user && (
                 <>
-                  {/* Wallet icon */}
-                  <Tooltip content="Your ResearchCoin Wallet" position="bottom">
-                    <Link href="/researchcoin" className="flex items-center">
-                      <div className="flex items-center justify-center p-2.5 hover:bg-gray-100 rounded-md transition-colors">
-                        <ResearchCoinIcon outlined color="#676767" size={24} />
-                      </div>
-                    </Link>
-                  </Tooltip>
+                  <Link href="/researchcoin" className="flex items-center">
+                    <div className="flex items-center justify-center p-2.5 hover:bg-gray-100 rounded-md transition-colors">
+                      <Icon name="rscThin" size={28} className="text-gray-500" />
+                    </div>
+                  </Link>
 
-                  {/* Notification icon */}
-                  <Tooltip content="Notifications" position="bottom">
-                    <Link href="/notifications" className="flex items-center">
-                      <div className="flex items-center justify-center p-2.5 hover:bg-gray-100 rounded-md transition-colors relative">
-                        <Icon name="notification" size={24} className="text-gray-500" />
-                        {unreadCount > 0 && (
-                          <div className="absolute top-1 right-1 h-3 w-3 rounded-full bg-primary-600 text-white flex items-center justify-center">
-                            <span className="font-medium text-[9px]">
-                              {unreadCount > 9 ? '9+' : unreadCount}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </Link>
-                  </Tooltip>
+                  <Link href="/notifications" className="flex items-center">
+                    <div className="flex items-center justify-center p-2.5 hover:bg-gray-100 rounded-md transition-colors relative">
+                      <Icon name="notification" size={28} className="text-gray-500" />
+                      {unreadCount > 0 && (
+                        <div className="absolute top-1 -right-0 h-4 w-4 rounded-full bg-primary-600 text-white flex items-center justify-center">
+                          <span className="font-medium text-[9px]">
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </Link>
                 </>
               )}
 

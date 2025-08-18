@@ -10,6 +10,7 @@ interface Tab {
   highlight?: boolean;
   separator?: boolean;
   icon?: LucideIcon;
+  onClick?: () => void;
 }
 
 interface TabsProps {

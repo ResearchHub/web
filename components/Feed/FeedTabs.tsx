@@ -3,11 +3,12 @@
 import { FC } from 'react';
 import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
-import { Settings, ChevronLeft } from 'lucide-react';
+import { Settings, ChevronLeft, FlaskConical } from 'lucide-react';
 import { FeedTab } from '@/hooks/useFeed';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
+import { useRouter } from 'next/navigation';
 
 interface TabItem {
   id: string;
@@ -33,10 +34,15 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   isLoading,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const router = useRouter();
 
   const handleTabChange = (tabId: string) => {
     if (isCustomizing) return;
     onTabChange(tabId);
+  };
+
+  const handleV2Click = () => {
+    router.push('/feed');
   };
 
   const tooltipContent = (
@@ -71,10 +77,31 @@ export const FeedTabs: FC<FeedTabsProps> = ({
           </div>
         ) : (
           <>
+            {/* Create a modified tabs array with V2 option */}
             <Tabs
-              tabs={tabs}
+              tabs={[
+                ...tabs,
+                {
+                  id: 'v2',
+                  label: (
+                    <div className="flex items-center gap-2">
+                      <span>V2</span>
+                      <span className="px-1.5  text-[8px] font-bold bg-blue-100 text-blue-600 rounded-full uppercase">
+                        Beta
+                      </span>
+                    </div>
+                  ),
+                  onClick: handleV2Click,
+                },
+              ]}
               activeTab={activeTab}
-              onTabChange={handleTabChange}
+              onTabChange={(tabId) => {
+                if (tabId === 'v2') {
+                  handleV2Click();
+                } else {
+                  handleTabChange(tabId);
+                }
+              }}
               disabled={isLoading}
             />
             {onCustomizeChange && (
