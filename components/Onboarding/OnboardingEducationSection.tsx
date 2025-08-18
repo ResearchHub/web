@@ -26,9 +26,9 @@ export function OnboardingEducationSection({
 }: OnboardingEducationSectionProps) {
   // Update interface usage
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {education.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {education.map((edu, index) => (
             <OnboardingEducationCard
               key={`edu-${index}`}

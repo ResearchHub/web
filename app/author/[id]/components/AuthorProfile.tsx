@@ -252,15 +252,18 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         title="Edit Profile"
+        maxWidth="max-w-5xl"
         footer={
           <Button type="submit" form={formId} disabled={updateLoading} className="w-full">
             {updateLoading ? 'Saving...' : 'Save Changes'}
           </Button>
         }
       >
-        <div className="min-w-0  max-w-md w-full mx-auto">
-          <ProfileInformationForm onSubmit={handleProfileFormSubmit} formId={formId} />
-        </div>
+        <ProfileInformationForm
+          onSubmit={handleProfileFormSubmit}
+          formId={formId}
+          useAccordion={true}
+        />
       </BaseModal>
     </>
   );
