@@ -62,7 +62,7 @@ export const CommentReadOnly = ({
   content,
   contentFormat = 'TIPTAP',
   contentType,
-  maxLength = 300,
+  maxLength = 500,
   initiallyExpanded = false,
   showReadMoreButton = true,
   createdDate,

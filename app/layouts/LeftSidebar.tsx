@@ -9,8 +9,6 @@ import { PublishMenu } from './PublishMenu';
 import { Logo } from '@/components/ui/Logo';
 import Link from 'next/link';
 import { Icon } from '@/components/ui/icons';
-import { Switch } from '@/components/ui/Switch';
-import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 interface LeftSidebarProps {
   forceMinimize?: boolean;
@@ -18,7 +16,6 @@ interface LeftSidebarProps {
 
 export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false }) => {
   const pathname = usePathname();
-  const { showUSD, toggleCurrency } = useCurrencyPreference();
 
   const handleUnimplementedFeature = (featureName: string) => {
     toast(
@@ -71,29 +68,6 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false 
             onUnimplementedFeature={handleUnimplementedFeature}
             forceMinimize={forceMinimize}
           />
-        </div>
-      </div>
-
-      {/* Currency Toggle */}
-      <div
-        className={`px-4 py-3 border-t border-gray-200 ${forceMinimize ? '!px-2' : 'tablet:max-sidebar-compact:!px-2'}`}
-      >
-        <div
-          className={`flex items-center ${forceMinimize ? 'justify-center' : 'tablet:max-sidebar-compact:justify-center justify-between'}`}
-        >
-          <div className={forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}>
-            <div className="text-xs font-medium text-gray-900">Currency</div>
-            <div className="text-xs text-gray-500">Display format</div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className={`text-xs font-medium ${!showUSD ? 'text-gray-900' : 'text-gray-500'}`}>
-              RSC
-            </span>
-            <Switch checked={showUSD} onCheckedChange={toggleCurrency} variant="currency" />
-            <span className={`text-xs font-medium ${showUSD ? 'text-gray-900' : 'text-gray-500'}`}>
-              USD
-            </span>
-          </div>
         </div>
       </div>
 
