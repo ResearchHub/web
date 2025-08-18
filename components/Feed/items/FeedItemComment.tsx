@@ -7,7 +7,7 @@ import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { ContentType } from '@/types/work';
-import { Pen, Trash2, CheckCircle } from 'lucide-react';
+import { Pen, Trash2 } from 'lucide-react';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 import { Avatar } from '@/components/ui/Avatar';
@@ -105,27 +105,6 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   const relatedWork = entry.relatedWork;
   const commentPageUrl = href;
 
-  // Check if this is a peer review that has received tips from the ResearchHub Foundation
-  const hasFoundationTips =
-    isReview &&
-    entry.tips &&
-    entry.tips.some((tip) => {
-      const tipUserId = tip.user?.id;
-      const expectedUserId = 39602; // ResearchHub Foundation user ID
-      return tipUserId === expectedUserId;
-    });
-
-  // Debug logging
-  if (isReview) {
-    console.log('Peer review debug:', {
-      isReview,
-      hasTips: entry.tips && entry.tips.length > 0,
-      tipsCount: entry.tips?.length || 0,
-      tipEmails: entry.tips?.map((tip) => tip.user?.email) || [],
-      hasFoundationTips,
-    });
-  }
-
   const menuItems = [];
   if (showCreatorActions) {
     if (onEdit) {
@@ -172,23 +151,6 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
         {isReview && (
           <div className="flex items-center gap-2 mb-3">
             <ContentTypeBadge type="review" />
-            {hasFoundationTips && (
-              <Tooltip
-                content={
-                  <div className="flex items-center gap-2 text-left">
-                    <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
-                    <span>Reviewed and approved by the ResearchHub Editorial Team.</span>
-                  </div>
-                }
-                position="top"
-                width="w-85"
-              >
-                <div className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium gap-1.5 py-1 bg-green-50 text-green-700 border border-green-600">
-                  <CheckCircle className="text-green-600" size={16} />
-                  <span>Awarded</span>
-                </div>
-              </Tooltip>
-            )}
           </div>
         )}
 
