@@ -23,6 +23,7 @@ interface FeedTabsProps {
   onTabChange: (tab: string) => void;
   onCustomizeChange?: () => void;
   isLoading?: boolean;
+  isModerator?: boolean;
 }
 
 export const FeedTabs: FC<FeedTabsProps> = ({
@@ -32,6 +33,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   onTabChange,
   onCustomizeChange,
   isLoading,
+  isModerator = false,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const router = useRouter();
@@ -77,22 +79,26 @@ export const FeedTabs: FC<FeedTabsProps> = ({
           </div>
         ) : (
           <>
-            {/* Create a modified tabs array with V2 option */}
+            {/* Create a modified tabs array with V2 option for moderators only */}
             <Tabs
               tabs={[
                 ...tabs,
-                {
-                  id: 'v2',
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <span>V2</span>
-                      <span className="px-1.5  text-[8px] font-bold bg-blue-100 text-blue-600 rounded-full uppercase">
-                        Beta
-                      </span>
-                    </div>
-                  ),
-                  onClick: handleV2Click,
-                },
+                ...(isModerator
+                  ? [
+                      {
+                        id: 'v2',
+                        label: (
+                          <div className="flex items-center gap-2">
+                            <span>V2</span>
+                            <span className="px-1.5  text-[8px] font-bold bg-blue-100 text-blue-600 rounded-full uppercase">
+                              Beta
+                            </span>
+                          </div>
+                        ),
+                        onClick: handleV2Click,
+                      },
+                    ]
+                  : []),
               ]}
               activeTab={activeTab}
               onTabChange={(tabId) => {
