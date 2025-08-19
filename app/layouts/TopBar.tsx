@@ -8,6 +8,7 @@ import {
   ChartNoAxesColumnIncreasing,
   Search as SearchIcon,
   Shield,
+  MessageCircleQuestion,
 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { SearchModal } from '@/components/Search/SearchModal';
@@ -22,6 +23,7 @@ import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
+import { faCommentsQuestion } from '@fortawesome/pro-light-svg-icons';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { colors } from '@/app/styles/colors';
 
@@ -69,7 +71,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Notifications',
       subtitle: 'Stay updated with your latest activity',
-      icon: <Icon name="notification" size={24} className="text-primary-600" />,
+      icon: <Icon name="notification" size={24} className="text-gray-900" />,
     };
   }
 
@@ -85,7 +87,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Submit your paper',
       subtitle: 'Submit your original work as a preprint or publication',
-      icon: <Icon name="submit2" size={24} className="text-primary-600" />,
+      icon: <Icon name="submit2" size={24} className="text-gray-900" />,
     };
   }
 
@@ -93,7 +95,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Create Bounty',
       subtitle: 'Incentivize the research economy',
-      icon: <Icon name="earn1" size={24} className="text-primary-600" />,
+      icon: <Icon name="earn1" size={24} className="text-gray-900" />,
     };
   }
 
@@ -101,7 +103,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Bounties',
       subtitle: 'Earn RSC for completing peer reviews',
-      icon: <Icon name="earn1" size={24} className="text-primary-600" />,
+      icon: <Icon name="earn1" size={24} className="text-gray-900" />,
     };
   }
 
@@ -109,7 +111,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Earn',
       subtitle: 'Earn RSC for completing peer reviews',
-      icon: <Icon name="earn1" size={24} className="text-primary-600" />,
+      icon: <Icon name="earn1" size={24} className="text-gray-900" />,
     };
   }
 
@@ -117,7 +119,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Funding',
       subtitle: 'Browse funding opportunities and grants',
-      icon: <Icon name="fund" size={24} className="text-primary-600" />,
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
 
@@ -125,7 +127,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'RH Journal',
       subtitle: 'Read and publish peer-reviewed research',
-      icon: <Icon name="rhJournal2" size={24} className="text-primary-600" />,
+      icon: <Icon name="rhJournal2" size={24} className="text-gray-900" />,
     };
   }
 
@@ -141,7 +143,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Moderation Dashboard',
       subtitle: 'Review and moderate community content',
-      icon: <Shield size={24} className="text-primary-600" />,
+      icon: <Shield size={24} className="text-gray-900" />,
     };
   }
 
@@ -150,7 +152,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Research proposals',
       subtitle: 'Support research projects seeking funding',
-      icon: <Icon name="createBounty" size={24} className="text-primary-600" />,
+      icon: <Icon name="createBounty" size={24} className="text-gray-900" />,
     };
   }
 
@@ -159,7 +161,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Funding opportunities',
       subtitle: 'Explore available funding opportunities',
-      icon: <Icon name="fund" size={24} className="text-primary-600" />,
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
 
@@ -167,7 +169,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Funding',
       subtitle: 'Fund breakthrough research shaping tomorrow',
-      icon: <Icon name="fund" size={24} className="text-primary-600" />,
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
 
@@ -175,7 +177,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/grant')) {
     return {
       title: 'Grant',
-      icon: <Icon name="fund" size={24} className="text-primary-600" />,
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
 
@@ -183,21 +185,28 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/paper/')) {
     return {
       title: 'Paper',
-      icon: <Icon name="workType" size={20} className="text-primary-600" />,
+      icon: <Icon name="workType" size={20} className="text-gray-900" />,
     };
   }
 
   if (pathname.startsWith('/post/')) {
     return {
       title: 'Paper',
-      icon: <Icon name="workType" size={20} className="text-primary-600" />,
+      icon: <Icon name="workType" size={20} className="text-gray-900" />,
+    };
+  }
+
+  if (pathname.startsWith('/question/')) {
+    return {
+      title: 'Question',
+      icon: <FontAwesomeIcon icon={faCommentsQuestion} fontSize={24} className="text-gray-900" />,
     };
   }
 
   if (pathname.startsWith('/author/')) {
     return {
       title: 'Profile',
-      icon: <Icon name="profile" size={24} className="text-primary-600" />,
+      icon: <Icon name="profile" size={24} className="text-gray-900" />,
     };
   }
 
@@ -241,7 +250,7 @@ const useSmartBack = () => {
       return;
     }
 
-    const specialRoutes = ['/fund/', '/post/', '/paper/', '/author/'];
+    const specialRoutes = ['/fund/', '/post/', '/paper/', '/author/', '/question/'];
     const isSpecialRoute = specialRoutes.some((route) => pathname.startsWith(route));
 
     if (isSpecialRoute) {

@@ -31,7 +31,7 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
       <SupportersSection tips={work.tips || []} documentId={work.id} />
       <TopicsSection topics={metadata.topics || []} />
       {work.doi && <DOISection doi={work.doi} />}
-      <LicenseSection license={work.license} />
+      {work.postType !== 'QUESTION' && <LicenseSection license={work.license} />}
       <FormatsSection formats={work.formats} />
     </div>
   );
