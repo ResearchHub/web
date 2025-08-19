@@ -87,7 +87,7 @@ export function RSCPriceSection() {
                   className="hover:shadow-lg flex items-center space-x-2"
                   onClick={() =>
                     window.open(
-                      'https://app.uniswap.org/swap?inputCurrency=ETH&outputCurrency=0xd101dcc414f310268c37eeb4cd376ccfa507f571',
+                      'https://aerodrome.finance/swap?from=eth&to=0xfbb75a59193a3525a8825bebe7d4b56899e2f7e1&chain0=8453&chain1=8453',
                       '_blank'
                     )
                   }

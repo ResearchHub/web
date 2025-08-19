@@ -75,10 +75,10 @@ export function StatsSection() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-          <StatItem value="$650K" label="awarded in research funding" delay={300} />
+          <StatItem value="$1.2M" label="awarded in research funding" delay={300} />
           <StatItem value="16" label="experiments funded" delay={100} />
           <StatItem value="$1M" label="earned by peer reviewers" delay={200} />
-          <StatItem value="6.7K" label="peer reviews completed" delay={400} />
+          <StatItem value="8.5K" label="peer reviews completed" delay={400} />
         </div>
       </div>
     </section>
