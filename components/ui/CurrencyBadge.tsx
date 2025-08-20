@@ -8,6 +8,8 @@ import { Tooltip } from './Tooltip';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatRSC } from '@/utils/number';
 import Icon from './icons/Icon';
+import { Bounty } from '@/types/bounty';
+import { getFixedDisplayAmount } from '@/utils/bounty';
 
 interface CurrencyBadgeProps {
   amount: number;
@@ -38,6 +40,10 @@ interface CurrencyBadgeProps {
   hideUSDText?: boolean;
   /** Custom icon size in pixels. Overrides the default size calculation. */
   iconSize?: number;
+  /** Optional bounty object to check for fixed display amount */
+  bounty?: Bounty;
+  /** Optional feed author to check for fixed display amount */
+  feedAuthor?: any;
 }
 
 export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
@@ -57,13 +63,41 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
   currency = 'RSC',
   hideUSDText = true,
   iconSize,
+  bounty,
+  feedAuthor,
 }) => {
   const { exchangeRate, isLoading } = useExchangeRate();
   const isUSD = currency === 'USD';
 
-  // Convert amount based on desired currency display
-  // If currency is USD but amount is in RSC, convert it
-  const displayValue = isUSD && exchangeRate > 0 ? Math.round(amount * exchangeRate) : amount;
+  // Check if this bounty should display a fixed amount
+  const fixedAmount = bounty
+    ? getFixedDisplayAmount(bounty, feedAuthor, currency, exchangeRate)
+    : null;
+
+  // Debug logging in development
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost' && bounty) {
+    console.log('CurrencyBadge display check:', {
+      bountyId: bounty?.id,
+      originalAmount: amount,
+      fixedAmount,
+      isUSD,
+      exchangeRate,
+      finalDisplayValue:
+        fixedAmount !== null
+          ? fixedAmount
+          : isUSD && exchangeRate > 0
+            ? Math.round(amount * exchangeRate)
+            : amount,
+    });
+  }
+
+  // Use fixed amount if available, otherwise convert amount based on desired currency display
+  const displayValue =
+    fixedAmount !== null
+      ? fixedAmount
+      : isUSD && exchangeRate > 0
+        ? Math.round(amount * exchangeRate)
+        : amount;
 
   // Custom size classes that override Badge's default sizes
   const sizeClasses = {
@@ -149,24 +183,25 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
     }
 
     if (isUSD) {
-      // Main display is USD, tooltip shows original RSC amount
+      // Main display is USD, tooltip shows RSC equivalent of the display value
+      const rscEquivalent = displayValue / exchangeRate;
       return (
         <div className="p-1">
           <div className="font-semibold text-orange-700 mb-0.5 flex items-center gap-1">
             <ResearchCoinIcon size={14} />
-            <span>{Math.round(amount).toLocaleString()} RSC</span>
+            <span>{Math.round(rscEquivalent).toLocaleString()} RSC</span>
           </div>
           <div className="text-gray-700 text-xs">≈ ${formatNumber(displayValue, shorten)} USD</div>
         </div>
       );
     } else {
       // Main display is RSC, tooltip shows RSC and USD equivalent
-      const usdEquivalent = amount * exchangeRate; // Assumes exchangeRate is USD_PER_RSC
+      const usdEquivalent = displayValue * exchangeRate; // Use displayValue instead of amount
       return (
         <div className="p-1">
           <div className="font-semibold text-orange-700 mb-0.5 flex items-center gap-1">
             <ResearchCoinIcon size={14} />
-            <span>{Math.round(amount).toLocaleString()} RSC</span>
+            <span>{Math.round(displayValue).toLocaleString()} RSC</span>
           </div>
           <div className="text-gray-700 text-xs">≈ ${formatNumber(usdEquivalent, shorten)} USD</div>
         </div>

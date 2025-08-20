@@ -27,6 +27,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { dedupeAvatars } from '@/utils/avatarUtil';
 import { cn } from '@/utils/styles';
+import { getFixedDisplayAmount } from '@/utils/bounty';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -172,6 +173,7 @@ interface FeedItemActionsProps {
   bounties?: Bounty[]; // Updated to use imported Bounty type
   tips?: Tip[]; // Added tips prop
   awardedBountyAmount?: number; // Add awarded bounty amount
+  feedAuthor?: any; // Optional feed author for bounty amount calculations
 }
 
 // Define interface for avatar items used in local state
@@ -202,6 +204,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   bounties = [],
   tips = [],
   awardedBountyAmount = 0, // Destructure awardedBountyAmount with default value
+  feedAuthor,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser(); // Get current user
@@ -421,12 +424,89 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const hasOpenBounties = bounties && bounties.filter((b) => b.status === 'OPEN').length > 0;
 
   // Calculate total bounty amount for open bounties
-  const totalBountyAmount = bounties
-    .filter((b) => b.status === 'OPEN')
-    .reduce((total, bounty) => {
-      const amount = parseFloat(bounty.totalAmount || bounty.amount || '0');
-      return total + amount;
-    }, 0);
+  const openBounties = bounties.filter((b) => b.status === 'OPEN');
+
+  // Calculate total bounty amount, using fixed amounts for ResearchHub Foundation bounties
+  const totalBountyAmount = openBounties.reduce((total, bounty) => {
+    // Check if this specific bounty should display a fixed amount
+    let fixedAmount = getFixedDisplayAmount(
+      bounty,
+      feedAuthor,
+      showUSD ? 'USD' : 'RSC',
+      exchangeRate
+    );
+
+    // Only apply fixed amount logic if getFixedDisplayAmount returns a value
+    // Don't apply to all peer review bounties since not all are from ResearchHub Foundation
+
+    const amount =
+      fixedAmount !== null ? fixedAmount : parseFloat(bounty.totalAmount || bounty.amount || '0');
+    return total + amount;
+  }, 0);
+
+  // Debug logging in development
+  if (
+    typeof window !== 'undefined' &&
+    window.location.hostname === 'localhost' &&
+    openBounties.length > 0
+  ) {
+    console.log('FeedItemActions bounty calculation:', {
+      openBountiesCount: openBounties.length,
+      feedAuthor,
+      bounties: openBounties.map((bounty) => ({
+        id: bounty.id,
+        totalAmount: bounty.totalAmount,
+        amount: bounty.amount,
+        createdBy: bounty.createdBy,
+        fixedAmount: getFixedDisplayAmount(
+          bounty,
+          feedAuthor,
+          showUSD ? 'USD' : 'RSC',
+          exchangeRate
+        ),
+      })),
+      totalBountyAmount,
+    });
+  }
+
+  // Debug logging in development
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    console.log('FeedItemActions debug:', {
+      openBounties: openBounties.map((b) => ({
+        id: b.id,
+        amount: b.amount,
+        totalAmount: b.totalAmount,
+        bountyType: b.bountyType,
+        status: b.status,
+        createdBy: b.createdBy,
+        fixedAmount: getFixedDisplayAmount(b, feedAuthor, showUSD ? 'USD' : 'RSC', exchangeRate),
+        finalAmount: (() => {
+          let fixedAmount = getFixedDisplayAmount(
+            b,
+            feedAuthor,
+            showUSD ? 'USD' : 'RSC',
+            exchangeRate
+          );
+          if (fixedAmount === null && b.bountyType === 'REVIEW') {
+            if (showUSD) {
+              fixedAmount = 150;
+            } else {
+              fixedAmount = exchangeRate > 0 ? Math.round(150 / exchangeRate) : 150;
+            }
+          }
+          return fixedAmount !== null ? fixedAmount : parseFloat(b.totalAmount || b.amount || '0');
+        })(),
+      })),
+      feedAuthor: {
+        id: feedAuthor?.id,
+        email: feedAuthor?.email,
+        fullName: feedAuthor?.fullName,
+      },
+      showUSD,
+      exchangeRate,
+      totalBountyAmount,
+    });
+  }
 
   // Calculate total earned amount (Tips + Awarded Bounty)
   const totalEarnedAmount = localTotalTipAmount + awardedBountyAmount;
@@ -539,6 +619,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                           showExchangeRate={false}
                           showIcon={true}
                           showText={false}
+                          bounty={openBounties[0]}
+                          feedAuthor={feedAuthor}
                         />
                         .
                       </div>
@@ -569,6 +651,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                       showExchangeRate={false}
                       showIcon={true}
                       showText={false}
+                      bounty={openBounties[0]}
+                      feedAuthor={feedAuthor}
                     />
                   }
                   showTooltip={false}
@@ -603,6 +687,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     showExchangeRate={false}
                     showIcon={true}
                     showText={false}
+                    bounty={openBounties[0]}
+                    feedAuthor={feedAuthor}
                   />
                 }
                 showTooltip={false}

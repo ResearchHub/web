@@ -5,6 +5,8 @@ import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Check } from 'lucide-react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
+import { Bounty } from '@/types/bounty';
+
 interface BountyMetadataLineProps {
   amount: number;
   expirationDate?: string;
@@ -13,6 +15,8 @@ interface BountyMetadataLineProps {
   className?: string;
   solutionsCount?: number;
   showDeadline?: boolean;
+  bounty?: Bounty;
+  feedAuthor?: any;
 }
 
 export const BountyMetadataLine = ({
@@ -22,6 +26,8 @@ export const BountyMetadataLine = ({
   expiringSoon,
   className = '',
   showDeadline = true,
+  bounty,
+  feedAuthor,
 }: BountyMetadataLineProps) => {
   const { showUSD } = useCurrencyPreference();
 
@@ -44,6 +50,8 @@ export const BountyMetadataLine = ({
             size="sm"
             variant={isOpen ? 'badge' : 'disabled'}
             currency={showUSD ? 'USD' : 'RSC'}
+            bounty={bounty}
+            feedAuthor={feedAuthor}
           />
         </div>
 
