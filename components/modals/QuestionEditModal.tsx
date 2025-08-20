@@ -123,6 +123,7 @@ export const QuestionEditModal = ({ isOpen, onClose, work }: QuestionEditModalPr
           <label className="block text-sm font-medium text-gray-700 mb-1">Details</label>
           <SessionAwareCommentEditor
             initialContent={work.previewContent || ''}
+            format="html"
             onSubmit={async () => {}}
             placeholder="Describe your question..."
             compactToolbar={true}

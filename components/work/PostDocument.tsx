@@ -10,6 +10,8 @@ import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 import { QuestionEditModal } from '@/components/modals/QuestionEditModal';
+import TipTapRenderer from '@/components/Comment/lib/TipTapRenderer';
+import { htmlToTipTapJSON } from '@/components/Comment/lib/htmlToTipTap';
 
 interface PostDocumentProps {
   work: Work;
@@ -24,6 +26,7 @@ export const PostDocument = ({
   content,
   defaultTab = 'paper',
 }: PostDocumentProps) => {
+  console.log('work', work);
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   // Handle tab change
@@ -44,7 +47,13 @@ export const PostDocument = ({
         return (
           <div className="mt-6">
             {work.previewContent ? (
-              <PostBlockEditor content={work.previewContent} editable={false} />
+              work.postType === 'QUESTION' ? (
+                <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+                  <TipTapRenderer content={htmlToTipTapJSON(work.previewContent)} debug={false} />
+                </div>
+              ) : (
+                <PostBlockEditor content={work.previewContent} editable={false} />
+              )
             ) : content ? (
               <div
                 className="prose max-w-none bg-white rounded-lg shadow-sm border p-6 mb-6"
