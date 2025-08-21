@@ -168,7 +168,10 @@ export function formatTransaction(
 
   if (showUSD && exchangeRate > 0) {
     const usdAmount = absAmount * exchangeRate;
-    primaryAmount = `${isPositive ? '+' : '-'}$${usdAmount.toFixed(2)}`;
+    primaryAmount = `${isPositive ? '+' : '-'}$${usdAmount.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
     secondaryAmount = `${formatRSC({ amount: absAmount })} RSC`;
   } else {
     primaryAmount = `${isPositive ? '+' : '-'}${formatRSC({ amount: absAmount })} RSC`;

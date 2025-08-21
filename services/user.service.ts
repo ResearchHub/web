@@ -101,4 +101,21 @@ export class UserService {
       throw error;
     }
   }
+
+  /**
+   * Check user permissions using the gatekeeper system
+   * @param application The application name to check permissions for
+   * @returns Boolean indicating if the user has access to the application
+   */
+  static async gatekeeper(application: string): Promise<boolean> {
+    try {
+      const response = await ApiClient.get(
+        `/api/gatekeeper/check_current_user/?type=${application}`
+      );
+      return Boolean(response);
+    } catch (error) {
+      console.error(`Error checking gatekeeper permissions for ${application}:`, error);
+      return false;
+    }
+  }
 }

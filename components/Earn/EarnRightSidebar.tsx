@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
 import {
   Award,
   BookOpen,
@@ -11,9 +10,14 @@ import {
   Coins,
   HelpCircle,
   Route,
+  Feather,
+  Users,
+  ArrowUpRightSquare,
 } from 'lucide-react';
 import { CollapsibleItem, SimpleCollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { useRouter } from 'next/navigation';
+import { Icon } from '@/components/ui/icons/Icon';
+import { RightSidebarBanner } from '@/components/ui/RightSidebarBanner';
 
 export const EarnRightSidebar = () => {
   const router = useRouter();
@@ -31,23 +35,69 @@ export const EarnRightSidebar = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-blue-50 rounded-lg shadow-sm border border-blue-100 p-6">
-        <h3 className="text-lg font-semibold mb-4">Create a Bounty</h3>
-        <p className="text-gray-600 mb-2">
-          Experts can accelerate your research – use their help with:
-        </p>
+      <RightSidebarBanner
+        title="Create a Bounty."
+        description="Incentivize experts to help with your research needs."
+        bulletPoints={['Peer reviews', 'Statistical analysis', 'Methods checks']}
+        buttonText="Create Bounty"
+        buttonLink="/bounty/create"
+        iconName="earn1"
+        iconColor="#2563eb"
+        iconSize={20}
+        variant="blue"
+      />
 
-        <p className="text-gray-600 mb-4 italic font-medium">
-          {' '}
-          Statistical analysis, methods checks, peer reviews, and more
-        </p>
-        <Button className="w-full" onClick={handleCreateBounty}>
-          Create Bounty
-        </Button>
+      {/* Resources */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-3 text-gray-900">Resources</h3>
+        <div className="space-y-3">
+          <a
+            href="https://blog.researchhub.foundation/peer-reviewing-on-researchhub/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between text-sm text-primary-600 hover:text-primary-700 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Users size={16} className="text-primary-600" />
+              <span>Peer Review Walkthrough</span>
+            </div>
+            <div className="ml-4">
+              <ExternalLink size={14} className="text-gray-400" />
+            </div>
+          </a>
+          <a
+            href="https://drive.google.com/file/d/1t7NpL39ghnBY9ImWjuunbc6gzmzrhqUt/view?ref=blog.researchhub.foundation"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between text-sm text-primary-600 hover:text-primary-700 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Feather size={16} className="text-primary-600" />
+              <span>Peer Review Guidelines (Preprint)</span>
+            </div>
+            <div className="ml-4">
+              <ExternalLink size={14} className="text-gray-400" />
+            </div>
+          </a>
+          <a
+            href="https://airtable.com/apptLQP8XMy1kaiID/paguOk9TtZktFk5WQ/form"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between text-sm text-primary-600 hover:text-primary-700 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Award size={16} className="text-primary-600" />
+              <span>Request a Peer Review Bounty</span>
+            </div>
+            <div className="ml-4">
+              <ExternalLink size={14} className="text-gray-400" />
+            </div>
+          </a>
+        </div>
       </div>
 
       <div>
-        <h3 className="text-md font-semibold mb-4">How bounties works</h3>
+        <h3 className="text-md font-semibold mb-4">How Bounties Work</h3>
         <ol className="list-none space-y-3 text-gray-600 mb-4 text-sm">
           <li className="flex">
             <span className="mr-3 font-medium">1.</span>
@@ -63,48 +113,6 @@ export const EarnRightSidebar = () => {
           </li>
         </ol>
       </div>
-
-      <SimpleCollapsibleSection title="About ResearchCoin">
-        <div className="text-gray-600 text-sm space-y-2">
-          <CollapsibleItem
-            title="What is ResearchCoin (RSC)?"
-            icon={<Coins className="w-4 h-4" strokeWidth={2} />}
-            isOpen={openSections.includes('what-is-rsc')}
-            onToggle={() => toggleSection('what-is-rsc')}
-          >
-            ResearchCoin (RSC) is a digital currency that incentivizes good science by allowing
-            users to create grants, reward quality contributions, and fund open science initiatives
-            on ResearchHub.
-          </CollapsibleItem>
-
-          <CollapsibleItem
-            title="Why RSC?"
-            icon={<HelpCircle className="w-4 h-4" strokeWidth={2} />}
-            isOpen={openSections.includes('why-rsc')}
-            onToggle={() => toggleSection('why-rsc')}
-          >
-            RSC creates a transparent, merit-based ecosystem where researchers can be directly
-            rewarded for their contributions to science. It helps bridge the gap between valuable
-            research work and financial recognition.
-          </CollapsibleItem>
-
-          <CollapsibleItem
-            title="Getting Started with RSC"
-            icon={<Route className="w-4 h-4" strokeWidth={2} />}
-            isOpen={openSections.includes('getting-started')}
-            onToggle={() => toggleSection('getting-started')}
-          >
-            To begin with ResearchCoin:
-            <ul className="mt-2 space-y-1.5">
-              <li>1. Create a ResearchHub account</li>
-              <li>2. Verify your academic credentials</li>
-              <li>3. Start engaging with content through reviews and discussions</li>
-              <li>4. Earn your first RSC through participation</li>
-              <li>5. Explore rewards and funding opportunities</li>
-            </ul>
-          </CollapsibleItem>
-        </div>
-      </SimpleCollapsibleSection>
     </div>
   );
 };

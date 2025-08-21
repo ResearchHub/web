@@ -5,6 +5,8 @@ import type {
   ReinstateUserParams,
   ReinstateUserResponse,
   ReinstateUserApiResponse,
+  MarkProbableSpammerParams,
+  MarkProbableSpammerResponse,
 } from '@/types/moderation';
 import { transformReinstateUserResponse } from '@/types/moderation';
 
@@ -63,6 +65,25 @@ export class UserModerationService {
     } catch (error) {
       console.error(`Error reinstating user ${authorId}:`, error);
       throw new UserModerationError('Failed to reinstate user. Please try again.', error);
+    }
+  }
+
+  /**
+   * Flags a user as probable spammer
+   * @param authorId - The author profile ID of the user to flag
+   * @returns Promise with confirmation message
+   */
+  static async markProbableSpammer(authorId: string): Promise<MarkProbableSpammerResponse> {
+    try {
+      const params: MarkProbableSpammerParams = { authorId };
+      const response = await ApiClient.post<MarkProbableSpammerResponse>(
+        `${this.BASE_PATH}/mark_probable_spammer/`,
+        params
+      );
+      return response;
+    } catch (error) {
+      console.error(`Error flagging user ${authorId} as probable spammer:`, error);
+      throw new UserModerationError('Failed to flag user as probable spammer.', error);
     }
   }
 }

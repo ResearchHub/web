@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TopicAndJournalBadge } from '../ui/TopicAndJournalBadge';
 import { Button } from '../ui/Button';
-import { Check } from 'lucide-react';
 import { Feather, Users, ArrowUpRightSquare, Clock, FileText, Unlock } from 'lucide-react';
 import { editors, HUBS } from './lib/journalConstants';
 import { getHubSlug } from './lib/hubUtils';
@@ -12,6 +11,7 @@ import { EditorCard } from './about/EditorCard';
 import { CollapsibleItem } from '@/components/ui/CollapsibleSection';
 import { Icon } from '../ui/icons/Icon';
 import { RHJBanner } from './RHJBanner';
+import { RightSidebarBanner } from '@/components/ui/RightSidebarBanner';
 
 interface RHJRightSidebarProps {
   showBanner?: boolean;
@@ -116,14 +116,19 @@ export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
   };
 
   return (
-    <aside className="w-full max-w-xs space-y-6 p-4">
+    <div className="space-y-6">
       {/* Submit Button and Key Features Banner */}
       {showBanner && (
-        <RHJBanner
-          features={keyFeatures}
-          variant="default"
+        <RightSidebarBanner
           title="Publish Faster."
+          description="Where fast publishing meets open science."
+          bulletPoints={['14 days to peer review', 'Immediate preprints', 'Open access by default']}
           buttonText="Submit Your Manuscript"
+          buttonLink="/paper/create"
+          iconName="rhJournal2"
+          iconColor="#2563eb"
+          iconSize={20}
+          variant="blue"
         />
       )}
 
@@ -163,28 +168,31 @@ export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
         )}
       </div>
 
-      {/* Quick Links */}
+      {/* Resources */}
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-gray-800">Quick Links</h3>
-        <ul className="space-y-2">
+        <h3 className="text-lg font-semibold text-gray-800">Resources</h3>
+        <div className="space-y-3">
           {quickLinks.map((link, index) => {
             const IconComponent = link.icon;
             return (
-              <li key={index}>
-                <a
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 text-sm text-blue-600 hover:underline"
-                >
-                  <IconComponent className="w-4 h-4" />
+              <a
+                key={index}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between text-sm text-primary-600 hover:text-primary-700 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <IconComponent size={16} className="text-primary-600" />
                   <span>{link.text}</span>
-                  <ArrowUpRightSquare className="w-3 h-3 text-gray-400 ml-1" />
-                </a>
-              </li>
+                </div>
+                <div className="ml-4">
+                  <ArrowUpRightSquare size={14} className="text-gray-400" />
+                </div>
+              </a>
             );
           })}
-        </ul>
+        </div>
       </div>
 
       {/* FAQ Section */}
@@ -203,6 +211,6 @@ export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
           ))}
         </div>
       </div>
-    </aside>
+    </div>
   );
 }

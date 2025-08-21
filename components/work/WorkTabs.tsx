@@ -158,7 +158,7 @@ export const WorkTabs = ({
                 : 'bg-gray-100 text-gray-600'
             }`}
           >
-            {metadata.metrics.comments}
+            {metadata.metrics.conversationComments || 0}
           </span>
         </div>
       ),
@@ -182,7 +182,7 @@ export const WorkTabs = ({
           >
             {contentType === 'grant'
               ? work.note?.post?.grant?.applicants?.length || 0
-              : metadata.metrics.reviews}
+              : metadata.metrics.reviewComments || 0}
           </span>
         </div>
       ),
@@ -208,7 +208,7 @@ export const WorkTabs = ({
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  {metadata.openBounties || 0}
+                  {metadata.metrics.bountyComments || 0}
                 </span>
               </div>
             ),
