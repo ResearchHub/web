@@ -205,7 +205,7 @@ export const WorkTabs = ({
                 >
                   {contentType === 'grant'
                     ? work.note?.post?.grant?.applicants?.length || 0
-                    : metadata.metrics.reviews}
+                    : metadata.metrics.reviewComments || 0}
                 </span>
               </div>
             ),

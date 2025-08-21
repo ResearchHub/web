@@ -23,7 +23,7 @@ const PUBLISH_MENU_SECTIONS = [
     items: [
       {
         id: 'submit-paper',
-        title: 'Get published',
+        title: 'Publish manuscript',
         description: 'Submit a manuscript as a preprint or publication',
         icon: <Icon name="submit1" size={24} color="#2563eb" />,
         action: 'navigate',
