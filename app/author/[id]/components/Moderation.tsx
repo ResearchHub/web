@@ -73,48 +73,49 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
     }
   };
 
-  const handleBanUser = async () => {
+  const handleBanUser = () => {
     setIsMenuOpen(false);
 
-    try {
-      await suspendUser(authorId.toString());
-      toast.success('User has been suspended successfully');
-      // Refresh both author info and moderation details to show updated status
-      await Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
-    } catch (error) {
-      console.error('Failed to suspend user:', error);
-      toast.error('Failed to suspend user. Please try again.');
-      // Don't re-throw as we've handled the error with user feedback
-    }
+    suspendUser(authorId.toString())
+      .then(() => {
+        toast.success('User has been suspended successfully');
+        // Refresh both author info and moderation details to show updated status
+        return Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
+      })
+      .catch((error) => {
+        console.error('Failed to suspend user:', error);
+        toast.error('Failed to suspend user. Please try again.');
+      });
   };
 
-  const handleReinstateUser = async () => {
+  const handleReinstateUser = () => {
     setIsMenuOpen(false);
 
-    try {
-      await reinstateUser(authorId.toString());
-      toast.success('User has been reinstated successfully');
-      // Refresh both author info and moderation details to show updated status
-      await Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
-    } catch (error) {
-      console.error('Failed to reinstate user:', error);
-      toast.error('Failed to reinstate user. Please try again.');
-      // Don't re-throw as we've handled the error with user feedback
-    }
+    reinstateUser(authorId.toString())
+      .then(() => {
+        toast.success('User has been reinstated successfully');
+        // Refresh both author info and moderation details to show updated status
+        return Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
+      })
+      .catch((error) => {
+        console.error('Failed to reinstate user:', error);
+        toast.error('Failed to reinstate user. Please try again.');
+      });
   };
 
-  const handleFlagUser = async () => {
+  const handleFlagUser = () => {
     setIsMenuOpen(false);
 
-    try {
-      await markProbableSpammer(authorId.toString());
-      toast.success('User flagged as probable spammer');
-      // Refresh both author info and moderation details to show updated status
-      await Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
-    } catch (error) {
-      console.error('Failed to flag user:', error);
-      toast.error('Failed to flag user. Please try again.');
-    }
+    markProbableSpammer(authorId.toString())
+      .then(() => {
+        toast.success('User flagged as probable spammer');
+        // Refresh both author info and moderation details to show updated status
+        return Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
+      })
+      .catch((error) => {
+        console.error('Failed to flag user:', error);
+        toast.error('Failed to flag user. Please try again.');
+      });
   };
 
   const moderationMenuItems: ModerationMenuItem[] = [
