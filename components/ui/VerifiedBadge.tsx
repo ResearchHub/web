@@ -3,7 +3,6 @@ import { faBadgeCheck } from '@fortawesome/pro-solid-svg-icons';
 import clsx from 'clsx';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useVerification } from '@/contexts/VerificationContext';
-import { Button } from '@/components/ui/Button';
 
 interface VerifiedBadgeProps {
   size?: 'xs' | 'sm' | 'md' | 'lg';
@@ -63,10 +62,14 @@ export function VerifiedBadge({
       </div>
       <div className="text-left flex-1">
         <div className="font-semibold text-gray-900  text-base">Verified Profile</div>
-        <div className="text-sm text-gray-600 mb-2">This user has verified their identity</div>
-        <Button onClick={handleLearnMoreClick} variant="default" size="sm" className="mt-1">
+        <div className="text-sm text-gray-600 mb-0">This user has verified their identity</div>
+        <a
+          href="#"
+          onClick={handleLearnMoreClick}
+          className="inline-block mt-1 text-sm text-blue-600 hover:text-blue-700 underline"
+        >
           Learn more about verification
-        </Button>
+        </a>
       </div>
     </div>
   );
