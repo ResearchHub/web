@@ -791,13 +791,20 @@ export const transformCommentToFeedItem = (
   contentType: ContentType,
   relatedDocument?: Work
 ): FeedEntry => {
+  // The structure of the createdBy property needs to include user as a sub-property and authorProfile on higher level to
+  // be compatible with the rest of the feed items.
+  const createdByAuthorProfile = {
+    ...comment.createdBy.authorProfile,
+    user: { ...comment.createdBy },
+  };
+
   // Create a FeedCommentContent object from the comment
   const commentContent: FeedCommentContent = {
     id: comment.id,
     contentType: 'COMMENT',
     createdDate: comment.createdDate,
     updatedDate: comment.updatedDate,
-    createdBy: comment.createdBy.authorProfile!, // Add non-null assertion since we know it exists
+    createdBy: createdByAuthorProfile as AuthorProfile,
     isRemoved: comment.isRemoved,
     comment: {
       id: comment.id,

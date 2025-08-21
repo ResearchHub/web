@@ -15,6 +15,7 @@ import { AuthorBadge } from '@/components/ui/AuthorBadge';
 import { Work } from '@/types/work';
 import { TrendingUp } from 'lucide-react';
 import { ImpactScoreTooltip } from '@/components/tooltips/ImpactScoreTooltip';
+import { User } from '@/types/user';
 
 interface Contributor {
   profileImage?: string;
@@ -28,6 +29,7 @@ interface FeedItemHeaderProps {
   className?: string;
   size?: 'xs' | 'sm' | 'md';
   author?: AuthorProfile;
+  user?: User; // Direct user object for verified badge
   authors?: Array<{ name: string }>; // New prop for multiple authors
   actionText?: string;
   source?: string; // Source name (e.g., "bioRxiv")
@@ -50,6 +52,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   className,
   size = 'sm',
   author,
+  user,
   authors,
   actionText,
   source,
@@ -131,7 +134,12 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
                 ) : (
                   <span className="font-semibold">{displayAuthor.fullName}</span>
                 )}
-                {displayAuthor.user?.isVerified && <VerifiedBadge size="sm" />}
+                {/* Show verified badge if user is verified - check both direct user prop and author */}
+                {(user?.isVerified ||
+                  displayAuthor?.isVerified ||
+                  displayAuthor?.user?.isVerified) && (
+                  <VerifiedBadge size="sm" showTooltip={true} />
+                )}
                 {/* Show AuthorBadge with priority over EditorBadge - only if not hidden */}
                 {!hideAuthorBadge && isAuthorOfWork && (
                   <div className="flex items-center px-1">
