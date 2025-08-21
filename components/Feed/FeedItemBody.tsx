@@ -3,6 +3,7 @@
 import { FC, useState } from 'react';
 import { BaseFeedContent, Content, FeedEntry } from '@/types/feed';
 import { Bounty } from '@/types/bounty';
+import { getFixedDisplayAmount } from '@/utils/bounty';
 import { Work, WorkType } from '@/types/work';
 import { Button } from '@/components/ui/Button';
 import { ChevronDown } from 'lucide-react';
@@ -13,6 +14,8 @@ import { Journal } from '@/types/journal';
 import { useRouter } from 'next/navigation';
 import { ExpandableContent } from '@/components/Feed/shared/ExpandableContent';
 import { Post } from '@/types/note';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 
 // Type guards to check content type
 const isBounty = (content: Content): content is Bounty & Partial<BaseFeedContent> => {
@@ -84,10 +87,25 @@ export const FeedItemBody: FC<FeedItemBodyProps> = ({
   };
 
   const renderBounty = (bounty: Bounty, isExpanded: boolean, onToggleExpand: () => void) => {
+    // Get currency preference and exchange rate
+    const { showUSD } = useCurrencyPreference();
+    const { exchangeRate } = useExchangeRate();
+
+    // Check if this bounty should display a fixed amount
+    const fixedAmount = getFixedDisplayAmount(
+      bounty,
+      undefined,
+      showUSD ? 'USD' : 'RSC',
+      exchangeRate
+    );
+    const displayAmount = fixedAmount !== null ? fixedAmount : parseFloat(bounty.amount);
+
     // Render bounty content
     return renderCard(
       <div>
-        <h3 className="text-lg font-medium">Bounty: {bounty.amount} RSC</h3>
+        <h3 className="text-lg font-medium">
+          Bounty: {showUSD ? `$${displayAmount}` : `${displayAmount} RSC`}
+        </h3>
         <p className="text-gray-600 mt-2">
           Status: {bounty.status}, Type: {bounty.bountyType}
         </p>

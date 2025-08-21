@@ -19,6 +19,7 @@ import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { BountyContribution, BountyType } from '@/types/bounty';
 import { formatCurrency } from '@/utils/currency';
 import { useParams } from 'next/navigation';
+import { getFixedDisplayAmount } from '@/utils/bounty';
 import { Trophy, Pen, Users, MessageSquareReply } from 'lucide-react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
@@ -132,17 +133,25 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   const solutionsCount = bounty.solutions ? bounty.solutions.length : 0;
   const hasSolutions = solutionsCount > 0;
 
+  // Check if this bounty should display a fixed amount
+  const fixedAmount = getFixedDisplayAmount(bounty, author, showUSD ? 'USD' : 'RSC', exchangeRate);
+
   // Format the bounty amount for display in the action text
-  const formattedBountyAmount = bounty.totalAmount
-    ? formatCurrency({
-        amount: parseFloat(bounty.totalAmount),
-        showUSD,
-        exchangeRate,
-        shorten: true,
-      })
-    : '';
+  const formattedBountyAmount =
+    fixedAmount !== null
+      ? showUSD
+        ? `$${fixedAmount}`
+        : `${fixedAmount}`
+      : bounty.totalAmount
+        ? formatCurrency({
+            amount: parseFloat(bounty.totalAmount),
+            showUSD,
+            exchangeRate,
+            shorten: true,
+          })
+        : '';
   const bountyActionText = bounty.totalAmount
-    ? `created a bounty for ${formattedBountyAmount} ${showUSD ? '' : 'RSC'}`
+    ? `created a bounty for ${formattedBountyAmount}${showUSD ? '' : ' RSC'}`
     : 'created a bounty';
 
   // Handle opening the contribute modal
@@ -281,6 +290,8 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
             expiringSoon={expiringSoon}
             solutionsCount={solutionsCount}
             showDeadline={showDeadline}
+            bounty={bounty}
+            feedAuthor={author}
           />
         </div>
 
@@ -358,6 +369,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
               menuItems={menuItems}
               bounties={[bountyEntry.bounty]}
               onComment={onReply}
+              feedAuthor={author}
             />
           </div>
         )}

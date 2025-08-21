@@ -1,4 +1,5 @@
 import { Bounty, BountyType } from '@/types/bounty';
+import { getFixedDisplayAmount } from '@/utils/bounty';
 
 /**
  * Checks if a bounty is open and not a contribution
@@ -72,8 +73,37 @@ export const calculateTotalBountyAmount = (bounties: Bounty[]): number => {
  * @param bounties Array of bounties to sum
  * @returns Total amount of open bounties as a number
  */
-export const calculateOpenBountiesAmount = (bounties: Bounty[]): number => {
-  return getOpenBounties(bounties).reduce((sum, bounty) => sum + parseFloat(bounty.amount), 0);
+export const calculateOpenBountiesAmount = (
+  bounties: Bounty[],
+  currency: 'RSC' | 'USD' = 'USD',
+  exchangeRate: number = 0
+): number => {
+  const openBounties = getOpenBounties(bounties);
+
+  // Debug logging in development
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    console.log('calculateOpenBountiesAmount debug:', {
+      totalBounties: bounties?.length,
+      openBounties: openBounties?.map((b) => ({
+        id: b.id,
+        amount: b.amount,
+        totalAmount: b.totalAmount,
+        status: b.status,
+        bountyType: b.bountyType,
+        createdBy: b.createdBy,
+        fixedAmount: getFixedDisplayAmount(b, undefined, currency, exchangeRate),
+      })),
+      currency,
+      exchangeRate,
+    });
+  }
+
+  return openBounties.reduce((sum, bounty) => {
+    // Check if this specific bounty should display a fixed amount
+    const fixedAmount = getFixedDisplayAmount(bounty, undefined, currency, exchangeRate);
+    const amount = fixedAmount !== null ? fixedAmount : parseFloat(bounty.amount);
+    return sum + amount;
+  }, 0);
 };
 
 /**

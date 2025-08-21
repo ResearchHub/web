@@ -108,6 +108,8 @@ export const BountyCarouselItem: FC<BountyCarouselItemProps> = ({ entry }) => {
                   label="Bounty"
                   textColor="text-amber-700"
                   currencyLabelColor="text-amber-700"
+                  bounty={bounty}
+                  feedAuthor={bountyEntry.createdBy}
                 />
                 <div className="text-amber-600 text-xs leading-tight">
                   {isPeerReviewBounty ? 'to peer review' : 'to answer'}
