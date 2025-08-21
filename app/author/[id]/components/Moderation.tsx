@@ -42,13 +42,17 @@ type ModerationProps = {
 };
 
 export default function Moderation({ userId, authorId, refetchAuthorInfo }: ModerationProps) {
+  const { user: currentUser } = useUser();
   const [{ userDetails, isLoading }, refetchModerationDetails] = useUserDetailsForModerator(userId);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // Determine if current user is a hub editor
+  const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
+  // Determine if current user is a moderator
+  const isModerator = !!currentUser?.isModerator;
 
   // Add moderation hook
   const [moderationState, { suspendUser, reinstateUser, markProbableSpammer }] =
     useUserModeration();
-  const { user } = useUser();
 
   // Handler functions for moderation menu items
   const handleSIFTProfile = () => {
@@ -162,10 +166,12 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
           open={isMenuOpen}
           onOpenChange={setIsMenuOpen}
         >
-          <BaseMenuItem onClick={handleSIFTProfile} className="flex items-center gap-2">
-            <span>SIFT profile</span>
-          </BaseMenuItem>
-          {user?.isModerator && !userDetails.isProbableSpammer && (
+          {isModerator && (
+            <BaseMenuItem onClick={handleSIFTProfile} className="flex items-center gap-2">
+              <span>SIFT profile</span>
+            </BaseMenuItem>
+          )}
+          {(isModerator || isHubEditor) && !userDetails.isProbableSpammer && (
             <BaseMenuItem
               onClick={handleFlagUser}
               className="flex items-center gap-2"
@@ -178,28 +184,32 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
               </span>
             </BaseMenuItem>
           )}
-          <BaseMenuItem
-            onClick={handleBanUser}
-            className="flex items-center gap-2"
-            disabled={moderationState.isLoading}
-          >
-            <span>
-              {moderationState.isLoading && moderationState.lastAction === 'suspend'
-                ? 'Suspending...'
-                : 'Ban User'}
-            </span>
-          </BaseMenuItem>
-          <BaseMenuItem
-            onClick={handleReinstateUser}
-            className="flex items-center gap-2"
-            disabled={moderationState.isLoading}
-          >
-            <span>
-              {moderationState.isLoading && moderationState.lastAction === 'reinstate'
-                ? 'Reinstating...'
-                : 'Reinstate User'}
-            </span>
-          </BaseMenuItem>
+          {isModerator && (
+            <BaseMenuItem
+              onClick={handleBanUser}
+              className="flex items-center gap-2"
+              disabled={moderationState.isLoading}
+            >
+              <span>
+                {moderationState.isLoading && moderationState.lastAction === 'suspend'
+                  ? 'Suspending...'
+                  : 'Ban User'}
+              </span>
+            </BaseMenuItem>
+          )}
+          {isModerator && (
+            <BaseMenuItem
+              onClick={handleReinstateUser}
+              className="flex items-center gap-2"
+              disabled={moderationState.isLoading}
+            >
+              <span>
+                {moderationState.isLoading && moderationState.lastAction === 'reinstate'
+                  ? 'Reinstating...'
+                  : 'Reinstate User'}
+              </span>
+            </BaseMenuItem>
+          )}
         </BaseMenu>
       </div>
 
