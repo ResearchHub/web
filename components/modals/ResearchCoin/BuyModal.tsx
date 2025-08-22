@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react';
-import { Fragment, useCallback, useState } from 'react';
+import { Fragment, useCallback, useState, useEffect } from 'react';
 import { X as XIcon } from 'lucide-react';
 import {
   Swap,
@@ -10,8 +10,10 @@ import {
   SwapButton,
   SwapToast,
 } from '@coinbase/onchainkit/swap';
-import { FundCard } from '@coinbase/onchainkit/fund';
+import { FundButton } from '@coinbase/onchainkit/fund';
 import { ETH, RSC, USDC } from '@/constants/tokens';
+import { useAccount } from 'wagmi';
+import { CoinbaseService } from '@/services/coinbase.service';
 
 // Network configuration based on environment
 const IS_PRODUCTION = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production';
@@ -27,9 +29,42 @@ interface BuyModalProps {
 
 export function BuyModal({ isOpen, onClose }: BuyModalProps) {
   const [activeTab, setActiveTab] = useState<'fund' | 'swap'>('fund');
+  const [onrampUrl, setOnrampUrl] = useState<string | null>(null);
+  const [isLoadingUrl, setIsLoadingUrl] = useState(false);
+  const [urlError, setUrlError] = useState<string | null>(null);
+  const { address } = useAccount();
+
+  const fetchOnrampUrl = useCallback(async () => {
+    if (!address) return;
+
+    setIsLoadingUrl(true);
+    setUrlError(null);
+
+    try {
+      const data = await CoinbaseService.createRSCOnrampUrl(address);
+      setOnrampUrl(data.onramp_url);
+    } catch (error) {
+      console.error('Error fetching onramp URL:', error);
+      setUrlError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to generate payment link. Please try again.'
+      );
+    } finally {
+      setIsLoadingUrl(false);
+    }
+  }, [address]);
+
+  useEffect(() => {
+    if (isOpen && activeTab === 'fund' && address && !onrampUrl) {
+      fetchOnrampUrl();
+    }
+  }, [isOpen, activeTab, address, onrampUrl, fetchOnrampUrl]);
 
   const handleClose = useCallback(() => {
     setActiveTab('fund');
+    setOnrampUrl(null);
+    setUrlError(null);
     onClose();
   }, [onClose]);
 
@@ -115,7 +150,33 @@ export function BuyModal({ isOpen, onClose }: BuyModalProps) {
 
                 <div className="py-4">
                   {activeTab === 'fund' ? (
-                    <FundCard assetSymbol="RSC" country="US" currency="USD" headerText="" />
+                    <div className="flex flex-col items-center space-y-4">
+                      {isLoadingUrl ? (
+                        <div className="flex items-center justify-center py-8">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        </div>
+                      ) : urlError ? (
+                        <div className="text-center py-4">
+                          <p className="text-red-600 mb-4">{urlError}</p>
+                          <button
+                            onClick={fetchOnrampUrl}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          >
+                            Retry
+                          </button>
+                        </div>
+                      ) : onrampUrl ? (
+                        <FundButton
+                          fundingUrl={onrampUrl}
+                          text="Buy RSC with USD"
+                          className="w-full"
+                        />
+                      ) : (
+                        <div className="text-center py-4">
+                          <p className="text-gray-500 mb-4">Connect your wallet to buy RSC</p>
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     /* Unidirectional Swap Implementation */
                     <Swap isSponsored={true} title="">
