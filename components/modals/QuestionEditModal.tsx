@@ -47,10 +47,8 @@ export const QuestionEditModal = ({ isOpen, onClose, work }: QuestionEditModalPr
       return;
     }
 
-    if (!plainText || plainText.trim() === '') {
-      toast.error('Please enter the question details');
-      return;
-    }
+    // For editing existing questions, we don't require plainText if it hasn't been changed
+    // The content is already stored in work.previewContent
 
     if (selectedHubs.length === 0) {
       toast.error('Please select at least one topic');
@@ -63,8 +61,8 @@ export const QuestionEditModal = ({ isOpen, onClose, work }: QuestionEditModalPr
         post_id: work.id,
         assign_doi: false,
         document_type: work.contentType === 'preregistration' ? 'PREREGISTRATION' : 'QUESTION',
-        full_src: htmlContent,
-        renderable_text: plainText,
+        full_src: htmlContent || work.previewContent || '',
+        renderable_text: plainText || work.title || '',
         hubs: selectedHubs.map((h) => Number(h.id)),
         title: title,
       };

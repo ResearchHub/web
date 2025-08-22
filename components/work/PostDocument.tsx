@@ -26,7 +26,6 @@ export const PostDocument = ({
   content,
   defaultTab = 'paper',
 }: PostDocumentProps) => {
-  console.log('work', work);
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   // Handle tab change
