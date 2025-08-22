@@ -320,7 +320,7 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
   const feedHeader =
     activeTab === 'in-review' ? (
       <>
-        <div className="bg-[#fff9e6] border-l-4 border-[#dc9814] p-6 relative">
+        <div className="bg-[#fff9e6] border-l-4 border-[#dc9814] p-6 relative mt-6">
           <div className="absolute left-6 top-9">
             <span className="h-2 w-2 rounded-full bg-[#dc9814] block"></span>
           </div>
@@ -361,7 +361,7 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
       </>
     ) : activeTab === 'published' ? (
       <>
-        <div className="bg-green-50 border-l-4 border-green-500 p-6 relative">
+        <div className="bg-green-50 border-l-4 border-green-500 p-6 relative mt-6">
           <div className="absolute left-6 top-9">
             <span className="h-2 w-2 rounded-full bg-green-500 block"></span>
           </div>
