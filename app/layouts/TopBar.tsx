@@ -191,8 +191,8 @@ const getPageInfo = (pathname: string): PageInfo | null => {
 
   if (pathname.startsWith('/post/')) {
     return {
-      title: 'Paper',
-      icon: <Icon name="workType" size={20} className="text-gray-900" />,
+      title: 'Preprint',
+      icon: <Icon name="preprint" size={20} className="text-gray-900" />,
     };
   }
 

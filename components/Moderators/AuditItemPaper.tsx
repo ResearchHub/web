@@ -69,7 +69,7 @@ export const AuditItemPaper: FC<AuditItemPaperProps> = ({ entry, onAction, view 
     <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
       {/* Content type badge */}
       <div className="mb-3">
-        <ContentTypeBadge type="article" />
+        <ContentTypeBadge type="preprint" />
       </div>
 
       {/* User and unified action */}

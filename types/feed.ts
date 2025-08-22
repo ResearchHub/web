@@ -81,6 +81,7 @@ export interface BaseFeedContent {
 // Update all feed content types to extend the base
 export interface FeedPostContent extends BaseFeedContent {
   contentType: 'PREREGISTRATION' | 'POST';
+  postType?: string; // The actual type from content_object.type
   fundraise?: Fundraise;
   textPreview: string;
   slug: string;
@@ -154,6 +155,7 @@ export interface FeedPaperContent extends BaseFeedContent {
 
 export interface FeedGrantContent extends BaseFeedContent {
   contentType: 'GRANT';
+  postType?: string; // The actual type from content_object.type
   textPreview: string;
   slug: string;
   title: string;
@@ -586,6 +588,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           const grantEntry: FeedGrantContent = {
             id: content_object.id,
             contentType: 'GRANT',
+            postType: content_object.type, // Add the actual type from content_object
             createdDate: content_object.created_date,
             textPreview: content_object.renderable_text || '',
             slug: content_object.slug || '',
@@ -595,7 +598,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               content_object.authors && content_object.authors.length > 0
                 ? content_object.authors.map(transformAuthorProfile)
                 : [transformAuthorProfile(author)],
-            topics: content_object.topics ? content_object.topics.map(transformTopic) : [],
+            topics: [Array.isArray(content_object.hub) || content_object.hub].map(transformTopic),
             createdBy: transformAuthorProfile(author),
             bounties: content_object.bounties
               ? content_object.bounties.map((bounty: any) =>
@@ -644,6 +647,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           const postEntry: FeedPostContent = {
             id: content_object.id,
             contentType: isPreregistration ? 'PREREGISTRATION' : 'POST',
+            postType: content_object.type, // Add the actual type from content_object
             createdDate: content_object.created_date,
             textPreview: content_object.renderable_text || '',
             slug: content_object.slug || '',

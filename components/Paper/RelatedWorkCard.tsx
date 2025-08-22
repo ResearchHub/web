@@ -9,12 +9,12 @@ import { Fundraise } from '@/types/feed';
 import { TrendingUp, Target } from 'lucide-react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatRSC } from '@/utils/number';
+import { usePathname } from 'next/navigation';
 
 interface RelatedWorkCardProps {
   work: Work;
   onClick?: () => void;
   onTopicClick?: (topic: Topic) => void;
-  onEvent?: (event: { type: string; payload: any }) => void;
   size?: 'default' | 'sm' | 'lg' | 'xs';
   fundraiseData?: Fundraise;
 }
@@ -23,12 +23,12 @@ export const RelatedWorkCard = ({
   work,
   onClick,
   onTopicClick,
-  onEvent,
   size = 'default',
   fundraiseData,
 }: RelatedWorkCardProps) => {
   const { triggerEvent } = useClickContext();
   const { exchangeRate, isLoading: isLoadingExchangeRate } = useExchangeRate();
+  const pathname = usePathname();
 
   if (!work) return null;
 
@@ -53,11 +53,16 @@ export const RelatedWorkCard = ({
       if (work.contentType === 'preregistration') {
         path = `/fund/${work.id}/${work.slug}`;
       } else if (work.contentType === 'post') {
-        path = `/post/${work.id}/${work.slug}`;
+        // Check if it's a question based on postType
+        if (work.postType === 'QUESTION') {
+          path = `/question/${work.id}/${work.slug}`;
+        } else {
+          path = `/post/${work.id}/${work.slug}`;
+        }
       } else if (work.contentType === 'paper') {
         path = `/paper/${work.id}/${work.slug}`;
       } else {
-        // For other content types like 'question', 'discussion', 'funding_request'
+        // For other content types like 'discussion', 'funding_request'
         path = `/post/${work.id}/${work.slug}`;
       }
       window.open(path, '_blank');
@@ -72,10 +77,16 @@ export const RelatedWorkCard = ({
     | 'review'
     | 'article'
     | 'preprint'
-    | 'published' => {
+    | 'published'
+    | 'question' => {
     // If it's a fundraise proposal, show funding badge
     if (work.contentType === 'preregistration') {
       return 'funding';
+    }
+
+    // Check if it's a question based on postType
+    if (work.postType === 'QUESTION') {
+      return 'question';
     }
 
     // Map content types to badge types
@@ -137,29 +148,36 @@ export const RelatedWorkCard = ({
       {/* Badge and Topics */}
       <div className="flex flex-wrap gap-2 mb-3">
         <ContentTypeBadge size={size} type={getBadgeType()} />
-        {(work.topics || []).slice(0, 2).map((topic) => (
-          <div
-            key={topic.id || topic.slug}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onTopicClick) {
-                onTopicClick(topic);
-              } else if (onEvent) {
-                onEvent({ type: 'topic', payload: topic });
-              } else {
-                triggerEvent({ type: 'topic', payload: topic });
-              }
-            }}
-          >
-            <TopicAndJournalBadge
-              type="topic"
-              name={topic.name}
-              slug={topic.slug}
-              disableLink={true}
-              imageUrl={topic.imageUrl}
-            />
-          </div>
-        ))}
+        {(work.topics || []).slice(0, 2).map((topic) => {
+          // Check if we have custom handlers or if we're on the earn page
+          const hasCustomHandler = onTopicClick;
+          const isEarnPage = pathname === '/earn';
+          const shouldUseClickContext = isEarnPage && !hasCustomHandler;
+
+          return (
+            <div
+              key={topic.id || topic.slug}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onTopicClick) {
+                  onTopicClick(topic);
+                } else if (shouldUseClickContext) {
+                  // On earn page without custom handlers, use ClickContext for filtering
+                  triggerEvent({ type: 'topic', payload: topic });
+                }
+                // Otherwise, let the TopicAndJournalBadge handle navigation
+              }}
+            >
+              <TopicAndJournalBadge
+                type="topic"
+                name={topic.name}
+                slug={topic.slug}
+                disableLink={!!hasCustomHandler || shouldUseClickContext}
+                imageUrl={topic.imageUrl}
+              />
+            </div>
+          );
+        })}
       </div>
 
       {/* Paper title */}
