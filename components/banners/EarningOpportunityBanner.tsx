@@ -51,8 +51,8 @@ export const EarningOpportunityBanner = ({
         aria-label="Earning opportunity banner"
       >
         <div className="p-4">
-          <div className="flex flex-col min-[650px]:flex-row gap-4 min-[650px]:items-center min-[650px]:justify-between">
-            <div className="flex items-start gap-3 min-[650px]:flex-1">
+          <div className="flex flex-col min-[650px]:!flex-row gap-4 min-[650px]:!items-center min-[650px]:!justify-between">
+            <div className="flex items-start gap-3 min-[650px]:!flex-1">
               <div className="bg-orange-100/70 p-2.5 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Icon name="solidEarn" size={24} color="#f68401" />
               </div>
@@ -82,7 +82,7 @@ export const EarningOpportunityBanner = ({
             <Button
               onClick={handleViewBounties}
               size="default"
-              className="bg-orange-400 hover:bg-orange-500 text-white focus-visible:ring-orange-400 whitespace-nowrap group w-full min-[650px]:w-auto flex-shrink-0"
+              className="bg-orange-400 hover:bg-orange-500 text-white focus-visible:ring-orange-400 whitespace-nowrap group w-full min-[650px]:!w-auto flex-shrink-0"
               aria-label={`View ${metadata.openBounties} available ${metadata.openBounties === 1 ? 'bounty' : 'bounties'}`}
             >
               View Bounties

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { WorkLineItems } from './WorkLineItems';
@@ -28,6 +28,15 @@ export const PostDocument = ({
 }: PostDocumentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [parsedQuestionContent, setParsedQuestionContent] = useState<any>(null);
+
+  // Parse question content on client side
+  useEffect(() => {
+    if (work.postType === 'QUESTION' && work.previewContent) {
+      setParsedQuestionContent(htmlToTipTapJSON(work.previewContent));
+    }
+  }, [work.postType, work.previewContent]);
+
   // Handle tab change
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -48,7 +57,14 @@ export const PostDocument = ({
             {work.previewContent ? (
               work.postType === 'QUESTION' ? (
                 <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-                  <TipTapRenderer content={htmlToTipTapJSON(work.previewContent)} debug={false} />
+                  {parsedQuestionContent ? (
+                    <TipTapRenderer content={parsedQuestionContent} debug={false} />
+                  ) : (
+                    <div className="animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <PostBlockEditor content={work.previewContent} editable={false} />
@@ -112,7 +128,7 @@ export const PostDocument = ({
       default:
         return null;
     }
-  }, [activeTab, work.id, work.contentType, work.previewContent, content]);
+  }, [activeTab, work.id, work.contentType, work.previewContent, content, parsedQuestionContent]);
 
   return (
     <div>
