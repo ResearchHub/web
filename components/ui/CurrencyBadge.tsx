@@ -153,7 +153,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
       return (
         <div className="p-1">
           <div className="font-semibold text-orange-700 mb-0.5 flex items-center gap-1">
-            <ResearchCoinIcon size={14} />
+            <ResearchCoinIcon size={14} outlined />
             <span>{Math.round(amount).toLocaleString()} RSC</span>
           </div>
           <div className="text-gray-700 text-xs">≈ ${formatNumber(displayValue, shorten)} USD</div>
@@ -165,7 +165,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
       return (
         <div className="p-1">
           <div className="font-semibold text-orange-700 mb-0.5 flex items-center gap-1">
-            <ResearchCoinIcon size={14} />
+            <ResearchCoinIcon size={14} outlined />
             <span>{Math.round(amount).toLocaleString()} RSC</span>
           </div>
           <div className="text-gray-700 text-xs">≈ ${formatNumber(usdEquivalent, shorten)} USD</div>
@@ -222,7 +222,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
               $
             </span>
           ) : (
-            <ResearchCoinIcon size={effectiveIconSize} className="mr-1" />
+            <ResearchCoinIcon size={effectiveIconSize} className="mr-1" outlined />
           ))}
         {inverted ? (
           <div className="flex items-center">
@@ -314,6 +314,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
             size={effectiveIconSize}
             variant={variant === 'received' ? 'green' : variant === 'disabled' ? 'solid' : 'orange'}
             color={variant === 'disabled' ? colors.disabledIconColor : undefined}
+            outlined
           />
         ))}
       {variant === 'award' ? (

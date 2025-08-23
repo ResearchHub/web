@@ -14,6 +14,7 @@ import {
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Users } from 'lucide-react';
+import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 
 interface FeedItemPostProps {
   entry: FeedEntry;
@@ -56,7 +57,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
       href={postPageUrl}
       showActions={showActions}
       showTooltips={showTooltips}
-      customActionText="published an article"
+      customActionText={post.postType === 'QUESTION' ? 'asked a question' : 'published an article'}
       maxLength={maxLength}
     >
       {/* Top section with badges and mobile image */}
@@ -72,11 +73,15 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
         }
         leftContent={
           <>
-            <ContentTypeBadge type="article" />
-            {topics.map((topic, index) => (
-              <div key={index} className="px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">
-                {topic.name}
-              </div>
+            <ContentTypeBadge type={post.postType === 'QUESTION' ? 'question' : 'preprint'} />
+            {topics.map((topic) => (
+              <TopicAndJournalBadge
+                key={topic.id || topic.slug}
+                type="topic"
+                name={topic.name}
+                slug={topic.slug}
+                imageUrl={topic.imageUrl}
+              />
             ))}
           </>
         }

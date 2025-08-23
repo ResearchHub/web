@@ -75,12 +75,12 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
         leftContent={
           <>
             <ContentTypeBadge type={getPaperBadgeType()} />
-            {topics.map((topic, index) => (
+            {topics.map((topic) => (
               <TopicAndJournalBadge
-                key={index}
+                key={topic.id || topic.slug}
                 type="topic"
                 name={topic.name}
-                slug={topic.slug || ''}
+                slug={topic.slug}
                 imageUrl={topic.imageUrl}
               />
             ))}

@@ -1,14 +1,20 @@
 import { Button } from '@/components/ui/Button';
 import { CommentType } from '@/types/comment';
+import { Work } from '@/types/work';
 import { MessageSquare, Plus, Coins, Star, Bell } from 'lucide-react';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 interface CommentEmptyStateProps {
   commentType: CommentType;
   onCreateBounty: () => void;
+  work?: Work;
 }
 
-export const CommentEmptyState = ({ commentType, onCreateBounty }: CommentEmptyStateProps) => {
+export const CommentEmptyState = ({
+  commentType,
+  onCreateBounty,
+  work,
+}: CommentEmptyStateProps) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
 
   const message =
@@ -18,7 +24,9 @@ export const CommentEmptyState = ({ commentType, onCreateBounty }: CommentEmptyS
         ? 'No bounties yet.'
         : commentType === 'AUTHOR_UPDATE'
           ? 'No updates from the authors'
-          : 'No comments yet. Start the conversation!';
+          : work?.postType === 'QUESTION'
+            ? 'No answers yet. Submit the first one!'
+            : 'No comments yet. Start the conversation!';
 
   const description =
     commentType === 'REVIEW'
@@ -27,7 +35,9 @@ export const CommentEmptyState = ({ commentType, onCreateBounty }: CommentEmptyS
         ? 'Bounties help attract experts to solve problems or contribute to research.'
         : commentType === 'AUTHOR_UPDATE'
           ? 'Authors will be providing regular monthly updates'
-          : 'Your contribution could help open science.';
+          : work?.postType === 'QUESTION'
+            ? 'Help the community by providing an answer.'
+            : 'Your contribution could help open science.';
 
   const icon =
     commentType === 'BOUNTY' ? (

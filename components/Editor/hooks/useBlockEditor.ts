@@ -38,6 +38,7 @@ export const useBlockEditor = ({
   contentJson,
   onUpdate,
   customClass,
+  includeTitle = false,
 }: {
   aiToken?: string;
   ydoc?: YDoc | null;
@@ -49,6 +50,7 @@ export const useBlockEditor = ({
   contentJson?: string;
   onUpdate?: (editor: Editor) => void;
   customClass?: string;
+  includeTitle?: boolean;
 }) => {
   const [collabState, setCollabState] = useState<WebSocketStatus>(
     provider ? WebSocketStatus.Connecting : WebSocketStatus.Disconnected
@@ -126,19 +128,21 @@ export const useBlockEditor = ({
         ? JSON.parse(contentJson)
         : content || {
             type: 'doc',
-            content: [
-              {
-                type: 'heading',
-                attrs: { level: 1 },
-                content: [{ type: 'text', text: '' }],
-              },
-            ],
+            content: false
+              ? [
+                  {
+                    type: 'heading',
+                    attrs: { level: 1 },
+                    content: [{ type: 'text', text: '' }],
+                  },
+                ]
+              : [],
           },
       onUpdate: ({ editor }) => {
         onUpdate?.(editor);
       },
     },
-    [ydoc, provider, content, contentJson, editable, customClass]
+    [ydoc, provider, content, contentJson, editable, customClass, includeTitle]
   );
 
   const users = useEditorState({

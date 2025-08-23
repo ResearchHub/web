@@ -5,9 +5,20 @@ import { Badge } from '@/components/ui/Badge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import Icon from '@/components/ui/icons/Icon';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCommentsQuestion } from '@fortawesome/pro-light-svg-icons';
 
 interface ContentTypeBadgeProps {
-  type: 'paper' | 'funding' | 'bounty' | 'review' | 'article' | 'preprint' | 'published' | 'grant';
+  type:
+    | 'paper'
+    | 'funding'
+    | 'bounty'
+    | 'review'
+    | 'article'
+    | 'preprint'
+    | 'published'
+    | 'grant'
+    | 'question';
   className?: string;
   size?: 'default' | 'sm' | 'lg' | 'xs';
   score?: number;
@@ -225,6 +236,40 @@ export const ContentTypeBadge = ({
           <Icon name="peerReview1" size={16} color="#6B7280" />
           <span>Peer Review</span>
         </Badge>
+      </Tooltip>
+    );
+  }
+
+  if (type === 'question') {
+    const badge = (
+      <Badge
+        variant="default"
+        size={size}
+        className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
+      >
+        <FontAwesomeIcon icon={faCommentsQuestion} fontSize={16} className="text-gray-600" />
+        <span>Question</span>
+      </Badge>
+    );
+
+    if (!showTooltip) {
+      return badge;
+    }
+
+    return (
+      <Tooltip
+        content={
+          <div className="flex items-start gap-3 text-left">
+            <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center">
+              <FontAwesomeIcon icon={faCommentsQuestion} fontSize={24} className="text-gray-900" />
+            </div>
+            <div>Questions and discussions to engage with the research community.</div>
+          </div>
+        }
+        position="top"
+        width="w-[360px]"
+      >
+        {badge}
       </Tooltip>
     );
   }
