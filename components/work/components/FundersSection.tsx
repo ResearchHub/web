@@ -7,11 +7,11 @@ import { Fundraise } from '@/types/funding';
 import { isDeadlineInFuture } from '@/utils/date';
 import { ContributorModal } from '@/components/modals/ContributorModal';
 import { Users } from 'lucide-react';
-import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useRouter } from 'next/navigation';
 import { useShareModalContext } from '@/contexts/ShareContext';
+import { ContributeToFundraiseModalV2 } from '@/components/modals/ContributeToFundraiseModalV2';
 
 interface FundersSectionProps {
   fundraise: Fundraise;
@@ -103,15 +103,16 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
                 </div>
               ))}
             </div>
-
-            {hasMoreContributors && (
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium mt-3 w-full text-center"
-              >
-                View all funders ({fundraise.contributors.numContributors})
-              </button>
-            )}
+            {/* NICKDEV */}
+            {/* TODO: Add this back in */}
+            {/* {hasMoreContributors && ( */}
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="text-sm text-blue-600 hover:text-blue-800 font-medium mt-3 w-full text-center"
+            >
+              View all funders ({fundraise.contributors.numContributors})
+            </button>
+            {/* )} */}
           </>
         ) : (
           <div className="py-1">
@@ -130,7 +131,7 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
         />
       )}
 
-      <ContributeToFundraiseModal
+      <ContributeToFundraiseModalV2
         isOpen={isContributeModalOpen}
         onClose={() => setIsContributeModalOpen(false)}
         onContributeSuccess={handleContributeSuccess}
