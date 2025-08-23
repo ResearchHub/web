@@ -17,6 +17,7 @@ interface BaseModalProps {
   padding?: string; // e.g., 'p-4', 'p-6', 'p-8'
   footer?: ReactNode;
   headerAction?: ReactNode;
+  fixedWidth?: boolean;
 }
 
 export const BaseModal: FC<BaseModalProps> = ({
@@ -30,6 +31,7 @@ export const BaseModal: FC<BaseModalProps> = ({
   padding = 'p-6', // Default padding
   footer,
   headerAction,
+  fixedWidth = false,
 }) => {
   const headerRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
@@ -89,14 +91,13 @@ export const BaseModal: FC<BaseModalProps> = ({
               <Dialog.Panel
                 className={cn(
                   'transform overflow-hidden text-left align-middle shadow-xl transition-all bg-white',
-                  // Full width on mobile, constrained width on larger screens
-                  'w-full md:!w-auto',
+                  fixedWidth ? `w-full ${maxWidth} mx-auto` : 'w-full md:!w-auto',
                   // Full height on mobile, constrained height on md+
                   'h-screen md:!h-auto md:!max-h-[85vh]',
                   // No rounded corners on mobile, rounded on md+
                   'md:!rounded-2xl',
-                  // Only apply max width on md and up
-                  `md:${maxWidth}`
+                  // Only apply max width on md and up when not using fixedWidth
+                  !fixedWidth && `md:${maxWidth}`
                 )}
                 style={{
                   display: 'flex',
@@ -132,10 +133,16 @@ export const BaseModal: FC<BaseModalProps> = ({
                 )}
                 {/* Modal Content */}
                 <div
-                  className={cn(padding, 'flex-1 overflow-y-auto')}
-                  style={{
-                    maxHeight: `calc(85vh - ${headerHeight + footerHeight}px)`,
-                  }}
+                  className={cn(
+                    padding,
+                    'flex-1 overflow-y-auto',
+                    'max-h-[calc(100vh-var(--header-footer-height))] md:!max-h-[calc(85vh-var(--header-footer-height))]'
+                  )}
+                  style={
+                    {
+                      '--header-footer-height': `${headerHeight + footerHeight}px`,
+                    } as React.CSSProperties
+                  }
                 >
                   {children}
                 </div>
