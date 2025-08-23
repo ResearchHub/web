@@ -1,9 +1,8 @@
 'use client';
 
 import { ChevronDown, Tags } from 'lucide-react';
-import Link from 'next/link';
 import { useState } from 'react';
-import { Badge } from '@/components/ui/Badge';
+import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 
 interface Topic {
   id: string | number;
@@ -26,21 +25,20 @@ export const TopicsSection = ({ topics }: TopicsSectionProps) => {
   return (
     <section>
       <div className="flex items-center space-x-2 mb-4">
-        <Tags className="h-5 w-5 text-gray-500" />
+        <Tags className="h-6 w-6 text-gray-500" />
         <h2 className="text-base font-semibold text-gray-900">Topics</h2>
       </div>
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2">
           {displayedTopics.map((topic) => (
-            <Link
+            <TopicAndJournalBadge
               key={topic.id}
-              href={`/topic/${topic.slug}`}
-              className="hover:opacity-80 transition-colors"
-            >
-              <Badge variant="default" size="lg" className="cursor-pointer hover:bg-gray-200">
-                {topic.name}
-              </Badge>
-            </Link>
+              type="topic"
+              name={topic.name}
+              slug={topic.slug}
+              size="md"
+              variant="secondary"
+            />
           ))}
         </div>
         {hasMoreTopics && (
