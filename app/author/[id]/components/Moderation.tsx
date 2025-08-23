@@ -41,14 +41,27 @@ type ModerationProps = {
   readonly refetchAuthorInfo: () => Promise<void>;
 };
 
+type ModerationMenuItem = {
+  id: string;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  loadingText?: string;
+  shouldShow: (isModerator: boolean, isHubEditor: boolean, userDetails: any) => boolean;
+};
+
 export default function Moderation({ userId, authorId, refetchAuthorInfo }: ModerationProps) {
+  const { user: currentUser } = useUser();
   const [{ userDetails, isLoading }, refetchModerationDetails] = useUserDetailsForModerator(userId);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // Determine if current user is a hub editor
+  const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
+  // Determine if current user is a moderator
+  const isModerator = !!currentUser?.isModerator;
 
   // Add moderation hook
   const [moderationState, { suspendUser, reinstateUser, markProbableSpammer }] =
     useUserModeration();
-  const { user } = useUser();
 
   // Handler functions for moderation menu items
   const handleSIFTProfile = () => {
@@ -60,49 +73,90 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
     }
   };
 
-  const handleBanUser = async () => {
+  const handleBanUser = () => {
     setIsMenuOpen(false);
 
-    try {
-      await suspendUser(authorId.toString());
-      toast.success('User has been suspended successfully');
-      // Refresh both author info and moderation details to show updated status
-      await Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
-    } catch (error) {
-      console.error('Failed to suspend user:', error);
-      toast.error('Failed to suspend user. Please try again.');
-      // Don't re-throw as we've handled the error with user feedback
-    }
+    suspendUser(authorId.toString())
+      .then(() => {
+        toast.success('User has been suspended successfully');
+        // Refresh both author info and moderation details to show updated status
+        return Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
+      })
+      .catch((error) => {
+        console.error('Failed to suspend user:', error);
+        toast.error('Failed to suspend user. Please try again.');
+      });
   };
 
-  const handleReinstateUser = async () => {
+  const handleReinstateUser = () => {
     setIsMenuOpen(false);
 
-    try {
-      await reinstateUser(authorId.toString());
-      toast.success('User has been reinstated successfully');
-      // Refresh both author info and moderation details to show updated status
-      await Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
-    } catch (error) {
-      console.error('Failed to reinstate user:', error);
-      toast.error('Failed to reinstate user. Please try again.');
-      // Don't re-throw as we've handled the error with user feedback
-    }
+    reinstateUser(authorId.toString())
+      .then(() => {
+        toast.success('User has been reinstated successfully');
+        // Refresh both author info and moderation details to show updated status
+        return Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
+      })
+      .catch((error) => {
+        console.error('Failed to reinstate user:', error);
+        toast.error('Failed to reinstate user. Please try again.');
+      });
   };
 
-  const handleFlagUser = async () => {
+  const handleFlagUser = () => {
     setIsMenuOpen(false);
 
-    try {
-      await markProbableSpammer(authorId.toString());
-      toast.success('User flagged as probable spammer');
-      // Refresh both author info and moderation details to show updated status
-      await Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
-    } catch (error) {
-      console.error('Failed to flag user:', error);
-      toast.error('Failed to flag user. Please try again.');
-    }
+    markProbableSpammer(authorId.toString())
+      .then(() => {
+        toast.success('User flagged as probable spammer');
+        // Refresh both author info and moderation details to show updated status
+        return Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
+      })
+      .catch((error) => {
+        console.error('Failed to flag user:', error);
+        toast.error('Failed to flag user. Please try again.');
+      });
   };
+
+  const moderationMenuItems: ModerationMenuItem[] = [
+    {
+      id: 'sift_profile',
+      label: 'SIFT profile',
+      onClick: handleSIFTProfile,
+      shouldShow: (isModerator) => isModerator,
+    },
+    {
+      id: 'flag_user',
+      label: 'Flag user',
+      onClick: handleFlagUser,
+      disabled: moderationState.isLoading,
+      loadingText: 'Flagging...',
+      shouldShow: (isModerator, isHubEditor, userDetails) =>
+        (isModerator || isHubEditor) && !userDetails?.isProbableSpammer,
+    },
+    {
+      id: 'ban_user',
+      label: 'Ban User',
+      onClick: handleBanUser,
+      disabled: moderationState.isLoading,
+      loadingText: 'Suspending...',
+      shouldShow: (isModerator) => isModerator,
+    },
+    {
+      id: 'reinstate_user',
+      label: 'Reinstate User',
+      onClick: handleReinstateUser,
+      disabled: moderationState.isLoading,
+      loadingText: 'Reinstating...',
+      shouldShow: (isModerator) => isModerator,
+    },
+  ];
+
+  const availableMenuItems = React.useMemo(
+    () =>
+      moderationMenuItems.filter((item) => item.shouldShow(isModerator, isHubEditor, userDetails)),
+    [isModerator, isHubEditor, userDetails, moderationState.isLoading]
+  );
 
   if (isLoading) {
     return <ModerationSkeleton />;
@@ -147,60 +201,34 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
           </div>
         </div>
 
-        {/* Moderation Actions Menu */}
-        <BaseMenu
-          trigger={
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center text-gray-400 hover:text-gray-600"
-            >
-              <MoreHorizontal className="w-5 h-5" />
-            </Button>
-          }
-          align="end"
-          open={isMenuOpen}
-          onOpenChange={setIsMenuOpen}
-        >
-          <BaseMenuItem onClick={handleSIFTProfile} className="flex items-center gap-2">
-            <span>SIFT profile</span>
-          </BaseMenuItem>
-          {user?.isModerator && !userDetails.isProbableSpammer && (
-            <BaseMenuItem
-              onClick={handleFlagUser}
-              className="flex items-center gap-2"
-              disabled={moderationState.isLoading}
-            >
-              <span>
-                {moderationState.isLoading && moderationState.lastAction === 'flag'
-                  ? 'Flagging...'
-                  : 'Flag user'}
-              </span>
-            </BaseMenuItem>
-          )}
-          <BaseMenuItem
-            onClick={handleBanUser}
-            className="flex items-center gap-2"
-            disabled={moderationState.isLoading}
+        {/* Moderation Actions Menu - only show if there are available options */}
+        {availableMenuItems.length > 0 && (
+          <BaseMenu
+            trigger={
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex items-center text-gray-400 hover:text-gray-600"
+              >
+                <MoreHorizontal className="w-5 h-5" />
+              </Button>
+            }
+            align="end"
+            open={isMenuOpen}
+            onOpenChange={setIsMenuOpen}
           >
-            <span>
-              {moderationState.isLoading && moderationState.lastAction === 'suspend'
-                ? 'Suspending...'
-                : 'Ban User'}
-            </span>
-          </BaseMenuItem>
-          <BaseMenuItem
-            onClick={handleReinstateUser}
-            className="flex items-center gap-2"
-            disabled={moderationState.isLoading}
-          >
-            <span>
-              {moderationState.isLoading && moderationState.lastAction === 'reinstate'
-                ? 'Reinstating...'
-                : 'Reinstate User'}
-            </span>
-          </BaseMenuItem>
-        </BaseMenu>
+            {availableMenuItems.map((item) => (
+              <BaseMenuItem
+                key={item.id}
+                onClick={item.onClick}
+                className="flex items-center gap-2"
+                disabled={item.disabled}
+              >
+                <span>{item.disabled && item.loadingText ? item.loadingText : item.label}</span>
+              </BaseMenuItem>
+            ))}
+          </BaseMenu>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
