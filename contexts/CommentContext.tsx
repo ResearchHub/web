@@ -171,6 +171,7 @@ export const CommentProvider = ({
             sort: state.sortBy,
             filter: filterToUse,
             page: pageToFetch,
+            ascending: state.sortBy === 'CREATED_DATE',
           }
         );
 
@@ -260,6 +261,7 @@ export const CommentProvider = ({
         sort: state.sortBy,
         filter: state.filter,
         page: 1,
+        ascending: state.sortBy === 'CREATED_DATE',
       });
 
       dispatch({
@@ -315,6 +317,7 @@ export const CommentProvider = ({
           page,
           pageSize: 10,
           sort: state.sortBy,
+          ascending: state.sortBy === 'CREATED_DATE',
         });
 
         console.log(`[loadMoreReplies] Fetched ${replies.length} replies for comment ${commentId}`);
