@@ -148,8 +148,7 @@ export class CommentService {
     const contentTypePath = getContentTypePath(contentType);
     const queryParams = new URLSearchParams({
       page_size: pageSize.toString(),
-      child_page_size: childPageSize.toString(),
-      ascending: ascending.toString(),
+      ascending: ascending ? 'TRUE' : 'FALSE',
       privacy_type: privacyType,
       ordering: sort,
       parent__isnull: 'true',
@@ -247,7 +246,7 @@ export class CommentService {
       ordering: sort,
       child_count: pageSize.toString(),
       child_offset: childOffset.toString(),
-      ascending: ascending.toString(),
+      ascending: ascending ? 'TRUE' : 'FALSE',
     });
 
     // Note: The URL format is different - we're getting the comment itself with its replies
