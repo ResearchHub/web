@@ -60,7 +60,6 @@ export default async function FundingProjectPage({ params }: Props) {
   const work = await getFundingProject(id);
 
   // Fetch all required data in parallel
-  const startTime = Date.now();
   const [metadata, content, authorUpdates] = await Promise.all([
     MetadataService.get(work.unifiedDocumentId?.toString() || ''),
     getWorkHTMLContent(work),
