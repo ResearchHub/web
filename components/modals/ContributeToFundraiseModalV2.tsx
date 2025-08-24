@@ -9,6 +9,8 @@ import { X, TrendingUp, ArrowLeft } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { Fundraise } from '@/types/funding';
 import { CurrencyInput } from '../ui/form/CurrencyInput';
+import { StripeWrapper } from '@/components/StripeWrapper';
+import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
 const PROCESSING_FEE_PERCENTAGE = 0.025; // 2.5%
 
@@ -320,27 +322,138 @@ export const ContributeToFundraiseModalV2: FC<ContributeToFundraiseModalProps> =
     </>
   );
 
+  const PaymentForm: React.FC<{ amount: number }> = ({ amount }) => {
+    const stripe = useStripe();
+    const elements = useElements();
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [message, setMessage] = useState<string | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+
+      if (!stripe || !elements) return;
+
+      setIsProcessing(true);
+
+      try {
+        // Create PaymentIntent first
+        const response = await fetch('/api/create-payment-intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: amount,
+            metadata: {
+              fundraiseId: fundraise.id,
+              userId: user?.id,
+              rscAmount: inputAmount - totalAvailableBalance,
+            },
+          }),
+        });
+
+        const { clientSecret } = await response.json();
+
+        // Confirm the payment
+        const result = await stripe.confirmPayment({
+          elements,
+          clientSecret,
+          confirmParams: {
+            return_url: `${window.location.origin}/payment-result`,
+          },
+          redirect: 'if_required', // Only redirect for payment methods that require it
+        });
+
+        if (result.error) {
+          setMessage(result.error.message || 'Payment failed');
+        } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
+          setMessage('Payment successful! RSC will be added to your account shortly.');
+          // You could close the modal or show success state here
+          setTimeout(() => {
+            onClose();
+          }, 2000);
+        }
+      } catch (error) {
+        setMessage('An error occurred. Please try again.');
+        console.error('Payment error:', error);
+      } finally {
+        setIsProcessing(false);
+      }
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Complete Your Purchase</h3>
+          <p className="text-sm text-gray-600 mb-6">
+            You need <strong>{(inputAmount - totalAvailableBalance).toLocaleString()} RSC</strong>{' '}
+            to complete your contribution.
+          </p>
+        </div>
+
+        <div className="bg-gray-50 p-4 rounded-lg mb-6">
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-gray-600">Amount needed:</span>
+            <span className="font-medium text-gray-900">
+              {(inputAmount - totalAvailableBalance).toLocaleString()} RSC
+            </span>
+          </div>
+          <div className="flex justify-between items-center text-sm mt-1">
+            <span className="text-gray-600">Current balance:</span>
+            <span className="font-medium text-gray-900">
+              {totalAvailableBalance.toLocaleString()} RSC
+            </span>
+          </div>
+        </div>
+
+        <div className="border border-gray-200 rounded-lg p-4">
+          <PaymentElement />
+        </div>
+
+        <Button
+          type="submit"
+          disabled={!stripe || isProcessing}
+          className="w-full h-12 text-base font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0 shadow-lg disabled:opacity-50"
+        >
+          {isProcessing ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Processing Payment...
+            </div>
+          ) : (
+            `Purchase ${(inputAmount - totalAvailableBalance).toLocaleString()} RSC`
+          )}
+        </Button>
+
+        {message && (
+          <div
+            className={`p-3 rounded-lg text-sm ${
+              message.includes('successful')
+                ? 'bg-green-50 text-green-800 border border-green-200'
+                : 'bg-red-50 text-red-800 border border-red-200'
+            }`}
+          >
+            {message}
+          </div>
+        )}
+      </form>
+    );
+  };
+
   const renderPurchaseStep = () => (
     <>
       {renderHeader()}
-      {/* Purchase Content Placeholder */}
       <div className="flex-1 overflow-y-auto">
         <div className="px-6 py-6">
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">💰</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Payment Form Coming Soon</h3>
-              <p className="text-gray-600">This will be replaced with the actual payment form</p>
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-600">
-                  <strong>Amount needed:</strong>{' '}
-                  {(inputAmount - totalAvailableBalance).toLocaleString()} RSC
-                </p>
-                <p className="text-sm text-gray-600">
-                  <strong>Current balance:</strong> {totalAvailableBalance.toLocaleString()} RSC
-                </p>
-              </div>
-            </div>
+            <StripeWrapper
+              options={{
+                mode: 'payment',
+                amount: Math.round(inputAmount - totalAvailableBalance), // Convert to cents and ensure integer
+                currency: 'usd',
+                paymentMethodTypes: ['card'],
+              }}
+            >
+              <PaymentForm amount={Math.round(inputAmount - totalAvailableBalance)} />
+            </StripeWrapper>
           </div>
         </div>
       </div>
