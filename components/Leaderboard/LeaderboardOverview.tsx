@@ -240,7 +240,7 @@ export const LeaderboardOverview = () => {
                         currency={showUSD ? 'USD' : 'RSC'}
                         shorten={true}
                         showIcon={true}
-                        showText={true}
+                        showText={showUSD}
                         className="justify-end"
                       />
                     </div>
