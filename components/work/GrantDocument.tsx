@@ -9,7 +9,6 @@ import { WorkTabs, TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { GrantApplications } from './GrantApplications';
 import { differenceInCalendarDays, format } from 'date-fns';
-import { colors } from '@/app/styles/colors';
 import { PostBlockEditor } from './PostBlockEditor';
 
 interface GrantDocumentProps {
@@ -113,8 +112,7 @@ export const GrantDocument = ({
           <div className="flex-1 text-sm">
             <div className="flex items-center gap-2 text-gray-800">
               <span
-                className={`h-2 w-2 rounded-full ${isOpen ? 'bg-emerald-500' : ''} inline-block`}
-                style={!isOpen ? { backgroundColor: colors.gray[400] } : undefined}
+                className={`h-2 w-2 rounded-full ${isOpen ? 'bg-emerald-500' : 'bg-gray-400'} inline-block`}
               />
               <span>{isOpen ? 'Accepting Applications' : 'Closed'}</span>
               {endDate && isOpen && (

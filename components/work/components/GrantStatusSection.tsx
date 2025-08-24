@@ -2,7 +2,6 @@
 
 import { Work } from '@/types/work';
 import { differenceInCalendarDays, format } from 'date-fns';
-import { colors } from '@/app/styles/colors';
 import { Clock } from 'lucide-react';
 
 interface GrantStatusSectionProps {
@@ -31,8 +30,7 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
       <h3 className="text-base font-semibold text-gray-900 mb-2">Status</h3>
       <div className="flex items-center gap-2 text-gray-800 text-sm">
         <span
-          className={`h-2 w-2 rounded-full ${isOpen ? 'bg-emerald-500' : ''} inline-block`}
-          style={!isOpen ? { backgroundColor: colors.gray[400] } : undefined}
+          className={`h-2 w-2 rounded-full ${isOpen ? 'bg-emerald-500' : 'bg-gray-400'} inline-block`}
         />
         <span>{isOpen ? 'Accepting Applications' : 'Closed'}</span>
       </div>
