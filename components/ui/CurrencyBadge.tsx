@@ -196,7 +196,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
     return wrapWithTooltip(
       <div
         className={cn(
-          'flex items-center whitespace-nowrap',
+          'flex items-center',
           variant === 'inline' ? 'px-2 py-1' : '',
           sizeClasses[size],
           isUSD ? textColor || 'text-black' : '', // Example: Different base color for USD text variant
