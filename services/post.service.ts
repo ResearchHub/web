@@ -60,22 +60,12 @@ export class PostService {
     const { cleanIntroEmptyContent = true } = options;
 
     try {
-      console.log('[PostService.getContent] Fetching from URL:', url);
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-
-      const response = await fetch(url, {
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-
-      console.log('[PostService.getContent] Response status:', response.status);
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Failed to fetch content: ${response.status}`);
       }
 
       let html = await response.text();
-      console.log('[PostService.getContent] HTML length:', html.length);
 
       // Sanitize HTML with allowed tags and attributes
       html = sanitizeHtml(html, {
