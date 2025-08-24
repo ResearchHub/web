@@ -315,7 +315,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
 
         {showSupportAndCTAButtons && (
           <div
-            className="mt-4 flex items-center gap-2 flex-wrap"
+            className="mt-4 flex items-center gap-2 flex-wrap mobile:flex-wrap flex-nowrap"
             onClick={(e) => e.stopPropagation()}
             role="presentation"
             aria-hidden="true"
@@ -325,7 +325,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
               <Button
                 variant="default"
                 size="sm"
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border-0"
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border-0 min-w-[140px] !flex-1 mobile:!flex-initial mobile:!w-auto"
                 onClick={handleSolution}
               >
                 <MessageSquareReply size={16} />
@@ -335,12 +335,12 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
             {awardButton}
             {isOpen && showContributeButton && !isAuthor && (
               <Button
-                variant="ghost"
+                variant="outlined"
                 size="sm"
                 onClick={handleOpenContributeModal}
-                className="text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+                className="text-orange-600 gap-2 border-orange-600 hover:bg-orange-50 min-w-[140px] !flex-1 mobile:!flex-initial mobile:!w-auto"
               >
-                <ResearchCoinIcon size={16} />
+                <ResearchCoinIcon outlined size={16} />
                 Support
               </Button>
             )}

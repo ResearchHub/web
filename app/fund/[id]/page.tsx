@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { PaperService } from '@/services/paper.service';
+import { PostService } from '@/services/post.service';
 import { handleMissingSlugRedirect } from '@/utils/navigation';
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
   }>;
 }
 
-export default async function PaperRedirectPage({ params }: Props) {
+export default async function FundRedirectPage({ params }: Props) {
   const resolvedParams = await params;
   const id = resolvedParams.id;
 
@@ -16,13 +16,13 @@ export default async function PaperRedirectPage({ params }: Props) {
     notFound();
   }
 
-  let paper;
+  let fund;
   try {
-    paper = await PaperService.get(id);
+    fund = await PostService.get(id);
   } catch (error) {
     notFound();
   }
 
   // Redirect to the full URL with slug (outside try-catch)
-  handleMissingSlugRedirect(paper, id, 'paper');
+  handleMissingSlugRedirect(fund, id, 'fund');
 }
