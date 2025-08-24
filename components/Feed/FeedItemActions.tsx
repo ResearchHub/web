@@ -511,6 +511,28 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   // Calculate total earned amount (Tips + Awarded Bounty)
   const totalEarnedAmount = localTotalTipAmount + awardedBountyAmount;
 
+  // Calculate display amount with $150 USD pegging for ResearchHub Foundation bounties
+  const getDisplayAmount = () => {
+    // Tips should always show their actual amount
+    const tipAmount = localTotalTipAmount;
+
+    // For awarded bounty amount, apply $150 USD pegging if it's from ResearchHub Foundation
+    let bountyDisplayAmount = awardedBountyAmount;
+    if (awardedBountyAmount > 0 && openBounties.length > 0) {
+      const fixedAmount = getFixedDisplayAmount(
+        openBounties[0],
+        feedAuthor,
+        showUSD ? 'USD' : 'RSC',
+        exchangeRate
+      );
+      if (fixedAmount !== null) {
+        bountyDisplayAmount = fixedAmount;
+      }
+    }
+
+    return tipAmount + bountyDisplayAmount;
+  };
+
   // Use media queries to determine screen size
   const isMobile = useMediaQuery('(max-width: 480px)');
   const isTabletOrSmaller = useMediaQuery('(max-width: 768px)');
@@ -720,7 +742,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                   <span className="flex items-center gap-0.5">
                     +
                     <CurrencyBadge
-                      amount={totalEarnedAmount}
+                      amount={getDisplayAmount()}
                       variant="text"
                       size="xs"
                       currency={showUSD ? 'USD' : 'RSC'}
@@ -728,8 +750,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                       showExchangeRate={false}
                       showIcon={true}
                       showText={false}
-                      bounty={openBounties[0]}
-                      feedAuthor={feedAuthor}
                     />
                   </span>
                 ),
