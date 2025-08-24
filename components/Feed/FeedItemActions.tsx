@@ -728,6 +728,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                       showExchangeRate={false}
                       showIcon={true}
                       showText={false}
+                      bounty={openBounties[0]}
+                      feedAuthor={feedAuthor}
                     />
                   </span>
                 ),
