@@ -85,6 +85,7 @@ export const transformContribution = (raw: any): BountyContribution => {
   let shim = {
     ...raw,
   };
+
   if (raw?.author?.user) {
     shim = {
       ...shim,
@@ -99,7 +100,7 @@ export const transformContribution = (raw: any): BountyContribution => {
     return {
       id: raw.id || 0,
       amount: raw.amount || '0',
-      createdBy: transformUser(raw.user || null),
+      createdBy: transformUser(raw.user || raw.created_by || null),
       status: raw.status || 'ACTIVE',
       raw,
     };
