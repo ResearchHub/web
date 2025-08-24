@@ -8,7 +8,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { PostDocument } from '@/components/work/PostDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
-import { handleFundraiseRedirect } from '@/utils/navigation';
+import { handlePostRedirect } from '@/utils/navigation';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
 
 interface Props {
@@ -56,8 +56,8 @@ export default async function PostReviewsPage({ params }: Props) {
   const resolvedParams = await params;
   const post = await getPost(resolvedParams.id);
 
-  // Handle fundraise redirection
-  handleFundraiseRedirect(post, resolvedParams.id, resolvedParams.slug);
+  // Handle all post redirects (questions redirect to conversation since they don't have reviews)
+  handlePostRedirect(post, resolvedParams.id, resolvedParams.slug, 'conversation');
 
   const metadata = await MetadataService.get(post.unifiedDocumentId?.toString() || '');
   const content = await getPostContent(post);

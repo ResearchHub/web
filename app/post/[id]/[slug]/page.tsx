@@ -9,7 +9,7 @@ import { WorkDocument } from '@/components/work/WorkDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { PostDocument } from '@/components/work/PostDocument';
-import { handleFundraiseRedirect } from '@/utils/navigation';
+import { handlePostRedirect } from '@/utils/navigation';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
 
 interface Props {
@@ -35,7 +35,9 @@ async function getPostContent(work: Work): Promise<string | undefined> {
   if (!work.contentUrl) return undefined;
 
   try {
-    return await PostService.getContent(work.contentUrl);
+    const postContent = await PostService.getContent(work.contentUrl);
+    console.log('postContent', postContent);
+    return postContent;
   } catch (error) {
     console.error('Failed to fetch content:', error);
     return undefined;
@@ -59,8 +61,8 @@ export default async function PostPage({ params }: Props) {
   // First fetch the post
   const post = await getPost(id);
 
-  // Handle fundraise redirection
-  handleFundraiseRedirect(post, resolvedParams.id, resolvedParams.slug);
+  // Handle all post redirects (question and fundraise)
+  handlePostRedirect(post, resolvedParams.id, resolvedParams.slug);
 
   // Then fetch metadata using unifiedDocumentId
   const metadata = await MetadataService.get(post.unifiedDocumentId?.toString() || '');

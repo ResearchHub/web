@@ -60,7 +60,7 @@ export default async function QuestionPage({ params }: Props) {
   const post = await getPost(id);
 
   // Handle fundraise redirection
-  handleFundraiseRedirect(post, resolvedParams.id, resolvedParams.slug);
+  // handleFundraiseRedirect(post, resolvedParams.id, resolvedParams.slug);
 
   // Then fetch metadata using unifiedDocumentId
   const metadata = await MetadataService.get(post.unifiedDocumentId?.toString() || '');
