@@ -583,7 +583,6 @@ function LeaderboardPageContent() {
                         currencyLabelColor="text-gray-500"
                         showIcon={true}
                         showText={false}
-                        className="whitespace-nowrap"
                       />
                     </div>
                   </div>
@@ -668,7 +667,6 @@ function LeaderboardPageContent() {
                       currencyLabelColor="text-gray-500"
                       showIcon={true}
                       showText={false}
-                      className="whitespace-nowrap"
                     />
                   </div>
                 </div>
