@@ -5,6 +5,7 @@ import { LeaderboardService } from '@/services/leaderboard.service';
 import { TopReviewer, TopFunder } from '@/types/leaderboard';
 import { Avatar } from '@/components/ui/Avatar';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
@@ -129,13 +130,19 @@ export const LeaderboardOverview = () => {
                     <div className="flex-grow min-w-0 mr-1 -mt-1">
                       {authorId ? (
                         <AuthorTooltip authorId={authorId}>
-                          <span className="text-xs font-medium text-gray-900 block break-words">
+                          <span className="text-xs font-medium text-gray-900 block break-words flex items-center gap-1">
                             {reviewer.authorProfile.fullName}
+                            {(reviewer.authorProfile.isVerified ||
+                              reviewer.authorProfile.user?.isVerified) && (
+                              <VerifiedBadge size="xs" />
+                            )}
                           </span>
                         </AuthorTooltip>
                       ) : (
-                        <span className="text-xs font-medium text-gray-900 block break-words">
+                        <span className="text-xs font-medium text-gray-900 block break-words flex items-center gap-1">
                           {reviewer.authorProfile.fullName}
+                          {(reviewer.authorProfile.isVerified ||
+                            reviewer.authorProfile.user?.isVerified) && <VerifiedBadge size="xs" />}
                         </span>
                       )}
                     </div>
@@ -220,13 +227,17 @@ export const LeaderboardOverview = () => {
                     <div className="flex-grow min-w-0 mr-1 -mt-1">
                       {authorId ? (
                         <AuthorTooltip authorId={authorId}>
-                          <span className="text-xs font-medium text-gray-900 block break-words">
+                          <span className="text-xs font-medium text-gray-900 block break-words flex items-center gap-1">
                             {funder.authorProfile.fullName}
+                            {(funder.authorProfile.isVerified ||
+                              funder.authorProfile.user?.isVerified) && <VerifiedBadge size="xs" />}
                           </span>
                         </AuthorTooltip>
                       ) : (
-                        <span className="text-xs font-medium text-gray-900 block break-words">
+                        <span className="text-xs font-medium text-gray-900 block break-words flex items-center gap-1">
                           {funder.authorProfile.fullName}
+                          {(funder.authorProfile.isVerified ||
+                            funder.authorProfile.user?.isVerified) && <VerifiedBadge size="xs" />}
                         </span>
                       )}
                     </div>
