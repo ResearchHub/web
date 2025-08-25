@@ -2,13 +2,14 @@ import { formatDeadline } from '@/utils/date';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
-import { Check } from 'lucide-react';
+import { Check, Clock, XCircle } from 'lucide-react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-
+import { Tooltip } from '@/components/ui/Tooltip';
 interface BountyMetadataLineProps {
   amount: number;
   expirationDate?: string;
-  isOpen: boolean;
+  reviewPeriodEndDate?: string;
+  status: 'OPEN' | 'CLOSED' | 'REVIEW_PERIOD' | 'EXPIRED' | 'CANCELLED';
   expiringSoon: boolean;
   className?: string;
   solutionsCount?: number;
@@ -18,19 +19,61 @@ interface BountyMetadataLineProps {
 export const BountyMetadataLine = ({
   amount,
   expirationDate,
-  isOpen,
+  reviewPeriodEndDate,
+  status,
   expiringSoon,
   className = '',
   showDeadline = true,
 }: BountyMetadataLineProps) => {
   const { showUSD } = useCurrencyPreference();
 
-  // Format the deadline text
-  const deadlineText = isOpen
-    ? expirationDate
-      ? formatDeadline(expirationDate)
-      : 'No deadline'
-    : 'Completed';
+  const isOpen = status === 'OPEN';
+  const isActive = status === 'OPEN' || status === 'REVIEW_PERIOD';
+
+  const getDeadlineText = () => {
+    switch (status) {
+      case 'OPEN':
+        return expirationDate ? formatDeadline(expirationDate) : 'No deadline';
+      case 'REVIEW_PERIOD':
+        if (reviewPeriodEndDate) {
+          const deadline = formatDeadline(reviewPeriodEndDate);
+          // Transform deadline text for review period
+          if (deadline === 'Ended') {
+            return 'Review ended';
+          } else if (deadline === 'Ended today') {
+            return 'Review ended today';
+          } else if (deadline === 'Ends today') {
+            return 'Review ends today';
+          } else if (deadline === 'Ends tomorrow') {
+            return 'Review ends tomorrow';
+          } else if (deadline.includes('days left')) {
+            // "10 days left" → "Review ends in 10 days"
+            const days = deadline.match(/(\d+) days left/)?.[1];
+            return `Review ends in ${days} days`;
+          } else if (deadline.startsWith('Ends in')) {
+            // "Ends in 5 hours" → "Review ends in 5 hours"
+            return deadline.replace('Ends in', 'Review ends in');
+          } else if (deadline === 'Ends in less than an hour') {
+            return 'Review ends in less than an hour';
+          } else if (deadline.startsWith('Ends ')) {
+            // "Ends Dec 15, 2024" → "Review ends Dec 15, 2024"
+            return deadline.replace('Ends', 'Review ends');
+          }
+          return `Review ${deadline.toLowerCase()}`;
+        }
+        return 'Under Review';
+      case 'CLOSED':
+        return 'Completed';
+      case 'EXPIRED':
+        return 'Bounty Ended';
+      case 'CANCELLED':
+        return 'Cancelled';
+      default:
+        return 'Completed';
+    }
+  };
+
+  const deadlineText = getDeadlineText();
 
   return (
     <div className={`space-y-3 ${className}`}>
@@ -49,16 +92,47 @@ export const BountyMetadataLine = ({
 
         {showDeadline && (
           <div className="flex items-center gap-2 text-sm">
-            {isOpen ? (
-              <RadiatingDot size={12} dotSize={6} isRadiating={isOpen} className="flex-shrink-0" />
+            {isActive ? (
+              <RadiatingDot
+                size={12}
+                dotSize={6}
+                isRadiating={isActive}
+                className="flex-shrink-0"
+              />
+            ) : status === 'EXPIRED' ? (
+              <XCircle size={14} className="text-gray-500 flex-shrink-0" />
             ) : (
               <Check size={14} className="text-green-600 flex-shrink-0" />
             )}
-            <span
-              className={`${isOpen ? (expiringSoon ? 'text-orange-600 font-medium' : 'text-gray-700') : 'text-green-700 font-medium'}`}
-            >
-              {deadlineText}
-            </span>
+            {status === 'REVIEW_PERIOD' ? (
+              <Tooltip
+                content={
+                  <div className="flex items-start gap-3 text-left">
+                    <div className="bg-orange-100 p-2 rounded-md flex items-center justify-center">
+                      <Clock className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <div>
+                      Bounty creators get extra time after the deadline to review submissions and
+                      award funds.
+                    </div>
+                  </div>
+                }
+                position="top"
+                width="w-[360px]"
+              >
+                <span
+                  className={`${isActive ? (expiringSoon ? 'text-orange-600 font-medium' : 'text-gray-700') : status === 'EXPIRED' ? 'text-gray-500' : 'text-green-700 font-medium'} cursor-help underline decoration-dotted underline-offset-2`}
+                >
+                  {deadlineText}
+                </span>
+              </Tooltip>
+            ) : (
+              <span
+                className={`${isActive ? (expiringSoon ? 'text-orange-600 font-medium' : 'text-gray-700') : status === 'EXPIRED' ? 'text-gray-500' : 'text-green-700 font-medium'}`}
+              >
+                {deadlineText}
+              </span>
+            )}
           </div>
         )}
       </div>

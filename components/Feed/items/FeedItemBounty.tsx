@@ -11,7 +11,7 @@ import { BountySolutions } from '@/components/Bounty/BountySolutions';
 import {
   isExpiringSoon,
   calculateTotalAwardedAmount,
-  isOpenBounty,
+  isActiveBounty,
 } from '@/components/Bounty/lib/bountyUtil';
 import { ContentFormat } from '@/types/comment';
 import { ID } from '@/types/root';
@@ -126,7 +126,6 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   // Get the author from the bounty entry
   const author = bountyEntry.createdBy;
 
-  // Determine bounty status
   const isOpen = bounty.status === 'OPEN';
   const expiringSoon = isExpiringSoon(bounty.expirationDate);
   const solutionsCount = bounty.solutions ? bounty.solutions.length : 0;
@@ -228,7 +227,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   }
 
   const awardButton =
-    showCreatorActions && isAuthor && isOpenBounty(bounty) && onAward ? (
+    showCreatorActions && isAuthor && isActiveBounty(bounty) && onAward ? (
       <Button
         onClick={handleAwardBounty}
         size="sm"
@@ -277,7 +276,8 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
           <BountyMetadataLine
             amount={parseFloat(bounty.totalAmount)}
             expirationDate={bounty.expirationDate}
-            isOpen={isOpen}
+            reviewPeriodEndDate={bounty.reviewPeriodEndDate}
+            status={bounty.status}
             expiringSoon={expiringSoon}
             solutionsCount={solutionsCount}
             showDeadline={showDeadline}
