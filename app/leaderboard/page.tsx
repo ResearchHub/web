@@ -6,6 +6,7 @@ import { LeaderboardService } from '@/services/leaderboard.service';
 import { TopReviewer, TopFunder } from '@/types/leaderboard';
 import { Avatar } from '@/components/ui/Avatar';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { Button } from '@/components/ui/Button';
 import { Tabs } from '@/components/ui/Tabs';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
@@ -542,13 +543,21 @@ function LeaderboardPageContent() {
                       <div className="flex flex-col min-w-0">
                         {authorId ? (
                           <AuthorTooltip authorId={authorId}>
-                            <span className="text-base font-medium text-gray-900 truncate">
+                            <span className="text-base font-medium text-gray-900 truncate flex items-center gap-1">
                               {reviewer.authorProfile.fullName}
+                              {(reviewer.authorProfile.isVerified ||
+                                reviewer.authorProfile.user?.isVerified) && (
+                                <VerifiedBadge size="sm" />
+                              )}
                             </span>
                           </AuthorTooltip>
                         ) : (
-                          <span className="text-base font-medium text-gray-900 truncate">
+                          <span className="text-base font-medium text-gray-900 truncate flex items-center gap-1">
                             {reviewer.authorProfile.fullName}
+                            {(reviewer.authorProfile.isVerified ||
+                              reviewer.authorProfile.user?.isVerified) && (
+                              <VerifiedBadge size="sm" />
+                            )}
                           </span>
                         )}
                         {reviewer.authorProfile.headline && (
@@ -626,13 +635,17 @@ function LeaderboardPageContent() {
                     <div className="flex flex-col min-w-0">
                       {authorId ? (
                         <AuthorTooltip authorId={authorId}>
-                          <span className="text-base font-medium text-gray-900 truncate">
+                          <span className="text-base font-medium text-gray-900 truncate flex items-center gap-1">
                             {funder.authorProfile.fullName}
+                            {(funder.authorProfile.isVerified ||
+                              funder.authorProfile.user?.isVerified) && <VerifiedBadge size="sm" />}
                           </span>
                         </AuthorTooltip>
                       ) : (
-                        <span className="text-base font-medium text-gray-900 truncate">
+                        <span className="text-base font-medium text-gray-900 truncate flex items-center gap-1">
                           {funder.authorProfile.fullName}
+                          {(funder.authorProfile.isVerified ||
+                            funder.authorProfile.user?.isVerified) && <VerifiedBadge size="sm" />}
                         </span>
                       )}
                       {funder.authorProfile.headline && (
