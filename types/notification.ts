@@ -17,6 +17,7 @@ export interface NotificationExtra {
   bounty_type?: string;
   bounty_expiration_date?: string;
   review_period_end_date?: string;
+  review_period_days?: number;
   days_remaining?: number;
   hours_remaining?: number;
   hub_details?: string;
@@ -82,6 +83,7 @@ const transformNotificationExtraRaw = (raw: any): NotificationExtra | undefined 
     bounty_type: raw.bounty_type,
     bounty_expiration_date: raw.bounty_expiration_date,
     review_period_end_date: raw.review_period_end_date,
+    review_period_days: raw.review_period_days,
     days_remaining: raw.days_remaining,
     hours_remaining: raw.hours_remaining,
     hub,
