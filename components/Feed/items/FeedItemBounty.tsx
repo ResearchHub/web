@@ -329,7 +329,11 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
                 onClick={handleSolution}
               >
                 <MessageSquareReply size={16} />
-                {bounty.bountyType === 'REVIEW' ? 'Add Review' : 'Add Solution'}
+                {entry.relatedWork?.postType === 'QUESTION'
+                  ? 'Add answer'
+                  : bounty.bountyType === 'REVIEW'
+                    ? 'Add Review'
+                    : 'Add Solution'}
               </Button>
             )}
             {awardButton}
