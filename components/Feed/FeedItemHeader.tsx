@@ -121,7 +121,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
                 {authorId && authorId > 0 ? (
                   <AuthorTooltip authorId={authorId}>
                     <a
-                      href="#"
+                      href={`/author/${authorId}`}
                       className="font-semibold hover:text-blue-600 cursor-pointer"
                       onClick={(e) => {
                         e.preventDefault();

@@ -280,7 +280,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
         {/* Profile link positioned right above the border */}
         <div className="mt-3 text-left">
           <a
-            href="#"
+            href={`/author/${userData.authorProfile?.id || userData.id}`}
             className="text-xs text-blue-600 hover:text-blue-800 font-medium inline-block"
             onClick={(e) => {
               e.preventDefault();

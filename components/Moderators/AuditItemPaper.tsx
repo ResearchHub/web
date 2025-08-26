@@ -79,7 +79,7 @@ export const AuditItemPaper: FC<AuditItemPaperProps> = ({ entry, onAction, view 
           {userInfo.authorId ? (
             <AuthorTooltip authorId={userInfo.authorId}>
               <a
-                href="#"
+                href={`/author/${userInfo.authorId}`}
                 className="font-medium text-gray-900 hover:text-blue-600 cursor-pointer"
                 onClick={(e) => {
                   e.preventDefault();
