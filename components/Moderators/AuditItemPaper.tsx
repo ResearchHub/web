@@ -1,6 +1,7 @@
 'use client';
 
 import { FC } from 'react';
+import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { FlaggedContent } from '@/services/audit.service';
@@ -78,22 +79,12 @@ export const AuditItemPaper: FC<AuditItemPaperProps> = ({ entry, onAction, view 
         <div>
           {userInfo.authorId ? (
             <AuthorTooltip authorId={userInfo.authorId}>
-              <a
+              <Link
                 href={`/author/${userInfo.authorId}`}
                 className="font-medium text-gray-900 hover:text-blue-600 cursor-pointer"
-                onClick={(e) => {
-                  // Check if Command (Mac) or Ctrl (Windows/Linux) is pressed
-                  if (e.metaKey || e.ctrlKey) {
-                    // Open in new tab - let the browser handle it naturally
-                    return; // Don't prevent default, let the href work
-                  }
-                  // Normal click - use custom navigation
-                  e.preventDefault();
-                  navigateToAuthorProfile(userInfo.authorId);
-                }}
               >
                 {userInfo.name}
-              </a>
+              </Link>
             </AuthorTooltip>
           ) : (
             <span

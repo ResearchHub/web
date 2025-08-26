@@ -1,6 +1,7 @@
 'use client';
 
 import { FC, useEffect } from 'react';
+import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorProfile } from '@/types/authorProfile';
@@ -119,22 +120,12 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
               <div className="flex items-center gap-1">
                 {authorId && authorId > 0 ? (
                   <AuthorTooltip authorId={authorId}>
-                    <a
+                    <Link
                       href={`/author/${authorId}`}
                       className="font-semibold hover:text-blue-600 cursor-pointer"
-                      onClick={(e) => {
-                        // Check if Command (Mac) or Ctrl (Windows/Linux) is pressed
-                        if (e.metaKey || e.ctrlKey) {
-                          // Open in new tab - let the browser handle it naturally
-                          return; // Don't prevent default, let the href work
-                        }
-                        // Normal click - use custom navigation
-                        e.preventDefault();
-                        navigateToAuthorProfile(authorId);
-                      }}
                     >
                       {displayAuthor.fullName}
-                    </a>
+                    </Link>
                   </AuthorTooltip>
                 ) : (
                   <span className="font-semibold">{displayAuthor.fullName}</span>

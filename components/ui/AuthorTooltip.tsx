@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import Link from 'next/link';
 import { AuthorService } from '@/services/author.service';
 import { Avatar } from '@/components/ui/Avatar';
 import { User } from '@/types/user';
@@ -233,12 +234,12 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <a
-                href={userData.authorProfile.profileUrl}
+              <Link
+                href={`/author/${userData.authorProfile?.id || userData.id}`}
                 className="font-semibold text-gray-900 hover:text-blue-600 block truncate"
               >
                 {userData.fullName}
-              </a>
+              </Link>
             </div>
 
             {!userData.authorProfile.isClaimed && (
@@ -279,7 +280,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
 
         {/* Profile link positioned right above the border */}
         <div className="mt-3 text-left">
-          <a
+          <Link
             href={`/author/${userData.authorProfile?.id || userData.id}`}
             className="text-xs text-blue-600 hover:text-blue-800 font-medium inline-block"
             onClick={(e) => {
@@ -294,7 +295,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
             }}
           >
             View profile
-          </a>
+          </Link>
         </div>
 
         {/* Social links */}
