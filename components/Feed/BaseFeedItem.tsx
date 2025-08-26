@@ -254,6 +254,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
                   href={href}
                   reviews={content.reviews}
                   bounties={content.bounties}
+                  feedAuthor={author}
                 />
               </div>
             </div>
