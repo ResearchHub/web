@@ -110,7 +110,6 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
           alt={displayAuthor?.fullName ?? 'Unknown'}
           size={avatarSize}
           className={authorId && authorId > 0 ? 'cursor-pointer' : ''}
-          onClick={authorId && authorId > 0 ? () => navigateToAuthorProfile(authorId) : undefined}
           authorId={authorId}
         />
 
@@ -124,6 +123,12 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
                       href={`/author/${authorId}`}
                       className="font-semibold hover:text-blue-600 cursor-pointer"
                       onClick={(e) => {
+                        // Check if Command (Mac) or Ctrl (Windows/Linux) is pressed
+                        if (e.metaKey || e.ctrlKey) {
+                          // Open in new tab - let the browser handle it naturally
+                          return; // Don't prevent default, let the href work
+                        }
+                        // Normal click - use custom navigation
                         e.preventDefault();
                         navigateToAuthorProfile(authorId);
                       }}

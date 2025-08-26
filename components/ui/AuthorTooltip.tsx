@@ -283,6 +283,12 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
             href={`/author/${userData.authorProfile?.id || userData.id}`}
             className="text-xs text-blue-600 hover:text-blue-800 font-medium inline-block"
             onClick={(e) => {
+              // Check if Command (Mac) or Ctrl (Windows/Linux) is pressed
+              if (e.metaKey || e.ctrlKey) {
+                // Open in new tab - let the browser handle it naturally
+                return; // Don't prevent default, let the href work
+              }
+              // Normal click - use custom navigation
               e.preventDefault();
               navigateToAuthorProfile(userData.authorProfile?.id || userData.id);
             }}
