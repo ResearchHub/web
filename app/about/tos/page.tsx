@@ -507,11 +507,14 @@ const TOSPage = () => {
               the infringement or misappropriation of our intellectual property rights. In addition,
               you will retain the right to opt out of arbitration entirely and litigate any Dispute
               if you provide us with written notice of your desire to do so by email at{' '}
-              <a href="mailto:hi@videocoin.io" className="text-indigo-600 hover:text-indigo-500">
-                hi@videocoin.io
+              <a
+                href="mailto:hello@researchhub.com"
+                className="text-indigo-600 hover:text-indigo-500"
+              >
+                hello@researchhub.com
               </a>{' '}
-              or by regular mail at [postal address] within thirty (30) days following the date you
-              first agree to these Terms.
+              or by regular mail at 548 Market Street, Suite 26680, San Francisco, CA 94104 within
+              thirty (30) days following the date you first agree to these Terms.
             </p>
             <p className="pl-8">
               (c) Conducting Arbitration and Arbitration Rules. The arbitration will be conducted by
@@ -565,10 +568,10 @@ const TOSPage = () => {
               changes to these Terms), you may reject any such change by sending us written notice
               (including by email to{' '}
               <a
-                href="mailto:disputes@videocoin.io"
+                href="mailto:hello@researchhub.com"
                 className="text-indigo-600 hover:text-indigo-500"
               >
-                disputes@videocoin.io
+                hello@researchhub.com
               </a>
               ) within 30 days of the date such change became effective, as indicated in the "Last
               Updated" date above or in the date of our email to you notifying you of such change.
