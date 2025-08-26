@@ -79,9 +79,15 @@ export const AuditItemPaper: FC<AuditItemPaperProps> = ({ entry, onAction, view 
           {userInfo.authorId ? (
             <AuthorTooltip authorId={userInfo.authorId}>
               <a
-                href="#"
+                href={`/author/${userInfo.authorId}`}
                 className="font-medium text-gray-900 hover:text-blue-600 cursor-pointer"
                 onClick={(e) => {
+                  // Check if Command (Mac) or Ctrl (Windows/Linux) is pressed
+                  if (e.metaKey || e.ctrlKey) {
+                    // Open in new tab - let the browser handle it naturally
+                    return; // Don't prevent default, let the href work
+                  }
+                  // Normal click - use custom navigation
                   e.preventDefault();
                   navigateToAuthorProfile(userInfo.authorId);
                 }}
