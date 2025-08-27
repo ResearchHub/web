@@ -1,6 +1,6 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState, useMemo, useEffect, useCallback, FC } from 'react';
-import { Comment } from '@/types/comment';
+import { Comment, CommentFilter } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { Modal } from '@/components/ui/form/Modal';
 import { Input } from '@/components/ui/form/Input';
@@ -326,11 +326,11 @@ const FilteredCommentFeed = ({
     [onSetEligibleComments]
   );
 
-  // Fetch all comments when the component mounts
+  // Fetch all comments and reviews when the component mounts
   useEffect(() => {
     let isMounted = true;
 
-    const fetchAllComments = async () => {
+    const fetchAllCommentsAndReviews = async () => {
       if (isMounted) {
         setIsLoading(true);
         stableOnLoadingChange(true);
@@ -338,25 +338,38 @@ const FilteredCommentFeed = ({
 
       try {
         const CommentService = (await import('@/services/comment.service')).CommentService;
-        const response = await CommentService.fetchComments({
-          documentId,
-          contentType,
-          sort: 'TOP',
-          pageSize: 100,
-        });
+
+        // Fetch both regular comments and reviews in parallel
+        const [commentsResponse, reviewsResponse] = await Promise.all([
+          CommentService.fetchComments({
+            documentId,
+            contentType,
+            sort: 'TOP',
+            pageSize: 100,
+          }),
+          CommentService.fetchComments({
+            documentId,
+            contentType,
+            sort: 'TOP',
+            pageSize: 100,
+            filter: 'REVIEW' as CommentFilter,
+          }),
+        ]);
 
         if (isMounted) {
-          if (response && response.comments) {
-            setAllComments(response.comments);
-          } else {
-            setAllComments([]);
-          }
+          // Combine both regular comments and reviews
+          const allCommentsAndReviews = [
+            ...(commentsResponse?.comments || []),
+            ...(reviewsResponse?.comments || []),
+          ];
+
+          setAllComments(allCommentsAndReviews);
           setError(null);
         }
       } catch (err) {
         if (isMounted) {
-          console.error('Failed to fetch comments:', err);
-          setError('Failed to load comments. Please try again.');
+          console.error('Failed to fetch comments and reviews:', err);
+          setError('Failed to load comments and reviews. Please try again.');
           setAllComments([]);
         }
       } finally {
@@ -367,7 +380,7 @@ const FilteredCommentFeed = ({
       }
     };
 
-    fetchAllComments();
+    fetchAllCommentsAndReviews();
 
     return () => {
       isMounted = false;
@@ -413,7 +426,7 @@ const FilteredCommentFeed = ({
   }, [commentsWithoutBounties, isLoading, stableOnSetEligibleComments]);
 
   if (isLoading) {
-    return <div className="py-4 text-center text-gray-500">Loading comments...</div>;
+    return <div className="py-4 text-center text-gray-500">Loading comments and reviews...</div>;
   }
 
   if (error) {
@@ -424,8 +437,8 @@ const FilteredCommentFeed = ({
     return (
       <div className="py-8 text-center">
         <p className="text-gray-500">
-          No comments available to award. Any user can comment or reply to be eligible for this
-          bounty.
+          No comments or reviews available to award. Any user can comment, review, or reply to be
+          eligible for this bounty.
         </p>
       </div>
     );
