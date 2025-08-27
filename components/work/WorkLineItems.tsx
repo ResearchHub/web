@@ -32,6 +32,7 @@ import { WorkMetadata } from '@/services/metadata.service';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useCompleteFundraise } from '@/hooks/useFundraise';
+import { FloatingCats } from '@/components/animations/FloatingCats';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -50,6 +51,7 @@ export const WorkLineItems = ({
 }: WorkLineItemsProps) => {
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
+  const [showFloatingCats, setShowFloatingCats] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showFundraiseActionModal, setShowFundraiseActionModal] = useState(false);
   const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | null>(null);
@@ -327,7 +329,12 @@ export const WorkLineItems = ({
 
           {work.contentType !== 'preregistration' && (
             <button
-              onClick={() => executeAuthenticatedAction(() => setIsTipModalOpen(true))}
+              onClick={() =>
+                executeAuthenticatedAction(() => {
+                  setShowFloatingCats(true);
+                  toast.success('🐱 Cats incoming!');
+                })
+              }
               className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
             >
               <Icon name="tipRSC" size={20} />
@@ -491,13 +498,20 @@ export const WorkLineItems = ({
         workType={work.contentType}
       />
 
-      {/* Tip Modal */}
-      <TipContentModal
+      {/* Tip Modal - Commented out, replaced with FloatingCats */}
+      {/* <TipContentModal
         isOpen={isTipModalOpen}
         onClose={() => setIsTipModalOpen(false)}
         contentId={work.id}
         feedContentType={work.contentType === 'paper' ? 'PAPER' : 'POST'}
         onTipSuccess={handleTipSuccess}
+      /> */}
+
+      {/* Floating Cats Animation */}
+      <FloatingCats
+        isActive={showFloatingCats}
+        onComplete={() => setShowFloatingCats(false)}
+        duration={5000}
       />
 
       {work.contentType === 'paper' && (
