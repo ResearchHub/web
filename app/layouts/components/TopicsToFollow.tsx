@@ -7,6 +7,18 @@ import { Topic } from '@/types/topic';
 import { LoadingSkeleton } from './LoadingSkeleton';
 import { FollowTopicButton } from '@/components/ui/FollowTopicButton';
 import { useFollowContext } from '@/contexts/FollowContext';
+import Link from 'next/link';
+
+export const TopicsToFollowSkeleton = () => (
+  <div>
+    <div className="flex justify-between items-center mb-4">
+      <h2 className="font-semibold text-gray-900">Follow Recommendations</h2>
+    </div>
+    <LoadingSkeleton />
+    <div className="border-t border-gray-200 my-4" />
+    <LoadingSkeleton />
+  </div>
+);
 
 // TopicCard Component
 interface TopicCardProps {
@@ -17,7 +29,7 @@ const TopicCard: React.FC<TopicCardProps> = ({ topic }) => {
   const isJournal = topic.namespace === 'journal';
 
   return (
-    <div className="flex items-center justify-between mb-3 mx-0.5">
+    <div className="flex items-center justify-between mb-3 px-1">
       <div className="flex items-center space-x-2.5">
         <div
           className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
@@ -27,7 +39,7 @@ const TopicCard: React.FC<TopicCardProps> = ({ topic }) => {
           {isJournal ? <BookMarked size={16} /> : <Hash size={16} />}
         </div>
         <div>
-          <div className="font-medium text-gray-900 text-sm">{topic.name}</div>
+          <div className="font-medium text-gray-900 text-xs">{topic.name}</div>
         </div>
       </div>
       <FollowTopicButton topicId={topic.id} />
@@ -116,23 +128,12 @@ const TopicsToFollowComponent: React.FC = () => {
   }, []);
 
   if (isLoading || followLoading) {
-    return (
-      <div>
-        <h2 className="font-semibold text-gray-900 mb-4">Follow Recommendations</h2>
-
-        <LoadingSkeleton />
-
-        {/* Divider */}
-        <div className="border-t border-gray-200 my-4"></div>
-
-        <LoadingSkeleton />
-      </div>
-    );
+    return <TopicsToFollowSkeleton />;
   }
 
   return (
     <div>
-      <h2 className="font-semibold text-gray-900 mb-6">Follow Recommendations</h2>
+      <h2 className="font-semibold text-gray-900 mb-4">Follow Recommendations</h2>
 
       {/* Journals Section */}
       <TopicSection title="Journals & Repositories" topics={journals} />
