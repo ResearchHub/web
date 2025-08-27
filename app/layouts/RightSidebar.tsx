@@ -16,8 +16,17 @@ import Link from 'next/link';
 import { useFeed } from '@/hooks/useFeed';
 import { ArrowRightIcon } from 'lucide-react';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
-import { LeaderboardOverview } from '@/components/Leaderboard/LeaderboardOverview';
-import { TopicsToFollow } from './components/TopicsToFollow';
+import { LeaderboardSkeleton } from '@/components/Leaderboard/LeaderboardOverview';
+import { TopicsToFollowSkeleton } from './components/TopicsToFollow';
+
+const LeaderboardOverview = dynamic(
+  () =>
+    import('@/components/Leaderboard/LeaderboardOverview').then((mod) => mod.LeaderboardOverview),
+  {
+    ssr: false,
+    loading: () => <LeaderboardSkeleton />,
+  }
+);
 
 // Dynamically import InfoBanner component
 const InfoBanner = dynamic(() => import('./components/InfoBanner').then((mod) => mod.InfoBanner), {
@@ -40,6 +49,14 @@ const InfoBanner = dynamic(() => import('./components/InfoBanner').then((mod) =>
     </div>
   ),
 });
+
+const TopicsToFollow = dynamic(
+  () => import('./components/TopicsToFollow').then((mod) => mod.TopicsToFollow),
+  {
+    ssr: false,
+    loading: () => <TopicsToFollowSkeleton />,
+  }
+);
 
 // Sample journal contributors for social proof (similar to JournalFeed)
 const journalContributors = [

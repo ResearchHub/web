@@ -14,21 +14,52 @@ import { navigateToAuthorProfile } from '@/utils/navigation';
 import { getLastWeekRange, formatDate } from '@/lib/dateUtils';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
-// Skeleton Loader for leaderboard sections
-const LeaderboardSkeleton = () => (
-  <div className="space-y-1 animate-pulse">
+const LeaderboardListSkeleton = () => (
+  <div className="space-y-3 animate-pulse">
     {[...Array(3)].map((_, i) => (
       <div
         key={i}
-        className="grid grid-cols-[32px_40px_1fr_auto] gap-x-3 items-center p-2 rounded-md"
+        className="grid grid-cols-[32px_40px_1fr_auto] gap-x-3 items-center px-1 py-2 rounded-md"
       >
-        <div className="w-6 h-6 bg-gray-200 rounded-md" />
+        <div className="w-8 h-8 bg-gray-200 rounded-md" />
         <div className="w-8 h-8 bg-gray-200 rounded-full" />
         <div className="h-4 bg-gray-200 rounded w-24" />
         <div className="h-4 bg-gray-200 rounded w-12 justify-self-end" />
       </div>
     ))}
   </div>
+);
+
+// Skeleton Loader for leaderboard sections
+export const LeaderboardSkeleton = () => (
+  <>
+    {/* Top Peer Reviewers Section Skeleton */}
+    <div>
+      <div className="flex justify-between items-baseline mb-3">
+        <div>
+          <h2 className="font-semibold text-gray-900">Top Peer Reviewers</h2>
+          <p className="text-xs text-gray-500">This Week</p>
+        </div>
+        <div className="text-xs text-gray-500">View All</div>
+      </div>
+      <LeaderboardListSkeleton />
+    </div>
+
+    {/* Divider */}
+    <div className="border-t border-gray-200 my-4" />
+
+    {/* Top Funders Section Skeleton */}
+    <div>
+      <div className="flex justify-between items-baseline mb-3">
+        <div>
+          <h2 className="font-semibold text-gray-900">Top Funders</h2>
+          <p className="text-xs text-gray-500">This Week</p>
+        </div>
+        <div className="text-xs text-gray-500">View All</div>
+      </div>
+      <LeaderboardListSkeleton />
+    </div>
+  </>
 );
 
 export const LeaderboardOverview = () => {
@@ -164,7 +195,7 @@ export const LeaderboardOverview = () => {
           </Link>
         </div>
         {isLoading ? (
-          <LeaderboardSkeleton />
+          <LeaderboardListSkeleton />
         ) : error ? (
           <p className="text-xs text-red-600">{error}</p>
         ) : reviewers.length > 0 ? (
@@ -191,7 +222,7 @@ export const LeaderboardOverview = () => {
           </Link>
         </div>
         {isLoading ? (
-          <LeaderboardSkeleton />
+          <LeaderboardListSkeleton />
         ) : error ? (
           <p className="text-xs text-red-600">{error}</p>
         ) : funders.length > 0 ? (
