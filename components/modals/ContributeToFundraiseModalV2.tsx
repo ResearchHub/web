@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { useCreateContribution } from '@/hooks/useFundraise';
 import { usePaymentIntent } from '@/hooks/usePayment';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { X, TrendingUp, ArrowLeft, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { Fundraise } from '@/types/funding';
@@ -73,7 +74,8 @@ const ModalHeader: FC<{
   onBack?: () => void;
   showBackButton: boolean;
   totalAvailableBalance: number;
-}> = ({ onClose, onBack, showBackButton, totalAvailableBalance }) => (
+  currentStep: string;
+}> = ({ onClose, onBack, showBackButton, totalAvailableBalance, currentStep }) => (
   <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-t-2xl p-6">
     {/* Close button - always on the right */}
     <Button
@@ -108,15 +110,17 @@ const ModalHeader: FC<{
     </div>
 
     {/* Your Balance Section */}
-    <div className="mt-3 flex justify-center">
-      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-white text-center shadow-lg border border-white/20">
-        <p className="text-sm text-white/80 mb-1">Your Balance</p>
-        <p className="text-3xl font-bold">
-          {totalAvailableBalance.toLocaleString()}{' '}
-          <span className="text-white/80 text-base">RSC</span>
-        </p>
+    {currentStep === 'contribute' && (
+      <div className="mt-3 flex justify-center">
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-white text-center shadow-lg border border-white/20">
+          <p className="text-sm text-white/80 mb-1">Your Balance</p>
+          <p className="text-3xl font-bold">
+            {totalAvailableBalance.toLocaleString()}{' '}
+            <span className="text-white/80 text-base">RSC</span>
+          </p>
+        </div>
       </div>
-    </div>
+    )}
   </div>
 );
 
@@ -142,6 +146,14 @@ const PaymentForm: FC<{
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const { exchangeRate } = useExchangeRate();
+
+  // Helper function to format USD amounts
+  const formatUSD = (rscAmount: number) => {
+    if (!exchangeRate) return '';
+    const usdAmount = (rscAmount * exchangeRate).toFixed(2);
+    return `~$${usdAmount}`;
+  };
 
   // Calculate the RSC needed to buy
   const rscNeededToBuy = Math.round(totalAmountWithFee - totalAvailableBalance);
@@ -162,9 +174,9 @@ const PaymentForm: FC<{
       const { error } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          // Make sure to change this to your payment completion page
-          return_url: `${window.location.origin}/payment-result`,
+          return_url: `${window.location.href}?success-funded=true`, // TODO: should never happen but better have it
         },
+        redirect: 'if_required', // This is key - only redirect if absolutely necessary
       });
 
       // This point will only be reached if there is an immediate error when
@@ -209,41 +221,57 @@ const PaymentForm: FC<{
           {/* Funding Amount */}
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-600">Funding amount</span>
-            <span className="text-sm font-medium text-gray-900">
-              {inputAmount.toLocaleString()} RSC
-            </span>
+            <div className="text-right">
+              <span className="text-sm font-medium text-gray-900">
+                {inputAmount.toLocaleString()} RSC
+              </span>
+            </div>
           </div>
 
           {/* Payment Processing Fee */}
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-600">Payment processing fee</span>
-            <span className="text-sm font-medium text-gray-900">
-              {processingFee.toFixed(0)} RSC
-            </span>
+            <div className="text-right">
+              <span className="text-sm font-medium text-gray-900">
+                {processingFee.toFixed(0)} RSC
+              </span>
+            </div>
           </div>
 
           {/* Total Amount */}
           <div className="flex justify-between items-center pt-2 border-t border-gray-100">
             <span className="text-sm font-semibold text-gray-700">Total amount</span>
-            <span className="text-lg font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-              {totalAmountWithFee.toFixed(0)} RSC
-            </span>
+            <div className="text-right">
+              <span className="text-lg font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+                {totalAmountWithFee.toFixed(0)} RSC
+              </span>
+              {exchangeRate && (
+                <div className="text-xs text-gray-500">{formatUSD(totalAmountWithFee)}</div>
+              )}
+            </div>
           </div>
 
           {/* Your Balance */}
           <div className="flex justify-between items-center pt-2 border-t border-gray-100">
             <span className="text-sm text-gray-600">Your balance</span>
-            <span className="text-sm font-medium text-gray-900">
-              {totalAvailableBalance.toLocaleString()} RSC
-            </span>
+            <div className="text-right">
+              <span className="text-sm font-medium text-gray-900">
+                {totalAvailableBalance.toLocaleString()} RSC
+              </span>
+            </div>
           </div>
 
           {/* RSC Needed to Buy */}
           <div className="flex justify-between items-center pt-2 border-t border-gray-100">
             <span className="text-sm font-semibold text-gray-700">RSC needed to buy</span>
-            <span className="text-lg font-bold text-orange-600">
-              {rscNeededToBuy.toLocaleString()} RSC
-            </span>
+            <div className="text-right">
+              <span className="text-lg font-bold text-orange-600">
+                {rscNeededToBuy.toLocaleString()} RSC
+              </span>
+              {exchangeRate && (
+                <div className="text-xs text-gray-500">{formatUSD(rscNeededToBuy)}</div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -332,6 +360,7 @@ const PurchaseStep: FC<{
           onBack={onBack}
           showBackButton={true}
           totalAvailableBalance={totalAvailableBalance}
+          currentStep="purchase"
         />
         <PaymentIntentSkeleton />
       </>
@@ -385,6 +414,7 @@ const PurchaseStep: FC<{
         onBack={onBack}
         showBackButton={true}
         totalAvailableBalance={totalAvailableBalance}
+        currentStep="purchase"
       />
       <div className="flex-1 overflow-y-auto">
         <div className="px-6 py-6">
@@ -452,175 +482,201 @@ const ContributeStep: FC<{
   processingFee,
   totalAmountWithFee,
   totalAvailableBalance,
-}) => (
-  <>
-    <ModalHeader
-      onClose={onClose}
-      showBackButton={false}
-      totalAvailableBalance={totalAvailableBalance}
-    />
-    {/* Scrollable content area */}
-    <div className="flex-1 overflow-y-auto">
-      {/* Proposal Details Section */}
-      <div className="px-6 py-6">
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          {/* Title */}
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 leading-tight">
-            {fundraiseTitle}
-          </h3>
+}) => {
+  const { exchangeRate } = useExchangeRate();
 
-          {/* Amount to Fund Section */}
-          <div className="relative mb-6">
-            <CurrencyInput
-              value={inputAmount.toLocaleString()}
-              onChange={onAmountChange}
-              error={amountError}
-              currency="RSC"
-              label="Amount to Fund"
-              onCurrencyToggle={() => {}}
-              disableCurrencyToggle={true}
-              required={true}
-            />
-          </div>
+  // Helper function to format USD amounts
+  const formatUSD = (rscAmount: number) => {
+    if (!exchangeRate) return '';
+    const usdAmount = (rscAmount * exchangeRate).toFixed(2);
+    return `~$${usdAmount}`;
+  };
 
-          {/* Progress Bar */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Funding Progress</span>
-              <span className="text-sm font-semibold text-gray-900">
-                {progressPercentage.toFixed(0)}%
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3 relative overflow-hidden">
-              <div
-                className="bg-gradient-to-r from-purple-500 to-blue-500 h-3 rounded-full transition-all duration-300"
-                style={{ width: `${progressPercentage}%` }}
+  return (
+    <>
+      <ModalHeader
+        onClose={onClose}
+        showBackButton={false}
+        totalAvailableBalance={totalAvailableBalance}
+        currentStep="contribute"
+      />
+      {/* Scrollable content area */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Proposal Details Section */}
+        <div className="px-6 py-6">
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            {/* Title */}
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 leading-tight">
+              {fundraiseTitle}
+            </h3>
+
+            {/* Amount to Fund Section */}
+            <div className="relative mb-6">
+              <CurrencyInput
+                value={inputAmount.toLocaleString()}
+                onChange={onAmountChange}
+                error={amountError}
+                currency="RSC"
+                label="Amount to Fund"
+                onCurrencyToggle={() => {}}
+                disableCurrencyToggle={true}
+                required={true}
+                helperText={
+                  exchangeRate
+                    ? `${formatUSD(inputAmount)} (${exchangeRate.toFixed(2)} RSC/USD)`
+                    : undefined
+                }
               />
-              {/* Preview of new progress after contribution */}
-              {inputAmount > 0 && (
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600">Funding Progress</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {progressPercentage.toFixed(0)}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3 relative overflow-hidden">
                 <div
-                  className="absolute top-0 h-3 bg-gradient-to-r from-green-400 to-green-600 rounded-full transition-all duration-300 opacity-60"
-                  style={{
-                    left: `${progressPercentage}%`,
-                    width: `${(inputAmount / goalAmount) * 100}%`,
-                  }}
+                  className="bg-gradient-to-r from-purple-500 to-blue-500 h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${progressPercentage}%` }}
                 />
+                {/* Preview of new progress after contribution */}
+                {inputAmount > 0 && (
+                  <div
+                    className="absolute top-0 h-3 bg-gradient-to-r from-green-400 to-green-600 rounded-full transition-all duration-300 opacity-60"
+                    style={{
+                      left: `${progressPercentage}%`,
+                      width: `${(inputAmount / goalAmount) * 100}%`,
+                    }}
+                  />
+                )}
+              </div>
+              {inputAmount > 0 && (
+                <p className="text-xs text-green-600 mt-1">
+                  +{((inputAmount / goalAmount) * 100).toFixed(1)}% with your contribution
+                </p>
               )}
             </div>
-            {inputAmount > 0 && (
-              <p className="text-xs text-green-600 mt-1">
-                +{((inputAmount / goalAmount) * 100).toFixed(1)}% with your contribution
-              </p>
-            )}
-          </div>
 
-          {/* Key Metrics */}
-          <div className="flex flex-wrap justify-center gap-4 mb-6">
-            <div className="text-center min-w-[80px]">
-              <p className="text-2xl font-bold text-gray-900">{amountRaised.toLocaleString()}</p>
-              <p className="text-sm text-gray-600">RSC Raised</p>
-            </div>
-            <div className="text-center min-w-[80px]">
-              <p className="text-2xl font-bold text-gray-900">{goalAmount.toLocaleString()}</p>
-              <p className="text-sm text-gray-600">RSC Goal</p>
-            </div>
-            <div className="text-center min-w-[80px]">
-              <p className="text-2xl font-bold text-green-600">{userImpact}</p>
-              <p className="text-sm text-gray-600">Your Impact</p>
-            </div>
-          </div>
-
-          {/* Amounts Section */}
-          <div className="pt-6 border-t border-gray-100">
-            <div className="space-y-3">
-              {/* Funding Amount */}
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Funding amount</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {inputAmount.toLocaleString()} RSC
-                </span>
+            {/* Key Metrics */}
+            <div className="flex flex-wrap justify-center gap-4 mb-6">
+              <div className="text-center min-w-[80px]">
+                <p className="text-2xl font-bold text-gray-900">{amountRaised.toLocaleString()}</p>
+                <p className="text-sm text-gray-600">RSC Raised</p>
               </div>
-
-              {/* Payment Processing Fee */}
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Payment processing fee</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {processingFee.toFixed(0)} RSC
-                </span>
+              <div className="text-center min-w-[80px]">
+                <p className="text-2xl font-bold text-gray-900">{goalAmount.toLocaleString()}</p>
+                <p className="text-sm text-gray-600">RSC Goal</p>
               </div>
+              <div className="text-center min-w-[80px]">
+                <p className="text-2xl font-bold text-green-600">{userImpact}</p>
+                <p className="text-sm text-gray-600">Your Impact</p>
+              </div>
+            </div>
 
-              {/* Total Amount */}
-              <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                <span className="text-sm font-semibold text-gray-700">Total amount</span>
-                <span className="text-lg font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-                  {totalAmountWithFee.toFixed(0)} RSC
-                </span>
+            {/* Amounts Section */}
+            <div className="pt-6 border-t border-gray-100">
+              <div className="space-y-3">
+                {/* Funding Amount */}
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Funding amount</span>
+                  <div className="text-right">
+                    <span className="text-sm font-medium text-gray-900">
+                      {inputAmount.toLocaleString()} RSC
+                    </span>
+                  </div>
+                </div>
+
+                {/* Payment Processing Fee */}
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Payment processing fee</span>
+                  <div className="text-right">
+                    <span className="text-sm font-medium text-gray-900">
+                      {processingFee.toFixed(0)} RSC
+                    </span>
+                  </div>
+                </div>
+
+                {/* Total Amount */}
+                <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                  <span className="text-sm font-semibold text-gray-700">Total amount</span>
+                  <div className="text-right">
+                    <span className="text-lg font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+                      {totalAmountWithFee.toFixed(0)} RSC
+                    </span>
+                    {exchangeRate && (
+                      <div className="text-xs text-gray-500">{formatUSD(totalAmountWithFee)}</div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Action Buttons */}
-      <div className="px-6 pb-6">
-        {insufficientBalance && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center">
-                  <AlertCircle className="w-3 h-3 text-red-600" />
+        {/* Action Buttons */}
+        <div className="px-6 pb-6">
+          {insufficientBalance && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center">
+                    <AlertCircle className="w-3 h-3 text-red-600" />
+                  </div>
                 </div>
-              </div>
-              <div className="ml-3 flex-1">
-                <h3 className="text-sm font-medium text-red-800">Insufficient Balance</h3>
-                <div className="mt-1 text-sm text-red-700">
-                  <p>
-                    You need{' '}
-                    <strong>
-                      {Math.round(totalAmountWithFee - totalAvailableBalance).toLocaleString()} more
-                      RSC
-                    </strong>{' '}
-                    to complete this contribution.
-                  </p>
+                <div className="ml-3 flex-1">
+                  <h3 className="text-sm font-medium text-red-800">Insufficient Balance</h3>
+                  <div className="mt-1 text-sm text-red-700">
+                    <p>
+                      You need{' '}
+                      <strong>
+                        {Math.round(totalAmountWithFee - totalAvailableBalance).toLocaleString()}{' '}
+                        more RSC
+                      </strong>{' '}
+                      to complete this contribution.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {insufficientBalance ? (
-          <Button
-            onClick={onBuyRSC}
-            className="w-full h-12 text-base font-semibold bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0 shadow-lg"
-          >
-            <div className="flex items-center gap-2">
-              <TrendingUp size={20} />
-              Buy RSC to Continue
-            </div>
-          </Button>
-        ) : (
-          <Button
-            onClick={onContribute}
-            disabled={isContributing || isLoading || !!amountError || insufficientBalance}
-            className="w-full h-12 text-base font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0 shadow-lg"
-          >
-            {isContributing || isLoading ? (
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Processing...
-              </div>
-            ) : (
+          {insufficientBalance ? (
+            <Button
+              onClick={onBuyRSC}
+              className="w-full h-12 text-base font-semibold bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0 shadow-lg"
+            >
               <div className="flex items-center gap-2">
                 <TrendingUp size={20} />
-                Fund This Research
+                Buy RSC to Continue
               </div>
-            )}
-          </Button>
-        )}
+            </Button>
+          ) : (
+            <Button
+              onClick={onContribute}
+              disabled={isContributing || isLoading || !!amountError || insufficientBalance}
+              className="w-full h-12 text-base font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0 shadow-lg"
+            >
+              {isContributing || isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Processing...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <TrendingUp size={20} />
+                  Fund This Research
+                </div>
+              )}
+            </Button>
+          )}
+        </div>
       </div>
-    </div>
-  </>
-);
+    </>
+  );
+};
 
 // Main Modal Component
 export const ContributeToFundraiseModalV2: FC<ContributeToFundraiseModalProps> = ({
@@ -631,6 +687,7 @@ export const ContributeToFundraiseModalV2: FC<ContributeToFundraiseModalProps> =
   fundraiseTitle,
 }) => {
   const { user } = useUser();
+  const { exchangeRate } = useExchangeRate();
   const [inputAmount, setInputAmount] = useState(100);
   const [isContributing, setIsContributing] = useState(false);
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
@@ -729,6 +786,13 @@ export const ContributeToFundraiseModalV2: FC<ContributeToFundraiseModalProps> =
 
   const handleBackToContribute = () => {
     setCurrentStep('contribute');
+  };
+
+  // Helper function to format USD amounts
+  const formatUSD = (rscAmount: number) => {
+    if (!exchangeRate) return '';
+    const usdAmount = (rscAmount * exchangeRate).toFixed(2);
+    return `~$${usdAmount}`;
   };
 
   return (

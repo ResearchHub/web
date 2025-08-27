@@ -1,9 +1,9 @@
 import React from 'react';
-import { Input } from './Input';
+import { Input, InputProps } from './Input';
 import { ChevronDown } from 'lucide-react';
 import { Currency } from '@/types/root';
 
-interface CurrencyInputProps {
+interface CurrencyInputProps extends InputProps {
   value: string | number;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   currency: Currency;
@@ -31,6 +31,7 @@ export const CurrencyInput = ({
   className = '',
   disableCurrencyToggle = false,
   required = false,
+  ...props
 }: CurrencyInputProps) => {
   const currentAmount =
     typeof value === 'string' ? parseFloat(value.replace(/,/g, '')) || 0 : value;
@@ -73,6 +74,7 @@ export const CurrencyInput = ({
             </button>
           )
         }
+        {...props}
       />
       {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
       {suggestedAmount && !error && (
