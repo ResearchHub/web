@@ -17,7 +17,7 @@ import { useFeed } from '@/hooks/useFeed';
 import { ArrowRightIcon } from 'lucide-react';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { LeaderboardOverview } from '@/components/Leaderboard/LeaderboardOverview';
-import { TopicsToFollowSkeleton } from './components/TopicsToFollow';
+import { TopicsToFollow } from './components/TopicsToFollow';
 
 // Dynamically import InfoBanner component
 const InfoBanner = dynamic(() => import('./components/InfoBanner').then((mod) => mod.InfoBanner), {
@@ -40,14 +40,6 @@ const InfoBanner = dynamic(() => import('./components/InfoBanner').then((mod) =>
     </div>
   ),
 });
-
-// Dynamically import TopicsToFollow component
-const TopicsToFollow = dynamic(
-  () => import('./components/TopicsToFollow').then((mod) => mod.TopicsToFollow),
-  {
-    ssr: false,
-  }
-);
 
 // Sample journal contributors for social proof (similar to JournalFeed)
 const journalContributors = [
@@ -257,9 +249,7 @@ const SidebarComponent = () => (
 
     <div className="bg-white rounded-lg p-2">
       {/* Topics to Follow Section */}
-      <Suspense fallback={<TopicsToFollowSkeleton />}>
-        <TopicsToFollow />
-      </Suspense>
+      <TopicsToFollow />
     </div>
   </div>
 );
