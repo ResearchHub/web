@@ -9,7 +9,6 @@ import { User } from '@/types/user';
 import { cn } from '@/utils/styles';
 import { InfoIcon } from 'lucide-react';
 import { SocialIcon } from '@/components/ui/SocialIcon';
-import { navigateToAuthorProfile } from '@/utils/navigation';
 
 interface AuthorTooltipProps {
   authorId?: number;
@@ -283,16 +282,6 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
           <Link
             href={`/author/${userData.authorProfile?.id || userData.id}`}
             className="text-xs text-blue-600 hover:text-blue-800 font-medium inline-block"
-            onClick={(e) => {
-              // Check if Command (Mac) or Ctrl (Windows/Linux) is pressed
-              if (e.metaKey || e.ctrlKey) {
-                // Open in new tab - let the browser handle it naturally
-                return; // Don't prevent default, let the href work
-              }
-              // Normal click - use custom navigation
-              e.preventDefault();
-              navigateToAuthorProfile(userData.authorProfile?.id || userData.id);
-            }}
           >
             View profile
           </Link>
