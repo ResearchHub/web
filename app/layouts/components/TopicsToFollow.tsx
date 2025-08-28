@@ -7,7 +7,6 @@ import { Topic } from '@/types/topic';
 import { LoadingSkeleton } from './LoadingSkeleton';
 import { FollowTopicButton } from '@/components/ui/FollowTopicButton';
 import { useFollowContext } from '@/contexts/FollowContext';
-import Link from 'next/link';
 
 export const TopicsToFollowSkeleton = () => (
   <div>
