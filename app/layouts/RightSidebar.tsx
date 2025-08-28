@@ -1,8 +1,7 @@
 'use client';
 
-import { Suspense, memo } from 'react';
+import { memo } from 'react';
 import dynamic from 'next/dynamic';
-import { LoadingSkeleton } from './components/LoadingSkeleton';
 import { Avatar } from '@/components/ui/Avatar';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
@@ -16,7 +15,17 @@ import Link from 'next/link';
 import { useFeed } from '@/hooks/useFeed';
 import { ArrowRightIcon } from 'lucide-react';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
-import { LeaderboardOverview } from '@/components/Leaderboard/LeaderboardOverview';
+import { LeaderboardSkeleton } from '@/components/Leaderboard/LeaderboardOverview';
+import { TopicsToFollowSkeleton } from './components/TopicsToFollow';
+
+const LeaderboardOverview = dynamic(
+  () =>
+    import('@/components/Leaderboard/LeaderboardOverview').then((mod) => mod.LeaderboardOverview),
+  {
+    ssr: false,
+    loading: () => <LeaderboardSkeleton />,
+  }
+);
 
 // Dynamically import InfoBanner component
 const InfoBanner = dynamic(() => import('./components/InfoBanner').then((mod) => mod.InfoBanner), {
@@ -40,19 +49,11 @@ const InfoBanner = dynamic(() => import('./components/InfoBanner').then((mod) =>
   ),
 });
 
-// Dynamically import TopicsToFollow component
 const TopicsToFollow = dynamic(
   () => import('./components/TopicsToFollow').then((mod) => mod.TopicsToFollow),
   {
     ssr: false,
-    loading: () => (
-      <div>
-        <h2 className="font-semibold text-gray-900 mb-4">Follow Recommendations</h2>
-        <LoadingSkeleton />
-        <div className="border-t border-gray-200 my-4"></div>
-        <LoadingSkeleton />
-      </div>
-    ),
+    loading: () => <TopicsToFollowSkeleton />,
   }
 );
 
@@ -257,22 +258,15 @@ const FundingSpotlight = () => {
 // Main RightSidebar Component - memoized to prevent re-renders when parent components change
 const SidebarComponent = () => (
   <div className="space-y-4 overflow-hidden">
-    {/* Dynamic Leaderboard Section */}
-    <LeaderboardOverview />
+    <div className="bg-white rounded-lg p-2">
+      {/* Dynamic Leaderboard Section */}
+      <LeaderboardOverview />
+    </div>
 
-    {/* Topics to Follow Section */}
-    <Suspense
-      fallback={
-        <div>
-          <h2 className="font-semibold text-gray-900 mb-3">Follow Recommendations</h2>
-          <LoadingSkeleton />
-          <div className="border-t border-gray-200 my-3"></div>
-          <LoadingSkeleton />
-        </div>
-      }
-    >
+    <div className="bg-white rounded-lg p-2">
+      {/* Topics to Follow Section */}
       <TopicsToFollow />
-    </Suspense>
+    </div>
   </div>
 );
 
