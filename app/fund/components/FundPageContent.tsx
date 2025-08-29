@@ -10,10 +10,9 @@ import { MarketplaceTabs, MarketplaceTab } from '@/components/Fund/MarketplaceTa
 import Icon from '@/components/ui/icons/Icon';
 import { useState } from 'react';
 import SortDropdown, { SortOption } from '@/components/ui/SortDropdown';
-import { Badge } from '@/components/ui/Badge';
-import { HubsSelector } from '@/components/Hub/HubSelector';
+import { HubsSelector, HubsSelected, Hub } from '@/components/Hub/HubSelector';
 
-import { X, ChevronDown, Filter } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface FundPageContentProps {
   marketplaceTab: MarketplaceTab;
@@ -21,7 +20,7 @@ interface FundPageContentProps {
 
 export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const [sort, setSort] = useState<string>('-created_date');
-  const [selectedHubs, setSelectedHubs] = useState<any[]>([]);
+  const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
 
   const getFundraiseStatus = (tab: MarketplaceTab): 'OPEN' | 'CLOSED' | undefined => {
     if (tab === 'needs-funding' || tab === 'grants') return 'OPEN';
@@ -91,7 +90,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   };
 
   const renderFilters = () => (
-    <div className="mt-5 space-y-3">
+    <div className="space-y-3">
       {/* Top filter bar */}
       <div className="flex items-center gap-0 sm:gap-2 flex-wrap justify-between">
         <div className="w-1/2 sm:!w-[220px] flex-1 sm:!flex-none pr-1 sm:!pr-0">
@@ -112,26 +111,8 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
         </div>
       </div>
 
-      {/* Selected hubs badges */}
       {selectedHubs.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {selectedHubs.map((hub) => (
-            <Badge
-              key={hub.id}
-              variant="default"
-              className="flex items-center gap-1 pr-1 bg-gray-50"
-            >
-              <span>Topic: {hub.name}</span>
-              <button
-                type="button"
-                onClick={() => handleHubsChange(selectedHubs.filter((h) => h.id !== hub.id))}
-                className="text-gray-500 hover:text-gray-700 ml-1"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          ))}
-        </div>
+        <HubsSelected selectedHubs={selectedHubs} onChange={handleHubsChange} />
       )}
     </div>
   );

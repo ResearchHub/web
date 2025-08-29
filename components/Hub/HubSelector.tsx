@@ -203,3 +203,28 @@ export function HubsSelector({
     </div>
   );
 }
+
+export function HubsSelected({
+  selectedHubs,
+  onChange,
+}: {
+  selectedHubs: Hub[];
+  onChange: (hubs: Hub[]) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {selectedHubs.map((hub) => (
+        <Badge key={hub.id} variant="default" className="flex items-center gap-1 pr-1 bg-gray-50">
+          <span>Topic: {hub.name}</span>
+          <button
+            type="button"
+            onClick={() => onChange(selectedHubs.filter((h) => h.id !== hub.id))}
+            className="text-gray-500 hover:text-gray-700 ml-1"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </Badge>
+      ))}
+    </div>
+  );
+}

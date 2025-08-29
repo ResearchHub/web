@@ -6,13 +6,10 @@ import { FeedContent } from '@/components/Feed/FeedContent';
 import { BountyService } from '@/services/bounty.service';
 import { FeedEntry } from '@/types/feed';
 import { EarnRightSidebar } from '@/components/Earn/EarnRightSidebar';
-import { Coins } from 'lucide-react';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import Icon from '@/components/ui/icons/Icon';
-import { HubsSelector, Hub } from '@/components/Hub/HubSelector';
+import { HubsSelector, HubsSelected, Hub } from '@/components/Hub/HubSelector';
 import SortDropdown, { SortOption } from '@/components/ui/SortDropdown';
-import { Badge } from '@/components/ui/Badge';
-import { X } from 'lucide-react';
 import { useClickContext } from '@/contexts/ClickContext';
 
 export default function EarnPage() {
@@ -139,26 +136,8 @@ export default function EarnPage() {
         </div>
       </div>
 
-      {/* Selected hubs badges */}
       {selectedHubs.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {selectedHubs.map((hub) => (
-            <Badge
-              key={hub.id}
-              variant="default"
-              className="flex items-center gap-1 pr-1 bg-gray-50"
-            >
-              <span>Topic: {hub.name}</span>
-              <button
-                type="button"
-                onClick={() => handleHubsChange(selectedHubs.filter((h) => h.id !== hub.id))}
-                className="text-gray-500 hover:text-gray-700 ml-1"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          ))}
-        </div>
+        <HubsSelected selectedHubs={selectedHubs} onChange={handleHubsChange} />
       )}
     </div>
   );
