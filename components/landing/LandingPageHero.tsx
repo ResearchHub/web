@@ -5,12 +5,18 @@ import { useAuthModalContext } from '@/contexts/AuthModalContext';
 import { HeroCardSwap } from './HeroCardSwap';
 import Aurora from '@/components/ui/Aurora';
 import { colors } from '@/app/styles/colors';
+import { useRouter } from 'next/navigation';
 
 export function LandingPageHero() {
   const { showAuthModal } = useAuthModalContext();
+  const router = useRouter();
 
   const handleSignUp = () => {
     showAuthModal();
+  };
+
+  const handleExplore = () => {
+    router.push('/trending');
   };
 
   return (
@@ -56,16 +62,29 @@ export function LandingPageHero() {
                   review lead to funding.
                 </p>
 
-                {/* Sign Up Button */}
+                {/* Primary CTA + Explore CTA */}
                 <div className="flex flex-col items-center lg:!items-start">
-                  <Button
-                    variant="default"
-                    size="lg"
-                    onClick={handleSignUp}
-                    className="bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] hover:from-[#2C5EE8] hover:to-[#3971FF] text-white font-semibold px-8 py-3 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border-0"
-                  >
-                    Sign up
-                  </Button>
+                  <div className="flex flex-col lg:!flex-row items-stretch lg:!items-center gap-3">
+                    <Button
+                      variant="default"
+                      size="lg"
+                      onClick={handleSignUp}
+                      className="bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] hover:from-[#2C5EE8] hover:to-[#3971FF] text-white font-semibold px-8 py-3 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border-0"
+                      aria-label="Sign up to ResearchHub"
+                    >
+                      Sign up
+                    </Button>
+
+                    <Button
+                      variant="outlined"
+                      size="lg"
+                      onClick={handleExplore}
+                      className="h-11 md:h-12 px-6 md:px-8 text-sm md:text-base"
+                      aria-label="Explore research on ResearchHub"
+                    >
+                      Explore ResearchHub
+                    </Button>
+                  </div>
                   <p className="text-sm lg:!text-lg text-gray-600 mt-2">
                     Start earning for open science today.
                   </p>
