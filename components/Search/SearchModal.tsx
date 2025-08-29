@@ -84,8 +84,6 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
       // Navigate based on suggestion type
       if (suggestion.entityType === 'paper') {
-        // Recent history suggestions can represent posts/grants as well.
-        // When contentType is not 'paper', send to post entry and let server redirect appropriately.
         if (suggestion.isRecent && suggestion.contentType && suggestion.contentType !== 'paper') {
           if (suggestion.id) {
             router.push(`/post/${suggestion.id}`);
@@ -106,7 +104,6 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           router.push(`/topic/${suggestion.id}`);
         }
       } else if (suggestion.entityType === 'post') {
-        // Always route to post entry; slug and specific redirects handled server-side
         router.push(`/post/${suggestion.id}`);
       }
     } catch (error) {
