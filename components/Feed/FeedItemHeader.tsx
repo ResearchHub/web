@@ -1,12 +1,12 @@
 'use client';
 
 import { FC, useEffect } from 'react';
+import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorProfile } from '@/types/authorProfile';
 import { cn } from '@/utils/styles';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
-import { navigateToAuthorProfile } from '@/utils/navigation';
 import { formatTimeAgo } from '@/utils/date';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -110,7 +110,6 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
           alt={displayAuthor?.fullName ?? 'Unknown'}
           size={avatarSize}
           className={authorId && authorId > 0 ? 'cursor-pointer' : ''}
-          onClick={authorId && authorId > 0 ? () => navigateToAuthorProfile(authorId) : undefined}
           authorId={authorId}
         />
 
@@ -120,16 +119,12 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
               <div className="flex items-center gap-1">
                 {authorId && authorId > 0 ? (
                   <AuthorTooltip authorId={authorId}>
-                    <a
-                      href="#"
+                    <Link
+                      href={`/author/${authorId}`}
                       className="font-semibold hover:text-blue-600 cursor-pointer"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        navigateToAuthorProfile(authorId);
-                      }}
                     >
                       {displayAuthor.fullName}
-                    </a>
+                    </Link>
                   </AuthorTooltip>
                 ) : (
                   <span className="font-semibold">{displayAuthor.fullName}</span>
