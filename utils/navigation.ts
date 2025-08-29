@@ -50,6 +50,19 @@ export function handleQuestionRedirect(work: Work, id: string, slug: string, tab
 }
 
 /**
+ * Handles redirection for grant posts
+ * @param work The work object to check for grant type
+ * @param id The post ID
+ * @param slug The post slug
+ */
+export function handleGrantRedirect(work: Work, id: string, slug: string) {
+  // Grants are represented as contentType 'funding_request' or postType 'GRANT'
+  if (work.contentType === 'funding_request' || work.postType === 'GRANT') {
+    redirect(`/grant/${id}/${slug}`);
+  }
+}
+
+/**
  * Handles all post-related redirects (fundraise and question)
  * @param work The work object to check for redirects
  * @param id The post ID
@@ -62,6 +75,9 @@ export function handlePostRedirect(work: Work, id: string, slug: string, tab?: s
 
   // Then check for fundraise redirect
   handleFundraiseRedirect(work, id, slug);
+
+  // Finally check for grant redirect
+  handleGrantRedirect(work, id, slug);
 }
 
 /**

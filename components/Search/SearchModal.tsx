@@ -84,16 +84,18 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
       // Navigate based on suggestion type
       if (suggestion.entityType === 'paper') {
-        if (suggestion.contentType === 'preregistration') {
-          router.push(`/fund/${suggestion.id}/${suggestion.slug || ''}`);
-        } else if (suggestion.isRecent) {
-          router.push(`/paper/${suggestion.id}/${suggestion.slug}`);
-        } else {
+        // Recent history suggestions can represent posts/grants as well.
+        // When contentType is not 'paper', send to post entry and let server redirect appropriately.
+        if (suggestion.isRecent && suggestion.contentType && suggestion.contentType !== 'paper') {
           if (suggestion.id) {
-            router.push(`/paper/${suggestion.id}/${suggestion.slug || ''}`);
-          } else if ('doi' in suggestion && suggestion.doi) {
-            router.push(`/paper?doi=${encodeURIComponent(suggestion.doi)}`);
+            router.push(`/post/${suggestion.id}`);
+          } else {
+            router.push('/');
           }
+        } else if (suggestion.id) {
+          router.push(`/paper/${suggestion.id}/${suggestion.slug || ''}`);
+        } else if ('doi' in suggestion && suggestion.doi) {
+          router.push(`/paper?doi=${encodeURIComponent(suggestion.doi)}`);
         }
       } else if (suggestion.entityType === 'user' || suggestion.entityType === 'author') {
         navigateToAuthorProfile(suggestion.authorProfile.id);
@@ -104,6 +106,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           router.push(`/topic/${suggestion.id}`);
         }
       } else if (suggestion.entityType === 'post') {
+        // Always route to post entry; slug and specific redirects handled server-side
         router.push(`/post/${suggestion.id}`);
       }
     } catch (error) {
