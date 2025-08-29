@@ -7,7 +7,6 @@ import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorProfile } from '@/types/authorProfile';
 import { cn } from '@/utils/styles';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
-import { navigateToAuthorProfile } from '@/utils/navigation';
 import { formatTimeAgo } from '@/utils/date';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { Tooltip } from '@/components/ui/Tooltip';

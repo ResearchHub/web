@@ -11,7 +11,6 @@ import { getAuditUserInfo, getAuditContentUrl } from './utils/auditUtils';
 import { formatTimestamp } from '@/utils/date';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
-import { navigateToAuthorProfile } from '@/utils/navigation';
 import { ModerationMetadata } from './ModerationMetadata';
 import { ModerationActions } from './ModerationActions';
 import { truncateText } from '@/utils/stringUtils';
