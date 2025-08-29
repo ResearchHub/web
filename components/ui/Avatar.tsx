@@ -30,42 +30,34 @@ export interface AvatarProps {
   showTooltip?: boolean;
 }
 
-// Define a set of background colors for avatars without images
-const backgroundColors = [
-  'bg-indigo-100', // Indigo
-  'bg-emerald-100', // Emerald
-  'bg-amber-100', // Amber
-  'bg-sky-100', // Sky
-  'bg-rose-100', // Rose
-  'bg-violet-100', // Violet
-  'bg-lime-100', // Lime
-  'bg-cyan-100', // Cyan
-  'bg-fuchsia-100', // Fuchsia
-  'bg-orange-100', // Orange
+// Deterministic fallback PFPs located in public/pfps
+const PFP_IMAGES: string[] = [
+  '/pfps/1024x1024_0_WilliamHarvey.jpeg',
+  '/pfps/1024x1024_1_AlbertEinstein.jpeg',
+  '/pfps/1024x1024_2_EnricoFermi.jpeg',
+  '/pfps/1024x1024_3_IsaacNetwon.jpeg',
+  '/pfps/1024x1024_4_MarieCurie.jpeg',
+  '/pfps/1024x1024_5_MichaelFaraday.jpeg',
+  '/pfps/1024x1024_6_RosalindFranklin.jpeg',
+  '/pfps/1024x1024_7_PaulDirac.jpeg',
+  '/pfps/1024x1024_8_AntoineLavoisier.jpeg',
+  '/pfps/1024x1024_9_SrinivasaRamanujan.jpeg',
 ];
 
-// Define a set of text colors corresponding to the background colors
-const textColors = [
-  'text-indigo-700', // Indigo
-  'text-emerald-700', // Emerald
-  'text-amber-700', // Amber
-  'text-sky-700', // Sky
-  'text-rose-700', // Rose
-  'text-violet-700', // Violet
-  'text-lime-700', // Lime
-  'text-cyan-700', // Cyan
-  'text-fuchsia-700', // Fuchsia
-  'text-orange-700', // Orange
-];
-
-// Generate a deterministic color index based on the string
-const getColorIndex = (str: string): number => {
+const getDeterministicDigitFromString = (str: string): number => {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
   }
-  const index = Math.abs(hash) % backgroundColors.length;
-  return index;
+  return Math.abs(hash) % 10;
+};
+
+const getPfpByIdOrAlt = (id: number | undefined, alt: string): string => {
+  const digit =
+    typeof id === 'number' && !Number.isNaN(id)
+      ? Math.abs(id) % 10
+      : getDeterministicDigitFromString(alt);
+  return PFP_IMAGES[digit];
 };
 
 // Map string sizes to pixel values
@@ -294,12 +286,7 @@ export const Avatar: FC<AvatarProps> = ({
     }
   }, [src]);
 
-  const getInitials = (name: string) => {
-    const parts = name.trim().split(' ').filter(Boolean);
-    if (parts.length === 0) return '?';
-    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-  };
+  // New behavior: use deterministic pfps when no image is available
 
   const sizeClasses = {
     xxxs: 'h-3 w-3',
@@ -333,13 +320,8 @@ export const Avatar: FC<AvatarProps> = ({
     setIsLoading(false);
   };
 
-  const shouldShowInitials = !src || imageError || isLoading;
-  const initials = getInitials(alt);
-
-  // Get the color index based on the alt text
-  const colorIndex = getColorIndex(alt);
-  const backgroundColorClass = backgroundColors[colorIndex];
-  const textColorClass = textColors[colorIndex];
+  const shouldShowPunks = !src || imageError || isLoading;
+  const fallbackPfpSrc = getPfpByIdOrAlt(authorId, alt);
 
   // Handle custom pixel size
   const customStyle: CSSProperties = {};
@@ -353,7 +335,7 @@ export const Avatar: FC<AvatarProps> = ({
       className={cn(
         'relative inline-flex rounded-full overflow-hidden',
         'flex items-center justify-center flex-shrink-0',
-        shouldShowInitials ? backgroundColorClass : 'bg-gray-100',
+        'bg-gray-100',
         typeof size !== 'number' ? sizeClasses[size as AvatarSize] : '',
         onClick ? 'cursor-pointer' : '',
         authorId ? 'cursor-pointer' : '',
@@ -380,19 +362,12 @@ export const Avatar: FC<AvatarProps> = ({
         >
           {label}
         </span>
-      ) : shouldShowInitials ? (
-        <span
-          className={cn(
-            'absolute inset-0 flex items-center justify-center font-medium',
-            textColorClass,
-            getTextSizeClass(
-              typeof size === 'number' ? size : sizeMap[size as AvatarSize],
-              initials.length
-            )
-          )}
-        >
-          {initials}
-        </span>
+      ) : shouldShowPunks ? (
+        <img
+          src={fallbackPfpSrc}
+          alt={`${alt} placeholder`}
+          className="h-full w-full object-cover"
+        />
       ) : (
         <img
           src={src}
