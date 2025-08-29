@@ -84,11 +84,24 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
       // Navigate based on suggestion type
       if (suggestion.entityType === 'paper') {
-        if (suggestion.contentType === 'preregistration') {
+        // Handle recent items (tracked from visited pages) using contentType
+        if (suggestion.isRecent) {
+          const ct = suggestion.contentType;
+          if (ct === 'preregistration') {
+            router.push(`/fund/${suggestion.id}/${suggestion.slug || ''}`);
+          } else if (ct === 'funding_request') {
+            router.push(`/grant/${suggestion.id}/${suggestion.slug || ''}`);
+          } else if (ct === 'post') {
+            // Post will auto-redirect to /question if applicable
+            router.push(`/post/${suggestion.id}/${suggestion.slug || ''}`);
+          } else {
+            router.push(`/paper/${suggestion.id}/${suggestion.slug || ''}`);
+          }
+        } else if (suggestion.contentType === 'preregistration') {
+          // Handle non-recent preregistration suggestions
           router.push(`/fund/${suggestion.id}/${suggestion.slug || ''}`);
-        } else if (suggestion.isRecent) {
-          router.push(`/paper/${suggestion.id}/${suggestion.slug}`);
         } else {
+          // Default behavior for papers and DOI fallbacks
           if (suggestion.id) {
             router.push(`/paper/${suggestion.id}/${suggestion.slug || ''}`);
           } else if ('doi' in suggestion && suggestion.doi) {
