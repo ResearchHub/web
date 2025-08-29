@@ -1,6 +1,14 @@
 import React, { FC, useState, MouseEvent } from 'react';
 import { StaticImageData } from 'next/image';
-import { Mail, Linkedin, GraduationCap, ChevronDown, ChevronRight, Copy } from 'lucide-react';
+import {
+  Mail,
+  Linkedin,
+  GraduationCap,
+  ChevronDown,
+  ChevronRight,
+  Copy,
+  ExternalLink,
+} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Editor } from '../lib/journalConstants';
 import { cn } from '@/utils/styles';
@@ -15,14 +23,27 @@ interface EditorCardProps {
 
 export const EditorCard: FC<EditorCardProps> = ({ editor, className, size = 'sm' }) => {
   const [isBioExpanded, setIsBioExpanded] = useState(false);
-  const bioPreviewLength = 150;
-  const showExpandButton = editor.bio.length > bioPreviewLength;
   const [isMailHovered, setIsMailHovered] = useState(false);
 
   const editorEmail = editor.socialLinks.email;
 
+  // Check if this is a special entry that should link to external URL
+  const isExternalLink =
+    (editor.socialLinks.linkedin || editor.socialLinks.website) &&
+    (editor.name === 'Meet the Editor Team' || editor.name === 'Interested in joining?');
+
+  // Check if this editor should have collapsible functionality disabled
+  const disableCollapsible =
+    editor.name === 'Emilio Merheb, PhD' || editor.name === 'Attila Karsi, PhD';
+
+  const bioPreviewLength = 150;
+  const showExpandButton = editor.bio.length > bioPreviewLength && !disableCollapsible;
+
   const handleCardClick = () => {
-    if (showExpandButton) {
+    if (isExternalLink && (editor.socialLinks.linkedin || editor.socialLinks.website)) {
+      const url = editor.socialLinks.website || editor.socialLinks.linkedin;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else if (showExpandButton) {
       setIsBioExpanded(!isBioExpanded);
     }
   };
@@ -39,10 +60,12 @@ export const EditorCard: FC<EditorCardProps> = ({ editor, className, size = 'sm'
   const handleCopyEmail = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    navigator.clipboard.writeText(editorEmail);
-    toast.success(`Copied ${editorEmail}`, {
-      className: 'md:min-w-[450px]',
-    });
+    if (editorEmail) {
+      navigator.clipboard.writeText(editorEmail);
+      toast.success(`Copied ${editorEmail}`, {
+        className: 'md:min-w-[450px]',
+      });
+    }
   };
 
   const handleAvatarClick = (e: MouseEvent) => {
@@ -54,20 +77,25 @@ export const EditorCard: FC<EditorCardProps> = ({ editor, className, size = 'sm'
   return (
     <div
       className={cn(
-        'border-b border-gray-200 pb-4 last:border-b-0 transition-all duration-200 ease-in-out px-4 py-3',
-        showExpandButton && 'cursor-pointer hover:bg-gray-50 rounded-md',
+        'border-b border-gray-200 pb-3 last:border-b-0 transition-all duration-200 ease-in-out px-4 py-2',
+        (showExpandButton || isExternalLink) && 'cursor-pointer hover:bg-gray-50 rounded-md',
         isLarge && 'p-6 border border-gray-200 rounded-lg shadow-sm hover:shadow-md',
         isLarge && 'last:border-b',
         className
       )}
       onClick={handleCardClick}
-      role={showExpandButton ? 'button' : undefined}
+      role={showExpandButton || isExternalLink ? 'button' : undefined}
       aria-expanded={isBioExpanded}
-      tabIndex={showExpandButton ? 0 : undefined}
+      tabIndex={showExpandButton || isExternalLink ? 0 : undefined}
       onKeyDown={(e) => {
-        if (showExpandButton && (e.key === 'Enter' || e.key === ' ')) {
+        if ((showExpandButton || isExternalLink) && (e.key === 'Enter' || e.key === ' ')) {
           e.preventDefault();
-          setIsBioExpanded(!isBioExpanded);
+          if (isExternalLink && (editor.socialLinks.linkedin || editor.socialLinks.website)) {
+            const url = editor.socialLinks.website || editor.socialLinks.linkedin;
+            window.open(url, '_blank', 'noopener,noreferrer');
+          } else if (showExpandButton) {
+            setIsBioExpanded(!isBioExpanded);
+          }
         }
       }}
     >
@@ -89,23 +117,25 @@ export const EditorCard: FC<EditorCardProps> = ({ editor, className, size = 'sm'
           </p>
           <p className={cn('text-gray-500', isLarge ? 'text-sm' : 'text-xs')}>{editor.role}</p>
           <div className={cn('flex mt-1', isLarge ? 'space-x-3 mt-2' : 'space-x-2')}>
-            <button
-              type="button"
-              className="text-gray-400 hover:text-primary-600 bg-transparent border-none cursor-pointer"
-              aria-label={`Copy ${editorEmail}`}
-              onClick={handleCopyEmail}
-              onMouseEnter={() => setIsMailHovered(true)}
-              onMouseLeave={() => setIsMailHovered(false)}
-              onFocus={() => setIsMailHovered(true)}
-              onBlur={() => setIsMailHovered(false)}
-            >
-              {isMailHovered ? (
-                <Copy className={isLarge ? 'w-5 h-5' : 'w-3 h-3'} />
-              ) : (
-                <Mail className={isLarge ? 'w-5 h-5' : 'w-3 h-3'} />
-              )}
-            </button>
-            {editor.socialLinks.linkedin && (
+            {!isExternalLink && editorEmail && (
+              <button
+                type="button"
+                className="text-gray-400 hover:text-primary-600 bg-transparent border-none cursor-pointer"
+                aria-label={`Copy ${editorEmail}`}
+                onClick={handleCopyEmail}
+                onMouseEnter={() => setIsMailHovered(true)}
+                onMouseLeave={() => setIsMailHovered(false)}
+                onFocus={() => setIsMailHovered(true)}
+                onBlur={() => setIsMailHovered(false)}
+              >
+                {isMailHovered ? (
+                  <Copy className={isLarge ? 'w-5 h-5' : 'w-3 h-3'} />
+                ) : (
+                  <Mail className={isLarge ? 'w-5 h-5' : 'w-3 h-3'} />
+                )}
+              </button>
+            )}
+            {editor.socialLinks.linkedin && !isExternalLink && (
               <a
                 href={editor.socialLinks.linkedin}
                 target="_blank"
@@ -132,7 +162,13 @@ export const EditorCard: FC<EditorCardProps> = ({ editor, className, size = 'sm'
           </div>
         </div>
 
-        {showExpandButton && (
+        {isExternalLink && (
+          <div className="flex-shrink-0 mt-1">
+            <ExternalLink className={isLarge ? 'w-5 h-5' : 'w-4 h-4'} />
+          </div>
+        )}
+
+        {showExpandButton && !isExternalLink && (
           <Button
             variant="ghost"
             size="icon"
@@ -149,7 +185,7 @@ export const EditorCard: FC<EditorCardProps> = ({ editor, className, size = 'sm'
         )}
       </div>
 
-      {isBioExpanded && (
+      {isBioExpanded && !isExternalLink && (
         <p
           className={cn('text-gray-600 leading-relaxed', isLarge ? 'mt-5 text-sm' : 'mt-3 text-xs')}
         >
