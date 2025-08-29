@@ -1,6 +1,7 @@
 'use client';
 
 import { FC } from 'react';
+import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { FlaggedContent } from '@/services/audit.service';
@@ -10,7 +11,6 @@ import { getAuditUserInfo, getAuditContentUrl } from './utils/auditUtils';
 import { formatTimestamp } from '@/utils/date';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
-import { navigateToAuthorProfile } from '@/utils/navigation';
 import { ModerationMetadata } from './ModerationMetadata';
 import { ModerationActions } from './ModerationActions';
 import { truncateText } from '@/utils/stringUtils';
@@ -78,16 +78,12 @@ export const AuditItemPaper: FC<AuditItemPaperProps> = ({ entry, onAction, view 
         <div>
           {userInfo.authorId ? (
             <AuthorTooltip authorId={userInfo.authorId}>
-              <a
-                href="#"
+              <Link
+                href={`/author/${userInfo.authorId}`}
                 className="font-medium text-gray-900 hover:text-blue-600 cursor-pointer"
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigateToAuthorProfile(userInfo.authorId);
-                }}
               >
                 {userInfo.name}
-              </a>
+              </Link>
             </AuthorTooltip>
           ) : (
             <span

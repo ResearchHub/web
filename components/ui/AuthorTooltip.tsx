@@ -2,13 +2,13 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import Link from 'next/link';
 import { AuthorService } from '@/services/author.service';
 import { Avatar } from '@/components/ui/Avatar';
 import { User } from '@/types/user';
 import { cn } from '@/utils/styles';
 import { InfoIcon } from 'lucide-react';
 import { SocialIcon } from '@/components/ui/SocialIcon';
-import { navigateToAuthorProfile } from '@/utils/navigation';
 
 interface AuthorTooltipProps {
   authorId?: number;
@@ -233,12 +233,18 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <a
-                href={userData.authorProfile.profileUrl}
-                className="font-semibold text-gray-900 hover:text-blue-600 block truncate"
-              >
-                {userData.fullName}
-              </a>
+              {userData.authorProfile?.id ? (
+                <Link
+                  href={`/author/${userData.authorProfile.id}`}
+                  className="font-semibold text-gray-900 hover:text-blue-600 block truncate"
+                >
+                  {userData.fullName}
+                </Link>
+              ) : (
+                <span className="font-semibold text-gray-900 block truncate">
+                  {userData.fullName}
+                </span>
+              )}
             </div>
 
             {!userData.authorProfile.isClaimed && (
@@ -278,18 +284,16 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
         )}
 
         {/* Profile link positioned right above the border */}
-        <div className="mt-3 text-left">
-          <a
-            href="#"
-            className="text-xs text-blue-600 hover:text-blue-800 font-medium inline-block"
-            onClick={(e) => {
-              e.preventDefault();
-              navigateToAuthorProfile(userData.authorProfile?.id || userData.id);
-            }}
-          >
-            View profile
-          </a>
-        </div>
+        {userData.authorProfile?.id && (
+          <div className="mt-3 text-left">
+            <Link
+              href={`/author/${userData.authorProfile.id}`}
+              className="text-xs text-blue-600 hover:text-blue-800 font-medium inline-block"
+            >
+              View profile
+            </Link>
+          </div>
+        )}
 
         {/* Social links */}
         <div className="mt-3 flex items-center justify-center border-t pt-3">
