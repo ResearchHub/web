@@ -7,32 +7,28 @@ import { Button } from '@/components/ui/Button';
 import { calculateOpenBountiesAmount } from '@/components/Bounty/lib/bountyUtil';
 import { buildWorkUrl } from '@/utils/url';
 import { useRouter } from 'next/navigation';
-import { Work } from '@/types/work';
-import { WorkMetadata } from '@/services/metadata.service';
+import { useWork, useIsBountyCreator } from '@/contexts/WorkContext';
+import { Trophy } from 'lucide-react';
 
 interface EarningOpportunityBannerProps {
-  work: Work;
-  metadata: WorkMetadata;
   onViewBounties?: () => void;
 }
 
-export const EarningOpportunityBanner = ({
-  work,
-  metadata,
-  onViewBounties,
-}: EarningOpportunityBannerProps) => {
+export const EarningOpportunityBanner = ({ onViewBounties }: EarningOpportunityBannerProps) => {
   const { showUSD } = useCurrencyPreference();
   const router = useRouter();
+  const { work, metadata, openBounties } = useWork();
+  const isAuthor = useIsBountyCreator();
 
   // Don't show banner if no open bounties
-  if (!metadata.bounties || metadata.openBounties === 0) {
+  if (!openBounties || openBounties.length === 0) {
     return null;
   }
 
   const handleViewBounties = () => {
     if (onViewBounties) {
       onViewBounties();
-    } else {
+    } else if (work) {
       const bountiesUrl = buildWorkUrl({
         id: work.id,
         contentType: work.contentType === 'paper' ? 'paper' : 'post',
@@ -41,6 +37,12 @@ export const EarningOpportunityBanner = ({
       });
       router.push(bountiesUrl);
     }
+  };
+
+  const handleButtonClick = () => {
+    // For authors, always navigate to bounties tab where they can award
+    // Since there might be multiple bounties, it's better to show them all
+    handleViewBounties();
   };
 
   return (
@@ -60,7 +62,7 @@ export const EarningOpportunityBanner = ({
                 <h2 className="text-sm font-medium text-orange-700">
                   <span className="flex flex-wrap items-baseline gap-x-1">
                     <CurrencyBadge
-                      amount={calculateOpenBountiesAmount(metadata.bounties)}
+                      amount={calculateOpenBountiesAmount(openBounties)}
                       variant="text"
                       size="sm"
                       currency={showUSD ? 'USD' : 'RSC'}
@@ -80,18 +82,31 @@ export const EarningOpportunityBanner = ({
               </div>
             </div>
             <Button
-              onClick={handleViewBounties}
+              onClick={handleButtonClick}
               size="default"
               className="bg-orange-400 hover:bg-orange-500 text-white focus-visible:ring-orange-400 whitespace-nowrap group w-full min-[650px]:!w-auto flex-shrink-0"
-              aria-label={`View ${metadata.openBounties} available ${metadata.openBounties === 1 ? 'bounty' : 'bounties'}`}
+              aria-label={
+                isAuthor
+                  ? 'Award bounty'
+                  : `View ${openBounties.length} available ${openBounties.length === 1 ? 'bounty' : 'bounties'}`
+              }
             >
-              View Bounties
-              <span
-                className="inline-block transition-transform group-hover:translate-x-1 ml-1"
-                aria-hidden="true"
-              >
-                →
-              </span>
+              {isAuthor ? (
+                <>
+                  <Trophy size={16} className="mr-2" />
+                  Award bounty
+                </>
+              ) : (
+                <>
+                  View Bounties
+                  <span
+                    className="inline-block transition-transform group-hover:translate-x-1 ml-1"
+                    aria-hidden="true"
+                  >
+                    →
+                  </span>
+                </>
+              )}
             </Button>
           </div>
         </div>

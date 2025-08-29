@@ -7,13 +7,16 @@ import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { ContentType } from '@/types/work';
-import { Pen, Trash2 } from 'lucide-react';
+import { Pen, Trash2, Trophy } from 'lucide-react';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 import { Avatar } from '@/components/ui/Avatar';
 import { LegacyCommentBanner } from '@/components/LegacyCommentBanner';
 import { BaseFeedItem } from '@/components/Feed/BaseFeedItem';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { Button } from '@/components/ui/Button';
+import { Bounty } from '@/types/bounty';
+import { useUserCreatedBounties } from '@/contexts/WorkContext';
 
 // Define the recursive rendering component for parent comments
 const RenderParentComment: FC<{ comment: ParentCommentPreview; level: number }> = ({
@@ -73,6 +76,7 @@ interface FeedItemCommentProps {
   hideActions?: boolean; // New property to hide action buttons completely
   workContentType?: ContentType;
   maxLength?: number;
+  onAward?: (bounty: Bounty) => void; // Callback when award button is clicked
 }
 
 /**
@@ -92,6 +96,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   hideActions = false, // Default to not hiding actions
   workContentType,
   maxLength,
+  onAward,
 }) => {
   let [showLegacyCommentBanner, setShowLegacyCommentBanner] = useState(false);
   const commentEntry = entry.content as FeedCommentContent;
@@ -104,6 +109,9 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   const isRemoved = commentEntry.isRemoved;
   const relatedWork = entry.relatedWork;
   const commentPageUrl = href;
+
+  // Get user created bounties from WorkContext
+  const userCreatedBounties = useUserCreatedBounties();
 
   const menuItems = [];
   if (showCreatorActions) {
@@ -203,6 +211,24 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                 menuItems={menuItems}
                 awardedBountyAmount={entry.awardedBountyAmount}
                 tips={entry.tips}
+                rightSideActionButton={
+                  userCreatedBounties.length > 0 && onAward ? (
+                    <div className="flex gap-2">
+                      {userCreatedBounties.map((bounty) => (
+                        <Button
+                          key={bounty.id}
+                          onClick={() => onAward(bounty)}
+                          size="sm"
+                          variant="default"
+                          className="bg-amber-600 hover:bg-amber-700 text-white gap-2"
+                        >
+                          <Trophy size={16} />
+                          Award Bounty
+                        </Button>
+                      ))}
+                    </div>
+                  ) : undefined
+                }
               />
             </div>
           </div>

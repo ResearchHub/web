@@ -1,661 +1,221 @@
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState, useMemo, useEffect, useCallback, FC } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Comment } from '@/types/comment';
 import { ContentType } from '@/types/work';
-import { Modal } from '@/components/ui/form/Modal';
+import { BaseModal } from '@/components/ui/BaseModal';
 import { Input } from '@/components/ui/form/Input';
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { Progress } from '@/components/ui/Progress';
 import { formatRSC } from '@/utils/number';
 import { Alert } from '@/components/ui/Alert';
 import { cn } from '@/utils/styles';
 import { BountyService } from '@/services/bounty.service';
 import { toast } from 'react-hot-toast';
-import { hasBounties, isOpenBounty } from '@/components/Bounty/lib/bountyUtil';
-import { CommentProvider, useComments } from '@/contexts/CommentContext';
-import { CommentItem } from './CommentItem';
-import { Trophy, DollarSign, Award, PercentIcon, Zap } from 'lucide-react';
+import { isOpenBounty } from '@/components/Bounty/lib/bountyUtil';
+import { Trophy, Award } from 'lucide-react';
+import { Bounty } from '@/types/bounty';
 
 interface AwardBountyModalProps {
   isOpen: boolean;
   onClose: () => void;
   comment: Comment;
-  contentType: ContentType;
+  bounty: Bounty;
   onBountyUpdated?: () => void;
 }
-
-// Explanation banner component
-const ExplanationBanner: FC = () => (
-  <div className="flex items-center mb-6">
-    <span className="text-md text-gray-700">
-      Distribute your bounty to all comments you'd like to award.
-    </span>
-  </div>
-);
-
-// Component for percentage selection buttons
-const PercentageSelector: FC<{
-  commentId: number;
-  selectedPercentage: number;
-  onPercentageClick: (commentId: number, percentage: number) => void;
-}> = ({ commentId, selectedPercentage, onPercentageClick }) => {
-  const percentageOptions = [0, 25, 50, 75, 100];
-
-  return (
-    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-      {percentageOptions.map((percentage) => (
-        <button
-          key={`${commentId}-${percentage}`}
-          type="button"
-          onClick={() => onPercentageClick(commentId, percentage)}
-          className={cn(
-            'px-3 py-1.5 text-sm rounded-md transition-colors flex-1 sm:flex-none',
-            selectedPercentage === percentage
-              ? 'bg-blue-100 text-blue-700'
-              : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-          )}
-        >
-          {percentage}%
-        </button>
-      ))}
-    </div>
-  );
-};
-
-// Component for amount input
-const AmountInput: FC<{
-  commentId: number;
-  awardAmount: number;
-  totalBountyAmount: number;
-  percentageOfTotal: number;
-  onAwardChange: (commentId: number, amount: number) => void;
-}> = ({ commentId, awardAmount, totalBountyAmount, percentageOfTotal, onAwardChange }) => {
-  // Local state to handle input value
-  const [inputValue, setInputValue] = useState<string>(awardAmount ? awardAmount.toString() : '');
-
-  // Update local state when awardAmount changes from parent
-  useEffect(() => {
-    if (awardAmount === 0) {
-      setInputValue('0');
-    } else if (awardAmount > 0) {
-      setInputValue(awardAmount.toString());
-    }
-  }, [awardAmount]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setInputValue(newValue);
-
-    const numericValue = parseFloat(newValue);
-    if (!isNaN(numericValue)) {
-      onAwardChange(commentId, numericValue);
-    } else if (newValue === '' || newValue === '0') {
-      onAwardChange(commentId, 0);
-    }
-  };
-
-  return (
-    <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">
-      <div className="relative w-full sm:w-auto">
-        <Input
-          type="number"
-          min={0}
-          max={totalBountyAmount}
-          step={0.1}
-          value={inputValue}
-          onChange={handleInputChange}
-          className="w-full sm:w-40 pr-12 text-right"
-          placeholder="0.0"
-        />
-        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-          <span className="text-gray-500 sm:text-sm">RSC</span>
-        </div>
-      </div>
-      <div className="text-xs text-gray-500 whitespace-nowrap">
-        ({percentageOfTotal.toFixed(1)}%)
-      </div>
-    </div>
-  );
-};
-
-// Comment card with award controls
-const AwardableCommentCard: FC<{
-  comment: Comment;
-  contentType: ContentType;
-  commentId: number;
-  awardAmount: number;
-  selectedPercentage: number;
-  totalBountyAmount: number;
-  onPercentageClick: (commentId: number, percentage: number) => void;
-  onAwardChange: (commentId: number, amount: number) => void;
-}> = ({
-  comment,
-  contentType,
-  commentId,
-  awardAmount,
-  selectedPercentage,
-  totalBountyAmount,
-  onPercentageClick,
-  onAwardChange,
-}) => {
-  const percentageOfTotal = (awardAmount / totalBountyAmount) * 100;
-  const isReply = !!comment.parentId;
-
-  // Memoize CommentItem to prevent unnecessary re-renders
-  const MemoizedCommentItem = useMemo(
-    () => (
-      <CommentItem
-        comment={comment}
-        contentType={contentType}
-        showTooltips={false}
-        includeReplies={false}
-      />
-    ),
-    [comment, contentType]
-  );
-
-  return (
-    <div
-      className={cn(
-        'p-4 hover:bg-gray-50 transition-colors',
-        isReply && 'pl-8 border-l-2 border-l-gray-100'
-      )}
-    >
-      {isReply && (
-        <div className="text-xs text-gray-500 mb-2">Reply to comment #{comment.parentId}</div>
-      )}
-      <div className="flex-grow mb-4">{MemoizedCommentItem}</div>
-
-      {/* Award allocation UI */}
-      <div className="mt-4 pt-3 border-t border-gray-100">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="text-sm font-medium text-gray-700">Award:</div>
-
-          {/* Percentage buttons */}
-          <PercentageSelector
-            commentId={commentId}
-            selectedPercentage={selectedPercentage}
-            onPercentageClick={onPercentageClick}
-          />
-
-          {/* Custom amount input */}
-          <AmountInput
-            commentId={commentId}
-            awardAmount={awardAmount}
-            totalBountyAmount={totalBountyAmount}
-            percentageOfTotal={percentageOfTotal}
-            onAwardChange={onAwardChange}
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Award summary component
-const AwardSummary: FC<{
-  totalAwarded: number;
-  remainingAmount: number;
-  percentageAwarded: number;
-  isExactlyHundredPercent: boolean;
-  isOverAllocated: boolean;
-  isSubmitting: boolean;
-  isCommentsLoading: boolean;
-  handleSubmitAwards: () => void;
-}> = ({
-  totalAwarded,
-  remainingAmount,
-  percentageAwarded,
-  isExactlyHundredPercent,
-  isOverAllocated,
-  isSubmitting,
-  isCommentsLoading,
-  handleSubmitAwards,
-}) => (
-  <div className="space-y-3">
-    <div className="flex items-center justify-between text-sm">
-      <span className={cn('font-medium text-gray-700', isOverAllocated && 'text-red-600')}>
-        Awarded: {formatRSC({ amount: totalAwarded })} RSC ({percentageAwarded.toFixed(1)}%)
-      </span>
-      <span className={cn('text-gray-600', isOverAllocated && 'text-red-600')}>
-        Remaining: {formatRSC({ amount: remainingAmount })} RSC
-      </span>
-    </div>
-
-    <Progress
-      value={percentageAwarded}
-      max={100}
-      className={cn(
-        'mb-3',
-        isOverAllocated && '[&>div]:bg-red-500 bg-red-100',
-        isExactlyHundredPercent && '[&>div]:bg-green-500'
-      )}
-    />
-
-    {isOverAllocated && (
-      <Alert variant="error">
-        Total awarded amount exceeds the bounty amount. Please adjust your allocations.
-      </Alert>
-    )}
-
-    {!isOverAllocated && !isExactlyHundredPercent && totalAwarded > 0 && (
-      <Alert variant="warning">
-        You must allocate exactly 100% of the bounty amount to proceed.
-      </Alert>
-    )}
-
-    <Button
-      onClick={handleSubmitAwards}
-      disabled={!isExactlyHundredPercent || isSubmitting || isOverAllocated || isCommentsLoading}
-      className="w-full"
-    >
-      {isSubmitting
-        ? 'Submitting...'
-        : isCommentsLoading
-          ? 'Loading Comments...'
-          : isOverAllocated
-            ? 'Reduce Allocations'
-            : isExactlyHundredPercent
-              ? 'Submit Awards'
-              : `Allocate Remaining ${(100 - percentageAwarded).toFixed(1)}%`}
-    </Button>
-  </div>
-);
-
-// Quick allocation actions
-const QuickAllocationActions: FC<{
-  eligibleCommentIds: number[];
-  onClearAll: () => void;
-  onDistributeEqually: (commentIds: number[]) => void;
-}> = ({ eligibleCommentIds, onClearAll, onDistributeEqually }) => (
-  <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
-    <Button size="sm" variant="outlined" onClick={onClearAll} className="text-xs w-full sm:w-auto">
-      Clear All
-    </Button>
-    <Button
-      size="sm"
-      variant="secondary"
-      onClick={() => onDistributeEqually(eligibleCommentIds)}
-      className="text-xs w-full sm:w-auto"
-    >
-      Distribute Equally
-    </Button>
-  </div>
-);
-
-// Custom component to filter out comments with bounties and display award controls
-const FilteredCommentFeed = ({
-  documentId,
-  contentType,
-  totalBountyAmount,
-  awardAmounts,
-  selectedPercentages,
-  onAwardChange,
-  onPercentageClick,
-  onSetEligibleComments,
-  onLoadingChange,
-}: {
-  documentId: number;
-  contentType: ContentType;
-  totalBountyAmount: number;
-  awardAmounts: Record<number, number>;
-  selectedPercentages: Record<number, number>;
-  onAwardChange: (commentId: number, amount: number) => void;
-  onPercentageClick: (commentId: number, percentage: number) => void;
-  onSetEligibleComments: (commentIds: number[]) => void;
-  onLoadingChange: (loading: boolean) => void;
-}) => {
-  // Use state to store all comments
-  const [allComments, setAllComments] = useState<Comment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Memoize callbacks to prevent them from changing on every render
-  const stableOnLoadingChange = useCallback(
-    (loading: boolean) => {
-      onLoadingChange(loading);
-    },
-    [onLoadingChange]
-  );
-
-  const stableOnSetEligibleComments = useCallback(
-    (commentIds: number[]) => {
-      onSetEligibleComments(commentIds);
-    },
-    [onSetEligibleComments]
-  );
-
-  // Fetch all comments when the component mounts
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchAllComments = async () => {
-      if (isMounted) {
-        setIsLoading(true);
-        stableOnLoadingChange(true);
-      }
-
-      try {
-        const CommentService = (await import('@/services/comment.service')).CommentService;
-        const response = await CommentService.fetchComments({
-          documentId,
-          contentType,
-          sort: 'TOP',
-          pageSize: 100,
-        });
-
-        if (isMounted) {
-          if (response && response.comments) {
-            setAllComments(response.comments);
-          } else {
-            setAllComments([]);
-          }
-          setError(null);
-        }
-      } catch (err) {
-        if (isMounted) {
-          console.error('Failed to fetch comments:', err);
-          setError('Failed to load comments. Please try again.');
-          setAllComments([]);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-          stableOnLoadingChange(false);
-        }
-      }
-    };
-
-    fetchAllComments();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [documentId, contentType, stableOnLoadingChange]);
-
-  // Filter out comments that have bounties and flatten the comment tree
-  const commentsWithoutBounties = useMemo(() => {
-    // Helper function to flatten a comment tree
-    const flattenComments = (comments: Comment[]): Comment[] => {
-      return comments.reduce<Comment[]>((acc, comment) => {
-        // Check if the comment is eligible
-        const isBountyComment = comment.commentType === 'BOUNTY' || hasBounties(comment);
-
-        // Add eligible comments to the result
-        if (!isBountyComment) {
-          acc.push(comment);
-        }
-
-        // Recursively process replies if they exist
-        if (comment.replies && comment.replies.length > 0) {
-          acc.push(...flattenComments(comment.replies));
-        }
-
-        return acc;
-      }, []);
-    };
-
-    // Start with top-level comments and flatten
-    return flattenComments(allComments);
-  }, [allComments]);
-
-  // Notify parent component about eligible comments when they change
-  useEffect(() => {
-    if (!isLoading) {
-      if (commentsWithoutBounties.length > 0) {
-        const eligibleIds = commentsWithoutBounties.map((comment) => comment.id);
-        stableOnSetEligibleComments(eligibleIds);
-      } else {
-        stableOnSetEligibleComments([]);
-      }
-    }
-  }, [commentsWithoutBounties, isLoading, stableOnSetEligibleComments]);
-
-  if (isLoading) {
-    return <div className="py-4 text-center text-gray-500">Loading comments...</div>;
-  }
-
-  if (error) {
-    return <div className="py-4 text-center text-red-500">{error}</div>;
-  }
-
-  if (commentsWithoutBounties.length === 0) {
-    return (
-      <div className="py-8 text-center">
-        <p className="text-gray-500">
-          No comments available to award. Any user can comment or reply to be eligible for this
-          bounty.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="divide-y divide-gray-200">
-      {commentsWithoutBounties.map((comment) => {
-        const commentId = comment.id;
-        const awardAmount = awardAmounts[commentId] || 0;
-        const selectedPercentage = selectedPercentages[commentId] || 0;
-
-        return (
-          <AwardableCommentCard
-            key={commentId}
-            comment={comment}
-            contentType={contentType}
-            commentId={commentId}
-            awardAmount={awardAmount}
-            selectedPercentage={selectedPercentage}
-            totalBountyAmount={totalBountyAmount}
-            onPercentageClick={onPercentageClick}
-            onAwardChange={onAwardChange}
-          />
-        );
-      })}
-    </div>
-  );
-};
 
 export const AwardBountyModal = ({
   isOpen,
   onClose,
   comment,
-  contentType,
+  bounty,
   onBountyUpdated,
 }: AwardBountyModalProps) => {
-  const [awardAmounts, setAwardAmounts] = useState<Record<number, number>>({});
-  const [selectedPercentages, setSelectedPercentages] = useState<Record<number, number>>({});
+  const [awardAmount, setAwardAmount] = useState<string>('');
+  const [selectedPercentage, setSelectedPercentage] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCommentsLoading, setIsCommentsLoading] = useState(true);
-  const { forceRefresh } = useComments();
-  const [eligibleCommentIds, setEligibleCommentIds] = useState<number[]>([]);
+
+  // Get the total bounty amount available to award
+  const totalBountyAmount = bounty ? parseFloat(bounty.totalAmount) : 0;
 
   // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      setAwardAmounts({});
-      setSelectedPercentages({});
-      setEligibleCommentIds([]);
-      setIsCommentsLoading(true);
+      setAwardAmount('');
+      setSelectedPercentage(0);
     }
   }, [isOpen]);
 
-  // Get the total bounty amount available to award
-  const activeBounty = comment.bounties?.find(isOpenBounty);
-  const totalBountyAmount = activeBounty ? parseFloat(activeBounty.totalAmount) : 0;
-
-  // Calculate total amount awarded and remaining
-  const totalAwarded = useMemo(() => {
-    return Object.values(awardAmounts).reduce((sum, amount) => sum + (amount || 0), 0);
-  }, [awardAmounts]);
-
-  const remainingAmount = totalBountyAmount - totalAwarded;
-  const percentageAwarded = (totalAwarded / totalBountyAmount) * 100;
-  const isExactlyHundredPercent = Math.abs(percentageAwarded - 100) < 0.01;
-  const isOverAllocated = percentageAwarded > 100;
-
-  // Handler functions with useCallback
-  const handleCustomAmount = useCallback((commentId: number, value: number) => {
-    setAwardAmounts((prev) => ({
-      ...prev,
-      [commentId]: value,
-    }));
-    setSelectedPercentages((prev) => ({
-      ...prev,
-      [commentId]: 0,
-    }));
-  }, []);
-
-  const handlePercentageClick = useCallback(
-    (commentId: number, percentage: number) => {
-      const amount = (totalBountyAmount * percentage) / 100;
-      setAwardAmounts((prev) => ({
-        ...prev,
-        [commentId]: amount,
-      }));
-      setSelectedPercentages((prev) => ({
-        ...prev,
-        [commentId]: percentage,
-      }));
+  // Calculate percentage based on amount
+  const calculatePercentage = useCallback(
+    (amount: number) => {
+      if (totalBountyAmount === 0) return 0;
+      return (amount / totalBountyAmount) * 100;
     },
     [totalBountyAmount]
   );
 
-  const handleClearAll = useCallback(() => {
-    setAwardAmounts({});
-    setSelectedPercentages({});
-  }, []);
+  // Handle custom amount input
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setAwardAmount(value);
 
-  const handleDistributeEqually = useCallback(
-    (commentIds: number[]) => {
-      if (commentIds.length === 0) return;
+    const numericValue = parseFloat(value);
+    if (!isNaN(numericValue)) {
+      setSelectedPercentage(0); // Clear percentage selection
+    }
+  };
 
-      const equalPercentage = 100 / commentIds.length;
-      const equalAmount = totalBountyAmount / commentIds.length;
+  // Handle percentage button click
+  const handlePercentageClick = (percentage: number) => {
+    setSelectedPercentage(percentage);
+    const amount = (totalBountyAmount * percentage) / 100;
+    setAwardAmount(amount.toFixed(2));
+  };
 
-      const newAwardAmounts: Record<number, number> = {};
-      const newSelectedPercentages: Record<number, number> = {};
+  // Get numeric amount
+  const numericAmount = parseFloat(awardAmount) || 0;
+  const percentageOfTotal = calculatePercentage(numericAmount);
 
-      commentIds.forEach((id) => {
-        newAwardAmounts[id] = equalAmount;
-        newSelectedPercentages[id] = equalPercentage;
-      });
+  // Validation
+  const isValidAmount = numericAmount > 0 && numericAmount <= totalBountyAmount;
+  const isOverAllocated = numericAmount > totalBountyAmount;
 
-      setAwardAmounts(newAwardAmounts);
-      setSelectedPercentages(newSelectedPercentages);
-    },
-    [totalBountyAmount]
-  );
-
-  const handleSetEligibleComments = useCallback((commentIds: number[]) => {
-    setEligibleCommentIds(commentIds);
-  }, []);
-
-  const handleLoadingChange = useCallback((loading: boolean) => {
-    setIsCommentsLoading(loading);
-  }, []);
-
-  const handleSubmitAwards = async () => {
-    if (!isExactlyHundredPercent) return;
+  // Handle award submission
+  const handleSubmitAward = async () => {
+    if (!isValidAmount || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
-      if (!activeBounty) {
-        throw new Error('No active bounty found');
-      }
+      const awards = [
+        {
+          commentId: comment.id,
+          amount: numericAmount,
+        },
+      ];
 
-      const awards = Object.entries(awardAmounts)
-        .filter(([_, amount]) => amount > 0)
-        .map(([commentId, amount]) => ({
-          commentId: parseInt(commentId),
-          amount,
-        }));
+      await BountyService.awardBounty(bounty.id, awards);
+      toast.success(`Successfully awarded ${formatRSC({ amount: numericAmount })} RSC`);
 
-      if (awards.length === 0) {
-        throw new Error(
-          'No valid awards found. Please allocate the bounty to at least one comment.'
-        );
-      }
-
-      await BountyService.awardBounty(activeBounty.id, awards);
-      toast.success('Bounty awards submitted successfully');
-
-      try {
-        await forceRefresh?.();
-        if (onBountyUpdated) {
-          onBountyUpdated();
-        }
-      } catch (refreshError) {
-        console.error('Failed to refresh comments:', refreshError);
-        if (onBountyUpdated) {
-          onBountyUpdated();
-        }
+      if (onBountyUpdated) {
+        onBountyUpdated();
       }
 
       onClose();
     } catch (error) {
-      console.error('Failed to submit awards:', error);
-      if (error instanceof Error && error.message.includes('No valid awards found')) {
-        toast.error('Please ensure at least one award has an amount greater than 0');
-      } else {
-        toast.error('Failed to submit awards. Please try again.');
-      }
+      console.error('Failed to submit award:', error);
+      toast.error('Failed to award bounty. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const authorName = comment.createdBy?.authorProfile?.fullName || 'this user';
+
+  const modalFooter = (
+    <div className="flex gap-3">
+      <Button variant="outlined" onClick={onClose} disabled={isSubmitting} className="flex-1">
+        Cancel
+      </Button>
+      <Button
+        onClick={handleSubmitAward}
+        disabled={!isValidAmount || isSubmitting}
+        className="flex-1 gap-2"
+      >
+        {isSubmitting ? (
+          'Awarding...'
+        ) : (
+          <>
+            <Award size={16} />
+            Award {numericAmount > 0 && formatRSC({ amount: numericAmount })} RSC
+          </>
+        )}
+      </Button>
+    </div>
+  );
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Award Bounty">
-      <div>
-        {/* Explanation banner instead of the bounty display */}
-        <ExplanationBanner />
-
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
-          <div className="text-sm text-gray-600 font-medium">
-            Total bounty amount: {formatRSC({ amount: totalBountyAmount })} RSC
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Award Bounty"
+      maxWidth="max-w-md"
+      showCloseButton={true}
+      footer={modalFooter}
+    >
+      <div className="space-y-6">
+        {/* Header with bounty info */}
+        <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+          <div className="flex items-center gap-2 mb-2">
+            <Trophy size={20} className="text-orange-600" />
+            <h3 className="font-medium text-orange-900">Award from Bounty Pool</h3>
           </div>
+          <p className="text-sm text-orange-700">
+            Total available:{' '}
+            <span className="font-semibold">{formatRSC({ amount: totalBountyAmount })} RSC</span>
+          </p>
+        </div>
 
-          {/* Quick allocation actions */}
-          {!isCommentsLoading && eligibleCommentIds.length > 0 && (
-            <QuickAllocationActions
-              eligibleCommentIds={eligibleCommentIds}
-              onClearAll={handleClearAll}
-              onDistributeEqually={handleDistributeEqually}
+        {/* Recipient info */}
+        <div className="text-sm text-gray-600">
+          Awarding to: <span className="font-medium text-gray-900">{authorName}</span>
+        </div>
+
+        {/* Percentage buttons */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Quick allocation</label>
+          <div className="grid grid-cols-5 gap-2">
+            {[10, 25, 50, 75, 100].map((percentage) => (
+              <button
+                key={percentage}
+                type="button"
+                onClick={() => handlePercentageClick(percentage)}
+                className={cn(
+                  'py-2 px-3 text-sm rounded-md transition-colors',
+                  selectedPercentage === percentage
+                    ? 'bg-blue-100 text-blue-700 font-medium'
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                )}
+              >
+                {percentage}%
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Custom amount input */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Award amount</label>
+          <div className="relative">
+            <Input
+              type="number"
+              min={0}
+              max={totalBountyAmount}
+              step={0.01}
+              value={awardAmount}
+              onChange={handleAmountChange}
+              className="pr-20"
+              placeholder="0.00"
             />
-          )}
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <span className="text-gray-500">RSC</span>
+            </div>
+          </div>
+          <p className="mt-1 text-xs text-gray-500">
+            {percentageOfTotal > 0 && <span>{percentageOfTotal.toFixed(1)}% of total bounty</span>}
+          </p>
         </div>
-      </div>
 
-      <div className="border-t border-gray-200 -mx-6">
-        <div className="max-h-[400px] overflow-y-auto px-6">
-          <FilteredCommentFeed
-            documentId={comment.thread.objectId}
-            contentType={contentType}
-            totalBountyAmount={totalBountyAmount}
-            awardAmounts={awardAmounts}
-            selectedPercentages={selectedPercentages}
-            onAwardChange={handleCustomAmount}
-            onPercentageClick={handlePercentageClick}
-            onSetEligibleComments={handleSetEligibleComments}
-            onLoadingChange={handleLoadingChange}
-          />
-        </div>
-      </div>
+        {/* Validation messages */}
+        {isOverAllocated && (
+          <Alert variant="error">
+            Amount exceeds available bounty pool. Maximum:{' '}
+            {formatRSC({ amount: totalBountyAmount })} RSC
+          </Alert>
+        )}
 
-      {/* Award summary bar */}
-      <div className="flex-shrink-0 border-t border-gray-200 bg-white pt-4 -mx-6 px-6 pb-0">
-        <AwardSummary
-          totalAwarded={totalAwarded}
-          remainingAmount={remainingAmount}
-          percentageAwarded={percentageAwarded}
-          isExactlyHundredPercent={isExactlyHundredPercent}
-          isOverAllocated={isOverAllocated}
-          isSubmitting={isSubmitting}
-          isCommentsLoading={isCommentsLoading}
-          handleSubmitAwards={handleSubmitAwards}
-        />
+        {numericAmount > 0 && numericAmount < 0.01 && (
+          <Alert variant="warning">Minimum award amount is 0.01 RSC</Alert>
+        )}
       </div>
-    </Modal>
+    </BaseModal>
   );
 };

@@ -33,6 +33,7 @@ import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
+import { WorkProvider } from '@/contexts/WorkContext';
 
 interface WorkDocumentProps {
   work: Work;
@@ -241,54 +242,56 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   ]);
 
   return (
-    <div>
-      <EarningOpportunityBanner work={work} metadata={metadata} />
-      {/* Title & Actions */}
-      {work.type === 'preprint' && <ContentTypeBadge type="preprint" size="lg" />}
-      <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-2" />
+    <WorkProvider work={work} metadata={metadata} userId={user?.authorProfile?.id}>
+      <div>
+        <EarningOpportunityBanner />
+        {/* Title & Actions */}
+        {work.type === 'preprint' && <ContentTypeBadge type="preprint" size="lg" />}
+        <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-2" />
 
-      <WorkLineItems
-        work={work}
-        metadata={metadata}
-        insightsButton={
-          <button
-            className="lg:!hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
-            onClick={() => setShowMobileMetrics(true)}
-          >
-            <BarChart2 className="h-4 w-4" />
-            <span>Insights</span>
-          </button>
-        }
-      />
+        <WorkLineItems
+          work={work}
+          metadata={metadata}
+          insightsButton={
+            <button
+              className="lg:!hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+              onClick={() => setShowMobileMetrics(true)}
+            >
+              <BarChart2 className="h-4 w-4" />
+              <span>Insights</span>
+            </button>
+          }
+        />
 
-      {/* Navigation */}
-      <WorkTabs
-        work={work}
-        metadata={metadata}
-        defaultTab={defaultTab}
-        contentType="paper"
-        onTabChange={handleTabChange}
-      />
+        {/* Navigation */}
+        <WorkTabs
+          work={work}
+          metadata={metadata}
+          defaultTab={defaultTab}
+          contentType="paper"
+          onTabChange={handleTabChange}
+        />
 
-      {/* Tab Content */}
-      <div className="mt-6">{renderTabContent}</div>
+        {/* Tab Content */}
+        <div className="mt-6">{renderTabContent}</div>
 
-      {/* Mobile sidebar overlay */}
-      <div
-        className={`fixed inset-0 bg-black/50 z-30 z-50 lg:hidden ${
-          showMobileMetrics ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={() => setShowMobileMetrics(false)}
-      >
+        {/* Mobile sidebar overlay */}
         <div
-          className={`absolute right-0 top-0 bottom-0 w-80 bg-white shadow-xl transition-transform duration-200 p-4 ${
-            showMobileMetrics ? 'translate-x-0' : 'translate-x-full'
+          className={`fixed inset-0 bg-black/50 z-30 z-50 lg:hidden ${
+            showMobileMetrics ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
-          onClick={(e) => e.stopPropagation()}
+          onClick={() => setShowMobileMetrics(false)}
         >
-          <WorkRightSidebar metadata={metadata} work={work} />
+          <div
+            className={`absolute right-0 top-0 bottom-0 w-80 bg-white shadow-xl transition-transform duration-200 p-4 ${
+              showMobileMetrics ? 'translate-x-0' : 'translate-x-full'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <WorkRightSidebar metadata={metadata} work={work} />
+          </div>
         </div>
       </div>
-    </div>
+    </WorkProvider>
   );
 };

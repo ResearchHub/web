@@ -12,6 +12,8 @@ import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunit
 import { QuestionEditModal } from '@/components/modals/QuestionEditModal';
 import TipTapRenderer from '@/components/Comment/lib/TipTapRenderer';
 import { htmlToTipTapJSON } from '@/components/Comment/lib/htmlToTipTap';
+import { WorkProvider } from '@/contexts/WorkContext';
+import { useUser } from '@/contexts/UserContext';
 
 interface PostDocumentProps {
   work: Work;
@@ -29,6 +31,7 @@ export const PostDocument = ({
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [parsedQuestionContent, setParsedQuestionContent] = useState<any>(null);
+  const { user } = useUser();
 
   // Parse question content on client side
   useEffect(() => {
@@ -131,35 +134,37 @@ export const PostDocument = ({
   }, [activeTab, work.id, work.contentType, work.previewContent, content, parsedQuestionContent]);
 
   return (
-    <div>
-      <EarningOpportunityBanner work={work} metadata={metadata} />
-      {/* Title & Actions */}
-      {work.type === 'preprint' && (
-        <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
-          Preprint
-        </div>
-      )}
-      <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-2" />
-      <WorkLineItems work={work} metadata={metadata} onEditClick={handleEditToggle} />
+    <WorkProvider work={work} metadata={metadata} userId={user?.authorProfile?.id}>
+      <div>
+        <EarningOpportunityBanner />
+        {/* Title & Actions */}
+        {work.type === 'preprint' && (
+          <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
+            Preprint
+          </div>
+        )}
+        <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-2" />
+        <WorkLineItems work={work} metadata={metadata} onEditClick={handleEditToggle} />
 
-      {/* Tabs */}
-      <WorkTabs
-        work={work}
-        metadata={metadata}
-        defaultTab={defaultTab}
-        contentType="post"
-        onTabChange={handleTabChange}
-      />
+        {/* Tabs */}
+        <WorkTabs
+          work={work}
+          metadata={metadata}
+          defaultTab={defaultTab}
+          contentType="post"
+          onTabChange={handleTabChange}
+        />
 
-      {/* Tab Content */}
-      {renderTabContent}
+        {/* Tab Content */}
+        {renderTabContent}
 
-      {/* Question Edit Modal */}
-      <QuestionEditModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        work={work}
-      />
-    </div>
+        {/* Question Edit Modal */}
+        <QuestionEditModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          work={work}
+        />
+      </div>
+    </WorkProvider>
   );
 };

@@ -23,6 +23,7 @@ import { useShareModalContext } from '@/contexts/ShareContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '../ui/Button';
+import { WorkProvider } from '@/contexts/WorkContext';
 
 interface FundDocumentProps {
   work: Work;
@@ -214,104 +215,106 @@ export const FundDocument = ({
   }, [activeTab, work, metadata, content, storageKey, isCurrentUserAuthor]);
 
   return (
-    <div>
-      <EarningOpportunityBanner work={work} metadata={metadata} />
-      {/* Title & Actions */}
-      {work.type === 'preprint' && (
-        <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
-          Preprint
-        </div>
-      )}
-      <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-2" />
+    <WorkProvider work={work} metadata={metadata} userId={user?.authorProfile?.id}>
+      <div>
+        <EarningOpportunityBanner />
+        {/* Title & Actions */}
+        {work.type === 'preprint' && (
+          <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
+            Preprint
+          </div>
+        )}
+        <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-2" />
 
-      <WorkLineItems
-        work={work}
-        metadata={metadata}
-        showClaimButton={false}
-        insightsButton={
-          <button
-            className="lg:!hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
-            onClick={() => setShowMobileMetrics(true)}
-          >
-            <BarChart2 className="h-4 w-4" />
-            <span>Insights</span>
-          </button>
-        }
-      />
-      {/* FundraiseProgress - now placed between line items and tabs */}
-      {metadata.fundraising && (
-        <div className="my-6">
-          <FundraiseProgress
-            fundraise={{
-              id: metadata.fundraising.id,
-              status: metadata.fundraising.status,
-              amountRaised: {
-                rsc: metadata.fundraising.amountRaised.rsc,
-                usd: metadata.fundraising.amountRaised.usd,
-              },
-              goalAmount: {
-                rsc: metadata.fundraising.goalAmount.rsc,
-                usd: metadata.fundraising.goalAmount.usd,
-              },
-              endDate: metadata.fundraising.endDate,
-              contributors: {
-                numContributors: metadata.fundraising.contributors.topContributors.length,
-                topContributors: metadata.fundraising.contributors.topContributors,
-              },
-              createdDate: metadata.fundraising.createdDate || '',
-              updatedDate: metadata.fundraising.updatedDate || '',
-              goalCurrency: metadata.fundraising.goalCurrency || 'RSC',
-            }}
-            fundraiseTitle={work.title}
-            onContribute={() => {
-              // Handle contribute action
-            }}
-          />
-        </div>
-      )}
-      {/* Tabs */}
-      <WorkTabs
-        work={work}
-        metadata={metadata}
-        defaultTab={defaultTab}
-        contentType="fund"
-        onTabChange={handleTabChange}
-        updatesCount={authorUpdates.length}
-      />
-      {/* Tab Content */}
-      {renderTabContent}
-      {/* Mobile overlay */}
-      {showOverlay && (
-        <div
-          className={`fixed inset-0 bg-black ${
-            overlayVisible ? 'opacity-50' : 'opacity-0'
-          } z-20 lg:!hidden transition-opacity duration-300 ease-in-out`}
-          onClick={() => setShowMobileMetrics(false)}
+        <WorkLineItems
+          work={work}
+          metadata={metadata}
+          showClaimButton={false}
+          insightsButton={
+            <button
+              className="lg:!hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+              onClick={() => setShowMobileMetrics(true)}
+            >
+              <BarChart2 className="h-4 w-4" />
+              <span>Insights</span>
+            </button>
+          }
         />
-      )}
-      {/* Right Sidebar Container (Sticky) */}
-      <div
-        className={`
+        {/* FundraiseProgress - now placed between line items and tabs */}
+        {metadata.fundraising && (
+          <div className="my-6">
+            <FundraiseProgress
+              fundraise={{
+                id: metadata.fundraising.id,
+                status: metadata.fundraising.status,
+                amountRaised: {
+                  rsc: metadata.fundraising.amountRaised.rsc,
+                  usd: metadata.fundraising.amountRaised.usd,
+                },
+                goalAmount: {
+                  rsc: metadata.fundraising.goalAmount.rsc,
+                  usd: metadata.fundraising.goalAmount.usd,
+                },
+                endDate: metadata.fundraising.endDate,
+                contributors: {
+                  numContributors: metadata.fundraising.contributors.topContributors.length,
+                  topContributors: metadata.fundraising.contributors.topContributors,
+                },
+                createdDate: metadata.fundraising.createdDate || '',
+                updatedDate: metadata.fundraising.updatedDate || '',
+                goalCurrency: metadata.fundraising.goalCurrency || 'RSC',
+              }}
+              fundraiseTitle={work.title}
+              onContribute={() => {
+                // Handle contribute action
+              }}
+            />
+          </div>
+        )}
+        {/* Tabs */}
+        <WorkTabs
+          work={work}
+          metadata={metadata}
+          defaultTab={defaultTab}
+          contentType="fund"
+          onTabChange={handleTabChange}
+          updatesCount={authorUpdates.length}
+        />
+        {/* Tab Content */}
+        {renderTabContent}
+        {/* Mobile overlay */}
+        {showOverlay && (
+          <div
+            className={`fixed inset-0 bg-black ${
+              overlayVisible ? 'opacity-50' : 'opacity-0'
+            } z-20 lg:!hidden transition-opacity duration-300 ease-in-out`}
+            onClick={() => setShowMobileMetrics(false)}
+          />
+        )}
+        {/* Right Sidebar Container (Sticky) */}
+        <div
+          className={`
           fixed top-[64px] right-0 w-[280px] sm:!w-80 h-[calc(100vh-64px)] bg-white shadow-xl p-4
           z-50 lg:hidden
           transition-transform duration-300 ease-in-out
           ${showMobileMetrics ? 'translate-x-0' : 'translate-x-full'}
         `}
-      >
-        <div className="h-full overflow-y-auto relative">
-          {/* Close button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowMobileMetrics(false)}
-            aria-label="Close sidebar"
-            className="absolute -top-2 right-0 z-10"
-          >
-            <FontAwesomeIcon icon={faXmark} className="w-4 h-4 text-gray-600" />
-          </Button>
-          <FundingRightSidebar work={work} metadata={metadata} authorUpdates={authorUpdates} />
+        >
+          <div className="h-full overflow-y-auto relative">
+            {/* Close button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowMobileMetrics(false)}
+              aria-label="Close sidebar"
+              className="absolute -top-2 right-0 z-10"
+            >
+              <FontAwesomeIcon icon={faXmark} className="w-4 h-4 text-gray-600" />
+            </Button>
+            <FundingRightSidebar work={work} metadata={metadata} authorUpdates={authorUpdates} />
+          </div>
         </div>
       </div>
-    </div>
+    </WorkProvider>
   );
 };

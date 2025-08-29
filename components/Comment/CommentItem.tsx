@@ -19,6 +19,8 @@ import { FeedItemBounty } from '@/components/Feed/items/FeedItemBounty';
 import { SolutionModal } from '@/components/Comment/SolutionModal';
 import { ID } from '@/types/root';
 import { useUser } from '@/contexts/UserContext';
+import { Bounty } from '@/types/bounty';
+import { useUserCreatedBounties } from '@/contexts/WorkContext';
 
 // Define the SolutionViewEvent interface (previously in BountyCard)
 interface SolutionViewEvent {
@@ -72,9 +74,16 @@ export const CommentItem = ({
   // Check if the current user is the author of the comment
   const isAuthor = user?.authorProfile?.id === comment?.createdBy?.authorProfile?.id;
 
+  // State for the new award modal
+  const [selectedBountyToAward, setSelectedBountyToAward] = useState<any>(null);
+  const [showNewAwardModal, setShowNewAwardModal] = useState(false);
+
   // Determine if this comment is being edited or replied to
   const isEditing = editingCommentId === comment.id;
   const isReplying = replyingToCommentId === comment.id;
+
+  // Get bounties that the current user can award from WorkContext
+  const userBountiesToAward = useUserCreatedBounties();
 
   // Handle editing a comment
   const handleEdit = async (params: {
@@ -297,6 +306,10 @@ export const CommentItem = ({
             comment: 'Reply',
           }}
           workContentType={workContentType}
+          onAward={(bounty) => {
+            setSelectedBountyToAward(bounty);
+            setShowNewAwardModal(true);
+          }}
         />
 
         {/* If we're replying, show the reply editor */}
@@ -452,24 +465,8 @@ export const CommentItem = ({
         cancelText="Cancel"
       />
 
-      {/* Award Bounty Modal for bounty comments */}
-      {showAwardModal && (
-        <AwardBountyModal
-          isOpen={showAwardModal}
-          onClose={() => setShowAwardModal(false)}
-          comment={comment}
-          contentType={contentType}
-          onBountyUpdated={() => {
-            // Refresh the comments using the context
-            forceRefresh();
-
-            // Also call the parent's onCommentUpdate if provided
-            if (onCommentUpdate) {
-              onCommentUpdate(comment);
-            }
-          }}
-        />
-      )}
+      {/* Award Bounty Modal for bounty comments - OLD VERSION */}
+      {/* This is kept for backward compatibility with bounty comments */}
 
       {/* Solution Modal */}
       {selectedSolution && (
@@ -481,6 +478,28 @@ export const CommentItem = ({
           contentType={contentType || 'paper'} // Default to paper for compatibility
           solutionAuthorName={selectedSolution.authorName}
           awardedAmount={selectedSolution.awardedAmount}
+        />
+      )}
+
+      {/* New Award Modal for single comment awards */}
+      {showNewAwardModal && selectedBountyToAward && (
+        <AwardBountyModal
+          isOpen={showNewAwardModal}
+          onClose={() => {
+            setShowNewAwardModal(false);
+            setSelectedBountyToAward(null);
+          }}
+          comment={comment}
+          bounty={selectedBountyToAward}
+          onBountyUpdated={() => {
+            // Refresh the comments using the context
+            forceRefresh();
+
+            // Also call the parent's onCommentUpdate if provided
+            if (onCommentUpdate) {
+              onCommentUpdate(comment);
+            }
+          }}
         />
       )}
     </div>
