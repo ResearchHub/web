@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   MultiSelectOption,
@@ -10,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { X, ChevronDown, Filter } from 'lucide-react';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { BountyService } from '@/services/bounty.service';
+import { GrantService } from '@/services/grant.service';
 import { Topic } from '@/types/topic';
 
 export interface Hub {
@@ -19,21 +18,23 @@ export interface Hub {
   color?: string;
 }
 
-interface BountyHubSelectorProps {
+interface HubsSelectorProps {
   selectedHubs: Hub[];
   onChange: (hubs: Hub[]) => void;
   error?: string | null;
   displayCountOnly?: boolean;
   hideSelectedItems?: boolean;
+  hubType?: 'grant' | 'bounty';
 }
 
-export function BountyHubSelector({
+export function HubsSelector({
   selectedHubs,
   onChange,
   error,
   displayCountOnly = false,
   hideSelectedItems = false,
-}: BountyHubSelectorProps) {
+  hubType,
+}: HubsSelectorProps) {
   const [allHubs, setAllHubs] = useState<Topic[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuContentRef = useRef<HTMLDivElement>(null);
@@ -64,7 +65,13 @@ export function BountyHubSelector({
   // fetch all hubs at mount
   useEffect(() => {
     (async () => {
-      const hubs = await BountyService.getBountyHubs();
+      let hubs;
+      if (hubType === 'grant') {
+        hubs = await GrantService.getGrantHubs();
+        setAllHubs(hubs);
+      } else {
+        hubs = await BountyService.getBountyHubs();
+      }
       setAllHubs(hubs);
     })();
   }, []);
@@ -193,6 +200,31 @@ export function BountyHubSelector({
         />
         {selectedHubs.length > 0 && !hideSelectedItems && <CustomSelectedItems />}
       </div>
+    </div>
+  );
+}
+
+export function HubsSelected({
+  selectedHubs,
+  onChange,
+}: {
+  selectedHubs: Hub[];
+  onChange: (hubs: Hub[]) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {selectedHubs.map((hub) => (
+        <Badge key={hub.id} variant="default" className="flex items-center gap-1 pr-1 bg-gray-50">
+          <span>Topic: {hub.name}</span>
+          <button
+            type="button"
+            onClick={() => onChange(selectedHubs.filter((h) => h.id !== hub.id))}
+            className="text-gray-500 hover:text-gray-700 ml-1"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </Badge>
+      ))}
     </div>
   );
 }
