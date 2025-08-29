@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   MultiSelectOption,
@@ -10,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { X, ChevronDown, Filter } from 'lucide-react';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { BountyService } from '@/services/bounty.service';
+import { GrantService } from '@/services/grant.service';
 import { Topic } from '@/types/topic';
 
 export interface Hub {
@@ -19,21 +18,23 @@ export interface Hub {
   color?: string;
 }
 
-interface BountyHubSelectorProps {
+interface HubsSelectorProps {
   selectedHubs: Hub[];
   onChange: (hubs: Hub[]) => void;
   error?: string | null;
   displayCountOnly?: boolean;
   hideSelectedItems?: boolean;
+  hubType?: 'grant' | 'bounty';
 }
 
-export function BountyHubSelector({
+export function HubsSelector({
   selectedHubs,
   onChange,
   error,
   displayCountOnly = false,
   hideSelectedItems = false,
-}: BountyHubSelectorProps) {
+  hubType,
+}: HubsSelectorProps) {
   const [allHubs, setAllHubs] = useState<Topic[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuContentRef = useRef<HTMLDivElement>(null);
@@ -64,7 +65,13 @@ export function BountyHubSelector({
   // fetch all hubs at mount
   useEffect(() => {
     (async () => {
-      const hubs = await BountyService.getBountyHubs();
+      let hubs;
+      if (hubType === 'grant') {
+        hubs = await GrantService.getGrantHubs();
+        setAllHubs(hubs);
+      } else {
+        hubs = await BountyService.getBountyHubs();
+      }
       setAllHubs(hubs);
     })();
   }, []);

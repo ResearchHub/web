@@ -9,7 +9,7 @@ import { EarnRightSidebar } from '@/components/Earn/EarnRightSidebar';
 import { Coins } from 'lucide-react';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import Icon from '@/components/ui/icons/Icon';
-import { BountyHubSelector as HubsSelector, Hub } from '@/components/Earn/BountyHubSelector';
+import { HubsSelector, Hub } from '@/components/Hub/HubSelector';
 import SortDropdown, { SortOption } from '@/components/ui/SortDropdown';
 import { Badge } from '@/components/ui/Badge';
 import { X } from 'lucide-react';
@@ -127,6 +127,7 @@ export default function EarnPage() {
             onChange={handleHubsChange}
             displayCountOnly
             hideSelectedItems={true}
+            hubType="bounty"
           />
         </div>
         <div className="w-1/2 sm:!w-[120px] flex-1 sm:!flex-none pl-1 sm:!pl-0">
