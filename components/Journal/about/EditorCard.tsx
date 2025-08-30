@@ -84,9 +84,6 @@ export const EditorCard: FC<EditorCardProps> = ({ editor, className, size = 'sm'
         className
       )}
       onClick={handleCardClick}
-      role={showExpandButton || isExternalLink ? 'button' : undefined}
-      aria-expanded={isBioExpanded}
-      tabIndex={showExpandButton || isExternalLink ? 0 : undefined}
       onKeyDown={(e) => {
         if ((showExpandButton || isExternalLink) && (e.key === 'Enter' || e.key === ' ')) {
           e.preventDefault();
