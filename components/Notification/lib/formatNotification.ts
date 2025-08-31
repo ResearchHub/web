@@ -41,6 +41,14 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
     icon: 'earn1',
     useAvatar: true,
   },
+  BOUNTY_REVIEW_PERIOD_STARTED: {
+    icon: 'fund',
+    useAvatar: false,
+  },
+  BOUNTY_REVIEW_PERIOD_ENDING_SOON: {
+    icon: 'fund',
+    useAvatar: false,
+  },
   FLAGGED_CONTENT_VERDICT: {
     icon: 'report',
     useAvatar: false,
@@ -171,6 +179,15 @@ export function getRSCAmountFromNotification(notification: Notification): number
  * - Creates relative paper URLs for any notification with a paper ID
  * - Adds /bounties suffix specifically for BOUNTY_FOR_YOU notifications
  */
+const BOUNTY_NOTIFICATION_TYPES = [
+  'BOUNTY_FOR_YOU',
+  'BOUNTY_EXPIRING_SOON',
+  'BOUNTY_HUB_EXPIRING_SOON',
+  'BOUNTY_PAYOUT',
+  'BOUNTY_REVIEW_PERIOD_STARTED',
+  'BOUNTY_REVIEW_PERIOD_ENDING_SOON',
+];
+
 export function formatNavigationUrl(notification: Notification): string | undefined {
   if (notification.type === 'PREREGISTRATION_UPDATE' && notification.work) {
     const { id, slug } = notification.work;
@@ -181,19 +198,13 @@ export function formatNavigationUrl(notification: Notification): string | undefi
 
   const url = notification.navigationUrl;
 
-  // Handle null/empty URL when we have document data
   if ((!url || url.trim() === '') && notification.work?.id) {
     const paperId = notification.work.id;
     let basePath = notification.work.slug
       ? `/paper/${paperId}/${notification.work.slug}`
       : `/paper/${paperId}`;
 
-    if (
-      notification.type === 'BOUNTY_FOR_YOU' ||
-      notification.type === 'BOUNTY_EXPIRING_SOON' ||
-      notification.type === 'BOUNTY_HUB_EXPIRING_SOON' ||
-      notification.type === 'BOUNTY_PAYOUT'
-    ) {
+    if (BOUNTY_NOTIFICATION_TYPES.includes(notification.type)) {
       basePath += '/bounties';
     }
 
@@ -315,6 +326,17 @@ export function formatNotificationMessage(
     case 'PREREGISTRATION_UPDATE':
       return `${userName} updated proposal "${truncatedTitle}"`;
 
+    case 'BOUNTY_REVIEW_PERIOD_STARTED':
+      const isCreator =
+        actionUser && notification.recipient && actionUser.id === notification.recipient.id;
+      const reviewPeriodDays = notification.extra?.review_period_days || 10;
+
+      return isCreator
+        ? `Your bounty has ended. You have ${reviewPeriodDays} days to award submissions for "${truncatedTitle}"`
+        : `The bounty you answered has ended. The creator has up to ${reviewPeriodDays} day${reviewPeriodDays > 1 ? 's' : ''} to award the submissions for "${truncatedTitle}"`;
+
+    case 'BOUNTY_REVIEW_PERIOD_ENDING_SOON':
+      return `Your bounty is ending in 24 hours. Please award it today. Failure to do so may hinder your ability to open future bounties.`;
     default:
       console.warn(`Unhandled notification type: ${type}`);
       return `${type.split('_').join(' ').toLowerCase()}`;

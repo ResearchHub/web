@@ -16,6 +16,8 @@ export interface NotificationExtra {
   bounty_id?: string;
   bounty_type?: string;
   bounty_expiration_date?: string;
+  review_period_end_date?: string;
+  review_period_days?: number;
   hub_details?: string;
   user_hub_score?: string;
   rewardId?: string;
@@ -78,6 +80,8 @@ const transformNotificationExtraRaw = (raw: any): NotificationExtra | undefined 
     bounty_id: raw.bounty_id,
     bounty_type: raw.bounty_type,
     bounty_expiration_date: raw.bounty_expiration_date,
+    review_period_end_date: raw.review_period_end_date,
+    review_period_days: raw.review_period_days,
     hub,
     user_hub_score: raw.user_hub_score,
     rewardId: raw.bounty_id,
