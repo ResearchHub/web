@@ -239,6 +239,8 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const authorId = toNumberOrNull(resolvedParams.id);
   const [{ author: user, isLoading, error }, refetchAuthorInfo] = useAuthorInfo(authorId);
   const { user: currentUser } = useUser();
+  // Determine if current user is a hub editor
+  const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
   const [{ achievements, isLoading: isAchievementsLoading, error: achievementsError }] =
     useAuthorAchievements(authorId);
   const [{ summaryStats, isLoading: isSummaryStatsLoading, error: summaryStatsError }] =
@@ -277,7 +279,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
       <Card className="mt-4 bg-gray-50">
         <AuthorProfile author={user.authorProfile} refetchAuthorInfo={refetchAuthorInfo} />
       </Card>
-      {currentUser?.moderator && user.authorProfile?.userId && (
+      {(currentUser?.moderator || isHubEditor) && user.authorProfile?.userId && (
         <Card className="mt-4 bg-gray-50">
           <Moderation
             userId={user.authorProfile.userId.toString()}
