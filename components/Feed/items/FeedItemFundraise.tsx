@@ -117,12 +117,12 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
           <>
             <ContentTypeBadge type="funding" />
             {isNonprofit && <TaxDeductibleBadge variant={badgeVariant} />}
-            {topics.map((topic, index) => (
+            {topics.map((topic) => (
               <TopicAndJournalBadge
-                key={index}
+                key={topic.id || topic.slug}
                 type="topic"
                 name={topic.name}
-                slug={topic.slug || topic.name.toLowerCase().replace(/\s+/g, '-')}
+                slug={topic.slug}
                 imageUrl={topic.imageUrl}
               />
             ))}

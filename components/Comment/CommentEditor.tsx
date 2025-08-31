@@ -26,6 +26,7 @@ export interface CommentEditorProps {
   onContentChange?: (plainText: string, html: string) => void;
   placeholder?: string;
   initialContent?: CommentContent;
+  format?: 'json' | 'html'; // Format of initialContent
   isReadOnly?: boolean;
   commentType?: CommentType;
   initialRating?: number;
@@ -48,6 +49,7 @@ export const CommentEditor = ({
   onContentChange,
   placeholder = 'Write a comment...',
   initialContent = '',
+  format = 'json',
   isReadOnly = false,
   commentType = 'GENERIC_COMMENT',
   initialRating = 0,
@@ -104,6 +106,7 @@ export const CommentEditor = ({
     onContentChange,
     placeholder,
     initialContent,
+    format,
     isReadOnly,
     commentType,
     initialRating,

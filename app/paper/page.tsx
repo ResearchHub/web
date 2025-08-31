@@ -1,6 +1,6 @@
 import { PaperService } from '@/services/paper.service';
 import { redirect } from 'next/navigation';
-import { buildWorkUrl } from '@/utils/url';
+import { buildWorkUrl, generateSlug } from '@/utils/url';
 
 type Props = {
   params: Promise<Record<string, never>>;
@@ -21,7 +21,7 @@ export default async function WorkPage({ params, searchParams }: Props) {
       buildWorkUrl({
         id: work.id,
         contentType: 'paper',
-        slug: work.title,
+        slug: work.slug || generateSlug(work.title),
       })
     );
   } catch (error: any) {

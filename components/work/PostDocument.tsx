@@ -1,15 +1,17 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { WorkLineItems } from './WorkLineItems';
-import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { WorkTabs, TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
+import { QuestionEditModal } from '@/components/modals/QuestionEditModal';
+import TipTapRenderer from '@/components/Comment/lib/TipTapRenderer';
+import { htmlToTipTapJSON } from '@/components/Comment/lib/htmlToTipTap';
 
 interface PostDocumentProps {
   work: Work;
@@ -25,20 +27,48 @@ export const PostDocument = ({
   defaultTab = 'paper',
 }: PostDocumentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [parsedQuestionContent, setParsedQuestionContent] = useState<any>(null);
+
+  // Parse question content on client side
+  useEffect(() => {
+    if (work.postType === 'QUESTION' && work.previewContent) {
+      setParsedQuestionContent(htmlToTipTapJSON(work.previewContent));
+    }
+  }, [work.postType, work.previewContent]);
 
   // Handle tab change
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
   };
 
+  // Handle edit mode toggle from WorkLineItems
+  const handleEditToggle = useCallback(() => {
+    setIsEditModalOpen(true);
+  }, []);
+
   // Render tab content based on activeTab
+
   const renderTabContent = useMemo(() => {
     switch (activeTab) {
       case 'paper':
         return (
           <div className="mt-6">
             {work.previewContent ? (
-              <PostBlockEditor content={work.previewContent} />
+              work.postType === 'QUESTION' ? (
+                <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+                  {parsedQuestionContent ? (
+                    <TipTapRenderer content={parsedQuestionContent} debug={false} />
+                  ) : (
+                    <div className="animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <PostBlockEditor content={work.previewContent} editable={false} />
+              )
             ) : content ? (
               <div
                 className="prose max-w-none bg-white rounded-lg shadow-sm border p-6 mb-6"
@@ -98,7 +128,7 @@ export const PostDocument = ({
       default:
         return null;
     }
-  }, [activeTab, work.id, work.contentType, work.previewContent, content]);
+  }, [activeTab, work.id, work.contentType, work.previewContent, content, parsedQuestionContent]);
 
   return (
     <div>
@@ -110,7 +140,7 @@ export const PostDocument = ({
         </div>
       )}
       <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-2" />
-      <WorkLineItems work={work} metadata={metadata} />
+      <WorkLineItems work={work} metadata={metadata} onEditClick={handleEditToggle} />
 
       {/* Tabs */}
       <WorkTabs
@@ -123,6 +153,13 @@ export const PostDocument = ({
 
       {/* Tab Content */}
       {renderTabContent}
+
+      {/* Question Edit Modal */}
+      <QuestionEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        work={work}
+      />
     </div>
   );
 };

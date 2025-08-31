@@ -3,9 +3,11 @@ export interface ContentMetrics {
   comments: number;
   saves: number;
   reviewScore?: number;
-  reviews?: number;
   earned?: number;
   reposts?: number;
   views?: number;
   applicants?: number;
+  conversationComments?: number;
+  reviewComments?: number;
+  bountyComments?: number;
 }

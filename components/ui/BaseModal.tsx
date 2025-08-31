@@ -74,8 +74,8 @@ export const BaseModal: FC<BaseModalProps> = ({
 
         {/* Modal Container */}
         <div className="fixed inset-0 overflow-y-auto">
-          {/* Centering Flex Container - Only apply padding on md screens and up */}
-          <div className="flex min-h-full items-center justify-center text-center">
+          {/* Centering Flex Container - Apply padding on md screens and up */}
+          <div className="flex min-h-full items-center justify-center p-0 md:!p-4 text-center">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -91,8 +91,8 @@ export const BaseModal: FC<BaseModalProps> = ({
                   'transform overflow-hidden text-left align-middle shadow-xl transition-all bg-white',
                   // Full width on mobile, constrained width on larger screens
                   'w-full md:!w-auto',
-                  // Full height on mobile, auto height on md+
-                  'h-screen md:!h-auto',
+                  // Full height on mobile, constrained height on md+
+                  'h-screen md:!h-auto md:!max-h-[85vh]',
                   // No rounded corners on mobile, rounded on md+
                   'md:!rounded-2xl',
                   // Only apply max width on md and up
@@ -101,7 +101,6 @@ export const BaseModal: FC<BaseModalProps> = ({
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  maxHeight: '100vh',
                 }}
               >
                 {(showCloseButton || title) && (
@@ -135,7 +134,7 @@ export const BaseModal: FC<BaseModalProps> = ({
                 <div
                   className={cn(padding, 'flex-1 overflow-y-auto')}
                   style={{
-                    maxHeight: `calc(100vh - ${headerHeight + footerHeight}px)`,
+                    maxHeight: `calc(85vh - ${headerHeight + footerHeight}px)`,
                   }}
                 >
                   {children}

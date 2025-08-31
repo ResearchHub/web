@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faTrash } from '@fortawesome/free-solid-svg-icons';
+import React from 'react';
+import { Button } from '@/components/ui/Button';
 import type { EducationEntry } from './OnboardingWizard'; // Adjust path if needed
 
 interface OnboardingEducationCardProps {
@@ -20,20 +19,13 @@ export function OnboardingEducationCard({
   onRemove,
   onSetMain,
 }: OnboardingEducationCardProps) {
-  const [hover, setHover] = useState(false);
-
   if (!education.summary && !education.name) {
     return null;
   }
 
   return (
-    <div
-      className="relative border border-gray-200 rounded-md p-3 pr-12 bg-white hover:border-gray-300 transition-all cursor-pointer"
-      onClick={onEdit}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-    >
-      <div className="flex justify-between items-start">
+    <div className="border border-gray-200 rounded-md p-4 bg-white hover:border-gray-300 transition-all">
+      <div className="cursor-pointer" onClick={onEdit}>
         <div>
           {education.summary ? (
             <div className="font-medium text-gray-800">{education.summary}</div>
@@ -45,36 +37,42 @@ export function OnboardingEducationCard({
             </div>
           )}
         </div>
+      </div>
 
-        <div className="absolute right-3 top-3 flex items-center space-x-2">
-          {/* Main checkbox */}
-          <div
-            className={`w-5 h-5 rounded-full border flex items-center justify-center 
-              ${education.is_public ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white'}`}
+      <div className="mt-3 flex items-center gap-3">
+        {education.is_public ? (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            Primary
+          </span>
+        ) : (
+          <Button
+            type="button"
+            variant="link"
+            size="sm"
             onClick={(e) => {
               e.stopPropagation();
               onSetMain();
             }}
-            title="Set as main education"
+            className="text-xs text-gray-600 hover:text-blue-600 p-0 h-auto"
           >
-            {education.is_public && (
-              <FontAwesomeIcon icon={faCheck} className="text-blue-500 text-xs" />
-            )}
-          </div>
+            Set as primary
+          </Button>
+        )}
 
-          {/* Remove button */}
-          <button
-            type="button"
-            className={`text-gray-400 hover:text-red-500 transition-colors ${hover ? 'opacity-100' : 'opacity-0'}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove();
-            }}
-            title="Remove education"
-          >
-            <FontAwesomeIcon icon={faTrash} className="text-sm" />
-          </button>
-        </div>
+        <span className="text-gray-300">•</span>
+
+        <Button
+          type="button"
+          variant="link"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+          className="text-xs text-gray-600 hover:text-red-600 p-0 h-auto"
+        >
+          Delete
+        </Button>
       </div>
     </div>
   );

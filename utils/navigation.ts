@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { Work } from '@/types/work';
-import { ExperimentVariant, isExperimentEnabledServer } from '@/utils/experiment';
+import { generateSlug } from '@/utils/url';
 
 /**
  * Opens an author profile using the appropriate routing mechanism
@@ -35,20 +35,66 @@ export function handleFundraiseRedirect(work: Work, id: string, slug: string) {
 }
 
 /**
- * Handles redirection to trending page if user is authorized OR homepage experiment is enabled
+ * Handles redirection for question posts
+ * @param work The work object to check for question type
+ * @param id The post ID
+ * @param slug The post slug
+ * @param tab Optional tab to append to the URL (e.g., 'conversation', 'bounties')
+ */
+export function handleQuestionRedirect(work: Work, id: string, slug: string, tab?: string) {
+  if (work.postType === 'QUESTION') {
+    const basePath = `/question/${id}/${slug}`;
+    const redirectPath = tab ? `${basePath}/${tab}` : basePath;
+    redirect(redirectPath);
+  }
+}
+
+/**
+ * Handles all post-related redirects (fundraise and question)
+ * @param work The work object to check for redirects
+ * @param id The post ID
+ * @param slug The post slug
+ * @param tab Optional tab to append to the URL for question redirects
+ */
+export function handlePostRedirect(work: Work, id: string, slug: string, tab?: string) {
+  // Check for question redirect first
+  handleQuestionRedirect(work, id, slug, tab);
+
+  // Then check for fundraise redirect
+  handleFundraiseRedirect(work, id, slug);
+}
+
+/**
+ * Handles redirection when slug is missing from the URL
+ * @param work The work object to get the slug from
+ * @param id The post ID
+ * @param currentPath The current path (e.g., 'post', 'question', 'fund', 'paper', 'grant')
+ */
+export function handleMissingSlugRedirect(work: Work, id: string, currentPath: string = 'post') {
+  // Use existing slug if available, otherwise try to generate from title
+  let slug = work.slug;
+
+  if (!slug) {
+    if (work.title) {
+      slug = generateSlug(work.title);
+    } else {
+      // If no title exists, use 'undefined' to avoid infinite redirection
+      slug = 'undefined';
+    }
+  }
+
+  // Construct the redirect URL
+  const redirectPath = `/${currentPath}/${id}/${slug}`;
+  redirect(redirectPath);
+}
+
+/**
+ * Handles redirection to trending page if user is authorized
  * @param isUserLoggedIn Whether the user is logged in
- * @param homepageExperimentVariant The experiment variant from the request (optional, for server-side)
  * @param searchParams Optional search parameters to preserve in the redirect
  */
-export function handleTrendingRedirect(
-  isUserLoggedIn: boolean,
-  homepageExperimentVariant?: ExperimentVariant | null,
-  searchParams?: URLSearchParams
-) {
-  // Redirect if user is logged in OR if homepage experiment is enabled
-  const isHPExperimentEnabled = isExperimentEnabledServer(homepageExperimentVariant);
-
-  if (isUserLoggedIn || isHPExperimentEnabled) {
+export function handleTrendingRedirect(isUserLoggedIn: boolean, searchParams?: URLSearchParams) {
+  if (isUserLoggedIn) {
     let redirectUrl = '/trending';
 
     // Preserve search parameters if provided

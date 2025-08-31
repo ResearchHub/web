@@ -1,6 +1,14 @@
 'use client';
 
-import { FileText, Star, MessagesSquare, History, Users, Bell } from 'lucide-react';
+import {
+  FileText,
+  Star,
+  MessagesSquare,
+  History,
+  Users,
+  Bell,
+  MessageCircleQuestion,
+} from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useState, useEffect, useMemo } from 'react';
@@ -81,7 +89,9 @@ export const WorkTabs = ({
             ? `/fund/${work.id}/${work.slug}`
             : contentType === 'grant'
               ? `/grant/${work.id}/${work.slug}`
-              : `/post/${work.id}/${work.slug}`;
+              : work.postType === 'QUESTION'
+                ? `/question/${work.id}/${work.slug}`
+                : `/post/${work.id}/${work.slug}`;
 
       const newUrl =
         tab === 'updates'
@@ -108,6 +118,7 @@ export const WorkTabs = ({
     if (contentType === 'paper') return 'Paper';
     if (contentType === 'fund') return 'Project';
     if (contentType === 'grant') return 'Grant';
+    if (work.postType === 'QUESTION') return 'Question';
     return 'Post';
   };
 
@@ -117,7 +128,11 @@ export const WorkTabs = ({
       id: 'paper',
       label: (
         <div className="flex items-center">
-          <FileText className="h-4 w-4 mr-2" />
+          {work.postType === 'QUESTION' ? (
+            <MessageCircleQuestion className="h-4 w-4 mr-2" />
+          ) : (
+            <FileText className="h-4 w-4 mr-2" />
+          )}
           {getMainTabLabel()}
         </div>
       ),
@@ -150,7 +165,7 @@ export const WorkTabs = ({
       label: (
         <div className="flex items-center">
           <MessagesSquare className="h-4 w-4 mr-2" />
-          <span>Conversation</span>
+          <span>{work.postType === 'QUESTION' ? 'Answers' : 'Conversation'}</span>
           <span
             className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
               activeTab === 'conversation'
@@ -158,35 +173,44 @@ export const WorkTabs = ({
                 : 'bg-gray-100 text-gray-600'
             }`}
           >
-            {metadata.metrics.comments}
+            {metadata.metrics.conversationComments || 0}
           </span>
         </div>
       ),
     },
-    {
-      id: contentType === 'grant' ? 'applications' : 'reviews',
-      label: (
-        <div className="flex items-center">
-          {contentType === 'grant' ? (
-            <Users className="h-4 w-4 mr-2" />
-          ) : (
-            <Star className="h-4 w-4 mr-2" />
-          )}
-          <span>{contentType === 'grant' ? 'Applications' : 'Reviews'}</span>
-          <span
-            className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-              (contentType === 'grant' ? activeTab === 'applications' : activeTab === 'reviews')
-                ? 'bg-primary-100 text-primary-600'
-                : 'bg-gray-100 text-gray-600'
-            }`}
-          >
-            {contentType === 'grant'
-              ? work.note?.post?.grant?.applicants?.length || 0
-              : metadata.metrics.reviews}
-          </span>
-        </div>
-      ),
-    },
+    // Show Reviews/Applications tab only if not a question
+    ...(work.postType === 'QUESTION'
+      ? []
+      : [
+          {
+            id: contentType === 'grant' ? 'applications' : 'reviews',
+            label: (
+              <div className="flex items-center">
+                {contentType === 'grant' ? (
+                  <Users className="h-4 w-4 mr-2" />
+                ) : (
+                  <Star className="h-4 w-4 mr-2" />
+                )}
+                <span>{contentType === 'grant' ? 'Applications' : 'Reviews'}</span>
+                <span
+                  className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                    (
+                      contentType === 'grant'
+                        ? activeTab === 'applications'
+                        : activeTab === 'reviews'
+                    )
+                      ? 'bg-primary-100 text-primary-600'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  {contentType === 'grant'
+                    ? work.note?.post?.grant?.applicants?.length || 0
+                    : metadata.metrics.reviewComments || 0}
+                </span>
+              </div>
+            ),
+          },
+        ]),
     // Show Bounties tab only if not grant
     ...(contentType === 'grant'
       ? []
@@ -208,7 +232,7 @@ export const WorkTabs = ({
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  {metadata.openBounties || 0}
+                  {metadata.metrics.bountyComments || 0}
                 </span>
               </div>
             ),

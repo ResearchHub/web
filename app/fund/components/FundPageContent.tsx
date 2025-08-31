@@ -20,16 +20,22 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     return undefined;
   };
 
+  const getOrdering = (tab: MarketplaceTab): string | undefined => {
+    if (tab === 'needs-funding') return 'amount_raised';
+    return undefined;
+  };
+
   const { entries, isLoading, hasMore, loadMore } = useFeed('all', {
     contentType: marketplaceTab === 'grants' ? 'GRANT' : 'PREREGISTRATION',
     endpoint: marketplaceTab === 'grants' ? 'grant_feed' : 'funding_feed',
     fundraiseStatus: getFundraiseStatus(marketplaceTab),
+    ordering: getOrdering(marketplaceTab),
   });
 
   const getTitle = (tab: MarketplaceTab): string => {
     switch (tab) {
       case 'grants':
-        return 'Request for proposals';
+        return 'Request for Proposals';
       case 'needs-funding':
         return 'Proposals';
       case 'previously-funded':

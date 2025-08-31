@@ -8,6 +8,7 @@ import { CardWrapper } from './CardWrapper';
 import { cn } from '@/utils/styles';
 import Image from 'next/image';
 import { truncateText } from '@/utils/stringUtils';
+import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 
 // Base interfaces for the modular components
 export interface BaseFeedItemProps {
@@ -78,26 +79,32 @@ export const BadgeSection: FC<BadgeSectionProps> = ({
   onClick,
 }) => {
   return (
-    <div
-      className={cn('flex flex-wrap gap-2 mb-3', className)}
-      onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick?.(e as any);
-        }
-      }}
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      aria-label={onClick ? 'Click to interact with topic' : undefined}
-    >
+    <div className={cn('flex flex-wrap gap-2 mb-3', className)}>
       {/* Content type badge would be rendered here */}
       {topics.map((topic) => (
         <div
           key={topic.slug ?? topic.name}
-          className="px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick?.(e);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              e.stopPropagation();
+              onClick?.(e as any);
+            }
+          }}
+          role={onClick ? 'button' : undefined}
+          tabIndex={onClick ? 0 : undefined}
         >
-          {topic.name}
+          <TopicAndJournalBadge
+            type="topic"
+            name={topic.name}
+            slug={topic.slug ?? topic.name}
+            imageUrl={topic.imageUrl}
+            disableLink={!topic.slug}
+          />
         </div>
       ))}
     </div>

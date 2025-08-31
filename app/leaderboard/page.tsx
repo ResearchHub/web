@@ -572,18 +572,19 @@ function LeaderboardPageContent() {
                         </div>
                       </div>
                     </div>
-                    <CurrencyBadge
-                      amount={reviewer.earnedRsc}
-                      variant="text"
-                      size="md"
-                      label={showUSD ? 'USD Earned' : 'RSC Earned'}
-                      currency={showUSD ? 'USD' : 'RSC'}
-                      textColor="text-gray-700"
-                      currencyLabelColor="text-gray-500"
-                      showIcon={true}
-                      showText={false}
-                      className="hidden sm:!block"
-                    />
+                    <div className="hidden sm:!block">
+                      <CurrencyBadge
+                        amount={reviewer.earnedRsc}
+                        variant="text"
+                        size="md"
+                        label={showUSD ? 'USD Earned' : 'RSC Earned'}
+                        currency={showUSD ? 'USD' : 'RSC'}
+                        textColor="text-gray-700"
+                        currencyLabelColor="text-gray-500"
+                        showIcon={true}
+                        showText={false}
+                      />
+                    </div>
                   </div>
                 );
               })}

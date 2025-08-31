@@ -13,6 +13,15 @@ export interface SuspendUserResponse {
   message: string;
 }
 
+// New: Mark user as probable spammer
+export interface MarkProbableSpammerParams {
+  authorId: string;
+}
+
+export interface MarkProbableSpammerResponse {
+  message: string;
+}
+
 // Raw API response (snake_case from Django backend)
 export interface ReinstateUserApiResponse {
   id: number;
@@ -51,16 +60,18 @@ export const transformReinstateUserResponse = createTransformer<
 export interface UserModerationState {
   isLoading: boolean;
   error: string | null;
-  lastAction: 'suspend' | 'reinstate' | null;
+  lastAction: 'suspend' | 'reinstate' | 'flag' | null;
 }
 
 // Hook action types
 export type SuspendUserAction = (authorId: string) => Promise<void>;
 export type ReinstateUserAction = (authorId: string) => Promise<void>;
+export type MarkProbableSpammerAction = (authorId: string) => Promise<void>;
 
 export type UserModerationActions = {
   suspendUser: SuspendUserAction;
   reinstateUser: ReinstateUserAction;
+  markProbableSpammer: MarkProbableSpammerAction;
 };
 
 export type UseUserModerationReturn = [UserModerationState, UserModerationActions];

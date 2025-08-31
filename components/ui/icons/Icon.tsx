@@ -38,6 +38,8 @@ export type IconName =
   | 'rscGrey'
   | 'rscBold1'
   | 'rscBold2'
+  | 'rscThin'
+  | 'rscFlask'
   | 'RSC'
   // Solid icons
   | 'solidHand'

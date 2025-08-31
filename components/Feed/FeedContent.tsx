@@ -87,6 +87,10 @@ export const FeedContent: FC<FeedContentProps> = ({
       switch (entry.contentType) {
         case 'POST':
           const postContent = entry.content as FeedPostContent;
+          // Check if this is a question based on postType
+          if (postContent.postType === 'QUESTION') {
+            return `/question/${postContent.id}/${postContent.slug}`;
+          }
           return `/post/${postContent.id}/${postContent.slug}`;
         case 'PREREGISTRATION':
           const fundContent = entry.content as FeedPostContent;
@@ -98,16 +102,24 @@ export const FeedContent: FC<FeedContentProps> = ({
         case 'BOUNTY':
           if (entry.relatedWork?.contentType === 'paper') {
             return `/paper/${entry.relatedWork.id}/${entry.relatedWork.slug}/bounties`;
-          } else {
-            return `/post/${entry?.relatedWork?.id}/${entry?.relatedWork?.slug}/bounties`;
+          } else if (entry.relatedWork) {
+            // Check if the related work is a question
+            if ('postType' in entry.relatedWork && entry.relatedWork.postType === 'QUESTION') {
+              return `/question/${entry.relatedWork.id}/${entry.relatedWork.slug}/bounties`;
+            }
+            return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/bounties`;
           }
         case 'COMMENT':
           const comment = entry.content as Comment;
           // For comments, we might want to link to the parent content with the comment ID as a hash
           if (entry.relatedWork?.contentType === 'paper') {
             return `/paper/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
-          } else {
-            return `/post/${entry?.relatedWork?.id}/${entry?.relatedWork?.slug}/conversation#comment-${comment.id}`;
+          } else if (entry.relatedWork) {
+            // Check if the related work is a question
+            if ('postType' in entry.relatedWork && entry.relatedWork.postType === 'QUESTION') {
+              return `/question/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
+            }
+            return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
           }
 
         case 'GRANT':
@@ -248,7 +260,7 @@ export const FeedContent: FC<FeedContentProps> = ({
 
         {filters && <div className="py-3">{filters}</div>}
 
-        <div className="mt-8">
+        <div className="mt-4">
           {/* Render existing entries */}
           {entries.length > 0 &&
             entries.map((entry, index) => (

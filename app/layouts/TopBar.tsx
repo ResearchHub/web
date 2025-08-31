@@ -8,22 +8,24 @@ import {
   ChartNoAxesColumnIncreasing,
   Search as SearchIcon,
   Shield,
+  MessageCircleQuestion,
 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { SearchModal } from '@/components/Search/SearchModal';
 import UserMenu from '@/components/menus/UserMenu';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { useAuthenticatedAction, useAuthModalContext } from '@/contexts/AuthModalContext';
 import { useNotifications } from '@/contexts/NotificationContext';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Icon } from '@/components/ui/icons';
 import { Tooltip } from '@/components/ui/Tooltip';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
+import { faCommentsQuestion } from '@fortawesome/pro-light-svg-icons';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
+import { colors } from '@/app/styles/colors';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -60,7 +62,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Explore',
       subtitle: 'Discover trending research, earning, and funding opportunities',
-      icon: <FontAwesomeIcon icon={faHouseLight} fontSize={20} color="#000" />,
+      icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,
     };
   }
 
@@ -69,7 +71,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Notifications',
       subtitle: 'Stay updated with your latest activity',
-      icon: <Icon name="notification" size={20} className="text-primary-600" />,
+      icon: <Icon name="notification" size={24} className="text-gray-900" />,
     };
   }
 
@@ -77,7 +79,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'My ResearchCoin',
       subtitle: 'Manage your RSC wallet and transactions',
-      icon: <ResearchCoinIcon outlined size={24} color="#000" />,
+      icon: <Icon name="rscThin" size={28} />,
     };
   }
 
@@ -85,7 +87,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Submit your paper',
       subtitle: 'Submit your original work as a preprint or publication',
-      icon: <Icon name="submit2" size={20} className="text-primary-600" />,
+      icon: <Icon name="submit2" size={24} className="text-gray-900" />,
     };
   }
 
@@ -93,7 +95,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Create Bounty',
       subtitle: 'Incentivize the research economy',
-      icon: <Icon name="earn1" size={20} className="text-primary-600" />,
+      icon: <Icon name="earn1" size={24} className="text-gray-900" />,
     };
   }
 
@@ -101,7 +103,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Bounties',
       subtitle: 'Earn RSC for completing peer reviews',
-      icon: <Icon name="earn1" size={20} className="text-primary-600" />,
+      icon: <Icon name="earn1" size={24} className="text-gray-900" />,
     };
   }
 
@@ -109,7 +111,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Earn',
       subtitle: 'Earn RSC for completing peer reviews',
-      icon: <Icon name="earn1" size={20} className="text-primary-600" />,
+      icon: <Icon name="earn1" size={24} className="text-gray-900" />,
     };
   }
 
@@ -117,7 +119,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Funding',
       subtitle: 'Browse funding opportunities and grants',
-      icon: <Icon name="fund" size={20} className="text-primary-600" />,
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
 
@@ -125,7 +127,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'RH Journal',
       subtitle: 'Read and publish peer-reviewed research',
-      icon: <Icon name="rhJournal2" size={20} className="text-primary-600" />,
+      icon: <Icon name="rhJournal2" size={24} className="text-gray-900" />,
     };
   }
 
@@ -133,7 +135,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Leaderboard',
       subtitle: 'See top contributors in the ResearchHub community',
-      icon: <ChartNoAxesColumnIncreasing size={20} color="#404040" strokeWidth={2} />,
+      icon: <ChartNoAxesColumnIncreasing size={24} color="#404040" strokeWidth={2} />,
     };
   }
 
@@ -141,7 +143,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Moderation Dashboard',
       subtitle: 'Review and moderate community content',
-      icon: <Shield size={20} className="text-primary-600" />,
+      icon: <Shield size={24} className="text-gray-900" />,
     };
   }
 
@@ -150,7 +152,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Research proposals',
       subtitle: 'Support research projects seeking funding',
-      icon: <Icon name="createBounty" size={20} className="text-primary-600" />,
+      icon: <Icon name="createBounty" size={24} className="text-gray-900" />,
     };
   }
 
@@ -159,7 +161,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Funding opportunities',
       subtitle: 'Explore available funding opportunities',
-      icon: <Icon name="fund" size={20} className="text-primary-600" />,
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
 
@@ -167,7 +169,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Funding',
       subtitle: 'Fund breakthrough research shaping tomorrow',
-      icon: <Icon name="fund" size={20} className="text-primary-600" />,
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
 
@@ -175,7 +177,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/grant')) {
     return {
       title: 'Grant',
-      icon: <Icon name="fund" size={20} className="text-primary-600" />,
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
 
@@ -183,21 +185,28 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/paper/')) {
     return {
       title: 'Paper',
-      icon: <Icon name="workType" size={16} className="text-primary-600" />,
+      icon: <Icon name="workType" size={20} className="text-gray-900" />,
     };
   }
 
   if (pathname.startsWith('/post/')) {
     return {
-      title: 'Paper',
-      icon: <Icon name="workType" size={16} className="text-primary-600" />,
+      title: 'Preprint',
+      icon: <Icon name="preprint" size={20} className="text-gray-900" />,
+    };
+  }
+
+  if (pathname.startsWith('/question/')) {
+    return {
+      title: 'Question',
+      icon: <FontAwesomeIcon icon={faCommentsQuestion} fontSize={24} className="text-gray-900" />,
     };
   }
 
   if (pathname.startsWith('/author/')) {
     return {
       title: 'Profile',
-      icon: <Icon name="profile" size={20} className="text-primary-600" />,
+      icon: <Icon name="profile" size={24} className="text-gray-900" />,
     };
   }
 
@@ -241,7 +250,7 @@ const useSmartBack = () => {
       return;
     }
 
-    const specialRoutes = ['/fund/', '/post/', '/paper/', '/author/'];
+    const specialRoutes = ['/fund/', '/post/', '/paper/', '/author/', '/question/'];
     const isSpecialRoute = specialRoutes.some((route) => pathname.startsWith(route));
 
     if (isSpecialRoute) {
@@ -259,7 +268,7 @@ const useSmartBack = () => {
   return goBack;
 };
 
-export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
+export function TopBar({ onMenuClick }: TopBarProps) {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
@@ -268,6 +277,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const goBack = useSmartBack();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [shortcutText, setShortcutText] = useState('Ctrl+K');
+  const { showAuthModal } = useAuthModalContext();
 
   const pageInfo = getPageInfo(pathname);
 
@@ -307,6 +317,14 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
     } else {
       console.warn('No author profile URL found for user:', user);
     }
+  };
+
+  const handleLogin = () => {
+    showAuthModal();
+  };
+
+  const handleSignUp = () => {
+    showAuthModal();
   };
 
   const renderSearchbarButton = () => {
@@ -358,18 +376,20 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
 
             {/* Page title - only on desktop */}
             {pageInfo && (
-              <div className="hidden tablet:!block">
-                <div className="flex items-center">
-                  {pageInfo.icon && <div className="mr-3">{pageInfo.icon}</div>}
+              <div className="hidden tablet:!flex items-center">
+                {pageInfo.icon && <div className="mr-4">{pageInfo.icon}</div>}
+                <div>
                   {pageInfo.title && (
-                    <h1 className="text-lg font-semibold text-gray-900 leading-tight">
+                    <h1 className="text-xl font-bold text-gray-900 leading-tight">
                       {pageInfo.title}
                     </h1>
                   )}
+                  {pageInfo.subtitle && (
+                    <p className="hidden wide:!block text-sm text-gray-700 leading-tight mt-0.5">
+                      {pageInfo.subtitle}
+                    </p>
+                  )}
                 </div>
-                {pageInfo.subtitle && (
-                  <p className="text-sm text-gray-600 leading-tight mt-1">{pageInfo.subtitle}</p>
-                )}
               </div>
             )}
           </div>
@@ -382,40 +402,34 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
           {/* Right side - User controls */}
           <div className="flex items-center space-x-2">
             {/* Desktop user controls */}
-            <div className="hidden tablet:!flex items-center space-x-3">
+            <div className="hidden tablet:!flex items-center space-x-2">
               {/* Search bar */}
               {renderSearchbarButton()}
 
               {user && (
                 <>
-                  {/* Wallet icon */}
-                  <Tooltip content="Your ResearchCoin Wallet" position="bottom">
-                    <Link href="/researchcoin" className="flex items-center">
-                      <div className="flex items-center justify-center p-2.5 hover:bg-gray-100 rounded-md transition-colors">
-                        <ResearchCoinIcon outlined color="#676767" size={24} />
-                      </div>
-                    </Link>
-                  </Tooltip>
+                  <Link href="/researchcoin" className="flex items-center">
+                    <div className="flex items-center justify-center p-2.5 hover:bg-gray-100 rounded-md transition-colors">
+                      <Icon name="rscThin" size={28} className="text-gray-500" />
+                    </div>
+                  </Link>
 
-                  {/* Notification icon */}
-                  <Tooltip content="Notifications" position="bottom">
-                    <Link href="/notifications" className="flex items-center">
-                      <div className="flex items-center justify-center p-2.5 hover:bg-gray-100 rounded-md transition-colors relative">
-                        <Icon name="notification" size={24} className="text-gray-500" />
-                        {unreadCount > 0 && (
-                          <div className="absolute top-1 right-1 h-3 w-3 rounded-full bg-primary-600 text-white flex items-center justify-center">
-                            <span className="font-medium text-[9px]">
-                              {unreadCount > 9 ? '9+' : unreadCount}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </Link>
-                  </Tooltip>
+                  <Link href="/notifications" className="flex items-center">
+                    <div className="flex items-center justify-center p-2.5 hover:bg-gray-100 rounded-md transition-colors relative">
+                      <Icon name="notification" size={28} className="text-gray-500" />
+                      {unreadCount > 0 && (
+                        <div className="absolute top-1 -right-0 h-4 w-4 rounded-full bg-primary-600 text-white flex items-center justify-center">
+                          <span className="font-medium text-[9px]">
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </Link>
                 </>
               )}
 
-              {/* Avatar/Login */}
+              {/* Avatar/Login buttons */}
               {user && !isLoading ? (
                 <UserMenu
                   user={user}
@@ -424,17 +438,28 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                   percent={calculatePercent()}
                 />
               ) : (
-                <Button
-                  variant="ghost"
-                  className="w-10 h-10 rounded-full bg-gray-200 p-0"
-                  onClick={() => executeAuthenticatedAction(() => router.push('/'))}
-                >
-                  <User size={24} />
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="md"
+                    onClick={handleLogin}
+                    className="text-gray-700 hover:text-gray-900 whitespace-nowrap"
+                  >
+                    Log in
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="md"
+                    onClick={handleSignUp}
+                    className="bg-rhBlue-500 hover:bg-rhBlue-600 text-white whitespace-nowrap"
+                  >
+                    Sign up
+                  </Button>
+                </div>
               )}
             </div>
 
-            {/* Mobile user controls (original) */}
+            {/* Mobile user controls */}
             <div className="flex tablet:!hidden">
               {user && !isLoading ? (
                 <UserMenu
@@ -445,11 +470,12 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                 />
               ) : (
                 <Button
-                  variant="ghost"
-                  className="w-10 h-10 rounded-full bg-gray-200 p-0"
-                  onClick={() => executeAuthenticatedAction(() => router.push('/'))}
+                  variant="default"
+                  size="md"
+                  onClick={handleSignUp}
+                  className="bg-rhBlue-500 hover:bg-rhBlue-600 text-white whitespace-nowrap"
                 >
-                  <User size={24} />
+                  Sign up
                 </Button>
               )}
             </div>
@@ -461,4 +487,4 @@ export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
       <SearchModal isOpen={isSearchModalOpen} onClose={() => setIsSearchModalOpen(false)} />
     </>
   );
-};
+}

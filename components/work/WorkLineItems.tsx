@@ -38,6 +38,7 @@ interface WorkLineItemsProps {
   showClaimButton?: boolean;
   insightsButton?: React.ReactNode;
   metadata: WorkMetadata;
+  onEditClick?: () => void;
 }
 
 export const WorkLineItems = ({
@@ -45,6 +46,7 @@ export const WorkLineItems = ({
   showClaimButton = true,
   insightsButton,
   metadata,
+  onEditClick,
 }: WorkLineItemsProps) => {
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
@@ -104,15 +106,40 @@ export const WorkLineItems = ({
     }
   }, [work.contentType, work.id, isUpvoted, vote, refreshVotes]);
 
+  // Determine if current user is a moderator
+  const isModerator = !!user?.isModerator;
+  // Determine if current user is a hub editor
+  const isHubEditor = !!user?.authorProfile?.isHubEditor;
+
+  // Determine if current user is an author
+  const isAuthor =
+    user?.authorProfile != null &&
+    work.authors?.some((a) => a.authorProfile.id === user.authorProfile?.id);
+
   const handleEdit = useCallback(() => {
-    if (work.contentType === 'paper' && user?.isModerator) {
+    if (work.contentType === 'paper' && (isModerator || isHubEditor)) {
       setIsWorkEditModalOpen(true);
     } else if (selectedOrg && work.note) {
       router.push(`/notebook/${work.note.organization.slug}/${work.note.id}`);
+    } else if (
+      (work.contentType === 'post' || work.contentType === 'preregistration') &&
+      isAuthor &&
+      onEditClick
+    ) {
+      onEditClick();
     } else {
       toast.error('Unable to edit');
     }
-  }, [work.contentType, work.note, selectedOrg, router, user]);
+  }, [
+    work.contentType,
+    work.note,
+    selectedOrg,
+    router,
+    isModerator,
+    isHubEditor,
+    isAuthor,
+    onEditClick,
+  ]);
 
   const handleTipSuccess = (amount: number) => {
     toast.success(`Successfully tipped ${amount} RSC`);
@@ -122,8 +149,6 @@ export const WorkLineItems = ({
   // Determine if the latest version has already been published
   const latestVersion = work.versions?.find((v) => v.isLatest);
   const isPublished = latestVersion?.publicationStatus === 'PUBLISHED';
-  // Determine if current user is a moderator
-  const isModerator = !!user?.isModerator;
 
   const handlePublish = useCallback(async () => {
     if (isPublished) return;
@@ -148,10 +173,6 @@ export const WorkLineItems = ({
     }
   }, [work.id, isPublished, router]);
 
-  const isAuthor =
-    user?.authorProfile != null &&
-    work.authors?.some((a) => a.authorProfile.id === user.authorProfile?.id);
-
   const isGrantContact =
     user?.authorProfile != null &&
     work.contentType === 'funding_request' &&
@@ -162,9 +183,12 @@ export const WorkLineItems = ({
   const canEdit = (() => {
     switch (work.contentType) {
       case 'paper':
-        return isModerator;
+        return isModerator || isHubEditor;
       case 'funding_request':
         return isGrantContact || isAuthor || isModerator;
+      case 'post':
+      case 'preregistration':
+        return isAuthor;
       default:
         return selectedOrg && work.note;
     }
@@ -324,10 +348,7 @@ export const WorkLineItems = ({
             }
           >
             {canEdit && (
-              <BaseMenuItem
-                disabled={work.contentType === 'paper' ? !isModerator : !selectedOrg || !work.note}
-                onSelect={handleEdit}
-              >
+              <BaseMenuItem onSelect={handleEdit}>
                 <Edit className="h-4 w-4 mr-2" />
                 <span>Edit</span>
               </BaseMenuItem>

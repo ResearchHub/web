@@ -141,12 +141,13 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
         leftContent={
           <>
             <ContentTypeBadge type="grant" />
-            {grant.topics?.map((topic, index) => (
+            {grant.topics?.map((topic) => (
               <TopicAndJournalBadge
-                key={index}
+                key={topic.id || topic.slug}
                 type="topic"
                 name={topic.name}
-                slug={topic.slug || topic.name.toLowerCase().replace(/\s+/g, '-')}
+                slug={topic.slug}
+                imageUrl={topic.imageUrl}
               />
             ))}
           </>

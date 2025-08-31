@@ -1,8 +1,6 @@
-import { formatTimestamp } from '@/utils/date';
-import { ID } from './root';
 import { createTransformer, BaseTransformed } from './transformer';
 import { User, transformUser } from './user';
-import { Hub } from './hub';
+import { Topic, transformTopic } from './topic';
 
 export interface Education {
   id: number;
@@ -45,7 +43,8 @@ export interface AuthorProfile {
   hIndex?: number;
   i10Index?: number;
   userId?: number;
-  editorOfHubs?: Hub[];
+  editorOfHubs?: Topic[];
+  isHubEditor?: boolean;
 }
 
 export type TransformedAuthorProfile = AuthorProfile & BaseTransformed;
@@ -68,14 +67,6 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
   // Determine if the profile is claimed based on:
   // If a 'user' property exists and is not null
   const isClaimed = !!raw.user && raw.user !== null;
-
-  const editorOfHubs = raw.editor_of?.map((group: any) => {
-    return {
-      id: group?.source?.id,
-      name: group?.source?.name,
-      slug: group?.source?.slug,
-    };
-  });
 
   return {
     id: raw.id || 0,
@@ -101,8 +92,9 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
     hIndex: raw.h_index || undefined,
     i10Index: raw.i10_index || undefined,
     userId: raw.user_id || undefined,
-    editorOfHubs: editorOfHubs,
-    isVerified: raw.is_verified_v2 || false,
+    isVerified: raw.is_verified || false,
+    isHubEditor: raw.is_hub_editor || false,
+    editorOfHubs: (raw.is_hub_editor_of || []).map((topic: any) => transformTopic(topic)),
   };
 });
 
