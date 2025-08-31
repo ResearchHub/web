@@ -103,16 +103,6 @@ export default function OrganizationPage() {
           });
           return;
         }
-
-        // If we have no special params, redirect to the first note
-        // if (notes.length > 0) {
-        //   router.push(`/notebook/${selectedOrg.slug}/${notes[0].id}`);
-        // } else {
-        //   // Create default note if none exist
-        //   await createNoteWithContent(selectedOrg.slug, {
-        //     template: initialContent,
-        //   });
-        // }
       } catch (err) {
         console.error('Failed to handle routing:', err);
       }
