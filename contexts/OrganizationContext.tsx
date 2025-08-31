@@ -112,7 +112,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     }
 
     fetchOrganizations();
-  }, [session, status, fetchOrganizations]);
+  }, [session, status]);
 
   const value = {
     organizations,
