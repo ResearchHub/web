@@ -319,6 +319,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
                 content={entry.relatedWork.abstract || entry.relatedWork.previewContent || ''}
                 maxLength={200}
                 className="text-sm text-gray-600"
+                showReadMore={true}
               />
             )}
           </div>

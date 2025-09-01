@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, ReactNode } from 'react';
+import { FC, ReactNode, useState } from 'react';
 import { FeedContentType, FeedEntry } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
@@ -42,6 +42,7 @@ export interface ContentSectionProps {
   content: string;
   maxLength?: number;
   className?: string;
+  showReadMore?: boolean;
 }
 
 // Image component interface
@@ -128,10 +129,28 @@ export const ContentSection: FC<ContentSectionProps> = ({
   content,
   maxLength = 200,
   className,
+  showReadMore = false,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const shouldTruncate = content.length > maxLength && !isExpanded;
+
   return (
     <div className={cn('text-sm text-gray-700', className)}>
-      <p>{truncateText(content, maxLength)}</p>
+      <p>
+        {shouldTruncate ? truncateText(content, maxLength) : content}
+        {showReadMore && content.length > maxLength && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsExpanded(!isExpanded);
+            }}
+            className="ml-1 text-blue-600 hover:text-blue-800 font-medium"
+          >
+            {isExpanded ? 'Read less' : 'Read more'}
+          </button>
+        )}
+      </p>
     </div>
   );
 };
