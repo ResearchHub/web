@@ -236,6 +236,8 @@ export const CommentItem = ({
               showTooltips={showTooltips}
               isAuthor={isAuthor}
               showCreatorActions={isAuthor}
+              showFooter={false}
+              hideRequirements={true}
               onAward={() => setShowAwardModal(true)}
               onEdit={() => setEditingCommentId(comment.id)}
               onReply={() => setReplyingToCommentId(comment.id)}

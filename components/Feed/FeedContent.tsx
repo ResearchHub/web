@@ -192,6 +192,7 @@ export const FeedContent: FC<FeedContentProps> = ({
               entry={entry}
               relatedDocumentId={entry.relatedWork?.id}
               href={href}
+              hideRequirements={true}
               showContributeButton={false}
               showFooter={showBountyFooter}
               showSupportAndCTAButtons={showBountySupportAndCTAButtons}

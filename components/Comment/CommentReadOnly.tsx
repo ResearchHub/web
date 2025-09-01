@@ -267,7 +267,7 @@ export const CommentReadOnly = ({
   return (
     <div
       className={cn(
-        'comment-content prose prose-sm max-w-none',
+        'comment-content prose prose-sm max-w-none text-sm',
         contentFormat === 'QUILL_EDITOR' && 'quill-content'
       )}
     >

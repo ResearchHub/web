@@ -6,13 +6,14 @@ import { Check } from 'lucide-react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 interface BountyMetadataLineProps {
-  amount: number;
+  amount?: number;
   expirationDate?: string;
   isOpen: boolean;
   expiringSoon: boolean;
   className?: string;
   solutionsCount?: number;
   showDeadline?: boolean;
+  showAmount?: boolean;
 }
 
 export const BountyMetadataLine = ({
@@ -22,9 +23,9 @@ export const BountyMetadataLine = ({
   expiringSoon,
   className = '',
   showDeadline = true,
+  showAmount = true,
 }: BountyMetadataLineProps) => {
   const { showUSD } = useCurrencyPreference();
-
   // Format the deadline text
   const deadlineText = isOpen
     ? expirationDate
@@ -39,12 +40,14 @@ export const BountyMetadataLine = ({
         {/* Badges */}
         <div className="flex flex-wrap gap-2">
           <ContentTypeBadge type="bounty" />
-          <CurrencyBadge
-            amount={amount}
-            size="sm"
-            variant={isOpen ? 'badge' : 'disabled'}
-            currency={showUSD ? 'USD' : 'RSC'}
-          />
+          {showAmount && amount !== undefined && (
+            <CurrencyBadge
+              amount={amount}
+              size="sm"
+              variant={isOpen ? 'badge' : 'disabled'}
+              currency={showUSD ? 'USD' : 'RSC'}
+            />
+          )}
         </div>
 
         {showDeadline && (

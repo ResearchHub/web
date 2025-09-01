@@ -5,28 +5,31 @@ import { FeedEntry, FeedBountyContent } from '@/types/feed';
 import { Topic } from '@/types/topic';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
-import { BountyMetadataLine } from '@/components/Bounty/BountyMetadataLine';
-import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
-import { BountySolutions } from '@/components/Bounty/BountySolutions';
 import {
+  BountyMetadataLine,
+  BountySolutions,
+  BountyInlineBanner,
   isExpiringSoon,
   calculateTotalAwardedAmount,
   isOpenBounty,
-} from '@/components/Bounty/lib/bountyUtil';
+} from '@/components/Bounty';
 import { ContentFormat } from '@/types/comment';
 import { ID } from '@/types/root';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { BountyContribution, BountyType } from '@/types/bounty';
 import { formatCurrency } from '@/utils/currency';
 import { useParams } from 'next/navigation';
-import { Trophy, Pen, Users, MessageSquareReply } from 'lucide-react';
+import { Pen, Users, FileText, Info } from 'lucide-react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
-import { Button } from '@/components/ui/Button';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
 import { buildWorkUrl } from '@/utils/url';
-import { BaseFeedItem, TitleSection } from '@/components/Feed/BaseFeedItem';
+import { BaseFeedItem, TitleSection, ContentSection } from '@/components/Feed/BaseFeedItem';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBullseye } from '@fortawesome/pro-solid-svg-icons';
+import { BaseModal } from '@/components/ui/BaseModal';
+import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
+import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 
 /**
  * Internal component for rendering bounty details
@@ -42,12 +45,12 @@ const BountyDetails: FC<{
   }
 
   return (
-    <div className="mt-4">
-      <TitleSection
-        title={bountyType === 'REVIEW' ? 'Peer Review Earning Opportunity' : 'Earning Opportunity'}
-        className="text-md"
-      />
-      <div className="text-gray-600 mt-2">
+    <div className="">
+      <div className="flex items-center gap-2 mb-2">
+        <FontAwesomeIcon icon={faBullseye} className="text-gray-500" style={{ fontSize: '16px' }} />
+        <h3 className="text-md font-semibold text-gray-700">Bounty Requirements</h3>
+      </div>
+      <div className="text-gray-600">
         <CommentReadOnly content={content} contentFormat={contentFormat} maxLength={maxLength} />
       </div>
     </div>
@@ -82,6 +85,8 @@ interface FeedItemBountyProps {
   onTopicClick?: (topic: Topic) => void;
   showSupportAndCTAButtons?: boolean; // Show container for Support and CTA buttons
   showDeadline?: boolean; // Show deadline in metadata line
+  showMetadataLine?: boolean; // Show the metadata line (bounty type badge and deadline)
+  hideRequirements?: boolean; // Hide requirements section and show modal instead
   maxLength?: number;
 }
 
@@ -109,6 +114,8 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   onTopicClick,
   showSupportAndCTAButtons = true, // Show container for Support and CTA buttons
   showDeadline = true, // Show deadline in metadata line
+  showMetadataLine = false, // Default to showing metadata line
+  hideRequirements = false, // Default to showing requirements inline
   maxLength,
 }) => {
   // Extract the bounty entry from the entry's content
@@ -122,6 +129,10 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
 
   // State for contribute modal
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
+  // State for showing/hiding requirements
+  const [showRequirements, setShowRequirements] = useState(!hideRequirements);
+  // State for requirements modal
+  const [showRequirementsModal, setShowRequirementsModal] = useState(false);
 
   // Get the author from the bounty entry
   const author = bountyEntry.createdBy;
@@ -232,19 +243,6 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
     });
   }
 
-  const awardButton =
-    showCreatorActions && isAuthor && isOpenBounty(bounty) && onAward ? (
-      <Button
-        onClick={handleAwardBounty}
-        size="sm"
-        variant="outlined"
-        className="text-sm font-medium gap-2 text-amber-700 border-amber-300 hover:bg-amber-50"
-      >
-        <Trophy size={16} />
-        Award bounty
-      </Button>
-    ) : null;
-
   if (bounty.contributions && bounty.contributions.length > 0) {
     menuItems.push({
       icon: Users,
@@ -255,10 +253,9 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       },
     });
   }
-
+  console.log('entry.relatedWork', entry.relatedWork);
   const shouldHideActions =
     hideActions || Boolean((entry.raw as any)?.content_object?.comment?.is_removed);
-
   return (
     <div className="space-y-3">
       <FeedItemHeader
@@ -278,29 +275,94 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       />
 
       <BaseFeedItem entry={entry} href={href} showHeader={false} showActions={false}>
-        <div onClick={(e) => e.stopPropagation()}>
-          <BountyMetadataLine
-            amount={parseFloat(bounty.totalAmount)}
-            expirationDate={bounty.expirationDate}
-            isOpen={isOpen}
-            expiringSoon={expiringSoon}
-            solutionsCount={solutionsCount}
-            showDeadline={showDeadline}
-          />
-        </div>
-
-        {entry.relatedWork && showRelatedWork && (
-          <div className="mt-4" onClick={(e) => e.stopPropagation()}>
-            <RelatedWorkCard size="sm" work={entry.relatedWork} onTopicClick={onTopicClick} />
+        {showMetadataLine && (
+          <div onClick={(e) => e.stopPropagation()}>
+            <BountyMetadataLine
+              amount={parseFloat(bounty.totalAmount)}
+              expirationDate={bounty.expirationDate}
+              isOpen={isOpen}
+              expiringSoon={expiringSoon}
+              solutionsCount={solutionsCount}
+              showDeadline={showDeadline}
+              showAmount={false}
+            />
           </div>
         )}
 
-        <BountyDetails
-          content={bountyEntry.comment.content}
-          contentFormat={bountyEntry.comment.contentFormat}
-          bountyType={bounty.bountyType}
-          maxLength={maxLength}
-        />
+        {entry.relatedWork && showRelatedWork && (
+          <div className="mt-4 space-y-3" onClick={(e) => e.stopPropagation()}>
+            {/* Content type badge and topics */}
+            <div className="flex flex-wrap gap-2">
+              <ContentTypeBadge type={entry.relatedWork.contentType as any} />
+              {entry.relatedWork.topics?.map((topic) => (
+                <div
+                  key={topic.id || topic.slug}
+                  onClick={() => onTopicClick?.(topic)}
+                  className="cursor-pointer"
+                >
+                  <TopicAndJournalBadge
+                    type="topic"
+                    name={topic.name}
+                    slug={topic.slug}
+                    imageUrl={topic.imageUrl}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Title */}
+            <TitleSection title={entry.relatedWork.title} className="text-base font-medium" />
+
+            {/* Abstract or Preview Content */}
+            {(entry.relatedWork.abstract || entry.relatedWork.previewContent) && (
+              <ContentSection
+                content={entry.relatedWork.abstract || entry.relatedWork.previewContent || ''}
+                maxLength={200}
+                className="text-sm text-gray-600"
+              />
+            )}
+          </div>
+        )}
+
+        {showRequirements && (
+          <BountyDetails
+            content={bountyEntry.comment.content}
+            contentFormat={bountyEntry.comment.contentFormat}
+            bountyType={bounty.bountyType}
+            maxLength={maxLength}
+          />
+        )}
+
+        {/* Bounty Inline Banner - Full width with negative margins */}
+        <div className="-mx-4 -mb-4">
+          <BountyInlineBanner
+            bounty={bounty}
+            work={entry.relatedWork}
+            showContributeButton={showContributeButton}
+            onAddSolution={handleSolution}
+            onContribute={handleOpenContributeModal}
+            onAward={onAward ? handleAwardBounty : undefined}
+            showCreatorActions={showCreatorActions}
+            showSupportAndCTAButtons={showSupportAndCTAButtons}
+            showRequirementsButton={!showRequirements}
+            onViewRequirements={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (hideRequirements) {
+                // Show modal if requirements are hidden by default
+                setShowRequirementsModal(true);
+              } else {
+                // Show inline requirements if they were hidden
+                setShowRequirements(true);
+                // Scroll to top of the feed item to show requirements
+                const element = document.getElementById(`feed-item-${entry.id}`);
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }
+            }}
+          />
+        </div>
 
         {!isOpen && hasSolutions && showSolutions && (
           <div className="mt-4" onClick={(e) => e.stopPropagation()}>
@@ -310,44 +372,6 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
               totalAwardedAmount={calculateTotalAwardedAmount(bounty)}
               onViewSolution={handleViewSolution}
             />
-          </div>
-        )}
-
-        {showSupportAndCTAButtons && (
-          <div
-            className="mt-4 flex items-center gap-2 flex-wrap mobile:flex-wrap flex-nowrap"
-            onClick={(e) => e.stopPropagation()}
-            role="presentation"
-            aria-hidden="true"
-            tabIndex={-1}
-          >
-            {isOpen && (
-              <Button
-                variant="default"
-                size="sm"
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border-0 min-w-[140px] !flex-1 mobile:!flex-initial mobile:!w-auto"
-                onClick={handleSolution}
-              >
-                <MessageSquareReply size={16} />
-                {entry.relatedWork?.postType === 'QUESTION'
-                  ? 'Add answer'
-                  : bounty.bountyType === 'REVIEW'
-                    ? 'Add Review'
-                    : 'Add Solution'}
-              </Button>
-            )}
-            {awardButton}
-            {isOpen && showContributeButton && !isAuthor && (
-              <Button
-                variant="outlined"
-                size="sm"
-                onClick={handleOpenContributeModal}
-                className="text-orange-600 gap-2 border-orange-600 hover:bg-orange-50 min-w-[140px] !flex-1 mobile:!flex-initial mobile:!w-auto"
-              >
-                <ResearchCoinIcon outlined size={16} />
-                Support
-              </Button>
-            )}
           </div>
         )}
 
@@ -370,7 +394,6 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
               showTooltips={showTooltips}
               actionLabels={actionLabels}
               menuItems={menuItems}
-              bounties={[bountyEntry.bounty]}
               onComment={onReply}
             />
           </div>
@@ -392,6 +415,23 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         bountyType={bounty.bountyType}
         expirationDate={bounty.expirationDate}
       />
+
+      {/* Requirements Modal */}
+      <BaseModal
+        isOpen={showRequirementsModal}
+        onClose={() => setShowRequirementsModal(false)}
+        title="Bounty Requirements"
+        maxWidth="max-w-2xl"
+        showCloseButton={true}
+      >
+        <div className="space-y-4">
+          <BountyDetails
+            content={bountyEntry.comment.content}
+            contentFormat={bountyEntry.comment.contentFormat}
+            bountyType={bounty.bountyType}
+          />
+        </div>
+      </BaseModal>
     </div>
   );
 };

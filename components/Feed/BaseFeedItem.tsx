@@ -260,7 +260,6 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
                   showTooltips={showTooltips}
                   href={href}
                   reviews={content.reviews}
-                  bounties={content.bounties}
                 />
               </div>
             </div>
