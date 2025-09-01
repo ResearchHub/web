@@ -8,7 +8,6 @@ import { CardWrapper } from './CardWrapper';
 import { cn } from '@/utils/styles';
 import Image from 'next/image';
 import { truncateText } from '@/utils/stringUtils';
-import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 
 // Base interfaces for the modular components
 export interface BaseFeedItemProps {
@@ -21,14 +20,6 @@ export interface BaseFeedItemProps {
   showHeader?: boolean;
   customActionText?: string;
   children?: ReactNode;
-}
-
-// Badge component interface
-export interface BadgeSectionProps {
-  contentType: string;
-  topics?: Array<{ name: string; slug?: string; imageUrl?: string }>;
-  className?: string;
-  onClick?: (e: React.MouseEvent) => void;
 }
 
 // Title component interface
@@ -71,46 +62,6 @@ export interface StatusSectionProps {
   statusText?: string;
   className?: string;
 }
-
-// Subcomponents
-export const BadgeSection: FC<BadgeSectionProps> = ({
-  contentType,
-  topics = [],
-  className,
-  onClick,
-}) => {
-  return (
-    <div className={cn('flex flex-wrap gap-2 mb-3', className)}>
-      {/* Content type badge would be rendered here */}
-      {topics.map((topic) => (
-        <div
-          key={topic.slug ?? topic.name}
-          onClick={(e) => {
-            e.stopPropagation();
-            onClick?.(e);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              e.stopPropagation();
-              onClick?.(e as any);
-            }
-          }}
-          role={onClick ? 'button' : undefined}
-          tabIndex={onClick ? 0 : undefined}
-        >
-          <TopicAndJournalBadge
-            type="topic"
-            name={topic.name}
-            slug={topic.slug ?? topic.name}
-            imageUrl={topic.imageUrl}
-            disableLink={!topic.slug}
-          />
-        </div>
-      ))}
-    </div>
-  );
-};
 
 export const TitleSection: FC<TitleSectionProps> = ({ title, className }) => {
   return (

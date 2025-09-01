@@ -19,7 +19,7 @@ import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { BountyContribution, BountyType } from '@/types/bounty';
 import { formatCurrency } from '@/utils/currency';
 import { useParams } from 'next/navigation';
-import { Pen, Users, FileText, Info } from 'lucide-react';
+import { Pen, Users } from 'lucide-react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
@@ -39,17 +39,24 @@ const BountyDetails: FC<{
   contentFormat: ContentFormat | undefined;
   bountyType: BountyType;
   maxLength?: number;
-}> = ({ content, contentFormat, bountyType, maxLength }) => {
+  showTitle?: boolean;
+}> = ({ content, contentFormat, bountyType, maxLength, showTitle = true }) => {
   if (!content || Object.keys(content).length === 0) {
     return null;
   }
 
   return (
     <div className="">
-      <div className="flex items-center gap-2 mb-2">
-        <FontAwesomeIcon icon={faBullseye} className="text-gray-500" style={{ fontSize: '16px' }} />
-        <h3 className="text-md font-semibold text-gray-700">Bounty Requirements</h3>
-      </div>
+      {showTitle && (
+        <div className="flex items-center gap-2 mb-2">
+          <FontAwesomeIcon
+            icon={faBullseye}
+            className="text-gray-500"
+            style={{ fontSize: '16px' }}
+          />
+          <h3 className="text-md font-semibold text-gray-700">Bounty Requirements</h3>
+        </div>
+      )}
       <div className="text-gray-600">
         <CommentReadOnly content={content} contentFormat={contentFormat} maxLength={maxLength} />
       </div>
@@ -290,10 +297,17 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         )}
 
         {entry.relatedWork && showRelatedWork && (
-          <div className="mt-4 space-y-3" onClick={(e) => e.stopPropagation()}>
+          <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
             {/* Content type badge and topics */}
             <div className="flex flex-wrap gap-2">
-              <ContentTypeBadge type={entry.relatedWork.contentType as any} />
+              <ContentTypeBadge
+                type={
+                  entry.relatedWork.contentType === 'post' &&
+                  entry.relatedWork.postType === 'QUESTION'
+                    ? 'question'
+                    : (entry.relatedWork.contentType as any)
+                }
+              />
               {entry.relatedWork.topics?.map((topic) => (
                 <div
                   key={topic.id || topic.slug}
@@ -425,12 +439,15 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         maxWidth="max-w-2xl"
         showCloseButton={true}
       >
-        <div className="space-y-4">
-          <BountyDetails
-            content={bountyEntry.comment.content}
-            contentFormat={bountyEntry.comment.contentFormat}
-            bountyType={bounty.bountyType}
-          />
+        <div className="md:w-[600px] max-w-2xl">
+          <div className="space-y-4">
+            <BountyDetails
+              content={bountyEntry.comment.content}
+              contentFormat={bountyEntry.comment.contentFormat}
+              bountyType={bounty.bountyType}
+              showTitle={false}
+            />
+          </div>
         </div>
       </BaseModal>
     </div>

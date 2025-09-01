@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { Trophy, MessageSquareReply, Clock, FileText } from 'lucide-react';
+import { Trophy, MessageSquareReply, Clock, ListChecks } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
@@ -180,7 +180,7 @@ export const BountyInlineBanner: FC<BountyInlineBannerProps> = ({
                   variant="outlined"
                   className="flex items-center justify-center gap-1.5 text-gray-600 border-gray-300 hover:bg-gray-50 text-sm font-medium px-3 py-2"
                 >
-                  <FileText size={14} />
+                  <ListChecks size={14} />
                   Requirements
                 </Button>
               )}
@@ -236,7 +236,7 @@ export const BountyInlineBanner: FC<BountyInlineBannerProps> = ({
                   variant="outlined"
                   className="flex-1 flex items-center justify-center gap-1.5 text-gray-600 border-gray-300 hover:bg-gray-50 text-sm font-medium px-3 py-2"
                 >
-                  <FileText size={14} />
+                  <ListChecks size={14} />
                   <span className="hidden sm:inline">Requirements</span>
                   <span className="sm:hidden">Details</span>
                 </Button>
