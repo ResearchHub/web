@@ -62,6 +62,7 @@ export const transformUnifiedDocument = (
       abstract: stripHtml(documentData?.abstract || ''),
       slug: documentData?.slug,
       authors: documentData?.authors,
+      renderable_text: documentData?.renderable_text,
     },
     documentType: raw.document_type,
     raw,

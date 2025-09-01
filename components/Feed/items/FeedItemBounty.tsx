@@ -253,7 +253,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       },
     });
   }
-  console.log('entry.relatedWork', entry.relatedWork);
+
   const shouldHideActions =
     hideActions || Boolean((entry.raw as any)?.content_object?.comment?.is_removed);
   return (

@@ -255,11 +255,13 @@ export class BountyService {
               rawBounty.unified_document && rawBounty.unified_document.document_type !== 'PAPER'
                 ? (() => {
                     const transformedDoc = transformUnifiedDocument(rawBounty.unified_document);
+
                     return {
                       id: transformedDoc?.document.id,
                       title: transformedDoc?.document.title,
                       slug: transformedDoc?.document.slug,
                       abstract: transformedDoc?.document.abstract,
+                      renderable_text: transformedDoc?.document.renderable_text,
                       // Required fields for transformPost / transformWork
                       content_type: 'post',
                       created_date: rawBounty.created_date,
