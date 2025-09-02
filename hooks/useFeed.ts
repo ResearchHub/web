@@ -19,6 +19,7 @@ interface UseFeedOptions {
     entries: FeedEntry[];
     hasMore: boolean;
   };
+  hubIds?: (string | number)[]; // Hub id's to filter by
 }
 
 export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions = {}) => {
@@ -56,6 +57,13 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     }
   }, [status, activeTab]);
 
+  const arraysEqual = (a?: (string | number)[], b?: (string | number)[]) => {
+    if (a === b) return true;
+    if (!a || !b) return false;
+    if (a.length !== b.length) return false;
+    return a.every((val, i) => val === b[i]);
+  };
+
   // Check if options have changed
   useEffect(() => {
     // Compare relevant options (excluding initialData which shouldn't trigger a reload)
@@ -66,7 +74,8 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       options.endpoint !== currentOptions.endpoint ||
       options.fundraiseStatus !== currentOptions.fundraiseStatus ||
       options.createdBy !== currentOptions.createdBy ||
-      options.ordering !== currentOptions.ordering;
+      options.ordering !== currentOptions.ordering ||
+      !arraysEqual(options.hubIds, currentOptions.hubIds);
 
     if (relevantOptionsChanged) {
       setCurrentOptions(options);
@@ -88,6 +97,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         fundraiseStatus: options.fundraiseStatus,
         createdBy: options.createdBy,
         ordering: options.ordering,
+        hubIds: options.hubIds,
       });
       setEntries(result.entries);
       setHasMore(result.hasMore);
@@ -116,6 +126,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         fundraiseStatus: options.fundraiseStatus,
         createdBy: options.createdBy,
         ordering: options.ordering,
+        hubIds: options.hubIds,
       });
       setEntries((prev) => [...prev, ...result.entries]);
       setHasMore(result.hasMore);

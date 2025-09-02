@@ -33,6 +33,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     endpoint: marketplaceTab === 'grants' ? 'grant_feed' : 'funding_feed',
     fundraiseStatus: getFundraiseStatus(marketplaceTab),
     ordering: sort,
+    hubIds: selectedHubs.map((h) => h.id),
   });
 
   const getTitle = (tab: MarketplaceTab): string => {
