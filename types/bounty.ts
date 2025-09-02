@@ -1,5 +1,6 @@
 import { BaseTransformer } from './transformer';
 import { User, transformUser } from './user';
+import { Topic, transformTopic } from './topic';
 
 export type BountyType = 'REVIEW' | 'ANSWER' | 'BOUNTY' | 'GENERIC_COMMENT';
 export type SolutionStatus = 'AWARDED' | 'PENDING';
@@ -35,6 +36,7 @@ export interface Bounty {
   solutions: BountySolution[];
   contributions: BountyContribution[];
   totalAmount: string;
+  topics?: Topic[]; // Topics/hubs associated with the bounty
   raw: any;
 }
 
@@ -170,10 +172,10 @@ export const transformBounty = (raw: any, options?: { ignoreBaseAmount?: boolean
       solutions: [],
       contributions: [],
       totalAmount: '0',
+      topics: [],
       raw: null,
     };
   }
-
   const { ignoreBaseAmount = false } = options || {};
 
   try {
@@ -192,6 +194,9 @@ export const transformBounty = (raw: any, options?: { ignoreBaseAmount?: boolean
     );
     const totalAmount = (baseAmount + contributionsTotal).toString();
 
+    // Transform topics/hubs if available
+    const topics = Array.isArray(raw.hubs) ? raw.hubs.map((hub: any) => transformTopic(hub)) : [];
+
     return {
       id: raw.id || 0,
       amount: raw.amount || '0',
@@ -202,6 +207,7 @@ export const transformBounty = (raw: any, options?: { ignoreBaseAmount?: boolean
       solutions: Array.isArray(raw.solutions) ? raw.solutions.map(transformSolution) : [],
       contributions,
       totalAmount,
+      topics,
       raw,
     };
   } catch (error) {
@@ -217,6 +223,7 @@ export const transformBounty = (raw: any, options?: { ignoreBaseAmount?: boolean
       solutions: [],
       contributions: [],
       totalAmount: raw?.amount || '0',
+      topics: [],
       raw,
     };
   }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Filter, X, Search, Check } from 'lucide-react';
@@ -35,12 +35,17 @@ export function BountyHubSelector({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tempSelectedHubs, setTempSelectedHubs] = useState<Hub[]>(selectedHubs);
   const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync temp selection with actual selection when modal opens
+  // Sync temp selection with actual selection when modal opens and focus search input
   useEffect(() => {
     if (isModalOpen) {
       setTempSelectedHubs(selectedHubs);
       setSearchQuery('');
+      // Focus the search input after a short delay to ensure modal is fully rendered
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
     }
   }, [isModalOpen, selectedHubs]);
 
@@ -109,7 +114,6 @@ export function BountyHubSelector({
           }
         `}
       >
-        <span className="opacity-70">#</span>
         <span>{topic.name}</span>
         {isSelected && <Check className="h-3 w-3 ml-0.5" />}
       </Badge>
@@ -125,7 +129,7 @@ export function BountyHubSelector({
           onClick={() => setIsModalOpen(true)}
         >
           <Filter className="h-4 w-4 text-gray-500" />
-          <span className="text-gray-700">Topics</span>
+          <span className="text-gray-700">Filter topics</span>
           {selectedHubs.length > 0 && (
             <span className="text-xs font-semibold text-indigo-700 bg-indigo-100 rounded-full px-1.5">
               {selectedHubs.length}
@@ -168,7 +172,6 @@ export function BountyHubSelector({
                         size="lg"
                         className="bg-blue-500 text-white border-blue-500 cursor-default"
                       >
-                        <span className="opacity-80">#</span>
                         <span>{hub.name}</span>
                         <X
                           className="h-3 w-3 ml-0.5 cursor-pointer hover:opacity-80"
@@ -185,14 +188,15 @@ export function BountyHubSelector({
               )}
 
               {/* Search Input */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
+              <div className="relative rounded-md border border-gray-300 focus-within:outline focus-within:outline-2 focus-within:outline-blue-500 focus-within:border-transparent">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                <input
+                  ref={searchInputRef}
                   type="text"
                   placeholder="Search topics..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="w-full pl-10 pr-3 py-2 text-sm rounded-md focus:outline-none"
                 />
               </div>
 
@@ -223,15 +227,14 @@ export function BountyHubSelector({
 
   return (
     <div className="space-y-4">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <Input
+      <div className="relative rounded-md border border-gray-300 focus-within:outline focus-within:outline-2 focus-within:outline-blue-500 focus-within:border-transparent">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+        <input
           type="text"
           placeholder="Search topics..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-          label="Search topics"
+          className="w-full pl-10 pr-3 py-2 text-sm rounded-md focus:outline-none"
         />
       </div>
 

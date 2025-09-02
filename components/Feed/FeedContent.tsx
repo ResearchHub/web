@@ -42,6 +42,7 @@ interface FeedContentProps {
   maxLength?: number;
   showGrantHeaders?: boolean; // Prop to control grant header visibility
   showReadMoreCTA?: boolean; // Prop to control read more CTA visibility
+  selectedHubIds?: (string | number)[]; // Pass selected hub IDs for topic prioritization
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -63,6 +64,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   maxLength,
   showGrantHeaders = true, // Default to true
   showReadMoreCTA = false,
+  selectedHubIds,
 }) => {
   // Set up intersection observer for infinite scrolling (must be called before any conditional returns)
   const { ref: loadMoreRef, inView } = useInView({
@@ -198,6 +200,7 @@ export const FeedContent: FC<FeedContentProps> = ({
               showSupportAndCTAButtons={showBountySupportAndCTAButtons}
               showDeadline={showBountyDeadline}
               maxLength={maxLength}
+              selectedHubIds={selectedHubIds}
             />
           );
           break;

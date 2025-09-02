@@ -32,6 +32,38 @@ import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 
 /**
+ * Helper function to determine which topic to display based on priority
+ * @param topics - Array of topics available from the related work
+ * @param selectedHubIds - Array of hub IDs from URL params (used to filter bounties)
+ * @returns The topic to display or null
+ *
+ * Note: When filtering bounties by hub, the bounty itself is tagged with that hub,
+ * but the related work (paper/post) might have different topics. This function
+ * tries to show a matching topic if available, otherwise falls back to the most
+ * relevant topic from the related work.
+ */
+const getTopicToDisplay = (topics: Topic[], selectedHubIds: (string | number)[]): Topic | null => {
+  if (topics.length === 0) return null;
+
+  // Priority 1: Check if any topic matches selectedHubIds
+  // This handles cases where the related work happens to have the same topic as the filter
+  if (selectedHubIds.length > 0) {
+    const matchedTopic = topics.find(
+      (topic) => selectedHubIds.includes(topic.id) || selectedHubIds.includes(topic.id.toString())
+    );
+    if (matchedTopic) return matchedTopic;
+  }
+
+  // Priority 2: Find topic with isUsedForRep
+  // This is typically the primary/most important topic
+  const repTopic = topics.find((topic) => topic.isUsedForRep);
+  if (repTopic) return repTopic;
+
+  // Priority 3: Return the first topic
+  return topics[0];
+};
+
+/**
  * Internal component for rendering bounty details
  */
 const BountyDetails: FC<{
@@ -95,6 +127,7 @@ interface FeedItemBountyProps {
   showMetadataLine?: boolean; // Show the metadata line (bounty type badge and deadline)
   hideRequirements?: boolean; // Hide requirements section and show modal instead
   maxLength?: number;
+  selectedHubIds?: (string | number)[]; // IDs of hubs selected from URL params
 }
 
 /**
@@ -124,6 +157,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   showMetadataLine = false, // Default to showing metadata line
   hideRequirements = false, // Default to showing requirements inline
   maxLength,
+  selectedHubIds = [], // Default to empty array
 }) => {
   // Extract the bounty entry from the entry's content
   const bountyEntry = entry.content as FeedBountyContent;
@@ -260,7 +294,6 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       },
     });
   }
-
   const shouldHideActions =
     hideActions || Boolean((entry.raw as any)?.content_object?.comment?.is_removed);
   return (
@@ -308,20 +341,21 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
                     : (entry.relatedWork.contentType as any)
                 }
               />
-              {entry.relatedWork.topics?.map((topic) => (
-                <div
-                  key={topic.id || topic.slug}
-                  onClick={() => onTopicClick?.(topic)}
-                  className="cursor-pointer"
-                >
-                  <TopicAndJournalBadge
-                    type="topic"
-                    name={topic.name}
-                    slug={topic.slug}
-                    imageUrl={topic.imageUrl}
-                  />
-                </div>
-              ))}
+              {(() => {
+                // Use bounty topics instead of relatedWork topics
+                const topicToShow = getTopicToDisplay(bounty.topics || [], selectedHubIds);
+
+                return topicToShow ? (
+                  <div onClick={() => onTopicClick?.(topicToShow)} className="cursor-pointer">
+                    <TopicAndJournalBadge
+                      type="topic"
+                      name={topicToShow.name}
+                      slug={topicToShow.slug}
+                      imageUrl={topicToShow.imageUrl}
+                    />
+                  </div>
+                ) : null;
+              })()}
             </div>
 
             {/* Title */}

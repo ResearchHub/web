@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { PageLayout } from '../layouts/PageLayout';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { BountyService } from '@/services/bounty.service';
@@ -16,6 +17,8 @@ import { X } from 'lucide-react';
 import { useClickContext } from '@/contexts/ClickContext';
 
 export default function EarnPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [bounties, setBounties] = useState<FeedEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(false);
@@ -76,8 +79,34 @@ export default function EarnPage() {
     }
   };
 
+  // Update URL with selected hub IDs
+  const updateURLParams = (hubs: Hub[]) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    // Remove existing hub params
+    params.delete('hubs');
+
+    // Build URL manually to avoid encoding commas
+    let url = '/earn';
+    const otherParams = params.toString();
+
+    if (hubs.length > 0) {
+      const hubIds = hubs.map((h) => h.id.toString()).join(',');
+      url += `?hubs=${hubIds}`;
+      if (otherParams) {
+        url += `&${otherParams}`;
+      }
+    } else if (otherParams) {
+      url += `?${otherParams}`;
+    }
+
+    // Update URL without navigation
+    router.replace(url, { scroll: false });
+  };
+
   const handleHubsChange = (hubs: Hub[]) => {
     setSelectedHubs(hubs);
+    updateURLParams(hubs);
     // Reset pagination and fetch bounties based on new hubs selection
     setPage(1);
     fetchBounties(true, hubs);
@@ -87,14 +116,48 @@ export default function EarnPage() {
     fetchBounties();
   };
 
-  // Initial load
+  // Initialize hubs from URL on mount
   useEffect(() => {
-    fetchBounties(true);
+    const initializeFromURL = async () => {
+      const hubIds = searchParams.get('hubs');
+      let hubsToLoad: Hub[] = [];
+
+      if (hubIds) {
+        const ids = hubIds.split(',').filter((id) => id.trim());
+        if (ids.length > 0) {
+          try {
+            // Fetch all available hubs to get full hub data
+            const allHubs = await BountyService.getBountyHubs();
+            hubsToLoad = allHubs
+              .filter((hub) => ids.includes(hub.id.toString()))
+              .map((hub) => ({
+                id: hub.id,
+                name: hub.name,
+                description: hub.description,
+              }));
+
+            if (hubsToLoad.length > 0) {
+              setSelectedHubs(hubsToLoad);
+            }
+          } catch (error) {
+            console.error('Error loading hubs from URL:', error);
+          }
+        }
+      }
+
+      // Fetch bounties with selected hubs (or empty array)
+      fetchBounties(true, hubsToLoad);
+    };
+
+    initializeFromURL();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Refetch when sort changes
   useEffect(() => {
+    // Skip on initial mount
+    if (bounties.length === 0 && isLoading) return;
+
     setPage(1);
     fetchBounties(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -110,6 +173,7 @@ export default function EarnPage() {
         description: topic.description,
       };
       setSelectedHubs([newHub]);
+      updateURLParams([newHub]);
       setPage(1);
       fetchBounties(true, [newHub]);
       clearEvent();
@@ -181,6 +245,7 @@ export default function EarnPage() {
         header={header}
         filters={renderFilters()}
         showBountyFooter={false}
+        selectedHubIds={selectedHubs.map((h) => h.id)}
       />
     </PageLayout>
   );
