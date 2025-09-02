@@ -73,12 +73,12 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     }
   };
 
-  const getHubType = (tab: MarketplaceTab): 'grant' | 'bounty' | undefined => {
+  const getHubType = (tab: MarketplaceTab): 'grant' | 'needs-funding' | 'bounty' | undefined => {
     switch (tab) {
       case 'grants':
         return 'grant';
       case 'needs-funding':
-        return 'bounty';
+        return 'needs-funding';
       case 'previously-funded':
         return 'bounty';
       default:
@@ -134,13 +134,18 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   ];
 
   const fundingProposalSortOption = [
-    { value: '-unified_document__funding_proposals__amount', label: 'Amount Raised' },
-    { value: 'test', label: 'Almost Funded' },
+    { value: '-unified_document__fundraises__goal_amount', label: 'Goal' },
+    { value: 'amount_raised', label: 'Amount Raised' },
     { value: '-created_date', label: 'Created Date' },
-    { value: 'unified_document__funding_proposals__end_date', label: 'Expiring soon' },
+    { value: 'unified_document__fundraises__end_date', label: 'Expiring soon' },
+    { value: '-unified_document__hot_score', label: 'Popular' },
   ];
 
-  const previouslyFundedSortOptions = [{ value: '-created_date', label: 'Created Date' }];
+  const previouslyFundedSortOptions = [
+    { value: '-unified_document__fundraises__goal_amount', label: 'Goal' },
+    { value: 'amount_raised', label: 'Amount Raised' },
+    { value: '-created_date', label: 'Created Date' },
+  ];
 
   const rightSidebar = marketplaceTab === 'grants' ? <GrantRightSidebar /> : <FundRightSidebar />;
 

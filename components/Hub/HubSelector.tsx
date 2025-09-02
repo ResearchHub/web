@@ -4,11 +4,10 @@ import {
   SearchableMultiSelect,
 } from '@/components/ui/form/SearchableMultiSelect';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
 import { X, ChevronDown, Filter } from 'lucide-react';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { BountyService } from '@/services/bounty.service';
-import { GrantService } from '@/services/grant.service';
+import { FeedService } from '@/services/feed.service';
 import { Topic } from '@/types/topic';
 
 export interface Hub {
@@ -24,7 +23,7 @@ interface HubsSelectorProps {
   error?: string | null;
   displayCountOnly?: boolean;
   hideSelectedItems?: boolean;
-  hubType?: 'grant' | 'bounty';
+  hubType?: 'grant' | 'needs-funding' | 'bounty';
 }
 
 export function HubsSelector({
@@ -67,8 +66,10 @@ export function HubsSelector({
     (async () => {
       let hubs;
       if (hubType === 'grant') {
-        hubs = await GrantService.getGrantHubs();
+        hubs = await FeedService.getFeedHubs('grant_feed');
         setAllHubs(hubs);
+      } else if (hubType === 'needs-funding') {
+        hubs = await FeedService.getFeedHubs('funding_feed');
       } else {
         hubs = await BountyService.getBountyHubs();
       }

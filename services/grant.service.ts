@@ -29,21 +29,4 @@ export class GrantService {
     });
     return response;
   }
-
-  static async getGrantHubs(): Promise<Topic[]> {
-    const path = `/api/grant_feed/hubs/`;
-    try {
-      const response = await ApiClient.get<any[]>(path);
-      return response.map((raw) => ({
-        id: raw.id,
-        name: raw.name || '',
-        slug: raw.slug || '',
-        description: raw.description,
-        imageUrl: raw.hub_image || undefined,
-      }));
-    } catch (error) {
-      console.error('Error fetching grant hubs:', error);
-      return [];
-    }
-  }
 }
