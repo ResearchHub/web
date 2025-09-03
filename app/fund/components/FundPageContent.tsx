@@ -11,8 +11,7 @@ import Icon from '@/components/ui/icons/Icon';
 import { useState } from 'react';
 import SortDropdown, { SortOption } from '@/components/ui/SortDropdown';
 import { HubsSelector, HubsSelected, Hub } from '@/components/Hub/HubSelector';
-
-import { X } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface FundPageContentProps {
   marketplaceTab: MarketplaceTab;
@@ -21,6 +20,7 @@ interface FundPageContentProps {
 export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const [sort, setSort] = useState<string>('-created_date');
   const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
+  const [managedEntries, setManagedEntries] = useState<any[]>([]);
 
   const getFundraiseStatus = (tab: MarketplaceTab): 'OPEN' | 'CLOSED' | undefined => {
     if (tab === 'needs-funding' || tab === 'grants') return 'OPEN';
@@ -28,13 +28,23 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     return undefined;
   };
 
-  const { entries, isLoading, hasMore, loadMore } = useFeed('all', {
+  const { entries, isLoading, hasMore, loadMore, refresh } = useFeed('all', {
     contentType: marketplaceTab === 'grants' ? 'GRANT' : 'PREREGISTRATION',
     endpoint: marketplaceTab === 'grants' ? 'grant_feed' : 'funding_feed',
     fundraiseStatus: getFundraiseStatus(marketplaceTab),
     ordering: sort,
     hubIds: selectedHubs.map((h) => h.id),
   });
+
+  // Manage entries separate of hook to allow for clearing on filter and sort change.
+  useEffect(() => {
+    setManagedEntries(entries);
+  }, [entries]);
+
+  useEffect(() => {
+    setManagedEntries([]);
+    refresh();
+  }, [sort, selectedHubs]);
 
   const getTitle = (tab: MarketplaceTab): string => {
     switch (tab) {
@@ -103,7 +113,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
             hubType={getHubType(marketplaceTab)}
           />
         </div>
-        <div className="w-1/2 sm:!w-[120px] flex-1 sm:!flex-none pl-1 sm:!pl-0">
+        <div className="w-1/2 sm:!w-[160px] flex-1 sm:!flex-none pl-1 sm:!pl-0">
           <SortDropdown
             value={sort}
             onChange={(opt: SortOption) => setSort(opt.value)}
@@ -155,7 +165,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
       <MarketplaceTabs activeTab={marketplaceTab} onTabChange={() => {}} />
 
       <FeedContent
-        entries={entries}
+        entries={managedEntries}
         isLoading={isLoading}
         hasMore={hasMore}
         loadMore={loadMore}

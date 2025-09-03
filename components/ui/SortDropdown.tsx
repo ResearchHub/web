@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ArrowDownUp } from 'lucide-react';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 
 export interface SortOption {
@@ -34,8 +34,9 @@ export const SortDropdown: FC<SortDropdownProps> = ({
       type="button"
       className={`flex w-full items-center gap-2 border border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-lg px-3 py-1.5 text-sm min-w-[120px] justify-between ${className}`}
     >
+      <ArrowDownUp className="h-4 w-4 text-gray-500 flex-none" />
       <span className="text-gray-700 truncate">{activeOption.label}</span>
-      <ChevronDown className="h-4 w-4 text-gray-500" />
+      <ChevronDown className="h-4 w-4 text-gray-500 flex-none" />
     </button>
   );
 
