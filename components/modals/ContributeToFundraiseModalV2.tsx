@@ -276,7 +276,14 @@ const PaymentForm: FC<{
         </div>
       </div>
 
-      <PaymentElement options={{ layout: { type: 'tabs', defaultCollapsed: false } }} />
+      <PaymentElement
+        options={{ layout: { type: 'tabs', defaultCollapsed: false } }}
+        onLoadError={(error) => {
+          setMessage(
+            'Unable to load payment form. Please refresh the page and try again. If the problem persists, please contact support.'
+          );
+        }}
+      />
 
       {message && (
         <div
@@ -333,13 +340,13 @@ const PurchaseStep: FC<{
     paymentIntent,
   } = usePaymentIntent();
 
-  // Calculate the amount needed in USD cents
+  // Calculate the amount needed in RSC
   const amountNeeded = Math.round(totalAmountWithFee - totalAvailableBalance);
 
   useEffect(() => {
     const createIntent = async () => {
       try {
-        await createPaymentIntent(amountNeeded, 'USD');
+        await createPaymentIntent(amountNeeded, 'RSC');
       } catch (error) {
         console.error('Failed to create payment intent:', error);
         toast.error('Failed to initialize payment. Please try again.');
@@ -369,42 +376,43 @@ const PurchaseStep: FC<{
 
   // TODO: Show error if payment intent creation failed
   // Show error if payment intent creation failed
-  // if (intentError) {
-  //   return (
-  //     <>
-  //       <ModalHeader
-  //         onClose={onClose}
-  //         onBack={onBack}
-  //         showBackButton={true}
-  //         totalAvailableBalance={totalAvailableBalance}
-  //       />
-  //       <div className="flex-1 overflow-y-auto">
-  //         <div className="px-6 py-6">
-  //           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-  //             <div className="flex items-start">
-  //               <div className="flex-shrink-0">
-  //                 <AlertCircle className="w-5 h-5 text-red-600" />
-  //               </div>
-  //               <div className="ml-3 flex-1">
-  //                 <h3 className="text-sm font-medium text-red-800">
-  //                   Payment Initialization Failed
-  //                 </h3>
-  //                 <div className="mt-1 text-sm text-red-700">
-  //                   <p>{intentError}</p>
-  //                 </div>
-  //               </div>
-  //             </div>
-  //           </div>
-  //           <div className="mt-4">
-  //             <Button onClick={onBack} variant="default" className="w-full">
-  //               Go Back
-  //             </Button>
-  //           </div>
-  //         </div>
-  //       </div>
-  //     </>
-  //   );
-  // }
+  if (intentError || !paymentIntent) {
+    return (
+      <>
+        <ModalHeader
+          onClose={onClose}
+          onBack={onBack}
+          showBackButton={true}
+          totalAvailableBalance={totalAvailableBalance}
+          currentStep="purchase"
+        />
+        <div className="flex-1 overflow-y-auto">
+          <div className="px-6 py-6">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <AlertCircle className="w-5 h-5 text-red-600" />
+                </div>
+                <div className="ml-3 flex-1">
+                  <h3 className="text-sm font-medium text-red-800">
+                    Payment Initialization Failed
+                  </h3>
+                  <div className="mt-1 text-sm text-red-700">
+                    <p>{intentError}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4">
+              <Button onClick={onBack} variant="default" className="w-full">
+                Go Back
+              </Button>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   // Render Stripe Elements with payment intent
   return (
@@ -421,11 +429,11 @@ const PurchaseStep: FC<{
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
             <StripeWrapper
               options={{
-                mode: 'payment',
-                amount: amountNeeded || 100, // TODO: remove this and pass clientSecret
-                currency: 'usd',
-                paymentMethodTypes: ['card'],
-                // clientSecret: paymentIntent?.clientSecret || '',
+                // mode: 'payment',
+                // amount: amountNeeded, // TODO: remove this and pass clientSecret
+                // currency: 'usd',
+                // paymentMethodTypes: ['card'],
+                clientSecret: paymentIntent.clientSecret,
               }}
             >
               <PaymentForm
