@@ -13,6 +13,7 @@ import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 import { Avatar } from '@/components/ui/Avatar';
 import { LegacyCommentBanner } from '@/components/LegacyCommentBanner';
 import { BaseFeedItem } from '@/components/Feed/BaseFeedItem';
+import { FoundationAwardBadge } from '@/components/ui/FoundationAwardBadge';
 
 // Define the recursive rendering component for parent comments
 const RenderParentComment: FC<{ comment: ParentCommentPreview; level: number }> = ({
@@ -149,7 +150,10 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
       <BaseFeedItem entry={entry} href={commentPageUrl} showHeader={false} showActions={false}>
         {isReview && (
           <div className="flex justify-between items-center mb-3">
-            <ContentTypeBadge type="review" />
+            <div className="flex items-center gap-2">
+              <ContentTypeBadge type="review" />
+              {comment.awardedBountySolution?.isFoundationAwarded && <FoundationAwardBadge />}
+            </div>
           </div>
         )}
 
@@ -157,6 +161,12 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
           <div className="mb-4 text-gray-700 text-sm mt-0.5">
             <span className="font-medium">Review score: </span>
             <span className="text-yellow-500 font-medium">{reviewScore}/5</span>
+          </div>
+        )}
+
+        {!isReview && comment.awardedBountySolution?.isFoundationAwarded && (
+          <div className="mb-3">
+            <FoundationAwardBadge />
           </div>
         )}
 

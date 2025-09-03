@@ -41,6 +41,13 @@ export interface Thread {
   raw: any;
 }
 
+export interface AwardedBountySolution {
+  id: number;
+  awardedAmount: number;
+  awardedBy?: User;
+  isFoundationAwarded: boolean;
+}
+
 export interface Comment {
   id: number;
   content: any;
@@ -56,6 +63,7 @@ export interface Comment {
   commentType: CommentType;
   bountyAmount?: number;
   awardedBountyAmount?: number;
+  awardedBountySolution?: AwardedBountySolution;
   expirationDate?: string;
   isPublic?: boolean;
   isRemoved?: boolean;
@@ -65,6 +73,8 @@ export interface Comment {
   tips?: Tip[];
   thread: Thread;
   userVote?: UserVoteType;
+  cachedAcademicScore?: number;
+  scoreLastCalculated?: string;
   metadata?: {
     isVoteUpdate?: boolean;
     [key: string]: any;
@@ -87,12 +97,9 @@ export const transformContent = (raw: any): string => {
 };
 
 export const transformComment = (raw: any): Comment => {
-  // Transform user_vote from API
-  // It can be either an object with vote_type or a direct numeric value
   let userVote: UserVoteType | undefined;
 
   if (raw.user_vote) {
-    // If user_vote is an object with vote_type property
     if (typeof raw.user_vote === 'object' && raw.user_vote.vote_type !== undefined) {
       const voteType = raw.user_vote.vote_type;
       if (voteType === 1) {
@@ -103,7 +110,6 @@ export const transformComment = (raw: any): Comment => {
         userVote = 'NEUTRAL';
       }
     }
-    // If user_vote is a direct numeric value (for backward compatibility)
     else if (typeof raw.user_vote === 'number') {
       if (raw.user_vote === 1) {
         userVote = 'UPVOTE';
@@ -115,14 +121,18 @@ export const transformComment = (raw: any): Comment => {
     }
   }
 
-  // Group bounties with their contributions
   const bounties = groupBountiesWithContributions(raw.bounties || []);
-
-  // Transform tips
   const tips = (raw.purchases || []).map(transformTip);
-
-  // Determine the comment type - if it has bounties, it should be a BOUNTY type
   const commentType = raw.comment_type || (bounties.length > 0 ? 'BOUNTY' : 'GENERIC_COMMENT');
+
+  const awardedBountySolution = raw.awarded_bounty_solution
+    ? {
+        id: raw.awarded_bounty_solution.id,
+        awardedAmount: raw.awarded_bounty_solution.awarded_amount,
+        awardedBy: raw.awarded_bounty_solution.awarded_by,
+        isFoundationAwarded: raw.awarded_bounty_solution.is_foundation_awarded || false,
+      }
+    : undefined;
 
   const result = {
     id: raw.id,
@@ -140,6 +150,7 @@ export const transformComment = (raw: any): Comment => {
     commentType,
     bountyAmount: raw.amount,
     awardedBountyAmount: raw.awarded_bounty_amount,
+    awardedBountySolution,
     expirationDate: raw.expiration_date,
     isPublic: raw.is_public,
     isRemoved: raw.is_removed,
@@ -148,6 +159,8 @@ export const transformComment = (raw: any): Comment => {
     tips,
     thread: transformThread(raw.thread),
     userVote,
+    cachedAcademicScore: raw.cached_academic_score,
+    scoreLastCalculated: raw.score_last_calculated,
     raw,
     metadata: raw.metadata,
   };

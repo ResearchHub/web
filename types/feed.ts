@@ -4,7 +4,7 @@ import { Topic, transformTopic } from './topic';
 import { createTransformer, BaseTransformed } from './transformer';
 import { Work, transformPaper, transformPost, FundingRequest, ContentType } from './work';
 import { Bounty, transformBounty } from './bounty';
-import { Comment, CommentType, ContentFormat, transformComment } from './comment';
+import { Comment, CommentType, ContentFormat, transformComment, AwardedBountySolution } from './comment';
 import { Fundraise, transformFundraise } from './funding';
 import { Journal } from './journal';
 import { UserVoteType } from './reaction';
@@ -113,6 +113,11 @@ export interface FeedBountyContent extends BaseFeedContent {
     contentFormat: ContentFormat;
     commentType: CommentType;
     id: number;
+    awardedBountySolution?: {
+      id: number;
+      awardedAmount: number;
+      isFoundationAwarded: boolean;
+    };
   };
 }
 
@@ -126,6 +131,7 @@ export interface FeedCommentContent extends BaseFeedContent {
     commentType: CommentType;
     score: number;
     reviewScore?: number;
+    awardedBountySolution?: AwardedBountySolution;
     thread?: {
       id: number;
       threadType: string;
@@ -499,6 +505,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           created_location: '',
           unified_document_id: content_object.unified_document_id,
           bounty_amount: content_object.bounty_amount,
+          awarded_bounty_solution: content_object.awarded_bounty_solution,
         };
 
         // Check if the comment is associated with a paper or post for related work
@@ -527,6 +534,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
             commentType: content_object.comment_type as CommentType,
             score: transformedComment.score || 0,
             reviewScore: transformedComment.reviewScore || 0,
+            awardedBountySolution: transformedComment.awardedBountySolution,
             thread: content_object.thread_id
               ? {
                   id: content_object.thread_id,
@@ -813,6 +821,13 @@ export const transformCommentToFeedItem = (
             objectId: comment.thread.objectId,
           }
         : undefined,
+      awardedBountySolution: comment.awardedBountySolution
+        ? {
+            id: comment.awardedBountySolution.id,
+            awardedAmount: comment.awardedBountySolution.awardedAmount,
+            isFoundationAwarded: comment.awardedBountySolution.isFoundationAwarded,
+          }
+        : undefined,
     },
     relatedDocumentId: comment.thread?.objectId,
     relatedDocumentContentType: contentType,
@@ -879,6 +894,13 @@ export const transformBountyCommentToFeedItem = (
       content: comment.content,
       contentFormat: comment.contentFormat || 'QUILL_EDITOR',
       commentType: comment.commentType || 'BOUNTY',
+      awardedBountySolution: comment.awardedBountySolution
+        ? {
+            id: comment.awardedBountySolution.id,
+            awardedAmount: comment.awardedBountySolution.awardedAmount,
+            isFoundationAwarded: comment.awardedBountySolution.isFoundationAwarded,
+          }
+        : undefined,
     },
   };
 
