@@ -163,11 +163,13 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
     let workId: string | number | undefined;
     let workSlug: string | undefined;
     let workContentType: string | undefined;
+    let workPostType: string | undefined;
 
     if (entry.relatedWork) {
       workId = entry.relatedWork.id;
       workSlug = entry.relatedWork.slug;
       workContentType = entry.relatedWork.contentType;
+      workPostType = entry.relatedWork.postType;
     } else {
       // Fallback to next/router params (works when rendered on a work page)
       const { id: paramId, slug: paramSlug } = params;
@@ -186,11 +188,14 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       return;
     }
 
+    // Determine which tab to redirect to based on postType
+    const targetTab = workPostType === 'QUESTION' ? 'conversation' : 'reviews';
+
     const workUrl = buildWorkUrl({
       id: workId.toString(),
       contentType: workContentType as any,
       slug: workSlug,
-      tab: 'reviews',
+      tab: targetTab,
     });
     const urlWithFocus = `${workUrl}?focus=true`;
     window.location.href = urlWithFocus;
@@ -232,10 +237,10 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       <Button
         onClick={handleAwardBounty}
         size="sm"
-        variant="default"
-        className="text-sm text-xs font-medium gap-2 bg-amber-300 hover:bg-amber-400 ml-2 text-gray-900"
+        variant="outlined"
+        className="text-sm font-medium gap-2 text-amber-700 border-amber-300 hover:bg-amber-50"
       >
-        <Trophy size={16} className="text-gray-900" />
+        <Trophy size={16} />
         Award bounty
       </Button>
     ) : null;
@@ -310,28 +315,37 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
 
         {showSupportAndCTAButtons && (
           <div
-            className="mt-4 flex items-center gap-2"
+            className="mt-4 flex items-center gap-2 flex-wrap mobile:flex-wrap flex-nowrap"
             onClick={(e) => e.stopPropagation()}
             role="presentation"
             aria-hidden="true"
             tabIndex={-1}
           >
-            {isOpen && showContributeButton && !isAuthor && (
-              <Button variant="contribute" size="sm" onClick={handleOpenContributeModal}>
-                <ResearchCoinIcon size={20} variant="orange" contribute />
-                Support this bounty
-              </Button>
-            )}
-            {awardButton}
             {isOpen && (
               <Button
                 variant="default"
                 size="sm"
-                className="flex-1 md:!flex-none flex items-center gap-1.5"
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border-0 min-w-[140px] !flex-1 mobile:!flex-initial mobile:!w-auto"
                 onClick={handleSolution}
               >
-                <MessageSquareReply size={18} />
-                {bounty.bountyType === 'REVIEW' ? 'Add your Review' : 'Add Solution'}
+                <MessageSquareReply size={16} />
+                {entry.relatedWork?.postType === 'QUESTION'
+                  ? 'Add answer'
+                  : bounty.bountyType === 'REVIEW'
+                    ? 'Add Review'
+                    : 'Add Solution'}
+              </Button>
+            )}
+            {awardButton}
+            {isOpen && showContributeButton && !isAuthor && (
+              <Button
+                variant="outlined"
+                size="sm"
+                onClick={handleOpenContributeModal}
+                className="text-orange-600 gap-2 border-orange-600 hover:bg-orange-50 min-w-[140px] !flex-1 mobile:!flex-initial mobile:!w-auto"
+              >
+                <ResearchCoinIcon outlined size={16} />
+                Support
               </Button>
             )}
           </div>

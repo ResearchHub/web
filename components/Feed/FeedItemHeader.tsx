@@ -1,12 +1,12 @@
 'use client';
 
 import { FC, useEffect } from 'react';
+import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorProfile } from '@/types/authorProfile';
 import { cn } from '@/utils/styles';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
-import { navigateToAuthorProfile } from '@/utils/navigation';
 import { formatTimeAgo } from '@/utils/date';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -15,6 +15,7 @@ import { AuthorBadge } from '@/components/ui/AuthorBadge';
 import { Work } from '@/types/work';
 import { TrendingUp } from 'lucide-react';
 import { ImpactScoreTooltip } from '@/components/tooltips/ImpactScoreTooltip';
+import { User } from '@/types/user';
 
 interface Contributor {
   profileImage?: string;
@@ -28,6 +29,7 @@ interface FeedItemHeaderProps {
   className?: string;
   size?: 'xs' | 'sm' | 'md';
   author?: AuthorProfile;
+  user?: User; // Direct user object for verified badge
   authors?: Array<{ name: string }>; // New prop for multiple authors
   actionText?: string;
   source?: string; // Source name (e.g., "bioRxiv")
@@ -50,6 +52,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   className,
   size = 'sm',
   author,
+  user,
   authors,
   actionText,
   source,
@@ -107,7 +110,6 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
           alt={displayAuthor?.fullName ?? 'Unknown'}
           size={avatarSize}
           className={authorId && authorId > 0 ? 'cursor-pointer' : ''}
-          onClick={authorId && authorId > 0 ? () => navigateToAuthorProfile(authorId) : undefined}
           authorId={authorId}
         />
 
@@ -117,21 +119,22 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
               <div className="flex items-center gap-1">
                 {authorId && authorId > 0 ? (
                   <AuthorTooltip authorId={authorId}>
-                    <a
-                      href="#"
+                    <Link
+                      href={`/author/${authorId}`}
                       className="font-semibold hover:text-blue-600 cursor-pointer"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        navigateToAuthorProfile(authorId);
-                      }}
                     >
                       {displayAuthor.fullName}
-                    </a>
+                    </Link>
                   </AuthorTooltip>
                 ) : (
                   <span className="font-semibold">{displayAuthor.fullName}</span>
                 )}
-                {displayAuthor.user?.isVerified && <VerifiedBadge size="sm" />}
+                {/* Show verified badge if user is verified - check both direct user prop and author */}
+                {(user?.isVerified ||
+                  displayAuthor?.isVerified ||
+                  displayAuthor?.user?.isVerified) && (
+                  <VerifiedBadge size="sm" showTooltip={true} />
+                )}
                 {/* Show AuthorBadge with priority over EditorBadge - only if not hidden */}
                 {!hideAuthorBadge && isAuthorOfWork && (
                   <div className="flex items-center px-1">

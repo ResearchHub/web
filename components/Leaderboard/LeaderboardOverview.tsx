@@ -14,20 +14,52 @@ import { navigateToAuthorProfile } from '@/utils/navigation';
 import { getLastWeekRange, formatDate } from '@/lib/dateUtils';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
-// Skeleton Loader for leaderboard sections
-const LeaderboardSkeleton = () => (
-  <div className="space-y-2 animate-pulse">
+const LeaderboardListSkeleton = () => (
+  <div className="space-y-3 animate-pulse">
     {[...Array(3)].map((_, i) => (
-      <div key={i} className="flex items-center justify-between p-1">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-gray-200 rounded-full mr-1"></div>
-          <div className="w-5 h-5 bg-gray-200 rounded-full"></div>
-          <div className="h-4 bg-gray-200 rounded w-20"></div>
-        </div>
-        <div className="h-4 bg-gray-200 rounded w-12"></div>
+      <div
+        key={i}
+        className="grid grid-cols-[32px_40px_1fr_auto] gap-x-3 items-center px-1 py-2 rounded-md"
+      >
+        <div className="w-8 h-8 bg-gray-200 rounded-md" />
+        <div className="w-8 h-8 bg-gray-200 rounded-full" />
+        <div className="h-4 bg-gray-200 rounded w-24" />
+        <div className="h-4 bg-gray-200 rounded w-12 justify-self-end" />
       </div>
     ))}
   </div>
+);
+
+// Skeleton Loader for leaderboard sections
+export const LeaderboardSkeleton = () => (
+  <>
+    {/* Top Peer Reviewers Section Skeleton */}
+    <div>
+      <div className="flex justify-between items-baseline mb-3">
+        <div>
+          <h2 className="font-semibold text-gray-900">Top Peer Reviewers</h2>
+          <p className="text-xs text-gray-500">This Week</p>
+        </div>
+        <div className="text-xs text-gray-500">View All</div>
+      </div>
+      <LeaderboardListSkeleton />
+    </div>
+
+    {/* Divider */}
+    <div className="border-t border-gray-200 my-4" />
+
+    {/* Top Funders Section Skeleton */}
+    <div>
+      <div className="flex justify-between items-baseline mb-3">
+        <div>
+          <h2 className="font-semibold text-gray-900">Top Funders</h2>
+          <p className="text-xs text-gray-500">This Week</p>
+        </div>
+        <div className="text-xs text-gray-500">View All</div>
+      </div>
+      <LeaderboardListSkeleton />
+    </div>
+  </>
 );
 
 export const LeaderboardOverview = () => {
@@ -73,194 +105,134 @@ export const LeaderboardOverview = () => {
     }
     return (
       <div className="relative w-8 h-8 flex items-center justify-center">
-        <span className="text-gray-600 text-[11px] font-semibold">{rank}</span>
+        <span className="text-gray-600 text-sm font-semibold">{rank}</span>
+      </div>
+    );
+  };
+
+  const renderListItem = (
+    item: TopReviewer | TopFunder,
+    index: number,
+    type: 'reviewer' | 'funder'
+  ) => {
+    const rank = index + 1;
+    const authorId = item.authorProfile?.id;
+    const amount =
+      type === 'reviewer' ? (item as TopReviewer).earnedRsc : (item as TopFunder).totalFunding;
+
+    return (
+      <div
+        key={item.id}
+        onClick={() => authorId && navigateToAuthorProfile(authorId)}
+        className="grid grid-cols-[32px_40px_1fr_auto] gap-x-3 items-center hover:bg-gray-50 px-1 py-2 rounded-md cursor-pointer"
+      >
+        {/* Rank */}
+        <div className="w-8 flex-shrink-0">{renderRank(rank)}</div>
+
+        {/* Avatar */}
+        <div className="w-10 flex-shrink-0 flex items-center">
+          {authorId ? (
+            <AuthorTooltip authorId={authorId}>
+              <Avatar
+                src={item.authorProfile.profileImage}
+                alt={item.authorProfile.fullName}
+                size="sm"
+                authorId={authorId}
+              />
+            </AuthorTooltip>
+          ) : (
+            <Avatar
+              src={item.authorProfile.profileImage}
+              alt={item.authorProfile.fullName}
+              size="sm"
+            />
+          )}
+        </div>
+
+        {/* Name */}
+        <div className="flex-grow min-w-0">
+          {authorId ? (
+            <AuthorTooltip authorId={authorId}>
+              <span className="text-sm font-medium text-gray-900 block break-words">
+                {item.authorProfile.fullName}
+              </span>
+            </AuthorTooltip>
+          ) : (
+            <span className="text-sm font-medium text-gray-900 block break-words">
+              {item.authorProfile.fullName}
+            </span>
+          )}
+        </div>
+
+        {/* RSC Badge */}
+        <div className="flex-shrink-0 text-right">
+          <CurrencyBadge
+            amount={amount}
+            variant="text"
+            size="sm"
+            currency={showUSD ? 'USD' : 'RSC'}
+            shorten={true}
+            showIcon={true}
+            showText={showUSD}
+            className="justify-end"
+          />
+        </div>
       </div>
     );
   };
 
   return (
-    <div className="space-y-0">
+    <>
       {/* Top Peer Reviewers Section */}
-      <div className="mb-4 bg-white rounded-lg p-2">
-        <div className="flex justify-between items-center mb-1">
-          <h2 className="font-semibold text-gray-900 mb-2">Top Peer Reviewers</h2>
-          <span className="text-xs text-gray-500">This Week</span>
+      <div>
+        <div className="flex justify-between items-baseline mb-3">
+          <div>
+            <h2 className="font-semibold text-gray-900">Top Peer Reviewers</h2>
+            <p className="text-xs text-gray-500">This Week</p>
+          </div>
+          <Link href="/leaderboard?tab=reviewers" className="text-xs text-gray-500 hover:underline">
+            View All
+          </Link>
         </div>
         {isLoading ? (
-          <LeaderboardSkeleton />
+          <LeaderboardListSkeleton />
         ) : error ? (
           <p className="text-xs text-red-600">{error}</p>
         ) : reviewers.length > 0 ? (
-          <>
-            <div className="space-y-0">
-              {reviewers.map((reviewer, index) => {
-                const rank = index + 1;
-                const authorId = reviewer.authorProfile?.id; // Get author ID safely
-                return (
-                  <div
-                    key={reviewer.id}
-                    onClick={() => authorId && navigateToAuthorProfile(authorId)}
-                    className="flex items-center hover:bg-gray-50 p-2 rounded-md cursor-pointer"
-                  >
-                    {/* Fixed-width container for rank */}
-                    <div className="w-8 flex-shrink-0">{renderRank(rank)}</div>
-
-                    {/* Avatar with consistent sizing */}
-                    <div className="w-10 flex-shrink-0 ml-2 ">
-                      {authorId ? (
-                        <AuthorTooltip authorId={authorId}>
-                          <Avatar
-                            src={reviewer.authorProfile.profileImage}
-                            alt={reviewer.authorProfile.fullName}
-                            size="sm"
-                            authorId={authorId}
-                          />
-                        </AuthorTooltip>
-                      ) : (
-                        <Avatar
-                          src={reviewer.authorProfile.profileImage}
-                          alt={reviewer.authorProfile.fullName}
-                          size="sm"
-                        />
-                      )}
-                    </div>
-
-                    {/* Name with flex-grow to push RSC badge to the right */}
-                    <div className="flex-grow min-w-0 mr-1 -mt-1">
-                      {authorId ? (
-                        <AuthorTooltip authorId={authorId}>
-                          <span className="text-xs font-medium text-gray-900 block break-words">
-                            {reviewer.authorProfile.fullName}
-                          </span>
-                        </AuthorTooltip>
-                      ) : (
-                        <span className="text-xs font-medium text-gray-900 block break-words">
-                          {reviewer.authorProfile.fullName}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* RSC badge with fixed width */}
-                    <div className="flex-shrink-0 w-16 text-right">
-                      <CurrencyBadge
-                        amount={reviewer.earnedRsc}
-                        variant="text"
-                        size="sm"
-                        currency={showUSD ? 'USD' : 'RSC'}
-                        shorten={true}
-                        showIcon={true}
-                        showText={showUSD}
-                        className="justify-end"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="mt-2 text-center">
-              <Link
-                href="/leaderboard?tab=reviewers"
-                className="text-xs text-blue-600 hover:underline"
-              >
-                View All
-              </Link>
-            </div>
-          </>
+          <div className="space-y-3">
+            {reviewers.map((reviewer, index) => renderListItem(reviewer, index, 'reviewer'))}
+          </div>
         ) : (
-          <p className="text-xs text-gray-500">No reviewers found this week.</p>
+          <p className="text-sm text-gray-500 mt-4 text-center">No reviewers found this week.</p>
         )}
       </div>
 
+      {/* Divider */}
+      <div className="border-t border-gray-200 my-4" />
+
       {/* Top Funders Section */}
-      <div className="mb-4 bg-white rounded-lg p-2">
-        <div className="flex justify-between items-center mb-1">
-          <h2 className="font-semibold text-gray-900  mb-2">Top Funders</h2>
-          <span className="text-xs text-gray-500">This Week</span>
+      <div>
+        <div className="flex justify-between items-baseline mb-3">
+          <div>
+            <h2 className="font-semibold text-gray-900">Top Funders</h2>
+            <p className="text-xs text-gray-500">This Week</p>
+          </div>
+          <Link href="/leaderboard?tab=funders" className="text-xs text-gray-500 hover:underline">
+            View All
+          </Link>
         </div>
         {isLoading ? (
-          <LeaderboardSkeleton />
+          <LeaderboardListSkeleton />
         ) : error ? (
           <p className="text-xs text-red-600">{error}</p>
         ) : funders.length > 0 ? (
-          <>
-            <div className="space-y-0">
-              {funders.map((funder, index) => {
-                const rank = index + 1;
-                const authorId = funder.authorProfile?.id; // Get author ID safely
-                return (
-                  <div
-                    key={funder.id}
-                    onClick={() => authorId && navigateToAuthorProfile(authorId)}
-                    className="flex items-center hover:bg-gray-50 p-2 rounded-md cursor-pointer"
-                  >
-                    {/* Fixed-width container for rank */}
-                    <div className="w-8 flex-shrink-0">{renderRank(rank)}</div>
-
-                    {/* Avatar with consistent sizing */}
-                    <div className="w-10 flex-shrink-0 ml-2 ">
-                      {authorId ? (
-                        <AuthorTooltip authorId={authorId}>
-                          <Avatar
-                            src={funder.authorProfile.profileImage}
-                            alt={funder.authorProfile.fullName}
-                            size="sm"
-                            authorId={authorId}
-                          />
-                        </AuthorTooltip>
-                      ) : (
-                        <Avatar
-                          src={funder.authorProfile.profileImage}
-                          alt={funder.authorProfile.fullName}
-                          size="sm"
-                        />
-                      )}
-                    </div>
-
-                    {/* Name with flex-grow to push RSC badge to the right */}
-                    <div className="flex-grow min-w-0 mr-1 -mt-1">
-                      {authorId ? (
-                        <AuthorTooltip authorId={authorId}>
-                          <span className="text-xs font-medium text-gray-900 block break-words">
-                            {funder.authorProfile.fullName}
-                          </span>
-                        </AuthorTooltip>
-                      ) : (
-                        <span className="text-xs font-medium text-gray-900 block break-words">
-                          {funder.authorProfile.fullName}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* RSC badge with fixed width */}
-                    <div className="flex-shrink-0 w-16 text-right">
-                      <CurrencyBadge
-                        amount={funder.totalFunding}
-                        variant="text"
-                        size="sm"
-                        currency={showUSD ? 'USD' : 'RSC'}
-                        shorten={true}
-                        showIcon={true}
-                        showText={true}
-                        className="justify-end"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="mt-2 text-center">
-              <Link
-                href="/leaderboard?tab=funders"
-                className="text-xs text-blue-600 hover:underline"
-              >
-                View All
-              </Link>
-            </div>
-          </>
+          <div className="space-y-3">
+            {funders.map((funder, index) => renderListItem(funder, index, 'funder'))}
+          </div>
         ) : (
-          <p className="text-xs text-gray-500">No funders found this week.</p>
+          <p className="text-sm text-gray-500 mt-4 text-center">No funders found this week.</p>
         )}
       </div>
-    </div>
+    </>
   );
 };

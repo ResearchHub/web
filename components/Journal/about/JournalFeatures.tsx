@@ -4,7 +4,7 @@ import { BookPlus, Zap, Coins, ChartLine } from 'lucide-react';
 
 export const JournalFeatures: FC = () => {
   return (
-    <div className="bg-gray-50 py-16 px-4">
+    <div className="bg-gray-50 py-16 px-4 mt-6">
       <div className="max-w-5xl mx-auto text-center">
         <h2 className="text-3xl font-medium text-gray-900 mb-4 text-left -mt-8">
           About this journal

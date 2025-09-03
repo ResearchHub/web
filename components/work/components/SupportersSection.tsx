@@ -4,7 +4,7 @@ import { FC, useState } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatRSC } from '@/utils/number';
 import { Tip } from '@/types/tip';
-import { Users } from 'lucide-react';
+import { HeartHandshake } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Icon } from '@/components/ui/icons/Icon';
@@ -46,7 +46,7 @@ export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], docum
   return (
     <section>
       <div className="flex items-center gap-2 mb-3">
-        <Icon name="openGrant" size={22} color="#6b7280" />
+        <HeartHandshake className="w-6 h-6 text-gray-600" />
         <h3 className="text-base font-semibold text-gray-900">Supporters</h3>
       </div>
 
@@ -86,6 +86,18 @@ export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], docum
               {showAllSupporters ? 'Show less' : `View all supporters (${tips.length})`}
             </button>
           )}
+
+          <div className="mt-4">
+            <Button
+              onClick={handleTipClick}
+              variant="ghost"
+              size="sm"
+              className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors"
+            >
+              <Icon name="tipRSC" size={16} />
+              <span className="text-sm">Add your support</span>
+            </Button>
+          </div>
         </>
       ) : (
         <div className="py-1">
@@ -93,9 +105,10 @@ export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], docum
           <Button
             onClick={handleTipClick}
             variant="outlined"
-            className="w-full flex items-center justify-center gap-2 text-primary-600 border-primary-300 hover:bg-primary-50"
+            size="sm"
+            className="w-full flex items-center justify-center gap-2 text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors"
           >
-            <Icon name="tipRSC" size={20} />
+            <Icon name="tipRSC" size={18} />
             <span>Tip RSC</span>
           </Button>
         </div>

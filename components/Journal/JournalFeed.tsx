@@ -109,16 +109,6 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
   // Sample journal contributors for social proof
   const journalContributors = [
     {
-      src: 'https://www.researchhub.com/static/editorial-board/MaulikDhandha.jpeg',
-      alt: 'Maulik Dhandha',
-      tooltip: 'Maulik Dhandha, Editor',
-    },
-    {
-      src: 'https://www.researchhub.com/static/editorial-board/EmilioMerheb.jpeg',
-      alt: 'Emilio Merheb',
-      tooltip: 'Emilio Merheb, Editor',
-    },
-    {
       src: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2024/05/07/blob_48esqmw',
       alt: 'Journal Editor',
       tooltip: 'Editorial Board Member',
@@ -148,9 +138,9 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
   // Promotional Banner Component
   const PromoBanner = () => (
     <div className="bg-gradient-to-b from-primary-50/80 to-white p-6 rounded-lg border border-primary-100">
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-3 mb-6">
         <BookOpen className="h-7 w-7 text-primary-700" />
-        <h1 className="text-xl font-semibold text-primary-900">
+        <h1 className="text-xl font-semibold text-primary-900 text-center">
           Accelerate Your Research Impact with ResearchHub Journal
         </h1>
       </div>
@@ -210,7 +200,7 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
       <div className="flex flex-col md:!flex-row justify-between items-center gap-5">
         <div>
           <p className="text-sm text-gray-700 font-medium mb-2">
-            Join these researchers who've already published:
+            Join other researchers that chose open science:
           </p>
           <AvatarStack
             items={journalContributors}
@@ -330,7 +320,7 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
   const feedHeader =
     activeTab === 'in-review' ? (
       <>
-        <div className="bg-[#fff9e6] border-l-4 border-[#dc9814] p-6 relative">
+        <div className="bg-[#fff9e6] border-l-4 border-[#dc9814] p-6 relative mt-6">
           <div className="absolute left-6 top-9">
             <span className="h-2 w-2 rounded-full bg-[#dc9814] block"></span>
           </div>
@@ -371,7 +361,7 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab, isLoading: initia
       </>
     ) : activeTab === 'published' ? (
       <>
-        <div className="bg-green-50 border-l-4 border-green-500 p-6 relative">
+        <div className="bg-green-50 border-l-4 border-green-500 p-6 relative mt-6">
           <div className="absolute left-6 top-9">
             <span className="h-2 w-2 rounded-full bg-green-500 block"></span>
           </div>

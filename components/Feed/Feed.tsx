@@ -115,6 +115,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
       onTabChange={handleTabChange}
       onCustomizeChange={handleCustomizeChange}
       isLoading={combinedIsLoading}
+      isModerator={isModerator}
     />
   );
 

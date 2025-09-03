@@ -1,7 +1,7 @@
 'use client';
 
 import { Work } from '@/types/work';
-import { format } from 'date-fns';
+import { differenceInCalendarDays, format } from 'date-fns';
 import { Clock } from 'lucide-react';
 
 interface GrantStatusSectionProps {
@@ -9,8 +9,6 @@ interface GrantStatusSectionProps {
 }
 
 export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
-  const isOpen = work.note?.post?.grant?.status === 'OPEN';
-
   if (!work.note?.post?.grant?.endDate) {
     return (
       <div>
@@ -24,13 +22,15 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
   }
 
   const endDate = new Date(work.note?.post?.grant?.endDate);
+  const isClosedByDate = differenceInCalendarDays(endDate, new Date()) < 0;
+  const isOpen = work.note?.post?.grant?.status === 'OPEN' && !isClosedByDate;
 
   return (
     <div>
       <h3 className="text-base font-semibold text-gray-900 mb-2">Status</h3>
       <div className="flex items-center gap-2 text-gray-800 text-sm">
         <span
-          className={`h-2 w-2 rounded-full ${isOpen ? 'bg-emerald-500' : 'bg-rose-500'} inline-block`}
+          className={`h-2 w-2 rounded-full ${isOpen ? 'bg-emerald-500' : 'bg-gray-400'} inline-block`}
         />
         <span>{isOpen ? 'Accepting Applications' : 'Closed'}</span>
       </div>

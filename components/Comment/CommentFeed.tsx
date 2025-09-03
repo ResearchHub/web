@@ -266,6 +266,7 @@ function CommentFeedContent({
           <CommentEmptyState
             commentType={commentType || 'GENERIC_COMMENT'}
             onCreateBounty={handleCreateBounty}
+            work={work}
           />
         ) : (
           <>

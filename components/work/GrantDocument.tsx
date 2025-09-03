@@ -77,7 +77,11 @@ export const GrantDocument = ({
     }
   }, [activeTab, work, metadata]);
 
-  const isOpen = work.note?.post?.grant?.status === 'OPEN';
+  const endDate = work.note?.post?.grant?.endDate
+    ? new Date(work.note?.post?.grant?.endDate)
+    : undefined;
+  const isClosedByDate = endDate ? differenceInCalendarDays(endDate, new Date()) < 0 : false;
+  const isOpen = work.note?.post?.grant?.status === 'OPEN' && !isClosedByDate;
 
   return (
     <div>
@@ -108,16 +112,22 @@ export const GrantDocument = ({
           <div className="flex-1 text-sm">
             <div className="flex items-center gap-2 text-gray-800">
               <span
-                className={`h-2 w-2 rounded-full ${
-                  isOpen ? 'bg-emerald-500' : 'bg-red-500'
-                } inline-block`}
+                className={`h-2 w-2 rounded-full ${isOpen ? 'bg-emerald-500' : 'bg-gray-400'} inline-block`}
               />
               <span>{isOpen ? 'Accepting Applications' : 'Closed'}</span>
-              {work.note?.post?.grant?.endDate && isOpen && (
+              {endDate && isOpen && (
                 <>
                   <div className="h-4 w-px bg-gray-300" />
                   <span className="text-gray-600 text-sm">
-                    Closes on {format(new Date(work.note?.post?.grant?.endDate), 'MMMM d, yyyy')}
+                    Closes on {format(endDate, 'MMMM d, yyyy')}
+                  </span>
+                </>
+              )}
+              {!isOpen && endDate && (
+                <>
+                  <div className="h-4 w-px bg-gray-300" />
+                  <span className="text-gray-600 text-sm">
+                    Closed on {format(endDate, 'MMMM d, yyyy')}
                   </span>
                 </>
               )}

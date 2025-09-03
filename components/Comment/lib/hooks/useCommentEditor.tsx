@@ -34,6 +34,7 @@ export interface UseCommentEditorProps {
   onContentChange?: (plainText: string, html: string) => void;
   placeholder?: string;
   initialContent?: CommentContent;
+  format?: 'json' | 'html';
   isReadOnly?: boolean;
   commentType?: CommentType;
   initialRating?: number;
@@ -47,6 +48,7 @@ export const useCommentEditor = ({
   onContentChange,
   placeholder = 'Write a comment...',
   initialContent = '',
+  format = 'json',
   isReadOnly = false,
   commentType = 'GENERIC_COMMENT',
   initialRating = 0,
@@ -88,6 +90,12 @@ export const useCommentEditor = ({
 
   // Convert initialContent to a format compatible with TipTap's Content type
   const getTipTapContent = (): Content | undefined => {
+    // If format is HTML and initialContent is a string, return it directly
+    // TipTap will parse the HTML automatically
+    if (format === 'html' && typeof initialContent === 'string') {
+      return initialContent as unknown as Content;
+    }
+
     if (typeof initialContent === 'string') {
       return undefined;
     }
@@ -202,16 +210,22 @@ export const useCommentEditor = ({
         if (debug) console.log('Loading content from localStorage:', loadedContent);
         editor.commands.setContent(loadedContent);
       } else if (initialContent) {
-        // Parse the initial content to ensure it's in the correct format
-        const parsedContent = parseContent(initialContent, 'TIPTAP', debug);
-        if (debug)
-          console.log('Setting initial content:', initialContent, 'Parsed:', parsedContent);
+        // If format is HTML, set the content directly
+        if (format === 'html' && typeof initialContent === 'string') {
+          if (debug) console.log('Setting HTML content directly:', initialContent);
+          editor.commands.setContent(initialContent);
+        } else {
+          // Parse the initial content to ensure it's in the correct format
+          const parsedContent = parseContent(initialContent, 'TIPTAP', debug);
+          if (debug)
+            console.log('Setting initial content:', initialContent, 'Parsed:', parsedContent);
 
-        // Set initial content if provided
-        editor.commands.setContent(parsedContent);
+          // Set initial content if provided
+          editor.commands.setContent(parsedContent);
+        }
       }
     }
-  }, [editor, initialContent, loadedContent, isReadOnly, debug]);
+  }, [editor, initialContent, loadedContent, isReadOnly, debug, format]);
 
   // Update draft when rating changes, but only if content exists
   useEffect(() => {

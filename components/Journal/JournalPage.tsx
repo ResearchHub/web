@@ -53,7 +53,7 @@ export const JournalPage: FC = () => {
     },
     {
       id: 'about',
-      label: 'About',
+      label: 'About this journal',
     },
   ];
 

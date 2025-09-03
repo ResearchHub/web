@@ -24,7 +24,6 @@ import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useUser } from '@/contexts/UserContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { dedupeAvatars } from '@/utils/avatarUtil';
 import { cn } from '@/utils/styles';
 
@@ -104,7 +103,7 @@ export const ActionButton: FC<ActionButtonProps> = ({
     variant="ghost"
     size="sm"
     className={cn(
-      `flex items-center space-x-1 border border-gray-200 rounded-full`,
+      `flex items-center space-x-1 border border-gray-200 rounded-full transition-all`,
       // Responsive padding
       'py-0.5 px-2 md:!py-1 md:!px-3',
       isActive ? 'text-green-600 border-green-300' : 'text-gray-900',
@@ -206,7 +205,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser(); // Get current user
   const { showUSD } = useCurrencyPreference();
-  const { exchangeRate } = useExchangeRate();
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
@@ -265,14 +263,15 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     feedContentType,
     relatedDocumentId,
     relatedDocumentContentType,
-    onVoteSuccess: (response, voteType) => {
-      // Update local state based on vote type
-      if (voteType === 'UPVOTE' && localUserVote !== 'UPVOTE') {
-        setLocalVoteCount((prev) => prev + 1);
-      } else if (voteType === 'NEUTRAL' && localUserVote === 'UPVOTE') {
-        setLocalVoteCount((prev) => Math.max(0, prev - 1));
-      }
-      setLocalUserVote(voteType);
+    onVoteSuccess: () => {
+      // The optimistic update already happened in handleVote
+      // This confirms the update was successful
+    },
+    onVoteError: () => {
+      // Revert optimistic update on error
+      // Restore previous vote state
+      setLocalVoteCount(metrics?.votes || 0);
+      setLocalUserVote(userVote);
     },
   });
 
@@ -283,9 +282,23 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     if (e) {
       e.stopPropagation();
     }
+
+    // Prevent multiple rapid clicks while a vote is in progress
+    if (isVoting) return;
+
     executeAuthenticatedAction(() => {
       // Toggle vote: if already upvoted, neutralize, otherwise upvote
       const newVoteType: UserVoteType = localUserVote === 'UPVOTE' ? 'NEUTRAL' : 'UPVOTE';
+
+      // Optimistic update: immediately update UI before API call
+      if (newVoteType === 'UPVOTE' && localUserVote !== 'UPVOTE') {
+        setLocalVoteCount((prev) => prev + 1);
+        setLocalUserVote('UPVOTE');
+      } else if (newVoteType === 'NEUTRAL' && localUserVote === 'UPVOTE') {
+        setLocalVoteCount((prev) => Math.max(0, prev - 1));
+        setLocalUserVote('NEUTRAL');
+      }
+
       vote(newVoteType);
     });
   };
@@ -483,7 +496,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
             label={actionLabels?.upvote || 'Upvote'}
             onClick={handleVote}
             isActive={localUserVote === 'UPVOTE'}
-            isDisabled={isVoting}
             showTooltip={showTooltips}
           />
           {!hideCommentButton && (
