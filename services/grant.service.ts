@@ -1,5 +1,4 @@
 import { ApiClient } from './client';
-import { Topic } from '@/types/topic';
 
 export class GrantService {
   private static readonly BASE_PATH = '/api/grant';
