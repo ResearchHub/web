@@ -36,7 +36,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     hubIds: selectedHubs.map((h) => h.id),
   });
 
-  // Manage entries separate of hook to allow for clearing on filter and sort change.
+  // Manage the entries separate from hook to allow for clearing the feed when filter and sort options change.
   useEffect(() => {
     setManagedEntries(entries);
   }, [entries]);
