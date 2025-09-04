@@ -41,7 +41,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false 
   const minimizeClass = forceMinimize ? 'minimized-sidebar' : '';
 
   return (
-    <div className={`h-full flex flex-col z-50 bg-white overflow-hidden ${minimizeClass}`}>
+    <div className={`h-full flex flex-col z-50 bg-white overflow-hidden min-h-0 ${minimizeClass}`}>
       <div
         className={`p-4 pl-4 ${forceMinimize ? '!flex !justify-center' : 'tablet:max-sidebar-compact:!flex tablet:max-sidebar-compact:!justify-center'}`}
       >
@@ -71,7 +71,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false 
         </div>
       </div>
 
-      <div className={forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}>
+      <div
+        className={`flex-shrink-0 pb-4 ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
+      >
         <FooterLinks />
       </div>
     </div>
