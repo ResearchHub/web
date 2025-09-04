@@ -145,6 +145,22 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
     }
   }, [isLeftSidebarOpen]);
 
+  // Lock body scroll when left sidebar is open on mobile
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const isMobile = window.matchMedia('(max-width: 1023px)').matches;
+
+    if (isMobile && isLeftSidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isLeftSidebarOpen]);
+
   return (
     <div className="flex h-screen">
       <OnboardingModal />
