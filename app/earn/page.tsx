@@ -119,13 +119,7 @@ export default function EarnPage() {
       {/* Top filter bar */}
       <div className="flex items-center gap-0 sm:gap-2 flex-wrap justify-between">
         <div className="w-1/2 sm:!w-[220px] flex-1 sm:!flex-none pr-1 sm:!pr-0">
-          <HubsSelector
-            selectedHubs={selectedHubs}
-            onChange={handleHubsChange}
-            displayCountOnly
-            hideSelectedItems={true}
-            hubType="bounty"
-          />
+          <HubsSelector selectedHubs={selectedHubs} onChange={handleHubsChange} hubType="bounty" />
         </div>
         <div className="w-1/2 sm:!w-[120px] flex-1 sm:!flex-none pl-1 sm:!pl-0">
           <SortDropdown

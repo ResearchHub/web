@@ -8,10 +8,9 @@ import { GrantRightSidebar } from '@/components/Fund/GrantRightSidebar';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { MarketplaceTabs, MarketplaceTab } from '@/components/Fund/MarketplaceTabs';
 import Icon from '@/components/ui/icons/Icon';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SortDropdown, { SortOption } from '@/components/ui/SortDropdown';
 import { HubsSelector, HubsSelected, Hub } from '@/components/Hub/HubSelector';
-import { useEffect } from 'react';
 
 interface FundPageContentProps {
   marketplaceTab: MarketplaceTab;
@@ -108,8 +107,6 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
           <HubsSelector
             selectedHubs={selectedHubs}
             onChange={handleHubsChange}
-            displayCountOnly
-            hideSelectedItems={true}
             hubType={getHubType(marketplaceTab)}
           />
         </div>
