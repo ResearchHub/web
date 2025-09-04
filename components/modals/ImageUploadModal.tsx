@@ -51,7 +51,7 @@ export function ImageUploadModal({
   };
 
   return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-[10000]">
+    <Dialog open={isOpen} onClose={onClose} className="relative z-[1000]">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
 
       <div className="fixed inset-0 flex items-center justify-center p-4">
