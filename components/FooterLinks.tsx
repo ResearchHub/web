@@ -8,8 +8,8 @@ export const FooterLinks: React.FC = () => {
   const { showUSD, toggleCurrency } = useCurrencyPreference();
 
   return (
-    <div className="px-4 py-6 border-t text-sm">
-      <div className="flex items-center justify-between mb-4">
+    <div className="px-4 py-4 border-t text-sm">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-4">
           <a
             href="https://x.com/researchhub"

@@ -59,7 +59,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false 
         <PublishMenu forceMinimize={forceMinimize} />
       </div>
 
-      <div className="flex-1 mt-2 overflow-y-auto overscroll-contain touch-pan-y">
+      <div className="flex-1 mt-2 overflow-y-auto overscroll-contain touch-pan-y min-h-0">
         <div
           className={`px-4 py-4 ${forceMinimize ? '!px-2' : 'tablet:max-sidebar-compact:!px-2'}`}
         >
