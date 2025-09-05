@@ -72,7 +72,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false 
       </div>
 
       <div
-        className={`flex-shrink-0 pb-4 ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
+        className={`flex-shrink-0 pb-4 tablet:!pb-4 pb-16 ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
       >
         <FooterLinks />
       </div>
