@@ -6,6 +6,7 @@ import { SearchSuggestion } from '@/types/search';
 import type { EntityType } from '@/types/search';
 import { FollowTopicButton } from '@/components/ui/FollowTopicButton';
 import { Avatar } from '@/components/ui/Avatar';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 
 interface SearchSuggestionsProps {
   query: string;
@@ -111,6 +112,17 @@ export function SearchSuggestions({
         return 'User';
       };
 
+      const isUserVerified = () => {
+        if (isUserSuggestion) {
+          return (
+            suggestion.isVerified ||
+            suggestion.authorProfile?.isVerified ||
+            suggestion.authorProfile?.user?.isVerified
+          );
+        }
+        return false;
+      };
+
       const safeGetPaperCount = () => {
         if (isTopicSuggestion && 'paperCount' in suggestion) {
           return suggestion.paperCount ? `${suggestion.paperCount} papers` : 'Research Topic';
@@ -161,9 +173,12 @@ export function SearchSuggestions({
             >
               <div className="flex-shrink-0">{getSmallIcon()}</div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-gray-900 text-sm leading-tight">
-                  {truncateText(suggestion.displayName, MAX_TITLE_LENGTH)}
-                </h3>
+                <div className="flex items-center gap-1">
+                  <h3 className="font-medium text-gray-900 text-sm leading-tight">
+                    {truncateText(suggestion.displayName, MAX_TITLE_LENGTH)}
+                  </h3>
+                  {isUserSuggestion && isUserVerified() && <VerifiedBadge size="sm" />}
+                </div>
                 {isPaperSuggestion && (
                   <p className="mt-0.5 text-xs text-gray-500 line-clamp-1">
                     {safeGetAuthorsList()}
@@ -202,8 +217,11 @@ export function SearchSuggestions({
             <div className="flex items-start gap-3">
               {getSmallIcon()}
               <div>
-                <div className="font-medium text-sm">
-                  {truncateText(suggestion.displayName, MAX_TITLE_LENGTH)}
+                <div className="flex items-center gap-1">
+                  <div className="font-medium text-sm">
+                    {truncateText(suggestion.displayName, MAX_TITLE_LENGTH)}
+                  </div>
+                  {isUserSuggestion && isUserVerified() && <VerifiedBadge size="sm" />}
                 </div>
                 {isPaperSuggestion && (
                   <div className="text-xs text-gray-500">
