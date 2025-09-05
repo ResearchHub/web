@@ -199,7 +199,7 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
           tablet:sidebar-compact:!w-72
           tablet:max-sidebar-compact:!w-[70px]
 
-          fixed top-[64px] w-[280px] h-[calc(100vh-64px)] max-h-[calc(100vh-64px)] flex flex-col tablet:!h-screen tablet:!max-h-screen
+          fixed top-[64px] w-[280px] h-[calc(100vh-64px-5rem)] max-h-[calc(100vh-64px-5rem)] flex flex-col tablet:!h-screen tablet:!max-h-screen tablet:!top-0
           ${isLeftSidebarOpen ? '!translate-x-0' : '!-translate-x-full'}
 
           tablet:!block tablet:!w-72
