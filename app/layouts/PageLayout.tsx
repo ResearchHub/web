@@ -145,6 +145,22 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
     }
   }, [isLeftSidebarOpen]);
 
+  // Lock body scroll when left sidebar is open on mobile
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const isMobile = window.matchMedia('(max-width: 1023px)').matches;
+
+    if (isMobile && isLeftSidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isLeftSidebarOpen]);
+
   return (
     <div className="flex h-screen">
       <OnboardingModal />
@@ -183,7 +199,7 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
           tablet:sidebar-compact:!w-72
           tablet:max-sidebar-compact:!w-[70px]
 
-          fixed top-[64px] w-[280px] h-[calc(100vh-64px)]
+          fixed top-[64px] w-[280px] h-[calc(100vh-64px-5rem)] max-h-[calc(100vh-64px-5rem)] flex flex-col tablet:!h-screen tablet:!max-h-screen tablet:!top-0
           ${isLeftSidebarOpen ? '!translate-x-0' : '!-translate-x-full'}
 
           tablet:!block tablet:!w-72
