@@ -4,7 +4,7 @@ import { Bounty, BountyType, transformBounty } from '@/types/bounty';
 import { transformUser, User } from '@/types/user';
 import { transformAuthorProfile } from '@/types/authorProfile';
 import { Fundraise, transformFundraise } from '@/types/funding';
-import { Topic } from '@/types/topic';
+import { Topic, transformTopic } from '@/types/topic';
 
 type Endpoints = 'feed' | 'funding_feed' | 'grant_feed' | undefined;
 
@@ -268,14 +268,7 @@ export class FeedService {
 
     try {
       const response = await ApiClient.get<any[]>(path);
-      // Use transformTopic to normalize
-      return response.map((raw) => ({
-        id: raw.id,
-        name: raw.name || '',
-        slug: raw.slug || '',
-        description: raw.description,
-        imageUrl: raw.hub_image || undefined,
-      }));
+      return response.map((raw) => transformTopic(raw));
     } catch (error) {
       console.error(`Error fetching ${endpoint} hubs`, error);
       return [];

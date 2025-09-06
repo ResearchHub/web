@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { FeedService } from '@/services/feed.service';
 import { useSession } from 'next-auth/react';
+import { isEqual, omit } from 'lodash';
 
 export type FeedTab = 'following' | 'latest' | 'popular';
 export type FundingTab = 'all' | 'open' | 'closed';
@@ -31,6 +32,18 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
   const [currentTab, setCurrentTab] = useState<FeedTab | FundingTab>(activeTab);
   const [currentOptions, setCurrentOptions] = useState<UseFeedOptions>(options);
 
+  // Re-load the feed if any of the relevant options change
+  const omitCheckKeys = ['initialData']; // Keys to ignore when comparing options
+  useEffect(() => {
+    const filteredOptions = omit(options, omitCheckKeys);
+    const filteredCurrentOptions = omit(currentOptions, omitCheckKeys);
+
+    if (!isEqual(filteredOptions, filteredCurrentOptions)) {
+      setCurrentOptions(options);
+      loadFeed();
+    }
+  }, [options]);
+
   // Only load the feed when the component mounts or when the session status changes
   // We no longer reload when activeTab changes, as that will be handled by page navigation
   useEffect(() => {
@@ -57,37 +70,16 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     }
   }, [status, activeTab]);
 
-  const arraysEqual = (a?: (string | number)[], b?: (string | number)[]) => {
-    if (a === b) return true;
-    if (!a || !b) return false;
-    if (a.length !== b.length) return false;
-    return a.every((val, i) => val === b[i]);
-  };
-
-  // Check if options have changed
-  useEffect(() => {
-    // Compare relevant options (excluding initialData which shouldn't trigger a reload)
-    const relevantOptionsChanged =
-      options.hubSlug !== currentOptions.hubSlug ||
-      options.contentType !== currentOptions.contentType ||
-      options.source !== currentOptions.source ||
-      options.endpoint !== currentOptions.endpoint ||
-      options.fundraiseStatus !== currentOptions.fundraiseStatus ||
-      options.createdBy !== currentOptions.createdBy ||
-      options.ordering !== currentOptions.ordering ||
-      !arraysEqual(options.hubIds, currentOptions.hubIds);
-
-    if (relevantOptionsChanged) {
-      setCurrentOptions(options);
-      loadFeed();
+  // Load feed items for first or subsequent pages.
+  const loadFeed = async (pageNumber: number = 1) => {
+    if (pageNumber > 1 && (!hasMore || isLoading)) {
+      return;
     }
-  }, [options]);
 
-  const loadFeed = async () => {
     setIsLoading(true);
     try {
       const result = await FeedService.getFeed({
-        page: 1,
+        page: pageNumber,
         pageSize: 20,
         feedView: activeTab as FeedTab, // Only pass feedView if it's a FeedTab
         hubSlug: options.hubSlug,
@@ -99,40 +91,15 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         ordering: options.ordering,
         hubIds: options.hubIds,
       });
-      setEntries(result.entries);
+      if (pageNumber === 1) {
+        setEntries(result.entries);
+      } else {
+        setEntries((prev) => [...prev, ...result.entries]);
+      }
       setHasMore(result.hasMore);
-      setPage(1);
+      setPage(pageNumber);
     } catch (error) {
-      console.error('Error loading feed:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadMore = async () => {
-    if (!hasMore || isLoading) return;
-
-    setIsLoading(true);
-    try {
-      const nextPage = page + 1;
-      const result = await FeedService.getFeed({
-        page: nextPage,
-        pageSize: 20,
-        feedView: activeTab as FeedTab, // Only pass feedView if it's a FeedTab
-        hubSlug: options.hubSlug,
-        contentType: options.contentType,
-        source: options.source,
-        endpoint: options.endpoint,
-        fundraiseStatus: options.fundraiseStatus,
-        createdBy: options.createdBy,
-        ordering: options.ordering,
-        hubIds: options.hubIds,
-      });
-      setEntries((prev) => [...prev, ...result.entries]);
-      setHasMore(result.hasMore);
-      setPage(nextPage);
-    } catch (error) {
-      console.error('Error loading more feed items:', error);
+      console.error('Error loading feed for page:', pageNumber, error);
     } finally {
       setIsLoading(false);
     }
@@ -142,7 +109,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     entries,
     isLoading,
     hasMore,
-    loadMore,
+    loadMore: () => loadFeed(page + 1),
     refresh: loadFeed,
   };
 };
