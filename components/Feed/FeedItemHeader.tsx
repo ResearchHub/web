@@ -16,6 +16,8 @@ import { Work } from '@/types/work';
 import { TrendingUp } from 'lucide-react';
 import { ImpactScoreTooltip } from '@/components/tooltips/ImpactScoreTooltip';
 import { User } from '@/types/user';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMicrochipAi } from '@fortawesome/pro-light-svg-icons';
 
 interface Contributor {
   profileImage?: string;
@@ -45,6 +47,7 @@ interface FeedItemHeaderProps {
   twitterMentions?: number;
   newsMentions?: number;
   altmetricScore?: number | null;
+  aiScore?: number | null;
 }
 
 export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
@@ -68,6 +71,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   twitterMentions = 0,
   newsMentions = 0,
   altmetricScore,
+  aiScore = null,
 }) => {
   // Format date consistently
   const formattedDate = timestamp instanceof Date ? timestamp : new Date(timestamp);
@@ -196,6 +200,18 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
           <div className="inline-flex items-center gap-1 text-green-600 hover:text-green-700 cursor-help">
             <TrendingUp className="w-6 h-6" />
             <span className="text-md font-medium">{Math.round(impactScore)}</span>
+          </div>
+        </Tooltip>
+      )}
+
+      {aiScore && aiScore > 0 && (
+        <Tooltip
+          content={<div className="text-sm">Probability of this comment being AI generated.</div>}
+          position="top"
+        >
+          <div className="flex flex-row items-center gap-1">
+            <FontAwesomeIcon icon={faMicrochipAi} className="font-normal" />
+            <p className="text-xs">{aiScore}%</p>
           </div>
         </Tooltip>
       )}
