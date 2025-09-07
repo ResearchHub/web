@@ -430,7 +430,11 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               )}
 
               {/* Avatar/Login buttons */}
-              {user && !isLoading ? (
+              {isLoading ? (
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-gray-300 rounded-full animate-pulse"></div>
+                </div>
+              ) : user ? (
                 <UserMenu
                   user={user}
                   onViewProfile={handleViewProfile}
@@ -461,7 +465,11 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
             {/* Mobile user controls */}
             <div className="flex tablet:!hidden">
-              {user && !isLoading ? (
+              {isLoading ? (
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-gray-300 rounded-full animate-pulse"></div>
+                </div>
+              ) : user ? (
                 <UserMenu
                   user={user}
                   onViewProfile={handleViewProfile}
