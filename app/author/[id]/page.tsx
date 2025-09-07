@@ -18,11 +18,9 @@ import AuthorProfile from './components/AuthorProfile';
 import { useAuthorPublications } from '@/hooks/usePublications';
 import { transformPublicationToFeedEntry } from '@/types/publication';
 import PinnedFundraise from './components/PinnedFundraise';
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState, useEffect } from 'react';
-import { X, BookOpen, Check } from 'lucide-react';
+import { useState } from 'react';
+import { BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { AddPublicationsForm, STEP } from '@/components/modals/Verification/AddPublicationsForm';
 import { toast } from 'react-hot-toast';
 import { AddPublicationsModal } from '@/components/modals/AddPublicationsModal';
 
