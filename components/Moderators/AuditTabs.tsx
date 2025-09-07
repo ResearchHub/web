@@ -34,9 +34,8 @@ export const AuditTabs: FC<AuditTabsProps> = ({
   statusCounts,
   loading,
 }) => {
-  // Temporarily disable 'removed' tab due to backend issues
-  const statuses: AuditStatus[] = ['pending', 'dismissed'];
-  const disabledStatuses: AuditStatus[] = ['removed'];
+  const statuses: AuditStatus[] = ['pending', 'dismissed', 'removed'];
+  const disabledStatuses: AuditStatus[] = [];
 
   const tabs = [
     // Active tabs

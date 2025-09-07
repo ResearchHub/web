@@ -18,13 +18,6 @@ export default function AuditPage() {
   const [activeStatus, setActiveStatus] = useState<AuditStatus>('pending');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Temporarily redirect away from 'removed' status due to backend issues
-  useEffect(() => {
-    if (activeStatus === 'removed') {
-      setActiveStatus('pending');
-    }
-  }, [activeStatus]);
-
   const {
     entries,
     isLoading,
