@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useTransition } from 'react';
+import { use, useTransition, useState } from 'react';
 import { useAuthorAchievements, useAuthorInfo, useAuthorSummaryStats } from '@/hooks/useAuthor';
 import { useUser } from '@/contexts/UserContext';
 import { Card } from '@/components/ui/Card';
@@ -18,7 +18,6 @@ import AuthorProfile from './components/AuthorProfile';
 import { useAuthorPublications } from '@/hooks/usePublications';
 import { transformPublicationToFeedEntry } from '@/types/publication';
 import PinnedFundraise from './components/PinnedFundraise';
-import { useState } from 'react';
 import { BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { toast } from 'react-hot-toast';
