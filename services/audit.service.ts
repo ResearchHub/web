@@ -39,6 +39,7 @@ interface FlaggedContentApiResponse {
   };
   reason: string;
   reason_choice: string;
+  reason_memo?: string;
   content_type: {
     id: ID;
     name: string;
@@ -75,6 +76,7 @@ export interface FlaggedContent {
   };
   reason: string;
   reasonChoice: string;
+  reasonMemo?: string;
   contentType: {
     id: ID;
     name: string;
@@ -148,6 +150,7 @@ const transformFlaggedContent = (apiItem: FlaggedContentApiResponse): FlaggedCon
     : undefined,
   reason: apiItem.reason,
   reasonChoice: apiItem.reason_choice,
+  reasonMemo: apiItem.reason_memo,
   contentType: {
     id: apiItem.content_type.id,
     name: apiItem.content_type.name,

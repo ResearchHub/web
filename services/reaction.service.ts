@@ -42,6 +42,7 @@ export interface FlagOptions {
   documentType: DocumentType;
   documentId: ID; // ID of the document to flag
   reason: FlagReasonKey;
+  reasonMemo?: string;
   threadId?: ID;
   commentId?: ID; // ID of the comment to flag (if flagging a comment)
   replyId?: ID;
@@ -126,7 +127,13 @@ export class ReactionService {
     }
   }
 
-  static async flag({ documentType, documentId, reason, commentId }: FlagOptions): Promise<Flag> {
+  static async flag({
+    documentType,
+    documentId,
+    reason,
+    commentId,
+    reasonMemo,
+  }: FlagOptions): Promise<Flag> {
     if (!documentId) {
       throw new Error('Document ID is required');
     }
@@ -135,7 +142,12 @@ export class ReactionService {
     const commentPart = commentId ? `/comments/${commentId}` : '';
     const url = `${this.BASE_PATH}/${baseUrl}${commentPart}/flag/`;
 
-    const response = await ApiClient.post(url, { reason });
+    const payload: { reason: FlagReasonKey; reason_memo?: string } = { reason };
+    if (reasonMemo) {
+      payload.reason_memo = reasonMemo;
+    }
+
+    const response = await ApiClient.post(url, payload);
 
     return transformFlag(response);
   }

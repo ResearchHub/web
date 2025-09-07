@@ -9,6 +9,7 @@ import { FlagRadioGroup } from '@/components/ui/form/FlagRadioGroup';
 import { toast } from 'react-hot-toast';
 import { useFlag } from '@/hooks/useFlagging';
 import { ContentType } from '@/types/work';
+import { Textarea } from '@/components/ui/form/Textarea';
 
 interface FlagContentModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export function FlagContentModal({
   commentId,
 }: FlagContentModalProps) {
   const [selectedReason, setSelectedReason] = useState<FlagReasonKey | null>(null);
+  const [reasonMemo, setReasonMemo] = useState('');
   const [{ isLoading }, flag] = useFlag();
 
   const handleSubmit = async () => {
@@ -39,6 +41,7 @@ export function FlagContentModal({
         documentId,
         reason: selectedReason,
         commentId: commentId ? Number(commentId) : undefined,
+        reasonMemo: reasonMemo.trim(),
       });
       toast.success('Content reported successfully');
       onClose();
@@ -88,6 +91,26 @@ export function FlagContentModal({
                     onChange={(value) => setSelectedReason(value as FlagReasonKey)}
                     className="space-y-1.5"
                   />
+
+                  <div className="mt-4">
+                    <label htmlFor="reason-memo" className="block text-xs text-gray-600 mb-1">
+                      Additional information (optional)
+                    </label>
+                    <Textarea
+                      id="reason-memo"
+                      value={reasonMemo}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                        setReasonMemo(e.target.value)
+                      }
+                      placeholder="Provide more details..."
+                      className="w-full"
+                      rows={3}
+                      maxLength={1000}
+                    />
+                    <p className="text-xs text-gray-500 mt-1 text-right">
+                      {reasonMemo.length} / 1000
+                    </p>
+                  </div>
 
                   <div className="mt-5 flex justify-end gap-3">
                     <Button variant="ghost" size="sm" onClick={onClose}>
