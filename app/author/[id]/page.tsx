@@ -18,6 +18,13 @@ import AuthorProfile from './components/AuthorProfile';
 import { useAuthorPublications } from '@/hooks/usePublications';
 import { transformPublicationToFeedEntry } from '@/types/publication';
 import PinnedFundraise from './components/PinnedFundraise';
+import { Dialog, Transition } from '@headlessui/react';
+import { Fragment, useState, useEffect } from 'react';
+import { X, BookOpen, Check } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { AddPublicationsForm, STEP } from '@/components/modals/Verification/AddPublicationsForm';
+import { toast } from 'react-hot-toast';
+import { AddPublicationsModal } from '@/components/modals/AddPublicationsModal';
 
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
@@ -90,7 +97,17 @@ const TAB_TO_CONTRIBUTION_TYPE: Record<string, ContributionType> = {
   bounties: 'BOUNTY',
 };
 
-function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number }) {
+function AuthorTabs({
+  authorId,
+  isOwnProfile,
+  userId,
+  setIsAddPublicationsModalOpen,
+}: {
+  authorId: number;
+  isOwnProfile: boolean;
+  userId?: number;
+  setIsAddPublicationsModalOpen: (isOpen: boolean) => void;
+}) {
   const [isPending, startTransition] = useTransition();
   const tabs = [
     { id: 'contributions', label: 'Overview' },
@@ -143,7 +160,6 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
       if (publicationsError) {
         return <div>Error: {publicationsError.message}</div>;
       }
-
       // Filter out invalid publications
       const validPublications = publications.filter((publication) => {
         try {
@@ -157,6 +173,19 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
 
       return (
         <div>
+          {/* Add Publications Button - only show for own profile */}
+          {isOwnProfile && validPublications.length > 0 && (
+            <div className="mb-6 flex justify-end">
+              <Button
+                onClick={() => setIsAddPublicationsModalOpen(true)}
+                className="flex items-center gap-2"
+              >
+                <BookOpen className="h-4 w-4" />
+                Add Publications
+              </Button>
+            </div>
+          )}
+
           <FeedContent
             entries={
               isPending
@@ -173,7 +202,26 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
             isLoadingMore={isLoadingMorePublications}
             showBountySupportAndCTAButtons={false}
             showBountyDeadline={false}
-            noEntriesElement={<SearchEmpty title="No publications found." className="mb-10" />}
+            noEntriesElement={
+              isOwnProfile ? (
+                <div className="text-center py-8">
+                  <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No publications yet</h3>
+                  <p className="text-gray-600 mb-4">
+                    Add your published papers to showcase your research contributions.
+                  </p>
+                  <Button
+                    onClick={() => setIsAddPublicationsModalOpen(true)}
+                    className="flex items-center gap-2 mx-auto"
+                  >
+                    <BookOpen className="h-4 w-4" />
+                    Add Your First Publication
+                  </Button>
+                </div>
+              ) : (
+                <SearchEmpty title="No publications found." className="mb-10" />
+              )
+            }
             maxLength={150}
           />
         </div>
@@ -235,10 +283,12 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
 
 export default function AuthorProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
+  const router = useRouter();
   const { isLoading: isUserLoading, error: userError } = useUser();
   const authorId = toNumberOrNull(resolvedParams.id);
   const [{ author: user, isLoading, error }, refetchAuthorInfo] = useAuthorInfo(authorId);
   const { user: currentUser } = useUser();
+  const [isAddPublicationsModalOpen, setIsAddPublicationsModalOpen] = useState(false);
   // Determine if current user is a hub editor
   const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
   const [{ achievements, isLoading: isAchievementsLoading, error: achievementsError }] =
@@ -304,7 +354,27 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
           </Card>
         )}
       </div>
-      <AuthorTabs authorId={user.authorProfile.id} userId={user.authorProfile.userId} />
+      <AuthorTabs
+        authorId={user.authorProfile.id}
+        userId={user.authorProfile.userId}
+        isOwnProfile={currentUser?.authorProfile?.id === user.authorProfile.id}
+        setIsAddPublicationsModalOpen={setIsAddPublicationsModalOpen}
+      />
+
+      {/* Add Publications Modal */}
+      <AddPublicationsModal
+        isOpen={isAddPublicationsModalOpen}
+        onClose={() => setIsAddPublicationsModalOpen(false)}
+        onPublicationsAdded={() => {
+          toast.success('Publications added successfully!');
+          // Refresh the page data to reflect new publication status
+          if (typeof router.refresh === 'function') {
+            router.refresh();
+          } else if (typeof window !== 'undefined') {
+            window.location.reload();
+          }
+        }}
+      />
     </>
   );
 }

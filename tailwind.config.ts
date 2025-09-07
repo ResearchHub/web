@@ -7,7 +7,21 @@ export default {
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
-  safelist: ['md:max-w-md', 'md:max-w-lg'],
+  safelist: [
+    'md:!max-w-xs',
+    'md:!max-w-md',
+    'md:!max-w-lg',
+    'md:!max-w-xl',
+    'md:!max-w-2xl',
+    'md:!max-w-3xl',
+    'md:!max-w-4xl',
+    'md:!max-w-5xl',
+    'md:!max-w-6xl',
+    'md:!max-w-7xl',
+    'md:!max-w-full',
+    'md:!max-w-screen',
+    'md:!max-w-tablet',
+  ],
   darkMode: 'class',
   theme: {
     extend: {
