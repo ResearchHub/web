@@ -43,20 +43,19 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
       {/* Deadline information for open grants */}
       {isOpen && (
         <div className="text-sm text-gray-600 mt-1">
-          {/* Main deadline date */}
           <div className="flex items-center gap-1">
             <Clock size={14} className="text-gray-500" />
             <span>Closes {format(endDate, 'MMMM d, yyyy')}</span>
+            {/* Countdown timer when expiring soon */}
+            {expiringSoon && work.note?.post?.grant?.endDate && (
+              <>
+                <div className="h-4 w-px bg-gray-300" />
+                <span className="text-amber-600 font-medium">
+                  {formatDeadline(work.note.post.grant.endDate, 'grant')}
+                </span>
+              </>
+            )}
           </div>
-
-          {/* Countdown timer when expiring soon */}
-          {expiringSoon && work.note?.post?.grant?.endDate && (
-            <div className="mt-1">
-              <span className="text-amber-600 font-medium">
-                {formatDeadline(work.note.post.grant.endDate, 'grant')}
-              </span>
-            </div>
-          )}
         </div>
       )}
       {!isOpen && (

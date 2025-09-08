@@ -42,6 +42,46 @@ export function formatTimestamp(timestamp: string): string {
 }
 
 /**
+ * Gets terminology mapping for different deadline types
+ */
+function getTerminology(type: 'bounty' | 'grant') {
+  return {
+    pastTense: type === 'grant' ? 'Closed' : 'Ended',
+    presentTense: type === 'grant' ? 'Closes' : 'Ends',
+    pastToday: type === 'grant' ? 'Closed today' : 'Ended today',
+    presentToday: type === 'grant' ? 'Closes today' : 'Ends today',
+    presentTomorrow: type === 'grant' ? 'Closes tomorrow' : 'Ends tomorrow',
+  };
+}
+
+/**
+ * Formats countdown for same-day deadlines
+ */
+function formatSameDayCountdown(
+  deadlineDate: dayjs.Dayjs,
+  now: dayjs.Dayjs,
+  terminology: ReturnType<typeof getTerminology>
+): string {
+  const diffMs = deadlineDate.diff(now);
+  if (diffMs < 0) {
+    return terminology.pastToday;
+  }
+
+  const diffHours = deadlineDate.diff(now, 'hour');
+  const diffMinutes = deadlineDate.diff(now, 'minute');
+
+  // Show countdown for same-day deadlines within 24 hours
+  if (diffHours >= 0 && diffHours < 24) {
+    if (diffHours === 0) {
+      return `${terminology.presentTense} in ${diffMinutes}m`;
+    }
+    return `${terminology.presentTense} in ${diffHours}h`;
+  }
+
+  return terminology.presentToday;
+}
+
+/**
  * Formats a deadline timestamp into a human-readable countdown string
  *
  * This function provides consistent deadline formatting across the application,
@@ -61,17 +101,7 @@ export function formatDeadline(deadline: string, type: 'bounty' | 'grant' = 'bou
   const now = dayjs();
   const deadlineDate = dayjs(deadline);
   const diffDays = deadlineDate.diff(now, 'day');
-  const diffHours = deadlineDate.diff(now, 'hour');
-  const diffMinutes = deadlineDate.diff(now, 'minute');
-
-  // Terminology mapping for different deadline types
-  const terminology = {
-    pastTense: type === 'grant' ? 'Closed' : 'Ended',
-    presentTense: type === 'grant' ? 'Closes' : 'Ends',
-    pastToday: type === 'grant' ? 'Closed today' : 'Ended today',
-    presentToday: type === 'grant' ? 'Closes today' : 'Ends today',
-    presentTomorrow: type === 'grant' ? 'Closes tomorrow' : 'Ends tomorrow',
-  };
+  const terminology = getTerminology(type);
 
   // Handle past deadlines
   if (diffDays < 0) {
@@ -80,23 +110,7 @@ export function formatDeadline(deadline: string, type: 'bounty' | 'grant' = 'bou
 
   // Handle same-day deadlines
   if (diffDays === 0) {
-    const diffMs = deadlineDate.diff(now);
-    if (diffMs < 0) {
-      return terminology.pastToday;
-    }
-
-    // Show countdown for same-day deadlines within 24 hours
-    if (diffHours >= 0 && diffHours < 24) {
-      if (diffHours === 0) {
-        // Under 1 hour: show minutes
-        return `${terminology.presentTense} in ${diffMinutes}m`;
-      } else {
-        // 1+ hours: show hours only
-        return `${terminology.presentTense} in ${diffHours}h`;
-      }
-    }
-
-    return terminology.presentToday;
+    return formatSameDayCountdown(deadlineDate, now, terminology);
   }
 
   // Handle future deadlines

@@ -94,7 +94,6 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
   // Calculate status and deadline
   const isOpen = grant.grant?.status === 'OPEN' && !grant.grant?.isExpired;
   const deadline = grant.grant?.endDate;
-  const daysLeft = deadline ? differenceInCalendarDays(new Date(deadline), new Date()) : null;
   const expiringSoon = isExpiringSoon(deadline, 1); // Use 1-day threshold for grants
 
   // Prepare applicants data
