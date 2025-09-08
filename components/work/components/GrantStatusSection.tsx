@@ -40,16 +40,17 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
         <span>{isOpen ? 'Accepting Applications' : 'Closed'}</span>
       </div>
       {isOpen && (
-        <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-          <Clock size={14} className="text-gray-500" />
-          <span>Closes {format(endDate, 'MMMM d, yyyy')}</span>
+        <div className="text-sm text-gray-600 mt-1">
+          <div className="flex items-center gap-1">
+            <Clock size={14} className="text-gray-500" />
+            <span>Closes {format(endDate, 'MMMM d, yyyy')}</span>
+          </div>
           {expiringSoon && work.note?.post?.grant?.endDate && (
-            <>
-              <div className="h-4 w-px bg-gray-300" />
+            <div className="mt-1">
               <span className="text-amber-600 font-medium">
                 {formatDeadline(work.note.post.grant.endDate, 'grant')}
               </span>
-            </>
+            </div>
           )}
         </div>
       )}
