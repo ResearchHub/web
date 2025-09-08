@@ -141,7 +141,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
         user={author.user}
         actionText={isReview ? `submitted a peer review` : 'added a comment'}
         work={entry.relatedWork}
-        aiScore={(entry.content as any).comment.aiScore || -1}
+        aiScore={comment.aiScore ?? -1}
       />
       {showLegacyCommentBanner && (
         <LegacyCommentBanner

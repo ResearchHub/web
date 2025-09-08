@@ -71,7 +71,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   twitterMentions = 0,
   newsMentions = 0,
   altmetricScore,
-  aiScore = null,
+  aiScore = -1,
 }) => {
   // Format date consistently
   const formattedDate = timestamp instanceof Date ? timestamp : new Date(timestamp);
