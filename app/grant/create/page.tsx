@@ -54,8 +54,8 @@ export default function CreateGrantPage() {
       <div className="w-full max-w-3xl mx-auto space-y-8 py-8">
         <div className="text-center pb-8">
           <div className="flex flex-col items-center gap-3">
-            <h1 className="text-4xl font-bold text-gray-900">Open a Grant</h1>
-            <p className="text-lg text-gray-600">Accelerate scientific research with a grant.</p>
+            <h1 className="text-4xl font-bold text-gray-900">Open an RFP</h1>
+            <p className="text-lg text-gray-600">Accelerate scientific research with an RFP.</p>
           </div>
         </div>
 
@@ -74,7 +74,7 @@ export default function CreateGrantPage() {
             <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-1 rounded-xl shadow-lg my-8">
               <div className="bg-white p-6 md:p-8 rounded-lg space-y-6">
                 <h2 className="text-3xl font-bold text-center text-gray-800">
-                  Why Fund with ResearchHub Grants?
+                  Why fund with ResearchHub RFPs?
                 </h2>
                 <div className="grid md:grid-cols-2 gap-x-6 gap-y-8">
                   {[
@@ -125,7 +125,7 @@ export default function CreateGrantPage() {
                     },
                     {
                       title: 'Expert Support',
-                      text: 'We assign a dedicated contact person to ensure your grant process is smooth and successful.',
+                      text: 'We assign a dedicated contact person to ensure your RFP process is smooth and successful.',
                       iconName: 'LifeBuoy',
                       style: {
                         iconColor: 'text-black-500',
