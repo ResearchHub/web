@@ -11,6 +11,7 @@ interface GrantStatusSectionProps {
 }
 
 export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
+  // Handle missing deadline gracefully
   if (!work.note?.post?.grant?.endDate) {
     return (
       <div>
@@ -27,7 +28,7 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
   const isClosedByDate = differenceInCalendarDays(endDate, new Date()) < 0;
   const isOpen = work.note?.post?.grant?.status === 'OPEN' && !isClosedByDate;
 
-  // Check if we should show countdown (within 1 day for grants)
+  // Show countdown when grant expires within 24 hours
   const expiringSoon = isExpiringSoon(work.note?.post?.grant?.endDate, 1);
 
   return (
@@ -39,12 +40,16 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
         />
         <span>{isOpen ? 'Accepting Applications' : 'Closed'}</span>
       </div>
+      {/* Deadline information for open grants */}
       {isOpen && (
         <div className="text-sm text-gray-600 mt-1">
+          {/* Main deadline date */}
           <div className="flex items-center gap-1">
             <Clock size={14} className="text-gray-500" />
             <span>Closes {format(endDate, 'MMMM d, yyyy')}</span>
           </div>
+
+          {/* Countdown timer when expiring soon */}
           {expiringSoon && work.note?.post?.grant?.endDate && (
             <div className="mt-1">
               <span className="text-amber-600 font-medium">

@@ -42,10 +42,20 @@ export function formatTimestamp(timestamp: string): string {
 }
 
 /**
- * Formats a deadline timestamp into a human-readable string
- * @param deadline ISO timestamp string
+ * Formats a deadline timestamp into a human-readable countdown string
+ *
+ * This function provides consistent deadline formatting across the application,
+ * supporting both bounty and grant terminology with appropriate countdown displays.
+ *
+ * @param deadline ISO timestamp string of the deadline
  * @param type Type of deadline - 'bounty' or 'grant' (default: 'bounty')
- * @returns Formatted deadline string (e.g. "Ended", "Ends today", "5 days left", etc.)
+ * @returns Formatted deadline string with countdown logic:
+ *   - Under 1 hour: Shows minutes (e.g., "Closes in 30m")
+ *   - 1-23 hours: Shows hours (e.g., "Closes in 3h")
+ *   - 1 day: Shows "Closes tomorrow"
+ *   - 2-29 days: Shows "X days left"
+ *   - 30+ days: Shows full date
+ *   - Past deadline: Shows "Closed" or "Ended"
  */
 export function formatDeadline(deadline: string, type: 'bounty' | 'grant' = 'bounty'): string {
   const now = dayjs();
@@ -54,36 +64,52 @@ export function formatDeadline(deadline: string, type: 'bounty' | 'grant' = 'bou
   const diffHours = deadlineDate.diff(now, 'hour');
   const diffMinutes = deadlineDate.diff(now, 'minute');
 
-  // Choose terminology based on type
-  const pastTense = type === 'grant' ? 'Closed' : 'Ended';
-  const presentTense = type === 'grant' ? 'Closes' : 'Ends';
-  const pastToday = type === 'grant' ? 'Closed today' : 'Ended today';
-  const presentToday = type === 'grant' ? 'Closes today' : 'Ends today';
-  const presentTomorrow = type === 'grant' ? 'Closes tomorrow' : 'Ends tomorrow';
+  // Terminology mapping for different deadline types
+  const terminology = {
+    pastTense: type === 'grant' ? 'Closed' : 'Ended',
+    presentTense: type === 'grant' ? 'Closes' : 'Ends',
+    pastToday: type === 'grant' ? 'Closed today' : 'Ended today',
+    presentToday: type === 'grant' ? 'Closes today' : 'Ends today',
+    presentTomorrow: type === 'grant' ? 'Closes tomorrow' : 'Ends tomorrow',
+  };
 
+  // Handle past deadlines
   if (diffDays < 0) {
-    return pastTense;
-  } else if (diffDays === 0) {
+    return terminology.pastTense;
+  }
+
+  // Handle same-day deadlines
+  if (diffDays === 0) {
     const diffMs = deadlineDate.diff(now);
     if (diffMs < 0) {
-      return pastToday;
-    } else if (diffHours >= 0 && diffHours < 24) {
-      // Show countdown in minutes when under 1 hour, hours when 1+ hours
-      if (diffHours === 0) {
-        return `${presentTense} in ${diffMinutes}m`;
-      } else {
-        return `${presentTense} in ${diffHours}h`;
-      }
-    } else {
-      return presentToday;
+      return terminology.pastToday;
     }
-  } else if (diffDays === 1) {
-    return presentTomorrow;
-  } else if (diffDays < 30) {
-    return `${diffDays} days left`;
-  } else {
-    return `${presentTense} ${formatTimestamp(deadline)}`;
+
+    // Show countdown for same-day deadlines within 24 hours
+    if (diffHours >= 0 && diffHours < 24) {
+      if (diffHours === 0) {
+        // Under 1 hour: show minutes
+        return `${terminology.presentTense} in ${diffMinutes}m`;
+      } else {
+        // 1+ hours: show hours only
+        return `${terminology.presentTense} in ${diffHours}h`;
+      }
+    }
+
+    return terminology.presentToday;
   }
+
+  // Handle future deadlines
+  if (diffDays === 1) {
+    return terminology.presentTomorrow;
+  }
+
+  if (diffDays < 30) {
+    return `${diffDays} days left`;
+  }
+
+  // Long-term deadlines: show full date
+  return `${terminology.presentTense} ${formatTimestamp(deadline)}`;
 }
 
 /**

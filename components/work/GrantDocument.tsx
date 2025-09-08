@@ -85,7 +85,7 @@ export const GrantDocument = ({
   const isClosedByDate = endDate ? differenceInCalendarDays(endDate, new Date()) < 0 : false;
   const isOpen = work.note?.post?.grant?.status === 'OPEN' && !isClosedByDate;
 
-  // Check if we should show countdown (within 1 day for grants)
+  // Show countdown when grant expires within 24 hours
   const expiringSoon = isExpiringSoon(work.note?.post?.grant?.endDate, 1);
 
   return (
@@ -120,12 +120,14 @@ export const GrantDocument = ({
                 className={`h-2 w-2 rounded-full ${isOpen ? 'bg-emerald-500' : 'bg-gray-400'} inline-block`}
               />
               <span>{isOpen ? 'Accepting Applications' : 'Closed'}</span>
+              {/* Deadline with countdown for open grants */}
               {endDate && isOpen && (
                 <>
                   <div className="h-4 w-px bg-gray-300" />
                   <span className="text-sm text-gray-600">
                     Closes on {format(endDate, 'MMMM d, yyyy')}
                   </span>
+                  {/* Show countdown when expiring soon */}
                   {expiringSoon && work.note?.post?.grant?.endDate && (
                     <>
                       <div className="h-4 w-px bg-gray-300" />
