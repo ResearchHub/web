@@ -44,33 +44,45 @@ export function formatTimestamp(timestamp: string): string {
 /**
  * Formats a deadline timestamp into a human-readable string
  * @param deadline ISO timestamp string
+ * @param type Type of deadline - 'bounty' or 'grant' (default: 'bounty')
  * @returns Formatted deadline string (e.g. "Ended", "Ends today", "5 days left", etc.)
  */
-export function formatDeadline(deadline: string): string {
+export function formatDeadline(deadline: string, type: 'bounty' | 'grant' = 'bounty'): string {
   const now = dayjs();
   const deadlineDate = dayjs(deadline);
   const diffDays = deadlineDate.diff(now, 'day');
+  const diffHours = deadlineDate.diff(now, 'hour');
+  const diffMinutes = deadlineDate.diff(now, 'minute');
+
+  // Choose terminology based on type
+  const pastTense = type === 'grant' ? 'Closed' : 'Ended';
+  const presentTense = type === 'grant' ? 'Closes' : 'Ends';
+  const pastToday = type === 'grant' ? 'Closed today' : 'Ended today';
+  const presentToday = type === 'grant' ? 'Closes today' : 'Ends today';
+  const presentTomorrow = type === 'grant' ? 'Closes tomorrow' : 'Ends tomorrow';
 
   if (diffDays < 0) {
-    return 'Ended';
+    return pastTense;
   } else if (diffDays === 0) {
     const diffMs = deadlineDate.diff(now);
-    const diffHours = deadlineDate.diff(now, 'hour');
     if (diffMs < 0) {
-      return 'Ended today';
-    } else if (diffHours === 0) {
-      return 'Ends in less than an hour';
-    } else if (diffHours > 0 && diffHours < 24) {
-      return `Ends in ${diffHours} hours`;
+      return pastToday;
+    } else if (diffHours >= 0 && diffHours < 24) {
+      // Show countdown in minutes when under 1 hour, hours when 1+ hours
+      if (diffHours === 0) {
+        return `${presentTense} in ${diffMinutes}m`;
+      } else {
+        return `${presentTense} in ${diffHours}h`;
+      }
     } else {
-      return 'Ends today';
+      return presentToday;
     }
   } else if (diffDays === 1) {
-    return 'Ends tomorrow';
+    return presentTomorrow;
   } else if (diffDays < 30) {
     return `${diffDays} days left`;
   } else {
-    return `Ends ${formatTimestamp(deadline)}`;
+    return `${presentTense} ${formatTimestamp(deadline)}`;
   }
 }
 

@@ -3,6 +3,8 @@
 import { Work } from '@/types/work';
 import { differenceInCalendarDays, format } from 'date-fns';
 import { Clock } from 'lucide-react';
+import { formatDeadline } from '@/utils/date';
+import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
 
 interface GrantStatusSectionProps {
   work: Work;
@@ -25,6 +27,9 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
   const isClosedByDate = differenceInCalendarDays(endDate, new Date()) < 0;
   const isOpen = work.note?.post?.grant?.status === 'OPEN' && !isClosedByDate;
 
+  // Check if we should show countdown (within 1 day for grants)
+  const expiringSoon = isExpiringSoon(work.note?.post?.grant?.endDate, 1);
+
   return (
     <div>
       <h3 className="text-base font-semibold text-gray-900 mb-2">Status</h3>
@@ -38,6 +43,14 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
         <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
           <Clock size={14} className="text-gray-500" />
           <span>Closes {format(endDate, 'MMMM d, yyyy')}</span>
+          {expiringSoon && work.note?.post?.grant?.endDate && (
+            <>
+              <div className="h-4 w-px bg-gray-300" />
+              <span className="text-amber-600 font-medium">
+                {formatDeadline(work.note.post.grant.endDate, 'grant')}
+              </span>
+            </>
+          )}
         </div>
       )}
       {!isOpen && (

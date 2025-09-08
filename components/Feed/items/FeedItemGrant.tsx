@@ -20,6 +20,8 @@ import { Building, Calendar } from 'lucide-react';
 import { differenceInCalendarDays, format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/icons/Icon';
+import { formatDeadline } from '@/utils/date';
+import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
 
 // Grant-specific content type that extends the feed entry structure
 export interface FeedGrantContent {
@@ -93,7 +95,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
   const isOpen = grant.grant?.status === 'OPEN' && !grant.grant?.isExpired;
   const deadline = grant.grant?.endDate;
   const daysLeft = deadline ? differenceInCalendarDays(new Date(deadline), new Date()) : null;
-  const isExpiringSoon = daysLeft !== null && daysLeft <= 7 && daysLeft > 0;
+  const expiringSoon = isExpiringSoon(deadline, 1); // Use 1-day threshold for grants
 
   // Prepare applicants data
   const applicants = grant.grant?.applicants || [];
@@ -203,9 +205,17 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
               <MetadataSection>
                 <div className="flex items-center gap-1.5 text-sm mb-3">
                   <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                  <span className={isExpiringSoon ? 'text-amber-600' : 'text-gray-500'}>
+                  <span className="text-gray-500">
                     Apply by: {format(new Date(deadline), 'MMM d, yyyy')}
                   </span>
+                  {expiringSoon && (
+                    <>
+                      <div className="h-4 w-px bg-gray-300" />
+                      <span className="text-amber-600 font-medium">
+                        {formatDeadline(deadline, 'grant')}
+                      </span>
+                    </>
+                  )}
                 </div>
               </MetadataSection>
             )}
@@ -243,11 +253,6 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
                 >
                   Apply
                 </button>
-                {isExpiringSoon && daysLeft !== null && (
-                  <span className="text-sm text-amber-600 font-medium">
-                    {daysLeft} day{daysLeft !== 1 ? 's' : ''} left
-                  </span>
-                )}
               </CTASection>
             )}
           </>

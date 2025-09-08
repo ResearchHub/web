@@ -10,6 +10,8 @@ import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { GrantApplications } from './GrantApplications';
 import { differenceInCalendarDays, format } from 'date-fns';
 import { PostBlockEditor } from './PostBlockEditor';
+import { formatDeadline } from '@/utils/date';
+import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
 
 interface GrantDocumentProps {
   work: Work;
@@ -83,6 +85,9 @@ export const GrantDocument = ({
   const isClosedByDate = endDate ? differenceInCalendarDays(endDate, new Date()) < 0 : false;
   const isOpen = work.note?.post?.grant?.status === 'OPEN' && !isClosedByDate;
 
+  // Check if we should show countdown (within 1 day for grants)
+  const expiringSoon = isExpiringSoon(work.note?.post?.grant?.endDate, 1);
+
   return (
     <div>
       <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-2" />
@@ -118,9 +123,17 @@ export const GrantDocument = ({
               {endDate && isOpen && (
                 <>
                   <div className="h-4 w-px bg-gray-300" />
-                  <span className="text-gray-600 text-sm">
+                  <span className="text-sm text-gray-600">
                     Closes on {format(endDate, 'MMMM d, yyyy')}
                   </span>
+                  {expiringSoon && work.note?.post?.grant?.endDate && (
+                    <>
+                      <div className="h-4 w-px bg-gray-300" />
+                      <span className="text-sm text-amber-600 font-medium">
+                        {formatDeadline(work.note.post.grant.endDate, 'grant')}
+                      </span>
+                    </>
+                  )}
                 </>
               )}
               {!isOpen && endDate && (
