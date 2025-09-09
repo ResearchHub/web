@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAudit, AuditStatus } from '@/hooks/useAudit';
 import { AuditContent } from '@/components/Moderators/AuditContent';
 import { AuditTabs } from '@/components/Moderators/AuditTabs';
