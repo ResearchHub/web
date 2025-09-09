@@ -17,7 +17,7 @@ import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Building, Calendar } from 'lucide-react';
-import { differenceInCalendarDays, format } from 'date-fns';
+import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/icons/Icon';
 import { formatDeadline } from '@/utils/date';
@@ -205,8 +205,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
                 <div className="flex items-center gap-1.5 text-sm mb-3">
                   <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
                   <span className="text-gray-500">
-                    Apply by: {format(new Date(deadline), 'MMM d, yyyy')} at{' '}
-                    {format(new Date(deadline), 'h:mm a')}
+                    Apply by: {format(new Date(deadline), 'MMM d, yyyy')}
                   </span>
                   {expiringSoon && (
                     <>
