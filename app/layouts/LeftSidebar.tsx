@@ -41,7 +41,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false 
   const minimizeClass = forceMinimize ? 'minimized-sidebar' : '';
 
   return (
-    <div className={`h-full flex flex-col z-50 bg-white overflow-hidden ${minimizeClass}`}>
+    <div className={`h-full flex flex-col z-50 bg-white overflow-hidden min-h-0 ${minimizeClass}`}>
       <div
         className={`p-4 pl-4 ${forceMinimize ? '!flex !justify-center' : 'tablet:max-sidebar-compact:!flex tablet:max-sidebar-compact:!justify-center'}`}
       >
@@ -59,7 +59,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false 
         <PublishMenu forceMinimize={forceMinimize} />
       </div>
 
-      <div className="flex-1 mt-2 overflow-y-auto">
+      <div className="flex-1 mt-2 overflow-y-auto overscroll-contain touch-pan-y min-h-0">
         <div
           className={`px-4 py-4 ${forceMinimize ? '!px-2' : 'tablet:max-sidebar-compact:!px-2'}`}
         >
