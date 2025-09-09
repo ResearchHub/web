@@ -45,7 +45,9 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
         <div className="text-sm text-gray-600 mt-1">
           <div className="flex items-center gap-1">
             <Clock size={14} className="text-gray-500" />
-            <span>Closes {format(endDate, 'MMMM d, yyyy')}</span>
+            <span>
+              Closes on {format(endDate, 'MMMM d, yyyy')} at {format(endDate, 'h:mm a')}
+            </span>
             {/* Countdown timer when expiring soon */}
             {expiringSoon && work.note?.post?.grant?.endDate && (
               <>
@@ -61,7 +63,9 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
       {!isOpen && (
         <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
           <Clock size={14} className="text-gray-500" />
-          <span>Closed on {format(endDate, 'MMMM d, yyyy')}</span>
+          <span>
+            Closed on {format(endDate, 'MMMM d, yyyy')} at {format(endDate, 'h:mm a')}
+          </span>
         </div>
       )}
     </div>

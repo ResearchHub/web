@@ -205,7 +205,8 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
                 <div className="flex items-center gap-1.5 text-sm mb-3">
                   <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
                   <span className="text-gray-500">
-                    Apply by: {format(new Date(deadline), 'MMM d, yyyy')}
+                    Apply by: {format(new Date(deadline), 'MMM d, yyyy')} at{' '}
+                    {format(new Date(deadline), 'h:mm a')}
                   </span>
                   {expiringSoon && (
                     <>
