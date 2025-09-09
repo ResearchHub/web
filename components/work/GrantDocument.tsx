@@ -99,13 +99,13 @@ export const GrantDocument = ({
         {work.note?.post?.grant?.amount && work.note?.post?.grant?.currency && (
           <div className="flex items-start">
             <span className="font-medium text-gray-900 w-28">Amount</span>
-            <div className="flex flex-row items-center gap-2">
+            <div className="space-y-1 md:space-y-0 md:flex md:items-center md:gap-2">
               <div className="font-semibold text-orange-500 flex items-center gap-1">
                 <span>$</span>
                 {(work.note?.post?.grant?.amount.usd || 0).toLocaleString()}
                 <span>USD</span>
               </div>
-              <div className="h-4 w-px bg-gray-300" />
+              <div className="hidden md:block h-4 w-px bg-gray-300" />
               <div className="text-sm text-gray-600">Multiple applicants can be selected</div>
             </div>
           </div>
@@ -115,36 +115,38 @@ export const GrantDocument = ({
         <div className="flex items-start">
           <span className="font-medium text-gray-900 w-28">Status</span>
           <div className="flex-1 text-sm">
-            <div className="flex items-center gap-2 text-gray-800">
-              <span
-                className={`h-2 w-2 rounded-full ${isOpen ? 'bg-emerald-500' : 'bg-gray-400'} inline-block`}
-              />
-              <span>{isOpen ? 'Accepting Applications' : 'Closed'}</span>
-              {/* Deadline with countdown for open grants */}
+            <div className="space-y-2">
+              {/* Status line */}
+              <div className="flex items-center gap-2 text-gray-800">
+                <span
+                  className={`h-2 w-2 rounded-full ${isOpen ? 'bg-emerald-500' : 'bg-gray-400'} inline-block`}
+                />
+                <span>{isOpen ? 'Accepting Applications' : 'Closed'}</span>
+              </div>
+
+              {/* Deadline and countdown - stack on mobile */}
               {endDate && isOpen && (
-                <>
-                  <div className="h-4 w-px bg-gray-300" />
+                <div className="space-y-1 md:space-y-0 md:flex md:items-center md:gap-2">
                   <span className="text-sm text-gray-600">
                     Closes on {format(endDate, 'MMMM d, yyyy')} at {format(endDate, 'h:mm a')}
                   </span>
                   {/* Show countdown when expiring soon */}
                   {expiringSoon && work.note?.post?.grant?.endDate && (
                     <>
-                      <div className="h-4 w-px bg-gray-300" />
+                      <div className="hidden md:block h-4 w-px bg-gray-300" />
                       <span className="text-sm text-amber-600 font-medium">
                         {formatDeadline(work.note.post.grant.endDate)}
                       </span>
                     </>
                   )}
-                </>
+                </div>
               )}
+
+              {/* Closed grant deadline */}
               {!isOpen && endDate && (
-                <>
-                  <div className="h-4 w-px bg-gray-300" />
-                  <span className="text-gray-600 text-sm">
-                    Closed on {format(endDate, 'MMMM d, yyyy')} at {format(endDate, 'h:mm a')}
-                  </span>
-                </>
+                <span className="text-gray-600 text-sm">
+                  Closed on {format(endDate, 'MMMM d, yyyy')} at {format(endDate, 'h:mm a')}
+                </span>
               )}
             </div>
           </div>
