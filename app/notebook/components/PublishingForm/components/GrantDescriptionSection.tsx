@@ -15,7 +15,7 @@ export function GrantDescriptionSection() {
       <div className="mt-2">
         <Textarea
           {...register('shortDescription')}
-          placeholder="Describe what this grant is for and what you're looking to fund"
+          placeholder="Describe what this RFP is for and what you're looking to fund"
           error={errors.shortDescription?.message?.toString()}
           required
         />
