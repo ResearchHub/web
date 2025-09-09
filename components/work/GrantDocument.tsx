@@ -128,7 +128,7 @@ export const GrantDocument = ({
               {endDate && isOpen && (
                 <div className="space-y-1 md:space-y-0 md:flex md:items-center md:gap-2">
                   <span className="text-sm text-gray-600">
-                    Closes on {format(endDate, 'MMMM d, yyyy')} at {format(endDate, 'h:mm a')}
+                    Closes {format(endDate, 'MMMM d, yyyy')} at {format(endDate, 'h:mm a')}
                   </span>
                   {/* Show countdown when expiring soon */}
                   {expiringSoon && work.note?.post?.grant?.endDate && (

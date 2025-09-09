@@ -41,7 +41,7 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
           <div className="flex items-center gap-1">
             <Clock size={14} className="text-gray-500" />
             <span>
-              Closes on {format(endDate, 'MMMM d, yyyy')} at {format(endDate, 'h:mm a')}
+              Closes {format(endDate, 'MMMM d, yyyy')} at {format(endDate, 'h:mm a')}
             </span>
           </div>
         </div>
