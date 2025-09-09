@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import { invalidateOrcidCache } from '@/hooks/useOrcid';
 
 export function OrcidSyncToastListener() {
   const search = useSearchParams();
@@ -15,6 +16,8 @@ export function OrcidSyncToastListener() {
 
     if (flag === 'ok') {
       toast.success("Sync started! We'll refresh your authorship shortly.");
+      // Invalidate ORCID cache after successful sync
+      invalidateOrcidCache();
     } else if (flag === 'fail') {
       // Check if there's a specific error message in the URL
       const errorMessage = search.get('error');
@@ -25,6 +28,8 @@ export function OrcidSyncToastListener() {
       } else {
         toast.error('ORCID sync failed.');
       }
+      // Also invalidate cache on failure to refresh status
+      invalidateOrcidCache();
     }
 
     // strip the orcid_sync and error params

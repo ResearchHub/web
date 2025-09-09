@@ -5,27 +5,27 @@ import { X, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faOrcid } from '@fortawesome/free-brands-svg-icons';
-import { checkOrcidAuth, triggerOrcidSync, redirectToOrcidLogin } from '@/services/orcid.service';
-import { toast } from 'react-hot-toast';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
+import { useOrcid, invalidateOrcidCache } from '@/hooks/useOrcid';
 
 export function OrcidSyncBanner() {
   const { isDismissed, dismissFeature, dismissStatus } = useDismissableFeature('orcid_sync_banner');
+  const { status, isLoading: statusLoading, sync, connect } = useOrcid();
   const [loading, setLoading] = useState(false);
+
   if (dismissStatus !== 'checked' || isDismissed) return null;
+
   const onClick = async () => {
     setLoading(true);
     try {
-      const ok = await checkOrcidAuth();
-      if (ok) {
-        await triggerOrcidSync();
-        toast.success('Sync started! We’ll refresh your authorship shortly.');
+      if (status.isConnected) {
+        await sync();
         dismissFeature();
+        // Invalidate cache after successful sync
+        invalidateOrcidCache();
       } else {
-        await redirectToOrcidLogin(window.location.href);
+        await connect();
       }
-    } catch {
-      toast.error('Could not start ORCID sync. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -70,7 +70,11 @@ export function OrcidSyncBanner() {
             className="w-full sm:w-auto bg-[#A6CE39] hover:bg-[#95BC33] text-white focus-visible:ring-[#A6CE39]"
           >
             <RefreshCw className="h-4 w-4 mr-3 text-white" />
-            {loading ? 'Checking…' : 'Sync with ORCID'}
+            {loading || statusLoading
+              ? 'Checking…'
+              : status.isConnected
+                ? 'Sync with ORCID'
+                : 'Connect ORCID'}
           </Button>
         </div>
       </div>

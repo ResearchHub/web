@@ -7,6 +7,13 @@ interface OrcidCheckResponse {
   error: string | null;
 }
 
+interface OrcidStatus {
+  isConnected: boolean;
+  orcidId: string | null;
+  needsReauth: boolean;
+  error: string | null;
+}
+
 interface OrcidAuthUrlResponse {
   auth_url: string;
   user_id: number;
@@ -20,6 +27,27 @@ export async function checkOrcidAuth(): Promise<boolean> {
   } catch (error) {
     console.error('Failed to check ORCID auth status:', error);
     return false;
+  }
+}
+
+/** Returns detailed ORCID status information for enhanced UI states. */
+export async function getOrcidStatus(): Promise<OrcidStatus> {
+  try {
+    const res = await ApiClient.get<OrcidCheckResponse>('/api/orcid/check');
+    return {
+      isConnected: res.authenticated && !res.needs_reauth,
+      orcidId: res.orcid_id,
+      needsReauth: res.needs_reauth,
+      error: res.error,
+    };
+  } catch (error) {
+    console.error('Failed to get ORCID status:', error);
+    return {
+      isConnected: false,
+      orcidId: null,
+      needsReauth: false,
+      error: 'Failed to check ORCID status',
+    };
   }
 }
 
