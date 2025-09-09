@@ -12,12 +12,61 @@ import { useState, useEffect } from 'react';
 import SortDropdown, { SortOption } from '@/components/ui/SortDropdown';
 import { HubsSelector, HubsSelected, Hub } from '@/components/Hub/HubSelector';
 
+const SORT_OPTIONS_MAP: Record<MarketplaceTab, SortOption[]> = {
+  grants: [
+    { value: 'grants__amount', label: 'Amount' },
+    { value: 'newest', label: 'Created date' },
+    { value: 'end_date', label: 'Expiring soon' },
+    { value: 'application_count', label: 'Most applications' },
+  ],
+  'needs-funding': [
+    { value: 'newest', label: 'Created date' },
+    { value: 'hot_score', label: 'Popular' },
+    { value: 'upvotes', label: 'Most upvoted' },
+    { value: 'amount_raised', label: 'Amount raised' },
+    { value: 'goal_amount', label: 'Goal' },
+    { value: 'end_date', label: 'Expiring soon' },
+    { value: 'review_count', label: 'Most reviews' },
+  ],
+  'previously-funded': [
+    { value: 'goal_amount', label: 'Goal' },
+    { value: 'amount_raised', label: 'Amount raised' },
+    { value: 'newest', label: 'Created date' },
+  ],
+};
+
+const DEFAULT_SORT_MAP: Record<MarketplaceTab, string> = {
+  grants: 'end_date',
+  'needs-funding': 'end_date',
+  'previously-funded': 'newest',
+};
+
+// Needs replaced with getPageInfo from layouts/TopBar.tsx
+const PAGE_TITLE_MAP: Record<MarketplaceTab, string> = {
+  grants: 'Request for Proposals',
+  'needs-funding': 'Proposals',
+  'previously-funded': 'Previously Funded',
+};
+
+// Needs replaced with getPageInfo from layouts/TopBar.tsx
+const PAGE_SUBTITLE_MAP: Record<MarketplaceTab, string> = {
+  grants: 'Explore available funding opportunities',
+  'needs-funding': 'Fund breakthrough research shaping tomorrow',
+  'previously-funded': 'Browse research that has been successfully funded',
+};
+
+const HUB_TYPE_MAP: Record<MarketplaceTab, 'grant' | 'needs-funding' | 'bounty' | undefined> = {
+  grants: 'grant',
+  'needs-funding': 'needs-funding',
+  'previously-funded': 'bounty',
+};
+
 interface FundPageContentProps {
   marketplaceTab: MarketplaceTab;
 }
 
 export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
-  const [sort, setSort] = useState<string>('-created_date');
+  const [sort, setSort] = useState<string>(DEFAULT_SORT_MAP[marketplaceTab]);
   const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
   const [managedEntries, setManagedEntries] = useState<any[]>([]);
 
@@ -45,56 +94,6 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     refresh();
   }, [sort, selectedHubs]);
 
-  const getTitle = (tab: MarketplaceTab): string => {
-    switch (tab) {
-      case 'grants':
-        return 'Request for Proposals';
-      case 'needs-funding':
-        return 'Proposals';
-      case 'previously-funded':
-        return 'Previously Funded';
-      default:
-        return '';
-    }
-  };
-
-  const getSubtitle = (tab: MarketplaceTab): string => {
-    switch (tab) {
-      case 'grants':
-        return 'Explore available funding opportunities';
-      case 'needs-funding':
-        return 'Fund breakthrough research shaping tomorrow';
-      case 'previously-funded':
-        return 'Browse research that has been successfully funded';
-      default:
-        return '';
-    }
-  };
-
-  const getSortOptions = (tab: MarketplaceTab): SortOption[] => {
-    switch (tab) {
-      case 'grants':
-        return grantSortOptions;
-      case 'needs-funding':
-        return fundingProposalSortOption;
-      case 'previously-funded':
-        return previouslyFundedSortOptions;
-    }
-  };
-
-  const getHubType = (tab: MarketplaceTab): 'grant' | 'needs-funding' | 'bounty' | undefined => {
-    switch (tab) {
-      case 'grants':
-        return 'grant';
-      case 'needs-funding':
-        return 'needs-funding';
-      case 'previously-funded':
-        return 'bounty';
-      default:
-        return undefined;
-    }
-  };
-
   const handleHubsChange = (hubs: any[]) => {
     setSelectedHubs(hubs);
   };
@@ -107,14 +106,14 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
           <HubsSelector
             selectedHubs={selectedHubs}
             onChange={handleHubsChange}
-            hubType={getHubType(marketplaceTab)}
+            hubType={HUB_TYPE_MAP[marketplaceTab]}
           />
         </div>
         <div className="w-1/2 sm:!w-[160px] flex-1 sm:!flex-none pl-1 sm:!pl-0">
           <SortDropdown
             value={sort}
             onChange={(opt: SortOption) => setSort(opt.value)}
-            options={getSortOptions(marketplaceTab)}
+            options={SORT_OPTIONS_MAP[marketplaceTab]}
           />
         </div>
       </div>
@@ -125,36 +124,14 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     </div>
   );
 
+  // Special headers for mobile. Needs resolved with TopBar
   const header = (
     <MainPageHeader
       icon={<Icon name="solidHand" size={26} color="#3971ff" />}
-      title={getTitle(marketplaceTab)}
-      subtitle={getSubtitle(marketplaceTab)}
+      title={PAGE_TITLE_MAP[marketplaceTab]}
+      subtitle={PAGE_SUBTITLE_MAP[marketplaceTab]}
     />
   );
-
-  // Available sort options
-  const grantSortOptions = [
-    { value: '-unified_document__grants__amount', label: 'Amount' },
-    { value: '-created_date', label: 'Created date' },
-    { value: 'unified_document__grants__end_date', label: 'Expiring soon' },
-    { value: 'application_count', label: 'Most applications' },
-  ];
-
-  const fundingProposalSortOption = [
-    { value: '-unified_document__fundraises__goal_amount', label: 'Goal' },
-    { value: 'amount_raised', label: 'Amount raised' },
-    { value: '-created_date', label: 'Created date' },
-    { value: 'unified_document__fundraises__end_date', label: 'Expiring soon' },
-    { value: '-unified_document__hot_score', label: 'Popular' },
-    { value: 'review_count', label: 'Most reviews' },
-  ];
-
-  const previouslyFundedSortOptions = [
-    { value: '-unified_document__fundraises__goal_amount', label: 'Goal' },
-    { value: 'amount_raised', label: 'Amount raised' },
-    { value: '-created_date', label: 'Created date' },
-  ];
 
   const rightSidebar = marketplaceTab === 'grants' ? <GrantRightSidebar /> : <FundRightSidebar />;
 
