@@ -136,22 +136,24 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   // Available sort options
   const grantSortOptions = [
     { value: '-unified_document__grants__amount', label: 'Amount' },
-    { value: '-created_date', label: 'Created Date' },
+    { value: '-created_date', label: 'Created date' },
     { value: 'unified_document__grants__end_date', label: 'Expiring soon' },
+    { value: 'application_count', label: 'Most applications' },
   ];
 
   const fundingProposalSortOption = [
     { value: '-unified_document__fundraises__goal_amount', label: 'Goal' },
-    { value: 'amount_raised', label: 'Amount Raised' },
-    { value: '-created_date', label: 'Created Date' },
+    { value: 'amount_raised', label: 'Amount raised' },
+    { value: '-created_date', label: 'Created date' },
     { value: 'unified_document__fundraises__end_date', label: 'Expiring soon' },
     { value: '-unified_document__hot_score', label: 'Popular' },
+    { value: 'review_count', label: 'Most reviews' },
   ];
 
   const previouslyFundedSortOptions = [
     { value: '-unified_document__fundraises__goal_amount', label: 'Goal' },
-    { value: 'amount_raised', label: 'Amount Raised' },
-    { value: '-created_date', label: 'Created Date' },
+    { value: 'amount_raised', label: 'Amount raised' },
+    { value: '-created_date', label: 'Created date' },
   ];
 
   const rightSidebar = marketplaceTab === 'grants' ? <GrantRightSidebar /> : <FundRightSidebar />;
