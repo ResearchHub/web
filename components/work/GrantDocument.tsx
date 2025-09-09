@@ -134,7 +134,7 @@ export const GrantDocument = ({
                   {expiringSoon && work.note?.post?.grant?.endDate && (
                     <>
                       <div className="hidden md:block h-4 w-px bg-gray-300" />
-                      <span className="text-sm text-amber-600 font-medium">
+                      <span className="text-sm text-amber-600 font-medium block md:inline">
                         {formatDeadline(work.note.post.grant.endDate)}
                       </span>
                     </>
