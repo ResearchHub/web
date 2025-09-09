@@ -42,15 +42,15 @@ export function formatTimestamp(timestamp: string): string {
 }
 
 /**
- * Gets terminology mapping for different deadline types
+ * Gets consistent terminology for deadline formatting
  */
-function getTerminology(type: 'bounty' | 'grant') {
+function getTerminology() {
   return {
-    pastTense: type === 'grant' ? 'Closed' : 'Ended',
-    presentTense: type === 'grant' ? 'Closes' : 'Ends',
-    pastToday: type === 'grant' ? 'Closed today' : 'Ended today',
-    presentToday: type === 'grant' ? 'Closes today' : 'Ends today',
-    presentTomorrow: type === 'grant' ? 'Closes tomorrow' : 'Ends tomorrow',
+    pastTense: 'Ended',
+    presentTense: 'Ends',
+    pastToday: 'Ended today',
+    presentToday: 'Ends today',
+    presentTomorrow: 'Ends tomorrow',
   };
 }
 
@@ -70,38 +70,34 @@ function formatSameDayCountdown(
   const diffHours = deadlineDate.diff(now, 'hour');
   const diffMinutes = deadlineDate.diff(now, 'minute');
 
-  // Show countdown for same-day deadlines within 24 hours
-  if (diffHours >= 0 && diffHours < 24) {
-    if (diffHours === 0) {
-      return `${terminology.presentTense} in ${diffMinutes}m`;
-    }
-    return `${terminology.presentTense} in ${diffHours}h`;
+  // Show countdown for same-day deadlines
+  if (diffHours === 0) {
+    return `${terminology.presentTense} in ${diffMinutes}m`;
   }
 
-  return terminology.presentToday;
+  return `${terminology.presentTense} in ${diffHours}h`;
 }
 
 /**
  * Formats a deadline timestamp into a human-readable countdown string
  *
- * This function provides consistent deadline formatting across the application,
- * supporting both bounty and grant terminology with appropriate countdown displays.
+ * This function provides consistent deadline formatting across the application
+ * using unified "Ends" terminology for all deadline types.
  *
  * @param deadline ISO timestamp string of the deadline
- * @param type Type of deadline - 'bounty' or 'grant' (default: 'bounty')
  * @returns Formatted deadline string with countdown logic:
- *   - Under 1 hour: Shows minutes (e.g., "Closes in 30m")
- *   - 1-23 hours: Shows hours (e.g., "Closes in 3h")
- *   - 1 day: Shows "Closes tomorrow"
+ *   - Under 1 hour: Shows minutes (e.g., "Ends in 30m")
+ *   - 1-23 hours: Shows hours (e.g., "Ends in 3h")
+ *   - 1 day: Shows "Ends tomorrow"
  *   - 2-29 days: Shows "X days left"
  *   - 30+ days: Shows full date
- *   - Past deadline: Shows "Closed" or "Ended"
+ *   - Past deadline: Shows "Ended"
  */
-export function formatDeadline(deadline: string, type: 'bounty' | 'grant' = 'bounty'): string {
+export function formatDeadline(deadline: string): string {
   const now = dayjs();
   const deadlineDate = dayjs(deadline);
   const diffDays = deadlineDate.diff(now, 'day');
-  const terminology = getTerminology(type);
+  const terminology = getTerminology();
 
   // Handle past deadlines
   if (diffDays < 0) {

@@ -210,9 +210,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
                   {expiringSoon && (
                     <>
                       <div className="h-4 w-px bg-gray-300" />
-                      <span className="text-amber-600 font-medium">
-                        {formatDeadline(deadline, 'grant')}
-                      </span>
+                      <span className="text-amber-600 font-medium">{formatDeadline(deadline)}</span>
                     </>
                   )}
                 </div>

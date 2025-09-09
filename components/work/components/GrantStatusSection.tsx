@@ -51,7 +51,7 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
               <>
                 <div className="h-4 w-px bg-gray-300" />
                 <span className="text-amber-600 font-medium">
-                  {formatDeadline(work.note.post.grant.endDate, 'grant')}
+                  {formatDeadline(work.note.post.grant.endDate)}
                 </span>
               </>
             )}
