@@ -13,11 +13,24 @@ export function OrcidSyncToastListener() {
     const flag = search.get('orcid_sync');
     if (!flag) return;
 
-    if (flag === 'ok') toast.success('Sync started! We’ll refresh your authorship shortly.');
-    else toast.error('ORCID sync failed.');
+    if (flag === 'ok') {
+      toast.success("Sync started! We'll refresh your authorship shortly.");
+    } else if (flag === 'fail') {
+      // Check if there's a specific error message in the URL
+      const errorMessage = search.get('error');
+      if (errorMessage) {
+        // Decode the URL-encoded error message
+        const decodedError = decodeURIComponent(errorMessage);
+        toast.error(decodedError);
+      } else {
+        toast.error('ORCID sync failed.');
+      }
+    }
 
-    // strip the param
-    const entries = Array.from(search.entries()).filter(([k]) => k !== 'orcid_sync');
+    // strip the orcid_sync and error params
+    const entries = Array.from(search.entries()).filter(
+      ([k]) => k !== 'orcid_sync' && k !== 'error'
+    );
     const clean =
       pathname +
       (entries.length
