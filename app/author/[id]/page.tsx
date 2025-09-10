@@ -98,14 +98,14 @@ function AuthorTabs({
   authorId,
   isOwnProfile,
   userId,
-  setIsAddPublicationsModalOpen,
 }: {
   authorId: number;
   isOwnProfile: boolean;
   userId?: number;
-  setIsAddPublicationsModalOpen: (isOpen: boolean) => void;
 }) {
   const [isPending, startTransition] = useTransition();
+  const [isAddPublicationsModalOpen, setIsAddPublicationsModalOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const tabs = [
     { id: 'contributions', label: 'Overview' },
     { id: 'publications', label: 'Publications' },
@@ -140,9 +140,19 @@ function AuthorTabs({
     hasMore: hasMorePublications,
     loadMore: loadMorePublications,
     isLoadingMore: isLoadingMorePublications,
+    refresh: refreshPublications,
   } = useAuthorPublications({
     authorId,
   });
+
+  const handleRefreshPublications = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshPublications();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleTabChange = (tabId: string) => {
     startTransition(() => {
@@ -185,13 +195,13 @@ function AuthorTabs({
 
           <FeedContent
             entries={
-              isPending
+              isPending || isRefreshing
                 ? []
                 : validPublications.map((publication) =>
                     transformPublicationToFeedEntry(publication)
                   )
             }
-            isLoading={isPending || isPublicationsLoading}
+            isLoading={isPending || isPublicationsLoading || isRefreshing}
             hasMore={hasMorePublications}
             loadMore={loadMorePublications}
             showBountyFooter={false}
@@ -274,18 +284,27 @@ function AuthorTabs({
         className="border-b"
       />
       <div className="mt-6">{renderTabContent()}</div>
+
+      {/* Add Publications Modal */}
+      <AddPublicationsModal
+        isOpen={isAddPublicationsModalOpen}
+        onClose={() => setIsAddPublicationsModalOpen(false)}
+        onPublicationsAdded={() => {
+          toast.success('Publications added successfully!');
+          handleRefreshPublications(); // Use the wrapper function
+        }}
+      />
     </div>
   );
 }
 
 export default function AuthorProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
-  const router = useRouter();
   const { isLoading: isUserLoading, error: userError } = useUser();
   const authorId = toNumberOrNull(resolvedParams.id);
   const [{ author: user, isLoading, error }, refetchAuthorInfo] = useAuthorInfo(authorId);
   const { user: currentUser } = useUser();
-  const [isAddPublicationsModalOpen, setIsAddPublicationsModalOpen] = useState(false);
+
   // Determine if current user is a hub editor
   const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
   const [{ achievements, isLoading: isAchievementsLoading, error: achievementsError }] =
@@ -355,22 +374,6 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
         authorId={user.authorProfile.id}
         userId={user.authorProfile.userId}
         isOwnProfile={currentUser?.authorProfile?.id === user.authorProfile.id}
-        setIsAddPublicationsModalOpen={setIsAddPublicationsModalOpen}
-      />
-
-      {/* Add Publications Modal */}
-      <AddPublicationsModal
-        isOpen={isAddPublicationsModalOpen}
-        onClose={() => setIsAddPublicationsModalOpen(false)}
-        onPublicationsAdded={() => {
-          toast.success('Publications added successfully!');
-          // Refresh the page data to reflect new publication status
-          if (typeof router.refresh === 'function') {
-            router.refresh();
-          } else if (typeof window !== 'undefined') {
-            window.location.reload();
-          }
-        }}
       />
     </>
   );
