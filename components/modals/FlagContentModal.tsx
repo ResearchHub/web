@@ -76,7 +76,13 @@ export function FlagContentModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
+              <DialogPanel
+                className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all"
+                onKeyDownCapture={(e) => {
+                  // Prevent parent-level key handlers (e.g., space/enter blockers) from interfering with text input
+                  e.stopPropagation();
+                }}
+              >
                 <div className="p-6">
                   <DialogTitle as="h3" className="text-base font-semibold text-gray-900 mb-3">
                     Reporting content
@@ -102,6 +108,10 @@ export function FlagContentModal({
                       onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                         setReasonMemo(e.target.value)
                       }
+                      onKeyDown={(e) => {
+                        // Ensure default text entry behavior remains intact while isolating from parent handlers
+                        e.stopPropagation();
+                      }}
                       placeholder="Provide more details..."
                       className="w-full"
                       rows={3}
