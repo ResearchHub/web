@@ -147,8 +147,9 @@ export class ReactionService {
         reason_choice: reason,
         reason,
       };
-    if (reasonMemo && reasonMemo.trim()) {
-      payload.reason_memo = reasonMemo.trim();
+    const trimmedMemo = reasonMemo?.trim();
+    if (trimmedMemo) {
+      payload.reason_memo = trimmedMemo;
     }
 
     const response = await ApiClient.post(url, payload);
