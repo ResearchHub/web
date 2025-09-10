@@ -3,8 +3,8 @@ import { toast } from 'react-hot-toast';
 
 export async function isOrcidConnected(): Promise<boolean> {
   try {
-    const { authenticated, needs_reauth } = await ApiClient.post<any>('/api/orcid/check');
-    return authenticated && !needs_reauth;
+    const { connected, needs_reauth } = await ApiClient.post<any>('/api/orcid/check');
+    return connected && !needs_reauth;
   } catch {
     return false;
   }
