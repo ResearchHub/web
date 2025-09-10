@@ -102,10 +102,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     if (flag === 'ok') {
       toast.success("Sync started! We'll refresh your authorship shortly.");
     } else if (flag === 'fail') {
-      // Check if there's a specific error message in the URL
       const errorMessage = search.get('error');
       if (errorMessage) {
-        // Decode the URL-encoded error message
         const decodedError = decodeURIComponent(errorMessage);
         toast.error(decodedError);
       } else {
@@ -113,7 +111,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    // Strip the orcid_sync and error params
     const entries = Array.from(search.entries()).filter(
       ([k]) => k !== 'orcid_sync' && k !== 'error'
     );
@@ -123,7 +120,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
         ? '?' + entries.map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&')
         : '');
     router.replace(clean || pathname);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
