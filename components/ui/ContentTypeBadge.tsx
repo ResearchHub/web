@@ -136,7 +136,7 @@ export const ContentTypeBadge = ({
         className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
       >
         <Icon name="fund" size={16} color="#374151" />
-        <span>Grant</span>
+        <span>RFP</span>
       </Badge>
     );
 
@@ -151,7 +151,7 @@ export const ContentTypeBadge = ({
             <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center">
               <Icon name="fund" size={24} color="#059669" />
             </div>
-            <div>Available funding opportunities for researchers to apply for grants.</div>
+            <div>Request for proposals inviting researchers to apply for funding.</div>
           </div>
         }
         position="top"

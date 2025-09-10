@@ -34,9 +34,7 @@ export const AuditTabs: FC<AuditTabsProps> = ({
   statusCounts,
   loading,
 }) => {
-  // Temporarily disable 'removed' tab due to backend issues
-  const statuses: AuditStatus[] = ['pending', 'dismissed'];
-  const disabledStatuses: AuditStatus[] = ['removed'];
+  const statuses: AuditStatus[] = ['pending', 'dismissed', 'removed'];
 
   const tabs = [
     // Active tabs
@@ -57,26 +55,10 @@ export const AuditTabs: FC<AuditTabsProps> = ({
         </div>
       ),
     })),
-    // Disabled tabs
-    ...disabledStatuses.map((status) => ({
-      id: status,
-      label: (
-        <div className="flex items-center space-x-2 opacity-50">
-          <span>{statusLabels[status]}</span>
-          {statusCounts?.[status] !== undefined && (
-            <Badge className="text-xs bg-gray-200 text-gray-400">{statusCounts[status]}</Badge>
-          )}
-        </div>
-      ),
-      disabled: true,
-    })),
   ];
 
   const handleTabChange = (tabId: string) => {
-    // Only allow changes to active tabs
-    if (statuses.includes(tabId as AuditStatus)) {
-      onStatusChange(tabId as AuditStatus);
-    }
+    onStatusChange(tabId as AuditStatus);
   };
 
   return (

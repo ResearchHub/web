@@ -117,7 +117,7 @@ export const WorkTabs = ({
   const getMainTabLabel = () => {
     if (contentType === 'paper') return 'Paper';
     if (contentType === 'fund') return 'Project';
-    if (contentType === 'grant') return 'Grant';
+    if (contentType === 'grant') return 'RFP';
     if (work.postType === 'QUESTION') return 'Question';
     return 'Post';
   };
