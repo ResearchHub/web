@@ -142,9 +142,13 @@ export class ReactionService {
     const commentPart = commentId ? `/comments/${commentId}` : '';
     const url = `${this.BASE_PATH}/${baseUrl}${commentPart}/flag/`;
 
-    const payload: { reason: FlagReasonKey; reason_memo?: string } = { reason };
-    if (reasonMemo) {
-      payload.reason_memo = reasonMemo;
+    const payload: { reason_choice: FlagReasonKey; reason?: FlagReasonKey; reason_memo?: string } =
+      {
+        reason_choice: reason,
+        reason,
+      };
+    if (reasonMemo && reasonMemo.trim()) {
+      payload.reason_memo = reasonMemo.trim();
     }
 
     const response = await ApiClient.post(url, payload);

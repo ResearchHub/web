@@ -255,6 +255,7 @@ export class AuditService {
       objectId: ID;
       reasonChoice: string;
       reason?: string;
+      reasonMemo?: string;
     }>;
   }): Promise<void> {
     const config = {
@@ -263,6 +264,7 @@ export class AuditService {
         object_id: flag.objectId,
         reason_choice: flag.reasonChoice,
         ...(flag.reason && { reason: flag.reason }),
+        ...(flag.reasonMemo && { reason_memo: flag.reasonMemo }),
       })),
     };
 
@@ -279,6 +281,7 @@ export class AuditService {
       objectId: ID;
       reasonChoice: string;
       reason?: string;
+      reasonMemo?: string;
     }>;
     verdictChoice: string;
     sendEmail?: boolean;
@@ -289,6 +292,7 @@ export class AuditService {
         object_id: flag.objectId,
         reason_choice: flag.reasonChoice,
         ...(flag.reason && { reason: flag.reason }),
+        ...(flag.reasonMemo && { reason_memo: flag.reasonMemo }),
       })),
       verdict: {
         verdict_choice: params.verdictChoice,
