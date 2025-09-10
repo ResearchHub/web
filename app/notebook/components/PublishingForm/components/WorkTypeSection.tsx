@@ -21,8 +21,8 @@ const articleTypes: Record<
     description: 'Get funding by sharing your research plan',
   },
   grant: {
-    title: 'Grant',
-    description: 'Create a funding opportunity',
+    title: 'RFP',
+    description: 'Create a request for proposals',
   },
 };
 

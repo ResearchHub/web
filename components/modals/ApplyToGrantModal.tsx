@@ -110,12 +110,12 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
     setSubmitting(true);
     try {
       await GrantService.applyToGrant(grantId, selectedProposal.postId);
-      toast.success('Successfully applied to grant!');
+      toast.success('Successfully applied to RFP!');
       onClose();
       onUseSelected(selectedProposal);
     } catch (error) {
-      console.error('Error applying to grant:', error);
-      toast.error('Failed to apply to grant. Please try again.');
+      console.error('Error applying to RFP:', error);
+      toast.error('Failed to apply to RFP. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -157,7 +157,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
               </button>
             )}
             <h2 className="text-lg font-medium text-gray-900">
-              {showProposalList ? 'Select Proposal' : 'Apply to Grant'}
+              {showProposalList ? 'Select Proposal' : 'Apply to RFP'}
             </h2>
           </div>
           <button
@@ -179,7 +179,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                   {/* Description */}
                   <div className="space-y-3">
                     <p className="text-base text-gray-700 font-medium leading-relaxed">
-                      Applying to grants on ResearchHub happens via proposals.
+                      Applying to RFPs on ResearchHub happens via proposals.
                     </p>
                   </div>
 
@@ -235,7 +235,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                           <p className="text-xs text-blue-800 leading-relaxed">
                             Documenting and sharing your research plan before conducting research as
                             well as specifying funding requirements. We believe open access
-                            proposals are the perfect format for grant applications.
+                            proposals are the perfect format for RFP applications.
                           </p>
                         </div>
                       </div>
