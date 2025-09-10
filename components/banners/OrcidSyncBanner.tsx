@@ -1,16 +1,27 @@
 'use client';
 
 import { useState } from 'react';
+import { useParams } from 'next/navigation';
 import { X, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faOrcid } from '@fortawesome/free-brands-svg-icons';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
+import { useUser } from '@/contexts/UserContext';
 import { handleOrcidSync } from '@/services/orcid.service';
 
 export function OrcidSyncBanner() {
+  const { user } = useUser();
+  const params = useParams<{ id: string }>();
   const { isDismissed, dismissFeature, dismissStatus } = useDismissableFeature('orcid_sync_banner');
   const [loading, setLoading] = useState(false);
+
+  // Only show banner on user's own profile
+  const routeAuthorId = params?.id?.toString();
+  const viewerAuthorId = user?.authorProfile?.id?.toString();
+  const isOwnProfile = routeAuthorId && viewerAuthorId && routeAuthorId === viewerAuthorId;
+
+  if (!isOwnProfile) return null;
 
   if (dismissStatus !== 'checked' || isDismissed) return null;
 
