@@ -2,6 +2,8 @@
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useSearchParams, usePathname, useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 import { AuthError, AuthService } from '@/services/auth.service';
 import type { User } from '@/types/user';
 import { AuthSharingService } from '@/services/auth-sharing.service';
@@ -19,6 +21,9 @@ const UserContext = createContext<UserContextType | null>(null);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
+  const search = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -88,6 +93,38 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [user, isLoading, isAnalyticsInitialized]);
+
+  // Handle ORCID sync URL parameters
+  useEffect(() => {
+    const flag = search.get('orcid_sync');
+    if (!flag) return;
+
+    if (flag === 'ok') {
+      toast.success("Sync started! We'll refresh your authorship shortly.");
+    } else if (flag === 'fail') {
+      // Check if there's a specific error message in the URL
+      const errorMessage = search.get('error');
+      if (errorMessage) {
+        // Decode the URL-encoded error message
+        const decodedError = decodeURIComponent(errorMessage);
+        toast.error(decodedError);
+      } else {
+        toast.error('ORCID sync failed.');
+      }
+    }
+
+    // Strip the orcid_sync and error params
+    const entries = Array.from(search.entries()).filter(
+      ([k]) => k !== 'orcid_sync' && k !== 'error'
+    );
+    const clean =
+      pathname +
+      (entries.length
+        ? '?' + entries.map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&')
+        : '');
+    router.replace(clean || pathname);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <UserContext.Provider value={{ user, isLoading, error, refreshUser }}>

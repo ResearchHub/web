@@ -27,7 +27,6 @@ import { Analytics } from '@vercel/analytics/react';
 import { PreferencesProvider } from '@/contexts/PreferencesContext';
 import { ReferralProvider } from '@/contexts/ReferralContext';
 import { FeatureNotifications } from '@/components/FeatureNotifications';
-import { OrcidSyncToastListener } from '@/components/OrcidSyncToastListener';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -151,7 +150,6 @@ export default async function RootLayout({
             <ToasterProvider />
           </OnchainProvider>
         </ClickProvider>
-        <OrcidSyncToastListener />
         {process.env.GA_MEASUREMENT_ID && <GoogleAnalytics gaId={process.env.GA_MEASUREMENT_ID} />}
         <Analytics />
       </body>
