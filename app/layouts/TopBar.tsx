@@ -176,7 +176,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   // Grant routes
   if (pathname.startsWith('/grant')) {
     return {
-      title: 'Grant',
+      title: 'RFP',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
