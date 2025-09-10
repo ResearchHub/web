@@ -24,8 +24,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '@/components/ui/Button';
 import { useVerification } from '@/contexts/VerificationContext';
-import { useOrcid, invalidateOrcidCache } from '@/hooks/useOrcid';
-import { toast } from 'react-hot-toast';
+import { handleOrcidSync } from '@/services/orcid.service';
 interface UserMenuProps {
   user: User;
   onViewProfile: () => void;
@@ -49,12 +48,6 @@ export default function UserMenu({
   const [internalMenuOpen, setInternalMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { openVerificationModal } = useVerification();
-  const {
-    status: orcidStatus,
-    isLoading: orcidLoading,
-    sync: orcidSync,
-    connect: orcidConnect,
-  } = useOrcid();
 
   // Use controlled or uncontrolled menu state
   const menuOpenState = isMenuOpen !== undefined ? isMenuOpen : internalMenuOpen;
@@ -86,19 +79,9 @@ export default function UserMenu({
     setMenuOpenState(false);
   };
 
-  const handleSyncAuthorship = async () => {
-    try {
-      if (orcidStatus.isConnected) {
-        await orcidSync();
-        // Invalidate cache after successful sync
-        invalidateOrcidCache();
-      } else {
-        await orcidConnect();
-        return; // navigating away
-      }
-    } finally {
-      setMenuOpenState(false);
-    }
+  const onOrcidSync = async () => {
+    const navigating = !(await handleOrcidSync());
+    if (!navigating) setMenuOpenState(false);
   };
 
   // Apply different avatar size for avatar-only mode
@@ -263,28 +246,20 @@ export default function UserMenu({
             </div>
           </div>
         )}
-        {!orcidLoading && (
-          <div
-            className="px-6 py-2 hover:bg-gray-50"
-            onClick={handleSyncAuthorship}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleSyncAuthorship();
-              }
-            }}
-            tabIndex={0}
-            role="button"
-            aria-label="Sync Authorship"
-          >
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center">
-                <RefreshCw className="h-5 w-5 mr-3 text-gray-500" />
-                <span className="text-base text-gray-700">Sync Authorship</span>
-              </div>
+        <div
+          className="px-6 py-2 hover:bg-gray-50"
+          onClick={onOrcidSync}
+          tabIndex={0}
+          role="button"
+          aria-label="Sync Authorship"
+        >
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center">
+              <RefreshCw className="h-5 w-5 mr-3 text-gray-500" />
+              <span className="text-base text-gray-700">Sync Authorship</span>
             </div>
           </div>
-        )}
+        </div>
         <div
           className="px-6 py-2 hover:bg-gray-50"
           onClick={() => AuthSharingService.signOutFromBothApps()}
@@ -448,7 +423,7 @@ export default function UserMenu({
                 </div>
               </BaseMenuItem>
             )}
-            <BaseMenuItem onClick={handleSyncAuthorship} className="w-full px-4 py-2">
+            <BaseMenuItem onClick={onOrcidSync} className="w-full px-4 py-2">
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center">
                   <RefreshCw className="h-4 w-4 mr-3 text-gray-500" />
