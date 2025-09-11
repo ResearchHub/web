@@ -2,6 +2,8 @@
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useSearchParams, usePathname, useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 import { AuthError, AuthService } from '@/services/auth.service';
 import type { User } from '@/types/user';
 import { AuthSharingService } from '@/services/auth-sharing.service';
@@ -19,6 +21,9 @@ const UserContext = createContext<UserContextType | null>(null);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
+  const search = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -88,6 +93,26 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [user, isLoading, isAnalyticsInitialized]);
+
+  // Handle ORCID OAuth redirect notifications
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const syncResult = url.searchParams.get('orcid_sync');
+    if (!syncResult) return;
+
+    const errorMessage = url.searchParams.get('error');
+
+    url.searchParams.delete('orcid_sync');
+    url.searchParams.delete('error');
+    window.history.replaceState({}, '', url.toString());
+
+    if (syncResult === 'ok') {
+      toast.success("Sync started! We'll refresh your authorship shortly.");
+    } else if (syncResult === 'fail') {
+      const message = errorMessage ? decodeURIComponent(errorMessage) : 'ORCID sync failed.';
+      toast.error(message);
+    }
+  }, []);
 
   return (
     <UserContext.Provider value={{ user, isLoading, error, refreshUser }}>
