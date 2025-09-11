@@ -73,7 +73,7 @@ export function GrantModal({ isOpen, onClose }: GrantModalProps) {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">Submit a Grant</h3>
+                    <h3 className="text-lg font-medium text-gray-900">Publish an RFP</h3>
                     <p className="mt-1 text-sm text-gray-500">
                       Fund promising research by publishing a Request for Proposals (RFP)
                     </p>
@@ -91,7 +91,7 @@ export function GrantModal({ isOpen, onClose }: GrantModalProps) {
                         onChange={(e: ChangeEvent<HTMLInputElement>) =>
                           setGrantInfo({ ...grantInfo, title: e.target.value })
                         }
-                        placeholder="Enter grant title"
+                        placeholder="Enter RFP title"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         required
                       />
@@ -119,7 +119,7 @@ export function GrantModal({ isOpen, onClose }: GrantModalProps) {
 
                     <div>
                       <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
-                        Grant Amount (RSC)
+                        Funding Amount (RSC)
                       </label>
                       <input
                         id="amount"
@@ -129,18 +129,18 @@ export function GrantModal({ isOpen, onClose }: GrantModalProps) {
                         onChange={(e: ChangeEvent<HTMLInputElement>) =>
                           setGrantInfo({ ...grantInfo, amount: Number(e.target.value) })
                         }
-                        placeholder="Enter grant amount in ResearchCoin"
+                        placeholder="Enter funding amount in ResearchCoin"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         required
                       />
                       <p className="mt-1 text-xs text-gray-500">
-                        Minimum grant amount is 10,000 RSC
+                        Minimum funding amount is 10,000 RSC
                       </p>
                     </div>
                   </div>
 
                   <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                    <h4 className="text-sm font-medium text-gray-900">Grant Process</h4>
+                    <h4 className="text-sm font-medium text-gray-900">RFP Process</h4>
                     <ul className="text-xs text-gray-600 space-y-1">
                       <li>• Applications are reviewed on a rolling basis</li>
                       <li>• Decisions are made monthly</li>
@@ -150,7 +150,7 @@ export function GrantModal({ isOpen, onClose }: GrantModalProps) {
                   </div>
 
                   <Button type="submit" className="w-full justify-center">
-                    Submit Grant
+                    Publish RFP
                   </Button>
                 </form>
               </Dialog.Panel>

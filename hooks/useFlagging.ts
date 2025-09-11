@@ -29,8 +29,14 @@ export const useFlag = (): UseFlagReturn => {
     try {
       await ReactionService.flag(params);
     } catch (err) {
-      const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
-      const errorMsg = data?.message || 'Failed to flag content';
+      const parsed = err instanceof ApiError ? JSON.parse(err.message) : {};
+      const data = parsed?.data || {};
+      const status = parsed?.status;
+      const errorMsg =
+        data?.message ||
+        data?.msg ||
+        data?.detail ||
+        (status === 409 ? 'Already flagged' : 'Failed to flag content');
       setError(errorMsg);
       throw new Error(errorMsg);
     } finally {
