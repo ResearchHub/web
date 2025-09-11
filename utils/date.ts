@@ -42,36 +42,84 @@ export function formatTimestamp(timestamp: string): string {
 }
 
 /**
- * Formats a deadline timestamp into a human-readable string
- * @param deadline ISO timestamp string
- * @returns Formatted deadline string (e.g. "Ended", "Ends today", "5 days left", etc.)
+ * Gets consistent terminology for deadline formatting
+ */
+function getTerminology() {
+  return {
+    pastTense: 'Ended',
+    presentTense: 'Ends',
+    pastToday: 'Ended today',
+    presentToday: 'Ends today',
+    presentTomorrow: 'Ends tomorrow',
+  };
+}
+
+/**
+ * Formats countdown for same-day deadlines
+ */
+function formatSameDayCountdown(
+  deadlineDate: dayjs.Dayjs,
+  now: dayjs.Dayjs,
+  terminology: ReturnType<typeof getTerminology>
+): string {
+  const diffMs = deadlineDate.diff(now);
+  if (diffMs < 0) {
+    return terminology.pastToday;
+  }
+
+  const diffHours = deadlineDate.diff(now, 'hour');
+  const diffMinutes = deadlineDate.diff(now, 'minute');
+
+  // Show countdown for same-day deadlines
+  if (diffHours === 0) {
+    return `${terminology.presentTense} in ${diffMinutes}m`;
+  }
+
+  return `${terminology.presentTense} in ${diffHours}h`;
+}
+
+/**
+ * Formats a deadline timestamp into a human-readable countdown string
+ *
+ * This function provides consistent deadline formatting across the application
+ * using unified "Ends" terminology for all deadline types.
+ *
+ * @param deadline ISO timestamp string of the deadline
+ * @returns Formatted deadline string with countdown logic:
+ *   - Under 1 hour: Shows minutes (e.g., "Ends in 30m")
+ *   - 1-23 hours: Shows hours (e.g., "Ends in 3h")
+ *   - 1 day: Shows "Ends tomorrow"
+ *   - 2-29 days: Shows "X days left"
+ *   - 30+ days: Shows full date
+ *   - Past deadline: Shows "Ended"
  */
 export function formatDeadline(deadline: string): string {
   const now = dayjs();
   const deadlineDate = dayjs(deadline);
   const diffDays = deadlineDate.diff(now, 'day');
+  const terminology = getTerminology();
 
+  // Handle past deadlines
   if (diffDays < 0) {
-    return 'Ended';
-  } else if (diffDays === 0) {
-    const diffMs = deadlineDate.diff(now);
-    const diffHours = deadlineDate.diff(now, 'hour');
-    if (diffMs < 0) {
-      return 'Ended today';
-    } else if (diffHours === 0) {
-      return 'Ends in less than an hour';
-    } else if (diffHours > 0 && diffHours < 24) {
-      return `Ends in ${diffHours} hours`;
-    } else {
-      return 'Ends today';
-    }
-  } else if (diffDays === 1) {
-    return 'Ends tomorrow';
-  } else if (diffDays < 30) {
-    return `${diffDays} days left`;
-  } else {
-    return `Ends ${formatTimestamp(deadline)}`;
+    return terminology.pastTense;
   }
+
+  // Handle same-day deadlines
+  if (diffDays === 0) {
+    return formatSameDayCountdown(deadlineDate, now, terminology);
+  }
+
+  // Handle future deadlines
+  if (diffDays === 1) {
+    return terminology.presentTomorrow;
+  }
+
+  if (diffDays < 30) {
+    return `${diffDays} days left`;
+  }
+
+  // Long-term deadlines: show full date
+  return `${terminology.presentTense} ${formatTimestamp(deadline)}`;
 }
 
 /**

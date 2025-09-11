@@ -9,6 +9,7 @@ interface GrantStatusSectionProps {
 }
 
 export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
+  // Handle missing deadline gracefully
   if (!work.note?.post?.grant?.endDate) {
     return (
       <div>
@@ -34,16 +35,23 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
         />
         <span>{isOpen ? 'Accepting Applications' : 'Closed'}</span>
       </div>
+      {/* Deadline information for open grants */}
       {isOpen && (
-        <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-          <Clock size={14} className="text-gray-500" />
-          <span>Closes {format(endDate, 'MMMM d, yyyy')}</span>
+        <div className="text-sm text-gray-600 mt-1">
+          <div className="flex items-center gap-1">
+            <Clock size={14} className="text-gray-500" />
+            <span>
+              Closes {format(endDate, 'MMMM d, yyyy')} at {format(endDate, 'h:mm a')}
+            </span>
+          </div>
         </div>
       )}
       {!isOpen && (
         <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
           <Clock size={14} className="text-gray-500" />
-          <span>Closed on {format(endDate, 'MMMM d, yyyy')}</span>
+          <span>
+            Closed on {format(endDate, 'MMMM d, yyyy')} at {format(endDate, 'h:mm a')}
+          </span>
         </div>
       )}
     </div>
