@@ -1,15 +1,13 @@
-'use client';
-
 import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   MultiSelectOption,
   SearchableMultiSelect,
 } from '@/components/ui/form/SearchableMultiSelect';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
 import { X, ChevronDown, Filter } from 'lucide-react';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { BountyService } from '@/services/bounty.service';
+import { FeedService } from '@/services/feed.service';
 import { Topic } from '@/types/topic';
 
 export interface Hub {
@@ -19,21 +17,19 @@ export interface Hub {
   color?: string;
 }
 
-interface BountyHubSelectorProps {
+interface HubsSelectorProps {
   selectedHubs: Hub[];
   onChange: (hubs: Hub[]) => void;
   error?: string | null;
-  displayCountOnly?: boolean;
-  hideSelectedItems?: boolean;
+  hubType?: 'grant' | 'needs-funding' | 'bounty';
 }
 
-export function BountyHubSelector({
+export function HubsSelector({
   selectedHubs,
   onChange,
   error,
-  displayCountOnly = false,
-  hideSelectedItems = false,
-}: BountyHubSelectorProps) {
+  hubType,
+}: Readonly<HubsSelectorProps>) {
   const [allHubs, setAllHubs] = useState<Topic[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuContentRef = useRef<HTMLDivElement>(null);
@@ -64,7 +60,15 @@ export function BountyHubSelector({
   // fetch all hubs at mount
   useEffect(() => {
     (async () => {
-      const hubs = await BountyService.getBountyHubs();
+      let hubs;
+      if (hubType === 'grant') {
+        hubs = await FeedService.getFeedHubs('grant_feed');
+        setAllHubs(hubs);
+      } else if (hubType === 'needs-funding') {
+        hubs = await FeedService.getFeedHubs('funding_feed');
+      } else {
+        hubs = await BountyService.getBountyHubs();
+      }
       setAllHubs(hubs);
     })();
   }, []);
@@ -91,7 +95,7 @@ export function BountyHubSelector({
 
   const allHubOptions = hubsToOptions(topicsToHubs(allHubs));
 
-  // Local search within allHubs
+  // Local search within all Hubs
   const filterHubs = useCallback(
     async (query: string): Promise<MultiSelectOption[]> => {
       if (!query) {
@@ -106,93 +110,71 @@ export function BountyHubSelector({
 
   const handleChange = (options: MultiSelectOption[]) => {
     onChange(optionsToHubs(options));
-    if (displayCountOnly) {
-      setMenuOpen(false);
-    }
+    setMenuOpen(false);
   };
 
-  const CustomSelectedItems = () => (
-    <div className="flex flex-wrap gap-2 mt-2">
-      {selectedHubs.map((hub) => (
-        <Badge
-          key={hub.id}
-          variant="default"
-          className="flex items-center gap-1 px-3 py-1 rounded-sm text-sm cursor-pointer hover:bg-gray-200"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onChange(selectedHubs.filter((h) => h.id !== hub.id));
-            if (displayCountOnly) {
-              setMenuOpen(false);
-            }
-          }}
-        >
-          {hub.color && (
-            <div className="h-2 w-2 rounded-sm mr-1" style={{ backgroundColor: hub.color }} />
-          )}
-          <span>{hub.name}</span>
-        </Badge>
-      ))}
-    </div>
+  const trigger = (
+    <button
+      className="flex items-center gap-2 border border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-lg px-3 py-1.5 text-sm w-full"
+      type="button"
+    >
+      <Filter className="h-4 w-4 text-gray-500" />
+      <span className="text-gray-700">Topics</span>
+      {selectedHubs.length > 0 && (
+        <span className="text-xs font-semibold text-indigo-700 bg-indigo-100 rounded-full px-1.5">
+          {selectedHubs.length}
+        </span>
+      )}
+      <ChevronDown className="h-4 w-4 text-gray-500 ml-auto" />
+    </button>
   );
 
-  if (displayCountOnly) {
-    const trigger = (
-      <button
-        className="flex items-center gap-2 border border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-lg px-3 py-1.5 text-sm w-full"
-        type="button"
-      >
-        <Filter className="h-4 w-4 text-gray-500" />
-        <span className="text-gray-700">Topics</span>
-        {selectedHubs.length > 0 && (
-          <span className="text-xs font-semibold text-indigo-700 bg-indigo-100 rounded-full px-1.5">
-            {selectedHubs.length}
-          </span>
-        )}
-        <ChevronDown className="h-4 w-4 text-gray-500 ml-auto" />
-      </button>
-    );
-
-    return (
-      <BaseMenu
-        trigger={trigger}
-        align="start"
-        sideOffset={5}
-        className="overflow-visible border-none p-0 shadow-lg !w-[300px] max-w-[90vw]"
-        open={menuOpen}
-        onOpenChange={setMenuOpen}
-      >
-        <div className="p-2 w-full" ref={menuContentRef}>
-          <SearchableMultiSelect
-            value={hubsToOptions(selectedHubs)}
-            onChange={handleChange}
-            onAsyncSearch={filterHubs}
-            options={allHubOptions}
-            placeholder="Search for topics..."
-            minSearchLength={0}
-            error={error || undefined}
-            className="w-full border-0 SearchableMultiSelect-input"
-          />
-        </div>
-      </BaseMenu>
-    );
-  }
-
   return (
-    <div className="space-y-4">
-      <div className="relative">
+    <BaseMenu
+      trigger={trigger}
+      align="start"
+      sideOffset={5}
+      className="overflow-visible border-none p-0 shadow-lg !w-[300px] max-w-[90vw]"
+      open={menuOpen}
+      onOpenChange={setMenuOpen}
+    >
+      <div className="p-2 w-full" ref={menuContentRef}>
         <SearchableMultiSelect
           value={hubsToOptions(selectedHubs)}
           onChange={handleChange}
           onAsyncSearch={filterHubs}
           options={allHubOptions}
-          label="Search topics"
           placeholder="Search for topics..."
           minSearchLength={0}
           error={error || undefined}
+          className="w-full border-0 SearchableMultiSelect-input"
         />
-        {selectedHubs.length > 0 && !hideSelectedItems && <CustomSelectedItems />}
       </div>
+    </BaseMenu>
+  );
+}
+
+export function HubsSelected({
+  selectedHubs,
+  onChange,
+}: Readonly<{
+  selectedHubs: Hub[];
+  onChange: (hubs: Hub[]) => void;
+}>) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {selectedHubs.map((hub) => (
+        <Badge key={hub.id} variant="default" className="flex items-center gap-1 pr-1 bg-gray-50">
+          <span>Topic: {hub.name}</span>
+          <button
+            type="button"
+            onClick={() => onChange(selectedHubs.filter((h) => h.id !== hub.id))}
+            className="text-gray-500 hover:text-gray-700 ml-1"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </Badge>
+      ))}
     </div>
   );
 }
