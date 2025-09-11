@@ -13,6 +13,7 @@ import { FundingCreditsTooltip } from '@/components/ui/FundingCreditsTooltip';
 import { formatCombinedBalance, formatCombinedBalanceSecondary } from '@/utils/number';
 import { WalletDefault } from '@coinbase/onchainkit/wallet';
 import { Button } from '@/components/ui/Button';
+import { Switch } from '@/components/ui/Switch';
 
 interface UserBalanceSectionProps {
   balance: {
@@ -57,14 +58,31 @@ export function UserBalanceSection({
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-gray-500 text-sm font-medium">Balance Overview</h2>
-                <select
-                  value={showUSD ? 'USD' : 'RSC'}
-                  onChange={() => toggleCurrency()}
-                  className="text-xs px-2 py-1 border border-gray-200 rounded-md bg-white text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
-                >
-                  <option value="RSC">RSC</option>
-                  <option value="USD">USD</option>
-                </select>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    className={`text-xs font-medium transition-colors ${showUSD ? 'text-gray-400' : 'text-gray-700'}`}
+                    onClick={() => {
+                      if (showUSD) toggleCurrency();
+                    }}
+                  >
+                    RSC
+                  </button>
+                  <Switch
+                    checked={showUSD}
+                    onCheckedChange={() => toggleCurrency()}
+                    variant="currency"
+                  />
+                  <button
+                    type="button"
+                    className={`text-xs font-medium transition-colors ${showUSD ? 'text-gray-700' : 'text-gray-400'}`}
+                    onClick={() => {
+                      if (!showUSD) toggleCurrency();
+                    }}
+                  >
+                    USD
+                  </button>
+                </div>
               </div>
 
               {!isBalanceReady ? (
