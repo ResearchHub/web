@@ -150,29 +150,24 @@ export const LeaderboardOverview = () => {
           )}
         </div>
 
-        {/* Name */}
+        {/* Name + Verified */}
         <div className="flex-grow min-w-0">
-          {authorId ? (
-            <AuthorTooltip authorId={authorId}>
-              <div className="flex items-center gap-1 min-w-0">
-                <span className="text-sm font-medium text-gray-900 block break-words truncate">
+          <div className="flex items-center gap-1 min-w-0">
+            {authorId ? (
+              <AuthorTooltip authorId={authorId}>
+                <span className="text-sm font-medium text-gray-900 block truncate">
                   {item.authorProfile.fullName}
                 </span>
-                {(item.authorProfile.isVerified || item.authorProfile.user?.isVerified) && (
-                  <VerifiedBadge size="xs" showTooltip={true} />
-                )}
-              </div>
-            </AuthorTooltip>
-          ) : (
-            <div className="flex items-center gap-1 min-w-0">
-              <span className="text-sm font-medium text-gray-900 block break-words truncate">
+              </AuthorTooltip>
+            ) : (
+              <span className="text-sm font-medium text-gray-900 block truncate">
                 {item.authorProfile.fullName}
               </span>
-              {(item.authorProfile.isVerified || item.authorProfile.user?.isVerified) && (
-                <VerifiedBadge size="xs" showTooltip={true} />
-              )}
-            </div>
-          )}
+            )}
+            {(item.authorProfile?.isVerified || item.authorProfile?.user?.isVerified) && (
+              <VerifiedBadge size="xs" showTooltip />
+            )}
+          </div>
         </div>
 
         {/* RSC Badge */}

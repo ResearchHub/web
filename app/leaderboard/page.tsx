@@ -513,6 +513,8 @@ function LeaderboardPageContent() {
               {reviewers.map((reviewer, index) => {
                 const rank = index + 1;
                 const authorId = reviewer.authorProfile?.id;
+                const isVerified =
+                  reviewer.authorProfile?.isVerified || reviewer.authorProfile?.user?.isVerified;
                 return (
                   <div
                     key={reviewer.id}
@@ -541,29 +543,20 @@ function LeaderboardPageContent() {
                         />
                       )}
                       <div className="flex flex-col min-w-0">
-                        {authorId ? (
-                          <AuthorTooltip authorId={authorId}>
-                            <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 min-w-0">
+                          {authorId ? (
+                            <AuthorTooltip authorId={authorId}>
                               <span className="text-base font-medium text-gray-900 truncate">
                                 {reviewer.authorProfile.fullName}
                               </span>
-                              {(reviewer.authorProfile.isVerified ||
-                                reviewer.authorProfile.user?.isVerified) && (
-                                <VerifiedBadge size="sm" showTooltip={true} />
-                              )}
-                            </div>
-                          </AuthorTooltip>
-                        ) : (
-                          <div className="flex items-center gap-1">
+                            </AuthorTooltip>
+                          ) : (
                             <span className="text-base font-medium text-gray-900 truncate">
                               {reviewer.authorProfile.fullName}
                             </span>
-                            {(reviewer.authorProfile.isVerified ||
-                              reviewer.authorProfile.user?.isVerified) && (
-                              <VerifiedBadge size="sm" showTooltip={true} />
-                            )}
-                          </div>
-                        )}
+                          )}
+                          {isVerified && <VerifiedBadge size="sm" showTooltip />}
+                        </div>
                         {reviewer.authorProfile.headline && (
                           <span className="text-sm text-gray-500 line-clamp-2">
                             {reviewer.authorProfile.headline}
@@ -610,6 +603,8 @@ function LeaderboardPageContent() {
             {funders.map((funder, index) => {
               const rank = index + 1;
               const authorId = funder.authorProfile?.id;
+              const isVerified =
+                funder.authorProfile?.isVerified || funder.authorProfile?.user?.isVerified;
               return (
                 <div
                   key={funder.id}
@@ -637,29 +632,20 @@ function LeaderboardPageContent() {
                       />
                     )}
                     <div className="flex flex-col min-w-0">
-                      {authorId ? (
-                        <AuthorTooltip authorId={authorId}>
-                          <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 min-w-0">
+                        {authorId ? (
+                          <AuthorTooltip authorId={authorId}>
                             <span className="text-base font-medium text-gray-900 truncate">
                               {funder.authorProfile.fullName}
                             </span>
-                            {(funder.authorProfile.isVerified ||
-                              funder.authorProfile.user?.isVerified) && (
-                              <VerifiedBadge size="sm" showTooltip={true} />
-                            )}
-                          </div>
-                        </AuthorTooltip>
-                      ) : (
-                        <div className="flex items-center gap-1">
+                          </AuthorTooltip>
+                        ) : (
                           <span className="text-base font-medium text-gray-900 truncate">
                             {funder.authorProfile.fullName}
                           </span>
-                          {(funder.authorProfile.isVerified ||
-                            funder.authorProfile.user?.isVerified) && (
-                            <VerifiedBadge size="sm" showTooltip={true} />
-                          )}
-                        </div>
-                      )}
+                        )}
+                        {isVerified && <VerifiedBadge size="sm" showTooltip />}
+                      </div>
                       {funder.authorProfile.headline && (
                         <span className="text-sm text-gray-500 line-clamp-2">
                           {funder.authorProfile.headline}
