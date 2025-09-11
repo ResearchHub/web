@@ -13,6 +13,7 @@ import { formatRSC } from '@/utils/number';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { getLastWeekRange, formatDate } from '@/lib/dateUtils';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 
 const LeaderboardListSkeleton = () => (
   <div className="space-y-3 animate-pulse">
@@ -153,14 +154,24 @@ export const LeaderboardOverview = () => {
         <div className="flex-grow min-w-0">
           {authorId ? (
             <AuthorTooltip authorId={authorId}>
-              <span className="text-sm font-medium text-gray-900 block break-words">
-                {item.authorProfile.fullName}
-              </span>
+              <div className="flex items-center gap-1 min-w-0">
+                <span className="text-sm font-medium text-gray-900 block break-words truncate">
+                  {item.authorProfile.fullName}
+                </span>
+                {(item.authorProfile.isVerified || item.authorProfile.user?.isVerified) && (
+                  <VerifiedBadge size="xs" showTooltip={true} />
+                )}
+              </div>
             </AuthorTooltip>
           ) : (
-            <span className="text-sm font-medium text-gray-900 block break-words">
-              {item.authorProfile.fullName}
-            </span>
+            <div className="flex items-center gap-1 min-w-0">
+              <span className="text-sm font-medium text-gray-900 block break-words truncate">
+                {item.authorProfile.fullName}
+              </span>
+              {(item.authorProfile.isVerified || item.authorProfile.user?.isVerified) && (
+                <VerifiedBadge size="xs" showTooltip={true} />
+              )}
+            </div>
           )}
         </div>
 

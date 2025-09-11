@@ -35,6 +35,7 @@ import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { faMedal, faRibbon, faStar } from '@fortawesome/pro-solid-svg-icons';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 
 // Skeleton for the list items
 const LeaderboardListSkeleton = () => (
@@ -542,14 +543,26 @@ function LeaderboardPageContent() {
                       <div className="flex flex-col min-w-0">
                         {authorId ? (
                           <AuthorTooltip authorId={authorId}>
+                            <div className="flex items-center gap-1">
+                              <span className="text-base font-medium text-gray-900 truncate">
+                                {reviewer.authorProfile.fullName}
+                              </span>
+                              {(reviewer.authorProfile.isVerified ||
+                                reviewer.authorProfile.user?.isVerified) && (
+                                <VerifiedBadge size="sm" showTooltip={true} />
+                              )}
+                            </div>
+                          </AuthorTooltip>
+                        ) : (
+                          <div className="flex items-center gap-1">
                             <span className="text-base font-medium text-gray-900 truncate">
                               {reviewer.authorProfile.fullName}
                             </span>
-                          </AuthorTooltip>
-                        ) : (
-                          <span className="text-base font-medium text-gray-900 truncate">
-                            {reviewer.authorProfile.fullName}
-                          </span>
+                            {(reviewer.authorProfile.isVerified ||
+                              reviewer.authorProfile.user?.isVerified) && (
+                              <VerifiedBadge size="sm" showTooltip={true} />
+                            )}
+                          </div>
                         )}
                         {reviewer.authorProfile.headline && (
                           <span className="text-sm text-gray-500 line-clamp-2">
@@ -626,14 +639,26 @@ function LeaderboardPageContent() {
                     <div className="flex flex-col min-w-0">
                       {authorId ? (
                         <AuthorTooltip authorId={authorId}>
+                          <div className="flex items-center gap-1">
+                            <span className="text-base font-medium text-gray-900 truncate">
+                              {funder.authorProfile.fullName}
+                            </span>
+                            {(funder.authorProfile.isVerified ||
+                              funder.authorProfile.user?.isVerified) && (
+                              <VerifiedBadge size="sm" showTooltip={true} />
+                            )}
+                          </div>
+                        </AuthorTooltip>
+                      ) : (
+                        <div className="flex items-center gap-1">
                           <span className="text-base font-medium text-gray-900 truncate">
                             {funder.authorProfile.fullName}
                           </span>
-                        </AuthorTooltip>
-                      ) : (
-                        <span className="text-base font-medium text-gray-900 truncate">
-                          {funder.authorProfile.fullName}
-                        </span>
+                          {(funder.authorProfile.isVerified ||
+                            funder.authorProfile.user?.isVerified) && (
+                            <VerifiedBadge size="sm" showTooltip={true} />
+                          )}
+                        </div>
                       )}
                       {funder.authorProfile.headline && (
                         <span className="text-sm text-gray-500 line-clamp-2">
