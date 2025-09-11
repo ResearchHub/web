@@ -94,32 +94,24 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }, [user, isLoading, isAnalyticsInitialized]);
 
-  // Handle ORCID sync URL parameters
+  // Handle ORCID OAuth redirect notifications
   useEffect(() => {
-    const flag = search.get('orcid_sync');
-    if (!flag) return;
+    const url = new URL(window.location.href);
+    const syncResult = url.searchParams.get('orcid_sync');
+    if (!syncResult) return;
 
-    if (flag === 'ok') {
+    const errorMessage = url.searchParams.get('error');
+
+    url.searchParams.delete('orcid_sync');
+    url.searchParams.delete('error');
+    window.history.replaceState({}, '', url.toString());
+
+    if (syncResult === 'ok') {
       toast.success("Sync started! We'll refresh your authorship shortly.");
-    } else if (flag === 'fail') {
-      const errorMessage = search.get('error');
-      if (errorMessage) {
-        const decodedError = decodeURIComponent(errorMessage);
-        toast.error(decodedError);
-      } else {
-        toast.error('ORCID sync failed.');
-      }
+    } else if (syncResult === 'fail') {
+      const message = errorMessage ? decodeURIComponent(errorMessage) : 'ORCID sync failed.';
+      toast.error(message);
     }
-
-    const entries = Array.from(search.entries()).filter(
-      ([k]) => k !== 'orcid_sync' && k !== 'error'
-    );
-    const clean =
-      pathname +
-      (entries.length
-        ? '?' + entries.map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&')
-        : '');
-    router.replace(clean || pathname);
   }, []);
 
   return (
