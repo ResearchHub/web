@@ -39,6 +39,7 @@ interface FlaggedContentApiResponse {
   };
   reason: string;
   reason_choice: string;
+  reason_memo?: string;
   content_type: {
     id: ID;
     name: string;
@@ -75,6 +76,7 @@ export interface FlaggedContent {
   };
   reason: string;
   reasonChoice: string;
+  reasonMemo?: string;
   contentType: {
     id: ID;
     name: string;
@@ -148,6 +150,7 @@ const transformFlaggedContent = (apiItem: FlaggedContentApiResponse): FlaggedCon
     : undefined,
   reason: apiItem.reason,
   reasonChoice: apiItem.reason_choice,
+  reasonMemo: apiItem.reason_memo,
   contentType: {
     id: apiItem.content_type.id,
     name: apiItem.content_type.name,
@@ -252,6 +255,7 @@ export class AuditService {
       objectId: ID;
       reasonChoice: string;
       reason?: string;
+      reasonMemo?: string;
     }>;
   }): Promise<void> {
     const config = {
@@ -260,6 +264,7 @@ export class AuditService {
         object_id: flag.objectId,
         reason_choice: flag.reasonChoice,
         ...(flag.reason && { reason: flag.reason }),
+        ...(flag.reasonMemo && { reason_memo: flag.reasonMemo }),
       })),
     };
 
@@ -276,6 +281,7 @@ export class AuditService {
       objectId: ID;
       reasonChoice: string;
       reason?: string;
+      reasonMemo?: string;
     }>;
     verdictChoice: string;
     sendEmail?: boolean;
@@ -286,6 +292,7 @@ export class AuditService {
         object_id: flag.objectId,
         reason_choice: flag.reasonChoice,
         ...(flag.reason && { reason: flag.reason }),
+        ...(flag.reasonMemo && { reason_memo: flag.reasonMemo }),
       })),
       verdict: {
         verdict_choice: params.verdictChoice,
